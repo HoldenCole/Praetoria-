@@ -25,7 +25,8 @@ public static class ScenarioLoader
                 Era = ConditionParser.OptStr(root, "era", "fractured_stars"),
                 Houses = ParseHouses(root),
                 Characters = ParseCharacters(root),
-                Relationships = ParseRelationships(root)
+                Relationships = ParseRelationships(root),
+                Holdings = ParseHoldings(root)
             };
         }
         catch (JsonException ex)
@@ -51,8 +52,37 @@ public static class ScenarioLoader
                 {
                     Id = ConditionParser.Str(h, "id"),
                     Name = ConditionParser.OptStr(h, "name", ""),
-                    AccentColor = ConditionParser.OptStr(h, "accent", "#888888")
+                    AccentColor = ConditionParser.OptStr(h, "accent", "#888888"),
+                    Treasury = HoldingCatalogLoader.ParseResources(h, "treasury")
                 });
+        return list;
+    }
+
+    private static IReadOnlyList<Holding> ParseHoldings(JsonElement root)
+    {
+        var list = new List<Holding>();
+        if (root.TryGetProperty("holdings", out var arr) && arr.ValueKind == JsonValueKind.Array)
+            foreach (var h in arr.EnumerateArray())
+                list.Add(new Holding
+                {
+                    Id = ConditionParser.Str(h, "id"),
+                    OwnerId = ConditionParser.Str(h, "owner"),
+                    Name = ConditionParser.OptStr(h, "name", ""),
+                    Specialization = ConditionParser.Str(h, "specialization"),
+                    SystemId = ConditionParser.OptStr(h, "system", ""),
+                    Population = ConditionParser.Int(h, "population", 0),
+                    Unrest = ConditionParser.Int(h, "unrest", 0),
+                    Buildings = StrList(h, "buildings")
+                });
+        return list;
+    }
+
+    private static List<string> StrList(JsonElement el, string name)
+    {
+        var list = new List<string>();
+        if (el.TryGetProperty(name, out var arr) && arr.ValueKind == JsonValueKind.Array)
+            foreach (var s in arr.EnumerateArray())
+                if (s.ValueKind == JsonValueKind.String) list.Add(s.GetString()!);
         return list;
     }
 

@@ -16,6 +16,11 @@ public sealed class House
 
     public List<string> Members { get; set; } = new();
 
+    /// <summary>The house's banked resources (GDD §17 — the House treasury of the §8 three-treasury
+    /// model; the Imperial/personal split arrives with offices later). Holdings feed it each turn;
+    /// builds, bribes and upkeep draw it down. Distinct from per-turn action pools (§9).</summary>
+    public Resources Treasury { get; set; } = new();
+
     /// <summary>Per-sphere influence (GDD §7). Empty until Milestone 5; present so saves are forward-compatible.</summary>
     public Dictionary<string, int> SphereInfluence { get; set; } = new();
 }

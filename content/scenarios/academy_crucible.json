@@ -4,10 +4,24 @@
   "era": "fractured_stars",
 
   "houses": [
-    { "id": "vega",   "name": "House Vega",   "accent": "#7A1F2B" },
-    { "id": "corwin", "name": "House Corwin", "accent": "#1F3A7A" },
-    { "id": "drake",  "name": "House Drake",  "accent": "#2B6E3F" },
-    { "id": "sato",   "name": "House Sato",   "accent": "#6E5A1F" }
+    { "id": "vega",   "name": "House Vega",   "accent": "#7A1F2B",
+      "treasury": { "credits": 10, "materials": 8, "manpower": 5, "influence": 3 } },
+    { "id": "corwin", "name": "House Corwin", "accent": "#1F3A7A",
+      "treasury": { "credits": 12, "materials": 6, "manpower": 4, "influence": 4 } },
+    { "id": "drake",  "name": "House Drake",  "accent": "#2B6E3F",
+      "treasury": { "credits": 8,  "materials": 5, "manpower": 6, "influence": 2 } },
+    { "id": "sato",   "name": "House Sato",   "accent": "#6E5A1F",
+      "treasury": { "credits": 6,  "materials": 4, "manpower": 3, "influence": 2 } }
+  ],
+
+  // One barony each: the dynasty's domain endures even while its heir is at the Academy (GDD §17
+  // "start = one barony = one modest holding"). NPC houses are abstracted (GDD §3) — a single
+  // holding stands in for their realm; only House Vega's is the player's to manage in depth.
+  "holdings": [
+    { "id": "vega_barony",   "owner": "vega",   "name": "Tessaly Reach",  "specialization": "agri_world",  "population": 20 },
+    { "id": "corwin_forge",  "owner": "corwin", "name": "Anvil of Corwin", "specialization": "forge_world", "population": 14 },
+    { "id": "drake_port",    "owner": "drake",  "name": "Drake Crossing",  "specialization": "trade_hub",   "population": 12 },
+    { "id": "sato_holdfast",  "owner": "sato",  "name": "Sato Holdfast",   "specialization": "fortress",    "population": 0 }
   ],
 
   "characters": [

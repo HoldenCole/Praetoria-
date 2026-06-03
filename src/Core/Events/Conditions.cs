@@ -184,6 +184,27 @@ public sealed class EventFiredCondition : ICondition
     public bool Evaluate(EvalContext ctx) => ctx.World.HasFlag(EventFlags.Fired(EventId)) == Value;
 }
 
+/// <summary>House-treasury resource compare (GDD §17). Reads the house of <c>role</c> (default
+/// "self"). JSON: { "type": "resource", "resource": "credits", "op": "lt", "value": 0, "role": "self" }.
+/// Lets the Steward surface domain decisions ("Credits dry — raise taxes / sell a holding?").</summary>
+public sealed class ResourceCondition : ICondition
+{
+    public string Role { get; }
+    public string ResourceKey { get; }
+    public CompareOp Op { get; }
+    public int Value { get; }
+    public ResourceCondition(string role, string resourceKey, CompareOp op, int value)
+    {
+        Role = role; ResourceKey = resourceKey; Op = op; Value = value;
+    }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c == null || !ctx.World.Houses.TryGetValue(c.HouseId, out var house)) return false;
+        return Comparison.Apply(Op, house.Treasury.Get(ResourceKey), Value);
+    }
+}
+
 /// <summary>Always-true / always-false literal. JSON: { "type": "const", "value": true }.</summary>
 public sealed class ConstCondition : ICondition
 {

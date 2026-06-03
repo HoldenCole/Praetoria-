@@ -45,6 +45,24 @@ public static class Renderer
     public static void RenderPools(ActionPools pools) =>
         Console.WriteLine($"   Pools — influence {pools.Influence} · treasury {pools.Treasury} · agents {pools.Agents}");
 
+    /// <summary>The five-resource treasury (GDD §17) for a house — the domain economy at a glance.</summary>
+    public static void RenderTreasury(House house)
+    {
+        var t = house.Treasury;
+        Console.WriteLine($"   {house.Name} treasury — credits {t.Credits} · materials {t.Materials} · " +
+                          $"manpower {t.Manpower} · influence {t.Influence} · exotics {t.Exotics}");
+    }
+
+    /// <summary>The holdings a house owns, with specialization, population/unrest, and built slots.</summary>
+    public static void RenderHoldings(World world, string houseId)
+    {
+        foreach (var h in world.HoldingsOf(houseId).OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            string built = h.Buildings.Count == 0 ? "—" : string.Join(", ", h.Buildings);
+            Console.WriteLine($"     · {h.Name} [{h.Specialization}]  pop {h.Population} · unrest {h.Unrest}  buildings: {built}");
+        }
+    }
+
     public static void RenderCommandLog(IReadOnlyList<string> log, int from)
     {
         if (from >= log.Count) return;

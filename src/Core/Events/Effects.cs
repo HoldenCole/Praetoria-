@@ -134,6 +134,27 @@ public sealed class AdvanceCareerEffect : IEffect
     }
 }
 
+/// <summary>Move a house-treasury resource (GDD §17). Targets the house of <c>role</c> (default
+/// "self"). JSON: { "type": "adjustResource", "resource": "credits", "delta": -2, "role": "self" }.
+/// Non-credit resources clamp at zero; Credits may go negative (insolvency drives consequences).</summary>
+public sealed class AdjustResourceEffect : IEffect
+{
+    public string Role { get; }
+    public string ResourceKey { get; }
+    public int Delta { get; }
+    public AdjustResourceEffect(string role, string resourceKey, int delta)
+    {
+        Role = role; ResourceKey = resourceKey; Delta = delta;
+    }
+    public void Apply(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c == null || !ctx.World.Houses.TryGetValue(c.HouseId, out var house)) return;
+        house.Treasury.Add(ResourceKey, Delta);
+        if (ResourceKey != Resource.Credits) house.Treasury.ClampNonCredit();
+    }
+}
+
 /// <summary>Write a line to the history log (GDD §15 L1). JSON: { "type": "log", "text": "..." } — supports {role.name} tokens.</summary>
 public sealed class LogEffect : IEffect
 {

@@ -33,7 +33,9 @@ public static class ContentLoader
                 foreach (var t in LoadTextFile(file))
                     texts[t.Id] = t;
 
-        return new ContentDatabase(events, texts);
+        var holdings = HoldingCatalogLoader.LoadFromDirectory(contentRoot);
+
+        return new ContentDatabase(events, texts, holdings);
     }
 
     private static IEnumerable<string> EnumerateJson(string dir) =>

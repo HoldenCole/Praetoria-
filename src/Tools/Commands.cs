@@ -1,4 +1,5 @@
 using Praetoria.Core;
+using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.Events;
 using Praetoria.Core.Systems;
@@ -36,6 +37,12 @@ internal static class Commands
             var briefing = tc.BeginTurn();           // Briefing phase
             Renderer.RenderStatus(world);
             Renderer.RenderPools(tc.PlayerPools);
+            var playerHouse = world.House(world.Protagonist!.HouseId);
+            if (playerHouse != null && world.HoldingsOf(playerHouse.Id).Any())
+            {
+                Renderer.RenderTreasury(playerHouse);
+                Renderer.RenderHoldings(world, playerHouse.Id);
+            }
 
             foreach (var item in briefing)           // Action phase
             {
@@ -94,6 +101,56 @@ internal static class Commands
 
         Console.WriteLine($"\nDeterministic run complete. {tc.Executor.Log.Count} commands executed; " +
                           $"final RNG state {world.RngState}.");
+        return 0;
+    }
+
+    /// <summary>
+    /// Demonstrates the Milestone-4 domain economy headlessly (GDD §17): a house's treasury accrues
+    /// from its holdings each turn, the player invests in a building through the command bus, and the
+    /// new yield compounds. Deterministic — same seed, same ledger. Also shows the insolvency→unrest
+    /// feedback if the treasury is run into the red.
+    /// </summary>
+    public static int Economy(Options o)
+    {
+        var (tc, content, world) = NewTurn(o);
+        var house = world.House(world.Protagonist!.HouseId);
+        if (house == null || !world.HoldingsOf(house.Id).Any())
+        {
+            Console.Error.WriteLine($"Scenario '{o.Scenario}' has no holdings for the protagonist's house.");
+            return 1;
+        }
+
+        Console.WriteLine($"=== ECONOMY DEMO — {house.Name} (seed {o.Seed}) ===");
+        Console.WriteLine("Treasury accrues from holdings each turn; we invest once it can afford a building.\n");
+
+        bool built = false;
+        for (int t = 0; t < Math.Max(o.Turns, 6); t++)
+        {
+            tc.BeginTurn();                         // accrual happens here
+            Renderer.RenderTreasury(house);
+            Renderer.RenderHoldings(world, house.Id);
+
+            // Steward's hand: as soon as we can afford the first fitting, unbuilt building, build it.
+            if (!built)
+            {
+                foreach (var holding in world.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
+                    foreach (var b in content.Holdings.Buildings.OrderBy(b => b.Id, StringComparer.Ordinal))
+                    {
+                        var cmd = new BuildCommand(world.ProtagonistId, holding.Id, b.Id, content.Holdings);
+                        if (tc.Executor.TryExecute(cmd, new CommandContext(world, WorldBuilder.RngFor(world))))
+                        {
+                            Console.WriteLine($"   ↳ built {b.Name} at {holding.Name}");
+                            built = true;
+                            break;
+                        }
+                    }
+            }
+
+            tc.EndTurn();
+            Console.WriteLine();
+        }
+
+        Console.WriteLine($"Deterministic ledger complete. Final credits: {house.Treasury.Credits}.");
         return 0;
     }
 

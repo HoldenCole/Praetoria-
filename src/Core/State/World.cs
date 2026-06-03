@@ -23,6 +23,10 @@ public sealed class World
     public Dictionary<string, House> Houses { get; set; } = new();
     public List<Relationship> Relationships { get; set; } = new();
 
+    /// <summary>Every controlled place, keyed by holding id (GDD §17). The domain economy reads
+    /// these each turn to feed each owner's treasury. Empty in scenarios with no domain layer.</summary>
+    public Dictionary<string, Holding> Holdings { get; set; } = new();
+
     /// <summary>Per-actor action economy (GDD §9), keyed by character id. The protagonist holds a
     /// full set; NPC houses hold abstracted budgets (GDD §3). Refilled each turn.</summary>
     public Dictionary<string, ActionPools> Pools { get; set; } = new();
@@ -44,6 +48,24 @@ public sealed class World
         Characters.TryGetValue(ProtagonistId, out var c) ? c : null;
 
     public Character? Char(string id) => Characters.TryGetValue(id, out var c) ? c : null;
+
+    public House? House(string id) => Houses.TryGetValue(id, out var h) ? h : null;
+
+    public Holding? Holding(string id) => Holdings.TryGetValue(id, out var h) ? h : null;
+
+    /// <summary>The house treasury for a character's house, or null if either is missing.</summary>
+    public Resources? TreasuryOf(string characterId)
+    {
+        var c = Char(characterId);
+        return c != null && Houses.TryGetValue(c.HouseId, out var h) ? h.Treasury : null;
+    }
+
+    /// <summary>All holdings owned by a house, in stable id order (deterministic iteration).</summary>
+    public IEnumerable<Holding> HoldingsOf(string houseId)
+    {
+        foreach (var h in Holdings.Values)
+            if (h.OwnerId == houseId) yield return h;
+    }
 
     public bool HasFlag(string flag) => WorldFlags.Contains(flag);
 

@@ -35,6 +35,14 @@ public static class WorldBuilder
         foreach (var r in scenario.Relationships)
             world.Relationships.Add(r);
 
+        foreach (var holding in scenario.Holdings)
+        {
+            if (!world.Houses.ContainsKey(holding.OwnerId))
+                throw new ContentException(
+                    $"Holding '{holding.Id}' is owned by unknown house '{holding.OwnerId}'.");
+            world.Holdings[holding.Id] = holding;
+        }
+
         if (world.Protagonist == null)
             throw new ContentException($"Scenario protagonist '{scenario.ProtagonistId}' is not among its characters.");
 

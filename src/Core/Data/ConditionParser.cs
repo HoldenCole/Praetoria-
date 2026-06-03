@@ -54,6 +54,9 @@ public static class ConditionParser
                 return new TurnCondition(Op(el), Int(el, "value", 0));
             case "counter":
                 return new CounterCondition(Str(el, "key"), Op(el), Int(el, "value", 0));
+            case "resource":
+                return new ResourceCondition(
+                    OptStr(el, "role", "self"), Str(el, "resource"), Op(el), Int(el, "value", 0));
             case "eventFired":
                 return new EventFiredCondition(Str(el, "event"), Bool(el, "value", true));
 

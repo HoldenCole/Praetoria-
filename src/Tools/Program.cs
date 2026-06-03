@@ -19,6 +19,7 @@ try
         "validate" => Commands.Validate(),
         "demo"     => Commands.Demo(opts),
         "turn"     => Commands.Turn(opts),
+        "economy"  => Commands.Economy(opts),
         "play"     => Commands.Play(opts),
         "help" or "--help" or "-h" => Help(),
         _ => Unknown(command)
@@ -52,6 +53,7 @@ static int Help()
     Console.WriteLine("praetoria <command> [options]");
     Console.WriteLine("  play [--seed N] [--turns N] [--auto] [--scenario id]");
     Console.WriteLine("  turn [--seed N] [--turns N]   full Briefing→Action→Resolve cycle with pools + NPCs");
+    Console.WriteLine("  economy [--seed N] [--turns N] domain economy: holdings accrue, invest in buildings");
     Console.WriteLine("  demo [--seed N]               cascade demonstration");
     Console.WriteLine("  validate");
     return 0;

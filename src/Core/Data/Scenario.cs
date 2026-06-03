@@ -15,4 +15,7 @@ public sealed class Scenario
     public IReadOnlyList<House> Houses { get; init; } = Array.Empty<House>();
     public IReadOnlyList<Character> Characters { get; init; } = Array.Empty<Character>();
     public IReadOnlyList<Relationship> Relationships { get; init; } = Array.Empty<Relationship>();
+
+    /// <summary>Starting holdings (GDD §17 — "one barony = one modest holding"). Owned by houses.</summary>
+    public IReadOnlyList<Holding> Holdings { get; init; } = Array.Empty<Holding>();
 }

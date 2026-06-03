@@ -33,6 +33,7 @@ public sealed class TurnController
 
     private readonly IRng _rng;
     private readonly NpcAi _npcAi = new();
+    private readonly Economy? _economy;
     private readonly int _briefingBudget;
     private readonly List<BriefingItem> _briefing = new();
 
@@ -43,6 +44,7 @@ public sealed class TurnController
         World = world;
         _rng = WorldBuilder.RngFor(world);
         Engine = new EventEngine(content, _rng, director);
+        _economy = content.Holdings.IsEmpty ? null : new Economy(content.Holdings);
         _briefingBudget = briefingBudget;
     }
 
@@ -57,6 +59,7 @@ public sealed class TurnController
     {
         World.Turn++;
         foreach (var pools in World.Pools.Values) pools.Regenerate();
+        _economy?.Accrue(World);   // RNG-free, so determinism is preserved (GDD §17)
 
         Phase = TurnPhase.Briefing;
         _briefing.Clear();

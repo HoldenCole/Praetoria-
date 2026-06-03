@@ -12,12 +12,19 @@ public sealed class ContentDatabase
     public IReadOnlyList<EventDef> Events { get; }
     public IReadOnlyDictionary<string, EventText> Texts { get; }
 
+    /// <summary>The domain-economy catalog (GDD §17). Empty for scenarios with no domain layer.</summary>
+    public HoldingCatalog Holdings { get; }
+
     private readonly Dictionary<string, EventDef> _eventsById;
 
-    public ContentDatabase(IReadOnlyList<EventDef> events, IReadOnlyDictionary<string, EventText> texts)
+    public ContentDatabase(
+        IReadOnlyList<EventDef> events,
+        IReadOnlyDictionary<string, EventText> texts,
+        HoldingCatalog? holdings = null)
     {
         Events = events;
         Texts = texts;
+        Holdings = holdings ?? HoldingCatalog.Empty;
         _eventsById = new Dictionary<string, EventDef>();
         foreach (var e in events) _eventsById[e.Id] = e;
     }
