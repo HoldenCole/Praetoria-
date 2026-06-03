@@ -25,15 +25,19 @@ the reactive UI, modding, and clean saves.
 Praetoria.sln          Core + Tools + Tests (everything that builds headless)
 ```
 
-## Status — Milestone 1 complete: "The Engine Breathes"
+## Status — Milestones 1–2 complete (headless core)
 
-The headless **Academy Crucible** runs. Implemented: the State model, the data-driven Event
-Engine (binder → eligibility → Director → consequence applier), JSON loaders with a strict
-**logic/text split**, a deterministic seeded RNG, a console harness, and the first event pool.
-See [`docs/MILESTONE_1_NOTES.md`](docs/MILESTONE_1_NOTES.md).
+The headless **Academy Crucible** runs with a full turn loop. Implemented: the State model, the
+data-driven Event Engine (binder → eligibility → Director → consequence applier), JSON loaders with
+a strict **logic/text split**, a deterministic seeded RNG, action pools, a command bus through
+which both the player and NPC houses act, the formal **Briefing → Action → Resolve** turn structure,
+a console harness, and the first event pool.
 
-The Milestone-1 acceptance property is proven: *a choice in one event arms state that makes a
-different, unscripted event eligible later* (the barracks insult → the duel).
+- **Milestone 1 — "The Engine Breathes":** [`docs/MILESTONE_1_NOTES.md`](docs/MILESTONE_1_NOTES.md).
+  Proven: *a choice in one event arms state that makes a different, unscripted event eligible later*
+  (the barracks insult → the duel).
+- **Milestone 2 — Turn Loop, Pools & Commands:** [`docs/MILESTONE_2_NOTES.md`](docs/MILESTONE_2_NOTES.md).
+  Proven: *a full turn cycle with pool spending and NPC actions resolves deterministically from a seed.*
 
 ## Quickstart (needs the .NET 8 SDK)
 
@@ -44,7 +48,10 @@ dotnet run --project src/Tools -- validate
 # Watch the cascade: 'the_duel' is impossible until the barracks insult arms a feud flag
 dotnet run --project src/Tools -- demo --seed 1
 
-# Play the Academy as text (interactive; --auto picks first available choice each scene)
+# Watch a full turn cycle: Briefing → Action (spend pools) → Resolve (NPC houses act)
+dotnet run --project src/Tools -- turn --seed 1
+
+# Play the Academy as text (interactive; --auto picks first affordable choice each report)
 dotnet run --project src/Tools -- play --seed 1 --turns 8
 
 # Run the test suite

@@ -23,6 +23,10 @@ public sealed class World
     public Dictionary<string, House> Houses { get; set; } = new();
     public List<Relationship> Relationships { get; set; } = new();
 
+    /// <summary>Per-actor action economy (GDD §9), keyed by character id. The protagonist holds a
+    /// full set; NPC houses hold abstracted budgets (GDD §3). Refilled each turn.</summary>
+    public Dictionary<string, ActionPools> Pools { get; set; } = new();
+
     /// <summary>World-scope boolean flags / armed gates (GDD §16). Cleared flags simply aren't present.</summary>
     public HashSet<string> WorldFlags { get; set; } = new();
 
@@ -42,6 +46,14 @@ public sealed class World
     public Character? Char(string id) => Characters.TryGetValue(id, out var c) ? c : null;
 
     public bool HasFlag(string flag) => WorldFlags.Contains(flag);
+
+    /// <summary>Get-or-create the action pools for an actor (empty pools if none were seeded).</summary>
+    public ActionPools PoolsFor(string actorId)
+    {
+        if (!Pools.TryGetValue(actorId, out var p))
+            Pools[actorId] = p = new ActionPools { Cap = 0 };
+        return p;
+    }
 
     public int Counter(string key) => WorldCounters.TryGetValue(key, out var v) ? v : 0;
 

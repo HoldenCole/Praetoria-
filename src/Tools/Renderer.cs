@@ -42,6 +42,17 @@ public static class Renderer
                           $"· rank {p.CareerRank} · stress {p.Stress}");
     }
 
+    public static void RenderPools(ActionPools pools) =>
+        Console.WriteLine($"   Pools — influence {pools.Influence} · treasury {pools.Treasury} · agents {pools.Agents}");
+
+    public static void RenderCommandLog(IReadOnlyList<string> log, int from)
+    {
+        if (from >= log.Count) return;
+        Console.WriteLine("   · actions:");
+        for (int i = from; i < log.Count; i++)
+            Console.WriteLine($"       {log[i]}");
+    }
+
     public static void RenderEpilogueHints(World world)
     {
         Console.WriteLine();

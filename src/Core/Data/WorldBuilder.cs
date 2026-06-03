@@ -25,6 +25,11 @@ public static class WorldBuilder
             world.Characters[c.Id] = c;
             if (world.Houses.TryGetValue(c.HouseId, out var house) && !house.Members.Contains(c.Id))
                 house.Members.Add(c.Id);
+
+            // The player gets a full action economy; NPC houses act on abstracted budgets (GDD §3, §9).
+            world.Pools[c.Id] = c.Id == scenario.ProtagonistId
+                ? ActionPools.ForPlayer()
+                : ActionPools.ForNpc();
         }
 
         foreach (var r in scenario.Relationships)

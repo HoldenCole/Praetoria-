@@ -18,6 +18,7 @@ try
     {
         "validate" => Commands.Validate(),
         "demo"     => Commands.Demo(opts),
+        "turn"     => Commands.Turn(opts),
         "play"     => Commands.Play(opts),
         "help" or "--help" or "-h" => Help(),
         _ => Unknown(command)
@@ -50,7 +51,8 @@ static int Help()
 {
     Console.WriteLine("praetoria <command> [options]");
     Console.WriteLine("  play [--seed N] [--turns N] [--auto] [--scenario id]");
-    Console.WriteLine("  demo [--seed N]");
+    Console.WriteLine("  turn [--seed N] [--turns N]   full Briefing→Action→Resolve cycle with pools + NPCs");
+    Console.WriteLine("  demo [--seed N]               cascade demonstration");
     Console.WriteLine("  validate");
     return 0;
 }

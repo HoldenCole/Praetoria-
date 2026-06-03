@@ -59,6 +59,25 @@ public sealed class EventEngine
         return picked is { } p ? new FiredEvent(p.def, p.binding) : null;
     }
 
+    /// <summary>
+    /// Director-select up to <paramref name="count"/> distinct events for a turn's Briefing
+    /// (GDD §9). Each pick is removed (by id) before the next, so a turn surfaces a spread of
+    /// reports rather than one event — the "briefing feed" the Court UI will render later.
+    /// </summary>
+    public List<FiredEvent> SelectBriefing(World world, int count)
+    {
+        var pool = GatherEligible(world);
+        var result = new List<FiredEvent>();
+        while (result.Count < count && pool.Count > 0)
+        {
+            var picked = _director.Select(pool, world, Rng);
+            if (picked is not { } p) break;
+            pool.RemoveAll(x => x.def.Id == p.def.Id);
+            result.Add(new FiredEvent(p.def, p.binding));
+        }
+        return result;
+    }
+
     /// <summary>The choices of a fired event, each flagged with whether its requirements are met (trait/skill/rank gates).</summary>
     public List<OfferedChoice> OfferChoices(FiredEvent fired, World world)
     {
@@ -67,6 +86,16 @@ public sealed class EventEngine
         foreach (var choice in fired.Def.Choices)
             list.Add(new OfferedChoice(choice, Binder.AllHold(choice.Requirements, ctx)));
         return list;
+    }
+
+    /// <summary>True if the choice exists and its requirements (trait/skill/rank gates) hold.
+    /// Non-throwing — the command layer uses this to decide availability before spending pools.</summary>
+    public bool IsChoiceAvailable(FiredEvent fired, World world, string choiceId)
+    {
+        var choice = fired.Def.Choice(choiceId);
+        if (choice == null) return false;
+        var ctx = new EvalContext(world, fired.Binding, Rng);
+        return Binder.AllHold(choice.Requirements, ctx);
     }
 
     /// <summary>

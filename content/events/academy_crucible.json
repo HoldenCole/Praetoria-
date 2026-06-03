@@ -12,6 +12,7 @@
       "choices": [
         {
           "id": "study_hard",
+          "cost": { "agents": 1 },
           "effects": [
             { "type": "adjustSkill", "role": "self", "skill": "tactics", "delta": 1 },
             { "type": "adjustStress", "role": "self", "delta": 5 },
@@ -45,6 +46,7 @@
       "choices": [
         {
           "id": "mock",
+          "cost": { "influence": 1 },
           "effects": [
             { "type": "setCharFlag", "role": "rival", "flag": "feud", "value": true },
             { "type": "setWorldFlag", "flag": "feud_declared", "value": true },
@@ -139,6 +141,7 @@
       "choices": [
         {
           "id": "swear",
+          "cost": { "influence": 2 },
           "effects": [
             { "type": "addBond", "from": "self", "to": "friend", "bond": "sworn", "strength": 60 },
             { "type": "addBond", "from": "friend", "to": "self", "bond": "sworn", "strength": 60 },
@@ -183,6 +186,7 @@
       "choices": [
         {
           "id": "lead_from_the_front",
+          "cost": { "agents": 2 },
           "requires": [ { "type": "skill", "role": "self", "skill": "tactics", "op": "gte", "value": 2 } ],
           "effects": [
             { "type": "advanceCareer", "role": "self" },

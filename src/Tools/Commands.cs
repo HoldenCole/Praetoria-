@@ -1,6 +1,7 @@
 using Praetoria.Core;
 using Praetoria.Core.Data;
 using Praetoria.Core.Events;
+using Praetoria.Core.Systems;
 
 namespace Praetoria.Tools;
 
@@ -22,36 +23,77 @@ internal static class Commands
 
     public static int Play(Options o)
     {
-        var session = NewSession(o);
+        var (tc, content, world) = NewTurn(o);
         bool interactive = !o.Auto && !Console.IsInputRedirected;
 
         Console.WriteLine($"=== Praetoria — {o.Scenario} (seed {o.Seed}) ===");
-        Console.WriteLine(interactive ? "Interactive play. Enter a choice number each scene.\n"
-                                       : "Auto play (deterministic; first available choice each scene).\n");
+        Console.WriteLine("Turn structure: Briefing → Action (spend pools) → Resolve (NPCs act).");
+        Console.WriteLine(interactive ? "Enter a choice number, or 0/blank to skip a report.\n"
+                                       : "Auto play (deterministic; first affordable choice each report).\n");
 
         for (int t = 0; t < o.Turns; t++)
         {
-            session.AdvanceTurn();
-            Renderer.RenderStatus(session.World);
+            var briefing = tc.BeginTurn();           // Briefing phase
+            Renderer.RenderStatus(world);
+            Renderer.RenderPools(tc.PlayerPools);
 
-            var fired = session.NextEvent();
-            if (fired == null)
+            foreach (var item in briefing)           // Action phase
             {
-                Console.WriteLine("  (a quiet turn — nothing stirs)");
-                continue;
+                var choices = tc.Offer(item);
+                Renderer.RenderEvent(item.Fired, choices, content.Text(item.Fired.Def.Id), world);
+
+                string? choiceId = interactive ? PromptChoiceOrSkip(choices) : FirstAffordable(choices);
+                if (choiceId != null) tc.Resolve(item, choiceId);
+                else Console.WriteLine("   (skipped)");
             }
 
-            var choices = session.Offer(fired);
-            var text = session.Content.Text(fired.Def.Id);
-            Renderer.RenderEvent(fired, choices, text, session.World);
-
-            string choiceId = interactive
-                ? PromptChoice(choices)
-                : FirstAvailable(choices);
-            session.Resolve(fired, choiceId);
+            int npcFrom = tc.Executor.Log.Count;     // separate NPC actions from the player's
+            tc.EndTurn();                            // Resolve phase (NPC actions)
+            Renderer.RenderCommandLog(tc.Executor.Log, npcFrom);
         }
 
-        Renderer.RenderEpilogueHints(session.World);
+        Renderer.RenderEpilogueHints(world);
+        return 0;
+    }
+
+    /// <summary>
+    /// Demonstrates a full Milestone-2 turn cycle deterministically: the player spends pools on
+    /// briefing items, NPC houses act through the same command bus in Resolve, and the run is
+    /// summarised by its command log. Re-running with the same seed reproduces it exactly.
+    /// </summary>
+    public static int Turn(Options o)
+    {
+        var (tc, content, world) = NewTurn(o);
+        Console.WriteLine($"=== TURN-CYCLE DEMO (seed {o.Seed}) ===\n");
+
+        for (int t = 0; t < Math.Max(o.Turns, 5); t++)
+        {
+            var briefing = tc.BeginTurn();
+            Console.WriteLine($"T{world.Turn}  BRIEFING — {briefing.Count} report(s); " +
+                              $"pools I{tc.PlayerPools.Influence}/T{tc.PlayerPools.Treasury}/A{tc.PlayerPools.Agents}");
+
+            foreach (var item in briefing)
+            {
+                var choiceId = FirstAffordable(tc.Offer(item));
+                if (choiceId != null)
+                {
+                    bool ok = tc.Resolve(item, choiceId);
+                    Console.WriteLine($"     ACTION  {item.Fired.Def.Id} → {choiceId}  ({(ok ? "spent" : "failed")})");
+                }
+                else
+                {
+                    Console.WriteLine($"     ACTION  {item.Fired.Def.Id} → (unaffordable, skipped)");
+                }
+            }
+
+            int npcFrom = tc.Executor.Log.Count;     // everything after this is NPC action
+            tc.EndTurn();
+            for (int i = npcFrom; i < tc.Executor.Log.Count; i++)
+                Console.WriteLine($"     RESOLVE {tc.Executor.Log[i]}");
+        }
+
+        Console.WriteLine($"\nDeterministic run complete. {tc.Executor.Log.Count} commands executed; " +
+                          $"final RNG state {world.RngState}.");
         return 0;
     }
 
@@ -123,6 +165,34 @@ internal static class Commands
         var scenario = ScenarioLoader.LoadFromContent(contentRoot, o.Scenario);
         var world = WorldBuilder.FromScenario(scenario, o.Seed);
         return new GameSession(world, content);
+    }
+
+    private static (TurnController tc, ContentDatabase content, Praetoria.Core.State.World world) NewTurn(Options o)
+    {
+        var contentRoot = ContentLocator.FindContentDir();
+        var content = ContentLoader.LoadFromDirectory(contentRoot);
+        var scenario = ScenarioLoader.LoadFromContent(contentRoot, o.Scenario);
+        var world = WorldBuilder.FromScenario(scenario, o.Seed);
+        return (new TurnController(world, content), content, world);
+    }
+
+    private static string? FirstAffordable(IReadOnlyList<OfferedChoice> choices)
+    {
+        foreach (var c in choices) if (c.Available) return c.Choice.Id;
+        return null;
+    }
+
+    private static string? PromptChoiceOrSkip(IReadOnlyList<OfferedChoice> choices)
+    {
+        while (true)
+        {
+            Console.Write("  > ");
+            var line = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(line) || line.Trim() == "0") return null;
+            if (int.TryParse(line, out var n) && n >= 1 && n <= choices.Count && choices[n - 1].Available)
+                return choices[n - 1].Choice.Id;
+            Console.WriteLine("  (enter a valid, affordable choice number, or 0 to skip)");
+        }
     }
 
     private static ContentDatabase LoadContent() =>
