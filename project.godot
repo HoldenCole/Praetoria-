@@ -1,0 +1,18 @@
+; Praetoria — Godot 4 project file.
+;
+; NOTE (Milestone 1): the game's simulation runs entirely headless from /src/Tools today.
+; This Godot project + /src/Game/Praetoria.Game.csproj are the Milestone-3 presentation entry
+; point. They reference the SAME plain-C# Core. The Game project is intentionally NOT part of
+; Praetoria.sln so the headless Core/Tools/Tests build never requires the Godot .NET SDK.
+
+config_version=5
+
+[application]
+
+config/name="Praetoria"
+run/main_scene="res://src/Game/Bootstrap.tscn"
+config/features=PackedStringArray("4.3", "C#", "Forward Plus")
+
+[dotnet]
+
+project/assembly_name="Praetoria.Game"

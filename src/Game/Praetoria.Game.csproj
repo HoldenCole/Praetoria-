@@ -1,0 +1,21 @@
+<Project Sdk="Godot.NET.Sdk/4.3.0">
+
+  <!--
+    The Godot presentation + input layer (BuildSpec §2 /src/Game). Staged for Milestone 3.
+    It references the headless Core directly — Godot reads from / sends commands to Core, never
+    the reverse (Pillar 1). This project is deliberately NOT added to Praetoria.sln; Godot manages
+    its own solution, and keeping it out means `dotnet build Praetoria.sln` stays Godot-free.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Praetoria.Game</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Praetoria.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,67 @@
+{
+  "//": "Prose for the Academy Crucible. Keyed to event/choice ids in /content/events. {role.field} tokens are substituted against the live binding at render time (logic/text split, GDD §15).",
+
+  "texts": [
+    {
+      "id": "first_formation",
+      "title": "First Formation",
+      "body": "Dawn over the Naval Academy. The cohort stands at attention on the frost-rimed parade deck — the heirs of half a dozen houses, each measuring the others. The drill-master's voice cracks across the silence. The next years will be made of mornings like this.",
+      "choices": {
+        "study_hard": "Drill past exhaustion. Be the best, whatever it costs.",
+        "size_up_the_cohort": "Watch the others. Learn who they are before they learn who you are."
+      }
+    },
+    {
+      "id": "barracks_confrontation",
+      "title": "Words in the Barracks",
+      "body": "After lights-out, {rival.name} of {rival.house} holds court in the barracks, voice loud with the easy contempt of the high-born. The room waits to see whether you'll swallow it.",
+      "choices": {
+        "mock": "Cut {rival.name} down with a word the whole barracks will repeat for years.",
+        "extend_hand": "Let it go — and offer {rival.name} your hand instead."
+      }
+    },
+    {
+      "id": "the_duel",
+      "title": "The Challenge",
+      "body": "{rival.name} is waiting at the foot of the training-floor stairs, two practice blades in hand and half the cohort at their back. The feud between you has a price now, and {rival.name} means to collect it in front of everyone.",
+      "choices": {
+        "fight": "Take a blade. Settle it the old way.",
+        "back_down": "Refuse. Let them call it what they will."
+      }
+    },
+    {
+      "id": "friendly_overture",
+      "title": "The Long Watch",
+      "body": "The night roster pairs you with {friend.name} for the dead-hours watch on the observation ring. Out here, with the cohort asleep and the cold stars wheeling, rank means little and a real conversation is possible.",
+      "choices": {
+        "share_the_watch": "Share the watch, and the truth, with {friend.name}."
+      }
+    },
+    {
+      "id": "sworn_oath",
+      "title": "The Cadets' Oath",
+      "body": "{friend.name} finds you in the chapel-hall beneath the founders' banners. \"Blood made us nothing to each other,\" they say. \"Let's choose what blood didn't.\" The old cadets' oath is on offer — a bond chosen, not inherited.",
+      "choices": {
+        "swear": "Clasp arms and swear. {friend.name} is yours, and you theirs.",
+        "decline_for_now": "Not yet. Some oaths should not be sworn lightly."
+      }
+    },
+    {
+      "id": "quiet_evening",
+      "title": "A Quiet Evening",
+      "body": "A rare still evening. The mess is warm, the drills are done, and for an hour the Academy feels almost like a home.",
+      "choices": {
+        "rest": "Rest. Let the weight off your shoulders for a night."
+      }
+    },
+    {
+      "id": "final_trial",
+      "title": "The Final Trial",
+      "body": "The graduation exercise: a live command problem in the simulator pits, watched by the commandant and every house's observers. Pass it well and you leave commissioned and noticed. Pass it poorly and you leave merely commissioned.",
+      "choices": {
+        "lead_from_the_front": "Take command. Make the bold call and own it.",
+        "play_it_safe": "Run the safe solution. Clear the bar and no more."
+      }
+    }
+  ]
+}

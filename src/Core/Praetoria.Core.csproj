@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Praetoria.Core</RootNamespace>
+    <AssemblyName>Praetoria.Core</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!--
+    PILLAR 1 (BuildSpec §1): this assembly has NO dependency on Godot.
+    It compiles and runs headless. Only System.* (in-box) is referenced so the
+    whole simulation can be exercised from /src/Tools and /tests without the engine.
+  -->
+
+</Project>

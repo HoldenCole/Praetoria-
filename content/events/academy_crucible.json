@@ -1,0 +1,204 @@
+{
+  "//": "ACADEMY CRUCIBLE — Milestone 1 event pool (logic only; prose lives in /content/text).",
+  "//cascade": "barracks_confrontation/mock arms a 'feud' flag -> the_duel (impossible before) becomes eligible. friendly_overture builds disposition -> sworn_oath becomes eligible. Two unscripted chains.",
+
+  "events": [
+    {
+      "id": "first_formation",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": false,
+      "when": [ { "type": "turn", "op": "gte", "value": 1 } ],
+      "choices": [
+        {
+          "id": "study_hard",
+          "effects": [
+            { "type": "adjustSkill", "role": "self", "skill": "tactics", "delta": 1 },
+            { "type": "adjustStress", "role": "self", "delta": 5 },
+            { "type": "log", "text": "{self.name} drilled past lights-out." }
+          ]
+        },
+        {
+          "id": "size_up_the_cohort",
+          "effects": [
+            { "type": "adjustSkill", "role": "self", "skill": "charisma", "delta": 1 },
+            { "type": "log", "text": "{self.name} took the measure of the cohort." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "barracks_confrontation",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "when": [
+        { "type": "turn", "op": "gte", "value": 1 },
+        { "type": "eventFired", "event": "first_formation", "value": true }
+      ],
+      "roles": [
+        { "name": "rival", "when": [
+          { "type": "relationship", "from": "self", "to": "rival", "op": "lte", "value": 0 }
+        ] }
+      ],
+      "choices": [
+        {
+          "id": "mock",
+          "effects": [
+            { "type": "setCharFlag", "role": "rival", "flag": "feud", "value": true },
+            { "type": "setWorldFlag", "flag": "feud_declared", "value": true },
+            { "type": "adjustRelationship", "from": "rival", "to": "self", "delta": -30 },
+            { "type": "adjustRelationship", "from": "self", "to": "rival", "delta": -15 },
+            { "type": "log", "text": "{self.name} humiliated {rival.name} before the cohort. A feud is born." }
+          ]
+        },
+        {
+          "id": "extend_hand",
+          "effects": [
+            { "type": "adjustRelationship", "from": "self", "to": "rival", "delta": 20 },
+            { "type": "adjustRelationship", "from": "rival", "to": "self", "delta": 20 },
+            { "type": "log", "text": "{self.name} offered {rival.name} a hand instead of an insult." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_duel",
+      "tier": "setpiece",
+      "weight": 8,
+      "repeatable": false,
+      "when": [ { "type": "turn", "op": "gte", "value": 2 } ],
+      "roles": [
+        { "name": "rival", "when": [
+          { "type": "charFlag", "role": "rival", "flag": "feud", "value": true }
+        ] }
+      ],
+      "choices": [
+        {
+          "id": "fight",
+          "requires": [ { "type": "skill", "role": "self", "skill": "discipline", "op": "gte", "value": 1 } ],
+          "effects": [
+            { "type": "setCharFlag", "role": "rival", "flag": "feud", "value": false },
+            { "type": "setWorldFlag", "flag": "feud_declared", "value": false },
+            { "type": "adjustSkill", "role": "self", "skill": "discipline", "delta": 1 },
+            { "type": "adjustRelationship", "from": "rival", "to": "self", "delta": 25 },
+            { "type": "adjustStress", "role": "self", "delta": 10 },
+            { "type": "log", "text": "{self.name} answered {rival.name}'s challenge on the training floor. Honor satisfied; grudging respect earned." }
+          ]
+        },
+        {
+          "id": "back_down",
+          "effects": [
+            { "type": "setCharFlag", "role": "self", "flag": "humiliated", "value": true },
+            { "type": "adjustStress", "role": "self", "delta": 20 },
+            { "type": "adjustRelationship", "from": "rival", "to": "self", "delta": -10 },
+            { "type": "log", "text": "{self.name} walked away from {rival.name}'s challenge. The cohort noticed." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "friendly_overture",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "when": [ { "type": "turn", "op": "gte", "value": 1 } ],
+      "roles": [
+        { "name": "friend", "when": [
+          { "type": "relationship", "from": "self", "to": "friend", "op": "gte", "value": 1 },
+          { "type": "bond", "from": "self", "to": "friend", "bond": "sworn", "present": false }
+        ] }
+      ],
+      "choices": [
+        {
+          "id": "share_the_watch",
+          "effects": [
+            { "type": "adjustRelationship", "from": "self", "to": "friend", "delta": 15 },
+            { "type": "adjustRelationship", "from": "friend", "to": "self", "delta": 15 },
+            { "type": "log", "text": "{self.name} stood the long watch beside {friend.name}." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "sworn_oath",
+      "tier": "setpiece",
+      "weight": 7,
+      "repeatable": false,
+      "when": [ { "type": "turn", "op": "gte", "value": 2 } ],
+      "roles": [
+        { "name": "friend", "when": [
+          { "type": "relationship", "from": "self", "to": "friend", "op": "gte", "value": 20 },
+          { "type": "bond", "from": "self", "to": "friend", "bond": "sworn", "present": false }
+        ] }
+      ],
+      "choices": [
+        {
+          "id": "swear",
+          "effects": [
+            { "type": "addBond", "from": "self", "to": "friend", "bond": "sworn", "strength": 60 },
+            { "type": "addBond", "from": "friend", "to": "self", "bond": "sworn", "strength": 60 },
+            { "type": "adjustRelationship", "from": "self", "to": "friend", "delta": 20 },
+            { "type": "log", "text": "{self.name} and {friend.name} swore the cadets' oath. A bond not of blood, but chosen." }
+          ]
+        },
+        {
+          "id": "decline_for_now",
+          "effects": [
+            { "type": "log", "text": "{self.name} let the moment pass unsworn." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "quiet_evening",
+      "tier": "ambient",
+      "weight": 1,
+      "repeatable": true,
+      "when": [ { "type": "turn", "op": "gte", "value": 1 } ],
+      "choices": [
+        {
+          "id": "rest",
+          "effects": [
+            { "type": "adjustStress", "role": "self", "delta": -5 }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "final_trial",
+      "tier": "setpiece",
+      "weight": 6,
+      "repeatable": false,
+      "when": [
+        { "type": "turn", "op": "gte", "value": 4 },
+        { "type": "eventFired", "event": "first_formation", "value": true }
+      ],
+      "choices": [
+        {
+          "id": "lead_from_the_front",
+          "requires": [ { "type": "skill", "role": "self", "skill": "tactics", "op": "gte", "value": 2 } ],
+          "effects": [
+            { "type": "advanceCareer", "role": "self" },
+            { "type": "addTrait", "role": "self", "trait": "Cool-Headed", "kind": "aptitude" },
+            { "type": "setWorldFlag", "flag": "academy_graduated", "value": true },
+            { "type": "log", "text": "{self.name} passed the final trial at the front of the cohort. Commissioned." }
+          ]
+        },
+        {
+          "id": "play_it_safe",
+          "effects": [
+            { "type": "setWorldFlag", "flag": "academy_graduated", "value": true },
+            { "type": "log", "text": "{self.name} cleared the final trial without distinction, but cleared it." }
+          ]
+        }
+      ]
+    }
+  ]
+}

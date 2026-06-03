@@ -1,0 +1,21 @@
+# .NET
+bin/
+obj/
+*.user
+artifacts/
+
+# Godot 4 (.NET)
+.godot/
+.mono/
+data_*/
+*.translation
+export_presets.cfg
+
+# IDE
+.vs/
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

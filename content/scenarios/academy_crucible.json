@@ -1,0 +1,50 @@
+{
+  "id": "academy_crucible",
+  "protagonist": "vega_marcus",
+  "era": "fractured_stars",
+
+  "houses": [
+    { "id": "vega",   "name": "House Vega",   "accent": "#7A1F2B" },
+    { "id": "corwin", "name": "House Corwin", "accent": "#1F3A7A" },
+    { "id": "drake",  "name": "House Drake",  "accent": "#2B6E3F" },
+    { "id": "sato",   "name": "House Sato",   "accent": "#6E5A1F" }
+  ],
+
+  "characters": [
+    {
+      "id": "vega_marcus", "name": "Marcus Vega", "house": "vega", "age": 17,
+      "careerTrack": "military", "careerRank": 0,
+      "nature": ["Proud"], "aptitude": ["Strategist"],
+      "skills": { "tactics": 1, "discipline": 1, "charisma": 1 },
+      "ambition": "command_a_fleet"
+    },
+    {
+      "id": "corwin_lucan", "name": "Lucan Corwin", "house": "corwin", "age": 18,
+      "careerTrack": "military", "careerRank": 1,
+      "nature": ["Arrogant"], "aptitude": ["Duelist"],
+      "skills": { "tactics": 2, "discipline": 2, "charisma": 2 },
+      "ambition": "outshine_all_rivals"
+    },
+    {
+      "id": "drake_sela", "name": "Sela Drake", "house": "drake", "age": 17,
+      "careerTrack": "military", "careerRank": 0,
+      "nature": ["Honorable"], "aptitude": ["Diplomat"],
+      "skills": { "tactics": 1, "discipline": 1, "charisma": 2 },
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "sato_ren", "name": "Ren Sato", "house": "sato", "age": 18,
+      "careerTrack": "military", "careerRank": 0,
+      "nature": ["Ambitious"], "aptitude": ["Quartermaster"],
+      "skills": { "tactics": 1, "discipline": 2, "charisma": 1 },
+      "ambition": "restore_house_fortunes"
+    }
+  ],
+
+  "relationships": [
+    { "from": "vega_marcus", "to": "corwin_lucan", "disposition": -5 },
+    { "from": "corwin_lucan", "to": "vega_marcus", "disposition": -10 },
+    { "from": "vega_marcus", "to": "drake_sela", "disposition": 5 },
+    { "from": "drake_sela", "to": "vega_marcus", "disposition": 5 }
+  ]
+}

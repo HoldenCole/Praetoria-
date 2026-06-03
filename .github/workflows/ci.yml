@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, "claude/**" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    name: Build · Validate · Test (headless Core)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # Only the headless solution — Core/Tools/Tests. The Godot /src/Game project is
+      # intentionally excluded (BuildSpec Milestone-1 rule: the core builds without Godot).
+      - name: Restore
+        run: dotnet restore Praetoria.sln
+
+      - name: Build
+        run: dotnet build Praetoria.sln --no-restore -c Release
+
+      - name: Validate content
+        run: dotnet run --project src/Tools -c Release --no-build -- validate
+
+      - name: Test
+        run: dotnet test Praetoria.sln --no-build -c Release --verbosity normal
