@@ -10,7 +10,8 @@ USAGE:
     python3 validate_praetoria.py                # validates split files under ./content/
     python3 validate_praetoria.py bundle.json    # validates a single merged bundle
 
-Exit code 0 = clean, 1 = errors. Run after every batch.
+Both modes tolerate JSONC (// and /* */ comments, trailing commas) — the same dialect the
+engine's loader accepts. Exit code 0 = clean, 1 = errors. Run after every batch.
 """
 import json, re, sys, glob, os
 
@@ -18,30 +19,74 @@ COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","sk
 EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","log"}
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
 RES={"credits","materials","manpower","influence","exotics"}; BONDS={"none","blood","sworn"}; ERAS={"fractured_stars","imperium"}
-# pre-existing catalog ids from the guide (authors must not redefine)
+
+# === §8 LOCKED CONTROLLED VOCABULARIES (canonical bible — see docs/PRAETORIA_VOCAB.md) ===
+NATURE={"Ambitious","Arrogant","Cruel","Honorable","Just","Loyal","Proud","Ruthless","Vengeful"}
+APTITUDE={"Administrator","Brilliant","Diplomat","Duelist","Greedy","Orator","Paranoid","Quartermaster","Schemer","Strategist","Tactician"}
+SKILLS={"administration","charisma","diplomacy","discipline","economics","engineering","gunnery","intrigue","law","leadership","logistics","oratory","tactics"}
+AMBITIONS={"amass_a_fortune","command_a_fleet","earn_a_command","master_the_senate","outshine_all_rivals","restore_house_fortunes","seize_the_throne","win_a_great_love"}
+TRACKS={"military","stewardship","law"}
+# pre-existing catalog ids the guide ships (a bundle of NEW content must not redefine them; in
+# split mode they are loaded as part of the corpus, so the guard is bundle-only — see validate_holdings)
 EXIST_SPECS={"agri_world","forge_world","trade_hub","fortress","research_station"}
 EXIST_BUILDS={"power_plant","mine","farm_complex","market"}
 
+# True when validating a single merged bundle (arg given); False when scanning ./content/.
+BUNDLE = len(sys.argv) > 1
+
 errors=[]; warns=[]
+
+def _read_jsonc(path):
+    """Parse JSON that may carry // and /* */ comments and trailing commas (string-aware, so a
+    "//" used as an object KEY or inside a value is preserved)."""
+    s=open(path,encoding="utf-8").read()
+    out=[]; i=0; n=len(s); instr=False; esc=False
+    while i<n:
+        c=s[i]
+        if instr:
+            out.append(c)
+            if esc: esc=False
+            elif c=="\\": esc=True
+            elif c=='"': instr=False
+            i+=1; continue
+        if c=='"': instr=True; out.append(c); i+=1; continue
+        if c=="/" and i+1<n and s[i+1]=="/":
+            while i<n and s[i]!="\n": i+=1
+            continue
+        if c=="/" and i+1<n and s[i+1]=="*":
+            i+=2
+            while i+1<n and not (s[i]=="*" and s[i+1]=="/"): i+=1
+            i+=2; continue
+        out.append(c); i+=1
+    t="".join(out)
+    t=re.sub(r",(\s*[}\]])", r"\1", t)   # drop trailing commas
+    return json.loads(t)
 
 def load_corpus():
     """Returns (events, texts{by id}, specs[], builds[], scenarios[])."""
-    if len(sys.argv)>1:
-        b=json.load(open(sys.argv[1])).get("praetoria_content_bundle",{})
+    if BUNDLE:
+        b=_read_jsonc(sys.argv[1]).get("praetoria_content_bundle",{})
         return (b.get("events",[]), {t["id"]:t for t in b.get("texts",[])},
                 b.get("specializations",[]), b.get("buildings",[]), b.get("scenarios",[]))
     ev=[]; tx={}; sp=[]; bd=[]; sc=[]
-    for f in glob.glob("content/events/*.json"): ev+=json.load(open(f)).get("events",[])
+    for f in glob.glob("content/events/*.json"): ev+=_read_jsonc(f).get("events",[])
     for f in glob.glob("content/text/*.json"):
-        for t in json.load(open(f)).get("texts",[]): tx[t["id"]]=t
+        for t in _read_jsonc(f).get("texts",[]): tx[t["id"]]=t
     for f in glob.glob("content/holdings/*.json"):
-        d=json.load(open(f)); sp+=d.get("specializations",[]); bd+=d.get("buildings",[])
-    for f in glob.glob("content/scenarios/*.json"): sc.append(json.load(open(f)))
+        d=_read_jsonc(f); sp+=d.get("specializations",[]); bd+=d.get("buildings",[])
+    for f in glob.glob("content/scenarios/*.json"): sc.append(_read_jsonc(f))
     return ev,tx,sp,bd,sc
 
 def walk(conds,ctx,roles):
     for c in conds:
         if c.get("type") not in COND: errors.append(f"[{ctx}] bad condition '{c.get('type')}'")
+        if c.get("type")=="trait":
+            tr=c.get("trait"); kind=c.get("kind","any")
+            if kind=="nature" and tr not in NATURE: errors.append(f"[{ctx}] unlocked nature trait '{tr}'")
+            if kind=="aptitude" and tr not in APTITUDE: errors.append(f"[{ctx}] unlocked aptitude trait '{tr}'")
+            if kind=="any" and tr not in NATURE|APTITUDE: errors.append(f"[{ctx}] unknown trait '{tr}'")
+        if c.get("type")=="skill" and c.get("skill") not in SKILLS:
+            errors.append(f"[{ctx}] unlocked skill '{c.get('skill')}'")
         if "of" in c:
             v=c["of"]; walk(v if isinstance(v,list) else [v],ctx,roles)
         for rf in ("role","from","to"):
@@ -82,6 +127,12 @@ def validate_events(ev,tx):
                 for rf in ("role","from","to"):
                     if rf in ef and ef[rf] not in roles: errors.append(f"[{eid}/{cid}] effect unbound role '{ef[rf]}'")
                 if ef["type"]=="adjustResource" and ef.get("resource") not in RES: errors.append(f"[{eid}/{cid}] bad resource")
+                if ef["type"]=="addTrait":
+                    tr=ef.get("trait"); kind=ef.get("kind","aptitude")
+                    pool=NATURE if kind=="nature" else APTITUDE
+                    if tr not in pool: errors.append(f"[{eid}/{cid}] addTrait unlocked {kind} '{tr}'")
+                if ef["type"]=="adjustSkill" and ef.get("skill") not in SKILLS:
+                    errors.append(f"[{eid}/{cid}] adjustSkill unlocked skill '{ef.get('skill')}'")
                 if ef["type"]=="log": check_tokens(ef.get("text",""),roles,f"{eid}/{cid}/log")
                 if ef["type"] in ("setCharFlag","setWorldFlag"): written.add(ef["flag"])
                 if "//" in ef: errors.append(f"[{eid}/{cid}] stray '//' key inside effect")
@@ -104,13 +155,14 @@ def validate_events(ev,tx):
 def validate_holdings(sp,bd):
     specs={}; builds={}
     for s in sp:
-        if s["id"] in specs or s["id"] in EXIST_SPECS: errors.append(f"dup spec id '{s['id']}'")
+        # In split mode the base catalog is part of the corpus; only flag a TRUE duplicate.
+        if s["id"] in specs or (BUNDLE and s["id"] in EXIST_SPECS): errors.append(f"dup spec id '{s['id']}'")
         specs[s["id"]]=s
         for grp in ("yield","upkeep"):
             for k in s.get(grp,{}):
                 if k not in RES: errors.append(f"spec {s['id']}.{grp} bad resource '{k}'")
     for b in bd:
-        if b["id"] in builds or b["id"] in EXIST_BUILDS: errors.append(f"dup building id '{b['id']}'")
+        if b["id"] in builds or (BUNDLE and b["id"] in EXIST_BUILDS): errors.append(f"dup building id '{b['id']}'")
         builds[b["id"]]=b
         for grp in ("cost","yield","upkeep"):
             for k in b.get(grp,{}):
@@ -134,14 +186,22 @@ def validate_scenarios(sc,allspecs):
                 if k not in RES: errors.append(f"[{sid}] house {h['id']} bad treasury key '{k}'")
         for c in d.get("characters",[]):
             if c["house"] not in houses: errors.append(f"[{sid}] char {c['id']} unknown house")
+            if c.get("careerTrack") not in TRACKS: errors.append(f"[{sid}] char {c['id']} unlocked track '{c.get('careerTrack')}'")
+            if c.get("ambition") not in AMBITIONS: errors.append(f"[{sid}] char {c['id']} unlocked ambition '{c.get('ambition')}'")
             vocab["track"].add(c.get("careerTrack")); vocab["ambition"].add(c.get("ambition"))
-            for t in c.get("nature",[]): vocab["nature"].add(t)
-            for t in c.get("aptitude",[]): vocab["aptitude"].add(t)
-            for sk in c.get("skills",{}): vocab["skills"].add(sk)
+            for t in c.get("nature",[]):
+                if t not in NATURE: errors.append(f"[{sid}] char {c['id']} unlocked nature '{t}'")
+                vocab["nature"].add(t)
+            for t in c.get("aptitude",[]):
+                if t not in APTITUDE: errors.append(f"[{sid}] char {c['id']} unlocked aptitude '{t}'")
+                vocab["aptitude"].add(t)
+            for sk in c.get("skills",{}):
+                if sk not in SKILLS: errors.append(f"[{sid}] char {c['id']} unlocked skill '{sk}'")
+                vocab["skills"].add(sk)
         for r in d.get("relationships",[]):
             for end in ("from","to"):
                 if r[end] not in chars: errors.append(f"[{sid}] relationship {end} not a character")
-            if r.get("bond") not in BONDS: errors.append(f"[{sid}] bad bond")
+            if r.get("bond","none") not in BONDS: errors.append(f"[{sid}] bad bond '{r.get('bond')}'")
             if not (-100<=r.get("disposition",0)<=100): errors.append(f"[{sid}] disposition out of range")
         for h in d.get("holdings",[]):
             if h["owner"] not in houses: errors.append(f"[{sid}] holding unknown owner")
@@ -154,11 +214,12 @@ def main():
     specs,builds=validate_holdings(sp,bd)
     vocab=validate_scenarios(sc, set(specs)|EXIST_SPECS)
 
-    print(f"CORPUS: {len(ev)} events, {len(tx)} texts, {len(sp)} new specs, {len(bd)} new buildings, {len(sc)} scenarios")
+    mode="bundle" if BUNDLE else "./content"
+    print(f"CORPUS ({mode}): {len(ev)} events, {len(tx)} texts, {len(sp)} specs, {len(bd)} buildings, {len(sc)} scenarios")
     # §17 dominance audit
     cov={max(s['yield'],key=s['yield'].get) for s in sp if s.get('yield')}
-    print(f"§17 resource dominance (new specs): {sorted(cov)}  | upkeep-sinks: {[s['id'] for s in sp if not s.get('yield')]}")
-    print("\n§8 VOCAB USED (review against final controlled vocabularies):")
+    print(f"§17 resource dominance (specs): {sorted(cov)}  | upkeep-sinks: {[s['id'] for s in sp if not s.get('yield')]}")
+    print("\n§8 VOCAB USED (review against docs/PRAETORIA_VOCAB.md):")
     for k,v in vocab.items(): print(f"  {k}: {sorted(x for x in v if x)}")
     if warns:
         print("\nWARNINGS:")
