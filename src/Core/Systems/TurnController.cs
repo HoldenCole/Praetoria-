@@ -34,10 +34,14 @@ public sealed class TurnController
     private readonly IRng _rng;
     private readonly NpcAi _npcAi = new();
     private readonly Economy? _economy;
+    private readonly CrisisEngine? _crises;
     private readonly int _briefingBudget;
     private readonly List<BriefingItem> _briefing = new();
 
     public IReadOnlyList<BriefingItem> Briefing => _briefing;
+
+    /// <summary>The crisis system (GDD §16), or null when the content set defines no crises.</summary>
+    public CrisisEngine? Crises => _crises;
 
     public TurnController(World world, ContentDatabase content, Director? director = null, int briefingBudget = 3)
     {
@@ -45,6 +49,7 @@ public sealed class TurnController
         _rng = WorldBuilder.RngFor(world);
         Engine = new EventEngine(content, _rng, director);
         _economy = content.Holdings.IsEmpty ? null : new Economy(content.Holdings);
+        _crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises);
         _briefingBudget = briefingBudget;
     }
 
@@ -104,7 +109,16 @@ public sealed class TurnController
     public void EndTurn()
     {
         Phase = TurnPhase.Resolve;
-        _npcAi.Act(Executor, Context());
+        _npcAi.Act(Executor, Context(), _crises);   // NPCs act — and may author a crisis
+
+        // Organic onset: the ripe-conditions roll (GDD §16 mixed origin). NPC-authored crises this
+        // turn are already active, so they're excluded from the causable pool here.
+        if (_crises != null)
+        {
+            var organic = _crises.RollOrganic(World, _rng);
+            if (organic != null) _crises.Trigger(organic, World, _rng);
+        }
+
         SyncRng();
         Phase = TurnPhase.Idle;
     }

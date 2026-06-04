@@ -1,7 +1,10 @@
 using Praetoria.Core;
 using Praetoria.Core.Commands;
+using Praetoria.Core.Crises;
 using Praetoria.Core.Data;
 using Praetoria.Core.Events;
+using Praetoria.Core.Rng;
+using Praetoria.Core.State;
 using Praetoria.Core.Systems;
 
 namespace Praetoria.Tools;
@@ -151,6 +154,71 @@ internal static class Commands
         }
 
         Console.WriteLine($"Deterministic ledger complete. Final credits: {house.Treasury.Credits}.");
+        return 0;
+    }
+
+    /// <summary>
+    /// Demonstrates the Milestone-5 crisis system headlessly (GDD §16): a revolt's gate clears, it
+    /// erupts, brutal suppression CASCADES into a civil war, and whether a damper is even available
+    /// depends on goodwill banked by prior play. Deterministic from a seed.
+    /// </summary>
+    public static int Crisis(Options o)
+    {
+        var content = LoadContent();
+        var engine = new CrisisEngine(content.Crises);
+        if (engine.IsEmpty) { Console.Error.WriteLine("No crises defined in /content/crises."); return 1; }
+
+        var world = new World { ProtagonistId = "ruler" };
+        world.Houses["realm"] = new House { Id = "realm", Name = "the Realm", Treasury = new Resources { Credits = 10 } };
+        world.Characters["ruler"] = new Character { Id = "ruler", Name = "the Sovereign", HouseId = "realm", Alive = true };
+        var rng = new SplitMix64Rng(o.Seed);
+
+        Console.WriteLine($"=== CRISIS DEMO — gate / cascade / damper (seed {o.Seed}) ===\n");
+        void Show(string label)
+        {
+            string causable = string.Join(", ", engine.Causable(world, rng).Select(c => c.Name));
+            string active = world.Crises.Count == 0 ? "—"
+                : string.Join(", ", world.Crises.Values.Select(c => $"{c.Id}(sev {c.Severity})"));
+            Console.WriteLine($"   [{label}]  counters: unrest {world.Counter("unrest")} · legitimacy " +
+                $"{world.Counter("legitimacy")} · goodwill {world.Counter("goodwill")}");
+            Console.WriteLine($"      causable: {(causable.Length == 0 ? "—" : causable)}   active: {active}");
+        }
+
+        world.WorldCounters["unrest"] = 5;
+        Console.WriteLine("Unrest reaches 5 — a revolt becomes possible (its gate clears).");
+        Show("ripe");
+
+        var revolt = engine.Def("local_revolt")!;
+        engine.Trigger(revolt, world, rng);
+        Console.WriteLine($"\n→ {revolt.Name} erupts.");
+        Show("revolt");
+
+        var crush = revolt.Dampers.First(d => d.Id == "crush_it");
+        Console.WriteLine($"\nThe Sovereign chooses to {crush.Name} (it works — but spreads the unrest).");
+        engine.ApplyDamper(revolt, crush, world, rng);
+        Show("after crushing");
+
+        var cw = engine.Def("civil_war")!;
+        if (engine.IsCausable(cw, world, rng))
+        {
+            Console.WriteLine("\n‼  CASCADE: crushing the small revolt armed the Civil War gate — unscripted.");
+            engine.Trigger(cw, world, rng);
+            Show("civil war");
+
+            var none = engine.AvailableDampers(cw, world, rng);
+            Console.WriteLine($"\nDampers available (goodwill {world.Counter("goodwill")}): " +
+                $"{(none.Count == 0 ? "NONE — the goodwill to rally loyalists was spent on the way up" : string.Join(", ", none.Select(d => d.Name)))}");
+
+            world.WorldCounters["goodwill"] = 4;
+            var avail = engine.AvailableDampers(cw, world, rng);
+            Console.WriteLine($"Had the Sovereign ruled gently (goodwill 4): {string.Join(", ", avail.Select(d => d.Name))}");
+            var rally = avail.First(d => d.Id == "rally_loyalists");
+            Console.WriteLine($"→ {rally.Name} (relief {rally.Relief}) applied.");
+            engine.ApplyDamper(cw, rally, world, rng);
+            Console.WriteLine($"   Civil War still active? {world.IsCrisisActive("civil_war")}");
+        }
+
+        Console.WriteLine("\nThe escalation you face is partly the bill for how you played. (GDD §16)");
         return 0;
     }
 

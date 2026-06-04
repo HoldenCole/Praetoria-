@@ -1,3 +1,4 @@
+using Praetoria.Core.Crises;
 using Praetoria.Core.Events;
 
 namespace Praetoria.Core.Data;
@@ -15,16 +16,21 @@ public sealed class ContentDatabase
     /// <summary>The domain-economy catalog (GDD §17). Empty for scenarios with no domain layer.</summary>
     public HoldingCatalog Holdings { get; }
 
+    /// <summary>The crisis definitions (GDD §16). Empty for scenarios with no crisis layer.</summary>
+    public IReadOnlyList<CrisisDef> Crises { get; }
+
     private readonly Dictionary<string, EventDef> _eventsById;
 
     public ContentDatabase(
         IReadOnlyList<EventDef> events,
         IReadOnlyDictionary<string, EventText> texts,
-        HoldingCatalog? holdings = null)
+        HoldingCatalog? holdings = null,
+        IReadOnlyList<CrisisDef>? crises = null)
     {
         Events = events;
         Texts = texts;
         Holdings = holdings ?? HoldingCatalog.Empty;
+        Crises = crises ?? Array.Empty<CrisisDef>();
         _eventsById = new Dictionary<string, EventDef>();
         foreach (var e in events) _eventsById[e.Id] = e;
     }

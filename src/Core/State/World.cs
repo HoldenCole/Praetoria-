@@ -27,6 +27,10 @@ public sealed class World
     /// these each turn to feed each owner's treasury. Empty in scenarios with no domain layer.</summary>
     public Dictionary<string, Holding> Holdings { get; set; } = new();
 
+    /// <summary>Currently-active crises, keyed by crisis id (GDD §16). A crisis persists and
+    /// escalates here until a damper resolves it. The gate/cascade system reads and writes these.</summary>
+    public Dictionary<string, ActiveCrisis> Crises { get; set; } = new();
+
     /// <summary>Per-actor action economy (GDD §9), keyed by character id. The protagonist holds a
     /// full set; NPC houses hold abstracted budgets (GDD §3). Refilled each turn.</summary>
     public Dictionary<string, ActionPools> Pools { get; set; } = new();
@@ -78,6 +82,13 @@ public sealed class World
     }
 
     public int Counter(string key) => WorldCounters.TryGetValue(key, out var v) ? v : 0;
+
+    public bool IsCrisisActive(string id) => Crises.ContainsKey(id);
+
+    public ActiveCrisis? Crisis(string id) => Crises.TryGetValue(id, out var c) ? c : null;
+
+    /// <summary>Canonical world flag marking an active crisis, so ordinary flag conditions can read it.</summary>
+    public static string CrisisFlag(string id) => $"crisis:{id}:active";
 
     /// <summary>Get the directed edge from→to, or null. Relationships are sparse.</summary>
     public Relationship? GetRelationship(string fromId, string toId)

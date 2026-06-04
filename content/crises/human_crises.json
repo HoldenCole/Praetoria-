@@ -1,0 +1,100 @@
+{
+  // HUMAN CRISES — Milestone 5 gate/cascade/damper pool (GDD §16). Crises are gated, buildable
+  // states, NOT random events: while any gate is un-cleared the crisis cannot fire. Gates reuse the
+  // condition vocabulary; onTrigger/damper effects reuse the effect vocabulary (no new mini-language).
+  //
+  // THE CASCADE (emergent, not scripted): a local revolt raises `unrest` and drops `legitimacy` and
+  // sets `realm_unstable` — and *crushing* it raises unrest further. Those very writes clear the
+  // civil-war gates. So brutal suppression of a small crisis arms a galaxy-spanning one.
+  //
+  // THE DAMPERS are scaled by prior play: the loyalist rally that arrests a civil war needs banked
+  // `goodwill` — the ruler who clawed up through brutality spent that goodwill and cannot rally.
+  // Counters used (fed by the steward/academy event pools): unrest, legitimacy, goodwill, corruption, standing.
+  "crises": [
+    {
+      "id": "local_revolt",
+      "name": "Local Revolt",
+      "tier": "regional",
+      "weight": 3,
+      "severity": 2,
+      "gates": [
+        { "type": "counter", "key": "unrest", "op": "gte", "value": 5 }
+      ],
+      "onTrigger": [
+        { "type": "adjustCounter", "key": "unrest", "delta": 2 },
+        { "type": "adjustCounter", "key": "legitimacy", "delta": -2 },
+        { "type": "setWorldFlag", "flag": "realm_unstable", "value": true }
+      ],
+      "dampers": [
+        {
+          "id": "concessions", "name": "Grant Concessions", "relief": 2,
+          "available": [ { "type": "counter", "key": "goodwill", "op": "gte", "value": 2 } ],
+          "effects": [
+            { "type": "adjustCounter", "key": "unrest", "delta": -3 },
+            { "type": "adjustCounter", "key": "goodwill", "delta": -1 }
+          ]
+        },
+        {
+          "id": "crush_it", "name": "Crush the Revolt", "relief": 2,
+          "effects": [
+            { "type": "adjustCounter", "key": "unrest", "delta": 1 },
+            { "type": "adjustCounter", "key": "legitimacy", "delta": -1 }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "civil_war",
+      "name": "Civil War",
+      "tier": "imperial",
+      "weight": 2,
+      "severity": 3,
+      "gates": [
+        { "type": "worldFlag", "flag": "realm_unstable", "value": true },
+        { "type": "counter", "key": "legitimacy", "op": "lte", "value": -3 },
+        { "type": "counter", "key": "unrest", "op": "gte", "value": 6 }
+      ],
+      "onTrigger": [
+        { "type": "setWorldFlag", "flag": "civil_war_active", "value": true },
+        { "type": "adjustCounter", "key": "legitimacy", "delta": -2 }
+      ],
+      "dampers": [
+        {
+          "id": "rally_loyalists", "name": "Rally the Loyalists", "relief": 3,
+          "available": [ { "type": "counter", "key": "goodwill", "op": "gte", "value": 4 } ],
+          "cost": { "influence": 2 },
+          "effects": [
+            { "type": "adjustCounter", "key": "unrest", "delta": -2 },
+            { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "court_scandal",
+      "name": "Court Scandal",
+      "tier": "house",
+      "weight": 3,
+      "severity": 1,
+      "gates": [
+        { "type": "counter", "key": "corruption", "op": "gte", "value": 4 }
+      ],
+      "onTrigger": [
+        { "type": "adjustCounter", "key": "standing", "delta": -2 }
+      ],
+      "dampers": [
+        {
+          "id": "bury_it", "name": "Bury the Story", "relief": 1,
+          "available": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 3 } ],
+          "cost": { "agents": 1 },
+          "effects": [
+            { "type": "adjustResource", "resource": "credits", "delta": -3 },
+            { "type": "adjustCounter", "key": "corruption", "delta": -2 }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -25,14 +25,15 @@ the reactive UI, modding, and clean saves.
 Praetoria.sln          Core + Tools + Tests (everything that builds headless)
 ```
 
-## Status — Milestones 1–2 complete + M4 economy (headless core)
+## Status — Milestones 1–2 complete + M4 economy + M5 crisis system (headless core)
 
 The headless **Academy Crucible** runs with a full turn loop. Implemented: the State model, the
 data-driven Event Engine (binder → eligibility → Director → consequence applier), JSON loaders with
 a strict **logic/text split**, a deterministic seeded RNG, action pools, a command bus through
 which both the player and NPC houses act, the formal **Briefing → Action → Resolve** turn structure,
 the **five-resource domain economy** (holdings, specializations, buildings, per-turn accrual/upkeep),
-a console harness, and the first event pool.
+the **gate/cascade/damper crisis system** (§16 — crises as gated buildable states, not random events),
+a console harness, and an authored content set (47 events, 3 scenarios, a crisis pool).
 
 - **Milestone 1 — "The Engine Breathes":** [`docs/MILESTONE_1_NOTES.md`](docs/MILESTONE_1_NOTES.md).
   Proven: *a choice in one event arms state that makes a different, unscripted event eligible later*
@@ -43,6 +44,10 @@ a console harness, and the first event pool.
   Proven: *a house treasury accrues from its holdings each turn and an investment made through the
   command bus compounds — deterministically from a seed.* (Galaxy mode / fleets / succession are the
   remaining UI-bound M4 work; Milestone 3, the Court UI, is the Godot layer in between.)
+- **Milestone 5 — Gate/Cascade Crisis System (flagship slice):** [`docs/MILESTONE_5_NOTES.md`](docs/MILESTONE_5_NOTES.md).
+  Proven: *a crisis can be engineered or defused via gates; a cascade escalates and a damper (earned by
+  prior play) arrests it; an NPC house triggers a crisis.* (Spheres §7, progression §13, and Bloody
+  Events are the remaining M5 work.)
 
 ## Quickstart (needs the .NET 8 SDK)
 
@@ -58,6 +63,9 @@ dotnet run --project src/Tools -- turn --seed 1
 
 # Watch the domain economy: holdings accrue resources each turn, then invest in a building
 dotnet run --project src/Tools -- economy --seed 1
+
+# Watch the crisis system: a revolt's gate clears, it cascades into civil war, dampers gate on prior play
+dotnet run --project src/Tools -- crisis --seed 1
 
 # Play the Academy as text (interactive; --auto picks first affordable choice each report)
 dotnet run --project src/Tools -- play --seed 1 --turns 8

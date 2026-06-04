@@ -12,8 +12,10 @@ namespace Praetoria.Core.Systems;
 /// </summary>
 public sealed class NpcAi
 {
-    /// <summary>Each living non-protagonist takes at most one affordable action this turn.</summary>
-    public void Act(CommandExecutor executor, CommandContext ctx)
+    /// <summary>Each living non-protagonist takes at most one affordable action this turn. If a
+    /// crisis engine is supplied, an ambitious NPC may also <em>author</em> a causable crisis
+    /// (GDD §16 "crises have authors") — through the same command bus the player uses.</summary>
+    public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null)
     {
         var world = ctx.World;
         var npcs = world.LivingCharacters()
@@ -27,7 +29,33 @@ public sealed class NpcAi
             if (command != null)
                 executor.TryExecute(command, ctx);
         }
+
+        if (crises != null) AuthorCrisis(npcs, crises, executor, ctx);
     }
+
+    /// <summary>The first ambitious NPC (id order) lights the fuse on the first causable crisis
+    /// (id order) — a deliberate, ambition-serving onset. At most one authored crisis per turn,
+    /// deterministically.</summary>
+    private static void AuthorCrisis(List<Character> npcs, CrisisEngine crises,
+        CommandExecutor executor, CommandContext ctx)
+    {
+        var causable = crises.Causable(ctx.World, ctx.Rng);
+        if (causable.Count == 0) return;
+
+        foreach (var npc in npcs)
+        {
+            if (!IsSchemer(npc)) continue;
+            executor.TryExecute(new TriggerCrisisCommand(npc.Id, crises, causable[0]), ctx);
+            return;   // one authored crisis per turn
+        }
+    }
+
+    /// <summary>An NPC willing to weaponise a crisis: ambitious by nature or by goal.</summary>
+    private static bool IsSchemer(Character npc) =>
+        npc.NatureTraits.Contains("Ambitious") || npc.NatureTraits.Contains("Arrogant") ||
+        npc.NatureTraits.Contains("Ruthless") || npc.NatureTraits.Contains("Vengeful") ||
+        npc.Ambition is "seize_the_throne" or "master_the_senate" or
+                        "outshine_all_rivals" or "restore_house_fortunes";
 
     private static ICommand? ChooseAction(Character npc, World world)
     {
