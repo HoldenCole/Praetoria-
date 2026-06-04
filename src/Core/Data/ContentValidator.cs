@@ -52,6 +52,12 @@ public static class ContentValidator
                         issues.Add(new("error", $"{e.Id}.{choice.Id}", "choice has no text."));
                     else
                         CheckTokens(issues, $"{e.Id}.{choice.Id}", ctext, roles);
+
+                    // Tokens also appear in `log` effect text, which is rendered at runtime against the
+                    // same binding — so a bad role token there would silently render unsubstituted.
+                    foreach (var effect in choice.Effects)
+                        if (effect is LogEffect log)
+                            CheckTokens(issues, $"{e.Id}.{choice.Id}.log", log.Text, roles);
                 }
             }
 

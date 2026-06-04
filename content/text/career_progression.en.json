@@ -1,0 +1,145 @@
+{
+  "texts": [
+    {
+      "id": "first_command",
+      "title": "The First Command",
+      "body": "It comes, as it comes to all who rise: the first time other lives hang on your word. A handful of people — {officer.name} among them — now look to you for the orders that will send some of them home and some of them nowhere. The rank on your collar is paper. The command is the thing you must earn from the only authority that matters, the eyes of the people who must obey it, in the next few hours.",
+      "choices": {
+        "lead_from_front": "Take the worst of it yourself. First into danger, last out.",
+        "command_coldly": "Spend the command like coin to buy the objective. Results over faces.",
+        "share_the_glory": "Win it, then name them before yourself in the report."
+      }
+    },
+    {
+      "id": "the_contested_promotion",
+      "title": "The Contested Post",
+      "body": "A post has opened above you, and you are not the only one reaching for it. {competitor.name} of {competitor.house} wants it as badly, deserves it nearly as much, and stands precisely where you mean to stand. Promotions like this are never just about the better candidate; they are about what each of you is willing to do to be chosen, and what that doing will cost you both afterward.",
+      "choices": {
+        "win_on_merit": "Win it on the record alone. The most galling way to beat someone.",
+        "undermine_rival": "Ensure they lose it. A doubt planted, a failure resurfaced.",
+        "defer_gracefully": "Tell the board they're the better fit, this once. Buy something rarer."
+      }
+    },
+    {
+      "id": "the_loyalty_test",
+      "title": "The Test",
+      "body": "{superior.name} of {superior.house} gives you an order, and you understand at once that the order is not the point. It is a question wearing an order's clothes — about how far you will go on another's authority, about whether you are the kind of subordinate that powerful people can truly use. Your answer will define the rest of your service under them, and something quieter that you will have to live with regardless.",
+      "choices": {
+        "obey": "Carry it out. Earn the trust; learn the thing about yourself.",
+        "refuse_on_principle": "Refuse, respectfully, immovably. Lose the post, become unbendable.",
+        "obey_then_leak": "Obey to the letter — and keep a copy of everything. Loyalty with an exit."
+      }
+    },
+    {
+      "id": "the_field_promotion",
+      "title": "The Empty Command",
+      "body": "The senior officer is down, the situation will not wait for the chain of command to deliberate, and the gap where authority should be is standing open in front of you. No one has given you this. No one is going to, in time. The rank is there for the taking — by whoever has the nerve to take it and the skill to be proven right.",
+      "choices": {
+        "seize_the_moment": "Take the command without waiting for permission. Win it, make it paper.",
+        "hold_the_line": "Hold your assigned post flawlessly. No overreach, no enemies made."
+      }
+    },
+    {
+      "id": "the_admirals_shadow",
+      "title": "The Admiral's Shadow",
+      "body": "{admiral.name} of {admiral.house} has commanded fleets since before you were born — a living institution, the kind of figure whose doctrine outlives them. And lately the old admiral has been watching you the way the great watch for an heir. To stand in that shadow is shelter and stricture both. To step out of it is a thing the ambitious eventually must do, and the grateful never quite forgive themselves for.",
+      "choices": {
+        "earn_their_trust": "Become the heir to their thinking. Rarer than blood, harder to deserve.",
+        "eclipse_them": "Step out of the shadow with a victory they couldn't have won."
+      }
+    },
+    {
+      "id": "the_governors_seat",
+      "title": "The Governor's Seat",
+      "body": "A province is offered into your keeping — a real one, with real people, real harvests, real grievances that will now have your name on them. How you govern it is the first true statement of what kind of power you intend to wield, made not in a battle or a courtroom but in the daily, unwatched arithmetic of whose interests come first.",
+      "choices": {
+        "govern_justly": "Govern as though the ledger had faces. Slow, steady, loyal in crises.",
+        "govern_efficiently": "Run it like an engine. Immaculate numbers; the people become one of them.",
+        "govern_for_profit": "Take the opportunity everyone knows it to be. A fortune; a postponed reckoning."
+      }
+    },
+    {
+      "id": "the_ministers_dilemma",
+      "title": "The Policy Fight",
+      "body": "A ministry hangs on a single contested policy, and across the chamber {rival_minister.name} of {rival_minister.house} argues the opposite case with everything they have. The seat will go to whoever's vision prevails. You have the figures to win it on truth — or the tongue to win it on something warmer and less durable.",
+      "choices": {
+        "sound_policy": "Win on the merits. The dull, unanswerable force of being correct.",
+        "popular_policy": "Win on the policy people can cheer. Ride the wave; mind the fall."
+      }
+    },
+    {
+      "id": "the_treasury_audit",
+      "title": "The High Treasury",
+      "body": "You have risen to where the realm's true money lives, and found what everyone who reaches this room finds: that the treasury is less a vault than a quiet conspiracy of comfortable arrangements, each one defended by someone powerful. You can clean it, and make enemies of the worst sort — the kind you earn by doing the job well. Or you can learn what it is really for.",
+      "choices": {
+        "reform_the_treasury": "Clean it. Make the enemies that competence earns.",
+        "consolidate_power": "Become the person without whom nothing in the realm gets paid."
+      }
+    },
+    {
+      "id": "first_case",
+      "title": "The First Case",
+      "body": "The robe is new on your shoulders and the first case is already harder than they warned: {defendant.name} of {defendant.house} stands before you, and the law points one way while power, friendship, and your own future all murmur another. Every magistrate's reputation is built or broken in the early rulings, when the realm is still deciding what kind of judge you are.",
+      "choices": {
+        "rule_by_law": "Rule as the law demands, whatever power prefers. Build the slow reputation.",
+        "rule_by_favor": "Find the verdict that serves you. Collect the debt judges learn to collect.",
+        "rule_harshly": "Make an example sharper than the crime. Clear the docket with fear."
+      }
+    },
+    {
+      "id": "the_great_trial",
+      "title": "The Great Trial",
+      "body": "The case of your career so far: {accused.name} of {accused.house}, a power above your station, who walked in assuming that station was armor — and may be right, unless you prove otherwise before the whole court. Convict them and the realm learns your law reaches upward. Let them buy their way clear and you learn what your robe is really worth.",
+      "choices": {
+        "convict_the_mighty": "Make the conviction stick. Show the realm your law reaches up.",
+        "accept_the_bribe": "Let them pay. Advance as a reliable friend to the powerful — and their hostage."
+      }
+    },
+    {
+      "id": "the_praetors_robe",
+      "title": "The Praetor's Robe",
+      "body": "The praetorship is within reach, and {patron.name} of {patron.house} stands ready to place the robe on your shoulders — for they have backed your rise, and a backed rise is rarely a free one. You can take it clean, on a record that needs no patron, or take it faster on the strength of a debt you will be paying for years.",
+      "choices": {
+        "take_robe_clean": "Take it on your record alone. Owe this one no debt.",
+        "take_robe_owed": "Rise faster on the patronage. Answer for it later, at their convenience."
+      }
+    },
+    {
+      "id": "the_passed_over_rival",
+      "title": "The One You Beat",
+      "body": "{rival.name} of {rival.house} reached for the same post you took, and lost — and now serves on, a competent person nursing the specific resentment of someone passed over. They are not your enemy yet. Whether they become one, or become something better, depends largely on what you do now that you've won.",
+      "choices": {
+        "offer_a_post": "Offer them a place worth having under you. Win the back-guard, not just the post.",
+        "watch_them": "Keep them under quiet surveillance. Sleep easier; perhaps build the threat you fear.",
+        "ignore_them": "Let them fade into a busy career. Most grudges die of neglect. Most."
+      }
+    },
+    {
+      "id": "the_crossroads",
+      "title": "The Crossroads",
+      "body": "You have risen far enough to be courted by a different world entirely — the soldier wooed toward the senate, the steward toward the fleet, the advocate toward command. The leap means trading hard-won seniority for a wider board and a steeper climb. To stay is to deepen a mastery already real. To go is to gamble it on becoming something rarer: a person who commands more than one domain.",
+      "choices": {
+        "stay_the_course": "Go deeper. Be undeniable at one thing. Depth is its own power.",
+        "change_tracks": "Take the leap to a new arena. The figure who commands two domains frightens those who command one."
+      }
+    },
+    {
+      "id": "the_old_mentor",
+      "title": "The Teacher, Outgrown",
+      "body": "The one who taught you has grown old, and you have grown past them — the natural, melancholy arithmetic of any real mentorship. {mentor.name} of {mentor.house} is outranked now, by you among others, and the moment has come to decide what you do with a debt that can no longer be repaid in kind, only in honor or in its absence.",
+      "choices": {
+        "honor_them": "Make the world remember what you owe them. Prove the teaching took.",
+        "surpass_them": "Take the post that was theirs. Unkindly is not the word. Unmistakably is."
+      }
+    },
+    {
+      "id": "the_quiet_competence",
+      "title": "The Days Between",
+      "body": "No crisis today, no rival, no test — only the work. The inspections, the reports, the hundred small correct decisions that earn no story and prevent a dozen. This is what a career actually is, between the moments anyone remembers.",
+      "choices": {
+        "do_the_work": "Do the work. Set-pieces are rare; the days between are the career.",
+        "delegate_it": "Push the routine down. Learn what to stop doing. Lead, don't just labor."
+      }
+    }
+  ]
+}

@@ -1,0 +1,1467 @@
+{
+  "events": [
+    {
+      "id": "the_lean_season",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "lender",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "self",
+              "to": "lender",
+              "op": "gte",
+              "value": -20
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "resource",
+          "resource": "credits",
+          "op": "lt",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "raise_the_tithe",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} raised the tithe a third again. The coffers breathe. In the field-towns, a harder winter is doing its sums, and writing {self.name}'s name in the ledger of grievances that houses inherit."
+            }
+          ]
+        },
+        {
+          "id": "sell_a_holding",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 10
+            },
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sold off a holding to balance the books — solvent today at the cost of the house being smaller tomorrow. The tenants there learned, by letter, that they now belong to someone else. A house that sells its land to pay its debts is a house going quietly backward."
+            }
+          ]
+        },
+        {
+          "id": "take_the_loan",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 12
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "indebted",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "lender",
+              "flag": "creditor",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "lender",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{lender.name} of {lender.house} was happy — too happy — to help. The credits arrived within the hour. So did the smile of a man who has just acquired something more useful than coin: a hold over {self.name}, to be called in at the worst possible moment, which is the only moment such men ever choose."
+            }
+          ]
+        },
+        {
+          "id": "austerity",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Just",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} cut the household's own spending before the people's — sold the plate, dismissed the musicians, ate as the garrison ate. It raises little, and costs much in pride. But a lord who tightens their own belt first is remembered for it, in the only ledger that ever protects a house: the people's."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_debt_called",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "creditor",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "creditor",
+              "flag": "creditor",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        },
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "indebted",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_in_full",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -14
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "indebted",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "creditor",
+              "flag": "creditor",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "creditor",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid {creditor.name} of {creditor.house} every credit owed, on the day demanded, with interest counted to the hour. It emptied the treasury and bought something a treasury cannot: the end of the obligation, and the quiet respect of a hard man who expected a harder time collecting."
+            }
+          ]
+        },
+        {
+          "id": "pay_with_favor",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "indebted",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "creditor",
+              "flag": "creditor",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "creditor",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "log",
+              "text": "{self.name} could not pay in coin, so {creditor.name} of {creditor.house} named the other price: a vote, a posting, a door opened. The debt is cleared and a new kind of obligation takes its place — the kind that does not appear in any ledger, and never quite ends."
+            }
+          ]
+        },
+        {
+          "id": "refuse_to_pay",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "indebted",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "creditor",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "creditor",
+              "to": "self",
+              "delta": -45
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} made the debt disappear — the records, the witnesses, the leverage. {creditor.name} of {creditor.house} arrived to collect and found nothing to collect on, and a rival who had simply decided not to owe. The ledger is clean. The enemy is not."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_failing_reactor",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "resource",
+          "resource": "materials",
+          "op": "gte",
+          "value": 1
+        }
+      ],
+      "choices": [
+        {
+          "id": "invest_now",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": -5
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} poured materials into the forge-world's failing reactor before it failed. Expensive, unglamorous, invisible if it works — which is the whole nature of stewardship. The foundry-hands, who know exactly how close it came, will not forget who chose them over the budget."
+            }
+          ]
+        },
+        {
+          "id": "risk_the_output",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} ran the reactor past its margins and banked the output it should have spent on repairs. It held — this time. Every overrun the steward survives teaches the dangerous lesson that the next one will hold too. The foundry-hands work a little faster now, and a little more afraid."
+            }
+          ]
+        },
+        {
+          "id": "cut_it_loose",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Greedy",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sold the dying reactor to a buyer who did not ask questions, and let the forge-world become someone else's problem before it became a disaster. A clean profit, taken at exactly the right moment. The thousands who worked it woke to a new flag and an old fear."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_skimming_steward",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "steward",
+          "when": [
+            {
+              "type": "rank",
+              "role": "steward",
+              "op": "lt",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "make_example",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "steward",
+              "to": "self",
+              "delta": -30
+            },
+            {
+              "type": "log",
+              "text": "{self.name} caught {steward.name} of {steward.house} skimming the accounts and made it public, and painful, and final. The thieving stops; the recovered coin returns; and every other steward in the house now serves an honest master out of fear, which is a colder loyalty than love but a more reliable one."
+            }
+          ]
+        },
+        {
+          "id": "quiet_dismissal",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Just",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": -1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "steward",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {steward.name} return the coin and resign with their name intact, sparing a desperate man the ruin a harder lord would have made of him. Mercy bought quietly is rarely seen and never advertised. But {steward.name} will tell one person the truth of it, and that person will tell another."
+            }
+          ]
+        },
+        {
+          "id": "take_a_cut",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Greedy",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "setCharFlag",
+              "role": "steward",
+              "flag": "owes_you",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not stop the skimming. {self.name} simply made it a partnership, with terms. {steward.name} keeps a smaller share and a much larger fear, and the house's accounts now run two sets of books. Profitable. Until the day someone above {self.name} learns to read them both."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_petitioning_world",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "counter",
+          "key": "unrest",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "grant_relief",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} heard the delegation out and granted the relief — remitted tithes, grain from the house stores, the small mercies that cost a lord coin and buy a people's patience. It is expensive. It is also the difference between subjects who grumble and subjects who rise."
+            }
+          ]
+        },
+        {
+          "id": "send_the_garrison",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} answered the unrest with the garrison. Order returned to the streets by nightfall, swift and total and never forgiven. Fear is the cheapest tool a lord owns, and the one that compounds the steepest interest. The quiet now is the quiet before, not after."
+            }
+          ]
+        },
+        {
+          "id": "blame_a_scapegoat",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the crowd a name to hate that was not {self.name}'s — a local official, a foreign merchant, anyone whose ruin would cost the house nothing. The anger found its target and spent itself there. A magician's trick: the hand is faster than the mob, this once."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_bumper_harvest",
+      "tier": "ambient",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 1
+        }
+      ],
+      "choices": [
+        {
+          "id": "bank_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "The agri-worlds came in rich this season. {self.name} banked the surplus against the lean years that always, eventually, come. Stewardship is mostly the dull art of remembering that good seasons are loans the bad ones call in."
+            }
+          ]
+        },
+        {
+          "id": "share_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the field-towns keep more of a fat year than custom required. A small thing, soon forgotten by the ledger — and long remembered by the people, who keep their own accounts, in a currency that does not spend but does protect."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_market_crash",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "resource",
+          "resource": "credits",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "weather_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "A distant market convulsed and the shock rolled outward, as they do, taking a bite of the house's holdings before it passed. {self.name} weathered it the way houses weather everything: by being older than the panic, and patient enough to outlast it."
+            }
+          ]
+        },
+        {
+          "id": "buy_the_dip",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Greedy",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "While others sold in fear, {self.name} bought — holdings, stockpiles, contracts, all of it cheap in the panic and dear again by spring. The crash that ruins the timid enriches the cold. {self.name} ended the season larger than it began."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_auditors_visit",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "auditor",
+          "when": [
+            {
+              "type": "rank",
+              "role": "auditor",
+              "op": "gt",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "counter",
+          "key": "corruption",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "buy_silence",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Greedy",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "cost": {
+            "treasury": 1
+          },
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "auditor",
+              "flag": "owes_you",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "indebted",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} bought {auditor.name} of {auditor.house} the way the rot is always bought — quietly, expensively, and only ever for a while. The books came back clean. The price of a clean book is one more person who knows it isn't, and now owns you a little."
+            }
+          ]
+        },
+        {
+          "id": "confess_and_reform",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Honorable",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} opened the true books to {auditor.name} before the auditor could find them, named the rot, and named the cure. It costs standing to confess. It costs more to be caught. A house that cleans itself, publicly and painfully, is a house that survives the cleaning."
+            }
+          ]
+        },
+        {
+          "id": "blame_the_steward",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} handed {auditor.name} a culprit — a steward, a clerk, someone whose ruin would satisfy the ledger without troubling the family name. The audit closed. Somewhere a lesser house took the fall for a greater one's habits, which is the oldest arithmetic there is."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_loyal_world",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "counter",
+          "key": "goodwill",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_the_levy",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called for volunteers, and a world that remembers being treated fairly answered with its sons. Goodwill is the only resource that converts directly into the willingness to die for you. {self.name} spent some of it, knowing it does not refill on command."
+            }
+          ]
+        },
+        {
+          "id": "request_tribute",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 5
+            },
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked, and a grateful world gave — freely, which is the only kind of giving that doesn't breed resentment. They will give again, if {self.name} remembers not to ask too often. The art of being loved by those you tax is the whole art of lasting rule."
+            }
+          ]
+        },
+        {
+          "id": "let_them_keep_it",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Just",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took nothing, this season, from the world that had given so much. The steward thought it madness; the people thought it something rarer. A lord who can take and chooses not to is a lord people will follow past the point where fear would have failed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_exotic_find",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "sell_to_collector",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "exotics",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 9
+            },
+            {
+              "type": "log",
+              "text": "A surveyor's report, a strange seam in a worthless rock, a thing the markets call exotic because they cannot agree what else to call it. {self.name} sold the find to a collector who paid in the kind of coin that does not ask where things come from. Profit, clean and immediate. Some doors, once you take the money, you can no longer choose not to have opened."
+            }
+          ]
+        },
+        {
+          "id": "keep_it_quiet",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "exotics",
+              "delta": 2
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "anomaly_hoarded",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} ordered the find catalogued, crated, and kept — not sold, not studied, just held, the way wise houses hold things they do not yet understand. There is a patience that looks like greed and a greed that looks like patience. Only time tells which this was."
+            }
+          ]
+        },
+        {
+          "id": "study_it",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Brilliant",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "exotics",
+              "delta": 1
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "engineering",
+              "delta": 1
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "anomaly_studied",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the find and set the house's best minds to it, against the steward's protest that curiosity has never once balanced a ledger. Perhaps not. But the houses that endure are not always the richest — sometimes they are merely the ones who looked closely at the thing everyone else sold."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_overextended_garrison",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "resource",
+          "resource": "manpower",
+          "op": "lt",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "conscript",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} filled the thinned ranks the fast way: the press-gangs went out, and the field-towns gave up sons they had not offered. The garrison is whole again. Each man in it is a family that did not choose this, and remembers, and waits."
+            }
+          ]
+        },
+        {
+          "id": "hire_mercenaries",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": 4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -7
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid for swords instead of pressing them. Mercenaries fight well and ask no questions and stay exactly as long as the coin does — which is the entire problem with them, discovered always at the worst possible moment, never the bill's."
+            }
+          ]
+        },
+        {
+          "id": "thin_the_line",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Strategist",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "logistics",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not find more men. {self.name} found a way to need fewer — redrawn patrols, abandoned strongpoints not worth their cost, a thinner line held smarter. It is the steward's true art, this: making scarcity look like strategy, until the day it stops being a choice."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_influence_broker",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "broker",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "self",
+              "to": "broker",
+              "op": "gte",
+              "value": -10
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "resource",
+          "resource": "influence",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "spend_influence",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 7
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "broker",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} traded standing for coin through {broker.name} of {broker.house} — a contract steered, a rival's bid quietly spoiled, the kind of favor that leaves no fingerprints and fills the treasury. Influence is wealth that has not yet decided what to become. {self.name} decided for it."
+            }
+          ]
+        },
+        {
+          "id": "hoard_influence",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the favors sit and compound, declining {broker.name}'s easy conversions. The poor spend influence as they earn it; the powerful let it accumulate until a single call can move a fleet or break a house. {self.name} is learning the patience of the latter."
+            }
+          ]
+        },
+        {
+          "id": "call_in_everything",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ambitious",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -5
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": 4
+            },
+            {
+              "type": "setCharFlag",
+              "role": "broker",
+              "flag": "owes_you",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called in every debt at once, through {broker.name}, and the network paid out in a single overwhelming season — and then was empty, every favor spent, every well dry. A king's gambit. It works precisely once, and {self.name} had better have spent it on something worth never being able to do again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_inherited_debt",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "claimant",
+          "when": [
+            {
+              "type": "rank",
+              "role": "claimant",
+              "op": "gte",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "honor_it",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Honorable",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "claimant",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{claimant.name} of {claimant.house} produced a debt {self.name}'s grandfather had sworn and never paid — old paper, faded ink, binding all the same. {self.name} honored it. A name is the one possession that crosses the grave, and a house that pays its dead's debts is a house whose word, living, is worth something."
+            }
+          ]
+        },
+        {
+          "id": "dispute_it",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "claimant",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the old debt to the magistrates and argued it into dust — technicalities, dead witnesses, the long memory of lawyers paid to forget. {claimant.name} left with nothing but a grievance, which in this world is never quite nothing. The debt is void. The enmity is now {self.name}'s own, freshly minted."
+            }
+          ]
+        },
+        {
+          "id": "repudiate_it",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "claimant",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "claimant",
+              "to": "self",
+              "delta": -40
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not argue. {self.name} simply refused — the dead made no promises {self.name} would honor, and {claimant.name} could do what they liked about it. It is cleaner than the courts and far more dangerous. A repudiated creditor does not appeal. They wait, and they plan, and they remember the face."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_pirate_tribute",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "resource",
+          "resource": "credits",
+          "op": "gte",
+          "value": 5
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_tribute",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "Raiders in the trade-lanes, and a price named for letting the convoys pass. {self.name} paid it, the way the practical have always paid it, and the grain got through and the people ate. Tribute is the tax you pay for the wars you cannot afford to fight. It is also a promise to the wolf that the sheep are reachable."
+            }
+          ]
+        },
+        {
+          "id": "fund_a_hunt",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -9
+            },
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} refused tribute and funded the hunt instead — dearer, bloodier, and final in a way that paying never is. The lanes ran red, then clear. The merchants who use them now use {self.name}'s name like a charm. The wolf that is killed sends no second bill."
+            }
+          ]
+        },
+        {
+          "id": "hire_them",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Schemer",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not pay the raiders, nor hunt them. {self.name} hired them — turned the wolf to the leash, pointed it at rivals' lanes instead of {self.name}'s own. It is brilliant and it is filthy and it works until the leash frays, which it always, eventually, does."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_grain_dole",
+      "tier": "ambient",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "fund_the_dole",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the grain-dole flowing through a thin month — a small standing cost, a small standing mercy. The people do not cheer a dole. They simply do not riot, which is the quiet dividend a wise steward learns to value above applause."
+            }
+          ]
+        },
+        {
+          "id": "trim_the_dole",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} trimmed the dole to save a little. The ledger thanks {self.name}; the breadlines lengthen by a few, and a few is how every great unrest begins — never as a flood, always as a handful of people deciding they have had enough."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

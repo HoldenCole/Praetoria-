@@ -1,205 +1,1806 @@
 {
-  "//": "ACADEMY CRUCIBLE — Milestone 1 event pool (logic only; prose lives in /content/text).",
-  "//cascade": "barracks_confrontation/mock arms a 'feud' flag -> the_duel (impossible before) becomes eligible. friendly_overture builds disposition -> sworn_oath becomes eligible. Two unscripted chains.",
-
   "events": [
     {
       "id": "first_formation",
-      "tier": "situation",
-      "weight": 5,
+      "tier": "ambient",
+      "weight": 6,
       "repeatable": false,
-      "when": [ { "type": "turn", "op": "gte", "value": 1 } ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "lte",
+          "value": 2
+        }
+      ],
       "choices": [
         {
-          "id": "study_hard",
-          "cost": { "agents": 1 },
+          "id": "stand_tall",
           "effects": [
-            { "type": "adjustSkill", "role": "self", "skill": "tactics", "delta": 1 },
-            { "type": "adjustStress", "role": "self", "delta": 5 },
-            { "type": "log", "text": "{self.name} drilled past lights-out." }
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "On the first morning, {self.name} stood the line without flinching. The instructors noted it. So did the cohort."
+            }
           ]
         },
         {
-          "id": "size_up_the_cohort",
+          "id": "measure_them",
           "effects": [
-            { "type": "adjustSkill", "role": "self", "skill": "charisma", "delta": 1 },
-            { "type": "log", "text": "{self.name} took the measure of the cohort." }
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing on the first morning, and watched everyone. By noon, {self.name} knew who would break."
+            }
           ]
         }
       ]
     },
-
     {
-      "id": "barracks_confrontation",
+      "id": "barracks_slight",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
-      "when": [
-        { "type": "turn", "op": "gte", "value": 1 },
-        { "type": "eventFired", "event": "first_formation", "value": true }
-      ],
       "roles": [
-        { "name": "rival", "when": [
-          { "type": "relationship", "from": "self", "to": "rival", "op": "lte", "value": 0 }
-        ] }
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "rank",
+              "role": "rival",
+              "op": "gte",
+              "vsRole": "self"
+            },
+            {
+              "type": "relationship",
+              "from": "rival",
+              "to": "self",
+              "op": "lte",
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "eventFired",
+          "event": "first_formation",
+          "value": true
+        }
       ],
       "choices": [
         {
-          "id": "mock",
-          "cost": { "influence": 1 },
+          "id": "humiliate",
           "effects": [
-            { "type": "setCharFlag", "role": "rival", "flag": "feud", "value": true },
-            { "type": "setWorldFlag", "flag": "feud_declared", "value": true },
-            { "type": "adjustRelationship", "from": "rival", "to": "self", "delta": -30 },
-            { "type": "adjustRelationship", "from": "self", "to": "rival", "delta": -15 },
-            { "type": "log", "text": "{self.name} humiliated {rival.name} before the cohort. A feud is born." }
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "humiliated",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -30
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} answered {rival.name} of {rival.house} before the whole cohort. The room laughed. {rival.name} did not."
+            }
+          ]
+        },
+        {
+          "id": "cold_courtesy",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked {rival.name} for the counsel, smiled, and let the silence do the cutting. A feud was made — a quiet one."
+            }
           ]
         },
         {
           "id": "extend_hand",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ambitious",
+              "kind": "nature",
+              "present": true
+            }
+          ],
           "effects": [
-            { "type": "adjustRelationship", "from": "self", "to": "rival", "delta": 20 },
-            { "type": "adjustRelationship", "from": "rival", "to": "self", "delta": 20 },
-            { "type": "log", "text": "{self.name} offered {rival.name} a hand instead of an insult." }
-          ]
-        }
-      ]
-    },
-
-    {
-      "id": "the_duel",
-      "tier": "setpiece",
-      "weight": 8,
-      "repeatable": false,
-      "when": [ { "type": "turn", "op": "gte", "value": 2 } ],
-      "roles": [
-        { "name": "rival", "when": [
-          { "type": "charFlag", "role": "rival", "flag": "feud", "value": true }
-        ] }
-      ],
-      "choices": [
-        {
-          "id": "fight",
-          "requires": [ { "type": "skill", "role": "self", "skill": "discipline", "op": "gte", "value": 1 } ],
-          "effects": [
-            { "type": "setCharFlag", "role": "rival", "flag": "feud", "value": false },
-            { "type": "setWorldFlag", "flag": "feud_declared", "value": false },
-            { "type": "adjustSkill", "role": "self", "skill": "discipline", "delta": 1 },
-            { "type": "adjustRelationship", "from": "rival", "to": "self", "delta": 25 },
-            { "type": "adjustStress", "role": "self", "delta": 10 },
-            { "type": "log", "text": "{self.name} answered {rival.name}'s challenge on the training floor. Honor satisfied; grudging respect earned." }
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "rival",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} offered {rival.name} a hand instead of an answer. A rival who outranks you is also a ladder. {rival.name} took it, wary."
+            }
           ]
         },
         {
-          "id": "back_down",
+          "id": "swallow_it",
           "effects": [
-            { "type": "setCharFlag", "role": "self", "flag": "humiliated", "value": true },
-            { "type": "adjustStress", "role": "self", "delta": 20 },
-            { "type": "adjustRelationship", "from": "rival", "to": "self", "delta": -10 },
-            { "type": "log", "text": "{self.name} walked away from {rival.name}'s challenge. The cohort noticed." }
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it pass. The cohort marked it. Some wounds you carry because the bill, paid now, costs more."
+            }
           ]
         }
       ]
     },
-
     {
-      "id": "friendly_overture",
-      "tier": "situation",
+      "id": "the_reckoning",
+      "tier": "setpiece",
       "weight": 3,
       "repeatable": false,
-      "when": [ { "type": "turn", "op": "gte", "value": 1 } ],
       "roles": [
-        { "name": "friend", "when": [
-          { "type": "relationship", "from": "self", "to": "friend", "op": "gte", "value": 1 },
-          { "type": "bond", "from": "self", "to": "friend", "bond": "sworn", "present": false }
-        ] }
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
       ],
       "choices": [
         {
-          "id": "share_the_watch",
+          "id": "duel",
+          "cost": {
+            "influence": 1
+          },
           "effects": [
-            { "type": "adjustRelationship", "from": "self", "to": "friend", "delta": 15 },
-            { "type": "adjustRelationship", "from": "friend", "to": "self", "delta": 15 },
-            { "type": "log", "text": "{self.name} stood the long watch beside {friend.name}." }
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "wounded",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 4
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "Steel under the academy lights. {self.name} left {rival.name} of {rival.house} on the floor, breathing, ruined in the only way that matters here: in front of everyone."
+            }
+          ]
+        },
+        {
+          "id": "duel_just",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Just",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 25
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} disarmed {rival.name} and stepped back, blade lowered, before the cohort. Mercy, witnessed, is its own kind of victory — and {rival.name} knows the debt."
+            }
+          ]
+        },
+        {
+          "id": "ruin_quietly",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "marked_for_death",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "log",
+              "text": "No blade. A word in the right ear, a forged lapse in {rival.name}'s record. {rival.name} fell, and never learned whose hand it was. {self.name} watched, untouched."
+            }
+          ]
+        },
+        {
+          "id": "make_peace",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "rival",
+              "delta": 20
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to {rival.name} of {rival.house} with no witnesses and no weapons, and asked what the quarrel had ever bought either of them. The feud died in a quiet room."
+            }
           ]
         }
       ]
     },
-
     {
-      "id": "sworn_oath",
-      "tier": "setpiece",
-      "weight": 7,
+      "id": "night_watch_lapse",
+      "tier": "situation",
+      "weight": 3,
       "repeatable": false,
-      "when": [ { "type": "turn", "op": "gte", "value": 2 } ],
       "roles": [
-        { "name": "friend", "when": [
-          { "type": "relationship", "from": "self", "to": "friend", "op": "gte", "value": 20 },
-          { "type": "bond", "from": "self", "to": "friend", "bond": "sworn", "present": false }
-        ] }
+        {
+          "name": "comrade",
+          "when": [
+            {
+              "type": "rank",
+              "role": "comrade",
+              "op": "lte",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "cover_for_them",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "comrade",
+              "flag": "covered_for",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": 25
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{comrade.name} slept through the watch. {self.name} stood it twice and said nothing to the instructors. {comrade.name} woke owing a debt neither of them named."
+            }
+          ]
+        },
+        {
+          "id": "report_them",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Honorable",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} reported the lapse. The watch is the watch; a line that bends once bends always. {comrade.name} took the punishment, and the lesson, and the grudge."
+            }
+          ]
+        },
+        {
+          "id": "wake_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kicked the cot until {comrade.name} stirred, swore, and stood. No record, no debt, no drama. Just two cadets and a long night."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_oath",
+      "tier": "setpiece",
+      "weight": 2,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "comrade",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "comrade",
+              "to": "self",
+              "op": "gte",
+              "value": 30
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "comrade",
+              "bond": "sworn",
+              "present": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
       ],
       "choices": [
         {
           "id": "swear",
-          "cost": { "influence": 2 },
           "effects": [
-            { "type": "addBond", "from": "self", "to": "friend", "bond": "sworn", "strength": 60 },
-            { "type": "addBond", "from": "friend", "to": "self", "bond": "sworn", "strength": 60 },
-            { "type": "adjustRelationship", "from": "self", "to": "friend", "delta": 20 },
-            { "type": "log", "text": "{self.name} and {friend.name} swore the cadets' oath. A bond not of blood, but chosen." }
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "comrade",
+              "bond": "sworn",
+              "strength": 60
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "oath_sworn_academy",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "log",
+              "text": "Two cadets, a dead hour, and words that cannot be unsaid. {self.name} and {comrade.name} swore the old oath — blade, blood, and name. Sworn is not blood. Sometimes it is fiercer."
+            }
           ]
         },
         {
-          "id": "decline_for_now",
+          "id": "swear_deep",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Loyal",
+              "kind": "nature",
+              "present": true
+            }
+          ],
           "effects": [
-            { "type": "log", "text": "{self.name} let the moment pass unsworn." }
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "comrade",
+              "bond": "sworn",
+              "strength": 80
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "oath_sworn_academy",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "log",
+              "text": "{self.name} swore it and meant every word to the marrow. {comrade.name} heard the difference. An oath like that is a gift and a chain at once."
+            }
           ]
-        }
-      ]
-    },
-
-    {
-      "id": "quiet_evening",
-      "tier": "ambient",
-      "weight": 1,
-      "repeatable": true,
-      "when": [ { "type": "turn", "op": "gte", "value": 1 } ],
-      "choices": [
+        },
         {
-          "id": "rest",
+          "id": "decline_gently",
           "effects": [
-            { "type": "adjustStress", "role": "self", "delta": -5 }
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} clasped {comrade.name}'s arm and named no oath. A friend, yes. But chains, even chosen ones, are still chains — and {self.name} keeps the hands free."
+            }
           ]
         }
       ]
     },
-
     {
-      "id": "final_trial",
+      "id": "the_blooding",
       "tier": "setpiece",
-      "weight": 6,
+      "weight": 3,
       "repeatable": false,
+      "roles": [
+        {
+          "name": "comrade",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "comrade",
+              "flag": "covered_for",
+              "value": true
+            }
+          ]
+        }
+      ],
       "when": [
-        { "type": "turn", "op": "gte", "value": 4 },
-        { "type": "eventFired", "event": "first_formation", "value": true }
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 5
+        }
       ],
       "choices": [
         {
-          "id": "lead_from_the_front",
-          "cost": { "agents": 2 },
-          "requires": [ { "type": "skill", "role": "self", "skill": "tactics", "op": "gte", "value": 2 } ],
+          "id": "call_the_debt",
           "effects": [
-            { "type": "advanceCareer", "role": "self" },
-            { "type": "addTrait", "role": "self", "trait": "Cool-Headed", "kind": "aptitude" },
-            { "type": "setWorldFlag", "flag": "academy_graduated", "value": true },
-            { "type": "log", "text": "{self.name} passed the final trial at the front of the cohort. Commissioned." }
+            {
+              "type": "setCharFlag",
+              "role": "comrade",
+              "flag": "covered_for",
+              "value": false
+            },
+            {
+              "type": "addTrait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "When the trial came, {self.name} sent {comrade.name} into the worst of it — the debt, called. {comrade.name} survived, and came back changed toward {self.name}. So did {self.name}. The crucible names what you are: Ruthless."
+            }
           ]
         },
         {
-          "id": "play_it_safe",
+          "id": "shield_them",
           "effects": [
-            { "type": "setWorldFlag", "flag": "academy_graduated", "value": true },
-            { "type": "log", "text": "{self.name} cleared the final trial without distinction, but cleared it." }
+            {
+              "type": "addTrait",
+              "role": "self",
+              "trait": "Honorable",
+              "kind": "nature"
+            },
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "comrade",
+              "bond": "sworn",
+              "strength": 70
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took {comrade.name}'s place in the trial and the wounds that came with it. The debt was never called; it was forgiven. The crucible names what you are: Honorable."
+            }
+          ]
+        },
+        {
+          "id": "share_the_fire",
+          "effects": [
+            {
+              "type": "addTrait",
+              "role": "self",
+              "trait": "Loyal",
+              "kind": "nature"
+            },
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "comrade",
+              "bond": "sworn",
+              "strength": 65
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went in beside {comrade.name}, shoulder to shoulder, and let the debt dissolve into the smoke. They came out together. The crucible names what you are: Loyal."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_instructors_eye",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "mentor",
+          "when": [
+            {
+              "type": "rank",
+              "role": "mentor",
+              "op": "gt",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "type": "counter",
+          "key": "standing",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "earn_it",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "mentor",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "log",
+              "text": "{mentor.name} of {mentor.house} began to single {self.name} out — harder problems, colder critiques. Favor here is just higher expectation wearing a kinder face. {self.name} rose to it."
+            }
+          ]
+        },
+        {
+          "id": "court_it",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ambitious",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "mentor",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "setCharFlag",
+              "role": "mentor",
+              "flag": "owes_you",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "indebted",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} made the climb deliberate — the right answers, the right deference, the right silences. {mentor.name} took {self.name} as a protege. Patronage is never free; the price comes later."
+            }
+          ]
+        },
+        {
+          "id": "keep_distance",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} declined the great {mentor.name}'s shadow. To rise on no one's favor is slower, and lonelier, and entirely your own. The cohort respected it. {mentor.name} did not forget it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mess_hall",
+      "tier": "ambient",
+      "weight": 5,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 1
+        }
+      ],
+      "choices": [
+        {
+          "id": "trade_stories",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "An hour of bad food and worse jokes in the mess. {self.name} laughed at someone else's expense and felt, briefly, like one of them."
+            }
+          ]
+        },
+        {
+          "id": "study_alone",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} ate alone over a tactics primer. The cohort noticed the empty seat. So did {self.name}."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_petitioner",
+      "tier": "ambient",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "junior",
+          "when": [
+            {
+              "type": "rank",
+              "role": "junior",
+              "op": "lt",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "counter",
+          "key": "standing",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "accept",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "junior",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "log",
+              "text": "A junior cadet, {junior.name}, asked to serve under {self.name}'s banner — said he watched {self.name} stand the first formation and wanted nothing else since. A small loyalty. A small obligation. The way every house begins."
+            }
+          ]
+        },
+        {
+          "id": "test_first",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "junior",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustSkill",
+              "role": "junior",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} set {junior.name} a hard task before saying yes. Loyalty offered cheap is worth what it cost. {junior.name} passed, and meant it more for the testing."
+            }
+          ]
+        },
+        {
+          "id": "decline",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "junior",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {junior.name} back to find his own feet. Not cruelty — a kindness shaped like a refusal. A banner you are carried to is not yours."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_deciding_trial",
+      "tier": "setpiece",
+      "weight": 2,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "best",
+          "when": [
+            {
+              "type": "rank",
+              "role": "best",
+              "op": "gte",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        },
+        {
+          "type": "counter",
+          "key": "standing",
+          "op": "gte",
+          "value": 5
+        }
+      ],
+      "choices": [
+        {
+          "id": "win_clean",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "best",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "The final trial, the whole cohort watching. {self.name} beat {best.name} of {best.house} fairly, and {best.name} — outdone — saluted. The best enemies are the ones who know your worth. {self.name} graduated first."
+            }
+          ]
+        },
+        {
+          "id": "win_dirty",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "best",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "best",
+              "to": "self",
+              "delta": -40
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the trial by methods the rules did not cover. {self.name} graduated first; {best.name} graduated knowing exactly what {self.name} is, and waiting. Some victories are loans against the future."
+            }
+          ]
+        },
+        {
+          "id": "yield_to_better",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Honorable",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "best",
+              "to": "self",
+              "delta": 40
+            },
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "best",
+              "bond": "sworn",
+              "strength": 55
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} saw {best.name} was the better this day, and said so, before the cohort. To name a rival's excellence aloud costs pride and buys something rarer. {best.name} graduated first — and came to {self.name} after, an arm offered."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_sabotage",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "type": "eventFired",
+          "event": "the_reckoning",
+          "value": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "prove_it",
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "humiliated",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -25
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} traced the ruined kit and the missing orders back to {rival.name} of {rival.house}, and laid the proof before the proctors. {rival.name} kept rank but lost face — and learned that {self.name} fights with patience as well as pride."
+            }
+          ]
+        },
+        {
+          "id": "answer_in_kind",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "framed",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not complain. {self.name} arranged that {rival.name}'s own next inspection failed worse, and untraceably. The cohort drew its own conclusions. A feud is a conversation; {self.name} answered in the same tongue."
+            }
+          ]
+        },
+        {
+          "id": "endure_and_excel",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Honorable",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "sabotaged",
+              "value": true
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} repaired the damage in silence, passed the inspection anyway, and named no one. The proctors saw a cadet who did not whine. {rival.name} saw something more frightening: a rival who could not be made to stumble."
+            }
+          ]
+        },
+        {
+          "id": "let_it_fester",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "sabotaged",
+              "value": true
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing and did nothing, and let the wound sit. {rival.name}, emboldened, will go further. Some quarrels you starve; this one, {self.name} chose to feed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_humiliated_returns",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "rival",
+              "flag": "humiliated",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "offer_a_door",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "humiliated",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "reconciled",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 35
+            },
+            {
+              "type": "log",
+              "text": "{rival.name} of {rival.house} came back smaller than before, the shame still on them. {self.name} offered, quietly and with no audience, a way to stand up straight again. A rival you humble can be ruined — or rebuilt into the most grateful ally you own. {self.name} chose to rebuild."
+            }
+          ]
+        },
+        {
+          "id": "grind_them",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Cruel",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "marked_for_death",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -40
+            },
+            {
+              "type": "adjustStress",
+              "role": "rival",
+              "delta": 20
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {rival.name} reach for dignity — and took it again, in front of the same cohort. Twice broken, {rival.name} stopped being a rival and became something quieter and more dangerous: a person with nothing left to lose and one name to blame."
+            }
+          ]
+        },
+        {
+          "id": "ignore_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustStress",
+              "role": "rival",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} walked past {rival.name} as though the feud, and {rival.name}, had already been forgotten. Sometimes indifference is the cruelest answer of all — and the one hardest to forgive."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_wounded_mercy",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "rival",
+              "flag": "wounded",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 5
+        }
+      ],
+      "choices": [
+        {
+          "id": "visit_the_infirmary",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "wounded",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "reconciled",
+              "value": true
+            },
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "rival",
+              "bond": "sworn",
+              "strength": 45
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 40
+            },
+            {
+              "type": "log",
+              "text": "{self.name} came to the infirmary where {rival.name} of {rival.house} lay mending, and brought no triumph — only an arm, and an end to it. The man you beat fairly and then forgave is the man who will hold the line beside you when it matters. Steel made the wound; this healed something older."
+            }
+          ]
+        },
+        {
+          "id": "send_word",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "wounded",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a formal note of respect to the infirmary — correct, cold, complete. {rival.name} healed, and the quarrel cooled to mere dislike. Not friendship. But not a knife in the dark either."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Proud",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "adjustStress",
+              "role": "rival",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the silence stand. {rival.name} mended alone, nursing the defeat into something colder. Victory taken and never softened is victory that keeps an enemy. {self.name} judged the enemy worth keeping."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_proctors_offer",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "proctor",
+          "when": [
+            {
+              "type": "rank",
+              "role": "proctor",
+              "op": "gt",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_the_offer",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Greedy",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "indebted",
+              "value": true
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "proctor",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid {proctor.name} of {proctor.house} what the rank was quietly worth, and the marks came back exactly as needed. A rung climbed in the dark is still a rung — and the man who sold it remembers the price, and that you were willing to pay it."
+            }
+          ]
+        },
+        {
+          "id": "refuse_clean",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "proctor",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked {proctor.name} for the consideration and declined to buy what should be earned. The proctor's face cooled. A door closed — but {self.name} owns every rung climbed after, free and clear."
+            }
+          ]
+        },
+        {
+          "id": "expose_it",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Honorable",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "proctor",
+              "flag": "marked_for_death",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the corruption to those above {proctor.name}, and watched a powerful man fall. The academy is cleaner for an hour. But a ruined proctor has friends, and a long memory, and now a name to teach them: {self.name}."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_letter_home",
+      "tier": "ambient",
+      "weight": 4,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "type": "counter",
+          "key": "standing",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "honest_account",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote home plainly — the rivals, the cold nights, the slow climb. To set the truth down is to be, for a moment, a child writing to a house that existed before you and will outlast you. The reply, when it comes, will weigh more than any drill."
+            }
+          ]
+        },
+        {
+          "id": "burnished_account",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Proud",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote home a version where the victories shone brighter and the doubts did not appear. The house will be proud of a son who does not quite exist — and {self.name} will spend the rest of the term becoming him, or failing to."
+            }
+          ]
+        },
+        {
+          "id": "no_letter",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not write. There are things the page cannot hold, and a distance that letters only sharpen. The house waits. {self.name} drills, and carries the name alone for a while longer."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_marked_man",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "enemy",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "enemy",
+              "flag": "marked_for_death",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "finish_it",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "enemy",
+              "flag": "marked_for_death",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{enemy.name} of {enemy.house} had been waiting for {self.name} a long time, and waited a little too openly. The matter ended the way these things end at the edge of the academy, where the lights do not reach. {self.name} walked back alone. A made enemy, unmade — and a weight that does not lift."
+            }
+          ]
+        },
+        {
+          "id": "disarm_the_grudge",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "enemy",
+              "flag": "marked_for_death",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "enemy",
+              "flag": "reconciled",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "enemy",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did the harder thing: walked unarmed to the one person in the academy with the most reason to want {self.name} dead, and refused to make it simple. {enemy.name}, braced for a blade, got a hand instead. Not all wars end in winning. Some end in unmaking the reason to fight."
+            }
+          ]
+        },
+        {
+          "id": "outlast_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 9
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did neither — only watched, and waited, and slept lighter. {enemy.name}'s hatred is a fact of the world now, carried out the academy gates into whatever comes next. Some debts you do not settle. You only live alongside them, eyes open."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "drills",
+      "tier": "ambient",
+      "weight": 5,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 1
+        }
+      ],
+      "choices": [
+        {
+          "id": "push_hard",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} ran the drill past the point the instructors called it, into the part where skill is actually made. The body pays for it. The next battle will not."
+            }
+          ]
+        },
+        {
+          "id": "pace_yourself",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did the drill well and no more, and saved something for the long war that the academy only pretends to be a rehearsal for. Endurance is a skill too, and quieter."
+            }
           ]
         }
       ]

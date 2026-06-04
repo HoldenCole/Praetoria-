@@ -1,0 +1,161 @@
+{
+  "//": "SCENARIO 1 of 3 — THE FALLEN HOUSE (restoration path). Fantasy: one poor holding, debts, contempt from those who rose past you; climb back. Treasury deliberately credit-poor (hooks 'the_lean_season' immediately). VOCAB FLAGGED FOR REVIEW (from §8 strawman): nature traits Proud/Vengeful/Just; aptitudes Strategist/Administrator; skills tactics/discipline/administration/charisma; ambition 'restore_house_fortunes'. era 'fractured_stars'. Confirm or swap when §8 locks.",
+  "id": "the_fallen_house",
+  "protagonist": "aldric_voss",
+  "era": "fractured_stars",
+  "houses": [
+    {
+      "id": "voss",
+      "name": "House Voss",
+      "accent": "#3A4A5A",
+      "treasury": {
+        "credits": 2,
+        "materials": 6,
+        "manpower": 4,
+        "influence": 1,
+        "exotics": 0
+      },
+      "//": "Credit-poor on purpose: starts near insolvency to trigger steward crisis events early. Materials/manpower survive from better days."
+    },
+    {
+      "id": "harrow",
+      "name": "House Harrow",
+      "accent": "#6B2737",
+      "treasury": {
+        "credits": 14,
+        "materials": 10,
+        "manpower": 8,
+        "influence": 6,
+        "exotics": 1
+      },
+      "//": "The risen rival who took what Voss lost — wealthier, contemptuous. The antagonist house."
+    }
+  ],
+  "characters": [
+    {
+      "id": "aldric_voss",
+      "name": "Aldric Voss",
+      "house": "voss",
+      "age": 24,
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Proud",
+        "Vengeful"
+      ],
+      "aptitude": [
+        "Strategist"
+      ],
+      "skills": {
+        "tactics": 2,
+        "discipline": 2,
+        "charisma": 1,
+        "administration": 1
+      },
+      "ambition": "restore_house_fortunes",
+      "//": "Proud+Vengeful = feels the family's fall as personal wound (drives the §13 contempt-for-the-risen). Rank 1 already (a half-step up) so career events are reachable."
+    },
+    {
+      "id": "voss_mira",
+      "name": "Mira Voss",
+      "house": "voss",
+      "age": 19,
+      "careerTrack": "stewardship",
+      "careerRank": 0,
+      "nature": [
+        "Just"
+      ],
+      "aptitude": [
+        "Administrator"
+      ],
+      "skills": {
+        "administration": 2,
+        "economics": 1,
+        "charisma": 1
+      },
+      "ambition": "restore_house_fortunes",
+      "//": "Younger sibling, the steward to Aldric's soldier. Just+Administrator = the conscience and the ledger. A blood bond worth protecting (and a vulnerability)."
+    },
+    {
+      "id": "harrow_drusus",
+      "name": "Drusus Harrow",
+      "house": "harrow",
+      "age": 31,
+      "careerTrack": "military",
+      "careerRank": 3,
+      "nature": [
+        "Cruel",
+        "Ambitious"
+      ],
+      "aptitude": [
+        "Duelist"
+      ],
+      "skills": {
+        "tactics": 3,
+        "discipline": 2,
+        "charisma": 2
+      },
+      "ambition": "outshine_all_rivals",
+      "//": "The risen rival, outranks Aldric (rank 3 vs 1) — binds to 'a_rival_who_outranks_you' roles. Cruel/Ambitious, the face of the contempt."
+    }
+  ],
+  "relationships": [
+    {
+      "from": "aldric_voss",
+      "to": "voss_mira",
+      "disposition": 60,
+      "bond": "blood",
+      "strength": 70,
+      "//": "The sibling bond — the protagonist's strength and soft spot."
+    },
+    {
+      "from": "voss_mira",
+      "to": "aldric_voss",
+      "disposition": 55,
+      "bond": "blood",
+      "strength": 70
+    },
+    {
+      "from": "aldric_voss",
+      "to": "harrow_drusus",
+      "disposition": -40,
+      "bond": "none",
+      "strength": 0,
+      "//": "Pre-loaded enmity — feeds rivalry/feud events from turn 1."
+    },
+    {
+      "from": "harrow_drusus",
+      "to": "aldric_voss",
+      "disposition": -25,
+      "bond": "none",
+      "strength": 0,
+      "//": "Drusus disdains rather than hates — he barely thinks of Voss as competition yet. Asymmetric, per the brief."
+    }
+  ],
+  "holdings": [
+    {
+      "id": "voss_seat",
+      "owner": "voss",
+      "name": "Greywater",
+      "specialization": "agri_world",
+      "system": "",
+      "population": 18,
+      "unrest": 2,
+      "buildings": [],
+      "//": "One poor agri holding — barely feeds the house. Low yield, some unrest already. The single rung to climb from."
+    },
+    {
+      "id": "harrow_forge",
+      "owner": "harrow",
+      "name": "Anvil's Rest",
+      "specialization": "forge_world",
+      "system": "",
+      "population": 30,
+      "unrest": 0,
+      "buildings": [
+        "power_plant"
+      ],
+      "//": "Harrow's wealth engine — what a forge-world buys you, and what Voss lacks."
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "texts": [
+    {
+      "id": "the_lean_season",
+      "title": "The Lean Season",
+      "body": "Your steward lays the accounts before you with the particular flat calm of a man delivering bad news he has rehearsed. The treasury runs dry within a few turns at the present rate. The numbers are not in dispute; only what you do about them is. Every choice on the table balances the books and unbalances something else — the people, the house's future, your own freedom — because in stewardship there is no such thing as free money, only debts wearing different faces.",
+      "choices": {
+        "raise_the_tithe": "Raise the tithe. The coffers breathe; the field-towns remember.",
+        "sell_a_holding": "Sell a holding. Solvent today, smaller tomorrow.",
+        "take_the_loan": "Take {lender.name}'s loan. Coin now — and a hold over you, later.",
+        "austerity": "Cut your own household first. Raises little; costs pride; the people see it."
+      }
+    },
+    {
+      "id": "the_debt_called",
+      "title": "The Debt Called",
+      "body": "It comes, as you knew it would, at the worst possible moment — that being the only moment a man like {creditor.name} of {creditor.house} ever chooses. The loan that saved you is called in, with the warm and terrible courtesy of someone who holds all the cards and wants you to admire how gently they play them. The debt is real. The question is what currency you settle it in, and what you are willing to become to be free of it.",
+      "choices": {
+        "pay_in_full": "Pay it in coin, in full. Clean, costly, done.",
+        "pay_with_favor": "Pay in favor — a vote, a posting, a door. Trade one debt for a deeper one.",
+        "refuse_to_pay": "Make the debt disappear. Records, witnesses, leverage — all of it. Keep the enemy."
+      }
+    },
+    {
+      "id": "the_failing_reactor",
+      "title": "The Failing Reactor",
+      "body": "Word from the forge-world: the main reactor is past its life and praying its way through each shift. The foundry-master's report is blunt where such reports usually flatter — invest now, or gamble that it holds long enough to stop being your problem. The thing about infrastructure is that doing it right is invisible and doing it wrong is a catastrophe with names attached. Stewardship is mostly the choice to be unthanked.",
+      "choices": {
+        "invest_now": "Pour materials in before it fails. Expensive, invisible, right.",
+        "risk_the_output": "Run it past its margins and bank the output. It held last time.",
+        "cut_it_loose": "Sell the dying reactor to a buyer who won't ask. Profit now, disaster later — elsewhere."
+      }
+    },
+    {
+      "id": "the_skimming_steward",
+      "title": "Two Sets of Books",
+      "body": "The discrepancy is small, then consistent, then unmistakable: {steward.name} of {steward.house}, who has kept your accounts faithfully for years, has been keeping a little of them too. The sums are not ruinous. The principle is. How a lord answers theft from within the house tells the whole house what kind of master they serve — and the answer, once given, is very hard to revise.",
+      "choices": {
+        "make_example": "Make it public and final. Honesty enforced by fear is still honesty.",
+        "quiet_dismissal": "Let them return the coin and resign with their name. Mercy, unadvertised.",
+        "take_a_cut": "Don't stop it — partner in it, on your terms. Profitable. Until it isn't."
+      }
+    },
+    {
+      "id": "the_petitioning_world",
+      "title": "The Delegation",
+      "body": "They have come a long way to stand in your hall — a delegation from a world where the unrest is no longer a number in a report but a thing with faces, hungry and frightened and, beneath both, angry. They are respectful. They are also a warning wearing its best clothes. What you grant or refuse here travels home with them tonight, and becomes the story that world tells about your house for a generation.",
+      "choices": {
+        "grant_relief": "Grant relief — remitted tithes, grain from the stores. Expensive patience.",
+        "send_the_garrison": "Answer with the garrison. Order by nightfall, never forgiven.",
+        "blame_a_scapegoat": "Give the crowd a name to hate that isn't yours. The hand beats the mob, once."
+      }
+    },
+    {
+      "id": "the_bumper_harvest",
+      "title": "A Fat Year",
+      "body": "The agri-worlds came in heavy this season — more grain, more credits, more breathing room than the projections dared. A good problem, and a revealing one: what a steward does with a surplus says more than what they do with a shortfall.",
+      "choices": {
+        "bank_it": "Bank it against the lean years. Good seasons are loans the bad ones call in.",
+        "share_it": "Let the field-towns keep more than custom requires. Forgotten by the ledger, not the people."
+      }
+    },
+    {
+      "id": "the_market_crash",
+      "title": "The Crash",
+      "body": "A market somewhere distant has convulsed, and the shock is rolling outward through every house with holdings in its path — yours among them. Panic is its own weather. Some are ruined by it; some, colder, are made.",
+      "choices": {
+        "weather_it": "Weather it. Be older than the panic, patient enough to outlast it.",
+        "buy_the_dip": "Buy while others sell in fear. The crash that ruins the timid enriches the cold."
+      }
+    },
+    {
+      "id": "the_auditors_visit",
+      "title": "The Audit",
+      "body": "{auditor.name} of {auditor.house} arrives with the polite implacability of someone who already knows the answer and only wants to watch you say it. The house's books have grown a second life beneath the first — small diversions, useful lies, the ordinary rot of running anything for long enough. The auditor will find it. The only question left is what you do in the hours before they do.",
+      "choices": {
+        "buy_silence": "Buy the auditor. The books come back clean — and one more person owns you.",
+        "confess_and_reform": "Open the true books first. Name the rot, name the cure. Survive the cleaning.",
+        "blame_the_steward": "Hand them a culprit whose ruin won't touch the family name."
+      }
+    },
+    {
+      "id": "the_loyal_world",
+      "title": "The World That Remembers",
+      "body": "There is a world among your holdings that you have treated well, season after season — and worlds, like people, keep accounts. Its governor's letter is warm in a way official letters never are, and beneath the warmth is an offer: this world would give you something, gladly, because of who you have been to it. Goodwill is the rarest thing a steward banks, because it is the only resource that volunteers.",
+      "choices": {
+        "call_the_levy": "Call for volunteers. A fair-treated world answers with its sons.",
+        "request_tribute": "Ask for tribute. They give freely — if you don't ask too often.",
+        "let_them_keep_it": "Take nothing this season. Be the lord who can take, and doesn't."
+      }
+    },
+    {
+      "id": "the_exotic_find",
+      "title": "The Strange Seam",
+      "body": "A surveyor's report crosses your desk, flagged and uncertain: something has been found in a place that should have held nothing — a seam, a signature, a substance the assayers can price but not name. The markets would call it exotic and pay accordingly. Your steward sees coin. Something older in you sees a question. They are not the same thing, and the choice between them is the choice of what kind of house yours becomes.",
+      "choices": {
+        "sell_to_collector": "Sell it to a collector who won't ask where it came from. Clean profit.",
+        "keep_it_quiet": "Catalogue it, crate it, keep it. Hold what you don't yet understand.",
+        "study_it": "Set your best minds to it. The enduring houses looked closely at what others sold."
+      }
+    },
+    {
+      "id": "the_overextended_garrison",
+      "title": "The Thin Line",
+      "body": "The garrison commander's report is a study in restraint: the lines are held, technically, by men who have not been relieved in too long across too much ground. Manpower has run short, and shortage of soldiers is the kind that gets quiet right up until it gets catastrophic. You need bodies for the wall. Where they come from is its own decision, with its own bill.",
+      "choices": {
+        "conscript": "Send the press-gangs. The wall is whole; the field-towns remember.",
+        "hire_mercenaries": "Pay for swords. They stay exactly as long as the coin does.",
+        "thin_the_line": "Find a way to need fewer men. Make scarcity look like strategy."
+      }
+    },
+    {
+      "id": "the_influence_broker",
+      "title": "The Broker",
+      "body": "{broker.name} of {broker.house} deals in the one currency that doesn't mint: influence, favor, the soft power of who owes whom. They have come with the usual proposition — that your accumulated standing could be so much more useful as something else, if you'd only let it move. Influence is wealth in its most patient form. Spending it is easy. Knowing when is the whole game.",
+      "choices": {
+        "spend_influence": "Trade standing for coin. Favors that leave no fingerprints.",
+        "hoard_influence": "Let it sit and compound. The powerful accumulate; the poor spend.",
+        "call_in_everything": "Call in every debt at once. A king's gambit — it works exactly once."
+      }
+    },
+    {
+      "id": "the_inherited_debt",
+      "title": "The Old Paper",
+      "body": "{claimant.name} of {claimant.house} comes bearing a debt older than you — paper your grandfather signed, an obligation sworn by a man now dust and never honored. The ink has faded. The claim has not. Nothing forces your hand here except the thing that has always bound noble houses to their own history: the name at the top of the page, which is also the name at the top of yours.",
+      "choices": {
+        "honor_it": "Pay your grandfather's debt. A house that pays its dead's word keeps its own.",
+        "dispute_it": "Argue it to dust in the courts. The debt voids; the enmity is freshly yours.",
+        "repudiate_it": "Simply refuse. The dead made no promise you'll keep. They'll wait, and plan."
+      }
+    },
+    {
+      "id": "the_pirate_tribute",
+      "title": "Wolves in the Lanes",
+      "body": "Raiders have found your trade-lanes, and with them the oldest proposition in commerce: a price for safe passage, named by men with the ships to enforce it. The convoys carry grain your people need. Paying is practical and quick and a quiet confession that your sheep are reachable. The alternatives cost more, in coin or blood, and settle more.",
+      "choices": {
+        "pay_tribute": "Pay for passage. The grain gets through; the wolf learns your address.",
+        "fund_a_hunt": "Refuse, and fund the hunt. Dearer, bloodier, final. The dead wolf sends no bill.",
+        "hire_them": "Hire them. Point the wolf at your rivals' lanes. Brilliant, filthy, temporary."
+      }
+    },
+    {
+      "id": "the_grain_dole",
+      "title": "The Dole",
+      "body": "A thin month, and the standing question every steward faces in thin months: the grain-dole that keeps the poorest fed costs a little, every cycle, forever. It buys no glory and earns no thanks. It only prevents things — which is the unglamorous heart of governing well.",
+      "choices": {
+        "fund_the_dole": "Keep it flowing. A small cost, a small mercy, no riot.",
+        "trim_the_dole": "Trim it to save a little. The breadlines lengthen by a few."
+      }
+    }
+  ]
+}

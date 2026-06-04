@@ -1,0 +1,189 @@
+{
+  "//": "SCENARIO 3 of 3 — THE RISEN OFFICER (merit path). Fantasy: no name, no land, only talent — the low-born who out-fights the aristocracy that despises them (the core Red Rising register from the brief §3). Treasury minimal (almost no house wealth — you ARE the asset, not your holdings). The title/office GAP (§4) is the whole drama: high skill, near-zero rank/birth. VOCAB FLAGGED (§8 strawman): nature Ambitious/Just/Loyal/Cruel; aptitudes Strategist/Tactician/Brilliant; skills tactics/discipline/leadership/gunnery; ambitions 'earn_a_command'/'become_legend'/'outshine_all_rivals'. era 'fractured_stars'.",
+  "id": "the_risen_officer",
+  "protagonist": "kessa_vane",
+  "era": "fractured_stars",
+  "houses": [
+    {
+      "id": "vane",
+      "name": "Vane",
+      "accent": "#7A5A1F",
+      "treasury": {
+        "credits": 4,
+        "materials": 2,
+        "manpower": 2,
+        "influence": 0,
+        "exotics": 0
+      },
+      "//": "Barely a house at all — almost no treasury, ZERO influence (the lowborn has no favor-network). The fantasy: you have nothing but yourself. Every resource event bites hard here."
+    },
+    {
+      "id": "calderon",
+      "name": "House Calderon",
+      "accent": "#2B4A3A",
+      "treasury": {
+        "credits": 18,
+        "materials": 12,
+        "manpower": 10,
+        "influence": 9,
+        "exotics": 1
+      },
+      "//": "The great house Kessa serves under and is despised by — the aristocracy that holds rank she'll have to take by sheer merit."
+    }
+  ],
+  "characters": [
+    {
+      "id": "kessa_vane",
+      "name": "Kessa Vane",
+      "house": "vane",
+      "age": 26,
+      "careerTrack": "military",
+      "careerRank": 2,
+      "nature": [
+        "Ambitious",
+        "Just"
+      ],
+      "aptitude": [
+        "Tactician",
+        "Brilliant"
+      ],
+      "skills": {
+        "tactics": 3,
+        "discipline": 3,
+        "leadership": 2,
+        "gunnery": 2,
+        "charisma": 1
+      },
+      "ambition": "earn_a_command",
+      "//": "THE GAP (§4): careerRank 2 but skills maxed for her tier — a better officer than the dukes above her, and resented for it. Ambitious+Just+Brilliant = rises on merit and refuses to become what she's fighting. Highest skill-load of any protagonist; lowest birth."
+    },
+    {
+      "id": "calderon_duke",
+      "name": "Tiberius Calderon",
+      "house": "calderon",
+      "age": 44,
+      "careerTrack": "military",
+      "careerRank": 5,
+      "nature": [
+        "Proud",
+        "Cruel"
+      ],
+      "aptitude": [
+        "Greedy"
+      ],
+      "skills": {
+        "tactics": 1,
+        "discipline": 2,
+        "charisma": 3
+      },
+      "ambition": "amass_a_fortune",
+      "//": "THE GAP inverted: rank 5 (Admiral) by birth, but tactics 1 — 'a useless duke a low-born admiral could outfight' (§4 verbatim). Outranks Kessa massively; binds to superior/admiral roles. The contemptuous aristocrat she must serve and surpass."
+    },
+    {
+      "id": "calderon_juno",
+      "name": "Juno Calderon",
+      "house": "calderon",
+      "age": 28,
+      "careerTrack": "military",
+      "careerRank": 3,
+      "nature": [
+        "Just",
+        "Proud"
+      ],
+      "aptitude": [
+        "Strategist"
+      ],
+      "skills": {
+        "tactics": 3,
+        "discipline": 2,
+        "leadership": 2,
+        "charisma": 2
+      },
+      "ambition": "outshine_all_rivals",
+      "//": "The WORTHY rival — highborn but actually good (unlike her uncle the duke). Outranks Kessa by one. The brief's 'worthy enemy' / LotGH dignity: a rival you could respect. Disposition neutral-ish, could go either way (feud OR sworn). The richest relationship to leave open."
+    },
+    {
+      "id": "vane_dorn",
+      "name": "Dorn",
+      "house": "vane",
+      "age": 35,
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Loyal"
+      ],
+      "aptitude": [
+        "Quartermaster"
+      ],
+      "skills": {
+        "logistics": 2,
+        "discipline": 2,
+        "charisma": 1
+      },
+      "ambition": "earn_a_command",
+      "//": "The grizzled lowborn sergeant who rose with Kessa from nothing — sworn bond, the found-family the merit path builds instead of inheriting. Loyal+Quartermaster = keeps her supplied and honest."
+    }
+  ],
+  "relationships": [
+    {
+      "from": "kessa_vane",
+      "to": "calderon_duke",
+      "disposition": -30,
+      "bond": "none",
+      "strength": 0,
+      "//": "She resents serving a fool who outranks her; he barely registers her. The §4 birth-contempt wound, the engine that drives the whole path."
+    },
+    {
+      "from": "calderon_duke",
+      "to": "kessa_vane",
+      "disposition": -35,
+      "bond": "none",
+      "strength": 0,
+      "//": "He DOES notice her — as an upstart who needs putting in her place. Mutual, which makes it volatile."
+    },
+    {
+      "from": "kessa_vane",
+      "to": "calderon_juno",
+      "disposition": 5,
+      "bond": "none",
+      "strength": 0,
+      "//": "Deliberately near-zero: the worthy rival could become friend or nemesis depending on play. The most open relationship in any scenario."
+    },
+    {
+      "from": "calderon_juno",
+      "to": "kessa_vane",
+      "disposition": 10,
+      "bond": "none",
+      "strength": 0,
+      "//": "Juno secretly respects the talent — slightly positive, the seed of a possible sworn bond across the class line."
+    },
+    {
+      "from": "kessa_vane",
+      "to": "vane_dorn",
+      "disposition": 65,
+      "bond": "sworn",
+      "strength": 75,
+      "//": "Strongest sworn bond of the three scenarios — the lowborn's chosen family is fiercer than any blood, because it's all she has."
+    },
+    {
+      "from": "vane_dorn",
+      "to": "kessa_vane",
+      "disposition": 80,
+      "bond": "sworn",
+      "strength": 75
+    }
+  ],
+  "holdings": [
+    {
+      "id": "vane_billet",
+      "owner": "vane",
+      "name": "Drydock Nine",
+      "specialization": "fortress",
+      "system": "",
+      "population": 5,
+      "unrest": 0,
+      "buildings": [],
+      "//": "Not a domain — a granted billet, a fortress posting with almost no population or economy. She holds a position, not land. The merit path starts with a JOB, not an inheritance."
+    }
+  ]
+}

@@ -1,66 +1,173 @@
 {
-  "//": "Prose for the Academy Crucible. Keyed to event/choice ids in /content/events. {role.field} tokens are substituted against the live binding at render time (logic/text split, GDD §15).",
-
   "texts": [
     {
       "id": "first_formation",
-      "title": "First Formation",
-      "body": "Dawn over the Naval Academy. The cohort stands at attention on the frost-rimed parade deck — the heirs of half a dozen houses, each measuring the others. The drill-master's voice cracks across the silence. The next years will be made of mornings like this.",
+      "title": "The First Morning",
+      "body": "Dawn over the academy, and a thousand young nobles arranged into something the instructors will spend years breaking and remaking. The cohort stands in the cold, breath fogging, every house's pride packed into one shivering line. They are watching each other already. This is where the rivals and friends of a lifetime are made — and it has not yet been five minutes.",
       "choices": {
-        "study_hard": "Drill past exhaustion. Be the best, whatever it costs.",
-        "size_up_the_cohort": "Watch the others. Learn who they are before they learn who you are."
+        "stand_tall": "Stand the line without a flicker. Let them see nothing to exploit.",
+        "measure_them": "Say nothing. Watch everyone. Learn who breaks first."
       }
     },
     {
-      "id": "barracks_confrontation",
+      "id": "barracks_slight",
       "title": "Words in the Barracks",
-      "body": "After lights-out, {rival.name} of {rival.house} holds court in the barracks, voice loud with the easy contempt of the high-born. The room waits to see whether you'll swallow it.",
+      "body": "The cohort falls quiet as {rival.name} of {rival.house} stops in your path. The words are perfectly courteous — a remark about your house, your rise, your right to stand among the old blood — and perfectly designed to wound, delivered with a smile the whole barracks can see. To answer is to begin something. To not answer is also to begin something. There is no version of this where nothing begins.",
       "choices": {
-        "mock": "Cut {rival.name} down with a word the whole barracks will repeat for years.",
-        "extend_hand": "Let it go — and offer {rival.name} your hand instead."
+        "humiliate": "Cut {rival.name} down so cleanly the whole cohort remembers it.",
+        "cold_courtesy": "Thank {rival.name} warmly. Let the silence do the cutting.",
+        "extend_hand": "Offer a hand. A rival who outranks you is also a ladder.",
+        "swallow_it": "Let it pass. Some bills cost less paid later — or more."
       }
     },
     {
-      "id": "the_duel",
-      "title": "The Challenge",
-      "body": "{rival.name} is waiting at the foot of the training-floor stairs, two practice blades in hand and half the cohort at their back. The feud between you has a price now, and {rival.name} means to collect it in front of everyone.",
+      "id": "the_reckoning",
+      "title": "The Reckoning",
+      "body": "It has been coming since the barracks. {rival.name} of {rival.house} has nursed this quarrel like a coal, and now the cohort expects an ending — they always do. The thing about a feud in a place like this is that everyone is watching to see what you are made of, and the answer, whatever it is, will follow you out the gates and into every command you ever hold.",
       "choices": {
-        "fight": "Take a blade. Settle it the old way.",
-        "back_down": "Refuse. Let them call it what they will."
+        "duel": "Steel, under the lights, in front of everyone. End it the old way.",
+        "duel_just": "Best {rival.name} — then lower the blade where all can see. Mercy, witnessed.",
+        "ruin_quietly": "No blade. A word in the right ear. Let {rival.name} fall and never know your hand.",
+        "make_peace": "Go to {rival.name} alone, unarmed, and ask what the quarrel ever bought."
       }
     },
     {
-      "id": "friendly_overture",
-      "title": "The Long Watch",
-      "body": "The night roster pairs you with {friend.name} for the dead-hours watch on the observation ring. Out here, with the cohort asleep and the cold stars wheeling, rank means little and a real conversation is possible.",
+      "id": "night_watch_lapse",
+      "title": "The Empty Post",
+      "body": "Third watch, the dead hours, and {comrade.name}'s post is empty — you find them dead asleep in the bunkroom, a punishment offense if the instructors catch it, and they will catch it. {comrade.name} is no one important yet. But no one is born important here; they are made it, by who stands where, on cold nights like this one.",
       "choices": {
-        "share_the_watch": "Share the watch, and the truth, with {friend.name}."
+        "cover_for_them": "Stand the watch twice. Say nothing. Let them wake owing you.",
+        "report_them": "Report the lapse. A line that bends once bends always.",
+        "wake_them": "Kick the cot until they stand. No record, no debt, no drama."
       }
     },
     {
-      "id": "sworn_oath",
-      "title": "The Cadets' Oath",
-      "body": "{friend.name} finds you in the chapel-hall beneath the founders' banners. \"Blood made us nothing to each other,\" they say. \"Let's choose what blood didn't.\" The old cadets' oath is on offer — a bond chosen, not inherited.",
+      "id": "the_oath",
+      "title": "The Old Words",
+      "body": "It is late and you and {comrade.name} are the last two awake, and the conversation has drifted to the place such conversations drift — to the question of who, in all of this, you can actually trust. {comrade.name} means it. You can hear that they mean it. Blood you are given; this you choose. The old oath is not spoken lightly in this academy, because here, more than anywhere, people remember what was sworn.",
       "choices": {
-        "swear": "Clasp arms and swear. {friend.name} is yours, and you theirs.",
-        "decline_for_now": "Not yet. Some oaths should not be sworn lightly."
+        "swear": "Swear the old oath. Blade, blood, and name.",
+        "swear_deep": "Swear it to the marrow, and mean every word past the point of safety.",
+        "decline_gently": "Clasp their arm. Name no oath. Keep your hands free."
       }
     },
     {
-      "id": "quiet_evening",
-      "title": "A Quiet Evening",
-      "body": "A rare still evening. The mess is warm, the drills are done, and for an hour the Academy feels almost like a home.",
+      "id": "the_blooding",
+      "title": "The Blooding",
+      "body": "The trial they do not warn you about: the one where the academy stops pretending to be a school. Live ordnance, real stakes, and a moment where the only way through puts someone in the fire — and {comrade.name}, who owes you for the watch you stood, is standing right where you'd send them. The crucible is about to name what you are. It always does. That is the point of it.",
       "choices": {
-        "rest": "Rest. Let the weight off your shoulders for a night."
+        "call_the_debt": "Send {comrade.name} into the worst of it. The debt, called. (Names you: Ruthless)",
+        "shield_them": "Take {comrade.name}'s place and the wounds with it. The debt, forgiven. (Names you: Honorable)",
+        "share_the_fire": "Go in beside {comrade.name}, shoulder to shoulder. (Names you: Loyal)"
       }
     },
     {
-      "id": "final_trial",
-      "title": "The Final Trial",
-      "body": "The graduation exercise: a live command problem in the simulator pits, watched by the commandant and every house's observers. Pass it well and you leave commissioned and noticed. Pass it poorly and you leave merely commissioned.",
+      "id": "the_instructors_eye",
+      "title": "The Instructor's Eye",
+      "body": "You have been noticed. {mentor.name} of {mentor.house} — who has forgotten more war than the cohort will ever learn — has begun to watch you the way a buyer watches a blade. In a place built to grind nobles into uniformity, being seen is the rarest currency there is. It is also a door that, once opened, is very hard to choose how far to walk through.",
       "choices": {
-        "lead_from_the_front": "Take command. Make the bold call and own it.",
-        "play_it_safe": "Run the safe solution. Clear the bar and no more."
+        "earn_it": "Meet the harder problems head-on. Earn the eye by deserving it.",
+        "court_it": "Make the climb deliberate. Court the patronage — and the price.",
+        "keep_distance": "Decline the great one's shadow. Rise on no one's favor but your own."
+      }
+    },
+    {
+      "id": "mess_hall",
+      "title": "The Mess",
+      "body": "An hour of bad food and worse company — the one stretch of the day the instructors don't own. The cohort sprawls and argues and brags. You could lose yourself in it, or use it.",
+      "choices": {
+        "trade_stories": "Trade stories. Laugh. Be, for an hour, one of them.",
+        "study_alone": "Take a corner and a primer. Sharpen while they rest."
+      }
+    },
+    {
+      "id": "the_petitioner",
+      "title": "A Banner to Follow",
+      "body": "A junior cadet — {junior.name}, younger, nervous, earnest in the way that has not yet been beaten out of him — asks to serve under your banner. He says he watched you stand the first formation and has wanted nothing else since. It is a small thing. Every great house was once a small thing, and someone's first yes.",
+      "choices": {
+        "accept": "Accept. A small loyalty, a small obligation — the way houses begin.",
+        "test_first": "Set a hard task first. Loyalty offered cheap is worth what it cost.",
+        "decline": "Send him to find his own feet. A banner you're carried to is not yours."
+      }
+    },
+    {
+      "id": "the_deciding_trial",
+      "title": "The Deciding Trial",
+      "body": "The last trial, and the whole cohort in the gallery to watch it. It comes down, as everyone knew it would, to you and {best.name} of {best.house} — the one rival the academy could never decide was beneath you. Whoever takes this graduates first, and first means the first command, the first eyes of the great houses, the first rung of everything after. {best.name} is very, very good. That is what makes it worth winning.",
+      "choices": {
+        "win_clean": "Beat {best.name} fairly, on the merits, in the open.",
+        "win_dirty": "Take it by methods the rules don't cover. First is first.",
+        "yield_to_better": "Name {best.name} the better, this day, aloud. Some things cost more than losing."
+      }
+    },
+    {
+      "id": "the_sabotage",
+      "title": "The Spoiled Kit",
+      "body": "Your kit fails inspection — straps cut where they shouldn't fray, your orders gone from a locker only you and the proctors hold keys to. The instructors mark you down cold; they do not care who did it, only that it was done. But you know. Everyone in the cohort knows. {rival.name} of {rival.house} is careful enough to leave no proof and careless enough to let you see the satisfaction. A feud has graduated from words to deeds. So, now, must your answer.",
+      "choices": {
+        "prove_it": "Trace it, prove it, lay it before the proctors. Patience as a weapon.",
+        "answer_in_kind": "Don't complain. Arrange that {rival.name}'s next inspection fails worse — untraceably.",
+        "endure_and_excel": "Repair it in silence, pass anyway, name no one. Be unbreakable.",
+        "let_it_fester": "Say nothing, do nothing. Let the wound sit — and the quarrel grow."
+      }
+    },
+    {
+      "id": "the_humiliated_returns",
+      "title": "The One You Broke",
+      "body": "{rival.name} of {rival.house} carries the shame you put on them like a limp — the cohort sees it, and so, every morning, do you. They are diminished now, a rival reduced to a cautionary tale told about you. Which is precisely the dangerous moment. A person with nothing left to protect is a person who can do anything. What you do with someone you've already broken decides whether they become your most loyal ally or your most patient enemy.",
+      "choices": {
+        "offer_a_door": "Offer them, quietly, a way to stand up straight again. Rebuild what you broke.",
+        "grind_them": "Let them reach for dignity — then take it again. Break them for good.",
+        "ignore_them": "Walk past as though they were already forgotten. The cruelest answer."
+      }
+    },
+    {
+      "id": "the_wounded_mercy",
+      "title": "The Infirmary",
+      "body": "{rival.name} of {rival.house} is mending in the academy infirmary — your work, fairly done, before the whole cohort. The feud is over; you won it clean. What remains is the question the victory left behind, the one no instructor will grade: a beaten rival is a resource or a reservoir of hatred, and which one is decided not on the duelling floor but here, in a quiet room, by whether you come at all.",
+      "choices": {
+        "visit_the_infirmary": "Come in person. Bring no triumph — only an arm, and an end to it.",
+        "send_word": "Send a formal note of respect. Correct, cold, complete.",
+        "say_nothing": "Let the silence stand. A victory unsoftened keeps its enemy."
+      }
+    },
+    {
+      "id": "the_proctors_offer",
+      "title": "A Quiet Arrangement",
+      "body": "{proctor.name} of {proctor.house} finds you after the evening drill — all warmth and confidence, an arm around the shoulder. The academy, the proctor explains in the tone of a man doing you a favor, has always understood that talent and patronage walk together; that a rank can be recognized early, for those wise enough to recognize the recognizer. The offer is never stated outright. It does not need to be. The proctor smiles, and waits, and the whole weight of how things really work leans on the silence.",
+      "choices": {
+        "take_the_offer": "Pay what the rank is quietly worth. A rung climbed in the dark is still a rung.",
+        "refuse_clean": "Decline to buy what should be earned. Close the door, keep your name.",
+        "expose_it": "Take it to those above the proctor. Watch a powerful man fall — and remember you."
+      }
+    },
+    {
+      "id": "the_letter_home",
+      "title": "A Letter Home",
+      "body": "A rare quiet hour, and a blank page, and the weight of the name at the top of it. Somewhere out among the stars your house waits to hear how its blood fares in the crucible — the house that existed before you, that will go on after, that you carry whether you chose to or not. What you write, and what you leave out, is its own small act of who you intend to be.",
+      "choices": {
+        "honest_account": "Write it plainly — the rivals, the cold, the slow climb. The truth.",
+        "burnished_account": "Write the version where the victories shine and the doubts don't appear.",
+        "no_letter": "Write nothing. Some things the page can't hold. Carry the name alone a while."
+      }
+    },
+    {
+      "id": "the_marked_man",
+      "title": "The Marked Man",
+      "body": "There is someone in this academy who wants you dead. Not the figurative wanting of rivals — the literal kind, earned by something you did or chose, and now {enemy.name} of {enemy.house} watches you the way you have learned to watch exits. It cannot go on. One of you will end it, one way or another, before the term does. The only choice left is which kind of person walks out the gates: the one who finished it, the one who unmade it, or the one who learned to sleep with one eye open.",
+      "choices": {
+        "finish_it": "End it where the lights don't reach. A made enemy, unmade — and a weight that stays.",
+        "disarm_the_grudge": "Walk to them unarmed. Refuse to make it simple. Unmake the reason to fight.",
+        "outlast_it": "Neither. Watch, wait, sleep lighter. Live alongside the hatred, eyes open."
+      }
+    },
+    {
+      "id": "drills",
+      "title": "The Drill Yard",
+      "body": "The yard again, the same forms, the same aching repetition the academy believes turns nobles into officers. It mostly does. The only variable the instructors leave you is how much of yourself you spend on it.",
+      "choices": {
+        "push_hard": "Run it past where they call it. Make skill the hard way.",
+        "pace_yourself": "Do it well and no more. Save something for the long war."
       }
     }
   ]

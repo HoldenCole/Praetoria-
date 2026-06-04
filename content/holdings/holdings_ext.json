@@ -1,0 +1,220 @@
+{
+  "specializations": [
+    {
+      "id": "mining_outpost",
+      "name": "Mining Outpost",
+      "yield": {
+        "materials": 5
+      },
+      "upkeep": {
+        "credits": 1
+      },
+      "slots": 2,
+      "popGrowth": 0,
+      "//": "MATERIALS, lean & sterile. Cheap, safe (no pop=no unrest), low ceiling. The reliable backbone of a forge economy. Stack mines (building) on top."
+    },
+    {
+      "id": "shipyard_world",
+      "name": "Shipyard World",
+      "yield": {
+        "materials": 6,
+        "credits": 2
+      },
+      "upkeep": {
+        "credits": 5,
+        "manpower": 1
+      },
+      "slots": 4,
+      "popGrowth": 1,
+      "//": "MATERIALS powerhouse but EXPENSIVE & populated. Net materials huge, but heavy credit upkeep means it bleeds you when insolvent (and then unrest hits its manpower). The military house's crown jewel and its biggest liability. Most slots of any spec."
+    },
+    {
+      "id": "agri_collective",
+      "name": "Agri-Collective",
+      "yield": {
+        "manpower": 4,
+        "credits": 1
+      },
+      "upkeep": {
+        "materials": 1
+      },
+      "slots": 3,
+      "popGrowth": 2,
+      "//": "MANPOWER home, fast-growing population. Food feeds people; people are soldiers and unrest both. Highest popGrowth = most manpower over time AND most exposure to unrest spirals. Cheap to run."
+    },
+    {
+      "id": "fortress_station",
+      "name": "Fortress-Station",
+      "yield": {},
+      "upkeep": {
+        "credits": 3,
+        "materials": 2
+      },
+      "slots": 3,
+      "popGrowth": 0,
+      "//": "Pure UPKEEP SINK, zero yield — the §17 'marginal in most runs, decisive in some'. You build it for defense/projection (a future military-layer hook), not income. Sterile, so no unrest. A fortress economy is a bet that survival outvalues growth."
+    },
+    {
+      "id": "research_enclave",
+      "name": "Research Enclave",
+      "yield": {
+        "exotics": 2
+      },
+      "upkeep": {
+        "credits": 4
+      },
+      "slots": 2,
+      "popGrowth": 0,
+      "//": "EXOTICS home — the ONLY steady exotics source in the catalog, so decisive for any exotics-dependent path (and the M5 anomaly systems later). Costly, low raw output, sterile. Exotics are marginal until they aren't; this is the spec that makes them a strategy."
+    },
+    {
+      "id": "trade_consortium",
+      "name": "Trade Consortium",
+      "yield": {
+        "credits": 7
+      },
+      "upkeep": {
+        "manpower": 1
+      },
+      "slots": 3,
+      "popGrowth": 1,
+      "//": "CREDITS home — highest raw credit yield in the catalog. Populated (carries unrest), and upkeep is paid in MANPOWER not credits, so it stays profitable even when broke but quietly drains your soldiers. The merchant house's engine."
+    },
+    {
+      "id": "senatorial_seat",
+      "name": "Senatorial Seat",
+      "yield": {
+        "influence": 4
+      },
+      "upkeep": {
+        "credits": 3
+      },
+      "slots": 2,
+      "popGrowth": 0,
+      "//": "INFLUENCE home — the intrigue house's whole economy. Produces almost no material wealth; converts a credit cost into soft power. Useless to a forge house, decisive to a schemer who turns influence into everything else (see steward 'the_influence_broker'). Sterile."
+    }
+  ],
+  "buildings": [
+    {
+      "id": "deep_drill",
+      "name": "Deep-Core Drill",
+      "requires": "mining_outpost",
+      "cost": {
+        "credits": 8,
+        "materials": 4
+      },
+      "yield": {
+        "materials": 3
+      },
+      "upkeep": {
+        "credits": 1
+      },
+      "//": "Doubles down on a mining_outpost's materials. Cheap upkeep; pure materials scaling for a forge economy."
+    },
+    {
+      "id": "orbital_foundry",
+      "name": "Orbital Foundry",
+      "requires": "shipyard_world",
+      "cost": {
+        "materials": 16,
+        "credits": 10
+      },
+      "yield": {
+        "materials": 4,
+        "credits": 1
+      },
+      "upkeep": {
+        "credits": 3
+      },
+      "//": "Big materials+credits on a shipyard_world, but steep one-time cost and upkeep — amplifies both the yield and the insolvency risk that defines the spec. High-roller military infrastructure."
+    },
+    {
+      "id": "conscription_hall",
+      "name": "Conscription Hall",
+      "requires": "agri_collective",
+      "cost": {
+        "credits": 6,
+        "materials": 3
+      },
+      "yield": {
+        "manpower": 3
+      },
+      "upkeep": {
+        "credits": 1
+      },
+      "//": "Turns an agri_collective's population into soldiers faster. Pushes the manpower path hard — but more conscription is more unrest pressure on a populated world. Power with a political cost."
+    },
+    {
+      "id": "bastion_guns",
+      "name": "Bastion Batteries",
+      "requires": "fortress_station",
+      "cost": {
+        "materials": 14,
+        "credits": 4
+      },
+      "yield": {},
+      "upkeep": {
+        "materials": 1
+      },
+      "//": "No yield — a defensive build-out for the fortress_station (hooks the future military layer). Materials sink that buys safety, not income. Deliberately 'useless' on a spreadsheet, decisive in a siege."
+    },
+    {
+      "id": "exotics_lab",
+      "name": "Exotics Laboratory",
+      "requires": "research_enclave",
+      "cost": {
+        "credits": 12,
+        "exotics": 1
+      },
+      "yield": {
+        "exotics": 2
+      },
+      "upkeep": {
+        "credits": 3
+      },
+      "//": "The only way to meaningfully scale exotics. Expensive (even costs exotics to build), but for an exotics strategy it's the multiplier that makes the resource real. Sterile, high-upkeep."
+    },
+    {
+      "id": "free_port",
+      "name": "Free Port",
+      "requires": "trade_consortium",
+      "cost": {
+        "credits": 10
+      },
+      "yield": {
+        "credits": 4
+      },
+      "upkeep": {
+        "manpower": 1
+      },
+      "//": "Scales a trade_consortium's credits, upkeep again paid in manpower — keeps printing money while broke, keeps draining soldiers. Doubles down on the merchant tradeoff."
+    },
+    {
+      "id": "patronage_office",
+      "name": "Patronage Office",
+      "cost": {
+        "credits": 9
+      },
+      "yield": {
+        "influence": 2
+      },
+      "upkeep": {
+        "credits": 2
+      },
+      "//": "UNIVERSAL (no requires) — any holding can buy soft power. The only non-senatorial influence source, so it lets a material house dip a toe into intrigue. Converts a credit stream into influence."
+    },
+    {
+      "id": "granary_relief",
+      "name": "Public Granary",
+      "cost": {
+        "credits": 7,
+        "materials": 4
+      },
+      "yield": {},
+      "upkeep": {
+        "credits": 1
+      },
+      "//": "UNIVERSAL unrest-mitigation. No resource yield — its 'output' is social stability on a populated world (pairs with the steward unrest events; treat as a standing reason to keep a world calm). The build-out for a humane or cautious economy."
+    }
+  ]
+}

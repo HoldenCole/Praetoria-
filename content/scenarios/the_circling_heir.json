@@ -1,0 +1,184 @@
+{
+  "//": "SCENARIO 2 of 3 — THE CIRCLING HEIR (inheritance path). Fantasy: born to power, but the wealth makes you a target — relatives and vassals already maneuvering. Treasury rich (the OPPOSITE economic game from the fallen house: influence-heavy, the intrigue economy). VOCAB FLAGGED (§8 strawman): nature Ambitious/Proud/Cruel/Loyal; aptitudes Schemer/Orator/Paranoid/Diplomat; skills charisma/oratory/intrigue/tactics; ambitions 'seize_the_throne'/'master_the_senate'/'outshine_all_rivals'. era 'fractured_stars'. Confirm/swap at §8 lock.",
+  "id": "the_circling_heir",
+  "protagonist": "lucia_serval",
+  "era": "fractured_stars",
+  "houses": [
+    {
+      "id": "serval",
+      "name": "House Serval",
+      "accent": "#5A3A6B",
+      "treasury": {
+        "credits": 12,
+        "materials": 5,
+        "manpower": 6,
+        "influence": 12,
+        "exotics": 1
+      },
+      "//": "Influence-RICH, materials-thin: the intrigue house economy (pairs with 'the_influence_broker', senatorial_seat). A different game from Voss entirely — your power is people and favor, not forges."
+    }
+  ],
+  "characters": [
+    {
+      "id": "lucia_serval",
+      "name": "Lucia Serval",
+      "house": "serval",
+      "age": 22,
+      "careerTrack": "law",
+      "careerRank": 2,
+      "nature": [
+        "Ambitious",
+        "Proud"
+      ],
+      "aptitude": [
+        "Orator",
+        "Schemer"
+      ],
+      "skills": {
+        "oratory": 2,
+        "intrigue": 2,
+        "charisma": 2,
+        "law": 1
+      },
+      "ambition": "master_the_senate",
+      "//": "Heir on the law/intrigue track — starts at rank 2 (privilege of birth), so the contested-promotion/great-trial events are immediately in range. Ambitious+Schemer = plays the long game."
+    },
+    {
+      "id": "serval_castor",
+      "name": "Castor Serval",
+      "house": "serval",
+      "age": 27,
+      "careerTrack": "law",
+      "careerRank": 2,
+      "nature": [
+        "Ambitious",
+        "Cruel"
+      ],
+      "aptitude": [
+        "Paranoid"
+      ],
+      "skills": {
+        "intrigue": 3,
+        "oratory": 1,
+        "charisma": 1
+      },
+      "ambition": "seize_the_throne",
+      "//": "The elder cousin who believes HE should have been heir — same rank as Lucia, blood bond but hostile disposition. The knife in the family (brief §3 'a cousin who'd poison you'). Pre-armed for feud/succession tension."
+    },
+    {
+      "id": "serval_aunt_vera",
+      "name": "Vera Serval",
+      "house": "serval",
+      "age": 51,
+      "careerTrack": "stewardship",
+      "careerRank": 3,
+      "nature": [
+        "Loyal"
+      ],
+      "aptitude": [
+        "Diplomat"
+      ],
+      "skills": {
+        "administration": 3,
+        "diplomacy": 3,
+        "charisma": 2
+      },
+      "ambition": "restore_house_fortunes",
+      "//": "The loyal aunt-regent who actually runs things — outranks Lucia, can bind to mentor/superior roles. Loyal+Diplomat = the steadying hand, and the advisor whose framing the player trusts (maybe too much)."
+    },
+    {
+      "id": "serval_oren",
+      "name": "Oren",
+      "house": "serval",
+      "age": 20,
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Loyal"
+      ],
+      "aptitude": [
+        "Duelist"
+      ],
+      "skills": {
+        "tactics": 2,
+        "discipline": 2,
+        "charisma": 1
+      },
+      "ambition": "win_a_great_love",
+      "//": "Lowborn-raised sworn man, no house name of his own (uses house tag for engine but is 'Oren' only) — the chosen-bond foil to Castor's blood-betrayal. The friend who'd die for you vs. the cousin who'd poison you, both in one family."
+    }
+  ],
+  "relationships": [
+    {
+      "from": "lucia_serval",
+      "to": "serval_castor",
+      "disposition": -20,
+      "bond": "blood",
+      "strength": 30,
+      "//": "Blood bond, low disposition — family that maneuvers against you. The succession fault-line."
+    },
+    {
+      "from": "serval_castor",
+      "to": "lucia_serval",
+      "disposition": -45,
+      "bond": "blood",
+      "strength": 30,
+      "//": "Castor resents harder than Lucia suspects — asymmetric, a betrayal waiting to bind."
+    },
+    {
+      "from": "lucia_serval",
+      "to": "serval_aunt_vera",
+      "disposition": 40,
+      "bond": "blood",
+      "strength": 55
+    },
+    {
+      "from": "serval_aunt_vera",
+      "to": "lucia_serval",
+      "disposition": 50,
+      "bond": "blood",
+      "strength": 55
+    },
+    {
+      "from": "lucia_serval",
+      "to": "serval_oren",
+      "disposition": 45,
+      "bond": "sworn",
+      "strength": 65,
+      "//": "The sworn bond — fiercer than the blood ones around her. The brief's 'sworn can be fiercer than blood' made literal."
+    },
+    {
+      "from": "serval_oren",
+      "to": "lucia_serval",
+      "disposition": 70,
+      "bond": "sworn",
+      "strength": 65
+    }
+  ],
+  "holdings": [
+    {
+      "id": "serval_seat",
+      "owner": "serval",
+      "name": "Highmarch",
+      "specialization": "trade_hub",
+      "system": "",
+      "population": 35,
+      "unrest": 1,
+      "buildings": [
+        "market"
+      ],
+      "//": "A wealthy populated seat — the prize everyone's circling. trade_hub + market = the credit/influence flow that makes Serval worth scheming over."
+    },
+    {
+      "id": "serval_seat_minor",
+      "owner": "serval",
+      "name": "The Spire",
+      "specialization": "research_station",
+      "system": "",
+      "population": 8,
+      "unrest": 0,
+      "buildings": [],
+      "//": "A second, prestige holding — research_station signals an old, established house with resources to spare on knowledge."
+    }
+  ]
+}

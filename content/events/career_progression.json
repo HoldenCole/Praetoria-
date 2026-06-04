@@ -1,0 +1,1537 @@
+{
+  "events": [
+    {
+      "id": "first_command",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "officer",
+          "when": [
+            {
+              "type": "rank",
+              "role": "officer",
+              "op": "lt",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 1
+        },
+        {
+          "type": "skill",
+          "role": "self",
+          "skill": "tactics",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "lead_from_front",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name}'s first command, and {self.name} took the worst of it personally — first into the danger, last out. {officer.name} and the others marked it forever: this is an officer who spends themselves before they spend us. The rank was earned the only way rank is ever truly earned, in the eyes of the people who must obey it."
+            }
+          ]
+        },
+        {
+          "id": "command_coldly",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustStress",
+              "role": "officer",
+              "delta": 10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spent the command like coin and bought the objective with it. The mission succeeded, brilliantly, at a cost {officer.name} counted in faces. They will follow {self.name} anywhere now — out of respect for the results and fear of being the next line in the ledger. It is a kind of loyalty. The colder kind."
+            }
+          ]
+        },
+        {
+          "id": "share_the_glory",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Just",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": 25
+            },
+            {
+              "type": "adjustSkill",
+              "role": "officer",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} won the action and then, in the report that went up the chain, named {officer.name} and the others before {self.name}'s own part in it. Glory shared is glory multiplied — every name {self.name} lifted is a person who will lift {self.name} in turn, for the rest of a career that has only just begun."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_contested_promotion",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "competitor",
+          "when": [
+            {
+              "type": "rank",
+              "role": "competitor",
+              "op": "gte",
+              "vsRole": "self"
+            },
+            {
+              "type": "relationship",
+              "from": "competitor",
+              "to": "self",
+              "op": "lte",
+              "value": 10
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "win_on_merit",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "setCharFlag",
+              "role": "competitor",
+              "flag": "passed_over",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "competitor",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "The post went to {self.name} on the record alone — cleaner service, harder results, an argument no board could refuse. {competitor.name} of {competitor.house} was passed over fairly, which is the most galling way to lose. They congratulated {self.name} with a face that promised this was not finished."
+            }
+          ]
+        },
+        {
+          "id": "undermine_rival",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Schemer",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "setCharFlag",
+              "role": "competitor",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "competitor",
+              "to": "self",
+              "delta": -35
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not win the post so much as ensure {competitor.name} lost it — a doubt planted, a past failure resurfaced at the perfect hour. The promotion is {self.name}'s. So is an enemy who knows exactly what happened and can prove nothing, which is the most dangerous kind to make."
+            }
+          ]
+        },
+        {
+          "id": "defer_gracefully",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Honorable",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "competitor",
+              "to": "self",
+              "delta": 40
+            },
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "competitor",
+              "bond": "sworn",
+              "strength": 50
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} judged {competitor.name} the better fit for this post, this once, and said so to the board. The rank went elsewhere. But {competitor.name} of {competitor.house} learned that {self.name} could be trusted with the truth even when it cost — and there is no promotion in the service worth what that trust will return."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_loyalty_test",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "superior",
+          "when": [
+            {
+              "type": "rank",
+              "role": "superior",
+              "op": "gt",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "obey",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "superior",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{superior.name} of {superior.house} gave {self.name} an order that was really a question — about loyalty, about how far {self.name} would go on another's word. {self.name} carried it out. The trust earned is real, and so is the thing {self.name} now knows about themselves, which does not go back in its box."
+            }
+          ]
+        },
+        {
+          "id": "refuse_on_principle",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Honorable",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "superior",
+              "to": "self",
+              "delta": -25
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} refused — quietly, respectfully, immovably. {superior.name} lost a useful subordinate and gained a measure of a person who would not be bent, which powerful people both resent and, in their colder calculations, value. The promotion did not come. Something harder to name did."
+            }
+          ]
+        },
+        {
+          "id": "obey_then_leak",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Schemer",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "setCharFlag",
+              "role": "superior",
+              "flag": "marked_for_death",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} obeyed {superior.name} to the letter — and kept a copy of everything. The order was carried out; the promotion granted; and somewhere in {self.name}'s keeping now sits the proof of what {superior.name} asked, a knife that need never be drawn to do its work. Loyalty, with an exit."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_field_promotion",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "type": "skill",
+          "role": "self",
+          "skill": "leadership",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "seize_the_moment",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The senior officer fell, the line wavered, and {self.name} did not wait for permission to do what permission would have been too slow to grant. By the time the chain of command caught up, {self.name} had already won the thing and worn the rank in all but paper. They made it paper. They had to."
+            }
+          ]
+        },
+        {
+          "id": "hold_the_line",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not seize the empty command; {self.name} held the assigned post flawlessly and let the proper authority sort the rest. No glory, no overreach, no enemies made by stepping over anyone. Some careers are built in leaps. Others, quieter and harder to derail, are built exactly like this."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_admirals_shadow",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "admiral",
+          "when": [
+            {
+              "type": "rank",
+              "role": "admiral",
+              "op": "gt",
+              "vsRole": "self"
+            },
+            {
+              "type": "rank",
+              "role": "admiral",
+              "op": "gte",
+              "value": 5
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "earn_their_trust",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "setCharFlag",
+              "role": "admiral",
+              "flag": "mentor_proud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "admiral",
+              "to": "self",
+              "delta": 35
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{admiral.name} of {admiral.house}, who has commanded fleets since before {self.name} could walk, chose {self.name} as the one to carry the doctrine forward. To be named heir to a great commander's thinking is rarer than blood-inheritance and harder to live up to. {self.name} rose to it, and the old admiral, watching, allowed themselves to be proud."
+            }
+          ]
+        },
+        {
+          "id": "eclipse_them",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ambitious",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "setCharFlag",
+              "role": "admiral",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "admiral",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not wait to inherit {admiral.name}'s shadow; {self.name} stepped out of it, in public, with a victory the old admiral could not have won and would not soon forgive. The fleet has a new name to follow. The old one watches it rise the way the setting sun watches the dawn — and begins, quietly, to plan."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_governors_seat",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 1
+        },
+        {
+          "type": "skill",
+          "role": "self",
+          "skill": "administration",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "govern_justly",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Just",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the governor's seat and governed as though the people on the ledger had faces, because they did. The province prospered slower and steadier than a harder hand would have driven it — and stayed loyal through the lean year that broke {self.name}'s harsher neighbors. Justice is a slow economy. It pays in crises."
+            }
+          ]
+        },
+        {
+          "id": "govern_efficiently",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the seat and ran the province like a well-tuned engine — every inefficiency trimmed, every yield maximized, the numbers immaculate. The treasury swelled. The people became, in {self.name}'s ledgers, a number that produces and occasionally complains. Both facts are true at once, and a governor must choose which to forget."
+            }
+          ]
+        },
+        {
+          "id": "govern_for_profit",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Greedy",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 9
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} treated the governorship as the opportunity everyone privately knows it to be, and the province paid {self.name} as much as it paid the throne. A fortune made. A reckoning postponed. Every governor who has done this has believed they would be the one to leave before the bill arrived. Most were wrong."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_ministers_dilemma",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival_minister",
+          "when": [
+            {
+              "type": "rank",
+              "role": "rival_minister",
+              "op": "gte",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "type": "skill",
+          "role": "self",
+          "skill": "economics",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "sound_policy",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival_minister",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} won the policy fight against {rival_minister.name} of {rival_minister.house} on the merits — better figures, longer sight, the dull unanswerable force of being correct. The ministry is {self.name}'s. {rival_minister.name} retreated to nurse the particular grudge of those defeated by arithmetic they could not refute."
+            }
+          ]
+        },
+        {
+          "id": "popular_policy",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Orator",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name}'s policy was not the soundest, but it was the one the people could understand and cheer, and {self.name} sold it with a tongue {rival_minister.name} could not match. The ministry came on a wave of acclaim. Acclaim is a current; it carries {self.name} up now and will set the terms of the fall, if a fall ever comes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_treasury_audit",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "type": "skill",
+          "role": "self",
+          "skill": "economics",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "reform_the_treasury",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 4
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "Raised to the high treasury, {self.name} did the thing every predecessor had found reasons not to: cleaned it. Powerful people lost comfortable arrangements. {self.name} made the kind of enemies one only makes by being good at the job — and left the realm's finances, for the first time in a generation, telling the truth."
+            }
+          ]
+        },
+        {
+          "id": "consolidate_power",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ambitious",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the treasury and understood it for what it truly is: not a vault but a web, every disbursement a thread to someone who now depends on {self.name}'s goodwill. {self.name} did not steal. {self.name} did something more lasting — became the person without whom nothing in the realm gets paid."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "first_case",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "defendant",
+          "when": [
+            {
+              "type": "rank",
+              "role": "defendant",
+              "op": "lte",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 1
+        },
+        {
+          "type": "skill",
+          "role": "self",
+          "skill": "law",
+          "op": "gte",
+          "value": 1
+        }
+      ],
+      "choices": [
+        {
+          "id": "rule_by_law",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Just",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name}'s first case, and {self.name} ruled as the law demanded rather than as power preferred — even when {defendant.name} of {defendant.house} had friends who expected otherwise. A reputation for incorruptible judgment is the slowest to build and the only one a magistrate cannot survive without. {self.name} began to build it here."
+            }
+          ]
+        },
+        {
+          "id": "rule_by_favor",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Schemer",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "setCharFlag",
+              "role": "defendant",
+              "flag": "owes_you",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} found, in the law's gray margins, the verdict that served {self.name} best — {defendant.name} walked, gratefully, owing a debt that judges learn to collect. Justice is what {self.name} says it is, this once. Each time it gets easier, and each time the robe means a little less, and {self.name} tells themselves they will notice when to stop."
+            }
+          ]
+        },
+        {
+          "id": "rule_harshly",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Cruel",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustStress",
+              "role": "defendant",
+              "delta": 15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} made of {defendant.name} an example sharper than the crime required — a verdict meant to be talked about, and feared. The court learned what kind of magistrate it now served. So did everyone with a case yet to bring. Fear clears a docket fast. It also empties the room of justice, one frightened plaintiff at a time."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_great_trial",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "accused",
+          "when": [
+            {
+              "type": "rank",
+              "role": "accused",
+              "op": "gte",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "type": "skill",
+          "role": "self",
+          "skill": "oratory",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "convict_the_mighty",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Honorable",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "setCharFlag",
+              "role": "accused",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "accused",
+              "to": "self",
+              "delta": -40
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} prosecuted {accused.name} of {accused.house} — a power above {self.name}'s station, who had assumed station was armor — and made the conviction stick before the whole court. The realm learned that {self.name}'s law reaches upward. {accused.name} learned it too, and went to their punishment composing the long reply that the powerful always, eventually, compose."
+            }
+          ]
+        },
+        {
+          "id": "accept_the_bribe",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Greedy",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 10
+            },
+            {
+              "type": "setCharFlag",
+              "role": "accused",
+              "flag": "owes_you",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "indebted",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{accused.name} of {accused.house} paid, and {self.name} found the law surprisingly accommodating. The acquittal advanced {self.name}'s career as a reliable friend to the powerful — which is a career, and a cage. {self.name} is now a person {accused.name} can ruin with a word, and both of them know it, and that knowledge is the actual price."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_praetors_robe",
+      "tier": "setpiece",
+      "weight": 2,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "patron",
+          "when": [
+            {
+              "type": "rank",
+              "role": "patron",
+              "op": "gt",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "type": "skill",
+          "role": "self",
+          "skill": "law",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_robe_clean",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "patron",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the praetor's robe on the strength of a record no one could gainsay, and {patron.name} of {patron.house}, who had expected to be thanked for the elevation, found {self.name} owed them nothing but courtesy. A clean ascent. The first power-holder in {self.name}'s life who cannot call in a debt for it — which is its own kind of wealth."
+            }
+          ]
+        },
+        {
+          "id": "take_robe_owed",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "indebted",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "patron",
+              "to": "self",
+              "delta": 35
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{patron.name} of {patron.house} placed the robe on {self.name}'s shoulders, and the weight of it was partly cloth and partly obligation. {self.name} rose faster for the patronage and will answer for it later, as one always answers — at the patron's convenience, on a matter of the patron's choosing, for a price set the day the gift was given."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_passed_over_rival",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "rival",
+              "flag": "passed_over",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 5
+        }
+      ],
+      "choices": [
+        {
+          "id": "offer_a_post",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "passed_over",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 35
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sought out {rival.name} of {rival.house}, whom {self.name} had beaten to the post, and offered them a place worth having under {self.name}'s own command. The defeated rival, expecting cold triumph, got an open hand instead. The ones you best and then elevate become the ones who guard your back — because they have seen you choose generosity when cruelty was free."
+            }
+          ]
+        },
+        {
+          "id": "watch_them",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Paranoid",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "passed_over",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept {rival.name} close the other way — watched, reported on, every move shadowed by people {rival.name} would never spot. {self.name} sleeps easier knowing where the grudge is. {rival.name}, who might have let it fade, will eventually feel the surveillance, and resent it, and become exactly the threat {self.name} was watching for. Suspicion has a way of building its own enemies."
+            }
+          ]
+        },
+        {
+          "id": "ignore_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {rival.name} fade into the background of a busy career — neither befriended nor watched, simply outpaced. Most grudges die of neglect. A few do not. {self.name} has chosen, without quite deciding to, to find out which kind this one is, later, when it is no longer convenient."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_crossroads",
+      "tier": "setpiece",
+      "weight": 2,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "type": "counter",
+          "key": "standing",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "stay_the_course",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "Offered a leap into a different track — a soldier courted for the senate, a steward for the fleet — {self.name} declined and went deeper into the mastery already begun. The realm is full of capable people spread thin across three ambitions. {self.name} chose to be undeniable at one. Depth is its own kind of power, and a rarer one."
+            }
+          ]
+        },
+        {
+          "id": "change_tracks",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ambitious",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "charisma",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 4
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the leap into the unfamiliar track, trading hard-won seniority for a wider board to play on. The old colleagues called it folly; the old skills count for little in the new arena. But the figure who commands more than one domain frightens those who command only one — and fear, wielded well, is the shortest road to the top of any of them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_old_mentor",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "mentor",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "mentor",
+              "flag": "mentor_proud",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 7
+        }
+      ],
+      "choices": [
+        {
+          "id": "honor_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "mentor",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{mentor.name} of {mentor.house} grew old and outranked, the way every mentor eventually does, and {self.name} made sure the world remembered what {self.name} owed them — a place of honor, a public word, the respect a lesser climber would have economized on. The student who lifts the teacher up at the end is the student who proves the teaching took."
+            }
+          ]
+        },
+        {
+          "id": "surpass_them",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ambitious",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "mentor",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the post that had been {mentor.name}'s, in the end — not unkindly, but unmistakably, the pupil seated where the teacher once sat. {mentor.name} smiled and meant most of it. There is a grief in being surpassed by what you made, and a pride in it, and {mentor.name} felt both, and {self.name} pretended not to see the first."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_quiet_competence",
+      "tier": "ambient",
+      "weight": 5,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 1
+        }
+      ],
+      "choices": [
+        {
+          "id": "do_the_work",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "No glory in it, no event worth the telling — only the unending paperwork, the inspections, the small correct decisions that no one notices until one of them is wrong. {self.name} did the work. Careers are not made of set-pieces. They are made of the days between them, done right."
+            }
+          ]
+        },
+        {
+          "id": "delegate_it",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Administrator",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} pushed the routine down to those who should be learning it, freeing {self.name}'s own hours for the decisions only {self.name} could make. The art of rising is partly the art of knowing what to stop doing. {self.name} is learning to lead instead of merely to work."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
