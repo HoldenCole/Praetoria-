@@ -158,6 +158,55 @@ internal static class Commands
     }
 
     /// <summary>
+    /// Demonstrates the Milestone-5 power-balance system headlessly (GDD §7): as a house's heir climbs
+    /// the Navy career ladder, the family's Navy share spikes, its threat score climbs, and rivals
+    /// begin to coordinate — until a coalition crisis (§16) becomes causable. Deterministic.
+    /// </summary>
+    public static int Spheres(Options o)
+    {
+        var content = LoadContent();
+        if (content.Spheres.IsEmpty) { Console.Error.WriteLine("No spheres defined in /content/spheres."); return 1; }
+        var sys = new SphereSystem(content.Spheres);
+        var crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises);
+        var rng = new SplitMix64Rng(o.Seed);
+
+        var world = new World { ProtagonistId = "marcus" };
+        foreach (var id in new[] { "vega", "corwin", "drake", "sato" })
+            world.Houses[id] = new House { Id = id, Name = "House " + char.ToUpper(id[0]) + id[1..] };
+        void Add(string id, string house, string track, int rank)
+        {
+            world.Characters[id] = new Character { Id = id, Name = id, HouseId = house, Alive = true, CareerTrack = track, CareerRank = rank };
+            world.Houses[house].Members.Add(id);
+        }
+        Add("marcus", "vega", "military", 0);
+        Add("lucan", "corwin", "military", 1);
+        Add("sela", "drake", "law", 2);
+        Add("ren", "sato", "stewardship", 2);
+
+        Console.WriteLine($"=== POWER-BALANCE DEMO — career feeds spheres feeds coalitions (seed {o.Seed}) ===");
+        Console.WriteLine("House Vega's heir climbs the Navy. Watch the galaxy grow afraid.\n");
+
+        for (int rank = 1; rank <= 6; rank++)
+        {
+            world.Char("marcus")!.CareerRank = rank;
+            sys.Recompute(world);
+            int threat = world.Counter("threat");
+            Console.WriteLine($"  Marcus → rank {rank}   Vega Navy share {sys.Share(world, "vega", "navy"):F0}%   " +
+                              $"threat {threat}   coalition_pressure {world.Counter("coalition_pressure")}" +
+                              $"{(world.HasFlag("coalition_forming") ? "  ⚑ coalition forming" : "")}");
+
+            if (crises != null && crises.IsCausable(crises.Def("coalition_war")!, world, rng))
+            {
+                Console.WriteLine("     ‼  A Coalition War is now CAUSABLE — the rivals have had enough.");
+                break;
+            }
+        }
+
+        Console.WriteLine("\nDominate one estate and the others gang up where you're weak. (GDD §7)");
+        return 0;
+    }
+
+    /// <summary>
     /// Demonstrates the Milestone-5 crisis system headlessly (GDD §16): a revolt's gate clears, it
     /// erupts, brutal suppression CASCADES into a civil war, and whether a damper is even available
     /// depends on goodwill banked by prior play. Deterministic from a seed.

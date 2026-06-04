@@ -205,6 +205,27 @@ public sealed class ResourceCondition : ICondition
     }
 }
 
+/// <summary>House sphere-influence compare (GDD §7). Reads the house of <c>role</c> (default
+/// "self"). JSON: { "type": "sphere", "role": "self", "sphere": "navy", "op": "gte", "value": 3 }.
+/// Lets events and crisis gates react to who dominates an estate.</summary>
+public sealed class SphereCondition : ICondition
+{
+    public string Role { get; }
+    public string SphereKey { get; }
+    public CompareOp Op { get; }
+    public int Value { get; }
+    public SphereCondition(string role, string sphereKey, CompareOp op, int value)
+    {
+        Role = role; SphereKey = sphereKey; Op = op; Value = value;
+    }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c == null || !ctx.World.Houses.TryGetValue(c.HouseId, out var house)) return false;
+        return Comparison.Apply(Op, house.SphereInfluence.GetValueOrDefault(SphereKey), Value);
+    }
+}
+
 /// <summary>Always-true / always-false literal. JSON: { "type": "const", "value": true }.</summary>
 public sealed class ConstCondition : ICondition
 {

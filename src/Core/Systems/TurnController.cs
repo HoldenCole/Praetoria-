@@ -35,6 +35,7 @@ public sealed class TurnController
     private readonly NpcAi _npcAi = new();
     private readonly Economy? _economy;
     private readonly CrisisEngine? _crises;
+    private readonly SphereSystem? _spheres;
     private readonly int _briefingBudget;
     private readonly List<BriefingItem> _briefing = new();
 
@@ -43,6 +44,9 @@ public sealed class TurnController
     /// <summary>The crisis system (GDD §16), or null when the content set defines no crises.</summary>
     public CrisisEngine? Crises => _crises;
 
+    /// <summary>The power-balance system (GDD §7), or null when the content set defines no spheres.</summary>
+    public SphereSystem? Spheres => _spheres;
+
     public TurnController(World world, ContentDatabase content, Director? director = null, int briefingBudget = 3)
     {
         World = world;
@@ -50,6 +54,7 @@ public sealed class TurnController
         Engine = new EventEngine(content, _rng, director);
         _economy = content.Holdings.IsEmpty ? null : new Economy(content.Holdings);
         _crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises);
+        _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres);
         _briefingBudget = briefingBudget;
     }
 
@@ -64,7 +69,8 @@ public sealed class TurnController
     {
         World.Turn++;
         foreach (var pools in World.Pools.Values) pools.Regenerate();
-        _economy?.Accrue(World);   // RNG-free, so determinism is preserved (GDD §17)
+        _economy?.Accrue(World);    // RNG-free, so determinism is preserved (GDD §17)
+        _spheres?.Recompute(World); // power-balance projection + threat/coalition (GDD §7), also RNG-free
 
         Phase = TurnPhase.Briefing;
         _briefing.Clear();

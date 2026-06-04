@@ -73,6 +73,37 @@
     },
 
     {
+      // POWER-BALANCE CASCADE (GDD §7→§16): when the protagonist's house grows over-mighty, the
+      // SphereSystem accumulates `coalition_pressure`. At 3 the rivals coordinate — a coalition war.
+      // Its writes (unrest, legitimacy, realm_unstable) feed the SAME gates the civil war reads, so
+      // an over-mighty house's coalition can itself cascade into open civil war.
+      "id": "coalition_war",
+      "name": "Coalition Against the House",
+      "tier": "imperial",
+      "weight": 2,
+      "severity": 3,
+      "gates": [
+        { "type": "counter", "key": "coalition_pressure", "op": "gte", "value": 3 }
+      ],
+      "onTrigger": [
+        { "type": "adjustCounter", "key": "unrest", "delta": 2 },
+        { "type": "adjustCounter", "key": "legitimacy", "delta": -2 },
+        { "type": "setWorldFlag", "flag": "realm_unstable", "value": true }
+      ],
+      "dampers": [
+        {
+          "id": "appease_rivals", "name": "Appease the Coalition", "relief": 2,
+          "available": [ { "type": "counter", "key": "goodwill", "op": "gte", "value": 3 } ],
+          "cost": { "influence": 2 },
+          "effects": [
+            { "type": "adjustCounter", "key": "coalition_pressure", "delta": -3 },
+            { "type": "adjustCounter", "key": "goodwill", "delta": -1 }
+          ]
+        }
+      ]
+    },
+
+    {
       "id": "court_scandal",
       "name": "Court Scandal",
       "tier": "house",

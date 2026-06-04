@@ -1,5 +1,6 @@
 using Praetoria.Core.Crises;
 using Praetoria.Core.Events;
+using Praetoria.Core.Spheres;
 
 namespace Praetoria.Core.Data;
 
@@ -19,18 +20,23 @@ public sealed class ContentDatabase
     /// <summary>The crisis definitions (GDD §16). Empty for scenarios with no crisis layer.</summary>
     public IReadOnlyList<CrisisDef> Crises { get; }
 
+    /// <summary>The power-balance spheres (GDD §7). Empty for scenarios with no sphere layer.</summary>
+    public SphereCatalog Spheres { get; }
+
     private readonly Dictionary<string, EventDef> _eventsById;
 
     public ContentDatabase(
         IReadOnlyList<EventDef> events,
         IReadOnlyDictionary<string, EventText> texts,
         HoldingCatalog? holdings = null,
-        IReadOnlyList<CrisisDef>? crises = null)
+        IReadOnlyList<CrisisDef>? crises = null,
+        SphereCatalog? spheres = null)
     {
         Events = events;
         Texts = texts;
         Holdings = holdings ?? HoldingCatalog.Empty;
         Crises = crises ?? Array.Empty<CrisisDef>();
+        Spheres = spheres ?? SphereCatalog.Empty;
         _eventsById = new Dictionary<string, EventDef>();
         foreach (var e in events) _eventsById[e.Id] = e;
     }

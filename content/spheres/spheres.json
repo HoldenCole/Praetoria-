@@ -1,0 +1,13 @@
+{
+  // POWER-BALANCE SPHERES (GDD §7). The estates imperial power is divided among. A house's influence
+  // in a sphere is DERIVED from the careers of its members on the feeding track — so the climb (§13)
+  // and the power-balance metagame are one system: rise as an admiral and your house's Navy share
+  // spikes, which frightens rivals and feeds the coalition/threat math (§7 → §16).
+  //
+  // V1 ships three; Church/Intelligence are later/DLC slots. STRAWMAN — confirm names + mappings.
+  "spheres": [
+    { "id": "navy",     "name": "the Navy",     "careerTrack": "military" },
+    { "id": "treasury", "name": "the Treasury", "careerTrack": "stewardship" },
+    { "id": "senate",   "name": "the Senate",   "careerTrack": "law" }
+  ]
+}
