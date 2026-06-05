@@ -14,8 +14,9 @@ class are the remaining M5 work** (see *Deferred*).
 escalates and a damper (earned by prior play) arrests it; an NPC house triggers a crisis.* ✅ Proven by
 `CrisisTests` + `CrisisDeterminismTests` and the `crisis` console demo.
 
-**Status:** ✅ complete. 80 tests pass (64 prior + 10 crisis + 6 sphere); engine `validate` clean
-(47/47); both content validators clean; the `crisis` and `spheres` demos run deterministically.
+**Status:** ✅ complete. 81 tests pass (64 prior + 10 crisis + 7 sphere); engine `validate` clean
+(55/55, incl. the coalition event chain); both content validators clean; the `crisis` and `spheres`
+demos run deterministically.
 
 ## What was built — power-balance spheres (GDD §7)
 
@@ -27,7 +28,9 @@ escalates and a damper (earned by prior play) arrests it; an NPC house triggers 
 | `sphere` condition | `Events/Conditions.cs` (+ parser) | Events/crisis-gates can read a house's sphere influence. |
 | Turn integration | `TurnController.BeginTurn` | Recomputes spheres after economy accrual, before the turn's gates are read. |
 | Content | `/content/spheres/spheres.json`; `coalition_war` crisis | The three estates (strawman — confirm); a coalition crisis gating on `coalition_pressure ≥ 3` whose writes cascade into the existing civil war. |
-| Harness | `src/Tools` — `spheres` (new) | Shows an heir climbing the Navy → share/threat climb → coalition becomes causable. |
+| Coalition events | `content/events/coalition_crises.json` (+ text) | 8 authored events — the *player-facing* §7 layer: cultivate an estate → rivals fear you → the coalition moves → the crown notices → humbled-house aftermath. Gate on `navy_influence`/`treasury_influence`/`senate_influence`. |
+| Career↔event bridge | `SphereSystem.BridgeToPlayerCounters` | Mirrors the protagonist's career-derived sphere influence into the `{sphere}_influence` counters those events read — **delta-only**, so the events' own cultivation increments are never clobbered. So `navy_influence` = structural (careers) + cultivated (choices); a climbing career now feeds **both** the systemic threat/coalition crisis **and** the narrative coalition events. |
+| Harness | `src/Tools` — `spheres` (new) | Shows an heir climbing the Navy → share/threat/`navy_influence` climb → coalition becomes causable. |
 
 **The §7 loop, proven** (`CoalitionPressure_Accumulates_AndArmsTheCoalitionCrisis`, visible in `spheres`):
 as House Vega's heir climbs the Navy ladder, its Navy share rises 50 → 67 → 75%, its threat climbs past
@@ -99,14 +102,13 @@ dotnet run --project src/Tools -- crisis --seed 1
 
 - **Confirm the three spheres** + career→sphere mapping in `spheres.json` (strawman: Navy←military,
   Treasury←stewardship, Senate←law).
-- **Sphere/coalition-themed events** — the *feel* of rivals ganging up on an over-mighty house. The
-  `sphere` condition and the `coalition_pressure`/`threat`/`coalition_forming` accumulators are in and
-  ready to gate such content.
+- ~~Sphere/coalition-themed events~~ ✅ **delivered** — the 8-event coalition chain
+  (`coalition_crises.json`), now bridged to the career-derived sphere influence.
 
 ## How to verify
 
 ```bash
-dotnet test                                     # 80 pass
+dotnet test                                     # 81 pass
 dotnet run --project src/Tools -- validate      # 47/47, 0 errors
 dotnet run --project src/Tools -- crisis --seed 1
 dotnet run --project src/Tools -- spheres --seed 1

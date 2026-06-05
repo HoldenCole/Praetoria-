@@ -115,6 +115,25 @@ public class SphereTests
     }
 
     [Fact]
+    public void Bridge_FeedsCareerInfluence_IntoPlayerCounters_WithoutClobberingCultivation()
+    {
+        var w = PowerWorld();                       // Marcus (Vega) is a rank-5 admiral → structural navy 5
+        var s = new SphereSystem(Cat());
+        s.Recompute(w);
+        Assert.Equal(5, w.Counter("navy_influence"));   // career-derived structural mirrored to the event counter
+
+        // The player cultivates +2 navy through coalition events.
+        w.WorldCounters["navy_influence"] += 2;
+        s.Recompute(w);                                 // structural unchanged → no delta
+        Assert.Equal(7, w.Counter("navy_influence"));   // cultivation preserved, not clobbered
+
+        // The admiral is promoted: structural 5 → 6 applies a +1 delta on top of the cultivation.
+        w.Char("marcus")!.CareerRank = 6;
+        s.Recompute(w);
+        Assert.Equal(8, w.Counter("navy_influence"));
+    }
+
+    [Fact]
     public void SphereCondition_ReadsHouseInfluence_AndParsesFromJson()
     {
         var w = PowerWorld();

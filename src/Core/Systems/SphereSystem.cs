@@ -36,6 +36,8 @@ public sealed class SphereSystem
             foreach (var sphere in _catalog.Defs)
                 house.SphereInfluence[sphere.Id] = DerivedInfluence(w, house, sphere);
 
+        BridgeToPlayerCounters(w);
+
         var pHouse = w.Protagonist?.HouseId;
         int threat = pHouse != null ? Threat(w, pHouse) : 0;
         w.WorldCounters["threat"] = threat;
@@ -51,6 +53,33 @@ public sealed class SphereSystem
             int eased = Math.Max(0, w.Counter("coalition_pressure") - 1);
             w.WorldCounters["coalition_pressure"] = eased;
             if (eased == 0) w.WorldFlags.Remove("coalition_forming");
+        }
+    }
+
+    /// <summary>
+    /// Bridge the protagonist house's career-derived sphere influence into the player-facing
+    /// <c>{sphere}_influence</c> world counters the coalition event chain reads (e.g. <c>navy_influence</c>).
+    /// Only the <em>change</em> since last turn is applied, so the events' own cultivation increments
+    /// (a player building influence through choices) accumulate on top of the structural base rather
+    /// than being clobbered. So <c>navy_influence</c> = career-derived structural power + cultivated.
+    /// House.SphereInfluence stays the authoritative structural value (threat reads it).
+    /// </summary>
+    private void BridgeToPlayerCounters(World w)
+    {
+        var prot = w.Protagonist;
+        if (prot == null || !w.Houses.TryGetValue(prot.HouseId, out var house)) return;
+
+        foreach (var sphere in _catalog.Defs)
+        {
+            int structural = house.SphereInfluence.GetValueOrDefault(sphere.Id);
+            string counterKey = sphere.Id + "_influence";          // navy_influence, treasury_influence, ...
+            string appliedKey = "sphere_applied:" + sphere.Id;     // bookkeeping: structural already folded in
+            int applied = w.Counter(appliedKey);
+            if (structural != applied)
+            {
+                w.WorldCounters[counterKey] = w.Counter(counterKey) + (structural - applied);
+                w.WorldCounters[appliedKey] = structural;
+            }
         }
     }
 

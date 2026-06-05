@@ -192,7 +192,8 @@ internal static class Commands
             sys.Recompute(world);
             int threat = world.Counter("threat");
             Console.WriteLine($"  Marcus → rank {rank}   Vega Navy share {sys.Share(world, "vega", "navy"):F0}%   " +
-                              $"threat {threat}   coalition_pressure {world.Counter("coalition_pressure")}" +
+                              $"navy_influence {world.Counter("navy_influence")}   threat {threat}   " +
+                              $"coalition_pressure {world.Counter("coalition_pressure")}" +
                               $"{(world.HasFlag("coalition_forming") ? "  ⚑ coalition forming" : "")}");
 
             if (crises != null && crises.IsCausable(crises.Def("coalition_war")!, world, rng))
