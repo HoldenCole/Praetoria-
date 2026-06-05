@@ -34,7 +34,8 @@ which both the player and NPC houses act, the formal **Briefing → Action → R
 the **five-resource domain economy** (holdings, specializations, buildings, per-turn accrual/upkeep),
 the **gate/cascade/damper crisis system** (§16 — crises as gated buildable states, not random events),
 the **power-balance spheres** (§7 — career feeds sphere-influence feeds threat/coalition),
-a console harness, and an authored content set (47 events, 3 scenarios, a crisis pool, the spheres).
+the **title ladder + legitimacy soft-lock** (§13 — three rise-paths; holding above your legitimacy breeds instability),
+a console harness, and an authored content set (55 events, 3 scenarios, crises, spheres, titles).
 
 - **Milestone 1 — "The Engine Breathes":** [`docs/MILESTONE_1_NOTES.md`](docs/MILESTONE_1_NOTES.md).
   Proven: *a choice in one event arms state that makes a different, unscripted event eligible later*
@@ -45,11 +46,12 @@ a console harness, and an authored content set (47 events, 3 scenarios, a crisis
   Proven: *a house treasury accrues from its holdings each turn and an investment made through the
   command bus compounds — deterministically from a seed.* (Galaxy mode / fleets / succession are the
   remaining UI-bound M4 work; Milestone 3, the Court UI, is the Godot layer in between.)
-- **Milestone 5 — Crisis System + Power-Balance Spheres:** [`docs/MILESTONE_5_NOTES.md`](docs/MILESTONE_5_NOTES.md).
+- **Milestone 5 — Crises + Spheres + Progression:** [`docs/MILESTONE_5_NOTES.md`](docs/MILESTONE_5_NOTES.md).
   Proven: *a crisis can be engineered or defused via gates; a cascade escalates and a damper (earned by
-  prior play) arrests it; an NPC house triggers a crisis* — and *a house's career-fed dominance of an
-  estate accrues threat until a coalition crisis becomes causable.* (Progression §13 and Bloody Events
-  are the remaining M5 work.)
+  prior play) arrests it; an NPC house triggers a crisis*; *a house's career-fed dominance of an estate
+  accrues threat until a coalition crisis becomes causable*; and *seizing a title above your legitimacy
+  breeds instability until a contested-title crisis becomes causable, while a granted title rules
+  secure.* (Bloody Events are the remaining M5 work.)
 
 ## Quickstart (needs the .NET 8 SDK)
 
@@ -71,6 +73,9 @@ dotnet run --project src/Tools -- crisis --seed 1
 
 # Watch the power balance: an heir's Navy career spikes the house's sphere share until rivals coalesce
 dotnet run --project src/Tools -- spheres --seed 1
+
+# Watch progression: the meritocrat is granted a title and rules secure; the conqueror seizes one and rules a powder keg
+dotnet run --project src/Tools -- progression --seed 1
 
 # Play the Academy as text (interactive; --auto picks first affordable choice each report)
 dotnet run --project src/Tools -- play --seed 1 --turns 8

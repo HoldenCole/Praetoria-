@@ -22,6 +22,7 @@ try
         "economy"  => Commands.Economy(opts),
         "crisis"   => Commands.Crisis(opts),
         "spheres"  => Commands.Spheres(opts),
+        "progression" => Commands.Progression(opts),
         "play"     => Commands.Play(opts),
         "help" or "--help" or "-h" => Help(),
         _ => Unknown(command)
@@ -58,6 +59,7 @@ static int Help()
     Console.WriteLine("  economy [--seed N] [--turns N] domain economy: holdings accrue, invest in buildings");
     Console.WriteLine("  crisis [--seed N]              crisis gate/cascade/damper demonstration");
     Console.WriteLine("  spheres [--seed N]             power-balance: career feeds spheres feeds coalitions");
+    Console.WriteLine("  progression [--seed N]         title ladder + legitimacy soft-lock (merit vs seize)");
     Console.WriteLine("  demo [--seed N]               cascade demonstration");
     Console.WriteLine("  validate");
     return 0;

@@ -1,22 +1,47 @@
-# Milestone 5 — Crisis System + Power-Balance Spheres
+# Milestone 5 — Crisis System + Power-Balance Spheres + Progression
 
-**Goal (BuildSpec §M5, GDD §7 + §16):** the power-balance + threat/coalition system, two-ladder
+**Goal (BuildSpec §M5, GDD §7 + §13 + §16):** the power-balance + threat/coalition system, two-ladder
 progression + legitimacy soft-lock + three paths, and the full crisis gate/cascade/damper/Bloody-Event
 system; NPC houses authoring crises.
 
-**Scope note.** M5 is three large systems (spheres §7, progression §13, crises §16). This milestone
-delivers two of the three — the **crisis gate/cascade/damper engine** and the **power-balance spheres +
-threat/coalition** — end-to-end and headless, wired together (sphere dominance → coalition pressure →
-a coalition crisis). **The two-ladder progression / legitimacy soft-lock and the Bloody-Event set-piece
-class are the remaining M5 work** (see *Deferred*).
+**Scope note.** M5 is three large systems (spheres §7, progression §13, crises §16) — **all three are
+now built**, end-to-end and headless, and wired into one another: a career feeds sphere dominance (§7)
+→ coalition pressure → a coalition crisis (§16); seizing a title (§13) ignores legitimacy → soft-lock
+instability → vassals grumble → the same crisis web. **The Bloody-Event set-piece class is the
+remaining M5 work** (see *Deferred*).
 
 **Acceptance (this slice, BuildSpec §M5):** *a crisis can be engineered or defused via gates; a cascade
 escalates and a damper (earned by prior play) arrests it; an NPC house triggers a crisis.* ✅ Proven by
 `CrisisTests` + `CrisisDeterminismTests` and the `crisis` console demo.
 
-**Status:** ✅ complete. 81 tests pass (64 prior + 10 crisis + 7 sphere); engine `validate` clean
-(55/55, incl. the coalition event chain); both content validators clean; the `crisis` and `spheres`
+**Status:** ✅ complete. 91 tests pass (64 prior + 10 crisis + 7 sphere + 10 progression); engine
+`validate` clean (55/55); both content validators clean; the `crisis`, `spheres` and `progression`
 demos run deterministically.
+
+## What was built — progression & the legitimacy soft-lock (GDD §13)
+
+| Area | Where | Notes |
+|---|---|---|
+| Title ladder | `src/Core/Progression/TitleCatalog.cs`; `src/Core/Data/TitleLoader.cs` | `Title` keys + `TitleDef` (rank + legitimacy requirement), loaded from `/content/titles`. The dynasty ladder — persists across deaths. |
+| House state | `House.Title` / `House.Legitimacy` / `House.Claims` | Title rung, dynastic standing (birth baseline, set per scenario), and intrigue claims. |
+| Progression system | `src/Core/Systems/ProgressionSystem.cs` | The three rise paths and the per-turn **soft-lock**: holding a title above its legitimacy requirement breeds `title_instability` → vassals grumble (`unrest`) → feeds §16, while the holder slowly legitimises. Surfaces `title_rank`/`house_legitimacy`/`title_instability` counters. RNG-free. |
+| Three paths | `src/Core/Commands/ProgressionCommands.cs` | **Seize** (military — needs martial rank, ignores legitimacy, spikes `seizures` → §7 threat), **Petition** (merit — capped by legitimacy, arrives clean), **Claim** (intrigue — needs a claim, launders legitimacy, leaves `corruption`). Through the shared command bus. |
+| Vocabulary | `title` condition, `grantClaim` effect (+ parsers) | Events can gate on a house's title and forge claims (marriage/inheritance). |
+| Turn integration | `TurnController.BeginTurn` | Soft-lock applied after spheres, before the turn's crisis gates. |
+| Content | `/content/titles/titles.json`; `contested_title` crisis; academy house titles | The 7-rung ladder (strawman); a crisis gating on `title_instability ≥ 20` with marry-up / buy-silence dampers; the academy houses given legitimate titles. |
+| Harness | `src/Tools` — `progression` (new) | The meritocrat (granted, secure) vs the conqueror (seized, instability → contested-title crisis). |
+
+**The soft-lock, proven** (`SoftLock_FeedsTheContestedTitleCrisis`, visible in `progression`): a house
+that **seizes** a Duke title on legitimacy 30 (requirement 60) runs `title_instability` 32, its vassals
+grumble (`unrest`), and the **contested_title** crisis becomes causable within a turn — while a house
+**granted** a County it was legitimate for rules with zero instability. *Birth is a soft-lock, never a
+wall: a low-born can take the throne, but rules a powder keg until standing catches up* (§13).
+
+```bash
+dotnet run --project src/Tools -- progression --seed 1
+```
+
+## What was built — power-balance spheres (GDD §7)
 
 ## What was built — power-balance spheres (GDD §7)
 
@@ -87,14 +112,12 @@ dotnet run --project src/Tools -- crisis --seed 1
 
 ## Deferred (remaining Milestone-5 work)
 
-- **Progression (§13)** — the two ladders (title + career), the **legitimacy soft-lock** as a modifier,
-  the three rise-paths, and "resentment of the risen." (The career ladder already feeds spheres; what's
-  left is the *title* ladder + legitimacy.)
 - **Bloody Events (§16)** — the gala/wedding set-piece class as dramatic gate-clearing triggers (the
   content handoff notes this becomes authorable now that the gate system exists).
+- **"Resentment of the risen" (§13)** — a parvenu friction modifier with high-legitimacy houses that
+  decays over generations; today the soft-lock is the legitimacy *gap*, not yet social contempt.
 - **Sphere inputs beyond career** — titles, marriages and standing should also grant sphere influence
-  (§7); today it derives purely from member careers. And `seizures` is a threat hook the military layer
-  will feed later.
+  (§7); today it derives from member careers (now also fed by title rank via `seizures`→threat).
 - A small refinement: a resolved non-repeatable crisis can currently re-onset if its gate still holds;
   a "spent" suppression flag could keep it down.
 
@@ -102,14 +125,22 @@ dotnet run --project src/Tools -- crisis --seed 1
 
 - **Confirm the three spheres** + career→sphere mapping in `spheres.json` (strawman: Navy←military,
   Treasury←stewardship, Senate←law).
-- ~~Sphere/coalition-themed events~~ ✅ **delivered** — the 8-event coalition chain
-  (`coalition_crises.json`), now bridged to the career-derived sphere influence.
+- **Confirm the title ladder** legitimacy requirements in `titles.json` (strawman: Knight 10 / Baron 25 /
+  Count 40 / Duke 60 / Archduke 80 / Emperor 95).
+- **Per-scenario starting title + legitimacy** for the three rise-path scenarios — `the_fallen_house`
+  (a title held above a fallen house's standing = instant soft-lock drama) and `the_risen_officer` (a
+  landless low-born) would *showcase* §13. Today they default to landless/0 (inert). I can seed these
+  on your word.
+- **Title/succession events** — petition scenes, claims forged by marriage (`grantClaim`), usurpation.
+  The `title`/`grantClaim` vocabulary and the `title_*`/`house_legitimacy` counters are ready to gate them.
+- ~~Sphere/coalition-themed events~~ ✅ **delivered** (the 8-event coalition chain, bridged to spheres).
 
 ## How to verify
 
 ```bash
-dotnet test                                     # 81 pass
-dotnet run --project src/Tools -- validate      # 47/47, 0 errors
+dotnet test                                     # 91 pass
+dotnet run --project src/Tools -- validate      # 55/55, 0 errors
 dotnet run --project src/Tools -- crisis --seed 1
 dotnet run --project src/Tools -- spheres --seed 1
+dotnet run --project src/Tools -- progression --seed 1
 ```

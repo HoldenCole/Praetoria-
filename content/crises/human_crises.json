@@ -104,6 +104,40 @@
     },
 
     {
+      // SOFT-LOCK CASCADE (GDD §13→§16): holding a title above your legitimacy accrues
+      // `title_instability` (set each turn by the progression system). At 20 the contest turns open —
+      // rivals press their own claims. A Military usurper (legitimacy ignored) lands here fastest.
+      "id": "contested_title",
+      "name": "Contested Title",
+      "tier": "house",
+      "weight": 3,
+      "severity": 2,
+      "gates": [
+        { "type": "counter", "key": "title_instability", "op": "gte", "value": 20 }
+      ],
+      "onTrigger": [
+        { "type": "adjustCounter", "key": "unrest", "delta": 1 },
+        { "type": "adjustCounter", "key": "legitimacy", "delta": -1 }
+      ],
+      "dampers": [
+        {
+          "id": "marry_up", "name": "Marry Into Legitimacy", "relief": 2,
+          "available": [ { "type": "counter", "key": "house_legitimacy", "op": "gte", "value": 20 } ],
+          "cost": { "influence": 2 },
+          "effects": [ { "type": "adjustCounter", "key": "title_instability", "delta": -10 } ]
+        },
+        {
+          "id": "buy_silence", "name": "Buy the Doubters' Silence", "relief": 1,
+          "available": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 4 } ],
+          "effects": [
+            { "type": "adjustResource", "resource": "credits", "delta": -4 },
+            { "type": "adjustCounter", "key": "corruption", "delta": 1 }
+          ]
+        }
+      ]
+    },
+
+    {
       "id": "court_scandal",
       "name": "Court Scandal",
       "tier": "house",

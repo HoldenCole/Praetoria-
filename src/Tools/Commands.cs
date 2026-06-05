@@ -3,6 +3,7 @@ using Praetoria.Core.Commands;
 using Praetoria.Core.Crises;
 using Praetoria.Core.Data;
 using Praetoria.Core.Events;
+using Praetoria.Core.Progression;
 using Praetoria.Core.Rng;
 using Praetoria.Core.State;
 using Praetoria.Core.Systems;
@@ -154,6 +155,60 @@ internal static class Commands
         }
 
         Console.WriteLine($"Deterministic ledger complete. Final credits: {house.Treasury.Credits}.");
+        return 0;
+    }
+
+    /// <summary>
+    /// Demonstrates the Milestone-5 progression system headlessly (GDD §13): two heirs reach for the
+    /// same rung by different paths. The meritocrat is granted what he's legitimate for and rules
+    /// secure; the conqueror seizes what he can't be granted and rules a powder keg — the soft-lock
+    /// breeds instability until a contested-title crisis becomes causable. Deterministic.
+    /// </summary>
+    public static int Progression(Options o)
+    {
+        var content = LoadContent();
+        if (content.Titles.IsEmpty) { Console.Error.WriteLine("No titles defined in /content/titles."); return 1; }
+        var prog = new ProgressionSystem(content.Titles);
+        var crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises);
+        var rng = new SplitMix64Rng(o.Seed);
+
+        World Heir(int legitimacy, int rank)
+        {
+            var w = new World { ProtagonistId = "heir" };
+            w.Houses["house"] = new House { Id = "house", Name = "the House", Title = "baron", Legitimacy = legitimacy };
+            w.Characters["heir"] = new Character { Id = "heir", Name = "the Heir", HouseId = "house", Alive = true, CareerTrack = "military", CareerRank = rank };
+            w.Houses["house"].Members.Add("heir");
+            w.Pools["heir"] = ActionPools.ForPlayer();
+            return w;
+        }
+        string Name(string id) => content.Titles.ById(id)?.Name ?? id;
+        void Line(World w) => Console.WriteLine($"     title {Name(w.House("house")!.Title)} · legitimacy " +
+            $"{w.House("house")!.Legitimacy} · instability {w.Counter("title_instability")} · unrest {w.Counter("unrest")}");
+
+        Console.WriteLine($"=== PROGRESSION DEMO — the soft-lock (seed {o.Seed}) ===\n");
+
+        Console.WriteLine("— THE MERITOCRAT — high legitimacy (45); is GRANTED the County —");
+        var m = Heir(45, 3);
+        if (prog.CanPetition(m, "heir")) prog.Petition(m, "heir");
+        prog.Apply(m); Line(m);
+        Console.WriteLine("   He rules secure: legitimacy met the title, no instability.\n");
+
+        Console.WriteLine("— THE CONQUEROR — low legitimacy (28); SEIZES County, then Duke by force —");
+        var c = Heir(28, 4);
+        prog.Seize(c, "heir");          // baron → count
+        prog.Seize(c, "heir");          // count → duke
+        Console.WriteLine($"   Seized to {Name(c.House("house")!.Title)} (seizures {c.Counter("seizures")} — the galaxy takes note).");
+        for (int t = 1; t <= 5; t++)
+        {
+            prog.Apply(c);
+            Console.Write($"   turn {t}: "); Line(c);
+            if (crises != null && crises.IsCausable(crises.Def("contested_title")!, c, rng))
+            {
+                Console.WriteLine("     ‼  A Contested-Title crisis is now CAUSABLE — rivals press their own claims.");
+                break;
+            }
+        }
+        Console.WriteLine("\nBirth is a soft-lock, never a wall: take the throne, but rule a powder keg. (GDD §13)");
         return 0;
     }
 

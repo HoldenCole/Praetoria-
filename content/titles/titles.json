@@ -1,0 +1,17 @@
+{
+  // THE TITLE LADDER (GDD §13) — the dynasty ladder, persists across character deaths. Each rung's
+  // `legitimacyRequirement` is the SOFT-LOCK: you can hold a title above your legitimacy, but it
+  // breeds ongoing instability (vassals grumble, rivals contest) until your standing catches up.
+  // STRAWMAN requirements — confirm/tune. Birth sets a house's starting legitimacy (high-born high,
+  // low-born low); the three rise paths raise it differently (Merit cleanly, Intrigue via bloodline,
+  // Military not at all).
+  "titles": [
+    { "id": "landless", "name": "Landless",  "rank": 0, "legitimacyRequirement": 0 },
+    { "id": "knight",   "name": "Knight",    "rank": 1, "legitimacyRequirement": 10 },
+    { "id": "baron",    "name": "Baron",     "rank": 2, "legitimacyRequirement": 25 },
+    { "id": "count",    "name": "Count",     "rank": 3, "legitimacyRequirement": 40 },
+    { "id": "duke",     "name": "Duke",      "rank": 4, "legitimacyRequirement": 60 },
+    { "id": "archduke", "name": "Archduke",  "rank": 5, "legitimacyRequirement": 80 },
+    { "id": "emperor",  "name": "Emperor",   "rank": 6, "legitimacyRequirement": 95 }
+  ]
+}

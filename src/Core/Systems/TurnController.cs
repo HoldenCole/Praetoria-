@@ -36,6 +36,7 @@ public sealed class TurnController
     private readonly Economy? _economy;
     private readonly CrisisEngine? _crises;
     private readonly SphereSystem? _spheres;
+    private readonly ProgressionSystem? _progression;
     private readonly int _briefingBudget;
     private readonly List<BriefingItem> _briefing = new();
 
@@ -47,6 +48,9 @@ public sealed class TurnController
     /// <summary>The power-balance system (GDD §7), or null when the content set defines no spheres.</summary>
     public SphereSystem? Spheres => _spheres;
 
+    /// <summary>The progression system (GDD §13), or null when the content set defines no titles.</summary>
+    public ProgressionSystem? Progression => _progression;
+
     public TurnController(World world, ContentDatabase content, Director? director = null, int briefingBudget = 3)
     {
         World = world;
@@ -55,6 +59,7 @@ public sealed class TurnController
         _economy = content.Holdings.IsEmpty ? null : new Economy(content.Holdings);
         _crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises);
         _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres);
+        _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
         _briefingBudget = briefingBudget;
     }
 
@@ -69,8 +74,9 @@ public sealed class TurnController
     {
         World.Turn++;
         foreach (var pools in World.Pools.Values) pools.Regenerate();
-        _economy?.Accrue(World);    // RNG-free, so determinism is preserved (GDD §17)
-        _spheres?.Recompute(World); // power-balance projection + threat/coalition (GDD §7), also RNG-free
+        _economy?.Accrue(World);     // RNG-free, so determinism is preserved (GDD §17)
+        _spheres?.Recompute(World);  // power-balance projection + threat/coalition (GDD §7), also RNG-free
+        _progression?.Apply(World);  // title soft-lock instability (GDD §13), also RNG-free
 
         Phase = TurnPhase.Briefing;
         _briefing.Clear();

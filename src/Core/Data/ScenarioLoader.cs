@@ -53,6 +53,9 @@ public static class ScenarioLoader
                     Id = ConditionParser.Str(h, "id"),
                     Name = ConditionParser.OptStr(h, "name", ""),
                     AccentColor = ConditionParser.OptStr(h, "accent", "#888888"),
+                    Title = ConditionParser.OptStr(h, "title", "landless"),
+                    Legitimacy = ConditionParser.Int(h, "legitimacy", 0),
+                    Claims = new HashSet<string>(StrList(h, "claims")),
                     Treasury = HoldingCatalogLoader.ParseResources(h, "treasury")
                 });
         return list;

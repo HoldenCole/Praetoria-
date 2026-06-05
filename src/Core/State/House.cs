@@ -16,6 +16,18 @@ public sealed class House
 
     public List<string> Members { get; set; } = new();
 
+    /// <summary>The dynasty's title rung (GDD §13 — persists across character deaths). Id into the
+    /// title ladder catalog. Default landless/commoner.</summary>
+    public string Title { get; set; } = "landless";
+
+    /// <summary>The dynasty's legitimacy/standing (GDD §13). Birth sets the baseline; holding a title
+    /// above its legitimacy requirement is the soft-lock — possible, but it breeds instability.</summary>
+    public int Legitimacy { get; set; }
+
+    /// <summary>Title ids this house holds a claim to (GDD §13 Intrigue path — marriage/inheritance).
+    /// A claim is the key the Intrigue path needs to convert influence into a title.</summary>
+    public HashSet<string> Claims { get; set; } = new();
+
     /// <summary>The house's banked resources (GDD §17 — the House treasury of the §8 three-treasury
     /// model; the Imperial/personal split arrives with offices later). Holdings feed it each turn;
     /// builds, bribes and upkeep draw it down. Distinct from per-turn action pools (§9).</summary>

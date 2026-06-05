@@ -53,6 +53,8 @@ public static class EffectParser
             case "adjustResource":
                 return new AdjustResourceEffect(
                     ConditionParser.OptStr(el, "role", "self"), S(el, "resource"), I(el, "delta", 0));
+            case "grantClaim":
+                return new GrantClaimEffect(ConditionParser.OptStr(el, "role", "self"), S(el, "title"));
             case "log":
                 return new LogEffect(S(el, "text"));
 

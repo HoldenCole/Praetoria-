@@ -60,6 +60,8 @@ public static class ConditionParser
             case "sphere":
                 return new SphereCondition(
                     OptStr(el, "role", "self"), Str(el, "sphere"), Op(el), Int(el, "value", 0));
+            case "title":
+                return new TitleCondition(OptStr(el, "role", "self"), Str(el, "title"), Bool(el, "present", true));
             case "eventFired":
                 return new EventFiredCondition(Str(el, "event"), Bool(el, "value", true));
 

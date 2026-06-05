@@ -155,6 +155,22 @@ public sealed class AdjustResourceEffect : IEffect
     }
 }
 
+/// <summary>Grant a house a claim to a title (GDD §13 Intrigue path — marriage/inheritance forges
+/// the key the claim path needs). Targets the house of <c>role</c> (default "self"). JSON:
+/// { "type": "grantClaim", "role": "self", "title": "count" }.</summary>
+public sealed class GrantClaimEffect : IEffect
+{
+    public string Role { get; }
+    public string TitleId { get; }
+    public GrantClaimEffect(string role, string titleId) { Role = role; TitleId = titleId; }
+    public void Apply(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c != null && ctx.World.Houses.TryGetValue(c.HouseId, out var house))
+            house.Claims.Add(TitleId);
+    }
+}
+
 /// <summary>Write a line to the history log (GDD §15 L1). JSON: { "type": "log", "text": "..." } — supports {role.name} tokens.</summary>
 public sealed class LogEffect : IEffect
 {

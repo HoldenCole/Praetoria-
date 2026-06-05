@@ -226,6 +226,23 @@ public sealed class SphereCondition : ICondition
     }
 }
 
+/// <summary>House title check (GDD §13). Reads the house of <c>role</c> (default "self"). JSON:
+/// { "type": "title", "role": "self", "title": "duke", "present": true } — is the house's title
+/// exactly this rung? (Rank comparisons read the <c>title_rank</c> counter instead.)</summary>
+public sealed class TitleCondition : ICondition
+{
+    public string Role { get; }
+    public string TitleId { get; }
+    public bool Present { get; }
+    public TitleCondition(string role, string titleId, bool present) { Role = role; TitleId = titleId; Present = present; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c == null || !ctx.World.Houses.TryGetValue(c.HouseId, out var house)) return false;
+        return (house.Title == TitleId) == Present;
+    }
+}
+
 /// <summary>Always-true / always-false literal. JSON: { "type": "const", "value": true }.</summary>
 public sealed class ConstCondition : ICondition
 {

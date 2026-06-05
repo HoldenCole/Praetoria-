@@ -4,13 +4,13 @@
   "era": "fractured_stars",
 
   "houses": [
-    { "id": "vega",   "name": "House Vega",   "accent": "#7A1F2B",
+    { "id": "vega",   "name": "House Vega",   "accent": "#7A1F2B", "title": "baron", "legitimacy": 28,
       "treasury": { "credits": 10, "materials": 8, "manpower": 5, "influence": 3 } },
-    { "id": "corwin", "name": "House Corwin", "accent": "#1F3A7A",
+    { "id": "corwin", "name": "House Corwin", "accent": "#1F3A7A", "title": "count", "legitimacy": 45,
       "treasury": { "credits": 12, "materials": 6, "manpower": 4, "influence": 4 } },
-    { "id": "drake",  "name": "House Drake",  "accent": "#2B6E3F",
+    { "id": "drake",  "name": "House Drake",  "accent": "#2B6E3F", "title": "baron", "legitimacy": 30,
       "treasury": { "credits": 8,  "materials": 5, "manpower": 6, "influence": 2 } },
-    { "id": "sato",   "name": "House Sato",   "accent": "#6E5A1F",
+    { "id": "sato",   "name": "House Sato",   "accent": "#6E5A1F", "title": "knight", "legitimacy": 12,
       "treasury": { "credits": 6,  "materials": 4, "manpower": 3, "influence": 2 } }
   ],
 
