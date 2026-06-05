@@ -62,6 +62,8 @@ public static class ConditionParser
                     OptStr(el, "role", "self"), Str(el, "sphere"), Op(el), Int(el, "value", 0));
             case "title":
                 return new TitleCondition(OptStr(el, "role", "self"), Str(el, "title"), Bool(el, "present", true));
+            case "claim":
+                return new ClaimCondition(OptStr(el, "role", "self"), Str(el, "title"), Bool(el, "present", true));
             case "eventFired":
                 return new EventFiredCondition(Str(el, "event"), Bool(el, "value", true));
 
@@ -107,6 +109,7 @@ public static class ConditionParser
     {
         "blood" => BondType.Blood,
         "sworn" => BondType.Sworn,
+        "marriage" => BondType.Marriage,
         "none" => BondType.None,
         var s => throw new ContentException($"Unknown bond type '{s}'.")
     };

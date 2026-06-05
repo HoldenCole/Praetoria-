@@ -130,6 +130,7 @@ public static class ScenarioLoader
     {
         "blood" => BondType.Blood,
         "sworn" => BondType.Sworn,
+        "marriage" => BondType.Marriage,
         _ => BondType.None
     };
 

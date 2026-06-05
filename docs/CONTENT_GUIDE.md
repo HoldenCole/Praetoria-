@@ -156,9 +156,16 @@ AND). Comparison `op` ∈ `eq, neq, lt, lte, gt, gte` (symbols `==, !=, <, <=, >
 | `turn` | `op`, `value` | current turn number compare |
 | `counter` | `key`, `op`, `value` | world-counter compare (gate accumulators, clocks) |
 | `resource` | `role`(default `self`), `resource`, `op`, `value` | house-treasury compare (GDD §17) |
+| `sphere` | `role`(default `self`), `sphere`, `op`, `value` | house sphere-influence compare (GDD §7) |
+| `title` | `role`(default `self`), `title`, `present:bool` | is the house's title **exactly** this rung? (GDD §13) |
+| `claim` | `role`(default `self`), `title`, `present:bool` | does the house hold a claim to this title? (GDD §13) |
 | `eventFired` | `event`, `value:bool` | has an event already fired this run? |
 
 `resource` ∈ `credits, materials, manpower, influence, exotics`.
+`sphere` ∈ `navy, treasury, senate`.
+`title`/`claim` title ids ∈ `landless, knight, baron, count, duke, archduke, emperor`.
+Note `title`/`claim` test an **exact title id** (held / not-held), not a rank threshold — for "Count or
+higher" gate on the `title_rank` counter (see §Progression below).
 
 **Examples**
 ```jsonc
@@ -180,13 +187,16 @@ Used in a choice's `effects` array. Applied in order when the choice is taken.
 | `setWorldFlag` | `flag`, `value:bool` | set/clear a world flag |
 | `setCharFlag` | `role`, `flag`, `value:bool` | set/clear a per-character flag (arm a personal gate) |
 | `adjustRelationship` | `from`, `to`, `delta` | nudge directed disposition (clamped −100..100) |
-| `addBond` | `from`, `to`, `bond: blood\|sworn`, `strength`(default 50) | forge/upgrade a bond (strength 0..100) |
+| `addBond` | `from`, `to`, `bond: blood\|sworn\|marriage`, `strength`(default 50) | forge/upgrade a bond (strength 0..100; one bond per directed edge) |
 | `adjustSkill` | `role`, `skill`, `delta` | change a skill level |
 | `adjustStress` | `role`, `delta` | change stress (clamped 0..100) |
 | `adjustCounter` | `key`, `delta` | change a world counter (gate accumulator / clock) |
 | `addTrait` | `role`, `trait`, `kind: nature\|aptitude`(default aptitude) | grant a trait |
 | `advanceCareer` | `role` | +1 career rank |
 | `adjustResource` | `role`(default `self`), `resource`, `delta` | move a house-treasury resource (Credits may go negative; others clamp ≥0) |
+| `grantClaim` | `role`(default `self`), `title` | add a claim to a title to the role's **house** (GDD §13) |
+| `adjustLegitimacy` | `role`(default `self`), `delta` | change the house's legitimacy/standing (clamped ≥0, GDD §13) |
+| `setTitle` | `role`(default `self`), `title` | set the house's title outright — grant / usurp / abdicate (GDD §13) |
 | `log` | `text` | write a chronicle line (supports `{role.field}` tokens) |
 
 **The flag/counter levers are how unscripted storylines chain.** A choice in event A arms a flag/raises
@@ -207,6 +217,81 @@ engine (proven cascade: `barracks_confrontation/mock` arms `feud` → `the_duel`
 ### Engine-managed flags (don't set these yourself; you may *read* them)
 - `evt:<eventId>:fired` — auto-set when a non-repeatable event fires. Read it via the `eventFired`
   condition (cleaner than the raw flag).
+
+---
+
+## 4b. Progression & Succession (§13) — title, legitimacy, claims, marriage
+
+Title and legitimacy live on the **House** (the dynasty), not the character. The pieces:
+
+- **Title** — a rung id (`landless`→`knight`→`baron`→`count`→`duke`→`archduke`→`emperor`). Read with the
+  `title` condition (exact id). Change with `setTitle` (event-driven grant/usurp/abdicate).
+- **Legitimacy** — the house's standing (int, ≥0; birth baseline set per scenario). Change with
+  `adjustLegitimacy`. Each title has a legitimacy *requirement* (the soft-lock): holding a title above it
+  breeds instability until standing catches up.
+- **Claim** — a house's pressable right to a title (`grantClaim` forges one; the `claim` condition reads
+  it). The key the Intrigue path needs to usurp.
+- **Marriage** — a relationship bond (`addBond … bond:"marriage"`), read by the `bond` condition. The
+  vehicle for converting a political tie into a claim.
+
+**Engine-written counters you READ (do not write — the progression system overwrites them each turn,
+and they reflect the PROTAGONIST's house only):**
+
+| counter | meaning | range |
+|---|---|---|
+| `title_rank` | protagonist house's title rank | 0 (landless) … 6 (emperor) |
+| `house_legitimacy` | protagonist house's legitimacy | 0 … (requirements top out at 95) |
+| `title_instability` | how far the title outstrips legitimacy (the soft-lock gap) | 0 … ; the `contested_title` crisis gates at ≥ 20 |
+
+**Counters the path commands raise (shared, you may read OR write):** `seizures` (a military seizure;
+also feeds §7 threat), `corruption` (an intrigue scheme's trail). The soft-lock also adds to `unrest`
+each turn a title is held above legitimacy.
+
+> Note: `title_*`/`house_legitimacy` are read-only **projections of the player's house**, refreshed every
+> turn — gate on them for player-facing scenes, but to mutate state use `setTitle`/`adjustLegitimacy`/
+> `grantClaim` (which write the House directly).
+
+**Worked succession patterns** (author these as ordinary events):
+
+```jsonc
+// 1) PETITION — a kinsman asks you to recognize his claim to a County.
+{ "id": "the_petition", "tier": "situation",
+  "roles": [ { "name": "petitioner", "when": [ { "type": "bond", "from": "self", "to": "petitioner", "bond": "blood", "present": true } ] } ],
+  "when": [ { "type": "title", "role": "self", "title": "duke" } ],   // only a Duke can grant a County
+  "choices": [
+    { "id": "recognize", "cost": { "influence": 1 },
+      "effects": [ { "type": "grantClaim", "role": "petitioner", "title": "count" },
+                   { "type": "adjustRelationship", "from": "petitioner", "to": "self", "delta": 20 } ] },
+    { "id": "refuse",
+      "effects": [ { "type": "setCharFlag", "role": "petitioner", "flag": "slighted", "value": true } ] }
+  ] }
+
+// 2) MARRIAGE-FORGED CLAIM — a union that becomes leverage.
+{ "id": "the_advantageous_match", "tier": "situation",
+  "roles": [ { "name": "bride", "when": [ { "type": "bond", "from": "self", "to": "bride", "bond": "marriage", "present": false } ] } ],
+  "choices": [
+    { "id": "wed", "cost": { "influence": 2 },
+      "effects": [ { "type": "addBond", "from": "self", "to": "bride", "bond": "marriage", "strength": 60 },
+                   { "type": "adjustLegitimacy", "role": "self", "delta": 8 },   // a good match raises standing
+                   { "type": "grantClaim", "role": "self", "title": "count" } ] } // ...and a claim by blood
+  ] }
+
+// 3) USURPATION — press a claim you hold (the set-piece, with the honorable/ruthless split).
+{ "id": "press_the_claim", "tier": "setpiece",
+  "when": [ { "type": "claim", "role": "self", "title": "count", "present": true } ],
+  "choices": [
+    { "id": "claim_lawfully", "requires": [ { "type": "trait", "role": "self", "trait": "Honorable", "kind": "nature", "present": true } ],
+      "effects": [ { "type": "setTitle", "role": "self", "title": "count" },
+                   { "type": "adjustLegitimacy", "role": "self", "delta": 5 } ] },     // clean: standing rises
+    { "id": "take_by_force", "requires": [ { "type": "trait", "role": "self", "trait": "Ruthless", "kind": "nature", "present": true } ],
+      "effects": [ { "type": "setTitle", "role": "self", "title": "count" },
+                   { "type": "adjustCounter", "key": "seizures", "delta": 1 },         // spikes §7 fear
+                   { "type": "adjustCounter", "key": "unrest", "delta": 2 } ] }        // ...and the gap breeds revolt
+  ] }
+```
+
+(There is **no** `adjustResource` for claims/titles and no "transfer title" verb — model handoffs with
+`setTitle` on the gainer + a `log`. A future pass may add an explicit `succeed`/inheritance effect.)
 
 ---
 
@@ -421,11 +506,14 @@ and confirm it loads, validates, and plays.
 TIERS      ambient | situation | setpiece
 POOLS      influence | treasury | agents              (per-turn budget, choice cost)
 RESOURCES  credits | materials | manpower | influence | exotics   (banked house wealth)
+SPHERES    navy | treasury | senate                  (§7 estate influence)
+TITLES     landless knight baron count duke archduke emperor   (§13 ladder ids)
 OPS        eq neq lt lte gt gte   (== != < <= > >=)
-BONDS      none | blood | sworn
+BONDS      none | blood | sworn | marriage
 TRAIT KIND nature | aptitude | any
 TOKENS     {role.name} {role.house} {role.rank}      (role = self or a declared role)
-CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · Credits may be negative
-CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank turn counter resource eventFired
-EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource log
+CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
+CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank turn counter resource sphere title claim eventFired
+EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim adjustLegitimacy setTitle log
+READ-ONLY  title_rank · house_legitimacy · title_instability   (system-written, protagonist house)
 ```

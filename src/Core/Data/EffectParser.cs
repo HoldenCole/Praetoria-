@@ -55,6 +55,10 @@ public static class EffectParser
                     ConditionParser.OptStr(el, "role", "self"), S(el, "resource"), I(el, "delta", 0));
             case "grantClaim":
                 return new GrantClaimEffect(ConditionParser.OptStr(el, "role", "self"), S(el, "title"));
+            case "adjustLegitimacy":
+                return new AdjustLegitimacyEffect(ConditionParser.OptStr(el, "role", "self"), I(el, "delta", 0));
+            case "setTitle":
+                return new SetTitleEffect(ConditionParser.OptStr(el, "role", "self"), S(el, "title"));
             case "log":
                 return new LogEffect(S(el, "text"));
 
@@ -71,6 +75,7 @@ public static class EffectParser
     {
         "blood" => BondType.Blood,
         "sworn" => BondType.Sworn,
-        _ => throw new ContentException("addBond 'bond' must be 'blood' or 'sworn'.")
+        "marriage" => BondType.Marriage,
+        _ => throw new ContentException("addBond 'bond' must be 'blood', 'sworn', or 'marriage'.")
     };
 }

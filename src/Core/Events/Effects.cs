@@ -171,6 +171,39 @@ public sealed class GrantClaimEffect : IEffect
     }
 }
 
+/// <summary>Adjust a house's legitimacy/standing (GDD §13, clamped ≥ 0). Targets the house of
+/// <c>role</c> (default "self"). JSON: { "type": "adjustLegitimacy", "role": "self", "delta": 10 }.
+/// A clean marriage raises it; a scandal lowers it. The soft-lock reads it against the title each turn.</summary>
+public sealed class AdjustLegitimacyEffect : IEffect
+{
+    public string Role { get; }
+    public int Delta { get; }
+    public AdjustLegitimacyEffect(string role, int delta) { Role = role; Delta = delta; }
+    public void Apply(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c != null && ctx.World.Houses.TryGetValue(c.HouseId, out var house))
+            house.Legitimacy = Math.Max(0, house.Legitimacy + Delta);
+    }
+}
+
+/// <summary>Set a house's title outright (GDD §13) — the event-driven grant / usurpation / abdication.
+/// Targets the house of <c>role</c> (default "self"). JSON: { "type": "setTitle", "role": "self", "title": "count" }.
+/// Atomic: it only changes the title. Legitimacy is untouched (compose adjustLegitimacy), so a usurped
+/// title above the house's standing will breed soft-lock instability on the next turn.</summary>
+public sealed class SetTitleEffect : IEffect
+{
+    public string Role { get; }
+    public string TitleId { get; }
+    public SetTitleEffect(string role, string titleId) { Role = role; TitleId = titleId; }
+    public void Apply(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c != null && ctx.World.Houses.TryGetValue(c.HouseId, out var house))
+            house.Title = TitleId;
+    }
+}
+
 /// <summary>Write a line to the history log (GDD §15 L1). JSON: { "type": "log", "text": "..." } — supports {role.name} tokens.</summary>
 public sealed class LogEffect : IEffect
 {

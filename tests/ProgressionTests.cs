@@ -145,6 +145,57 @@ public class ProgressionTests
     }
 
     [Fact]
+    public void SuccessionVocabulary_ClaimCondition_LegitimacyAndTitleEffects_MarriageBond()
+    {
+        var w = PWorld("baron", 30);
+        var ctx = new EvalContext(w, new Binding("marcus"), TestContent.Rng());
+
+        // claim condition reads House.Claims (set by grantClaim)
+        Assert.False(new ClaimCondition("self", "count", true).Evaluate(ctx));
+        new GrantClaimEffect("self", "count").Apply(ctx);
+        Assert.True(new ClaimCondition("self", "count", true).Evaluate(ctx));
+
+        // adjustLegitimacy writes House.Legitimacy (clamped ≥ 0)
+        new AdjustLegitimacyEffect("self", 15).Apply(ctx);
+        Assert.Equal(45, w.House("vega")!.Legitimacy);
+        new AdjustLegitimacyEffect("self", -100).Apply(ctx);
+        Assert.Equal(0, w.House("vega")!.Legitimacy);
+
+        // setTitle changes the title outright (legitimacy untouched → soft-lock will bite next turn)
+        new SetTitleEffect("self", "duke").Apply(ctx);
+        Assert.Equal("duke", w.House("vega")!.Title);
+
+        // marriage is a first-class bond, authorable via addBond and readable via the bond condition
+        w.Characters["bride"] = new Character { Id = "bride", Name = "Bride", HouseId = "vega", Alive = true };
+        var ctx2 = new EvalContext(w, new Binding("marcus").With("spouse", "bride"), TestContent.Rng());
+        new AddBondEffect("self", "spouse", BondType.Marriage, 60).Apply(ctx2);
+        Assert.Equal(BondType.Marriage, w.GetRelationship("marcus", "bride")!.Bond);
+        Assert.True(new BondCondition("self", "spouse", BondType.Marriage, true).Evaluate(ctx2));
+    }
+
+    [Fact]
+    public void SuccessionVocabulary_ParsesFromJson()
+    {
+        // Every new succession verb wires up through the data mini-language.
+        var claim = ConditionParser.Parse(System.Text.Json.JsonDocument.Parse(
+            """{ "type": "claim", "role": "self", "title": "count", "present": true }""").RootElement);
+        var legit = EffectParser.Parse(System.Text.Json.JsonDocument.Parse(
+            """{ "type": "adjustLegitimacy", "delta": 10 }""").RootElement);
+        var setTitle = EffectParser.Parse(System.Text.Json.JsonDocument.Parse(
+            """{ "type": "setTitle", "title": "count" }""").RootElement);
+        var marriage = EffectParser.Parse(System.Text.Json.JsonDocument.Parse(
+            """{ "type": "addBond", "from": "self", "to": "spouse", "bond": "marriage", "strength": 50 }""").RootElement);
+
+        var w = PWorld("baron", 0);
+        var ctx = new EvalContext(w, new Binding("marcus"), TestContent.Rng());
+        legit.Apply(ctx); Assert.Equal(10, w.House("vega")!.Legitimacy);
+        setTitle.Apply(ctx); Assert.Equal("count", w.House("vega")!.Title);
+        new GrantClaimEffect("self", "count").Apply(ctx);
+        Assert.True(claim.Evaluate(ctx));
+        Assert.NotNull(marriage);
+    }
+
+    [Fact]
     public void SoftLock_FeedsTheContestedTitleCrisis()
     {
         // A usurper holds a Duke title (real ladder needs 60) on legitimacy 30 — a contested claim.

@@ -15,10 +15,10 @@ engine's loader accepts. Exit code 0 = clean, 1 = errors. Run after every batch.
 """
 import json, re, sys, glob, os
 
-COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","eventFired"}
-EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","log"}
+COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","eventFired"}
+EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","adjustLegitimacy","setTitle","log"}
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
-RES={"credits","materials","manpower","influence","exotics"}; BONDS={"none","blood","sworn"}; ERAS={"fractured_stars","imperium"}
+RES={"credits","materials","manpower","influence","exotics"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
 
 # === §8 LOCKED CONTROLLED VOCABULARIES (canonical bible — see docs/PRAETORIA_VOCAB.md) ===
 NATURE={"Ambitious","Arrogant","Cruel","Honorable","Just","Loyal","Proud","Ruthless","Vengeful"}

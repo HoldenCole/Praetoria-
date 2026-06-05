@@ -8,7 +8,10 @@ public enum BondType
     /// <summary>Given, not chosen — carries inheritance/succession rights (GDD §14). Loyalty NOT guaranteed.</summary>
     Blood,
     /// <summary>Chosen, earned (forged at the Academy, in war, by oath). No inheritance, but can run fiercer than blood.</summary>
-    Sworn
+    Sworn,
+    /// <summary>A marriage tie (GDD §14/§18) — alliance + bloodline engineering; the vehicle for
+    /// converting a political tie into a pressable claim. Like Blood/Sworn it is a single bond per edge.</summary>
+    Marriage
 }
 
 /// <summary>

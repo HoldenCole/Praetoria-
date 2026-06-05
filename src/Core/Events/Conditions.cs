@@ -243,6 +243,23 @@ public sealed class TitleCondition : ICondition
     }
 }
 
+/// <summary>Does a house hold a claim to a title (GDD §13 Intrigue path)? Reads the house of
+/// <c>role</c> (default "self"). JSON: { "type": "claim", "role": "self", "title": "count", "present": true }.
+/// A claim is the key the usurpation/claim path needs — events forge it (grantClaim) and gate on it here.</summary>
+public sealed class ClaimCondition : ICondition
+{
+    public string Role { get; }
+    public string TitleId { get; }
+    public bool Present { get; }
+    public ClaimCondition(string role, string titleId, bool present) { Role = role; TitleId = titleId; Present = present; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c == null || !ctx.World.Houses.TryGetValue(c.HouseId, out var house)) return false;
+        return house.Claims.Contains(TitleId) == Present;
+    }
+}
+
 /// <summary>Always-true / always-false literal. JSON: { "type": "const", "value": true }.</summary>
 public sealed class ConstCondition : ICondition
 {
