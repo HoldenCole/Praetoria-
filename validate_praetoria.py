@@ -19,6 +19,9 @@ COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","sk
 EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","adjustLegitimacy","setTitle","log"}
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
 RES={"credits","materials","manpower","influence","exotics"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
+SPHERES={"navy","treasury","senate"}; TITLES={"landless","knight","baron","count","duke","archduke","emperor"}
+# §4b: engine-written projections of the player's house — gate on them, but never adjustCounter them.
+READONLY_COUNTERS={"title_rank","house_legitimacy","title_instability"}
 
 # === §8 LOCKED CONTROLLED VOCABULARIES (canonical bible — see docs/PRAETORIA_VOCAB.md) ===
 NATURE={"Ambitious","Arrogant","Cruel","Honorable","Just","Loyal","Proud","Ruthless","Vengeful"}
@@ -87,6 +90,10 @@ def walk(conds,ctx,roles):
             if kind=="any" and tr not in NATURE|APTITUDE: errors.append(f"[{ctx}] unknown trait '{tr}'")
         if c.get("type")=="skill" and c.get("skill") not in SKILLS:
             errors.append(f"[{ctx}] unlocked skill '{c.get('skill')}'")
+        if c.get("type")=="sphere" and c.get("sphere") not in SPHERES:
+            errors.append(f"[{ctx}] bad sphere '{c.get('sphere')}'")
+        if c.get("type") in ("title","claim") and c.get("title") not in TITLES:
+            errors.append(f"[{ctx}] bad title id '{c.get('title')}'")
         if "of" in c:
             v=c["of"]; walk(v if isinstance(v,list) else [v],ctx,roles)
         for rf in ("role","from","to"):
@@ -133,6 +140,13 @@ def validate_events(ev,tx):
                     if tr not in pool: errors.append(f"[{eid}/{cid}] addTrait unlocked {kind} '{tr}'")
                 if ef["type"]=="adjustSkill" and ef.get("skill") not in SKILLS:
                     errors.append(f"[{eid}/{cid}] adjustSkill unlocked skill '{ef.get('skill')}'")
+                if ef["type"] in ("grantClaim","setTitle") and ef.get("title") not in TITLES:
+                    errors.append(f"[{eid}/{cid}] {ef['type']} bad title id '{ef.get('title')}'")
+                if ef["type"]=="addBond" and ef.get("bond") not in BONDS:
+                    errors.append(f"[{eid}/{cid}] addBond bad bond '{ef.get('bond')}'")
+                if ef["type"]=="adjustCounter" and ef.get("key") in READONLY_COUNTERS:
+                    errors.append(f"[{eid}/{cid}] adjustCounter on READ-ONLY counter '{ef.get('key')}' "
+                                  f"(engine-written; use setTitle/adjustLegitimacy/grantClaim)")
                 if ef["type"]=="log": check_tokens(ef.get("text",""),roles,f"{eid}/{cid}/log")
                 if ef["type"] in ("setCharFlag","setWorldFlag"): written.add(ef["flag"])
                 if "//" in ef: errors.append(f"[{eid}/{cid}] stray '//' key inside effect")
