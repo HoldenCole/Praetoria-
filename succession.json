@@ -1,0 +1,364 @@
+{
+  "//": "TITLE & SUCCESSION — §13/§4b. Uses the real vocabulary: conditions title/claim, effects grantClaim/setTitle/adjustLegitimacy, bond marriage. Reads engine-written READ-ONLY counters (title_rank, house_legitimacy, title_instability) for player-facing gates; NEVER adjustCounter on those. title/claim test EXACT rung (not threshold) — 'Count or higher' gates on title_rank counter. No transfer-title verb: handoffs are setTitle on gainer + log. Char flags coined: slighted (a refused petitioner), pressing_claim (a rival moving against you), wed. World flag: line_secured. Counters written (shared, legal): seizures (force-grab, feeds §7), corruption, unrest. Chain: refuse petition -> slighted; grant claim -> press_the_claim eligible; high title_instability -> the_instability_gap / the_succession_dispute.",
+  "events": [
+
+    {
+      "id": "the_petition",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [
+        { "name": "petitioner",
+          "when": [
+            { "type": "bond", "from": "self", "to": "petitioner", "bond": "blood", "present": true },
+            { "type": "rank", "role": "petitioner", "op": "lt", "vsRole": "self" }
+          ] }
+      ],
+      "when": [
+        { "type": "title", "role": "self", "title": "duke" }
+      ],
+      "choices": [
+        {
+          "id": "recognize",
+          "cost": { "influence": 1 },
+          "effects": [
+            { "type": "grantClaim", "role": "petitioner", "title": "count" },
+            { "type": "adjustRelationship", "from": "petitioner", "to": "self", "delta": 25 },
+            { "type": "adjustLegitimacy", "role": "self", "delta": 2 },
+            { "type": "log", "text": "{self.name} recognized the claim of {petitioner.name} of {petitioner.house} to a county of their own. A title granted is a loyalty bought and a rival created in the same breath — for the kin you raise up is the kin who now stands one rung closer to everything you hold. {self.name} did it with open eyes, as the great always must." }
+          ]
+        },
+        {
+          "id": "recognize_with_terms",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Schemer", "kind": "aptitude", "present": true }
+          ],
+          "cost": { "influence": 1 },
+          "effects": [
+            { "type": "grantClaim", "role": "petitioner", "title": "count" },
+            { "type": "setCharFlag", "role": "petitioner", "flag": "indebted", "value": true },
+            { "type": "adjustRelationship", "from": "petitioner", "to": "self", "delta": 15 },
+            { "type": "log", "text": "{self.name} granted the claim — but bound it with quiet conditions {petitioner.name} of {petitioner.house} was too eager to refuse. The county is theirs in name; the strings are {self.name}'s in fact. To give a gift that is also a leash is the whole art of raising kin without arming them." }
+          ]
+        },
+        {
+          "id": "refuse",
+          "effects": [
+            { "type": "setCharFlag", "role": "petitioner", "flag": "slighted", "value": true },
+            { "type": "adjustRelationship", "from": "petitioner", "to": "self", "delta": -25 },
+            { "type": "log", "text": "{self.name} denied the petition. {petitioner.name} of {petitioner.house} bowed, and accepted, and did not forget. Blood asks once for what it believes it is owed; refused, it stops asking and starts counting. A slighted kinsman is the seed of every succession war ever fought." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_advantageous_match",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        { "name": "bride",
+          "when": [
+            { "type": "bond", "from": "self", "to": "bride", "bond": "marriage", "present": false },
+            { "type": "rank", "role": "bride", "op": "gte", "vsRole": "self" }
+          ] }
+      ],
+      "when": [
+        { "type": "turn", "op": "gte", "value": 3 }
+      ],
+      "choices": [
+        {
+          "id": "wed_for_claim",
+          "cost": { "influence": 2 },
+          "effects": [
+            { "type": "addBond", "from": "self", "to": "bride", "bond": "marriage", "strength": 55 },
+            { "type": "adjustLegitimacy", "role": "self", "delta": 8 },
+            { "type": "grantClaim", "role": "self", "title": "count" },
+            { "type": "setCharFlag", "role": "self", "flag": "wed", "value": true },
+            { "type": "log", "text": "{self.name} wed {bride.name} of {bride.house} — a union the heralds called love and the ledgers called strategy, and both were a little right. The match raised {self.name}'s standing and, by the old laws of blood, a claim to lands that were never {self.name}'s to want until this morning. The most powerful weddings are the ones where the dowry is a title." }
+          ]
+        },
+        {
+          "id": "wed_for_love",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Loyal", "kind": "nature", "present": true }
+          ],
+          "cost": { "influence": 1 },
+          "effects": [
+            { "type": "addBond", "from": "self", "to": "bride", "bond": "marriage", "strength": 75 },
+            { "type": "adjustRelationship", "from": "bride", "to": "self", "delta": 30 },
+            { "type": "setCharFlag", "role": "self", "flag": "wed", "value": true },
+            { "type": "log", "text": "{self.name} married {bride.name} of {bride.house} for the oldest and least strategic reason, and let the claims and the politics fall where they would. The court thought it sentiment, or folly. Perhaps. But a marriage that is only a bond, and not a maneuver, is a rare strength in a world where everyone assumes the maneuver — and rarity, in the end, is its own power." }
+          ]
+        },
+        {
+          "id": "decline_match",
+          "effects": [
+            { "type": "adjustRelationship", "from": "bride", "to": "self", "delta": -10 },
+            { "type": "log", "text": "{self.name} declined the match, and the alliance it would have sealed, and the claim it would have carried. {bride.name} of {bride.house} took the refusal as houses take refusals — as information. {self.name} remains unbound, unleveraged, and unhelped, which is either freedom or isolation depending on the year." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "press_the_claim",
+      "tier": "setpiece",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [
+        { "name": "holder",
+          "when": [
+            { "type": "rank", "role": "holder", "op": "gte", "vsRole": "self" }
+          ] }
+      ],
+      "when": [
+        { "type": "claim", "role": "self", "title": "count", "present": true },
+        { "type": "title", "role": "self", "title": "count", "present": false }
+      ],
+      "choices": [
+        {
+          "id": "claim_lawfully",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Honorable", "kind": "nature", "present": true }
+          ],
+          "cost": { "influence": 2 },
+          "effects": [
+            { "type": "setTitle", "role": "self", "title": "count" },
+            { "type": "adjustLegitimacy", "role": "self", "delta": 6 },
+            { "type": "adjustRelationship", "from": "holder", "to": "self", "delta": -10 },
+            { "type": "log", "text": "{self.name} pressed the claim through the courts and the councils, by every law and form the realm provided — slow, costly, and unanswerable. {holder.name} of {holder.house} yielded the county because the law left no room not to. A title taken cleanly is a title no one can later call stolen. {self.name} rose, and the rise was legitimate, and legitimacy is the only crown that does not slip." }
+          ]
+        },
+        {
+          "id": "take_by_force",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Ruthless", "kind": "nature", "present": true }
+          ],
+          "cost": { "agents": 1 },
+          "effects": [
+            { "type": "setTitle", "role": "self", "title": "count" },
+            { "type": "setCharFlag", "role": "holder", "flag": "feud", "value": true },
+            { "type": "adjustCounter", "key": "seizures", "delta": 1 },
+            { "type": "adjustCounter", "key": "unrest", "delta": 2 },
+            { "type": "adjustRelationship", "from": "holder", "to": "self", "delta": -45 },
+            { "type": "log", "text": "{self.name} did not wait for the courts. The county changed hands the fast way, and {holder.name} of {holder.house} was left with a grievance and a long memory and nothing else. {self.name} holds the title now — held above the standing to keep it quiet, a crown sitting heavier than the head beneath it. The realm watches a house that takes what it wants, and recalculates its own fear." }
+          ]
+        },
+        {
+          "id": "trade_the_claim",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Schemer", "kind": "aptitude", "present": true }
+          ],
+          "effects": [
+            { "type": "adjustResource", "resource": "influence", "delta": 4 },
+            { "type": "adjustRelationship", "from": "holder", "to": "self", "delta": 30 },
+            { "type": "log", "text": "{self.name} let it be known the claim existed, and was pressable, and then — graciously — declined to press it, for a consideration. {holder.name} of {holder.house} paid handsomely to keep the county quiet, and {self.name} pocketed the price of a war never fought. A claim is worth most to the one who never has to use it." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_instability_gap",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": true,
+      "when": [
+        { "type": "counter", "key": "title_instability", "op": "gte", "value": 12 }
+      ],
+      "choices": [
+        {
+          "id": "buy_legitimacy",
+          "cost": { "influence": 1 },
+          "effects": [
+            { "type": "adjustLegitimacy", "role": "self", "delta": 8 },
+            { "type": "adjustResource", "resource": "credits", "delta": -4 },
+            { "type": "log", "text": "{self.name} set about the unglamorous work of deserving the title already held — patronage spread, old families courted, the slow purchase of the realm's belief that {self.name}'s house belongs where it sits. Legitimacy cannot be seized; it can only be earned, or bought, or outlived. {self.name} chose to pay." }
+          ]
+        },
+        {
+          "id": "rule_through_fear",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Cruel", "kind": "nature", "present": true }
+          ],
+          "effects": [
+            { "type": "adjustCounter", "key": "unrest", "delta": -2 },
+            { "type": "adjustCounter", "key": "corruption", "delta": 1 },
+            { "type": "log", "text": "{self.name} answered the doubt about the house's right to rule the way the doubt is always answered by those who cannot answer it honestly: with force enough that no one dares voice it. The instability quiets. It does not resolve. A title held by fear is a debt that compounds in the dark, and {self.name} has chosen to let it." }
+          ]
+        },
+        {
+          "id": "ignore_the_gap",
+          "effects": [
+            { "type": "adjustStress", "role": "self", "delta": 8 },
+            { "type": "log", "text": "{self.name} let the gap stand — too proud, or too busy, or too sure to do the small slow work of earning the seat. The whispers that a house has reached above its right do not fade from neglect. They ferment. {self.name} carries the unease like a stone, and tells the mirror it is nothing." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_rival_claimant",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": true,
+      "roles": [
+        { "name": "claimant",
+          "when": [
+            { "type": "rank", "role": "claimant", "op": "gte", "vsRole": "self" },
+            { "type": "relationship", "from": "claimant", "to": "self", "op": "lte", "value": 0 }
+          ] }
+      ],
+      "when": [
+        { "type": "counter", "key": "title_instability", "op": "gte", "value": 15 }
+      ],
+      "choices": [
+        {
+          "id": "defend_in_law",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Honorable", "kind": "nature", "present": true }
+          ],
+          "cost": { "influence": 2 },
+          "effects": [
+            { "type": "adjustLegitimacy", "role": "self", "delta": 5 },
+            { "type": "adjustRelationship", "from": "claimant", "to": "self", "delta": -10 },
+            { "type": "log", "text": "{claimant.name} of {claimant.house} produced a claim to {self.name}'s own seat — and {self.name} met it in the open, in law, before the realm, and won the right to the title twice over by surviving the challenge to it. A claim defeated in daylight is worth more than a claim never raised. {self.name}'s standing rose on the strength of having been doubted, and answered." }
+          ]
+        },
+        {
+          "id": "eliminate_claimant",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Ruthless", "kind": "nature", "present": true }
+          ],
+          "cost": { "agents": 2 },
+          "effects": [
+            { "type": "setCharFlag", "role": "claimant", "flag": "marked_for_death", "value": true },
+            { "type": "adjustCounter", "key": "corruption", "delta": 1 },
+            { "type": "log", "text": "{self.name} solved the rival claim by removing the claimant — a claim, after all, needs someone alive to press it. {claimant.name} of {claimant.house} learned that pressing a right against {self.name} was the last decision they would make freely. The seat is secure. The method is a stone in {self.name}'s own foundation, set there by {self.name}'s own hand." }
+          ]
+        },
+        {
+          "id": "buy_them_off",
+          "effects": [
+            { "type": "adjustResource", "resource": "credits", "delta": -8 },
+            { "type": "adjustRelationship", "from": "claimant", "to": "self", "delta": 20 },
+            { "type": "log", "text": "{self.name} made the claim go away the simplest way: bought it. {claimant.name} of {claimant.house} discovered their principles had a price, as principles raised against the wealthy usually do. The threat is gone. The knowledge that {self.name} pays to make threats disappear is now loose in the world, and others have heard it." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_abdication",
+      "tier": "setpiece",
+      "weight": 2,
+      "repeatable": false,
+      "roles": [
+        { "name": "heir",
+          "when": [
+            { "type": "bond", "from": "self", "to": "heir", "bond": "blood", "present": true },
+            { "type": "rank", "role": "heir", "op": "lt", "vsRole": "self" }
+          ] }
+      ],
+      "when": [
+        { "type": "counter", "key": "title_rank", "op": "gte", "value": 3 },
+        { "type": "turn", "op": "gte", "value": 8 }
+      ],
+      "choices": [
+        {
+          "id": "abdicate_to_heir",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Just", "kind": "nature", "present": true }
+          ],
+          "effects": [
+            { "type": "setTitle", "role": "heir", "title": "duke" },
+            { "type": "setTitle", "role": "self", "title": "count" },
+            { "type": "addBond", "from": "self", "to": "heir", "bond": "blood", "strength": 80 },
+            { "type": "setWorldFlag", "flag": "line_secured", "value": true },
+            { "type": "adjustLegitimacy", "role": "heir", "delta": 10 },
+            { "type": "log", "text": "{self.name} did the hardest thing a powerful person can do: stepped down while still able to hold on. The duchy passed to {heir.name} of {heir.house} in {self.name}'s own lifetime, the succession secured against the chaos that follows lords who die in their seats. {self.name} kept a lesser title and a clear conscience. The house endures because its head knew when to become its past." }
+          ]
+        },
+        {
+          "id": "groom_then_yield",
+          "effects": [
+            { "type": "grantClaim", "role": "heir", "title": "duke" },
+            { "type": "adjustRelationship", "from": "heir", "to": "self", "delta": 20 },
+            { "type": "adjustSkill", "role": "heir", "skill": "administration", "delta": 1 },
+            { "type": "log", "text": "{self.name} did not yet step aside, but began the long handover — a claim secured for {heir.name} of {heir.house}, responsibilities passed down, the slow grooming of the one who will inherit. Succession done well is not an event but a season. {self.name} has chosen to spend it teaching rather than clinging." }
+          ]
+        },
+        {
+          "id": "hold_until_death",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Proud", "kind": "nature", "present": true }
+          ],
+          "effects": [
+            { "type": "setCharFlag", "role": "heir", "flag": "slighted", "value": true },
+            { "type": "adjustRelationship", "from": "heir", "to": "self", "delta": -20 },
+            { "type": "adjustStress", "role": "heir", "delta": 10 },
+            { "type": "log", "text": "{self.name} would not loosen the grip. The title is {self.name}'s until {self.name}'s last breath, and {heir.name} of {heir.house} may wait, and age, and watch the inheritance recede. A lord who will not let go teaches the heir only one lesson — impatience — and trains, without meaning to, the very hunger that ends houses." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_succession_dispute",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        { "name": "claimant",
+          "when": [
+            { "type": "bond", "from": "self", "to": "claimant", "bond": "blood", "present": true }
+          ] }
+      ],
+      "when": [
+        { "type": "counter", "key": "title_instability", "op": "gte", "value": 20 },
+        { "type": "worldFlag", "flag": "line_secured", "value": false }
+      ],
+      "choices": [
+        {
+          "id": "name_them_heir",
+          "effects": [
+            { "type": "grantClaim", "role": "claimant", "title": "duke" },
+            { "type": "setWorldFlag", "flag": "line_secured", "value": true },
+            { "type": "adjustRelationship", "from": "claimant", "to": "self", "delta": 35 },
+            { "type": "adjustLegitimacy", "role": "self", "delta": 6 },
+            { "type": "log", "text": "{self.name} ended the dispute by ending the question: {claimant.name} of {claimant.house} was named, formally and finally, the heir. The other claimants subsided, the instability eased, and the house had, for the first time in a fraught season, a future everyone could point to. A named succession is a sheathed knife. {self.name} chose to sheathe it before someone else drew." }
+          ]
+        },
+        {
+          "id": "play_them_against",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Schemer", "kind": "aptitude", "present": true }
+          ],
+          "effects": [
+            { "type": "setCharFlag", "role": "claimant", "flag": "feud", "value": true },
+            { "type": "adjustCounter", "key": "corruption", "delta": 1 },
+            { "type": "adjustStress", "role": "self", "delta": 6 },
+            { "type": "log", "text": "{self.name} named no heir, and instead let the claimants — {claimant.name} of {claimant.house} among them — circle and scheme and check one another, the throne kept safe by the very rivalry for it. It is the oldest trick of aging power, and it works, and it works, and then one day it does not, and the house pays for every year of cleverness at once. {self.name} is betting on not being there for the reckoning." }
+          ]
+        },
+        {
+          "id": "purge_the_claimants",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Cruel", "kind": "nature", "present": true }
+          ],
+          "cost": { "agents": 2 },
+          "effects": [
+            { "type": "setCharFlag", "role": "claimant", "flag": "marked_for_death", "value": true },
+            { "type": "setWorldFlag", "flag": "line_secured", "value": true },
+            { "type": "adjustCounter", "key": "unrest", "delta": 3 },
+            { "type": "adjustLegitimacy", "role": "self", "delta": -4 },
+            { "type": "log", "text": "{self.name} secured the succession by subtraction — the surplus claimants, {claimant.name} of {claimant.house} foremost, removed until only the chosen line remained. The dispute is over. The house is quiet. And every surviving member of it has learned exactly what {self.name}'s love is worth when it competes with {self.name}'s power. Some thrones are cleared of rivals and find no one left who wants to stand beside them." }
+          ]
+        }
+      ]
+    }
+
+  ]
+}
