@@ -1,0 +1,90 @@
+{
+  "texts": [
+
+    {
+      "id": "the_navy_grows",
+      "title": "The Fleet Grows",
+      "body": "Another commission lands on your desk — more hulls, a wider mandate, the navy tilting a degree further toward your house's hand. Each yard that builds for you is a yard that does not build for {rival_house.name} of {rival_house.house}, and they keep that ledger as carefully as you keep yours. Power in the fleet is the most visible kind, and the most frightening: everyone can count ships.",
+      "choices": {
+        "press_advantage": "Take it all. Let the fleet — and the fear — grow.",
+        "share_the_yards": "Let {rival_house.name} into the contract. Buy calm, rise slower.",
+        "refuse_growth": "Decline the expansion. Stay beneath the ceiling that frightens."
+      }
+    },
+
+    {
+      "id": "the_treasury_tightens",
+      "title": "The Threads of Money",
+      "body": "A fund to administer, a debt to hold, a disbursement that now waits on your signature — the realm's money runs a little more through your hands this season. Control of coin is quieter than control of ships, and no less feared: {rival_house.name} of {rival_house.house}, like everyone who needs paying, watches the hand that holds the note. To own the treasury is to be needed by all and trusted by none.",
+      "choices": {
+        "tighten_grip": "Draw another thread through your hands. Be the one who signs.",
+        "loosen_purse": "Let the coin flow easier than advantage demands. Velvet over iron."
+      }
+    },
+
+    {
+      "id": "the_senate_listens",
+      "title": "The Growing Bloc",
+      "body": "Another senator to your side, another vote that moves when you move. The bloc grows the way blocs grow — one quiet promise at a time — until the day the chamber looks up and finds you can carry a motion alone. {rival_house.name} of {rival_house.house} is counting heads now, and the sum is beginning to alarm them. Influence in the Senate is invisible until, suddenly, it is the only thing in the room.",
+      "choices": {
+        "build_bloc": "Add another vote. Let them count heads and worry.",
+        "spread_credit": "Let others wear your wins. Grow a bloc no one can see the shape of."
+      }
+    },
+
+    {
+      "id": "the_whisper_of_fear",
+      "title": "A Word in the Dark",
+      "body": "{informant.name} comes to you quietly, with the kind of news that is worth more than any flattery: your name is being spoken in the rooms you are not in, and spoken with the particular hush people reserve for things they have begun to fear. It is the first weather of a gathering storm — the moment when individual unease starts, somewhere out of sight, to look for company.",
+      "choices": {
+        "heed_it": "Listen. Forewarned of fear, you can ease it — or earn it on your terms.",
+        "dismiss_it": "Let them whisper. A house that trims itself to soothe lessers has begun to kneel."
+      }
+    },
+
+    {
+      "id": "the_coalition_moves",
+      "title": "The Coalition Moves",
+      "body": "It has finally happened, the thing every over-mighty house eventually faces: the fearful have found each other. {coalition_head.name} of {coalition_head.house} stands at the head of a bloc of houses who, alone, feared you — and together, have decided they need not. The demand is dressed in the language of balance and the common good, but beneath the courtesies it is the oldest message in politics: you have grown too large, and we have agreed to make you smaller.",
+      "choices": {
+        "face_them_down": "Yield nothing. Make them break you, not merely warn you.",
+        "divide_them": "Don't fight the bloc — dissolve it. Empty {coalition_head.name}'s table.",
+        "appease_them": "Give ground. Be smaller, safer — and remember every face in the room.",
+        "bend_then_strike": "Kneel convincingly. Begin that same night to ensure there's no second coalition."
+      }
+    },
+
+    {
+      "id": "the_coalition_holds",
+      "title": "The Coalition Holds",
+      "body": "You faced them down, and they did not scatter. {coalition_head.name} of {coalition_head.house} has held the bloc together past the first confrontation — a real and standing alliance now, arrayed against you, no longer a momentary fright but a fact of the political map. A coalition that survives its first test becomes something that must be actively unmade, or outlasted, or met head-on.",
+      "choices": {
+        "peel_off_weakest": "Go to the weakest member. Ask what {coalition_head.name} really offers them.",
+        "outlast_them": "Give them nothing to strike at. Let shared fear curdle into a grudge.",
+        "open_war": "Stop pretending it can be talked down. Strike first, become mightier still."
+      }
+    },
+
+    {
+      "id": "the_humbled_house",
+      "title": "After the Kneeling",
+      "body": "You gave ground, and the coalition went home satisfied, and your house is smaller now than it was. The fear has cooled. {rival_house.name} of {rival_house.house} believes the matter settled — believes you settled. What you do with that belief, in the quiet after a humbling, decides whether the kneeling was an ending or merely an intermission.",
+      "choices": {
+        "rebuild_quietly": "Rebuild beneath notice. Their belief that you're broken is your treasure.",
+        "swear_vengeance": "Bank the humiliation like a coal. Collect it, with interest, later.",
+        "accept_the_lesson": "Take it as a correction. Rebuild the slow way that provokes no second coalition."
+      }
+    },
+
+    {
+      "id": "the_crowns_eye",
+      "title": "The Crown's Eye",
+      "body": "You have grown beyond the reach of coalitions — large enough that the only power left to question yours sits on the throne itself. {sovereign.name} of {sovereign.house} summons you, and the audience has one unspoken question beneath all its ceremony: is this great strength of yours the crown's, or its own? There is no neutral answer. The mighty serve, or the mighty are, in time, unmade.",
+      "choices": {
+        "pledge_fealty": "Kneel and mean it. Bind your strength to the throne. Safety, at the price of a loyalty never again questioned.",
+        "remain_independent": "Every courtesy, no oath. Be the most powerful unsworn house in the realm — magnificent, precarious, rarely for long."
+      }
+    }
+
+  ]
+}

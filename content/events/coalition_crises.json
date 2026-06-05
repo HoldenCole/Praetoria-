@@ -1,0 +1,391 @@
+{
+  "//": "COALITION CRISES — sphere-dominance arc (§2.4/§5: power-grabs create coalitions of the fearful). Spheres are M5 (no sphere loader yet), so authored against COUNTERS — same pattern as corruption/unrest. Counters coined: navy_influence, treasury_influence, senate_influence (fed here + by career/steward events; M5 sphere system can read or supersede them). Arc: feeders raise a counter -> buildup plants unease (charFlag rival 'wary') -> crisis setpiece fires on counter>=threshold -> aftermath reads outcome flags (humbled / coalition_broken). New char flags: wary (a rival uneasy at your rise), coalition_leader (the house that organized against you), humbled (you bent the knee), debt_to_crown. Thresholds set at 6 — tune vs scenario mono-track spikes (risen-officer hits navy fast). NOTE: when M5 sphere loader lands, swap counter-gates for sphere-gates; prose transfers unchanged.",
+  "events": [
+
+    {
+      "id": "the_navy_grows",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [
+        { "name": "rival_house",
+          "when": [
+            { "type": "rank", "role": "rival_house", "op": "gte", "vsRole": "self" }
+          ] }
+      ],
+      "when": [
+        { "type": "skill", "role": "self", "skill": "tactics", "op": "gte", "value": 3 },
+        { "type": "counter", "key": "navy_influence", "op": "lt", "value": 6 }
+      ],
+      "choices": [
+        {
+          "id": "press_advantage",
+          "effects": [
+            { "type": "adjustCounter", "key": "navy_influence", "delta": 2 },
+            { "type": "setCharFlag", "role": "rival_house", "flag": "wary", "value": true },
+            { "type": "adjustRelationship", "from": "rival_house", "to": "self", "delta": -10 },
+            { "type": "log", "text": "{self.name} took the new commission, the extra hulls, the wider mandate — every yard that builds for {self.name} a yard that does not build for {rival_house.name} of {rival_house.house}. The fleet grows. So does the cold arithmetic in rival wardrooms: a house that holds the navy holds the knife over every other." }
+          ]
+        },
+        {
+          "id": "share_the_yards",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Diplomat", "kind": "aptitude", "present": true }
+          ],
+          "effects": [
+            { "type": "adjustCounter", "key": "navy_influence", "delta": 1 },
+            { "type": "adjustRelationship", "from": "rival_house", "to": "self", "delta": 20 },
+            { "type": "log", "text": "{self.name} let {rival_house.name} of {rival_house.house} into the contract — a slower path to dominance, but one that buys a rival's calm instead of their fear. The shrewd accumulate power quietly enough that no one thinks to combine against it until too late. {self.name} is learning that patience." }
+          ]
+        },
+        {
+          "id": "refuse_growth",
+          "effects": [
+            { "type": "adjustStress", "role": "self", "delta": 4 },
+            { "type": "log", "text": "{self.name} declined the expansion, and watched the commission go elsewhere. There is a ceiling a careful house sets on its own rise — high enough to matter, low enough not to frighten. {self.name} chose, this once, to stay beneath it. The fearful slept easy, and so, for now, did {self.name}." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_treasury_tightens",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [
+        { "name": "rival_house",
+          "when": [
+            { "type": "rank", "role": "rival_house", "op": "gte", "vsRole": "self" }
+          ] }
+      ],
+      "when": [
+        { "type": "skill", "role": "self", "skill": "economics", "op": "gte", "value": 3 },
+        { "type": "counter", "key": "treasury_influence", "op": "lt", "value": 6 }
+      ],
+      "choices": [
+        {
+          "id": "tighten_grip",
+          "effects": [
+            { "type": "adjustCounter", "key": "treasury_influence", "delta": 2 },
+            { "type": "setCharFlag", "role": "rival_house", "flag": "wary", "value": true },
+            { "type": "adjustResource", "resource": "influence", "delta": 2 },
+            { "type": "log", "text": "{self.name} drew another thread of the realm's money through {self.name}'s own hands — a fund administered, a debt held, a disbursement that now waits on {self.name}'s signature. {rival_house.name} of {rival_house.house} noticed, as the indebted always notice the one who holds the note. To control the treasury is to be feared by everyone who needs paying, which is everyone." }
+          ]
+        },
+        {
+          "id": "loosen_purse",
+          "effects": [
+            { "type": "adjustCounter", "key": "treasury_influence", "delta": 1 },
+            { "type": "adjustRelationship", "from": "rival_house", "to": "self", "delta": 15 },
+            { "type": "adjustResource", "resource": "credits", "delta": -2 },
+            { "type": "log", "text": "{self.name} let the coin flow easier than strict advantage demanded, buying with generosity what could not be bought with grip: the goodwill of houses who might otherwise count {self.name}'s growing hold and grow afraid of it. Largesse is the velvet over the iron. {rival_house.name} felt only the velvet, this season." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_senate_listens",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [
+        { "name": "rival_house",
+          "when": [
+            { "type": "rank", "role": "rival_house", "op": "gte", "vsRole": "self" }
+          ] }
+      ],
+      "when": [
+        { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 3 },
+        { "type": "counter", "key": "senate_influence", "op": "lt", "value": 6 }
+      ],
+      "choices": [
+        {
+          "id": "build_bloc",
+          "effects": [
+            { "type": "adjustCounter", "key": "senate_influence", "delta": 2 },
+            { "type": "setCharFlag", "role": "rival_house", "flag": "wary", "value": true },
+            { "type": "adjustRelationship", "from": "rival_house", "to": "self", "delta": -10 },
+            { "type": "log", "text": "Another senator to {self.name}'s side, another vote that moves when {self.name} moves. The bloc grows the way blocs grow — one quiet promise at a time, until the chamber looks up one day and finds {self.name} can carry a motion alone. {rival_house.name} of {rival_house.house} is counting heads now, and not liking the sum." }
+          ]
+        },
+        {
+          "id": "spread_credit",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Schemer", "kind": "aptitude", "present": true }
+          ],
+          "effects": [
+            { "type": "adjustCounter", "key": "senate_influence", "delta": 2 },
+            { "type": "log", "text": "{self.name} let others take the public credit for {self.name}'s motions — a rival's name on {self.name}'s policy, a friend's face on {self.name}'s win. The bloc grows and no one fears it, because no one can quite see its shape. The most dangerous power is the kind that has arranged not to look like power at all." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_whisper_of_fear",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": true,
+      "roles": [
+        { "name": "informant",
+          "when": [
+            { "type": "relationship", "from": "informant", "to": "self", "op": "gte", "value": 20 }
+          ] }
+      ],
+      "when": [
+        { "type": "any", "of": [
+          { "type": "counter", "key": "navy_influence", "op": "gte", "value": 4 },
+          { "type": "counter", "key": "treasury_influence", "op": "gte", "value": 4 },
+          { "type": "counter", "key": "senate_influence", "op": "gte", "value": 4 }
+        ] }
+      ],
+      "choices": [
+        {
+          "id": "heed_it",
+          "effects": [
+            { "type": "adjustRelationship", "from": "informant", "to": "self", "delta": 10 },
+            { "type": "log", "text": "{informant.name} came quietly to {self.name} with a warning worth more than flattery: that {self.name}'s rise is being spoken of, in the rooms {self.name} is not in, with the particular hush reserved for threats. {self.name} listened. Forewarned of fear, one can choose to ease it — or to deserve it before the others are ready." }
+          ]
+        },
+        {
+          "id": "dismiss_it",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Proud", "kind": "nature", "present": true }
+          ],
+          "effects": [
+            { "type": "adjustStress", "role": "self", "delta": 3 },
+            { "type": "log", "text": "{self.name} thanked {informant.name} and dismissed the warning. Let them whisper; let them fear. A house that trims its ambition to soothe lesser houses is a house that has already begun to kneel. {self.name} would not. The whispers went on, unheeded, and began to find each other in the dark." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_coalition_moves",
+      "tier": "setpiece",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        { "name": "coalition_head",
+          "when": [
+            { "type": "charFlag", "role": "coalition_head", "flag": "wary", "value": true },
+            { "type": "rank", "role": "coalition_head", "op": "gte", "vsRole": "self" }
+          ] }
+      ],
+      "when": [
+        { "type": "turn", "op": "gte", "value": 5 },
+        { "type": "any", "of": [
+          { "type": "counter", "key": "navy_influence", "op": "gte", "value": 6 },
+          { "type": "counter", "key": "treasury_influence", "op": "gte", "value": 6 },
+          { "type": "counter", "key": "senate_influence", "op": "gte", "value": 6 }
+        ] }
+      ],
+      "choices": [
+        {
+          "id": "face_them_down",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Proud", "kind": "nature", "present": true }
+          ],
+          "cost": { "influence": 2 },
+          "effects": [
+            { "type": "setCharFlag", "role": "coalition_head", "flag": "coalition_leader", "value": true },
+            { "type": "setCharFlag", "role": "coalition_head", "flag": "feud", "value": true },
+            { "type": "adjustRelationship", "from": "coalition_head", "to": "self", "delta": -30 },
+            { "type": "adjustStress", "role": "self", "delta": 12 },
+            { "type": "log", "text": "{coalition_head.name} of {coalition_head.house} came at the head of the frightened — a bloc of houses who individually feared {self.name} and together believed they need not. {self.name} did not yield an inch. The coalition held, for now, and so did {self.name}, and the realm learned that the over-mighty house would have to be broken, not merely warned. The lines are drawn. The war, if it comes, will have a name on each side." }
+          ]
+        },
+        {
+          "id": "divide_them",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Schemer", "kind": "aptitude", "present": true }
+          ],
+          "cost": { "agents": 2 },
+          "effects": [
+            { "type": "setCharFlag", "role": "coalition_head", "flag": "coalition_broken", "value": true },
+            { "type": "adjustRelationship", "from": "coalition_head", "to": "self", "delta": -15 },
+            { "type": "adjustCounter", "key": "senate_influence", "delta": -1 },
+            { "type": "log", "text": "{self.name} did not fight the coalition; {self.name} dissolved it — a private assurance here, a planted suspicion there, a richer offer to the weakest member than loyalty to {coalition_head.name} of {coalition_head.house} could match. By the time the bloc met to act, it was no longer a bloc, only a room of houses who no longer trusted each other. {coalition_head.name} sat at the head of nothing, and knew exactly whose hand had emptied the table." }
+          ]
+        },
+        {
+          "id": "appease_them",
+          "effects": [
+            { "type": "setCharFlag", "role": "self", "flag": "humbled", "value": true },
+            { "type": "adjustCounter", "key": "navy_influence", "delta": -3 },
+            { "type": "adjustCounter", "key": "treasury_influence", "delta": -3 },
+            { "type": "adjustCounter", "key": "senate_influence", "delta": -3 },
+            { "type": "adjustRelationship", "from": "coalition_head", "to": "self", "delta": 25 },
+            { "type": "log", "text": "{self.name} gave ground — surrendered the contracts, freed the votes, loosened the grip that had frightened them, and let {coalition_head.name} of {coalition_head.house} carry the victory home. The coalition dissolved, satisfied, having unmade the thing it feared. {self.name} is smaller now, and safer, and will remember every house that stood in that room. Power surrendered under threat is a debt the threatened do not know they have incurred." }
+          ]
+        },
+        {
+          "id": "bend_then_strike",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Ruthless", "kind": "nature", "present": true }
+          ],
+          "cost": { "agents": 1 },
+          "effects": [
+            { "type": "setCharFlag", "role": "self", "flag": "humbled", "value": true },
+            { "type": "setCharFlag", "role": "coalition_head", "flag": "marked_for_death", "value": true },
+            { "type": "adjustCounter", "key": "navy_influence", "delta": -2 },
+            { "type": "adjustRelationship", "from": "coalition_head", "to": "self", "delta": 15 },
+            { "type": "log", "text": "{self.name} knelt — publicly, convincingly, gave the coalition its win and its comfort. And began, that same night, the quiet work of ensuring {coalition_head.name} of {coalition_head.house} would not live to lead a second one. A bent knee is the cheapest disguise a patient enemy can wear. The coalition celebrated a victory it did not have, over a house it had not beaten." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_coalition_holds",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        { "name": "coalition_head",
+          "when": [
+            { "type": "charFlag", "role": "coalition_head", "flag": "coalition_leader", "value": true }
+          ] }
+      ],
+      "when": [
+        { "type": "turn", "op": "gte", "value": 7 }
+      ],
+      "choices": [
+        {
+          "id": "peel_off_weakest",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Diplomat", "kind": "aptitude", "present": true }
+          ],
+          "effects": [
+            { "type": "setCharFlag", "role": "coalition_head", "flag": "coalition_leader", "value": false },
+            { "type": "setCharFlag", "role": "coalition_head", "flag": "coalition_broken", "value": true },
+            { "type": "adjustResource", "resource": "influence", "delta": -3 },
+            { "type": "log", "text": "{self.name} went to the coalition's weakest member with the oldest question in politics: what is {coalition_head.name} of {coalition_head.house} really offering you, against what {self.name} can? One house left the bloc, then another, each departure making the next easier. A coalition is only ever as strong as its most frightened member's nerve, and nerve, {self.name} has learned, is for sale." }
+          ]
+        },
+        {
+          "id": "outlast_them",
+          "effects": [
+            { "type": "adjustStress", "role": "self", "delta": 10 },
+            { "type": "adjustCounter", "key": "navy_influence", "delta": -1 },
+            { "type": "adjustCounter", "key": "treasury_influence", "delta": -1 },
+            { "type": "log", "text": "{self.name} simply endured — gave the coalition nothing to strike at and nothing to fear afresh, and let the slow rot of shared purpose do its work. Alliances of the frightened curdle when the fear cools; what was a bloc becomes a grudge, then a memory. {self.name} paid for the waiting in sleepless months, and outlasted them, which is its own kind of victory and a colder one." }
+          ]
+        },
+        {
+          "id": "open_war",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Ambitious", "kind": "nature", "present": true }
+          ],
+          "cost": { "influence": 1 },
+          "effects": [
+            { "type": "setCharFlag", "role": "coalition_head", "flag": "feud", "value": true },
+            { "type": "adjustRelationship", "from": "coalition_head", "to": "self", "delta": -25 },
+            { "type": "adjustCounter", "key": "navy_influence", "delta": 2 },
+            { "type": "log", "text": "{self.name} stopped pretending the coalition could be talked down and met it as what it was: an enemy in all but the declaring. {self.name} struck first, hard, at {coalition_head.name} of {coalition_head.house} — and the realm understood that the over-mighty house had chosen to become mightier still rather than be diminished. There is no road back from this. There was never meant to be." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_humbled_house",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        { "name": "rival_house",
+          "when": [
+            { "type": "rank", "role": "rival_house", "op": "gte", "vsRole": "self" }
+          ] }
+      ],
+      "when": [
+        { "type": "charFlag", "role": "self", "flag": "humbled", "value": true },
+        { "type": "turn", "op": "gte", "value": 8 }
+      ],
+      "choices": [
+        {
+          "id": "rebuild_quietly",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Schemer", "kind": "aptitude", "present": true }
+          ],
+          "effects": [
+            { "type": "setCharFlag", "role": "self", "flag": "humbled", "value": false },
+            { "type": "adjustCounter", "key": "treasury_influence", "delta": 2 },
+            { "type": "log", "text": "{self.name} rebuilt the way a humbled house must: beneath notice, one recovered thread at a time, careful never again to grow fast enough to frighten before {self.name} has grown strong enough to ignore the fear. {rival_house.name} of {rival_house.house} believes {self.name} broken. That belief is the most valuable thing {self.name} owns, and {self.name} guards it like treasure." }
+          ]
+        },
+        {
+          "id": "swear_vengeance",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Vengeful", "kind": "nature", "present": true }
+          ],
+          "effects": [
+            { "type": "setCharFlag", "role": "self", "flag": "humbled", "value": false },
+            { "type": "setCharFlag", "role": "rival_house", "flag": "feud", "value": true },
+            { "type": "adjustStress", "role": "self", "delta": 6 },
+            { "type": "log", "text": "{self.name} did not forget the room, or the faces in it, or {rival_house.name} of {rival_house.house} at the head of them. The kneeling was real; the surrender was not. {self.name} keeps the humiliation like a coal, banked and tended, against the season it can be repaid with interest. A house that has been made to kneel learns the precise value of standing, and {self.name} means to collect it." }
+          ]
+        },
+        {
+          "id": "accept_the_lesson",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Just", "kind": "nature", "present": true }
+          ],
+          "effects": [
+            { "type": "setCharFlag", "role": "self", "flag": "humbled", "value": false },
+            { "type": "adjustRelationship", "from": "rival_house", "to": "self", "delta": 15 },
+            { "type": "adjustCounter", "key": "senate_influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} took the humbling for what it honestly was: a correction. {self.name} HAD grown frightening; the fearful HAD been right to combine. {self.name} rebuilt with that lesson held close, accumulating power the slow and legitimate way that does not provoke the next coalition. {rival_house.name} of {rival_house.house}, watching, revised its estimate of {self.name} upward — for there is nothing more dangerous, or more rare, than a powerful house that has learned restraint." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "the_crowns_eye",
+      "tier": "setpiece",
+      "weight": 2,
+      "repeatable": false,
+      "roles": [
+        { "name": "sovereign",
+          "when": [
+            { "type": "rank", "role": "sovereign", "op": "gt", "vsRole": "self" }
+          ] }
+      ],
+      "when": [
+        { "type": "any", "of": [
+          { "type": "counter", "key": "navy_influence", "op": "gte", "value": 8 },
+          { "type": "counter", "key": "treasury_influence", "op": "gte", "value": 8 },
+          { "type": "counter", "key": "senate_influence", "op": "gte", "value": 8 }
+        ] }
+      ],
+      "choices": [
+        {
+          "id": "pledge_fealty",
+          "effects": [
+            { "type": "adjustRelationship", "from": "sovereign", "to": "self", "delta": 30 },
+            { "type": "setCharFlag", "role": "self", "flag": "debt_to_crown", "value": true },
+            { "type": "log", "text": "{sovereign.name} of {sovereign.house}, who sits above even the coalitions, summoned {self.name} to answer a single unspoken question: is this great power mine, or its own? {self.name} knelt, and meant the words, and bound the house's strength to the throne's. Safety, bought with a loyalty that can never again be fully questioned — nor fully withdrawn. The mighty serve, or the mighty are unmade. {self.name} chose to serve." }
+          ]
+        },
+        {
+          "id": "remain_independent",
+          "requires": [
+            { "type": "trait", "role": "self", "trait": "Ambitious", "kind": "nature", "present": true }
+          ],
+          "cost": { "influence": 3 },
+          "effects": [
+            { "type": "setCharFlag", "role": "sovereign", "flag": "wary", "value": true },
+            { "type": "adjustRelationship", "from": "sovereign", "to": "self", "delta": -25 },
+            { "type": "adjustStress", "role": "self", "delta": 10 },
+            { "type": "log", "text": "{self.name} gave {sovereign.name} of {sovereign.house} every courtesy and no oath. The meaning was not lost on either of them: {self.name}'s power now answers to {self.name} alone, and a strength that kneels to no crown is a strength a crown must eventually confront. {self.name} walked out of the audience the most powerful unsworn house in the realm, which is a magnificent and precarious thing to be, and rarely for long." }
+          ]
+        }
+      ]
+    }
+
+  ]
+}
