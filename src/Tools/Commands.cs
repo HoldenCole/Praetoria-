@@ -159,6 +159,57 @@ internal static class Commands
     }
 
     /// <summary>
+    /// Demonstrates the dynasty lifecycle headlessly (GDD §14): an old ruler with a married heir is
+    /// aged turn by turn until he dies and the seat passes; meanwhile the couple bears children — the
+    /// dynasty outliving the character. Deterministic from a seed.
+    /// </summary>
+    public static int Dynasty(Options o)
+    {
+        var dyn = new DynastySystem();
+        var rng = new SplitMix64Rng(o.Seed);
+
+        var w = new World { ProtagonistId = "old_lord" };
+        w.Houses["vega"] = new House { Id = "vega", Name = "House Vega", Title = "count", Legitimacy = 40 };
+        void Add(string id, string name, int age, string sex, string father = "")
+        {
+            w.Characters[id] = new Character { Id = id, Name = name, HouseId = "vega", Age = age, Alive = true, Sex = sex, FatherId = father };
+            w.Houses["vega"].Members.Add(id);
+        }
+        Add("old_lord", "Old Lord Vega", 78, "male");
+        Add("heir", "Young Lord Marcus", 26, "male", father: "old_lord");
+        Add("wife", "Lady Junia", 24, "female");
+        w.Relationship("wife", "heir").Bond = BondType.Marriage;   // Marcus and Junia are wed
+        w.Relationship("heir", "wife").Bond = BondType.Marriage;
+
+        Console.WriteLine($"=== DYNASTY DEMO — the house outlives the man (seed {o.Seed}) ===\n");
+        string Head() => $"{w.Protagonist!.Name} (age {w.Protagonist.Age})";
+        Console.WriteLine($"Head of House Vega: {Head()};  heir: {w.Char("heir")!.Name};  Title {w.House("vega")!.Title}\n");
+
+        for (int t = 1; t <= 20; t++)
+        {
+            string headBefore = w.ProtagonistId;
+            int births = w.Counter("dynasty_births");
+            dyn.Tick(w, rng);
+
+            if (w.ProtagonistId != headBefore)
+                Console.WriteLine($"  T{t}: + {w.Char(headBefore)!.Name} dies — {Head()} succeeds (generation {w.Counter("generation")}). " +
+                                  $"The Title of {w.House("vega")!.Name} endures.");
+            if (w.Counter("dynasty_births") > births)
+            {
+                var baby = w.Characters.Values.Last(c => c.Id.StartsWith("scion_"));
+                Console.WriteLine($"  T{t}: ✦ A child is born: {baby.Name} ({baby.Sex}).");
+            }
+            if (w.HasFlag("dynasty_dead")) { Console.WriteLine($"  T{t}: The line of Vega is extinguished."); break; }
+        }
+
+        int living = w.LivingCharacters().Count(c => c.HouseId == "vega");
+        Console.WriteLine($"\nAfter 20 years: House Vega is led by {Head()}, {living} living members, " +
+                          $"{w.Counter("dynasty_births")} born, {w.Counter("generation")} succession(s).");
+        Console.WriteLine("The character is mortal; the dynasty is the save. (GDD §14)");
+        return 0;
+    }
+
+    /// <summary>
     /// Demonstrates the Milestone-5 progression system headlessly (GDD §13): two heirs reach for the
     /// same rung by different paths. The meritocrat is granted what he's legitimate for and rules
     /// secure; the conqueror seizes what he can't be granted and rules a powder keg — the soft-lock

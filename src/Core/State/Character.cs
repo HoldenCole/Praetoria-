@@ -14,6 +14,14 @@ public sealed class Character
     public int Age { get; set; }
     public bool Alive { get; set; } = true;
 
+    /// <summary>"male" / "female" (or "" if unspecified). Used by the dynasty layer for births and
+    /// matrilineal/patrilineal succession (GDD §14/§18).</summary>
+    public string Sex { get; set; } = "";
+
+    /// <summary>Blood parents, "" if unknown/founder. Carry succession rights (GDD §14 blood ties).</summary>
+    public string MotherId { get; set; } = "";
+    public string FatherId { get; set; } = "";
+
     // Career ladder (GDD §13) — resets each generation. V1 tracks: military / stewardship / law.
     public string CareerTrack { get; set; } = "";
     public int CareerRank { get; set; }

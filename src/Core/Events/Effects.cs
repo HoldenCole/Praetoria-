@@ -204,6 +204,20 @@ public sealed class SetTitleEffect : IEffect
     }
 }
 
+/// <summary>Kill a character (GDD §14 — assassination, duel-to-the-death, Bloody Event). If the
+/// role resolves to the protagonist, the dynasty succession fires (heir takes the seat, or the
+/// dynasty ends). JSON: { "type": "kill", "role": "rival" }.</summary>
+public sealed class KillEffect : IEffect
+{
+    public string Role { get; }
+    public KillEffect(string role) => Role = role;
+    public void Apply(EvalContext ctx)
+    {
+        if (ctx.Binding.TryGet(Role, out var id))
+            Systems.DynastySystem.Die(ctx.World, id);
+    }
+}
+
 /// <summary>Write a line to the history log (GDD §15 L1). JSON: { "type": "log", "text": "..." } — supports {role.name} tokens.</summary>
 public sealed class LogEffect : IEffect
 {

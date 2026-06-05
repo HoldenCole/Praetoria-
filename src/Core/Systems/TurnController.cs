@@ -37,6 +37,7 @@ public sealed class TurnController
     private readonly CrisisEngine? _crises;
     private readonly SphereSystem? _spheres;
     private readonly ProgressionSystem? _progression;
+    private readonly DynastySystem _dynasty = new();   // always-on — the dynasty IS the game (GDD §14)
     private readonly int _briefingBudget;
     private readonly List<BriefingItem> _briefing = new();
 
@@ -50,6 +51,9 @@ public sealed class TurnController
 
     /// <summary>The progression system (GDD §13), or null when the content set defines no titles.</summary>
     public ProgressionSystem? Progression => _progression;
+
+    /// <summary>The dynasty lifecycle (GDD §14) — always present (aging/death/birth/succession).</summary>
+    public DynastySystem Dynasty => _dynasty;
 
     public TurnController(World world, ContentDatabase content, Director? director = null, int briefingBudget = 3)
     {
@@ -130,6 +134,8 @@ public sealed class TurnController
             var organic = _crises.RollOrganic(World, _rng);
             if (organic != null) _crises.Trigger(organic, World, _rng);
         }
+
+        _dynasty.Tick(World, _rng);   // age, deaths→succession, births (GDD §14). RNG only where life turns.
 
         SyncRng();
         Phase = TurnPhase.Idle;

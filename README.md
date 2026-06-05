@@ -35,7 +35,8 @@ the **five-resource domain economy** (holdings, specializations, buildings, per-
 the **gate/cascade/damper crisis system** (§16 — crises as gated buildable states, not random events),
 the **power-balance spheres** (§7 — career feeds sphere-influence feeds threat/coalition),
 the **title ladder + legitimacy soft-lock** (§13 — three rise-paths; holding above your legitimacy breeds instability),
-a console harness, and an authored content set (55 events, 3 scenarios, crises, spheres, titles).
+the **dynasty lifecycle** (§14 — aging, death, birth, and the heir handoff that makes the dynasty the save),
+a console harness, and an authored content set (62 events, 3 scenarios, crises, spheres, titles).
 
 - **Milestone 1 — "The Engine Breathes":** [`docs/MILESTONE_1_NOTES.md`](docs/MILESTONE_1_NOTES.md).
   Proven: *a choice in one event arms state that makes a different, unscripted event eligible later*
@@ -76,6 +77,9 @@ dotnet run --project src/Tools -- spheres --seed 1
 
 # Watch progression: the meritocrat is granted a title and rules secure; the conqueror seizes one and rules a powder keg
 dotnet run --project src/Tools -- progression --seed 1
+
+# Watch the dynasty: a ruler ages and dies, his heir succeeds (the house endures), and children are born
+dotnet run --project src/Tools -- dynasty --seed 3
 
 # Play the Academy as text (interactive; --auto picks first affordable choice each report)
 dotnet run --project src/Tools -- play --seed 1 --turns 8

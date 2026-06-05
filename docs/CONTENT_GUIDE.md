@@ -154,6 +154,7 @@ AND). Comparison `op` ∈ `eq, neq, lt, lte, gt, gte` (symbols `==, !=, <, <=, >
 | `trait` | `role`, `trait`, `kind: nature\|aptitude\|any`, `present:bool` | does the character have the trait? |
 | `rank` | `role`, `op`, `value` **or** `vsRole` | career-rank compare (literal, or against another role) |
 | `turn` | `op`, `value` | current turn number compare |
+| `age` | `role`(default `self`), `op`, `value` | character age compare (GDD §14) |
 | `counter` | `key`, `op`, `value` | world-counter compare (gate accumulators, clocks) |
 | `resource` | `role`(default `self`), `resource`, `op`, `value` | house-treasury compare (GDD §17) |
 | `sphere` | `role`(default `self`), `sphere`, `op`, `value` | house sphere-influence compare (GDD §7) |
@@ -197,6 +198,7 @@ Used in a choice's `effects` array. Applied in order when the choice is taken.
 | `grantClaim` | `role`(default `self`), `title` | add a claim to a title to the role's **house** (GDD §13) |
 | `adjustLegitimacy` | `role`(default `self`), `delta` | change the house's legitimacy/standing (clamped ≥0, GDD §13) |
 | `setTitle` | `role`(default `self`), `title` | set the house's title outright — grant / usurp / abdicate (GDD §13) |
+| `kill` | `role` | kill a character — assassination / duel / Bloody Event; if it's the protagonist, succession fires (GDD §14) |
 | `log` | `text` | write a chronicle line (supports `{role.field}` tokens) |
 
 **The flag/counter levers are how unscripted storylines chain.** A choice in event A arms a flag/raises
@@ -292,6 +294,41 @@ each turn a title is held above legitimacy.
 
 (There is **no** `adjustResource` for claims/titles and no "transfer title" verb — model handoffs with
 `setTitle` on the gainer + a `log`. A future pass may add an explicit `succeed`/inheritance effect.)
+
+---
+
+## 4c. The Dynasty Lifecycle (§14) — aging, death, birth, succession
+
+This runs **automatically every turn** — you don't author it, but you can read and nudge it:
+
+- **Aging**: every living character ages +1 each turn.
+- **Death**: rolled only at/after age 50 (rising to certain by ~95). On the protagonist's death the seat
+  passes to an **heir** (a living house member — blood children first, eldest first), or the dynasty ends.
+- **Birth**: a married couple (`addBond … bond:"marriage"`) with a fertile mother (16–45) may bear a
+  child each turn — a new character, age 0, joining the **father's** house with blood ties to both parents.
+
+**Character scenario fields** the lifecycle uses: `sex` (`"male"`/`"female"` — required for births),
+`mother`/`father` (ids — succession rights). Set these in a scenario's `characters`.
+
+**Engine-written counters/flags you may READ:** `generation` (succession count), `dynasty_births`
+(total born), and the `dynasty_dead` world flag (no heir remained — the run is over).
+
+**Verbs that touch it:** `age` (condition — "when you grow old…") and `kill` (effect — assassination,
+duel, Bloody Event; auto-fires succession if the target is the protagonist). Example Bloody-Event beat:
+```jsonc
+{ "id": "the_gala_massacre", "tier": "setpiece",
+  "roles": [ { "name": "rival", "when": [ { "type": "charFlag", "role": "rival", "flag": "feud", "present": true } ] } ],
+  "choices": [
+    { "id": "spring_the_trap", "cost": { "agents": 2 },
+      "requires": [ { "type": "trait", "role": "self", "trait": "Ruthless", "kind": "nature", "present": true } ],
+      "effects": [ { "type": "kill", "role": "rival" },
+                   { "type": "adjustCounter", "key": "seizures", "delta": 1 },   // the galaxy recoils (§7 fear)
+                   { "type": "setWorldFlag", "flag": "realm_unstable", "value": true } ] }  // arms the §16 web
+  ] }
+```
+
+> **Content needed for births:** scenario characters currently have no `sex`/spouse, so no children are
+> born. Add `sex` + a `marriage` relationship to a scenario's cast to make the dynasty layer live.
 
 ---
 
@@ -513,7 +550,8 @@ BONDS      none | blood | sworn | marriage
 TRAIT KIND nature | aptitude | any
 TOKENS     {role.name} {role.house} {role.rank}      (role = self or a declared role)
 CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
-CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank turn counter resource sphere title claim eventFired
-EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim adjustLegitimacy setTitle log
+CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank turn age counter resource sphere title claim eventFired
+EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim adjustLegitimacy setTitle kill log
 READ-ONLY  title_rank · house_legitimacy · title_instability   (system-written, protagonist house)
+LIFECYCLE  generation · dynasty_births counters · dynasty_dead flag   (system-written, §14)
 ```

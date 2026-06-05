@@ -23,6 +23,7 @@ try
         "crisis"   => Commands.Crisis(opts),
         "spheres"  => Commands.Spheres(opts),
         "progression" => Commands.Progression(opts),
+        "dynasty"  => Commands.Dynasty(opts),
         "play"     => Commands.Play(opts),
         "help" or "--help" or "-h" => Help(),
         _ => Unknown(command)
@@ -60,6 +61,7 @@ static int Help()
     Console.WriteLine("  crisis [--seed N]              crisis gate/cascade/damper demonstration");
     Console.WriteLine("  spheres [--seed N]             power-balance: career feeds spheres feeds coalitions");
     Console.WriteLine("  progression [--seed N]         title ladder + legitimacy soft-lock (merit vs seize)");
+    Console.WriteLine("  dynasty [--seed N]             aging, death, birth, succession (the dynasty outlives the man)");
     Console.WriteLine("  demo [--seed N]               cascade demonstration");
     Console.WriteLine("  validate");
     return 0;

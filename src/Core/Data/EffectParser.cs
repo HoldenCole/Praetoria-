@@ -50,6 +50,8 @@ public static class EffectParser
                 return new AddTraitEffect(S(el, "role"), S(el, "trait"), ConditionParser.OptStr(el, "kind", "aptitude"));
             case "advanceCareer":
                 return new AdvanceCareerEffect(S(el, "role"));
+            case "kill":
+                return new KillEffect(S(el, "role"));
             case "adjustResource":
                 return new AdjustResourceEffect(
                     ConditionParser.OptStr(el, "role", "self"), S(el, "resource"), I(el, "delta", 0));

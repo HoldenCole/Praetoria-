@@ -260,6 +260,20 @@ public sealed class ClaimCondition : ICondition
     }
 }
 
+/// <summary>Character-age compare (GDD §14). JSON: { "type": "age", "role": "self", "op": "gte", "value": 50 }.</summary>
+public sealed class AgeCondition : ICondition
+{
+    public string Role { get; }
+    public CompareOp Op { get; }
+    public int Value { get; }
+    public AgeCondition(string role, CompareOp op, int value) { Role = role; Op = op; Value = value; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        return c != null && Comparison.Apply(Op, c.Age, Value);
+    }
+}
+
 /// <summary>Always-true / always-false literal. JSON: { "type": "const", "value": true }.</summary>
 public sealed class ConstCondition : ICondition
 {
