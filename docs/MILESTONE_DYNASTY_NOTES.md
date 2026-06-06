@@ -57,10 +57,38 @@ dotnet run --project src/Tools -- dynasty --seed 3
   "scatter the seed" heir-hiding (§14), and the dynasty-death endgame wiring (M6).
 - Aging effects on skills/fertility curves and infant mortality are simplified.
 
+## Hardening / integration pass
+
+A whole-stack soak (`IntegrationTests` — a rich world driven 40 turns through `TurnController` against
+the real content) flushed out interaction bugs the isolated unit tests couldn't:
+
+**Fixed**
+- **Crises never resolved.** Once triggered, a crisis stayed active forever (the player auto-resolves
+  *events*, not *dampers*, and there was no de-escalation). Added `CrisisEngine.Decay`: an active crisis
+  whose **gates no longer hold** (its root cause eased — unrest fell, legitimacy recovered) winds down
+  one severity/turn and resolves. Crises now cycle instead of accumulating.
+- **Coalition pressure ratcheted unboundedly**, pinning `coalition_war` active permanently. Capped it
+  (`SphereSystem.MaxCoalitionPressure = 6`) and made the crisis **discharge** the pressure on onset, so
+  it can then decay out — modelling recurring *waves* of coalition pressure rather than a stuck war.
+- **Pools weren't upgraded on succession.** The new head kept NPC-scale pool regen (and a newborn heir
+  would have had none). `DynastySystem.Succeed` now grants the heir player-scale `ActionPools`.
+
+**Known issues / design observations (left intentionally — no crash, determinism intact)**
+- **Threat from trivial absolute share:** when all rival admirals die, a house holding `navy = 1`
+  reads as 100% Navy share → max threat → recurring coalitions. Defensible ("you own the whole Navy"),
+  but the absolute scale is small; a magnitude-weighted threat formula would need a demo/test rebalance.
+- **`realm_unstable` never clears** (set by crisis `onTrigger`); the `civil_war` gate stays partly armed,
+  though its unrest/legitimacy components still gate it. Left to content.
+- **Imperial `legitimacy` counter is unbounded-negative** (revolts/civil wars lower it with no floor or
+  recovery) — could keep late-game gates warm; mitigated by the unrest component + decay.
+- **Non-repeatable crises can re-onset after resolving** (the flag only blocks re-onset *while active*).
+  Reads as "recurring" for revolts/coalitions; a one-time crisis would need a spent-marker.
+- **No regency**: a child can inherit the seat (with player pools) but there's no minor-ruler model.
+
 ## How to verify
 
 ```bash
-dotnet test                                     # 102 pass
+dotnet test                                     # 104 pass (incl. IntegrationTests soak)
 dotnet run --project src/Tools -- validate      # 62/62, 0 errors
 dotnet run --project src/Tools -- dynasty --seed 3
 ```

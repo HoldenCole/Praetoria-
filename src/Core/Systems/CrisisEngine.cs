@@ -121,4 +121,27 @@ public sealed class CrisisEngine
         }
         return null;
     }
+
+    /// <summary>
+    /// Natural de-escalation (GDD §16): an active crisis whose <b>gates no longer hold</b> — its root
+    /// cause has passed (unrest fell, pressure eased, legitimacy recovered) — winds down by one
+    /// severity per turn and resolves at zero. This is what keeps crises from accumulating forever
+    /// when the player addresses the underlying conditions rather than the symptom. Dampers still
+    /// arrest a crisis whose cause persists. RNG-free (gate conditions draw none).
+    /// </summary>
+    public void Decay(World w, IRng rng)
+    {
+        if (w.Crises.Count == 0) return;
+        var ctxRng = rng;
+        foreach (var id in w.Crises.Keys.OrderBy(k => k, StringComparer.Ordinal).ToList())
+        {
+            var def = Def(id);
+            if (def == null) continue;
+            if (!Binder.AllHold(def.Gates, Ctx(w, ctxRng)))   // the conditions that caused it have eased
+            {
+                w.Crises[id].Severity -= 1;
+                if (w.Crises[id].Severity <= 0) Resolve(def, w);
+            }
+        }
+    }
 }

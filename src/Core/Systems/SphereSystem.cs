@@ -17,6 +17,10 @@ public sealed class SphereSystem
     /// <summary>Threat at/above which rivals begin to coordinate (scaled by difficulty).</summary>
     public const int CoalitionThreshold = 25;
 
+    /// <summary>Ceiling on accumulated coalition pressure, so it can't ratchet forever (a coalition
+    /// crisis discharges it, letting the crisis then wind down — GDD §7/§16).</summary>
+    public const int MaxCoalitionPressure = 6;
+
     private readonly SphereCatalog _catalog;
     private readonly double _difficulty;
 
@@ -42,18 +46,15 @@ public sealed class SphereSystem
         int threat = pHouse != null ? Threat(w, pHouse) : 0;
         w.WorldCounters["threat"] = threat;
 
+        // Coalition pressure builds while the house is over-mighty and ebbs when it isn't — capped, so
+        // it can't ratchet unboundedly, and a coalition crisis (which discharges it on onset) can wind
+        // back down once the pressure is spent.
         int effectiveThreshold = (int)Math.Round(CoalitionThreshold / _difficulty);
-        if (threat >= effectiveThreshold)
-        {
-            w.WorldCounters["coalition_pressure"] = w.Counter("coalition_pressure") + 1;
-            w.WorldFlags.Add("coalition_forming");
-        }
-        else
-        {
-            int eased = Math.Max(0, w.Counter("coalition_pressure") - 1);
-            w.WorldCounters["coalition_pressure"] = eased;
-            if (eased == 0) w.WorldFlags.Remove("coalition_forming");
-        }
+        int pressure = w.Counter("coalition_pressure") + (threat >= effectiveThreshold ? 1 : -1);
+        pressure = Math.Clamp(pressure, 0, MaxCoalitionPressure);
+        w.WorldCounters["coalition_pressure"] = pressure;
+        if (threat >= effectiveThreshold) w.WorldFlags.Add("coalition_forming");
+        else if (pressure == 0) w.WorldFlags.Remove("coalition_forming");
     }
 
     /// <summary>

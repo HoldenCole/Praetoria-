@@ -123,6 +123,7 @@ public sealed class DynastySystem
         if (heir != null)
         {
             world.ProtagonistId = heir.Id;
+            world.Pools[heir.Id] = ActionPools.ForPlayer();   // the new head wields a player-scale economy (§9)
             world.WorldCounters["generation"] = world.Counter("generation") + 1;
             var house = world.House(heir.HouseId);
             world.Log($"{heir.Name} succeeds as head of {(house?.Name ?? heir.HouseId)}.");

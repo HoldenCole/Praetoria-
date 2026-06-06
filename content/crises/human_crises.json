@@ -88,6 +88,7 @@
       "onTrigger": [
         { "type": "adjustCounter", "key": "unrest", "delta": 2 },
         { "type": "adjustCounter", "key": "legitimacy", "delta": -2 },
+        { "type": "adjustCounter", "key": "coalition_pressure", "delta": -6 },
         { "type": "setWorldFlag", "flag": "realm_unstable", "value": true }
       ],
       "dampers": [

@@ -133,6 +133,7 @@ public sealed class TurnController
         {
             var organic = _crises.RollOrganic(World, _rng);
             if (organic != null) _crises.Trigger(organic, World, _rng);
+            _crises.Decay(World, _rng);   // active crises wind down once their root cause eases (GDD §16)
         }
 
         _dynasty.Tick(World, _rng);   // age, deaths→succession, births (GDD §14). RNG only where life turns.
