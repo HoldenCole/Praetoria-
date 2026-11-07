@@ -40,6 +40,7 @@ public sealed class TurnController
     private readonly ProgressionSystem? _progression;
     private readonly FleetSystem _fleets;
     private readonly HonorSystem _honors;
+    private readonly GreatCrisisSystem _greatCrisis;
     private readonly DynastySystem _dynasty;           // always-on — the dynasty IS the game (GDD §14)
     private readonly int _briefingBudget;
     private readonly List<BriefingItem> _briefing = new();
@@ -64,6 +65,9 @@ public sealed class TurnController
     /// <summary>Honorifics & Orders (GDD §13).</summary>
     public HonorSystem Honors => _honors;
 
+    /// <summary>The Great-Crisis framework (GDD §16, M6): clock, stages, blocs, resolution.</summary>
+    public GreatCrisisSystem GreatCrisis => _greatCrisis;
+
     public TurnController(World world, ContentDatabase content, Director? director = null, int briefingBudget = 3)
     {
         World = world;
@@ -78,6 +82,7 @@ public sealed class TurnController
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles };
         _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);
+        _greatCrisis = new GreatCrisisSystem(content.GreatCrisis, _fleets);
         _briefingBudget = briefingBudget;
     }
 
@@ -100,6 +105,7 @@ public sealed class TurnController
         _spheres?.Recompute(World);  // power-balance projection + threat/coalition (GDD §7), also RNG-free
         _progression?.Apply(World);  // title soft-lock instability (GDD §13), also RNG-free
         _honors.Apply(World, _rng);  // investitures when a distinction's conditions first hold (GDD §13)
+        _greatCrisis.Tick(World, _rng);   // the great clock advances; stages fire (GDD §16, M6)
 
         Phase = TurnPhase.Briefing;
         _briefing.Clear();

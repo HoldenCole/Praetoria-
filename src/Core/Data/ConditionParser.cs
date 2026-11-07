@@ -52,6 +52,8 @@ public static class ConditionParser
                 return new RankCondition(Str(el, "role"), Op(el), Int(el, "value", 0), OptStrOrNull(el, "vsRole"));
             case "turn":
                 return new TurnCondition(Op(el), Int(el, "value", 0));
+            case "bloc":
+                return new BlocCondition(OptStr(el, "role", "self"), Str(el, "bloc"), Bool(el, "present", true));
             case "atWar":
                 return new AtWarCondition(Str(el, "role"), Bool(el, "present", true));
             case "fleetStrength":

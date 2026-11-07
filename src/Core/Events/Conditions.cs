@@ -290,6 +290,21 @@ public sealed class AgeCondition : ICondition
     }
 }
 
+/// <summary>Which Great-Crisis bloc the role's house is in. JSON: { "type": "bloc", "role": "self", "bloc": "hegemon", "present": true }.</summary>
+public sealed class BlocCondition : ICondition
+{
+    public string Role { get; }
+    public string Bloc { get; }
+    public bool Present { get; }
+    public BlocCondition(string role, string bloc, bool present) { Role = role; Bloc = bloc; Present = present; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        var house = c != null ? ctx.World.House(c.HouseId) : null;
+        return house != null && (house.Bloc == Bloc) == Present;
+    }
+}
+
 /// <summary>Is the role's house at war with self's house? JSON: { "type": "atWar", "role": "rival", "present": true }.</summary>
 public sealed class AtWarCondition : ICondition
 {

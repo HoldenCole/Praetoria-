@@ -471,6 +471,7 @@ internal static class Commands
         var world = WorldBuilder.FromScenario(scenario, o.Seed);
         if (o.Continue) world.Mode = Praetoria.Core.State.World.ModeContinue;
         world.Difficulty = o.Difficulty;
+        world.CrisisIntensity = o.Intensity;
         if (!o.Creation.IsEmpty) Console.WriteLine(CharacterCreation.Apply(world, content, o.Creation) + "\n");
         return (new TurnController(world, content), content, world);
     }

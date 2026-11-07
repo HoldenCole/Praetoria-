@@ -15,8 +15,8 @@ engine's loader accepts. Exit code 0 = clean, 1 = errors. Run after every batch.
 """
 import json, re, sys, glob, os
 
-COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","atWar","eventFired"}
-EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","revokeClaim","adjustLegitimacy","setTitle","succeed","kill","declareWar","makePeace","log"}
+COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","atWar","bloc","eventFired"}
+EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","revokeClaim","adjustLegitimacy","setTitle","succeed","kill","declareWar","makePeace","joinBloc","log"}
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
 RES={"credits","materials","manpower","influence","exotics"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
 SPHERES={"navy","treasury","senate"}; TITLES={"landless","knight","baron","count","duke","archduke","emperor"}
@@ -223,6 +223,12 @@ def validate_creation():
             walk(h.get("when",[]),f"honor:{h.get('id')}",{"self"})
             for ef in h.get("effects",[]):
                 if ef.get("type") not in EFF: errors.append(f"honor {h.get('id')}: bad effect '{ef.get('type')}'")
+    for f in glob.glob("content/great_crisis/*.json"):
+        g=_read_jsonc(f).get("greatCrisis",{})
+        for st in g.get("stages",[]):
+            for ef in st.get("effects",[]):
+                if ef.get("type") not in EFF: errors.append(f"great crisis stage {st.get('id')}: bad effect '{ef.get('type')}'")
+            if st.get("behavior","") not in ("","blocs","bloc_war","climax","resolution"): errors.append(f"great crisis stage {st.get('id')}: unknown behavior")
     for f in glob.glob("content/fleets/*.json"):
         d=_read_jsonc(f)
         for c in d.get("classes",[]):

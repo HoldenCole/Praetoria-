@@ -1,0 +1,479 @@
+{
+  "//": "THE GREAT CRISIS — scenes for the war of the Reach (GDD §11/§16). Each reads a stage flag the engine raises (great_crisis:<stage>) and a once-marker it sets so it fires once per stage. the_blocs_form lets the player choose a side (joinBloc) against the engine's default sorting.",
+  "events": [
+    {
+      "id": "the_rumblings",
+      "tier": "situation",
+      "weight": 6,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "informant",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "informant",
+              "to": "self",
+              "op": "gte",
+              "value": 10
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_crisis:rumblings",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "refit_quietly",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{informant.name} of {informant.house} brought word that the great houses were refitting without orders. {self.name} did the same, quietly, and told no one why."
+            }
+          ]
+        },
+        {
+          "id": "sound_the_alarm",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Orator",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Honorable",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said aloud what {informant.name} had whispered: that the Reach was arming, and that someone should ask why. The chambers did not thank {self.name} for it. They did begin to listen."
+            }
+          ]
+        },
+        {
+          "id": "ignore_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} heard {informant.name} out and chose to believe the Reach would settle, as it always had. It had not always."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_blocs_form",
+      "tier": "setpiece",
+      "weight": 10,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "hegemon",
+          "when": [
+            {
+              "type": "bloc",
+              "role": "hegemon",
+              "bloc": "hegemon",
+              "present": true
+            },
+            {
+              "type": "rank",
+              "role": "hegemon",
+              "op": "gte",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_crisis:alliances",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_with_the_hegemon",
+          "effects": [
+            {
+              "type": "joinBloc",
+              "bloc": "hegemon"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "hegemon",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} declared for {hegemon.name} of {hegemon.house} and the order they meant to impose. The lesser houses called it cowardice or wisdom according to which side of the lane they stood on."
+            }
+          ]
+        },
+        {
+          "id": "stand_with_the_alliance",
+          "effects": [
+            {
+              "type": "joinBloc",
+              "bloc": "alliance"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "hegemon",
+              "to": "self",
+              "delta": -30
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} declared against {hegemon.name} of {hegemon.house}, with the houses that would not kneel. The alliance was weaker and knew it. It was also right, and knew that too."
+            }
+          ]
+        },
+        {
+          "id": "sell_your_sword",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Greedy",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Schemer",
+                  "kind": "aptitude",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 10
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let both blocs believe the house might be bought, and was paid by both for the belief. The Reach would remember who had been for sale when the war came."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_war_of_the_reach",
+      "tier": "setpiece",
+      "weight": 10,
+      "repeatable": false,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_crisis:war",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "muster_everything",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "THE WAR OF THE REACH. {self.name} emptied the yards and the barracks. Whatever the house had, it would spend here."
+            }
+          ]
+        },
+        {
+          "id": "guard_the_home_lanes",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the fleet in the home lanes while the Reach burned around it. A house that guards its own is not loved by its bloc. It is, however, still there afterward."
+            }
+          ]
+        },
+        {
+          "id": "profiteer",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Greedy",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 12
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sold hulls, grain and lanes to whoever paid. Both blocs did. The war made {self.name} rich and made the house's name a curse in the towns that fed it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_reckoning_of_the_reach",
+      "tier": "setpiece",
+      "weight": 10,
+      "repeatable": false,
+      "roles": [],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "great_crisis:player_won",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "great_crisis:player_lost",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "claim_your_share",
+          "requires": [
+            {
+              "type": "worldFlag",
+              "flag": "great_crisis:player_won",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "great_crisis:player_won",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "The War of the Reach ended with {self.name}'s bloc on the field, and {self.name} took the share a victor takes."
+            }
+          ]
+        },
+        {
+          "id": "bind_the_wounds",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "great_crisis:player_won",
+              "value": false
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "great_crisis:player_lost",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "Whoever had won the War of the Reach, the towns had lost it. {self.name} spent the first season of peace rebuilding, and the towns remembered that too."
+            }
+          ]
+        },
+        {
+          "id": "nurse_the_grudge",
+          "requires": [
+            {
+              "type": "worldFlag",
+              "flag": "great_crisis:player_lost",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "great_crisis:player_lost",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "The War of the Reach was lost, and {self.name} did not pretend otherwise. The yards began laying down hulls the week the peace was signed."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

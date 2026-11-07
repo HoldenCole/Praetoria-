@@ -52,6 +52,7 @@ static (string, Options) ParseArgs(string[] args)
             case "--scenario" when i + 1 < args.Length: o.Scenario = args[++i]; break;
             case "--auto": o.Auto = true; break;
             case "--continue": o.Continue = true; break;
+            case "--intensity" when i + 1 < args.Length: o.Intensity = args[++i]; break;
             case "--difficulty" when i + 1 < args.Length: o.Difficulty = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
             case "--name" when i + 1 < args.Length: o.Creation.Name = args[++i]; break;
             case "--sex" when i + 1 < args.Length: o.Creation.Sex = args[++i]; break;
@@ -112,5 +113,6 @@ sealed class Options
     public string? Load;    // resume from a save instead of a fresh scenario
     public bool Continue;   // GDD §14 continue mode: a sworn house takes up the banner on dynasty death
     public double Difficulty = 1.0;   // GDD §14 one knob
+    public string Intensity = "default";   // GDD §20 crisis intensity: off | low | default | dominant
     public Praetoria.Core.Creation.CreationOptions Creation = new();   // character customisation at start
 }

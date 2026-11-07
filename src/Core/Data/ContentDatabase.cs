@@ -54,6 +54,9 @@ public sealed class ContentDatabase
     /// <summary>Given names by culture (/content/names) for children born in play.</summary>
     public NameCatalog Names { get; }
 
+    /// <summary>The Great-Crisis archetype (GDD §16), or null when the content set has none.</summary>
+    public GreatCrisisDef? GreatCrisis { get; }
+
     private readonly Dictionary<string, EventDef> _eventsById;
 
     public ContentDatabase(
@@ -70,7 +73,8 @@ public sealed class ContentDatabase
         ShipClassCatalog? shipClasses = null,
         IReadOnlyList<HonorDef>? honors = null,
         FrictionTable? friction = null,
-        NameCatalog? names = null)
+        NameCatalog? names = null,
+        GreatCrisisDef? greatCrisis = null)
     {
         Events = events;
         Texts = texts;
@@ -86,6 +90,7 @@ public sealed class ContentDatabase
         Honors = honors ?? Array.Empty<HonorDef>();
         Friction = friction ?? FrictionTable.Empty;
         Names = names ?? NameCatalog.Empty;
+        GreatCrisis = greatCrisis;
         _eventsById = new Dictionary<string, EventDef>();
         foreach (var e in events) _eventsById[e.Id] = e;
     }

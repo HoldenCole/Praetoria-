@@ -29,6 +29,9 @@ public sealed class World
     /// NPC war appetite, organic crisis odds). 1.0 = default; 0.5 forgiving; 2.0 harsh.</summary>
     public double Difficulty { get; set; } = 1.0;
 
+    /// <summary>GDD §20 "crisis intensity": off / low / default / dominant — how fast the Great Crisis clock runs.</summary>
+    public string CrisisIntensity { get; set; } = "default";
+
     /// <summary>The character the player currently inhabits — bound to the "self" role every event.</summary>
     public string ProtagonistId { get; set; } = "";
 

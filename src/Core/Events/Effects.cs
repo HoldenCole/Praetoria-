@@ -262,6 +262,22 @@ public sealed class KillEffect : IEffect
     }
 }
 
+/// <summary>Move self's house into a Great-Crisis bloc ("hegemon" | "alliance") — the player's side in the war of the
+/// Reach (GDD §16). JSON: { "type": "joinBloc", "bloc": "alliance" }.</summary>
+public sealed class JoinBlocEffect : IEffect
+{
+    public string Bloc { get; }
+    public JoinBlocEffect(string bloc) => Bloc = bloc;
+    public void Apply(EvalContext ctx)
+    {
+        var self = ctx.Actor(Binding.Self);
+        var house = self != null ? ctx.World.House(self.HouseId) : null;
+        if (house == null) return;
+        house.Bloc = Bloc;
+        ctx.World.Log($"{house.Name} declares for the {Bloc}.");
+    }
+}
+
 /// <summary>Self's house declares war on the role's house (GDD §6). JSON: { "type": "declareWar", "role": "rival" }.</summary>
 public sealed class DeclareWarEffect : IEffect
 {
