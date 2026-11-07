@@ -33,9 +33,14 @@
         },
         scrollTop: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
         size: (el) => { const r = el.getBoundingClientRect(); return [r.width, r.height]; },
+        ready: (name) => new Promise(res => { let n = 0; const t = setInterval(() => { if (window[name] || ++n > 200) { clearInterval(t); res(!!window[name]); } }, 50); }),
         keys: (ref) => { window.addEventListener('keydown', e => { if (e.target && ['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return; if (e.key === 'Enter' || e.key === 'Escape' || /^[1-9]$/.test(e.key)) ref.invokeMethodAsync('Key', e.key); }); }
       };
     </script>
+    <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+    <script type="module" src="js/space.js"></script>
+    <script type="module" src="js/office.js"></script>
+    <script type="module" src="js/portrait.js"></script>
     <script src="js/fx.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>

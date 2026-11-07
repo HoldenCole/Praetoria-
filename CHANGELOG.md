@@ -3,10 +3,11 @@
 ## [Unreleased]
 
 ### Added
-- **Art pass**: landscape photographs for every world class in the office window, planet card and worlds table;
-  illustrated portraits (a pool of 80, stable per character); game-icons glyphs across the shell; procedural planet
-  sprites and nebulae on canvas; a redesigned office scene (window on your world, pilasters, sconces, banners, holo-globe,
-  star chart or trophy case, visitors who step forward); smoked-glass panels with brass frames; Cinzel titles.
+- **Art direction** (`docs/ART_DIRECTION.md`) from the reference games, and the first pass against it: the galaxy as a
+  rendered WebGL scene (shader nebula, bloomed stars, suns, hyperlane web, territory fields with lit borders, lit
+  planets, fleet glyphs); the office as a lit 3D set (reflective floor, viewport onto the seat's world, holographic star
+  table, banners, sconces, framed cameo plates for the player and visitors); portraits as drawn cameo busts; game-icons
+  glyphs; smoked-glass chrome with brass hairlines; Cinzel titles. No stock photographs, no avatars.
 - **Grand-strategy shell** for the browser client: resource strip with forecasts, navigation rail, outliner, event
   windows with the cast, End Turn dock; screens for the Office (a furnishable SVG room visitors walk into), Galaxy
   (regions, planets by class, pan/zoom, planet cards), Worlds, House, Military, Dynasty, Houses and Chronicle; a

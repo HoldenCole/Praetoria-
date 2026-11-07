@@ -1,8 +1,7 @@
-@* An illustrated portrait from the pre-drawn pool (DiceBear "Lorelei", CC0), chosen by the character's id and sex so a face is
-   stable across every screen, set in a medallion ringed in the house accent and shaded with age. *@
+@* A cameo portrait (docs/ART_DIRECTION.md §3): drawn by js/portrait.js from the character's id, sex, age and house colour, stable
+   everywhere the person appears. The <img> is filled after render by praetoriaBust.paint(). *@
 <span class="portrait @(Alive ? "" : "dead") @(Age >= 60 ? "elder" : "")" style="--ring:@Accent; width:@(Size)px; height:@(Size)px" title="@Name">
-    <img src="@Src" alt="@Name" width="@Size" height="@Size" loading="lazy" />
-    @if (!Alive) { <i class="cross"></i> }
+    <img data-bust="@Spec(Id, Sex, Age, Accent, Alive)" alt="@Name" width="@Size" height="@Size" />
 </span>
 
 @code {
@@ -13,6 +12,6 @@
     [Parameter] public bool Alive { get; set; } = true;
     [Parameter] public string Accent { get; set; } = "#888";
     [Parameter] public int Size { get; set; } = 48;
-    private const int Pool = 40;
-    private string Src { get { unchecked { int h = 23; foreach (var ch in Id) h = h * 31 + ch; string s = Sex == "female" ? "f" : Sex == "male" ? "m" : (Math.Abs(h) % 2 == 0 ? "m" : "f"); return $"img/portraits/{s}{Math.Abs(h) % Pool}.svg"; } } }
+    public static string Spec(string id, string sex, int age, string accent, bool alive = true) =>
+        System.Text.Json.JsonSerializer.Serialize(new { id, sex = sex.Length > 0 ? sex : (Math.Abs(id.GetHashCode()) % 2 == 0 ? "male" : "female"), age, accent, alive });
 }

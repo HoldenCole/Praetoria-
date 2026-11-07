@@ -1,111 +1,50 @@
 @inject GameClient G
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 @{
     var m = Model; var w = G.World!; var p = w.Protagonist!; var house = w.House(p.HouseId)!; var c = G.Content!;
     var seat = w.HoldingsOf(house.Id).Where(h => h.IsPlanet && h.SystemId.Length > 0).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
     var seatSys = seat != null ? w.Galaxy?.System(seat.SystemId) : null;
-    string wall = Cos("wall", "stone"), floor = Cos("floor", "slate"), window = Cos("window", "arched"), desk = Cos("desk", "oak"), decor = Cos("decor", "chart"), banner = Cos("banner", "sigil");
     string viewClass = Cos("view", "") is { Length: > 0 } v ? v : seatSys?.PlanetClass ?? "terran";
-    string landscape = Land.For(viewClass, seat?.SystemId ?? house.Id);
-    var visitors = m.Briefing.Where(b => !b.Resolved).Select(b => (card: b, ch: b.Item.Fired.Binding.All.Where(kv => kv.Key != "self").Select(kv => w.Char(kv.Value)).FirstOrDefault(x => x != null)))
-        .GroupBy(v => v.ch?.Id ?? v.card.Title).Select(g => g.First()).Take(4).ToList();   // one figure per person, even with two reports
+    _visitors = m.Briefing.Where(b => !b.Resolved).Select(b => (card: b, ch: b.Item.Fired.Binding.All.Where(kv => kv.Key != "self").Select(kv => w.Char(kv.Value)).FirstOrDefault(x => x != null)))
+        .GroupBy(x => x.ch?.Id ?? x.card.Title).Select(g => g.First()).Take(4).ToList();
     var honors = m.Standing?.Honors ?? new List<string>();
     var since = w.History.Where(h => h.Turn >= m.Turn - 1 && h.EventId == null).Reverse().Take(7).ToList();
-    string hour = (m.Turn % 3) switch { 0 => "dawn", 1 => "day", _ => "dusk" };
+    _pending = BuildOptions(w, p, house, seat, seatSys, viewClass, honors.Count);
 }
 <div class="office" style="--accent:@house.AccentColor">
-    <div class="office-stage wall-@wall floor-@floor hour-@hour">
-        <div class="room-window win-@window">
-            <img class="land" src="@landscape" alt="" />
-            <div class="land-tint"></div>
-            <div class="mullions"></div>
-        </div>
-        <div class="light-shaft"></div>
-        <div class="room-wall"></div>
-        <div class="pilaster left"></div><div class="pilaster right"></div>
-        <div class="sconce left"></div><div class="sconce right"></div>
-        <div class="baseboard"></div>
-        <div class="room-floor"></div>
-        <div class="room-cornice"></div>
-
-        <div class="banner left banner-@banner"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="54" /><span class="tail"></span></div>
-        <div class="banner right banner-@banner"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="54" /><span class="tail"></span></div>
-
-        @if (decor == "chart")
-        {
-            <div class="decor chart" title="The Reach">
-                <svg viewBox="0 0 220 140">
-                    @foreach (var l in GalaxyProjection.Lanes(w)) { var a = w.Galaxy!.System(l.A)!; var b = w.Galaxy.System(l.B)!; <line x1="@Svg.F(a.X / 5.6)" y1="@Svg.F(a.Y / 5.2)" x2="@Svg.F(b.X / 5.6)" y2="@Svg.F(b.Y / 5.2)" stroke="#3a4668" stroke-width=".6"/> }
-                    @foreach (var n in GalaxyProjection.Nodes(w)) { <circle cx="@Svg.F(n.X / 5.6)" cy="@Svg.F(n.Y / 5.2)" r="@(n.IsPlayerTerritory ? 3 : 2)" fill="@(n.OwnerHouseId != null ? n.AccentColor : "#55617a")"/> }
-                </svg>
-                <span class="plaque">the Reach</span>
-            </div>
-        }
-        else if (decor == "trophies")
-        {
-            <div class="decor trophies"><div class="shelf">@for (int i = 0; i < 4; i++) { <span class="trophy @(i < honors.Count ? "won" : "")" title="@(i < honors.Count ? honors[i] : "an empty place")"><Icon Name="honor" Size="26" /></span> }</div><span class="plaque">@(honors.Count == 0 ? "no honors yet" : $"{honors.Count} honor(s)")</span></div>
-        }
-        else
-        {
-            <div class="decor archive"><div class="books">@for (int i = 0; i < 18; i++) { <i style="height:@(26 + (i * 7) % 12)px; background:@(new[] { "#4a2f1e", "#2b3a5a", "#5a2a2a", "#3a4a2a", "#5a4a26" }[i % 5])"></i> }</div><span class="plaque">the archive</span></div>
-        }
-
-        <div class="holo" title="The house's holdings">
-            <div class="holo-ring"></div>
-            <div class="holo-ring r2"></div>
-            <div class="holo-core" data-planet="@(seatSys?.PlanetClass ?? "terran")|@(seat?.SystemId ?? "none")|64"><img data-planet="@(seatSys?.PlanetClass ?? "terran")|@(seat?.SystemId ?? house.Id)|64" alt="" /></div>
-        </div>
-
-        <div class="desk desk-@desk">
-            <div class="papers"></div>
-            <div class="nameplate">@p.Name · @m.Character.RankName · @m.Character.TitleName</div>
-        </div>
-        <div class="chair"></div>
-        <div class="player">
-            <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="124" />
-            <div class="pname">@p.Name</div>
-        </div>
-
-        <div class="visitors">
-            @foreach (var vis in visitors)
+    <div class="office-stage">
+        <div class="gl-host" @ref="_host"></div>
+        <div class="stage-visitors">
+            @for (int i = 0; i < _visitors.Count; i++)
             {
-                <button class="visitor @vis.card.Tier.ToLowerInvariant()" title="@vis.card.Title" @onclick="() => OnOpenReport.InvokeAsync(vis.card)">
-                    <span class="bubble">@vis.card.Title</span>
-                    @if (vis.ch != null) { <Portrait Id="@vis.ch.Id" Name="@vis.ch.Name" Sex="@vis.ch.Sex" Age="@vis.ch.Age" Accent="@(w.House(vis.ch.HouseId)?.AccentColor ?? "#888")" Size="74" /> }
-                    else { <span class="courier"><Icon Name="report" Size="34" /></span> }
-                    <span class="vname">@(vis.ch?.Name ?? "A courier")</span>
-                    @if (vis.ch != null) { <span class="vsub">@(w.House(vis.ch.HouseId)?.Name)</span> }
+                var vis = _visitors[i]; int idx = i;
+                <button class="stage-chip @vis.card.Tier.ToLowerInvariant()" @onclick="() => OnOpenReport.InvokeAsync(vis.card)" title="@vis.card.Title">
+                    <span class="who">@(vis.ch?.Name ?? "A courier")</span><span class="what">@vis.card.Title</span>
                 </button>
             }
-            @if (visitors.Count == 0) { <div class="empty-room">The antechamber is empty. The realm waits on you.</div> }
+            @if (_visitors.Count == 0) { <div class="stage-chip empty">The antechamber is empty.</div> }
         </div>
-        <div class="vignette"></div>
-
         <div class="stage-foot">
-            <div class="stage-title"><Icon Name="office" Size="16" /> <b>@(seat?.Name ?? "A borrowed room")</b> <span class="muted">@(seatSys != null ? $"{seatSys.Name} · {w.Galaxy!.Region(seatSys.RegionId)?.Name} · {hour}" : "no seat of your own")</span></div>
+            <div class="stage-title"><Icon Name="office" Size="16" /> <b>@(seat?.Name ?? "A borrowed room")</b> <span class="muted">@(seatSys != null ? $"{seatSys.Name} · {w.Galaxy!.Region(seatSys.RegionId)?.Name}" : "no seat of your own")</span></div>
             <button class="btn sm" @onclick="() => _customize = !_customize"><Icon Name="furnish" Size="14" /> @(_customize ? "Done" : "Furnish the office")</button>
         </div>
         @if (_customize)
         {
             <div class="customize">
                 @Slot("wall", "Walls", new[] { ("stone", "Stone"), ("brass", "Brass panels"), ("marble", "Marble"), ("wood", "Dark wood") })
-                @Slot("floor", "Floor", new[] { ("slate", "Slate"), ("carpet", "Crimson carpet"), ("marble", "Marble"), ("wood", "Wood") })
-                @Slot("window", "Window", new[] { ("arched", "Arched"), ("wide", "Wide"), ("porthole", "Porthole") })
-                @Slot("view", "View", new[] { ("", "Your seat's world"), ("terran", "Green hills"), ("ocean", "The sea"), ("forge", "A forge-city"), ("frozen", "Ice"), ("arid", "Desert"), ("gas", "The cloud-tops"), ("barren", "Badlands") })
+                @Slot("floor", "Floor", new[] { ("slate", "Brushed slate"), ("carpet", "Crimson carpet"), ("marble", "Marble"), ("wood", "Wood") })
+                @Slot("window", "Viewport", new[] { ("arched", "Arched"), ("wide", "Wide"), ("porthole", "Porthole") })
+                @Slot("view", "Beyond the glass", new[] { ("", "Your seat's world"), ("terran", "A green world"), ("ocean", "An ocean world"), ("forge", "A forge-world"), ("frozen", "An ice world"), ("arid", "A desert world"), ("gas", "A gas giant"), ("barren", "A dead rock") })
                 @Slot("desk", "Desk", new[] { ("oak", "Oak"), ("steel", "Steel"), ("marble", "Marble") })
-                @Slot("banner", "Banners", new[] { ("sigil", "House sigil"), ("stripes", "Stripes") })
-                @Slot("decor", "Decor", new[] { ("chart", "Star chart"), ("trophies", "Trophy case"), ("archive", "The archive") })
+                @Slot("decor", "The far wall", new[] { ("chart", "Star chart"), ("trophies", "Trophy case"), ("archive", "The archive") })
             </div>
         }
     </div>
 
     <aside class="office-side">
         <section class="panel who">
-            <div class="who-head">
-                <div>
-                    <h2>@p.Name</h2>
-                    <div class="sub">@m.Character.RankName of @house.Name · @m.Character.TitleName · age @p.Age</div>
-                </div>
-            </div>
+            <div class="who-head"><div><h2>@p.Name</h2><div class="sub">@m.Character.RankName of @house.Name · @m.Character.TitleName · age @p.Age</div></div></div>
             <div class="traits">
                 @foreach (var t in m.Character.Nature) { <span class="trait nature" title="@TraitDesc(t)">@TraitName(t)</span> }
                 @foreach (var t in m.Character.Aptitude) { <span class="trait apt" title="@TraitDesc(t)">@TraitName(t)</span> }
@@ -136,7 +75,19 @@
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<BriefingCard> OnOpenReport { get; set; }
-    private bool _customize;
+    private bool _customize; private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N");
+    private DotNetObjectReference<OfficeScreen>? _self; private bool _created; private string _pending = "", _sent = "";
+    private List<(BriefingCard card, Character? ch)> _visitors = new();
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (first) { _self = DotNetObjectReference.Create(this); try { if (await JS.InvokeAsync<bool>("praetoria.ready", "praetoriaOffice")) { await JS.InvokeVoidAsync("praetoriaOffice.create", _id, _host, _self); _created = true; } } catch { } }
+        if (_created && _pending != _sent) { _sent = _pending; try { await JS.InvokeVoidAsync("praetoriaOffice.build", _id, _pending); } catch { } }
+        try { await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }
+    }
+
+    [JSInvokable] public async Task OnVisitor(int index) { if (index >= 0 && index < _visitors.Count) await OnOpenReport.InvokeAsync(_visitors[index].card); }
+
     private string Cos(string slot, string dflt) => G.World!.Cosmetics.TryGetValue(slot, out var v) ? v : dflt;
     private void Set(string slot, string value) { if (value == "") G.World!.Cosmetics.Remove(slot); else G.World!.Cosmetics[slot] = value; }
     private RenderFragment Slot(string slot, string label, (string id, string name)[] options) => __builder =>
@@ -146,4 +97,19 @@
     };
     private string TraitName(string id) => G.Content!.Traits.Nature.Concat(G.Content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Name ?? id;
     private string TraitDesc(string id) => G.Content!.Traits.Nature.Concat(G.Content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Description ?? "";
+
+    private string BuildOptions(World w, Character p, House house, Holding? seat, StarSystem? seatSys, string viewClass, int honors)
+    {
+        var nodes = GalaxyProjection.Nodes(w); double cx = nodes.Average(n => n.X), cy = nodes.Average(n => n.Y);
+        var chart = new { nodes = nodes.Select(n => new { id = n.SystemId, x = n.X - cx, y = n.Y - cy, color = n.OwnerHouseId != null ? n.AccentColor : "#55617a", mine = n.IsPlayerTerritory }).ToList(), lanes = GalaxyProjection.Lanes(w).Select(l => new { a = l.A, b = l.B }).ToList() };
+        object Plate(Character ch) => new { name = ch.Name, accent = w.House(ch.HouseId)?.AccentColor ?? "#888", bust = new { id = ch.Id, sex = ch.Sex.Length > 0 ? ch.Sex : "male", age = ch.Age, accent = w.House(ch.HouseId)?.AccentColor ?? "#888", alive = ch.Alive } };
+        return System.Text.Json.JsonSerializer.Serialize(new
+        {
+            accent = house.AccentColor, houseId = house.Id, seed = seat?.SystemId ?? house.Id, planetClass = viewClass, planetUrl = (string?)null,
+            wall = Cos("wall", "stone"), floor = Cos("floor", "slate"), window = Cos("window", "arched"), desk = Cos("desk", "oak"), decor = Cos("decor", "chart"), honors,
+            player = Plate(p), visitors = _visitors.Select(v => v.ch != null ? Plate(v.ch) : (object)new { name = "A courier", accent = "#c9a24a" }).ToList(), chart
+        });
+    }
+
+    public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaOffice.destroy", _id); } catch { } _self?.Dispose(); }
 }

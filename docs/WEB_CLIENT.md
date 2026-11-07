@@ -70,18 +70,24 @@ event windows with the cast's portraits; the first visitor steps forward when a 
 - `Components/Portrait.razor`, `Sigil.razor` — procedural portraits and heraldry; `Services/Svg.cs` — SVG helpers.
 - `Services/GameClient.cs` — the one object the UI talks to. `wwwroot/css/app.css` — the look.
 
-## Art and where it comes from
+## Art and how it is made
 
-The client is meant to look like a game, not a form. Its art is open-licensed or procedural (full list in `CREDITS.md`):
+The art direction is `docs/ART_DIRECTION.md`, written after looking at the reference games. Nothing is stock and
+nothing is Earth; everything is rendered or drawn in-fiction at runtime (`src/Web/wwwroot/js/`):
 
-- **Landscapes** — public-domain photographs (via the Endless Sky collection) chosen by planet class, shown in the office
-  window, the planet card and the worlds table. `Services/Land.cs` maps a world to a stable picture.
-- **Portraits** — a pre-drawn pool of 80 illustrated faces (DiceBear *Lorelei*, CC0), two per sex, chosen by a hash of the
-  character id so a face is stable everywhere; set in medallions ringed with the house accent and greyed with age.
-- **Icons** — game-icons.net glyphs (CC BY 3.0) baked into `Services/Icons.cs` as path data; `Components/Icon.razor`.
-- **Planets and nebulae** — drawn at runtime on canvas by `wwwroot/js/fx.js` (value-noise sphere with lighting, atmosphere,
-  clouds, bands or rock-scatter per class; a nebula field with stars); the shell calls `praetoriaFx.paint()` after every
-  render to fill `data-planet` images from a cache.
-- **Chrome** — smoked-glass panels over night-steel with hairline brass frames and corner brackets; Cinzel for titles,
-  Cormorant for prose, Plex Sans for readouts; a procedural noise texture on panels; house accents on everything that is a
-  house's.
+- **The galaxy** (`space.js`, Three.js over WebGL): a shader nebula, thousands of bloomed stars with parallax, suns as
+  glowing cores with flares, a hyperlane web (red along fronts, gold within a selected fleet's reach), territory as a
+  soft influence field with lit borders in house colour, lit planets beside their stars, stations, siege arcs, bloc rings,
+  fleet glyphs with engine glow and course lines, labels in a CSS layer; drag, wheel, click; picking goes back to Blazor.
+- **The office** (`office.js`, Three.js): a lit set with a reflective brushed floor and brass seams, pilasters, a tall
+  viewport onto the seat's world (a shaded planet, a moon, stars, a nebula, a passing hull), sconces and emissive strips in
+  the house colour, banners carrying the sigil, a desk with a lamp, a holographic star table of the Reach, a star chart,
+  trophy case or archive on the far wall; the player and the visitors as framed cameo plates with nameplates; haze,
+  shadows and bloom; furnishing changes materials and props.
+- **Portraits** (`portrait.js`, canvas): cameos — imperial coin profiles drawn from a parametric bust (forehead, brow,
+  nose, lips, chin, jaw, neck), hair and beard shapes, a uniform collar and brass gorget in the house colour, relief
+  shading, on a plate with the house's diagonal stripe; stable per character, greying and lined with age.
+- **Planet sprites** (`fx.js`, canvas): noise-shaded spheres with lighting, atmosphere, clouds, bands or rock scatter.
+- **Chrome**: smoked-glass panels with brass hairlines and corner brackets; Cinzel, Cormorant, Plex Sans.
+
+Both WebGL scenes run at a frame budget (about 15–20 fps) and stop while the tab is hidden.

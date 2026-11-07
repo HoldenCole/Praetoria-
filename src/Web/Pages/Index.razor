@@ -105,7 +105,7 @@ else
     protected override async Task OnAfterRenderAsync(bool first)
     {
         if (first) { _self = DotNetObjectReference.Create(this); try { await JS.InvokeVoidAsync("praetoria.keys", _self); } catch { } }
-        try { await JS.InvokeVoidAsync("praetoriaFx.paint"); } catch { }
+        try { await JS.InvokeVoidAsync("praetoriaFx.paint"); await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }
     }
 
     /// <summary>Keyboard: 1–9 switch screens, Enter ends the turn (when no report is open), Escape closes a window.</summary>

@@ -44,3 +44,7 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   still the player's RPG inside the dynasty. Done this pass: the expanded Reach with regions, minor houses and governors
   (engine + content), and the shell rewrite (office, galaxy, worlds, house, military, dynasty, houses, chronicle, outliner,
   event windows, succession interstitial).
+- 2026-11-07 — Owner: the UI looked like a college project (photos, cartoon avatars, flat boxes). Researched the
+  references directly (Star Dynasties, Stellaris, Endless Space 2 screenshots) → `docs/ART_DIRECTION.md`. Rebuilt the
+  galaxy as a rendered WebGL scene, the office as a lit 3D set, portraits as drawn cameos; removed all stock photographs
+  and avatars. Every pass screenshotted through headless WebGL before commit.

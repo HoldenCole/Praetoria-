@@ -22,7 +22,7 @@
                     var (pf, pg) = Svg.Planet(n.PlanetClass);
                     var stations = w.Holdings.Values.Where(h => h.SystemId == id && !h.IsPlanet).ToList();
                     <tr class="@(n.IsPlayerTerritory ? "mine" : "")" @onclick="() => OnFocus.InvokeAsync(id)">
-                        <td class="world-cell"><img class="thumb" src="@Land.For(n.PlanetClass, n.SystemId)" alt="" /><img class="sprite" data-planet="@n.PlanetClass|@n.SystemId|40" alt="" /> <b>@n.Name</b></td>
+                        <td class="world-cell"><img class="sprite" data-planet="@n.PlanetClass|@n.SystemId|48" alt="" /> <b>@n.Name</b></td>
                         <td class="muted">@n.PlanetClass</td>
                         <td>@if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="16" /> } @(owner?.Name ?? "—")</td>
                         <td>@(n.GovernorName ?? "—")</td>
