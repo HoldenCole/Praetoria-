@@ -140,6 +140,19 @@
               "present": false
             },
             {
+              "type": "bond",
+              "from": "self",
+              "to": "bride",
+              "bond": "blood",
+              "present": false
+            },
+            {
+              "type": "sex",
+              "role": "bride",
+              "op": "neq",
+              "vsRole": "self"
+            },
+            {
               "type": "rank",
               "role": "bride",
               "op": "gte",
@@ -153,6 +166,12 @@
           "type": "turn",
           "op": "gte",
           "value": 3
+        },
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "wed",
+          "value": false
         }
       ],
       "choices": [

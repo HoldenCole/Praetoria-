@@ -179,7 +179,7 @@ public class ShipClassAndAdmiralTests
     {
         var (content, w, _) = Fresh();
         var honors = new HonorSystem(content.Honors);
-        Assert.Equal(5, honors.Defs.Count);
+        Assert.Equal(7, honors.Defs.Count);
         honors.Apply(w, TestContent.Rng());
         Assert.Empty(honors.Held(w.Protagonist!));
         w.WorldCounters["battles_won"] = 3;

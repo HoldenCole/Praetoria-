@@ -22,6 +22,7 @@ public sealed class DynastySystem
     public const string RegentFlag = "regent";          // the adult ruling in a child head's name
     public const string ParvenuFlag = "parvenu";        // the old blood looks down on this house
     public const string ComeOfAgeFlag = "came_of_age";  // set the turn a child turns 16 (content clears)
+    public const int ElderAge = 60;                     // from here the body forgets: every fifth year the sharpest skill dulls
 
     public const int MortalityAge = 50;   // below this, natural death isn't rolled (no RNG drawn)
     public const int MaxAge = 95;          // death is near-certain approaching here
@@ -50,6 +51,7 @@ public sealed class DynastySystem
             if (!c.Alive) continue;
             c.Age++;
             if (c.Age == AgeOfMajority) ComeOfAge(world, c, rng);
+            if (c.Age >= ElderAge && c.Age % 5 == 0) Decline(world, c);
             TickStress(world, c);
         }
 
@@ -92,6 +94,15 @@ public sealed class DynastySystem
         bool wasHidden = c.Flags.Remove(HiddenFlag);
         c.Flags.Add(ComeOfAgeFlag);
         world.Log($"{c.Name} comes of age{(wasHidden ? ", home from fostering" : "")} — {string.Join("/", c.NatureTraits)}{(c.AptitudeTraits.Count > 0 ? $" ({string.Join("/", c.AptitudeTraits)})" : "")}, bound for {Content?.Careers.ById(c.CareerTrack)?.Name ?? c.CareerTrack}.");
+    }
+
+    /// <summary>Age takes the edge off: the highest skill loses a point (never below 1). The old lion is still a lion.</summary>
+    private static void Decline(World world, Character c)
+    {
+        var top = c.Skills.Where(kv => kv.Value > 1).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).FirstOrDefault();
+        if (top.Key == null) return;
+        c.Skills[top.Key] = top.Value - 1;
+        if (c.Id == world.ProtagonistId) world.Log($"The years take their toll: {c.Name}'s {top.Key} dulls.");
     }
 
     private static IEnumerable<string> TrackSkills(string track) => track switch
@@ -211,15 +222,22 @@ public sealed class DynastySystem
         int n = world.Counter("dynasty_births") + 1;
         world.WorldCounters["dynasty_births"] = n;
 
-        var house = world.House(father.HouseId);   // patrilineal: the child joins the father's house
+        // Whose name does the child carry (GDD §14 "bodies carrying your name")? The head of a house keeps the
+        // seat's children; otherwise the greater house does; otherwise the father's. So a woman who rules, or who
+        // married down, raises heirs to her own name — matrilineal where it matters, patrilineal by default.
+        var houseFather = world.House(father.HouseId); var houseMother = world.House(mother.HouseId);
+        bool motherKeeps = mother.Id == world.ProtagonistId
+            || (father.Id != world.ProtagonistId && houseMother != null && houseFather != null && Content != null && Content.Titles.RankOf(houseMother.Title) > Content.Titles.RankOf(houseFather.Title));
+        var lineParent = motherKeeps ? mother : father;
+        var house = world.House(lineParent.HouseId);
         string sex = rng.NextDouble() < 0.5 ? "male" : "female";
-        string surname = (house?.Name ?? father.HouseId).Replace("House ", "");
+        string surname = (house?.Name ?? lineParent.HouseId).Replace("House ", "");
         string given = Content is { Names.IsEmpty: false } ? Content.Names.Pick(house?.Culture ?? "reach", sex, rng) : $"Scion {n}";
         var child = new Character
         {
             Id = $"scion_{n}",
             Name = $"{given} {surname}",
-            HouseId = father.HouseId,
+            HouseId = lineParent.HouseId,
             Age = 0,
             Sex = sex,
             MotherId = mother.Id,
@@ -304,6 +322,13 @@ public sealed class DynastySystem
     public static void HandOver(World world, Character heir)
     {
         var previous = world.Protagonist;
+        // contested succession (GDD §14): adult blood siblings passed over resent the new head
+        if (previous != null)
+            foreach (var sibling in world.LivingCharacters().Where(c => c.Id != heir.Id && c.HouseId == heir.HouseId && c.Age >= AgeOfMajority && IsChildOf(c, previous)))
+            {
+                sibling.Flags.Add("passed_over");
+                var r = world.Relationship(sibling.Id, heir.Id); r.Disposition = Math.Clamp(r.Disposition - 20, -100, 100);
+            }
         world.ProtagonistId = heir.Id;
         world.Pools[heir.Id] = ActionPools.ForPlayer();
         world.WorldCounters["generation"] = world.Counter("generation") + 1;

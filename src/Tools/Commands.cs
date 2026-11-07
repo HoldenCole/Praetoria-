@@ -54,6 +54,9 @@ internal static class Commands
                 Renderer.RenderFleets(world);
             }
 
+            foreach (var r in Praetoria.Core.Presentation.AdvisorReports.Build(world, content))
+                Console.WriteLine($"   {(r.Warning ? "!" : "·")} {r.Seat}{(r.AdvisorName != null ? $" ({r.AdvisorName})" : " (vacant)")}: {r.Line}");
+
             foreach (var item in briefing)           // Action phase
             {
                 var choices = tc.Offer(item);
@@ -472,6 +475,7 @@ internal static class Commands
         if (o.Continue) world.Mode = Praetoria.Core.State.World.ModeContinue;
         world.Difficulty = o.Difficulty;
         world.CrisisIntensity = o.Intensity;
+        world.FamilyAutonomy = o.Autonomy;
         if (!o.Creation.IsEmpty) Console.WriteLine(CharacterCreation.Apply(world, content, o.Creation) + "\n");
         return (new TurnController(world, content), content, world);
     }
@@ -501,6 +505,44 @@ internal static class Commands
         Console.WriteLine("\nAMBITIONS (--ambition id)");
         foreach (var a in content.Traits.Ambitions) Console.WriteLine($"  {a.Id,-24} {a.Name} — {a.Description}");
         Console.WriteLine("\nExample: play --scenario the_risen_officer --background upjumped --nature Ambitious,Just --aptitude Tactician --track military --name \"Kessa Vane\"");
+        return 0;
+    }
+
+    /// <summary>The balance soak (docs/PROCESS.md QA): auto-play many seeds and report what the galaxy did —
+    /// wars, battles, conquests, dynasty deaths, thrones, crises, breakdowns — so tuning rests on numbers.</summary>
+    public static int Simulate(Options o)
+    {
+        var contentRoot = ContentLocator.FindContentDir();
+        var content = ContentLoader.LoadFromDirectory(contentRoot);
+        var scenarios = o.Scenario == "all"
+            ? Directory.EnumerateFiles(Path.Combine(contentRoot, "scenarios"), "*.json").Select(Path.GetFileNameWithoutExtension).Select(s => s!).OrderBy(s => s, StringComparer.Ordinal).ToList()
+            : new List<string> { o.Scenario };
+        int turns = Math.Max(o.Turns, 40);
+        Console.WriteLine($"=== SIMULATE — {o.Seeds} seed(s) × {turns} turns, difficulty {o.Difficulty}, intensity {o.Intensity} ===\n");
+        Console.WriteLine($"{"scenario",-20} {"ended",5} {"gens",5} {"wars",5} {"battl",5} {"conq",5} {"throne",6} {"crises",6} {"births",6} {"plots",5} {"broke",5} {"events",6}");
+        foreach (var sid in scenarios)
+        {
+            int ended = 0, gens = 0, wars = 0, battles = 0, conquests = 0, thrones = 0, crises = 0, births = 0, plots = 0, broke = 0, events = 0;
+            for (int seed = 1; seed <= o.Seeds; seed++)
+            {
+                var world = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(contentRoot, sid), (ulong)seed);
+                world.Difficulty = o.Difficulty; world.CrisisIntensity = o.Intensity; world.FamilyAutonomy = o.Autonomy;
+                var tc = new TurnController(world, content);
+                for (int t = 0; t < turns && !world.IsDynastyDead; t++)
+                {
+                    foreach (var item in tc.BeginTurn()) { events++; var c = tc.Offer(item).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(item, c.Choice.Id); }
+                    tc.EndTurn();
+                }
+                if (world.IsDynastyDead) ended++;
+                gens += world.Counter("generation");
+                wars += world.Counter(FleetSystem.WarsDeclaredCounter); battles += world.Counter(FleetSystem.BattlesCounter); conquests += world.History.Count(h => h.Text.Contains(" takes ") && h.Text.Contains(" from "));
+                thrones += world.Counter("thrones_taken"); crises += world.History.Count(h => h.Text.StartsWith("Crisis '") && h.Text.Contains("erupts"));
+                births += world.Counter("dynasty_births"); plots += world.Counter("assassinations_attempted"); broke += world.Counter("breakdowns");
+            }
+            int n = o.Seeds;
+            Console.WriteLine($"{sid,-20} {ended,5} {gens / (double)n,5:F1} {wars / (double)n,5:F1} {battles / (double)n,5:F1} {conquests / (double)n,5:F1} {thrones,6} {crises / (double)n,6:F1} {births / (double)n,6:F1} {plots / (double)n,5:F1} {broke / (double)n,5:F1} {events / (double)n,6:F0}");
+        }
+        Console.WriteLine("\n(ended = runs where the dynasty died; per-seed averages elsewhere; throne = total throne takes)");
         return 0;
     }
 

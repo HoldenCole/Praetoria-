@@ -30,6 +30,7 @@ try
         "create"   => Commands.Create(),
         "map"      => Commands.Map(opts),
         "epilogue" => Commands.EpilogueOf(opts),
+        "simulate" => Commands.Simulate(opts),
         _ => Unknown(command)
     };
 }
@@ -53,6 +54,8 @@ static (string, Options) ParseArgs(string[] args)
             case "--auto": o.Auto = true; break;
             case "--continue": o.Continue = true; break;
             case "--intensity" when i + 1 < args.Length: o.Intensity = args[++i]; break;
+            case "--autonomy" when i + 1 < args.Length: o.Autonomy = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
+            case "--seeds" when i + 1 < args.Length: o.Seeds = int.Parse(args[++i]); break;
             case "--difficulty" when i + 1 < args.Length: o.Difficulty = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
             case "--name" when i + 1 < args.Length: o.Creation.Name = args[++i]; break;
             case "--sex" when i + 1 < args.Length: o.Creation.Sex = args[++i]; break;
@@ -76,6 +79,7 @@ static int Help()
     Console.WriteLine("  create                         list character-creation choices (backgrounds, traits, tracks, ambitions)");
     Console.WriteLine("  map [--scenario id]            the galaxy: systems, lanes, and who holds what");
     Console.WriteLine("  epilogue --load file           the saga epilogue of a saved game");
+    Console.WriteLine("  simulate [--scenario id|all] [--seeds N] [--turns N]   balance soak: aggregate stats over many seeds");
     Console.WriteLine("  turn [--seed N] [--turns N]   full Briefing→Action→Resolve cycle with pools + NPCs");
     Console.WriteLine("  economy [--seed N] [--turns N] domain economy: holdings accrue, invest in buildings");
     Console.WriteLine("  crisis [--seed N]              crisis gate/cascade/damper demonstration");
@@ -114,5 +118,7 @@ sealed class Options
     public bool Continue;   // GDD §14 continue mode: a sworn house takes up the banner on dynasty death
     public double Difficulty = 1.0;   // GDD §14 one knob
     public string Intensity = "default";   // GDD §20 crisis intensity: off | low | default | dominant
+    public double Autonomy = 1.0;          // GDD §20 family autonomy
+    public int Seeds = 10;                 // simulate: how many seeds
     public Praetoria.Core.Creation.CreationOptions Creation = new();   // character customisation at start
 }

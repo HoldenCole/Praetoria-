@@ -25,5 +25,14 @@
       "description": "The top of the Navy's ladder — the post that frightens the old aristocracy.",
       "when": [ { "type": "track", "role": "self", "track": "military" }, { "type": "rank", "role": "self", "op": "gte", "value": 6 } ],
       "effects": [ { "type": "adjustCounter", "key": "navy_influence", "delta": 3 }, { "type": "adjustCounter", "key": "standing", "delta": 2 } ] }
+    ,
+    { "id": "peacemaker", "name": "Peacemaker of the Reach",
+      "description": "Two houses bound to yours by marriage, and no war declared in your name.",
+      "when": [ { "type": "counter", "key": "marriages", "op": "gte", "value": 2 }, { "type": "counter", "key": "wars_declared", "op": "eq", "value": 0 } ],
+      "effects": [ { "type": "adjustLegitimacy", "role": "self", "delta": 8 }, { "type": "adjustCounter", "key": "goodwill", "delta": 2 } ] },
+    { "id": "lord_protector", "name": "Lord Protector",
+      "description": "Three worlds taken and held — the Reach fears you, and calls it respect.",
+      "when": [ { "type": "counter", "key": "conquests", "op": "gte", "value": 3 } ],
+      "effects": [ { "type": "adjustCounter", "key": "navy_influence", "delta": 3 }, { "type": "adjustCounter", "key": "standing", "delta": 3 }, { "type": "adjustCounter", "key": "seizures", "delta": 1 } ] }
   ]
 }

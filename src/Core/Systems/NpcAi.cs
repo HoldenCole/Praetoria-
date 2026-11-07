@@ -16,6 +16,9 @@ public sealed class NpcAi
     /// <summary>Each living non-protagonist takes at most one affordable action this turn. If a
     /// crisis engine is supplied, an ambitious NPC may also <em>author</em> a causable crisis
     /// (GDD §16 "crises have authors") — through the same command bus the player uses.</summary>
+    /// <summary>Turns between an NPC house's attempts on the player's heirs.</summary>
+    public const int HeirHuntCooldown = 6;
+
     /// <summary>Catalogs the fleet AI consults (optional; without them NPCs raise the default class, unled).</summary>
     public ShipClassCatalog? ShipClasses { get; init; }
     public Progression.TitleCatalog? Titles { get; init; }
@@ -123,22 +126,33 @@ public sealed class NpcAi
             var head = npcs.FirstOrDefault(c => c.HouseId == house.Id);
             if (head == null) continue;
 
-            // heir-hunting: at war, a Cruel or Ruthless head with agents to spare moves on the player's heirs
-            if (player != null && playerHouse != null && world.AtWar(house.Id, playerHouse) &&
+            // heir-hunting: at war, a Cruel or Ruthless head with agents to spare moves on the player's heirs — a
+            // campaign with a cooldown (GDD §14 "agents + time per attempt"), not a knife every season
+            string cooldownKey = $"hunt_cooldown:{house.Id}";
+            if (player != null && playerHouse != null && world.AtWar(house.Id, playerHouse) && world.Counter(cooldownKey) <= world.Turn &&
                 (head.NatureTraits.Contains("Cruel") || head.NatureTraits.Contains("Ruthless")))
             {
                 var heir = world.LivingCharacters().Where(c => c.HouseId == playerHouse && c.Id != player.Id && !c.Flags.Contains(DynastySystem.HiddenFlag))
                                 .OrderBy(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
-                if (heir != null && executor.TryExecute(new AssassinateCommand(head.Id, heir.Id), ctx)) continue;
+                if (heir != null && executor.TryExecute(new AssassinateCommand(head.Id, heir.Id), ctx)) { world.WorldCounters[cooldownKey] = world.Turn + HeirHuntCooldown; continue; }
             }
 
             // marriage: an unmarried adult of the house courts the best-disposed eligible match anywhere
             var suitor = npcs.Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority && c.Sex != "" && !ProposeMarriageCommand.IsMarried(world, c.Id))
                              .OrderBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
             if (suitor == null) continue;
+            int Score(Character c)
+            {
+                var woman = c.Sex == "female" ? c : suitor;
+                int heirs = woman.Age <= DynastySystem.FertileMax ? 40 : -40;          // a match that can bear heirs
+                int closeness = -Math.Abs(c.Age - suitor.Age);
+                int disp = world.GetRelationship(c.Id, suitor.Id)?.Disposition ?? 0;
+                return heirs + closeness + disp;
+            }
             var match = world.LivingCharacters()
-                .Where(c => c.HouseId != house.Id && c.Id != world.ProtagonistId && c.Sex != "" && c.Sex != suitor.Sex && c.Age >= DynastySystem.AgeOfMajority && !ProposeMarriageCommand.IsMarried(world, c.Id))
-                .OrderByDescending(c => world.GetRelationship(c.Id, suitor.Id)?.Disposition ?? 0).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+                .Where(c => c.HouseId != house.Id && c.Sex != "" && c.Sex != suitor.Sex && c.Age >= DynastySystem.AgeOfMajority && !ProposeMarriageCommand.IsMarried(world, c.Id)
+                            && !c.Flags.Contains(ProposeMarriageCommand.SuitorFlag))
+                .OrderByDescending(Score).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
             if (match != null) executor.TryExecute(new ProposeMarriageCommand(head.Id, suitor.Id, match.Id, Titles), ctx);
         }
     }
@@ -146,7 +160,7 @@ public sealed class NpcAi
     /// <summary>Rival houses develop their (abstracted, GDD §3) domains: each NPC house's senior living
     /// member slots the first affordable, fitting building — at most one build per house per turn, in id
     /// order, so rival realms grow deterministically instead of sitting on hoarded treasuries.</summary>
-    private static void Invest(List<Character> npcs, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
+    private void Invest(List<Character> npcs, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
     {
         var world = ctx.World;
         var playerHouse = world.Protagonist?.HouseId;
@@ -156,12 +170,21 @@ public sealed class NpcAi
             var steward = npcs.FirstOrDefault(c => c.HouseId == house.Id);
             if (steward == null) continue;
 
+            // a rich house with a market buys the materials it lacks (GDD §17 conversion chains)
+            if (house.Treasury.Materials < 6 && house.Treasury.Credits > 20)
+            {
+                var rate = catalog.Rates.FirstOrDefault(r => r.Give == Resource.Credits && r.Get == Resource.Materials);
+                if (rate != null) executor.TryExecute(new ExchangeCommand(steward.Id, rate, catalog, times: 2), ctx);
+            }
+            // and a very rich great house raises a megastructure (its holdings' build loop below prefers them when affordable)
+
             bool built = false;
             foreach (var holding in world.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
             {
-                foreach (var b in catalog.Buildings.OrderBy(b => b.Id, StringComparer.Ordinal))
+                foreach (var b in catalog.Buildings.OrderByDescending(b => b.Megastructure).ThenBy(b => b.Id, StringComparer.Ordinal))
                 {
-                    if (executor.TryExecute(new BuildCommand(steward.Id, holding.Id, b.Id, catalog), ctx)) { built = true; break; }
+                    if (b.Megastructure && house.Treasury.Credits < b.Cost.Credits * 2) continue;      // only when it can afford to show off
+                    if (executor.TryExecute(new BuildCommand(steward.Id, holding.Id, b.Id, catalog, Titles), ctx)) { built = true; break; }
                 }
                 if (built) break;
             }

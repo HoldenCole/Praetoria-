@@ -24,6 +24,10 @@ public sealed class DamperDef
     public IReadOnlyDictionary<string, int> Cost { get; init; } = new Dictionary<string, int>();
 }
 
+/// <summary>A counter that drifts toward a resting value each turn no crisis is active (data in the crises file's
+/// "recovery" list). Closes the "legitimacy counter is unbounded negative" balance hole without a hard-coded name.</summary>
+public sealed record RecoveryRule(string Counter, int Toward, int PerTurn);
+
 /// <summary>
 /// A gated, buildable crisis state (GDD §16) — NOT a random event. Its <see cref="Gates"/> are
 /// preconditions that accumulate in world state; while any gate is un-cleared the crisis cannot

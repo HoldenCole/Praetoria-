@@ -16,6 +16,22 @@ public static class CrisisLoader
         AllowTrailingCommas = true
     };
 
+    /// <summary>Counter recovery rules from every file in /content/crises carrying a "recovery" array.</summary>
+    public static IReadOnlyList<RecoveryRule> LoadRecovery(string contentRoot)
+    {
+        var dir = Path.Combine(contentRoot, "crises");
+        if (!Directory.Exists(dir)) return Array.Empty<RecoveryRule>();
+        var list = new List<RecoveryRule>();
+        foreach (var file in Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories).OrderBy(static p => p, StringComparer.Ordinal))
+        {
+            using var doc = JsonDocument.Parse(File.ReadAllText(file), DocOptions);
+            if (!doc.RootElement.TryGetProperty("recovery", out var arr) || arr.ValueKind != JsonValueKind.Array) continue;
+            foreach (var r in arr.EnumerateArray())
+                list.Add(new RecoveryRule(ConditionParser.Str(r, "counter"), ConditionParser.Int(r, "toward", 0), ConditionParser.Int(r, "perTurn", 1)));
+        }
+        return list;
+    }
+
     public static IReadOnlyList<CrisisDef> LoadFromDirectory(string contentRoot)
     {
         var dir = Path.Combine(contentRoot, "crises");

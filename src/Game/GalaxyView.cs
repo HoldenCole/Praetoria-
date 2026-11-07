@@ -241,6 +241,9 @@ public partial class GalaxyMap : Control
             var fill = n.OwnerHouseId != null ? CourtTheme.Accent(n.AccentColor, era) : CourtTheme.Unclaimed;
             // territory glow
             if (n.OwnerHouseId != null) DrawCircle(p, Radius * 2.2f, new Color(fill, 0.18f));
+            var bloc = n.OwnerHouseId != null ? w?.House(n.OwnerHouseId)?.Bloc : null;
+            if (!string.IsNullOrEmpty(bloc))   // the war of the Reach: hegemon bloc in gilt, the alliance in steel
+                DrawArc(p, Radius * 2.6f, 0, Mathf.Tau, 48, new Color(bloc == "hegemon" ? CourtTheme.Gilt(era) : CourtTheme.Unclaimed, 0.6f), 2f, true);
             DrawCircle(p, Radius, fill);
             if (n.IsPlayerTerritory) DrawArc(p, Radius + 5f, 0, Mathf.Tau, 48, CourtTheme.Gilt(era), 2.5f, true);
             if (n.Contested) DrawArc(p, Radius + 9f, 0, Mathf.Tau, 48, CourtTheme.Danger, 1.5f, true);

@@ -47,9 +47,12 @@ public sealed class Economy
                 {
                     holding.Unrest = Math.Clamp(
                         holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0), 0, 100);
-                    int pop = Math.Max(0, holding.Population + spec.PopGrowth);
+                    int growth = holding.Unrest > 50 ? spec.PopGrowth / 2 : spec.PopGrowth;      // the restless do not settle
+                    int pop = Math.Max(0, holding.Population + growth);
+                    if (world.Sieges.ContainsKey(holding.Id)) pop -= Math.Max(1, pop / 20);          // a blockade starves (GDD §6)
+                    if (holding.Unrest >= 80) pop -= 2;                                               // flight from a world in revolt
                     if (spec.MaxPopulation > 0) pop = Math.Min(pop, spec.MaxPopulation);
-                    holding.Population = pop;
+                    holding.Population = Math.Max(0, pop);
                 }
 
                 foreach (var r in Resource.All)

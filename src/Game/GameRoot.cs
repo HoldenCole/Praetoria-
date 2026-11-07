@@ -125,9 +125,9 @@ public partial class GameRoot : Control
         CourtTheme.Clear(_stage);
         _court = null; _galaxy = null;
         var screen = new CreationScreen(_state);
-        screen.Begin += (scenario, seed, options, mode, difficulty) =>
+        screen.Begin += (scenario, seed, options, mode, difficulty, intensity, autonomy) =>
         {
-            _state.Start(scenario, seed, options, mode, difficulty);   // throws ContentException on a bad pick; the screen shows it
+            _state.Start(scenario, seed, options, mode, difficulty, intensity, autonomy);   // throws ContentException on a bad pick; the screen shows it
             EnterGame();
         };
         _stage.AddChild(screen);

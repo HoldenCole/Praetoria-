@@ -75,6 +75,8 @@ public sealed class EventEngine
             pool.RemoveAll(x => x.def.Id == p.def.Id);
             // One set-piece per briefing: dramatic peaks don't collide (GDD §15 "suppress nearby collisions").
             if (p.def.Tier == EventTier.Setpiece) pool.RemoveAll(x => x.def.Tier == EventTier.Setpiece);
+            // At most one ambient beat while weightier reports wait: texture fills gaps, it doesn't crowd the feed.
+            if (p.def.Tier == EventTier.Ambient && pool.Any(x => x.def.Tier != EventTier.Ambient)) pool.RemoveAll(x => x.def.Tier == EventTier.Ambient);
             result.Add(new FiredEvent(p.def, p.binding));
         }
         // the lull clock: reset when the briefing carries anything above ambient, else lengthen

@@ -3,7 +3,38 @@
 All notable changes to Praetoria. The format follows Keep a Changelog; versions follow SemVer with 1.0 = the
 Build Spec's V1 ("a complete human game").
 
-## [0.7.0-alpha] — Unreleased — "Blood and Iron"
+## [0.8.0-alpha] — Unreleased — "The War of the Reach"
+Twenty more systems plus the first QA pass driven by the new balance simulation (243 tests).
+
+### The Great Crisis (Milestone 6)
+- The human galaxy-war as a data archetype: a clock (base rate × intensity + the galaxy's turmoil), stages with
+  flags/effects/behaviours (blocs → bloc war → climax → resolution), the hegemon's bloc vs the alliance, NPC-vs-NPC
+  wars, and a resolution that ends the wars and births an Imperium. Crisis-intensity knob (off/low/default/dominant).
+  `bloc` condition, `joinBloc` effect; four stage scenes (Rumblings, The Blocs, The War of the Reach, After the War).
+### Dynasty & character
+- Family autonomy (knob): willful kin grow defiant, court your rivals, and may defect — carrying a claim to your title
+  with them (*A Will of Their Own*, *The Kin Who Left*). Passed-over siblings resent the new head. Elders lose their
+  edge. Children keep the name of the seat (a ruling woman raises heirs to her own house) or of the greater house.
+  Suits for the protagonist's hand become *The Suit*; NPC courtship prefers matches that can bear heirs. Heir-hunting
+  has a cooldown. `sex` condition; the match event excludes kin and same-sex matches.
+### Economy & war
+- Blockades starve and revolts empty worlds; growth halves under unrest. Refit at home for materials. NPC houses buy
+  materials at the Exchange and raise megastructures when rich. Threat is weighted by absolute influence. Counter
+  recovery rules (imperial legitimacy and unrest heal between crises). Two more honors (Peacemaker, Lord Protector).
+### Advisors, Director, tooling
+- Advisor reports each turn (Steward, Admiral, Chancellor) — the Admiral speaks from intel, not truth. Director keeps
+  ambient beats to one when weightier reports wait. `praetoria simulate` runs many seeds and tabulates wars, battles,
+  conquests, dynasty deaths, thrones, crises, births, plots. Save format v2 with a migration hook. The Old Lion: a
+  sixth scenario that starts with three generations in play. `docs/PROCESS.md` records the development cycle.
+### QA (from the simulation)
+- The circling heir had no Reach to circle in (added House Thalen) and her line died out (heirs now keep the seat's
+  name); cadet events fired for grown nobles (now gated to a young protagonist); Cruel enemies hunted heirs every
+  season (cooldown).
+### UI (compiles; unrun)
+- Great-Crisis card, advisor lines atop the briefing, refit buttons, defiant-kin notices, bloc rings on the map,
+  intensity and family-autonomy knobs at creation.
+
+## [0.7.0-alpha] — "Blood and Iron"
 Twenty-odd systems in one autonomous pass. Everything headless is tested (224 tests); the UI additions compile.
 
 ### Military

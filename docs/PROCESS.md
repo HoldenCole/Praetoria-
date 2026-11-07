@@ -22,4 +22,6 @@ current phase without asking.
 make Star Dynasties look unfinished. Nothing in V1 may feel like it is building toward an absent finale (GDD §16).
 
 **Phase log**
-- 2026-11-07 — "40 things" phase: 31 done (v0.7.0-alpha), 20 more in progress (v0.8.0-alpha). Next: QA.
+- 2026-11-07 — "40 things" phase: 31 done (v0.7.0-alpha) + 20 done (v0.8.0-alpha) = 51. First QA pass run with
+  the simulation (found and fixed: an isolated scenario, lines dying out, cadet events for grown nobles, relentless
+  heir-hunting). Next: QA proper, then the graphics phases (need a Godot session).

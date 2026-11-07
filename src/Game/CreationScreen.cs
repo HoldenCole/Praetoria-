@@ -12,10 +12,10 @@ namespace Praetoria.Game;
 /// </summary>
 public partial class CreationScreen : Control
 {
-    public event Action<string, ulong, CreationOptions, string, double>? Begin;
+    public event Action<string, ulong, CreationOptions, string, double, string, double>? Begin;
 
     private readonly GameState _state;
-    private OptionButton _scenario = null!, _sex = null!, _background = null!, _track = null!, _ambition = null!, _mode = null!, _difficulty = null!;
+    private OptionButton _scenario = null!, _sex = null!, _background = null!, _track = null!, _ambition = null!, _mode = null!, _difficulty = null!, _intensity = null!, _autonomy = null!;
     private LineEdit _name = null!, _seed = null!;
     private Label _backgroundText = null!, _error = null!;
     private readonly List<CheckBox> _nature = new(), _aptitude = new();
@@ -65,6 +65,16 @@ public partial class CreationScreen : Control
         foreach (var d in new[] { "Forgiving (0.5) — rivals slow to coalesce", "Standard (1.0)", "Harsh (1.5) — the GDD's default lean", "Brutal (2.0) — the galaxy wants you dead" }) _difficulty.AddItem(d);
         _difficulty.Selected = 1;
         Row(grid, "Difficulty", _difficulty, era);
+
+        _intensity = new OptionButton();
+        foreach (var d in new[] { "Off — a pure court-intrigue game", "Low", "Default", "Dominant — the war of the Reach comes fast" }) _intensity.AddItem(d);
+        _intensity.Selected = 2;
+        Row(grid, "Crisis intensity", _intensity, era);
+
+        _autonomy = new OptionButton();
+        foreach (var d in new[] { "Deferential family", "Default", "A pressure-cooker of scheming relatives" }) _autonomy.AddItem(d);
+        _autonomy.Selected = 1;
+        Row(grid, "Family autonomy", _autonomy, era);
 
         col.AddChild(CourtTheme.Rule());
         col.AddChild(CourtTheme.Heading("The character", CourtTheme.Ink(era), 20));
@@ -179,9 +189,11 @@ public partial class CreationScreen : Control
         };
         string mode = _mode.Selected == 1 ? World.ModeContinue : World.ModeIronman;
         double difficulty = _difficulty.Selected switch { 0 => 0.5, 2 => 1.5, 3 => 2.0, _ => 1.0 };
+        string intensity = _intensity.Selected switch { 0 => "off", 1 => "low", 3 => "dominant", _ => "default" };
+        double autonomy = _autonomy.Selected switch { 0 => 0.0, 2 => 2.0, _ => 1.0 };
         try
         {
-            Begin?.Invoke(_scenario.GetItemText(_scenario.Selected), seed, o, mode, difficulty);
+            Begin?.Invoke(_scenario.GetItemText(_scenario.Selected), seed, o, mode, difficulty, intensity, autonomy);
         }
         catch (Praetoria.Core.Data.ContentException ex)
         {

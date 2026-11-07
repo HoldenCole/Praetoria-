@@ -10,6 +10,12 @@
           "type": "turn",
           "op": "lte",
           "value": 2
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -74,6 +80,12 @@
           "type": "eventFired",
           "event": "first_formation",
           "value": true
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -209,6 +221,12 @@
           "type": "turn",
           "op": "gte",
           "value": 4
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -375,6 +393,12 @@
           "type": "turn",
           "op": "gte",
           "value": 2
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -481,6 +505,12 @@
           "type": "turn",
           "op": "gte",
           "value": 3
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -587,6 +617,12 @@
           "type": "turn",
           "op": "gte",
           "value": 5
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -713,6 +749,12 @@
           "key": "standing",
           "op": "gte",
           "value": 3
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -799,6 +841,12 @@
           "type": "turn",
           "op": "gte",
           "value": 1
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -862,6 +910,12 @@
           "key": "standing",
           "op": "gte",
           "value": 2
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -946,6 +1000,12 @@
           "key": "standing",
           "op": "gte",
           "value": 5
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -1084,6 +1144,12 @@
           "type": "eventFired",
           "event": "the_reckoning",
           "value": false
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -1239,6 +1305,12 @@
           "type": "turn",
           "op": "gte",
           "value": 4
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -1355,6 +1427,12 @@
           "type": "turn",
           "op": "gte",
           "value": 5
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -1467,6 +1545,12 @@
           "type": "turn",
           "op": "gte",
           "value": 4
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -1584,6 +1668,12 @@
           "key": "standing",
           "op": "gte",
           "value": 3
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -1668,6 +1758,12 @@
           "type": "turn",
           "op": "gte",
           "value": 6
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -1769,6 +1865,12 @@
           "type": "turn",
           "op": "gte",
           "value": 1
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -1831,6 +1933,12 @@
           "type": "turn",
           "op": "gte",
           "value": 5
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 22
         }
       ],
       "choices": [
@@ -1975,5 +2083,6 @@
         }
       ]
     }
-  ]
+  ],
+  "//": "ACADEMY CRUCIBLE — the opening act (GDD §13). Every scene here is cadet life, so every event gates on the protagonist being young (age ≤ 22): a duke of sixty does not get caught asleep on watch. Flags coined: feud, humiliated, wounded, marked_for_death, reconciled, framed, sabotaged, covered_for, owes_you; world flag oath_sworn_academy; counter standing."
 }

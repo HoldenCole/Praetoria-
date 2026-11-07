@@ -153,6 +153,7 @@ public partial class CourtView : HBoxContainer
             av.AddChild(CourtTheme.Body($"{f.Name}{(f.Office ? " (office)" : "")} — {f.Composition}; readiness {f.Readiness}{(f.Veterancy > 0 ? $", veterancy {f.Veterancy}" : "")}, " +
                                         (f.Moving ? $"en route to {f.Destination} ({f.Eta})" : $"at {f.Where}") +
                                         (f.AdmiralName != null ? $" — {f.AdmiralName} commanding" : " — unled (fights at 85%)"), ink, 12));
+            av.AddChild(Opt(f.Refit, new RefitFleetCommand(pid, f.Id)));
             var cmdFold = Fold(av, $"Command of {f.Name}", era);
             foreach (var o in f.AdmiralOptions) cmdFold.AddChild(Opt(o, new AssignAdmiralCommand(pid, f.Id, o.Id)));
             foreach (var o in f.MergeOptions) cmdFold.AddChild(Opt(o, new MergeFleetsCommand(pid, o.Id, f.Id)));
@@ -216,6 +217,8 @@ public partial class CourtView : HBoxContainer
         _center.AddChild(Panel(era, false, out var hv));
         hv.AddChild(CourtTheme.Heading($"Turn {m.Turn} — the briefing", CourtTheme.Gilt(era), 20));
         hv.AddChild(CourtTheme.Muted(era == "imperium" ? "Under the Imperium." : "The fractured stars; no throne yet claimed.", era));
+        foreach (var r in m.Advisors)
+            hv.AddChild(CourtTheme.Body($"{r.Seat}{(r.AdvisorName != null ? $" ({r.AdvisorName})" : " (vacant)")}: {r.Line}", r.Warning ? CourtTheme.Danger : CourtTheme.Ink(era), 12));
 
         if (m.EpilogueText != null)
         {
@@ -270,7 +273,10 @@ public partial class CourtView : HBoxContainer
         {
             if (h.Hidden) dv.AddChild(CourtTheme.Muted($"{h.Name} ({h.Age}) is fostered away, hidden.", era, 11));
             foreach (var o in h.Actions)
+            {
+                if (o.Id == "defiant") { dv.AddChild(CourtTheme.Body(o.Label, CourtTheme.Danger, 12)); continue; }
                 dv.AddChild(Opt(o, o.Id == "recall" ? new RecallCommand(pid, h.Id) : new FosterCommand(pid, h.Id)));
+            }
         }
 
         if (m.Connections.Count > 0)
@@ -308,6 +314,14 @@ public partial class CourtView : HBoxContainer
             }
             if (clock.Causable.Count > 0)
                 cv.AddChild(CourtTheme.Muted("Gates cleared — could erupt: " + string.Join(", ", clock.Causable), era, 11));
+        }
+
+        if (m.GreatCrisis is { } g && g.Stage != null)
+        {
+            _right.AddChild(Panel(era, true, out var gv));
+            gv.AddChild(CourtTheme.Heading(g.Name, CourtTheme.Danger, 15));
+            gv.AddChild(CourtTheme.Body(g.Resolved ? "Resolved." : $"Stage: {g.Stage} · clock {g.Clock}{(g.NextAt != null ? $" / next at {g.NextAt}" : "")} · intensity {g.Intensity}", CourtTheme.Ink(era), 12));
+            if (g.Bloc.Length > 0) gv.AddChild(CourtTheme.Body($"Your house stands with the {g.Bloc}{(g.HegemonName != null ? $"; the hegemon is {g.HegemonName}" : "")}.", CourtTheme.Ink(era), 12));
         }
 
         _right.AddChild(Panel(era, false, out var hv));

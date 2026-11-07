@@ -16,7 +16,7 @@ namespace Praetoria.Core.Data;
 public static class SaveSystem
 {
     /// <summary>Bump when the World shape changes incompatibly; loaders can migrate on this.</summary>
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;   // 2: fleets gained composition/admirals/veterancy; World gained Wars, Sieges, Difficulty, CrisisIntensity, FamilyAutonomy
 
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -51,7 +51,22 @@ public static class SaveSystem
             throw new ContentException("Not a Praetoria save file.");
         if (file.Version > CurrentVersion)
             throw new ContentException($"Save version {file.Version} is newer than this build supports ({CurrentVersion}).");
-        return file.World;
+        return Migrate(file.World, file.Version);
+    }
+
+    /// <summary>Forward-compatibility (BuildSpec §7): older saves are filled in with the defaults the new fields need.
+    /// Every property added since v1 has a serialisable default, so a v1 World loads as-is; this is where a real
+    /// shape change would be rewritten. Each fleet's hull count is re-derived from its composition when present.</summary>
+    public static World Migrate(World world, int fromVersion)
+    {
+        if (fromVersion < 2)
+        {
+            foreach (var f in world.Fleets.Values) f.Recount();
+            if (string.IsNullOrEmpty(world.Mode)) world.Mode = World.ModeIronman;
+            if (world.Difficulty <= 0) world.Difficulty = 1.0;
+            if (string.IsNullOrEmpty(world.CrisisIntensity)) world.CrisisIntensity = "default";
+        }
+        return world;
     }
 
     public static void Save(World world, string path)

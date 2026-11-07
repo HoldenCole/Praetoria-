@@ -15,7 +15,7 @@ engine's loader accepts. Exit code 0 = clean, 1 = errors. Run after every batch.
 """
 import json, re, sys, glob, os
 
-COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","atWar","bloc","eventFired"}
+COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","atWar","bloc","sex","eventFired"}
 EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","revokeClaim","adjustLegitimacy","setTitle","succeed","kill","declareWar","makePeace","joinBloc","log"}
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
 RES={"credits","materials","manpower","influence","exotics"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
@@ -273,7 +273,8 @@ def validate_scenarios(sc,allspecs):
         for c in d.get("characters",[]):
             if c["house"] not in houses: errors.append(f"[{sid}] char {c['id']} unknown house")
             if c.get("careerTrack") not in TRACKS: errors.append(f"[{sid}] char {c['id']} unlocked track '{c.get('careerTrack')}'")
-            if c.get("ambition") not in AMBITIONS: errors.append(f"[{sid}] char {c['id']} unlocked ambition '{c.get('ambition')}'")
+            amb=c.get("ambition")
+            if (amb or c.get("age",18)>=16) and amb not in AMBITIONS: errors.append(f"[{sid}] char {c['id']} unlocked ambition '{amb}'")   # children choose at sixteen
             vocab["track"].add(c.get("careerTrack")); vocab["ambition"].add(c.get("ambition"))
             for t in c.get("nature",[]):
                 if t not in NATURE: errors.append(f"[{sid}] char {c['id']} unlocked nature '{t}'")

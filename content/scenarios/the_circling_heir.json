@@ -19,6 +19,21 @@
       "//": "Influence-RICH, materials-thin: the intrigue house economy (pairs with 'the_influence_broker', senatorial_seat). A different game from Voss entirely — your power is people and favor, not forges. TITLE: Born to power: a secure County (needs 40). The intrigue heir starts legitimate — the danger is inside the walls, not above them.",
       "title": "count",
       "legitimacy": 48
+    },
+    {
+      "id": "thalen",
+      "name": "House Thalen",
+      "accent": "#2F6B4A",
+      "title": "count",
+      "legitimacy": 52,
+      "treasury": {
+        "credits": 15,
+        "materials": 9,
+        "manpower": 7,
+        "influence": 6,
+        "exotics": 1
+      },
+      "//": "ADDED (QA): the circling heir needs a Reach to circle in. Thalen is the neighbouring County — a match for Lucia or Castor, a rival for Highmarch, and the house Castor would run to."
     }
   ],
   "characters": [
@@ -113,6 +128,53 @@
       "ambition": "win_a_great_love",
       "//": "Lowborn-raised sworn man, no house name of his own (uses house tag for engine but is 'Oren' only) — the chosen-bond foil to Castor's blood-betrayal. The friend who'd die for you vs. the cousin who'd poison you, both in one family.",
       "sex": "male"
+    },
+    {
+      "id": "edric_thalen",
+      "name": "Edric Thalen",
+      "house": "thalen",
+      "age": 27,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 2,
+      "nature": [
+        "Honorable",
+        "Proud"
+      ],
+      "aptitude": [
+        "Tactician"
+      ],
+      "skills": {
+        "tactics": 3,
+        "discipline": 2,
+        "charisma": 2
+      },
+      "ambition": "earn_a_command",
+      "//": "The Thalen heir: eligible, honourable, and exactly the match Vera wants for Lucia."
+    },
+    {
+      "id": "rowena_thalen",
+      "name": "Rowena Thalen",
+      "house": "thalen",
+      "age": 49,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 3,
+      "nature": [
+        "Ambitious",
+        "Cruel"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {
+        "intrigue": 3,
+        "law": 3,
+        "oratory": 2,
+        "charisma": 2
+      },
+      "ambition": "master_the_senate",
+      "//": "The Countess, who has Castor's ear already."
     }
   ],
   "relationships": [
@@ -160,6 +222,48 @@
       "disposition": 70,
       "bond": "sworn",
       "strength": 65
+    },
+    {
+      "from": "lucia_serval",
+      "to": "edric_thalen",
+      "disposition": 10,
+      "bond": "none",
+      "strength": 0
+    },
+    {
+      "from": "edric_thalen",
+      "to": "lucia_serval",
+      "disposition": 15,
+      "bond": "none",
+      "strength": 0
+    },
+    {
+      "from": "rowena_thalen",
+      "to": "lucia_serval",
+      "disposition": -25,
+      "bond": "none",
+      "strength": 0
+    },
+    {
+      "from": "lucia_serval",
+      "to": "rowena_thalen",
+      "disposition": -15,
+      "bond": "none",
+      "strength": 0
+    },
+    {
+      "from": "serval_castor",
+      "to": "rowena_thalen",
+      "disposition": 30,
+      "bond": "none",
+      "strength": 0
+    },
+    {
+      "from": "rowena_thalen",
+      "to": "serval_castor",
+      "disposition": 25,
+      "bond": "none",
+      "strength": 0
     }
   ],
   "holdings": [
@@ -186,6 +290,18 @@
       "unrest": 0,
       "buildings": [],
       "//": "A second, prestige holding — research_station signals an old, established house with resources to spare on knowledge."
+    },
+    {
+      "id": "thalen_seat",
+      "owner": "thalen",
+      "name": "Thalen's Reach",
+      "specialization": "forge_world",
+      "system": "cinder_gate",
+      "population": 28,
+      "unrest": 0,
+      "buildings": [
+        "power_plant"
+      ]
     }
   ],
   "fleets": [
@@ -195,6 +311,14 @@
       "owner": "serval",
       "system": "highmarch",
       "strength": 2
+    },
+    {
+      "id": "fleet_thalen",
+      "name": "The Thalen Guard",
+      "owner": "thalen",
+      "system": "cinder_gate",
+      "strength": 2,
+      "admiral": "edric_thalen"
     }
   ]
 }

@@ -148,6 +148,32 @@ public sealed class AssignAdmiralCommand : ICommand
     }
 }
 
+/// <summary>Refit a fleet at one of the house's own systems (GDD §6 readiness): pays materials per hull from the
+/// treasury and restores readiness to full. Cannot refit underway or in foreign space.</summary>
+public sealed class RefitFleetCommand : ICommand
+{
+    public const int MaterialsPerHull = 2;
+    private readonly string _fleetId;
+    public RefitFleetCommand(string actorId, string fleetId) { ActorId = actorId; _fleetId = fleetId; }
+    public string ActorId { get; }
+    public string Describe() => $"refit {_fleetId}";
+    public bool CanExecute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true || !w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return false;
+        if (f.Moving || f.Readiness >= 100) return false;
+        if (!w.Holdings.Values.Any(h => h.OwnerId == actor.HouseId && h.SystemId == f.SystemId)) return false;
+        return (w.House(actor.HouseId)?.Treasury.Materials ?? 0) >= MaterialsPerHull * f.Strength;
+    }
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var f = w.Fleets[_fleetId]; var house = w.House(w.Char(ActorId)!.HouseId)!;
+        house.Treasury.Materials -= MaterialsPerHull * f.Strength;
+        f.Readiness = 100;
+        w.Log($"{f.Name} is refitted at {w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId}.");
+    }
+}
+
 /// <summary>Fold one fleet into another in the same system (same house). The receiving fleet keeps its admiral.</summary>
 public sealed class MergeFleetsCommand : ICommand
 {

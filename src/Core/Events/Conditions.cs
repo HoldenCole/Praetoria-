@@ -290,6 +290,25 @@ public sealed class AgeCondition : ICondition
     }
 }
 
+/// <summary>Sex of a character, or compared to another role's. JSON: { "type": "sex", "role": "bride", "value": "female" }
+/// or { "type": "sex", "role": "bride", "op": "neq", "vsRole": "self" } (a match that can bear heirs).</summary>
+public sealed class SexCondition : ICondition
+{
+    public string Role { get; }
+    public string? Value { get; }
+    public string? VsRole { get; }
+    public bool Equal { get; }
+    public SexCondition(string role, string? value, string? vsRole, bool equal) { Role = role; Value = value; VsRole = vsRole; Equal = equal; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c == null || c.Sex == "") return false;
+        string? other = VsRole != null ? ctx.Actor(VsRole)?.Sex : Value;
+        if (string.IsNullOrEmpty(other)) return false;
+        return (c.Sex == other) == Equal;
+    }
+}
+
 /// <summary>Which Great-Crisis bloc the role's house is in. JSON: { "type": "bloc", "role": "self", "bloc": "hegemon", "present": true }.</summary>
 public sealed class BlocCondition : ICondition
 {

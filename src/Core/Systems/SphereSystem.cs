@@ -127,7 +127,11 @@ public sealed class SphereSystem
 
         double dominance = 0;
         foreach (var sphere in _catalog.Defs)
-            dominance += Math.Max(0, Share(w, houseId, sphere.Id) - even);
+        {
+            // a share only frightens in proportion to its absolute weight: owning "the whole Navy" of one ensign is not a threat
+            double magnitude = Math.Min(1.0, Influence(w, houseId, sphere.Id) / 4.0);
+            dominance += Math.Max(0, Share(w, houseId, sphere.Id) - even) * magnitude;
+        }
 
         int holdingsFactor = Math.Max(0, w.HoldingsOf(houseId).Count() - 1) * 5;
         int seizures = w.Counter("seizures") * 10;   // a hook for the military layer to feed later

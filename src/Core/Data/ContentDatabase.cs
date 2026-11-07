@@ -57,6 +57,9 @@ public sealed class ContentDatabase
     /// <summary>The Great-Crisis archetype (GDD §16), or null when the content set has none.</summary>
     public GreatCrisisDef? GreatCrisis { get; }
 
+    /// <summary>Counter recovery rules (crises file "recovery").</summary>
+    public IReadOnlyList<RecoveryRule> Recovery { get; }
+
     private readonly Dictionary<string, EventDef> _eventsById;
 
     public ContentDatabase(
@@ -74,7 +77,8 @@ public sealed class ContentDatabase
         IReadOnlyList<HonorDef>? honors = null,
         FrictionTable? friction = null,
         NameCatalog? names = null,
-        GreatCrisisDef? greatCrisis = null)
+        GreatCrisisDef? greatCrisis = null,
+        IReadOnlyList<RecoveryRule>? recovery = null)
     {
         Events = events;
         Texts = texts;
@@ -91,6 +95,7 @@ public sealed class ContentDatabase
         Friction = friction ?? FrictionTable.Empty;
         Names = names ?? NameCatalog.Empty;
         GreatCrisis = greatCrisis;
+        Recovery = recovery ?? Array.Empty<RecoveryRule>();
         _eventsById = new Dictionary<string, EventDef>();
         foreach (var e in events) _eventsById[e.Id] = e;
     }

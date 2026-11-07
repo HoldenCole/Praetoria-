@@ -25,13 +25,14 @@ public sealed record StandingCard(int Legitimacy, int Instability, IReadOnlyList
     IReadOnlyList<PathOption> Paths, string Spheres, int Threat, IReadOnlyList<string> Honors, string SuccessionLaw, IReadOnlyList<Option> LawOptions,
     string TaxPolicy, IReadOnlyList<Option> TaxOptions, IReadOnlyList<Option> ExchangeOptions, ThroneCard Throne);
 public sealed record FleetLine(string Id, string Name, string Where, int Strength, int Readiness, bool Moving, string? Destination, int Eta, bool Office,
-    string Composition, string? AdmiralName, int Veterancy, IReadOnlyList<Option> AdmiralOptions, IReadOnlyList<Option> MergeOptions);
+    string Composition, string? AdmiralName, int Veterancy, IReadOnlyList<Option> AdmiralOptions, IReadOnlyList<Option> MergeOptions, Option Refit);
 /// <summary>A generic actionable option: an id the UI turns into a command, a label, and why it is disabled (null = available).</summary>
 public sealed record Option(string Id, string Label, string? Refusal);
 public sealed record ShipOption(string HoldingId, string ClassId, string Label, string? Refusal);
 public sealed record HouseholdLine(string Id, string Name, int Age, string Sex, bool Hidden, bool Married, IReadOnlyList<Option> Actions);
 public sealed record SiegeLine(string HoldingName, string BesiegerName, int Turns, int Required, bool Ours);
 public sealed record ThroneCard(string? ProclaimRefusal, string? SeizeRefusal, bool HoldsThrone, string? EmperorName);
+public sealed record GreatCrisisCard(string Name, string? Stage, int Clock, int? NextAt, string Intensity, string Bloc, bool Resolved, string? HegemonName);
 public sealed record WarLine(string EnemyHouseId, string EnemyName, int Since, int EnemyHulls, bool PeaceAvailable, string PeaceTooltip, bool TheyAreSuing);
 public sealed record BattleLine(string Text);
 public sealed record ChoiceCard(string Id, string Label, string Cost, bool Available);
@@ -46,7 +47,8 @@ public sealed record CourtModel(int Turn, string Era, string Mode, int Generatio
     CharacterCard Character, PoolsLine Pools, TreasuryLine Treasury, IReadOnlyList<HoldingCard> Holdings, StandingCard? Standing,
     IReadOnlyList<FleetLine> Fleets, IReadOnlyList<WarLine> Wars, IReadOnlyList<BriefingCard> Briefing, string HouseName, string HouseAccent,
     IReadOnlyList<MemberLine> Members, IReadOnlyList<ConnectionLine> Connections, CrisisClock? Crises, IReadOnlyList<string> Chronicle,
-    IReadOnlyList<HouseholdLine> Household, IReadOnlyList<SiegeLine> Sieges, string? EpilogueText);
+    IReadOnlyList<HouseholdLine> Household, IReadOnlyList<SiegeLine> Sieges, string? EpilogueText,
+    IReadOnlyList<AdvisorReport> Advisors, GreatCrisisCard? GreatCrisis);
 
 public static class CourtProjection
 {
@@ -133,7 +135,8 @@ public static class CourtProjection
                 w.LivingCharacters().Where(c => c.HouseId == house.Id).OrderBy(c => c.Id, StringComparer.Ordinal)
                     .Select(c => new Option(c.Id, $"Give {f.Name} to {c.Name} (tactics {c.Skill("tactics")})", new AssignAdmiralCommand(p.Id, f.Id, c.Id).CanExecute(ctx) ? null : "already in command, or no agents")).ToList(),
                 w.Fleets.Values.Where(o => o.Id != f.Id && o.OwnerId == house.Id).OrderBy(o => o.Id, StringComparer.Ordinal)
-                    .Select(o => new Option(o.Id, $"Fold {o.Name} into {f.Name}", new MergeFleetsCommand(p.Id, o.Id, f.Id).CanExecute(ctx) ? null : "not in the same system")).ToList())).ToList();
+                    .Select(o => new Option(o.Id, $"Fold {o.Name} into {f.Name}", new MergeFleetsCommand(p.Id, o.Id, f.Id).CanExecute(ctx) ? null : "not in the same system")).ToList(),
+                new Option("refit", $"Refit {f.Name}  ({RefitFleetCommand.MaterialsPerHull * f.Strength} materials → readiness 100)", new RefitFleetCommand(p.Id, f.Id).CanExecute(ctx) ? null : (f.Readiness >= 100 ? "already at full readiness" : "only at a system of your own, with the materials")))).ToList();
 
         var wars = new List<WarLine>();
         foreach (var enemy in w.EnemiesOf(house.Id))
@@ -189,6 +192,7 @@ public static class CourtProjection
             .Select(c =>
             {
                 var acts = new List<Option>();
+                if (c.Flags.Contains(FamilySystem.DefiantFlag)) acts.Add(new Option("defiant", $"{c.Name} is defiant — answer it in the briefing", "informational"));
                 if (c.Age < DynastySystem.AgeOfMajority)
                     acts.Add(c.Flags.Contains(DynastySystem.HiddenFlag)
                         ? new Option("recall", $"Recall {c.Name} to court", new RecallCommand(p.Id, c.Id).CanExecute(ctx) ? null : "")
@@ -199,6 +203,16 @@ public static class CourtProjection
         var sieges = w.Sieges.Values.OrderBy(s => s.HoldingId, StringComparer.Ordinal)
             .Select(s => new SiegeLine(w.Holding(s.HoldingId)?.Name ?? s.HoldingId, w.House(s.BesiegerId)?.Name ?? s.BesiegerId, s.Turns, s.Required, w.Holding(s.HoldingId)?.OwnerId == house.Id)).ToList();
         string? epilogue = w.IsDynastyDead || w.HasFlag(ThroneSystem.ProclaimedFlag) || w.HasFlag(ThroneSystem.SeizedFlag) ? Epilogue.Generate(w, content) : null;
+        var advisors = AdvisorReports.Build(w, content);
+        GreatCrisisCard? great = null;
+        if (content.GreatCrisis is { } gc)
+        {
+            var stage = tc.GreatCrisis.CurrentStage(w);
+            int idx = w.WorldCounters.TryGetValue(GreatCrisisSystem.StageCounter, out var si) ? si : -1;
+            var hegemon = w.Houses.Values.FirstOrDefault(h => h.Bloc == GreatCrisisSystem.HegemonBloc);
+            great = new GreatCrisisCard(gc.Name, stage?.Id, w.Counter(GreatCrisisSystem.ClockCounter),
+                idx + 1 < gc.Stages.Count ? gc.Stages[idx + 1].At : null, w.CrisisIntensity, house.Bloc, w.HasFlag(GreatCrisisSystem.ResolvedFlag), hegemon?.Name);
+        }
 
         CrisisClock? clock = null;
         if (tc.Crises is { } crises)
@@ -227,7 +241,7 @@ public static class CourtProjection
         return new CourtModel(w.Turn, w.Era, w.Mode, w.Counter("generation") + 1, w.IsDynastyDead, tc.Briefing.Count == 0,
             character, new PoolsLine(pools.Influence, pools.Treasury, pools.Agents),
             new TreasuryLine(t.Credits, t.Materials, t.Manpower, t.Influence, t.Exotics, t.Credits < 0),
-            holdings, standing, fleets, wars, briefing, house.Name, house.AccentColor, members, connections, clock, chronicle, household, sieges, epilogue);
+            holdings, standing, fleets, wars, briefing, house.Name, house.AccentColor, members, connections, clock, chronicle, household, sieges, epilogue, advisors, great);
     }
 
     private static string BondName(Relationship? rel) => rel?.Bond is { } b && b != BondType.None ? b.ToString().ToLowerInvariant() : "";

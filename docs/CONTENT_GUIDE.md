@@ -45,6 +45,7 @@ v0.5.0, 2026-11-07 (see `docs/GAP_ANALYSIS.md` and `docs/RELEASE_0.5.md`).
   /honors      *.json   — Honorifics & Orders: condition lists over self + effects, invested once (§4j)
   /names       *.json   — given names by culture for children born in play (§4c)
   /holdings/exchange.json — exchange rates, tax policies, the contiguity bonus (§6)
+  /great_crisis *.json  — the Great-Crisis archetype: clock, intensity, stages, behaviours (§4k)
 ```
 All loaders accept JSONC (`//` and `/* */` comments, trailing commas).
 File names don't matter to the engine (it loads every `*.json` in each dir); group by theme for sanity
@@ -174,6 +175,8 @@ AND). Comparison `op` ∈ `eq, neq, lt, lte, gt, gte` (symbols `==, !=, <, <=, >
 | `era` | `era: fractured_stars\|imperium`, `present:bool` | which start the world is in (GDD §10) — gate court-of-the-emperor content on `imperium` |
 | `fleetStrength` | `role`(default `self`), `op`, `value` | total hulls the role's house commands (GDD §6/§8) |
 | `atWar` | `role`, `present:bool` | is the role's house at war with self's house? |
+| `sex` | `role`, `value: male\|female` **or** `op: eq\|neq` + `vsRole` | a character's sex, or compared to another role's |
+| `bloc` | `role`(default `self`), `bloc: hegemon\|alliance`, `present:bool` | which Great-Crisis bloc the role's house is in |
 | `turn` | `op`, `value` | current turn number compare |
 | `age` | `role`(default `self`), `op`, `value` | character age compare (GDD §14) |
 | `counter` | `key`, `op`, `value` | world-counter compare (gate accumulators, clocks) |
@@ -221,6 +224,7 @@ Used in a choice's `effects` array. Applied in order when the choice is taken.
 | `succeed` | `role` | hand the seat to a living character: they become the protagonist, the House keeps its title (abdication) |
 | `declareWar` | `role` | self's house declares war on the role's house (GDD §6) |
 | `makePeace` | `role` | self's house and the role's house make peace |
+| `joinBloc` | `bloc: hegemon\|alliance` | move self's house into a Great-Crisis bloc |
 | `adjustLegitimacy` | `role`(default `self`), `delta` | change the house's legitimacy/standing (clamped ≥0, GDD §13) |
 | `setTitle` | `role`(default `self`), `title` | set the house's title outright — grant / usurp / abdicate (GDD §13) |
 | `kill` | `role` | kill a character — assassination / duel / Bloody Event; if it's the protagonist, succession fires (GDD §14) |
@@ -502,6 +506,31 @@ Events may carry `"ambitions": ["earn_a_command"]` — the Director weights them
 of them and ×0.8 otherwise. Ship classes: `/content/fleets/ship_classes.json` (`attack`, `defense`, `cost`, `upkeep`,
 `minTitleRank`, `requires`). Holdings' `defense` and buildings' `defense`, `minTitleRank`, `megastructure`.
 
+## 4k. The Great Crisis — `/content/great_crisis/*.json` (§11, §16)
+
+An archetype is a clock and a list of stages. The clock starts at `startTurn` and advances each turn by
+`baseRate × intensity` (the `off|low|default|dominant` multipliers; `World.CrisisIntensity`) plus turmoil (3 per
+standing war, coalition pressure, fear). Each stage has `at` (clock tenths), `effects`, a `log`, and optionally a
+`behavior` the engine implements: `blocs` (sort houses by disposition toward the hegemon — the strongest house),
+`bloc_war` (every hegemon house vs every alliance house), `climax`, `resolution` (wars end; the bloc with more hulls
+wins; in the fractured stars its strongest house takes the throne). The engine raises `great_crisis:<stage>`,
+`great_crisis:resolved`, `great_crisis:player_won` / `player_lost`; the `bloc` condition reads a house's side and the
+`joinBloc` effect changes the player's. A cosmic DLC archetype is a new file with new behaviours (a "front" that
+advances from an edge system is the obvious next one).
+
+### Knobs the engine exposes (GDD §20)
+`World.Difficulty` (rivals' appetite), `World.CrisisIntensity` (the great clock), `World.FamilyAutonomy` (how willful
+your kin are; 0 = deferential). Harness: `--difficulty`, `--intensity`, `--autonomy`; the creation screen offers all three.
+
+### Family autonomy flags (read-only)
+`defiant` char flag (answer it with *A Will of Their Own*), `defected`, world flag `kin_defected`, counter `defections`;
+`suitor` char flag (someone asks for the protagonist's hand — *The Suit*).
+
+### Advisor reports
+`AdvisorReports.Build` gives three lines a turn (Steward, Admiral, Chancellor) from house members on the matching
+tracks. The Admiral's line is built from the house's intel picture, so it is confident, hedged or wrong exactly as the
+GDD's "filtered information" wants. Not content, but the model the briefing header shows.
+
 ## 4f. Save files
 
 A save is the serialised `World` (RNG position included) in a versioned envelope — nothing else.
@@ -744,11 +773,11 @@ TOKENS     {role.name} {role.house} {role.rank} {role.rankName}   (role = self o
 TRACKS     military | stewardship | law                 (ladders + rung names in /content/careers)
 CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
 FLAGS      background:<id> char flag (set at creation)       regency · dynasty_adopted world flags
-CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age counter resource sphere title claim fleetStrength atWar eventFired
+CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age sex counter resource sphere title claim fleetStrength atWar bloc eventFired
 EVENT KEYS id tier weight repeatable roles when choices ambitions
 FLEETS     incursions · ships_raised · fleets_raised counters · incursion:<house> flags   (system-written, §19)
 WAR        battles · battles_won · battles_lost · conquests · wars_declared counters · battle_fought · conquest_made · holding_lost · at_war:<house> flags · suing_for_peace char flag
-EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim revokeClaim adjustLegitimacy setTitle succeed kill declareWar makePeace log
+EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim revokeClaim adjustLegitimacy setTitle succeed kill declareWar makePeace joinBloc log
 READ-ONLY  title_rank · house_legitimacy · title_instability   (system-written, protagonist house)
 LIFECYCLE  generation · dynasty_births · breakdowns · adoptions counters · dynasty_dead · dynasty_adopted · regency flags · broken char flag   (system-written, §14/§18)
 CRISES     crisis:<id>:active · crisis:<id>:spent flags            (system-written, §16)

@@ -14,6 +14,12 @@
   // war subsides, so the §16 web cools once the great crises pass instead of staying warm forever.
   // Crises here are recurring by design (a realm can revolt twice); mark a true one-off with "once": true.
   // Counters used (fed by the steward/academy event pools): unrest, legitimacy, goodwill, corruption, standing.
+  // RECOVERY: with no crisis active, these counters drift toward rest. Closes the "imperial legitimacy is
+  // unbounded negative" hole and lets unrest cool between storms.
+  "recovery": [
+    { "counter": "legitimacy", "toward": 0, "perTurn": 1 },
+    { "counter": "unrest", "toward": 0, "perTurn": 1 }
+  ],
   "crises": [
     {
       "id": "local_revolt",

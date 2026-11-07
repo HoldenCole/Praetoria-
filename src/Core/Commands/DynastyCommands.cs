@@ -64,6 +64,9 @@ public sealed class ProposeMarriageCommand : ICommand
 
     public static bool IsMarried(World w, string id) => DynastySystem.Spouse(w, w.Char(id)!) != null;
 
+    /// <summary>Char flag on someone who has asked for the protagonist's hand; *The Suit* answers it.</summary>
+    public const string SuitorFlag = "suitor";
+
     public string? Refusal(CommandContext ctx)
     {
         var w = ctx.World; var actor = w.Char(ActorId); var s = w.Char(_suitorId); var t = w.Char(_targetId);
@@ -75,6 +78,7 @@ public sealed class ProposeMarriageCommand : ICommand
         if (IsMarried(w, s.Id) || IsMarried(w, t.Id)) return "already wed";
         if (w.AtWar(s.HouseId, t.HouseId)) return "not while your houses are at war";
         if (t.Flags.Contains(DynastySystem.HiddenFlag)) return "they cannot be found";
+        if (t.Id == w.ProtagonistId) return s.Flags.Contains(SuitorFlag) ? "your suit is already before them" : null;   // the player decides
         if ((w.GetRelationship(t.Id, s.Id)?.Disposition ?? 0) < -10) return "they will not have it";
         int theirs = w.House(t.HouseId)?.Legitimacy ?? 0, ours = w.House(s.HouseId)?.Legitimacy ?? 0;
         if (theirs > ours + 40) return "their house looks too far down on yours";
@@ -87,6 +91,12 @@ public sealed class ProposeMarriageCommand : ICommand
         var w = ctx.World;
         ctx.PoolsOf(ActorId).Spend(CostMap);
         var s = w.Char(_suitorId)!; var t = w.Char(_targetId)!;
+        if (t.Id == w.ProtagonistId)
+        {
+            s.Flags.Add(SuitorFlag);
+            w.Log($"{s.Name} of {w.House(s.HouseId)?.Name} seeks {t.Name}'s hand.");
+            return;
+        }
         foreach (var (a, b) in new[] { (s.Id, t.Id), (t.Id, s.Id) })
         {
             var rel = w.Relationship(a, b); rel.Bond = BondType.Marriage; rel.BondStrength = 60;

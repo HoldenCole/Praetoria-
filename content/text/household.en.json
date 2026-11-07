@@ -49,6 +49,36 @@
         "offer_a_scapegoat": "A steward confesses and hangs. The matter closes.",
         "own_it": "Own it before the household. Say it would have been deserved."
       }
+    },
+    {
+      "id": "the_defiant_kin",
+      "title": "A Will of Their Own",
+      "body": "{kin.name} has stopped pretending to agree with you. It shows in the small things first — a seat taken without asking, a letter sent to a rival house, a silence at the table where support used to be. Family with ambitions of its own is the oldest danger a house has, and the one it can least afford to answer badly.",
+      "choices": {
+        "indulge_them": "Give them some of what they want. End the sulk; feed the appetite.",
+        "discipline_them": "Remind them, before the household, who is head of it.",
+        "send_them_away": "A post at the far end of the Reach. Honours, no power."
+      }
+    },
+    {
+      "id": "the_kin_who_left",
+      "title": "The Kin Who Left",
+      "body": "{traitor.name} is gone — to {traitor.house}, with your blood in their veins and, by the oldest law, a claim to what your blood holds. The household says the name carefully now, or not at all.",
+      "choices": {
+        "disown_them": "Strike the name from the rolls. The claim will not care.",
+        "buy_them_back": "Gold and a pardon. Blood bought back cannot be trusted again.",
+        "end_the_matter": "Say nothing in public. Make the problem smaller."
+      }
+    },
+    {
+      "id": "the_suit",
+      "title": "The Suit",
+      "body": "{suitor.name} of {suitor.house} has asked for your hand — formally, through the proper channels, with the house's seal on the letter. A marriage is an alliance, a bloodline, a claim, and occasionally a person; the councils have already priced the first three. Only you can price the fourth.",
+      "choices": {
+        "accept": "Accept. Bind the houses; let the heralds call it love.",
+        "refuse_kindly": "Refuse, with every courtesy the forms allow.",
+        "refuse_coldly": "Refuse in a way the court will enjoy and their house will not forget."
+      }
     }
   ]
 }

@@ -41,6 +41,7 @@ public sealed class TurnController
     private readonly FleetSystem _fleets;
     private readonly HonorSystem _honors;
     private readonly GreatCrisisSystem _greatCrisis;
+    private readonly FamilySystem _family = new();
     private readonly DynastySystem _dynasty;           // always-on — the dynasty IS the game (GDD §14)
     private readonly int _briefingBudget;
     private readonly List<BriefingItem> _briefing = new();
@@ -75,7 +76,7 @@ public sealed class TurnController
         _rng = WorldBuilder.RngFor(world);
         Engine = new EventEngine(content, _rng, director);
         _economy = content.Holdings.IsEmpty ? null : new Economy(content.Holdings);
-        _crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises);
+        _crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises, content.Recovery);
         _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres, world.Difficulty);
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
         _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
@@ -159,9 +160,11 @@ public sealed class TurnController
             var organic = _crises.RollOrganic(World, _rng, abstainWeight: 3.0 / Math.Max(0.25, World.Difficulty));
             if (organic != null) _crises.Trigger(organic, World, _rng);
             _crises.Decay(World, _rng);   // active crises wind down once their root cause eases (GDD §16)
+            _crises.Recover(World);       // and with no crisis active, the realm's wounds close (data rules)
         }
 
         _dynasty.Tick(World, _rng);   // age, deaths→succession, births (GDD §14). RNG only where life turns.
+        _family.Tick(World);          // kin with wills of their own (GDD §18) — RNG-free
 
         SyncRng();
         Phase = TurnPhase.Idle;

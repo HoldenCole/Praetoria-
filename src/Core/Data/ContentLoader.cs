@@ -46,8 +46,9 @@ public static class ContentLoader
         var friction = HonorLoader.LoadFriction(contentRoot);
         var names = NameLoader.LoadFromDirectory(contentRoot);
         var greatCrisis = GreatCrisisLoader.LoadFromDirectory(contentRoot);
+        var recovery = CrisisLoader.LoadRecovery(contentRoot);
 
-        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers, traits, backgrounds, fleets, shipClasses, honors, friction, names, greatCrisis);
+        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers, traits, backgrounds, fleets, shipClasses, honors, friction, names, greatCrisis, recovery);
     }
 
     private static IEnumerable<string> EnumerateJson(string dir) =>

@@ -35,12 +35,14 @@ public sealed class GameState
                  .OrderBy(s => s, StringComparer.Ordinal).ToList();
 
     /// <summary>Start a run: build the world, apply character creation, open the first turn's briefing.</summary>
-    public void Start(string scenarioId, ulong seed, CreationOptions creation, string mode, double difficulty = 1.0)
+    public void Start(string scenarioId, ulong seed, CreationOptions creation, string mode, double difficulty = 1.0, string intensity = "default", double autonomy = 1.0)
     {
         var scenario = ScenarioLoader.LoadFromContent(ContentRoot, scenarioId);
         var world = WorldBuilder.FromScenario(scenario, seed);
         world.Mode = mode;
         world.Difficulty = difficulty;
+        world.CrisisIntensity = intensity;
+        world.FamilyAutonomy = autonomy;
         if (!creation.IsEmpty) CharacterCreation.Apply(world, Content, creation);
         ScenarioId = scenarioId;
         Seed = seed;

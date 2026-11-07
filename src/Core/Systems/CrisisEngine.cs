@@ -21,11 +21,25 @@ public sealed class CrisisEngine
 {
     private readonly IReadOnlyList<CrisisDef> _defs;
     private readonly Dictionary<string, CrisisDef> _byId;
+    private readonly IReadOnlyList<RecoveryRule> _recovery;
 
-    public CrisisEngine(IReadOnlyList<CrisisDef> defs)
+    public CrisisEngine(IReadOnlyList<CrisisDef> defs, IReadOnlyList<RecoveryRule>? recovery = null)
     {
         _defs = defs;
         _byId = defs.ToDictionary(d => d.Id);
+        _recovery = recovery ?? Array.Empty<RecoveryRule>();
+    }
+
+    /// <summary>With no crisis active, the realm heals: each recovery rule's counter drifts toward its resting value.</summary>
+    public void Recover(World w)
+    {
+        if (w.Crises.Count > 0) return;
+        foreach (var r in _recovery)
+        {
+            int v = w.Counter(r.Counter);
+            if (v == r.Toward) continue;
+            w.WorldCounters[r.Counter] = v < r.Toward ? Math.Min(r.Toward, v + r.PerTurn) : Math.Max(r.Toward, v - r.PerTurn);
+        }
     }
 
     public IReadOnlyList<CrisisDef> Defs => _defs;
