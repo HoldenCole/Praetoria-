@@ -3,7 +3,36 @@
 All notable changes to Praetoria. The format follows Keep a Changelog; versions follow SemVer with 1.0 = the
 Build Spec's V1 ("a complete human game").
 
-## [0.6.0-alpha] — Unreleased — "the Court opens"
+## [0.7.0-alpha] — Unreleased — "Blood and Iron"
+Twenty-odd systems in one autonomous pass. Everything headless is tested (224 tests); the UI additions compile.
+
+### Military
+- Ship classes as data (corvette → battleship; attack/defense/cost/upkeep; title-rank and specialization gates);
+  fleet composition; losses fall screen-first. Admirals (assign command; skill and traits multiply power; victory
+  teaches, defeat wounds or kills). Veterancy. Sieges with a blockade clock that halves yield. War score →
+  tribute and peace refusal; war weariness. Titles follow the land (a landless house loses its rank; the conqueror
+  gains a claim). Merge fleets.
+### Dynasty
+- Children named from house cultures; coming of age with inherited traits, a track, skills and an ambition.
+  Succession laws (primogeniture, ultimogeniture, seniority, merit). Fostering hides kin from events and knives.
+  Assassination with odds, trails and consequences; NPC heir-hunting in war. Marriage proposals (claims from
+  marrying up); NPC courtship. Real regents. Resentment of the risen (`parvenu`).
+### Strategy & endgame
+- The Exchange, tax policy, territory contiguity, megastructures (title-gated), the difficulty knob. Proclaim or
+  seize the Imperium (era flip, office fleets pass, the deposed house marked). The saga epilogue. Director: one
+  set-piece per briefing, ambition-weighted events, lull-driven complications.
+### Character
+- Honorifics & Orders (five, condition/effect lists). Nature-trait friction: stress for acts against your nature.
+### Content
+- 17 new events (90 total): coming of age, the regent, the old blood, the knife turned, the plot exposed, the
+  great work, the butcher's bill, the conquered world, the lost world, the envoy, the proclamation, the wedding
+  feast (a Bloody Event), and more; 14 events tagged with ambitions; two name cultures; six backgrounds.
+### UI (compiles; unrun)
+- Shipyard per holding by class; command and merge of fleets; siege clocks on the map and in the Admiral panel;
+  tax, exchange, succession law, throne and intrigue actions; foster/recall; dynasty tree overlay; difficulty at
+  creation; the epilogue card.
+
+## [0.6.0-alpha] — "the Court opens"
 ### Added
 - **Godot layer (Milestone 3, first draft):** `GameRoot` (top bar, Court/Galaxy toggle, End Turn, Save, Load),
   `CreationScreen`, `CourtView` (advisors · briefing feed · dynasty rail / crisis clock / chronicle),

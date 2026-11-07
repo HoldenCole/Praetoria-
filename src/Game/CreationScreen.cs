@@ -12,10 +12,10 @@ namespace Praetoria.Game;
 /// </summary>
 public partial class CreationScreen : Control
 {
-    public event Action<string, ulong, CreationOptions, string>? Begin;
+    public event Action<string, ulong, CreationOptions, string, double>? Begin;
 
     private readonly GameState _state;
-    private OptionButton _scenario = null!, _sex = null!, _background = null!, _track = null!, _ambition = null!, _mode = null!;
+    private OptionButton _scenario = null!, _sex = null!, _background = null!, _track = null!, _ambition = null!, _mode = null!, _difficulty = null!;
     private LineEdit _name = null!, _seed = null!;
     private Label _backgroundText = null!, _error = null!;
     private readonly List<CheckBox> _nature = new(), _aptitude = new();
@@ -60,6 +60,11 @@ public partial class CreationScreen : Control
         _mode.AddItem("Ironman — bloodline extinct ends the run");
         _mode.AddItem("Continue — a sworn house takes up the banner");
         Row(grid, "Mode", _mode, era);
+
+        _difficulty = new OptionButton();
+        foreach (var d in new[] { "Forgiving (0.5) — rivals slow to coalesce", "Standard (1.0)", "Harsh (1.5) — the GDD's default lean", "Brutal (2.0) — the galaxy wants you dead" }) _difficulty.AddItem(d);
+        _difficulty.Selected = 1;
+        Row(grid, "Difficulty", _difficulty, era);
 
         col.AddChild(CourtTheme.Rule());
         col.AddChild(CourtTheme.Heading("The character", CourtTheme.Ink(era), 20));
@@ -173,9 +178,10 @@ public partial class CreationScreen : Control
             Aptitude = _aptitude.Where(b => b.ButtonPressed).Select(b => b.Text).ToList()
         };
         string mode = _mode.Selected == 1 ? World.ModeContinue : World.ModeIronman;
+        double difficulty = _difficulty.Selected switch { 0 => 0.5, 2 => 1.5, 3 => 2.0, _ => 1.0 };
         try
         {
-            Begin?.Invoke(_scenario.GetItemText(_scenario.Selected), seed, o, mode);
+            Begin?.Invoke(_scenario.GetItemText(_scenario.Selected), seed, o, mode, difficulty);
         }
         catch (Praetoria.Core.Data.ContentException ex)
         {

@@ -41,7 +41,10 @@ v0.5.0, 2026-11-07 (see `docs/GAP_ANALYSIS.md` and `docs/RELEASE_0.5.md`).
   /galaxy      *.json   — star maps: systems + lanes; a scenario names one and places holdings in it (§4g)
   /traits      *.json   — the §8 vocabularies as data (nature, aptitude, ambitions) for character creation (§4h)
   /backgrounds *.json   — character origins applied at creation (§4h)
-  /fleets      *.json   — the fleet layer's tuning: ship cost, upkeep, readiness, intel (§4i)
+  /fleets      *.json   — fleet rules (cost, upkeep, readiness, intel, combat, sieges) and ship classes (§4i)
+  /honors      *.json   — Honorifics & Orders: condition lists over self + effects, invested once (§4j)
+  /names       *.json   — given names by culture for children born in play (§4c)
+  /holdings/exchange.json — exchange rates, tax policies, the contiguity bonus (§6)
 ```
 All loaders accept JSONC (`//` and `/* */` comments, trailing commas).
 File names don't matter to the engine (it loads every `*.json` in each dir); group by theme for sanity
@@ -468,6 +471,37 @@ yours by `peaceRefusalRatio`); an NPC suing the player flags its head `suing_for
 `battle_fought`, `conquest_made`, `holding_lost` flags (content clears them — see *The Butcher's Bill*, *The
 Conquered World*, *The Lost World*); `at_war:<house>` flags; the `suing_for_peace` char flag.
 
+## 4j. Honors — `/content/honors/honors.json` (§13)
+
+```jsonc
+{ "honors": [ { "id": "burning_lance", "name": "Knight of the Burning Lance", "description": "…",
+  "when": [ { "type": "counter", "key": "battles_won", "op": "gte", "value": 3 } ],     // any conditions over self
+  "effects": [ { "type": "adjustLegitimacy", "role": "self", "delta": 10 } ] } ] }     // applied once
+```
+Invested the turn the conditions first hold; the char flag `honor:<id>` is written for content. Honors are the
+Merit payoff that is birth-independent: a risen admiral may never be granted a Dukedom, but no one questions a Knight
+of the Burning Lance's right to command.
+
+### Nature-trait friction — `/content/traits/friction.json` (§18)
+`{ "friction": { "declare_war": { "Honorable": 8, "Just": 6, "Cruel": -2 }, … } }` — stress charged (or relieved) per
+nature trait when the protagonist's house does an act the engine recognises: `declare_war`, `battle_won`,
+`battle_lost`, `conquest`, `holding_lost`, `sue_for_peace`, `refuse_peace`, `plunder`, `assassination`. This is how
+"acting against your nature costs stress" happens without every event spelling it out.
+
+### Engine-written flags and counters from the 0.7 systems (read-only)
+| what | names |
+|---|---|
+| Dynasty | char flags `hidden` (fostered away — unbindable), `regent`, `parvenu`, `came_of_age`, `admiral`, `deposed`, `suing_for_peace`, `wed`; counters `marriages`, `assassinations_attempted` |
+| Intrigue | world flags `plot_exposed` (your plot traced), `knife_turned` (an attempt on your blood traced), `assassin:<house>` |
+| War | `battles`, `battles_won`, `battles_lost`, `conquests`, `wars_declared`; `battle_fought`, `conquest_made`, `holding_lost`, `under_siege`, `at_war:<house>` |
+| Throne | `imperium_proclaimed`, `throne_seized`, `thrones_taken`, `peak_title_rank` |
+| Domain | `megastructures`, `megastructure_raised`; `honors` |
+| Director | `lull` (turns since anything above ambient fired) |
+
+Events may carry `"ambitions": ["earn_a_command"]` — the Director weights them ×1.6 for a protagonist who holds one
+of them and ×0.8 otherwise. Ship classes: `/content/fleets/ship_classes.json` (`attack`, `defense`, `cost`, `upkeep`,
+`minTitleRank`, `requires`). Holdings' `defense` and buildings' `defense`, `minTitleRank`, `megastructure`.
+
 ## 4f. Save files
 
 A save is the serialised `World` (RNG position included) in a versioned envelope — nothing else.
@@ -711,6 +745,7 @@ TRACKS     military | stewardship | law                 (ladders + rung names in
 CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
 FLAGS      background:<id> char flag (set at creation)       regency · dynasty_adopted world flags
 CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age counter resource sphere title claim fleetStrength atWar eventFired
+EVENT KEYS id tier weight repeatable roles when choices ambitions
 FLEETS     incursions · ships_raised · fleets_raised counters · incursion:<house> flags   (system-written, §19)
 WAR        battles · battles_won · battles_lost · conquests · wars_declared counters · battle_fought · conquest_made · holding_lost · at_war:<house> flags · suing_for_peace char flag
 EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim revokeClaim adjustLegitimacy setTitle succeed kill declareWar makePeace log

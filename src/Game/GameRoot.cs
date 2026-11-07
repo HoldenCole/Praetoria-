@@ -19,7 +19,7 @@ public partial class GameRoot : Control
     private HBoxContainer _topBar = null!;
     private Control _stage = null!;
     private Label _status = null!;
-    private Button _courtBtn = null!, _galaxyBtn = null!, _endTurnBtn = null!, _saveBtn = null!, _loadBtn = null!;
+    private Button _courtBtn = null!, _galaxyBtn = null!, _endTurnBtn = null!, _saveBtn = null!, _loadBtn = null!, _treeBtn = null!;
     private CourtView? _court;
     private GalaxyView? _galaxy;
     private bool _showGalaxy;
@@ -75,15 +75,48 @@ public partial class GameRoot : Control
         _saveBtn.Pressed += () => { _state.Save(ProjectSettings.GlobalizePath(SavePath)); Flash("Saved."); };
         _loadBtn = new Button { Text = "Load" };
         _loadBtn.Pressed += OnLoad;
+        _treeBtn = new Button { Text = "Dynasty" };
+        _treeBtn.Pressed += ShowDynastyTree;
         var quit = new Button { Text = "Quit" };
         quit.Pressed += () => GetTree().Quit();
-        foreach (var b in new[] { _courtBtn, _galaxyBtn, _endTurnBtn, _saveBtn, _loadBtn, quit }) _topBar.AddChild(b);
+        foreach (var b in new[] { _courtBtn, _galaxyBtn, _treeBtn, _endTurnBtn, _saveBtn, _loadBtn, quit }) _topBar.AddChild(b);
         SetInGame(false);
+    }
+
+    /// <summary>The summonable full-tree overlay (GDD §19): the house by generation, parents to children, with the
+    /// living, the dead, the hidden and the married marked. A popup, not a mode.</summary>
+    private void ShowDynastyTree()
+    {
+        var w = _state.World;
+        if (w?.Protagonist == null) return;
+        var popup = new PopupPanel();
+        popup.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = CourtTheme.Panel(w.Era), ContentMarginLeft = 18, ContentMarginRight = 18, ContentMarginTop = 14, ContentMarginBottom = 14 });
+        var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(620, 480) };
+        var col = CourtTheme.Column(4);
+        scroll.AddChild(col); popup.AddChild(scroll);
+        var house = w.House(w.Protagonist.HouseId)!;
+        col.AddChild(CourtTheme.Heading($"{house.Name} — the tree", CourtTheme.Accent(house.AccentColor, w.Era), 20));
+        col.AddChild(CourtTheme.Muted($"Generation {w.Counter("generation") + 1} · law of {house.SuccessionLaw}", w.Era));
+        var members = w.Characters.Values.Where(c => c.HouseId == house.Id).ToList();
+        var roots = members.Where(c => !members.Any(m => m.Id == c.FatherId || m.Id == c.MotherId)).OrderBy(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).Reverse().ToList();
+        void Line(Praetoria.Core.State.Character c, int depth)
+        {
+            string spouse = Praetoria.Core.Systems.DynastySystem.Spouse(w, c)?.Name is { } s ? $" ⚭ {s}" : "";
+            string mark = !c.Alive ? "† " : c.Id == w.ProtagonistId ? "★ " : c.Flags.Contains(Praetoria.Core.Systems.DynastySystem.HiddenFlag) ? "⌂ " : "";
+            col.AddChild(CourtTheme.Body(new string(' ', depth * 4) + $"{mark}{c.Name}{spouse} — {(c.Alive ? $"{c.Age}, {_state.RankName(c)}" : "dead")}{(c.NatureTraits.Count > 0 ? $" · {string.Join("/", c.NatureTraits)}" : "")}", c.Alive ? CourtTheme.Ink(w.Era) : CourtTheme.Muted(w.Era), 12, wrap: false));
+            foreach (var child in members.Where(m => m.FatherId == c.Id || m.MotherId == c.Id).OrderByDescending(m => m.Age).ThenBy(m => m.Id, StringComparer.Ordinal))
+                if (depth < 8) Line(child, depth + 1);
+        }
+        foreach (var r in roots) Line(r, 0);
+        col.AddChild(CourtTheme.Muted("★ you · † dead · ⌂ fostered away · ⚭ married", w.Era, 11));
+        AddChild(popup);
+        popup.PopupCentered();
+        popup.PopupHide += () => popup.QueueFree();
     }
 
     private void SetInGame(bool inGame)
     {
-        _courtBtn.Visible = _galaxyBtn.Visible = _endTurnBtn.Visible = _saveBtn.Visible = inGame;
+        _courtBtn.Visible = _galaxyBtn.Visible = _endTurnBtn.Visible = _saveBtn.Visible = _treeBtn.Visible = inGame;
         _loadBtn.Visible = true;
     }
 
@@ -92,9 +125,9 @@ public partial class GameRoot : Control
         CourtTheme.Clear(_stage);
         _court = null; _galaxy = null;
         var screen = new CreationScreen(_state);
-        screen.Begin += (scenario, seed, options, mode) =>
+        screen.Begin += (scenario, seed, options, mode, difficulty) =>
         {
-            _state.Start(scenario, seed, options, mode);   // throws ContentException on a bad pick; the screen shows it
+            _state.Start(scenario, seed, options, mode, difficulty);   // throws ContentException on a bad pick; the screen shows it
             EnterGame();
         };
         _stage.AddChild(screen);

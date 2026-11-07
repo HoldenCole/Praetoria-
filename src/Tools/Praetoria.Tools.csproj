@@ -8,7 +8,7 @@
     <RootNamespace>Praetoria.Tools</RootNamespace>
     <AssemblyName>praetoria</AssemblyName>
     <LangVersion>latest</LangVersion>
-    <Version>0.6.0-alpha</Version>
+    <Version>0.7.0-alpha</Version>
   </PropertyGroup>
 
   <ItemGroup>

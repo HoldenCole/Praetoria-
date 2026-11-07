@@ -7,11 +7,12 @@ of a minor noble house holding a single barony, and you climb — through war, m
 bloodline — toward the throne of a fractured human galaxy. Your character will age and die. Your
 *dynasty* is what you are really playing: it outlives every person in it, or it ends.
 
-**Engine:** Godot 4.3 · C# (.NET 8). **Status: v0.6.0-alpha — "the Court opens".** Every core system of the
-human game is built, wired together, deterministic and content-fed (the v0.5 headless release), and the first
-Godot layer now exists: character creation, the three-column Court, and the Galaxy map. The UI compiles
-against the Godot SDK and is wired end-to-end to the Core, but it has **not yet been run in a Godot editor**
-(the sessions that built it had no display) — treat it as a first draft to open and polish. See
+**Engine:** Godot 4.3 · C# (.NET 8). **Status: v0.7.0-alpha — "Blood and Iron".** The whole human game is built
+headless and tested — ships, admirals, sieges, wars with score and terms, named heirs who come of age, succession
+laws, fostering, assassination, marriage, honors, megastructures, the throne and the saga epilogue — and the Godot
+layer (creation, Court, Galaxy, dynasty tree) renders all of it. The UI compiles against the Godot SDK and is wired
+end-to-end to the Core, but it has **not yet been run in a Godot editor** (the sessions that built it had no
+display) — treat it as a first draft to open and polish. See
 [What's built](#whats-built-the-current-state), [What's not](#whats-not-built-the-gaps),
 [`docs/MILESTONE_3_NOTES.md`](docs/MILESTONE_3_NOTES.md) and [`docs/RELEASE_0.5.md`](docs/RELEASE_0.5.md).
 
@@ -195,7 +196,10 @@ together, deterministic, soaked for 40-turn playthroughs, with an authored conte
 | **Character creation** | §13, §18 | ✅ | Name, sex, a **background** (origin: legitimacy, treasury, traits, skills, hints), up to two nature and two aptitude traits, track and ambition — all read from data catalogs (`/content/traits`, `/content/backgrounds`) and validated by the engine. `play --background …`, `create`. |
 | **Galaxy model** | §19, BuildSpec §3 | ✅ | Systems + hyperlanes as data (`/content/galaxy`); every scenario places its holdings in systems; territory is derived from holdings; neighbours and lane-hop distance; a Godot-free map projection. `map`. |
 | **Fleets** | §6, §8, §19 | ✅ | House vs **office** fleets as data; move orders along lanes (one jump a turn, Treasury pool), readiness, per-hull upkeep, *Lay down a hull* at a holding; **incursions** when a fleet enters another house's space; the player's **intel picture** of rival fleets (full confidence in your territory, partial one lane out, decaying out of sight); rival houses raise hulls and hostile heads sail on your seat. |
-| **War & combat** | §6, §13 | ✅ | Wars by command, event or a hostile NPC that outguns you. Fleets of warring houses that share a system **fight**: hulls × readiness, defenders boosted by fortress worlds and batteries, a seeded roll, losses on both sides, the loser falling back to its nearest port. An **unopposed fleet in enemy space conquers its holdings** — the Military path's "take it", spiking `seizures` and the §7 fear machine. Peace by command (refused while the enemy smells victory); an NPC's suit becomes *The Envoy* scene. Three war set-pieces answer battle, conquest and loss. |
+| **War & combat** | §6, §13 | ✅ | Wars by command, event or a hostile NPC that outguns you. Fleets of warring houses that share a system **fight**: **ship classes** (corvette → battleship, as data) × readiness × **the admiral's skill** × veterancy, defenders boosted by fortress worlds and batteries, a seeded roll, losses screen-first, the loser falling back to port, a defeated admiral wounded or killed. **Sieges**: an unopposed fleet blockades (yield halved) and takes the holding when the clock runs out — the Military path's "take it". **War score** drives tribute and peace refusal; weariness grinds long wars; **titles follow the land**. An NPC's suit becomes *The Envoy* scene. |
+| **Dynasty depth** | §14, §18 | ✅ | Children named from house cultures who **come of age** with inherited traits, a track and an ambition; **succession laws**; **fostering** hides kin from events and knives; **assassination** with odds, trails and NPC heir-hunting in war; **marriage proposals** that forge claims; real **regents**; **resentment of the risen**. |
+| **Honors & friction** | §13, §18 | ✅ | Five Honorifics & Orders as data, invested when earned. Nature-trait **friction**: declaring war, conquering, plundering, suing for peace or buying a knife costs stress by nature, from a data table. |
+| **Strategy & endgame** | §17, §10, §13, M6 | ✅ | The **Exchange**, **tax policy**, territory **contiguity**, **megastructures** gated by title; the **difficulty** knob. **Proclaim or seize the Imperium**: the era flips, office fleets pass with the office, the deposed house is marked, the galaxy's fear peaks. The **saga epilogue** narrates the run. The Director keeps one set-piece per briefing, favours the protagonist's ambition, and stirs a lull. |
 | **Court UI (Godot)** | §6, §19, M3 | ◐ compiles, unrun | Creation screen → three-column Court (character card with portrait badge, pools, Steward with build and ship-laying buttons, Admiral, Chancellor with rise-path buttons · briefing feed with choice buttons · dynasty rail, connections, crisis clock with dampers, chronicle) with End Turn / Save / Load, and a **Galaxy view** (drawn map, territory by accent, fleet glyphs — chevron house / diamond office, rivals faded by confidence — click-to-inspect, movement orders). Serif for Court, sans for Galaxy; era-reactive palette. The Court renders a **Godot-free, unit-tested projection** (`CourtProjection`), so its logic is verified even though the window has not been opened yet. |
 | **Console harness** | BuildSpec §2 | ✅ | `play` (the whole game as text), plus focused demos for every system, `create`, `map`, `validate`, `version`. |
 
@@ -203,7 +207,8 @@ together, deterministic, soaked for 40-turn playthroughs, with an authored conte
 
 | | Count | Notes |
 |---|---|---|
-| Events (+ paired prose) | **82** | Academy Crucible 18 · Career progression 16 · Steward/economy 15 · Coalition chain 8 · Succession 8 · Imperial court 3 · Echoes 14 (incl. fleet and war events) |
+| Events (+ paired prose) | **90** | Academy Crucible 18 · Career progression 16 · Steward/economy 15 · Coalition chain 8 · Succession 8 · Imperial court 3 · Household 5 · Echoes 17 (fleets, war, the throne, a Bloody Event) |
+| Ship classes / honors / backgrounds | 5 / 5 / 6 | all data |
 | Scenarios | 5 | `academy_crucible` (the fixture), the three rise-path openings *The Fallen House* (starts married), *The Circling Heir*, *The Risen Officer*, and **the `imperium`-era start *The Imperial Court*** (starts married, under a living Emperor) — every cast sexed, every house titled, every holding placed on the map |
 | Galaxy | 1 | *The Reach*: 14 systems, 20 lanes, shared by all scenarios; two frontier systems unclaimed; 13 starting fleets across the five scenarios, one of them an office fleet |
 | Backgrounds / traits | 6 / 9+11+8 | character origins; the locked vocabularies as data (nature, aptitude, ambitions) |
@@ -212,7 +217,7 @@ together, deterministic, soaked for 40-turn playthroughs, with an authored conte
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 187 automated tests, including a 40-turn whole-stack soak that asserts end-to-end
+**Verification:** 224 automated tests, including a 40-turn whole-stack soak that asserts end-to-end
 determinism, succession landing, crises de-escalating, and no absurd state, and a save/load round-trip
 that must reproduce an uninterrupted run; both validators clean and both run in CI; all five scenarios
 auto-play 40 turns crash-free across five seeds.
@@ -234,13 +239,10 @@ if it's listed, it does not exist yet.
 | Gap | Spec | Why it matters / notes |
 |---|---|---|
 | **Running and polishing the Court UI** — Milestone 3 | §19, §6 | The Godot layer is written and compiles, but no one has opened it in the editor yet: layout, sizing, fonts and feel are unverified; portraits and the ceremonial/functional typography are not started. First session with Godot 4.3: open `project.godot`, press Play, fix what's ugly. |
-| **Depth of the military layer** | §6, §13 | Combat is a single abstract roll over hull counts: no ship classes, admirals' skills don't yet weigh, no blockade or siege (conquest is instant when the sky is unopposed), no war goals or war score — peace is a yes/no. Holdings change hands but titles don't follow them. |
+| **Military depth still thin** | §6 | One roll per battle (no rounds, no retreat-before-contact); no hull repair or refit; sieges don't starve (yield halves, population doesn't fall). |
 | **Bloody Events** | §16 | The gala/wedding/tournament set-piece class (safe gathering → sudden violence → arms a larger crisis). The *mechanism* now exists (`kill` + crisis gates), so this is authorable content, not engine work. |
-| **The Great-Crisis framework & human endgame** — Milestone 6 | §16, §11 | The archetype framework seeded with the human galaxy-war; proclaiming/seizing the Imperium and the **era flip**; ironman vs continue mode; the generated **saga epilogue**. The *dynasty-death terminal state* exists; the endgame arc around it does not. |
+| **The Great-Crisis framework** — Milestone 6 | §16, §11 | Proclaiming/seizing the Imperium, the era flip, ironman/continue and the epilogue now exist; the *galaxy-spanning war archetype* that reframes the late game (a clock, an intensity setting, map behaviour) does not. |
 | **Reactive UI, polish, content depth** — Milestone 7 | §19 | Era × role × house theming, ceremonial/functional typography, portraits, audio, the free-content pipeline, the balance pass. |
-| **Honorifics & Orders** | §13 | Merit-path prestige distinctions ("Olympic Knight"-style) that raise legitimacy independent of title. |
-| **Scatter-the-seed / heir-hunting** | §14 | Hidden kin, fostering as placement, the cost model for hunting a bloodline. |
-| **Marriage/fostering as *systems*** | §18 | Marriage exists as a bond and forges claims via content; there's no proposal/negotiation system or fostering. |
 | **Family autonomy** | §18 | Family members resisting/defying the player's direction based on loyalty + ambition + traits. NPC *houses* have will; the player's *own family* does not yet. |
 | **Anomalies/archaeology & Exotics sources** | §17 | The Exotics resource exists; the exploration system that produces it (and foreshadows the Crisis) is DLC-era design and not built. |
 
@@ -276,8 +278,8 @@ if it's listed, it does not exist yet.
 | ✅ | **2 — Turn Loop, Pools & Commands** | Briefing→Action→Resolve, pools, command bus, NPCs | a full turn cycle resolves deterministically from a seed |
 | ◐ | **3 — Court Mode UI** | first Godot layer ✅ written & compiling · base theme ✅ · creation screen ✅ · **run, lay out and polish in the editor ⬜** | the Academy + early court game fully playable via UI |
 | ◐ | **4 — Economy, Holdings & Galaxy** | economy ✅ · succession ✅ · save/load ✅ · galaxy map ✅ · fleets, war & combat ✅ · **Galaxy UI run in the editor ⬜** | play from a barony, move fleets, advance through a succession |
-| ◐ | **5 — Spheres, Progression & Crises** | crises ✅ · spheres ✅ · progression ✅ · **Bloody Events ⬜** | engineer/defuse a crisis via gates; a damper arrests a cascade; an NPC triggers one |
-| ◐ | **6 — The Human Endgame** | ironman/continue ✅ · an `imperium`-era start + `era` gating ✅ · **Great-Crisis framework, proclaiming/seizing the Imperium (the era *flip*), saga epilogue ⬜** | a full run from Baron to a throne-endgame, won or lost. **V1-complete on systems.** |
+| ✅ | **5 — Spheres, Progression & Crises** | crises ✅ · spheres ✅ · progression ✅ · Bloody Events ✅ (*The Marked Man*, *The Wedding Feast*, the purge) | engineer/defuse a crisis via gates; a damper arrests a cascade; an NPC triggers one |
+| ◐ | **6 — The Human Endgame** | ironman/continue ✅ · Imperium start + `era` gating ✅ · proclaim/seize the throne + era flip ✅ · saga epilogue ✅ · **Great-Crisis framework (the galaxy-war archetype) ⬜** | a full run from Baron to a throne-endgame, won or lost. **V1-complete on systems.** |
 | ⬜ | **7 — Reactive UI, Polish, Content Depth** | era × role × house theming; typography; portraits; audio; content volume; balance | the UI transforms on proclamation; enough content for replayability |
 
 The recommended order from here: **open the UI in Godot and finish Milestone 3** — everything built
@@ -356,7 +358,7 @@ dotnet run --project src/Tools -- create                                   # eve
 dotnet run --project src/Tools -- map --scenario the_imperial_court        # the galaxy as text: territory, lanes, distances
 dotnet run --project src/Tools -- play --auto --scenario the_risen_officer --background upjumped --nature Ambitious,Just --aptitude Tactician --name "Kessa Vane"
 
-# The test suite (187 tests, incl. a 40-turn whole-stack soak and a save/load round-trip)
+# The test suite (224 tests, incl. a 40-turn whole-stack soak and a save/load round-trip)
 dotnet test
 
 # The Godot UI (needs Godot 4.3 with .NET): open project.godot in the editor and press Play.

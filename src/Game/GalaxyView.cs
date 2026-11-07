@@ -244,6 +244,13 @@ public partial class GalaxyMap : Control
             DrawCircle(p, Radius, fill);
             if (n.IsPlayerTerritory) DrawArc(p, Radius + 5f, 0, Mathf.Tau, 48, CourtTheme.Gilt(era), 2.5f, true);
             if (n.Contested) DrawArc(p, Radius + 9f, 0, Mathf.Tau, 48, CourtTheme.Danger, 1.5f, true);
+            var w0 = _state.World;
+            if (w0 != null && w0.Sieges.Values.Any(s => w0.Holding(s.HoldingId)?.SystemId == n.SystemId))
+            {
+                var siege = w0.Sieges.Values.First(s => w0.Holding(s.HoldingId)?.SystemId == n.SystemId);
+                float frac = Mathf.Clamp(siege.Turns / (float)Mathf.Max(1, siege.Required), 0f, 1f);
+                DrawArc(p, Radius + 17f, -Mathf.Pi / 2, -Mathf.Pi / 2 + Mathf.Tau * frac, 48, CourtTheme.Danger, 3f, true);   // the siege clock
+            }
             if (SelectedNode?.SystemId == n.SystemId) DrawArc(p, Radius + 13f, 0, Mathf.Tau, 64, CourtTheme.Ink(era), 1.5f, true);
 
             string label = n.Name;

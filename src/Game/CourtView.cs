@@ -1,5 +1,6 @@
 using Godot;
 using Praetoria.Core.Commands;
+using Praetoria.Core.Data;
 using Praetoria.Core.Presentation;
 using Praetoria.Core.Systems;
 
@@ -66,6 +67,20 @@ public partial class CourtView : HBoxContainer
         return b;
     }
 
+    private Button Opt(Option o, ICommand command) => Cmd(o.Label, o.Refusal == null, o.Refusal, command);
+
+    /// <summary>A collapsible row of secondary actions so the column stays readable.</summary>
+    private static VBoxContainer Fold(VBoxContainer into, string title, string era)
+    {
+        var toggle = new Button { Text = "▸ " + title, ToggleMode = true, Alignment = HorizontalAlignment.Left, Flat = true };
+        toggle.AddThemeFontOverride("font", CourtTheme.Serif);
+        var body = CourtTheme.Column(3) ;
+        body.Visible = false;
+        toggle.Toggled += on => { body.Visible = on; toggle.Text = (on ? "▾ " : "▸ ") + title; };
+        into.AddChild(toggle); into.AddChild(body);
+        return body;
+    }
+
     // ---------------- left ----------------
 
     private void BuildLeft(CourtModel m)
@@ -107,18 +122,44 @@ public partial class CourtView : HBoxContainer
             dv.AddChild(CourtTheme.Body($"{h.Name}  [{h.SpecName}]{(h.SystemName != null ? $" — {h.SystemName}" : "")}", ink, 13));
             dv.AddChild(CourtTheme.Muted($"pop {h.Population}{(h.MaxPopulation > 0 ? "/" + h.MaxPopulation : "")} · unrest {h.Unrest} · slots {h.SlotsUsed}/{h.Slots}" +
                                          (h.Buildings.Count > 0 ? $" · {string.Join(", ", h.Buildings)}" : ""), era, 11));
+            if (h.Besieged) dv.AddChild(CourtTheme.Body("UNDER BLOCKADE — yield halved", CourtTheme.Danger, 12));
+            var builds = Fold(dv, "Build", era);
             foreach (var b in h.Builds)
-                dv.AddChild(Cmd(b.Label, b.Available, b.Tooltip, new BuildCommand(pid, h.Id, b.BuildingId, _state.Content.Holdings)));
+                builds.AddChild(Cmd(b.Label, b.Available, b.Tooltip, new BuildCommand(pid, h.Id, b.BuildingId, _state.Content.Holdings, _state.Content.Titles)));
             if (h.SystemName != null)
-                dv.AddChild(Cmd(h.RaiseShipsLabel, h.CanRaiseShips, "Materials → hull. Reinforces the squadron in this system or founds one.", new RaiseFleetCommand(pid, h.Id, _state.Content.Fleets)));
+            {
+                var yard = Fold(dv, "Shipyard", era);
+                foreach (var ship in h.Ships)
+                    yard.AddChild(Cmd(ship.Label, ship.Refusal == null, ship.Refusal, new RaiseFleetCommand(pid, h.Id, _state.Content.Fleets, _state.Content.ShipClasses, ship.ClassId, _state.Content.Titles)));
+            }
+        }
+        if (m.Standing is { } st && st.TaxOptions.Count > 0)
+        {
+            var taxes = Fold(dv, $"Tax policy — {st.TaxPolicy}", era);
+            foreach (var o in st.TaxOptions) taxes.AddChild(Opt(o, new SetTaxPolicyCommand(pid, o.Id, _state.Content.Holdings)));
+            var ex = Fold(dv, "The Exchange", era);
+            foreach (var o in st.ExchangeOptions)
+            {
+                var rate = _state.Content.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id);
+                ex.AddChild(Opt(o, new ExchangeCommand(pid, rate, _state.Content.Holdings)));
+            }
         }
 
         _left.AddChild(Panel(era, true, out var av));
         av.AddChild(CourtTheme.Heading("The Admiral — fleets", CourtTheme.Gilt(era), 15));
         if (m.Fleets.Count == 0) av.AddChild(CourtTheme.Muted("The house keeps no ships. Lay down a hull at a holding.", era, 12));
         foreach (var f in m.Fleets)
-            av.AddChild(CourtTheme.Body($"{f.Name}{(f.Office ? " (office)" : "")} — {f.Strength} hull{(f.Strength == 1 ? "" : "s")}, readiness {f.Readiness}, " +
-                                        (f.Moving ? $"en route to {f.Destination} ({f.Eta})" : $"at {f.Where}"), ink, 12));
+        {
+            av.AddChild(CourtTheme.Body($"{f.Name}{(f.Office ? " (office)" : "")} — {f.Composition}; readiness {f.Readiness}{(f.Veterancy > 0 ? $", veterancy {f.Veterancy}" : "")}, " +
+                                        (f.Moving ? $"en route to {f.Destination} ({f.Eta})" : $"at {f.Where}") +
+                                        (f.AdmiralName != null ? $" — {f.AdmiralName} commanding" : " — unled (fights at 85%)"), ink, 12));
+            var cmdFold = Fold(av, $"Command of {f.Name}", era);
+            foreach (var o in f.AdmiralOptions) cmdFold.AddChild(Opt(o, new AssignAdmiralCommand(pid, f.Id, o.Id)));
+            foreach (var o in f.MergeOptions) cmdFold.AddChild(Opt(o, new MergeFleetsCommand(pid, o.Id, f.Id)));
+        }
+        foreach (var siege in m.Sieges)
+            av.AddChild(CourtTheme.Body(siege.Ours ? $"⚠ {siege.HoldingName} is blockaded by {siege.BesiegerName} — falls in {siege.Required - siege.Turns} turn(s)"
+                                                   : $"Siege of {siege.HoldingName}: {siege.Turns}/{siege.Required} turns", CourtTheme.Danger, 12));
         if (m.Wars.Count > 0)
         {
             av.AddChild(CourtTheme.Rule());
@@ -152,6 +193,18 @@ public partial class CourtView : HBoxContainer
                 }
             }
             cv.AddChild(CourtTheme.Muted($"Spheres: {s.Spheres}   threat {s.Threat}", era, 11));
+            if (s.Honors.Count > 0) cv.AddChild(CourtTheme.Body("Honors: " + string.Join(", ", s.Honors), CourtTheme.Gilt(era), 12));
+            var law = Fold(cv, $"Succession — {s.SuccessionLaw}", era);
+            foreach (var o in s.LawOptions) law.AddChild(Opt(o, new SetSuccessionLawCommand(pid, o.Id)));
+
+            var throne = Fold(cv, s.Throne.HoldsThrone ? "The Throne — yours" : "The Throne", era);
+            if (s.Throne.HoldsThrone) throne.AddChild(CourtTheme.Body("You hold the Imperium. Hold it.", CourtTheme.Gilt(era), 12));
+            else
+            {
+                if (s.Throne.EmperorName != null) throne.AddChild(CourtTheme.Muted($"{s.Throne.EmperorName} holds the throne.", era, 11));
+                throne.AddChild(Cmd("Proclaim the Imperium  (3 influence, 2 agents)", s.Throne.ProclaimRefusal == null, s.Throne.ProclaimRefusal, new ProclaimImperiumCommand(pid, _state.Content.Titles)));
+                throne.AddChild(Cmd("Seize the throne  (2 treasury, 2 agents)", s.Throne.SeizeRefusal == null, s.Throne.SeizeRefusal, new SeizeThroneCommand(pid, _state.Content.Titles, _state.Content.Friction)));
+            }
         }
     }
 
@@ -164,12 +217,12 @@ public partial class CourtView : HBoxContainer
         hv.AddChild(CourtTheme.Heading($"Turn {m.Turn} — the briefing", CourtTheme.Gilt(era), 20));
         hv.AddChild(CourtTheme.Muted(era == "imperium" ? "Under the Imperium." : "The fractured stars; no throne yet claimed.", era));
 
-        if (m.DynastyDead)
+        if (m.EpilogueText != null)
         {
             _center.AddChild(Panel(era, true, out var ev, 16));
-            ev.AddChild(CourtTheme.Heading("THE LINE IS ENDED", CourtTheme.Danger, 22));
-            ev.AddChild(CourtTheme.Body("No name-bearer remains. The dynasty is extinguished. The chronicle on the right is its saga.", CourtTheme.Ink(era)));
-            return;
+            ev.AddChild(CourtTheme.Heading(m.DynastyDead ? "THE LINE IS ENDED" : "AN ERA TURNS", m.DynastyDead ? CourtTheme.Danger : CourtTheme.Gilt(era), 22));
+            ev.AddChild(CourtTheme.Body(m.EpilogueText, CourtTheme.Ink(era), 13));
+            if (m.DynastyDead) return;
         }
         if (m.Quiet)
             _center.AddChild(CourtTheme.Muted("A quiet season. The advisors have nothing that needs your hand. End the turn when ready.", era, 13));
@@ -213,14 +266,26 @@ public partial class CourtView : HBoxContainer
         if (m.Members.Count == 0) dv.AddChild(CourtTheme.Muted("You are the last of the name.", era, 12));
         foreach (var x in m.Members)
             dv.AddChild(CourtTheme.Body($"{x.Name} — {x.Detail}{(x.Bond.Length > 0 ? $" · {x.Bond}" : "")}{(x.Alive ? $" · {x.Disposition:+#;-#;0}" : "")}", x.Alive ? ink : CourtTheme.Muted(era), 12));
+        foreach (var h in m.Household.Where(h => h.Actions.Count > 0 || h.Hidden))
+        {
+            if (h.Hidden) dv.AddChild(CourtTheme.Muted($"{h.Name} ({h.Age}) is fostered away, hidden.", era, 11));
+            foreach (var o in h.Actions)
+                dv.AddChild(Opt(o, o.Id == "recall" ? new RecallCommand(pid, h.Id) : new FosterCommand(pid, h.Id)));
+        }
 
         if (m.Connections.Count > 0)
         {
             _right.AddChild(Panel(era, true, out var cv));
             cv.AddChild(CourtTheme.Heading("Connections", CourtTheme.Gilt(era), 15));
             foreach (var c in m.Connections)
+            {
                 cv.AddChild(CourtTheme.Body($"{c.Name} of {c.HouseName} — {c.Detail} · {c.Disposition:+#;-#;0}{(c.Bond.Length > 0 ? $" · {c.Bond}" : "")}{(c.Flags.Count > 0 ? $"  ({string.Join(", ", c.Flags)})" : "")}",
                     c.Hostile ? CourtTheme.Danger : ink, 12));
+                var acts = Fold(cv, "Intrigue", era);
+                foreach (var o in c.Actions)
+                    acts.AddChild(Opt(o, o.Id.StartsWith("marry:") ? new ProposeMarriageCommand(pid, o.Id["marry:".Length..], c.Id, _state.Content.Titles)
+                                                                   : new AssassinateCommand(pid, c.Id, _state.Content.Friction)));
+            }
         }
 
         if (m.Crises is { } clock)
