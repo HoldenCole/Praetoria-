@@ -1,0 +1,40 @@
+@inject GameClient G
+@{
+    var w = G.World!; var c = G.Content!; var playerHouse = w.Protagonist!.HouseId;
+    var nodes = GalaxyProjection.Nodes(w).ToDictionary(n => n.SystemId); var regions = GalaxyProjection.Regions(w);
+}
+<div class="planets">
+    <section class="card">
+        <h2>The worlds of @w.Galaxy!.Name</h2>
+        <div class="muted">@regions.Count regions · @nodes.Count worlds · @w.Holdings.Values.Count(h => !h.IsPlanet) stations. Governors hold the real power on the ground (GDD §13); every world has one.</div>
+    </section>
+    @foreach (var r in regions)
+    {
+        <section class="card region-block" style="--accent:@r.AccentColor">
+            <div class="region-head"><h3>@r.Name</h3><span class="muted">@r.Culture culture · @(r.DominantHouseName != null ? $"{r.DominantHouseName} dominates" : "no house dominates") · loyalty @(100 - r.Unrest)</span></div>
+            <p class="muted small">@r.Description</p>
+            <table class="tbl">
+                <thead><tr><th>World</th><th>Class</th><th>Held by</th><th>Governor</th><th>Industry</th><th>Pop</th><th>Loyalty</th><th>Orbit</th></tr></thead>
+                <tbody>
+                @foreach (var id in r.SystemIds)
+                {
+                    var n = nodes[id]; var planet = n.PlanetHoldingId != null ? w.Holding(n.PlanetHoldingId) : null; var owner = n.OwnerHouseId != null ? w.House(n.OwnerHouseId) : null;
+                    var (pf, pg) = Svg.Planet(n.PlanetClass);
+                    var stations = w.Holdings.Values.Where(h => h.SystemId == id && !h.IsPlanet).ToList();
+                    <tr class="@(n.IsPlayerTerritory ? "mine" : "")" @onclick="() => OnFocus.InvokeAsync(id)">
+                        <td><i class="pdot" style="background:radial-gradient(circle at 35% 35%, @pg, @pf)"></i> <b>@n.Name</b></td>
+                        <td class="muted">@n.PlanetClass</td>
+                        <td>@if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="16" /> } @(owner?.Name ?? "—")</td>
+                        <td>@(n.GovernorName ?? "—")</td>
+                        <td class="muted">@(planet != null ? c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization : "—")</td>
+                        <td>@(n.Population > 0 ? n.Population.ToString() : "—")</td>
+                        <td>@if (planet != null) { <span class="bar wide"><i style="width:@(100 - n.Unrest)%" class="@(n.Unrest >= 50 ? "low" : "")"></i></span> }</td>
+                        <td class="muted small">@string.Join(", ", stations.Select(s => $"{s.Name} ({w.House(s.OwnerId)?.Name})"))</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </section>
+    }
+</div>
+@code { [Parameter] public EventCallback<string> OnFocus { get; set; } }

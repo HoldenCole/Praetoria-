@@ -40,16 +40,32 @@ development sessions use; it screenshots each screen and fails on any console or
 to the repository path and copying `index.html` to `404.html` for deep links. GitHub Pages serves that branch; if it is not
 yet switched on, Settings → Pages → Source *Deploy from a branch* → `gh-pages` / `(root)` does it once.
 
-## Layout
+## Layout — the grand-strategy shell
 
-- `Pages/Index.razor` — the state machine: loading → title/creation → play (Court · Galaxy · Dynasty · Chronicle) → epilogue.
-- `Components/CreationScreen.razor` — scenario picker with a one-line brief per scenario, world knobs (seed, mode,
-  difficulty, crisis intensity, family autonomy), character customisation (name, sex, track, ambition, background, traits).
-- `Components/CourtScreen.razor` — three columns: the character, pools, treasury, council, standing, Great Crisis; the
-  briefing with its choices and the realm's temperature; holdings, fleets, war, household, connections with every command.
-- `Components/GalaxyMap.razor` — SVG star map: territory glow by house accent, lanes, fleets (own exact, rivals as intel with
-  confidence as opacity), siege clocks, bloc rings, click-to-move with jump counts.
-- `Components/DynastyPanel.razor` — line of succession, a nested family tree, bonds within the house.
-- `Components/ChroniclePanel.razor` — the whole history by turn, with a "notable only" filter.
-- `Services/GameClient.cs` — the one object the UI talks to.
-- `wwwroot/css/app.css` — the look: deep space, brass, parchment text, house accents.
+A fixed shell, not a scrolling page: a resource strip across the top (treasury with per-turn forecasts, action pools,
+era and turn), a navigation rail of screens down the left, the **outliner** down the right (reports, alerts, council,
+fleets, holdings — every line jumps to the screen that acts on it), and End Turn docked bottom-right. Reports open as
+event windows with the cast's portraits; the first visitor steps forward when a turn begins.
+
+- `Pages/Index.razor` — the shell and its state: current screen, open report, succession interstitial, epilogue.
+- `Components/TopBar.razor`, `Outliner.razor`, `EventWindow.razor` — the frame.
+- `Components/OfficeScreen.razor` — **the Office**: an SVG room (walls, floor, window on your seat's world, banners with the
+  house sigil, desk and chair, decor) that visitors with reports walk into; *Furnish the office* changes it, stored in
+  `World.Cosmetics` so the save carries it. Beside it: the character sheet, "since your last turn", the Great Crisis.
+- `Components/GalaxyMap.razor` — **the Galaxy**: six regions as coloured fields with labels, planets drawn by class, stations,
+  lanes (front lines in red), fleets (own exact, rivals as intel), siege clocks, bloc rings; drag to pan, wheel to zoom,
+  click a world for its planet card (class, culture, held by, governor, industry, population, loyalty, orbit, fleets,
+  lanes), click a region for its roster; click your fleet then a ringed world to set course.
+- `Components/PlanetsScreen.razor` — **Worlds**: every world by region in a table (class, holder, governor, industry,
+  population, loyalty, stations).
+- `Components/HouseScreen.razor` — **House**: treasury and forecast, standing, title paths, decrees (succession, tithe,
+  exchange, throne), the realm's temperature, holdings with build / shipyard / governor's chair, household.
+- `Components/MilitaryScreen.razor` — **Military**: fleets with readiness, admiral, composition, refit, command, merge;
+  wars with score and peace; recent battles; rival navies as reported.
+- `Components/DynastyPanel.razor` — **Dynasty**: succession, the family tree, bonds.
+- `Components/HousesScreen.razor` — **Houses**: every house with sigil, title, worlds, stations, hulls, legitimacy, bloc,
+  disposition; its people with marriage and intrigue actions; its domain; war and peace.
+- `Components/ChroniclePanel.razor` — **Chronicle**: the whole history by turn.
+- `Components/CreationScreen.razor` — the title and creation screen.
+- `Components/Portrait.razor`, `Sigil.razor` — procedural portraits and heraldry; `Services/Svg.cs` — SVG helpers.
+- `Services/GameClient.cs` — the one object the UI talks to. `wwwroot/css/app.css` — the look.

@@ -48,6 +48,9 @@ public sealed class TurnController
 
     public IReadOnlyList<BriefingItem> Briefing => _briefing;
 
+    /// <summary>The domain economy (GDD §17), or null when the content set defines no holdings catalog.</summary>
+    public Economy? Economy => _economy;
+
     /// <summary>The crisis system (GDD §16), or null when the content set defines no crises.</summary>
     public CrisisEngine? Crises => _crises;
 

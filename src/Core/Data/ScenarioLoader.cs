@@ -72,8 +72,10 @@ public static class ScenarioLoader
         var fleetIds = sc.Fleets.Select(f => f.Id).ToHashSet();
         var claimedSystems = sc.Holdings.Where(h => h.IsPlanet && h.SystemId.Length > 0).Select(h => h.SystemId).ToHashSet();
 
+        // a baseline house comes along only if something of its own survives the scenario's claims — or it is landless by design
+        bool Survives(House h) => h.Title == "landless" || baseline.Holdings.Any(x => x.OwnerId == h.Id && !holdingIds.Contains(x.Id) && !(x.IsPlanet && claimedSystems.Contains(x.SystemId)));
         var houses = sc.Houses.ToList(); var added = new HashSet<string>();
-        foreach (var h in baseline.Houses) if (!houseIds.Contains(h.Id)) { houses.Add(h); added.Add(h.Id); }
+        foreach (var h in baseline.Houses) if (!houseIds.Contains(h.Id) && Survives(h)) { houses.Add(h); added.Add(h.Id); }
         var chars = sc.Characters.ToList();
         foreach (var c in baseline.Characters) if (!charIds.Contains(c.Id) && added.Contains(c.HouseId)) chars.Add(c);
         var charNow = chars.Select(c => c.Id).ToHashSet();

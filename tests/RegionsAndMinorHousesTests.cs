@@ -50,7 +50,9 @@ public class RegionsAndMinorHousesTests
             Assert.Equal(h.OwnerId, w.Char(h.GovernorId)!.HouseId);
             Assert.True(h.Culture.Length > 0);
         }
-        Assert.True(w.Houses.Count >= 18, $"{scenario}: only {w.Houses.Count} houses");
+        Assert.True(w.Houses.Count >= 15, $"{scenario}: only {w.Houses.Count} houses");
+        var own = ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), scenario, includeBaseline: false).Houses.Select(h => h.Id).ToHashSet();
+        Assert.DoesNotContain(w.Houses.Values, h => !own.Contains(h.Id) && h.Title != "landless" && !w.HoldingsOf(h.Id).Any());   // no titled minor house arrives already dispossessed
         Assert.Contains(w.Houses.Values, h => h.Title == "landless" && !w.HoldingsOf(h.Id).Any());   // the landless minor houses
         Assert.Contains(w.Holdings.Values, h => !h.IsPlanet);                                           // and the smaller things
     }

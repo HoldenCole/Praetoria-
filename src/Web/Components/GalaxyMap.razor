@@ -1,28 +1,47 @@
 @inject GameClient G
-
+@inject IJSRuntime JS
 @{
     var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var playerHouse = w.Protagonist!.HouseId;
-    var nodes = GalaxyProjection.Nodes(w); var lanes = GalaxyProjection.Lanes(w); var fleets = GalaxyProjection.Fleets(w);
+    var nodes = GalaxyProjection.Nodes(w); var lanes = GalaxyProjection.Lanes(w); var fleets = GalaxyProjection.Fleets(w); var regions = GalaxyProjection.Regions(w);
     var pos = nodes.ToDictionary(n => n.SystemId, n => n);
-    double minX = nodes.Min(n => n.X) - 70, maxX = nodes.Max(n => n.X) + 70, minY = nodes.Min(n => n.Y) - 60, maxY = nodes.Max(n => n.Y) + 60;
+    if (_vb == null) { double minX = nodes.Min(n => n.X) - 90, maxX = nodes.Max(n => n.X) + 90, minY = nodes.Min(n => n.Y) - 80, maxY = nodes.Max(n => n.Y) + 80; _vb = (minX, minY, maxX - minX, maxY - minY); _home = _vb.Value; }
+    var vb = _vb.Value;
     var selectedFleet = _fleetId != null && w.Fleets.TryGetValue(_fleetId, out var sf) && sf.OwnerId == playerHouse ? sf : null;
     var ctx = new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0));
+    var sel = _systemId != null && pos.TryGetValue(_systemId, out var sn) ? sn : null;
 }
 <div class="galaxy">
-    <div class="map-wrap">
-        <svg class="map" viewBox="@F(minX) @F(minY) @F(maxX - minX) @F(maxY - minY)" preserveAspectRatio="xMidYMid meet">
+    <div class="map-wrap" @onwheel="Wheel" @onwheel:preventDefault="true" @onmousedown="Down" @onmousemove="Move" @onmouseup="Up" @onmouseleave="Up">
+        <svg class="map @(_drag ? "dragging" : "")" viewBox="@Svg.F(vb.x) @Svg.F(vb.y) @Svg.F(vb.w) @Svg.F(vb.h)" preserveAspectRatio="xMidYMid meet" @ref="_svg">
             <defs>
-                <radialGradient id="bg" cx="50%" cy="50%" r="70%"><stop offset="0%" stop-color="#121a2b"/><stop offset="100%" stop-color="#07090f"/></radialGradient>
-                <filter id="glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <radialGradient id="bg" cx="50%" cy="50%" r="75%"><stop offset="0%" stop-color="#0f1626"/><stop offset="100%" stop-color="#05070c"/></radialGradient>
+                <filter id="blur"><feGaussianBlur stdDeviation="28"/></filter>
+                <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                @foreach (var n in nodes)
+                {
+                    var (pf, pg) = Svg.Planet(n.PlanetClass);
+                    <radialGradient id="@("pg_" + n.SystemId)" cx="35%" cy="35%" r="75%"><stop offset="0" stop-color="@pg"/><stop offset=".55" stop-color="@pf"/><stop offset="1" stop-color="#05070c"/></radialGradient>
+                }
             </defs>
-            <rect x="@F(minX)" y="@F(minY)" width="@F(maxX - minX)" height="@F(maxY - minY)" fill="url(#bg)"/>
-            @foreach (var st in Stars(minX, minY, maxX, maxY)) { <circle cx="@F(st.x)" cy="@F(st.y)" r="@F(st.r)" fill="#9fb3d9" opacity="@F(st.o)"/> }
+            <rect x="@Svg.F(_home.x - 2000)" y="@Svg.F(_home.y - 2000)" width="@Svg.F(_home.w + 4000)" height="@Svg.F(_home.h + 4000)" fill="url(#bg)"/>
+            @foreach (var st in Stars(_home)) { <circle cx="@Svg.F(st.x)" cy="@Svg.F(st.y)" r="@Svg.F(st.r)" fill="#9fb3d9" opacity="@Svg.F(st.o)"/> }
+
+            @* regions: a soft field of the dominant house's colour, and a name *@
+            @foreach (var r in regions)
+            {
+                var pts = r.SystemIds.Where(pos.ContainsKey).Select(id => (pos[id].X, pos[id].Y)).ToList();
+                <polygon points="@Hull(pts, 70)" fill="@r.AccentColor" opacity="@(r.DominantHouseId != null ? ".16" : ".07")" filter="url(#blur)" class="region @(r.Id == _regionId ? "selected" : "")" @onclick="() => _regionId = _regionId == r.Id ? null : r.Id"/>
+                double top = pts.Count == 0 ? r.CY : pts.Min(p => p.Y) - 44;
+                @Svg.Text(r.CX, top, "region-label", r.Name.ToUpperInvariant(), "text-anchor=\"middle\"")
+                @Svg.Text(r.CX, top + 12, "region-sub", $"{r.Culture} · {(r.DominantHouseName ?? "no one")} · loyalty {100 - r.Unrest}", "text-anchor=\"middle\"")
+            }
 
             @foreach (var l in lanes)
             {
                 if (!pos.TryGetValue(l.A, out var a) || !pos.TryGetValue(l.B, out var b)) continue;
                 bool reach = selectedFleet != null && (selectedFleet.SystemId == l.A || selectedFleet.SystemId == l.B);
-                <line x1="@F(a.X)" y1="@F(a.Y)" x2="@F(b.X)" y2="@F(b.Y)" class="lane @(reach ? "reach" : "")"/>
+                bool hostile = a.OwnerHouseId != null && b.OwnerHouseId != null && w.AtWar(a.OwnerHouseId, b.OwnerHouseId);
+                <line x1="@Svg.F(a.X)" y1="@Svg.F(a.Y)" x2="@Svg.F(b.X)" y2="@Svg.F(b.Y)" class="lane @(reach ? "reach" : "") @(hostile ? "front" : "")"/>
             }
 
             @foreach (var n in nodes)
@@ -31,159 +50,201 @@
                 bool canMove = selectedFleet != null && new MoveFleetCommand(pid, selectedFleet.Id, n.SystemId, c.Fleets).CanExecute(ctx);
                 var sieges = w.Sieges.Values.Where(s => w.Holding(s.HoldingId)?.SystemId == n.SystemId).ToList();
                 var owner = n.OwnerHouseId != null ? w.House(n.OwnerHouseId) : null;
-                <g class="system @(n.SystemId == _systemId ? "selected" : "") @(canMove ? "target" : "")" @onclick="() => ClickSystem(n.SystemId, canMove)">
-                    @if (owned) { <circle cx="@F(n.X)" cy="@F(n.Y)" r="34" fill="@n.AccentColor" opacity="0.18" filter="url(#glow)"/> }
-                    @if (owner != null && owner.Bloc.Length > 0) { <circle cx="@F(n.X)" cy="@F(n.Y)" r="40" class="bloc @(owner.Bloc == GreatCrisisSystem.HegemonBloc ? "hegemon" : "")"/> }
-                    @foreach (var sg in sieges)
-                    {
-                        var frac = Math.Clamp(sg.Turns / (double)Math.Max(1, sg.Required), 0, 1);
-                        <path d="@Arc(n.X, n.Y, 24, frac)" class="siege"/>
-                    }
-                    @if (n.IsPlayerTerritory) { <circle cx="@F(n.X)" cy="@F(n.Y)" r="18" class="home-ring"/> }
-                    @if (n.Contested) { <circle cx="@F(n.X)" cy="@F(n.Y)" r="14" class="contested"/> }
-                    <circle cx="@F(n.X)" cy="@F(n.Y)" r="@(owned ? 9 : 5)" fill="@(owned ? n.AccentColor : "#55617a")" class="star"><title>@n.Name — @(n.OwnerHouseName ?? "unclaimed")@(n.HoldingIds.Count > 0 ? $" · {n.HoldingIds.Count} holding(s)" : "")</title></circle>
+                double r = n.Population > 0 ? 11 + Math.Min(6, n.Population / 10) : 9;
+                <g class="system @(n.SystemId == _systemId ? "selected" : "") @(canMove ? "target" : "")" @onclick="() => ClickSystem(n.SystemId, canMove)" @onclick:stopPropagation="true">
+                    @if (owned) { <circle cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" r="@Svg.F(r + 14)" fill="@n.AccentColor" opacity=".22" filter="url(#glow)"/> }
+                    @if (owner != null && owner.Bloc.Length > 0) { <circle cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" r="@Svg.F(r + 20)" class="bloc @(owner.Bloc == GreatCrisisSystem.HegemonBloc ? "hegemon" : "")"/> }
+                    @foreach (var sg in sieges) { <path d="@Svg.Arc(n.X, n.Y, r + 9, Math.Clamp(sg.Turns / (double)Math.Max(1, sg.Required), 0, 1))" class="siege"/> }
+                    @if (n.IsPlayerTerritory) { <circle cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" r="@Svg.F(r + 6)" class="home-ring"/> }
+                    @if (n.Contested) { <circle cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" r="@Svg.F(r + 4)" class="contested"/> }
+                    <circle cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" r="@Svg.F(r)" fill="url(#@("pg_" + n.SystemId))" class="planet"><title>@n.Name — @(n.OwnerHouseName ?? "unclaimed") · @n.PlanetClass world · @n.Culture@(n.Population > 0 ? $" · pop {n.Population} · loyalty {100 - n.Unrest}" : "")@(n.GovernorName != null ? $" · governor {n.GovernorName}" : "")</title></circle>
+                    @if (n.PlanetClass == "belt") { <ellipse cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" rx="@Svg.F(r + 6)" ry="@Svg.F(r / 3)" fill="none" stroke="#c9bca8" stroke-width="1.5" opacity=".7"/> }
+                    @if (n.PlanetClass == "gas") { <ellipse cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" rx="@Svg.F(r + 5)" ry="@Svg.F(r / 4)" fill="none" stroke="#f0d0a0" stroke-width="1.2" opacity=".6"/> }
+                    @if (n.Stations > 0) { <rect x="@Svg.F(n.X + r + 2)" y="@Svg.F(n.Y - r - 4)" width="5" height="5" class="station" transform="rotate(45 @Svg.F(n.X + r + 4.5) @Svg.F(n.Y - r - 1.5))"><title>@n.Stations station(s) in orbit</title></rect> }
                     @if (canMove)
                     {
                         int hops = w.Galaxy!.Hops(selectedFleet!.SystemId, n.SystemId);
-                        <circle cx="@F(n.X)" cy="@F(n.Y)" r="16" class="target-ring @(hops == 1 ? "near" : "")"/>
-                        @SvgText(n.X + 14, n.Y - 12, "hops", $"{hops}j")
+                        <circle cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" r="@Svg.F(r + 10)" class="target-ring @(hops == 1 ? "near" : "")"/>
+                        @Svg.Text(n.X + r + 6, n.Y - r - 8, "hops", $"{hops}j")
                     }
-                    @SvgText(n.X, n.Y + 30, "label", n.Name)
-                    @if (n.OwnerHouseName != null) { @SvgText(n.X, n.Y + 43, "owner", n.OwnerHouseName) }
+                    @Svg.Text(n.X, n.Y + r + 15, "label", n.Name, "text-anchor=\"middle\"")
+                    @if (n.OwnerHouseName != null) { @Svg.Text(n.X, n.Y + r + 27, "owner", n.OwnerHouseName, "text-anchor=\"middle\"") }
                 </g>
             }
 
             @foreach (var grp in fleets.GroupBy(f => f.SystemId))
             {
                 if (!pos.TryGetValue(grp.Key, out var n)) continue;
-                int i = 0;
+                int i = 0; int count = grp.Count();
                 foreach (var f in grp.OrderByDescending(f => f.IsPlayer).ThenBy(f => f.FleetId, StringComparer.Ordinal))
                 {
-                    double ang = -Math.PI / 2 + i * (Math.PI * 2 / Math.Max(3, grp.Count())); i++;
-                    double fx = n.X + Math.Cos(ang) * 22, fy = n.Y + Math.Sin(ang) * 22 - 2;
+                    double ang = -Math.PI / 2 - 0.5 + i * (Math.PI * 2 / Math.Max(4, count)); i++;
+                    double fx = n.X + Math.Cos(ang) * 26, fy = n.Y + Math.Sin(ang) * 26;
                     bool isSel = f.FleetId == _fleetId;
                     <g class="fleet @(f.IsPlayer ? "own" : "intel") @(isSel ? "selected" : "")" @onclick="() => ClickFleet(f)" @onclick:stopPropagation="true">
-                        <path d="@Tri(fx, fy, f.IsPlayer ? 9 : 7)" fill="@f.AccentColor" opacity="@F(f.IsPlayer ? 1 : 0.35 + 0.65 * f.Confidence / 100.0)" stroke="@(isSel ? "#ffe8a3" : "#0b0e14")" stroke-width="@(isSel ? 2.5 : 1)"/>
-                        @SvgText(fx + 10, fy + 3, "fleet-label", f.Strength + (f.IsPlayer ? "" : "?"))
-                        @if (f.IsPlayer) { <rect x="@F(fx - 8)" y="@F(fy + 8)" width="16" height="2" fill="#2b3651"/> <rect x="@F(fx - 8)" y="@F(fy + 8)" width="@F(16 * f.Readiness / 100.0)" height="2" fill="@(f.Readiness < 50 ? "#d8705a" : "#6fbf8a")"/> }
+                        <path d="@Svg.Tri(fx, fy, f.IsPlayer ? 8 : 6.5)" fill="@f.AccentColor" opacity="@Svg.F(f.IsPlayer ? 1 : 0.35 + 0.65 * f.Confidence / 100.0)" stroke="@(isSel ? "#ffe8a3" : "#0b0e14")" stroke-width="@(isSel ? 2.5 : 1)"/>
+                        @Svg.Text(fx + 9, fy + 3, "fleet-label", f.Strength + (f.IsPlayer ? "" : "?"))
+                        @if (f.IsPlayer) { <rect x="@Svg.F(fx - 8)" y="@Svg.F(fy + 7)" width="16" height="2" fill="#2b3651"/><rect x="@Svg.F(fx - 8)" y="@Svg.F(fy + 7)" width="@Svg.F(16 * f.Readiness / 100.0)" height="2" fill="@(f.Readiness < 50 ? "#d8705a" : "#6fbf8a")"/> }
+                        @if (f.Moving && pos.TryGetValue(f.DestinationId, out var dest)) { <line x1="@Svg.F(fx)" y1="@Svg.F(fy)" x2="@Svg.F(dest.X)" y2="@Svg.F(dest.Y)" class="course"/> }
                         <title>@f.Name (@f.OwnerHouseName) · @f.Strength hulls@(f.IsPlayer ? $" · readiness {f.Readiness}" : $" · reported at {f.Confidence}% confidence, turn {f.TurnObserved}")</title>
-                        @if (f.Moving && pos.TryGetValue(f.DestinationId, out var dest)) { <line x1="@F(fx)" y1="@F(fy)" x2="@F(dest.X)" y2="@F(dest.Y)" class="course"/> }
                     </g>
                 }
             }
         </svg>
+        <div class="map-tools">
+            <button class="btn sm" @onclick="() => Zoom(0.8)" title="Zoom in">+</button>
+            <button class="btn sm" @onclick="() => Zoom(1.25)" title="Zoom out">−</button>
+            <button class="btn sm" @onclick="() => _vb = _home" title="Fit the Reach">⌂</button>
+        </div>
         <div class="legend">
             <span><i class="sw own"></i> your fleet</span><span><i class="sw intel"></i> reported fleet (fainter = less certain)</span>
-            <span><i class="sw siege"></i> siege clock</span><span><i class="sw bloc"></i> bloc</span>
-            @if (selectedFleet != null) { <span class="hint">@selectedFleet.Name selected — click a highlighted system to set course (1 treasury)</span> }
+            <span><i class="sw siege"></i> siege clock</span><span><i class="sw front"></i> front line</span><span><i class="sw station"></i> station</span>
+            @if (selectedFleet != null) { <span class="hint">@selectedFleet.Name selected — click a ringed system to set course (1 treasury)</span> }
+            else { <span class="muted">drag to pan · wheel to zoom · click a world</span> }
         </div>
     </div>
 
     <aside class="map-side">
-        @if (_systemId != null && pos.TryGetValue(_systemId, out var sel))
+        @if (sel != null)
         {
-            var holdings = w.Holdings.Values.Where(h => h.SystemId == sel.SystemId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
-            <section class="card">
-                <h3>@sel.Name</h3>
-                <div class="muted">@(sel.OwnerHouseName ?? "unclaimed")@(sel.Contested ? " · contested" : "")</div>
-                @foreach (var h in holdings)
+            var sys = w.Galaxy!.System(sel.SystemId)!; var region = w.Galaxy.Region(sys.RegionId);
+            var planet = sel.PlanetHoldingId != null ? w.Holding(sel.PlanetHoldingId) : null;
+            var owner = sel.OwnerHouseId != null ? w.House(sel.OwnerHouseId) : null;
+            var gov = planet != null && planet.GovernorId.Length > 0 ? w.Char(planet.GovernorId) : null;
+            var stations = w.Holdings.Values.Where(h => h.SystemId == sel.SystemId && !h.IsPlanet).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+            var (pf, pg) = Svg.Planet(sel.PlanetClass);
+            <section class="card planet-card">
+                <div class="planet-head">
+                    <svg width="64" height="64" viewBox="0 0 64 64"><defs><radialGradient id="pcard" cx="35%" cy="35%" r="75%"><stop offset="0" stop-color="@pg"/><stop offset=".6" stop-color="@pf"/><stop offset="1" stop-color="#05070c"/></radialGradient></defs><circle cx="32" cy="32" r="28" fill="url(#pcard)"/></svg>
+                    <div>
+                        <h2>@sel.Name</h2>
+                        <div class="muted">@sel.PlanetClass world · @region?.Name · @sel.Culture culture</div>
+                    </div>
+                    @if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="36" /> }
+                </div>
+                <p class="muted small">@sys.Description</p>
+                @if (planet != null)
                 {
-                    var spec = c.Holdings.Spec(h.Specialization);
-                    <div class="holding-line"><b>@h.Name</b> <span class="muted">@(spec?.Name ?? h.Specialization) · @(w.House(h.OwnerId)?.Name ?? h.OwnerId)@(h.Population > 0 ? $" · pop {h.Population}" : "") · unrest @h.Unrest</span>
-                        @if (w.Sieges.TryGetValue(h.Id, out var sg)) { <span class="pill warn">siege @sg.Turns/@sg.Required</span> }</div>
+                    var spec = c.Holdings.Spec(planet.Specialization);
+                    <div class="kv"><span>Held by</span><b>@(owner?.Name ?? "no one")</b></div>
+                    <div class="kv"><span>Governor</span><b>@(gov?.Name ?? "—")</b></div>
+                    @if (gov != null) { <div class="gov-line"><Portrait Id="@gov.Id" Name="@gov.Name" Sex="@gov.Sex" Age="@gov.Age" Accent="@(owner?.AccentColor ?? "#888")" Size="40" /><span class="muted">@(c.Careers.RankName(gov.CareerTrack, gov.CareerRank) ?? "") · administration @gov.Skill("administration") · @gov.Age</span></div> }
+                    <div class="kv"><span>Industry</span><b>@(spec?.Name ?? planet.Specialization)</b></div>
+                    @if (planet.Population > 0) { <div class="kv"><span>Population</span><b>@planet.Population@(spec?.MaxPopulation > 0 ? $" / {spec.MaxPopulation}" : "")</b></div> }
+                    <div class="kv"><span>Loyalty</span><b class="@(planet.Unrest >= 50 ? "warn" : "")">@(100 - planet.Unrest)<span class="bar"><i style="width:@(100 - planet.Unrest)%"></i></span></b></div>
+                    <div class="kv"><span>Built</span><b>@(planet.Buildings.Count == 0 ? "nothing" : string.Join(", ", planet.Buildings.Select(b => c.Holdings.Building(b)?.Name ?? b)))</b></div>
+                    @if (w.Sieges.TryGetValue(planet.Id, out var sg)) { <div class="kv warn"><span>Siege</span><b>@(w.House(sg.BesiegerId)?.Name) · @sg.Turns/@sg.Required</b></div> }
+                }
+                else { <div class="muted">No one holds this world.</div> }
+                @if (stations.Count > 0)
+                {
+                    <h4>In orbit</h4>
+                    @foreach (var st in stations) { <div class="line"><b>@st.Name</b> <span class="muted">@(c.Holdings.Spec(st.Specialization)?.Name ?? st.Specialization) · @(w.House(st.OwnerId)?.Name)</span></div> }
                 }
                 @{ var here = fleets.Where(f => f.SystemId == sel.SystemId).ToList(); }
                 @if (here.Count > 0)
                 {
                     <h4>Fleets here</h4>
-                    @foreach (var f in here)
-                    {
-                        <div class="fleet-line" @onclick="() => ClickFleet(f)"><i class="sw" style="background:@f.AccentColor"></i> <b>@f.Name</b> <span class="muted">@f.OwnerHouseName · @f.Strength hulls@(f.IsPlayer ? $" · readiness {f.Readiness}" : $" · intel {f.Confidence}% (turn {f.TurnObserved})")</span></div>
-                    }
+                    @foreach (var f in here) { <div class="fleet-line" @onclick="() => ClickFleet(f)"><i class="sw" style="background:@f.AccentColor"></i> <b>@f.Name</b> <span class="muted">@f.OwnerHouseName · @f.Strength hulls@(f.IsPlayer ? $" · readiness {f.Readiness}" : $" · intel {f.Confidence}%")</span></div> }
                 }
-                <div class="muted small">Neighbours: @string.Join(", ", w.Galaxy!.Neighbors(sel.SystemId).Select(id => w.Galaxy.System(id)?.Name ?? id))</div>
+                <div class="muted small">Lanes to @string.Join(", ", w.Galaxy.Neighbors(sel.SystemId).Select(id => w.Galaxy.System(id)?.Name ?? id))</div>
+                @if (owner != null && owner.Id != playerHouse)
+                {
+                    var dw = new DeclareWarCommand(pid, owner.Id, c.Fleets);
+                    <button class="opt" disabled="@(!dw.CanExecute(ctx))" title="@(dw.CanExecute(ctx) ? "" : "already at war, or no influence")" @onclick="() => G.Execute(new DeclareWarCommand(pid, owner.Id, c.Fleets))">Declare war on @owner.Name (2 influence)</button>
+                }
+            </section>
+        }
+        else if (_regionId != null && regions.FirstOrDefault(r => r.Id == _regionId) is { } reg)
+        {
+            <section class="card">
+                <h2>@reg.Name</h2>
+                <div class="muted">@reg.Culture culture · @reg.Planets worlds · loyalty @(100 - reg.Unrest) · @(reg.DominantHouseName != null ? $"{reg.DominantHouseName} holds most of it" : "no house dominates")</div>
+                <p class="muted small">@reg.Description</p>
+                @foreach (var id in reg.SystemIds) { var n = pos[id]; <button class="ol-row" @onclick="() => _systemId = id"><b>@n.Name</b> <span class="muted">@n.PlanetClass · @(n.OwnerHouseName ?? "unclaimed")@(n.GovernorName != null ? $" · {n.GovernorName}" : "")</span></button> }
             </section>
         }
         else
         {
-            <section class="card"><h3>@w.Galaxy!.Name</h3><div class="muted">Click a system to inspect it. Click one of your fleets, then a highlighted system, to set its course.</div></section>
+            <section class="card"><h2>@w.Galaxy!.Name</h2><div class="muted">@regions.Count regions · @nodes.Count worlds · @w.Houses.Count houses. Click a world or a region. Click one of your fleets, then a ringed world, to set its course.</div></section>
+            <section class="card">
+                <h3>Regions</h3>
+                @foreach (var r in regions) { <button class="ol-row" @onclick="() => { _regionId = r.Id; _systemId = null; }"><i class="sw" style="background:@r.AccentColor"></i> <b>@r.Name</b> <span class="muted">@r.Culture · @(r.DominantHouseName ?? "contested") · loyalty @(100 - r.Unrest)</span></button> }
+            </section>
         }
-
         <section class="card">
             <h3>Your fleets</h3>
             @foreach (var f in fleets.Where(f => f.IsPlayer))
             {
-                <div class="fleet-line @(f.FleetId == _fleetId ? "selected" : "")" @onclick="() => ClickFleet(f)">
-                    <b>@f.Name</b> <span class="muted">@(pos.TryGetValue(f.SystemId, out var at) ? at.Name : f.SystemId)@(f.Moving ? $" → {(pos.TryGetValue(f.DestinationId, out var d2) ? d2.Name : f.DestinationId)} ({f.Eta})" : "") · @f.Strength hulls · readiness @f.Readiness</span>
-                </div>
+                <div class="fleet-line @(f.FleetId == _fleetId ? "selected" : "")" @onclick="() => ClickFleet(f)"><b>@f.Name</b> <span class="muted">@(pos.TryGetValue(f.SystemId, out var at) ? at.Name : f.SystemId)@(f.Moving ? $" → {(pos.TryGetValue(f.DestinationId, out var d2) ? d2.Name : f.DestinationId)} ({f.Eta})" : "") · @f.Strength hulls · readiness @f.Readiness</span></div>
             }
-            @if (!fleets.Any(f => f.IsPlayer)) { <div class="muted">No hull flies your colours. Lay one down at a holding (Court → Holdings).</div> }
-        </section>
-
-        @if (w.Wars.Count > 0)
-        {
-            <section class="card">
-                <h3>Wars</h3>
-                @foreach (var war in w.Wars) { <div class="muted">@(w.House(war.HouseA)?.Name) vs @(w.House(war.HouseB)?.Name) · since turn @war.Since · score @war.ScoreA : @war.ScoreB</div> }
-            </section>
-        }
-
-        <section class="card">
-            <h3>Houses</h3>
-            @foreach (var h in w.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
-            {
-                var head = w.LivingCharacters().Where(x => x.HouseId == h.Id).OrderByDescending(x => x.CareerRank).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
-                <div class="house-line"><i class="sw" style="background:@h.AccentColor"></i> <b>@h.Name</b> <span class="muted">@(c.Titles.ById(h.Title)?.Name ?? h.Title) · legitimacy @h.Legitimacy · @FleetSystem.StrengthOf(w, h.Id) hulls@(h.Bloc.Length > 0 ? $" · bloc {h.Bloc}" : "")@(w.AtWar(playerHouse, h.Id) ? " · AT WAR WITH YOU" : "")</span>
-                    @if (h.Id != playerHouse && head != null)
-                    {
-                        var dw = new DeclareWarCommand(pid, h.Id, c.Fleets);
-                        <button class="opt inline" disabled="@(!dw.CanExecute(ctx))" title="@(dw.CanExecute(ctx) ? "" : "already at war, or no influence")" @onclick="() => G.Execute(new DeclareWarCommand(pid, h.Id, c.Fleets))">Declare war (2 influence)</button>
-                    }
-                </div>
-            }
+            @if (!fleets.Any(f => f.IsPlayer)) { <div class="muted">No hull flies your colours. Lay one down (House → Holdings).</div> }
         </section>
     </aside>
 </div>
 
 @code {
-    private string? _fleetId, _systemId;
-
-    private static MarkupString SvgText(double x, double y, string cls, string text) =>
-        new($"<text x=\"{F(x)}\" y=\"{F(y)}\" class=\"{cls}\">{System.Net.WebUtility.HtmlEncode(text)}</text>");
-
-    private static string F(double v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+    private string? _fleetId, _systemId, _regionId;
+    private (double x, double y, double w, double h)? _vb; private (double x, double y, double w, double h) _home;
+    private bool _drag; private double _lx, _ly; private ElementReference _svg; private double _pxPerUnit = 1;
 
     private void ClickFleet(MapFleet f)
     {
         if (f.IsPlayer) { _fleetId = _fleetId == f.FleetId ? null : f.FleetId; _systemId = f.SystemId; }
         else _systemId = f.SystemId;
+        _regionId = null;
     }
 
     private void ClickSystem(string systemId, bool canMove)
     {
-        if (canMove && _fleetId != null)
-        {
-            G.Execute(new MoveFleetCommand(G.World!.ProtagonistId, _fleetId, systemId, G.Content!.Fleets));
-            _fleetId = null;
-        }
-        _systemId = systemId;
+        if (_moved) return;
+        if (canMove && _fleetId != null) { G.Execute(new MoveFleetCommand(G.World!.ProtagonistId, _fleetId, systemId, G.Content!.Fleets)); _fleetId = null; }
+        _systemId = systemId; _regionId = null;
     }
 
-    private static string Tri(double x, double y, double s) => $"M{F(x)},{F(y - s)} L{F(x + s * 0.85)},{F(y + s * 0.6)} L{F(x - s * 0.85)},{F(y + s * 0.6)} Z";
-
-    private static string Arc(double cx, double cy, double r, double frac)
+    private void Zoom(double factor)
     {
-        if (frac <= 0) return "";
-        double a = Math.Min(0.9999, frac) * Math.PI * 2 - Math.PI / 2;
-        double sx = cx, sy = cy - r, ex = cx + Math.Cos(a) * r, ey = cy + Math.Sin(a) * r;
-        return $"M{F(sx)},{F(sy)} A{F(r)},{F(r)} 0 {(frac > 0.5 ? 1 : 0)} 1 {F(ex)},{F(ey)}";
+        if (_vb == null) return; var v = _vb.Value;
+        double cx = v.x + v.w / 2, cy = v.y + v.h / 2, nw = Math.Clamp(v.w * factor, _home.w * 0.25, _home.w * 1.6), nh = nw * (_home.h / _home.w);
+        _vb = (cx - nw / 2, cy - nh / 2, nw, nh);
+    }
+    private void Wheel(WheelEventArgs e) => Zoom(e.DeltaY > 0 ? 1.15 : 0.87);
+
+    private bool _moved;
+    private async Task Down(MouseEventArgs e)
+    {
+        _drag = true; _moved = false; _lx = e.ClientX; _ly = e.ClientY;
+        try { var size = await JS.InvokeAsync<double[]>("praetoria.size", _svg); if (size.Length == 2 && size[0] > 0 && _vb != null) _pxPerUnit = Math.Min(size[0] / _vb.Value.w, size[1] / _vb.Value.h); } catch { }
+    }
+    private void Move(MouseEventArgs e)
+    {
+        if (!_drag || _vb == null) return;
+        double dx = (e.ClientX - _lx) / _pxPerUnit, dy = (e.ClientY - _ly) / _pxPerUnit;
+        if (Math.Abs(e.ClientX - _lx) + Math.Abs(e.ClientY - _ly) > 3) _moved = true;
+        _lx = e.ClientX; _ly = e.ClientY;
+        var v = _vb.Value; _vb = (v.x - dx, v.y - dy, v.w, v.h);
+    }
+    private void Up(MouseEventArgs e) { _drag = false; }
+
+    /// <summary>A rounded convex hull around a region's systems, padded, as an SVG points list.</summary>
+    private static string Hull(List<(double X, double Y)> pts, double pad)
+    {
+        if (pts.Count == 0) return "";
+        double cx = pts.Average(p => p.X), cy = pts.Average(p => p.Y);
+        var sb = new System.Text.StringBuilder();
+        // sample a padded outline: for each angle, the farthest point along that direction plus padding
+        for (int a = 0; a < 36; a++)
+        {
+            double ang = a * Math.PI * 2 / 36, best = 0;
+            foreach (var p in pts) best = Math.Max(best, (p.X - cx) * Math.Cos(ang) + (p.Y - cy) * Math.Sin(ang));
+            sb.Append($"{Svg.F(cx + Math.Cos(ang) * (best + pad))},{Svg.F(cy + Math.Sin(ang) * (best + pad))} ");
+        }
+        return sb.ToString();
     }
 
-    /// <summary>A fixed starfield (seeded, so it never twinkles between renders).</summary>
-    private static IEnumerable<(double x, double y, double r, double o)> Stars(double minX, double minY, double maxX, double maxY)
+    private static IEnumerable<(double x, double y, double r, double o)> Stars((double x, double y, double w, double h) home)
     {
         var rng = new Praetoria.Core.Rng.SplitMix64Rng(99);
-        for (int i = 0; i < 140; i++)
-            yield return (minX + rng.NextDouble() * (maxX - minX), minY + rng.NextDouble() * (maxY - minY), 0.4 + rng.NextDouble() * 1.3, 0.15 + rng.NextDouble() * 0.5);
+        for (int i = 0; i < 220; i++) yield return (home.x - 200 + rng.NextDouble() * (home.w + 400), home.y - 200 + rng.NextDouble() * (home.h + 400), 0.4 + rng.NextDouble() * 1.4, 0.15 + rng.NextDouble() * 0.5);
     }
 }

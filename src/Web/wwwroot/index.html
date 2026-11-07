@@ -31,7 +31,8 @@
           const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type: 'application/json'}));
           a.download = name; a.click(); URL.revokeObjectURL(a.href);
         },
-        scrollTop: () => window.scrollTo({ top: 0, behavior: 'smooth' })
+        scrollTop: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+        size: (el) => { const r = el.getBoundingClientRect(); return [r.width, r.height]; }
       };
     </script>
     <script src="_framework/blazor.webassembly.js"></script>

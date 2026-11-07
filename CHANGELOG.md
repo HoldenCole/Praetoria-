@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **Grand-strategy shell** for the browser client: resource strip with forecasts, navigation rail, outliner, event
+  windows with the cast, End Turn dock; screens for the Office (a furnishable SVG room visitors walk into), Galaxy
+  (regions, planets by class, pan/zoom, planet cards), Worlds, House, Military, Dynasty, Houses and Chronicle; a
+  succession interstitial when the seat passes.
+- **The Reach expands**: six regions of three worlds with cultures and descriptions; twenty minor houses with people,
+  planets and stations merged into every scenario; governors on every holding and a command to appoint them; planet
+  and station kinds; five new industries.
 - **Browser client** (`src/Web`): a Blazor WebAssembly build of the game — creation, Court, Galaxy map, Dynasty tree,
   Chronicle, saves in the browser — published to GitHub Pages from `main` and linked at the top of the README.
 - `praetoria qa`: the QA soak — randomised player over every scenario, determinism replay, save/load round-trip, event and

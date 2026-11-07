@@ -21,6 +21,36 @@ public sealed class Economy
 
     public Economy(HoldingCatalog catalog) => _catalog = catalog;
 
+    /// <summary>What a house's domain will net next turn (the Accrue arithmetic, read-only; no siege or unrest throttling,
+    /// which are shown separately): the resource strip's per-turn deltas (GDD §17). Fleet upkeep is subtracted when given.</summary>
+    public Resources Forecast(World world, string houseId, FleetSystem? fleets = null)
+    {
+        var net = new Resources();
+        var house = world.House(houseId); if (house == null) return net;
+        var tax = _catalog.Tax(house.TaxPolicy);
+        foreach (var holding in world.HoldingsOf(houseId))
+        {
+            var spec = _catalog.Spec(holding.Specialization); if (spec == null) continue;
+            foreach (var r in Resource.All)
+            {
+                int v = spec.BaseYield.Get(r) - spec.Upkeep.Get(r);
+                foreach (var bid in holding.Buildings) { var b = _catalog.Building(bid); if (b != null) v += b.Yield.Get(r) - b.Upkeep.Get(r); }
+                if (r == Resource.Manpower && spec.PopManpower > 0) v += holding.Population / spec.PopManpower;
+                if (r == Resource.Credits)
+                {
+                    v += tax?.CreditsBonus ?? 0;
+                    if (_catalog.ContiguityBonus > 0 && world.Galaxy != null && holding.SystemId != "")
+                        v += _catalog.ContiguityBonus * world.Galaxy.Neighbors(holding.SystemId).Count(n => world.Holdings.Values.Any(o => o.OwnerId == houseId && o.SystemId == n));
+                }
+                if (r == Resource.Manpower && v > 0) v = v * (100 - holding.Unrest) / 100;
+                net.Add(r, v);
+            }
+        }
+        if (fleets != null)
+            foreach (var f in world.Fleets.Values.Where(f => f.OwnerId == houseId)) { var up = fleets.Upkeep(f); foreach (var r in Resource.All) net.Add(r, -up.Get(r)); }
+        return net;
+    }
+
     /// <summary>Apply one turn of accrual to every holding's owning treasury. Call on turn advance.</summary>
     public void Accrue(World world)
     {

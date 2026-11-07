@@ -1,0 +1,51 @@
+@inject GameClient G
+@{
+    var m = Model; var w = G.World!; var house = w.House(w.Protagonist!.HouseId)!;
+    var open = m.Briefing.Where(b => !b.Resolved).ToList();
+    var alerts = new List<(string cls, string text, string? go)>();
+    if (m.Treasury.Insolvent) alerts.Add(("warn", $"Insolvent: {m.Treasury.Credits} credits", "house"));
+    foreach (var war in m.Wars) alerts.Add(("warn", $"At war with {war.EnemyName}{(war.TheyAreSuing ? " — they sue for peace" : "")}", "military"));
+    foreach (var sg in m.Sieges.Where(s => s.Ours)) alerts.Add(("warn", $"{sg.HoldingName} besieged by {sg.BesiegerName} ({sg.Turns}/{sg.Required})", "galaxy"));
+    foreach (var h in m.Household.Where(h => h.Actions.Any(a => a.Id == "defiant"))) alerts.Add(("warn", $"{h.Name} is defiant", "dynasty"));
+    if (m.Character.Regency) alerts.Add(("info", "A regent rules in your name", "dynasty"));
+    if (m.GreatCrisis is { Stage: not null, Resolved: false } gc) alerts.Add(("info", $"{gc.Name}: {gc.Stage}", "houses"));
+    if (!w.Characters.Values.Any(c => c.Alive && c.HouseId == house.Id && c.Id != w.ProtagonistId)) alerts.Add(("warn", "No heir — the line hangs by a thread", "dynasty"));
+    if (m.Crises != null) foreach (var c in m.Crises.Active) alerts.Add(("warn", $"Crisis: {c.Name} (severity {c.Severity})", "house"));
+}
+<aside class="outliner">
+    <section class="ol-block">
+        <h4>Reports <span class="count">@open.Count</span></h4>
+        @if (m.Briefing.Count == 0) { <div class="ol-empty">A quiet turn. No one waits at your door.</div> }
+        @foreach (var b in m.Briefing)
+        {
+            <button class="ol-report @b.Tier.ToLowerInvariant() @(b.Resolved ? "done" : "")" @onclick="() => OnOpenReport.InvokeAsync(b)">
+                <span class="glyph">@(b.Setpiece ? "✦" : b.Tier == "AMBIENT" ? "·" : "◆")</span>
+                <span class="title">@b.Title</span>
+                @if (b.Resolved) { <span class="tick">✓</span> }
+            </button>
+        }
+    </section>
+    <section class="ol-block">
+        <h4>Alerts <span class="count">@alerts.Count</span></h4>
+        @if (alerts.Count == 0) { <div class="ol-empty">Nothing presses.</div> }
+        @foreach (var a in alerts) { <button class="ol-alert @a.cls" @onclick='() => OnGo.InvokeAsync(a.go ?? "office")'>@a.text</button> }
+    </section>
+    <section class="ol-block">
+        <h4>Council</h4>
+        @foreach (var a in m.Advisors) { <div class="ol-adv @(a.Warning ? "warn" : "")" title="@a.Line"><b>@a.Seat</b> <span class="muted">@(a.AdvisorName ?? "vacant")</span><div class="line">@a.Line</div></div> }
+    </section>
+    <section class="ol-block">
+        <h4>Fleets <span class="count">@m.Fleets.Count</span></h4>
+        @foreach (var f in m.Fleets) { <button class="ol-row" @onclick='() => OnGo.InvokeAsync("galaxy")'><b>@f.Name</b> <span class="muted">@f.Strength hulls · @(f.Moving ? $"→ {f.Destination}" : f.Where)</span></button> }
+    </section>
+    <section class="ol-block">
+        <h4>Holdings <span class="count">@m.Holdings.Count</span></h4>
+        @foreach (var h in m.Holdings) { <button class="ol-row" @onclick='() => OnGo.InvokeAsync("house")'><b>@h.Name</b> <span class="muted">@h.SpecName@(h.Unrest >= 50 ? " · restless" : "")@(h.Besieged ? " · besieged" : "")</span></button> }
+    </section>
+</aside>
+
+@code {
+    [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
+    [Parameter] public EventCallback<BriefingCard> OnOpenReport { get; set; }
+    [Parameter] public EventCallback<string> OnGo { get; set; }
+}

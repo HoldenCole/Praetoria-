@@ -23,39 +23,43 @@ else if (G.Turn == null)
 else
 {
     var m = G.Court();
-    <div class="shell">
-        <header class="topbar" style="--accent:@m.HouseAccent">
-            <div class="brand"><span class="mark">✦</span> PRAETORIA <span class="ver">@PraetoriaVersion.Current</span></div>
-            <div class="house-badge"><Sigil HouseId="@(G.World!.Protagonist!.HouseId)" Accent="@m.HouseAccent" Size="26" /> <span>@m.HouseName</span></div>
-            <nav class="tabs">
-                <button class="@Tab("court")" @onclick='() => _tab = "court"'>Court</button>
-                <button class="@Tab("galaxy")" @onclick='() => _tab = "galaxy"' disabled="@(G.World!.Galaxy == null)">Galaxy</button>
-                <button class="@Tab("dynasty")" @onclick='() => _tab = "dynasty"'>Dynasty</button>
-                <button class="@Tab("chronicle")" @onclick='() => _tab = "chronicle"'>Chronicle</button>
-            </nav>
-            <div class="turnbox">
-                <span class="era">@(m.Era == "imperium" ? "The Imperium" : "The Fractured Stars")</span>
-                <span class="turn">Turn @m.Turn · Gen @m.Generation</span>
-                <button class="btn ghost" title="Save to this browser (the game also autosaves every turn)" @onclick="SaveLocal">@(_savedFlash ? "Saved ✓" : "Save")</button>
-                <button class="btn ghost" title="Download the save as a file" @onclick="Download">Export</button>
-                <button class="btn ghost" title="Abandon this run and return to the title" @onclick="Abandon">Quit</button>
-                @if (!m.DynastyDead)
-                {
-                    var open = m.Briefing.Count(b => !b.Resolved);
-                    <button class="btn primary endturn" @onclick="EndTurn" title="@(open > 0 ? $"{open} report(s) still unanswered — ending the turn sets them aside" : "Resolve the turn")">End Turn ▸@if (open > 0) { <span class="badge">@open</span> }</button>
-                }
-            </div>
-        </header>
-
-        @if (G.LastNotice != null) { <div class="notice">@G.LastNotice</div> }
-
-        <main class="content">
-            @if (_tab == "court") { <CourtScreen Model="m" OnOpenChronicle='() => _tab = "chronicle"' /> }
-            else if (_tab == "galaxy") { <GalaxyMap /> }
-            else if (_tab == "dynasty") { <DynastyPanel /> }
-            else { <ChroniclePanel /> }
+    <div class="gs-shell" style="--accent:@m.HouseAccent">
+        <TopBar OnSave="SaveLocal" OnExport="Download" OnQuit="Abandon" SavedFlash="@_savedFlash" />
+        <nav class="rail">
+            @foreach (var (id, glyph, label) in Screens)
+            {
+                <button class="rail-btn @(_screen == id ? "active" : "")" title="@label" @onclick="() => Go(id)" disabled="@(id == "galaxy" && G.World!.Galaxy == null)">
+                    <span class="rg">@glyph</span><span class="rl">@label</span>
+                </button>
+            }
+        </nav>
+        <main class="screen">
+            @switch (_screen)
+            {
+                case "galaxy": <GalaxyMap @ref="_map" /> break;
+                case "planets": <PlanetsScreen OnFocus="FocusSystem" /> break;
+                case "house": <HouseScreen Model="m" /> break;
+                case "military": <MilitaryScreen Model="m" /> break;
+                case "dynasty": <DynastyPanel /> break;
+                case "houses": <HousesScreen Model="m" /> break;
+                case "chronicle": <ChroniclePanel /> break;
+                default: <OfficeScreen Model="m" OnOpenReport="OpenReport" /> break;
+            }
         </main>
+        <Outliner Model="m" OnOpenReport="OpenReport" OnGo="Go" />
+        <div class="endturn-dock">
+            @if (G.LastNotice != null) { <span class="notice">@G.LastNotice</span> }
+            @if (!m.DynastyDead)
+            {
+                var open = m.Briefing.Count(b => !b.Resolved);
+                <button class="btn primary endturn" @onclick="EndTurn" title="@(open > 0 ? $"{open} report(s) still unanswered — ending the turn sets them aside" : "Resolve the turn")">End Turn ▸@if (open > 0) { <span class="badge">@open</span> }</button>
+            }
+        </div>
 
+        @if (_openReport != null && m.Briefing.FirstOrDefault(b => ReferenceEquals(b.Item, _openReport.Item)) is { } card)
+        {
+            <EventWindow Card="card" OnClose="() => _openReport = null" OnChoose="Choose" />
+        }
         @if (m.EpilogueText != null && !_epilogueDismissed)
         {
             <div class="overlay">
@@ -69,13 +73,31 @@ else
                 </div>
             </div>
         }
+        @if (_succession != null)
+        {
+            <div class="overlay">
+                <div class="epilogue succession">
+                    <h2>The seat passes</h2>
+                    <p class="epi-text">@_succession</p>
+                    <div class="row"><button class="btn primary" @onclick="() => _succession = null">Take up the name</button></div>
+                </div>
+            </div>
+        }
     </div>
 }
 
 @code {
-    private string _tab = "court";
-    private bool _hasAutosave;
-    private bool _epilogueDismissed;
+    private static readonly (string id, string glyph, string label)[] Screens =
+    {
+        ("office", "⌂", "Office"), ("galaxy", "✦", "Galaxy"), ("planets", "◍", "Worlds"), ("house", "⚜", "House"),
+        ("military", "⚔", "Military"), ("dynasty", "⚭", "Dynasty"), ("houses", "☗", "Houses"), ("chronicle", "☰", "Chronicle")
+    };
+    private string _screen = "office";
+    private bool _hasAutosave, _epilogueDismissed, _savedFlash;
+    private BriefingCard? _openReport;
+    private string? _succession;
+    private string? _lastProtagonist;
+    private GalaxyMap? _map;
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,49 +106,42 @@ else
         try { _hasAutosave = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey)); } catch { }
     }
 
-    private void OnChanged() => InvokeAsync(StateHasChanged);
-    private string Tab(string id) => _tab == id ? "tab active" : "tab";
+    private void OnChanged()
+    {
+        if (G.World != null)
+        {
+            if (_lastProtagonist != null && _lastProtagonist != G.World.ProtagonistId && !G.World.IsDynastyDead)
+            {
+                var np = G.World.Protagonist; var old = G.World.Char(_lastProtagonist);
+                string oldName = old?.Name ?? "", newName = np?.Name ?? "";
+                _succession = $"{(oldName.Length > 0 ? oldName : "The head of the house")} is dead. {newName} takes up the seat of {G.World.House(np?.HouseId ?? "")?.Name} at {np?.Age}. " +
+                              string.Join(" ", G.World.History.Where(h => h.Turn >= G.World.Turn - 1 && ((oldName.Length > 0 && h.Text.Contains(oldName)) || h.Text.Contains("regent"))).Select(h => h.Text).Take(3));
+            }
+            _lastProtagonist = G.World.ProtagonistId;
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void Go(string id) => _screen = id;
+    private void FocusSystem(string systemId) { _screen = "galaxy"; }
+    private void OpenReport(BriefingCard card) => _openReport = card;
+    private void Choose((BriefingCard card, string choiceId) pick) { G.Resolve(pick.card.Item, pick.choiceId); _openReport = null; }
 
     private async Task EndTurn()
     {
+        _openReport = null;
         G.EndTurn();
         _epilogueDismissed = false;
+        var first = G.Court().Briefing.FirstOrDefault(b => !b.Resolved);
+        if (first != null && _screen == "office") _openReport = first;    // the first visitor steps forward
         await Autosave();
-        try { await JS.InvokeVoidAsync("praetoria.scrollTop"); } catch { }
     }
 
-    private async Task Autosave()
-    {
-        try { await JS.InvokeVoidAsync("praetoria.save", GameClient.AutosaveKey, G.SaveJson()); _hasAutosave = true; } catch { }
-    }
-
-    private bool _savedFlash;
-    private async Task SaveLocal()
-    {
-        await Autosave();
-        _savedFlash = true; StateHasChanged();
-        await Task.Delay(1500);
-        _savedFlash = false;
-    }
-
-    private async Task Download()
-    {
-        try { await JS.InvokeVoidAsync("praetoria.download", $"praetoria-turn{G.World!.Turn}.json", G.SaveJson()); } catch { }
-    }
-
-    private async Task ContinueAutosave()
-    {
-        try
-        {
-            var json = await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey);
-            if (!string.IsNullOrEmpty(json)) G.LoadJson(json);
-        }
-        catch { }
-    }
-
+    private async Task Autosave() { try { await JS.InvokeVoidAsync("praetoria.save", GameClient.AutosaveKey, G.SaveJson()); _hasAutosave = true; } catch { } }
+    private async Task SaveLocal() { await Autosave(); _savedFlash = true; StateHasChanged(); await Task.Delay(1500); _savedFlash = false; }
+    private async Task Download() { try { await JS.InvokeVoidAsync("praetoria.download", $"praetoria-turn{G.World!.Turn}.json", G.SaveJson()); } catch { } }
+    private async Task ContinueAutosave() { try { var json = await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey); if (!string.IsNullOrEmpty(json)) G.LoadJson(json); } catch { } }
     private void LoadFromJson(string json) { try { G.LoadJson(json); } catch { } }
-
-    private void Abandon() { _epilogueDismissed = false; _tab = "court"; G.Abandon(); }
-
+    private void Abandon() { _epilogueDismissed = false; _screen = "office"; _openReport = null; _succession = null; _lastProtagonist = null; G.Abandon(); }
     public void Dispose() => G.Changed -= OnChanged;
 }

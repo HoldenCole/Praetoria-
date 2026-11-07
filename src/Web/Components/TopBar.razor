@@ -1,0 +1,46 @@
+@inject GameClient G
+@{
+    var w = G.World!; var p = w.Protagonist!; var house = w.House(p.HouseId)!; var t = house.Treasury;
+    var fc = G.Turn!.Economy?.Forecast(w, house.Id, G.Turn.Fleets);
+    var pools = G.Turn.PlayerPools;
+}
+<header class="topbar" style="--accent:@house.AccentColor">
+    <div class="tb-house" title="@house.Name · @(G.Content!.Titles.ById(house.Title)?.Name ?? house.Title)">
+        <Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="30" />
+        <div><div class="tb-name">@house.Name</div><div class="tb-sub">@(G.Content!.Titles.ById(house.Title)?.Name ?? house.Title) · legitimacy @house.Legitimacy</div></div>
+    </div>
+    <div class="tb-res">
+        @Res("credits", t.Credits, fc?.Credits, "Credits — the one you run out of. Upkeep, hulls, bribes.")
+        @Res("materials", t.Materials, fc?.Materials, "Materials — building and shipbuilding.")
+        @Res("manpower", t.Manpower, fc?.Manpower, "Manpower — crews and garrisons; people are soldiers.")
+        @Res("influence", t.Influence, fc?.Influence, "Influence (stock) — spent through the exchange and by decrees.")
+        @Res("exotics", t.Exotics, fc?.Exotics, "Exotics — rare finds; sell dear or study them.")
+    </div>
+    <div class="tb-pools" title="This turn's action pools (GDD §9): reading is free, acting costs">
+        <span class="pool"><i class="dot inf"></i>@pools.Influence</span>
+        <span class="pool"><i class="dot tre"></i>@pools.Treasury</span>
+        <span class="pool"><i class="dot agt"></i>@pools.Agents</span>
+    </div>
+    <div class="tb-right">
+        <div class="tb-era">@(w.Era == "imperium" ? "The Imperium" : "The Fractured Stars")</div>
+        <div class="tb-turn">Turn @w.Turn · Gen @(w.Counter("generation") + 1)</div>
+        <button class="btn ghost sm" title="Save to this browser (autosaves every turn)" @onclick="OnSave">@(SavedFlash ? "Saved ✓" : "Save")</button>
+        <button class="btn ghost sm" title="Download the save as a file" @onclick="OnExport">Export</button>
+        <button class="btn ghost sm" title="Abandon this run" @onclick="OnQuit">Quit</button>
+    </div>
+</header>
+
+@code {
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnExport { get; set; }
+    [Parameter] public EventCallback OnQuit { get; set; }
+    [Parameter] public bool SavedFlash { get; set; }
+
+    private static RenderFragment Res(string name, int value, int? delta, string tip) => __builder =>
+    {
+        <span class="res" title="@tip">
+            <i class="ri @name"></i><b>@value</b>
+            @if (delta != null && delta != 0) { <small class="@(delta > 0 ? "up" : "down")">@(delta > 0 ? "+" : "")@delta</small> }
+        </span>
+    };
+}

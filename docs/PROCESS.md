@@ -38,3 +38,9 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   chronicle link, tree dedupe, phone layout, unique child names, landless steward line) → bug check (events fired on
   presentation, four-turn repeat suppression, adult advisors, named crises, chronicle event ids) → reassessed in
   `GAP_ANALYSIS.md` §4. Next: the forty drawn from §4.
+- 2026-11-07 — Direction from the owner: a grand-strategy UI, not a visual novel; multiple screens; the Court as a
+  customisable office; a bigger, better galaxy (6 regions × 3 worlds to start, each with culture, industry, loyalty and
+  houses; minor houses holding little or nothing; governors matter); UI first, then economy/holdings/businesses/wealth;
+  still the player's RPG inside the dynasty. Done this pass: the expanded Reach with regions, minor houses and governors
+  (engine + content), and the shell rewrite (office, galaxy, worlds, house, military, dynasty, houses, chronicle, outliner,
+  event windows, succession interstitial).

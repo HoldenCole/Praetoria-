@@ -1,0 +1,52 @@
+@inject GameClient G
+@{
+    var w = G.World!; var b = Card;
+    var roles = b.Item.Fired.Binding.All.Where(kv => kv.Key != "self").Select(kv => (role: kv.Key, ch: w.Char(kv.Value))).Where(x => x.ch != null).ToList();
+}
+<div class="win-backdrop" @onclick="OnClose">
+    <div class="win event @b.Tier.ToLowerInvariant()" @onclick:stopPropagation="true">
+        <div class="win-head">
+            <span class="tier"><span class="glyph">@(b.Setpiece ? "✦" : b.Tier == "AMBIENT" ? "·" : "◆")</span> @b.Tier</span>
+            <h2>@b.Title</h2>
+            <button class="win-close" @onclick="OnClose" title="Set aside (you can return to it from the outliner this turn)">✕</button>
+        </div>
+        <div class="win-body">
+            @if (roles.Count > 0)
+            {
+                <div class="win-cast">
+                    @foreach (var r in roles)
+                    {
+                        var h = w.House(r.ch!.HouseId);
+                        <div class="cast">
+                            <Portrait Id="@r.ch.Id" Name="@r.ch.Name" Sex="@r.ch.Sex" Age="@r.ch.Age" Alive="@r.ch.Alive" Accent="@(h?.AccentColor ?? "#888")" Size="72" />
+                            <div class="cast-name">@r.ch.Name</div>
+                            <div class="cast-sub">@(h?.Name ?? "") · @r.role.Replace('_', ' ')</div>
+                        </div>
+                    }
+                </div>
+            }
+            <p class="prose">@b.Body</p>
+        </div>
+        <div class="win-choices">
+            @if (b.Resolved) { <div class="done">Answered.</div> }
+            else
+            {
+                @foreach (var ch in b.Choices)
+                {
+                    <button class="choice" disabled="@(!ch.Available)" @onclick="() => OnChoose.InvokeAsync((b, ch.Id))">
+                        <span class="label">@ch.Label</span>
+                        @if (ch.Cost.Length > 0) { <span class="cost">@ch.Cost</span> }
+                        @if (!ch.Available) { <span class="cost why">@ch.Reason</span> }
+                    </button>
+                }
+                <button class="choice aside" @onclick="OnClose"><span class="label">Set it aside for now</span></button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public BriefingCard Card { get; set; } = default!;
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<(BriefingCard card, string choiceId)> OnChoose { get; set; }
+}

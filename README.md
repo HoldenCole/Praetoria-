@@ -2,8 +2,9 @@
 
 ## ▶ [Play it in your browser](https://holdencole.github.io/Praetoria-/)
 
-No install. The whole game — creation, Court, Galaxy map, dynasty tree, chronicle, saves in your browser — runs as a
-WebAssembly build of the same engine the tests run. Every push to `main` rebuilds it onto the `gh-pages` branch
+No install. The whole game — the office you furnish, the galaxy of six regions and eighteen worlds, the house, the
+navy, the dynasty, the other houses, the chronicle, saves in your browser — runs as a WebAssembly build of the same
+engine the tests run. Every push to `main` rebuilds it onto the `gh-pages` branch
 ([`pages.yml`](.github/workflows/pages.yml)). If the link 404s, Pages needs switching on once: Settings → Pages →
 Source *Deploy from a branch* → `gh-pages` / `(root)`.
 
