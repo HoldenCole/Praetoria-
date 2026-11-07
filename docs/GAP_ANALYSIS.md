@@ -42,6 +42,15 @@ crash · save → load → continue reproduces an uninterrupted run exactly.
 
 ---
 
+## 1b. Closed by the v0.5 pass (same day)
+
+Items 4–8, 12 and 13 of the list below were addressed in the 0.5 release: stress bleed-off + break point
+(`broken`, *The Breaking Point*); population feeding Manpower with per-spec caps; continue mode (sworn-house
+adoption) alongside ironman; a `regency` flag for child heads; two scenarios starting married; the `era`
+condition and the `the_imperial_court` Imperium start with three court events; an O(1) relationship index;
+eight "echoes" events consuming every seeded marker flag; NPC houses investing in their domains. The list
+is kept as written for the record — see `RELEASE_0.5.md` for what remains after it.
+
 ## 2. Gaps that remain (ranked by how much they block a playable game)
 
 1. **No UI (Milestone 3).** The game is not playable without the console. The Godot `/src/Game` project is a stub. Needs a session with Godot and a display.

@@ -26,6 +26,7 @@ try
         "dynasty"  => Commands.Dynasty(opts),
         "play"     => Commands.Play(opts),
         "help" or "--help" or "-h" => Help(),
+        "version" or "--version" => Version(),
         _ => Unknown(command)
     };
 }
@@ -47,6 +48,7 @@ static (string, Options) ParseArgs(string[] args)
             case "--turns" when i + 1 < args.Length: o.Turns = int.Parse(args[++i]); break;
             case "--scenario" when i + 1 < args.Length: o.Scenario = args[++i]; break;
             case "--auto": o.Auto = true; break;
+            case "--continue": o.Continue = true; break;
             case "--save" when i + 1 < args.Length: o.Save = args[++i]; break;
             case "--load" when i + 1 < args.Length: o.Load = args[++i]; break;
         }
@@ -56,8 +58,8 @@ static (string, Options) ParseArgs(string[] args)
 
 static int Help()
 {
-    Console.WriteLine("praetoria <command> [options]");
-    Console.WriteLine("  play [--seed N] [--turns N] [--auto] [--scenario id] [--save file] [--load file]");
+    Console.WriteLine($"praetoria {Praetoria.Core.PraetoriaVersion.Current} — <command> [options]");
+    Console.WriteLine("  play [--seed N] [--turns N] [--auto] [--scenario id] [--save file] [--load file] [--continue]");
     Console.WriteLine("  turn [--seed N] [--turns N]   full Briefing→Action→Resolve cycle with pools + NPCs");
     Console.WriteLine("  economy [--seed N] [--turns N] domain economy: holdings accrue, invest in buildings");
     Console.WriteLine("  crisis [--seed N]              crisis gate/cascade/damper demonstration");
@@ -66,6 +68,13 @@ static int Help()
     Console.WriteLine("  dynasty [--seed N]             aging, death, birth, succession (the dynasty outlives the man)");
     Console.WriteLine("  demo [--seed N]               cascade demonstration");
     Console.WriteLine("  validate");
+    Console.WriteLine("  version");
+    return 0;
+}
+
+static int Version()
+{
+    Console.WriteLine($"Praetoria {Praetoria.Core.PraetoriaVersion.Current} — \"{Praetoria.Core.PraetoriaVersion.Codename}\" (headless core)");
     return 0;
 }
 
@@ -83,4 +92,5 @@ sealed class Options
     public string Scenario = "academy_crucible";
     public string? Save;    // write the World here when the run ends (between turns)
     public string? Load;    // resume from a save instead of a fresh scenario
+    public bool Continue;   // GDD §14 continue mode: a sworn house takes up the banner on dynasty death
 }

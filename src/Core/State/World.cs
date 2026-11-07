@@ -18,6 +18,13 @@ public sealed class World
     /// <summary>"fractured_stars" (pre-Imperium) or "imperium" — drives reactive UI later (GDD §19).</summary>
     public string Era { get; set; } = "fractured_stars";
 
+    /// <summary>GDD §14 game mode, chosen at start: <see cref="ModeIronman"/> (bloodline extinct ⇒ the run
+    /// ends) or <see cref="ModeContinue"/> (a surviving sworn house takes up the banner and play goes on).</summary>
+    public string Mode { get; set; } = ModeIronman;
+
+    public const string ModeIronman = "ironman";
+    public const string ModeContinue = "continue";
+
     /// <summary>The character the player currently inhabits — bound to the "self" role every event.</summary>
     public string ProtagonistId { get; set; } = "";
 
@@ -104,21 +111,34 @@ public sealed class World
     /// <summary>Canonical world flag marking a one-time (<c>once</c>) crisis as spent after it resolved.</summary>
     public static string CrisisSpentFlag(string id) => $"crisis:{id}:spent";
 
-    /// <summary>Get the directed edge from→to, or null. Relationships are sparse.</summary>
-    public Relationship? GetRelationship(string fromId, string toId)
+    // (from,to) → edge. Rebuilt lazily whenever the public list has been appended to behind our back
+    // (scenario building, deserialisation), so the list stays the serialised truth and lookups stay O(1):
+    // the Binder evaluates every event × every candidate × every condition each turn (BuildSpec §7
+    // "the bond graph must answer cheaply").
+    private Dictionary<(string, string), Relationship>? _edgeIndex;
+
+    private Dictionary<(string, string), Relationship> EdgeIndex()
     {
-        foreach (var r in Relationships)
-            if (r.FromId == fromId && r.ToId == toId) return r;
-        return null;
+        if (_edgeIndex == null || _edgeIndex.Count != Relationships.Count)
+        {
+            _edgeIndex = new Dictionary<(string, string), Relationship>(Relationships.Count);
+            foreach (var r in Relationships) _edgeIndex[(r.FromId, r.ToId)] = r;
+        }
+        return _edgeIndex;
     }
+
+    /// <summary>Get the directed edge from→to, or null. Relationships are sparse.</summary>
+    public Relationship? GetRelationship(string fromId, string toId) =>
+        EdgeIndex().TryGetValue((fromId, toId), out var r) ? r : null;
 
     /// <summary>Get-or-create the directed edge from→to so a consequence can write to it.</summary>
     public Relationship Relationship(string fromId, string toId)
     {
-        var existing = GetRelationship(fromId, toId);
-        if (existing != null) return existing;
+        var index = EdgeIndex();
+        if (index.TryGetValue((fromId, toId), out var existing)) return existing;
         var rel = new Relationship { FromId = fromId, ToId = toId };
         Relationships.Add(rel);
+        index[(fromId, toId)] = rel;
         return rel;
     }
 

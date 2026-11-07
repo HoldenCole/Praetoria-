@@ -19,14 +19,56 @@ public sealed class DynastySystem
     public const int FertileMax = 45;
     public const double BirthChance = 0.30;
 
-    /// <summary>Advance one year of life: age, deaths (with succession), births. Call once per turn.</summary>
+    /// <summary>Below this age a head of house rules through a regent (the <see cref="RegencyFlag"/> is up).</summary>
+    public const int AgeOfMajority = 16;
+
+    // GDD §18: stress is the price of acting against your nature. It bleeds off slowly each year; at the
+    // ceiling the character BREAKS — a `broken` flag events can read, and the stress resets to a level
+    // from which another break is possible but not immediate.
+    public const int StressRelief = 1;
+    public const int StressBreakPoint = 100;
+    public const int StressAfterBreak = 50;
+    public const string BrokenFlag = "broken";
+    public const string RegencyFlag = "regency";
+
+    /// <summary>Advance one year of life: age, stress, deaths (with succession), births, regency.
+    /// Call once per turn. RNG is drawn only where a life actually turns (deaths, births).</summary>
     public void Tick(World world, IRng rng)
     {
         foreach (var c in world.Characters.Values.OrderBy(c => c.Id, StringComparer.Ordinal))
-            if (c.Alive) c.Age++;
+        {
+            if (!c.Alive) continue;
+            c.Age++;
+            TickStress(world, c);
+        }
 
         RollDeaths(world, rng);
         RollBirths(world, rng);
+        UpdateRegency(world);
+    }
+
+    private static void TickStress(World world, Character c)
+    {
+        if (c.Stress >= StressBreakPoint)
+        {
+            c.Flags.Add(BrokenFlag);
+            c.Stress = StressAfterBreak;
+            world.WorldCounters["breakdowns"] = world.Counter("breakdowns") + 1;
+            world.Log($"{c.Name} breaks under the strain.");
+        }
+        else
+        {
+            c.Stress = Math.Max(0, c.Stress - StressRelief);
+        }
+    }
+
+    /// <summary>A head of house below the age of majority rules through a regent (GDD §14 — a thin
+    /// model for now: a world flag content can gate on; the regent is not yet a bound character).</summary>
+    private static void UpdateRegency(World world)
+    {
+        var p = world.Protagonist;
+        if (p is { Alive: true } && p.Age < AgeOfMajority) world.WorldFlags.Add(RegencyFlag);
+        else world.WorldFlags.Remove(RegencyFlag);
     }
 
     private void RollDeaths(World world, IRng rng)
@@ -127,12 +169,47 @@ public sealed class DynastySystem
         if (heir != null)
         {
             HandOver(world, heir);
+            return;
         }
-        else
+
+        var house = world.House(deceased.HouseId);
+        string houseName = house?.Name ?? deceased.HouseId;
+
+        // GDD §14 continue mode: the bloodline is extinct, but a sworn house takes up the banner.
+        var adoptee = world.Mode == World.ModeContinue ? FindSwornSuccessor(world, deceased) : null;
+        if (adoptee != null)
         {
-            world.WorldFlags.Add(World.DynastyDeadFlag);
-            world.Log($"House {deceased.HouseId} ends — no heir remains.");
+            world.WorldFlags.Add(DynastyAdoptedFlag);
+            world.WorldCounters["adoptions"] = world.Counter("adoptions") + 1;
+            world.Log($"The blood of {houseName} is ended. {adoptee.Name} of {world.House(adoptee.HouseId)?.Name ?? adoptee.HouseId}, sworn to the house, takes up its banner.");
+            HandOver(world, adoptee);
+            return;
         }
+
+        world.WorldFlags.Add(World.DynastyDeadFlag);
+        world.Log($"{houseName} ends — no heir remains.");
+    }
+
+    /// <summary>Raised when continue mode handed the game to a sworn house (GDD §14 "adopt a surviving sworn cadet/vassal house").</summary>
+    public const string DynastyAdoptedFlag = "dynasty_adopted";
+
+    /// <summary>The sworn character who inherits the game in continue mode: a living non-house-member
+    /// bound to the deceased by a sworn bond on either edge, strongest bond first. Null if none.</summary>
+    public static Character? FindSwornSuccessor(World world, Character deceased)
+    {
+        Character? best = null; int bestStrength = -1;
+        foreach (var r in world.Relationships)
+        {
+            if (r.Bond != BondType.Sworn) continue;
+            string? otherId = r.FromId == deceased.Id ? r.ToId : r.ToId == deceased.Id ? r.FromId : null;
+            if (otherId == null) continue;
+            var other = world.Char(otherId);
+            if (other is not { Alive: true } || other.HouseId == deceased.HouseId) continue;
+            if (r.BondStrength > bestStrength ||
+                (r.BondStrength == bestStrength && string.CompareOrdinal(other.Id, best!.Id) < 0))
+            { best = other; bestStrength = r.BondStrength; }
+        }
+        return best;
     }
 
     /// <summary>Make <paramref name="heir"/> the protagonist: by death (succession) or by choice (the

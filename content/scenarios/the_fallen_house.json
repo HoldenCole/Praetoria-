@@ -58,7 +58,10 @@
       },
       "ambition": "restore_house_fortunes",
       "//": "Proud+Vengeful = feels the family's fall as personal wound (drives the §13 contempt-for-the-risen). Rank 1 already (a half-step up) so career events are reachable.",
-      "sex": "male"
+      "sex": "male",
+      "flags": [
+        "wed"
+      ]
     },
     {
       "id": "voss_mira",
@@ -81,6 +84,31 @@
       "ambition": "restore_house_fortunes",
       "//": "Younger sibling, the steward to Aldric's soldier. Just+Administrator = the conscience and the ledger. A blood bond worth protecting (and a vulnerability).",
       "sex": "female"
+    },
+    {
+      "id": "voss_senna",
+      "name": "Senna Voss",
+      "house": "voss",
+      "age": 18,
+      "sex": "female",
+      "careerTrack": "stewardship",
+      "careerRank": 0,
+      "nature": [
+        "Loyal"
+      ],
+      "aptitude": [
+        "Diplomat"
+      ],
+      "skills": {
+        "diplomacy": 2,
+        "charisma": 2,
+        "administration": 1
+      },
+      "ambition": "win_a_great_love",
+      "flags": [
+        "wed"
+      ],
+      "//": "Aldric's young wife, married into the fallen name for love rather than advantage. The couple makes the dynasty layer live from turn 1 (births need a wedded mother and father). Younger than Mira so the sister, not the bride, stands next in line."
     },
     {
       "id": "harrow_drusus",
@@ -137,6 +165,35 @@
       "bond": "none",
       "strength": 0,
       "//": "Drusus disdains rather than hates — he barely thinks of Voss as competition yet. Asymmetric, per the brief."
+    },
+    {
+      "from": "aldric_voss",
+      "to": "voss_senna",
+      "disposition": 55,
+      "bond": "marriage",
+      "strength": 65,
+      "//": "Wed before the fall; the marriage is the one thing Harrow could not take."
+    },
+    {
+      "from": "voss_senna",
+      "to": "aldric_voss",
+      "disposition": 60,
+      "bond": "marriage",
+      "strength": 65
+    },
+    {
+      "from": "voss_mira",
+      "to": "voss_senna",
+      "disposition": 30,
+      "bond": "none",
+      "strength": 0
+    },
+    {
+      "from": "voss_senna",
+      "to": "voss_mira",
+      "disposition": 35,
+      "bond": "none",
+      "strength": 0
     }
   ],
   "holdings": [

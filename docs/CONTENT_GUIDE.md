@@ -7,7 +7,7 @@ so no writing is wasted.
 
 Everything here is grounded in the current Core (`/src/Core`). When the engine grows (military layer,
 galaxy map), this guide gets new sections — it won't silently drift. Last reconciled with the code:
-2026-11-07 (see `docs/GAP_ANALYSIS.md`).
+v0.5.0, 2026-11-07 (see `docs/GAP_ANALYSIS.md` and `docs/RELEASE_0.5.md`).
 
 > **Golden rule:** the engine only accepts the vocabulary documented here. Anything outside it throws
 > a `ContentException` at load and fails `validate`. Author *against this doc*, run `validate`, ship.
@@ -164,6 +164,7 @@ AND). Comparison `op` ∈ `eq, neq, lt, lte, gt, gte` (symbols `==, !=, <, <=, >
 | `trait` | `role`, `trait`, `kind: nature\|aptitude\|any`, `present:bool` | does the character have the trait? |
 | `rank` | `role`, `op`, `value` **or** `vsRole` | career-rank compare (literal, or against another role) |
 | `track` | `role`(default `self`), `track`, `present:bool` | is the character on this career track? (`military\|stewardship\|law`) — gate each track's arc on it |
+| `era` | `era: fractured_stars\|imperium`, `present:bool` | which start the world is in (GDD §10) — gate court-of-the-emperor content on `imperium` |
 | `turn` | `op`, `value` | current turn number compare |
 | `age` | `role`(default `self`), `op`, `value` | character age compare (GDD §14) |
 | `counter` | `key`, `op`, `value` | world-counter compare (gate accumulators, clocks) |
@@ -323,12 +324,22 @@ This runs **automatically every turn** — you don't author it, but you can read
   passes to an **heir** (a living house member — blood children first, eldest first), or the dynasty ends.
 - **Birth**: a married couple (`addBond … bond:"marriage"`) with a fertile mother (16–45) may bear a
   child each turn — a new character, age 0, joining the **father's** house with blood ties to both parents.
+- **Stress** (§18): every living character sheds 1 stress a year; at 100 they **break** — the engine sets
+  the char flag `broken`, resets stress to 50 and bumps the `breakdowns` counter. `the_breaking_point`
+  (echoes) is the authored consequence; write others against `broken`. Nature traits don't charge stress
+  automatically — pair the off-trait choice with `adjustStress` yourself.
+- **Regency**: while the protagonist is under 16 the world flag `regency` is up (no regent character yet).
+- **Game mode** (§14): `World.Mode` is `ironman` (dynasty death ends the run) or `continue` (the strongest
+  sworn ally of the dead head takes up the banner; the `dynasty_adopted` flag and `adoptions` counter record
+  it). The harness sets it with `--continue`.
 
 **Character scenario fields** the lifecycle uses: `sex` (`"male"`/`"female"` — required for births),
-`mother`/`father` (ids — succession rights). Set these in a scenario's `characters`.
+`mother`/`father` (ids — succession rights), and `flags` (starting char flags, e.g. `["wed"]` for a cast
+that begins married). Set these in a scenario's `characters`.
 
 **Engine-written counters/flags you may READ:** `generation` (succession count), `dynasty_births`
-(total born), and the `dynasty_dead` world flag (no heir remained — the run is over).
+(total born), `breakdowns`, `adoptions`; the char flag `broken`; the world flags `dynasty_dead` (no heir
+remained — the run is over), `dynasty_adopted`, `regency`.
 
 **Verbs that touch it:** `age` (condition — "when you grow old…") and `kill` (effect — assassination,
 duel, Bloody Event; auto-fires succession if the target is the protagonist). Example Bloody-Event beat:
@@ -424,7 +435,9 @@ chain is documented.
     "yield":  { "materials": 4 },     // gross per-turn production (any of the 5 resources)
     "upkeep": { "credits": 2 },       // per-turn running cost
     "slots": 3,                        // how many buildings can be slotted here
-    "popGrowth": 1 }                   // population added per turn; >0 marks a POPULATED world (carries unrest)
+    "popGrowth": 1,                    // population added per turn; >0 marks a POPULATED world (carries unrest)
+    "maxPopulation": 40,               // population ceiling (0/omitted = uncapped)
+    "popManpower": 20 }                // +1 Manpower per this many population ("people are soldiers"; 0 = decorative)
 ]}
 ```
 Currently authored (`specializations.json` + `holdings_ext.json`): `agri_world, forge_world, trade_hub,
@@ -449,9 +462,10 @@ Resource keys (everywhere): `credits, materials, manpower, influence, exotics`.
 
 **Economy mechanics that make these matter (so you can tune):**
 - Each turn, every holding feeds its owner's treasury: `spec.yield + Σ building.yield − all upkeep`.
-- Populated worlds (`popGrowth>0`) grow, and carry **unrest**: when the owning house's **Credits < 0**,
-  unrest climbs +5/turn and **suppresses Manpower output** (`× (100−unrest)/100`); when solvent it
-  decays −3/turn. This is the §17 "the one you run out of" tension.
+- Populated worlds (`popGrowth>0`) grow to `maxPopulation`, add `population / popManpower` Manpower a
+  turn, and carry **unrest**: when the owning house's **Credits < 0**, unrest climbs +5/turn and
+  **suppresses Manpower output** (`× (100−unrest)/100`); when solvent it decays −3/turn. This is the §17
+  "the one you run out of" tension. NPC houses build on their own holdings when they can afford to.
 - **Tuning rule (GDD §17): do NOT balance to uniformity.** Author so each resource is *dominant under
   some path/settings* — a forge-heavy military house and an influence-heavy intrigue house should play
   genuinely different economic games. A resource marginal in *most* runs but decisive in *some* is
@@ -461,9 +475,11 @@ Resource keys (everywhere): `credits, materials, manpower, influence, exotics`.
 
 ## 7. Scenarios — starting situations
 
-`/content/scenarios/<id>.json` — four ship: `academy_crucible` (the fixture) and the three rise-path
-openings `the_fallen_house` / `the_circling_heir` / `the_risen_officer`. Every character carries `sex`;
-every house a `title` + `legitimacy` (the fallen house holds a Baron title above its standing on purpose).
+`/content/scenarios/<id>.json` — five ship: `academy_crucible` (the fixture), the three rise-path openings
+`the_fallen_house` (starts married) / `the_circling_heir` / `the_risen_officer`, and the `imperium`-era
+`the_imperial_court` (starts married, under a living Emperor; the sovereign binds by *title*). Every
+character carries `sex`; every house a `title` + `legitimacy` (the fallen house holds a Baron title above
+its standing on purpose).
 ```jsonc
 {
   "id": "academy_crucible",
@@ -492,8 +508,8 @@ every house a `title` + `legitimacy` (the fallen house holds a Baron title above
   ]
 }
 ```
-**Want:** an `imperium`-era opening (every shipped scenario is `fractured_stars`), and a cast that starts
-*married* so the dynasty layer is live from turn 1 rather than after a match event.
+**Want:** a scenario spanning generations (an aged head with a grown heir), and a cast with a child heir
+so the `regency` flag gets content.
 
 ---
 
@@ -584,7 +600,7 @@ content would have nowhere to go:
 | **Honorifics & Orders** | GDD §13 slot, no loader. | later |
 | **Exotics *sources* / anomalies / archaeology** | The Exotics resource exists; the anomaly→Crisis-foreshadowing system is DLC-era. | DLC |
 | **Galaxy map / systems / hyperlanes** | `Holding.system` field is reserved but unused. | Milestone 3/4 UI |
-| **The Great Crisis / era flip / epilogue** | `World.Era` exists; nothing flips it or reads it yet. | Milestone 6 |
+| **The Great Crisis / era flip / epilogue** | `World.Era` is readable (`era` condition) and the Imperium *start* ships; nothing *flips* the era mid-run yet, and there is no epilogue generator. | Milestone 6 |
 
 Spheres, crises (gates / cascades / dampers / `once` / `onResolve`), titles, claims, marriage, careers,
 `kill` and `succeed` **are** all loadable now — see §4b–§4e. Bloody Events are ordinary set-pieces that
@@ -623,10 +639,10 @@ TRAIT KIND nature | aptitude | any
 TOKENS     {role.name} {role.house} {role.rank} {role.rankName}   (role = self or a declared role)
 TRACKS     military | stewardship | law                 (ladders + rung names in /content/careers)
 CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
-CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track turn age counter resource sphere title claim eventFired
+CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age counter resource sphere title claim eventFired
 EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim revokeClaim adjustLegitimacy setTitle succeed kill log
 READ-ONLY  title_rank · house_legitimacy · title_instability   (system-written, protagonist house)
-LIFECYCLE  generation · dynasty_births counters · dynasty_dead flag   (system-written, §14)
+LIFECYCLE  generation · dynasty_births · breakdowns · adoptions counters · dynasty_dead · dynasty_adopted · regency flags · broken char flag   (system-written, §14/§18)
 CRISES     crisis:<id>:active · crisis:<id>:spent flags            (system-written, §16)
 RULE       every event keeps at least one choice with no `requires`
 ```

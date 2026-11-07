@@ -1,4 +1,5 @@
 using Praetoria.Core.Commands;
+using Praetoria.Core.Data;
 using Praetoria.Core.State;
 
 namespace Praetoria.Core.Systems;
@@ -15,7 +16,8 @@ public sealed class NpcAi
     /// <summary>Each living non-protagonist takes at most one affordable action this turn. If a
     /// crisis engine is supplied, an ambitious NPC may also <em>author</em> a causable crisis
     /// (GDD §16 "crises have authors") — through the same command bus the player uses.</summary>
-    public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null)
+    public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
+        HoldingCatalog? catalog = null)
     {
         var world = ctx.World;
         var npcs = world.LivingCharacters()
@@ -30,7 +32,33 @@ public sealed class NpcAi
                 executor.TryExecute(command, ctx);
         }
 
+        if (catalog is { IsEmpty: false }) Invest(npcs, catalog, executor, ctx);
         if (crises != null) AuthorCrisis(npcs, crises, executor, ctx);
+    }
+
+    /// <summary>Rival houses develop their (abstracted, GDD §3) domains: each NPC house's senior living
+    /// member slots the first affordable, fitting building — at most one build per house per turn, in id
+    /// order, so rival realms grow deterministically instead of sitting on hoarded treasuries.</summary>
+    private static void Invest(List<Character> npcs, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
+    {
+        var world = ctx.World;
+        var playerHouse = world.Protagonist?.HouseId;
+        foreach (var house in world.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            if (house.Id == playerHouse) continue;
+            var steward = npcs.FirstOrDefault(c => c.HouseId == house.Id);
+            if (steward == null) continue;
+
+            bool built = false;
+            foreach (var holding in world.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
+            {
+                foreach (var b in catalog.Buildings.OrderBy(b => b.Id, StringComparer.Ordinal))
+                {
+                    if (executor.TryExecute(new BuildCommand(steward.Id, holding.Id, b.Id, catalog), ctx)) { built = true; break; }
+                }
+                if (built) break;
+            }
+        }
     }
 
     /// <summary>The first ambitious NPC (id order) lights the fuse on the first causable crisis

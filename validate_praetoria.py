@@ -15,7 +15,7 @@ engine's loader accepts. Exit code 0 = clean, 1 = errors. Run after every batch.
 """
 import json, re, sys, glob, os
 
-COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","eventFired"}
+COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","eventFired"}
 EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","revokeClaim","adjustLegitimacy","setTitle","succeed","kill","log"}
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
 RES={"credits","materials","manpower","influence","exotics"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
@@ -90,6 +90,8 @@ def walk(conds,ctx,roles):
             if kind=="any" and tr not in NATURE|APTITUDE: errors.append(f"[{ctx}] unknown trait '{tr}'")
         if c.get("type")=="skill" and c.get("skill") not in SKILLS:
             errors.append(f"[{ctx}] unlocked skill '{c.get('skill')}'")
+        if c.get("type")=="era" and c.get("era") not in ERAS:
+            errors.append(f"[{ctx}] bad era '{c.get('era')}'")
         if c.get("type")=="track" and c.get("track") not in TRACKS:
             errors.append(f"[{ctx}] unlocked track '{c.get('track')}'")
         if c.get("type")=="sphere" and c.get("sphere") not in SPHERES:

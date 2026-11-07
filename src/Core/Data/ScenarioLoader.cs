@@ -108,7 +108,8 @@ public static class ScenarioLoader
                     NatureTraits = StrSet(c, "nature"),
                     AptitudeTraits = StrSet(c, "aptitude"),
                     Skills = IntMap(c, "skills"),
-                    Ambition = ConditionParser.OptStr(c, "ambition", "")
+                    Ambition = ConditionParser.OptStr(c, "ambition", ""),
+                    Flags = StrSet(c, "flags")
                 });
         return list;
     }

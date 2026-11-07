@@ -52,6 +52,8 @@ public static class ConditionParser
                 return new RankCondition(Str(el, "role"), Op(el), Int(el, "value", 0), OptStrOrNull(el, "vsRole"));
             case "turn":
                 return new TurnCondition(Op(el), Int(el, "value", 0));
+            case "era":
+                return new EraCondition(Str(el, "era"), Bool(el, "present", true));
             case "track":
                 return new TrackCondition(OptStr(el, "role", "self"), Str(el, "track"), Bool(el, "present", true));
             case "age":

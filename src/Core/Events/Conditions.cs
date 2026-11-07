@@ -290,6 +290,17 @@ public sealed class AgeCondition : ICondition
     }
 }
 
+/// <summary>Which start the world is in (GDD §10): "fractured_stars" (no imperium yet) or "imperium".
+/// JSON: { "type": "era", "era": "imperium", "present": true }. Gates court-of-the-emperor content on the
+/// Imperium start and proclamation content on the fractured one.</summary>
+public sealed class EraCondition : ICondition
+{
+    public string Era { get; }
+    public bool Present { get; }
+    public EraCondition(string era, bool present) { Era = era; Present = present; }
+    public bool Evaluate(EvalContext ctx) => (ctx.World.Era == Era) == Present;
+}
+
 /// <summary>Always-true / always-false literal. JSON: { "type": "const", "value": true }.</summary>
 public sealed class ConstCondition : ICondition
 {

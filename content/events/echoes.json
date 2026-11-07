@@ -1,0 +1,801 @@
+{
+  "//": "ECHOES — consequences for earlier choices whose flags had no reader. Consumes: debt_to_crown (the_crowns_due), anomaly_hoarded/anomaly_studied (the_anomaly_stirs), oath_sworn_academy (the_oath_remembered), coalition_broken (the_coalitions_remnant), reconciled (the_old_wound_healed), sabotaged (what_the_sabotage_taught), wed (the_household), and the engine-written `broken` stress flag (the_breaking_point). Every event here clears the flag it reads so chains end cleanly.",
+  "events": [
+    {
+      "id": "the_crowns_due",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "sovereign",
+          "when": [
+            {
+              "type": "rank",
+              "role": "sovereign",
+              "op": "gt",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "debt_to_crown",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_in_coin",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "debt_to_crown",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sovereign",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "The crown's due came to {self.name} with interest, and {self.name} paid it in coin that had been meant for other things. {sovereign.name} of {sovereign.house} received it as the crown receives everything: as its right."
+            }
+          ]
+        },
+        {
+          "id": "pay_in_service",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "debt_to_crown",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the crown's due in the only coin a poor house has — a year of service at {sovereign.name}'s disposal, unglamorous and unrefusable. The debt is cleared. The year is gone. The standing it bought will outlast both."
+            }
+          ]
+        },
+        {
+          "id": "defy_the_crown",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "debt_to_crown",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "sovereign",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sovereign",
+              "to": "self",
+              "delta": -40
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {sovereign.name} of {sovereign.house}, through intermediaries and then without them, that the debt would not be paid. The court went very quiet. A house that defies the crown has either grown very strong or made a very large mistake, and no one yet knows which {self.name} is."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_anomaly_stirs",
+      "tier": "setpiece",
+      "weight": 2,
+      "repeatable": false,
+      "roles": [],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "anomaly_hoarded",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "anomaly_studied",
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "study_it",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Brilliant",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "exotics",
+              "delta": 3
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "engineering",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went back to the thing from the worthless rock and gave it the attention it had been waiting for. It yielded. It yielded more than it should have — the kind of result that makes a careful mind wonder what else has been waiting, and where."
+            }
+          ]
+        },
+        {
+          "id": "sell_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "adjustResource",
+              "resource": "exotics",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sold the thing from the rock to someone who asked no questions and paid as if they knew the answers. The treasury is heavier. Somewhere, the thing is being studied by hands {self.name} will never see."
+            }
+          ]
+        },
+        {
+          "id": "seal_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the thing sealed, logged, and forgotten under three locks and a false label. A prudent steward's decision. {self.name} slept badly anyway, and could not have said why."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_oath_remembered",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "comrade",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "comrade",
+              "bond": "sworn",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "oath_sworn_academy",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 8
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_on_them",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called on the old academy oath, and {comrade.name} of {comrade.house} answered it without being asked twice. Blood you are given; this was chosen, and it held."
+            }
+          ]
+        },
+        {
+          "id": "stand_for_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{comrade.name} needed the oath more than {self.name} did this year, and {self.name} stood for them at a cost — publicly, expensively, the way oaths are meant to be kept. The cohort that watched the swearing has long since scattered. The ones who hear of this will understand what it was."
+            }
+          ]
+        },
+        {
+          "id": "let_it_lapse",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "log",
+              "text": "The old words came due and {self.name} let them pass unkept. {comrade.name} of {comrade.house} said nothing, which is how such things are said."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_coalitions_remnant",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "rival",
+              "flag": "coalition_broken",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "finish_them",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "coalition_broken",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -25
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not let {rival.name} of {rival.house} recover from the coalition's collapse. Allies were peeled away, debts were called, and what had been a faction became one bitter house with a long memory."
+            }
+          ]
+        },
+        {
+          "id": "bring_them_in",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "coalition_broken",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} offered {rival.name} of {rival.house} what the broken coalition could not: a place. Yesterday's organiser-against-you became today's reluctant client. Mercy, at court, is just leverage with better manners."
+            }
+          ]
+        },
+        {
+          "id": "let_them_scatter",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "coalition_broken",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the remnants of the coalition drift apart on their own. {rival.name} of {rival.house} went home to count what the fear had cost. It would be a while before anyone proposed another."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_old_wound_healed",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "friend",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "friend",
+              "flag": "reconciled",
+              "value": true
+            },
+            {
+              "type": "relationship",
+              "from": "friend",
+              "to": "self",
+              "op": "gte",
+              "value": 10
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "deepen_it",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "friend",
+              "flag": "reconciled",
+              "value": false
+            },
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "friend",
+              "bond": "sworn",
+              "strength": 40
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "friend",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "What had been a quarrel between {self.name} and {friend.name} of {friend.house} became, by slow degrees and one honest evening, something the old academy would have recognised as an oath. Enemies make the best allies; they already know where you are weak."
+            }
+          ]
+        },
+        {
+          "id": "keep_it_civil",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "friend",
+              "flag": "reconciled",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {friend.name} of {friend.house} remained what the reconciliation had made them: correct, cordial, and careful. Not every mended thing needs to become more."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "what_the_sabotage_taught",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "sabotaged",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "trust_no_one",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "sabotaged",
+              "value": false
+            },
+            {
+              "type": "addTrait",
+              "role": "self",
+              "trait": "Paranoid",
+              "kind": "aptitude"
+            },
+            {
+              "type": "log",
+              "text": "{self.name} never again left a locker, a ledger, or a back unwatched. The spoiled kit at the academy had taught a lesson, and {self.name} had learned it thoroughly — perhaps too thoroughly."
+            }
+          ]
+        },
+        {
+          "id": "let_it_go",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "sabotaged",
+              "value": false
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} set the old sabotage down at last. It had made {self.name} harder, and that was enough; it did not need to make {self.name} smaller too."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_household",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "wed",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "tend_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "spouse",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "An evening with {spouse.name} and no one else. The great game went on without {self.name} for a few hours, and the house was, briefly, only a house."
+            }
+          ]
+        },
+        {
+          "id": "neglect_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "spouse",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} worked through the evening again. {spouse.name} did not remark on it, which {self.name} chose to read as understanding."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_breaking_point",
+      "tier": "setpiece",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "broken",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "gather_yourself",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "broken",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -20
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "Something in {self.name} gave way, and then — slowly, privately, with no one permitted to see — was put back. Not the same shape as before. Stronger along the crack."
+            }
+          ]
+        },
+        {
+          "id": "lash_out",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Cruel",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "broken",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} broke outward. A steward dismissed in front of the household, a petitioner answered with a blow, a week the court would talk about for a year. The pressure eased. The price was paid by everyone nearby."
+            }
+          ]
+        },
+        {
+          "id": "withdraw",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "broken",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -30
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} withdrew — from the court, the ledgers, the thousand demands — and let the house run itself for a season. It ran badly. {self.name} came back able to run it."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

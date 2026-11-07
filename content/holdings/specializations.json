@@ -1,7 +1,8 @@
 {
   // Holding specializations (GDD §17). Code provides the accrual mechanism; these data files
   // provide the instances. yield/upkeep are per-turn resource bundles; slots = build capacity;
-  // popGrowth > 0 marks a populated world (grows, and carries unrest). Tuned for medium baseline,
+  // popGrowth > 0 marks a populated world (grows to maxPopulation, and carries unrest); popManpower =
+  // population per +1 Manpower/turn ("people are soldiers"). Tuned for medium baseline,
   // NOT for uniformity — a forge-world and an agri-world are meant to play different economic games
   // (GDD §17 variable emphasis).
   "specializations": [
@@ -9,19 +10,19 @@
       "id": "agri_world", "name": "Agri-World",
       "yield":  { "manpower": 3, "credits": 2 },
       "upkeep": { "credits": 1 },
-      "slots": 2, "popGrowth": 2
+      "slots": 2, "popGrowth": 2, "maxPopulation": 60, "popManpower": 10
     },
     {
       "id": "forge_world", "name": "Forge-World",
       "yield":  { "materials": 4 },
       "upkeep": { "credits": 2 },
-      "slots": 3, "popGrowth": 1
+      "slots": 3, "popGrowth": 1, "maxPopulation": 40, "popManpower": 20
     },
     {
       "id": "trade_hub", "name": "Trade Hub",
       "yield":  { "credits": 5 },
       "upkeep": { "credits": 1 },
-      "slots": 2, "popGrowth": 1
+      "slots": 2, "popGrowth": 1, "maxPopulation": 50, "popManpower": 25
     },
     {
       "id": "fortress", "name": "Fortress World",

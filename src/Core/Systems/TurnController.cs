@@ -32,6 +32,7 @@ public sealed class TurnController
     public TurnPhase Phase { get; private set; } = TurnPhase.Idle;
 
     private readonly IRng _rng;
+    private readonly ContentDatabase _content;
     private readonly NpcAi _npcAi = new();
     private readonly Economy? _economy;
     private readonly CrisisEngine? _crises;
@@ -58,6 +59,7 @@ public sealed class TurnController
     public TurnController(World world, ContentDatabase content, Director? director = null, int briefingBudget = 3)
     {
         World = world;
+        _content = content;
         _rng = WorldBuilder.RngFor(world);
         Engine = new EventEngine(content, _rng, director);
         _economy = content.Holdings.IsEmpty ? null : new Economy(content.Holdings);
@@ -125,7 +127,7 @@ public sealed class TurnController
     public void EndTurn()
     {
         Phase = TurnPhase.Resolve;
-        _npcAi.Act(Executor, Context(), _crises);   // NPCs act — and may author a crisis
+        _npcAi.Act(Executor, Context(), _crises, _economy == null ? null : _content.Holdings);   // NPCs act, invest, and may author a crisis
 
         // Organic onset: the ripe-conditions roll (GDD §16 mixed origin). NPC-authored crises this
         // turn are already active, so they're excluded from the causable pool here.

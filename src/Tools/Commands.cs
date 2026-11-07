@@ -31,7 +31,7 @@ internal static class Commands
         var (tc, content, world) = o.Load != null ? ResumeTurn(o) : NewTurn(o);
         bool interactive = !o.Auto && !Console.IsInputRedirected;
 
-        Console.WriteLine($"=== Praetoria — {o.Scenario} (seed {o.Seed}){(o.Load != null ? $" — resumed from {o.Load} at turn {world.Turn}" : "")} ===");
+        Console.WriteLine($"=== Praetoria {PraetoriaVersion.Current} — {o.Scenario} (seed {o.Seed}, {world.Mode}){(o.Load != null ? $" — resumed from {o.Load} at turn {world.Turn}" : "")} ===");
         Console.WriteLine("Turn structure: Briefing → Action (spend pools) → Resolve (NPCs act).");
         Console.WriteLine(interactive ? "Enter a choice number, or 0/blank to skip a report.\n"
                                        : "Auto play (deterministic; first affordable choice each report).\n");
@@ -464,6 +464,7 @@ internal static class Commands
         var content = ContentLoader.LoadFromDirectory(contentRoot);
         var scenario = ScenarioLoader.LoadFromContent(contentRoot, o.Scenario);
         var world = WorldBuilder.FromScenario(scenario, o.Seed);
+        if (o.Continue) world.Mode = Praetoria.Core.State.World.ModeContinue;
         return (new TurnController(world, content), content, world);
     }
 

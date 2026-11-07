@@ -7,8 +7,10 @@ of a minor noble house holding a single barony, and you climb — through war, m
 bloodline — toward the throne of a fractured human galaxy. Your character will age and die. Your
 *dynasty* is what you are really playing: it outlives every person in it, or it ends.
 
-**Engine:** Godot 4.x · C# (.NET 8). **Status:** the entire simulation core is built and runs headless
-(no UI yet); see [What's built](#whats-built-the-current-state) and [What's not](#whats-not-built-the-gaps).
+**Engine:** Godot 4.x · C# (.NET 8). **Status: v0.5.0 — "headless complete".** Every core system of the
+human game is built, wired together, deterministic and content-fed; it runs and saves from the console. There
+is no UI yet. See [What's built](#whats-built-the-current-state), [What's not](#whats-not-built-the-gaps)
+and [`docs/RELEASE_0.5.md`](docs/RELEASE_0.5.md).
 
 This README is the front door. If you are new — a programmer, a writer, or just curious — it should
 leave you knowing what the game *is*, how it's designed, exactly what exists today, what doesn't, and
@@ -174,14 +176,15 @@ together, deterministic, soaked for 40-turn playthroughs, with an authored conte
 |---|---|---|---|
 | **Event engine** | GDD §15 | ✅ | Role-bound authored events; eligibility from world state; a Director paces by tier (ambient/situation/setpiece), suppresses repeats, raises set-pieces as the run advances; consequences write state so unscripted chains emerge. **Proven:** an insult arms a `feud` flag → a duel that was *impossible* becomes eligible. |
 | **Turn loop, pools, commands** | §9, BuildSpec §7 | ✅ | Briefing → Action → Resolve. Finite per-turn action pools (Influence/Treasury/Agents). A command bus shared by player and NPC AI; the run is replayable from its command log. |
-| **Domain economy** | §17 | ✅ | Five resources on a house treasury; holdings with specializations and building slots; per-turn accrual/upkeep; insolvency → unrest → manpower suppression. Build command through the bus. |
+| **Domain economy** | §17 | ✅ | Five resources on a house treasury; holdings with specializations and building slots; per-turn accrual/upkeep; population grows to a per-spec ceiling and feeds Manpower ("people are soldiers"); insolvency → unrest → manpower suppression. Build command through the bus; **NPC houses invest in their own domains**. |
 | **Crisis system** | §16 | ✅ | Crises as gated states with onset by organic roll *or* authored trigger (NPC houses light fuses); cascades through shared counters; dampers gated on prior play; **natural de-escalation** when a crisis's root cause eases. **Proven:** crushing a revolt arms the civil-war gate. |
 | **Power-balance spheres** | §7 | ✅ | Navy/Treasury/Senate influence **derived from member careers**; a threat score (dominance + holdings + seizures); coalition pressure that arms a coalition-war crisis; bridged into the player-facing coalition event chain. |
 | **Progression & soft-lock** | §13 | ✅ | A 7-rung title ladder with legitimacy requirements; the three rise paths as commands (Seize / Petition / Claim) at three exchange rates; holding above your legitimacy breeds instability that feeds the crisis web. |
-| **Dynasty lifecycle** | §14 | ✅ | Aging; mortality from 50; births to married couples (patrilineal, blood ties; a marriage counts from either spouse's edge); protagonist death → heir handoff (eldest blood child first) with the house persisting; voluntary handover via the `succeed` verb; dynasty death ends the run. `kill` and `age` verbs for events. |
+| **Dynasty lifecycle** | §14 | ✅ | Aging; mortality from 50; births to married couples (patrilineal, blood ties; a marriage counts from either spouse's edge); protagonist death → heir handoff (eldest blood child first) with the house persisting; voluntary handover via the `succeed` verb; a child head rules under a `regency` flag. **Ironman** ends the run at dynasty death; **continue mode** (`--continue`) hands the banner to a sworn house. `kill` and `age` verbs for events. |
+| **Stress** | §18 | ✅ (thin) | Stress bleeds off slowly each year; at the ceiling the character *breaks* (a `broken` flag + `breakdowns` counter) and the authored *Breaking Point* set-piece decides what stands up afterward. |
 | **Career ladders** | §13 | ✅ | Tracks and named rank ladders are data (`/content/careers`); `advanceCareer` caps at the ladder top; events gate on `track`; prose names the rung. |
 | **Save / load** | BuildSpec §3, §7 | ✅ | The `World` (RNG position included) serialises to a versioned JSON envelope; a resumed run continues the exact same deterministic stream. `play --save` / `--load`. |
-| **NPC AI** | §3, §18 | ✅ (basic) | Trait/ambition-driven actions through the same command bus; ambitious NPCs author crises. Deliberately abstracted (no NPC economies). |
+| **NPC AI** | §3, §18 | ✅ (basic) | Trait/ambition-driven actions through the same command bus; ambitious NPCs author crises; rival houses slot buildings when they can afford them. Deliberately abstracted (no full NPC economies). |
 | **Content pipeline** | §15, §20 | ✅ | JSON loaders, JSONC-tolerant; an engine validator (text pairing, token resolution, the ungated-choice rule) and a stricter Python pre-flight (locked vocab, read-only counters, flag-chain audit in both directions). Both run in CI. |
 | **Console harness** | BuildSpec §2 | ✅ | `play` (the whole game as text), plus focused demos for every system, and `validate`. |
 
@@ -189,17 +192,17 @@ together, deterministic, soaked for 40-turn playthroughs, with an authored conte
 
 | | Count | Notes |
 |---|---|---|
-| Events (+ paired prose) | **65** | Academy Crucible 18 · Career progression 16 · Steward/economy 15 · Coalition chain 8 · Succession 8 |
-| Scenarios | 4 | `academy_crucible` (the fixture) + the three rise-path openings: *The Fallen House*, *The Circling Heir*, *The Risen Officer* — every cast sexed, every house titled, so the dynasty and soft-lock layers are live in all of them |
+| Events (+ paired prose) | **76** | Academy Crucible 18 · Career progression 16 · Steward/economy 15 · Coalition chain 8 · Succession 8 · Imperial court 3 · Echoes 8 |
+| Scenarios | 5 | `academy_crucible` (the fixture), the three rise-path openings *The Fallen House* (starts married), *The Circling Heir*, *The Risen Officer*, and **the `imperium`-era start *The Imperial Court*** (starts married, under a living Emperor) — every cast sexed, every house titled |
 | Crises | 5 | local revolt → civil war cascade · coalition war · contested title · court scandal (the wars un-arm the realm when they subside) |
 | Holding specializations / buildings | 12 / 12 | |
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 123 automated tests, including a 40-turn whole-stack soak that asserts end-to-end
+**Verification:** 138 automated tests, including a 40-turn whole-stack soak that asserts end-to-end
 determinism, succession landing, crises de-escalating, and no absurd state, and a save/load round-trip
-that must reproduce an uninterrupted run; both validators clean and both run in CI; every scenario
-auto-plays 40 turns crash-free across five seeds.
+that must reproduce an uninterrupted run; both validators clean and both run in CI; all five scenarios
+auto-play 40 turns crash-free across five seeds.
 
 Per-milestone detail, with the acceptance proof for each: [`MILESTONE_1`](docs/MILESTONE_1_NOTES.md)
 (engine) · [`MILESTONE_2`](docs/MILESTONE_2_NOTES.md) (turn loop) · [`MILESTONE_4`](docs/MILESTONE_4_NOTES.md)
@@ -227,16 +230,15 @@ if it's listed, it does not exist yet.
 | **Marriage/fostering as *systems*** | §18 | Marriage exists as a bond and forges claims via content; there's no proposal/negotiation system or fostering. |
 | **Family autonomy** | §18 | Family members resisting/defying the player's direction based on loyalty + ambition + traits. NPC *houses* have will; the player's *own family* does not yet. |
 | **Anomalies/archaeology & Exotics sources** | §17 | The Exotics resource exists; the exploration system that produces it (and foreshadows the Crisis) is DLC-era design and not built. |
-| **Ironman vs continue** | §14 | Dynasty death now ends the run; the "adopt a sworn cadet house and play on" mode is not built. |
-| **Stress consequences** | §18 | Stress accumulates (0–100) and nothing relieves or triggers on it — no breakdown, no per-turn decay. A long run pins the protagonist at 90+. |
 
 ### Built but shallow (works; known to need depth or tuning)
 - **Succession law** is primogeniture-by-age among blood children, then eldest house member. No
   regency for child rulers, no matrilineal/elective law, no contested successions as a system.
-- **Births** are patrilineal only, and need a mother and a father. Scenario casts are sexed but start
-  unmarried, so the first generation depends on the match event firing.
-- **Population is decorative**: holdings grow population every turn but yields don't read it; Manpower
-  comes from the specialization, throttled by unrest. The GDD's population→manpower link is not wired.
+- **Births** are patrilineal only, and need a mother and a father. Two scenarios start married; the
+  other three depend on the match event firing for a first generation.
+- **Stress is a thin loop**: a flat yearly bleed-off and a single break-point. No per-trait stress
+  (nature traits don't yet charge stress automatically when a choice runs against them — content does it).
+- **Regency is a flag**, not a regent: a child head is marked, but no character is bound as regent.
 - **Sphere influence** derives only from careers; titles, marriages and standing don't yet feed it.
 - **Threat formula**: a house that's the *sole* holder of a sphere reads as maximally threatening even
   at trivial absolute influence (defensible — "you own the whole Navy" — but coarse).
@@ -244,13 +246,10 @@ if it's listed, it does not exist yet.
   recovery except the civil war ending; flagged for a balance pass.
 - **Crises recur by design** (a realm can revolt twice); a one-time crisis sets `"once": true`. None of
   the shipped five do yet.
-- **Relationship lookups are linear scans** over one list; fine at 4–6 characters, will need an index
-  once casts grow to dozens (the Binder evaluates every event × every candidate each turn).
 - **NPC AI** is a small set of trait-driven verbs — enough to prove the shared-command architecture,
   not a strategic opponent.
-- **Flag dead-ends** remain for markers the handoff seeded for future content: `anomaly_*`,
-  `oath_sworn_academy`, `coalition_broken`, `debt_to_crown`, `reconciled`, `sabotaged`, `wed` are
-  written and never read (the validator lists them).
+- **Continue mode** adopts the strongest sworn ally's house; there is no vassal/cadet-house model yet to
+  choose from, and the adopted house keeps its own title and standing.
 
 ---
 
@@ -263,9 +262,9 @@ if it's listed, it does not exist yet.
 | ✅ | **1 — The Engine Breathes** | headless event engine + Academy Crucible | a choice makes a different, unscripted event eligible later |
 | ✅ | **2 — Turn Loop, Pools & Commands** | Briefing→Action→Resolve, pools, command bus, NPCs | a full turn cycle resolves deterministically from a seed |
 | ⬜ | **3 — Court Mode UI** | first Godot layer; the three-column Court; base theme | the Academy + early court game fully playable via UI |
-| ◐ | **4 — Economy, Holdings & Galaxy** | economy ✅ · succession ✅ · **Galaxy map + fleets ⬜** | play from a barony, move fleets, advance through a succession |
+| ◐ | **4 — Economy, Holdings & Galaxy** | economy ✅ · succession ✅ · save/load ✅ · **Galaxy map + fleets ⬜** | play from a barony, move fleets, advance through a succession |
 | ◐ | **5 — Spheres, Progression & Crises** | crises ✅ · spheres ✅ · progression ✅ · **Bloody Events ⬜** | engineer/defuse a crisis via gates; a damper arrests a cascade; an NPC triggers one |
-| ⬜ | **6 — The Human Endgame** | Great-Crisis framework (human galaxy-war); proclaim/seize the Imperium; era flip; ironman; saga epilogue | a full run from Baron to a throne-endgame, won or lost. **V1-complete on systems.** |
+| ◐ | **6 — The Human Endgame** | ironman/continue ✅ · an `imperium`-era start + `era` gating ✅ · **Great-Crisis framework, proclaiming/seizing the Imperium (the era *flip*), saga epilogue ⬜** | a full run from Baron to a throne-endgame, won or lost. **V1-complete on systems.** |
 | ⬜ | **7 — Reactive UI, Polish, Content Depth** | era × role × house theming; typography; portraits; audio; content volume; balance | the UI transforms on proclamation; enough content for replayability |
 
 The recommended order from here: **3 (Court UI)** — the game becomes human-playable and everything
@@ -328,6 +327,7 @@ dotnet run --project src/Tools -- play --seed 1 --turns 8          # interactive
 dotnet run --project src/Tools -- play --seed 1 --turns 30 --auto  # auto-pilot, any scenario via --scenario
 dotnet run --project src/Tools -- play --auto --turns 10 --save run.json   # save between turns…
 dotnet run --project src/Tools -- play --load run.json --turns 10          # …and resume the same stream
+dotnet run --project src/Tools -- play --scenario the_imperial_court --continue --turns 60 --auto  # Imperium start, continue mode
 
 # Watch each system prove its design, deterministically from a seed:
 dotnet run --project src/Tools -- demo --seed 1          # the cascade: an insult makes an impossible duel possible
@@ -338,7 +338,7 @@ dotnet run --project src/Tools -- spheres --seed 1       # an heir's Navy career
 dotnet run --project src/Tools -- progression --seed 1   # the meritocrat rules secure; the conqueror rules a powder keg
 dotnet run --project src/Tools -- dynasty --seed 3       # a ruler dies, his heir succeeds, children are born
 
-# The test suite (123 tests, incl. a 40-turn whole-stack soak and a save/load round-trip)
+# The test suite (138 tests, incl. a 40-turn whole-stack soak and a save/load round-trip)
 dotnet test
 ```
 
@@ -380,9 +380,9 @@ dotnet test                                     # nothing regressed
 ```
 
 Highest-value content right now: **Bloody Event set-pieces** (the mechanism is ready; the academy's
-*The Marked Man* is the first to use `kill`), events that **consume the seeded marker flags** (`anomaly_*`,
-`oath_sworn_academy`, `coalition_broken`, `debt_to_crown`), an **Imperium-era scenario**, and more
-**academy / career / succession** depth toward a 40–60 event opening act. Rules of the road: gate each
+*The Marked Man* is the first to use `kill`), **Imperium-court depth** (three events gate on `era` today),
+**regency and child-heir scenes** (gate on the `regency` flag), and more **academy / career / succession**
+depth toward a 40–60 event opening act. Rules of the road: gate each
 track's arc with `track`, spend claims with `revokeClaim`, and leave every event one ungated choice.
 
 ## License

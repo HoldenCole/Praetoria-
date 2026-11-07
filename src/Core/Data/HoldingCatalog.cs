@@ -25,6 +25,15 @@ public sealed class HoldingSpec
     /// <summary>Population added each turn (populated specializations only). 0 ⇒ unpopulated.</summary>
     public int PopGrowth { get; init; }
 
+    /// <summary>Population ceiling for this kind of world (GDD §17 — a mining outpost is not a hive).
+    /// 0 ⇒ uncapped (the pre-0.5 behaviour).</summary>
+    public int MaxPopulation { get; init; }
+
+    /// <summary>People are soldiers: every this-many population adds +1 Manpower to the holding's
+    /// per-turn yield, before unrest throttles it (GDD §17 population → manpower). 0 ⇒ population is
+    /// decorative for this specialization.</summary>
+    public int PopManpower { get; init; }
+
     public bool Populated => PopGrowth > 0;
 }
 

@@ -55,7 +55,9 @@ public static class HoldingCatalogLoader
         BaseYield = ParseResources(el, "yield"),
         Upkeep = ParseResources(el, "upkeep"),
         Slots = ConditionParser.Int(el, "slots", 0),
-        PopGrowth = ConditionParser.Int(el, "popGrowth", 0)
+        PopGrowth = ConditionParser.Int(el, "popGrowth", 0),
+        MaxPopulation = ConditionParser.Int(el, "maxPopulation", 0),
+        PopManpower = ConditionParser.Int(el, "popManpower", 0)
     };
 
     private static BuildingDef ParseBuilding(JsonElement el) => new()

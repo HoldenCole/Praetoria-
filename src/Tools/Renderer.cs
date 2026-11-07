@@ -80,6 +80,8 @@ public static class Renderer
         string house = p != null ? HouseName(world, p.HouseId) : "the house";
         Console.WriteLine();
         Console.WriteLine($"══ THE LINE IS ENDED ══  {house} has no heir. The dynasty is extinguished on turn {world.Turn}.");
+        if (world.Mode == World.ModeIronman)
+            Console.WriteLine("   (ironman — run with --continue to let a sworn house take up the banner instead)");
     }
 
     public static void RenderEpilogueHints(World world)

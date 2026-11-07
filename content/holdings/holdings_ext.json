@@ -26,7 +26,9 @@
       },
       "slots": 4,
       "popGrowth": 1,
-      "//": "MATERIALS powerhouse but EXPENSIVE & populated. Net materials huge, but heavy credit upkeep means it bleeds you when insolvent (and then unrest hits its manpower). The military house's crown jewel and its biggest liability. Most slots of any spec."
+      "//": "MATERIALS powerhouse but EXPENSIVE & populated. Net materials huge, but heavy credit upkeep means it bleeds you when insolvent (and then unrest hits its manpower). The military house's crown jewel and its biggest liability. Most slots of any spec.",
+      "maxPopulation": 40,
+      "popManpower": 20
     },
     {
       "id": "agri_collective",
@@ -40,7 +42,9 @@
       },
       "slots": 3,
       "popGrowth": 2,
-      "//": "MANPOWER home, fast-growing population. Food feeds people; people are soldiers and unrest both. Highest popGrowth = most manpower over time AND most exposure to unrest spirals. Cheap to run."
+      "//": "MANPOWER home, fast-growing population. Food feeds people; people are soldiers and unrest both. Highest popGrowth = most manpower over time AND most exposure to unrest spirals. Cheap to run.",
+      "maxPopulation": 80,
+      "popManpower": 8
     },
     {
       "id": "fortress_station",
@@ -78,7 +82,9 @@
       },
       "slots": 3,
       "popGrowth": 1,
-      "//": "CREDITS home — highest raw credit yield in the catalog. Populated (carries unrest), and upkeep is paid in MANPOWER not credits, so it stays profitable even when broke but quietly drains your soldiers. The merchant house's engine."
+      "//": "CREDITS home — highest raw credit yield in the catalog. Populated (carries unrest), and upkeep is paid in MANPOWER not credits, so it stays profitable even when broke but quietly drains your soldiers. The merchant house's engine.",
+      "maxPopulation": 60,
+      "popManpower": 20
     },
     {
       "id": "senatorial_seat",

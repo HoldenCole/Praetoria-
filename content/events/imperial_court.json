@@ -1,0 +1,343 @@
+{
+  "//": "THE IMPERIAL COURT — content for the §10 'Imperium' start, gated on the `era` condition so it never fires in a fractured_stars run. The court of a standing Emperor: favor, whispers, and the levy. Writes debt_to_crown (consumed by echoes/the_crowns_due), corruption, unrest, standing. The sovereign role binds by TITLE (the house that holds `emperor`), not by name — any Emperor will do, including whoever seizes the throne later.",
+  "events": [
+    {
+      "id": "the_emperors_favor",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "sovereign",
+          "when": [
+            {
+              "type": "title",
+              "role": "sovereign",
+              "title": "emperor",
+              "present": true
+            },
+            {
+              "type": "rank",
+              "role": "sovereign",
+              "op": "gt",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "era",
+          "era": "imperium"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "serve_well",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sovereign",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} served, and was seen to serve. {sovereign.name} said a sentence in {self.name}'s hearing that the whole court would spend a week interpreting. A knight's house is made of such sentences."
+            }
+          ]
+        },
+        {
+          "id": "flatter",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Orator",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sovereign",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} found the words {sovereign.name} wished to hear and said them beautifully. The court noted that the knight's heir could be bought in the currency of praise, and priced {self.name} accordingly."
+            }
+          ]
+        },
+        {
+          "id": "keep_distance",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "sovereign",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "law",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} declined to join the crowd at {sovereign.name}'s elbow, and did the work instead. Some at court called it pride. The Emperor, who had seen a great deal of kneeling, called it interesting."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_court_of_whispers",
+      "tier": "ambient",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "whisperer",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "whisperer",
+              "to": "self",
+              "op": "gte",
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "era",
+          "era": "imperium"
+        }
+      ],
+      "choices": [
+        {
+          "id": "listen",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "intrigue",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} listened to what {whisperer.name} of {whisperer.house} had heard in the corridors, and learned a little, and owed a little, which at court are the same thing."
+            }
+          ]
+        },
+        {
+          "id": "repeat_it",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Schemer",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "whisperer",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} carried {whisperer.name}'s whisper to the ear that would pay best for it. Information is the only coin the court mints itself."
+            }
+          ]
+        },
+        {
+          "id": "ignore_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the whisper pass. There are a thousand a day; a mind that keeps them all keeps nothing else."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_imperial_levy",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "collector",
+          "when": [
+            {
+              "type": "rank",
+              "role": "collector",
+              "op": "gte",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "era",
+          "era": "imperium"
+        },
+        {
+          "type": "resource",
+          "resource": "credits",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_the_levy",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the Imperial levy in full and on the day. {collector.name} of {collector.house} recorded it without comment, which from a collector is praise."
+            }
+          ]
+        },
+        {
+          "id": "haggle_it_down",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Administrator",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Diplomat",
+                  "kind": "aptitude",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "collector",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} argued the assessment down with ledgers and law until {collector.name} gave up a third of it to be rid of the conversation. The crown got less. The collector remembered."
+            }
+          ]
+        },
+        {
+          "id": "refuse_the_levy",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "debt_to_crown",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "collector",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {collector.name} away with nothing but a promise. The fief kept its coin for one more season. The crown keeps longer books than that."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

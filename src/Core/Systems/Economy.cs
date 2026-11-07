@@ -46,7 +46,9 @@ public sealed class Economy
                 {
                     holding.Unrest = Math.Clamp(
                         holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay), 0, 100);
-                    holding.Population = Math.Max(0, holding.Population + spec.PopGrowth);
+                    int pop = Math.Max(0, holding.Population + spec.PopGrowth);
+                    if (spec.MaxPopulation > 0) pop = Math.Min(pop, spec.MaxPopulation);
+                    holding.Population = pop;
                 }
 
                 foreach (var r in Resource.All)
@@ -57,6 +59,10 @@ public sealed class Economy
                         var b = _catalog.Building(bid);
                         if (b != null) net += b.Yield.Get(r) - b.Upkeep.Get(r);
                     }
+
+                    // People are soldiers (GDD §17): population feeds Manpower, then unrest taxes it below.
+                    if (r == Resource.Manpower && spec.PopManpower > 0)
+                        net += holding.Population / spec.PopManpower;
 
                     // Unrest is a tax on people: it throttles Manpower output (GDD §17).
                     if (r == Resource.Manpower && net > 0)
