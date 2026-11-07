@@ -161,6 +161,7 @@ public class CombatTests
         Assert.True(w.AtWar("corwin", "vega"));
 
         w.Fleets["fleet_corwin"].Strength = 1; w.Fleets["fleet_vega"].Strength = 4;   // now badly outgunned
+        foreach (var pools in w.Pools.Values) pools.Regenerate();                     // a new turn: pools refill
         new NpcAi().Act(exec, new CommandContext(w, TestContent.Rng()), null, null, content.Fleets);
         Assert.Contains(exec.Log, l => l.Contains("sue for peace"));
         Assert.True(w.AtWar("corwin", "vega"));                                   // the player decides, not the engine
