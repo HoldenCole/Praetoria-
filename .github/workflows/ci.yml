@@ -25,8 +25,12 @@ jobs:
       - name: Build
         run: dotnet build Praetoria.sln --no-restore -c Release
 
-      - name: Validate content
+      - name: Validate content (engine gate)
         run: dotnet run --project src/Tools -c Release --no-build -- validate
+
+      # The stricter pre-flight: locked vocabularies, read-only counters, flag-chain audit, ungated-choice rule.
+      - name: Validate content (pre-flight)
+        run: python3 validate_praetoria.py
 
       - name: Test
         run: dotnet test Praetoria.sln --no-build -c Release --verbosity normal

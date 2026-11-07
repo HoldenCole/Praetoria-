@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Praetoria.Core.State;
 
 /// <summary>
@@ -20,5 +22,6 @@ public sealed class ActiveCrisis
     /// <summary>Who caused it: a character/house id, or "" for an organic (Director-rolled) onset.</summary>
     public string AuthorId { get; set; } = "";
 
+    [JsonIgnore]
     public bool Organic => string.IsNullOrEmpty(AuthorId);
 }

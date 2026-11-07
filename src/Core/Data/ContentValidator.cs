@@ -18,7 +18,7 @@ public sealed record ContentIssue(string Severity, string Where, string Message)
 public static class ContentValidator
 {
     private static readonly Regex TokenRx = new(@"\{([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\}", RegexOptions.Compiled);
-    private static readonly HashSet<string> KnownFields = new() { "name", "house", "rank" };
+    private static readonly HashSet<string> KnownFields = new() { "name", "house", "rank", "rankName" };
 
     public static IReadOnlyList<ContentIssue> Validate(ContentDatabase db)
     {
@@ -63,6 +63,10 @@ public static class ContentValidator
 
             if (e.Choices.Count == 0)
                 issues.Add(new("warning", e.Id, "event has no choices."));
+            else if (e.Choices.All(c => c.Requirements.Count > 0))
+                issues.Add(new("error", e.Id,
+                    "every choice is gated by `requires`; a character meeting none of them could never act on " +
+                    "the event, and an unresolved briefing item is re-offered every turn. Leave one choice ungated."));
         }
 
         // Orphan text (text with no matching event).

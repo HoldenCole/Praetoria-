@@ -60,9 +60,11 @@ public static class CrisisLoader
                 Tier = ConditionParser.OptStr(el, "tier", "regional"),
                 Weight = el.TryGetProperty("weight", out var w) && w.ValueKind == JsonValueKind.Number ? w.GetDouble() : 1.0,
                 Repeatable = ConditionParser.Bool(el, "repeatable", false),
+                Once = ConditionParser.Bool(el, "once", false),
                 Severity = ConditionParser.Int(el, "severity", 1),
                 Gates = el.TryGetProperty("gates", out var g) ? ConditionParser.ParseList(g) : Array.Empty<Events.ICondition>(),
                 OnTrigger = el.TryGetProperty("onTrigger", out var t) ? EffectParser.ParseList(t) : Array.Empty<Events.IEffect>(),
+                OnResolve = el.TryGetProperty("onResolve", out var r) ? EffectParser.ParseList(r) : Array.Empty<Events.IEffect>(),
                 Dampers = ParseDampers(el)
             };
         }

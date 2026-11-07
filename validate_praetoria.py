@@ -15,8 +15,8 @@ engine's loader accepts. Exit code 0 = clean, 1 = errors. Run after every batch.
 """
 import json, re, sys, glob, os
 
-COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","eventFired"}
-EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","adjustLegitimacy","setTitle","kill","log"}
+COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","eventFired"}
+EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","revokeClaim","adjustLegitimacy","setTitle","succeed","kill","log"}
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
 RES={"credits","materials","manpower","influence","exotics"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
 SPHERES={"navy","treasury","senate"}; TITLES={"landless","knight","baron","count","duke","archduke","emperor"}
@@ -90,6 +90,8 @@ def walk(conds,ctx,roles):
             if kind=="any" and tr not in NATURE|APTITUDE: errors.append(f"[{ctx}] unknown trait '{tr}'")
         if c.get("type")=="skill" and c.get("skill") not in SKILLS:
             errors.append(f"[{ctx}] unlocked skill '{c.get('skill')}'")
+        if c.get("type")=="track" and c.get("track") not in TRACKS:
+            errors.append(f"[{ctx}] unlocked track '{c.get('track')}'")
         if c.get("type")=="sphere" and c.get("sphere") not in SPHERES:
             errors.append(f"[{ctx}] bad sphere '{c.get('sphere')}'")
         if c.get("type") in ("title","claim") and c.get("title") not in TITLES:
@@ -103,7 +105,7 @@ def walk(conds,ctx,roles):
 def check_tokens(text,roles,ctx):
     for role,field in re.findall(r"\{(\w+)\.(\w+)\}",text):
         if role not in roles: errors.append(f"[{ctx}] token role '{role}' undeclared")
-        if field not in ("name","house","rank"): errors.append(f"[{ctx}] token bad field '{field}'")
+        if field not in ("name","house","rank","rankName"): errors.append(f"[{ctx}] token bad field '{field}'")
     for bare in re.findall(r"\{(\w+)\}",text):
         errors.append(f"[{ctx}] malformed token '{{{bare}}}' (missing .field)")
 
@@ -140,7 +142,7 @@ def validate_events(ev,tx):
                     if tr not in pool: errors.append(f"[{eid}/{cid}] addTrait unlocked {kind} '{tr}'")
                 if ef["type"]=="adjustSkill" and ef.get("skill") not in SKILLS:
                     errors.append(f"[{eid}/{cid}] adjustSkill unlocked skill '{ef.get('skill')}'")
-                if ef["type"] in ("grantClaim","setTitle") and ef.get("title") not in TITLES:
+                if ef["type"] in ("grantClaim","revokeClaim","setTitle") and ef.get("title") not in TITLES:
                     errors.append(f"[{eid}/{cid}] {ef['type']} bad title id '{ef.get('title')}'")
                 if ef["type"]=="addBond" and ef.get("bond") not in BONDS:
                     errors.append(f"[{eid}/{cid}] addBond bad bond '{ef.get('bond')}'")
@@ -150,6 +152,8 @@ def validate_events(ev,tx):
                 if ef["type"]=="log": check_tokens(ef.get("text",""),roles,f"{eid}/{cid}/log")
                 if ef["type"] in ("setCharFlag","setWorldFlag"): written.add(ef["flag"])
                 if "//" in ef: errors.append(f"[{eid}/{cid}] stray '//' key inside effect")
+        if e.get("choices") and all(ch.get("requires") for ch in e["choices"]):
+            errors.append(f"[{eid}] every choice is gated by `requires` — leave one ungated or the event can be un-actionable and is re-offered every turn")
         orphan=set(t.get("choices",{}))-cids
         if orphan: errors.append(f"[{eid}] orphan choice text {orphan}")
         def collect(conds):
@@ -164,6 +168,8 @@ def validate_events(ev,tx):
     # engine-managed/scenario-seeded flags are legitimately read-only here:
     dead={f for f in dead if not f.startswith("evt:")}
     if dead: warns.append(f"flags read but never written in events (ok if scenario-seeded or engine-set): {sorted(dead)}")
+    unread=written-read
+    if unread: warns.append(f"flags written but never read by any event (dead-end chains; fine for markers/future hooks): {sorted(unread)}")
     return ids
 
 def validate_holdings(sp,bd):

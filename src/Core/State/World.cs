@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Praetoria.Core.State;
 
 /// <summary>
@@ -48,6 +50,7 @@ public sealed class World
 
     // ---- Convenience accessors (not serialised behaviour, just lookups) ----
 
+    [JsonIgnore]
     public Character? Protagonist =>
         Characters.TryGetValue(ProtagonistId, out var c) ? c : null;
 
@@ -73,6 +76,14 @@ public sealed class World
 
     public bool HasFlag(string flag) => WorldFlags.Contains(flag);
 
+    /// <summary>Canonical world flag the dynasty system raises when the protagonist dies with no heir
+    /// (GDD §14 — the true fail state). Front-ends stop the run on it; ironman vs continue is later.</summary>
+    public const string DynastyDeadFlag = "dynasty_dead";
+
+    /// <summary>True once no name-bearer remains to inherit the seat (GDD §14 dynasty death).</summary>
+    [JsonIgnore]
+    public bool IsDynastyDead => HasFlag(DynastyDeadFlag);
+
     /// <summary>Get-or-create the action pools for an actor (empty pools if none were seeded).</summary>
     public ActionPools PoolsFor(string actorId)
     {
@@ -89,6 +100,9 @@ public sealed class World
 
     /// <summary>Canonical world flag marking an active crisis, so ordinary flag conditions can read it.</summary>
     public static string CrisisFlag(string id) => $"crisis:{id}:active";
+
+    /// <summary>Canonical world flag marking a one-time (<c>once</c>) crisis as spent after it resolved.</summary>
+    public static string CrisisSpentFlag(string id) => $"crisis:{id}:spent";
 
     /// <summary>Get the directed edge from→to, or null. Relationships are sparse.</summary>
     public Relationship? GetRelationship(string fromId, string toId)

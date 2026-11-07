@@ -58,21 +58,25 @@ public sealed class DynastySystem
                      .ToList())
         {
             var father = Spouse(world, mother);
-            if (father == null) continue;
+            if (father == null || father.Sex != "male") continue;   // births need a mother and a father
             if (rng.NextDouble() < BirthChance)
                 Bear(world, mother, father, rng);
         }
     }
 
-    /// <summary>The living spouse a character is married to (the Marriage bond), or null.</summary>
-    private static Character? Spouse(World world, Character c)
+    /// <summary>The living spouse a character is married to (a Marriage bond on <em>either</em> edge — a
+    /// marriage authored from one side still counts), or null. Deterministic: edges are scanned in
+    /// insertion order and the first living spouse wins.</summary>
+    public static Character? Spouse(World world, Character c)
     {
-        foreach (var r in world.ConnectionsOf(c.Id))
-            if (r.Bond == BondType.Marriage)
-            {
-                var other = world.Char(r.ToId);
-                if (other is { Alive: true }) return other;
-            }
+        foreach (var r in world.Relationships)
+        {
+            if (r.Bond != BondType.Marriage) continue;
+            string? otherId = r.FromId == c.Id ? r.ToId : r.ToId == c.Id ? r.FromId : null;
+            if (otherId == null) continue;
+            var other = world.Char(otherId);
+            if (other is { Alive: true }) return other;
+        }
         return null;
     }
 
@@ -122,17 +126,27 @@ public sealed class DynastySystem
         var heir = FindHeir(world, deceased);
         if (heir != null)
         {
-            world.ProtagonistId = heir.Id;
-            world.Pools[heir.Id] = ActionPools.ForPlayer();   // the new head wields a player-scale economy (§9)
-            world.WorldCounters["generation"] = world.Counter("generation") + 1;
-            var house = world.House(heir.HouseId);
-            world.Log($"{heir.Name} succeeds as head of {(house?.Name ?? heir.HouseId)}.");
+            HandOver(world, heir);
         }
         else
         {
-            world.WorldFlags.Add("dynasty_dead");
+            world.WorldFlags.Add(World.DynastyDeadFlag);
             world.Log($"House {deceased.HouseId} ends — no heir remains.");
         }
+    }
+
+    /// <summary>Make <paramref name="heir"/> the protagonist: by death (succession) or by choice (the
+    /// <c>succeed</c> effect — abdication). The House endures; the new head gets a player-scale economy (§9).</summary>
+    public static void HandOver(World world, Character heir)
+    {
+        var previous = world.Protagonist;
+        world.ProtagonistId = heir.Id;
+        world.Pools[heir.Id] = ActionPools.ForPlayer();
+        world.WorldCounters["generation"] = world.Counter("generation") + 1;
+        var house = world.House(heir.HouseId);
+        world.Log(previous is { Alive: true }
+            ? $"{previous.Name} yields the seat; {heir.Name} succeeds as head of {(house?.Name ?? heir.HouseId)}."
+            : $"{heir.Name} succeeds as head of {(house?.Name ?? heir.HouseId)}.");
     }
 
     /// <summary>The successor to a deceased head (GDD §14): a living member of the same house, blood

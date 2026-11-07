@@ -1,3 +1,4 @@
+using Praetoria.Core.Data;
 using Praetoria.Core.Rng;
 using Praetoria.Core.State;
 
@@ -15,11 +16,16 @@ public sealed class EvalContext
     public Binding Binding { get; }
     public IRng Rng { get; }
 
-    public EvalContext(World world, Binding binding, IRng rng)
+    /// <summary>The loaded content catalogs, when the caller has them (career ladders cap ranks and name
+    /// rungs). Null in catalog-free contexts (tests, crisis gates): effects then fall back to bare ints.</summary>
+    public ContentDatabase? Content { get; }
+
+    public EvalContext(World world, Binding binding, IRng rng, ContentDatabase? content = null)
     {
         World = world;
         Binding = binding;
         Rng = rng;
+        Content = content;
     }
 
     /// <summary>Resolve a role name to a live Character, or null if unbound/missing/dead-ref.</summary>
@@ -29,5 +35,5 @@ public sealed class EvalContext
         return World.Char(id);
     }
 
-    public EvalContext WithBinding(Binding binding) => new(World, binding, Rng);
+    public EvalContext WithBinding(Binding binding) => new(World, binding, Rng, Content);
 }

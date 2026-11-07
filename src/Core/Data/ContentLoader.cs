@@ -37,8 +37,9 @@ public static class ContentLoader
         var crises = CrisisLoader.LoadFromDirectory(contentRoot);
         var spheres = SphereLoader.LoadFromDirectory(contentRoot);
         var titles = TitleLoader.LoadFromDirectory(contentRoot);
+        var careers = CareerLoader.LoadFromDirectory(contentRoot);
 
-        return new ContentDatabase(events, texts, holdings, crises, spheres, titles);
+        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers);
     }
 
     private static IEnumerable<string> EnumerateJson(string dir) =>

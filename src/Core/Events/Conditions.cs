@@ -156,6 +156,22 @@ public sealed class RankCondition : ICondition
     }
 }
 
+/// <summary>Career-track check (GDD §13 — the three tracks are different institutions; a magistrate does
+/// not get a first fleet command). JSON: { "type": "track", "role": "self", "track": "military", "present": true }.</summary>
+public sealed class TrackCondition : ICondition
+{
+    public string Role { get; }
+    public string Track { get; }
+    public bool Present { get; }
+    public TrackCondition(string role, string track, bool present) { Role = role; Track = track; Present = present; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c == null) return false;
+        return (c.CareerTrack == Track) == Present;
+    }
+}
+
 /// <summary>Turn-counter compare. JSON: { "type": "turn", "op": "gte", "value": 3 }.</summary>
 public sealed class TurnCondition : ICondition
 {

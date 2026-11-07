@@ -1,3 +1,4 @@
+using Praetoria.Core.Careers;
 using Praetoria.Core.Crises;
 using Praetoria.Core.Events;
 using Praetoria.Core.Progression;
@@ -27,6 +28,9 @@ public sealed class ContentDatabase
     /// <summary>The title ladder (GDD §13). Empty for scenarios with no progression layer.</summary>
     public TitleCatalog Titles { get; }
 
+    /// <summary>Career tracks + rank ladders (GDD §13). Empty ⇒ ranks are uncapped, unnamed integers.</summary>
+    public CareerCatalog Careers { get; }
+
     private readonly Dictionary<string, EventDef> _eventsById;
 
     public ContentDatabase(
@@ -35,7 +39,8 @@ public sealed class ContentDatabase
         HoldingCatalog? holdings = null,
         IReadOnlyList<CrisisDef>? crises = null,
         SphereCatalog? spheres = null,
-        TitleCatalog? titles = null)
+        TitleCatalog? titles = null,
+        CareerCatalog? careers = null)
     {
         Events = events;
         Texts = texts;
@@ -43,6 +48,7 @@ public sealed class ContentDatabase
         Crises = crises ?? Array.Empty<CrisisDef>();
         Spheres = spheres ?? SphereCatalog.Empty;
         Titles = titles ?? TitleCatalog.Empty;
+        Careers = careers ?? CareerCatalog.Empty;
         _eventsById = new Dictionary<string, EventDef>();
         foreach (var e in events) _eventsById[e.Id] = e;
     }

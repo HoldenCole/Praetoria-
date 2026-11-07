@@ -44,8 +44,13 @@ public sealed class CrisisDef
     /// <summary>Selection weight for an organic (Director-rolled) onset.</summary>
     public double Weight { get; init; } = 1.0;
 
-    /// <summary>If false, the crisis can't re-onset while already active (the common case).</summary>
+    /// <summary>If false, the crisis can't re-onset while already active (the common case). A resolved
+    /// crisis may recur later (revolts, coalitions) unless <see cref="Once"/> is set.</summary>
     public bool Repeatable { get; init; }
+
+    /// <summary>If true, the crisis can happen at most once per run: after it resolves a spent marker
+    /// (<c>crisis:&lt;id&gt;:spent</c>) keeps it from ever onsetting again — for one-time turning points.</summary>
+    public bool Once { get; init; }
 
     /// <summary>Severity the crisis onsets at; cascades that re-trigger it add this again.</summary>
     public int Severity { get; init; } = 1;
@@ -55,6 +60,10 @@ public sealed class CrisisDef
 
     /// <summary>State writes applied on onset. The engine of cascades (one crisis arms the next).</summary>
     public IReadOnlyList<IEffect> OnTrigger { get; init; } = Array.Empty<IEffect>();
+
+    /// <summary>State writes applied when the crisis resolves (damped to zero or decayed out) — the
+    /// place to un-arm what <see cref="OnTrigger"/> armed (e.g. clear a <c>realm_unstable</c> flag).</summary>
+    public IReadOnlyList<IEffect> OnResolve { get; init; } = Array.Empty<IEffect>();
 
     public IReadOnlyList<DamperDef> Dampers { get; init; } = Array.Empty<DamperDef>();
 }

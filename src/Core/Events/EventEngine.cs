@@ -44,7 +44,7 @@ public sealed class EventEngine
             var binding = Binder.TryBind(def, world, Rng);
             if (binding == null) continue;
 
-            var ctx = new EvalContext(world, binding, Rng);
+            var ctx = new EvalContext(world, binding, Rng, _content);
             if (Binder.AllHold(def.Conditions, ctx))
                 result.Add((def, binding));
         }
@@ -81,7 +81,7 @@ public sealed class EventEngine
     /// <summary>The choices of a fired event, each flagged with whether its requirements are met (trait/skill/rank gates).</summary>
     public List<OfferedChoice> OfferChoices(FiredEvent fired, World world)
     {
-        var ctx = new EvalContext(world, fired.Binding, Rng);
+        var ctx = new EvalContext(world, fired.Binding, Rng, _content);
         var list = new List<OfferedChoice>(fired.Def.Choices.Count);
         foreach (var choice in fired.Def.Choices)
             list.Add(new OfferedChoice(choice, Binder.AllHold(choice.Requirements, ctx)));
@@ -94,7 +94,7 @@ public sealed class EventEngine
     {
         var choice = fired.Def.Choice(choiceId);
         if (choice == null) return false;
-        var ctx = new EvalContext(world, fired.Binding, Rng);
+        var ctx = new EvalContext(world, fired.Binding, Rng, _content);
         return Binder.AllHold(choice.Requirements, ctx);
     }
 
@@ -109,7 +109,7 @@ public sealed class EventEngine
         var choice = fired.Def.Choice(choiceId)
             ?? throw new ArgumentException($"Event '{fired.Def.Id}' has no choice '{choiceId}'.");
 
-        var ctx = new EvalContext(world, fired.Binding, Rng);
+        var ctx = new EvalContext(world, fired.Binding, Rng, _content);
         if (!Binder.AllHold(choice.Requirements, ctx))
             throw new InvalidOperationException($"Choice '{choiceId}' requirements are not met.");
 

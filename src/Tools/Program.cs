@@ -5,7 +5,7 @@ using Praetoria.Tools;
 
 // Praetoria headless console harness (BuildSpec §2 /src/Tools, §M1 acceptance).
 // Subcommands:
-//   play      [--seed N] [--turns N] [--auto] [--scenario id]   interactive (or auto) playthrough
+//   play      [--seed N] [--turns N] [--auto] [--scenario id] [--save f] [--load f]   interactive (or auto) playthrough
 //   demo      [--seed N]                                         scripted run that proves the cascade
 //   validate                                                     lint the content set (CI gate)
 // The whole simulation runs here without Godot — the Milestone-1 rule.
@@ -47,6 +47,8 @@ static (string, Options) ParseArgs(string[] args)
             case "--turns" when i + 1 < args.Length: o.Turns = int.Parse(args[++i]); break;
             case "--scenario" when i + 1 < args.Length: o.Scenario = args[++i]; break;
             case "--auto": o.Auto = true; break;
+            case "--save" when i + 1 < args.Length: o.Save = args[++i]; break;
+            case "--load" when i + 1 < args.Length: o.Load = args[++i]; break;
         }
     }
     return (command, o);
@@ -55,7 +57,7 @@ static (string, Options) ParseArgs(string[] args)
 static int Help()
 {
     Console.WriteLine("praetoria <command> [options]");
-    Console.WriteLine("  play [--seed N] [--turns N] [--auto] [--scenario id]");
+    Console.WriteLine("  play [--seed N] [--turns N] [--auto] [--scenario id] [--save file] [--load file]");
     Console.WriteLine("  turn [--seed N] [--turns N]   full Briefing→Action→Resolve cycle with pools + NPCs");
     Console.WriteLine("  economy [--seed N] [--turns N] domain economy: holdings accrue, invest in buildings");
     Console.WriteLine("  crisis [--seed N]              crisis gate/cascade/damper demonstration");
@@ -79,4 +81,6 @@ sealed class Options
     public int Turns = 6;
     public bool Auto;
     public string Scenario = "academy_crucible";
+    public string? Save;    // write the World here when the run ends (between turns)
+    public string? Load;    // resume from a save instead of a fresh scenario
 }

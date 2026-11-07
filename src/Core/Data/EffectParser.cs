@@ -57,6 +57,10 @@ public static class EffectParser
                     ConditionParser.OptStr(el, "role", "self"), S(el, "resource"), I(el, "delta", 0));
             case "grantClaim":
                 return new GrantClaimEffect(ConditionParser.OptStr(el, "role", "self"), S(el, "title"));
+            case "revokeClaim":
+                return new RevokeClaimEffect(ConditionParser.OptStr(el, "role", "self"), S(el, "title"));
+            case "succeed":
+                return new SucceedEffect(S(el, "role"));
             case "adjustLegitimacy":
                 return new AdjustLegitimacyEffect(ConditionParser.OptStr(el, "role", "self"), I(el, "delta", 0));
             case "setTitle":

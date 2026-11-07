@@ -6,9 +6,9 @@ namespace Praetoria.Core.Events;
 /// <summary>
 /// Substitutes {role.field} tokens in authored prose against the live binding (BuildSpec §4
 /// "role-variable substitution"). This is what turns one authored line into many lived ones:
-/// {rival.name} becomes whoever the Binder chose. Supported fields: name, house, title-ish
-/// rank, and a possessive pronoun stub. Unknown tokens are left intact (and reported by the
-/// content validator) rather than crashing a run.
+/// {rival.name} becomes whoever the Binder chose. Supported fields: name, house, rank (the integer)
+/// and rankName (the ladder rung, e.g. "Lieutenant", when a career catalog is loaded). Unknown tokens
+/// are left intact (and reported by the content validator) rather than crashing a run.
 /// </summary>
 public static class TextRenderer
 {
@@ -55,6 +55,8 @@ public static class TextRenderer
             case "house":
                 return ctx.World.Houses.TryGetValue(c.HouseId, out var h) ? h.Name : c.HouseId;
             case "rank": return c.CareerRank.ToString();
+            case "rankName":
+                return ctx.Content?.Careers.RankName(c.CareerTrack, c.CareerRank) ?? c.CareerRank.ToString();
             default: return original;
         }
     }

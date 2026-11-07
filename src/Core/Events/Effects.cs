@@ -50,7 +50,10 @@ public sealed class AdjustRelationshipEffect : IEffect
     }
 }
 
-/// <summary>Forge/upgrade a formal bond. JSON: { "type": "addBond", "from": "self", "to": "ally", "bond": "sworn", "strength": 40 }.</summary>
+/// <summary>Forge/upgrade a formal bond. JSON: { "type": "addBond", "from": "self", "to": "ally", "bond": "sworn", "strength": 40 }.
+/// Blood and sworn bonds are directed (A may swear to B without B swearing back). A <b>marriage</b> is
+/// inherently mutual, so it is written on both edges — the dynasty layer (births, the <c>bond</c>
+/// condition read from either side) sees it whichever spouse an event happened to bind as "from".</summary>
 public sealed class AddBondEffect : IEffect
 {
     public string From { get; }
@@ -61,7 +64,13 @@ public sealed class AddBondEffect : IEffect
     public void Apply(EvalContext ctx)
     {
         if (!ctx.Binding.TryGet(From, out var f) || !ctx.Binding.TryGet(To, out var t)) return;
-        var rel = ctx.World.Relationship(f, t);
+        Write(ctx.World, f, t);
+        if (Bond == BondType.Marriage) Write(ctx.World, t, f);
+    }
+
+    private void Write(World world, string from, string to)
+    {
+        var rel = world.Relationship(from, to);
         rel.Bond = Bond;
         rel.BondStrength = Math.Clamp(Strength, 0, 100);
     }
@@ -122,7 +131,8 @@ public sealed class AddTraitEffect : IEffect
     }
 }
 
-/// <summary>Advance a character's career rank by one (GDD §13). JSON: { "type": "advanceCareer", "role": "self" }.</summary>
+/// <summary>Advance a character's career rank by one (GDD §13), capped at the top of the track's ladder
+/// when a career catalog is loaded (a Grand Admiral is not promoted again). JSON: { "type": "advanceCareer", "role": "self" }.</summary>
 public sealed class AdvanceCareerEffect : IEffect
 {
     public string Role { get; }
@@ -130,7 +140,9 @@ public sealed class AdvanceCareerEffect : IEffect
     public void Apply(EvalContext ctx)
     {
         var c = ctx.Actor(Role);
-        if (c != null) c.CareerRank += 1;
+        if (c == null) return;
+        int? max = ctx.Content?.Careers.MaxRank(c.CareerTrack);
+        if (max == null || c.CareerRank < max) c.CareerRank += 1;
     }
 }
 
@@ -168,6 +180,38 @@ public sealed class GrantClaimEffect : IEffect
         var c = ctx.Actor(Role);
         if (c != null && ctx.World.Houses.TryGetValue(c.HouseId, out var house))
             house.Claims.Add(TitleId);
+    }
+}
+
+/// <summary>Remove a house's claim to a title (GDD §13) — the claim was pressed, sold, or extinguished.
+/// Targets the house of <c>role</c> (default "self"). JSON: { "type": "revokeClaim", "role": "self", "title": "count" }.
+/// Pair with <c>setTitle</c> when a claim is cashed, or a pressed claim stays pressable forever.</summary>
+public sealed class RevokeClaimEffect : IEffect
+{
+    public string Role { get; }
+    public string TitleId { get; }
+    public RevokeClaimEffect(string role, string titleId) { Role = role; TitleId = titleId; }
+    public void Apply(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c != null && ctx.World.Houses.TryGetValue(c.HouseId, out var house))
+            house.Claims.Remove(TitleId);
+    }
+}
+
+/// <summary>Hand the seat to another living character while the current head still lives (GDD §14 —
+/// abdication, a regency ending, a forced retirement). The role becomes the protagonist with a player-scale
+/// action economy; the House and its title are untouched. Death-driven succession is the dynasty system's
+/// job; this is the authored, voluntary path. JSON: { "type": "succeed", "role": "heir" }.</summary>
+public sealed class SucceedEffect : IEffect
+{
+    public string Role { get; }
+    public SucceedEffect(string role) => Role = role;
+    public void Apply(EvalContext ctx)
+    {
+        var heir = ctx.Actor(Role);
+        if (heir is not { Alive: true } || heir.Id == ctx.World.ProtagonistId) return;
+        Systems.DynastySystem.HandOver(ctx.World, heir);
     }
 }
 

@@ -38,6 +38,7 @@ public sealed class CrisisEngine
     public bool IsCausable(CrisisDef def, World w, IRng rng)
     {
         if (w.IsCrisisActive(def.Id) && !def.Repeatable) return false;
+        if (def.Once && w.HasFlag(World.CrisisSpentFlag(def.Id))) return false;   // a one-time crisis, already spent
         return Binder.AllHold(def.Gates, Ctx(w, rng));
     }
 
@@ -87,16 +88,19 @@ public sealed class CrisisEngine
         if (w.Crises.TryGetValue(def.Id, out var active))
         {
             active.Severity -= damper.Relief;
-            if (active.Severity <= 0) Resolve(def, w);
+            if (active.Severity <= 0) Resolve(def, w, rng);
         }
     }
 
-    /// <summary>End an active crisis (its severity is spent) and clear its active flag.</summary>
-    public void Resolve(CrisisDef def, World w)
+    /// <summary>End an active crisis (its severity is spent): clear its active flag, apply its
+    /// <c>onResolve</c> writes (un-arming what onset armed), and mark a <c>once</c> crisis spent.</summary>
+    public void Resolve(CrisisDef def, World w, IRng rng)
     {
         if (w.Crises.Remove(def.Id))
         {
             w.WorldFlags.Remove(World.CrisisFlag(def.Id));
+            if (def.Once) w.WorldFlags.Add(World.CrisisSpentFlag(def.Id));
+            foreach (var eff in def.OnResolve) eff.Apply(Ctx(w, rng));
             w.Log($"Crisis '{def.Name}' subsides.");
         }
     }
@@ -140,7 +144,7 @@ public sealed class CrisisEngine
             if (!Binder.AllHold(def.Gates, Ctx(w, ctxRng)))   // the conditions that caused it have eased
             {
                 w.Crises[id].Severity -= 1;
-                if (w.Crises[id].Severity <= 0) Resolve(def, w);
+                if (w.Crises[id].Severity <= 0) Resolve(def, w, rng);
             }
         }
     }

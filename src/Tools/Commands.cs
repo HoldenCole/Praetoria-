@@ -28,18 +28,20 @@ internal static class Commands
 
     public static int Play(Options o)
     {
-        var (tc, content, world) = NewTurn(o);
+        var (tc, content, world) = o.Load != null ? ResumeTurn(o) : NewTurn(o);
         bool interactive = !o.Auto && !Console.IsInputRedirected;
 
-        Console.WriteLine($"=== Praetoria — {o.Scenario} (seed {o.Seed}) ===");
+        Console.WriteLine($"=== Praetoria — {o.Scenario} (seed {o.Seed}){(o.Load != null ? $" — resumed from {o.Load} at turn {world.Turn}" : "")} ===");
         Console.WriteLine("Turn structure: Briefing → Action (spend pools) → Resolve (NPCs act).");
         Console.WriteLine(interactive ? "Enter a choice number, or 0/blank to skip a report.\n"
                                        : "Auto play (deterministic; first affordable choice each report).\n");
 
         for (int t = 0; t < o.Turns; t++)
         {
+            if (world.IsDynastyDead) break;          // GDD §14: the true fail state ends the run
+
             var briefing = tc.BeginTurn();           // Briefing phase
-            Renderer.RenderStatus(world);
+            Renderer.RenderStatus(world, content);
             Renderer.RenderPools(tc.PlayerPools);
             var playerHouse = world.House(world.Protagonist!.HouseId);
             if (playerHouse != null && world.HoldingsOf(playerHouse.Id).Any())
@@ -63,7 +65,15 @@ internal static class Commands
             Renderer.RenderCommandLog(tc.Executor.Log, npcFrom);
         }
 
+        if (world.IsDynastyDead) Renderer.RenderDynastyDeath(world);
         Renderer.RenderEpilogueHints(world);
+
+        if (o.Save != null)                          // saves = the World, between turns (phase Idle)
+        {
+            tc.SyncRng();
+            SaveSystem.Save(world, o.Save);
+            Console.WriteLine($"\nSaved to {o.Save} (turn {world.Turn}). Resume with: play --load {o.Save} --turns N");
+        }
         return 0;
     }
 
@@ -454,6 +464,15 @@ internal static class Commands
         var content = ContentLoader.LoadFromDirectory(contentRoot);
         var scenario = ScenarioLoader.LoadFromContent(contentRoot, o.Scenario);
         var world = WorldBuilder.FromScenario(scenario, o.Seed);
+        return (new TurnController(world, content), content, world);
+    }
+
+    /// <summary>Resume a saved World: content reloads from /content (so content patches apply), the World
+    /// carries everything else including the RNG position — the run continues on the same stream.</summary>
+    private static (TurnController tc, ContentDatabase content, Praetoria.Core.State.World world) ResumeTurn(Options o)
+    {
+        var content = LoadContent();
+        var world = SaveSystem.Load(o.Load!);
         return (new TurnController(world, content), content, world);
     }
 

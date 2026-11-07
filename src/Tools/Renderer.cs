@@ -35,11 +35,13 @@ public static class Renderer
         Console.WriteLine("  └─");
     }
 
-    public static void RenderStatus(World world)
+    public static void RenderStatus(World world, Praetoria.Core.Data.ContentDatabase? content = null)
     {
         var p = world.Protagonist!;
+        string rank = content?.Careers.RankName(p.CareerTrack, p.CareerRank) is { } name
+            ? $"{name} (rank {p.CareerRank})" : $"rank {p.CareerRank}";
         Console.WriteLine($"── Turn {world.Turn} ──  {p.Name} of {HouseName(world, p.HouseId)}  " +
-                          $"· rank {p.CareerRank} · stress {p.Stress}");
+                          $"· {rank} · stress {p.Stress}");
     }
 
     public static void RenderPools(ActionPools pools) =>
@@ -69,6 +71,15 @@ public static class Renderer
         Console.WriteLine("   · actions:");
         for (int i = from; i < log.Count; i++)
             Console.WriteLine($"       {log[i]}");
+    }
+
+    /// <summary>The fail state (GDD §14): no name-bearer remains. The chronicle below is the seed of the saga epilogue.</summary>
+    public static void RenderDynastyDeath(World world)
+    {
+        var p = world.Protagonist;
+        string house = p != null ? HouseName(world, p.HouseId) : "the house";
+        Console.WriteLine();
+        Console.WriteLine($"══ THE LINE IS ENDED ══  {house} has no heir. The dynasty is extinguished on turn {world.Turn}.");
     }
 
     public static void RenderEpilogueHints(World world)
