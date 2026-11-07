@@ -3,6 +3,7 @@
   "id": "the_imperial_court",
   "protagonist": "cassian_thorne",
   "era": "imperium",
+  "galaxy": "the_reach",
   "houses": [
     {
       "id": "thorne",
@@ -257,7 +258,7 @@
       "owner": "thorne",
       "name": "Lesser Marrow",
       "specialization": "agri_world",
-      "system": "",
+      "system": "lesser_marrow",
       "population": 15,
       "unrest": 0,
       "buildings": [],
@@ -268,7 +269,7 @@
       "owner": "aurelian",
       "name": "Aurelia Prime",
       "specialization": "trade_hub",
-      "system": "",
+      "system": "aurelia_prime",
       "population": 50,
       "unrest": 0,
       "buildings": [
@@ -281,7 +282,7 @@
       "owner": "valmont",
       "name": "The Valmont Anvils",
       "specialization": "forge_world",
-      "system": "",
+      "system": "valmont_anvils",
       "population": 25,
       "unrest": 0,
       "buildings": [

@@ -3,6 +3,7 @@
   "id": "the_circling_heir",
   "protagonist": "lucia_serval",
   "era": "fractured_stars",
+  "galaxy": "the_reach",
   "houses": [
     {
       "id": "serval",
@@ -167,7 +168,7 @@
       "owner": "serval",
       "name": "Highmarch",
       "specialization": "trade_hub",
-      "system": "",
+      "system": "highmarch",
       "population": 35,
       "unrest": 1,
       "buildings": [
@@ -180,7 +181,7 @@
       "owner": "serval",
       "name": "The Spire",
       "specialization": "research_station",
-      "system": "",
+      "system": "the_spire",
       "population": 8,
       "unrest": 0,
       "buildings": [],

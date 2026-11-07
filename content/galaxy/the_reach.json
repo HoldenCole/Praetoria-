@@ -1,0 +1,173 @@
+{
+  "//": "THE REACH — the curated star map every shipped scenario is played on (GDD §19: 2D node-and-lane, curated scale, not a 4X sprawl). Positions are map units (~1000×600); the UI scales. Territory is DERIVED: a system belongs to whoever owns the holdings placed in it by the scenario, shaded by that house's accent. Empty systems (The Veil, Cinder Gate) are the frontier — where the Crisis creeps in from an edge, later. Fleets/lanes-as-movement arrive with the military layer.",
+  "id": "the_reach",
+  "name": "The Reach",
+  "systems": [
+    {
+      "id": "tessaly",
+      "name": "Tessaly",
+      "x": 120,
+      "y": 160
+    },
+    {
+      "id": "anvil",
+      "name": "The Anvil",
+      "x": 300,
+      "y": 110
+    },
+    {
+      "id": "drake_crossing",
+      "name": "Drake Crossing",
+      "x": 420,
+      "y": 230
+    },
+    {
+      "id": "sato_holdfast",
+      "name": "Sato Holdfast",
+      "x": 260,
+      "y": 330
+    },
+    {
+      "id": "the_veil",
+      "name": "The Veil",
+      "x": 140,
+      "y": 440
+    },
+    {
+      "id": "greywater",
+      "name": "Greywater",
+      "x": 560,
+      "y": 120
+    },
+    {
+      "id": "cinder_gate",
+      "name": "Cinder Gate",
+      "x": 660,
+      "y": 330
+    },
+    {
+      "id": "anvils_rest",
+      "name": "Anvil's Rest",
+      "x": 700,
+      "y": 180
+    },
+    {
+      "id": "highmarch",
+      "name": "Highmarch",
+      "x": 480,
+      "y": 420
+    },
+    {
+      "id": "the_spire",
+      "name": "The Spire",
+      "x": 620,
+      "y": 480
+    },
+    {
+      "id": "drydock_nine",
+      "name": "Drydock Nine",
+      "x": 820,
+      "y": 330
+    },
+    {
+      "id": "aurelia_prime",
+      "name": "Aurelia Prime",
+      "x": 900,
+      "y": 160
+    },
+    {
+      "id": "lesser_marrow",
+      "name": "Lesser Marrow",
+      "x": 780,
+      "y": 520
+    },
+    {
+      "id": "valmont_anvils",
+      "name": "The Valmont Anvils",
+      "x": 960,
+      "y": 420
+    }
+  ],
+  "lanes": [
+    [
+      "tessaly",
+      "anvil"
+    ],
+    [
+      "tessaly",
+      "sato_holdfast"
+    ],
+    [
+      "anvil",
+      "drake_crossing"
+    ],
+    [
+      "anvil",
+      "greywater"
+    ],
+    [
+      "sato_holdfast",
+      "drake_crossing"
+    ],
+    [
+      "sato_holdfast",
+      "the_veil"
+    ],
+    [
+      "drake_crossing",
+      "highmarch"
+    ],
+    [
+      "drake_crossing",
+      "cinder_gate"
+    ],
+    [
+      "greywater",
+      "anvils_rest"
+    ],
+    [
+      "greywater",
+      "cinder_gate"
+    ],
+    [
+      "anvils_rest",
+      "aurelia_prime"
+    ],
+    [
+      "anvils_rest",
+      "drydock_nine"
+    ],
+    [
+      "cinder_gate",
+      "drydock_nine"
+    ],
+    [
+      "cinder_gate",
+      "highmarch"
+    ],
+    [
+      "highmarch",
+      "the_spire"
+    ],
+    [
+      "the_spire",
+      "lesser_marrow"
+    ],
+    [
+      "drydock_nine",
+      "lesser_marrow"
+    ],
+    [
+      "drydock_nine",
+      "valmont_anvils"
+    ],
+    [
+      "aurelia_prime",
+      "valmont_anvils"
+    ],
+    [
+      "the_veil",
+      "highmarch"
+    ]
+  ]
+}

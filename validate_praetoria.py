@@ -195,10 +195,48 @@ def validate_holdings(sp,bd):
             errors.append(f"building {bid} requires unknown spec '{b['requires']}'")
     return specs,builds
 
+def _load_galaxies():
+    gal={}
+    for f in glob.glob("content/galaxy/*.json"):
+        g=_read_jsonc(f); ids={s["id"] for s in g.get("systems",[])}
+        for a,b in g.get("lanes",[]):
+            if a not in ids or b not in ids: errors.append(f"galaxy {g.get('id')} lane {a}-{b} references an unknown system")
+        gal[g["id"]]=ids
+    return gal
+
+def validate_creation():
+    """traits.json must BE the locked lists; backgrounds may only use locked vocabulary."""
+    for f in glob.glob("content/traits/*.json"):
+        t=_read_jsonc(f)
+        for key,locked in (("nature",NATURE),("aptitude",APTITUDE),("ambitions",AMBITIONS)):
+            ids={x["id"] for x in t.get(key,[])}
+            if ids!=locked:
+                errors.append(f"traits.json '{key}' differs from the locked vocabulary: missing {sorted(locked-ids)}, extra {sorted(ids-locked)}")
+    for f in glob.glob("content/backgrounds/*.json"):
+        for b in _read_jsonc(f).get("backgrounds",[]):
+            bid=b.get("id","?")
+            for t in b.get("nature",[]):
+                if t not in NATURE: errors.append(f"background {bid}: unlocked nature '{t}'")
+            for t in b.get("aptitude",[]):
+                if t not in APTITUDE: errors.append(f"background {bid}: unlocked aptitude '{t}'")
+            for s in b.get("skills",{}):
+                if s not in SKILLS: errors.append(f"background {bid}: unlocked skill '{s}'")
+            for k in b.get("treasury",{}):
+                if k not in RES: errors.append(f"background {bid}: bad treasury key '{k}'")
+            if b.get("trackHint") and b["trackHint"] not in TRACKS: errors.append(f"background {bid}: unlocked trackHint")
+            if b.get("ambitionHint") and b["ambitionHint"] not in AMBITIONS: errors.append(f"background {bid}: unlocked ambitionHint")
+
 def validate_scenarios(sc,allspecs):
     vocab={"nature":set(),"aptitude":set(),"skills":set(),"ambition":set(),"track":set()}
+    galaxies=_load_galaxies() if not BUNDLE else {}
     for d in sc:
         sid=d.get("id","?")
+        gid=d.get("galaxy")
+        if gid and not BUNDLE:
+            if gid not in galaxies: errors.append(f"[{sid}] unknown galaxy '{gid}'")
+            else:
+                for h in d.get("holdings",[]):
+                    if h.get("system") and h["system"] not in galaxies[gid]: errors.append(f"[{sid}] holding {h['id']} in unknown system '{h['system']}'")
         chars={c["id"] for c in d.get("characters",[])}
         houses={h["id"] for h in d.get("houses",[])}
         if d.get("protagonist") not in chars: errors.append(f"[{sid}] protagonist not in characters")
@@ -233,6 +271,7 @@ def validate_scenarios(sc,allspecs):
 def main():
     ev,tx,sp,bd,sc=load_corpus()
     validate_events(ev,tx)
+    if not BUNDLE: validate_creation()
     specs,builds=validate_holdings(sp,bd)
     vocab=validate_scenarios(sc, set(specs)|EXIST_SPECS)
 

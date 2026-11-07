@@ -3,6 +3,7 @@
   "id": "the_risen_officer",
   "protagonist": "kessa_vane",
   "era": "fractured_stars",
+  "galaxy": "the_reach",
   "houses": [
     {
       "id": "vane",
@@ -187,7 +188,7 @@
       "owner": "vane",
       "name": "Drydock Nine",
       "specialization": "fortress",
-      "system": "",
+      "system": "drydock_nine",
       "population": 5,
       "unrest": 0,
       "buildings": [],

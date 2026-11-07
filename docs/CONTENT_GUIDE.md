@@ -38,6 +38,9 @@ v0.5.0, 2026-11-07 (see `docs/GAP_ANALYSIS.md` and `docs/RELEASE_0.5.md`).
   /spheres     *.json   — the power-balance estates and the career track feeding each (§7)
   /titles      *.json   — the title ladder + legitimacy requirements (§13)
   /careers     *.json   — career tracks + named rank ladders; the top rung caps advanceCareer (§4e)
+  /galaxy      *.json   — star maps: systems + lanes; a scenario names one and places holdings in it (§4g)
+  /traits      *.json   — the §8 vocabularies as data (nature, aptitude, ambitions) for character creation (§4h)
+  /backgrounds *.json   — character origins applied at creation (§4h)
 ```
 All loaders accept JSONC (`//` and `/* */` comments, trailing commas).
 File names don't matter to the engine (it loads every `*.json` in each dir); group by theme for sanity
@@ -398,6 +401,39 @@ de-escalation). The engine raises `crisis:<id>:active` while active and `crisis:
 Rank *i* is named `ranks[i]`; the last rung caps `advanceCareer`. Gate a track's events with the
 `track` condition and name rungs in prose with `{role.rankName}`. A new track is a new entry — no C#.
 
+## 4g. The galaxy — `/content/galaxy/<id>.json` (§19)
+
+```jsonc
+{ "id": "the_reach", "name": "The Reach",
+  "systems": [ { "id": "tessaly", "name": "Tessaly", "x": 120, "y": 160 } ],   // map units; the UI scales
+  "lanes":   [ ["tessaly", "anvil"] ] }                                        // undirected hyperlanes
+```
+A scenario says `"galaxy": "the_reach"` and gives each holding a `"system"`. Territory is **derived**: a
+system belongs to whoever owns the holdings in it (two owners ⇒ *contested*, majority rules), shaded by the
+owning house's accent. Both validators check that every lane and every holding points at a real system.
+`praetoria map --scenario id` prints it. Fleets and movement are the next layer; keep lanes meaningful.
+
+## 4h. Character creation — `/content/traits` and `/content/backgrounds` (§13, §18)
+
+`traits.json` holds the locked vocabularies **as data** — `nature`, `aptitude`, `ambitions`, each
+`{ id, name, description }`; the pre-flight asserts it equals `PRAETORIA_VOCAB.md`. The creation screen and
+`praetoria create` read it.
+
+A background is a one-time **delta** on the scenario's protagonist and house:
+```jsonc
+{ "backgrounds": [
+  { "id": "upjumped", "name": "The Upjumped", "description": "…",
+    "legitimacy": -10,                       // added to the house's legitimacy (clamped ≥ 0)
+    "treasury": { "credits": -2 },           // added to the house treasury
+    "nature": [], "aptitude": ["Brilliant"], // ADDED to the character's traits (picks replace, backgrounds add)
+    "skills": { "tactics": 1 }, "flags": [], "stress": 5,
+    "trackHint": "military", "ambitionHint": "earn_a_command" }   // pre-selected, never forced
+]}
+```
+The engine writes `background:<id>` as a char flag, so events can read where the protagonist came from
+(`charFlag self background:upjumped`). Picks are capped at 2 nature + 2 aptitude; a background may add one
+more of each (hard cap 3). Everything is validated against the catalogs — an unknown trait throws.
+
 ## 4f. Save files
 
 A save is the serialised `World` (RNG position included) in a versioned envelope — nothing else.
@@ -639,6 +675,7 @@ TRAIT KIND nature | aptitude | any
 TOKENS     {role.name} {role.house} {role.rank} {role.rankName}   (role = self or a declared role)
 TRACKS     military | stewardship | law                 (ladders + rung names in /content/careers)
 CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
+FLAGS      background:<id> char flag (set at creation)       regency · dynasty_adopted world flags
 CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age counter resource sphere title claim eventFired
 EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim revokeClaim adjustLegitimacy setTitle succeed kill log
 READ-ONLY  title_rank · house_legitimacy · title_instability   (system-written, protagonist house)

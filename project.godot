@@ -10,8 +10,8 @@ config_version=5
 [application]
 
 config/name="Praetoria"
-config/version="0.5.0"
-run/main_scene="res://src/Game/Bootstrap.tscn"
+config/version="0.6.0-alpha"
+run/main_scene="res://src/Game/Main.tscn"
 config/features=PackedStringArray("4.3", "C#", "Forward Plus")
 
 [dotnet]

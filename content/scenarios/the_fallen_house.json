@@ -3,6 +3,7 @@
   "id": "the_fallen_house",
   "protagonist": "aldric_voss",
   "era": "fractured_stars",
+  "galaxy": "the_reach",
   "houses": [
     {
       "id": "voss",
@@ -202,7 +203,7 @@
       "owner": "voss",
       "name": "Greywater",
       "specialization": "agri_world",
-      "system": "",
+      "system": "greywater",
       "population": 18,
       "unrest": 2,
       "buildings": [],
@@ -213,7 +214,7 @@
       "owner": "harrow",
       "name": "Anvil's Rest",
       "specialization": "forge_world",
-      "system": "",
+      "system": "anvils_rest",
       "population": 30,
       "unrest": 0,
       "buildings": [

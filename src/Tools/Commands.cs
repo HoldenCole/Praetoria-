@@ -1,6 +1,8 @@
 using Praetoria.Core;
 using Praetoria.Core.Commands;
+using Praetoria.Core.Creation;
 using Praetoria.Core.Crises;
+using Praetoria.Core.Galaxy;
 using Praetoria.Core.Data;
 using Praetoria.Core.Events;
 using Praetoria.Core.Progression;
@@ -465,7 +467,60 @@ internal static class Commands
         var scenario = ScenarioLoader.LoadFromContent(contentRoot, o.Scenario);
         var world = WorldBuilder.FromScenario(scenario, o.Seed);
         if (o.Continue) world.Mode = Praetoria.Core.State.World.ModeContinue;
+        if (!o.Creation.IsEmpty) Console.WriteLine(CharacterCreation.Apply(world, content, o.Creation) + "\n");
         return (new TurnController(world, content), content, world);
+    }
+
+    /// <summary>List the character-creation choices the content offers (what the Court UI's creation screen shows).</summary>
+    public static int Create()
+    {
+        var content = LoadContent();
+        Console.WriteLine("=== CHARACTER CREATION — what the content offers ===\n");
+        Console.WriteLine("BACKGROUNDS (--background id)");
+        foreach (var b in content.Backgrounds.Defs)
+        {
+            var bits = new List<string>();
+            if (b.Legitimacy != 0) bits.Add($"legitimacy {b.Legitimacy:+#;-#;0}");
+            foreach (var r in Praetoria.Core.State.Resource.All) if (b.Treasury.Get(r) != 0) bits.Add($"{r} {b.Treasury.Get(r):+#;-#;0}");
+            bits.AddRange(b.Nature.Select(t => "+" + t)); bits.AddRange(b.Aptitude.Select(t => "+" + t));
+            bits.AddRange(b.Skills.Select(kv => $"{kv.Key} {kv.Value:+#;-#;0}"));
+            Console.WriteLine($"  {b.Id,-16} {b.Name}\n{"",19}{b.Description}\n{"",19}[{string.Join(" · ", bits)}]" +
+                              (b.TrackHint != null ? $"  suggests track {b.TrackHint}" : ""));
+        }
+        Console.WriteLine($"\nNATURE TRAITS (--nature A,B — up to {CharacterCreation.MaxPickedNature}; constraining, stress-bearing)");
+        foreach (var t in content.Traits.Nature) Console.WriteLine($"  {t.Id,-14} {t.Description}");
+        Console.WriteLine($"\nAPTITUDE TRAITS (--aptitude A,B — up to {CharacterCreation.MaxPickedAptitude}; gate options, free)");
+        foreach (var t in content.Traits.Aptitude) Console.WriteLine($"  {t.Id,-14} {t.Description}");
+        Console.WriteLine("\nCAREER TRACKS (--track id)");
+        foreach (var c in content.Careers.Defs) Console.WriteLine($"  {c.Id,-14} {c.Name}: {string.Join(" → ", c.Ranks)}");
+        Console.WriteLine("\nAMBITIONS (--ambition id)");
+        foreach (var a in content.Traits.Ambitions) Console.WriteLine($"  {a.Id,-24} {a.Name} — {a.Description}");
+        Console.WriteLine("\nExample: play --scenario the_risen_officer --background upjumped --nature Ambitious,Just --aptitude Tactician --track military --name \"Kessa Vane\"");
+        return 0;
+    }
+
+    /// <summary>The galaxy as text: every system with its territory, holdings, and lanes (what Galaxy mode draws).</summary>
+    public static int Map(Options o)
+    {
+        var (tc, content, world) = NewTurn(o);
+        if (world.Galaxy == null) { Console.Error.WriteLine($"Scenario '{o.Scenario}' has no galaxy."); return 1; }
+        Console.WriteLine($"=== {world.Galaxy.Name} — as seen from {o.Scenario} ===\n");
+        foreach (var n in GalaxyProjection.Nodes(world))
+        {
+            string owner = n.OwnerHouseName ?? "unclaimed";
+            string mark = n.IsPlayerTerritory ? "★" : n.OwnerHouseId != null ? "■" : "·";
+            string holdings = n.HoldingIds.Count == 0 ? "" : $"  holdings: {string.Join(", ", n.HoldingIds.Select(h => world.Holding(h)!.Name))}";
+            Console.WriteLine($"  {mark} {n.Name,-20} ({n.X,4:F0},{n.Y,4:F0})  {owner,-16}{(n.Contested ? " CONTESTED" : "")}{holdings}");
+            Console.WriteLine($"      lanes → {string.Join(", ", world.Galaxy.Neighbors(n.SystemId).Select(s => world.Galaxy.System(s)!.Name))}");
+        }
+        var home = world.Holdings.Values.FirstOrDefault(h => h.OwnerId == world.Protagonist!.HouseId && h.SystemId != "");
+        if (home != null)
+        {
+            Console.WriteLine($"\nFrom {world.Galaxy.System(home.SystemId)!.Name}, the rivals' seats lie:");
+            foreach (var h in world.Holdings.Values.Where(h => h.OwnerId != home.OwnerId && h.SystemId != "").OrderBy(h => h.Id, StringComparer.Ordinal))
+                Console.WriteLine($"   {world.Galaxy.System(h.SystemId)!.Name,-20} {world.House(h.OwnerId)!.Name,-16} {world.Galaxy.Hops(home.SystemId, h.SystemId)} jump(s)");
+        }
+        return 0;
     }
 
     /// <summary>Resume a saved World: content reloads from /content (so content patches apply), the World

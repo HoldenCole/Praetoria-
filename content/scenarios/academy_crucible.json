@@ -2,6 +2,7 @@
   "id": "academy_crucible",
   "protagonist": "vega_marcus",
   "era": "fractured_stars",
+  "galaxy": "the_reach",
 
   "houses": [
     { "id": "vega",   "name": "House Vega",   "accent": "#7A1F2B", "title": "baron", "legitimacy": 28,
@@ -18,10 +19,10 @@
   // "start = one barony = one modest holding"). NPC houses are abstracted (GDD §3) — a single
   // holding stands in for their realm; only House Vega's is the player's to manage in depth.
   "holdings": [
-    { "id": "vega_barony",   "owner": "vega",   "name": "Tessaly Reach",  "specialization": "agri_world",  "population": 20 },
-    { "id": "corwin_forge",  "owner": "corwin", "name": "Anvil of Corwin", "specialization": "forge_world", "population": 14 },
-    { "id": "drake_port",    "owner": "drake",  "name": "Drake Crossing",  "specialization": "trade_hub",   "population": 12 },
-    { "id": "sato_holdfast",  "owner": "sato",  "name": "Sato Holdfast",   "specialization": "fortress",    "population": 0 }
+    { "id": "vega_barony", "system": "tessaly",   "owner": "vega",   "name": "Tessaly Reach",  "specialization": "agri_world",  "population": 20 },
+    { "id": "corwin_forge", "system": "anvil",  "owner": "corwin", "name": "Anvil of Corwin", "specialization": "forge_world", "population": 14 },
+    { "id": "drake_port", "system": "drake_crossing",    "owner": "drake",  "name": "Drake Crossing",  "specialization": "trade_hub",   "population": 12 },
+    { "id": "sato_holdfast", "system": "sato_holdfast",  "owner": "sato",  "name": "Sato Holdfast",   "specialization": "fortress",    "population": 0 }
   ],
 
   "characters": [

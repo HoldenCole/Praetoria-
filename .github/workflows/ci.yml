@@ -34,3 +34,8 @@ jobs:
 
       - name: Test
         run: dotnet test Praetoria.sln --no-build -c Release --verbosity normal
+
+      # The Godot presentation layer compiles against the Godot.NET.Sdk NuGet package without an editor,
+      # so CI keeps it building; it cannot run it (no display, no Godot runtime).
+      - name: Build Godot layer (compile check)
+        run: dotnet build src/Game/Praetoria.Game.csproj -c Release

@@ -236,6 +236,6 @@ public class Version05Tests
     [Fact]
     public void Version_IsStamped()
     {
-        Assert.Equal("0.5.0", Praetoria.Core.PraetoriaVersion.Current);
+        Assert.StartsWith("0.6.0", Praetoria.Core.PraetoriaVersion.Current);
     }
 }

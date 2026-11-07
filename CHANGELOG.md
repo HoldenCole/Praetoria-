@@ -3,6 +3,18 @@
 All notable changes to Praetoria. The format follows Keep a Changelog; versions follow SemVer with 1.0 = the
 Build Spec's V1 ("a complete human game").
 
+## [0.6.0-alpha] — Unreleased — "the Court opens"
+### Added
+- **Godot layer (Milestone 3, first draft):** `GameRoot` (top bar, Court/Galaxy toggle, End Turn, Save, Load),
+  `CreationScreen`, `CourtView` (advisors · briefing feed · dynasty rail / crisis clock / chronicle),
+  `GalaxyView` + `GalaxyMap` (drawn node-and-lane map, territory by accent, click to inspect),
+  `CourtTheme` (era-reactive palette). Compiles against Godot.NET.Sdk 4.3; **not yet run in an editor**.
+- **Galaxy model**: `/content/galaxy` (systems + lanes), `World.Galaxy`, holdings placed in systems in every
+  scenario, derived territory, neighbours/hops, `GalaxyProjection`; `map` command.
+- **Character creation**: `/content/traits` (vocabularies as data), `/content/backgrounds` (six origins),
+  `CharacterCreation` with validation; `create` command and `play --name/--sex/--background/--nature/--aptitude/--track/--ambition`.
+- CI compiles the Godot layer.
+
 ## [0.5.0] — 2026-11-07 — "headless complete"
 See `docs/RELEASE_0.5.md` for the full notes.
 

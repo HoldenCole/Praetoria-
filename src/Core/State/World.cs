@@ -32,6 +32,10 @@ public sealed class World
     public Dictionary<string, House> Houses { get; set; } = new();
     public List<Relationship> Relationships { get; set; } = new();
 
+    /// <summary>The star map this run is played on (GDD §19), or null for a scenario with no galaxy (the
+    /// Academy fixture). Territory is derived from holdings' <see cref="Holding.SystemId"/>.</summary>
+    public Galaxy.Galaxy? Galaxy { get; set; }
+
     /// <summary>Every controlled place, keyed by holding id (GDD §17). The domain economy reads
     /// these each turn to feed each owner's treasury. Empty in scenarios with no domain layer.</summary>
     public Dictionary<string, Holding> Holdings { get; set; } = new();

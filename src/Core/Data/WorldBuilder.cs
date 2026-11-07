@@ -35,11 +35,16 @@ public static class WorldBuilder
         foreach (var r in scenario.Relationships)
             world.Relationships.Add(r);
 
+        world.Galaxy = scenario.Galaxy;
+
         foreach (var holding in scenario.Holdings)
         {
             if (!world.Houses.ContainsKey(holding.OwnerId))
                 throw new ContentException(
                     $"Holding '{holding.Id}' is owned by unknown house '{holding.OwnerId}'.");
+            if (world.Galaxy != null && !string.IsNullOrEmpty(holding.SystemId) && world.Galaxy.System(holding.SystemId) == null)
+                throw new ContentException(
+                    $"Holding '{holding.Id}' sits in unknown system '{holding.SystemId}' (galaxy '{world.Galaxy.Id}').");
             world.Holdings[holding.Id] = holding;
         }
 

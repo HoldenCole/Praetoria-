@@ -1,0 +1,119 @@
+{
+  "//": "CHARACTER BACKGROUNDS (GDD §13 'birth sets a baseline legitimacy'; §18). Applied ONCE at creation as a delta on top of the scenario's protagonist and house: legitimacy, treasury, traits added, skills, flags, stress; trackHint/ambitionHint pre-select but never force. Keep them asymmetric (GDD §17 variable emphasis): old blood buys standing, the upjumped buy skill with contempt, the merchant buys coin, the scholar buys exotics. background:<id> is written as a char flag so events can read where you came from.",
+  "backgrounds": [
+    {
+      "id": "old_blood",
+      "name": "Old Blood",
+      "description": "Born to a name the old houses still bow to. Standing comes easily; so does the expectation that you will not have to earn anything.",
+      "legitimacy": 12,
+      "treasury": {
+        "influence": 3,
+        "credits": 2
+      },
+      "nature": [
+        "Proud"
+      ],
+      "skills": {
+        "charisma": 1
+      },
+      "trackHint": "law",
+      "ambitionHint": "outshine_all_rivals"
+    },
+    {
+      "id": "upjumped",
+      "name": "The Upjumped",
+      "description": "Low-born, raised by talent and a patron's whim. The old houses despise you for it, and you are better than every one of them at the actual work.",
+      "legitimacy": -10,
+      "treasury": {
+        "credits": -2
+      },
+      "aptitude": [
+        "Brilliant"
+      ],
+      "skills": {
+        "tactics": 1,
+        "discipline": 1,
+        "administration": 1
+      },
+      "stress": 5,
+      "ambitionHint": "earn_a_command"
+    },
+    {
+      "id": "merchant_scion",
+      "name": "Merchant Scion",
+      "description": "Your family bought its way into the nobility a generation ago and never stopped counting. The ledger is the only scripture you were raised on.",
+      "legitimacy": -3,
+      "treasury": {
+        "credits": 10,
+        "materials": 3
+      },
+      "aptitude": [
+        "Greedy"
+      ],
+      "skills": {
+        "economics": 2
+      },
+      "trackHint": "stewardship",
+      "ambitionHint": "amass_a_fortune"
+    },
+    {
+      "id": "soldiers_child",
+      "name": "Soldier's Child",
+      "description": "Raised in barracks and on troop-ships, among people who kept you alive and expected the same. You know how a force is fed, moved, and lied to.",
+      "legitimacy": 0,
+      "treasury": {
+        "manpower": 4
+      },
+      "nature": [
+        "Loyal"
+      ],
+      "skills": {
+        "discipline": 1,
+        "logistics": 1,
+        "leadership": 1
+      },
+      "trackHint": "military",
+      "ambitionHint": "command_a_fleet"
+    },
+    {
+      "id": "scholar",
+      "name": "Scholar of the Enclave",
+      "description": "Years in a research enclave among things the markets call exotic because they cannot agree what else to call them. You see patterns; you have not learned to stop.",
+      "legitimacy": 0,
+      "treasury": {
+        "exotics": 2,
+        "credits": -1
+      },
+      "aptitude": [
+        "Brilliant"
+      ],
+      "skills": {
+        "engineering": 2,
+        "law": 1
+      },
+      "stress": 3,
+      "ambitionHint": "master_the_senate"
+    },
+    {
+      "id": "court_ward",
+      "name": "Ward of the Court",
+      "description": "Fostered at a great house as a child — half hostage, half heir. You learned every corridor, every whisper, and exactly how little blood guarantees.",
+      "legitimacy": 4,
+      "treasury": {
+        "influence": 5
+      },
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {
+        "intrigue": 2,
+        "oratory": 1
+      },
+      "flags": [
+        "court_raised"
+      ],
+      "trackHint": "law",
+      "ambitionHint": "master_the_senate"
+    }
+  ]
+}

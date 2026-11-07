@@ -1,4 +1,5 @@
 using Praetoria.Core.Careers;
+using Praetoria.Core.Creation;
 using Praetoria.Core.Crises;
 using Praetoria.Core.Events;
 using Praetoria.Core.Progression;
@@ -31,6 +32,12 @@ public sealed class ContentDatabase
     /// <summary>Career tracks + rank ladders (GDD §13). Empty ⇒ ranks are uncapped, unnamed integers.</summary>
     public CareerCatalog Careers { get; }
 
+    /// <summary>The §8 vocabularies as data (nature, aptitude, ambitions) for character creation.</summary>
+    public TraitCatalog Traits { get; }
+
+    /// <summary>Character origins applied at creation (GDD §13 birth baseline).</summary>
+    public BackgroundCatalog Backgrounds { get; }
+
     private readonly Dictionary<string, EventDef> _eventsById;
 
     public ContentDatabase(
@@ -40,7 +47,9 @@ public sealed class ContentDatabase
         IReadOnlyList<CrisisDef>? crises = null,
         SphereCatalog? spheres = null,
         TitleCatalog? titles = null,
-        CareerCatalog? careers = null)
+        CareerCatalog? careers = null,
+        TraitCatalog? traits = null,
+        BackgroundCatalog? backgrounds = null)
     {
         Events = events;
         Texts = texts;
@@ -49,6 +58,8 @@ public sealed class ContentDatabase
         Spheres = spheres ?? SphereCatalog.Empty;
         Titles = titles ?? TitleCatalog.Empty;
         Careers = careers ?? CareerCatalog.Empty;
+        Traits = traits ?? TraitCatalog.Empty;
+        Backgrounds = backgrounds ?? BackgroundCatalog.Empty;
         _eventsById = new Dictionary<string, EventDef>();
         foreach (var e in events) _eventsById[e.Id] = e;
     }

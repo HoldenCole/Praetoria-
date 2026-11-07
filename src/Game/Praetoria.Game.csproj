@@ -10,6 +10,9 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Version>0.6.0-alpha</Version>
     <Nullable>enable</Nullable>
     <RootNamespace>Praetoria.Game</RootNamespace>
   </PropertyGroup>

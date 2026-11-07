@@ -18,6 +18,7 @@ public static class ScenarioLoader
         {
             using var doc = JsonDocument.Parse(File.ReadAllText(path), DocOptions);
             var root = doc.RootElement;
+            var galaxyId = ConditionParser.OptStrOrNull(root, "galaxy");
             return new Scenario
             {
                 Id = ConditionParser.Str(root, "id"),
@@ -26,13 +27,22 @@ public static class ScenarioLoader
                 Houses = ParseHouses(root),
                 Characters = ParseCharacters(root),
                 Relationships = ParseRelationships(root),
-                Holdings = ParseHoldings(root)
+                Holdings = ParseHoldings(root),
+                Galaxy = galaxyId == null ? null : ResolveGalaxy(path, galaxyId)
             };
         }
         catch (JsonException ex)
         {
             throw new ContentException($"Invalid JSON in scenario '{path}': {ex.Message}", ex);
         }
+    }
+
+    /// <summary>A scenario's galaxy lives in the sibling /content/galaxy directory.</summary>
+    private static Galaxy.Galaxy ResolveGalaxy(string scenarioPath, string galaxyId)
+    {
+        var scenariosDir = Path.GetDirectoryName(Path.GetFullPath(scenarioPath)) ?? ".";
+        var contentRoot = Path.GetDirectoryName(scenariosDir) ?? ".";
+        return GalaxyLoader.LoadFromContent(contentRoot, galaxyId);
     }
 
     public static Scenario LoadFromContent(string contentRoot, string scenarioId)

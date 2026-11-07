@@ -7,10 +7,13 @@ of a minor noble house holding a single barony, and you climb — through war, m
 bloodline — toward the throne of a fractured human galaxy. Your character will age and die. Your
 *dynasty* is what you are really playing: it outlives every person in it, or it ends.
 
-**Engine:** Godot 4.x · C# (.NET 8). **Status: v0.5.0 — "headless complete".** Every core system of the
-human game is built, wired together, deterministic and content-fed; it runs and saves from the console. There
-is no UI yet. See [What's built](#whats-built-the-current-state), [What's not](#whats-not-built-the-gaps)
-and [`docs/RELEASE_0.5.md`](docs/RELEASE_0.5.md).
+**Engine:** Godot 4.3 · C# (.NET 8). **Status: v0.6.0-alpha — "the Court opens".** Every core system of the
+human game is built, wired together, deterministic and content-fed (the v0.5 headless release), and the first
+Godot layer now exists: character creation, the three-column Court, and the Galaxy map. The UI compiles
+against the Godot SDK and is wired end-to-end to the Core, but it has **not yet been run in a Godot editor**
+(the sessions that built it had no display) — treat it as a first draft to open and polish. See
+[What's built](#whats-built-the-current-state), [What's not](#whats-not-built-the-gaps),
+[`docs/MILESTONE_3_NOTES.md`](docs/MILESTONE_3_NOTES.md) and [`docs/RELEASE_0.5.md`](docs/RELEASE_0.5.md).
 
 This README is the front door. If you are new — a programmer, a writer, or just curious — it should
 leave you knowing what the game *is*, how it's designed, exactly what exists today, what doesn't, and
@@ -153,9 +156,11 @@ the turn is a formal **Briefing → Action → Resolve** cycle.
     /Commands           the command bus + every player/NPC intent
     /Data               JSON loaders, content validator, scenario builder
     /Crises /Spheres /Progression /Careers   data models for the §16/§7/§13 catalogs
-  /Tools                headless console harness (play · demos · validate)
-  /Game                 Godot layer — staged for Milestone 3, deliberately NOT in Praetoria.sln
-/content                events · text · scenarios · holdings · crises · spheres · titles · careers  (JSON/JSONC)
+    /Galaxy /Creation   star map (systems, lanes, projection) · traits, backgrounds, character creation
+  /Tools                headless console harness (play · create · map · demos · validate)
+  /Game                 Godot layer — GameRoot (top bar, modes) · CreationScreen · CourtView · GalaxyView · CourtTheme
+                        compiles with `dotnet build src/Game/...`; deliberately NOT in Praetoria.sln
+/content                events · text · scenarios · galaxy · holdings · crises · spheres · titles · careers · traits · backgrounds
 /tests                  xUnit against Core — runs without Godot
 Praetoria.sln           Core + Tools + Tests (everything that builds headless)
 validate_praetoria.py   pre-flight content validator (mirrors + extends the engine's gates)
@@ -186,20 +191,25 @@ together, deterministic, soaked for 40-turn playthroughs, with an authored conte
 | **Save / load** | BuildSpec §3, §7 | ✅ | The `World` (RNG position included) serialises to a versioned JSON envelope; a resumed run continues the exact same deterministic stream. `play --save` / `--load`. |
 | **NPC AI** | §3, §18 | ✅ (basic) | Trait/ambition-driven actions through the same command bus; ambitious NPCs author crises; rival houses slot buildings when they can afford them. Deliberately abstracted (no full NPC economies). |
 | **Content pipeline** | §15, §20 | ✅ | JSON loaders, JSONC-tolerant; an engine validator (text pairing, token resolution, the ungated-choice rule) and a stricter Python pre-flight (locked vocab, read-only counters, flag-chain audit in both directions). Both run in CI. |
-| **Console harness** | BuildSpec §2 | ✅ | `play` (the whole game as text), plus focused demos for every system, and `validate`. |
+| **Character creation** | §13, §18 | ✅ | Name, sex, a **background** (origin: legitimacy, treasury, traits, skills, hints), up to two nature and two aptitude traits, track and ambition — all read from data catalogs (`/content/traits`, `/content/backgrounds`) and validated by the engine. `play --background …`, `create`. |
+| **Galaxy model** | §19, BuildSpec §3 | ✅ | Systems + hyperlanes as data (`/content/galaxy`); every scenario places its holdings in systems; territory is derived from holdings; neighbours and lane-hop distance; a Godot-free map projection. `map`. No fleets yet. |
+| **Court UI (Godot)** | §6, §19, M3 | ◐ compiles, unrun | Creation screen → three-column Court (advisors/pools/domain · briefing feed with choice buttons · dynasty rail, connections, crisis clock with dampers, chronicle) with End Turn / Save / Load, and a **Galaxy view** (drawn map, territory by house accent, click-to-inspect with mixed visibility). Era-reactive palette. Needs a Godot 4.3 session to run and polish. |
+| **Console harness** | BuildSpec §2 | ✅ | `play` (the whole game as text), plus focused demos for every system, `create`, `map`, `validate`, `version`. |
 
 **The authored content set** (all validated, all in `/content`):
 
 | | Count | Notes |
 |---|---|---|
 | Events (+ paired prose) | **76** | Academy Crucible 18 · Career progression 16 · Steward/economy 15 · Coalition chain 8 · Succession 8 · Imperial court 3 · Echoes 8 |
-| Scenarios | 5 | `academy_crucible` (the fixture), the three rise-path openings *The Fallen House* (starts married), *The Circling Heir*, *The Risen Officer*, and **the `imperium`-era start *The Imperial Court*** (starts married, under a living Emperor) — every cast sexed, every house titled |
+| Scenarios | 5 | `academy_crucible` (the fixture), the three rise-path openings *The Fallen House* (starts married), *The Circling Heir*, *The Risen Officer*, and **the `imperium`-era start *The Imperial Court*** (starts married, under a living Emperor) — every cast sexed, every house titled, every holding placed on the map |
+| Galaxy | 1 | *The Reach*: 14 systems, 20 lanes, shared by all scenarios; two frontier systems unclaimed |
+| Backgrounds / traits | 6 / 9+11+8 | character origins; the locked vocabularies as data (nature, aptitude, ambitions) |
 | Crises | 5 | local revolt → civil war cascade · coalition war · contested title · court scandal (the wars un-arm the realm when they subside) |
 | Holding specializations / buildings | 12 / 12 | |
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 138 automated tests, including a 40-turn whole-stack soak that asserts end-to-end
+**Verification:** 156 automated tests, including a 40-turn whole-stack soak that asserts end-to-end
 determinism, succession landing, crises de-escalating, and no absurd state, and a save/load round-trip
 that must reproduce an uninterrupted run; both validators clean and both run in CI; all five scenarios
 auto-play 40 turns crash-free across five seeds.
@@ -220,8 +230,8 @@ if it's listed, it does not exist yet.
 ### Not started
 | Gap | Spec | Why it matters / notes |
 |---|---|---|
-| **Court UI (Godot)** — Milestone 3 | §19, §6 | The three-column Court screen: advisors + pools / briefing feed / dynasty rail + crisis clock. **The game is not yet playable by a human without the console.** The Godot `/src/Game` project is scaffolded but empty. This was deliberately deferred: it can't be built or verified in a headless environment; it needs a session with Godot and a display. |
-| **Galaxy mode + fleets** | §19, §6, M4 | The 2D node-and-lane star map, systems/hyperlanes, territory shading, fleet markers with the house-vs-office distinction, mixed visibility (own holdings deep, rival intel fogged). **No fleet or military-unit model exists at all** — "weapons/ships" have no data slot yet. |
+| **Running and polishing the Court UI** — Milestone 3 | §19, §6 | The Godot layer is written and compiles, but no one has opened it in the editor yet: layout, sizing, fonts and feel are unverified; portraits and the ceremonial/functional typography are not started. First session with Godot 4.3: open `project.godot`, press Play, fix what's ugly. |
+| **Fleets + the military layer** | §19, §6, M4 | The map exists; what moves on it does not. **No fleet or military-unit model** — "weapons/ships" have no data slot yet; the house-vs-office fleet distinction and fogged fleet intel are unbuilt. |
 | **Bloody Events** | §16 | The gala/wedding/tournament set-piece class (safe gathering → sudden violence → arms a larger crisis). The *mechanism* now exists (`kill` + crisis gates), so this is authorable content, not engine work. |
 | **The Great-Crisis framework & human endgame** — Milestone 6 | §16, §11 | The archetype framework seeded with the human galaxy-war; proclaiming/seizing the Imperium and the **era flip**; ironman vs continue mode; the generated **saga epilogue**. The *dynasty-death terminal state* exists; the endgame arc around it does not. |
 | **Reactive UI, polish, content depth** — Milestone 7 | §19 | Era × role × house theming, ceremonial/functional typography, portraits, audio, the free-content pipeline, the balance pass. |
@@ -261,15 +271,15 @@ if it's listed, it does not exist yet.
 |---|---|---|---|
 | ✅ | **1 — The Engine Breathes** | headless event engine + Academy Crucible | a choice makes a different, unscripted event eligible later |
 | ✅ | **2 — Turn Loop, Pools & Commands** | Briefing→Action→Resolve, pools, command bus, NPCs | a full turn cycle resolves deterministically from a seed |
-| ⬜ | **3 — Court Mode UI** | first Godot layer; the three-column Court; base theme | the Academy + early court game fully playable via UI |
-| ◐ | **4 — Economy, Holdings & Galaxy** | economy ✅ · succession ✅ · save/load ✅ · **Galaxy map + fleets ⬜** | play from a barony, move fleets, advance through a succession |
+| ◐ | **3 — Court Mode UI** | first Godot layer ✅ written & compiling · base theme ✅ · creation screen ✅ · **run, lay out and polish in the editor ⬜** | the Academy + early court game fully playable via UI |
+| ◐ | **4 — Economy, Holdings & Galaxy** | economy ✅ · succession ✅ · save/load ✅ · galaxy map ✅ · **fleets ⬜** | play from a barony, move fleets, advance through a succession |
 | ◐ | **5 — Spheres, Progression & Crises** | crises ✅ · spheres ✅ · progression ✅ · **Bloody Events ⬜** | engineer/defuse a crisis via gates; a damper arrests a cascade; an NPC triggers one |
 | ◐ | **6 — The Human Endgame** | ironman/continue ✅ · an `imperium`-era start + `era` gating ✅ · **Great-Crisis framework, proclaiming/seizing the Imperium (the era *flip*), saga epilogue ⬜** | a full run from Baron to a throne-endgame, won or lost. **V1-complete on systems.** |
 | ⬜ | **7 — Reactive UI, Polish, Content Depth** | era × role × house theming; typography; portraits; audio; content volume; balance | the UI transforms on proclamation; enough content for replayability |
 
-The recommended order from here: **3 (Court UI)** — the game becomes human-playable and everything
-built becomes visible; then **Galaxy mode + fleets** (which also unlocks the military rise-path's
-weapons/ships); then **6**. Bloody Events can land any time as content.
+The recommended order from here: **open the UI in Godot and finish Milestone 3** — everything built
+becomes visible; then **fleets on the map** (which also unlocks the military rise-path's weapons/ships);
+then **6**. Bloody Events can land any time as content.
 
 ### The expansion philosophy: "slots in V1, fillers in DLC" (GDD §20)
 Every extensible system is built as a *generalised mechanism exposed to data*. DLC adds **instances**
@@ -338,8 +348,17 @@ dotnet run --project src/Tools -- spheres --seed 1       # an heir's Navy career
 dotnet run --project src/Tools -- progression --seed 1   # the meritocrat rules secure; the conqueror rules a powder keg
 dotnet run --project src/Tools -- dynasty --seed 3       # a ruler dies, his heir succeeds, children are born
 
-# The test suite (138 tests, incl. a 40-turn whole-stack soak and a save/load round-trip)
+# Character creation and the map, headless
+dotnet run --project src/Tools -- create                                   # every background / trait / track / ambition on offer
+dotnet run --project src/Tools -- map --scenario the_imperial_court        # the galaxy as text: territory, lanes, distances
+dotnet run --project src/Tools -- play --auto --scenario the_risen_officer --background upjumped --nature Ambitious,Just --aptitude Tactician --name "Kessa Vane"
+
+# The test suite (156 tests, incl. a 40-turn whole-stack soak and a save/load round-trip)
 dotnet test
+
+# The Godot UI (needs Godot 4.3 with .NET): open project.godot in the editor and press Play.
+# Headless compile check only:
+dotnet build src/Game/Praetoria.Game.csproj
 ```
 
 Running `dotnet run --project src/Tools -- help` lists every command.
