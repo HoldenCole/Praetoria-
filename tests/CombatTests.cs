@@ -119,8 +119,12 @@ public class CombatTests
         w.Fleets.Remove("fleet_drake");                                           // Drake Crossing undefended
         w.Fleets["fleet_vega"].SystemId = "drake_crossing";
 
-        fleets.ResolveConquests(w);
+        fleets.ResolveConquests(w);                                               // siege begins (2 turns for a trade hub)
+        Assert.Equal("drake", w.Holding("drake_port")!.OwnerId);
+        Assert.True(w.Sieges.ContainsKey("drake_port"));
+        fleets.ResolveConquests(w);                                               // the clock reaches the resistance
         Assert.Equal("vega", w.Holding("drake_port")!.OwnerId);
+        Assert.False(w.Sieges.ContainsKey("drake_port"));
         Assert.Equal(1, w.Counter(FleetSystem.ConquestsCounter));
         Assert.Equal(1, w.Counter("seizures"));
         Assert.True(w.HasFlag(FleetSystem.ConquestMadeFlag));
@@ -134,8 +138,9 @@ public class CombatTests
         var (_, w, fleets) = Fresh();
         fleets.DeclareWar(w, "vega", "drake");
         w.Fleets["fleet_vega"].SystemId = "drake_crossing";                       // Drake's picket is still there
-        fleets.ResolveConquests(w);
+        for (int t = 0; t < 4; t++) fleets.ResolveConquests(w);
         Assert.Equal("drake", w.Holding("drake_port")!.OwnerId);
+        Assert.Empty(w.Sieges);
     }
 
     [Fact]
@@ -145,7 +150,7 @@ public class CombatTests
         fleets.DeclareWar(w, "vega", "corwin");
         w.Fleets.Remove("fleet_vega");
         w.Fleets["fleet_corwin"].SystemId = "tessaly";
-        fleets.ResolveConquests(w);
+        for (int t = 0; t < 3; t++) fleets.ResolveConquests(w);
         Assert.Equal("corwin", w.Holding("vega_barony")!.OwnerId);
         Assert.True(w.HasFlag(FleetSystem.HoldingLostFlag));
         Assert.Equal(0, w.Counter("seizures"));

@@ -42,6 +42,15 @@ public sealed class ContentDatabase
     /// <summary>Fleet-layer tuning (ship cost, upkeep, readiness, intel) from /content/fleets.</summary>
     public FleetRules Fleets { get; }
 
+    /// <summary>Hull classes (GDD §6 composition) from /content/fleets.</summary>
+    public ShipClassCatalog ShipClasses { get; }
+
+    /// <summary>Honorifics & Orders (GDD §13) from /content/honors.</summary>
+    public IReadOnlyList<HonorDef> Honors { get; }
+
+    /// <summary>Nature-trait friction (GDD §18) from /content/traits/friction.json.</summary>
+    public FrictionTable Friction { get; }
+
     private readonly Dictionary<string, EventDef> _eventsById;
 
     public ContentDatabase(
@@ -54,7 +63,10 @@ public sealed class ContentDatabase
         CareerCatalog? careers = null,
         TraitCatalog? traits = null,
         BackgroundCatalog? backgrounds = null,
-        FleetRules? fleets = null)
+        FleetRules? fleets = null,
+        ShipClassCatalog? shipClasses = null,
+        IReadOnlyList<HonorDef>? honors = null,
+        FrictionTable? friction = null)
     {
         Events = events;
         Texts = texts;
@@ -66,6 +78,9 @@ public sealed class ContentDatabase
         Traits = traits ?? TraitCatalog.Empty;
         Backgrounds = backgrounds ?? BackgroundCatalog.Empty;
         Fleets = fleets ?? FleetRules.Default;
+        ShipClasses = shipClasses ?? ShipClassCatalog.Empty;
+        Honors = honors ?? Array.Empty<HonorDef>();
+        Friction = friction ?? FrictionTable.Empty;
         _eventsById = new Dictionary<string, EventDef>();
         foreach (var e in events) _eventsById[e.Id] = e;
     }

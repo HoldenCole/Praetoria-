@@ -67,7 +67,15 @@ public sealed class SueForPeaceCommand : ICommand
             w.Log($"{actor.Name} of {w.House(actor.HouseId)?.Name ?? actor.HouseId} sues for peace.");
             return;
         }
-        new FleetSystem(_rules).MakePeace(w, actor.HouseId, _targetHouseId);
+        var fleets = new FleetSystem(_rules);
+        int tribute = fleets.Tribute(w, actor.HouseId, _targetHouseId);          // the side behind on score pays
+        if (tribute > 0)
+        {
+            w.House(actor.HouseId)!.Treasury.Add(Resource.Credits, -tribute);
+            w.House(_targetHouseId)!.Treasury.Add(Resource.Credits, tribute);
+            w.Log($"{w.House(actor.HouseId)?.Name} pays {tribute} credits in tribute.");
+        }
+        fleets.MakePeace(w, actor.HouseId, _targetHouseId);
         foreach (var head in w.LivingCharacters().Where(c => c.HouseId == _targetHouseId))
             w.Relationship(head.Id, ActorId).Disposition = Math.Clamp(w.Relationship(head.Id, ActorId).Disposition + 10, -100, 100);
     }

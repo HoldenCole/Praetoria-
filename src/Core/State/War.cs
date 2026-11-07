@@ -8,6 +8,12 @@ public sealed class War
     public string HouseA { get; set; } = "";
     public string HouseB { get; set; } = "";
     public int Since { get; set; }
+    public int ScoreA { get; set; }
+    public int ScoreB { get; set; }
+    public int Score(string houseId) => HouseA == houseId ? ScoreA : HouseB == houseId ? ScoreB : 0;
+    public void AddScore(string houseId, int delta) { if (HouseA == houseId) ScoreA += delta; else if (HouseB == houseId) ScoreB += delta; }
+    /// <summary>How far ahead <paramref name="houseId"/> is (negative = behind).</summary>
+    public int Lead(string houseId) => Score(houseId) - Score(Other(houseId));
     public bool Involves(string houseId) => HouseA == houseId || HouseB == houseId;
     public bool Between(string a, string b) => (HouseA == a && HouseB == b) || (HouseA == b && HouseB == a);
     public string Other(string houseId) => HouseA == houseId ? HouseB : HouseA;

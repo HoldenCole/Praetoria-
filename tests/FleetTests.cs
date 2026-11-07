@@ -94,14 +94,15 @@ public class FleetTests
         house.Treasury.Materials = 20; house.Treasury.Manpower = 10; house.Treasury.Credits = 10;
         var ctx = new CommandContext(w, TestContent.Rng());
 
-        var cmd = new RaiseFleetCommand(w.ProtagonistId, "vega_barony", content.Fleets);
+        var cmd = new RaiseFleetCommand(w.ProtagonistId, "vega_barony", content.Fleets, content.ShipClasses, "frigate", content.Titles);
         Assert.True(cmd.CanExecute(ctx));
         new CommandExecutor().TryExecute(cmd, ctx);
         Assert.Equal(2, w.Fleets["fleet_vega"].Strength);           // reinforced the squadron already at Tessaly
+        Assert.Equal(2, w.Fleets["fleet_vega"].Ships["frigate"]);  // the default composition was materialised
         Assert.Equal(14, house.Treasury.Materials);
 
         w.Fleets["fleet_vega"].DestinationId = "anvil"; w.Fleets["fleet_vega"].Eta = 1;   // away → a new squadron is founded
-        new CommandExecutor().TryExecute(new RaiseFleetCommand(w.ProtagonistId, "vega_barony", content.Fleets), ctx);
+        new CommandExecutor().TryExecute(new RaiseFleetCommand(w.ProtagonistId, "vega_barony", content.Fleets, content.ShipClasses, "frigate", content.Titles), ctx);
         Assert.Equal(2, w.Fleets.Values.Count(f => f.OwnerId == "vega"));
         Assert.Equal(2, w.Counter("ships_raised"));
 

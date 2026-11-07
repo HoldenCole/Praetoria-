@@ -41,8 +41,11 @@ public static class ContentLoader
         var traits = TraitLoader.LoadFromDirectory(contentRoot);
         var backgrounds = BackgroundLoader.LoadFromDirectory(contentRoot);
         var fleets = FleetLoader.LoadFromDirectory(contentRoot);
+        var shipClasses = FleetLoader.LoadClasses(contentRoot);
+        var honors = HonorLoader.LoadFromDirectory(contentRoot);
+        var friction = HonorLoader.LoadFriction(contentRoot);
 
-        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers, traits, backgrounds, fleets);
+        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers, traits, backgrounds, fleets, shipClasses, honors, friction);
     }
 
     private static IEnumerable<string> EnumerateJson(string dir) =>

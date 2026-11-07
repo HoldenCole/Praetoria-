@@ -16,6 +16,10 @@ public sealed class NpcAi
     /// <summary>Each living non-protagonist takes at most one affordable action this turn. If a
     /// crisis engine is supplied, an ambitious NPC may also <em>author</em> a causable crisis
     /// (GDD §16 "crises have authors") — through the same command bus the player uses.</summary>
+    /// <summary>Catalogs the fleet AI consults (optional; without them NPCs raise the default class, unled).</summary>
+    public ShipClassCatalog? ShipClasses { get; init; }
+    public Progression.TitleCatalog? Titles { get; init; }
+
     public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
         HoldingCatalog? catalog = null, FleetRules? fleetRules = null)
     {
@@ -42,7 +46,7 @@ public sealed class NpcAi
     /// <summary>Rival houses keep ships (GDD §3 abstracted realms): a house with a comfortable treasury lays
     /// down a hull at its seat; a hostile head (disposition &lt; −40 toward the protagonist) with a rested fleet
     /// sends it toward the protagonist's seat — the menace the map is for. One order per house per turn.</summary>
-    private static void Sail(List<Character> npcs, FleetRules rules, CommandExecutor executor, CommandContext ctx)
+    private void Sail(List<Character> npcs, FleetRules rules, CommandExecutor executor, CommandContext ctx)
     {
         var world = ctx.World;
         var player = world.Protagonist;
@@ -77,11 +81,30 @@ public sealed class NpcAi
                 if (fleet != null && executor.TryExecute(new MoveFleetCommand(head.Id, fleet.Id, seat, rules), ctx)) continue;
             }
 
-            // otherwise, keep the yards busy when the treasury is comfortable (twice the ship cost in hand)
+            // an unled fleet gets the house's best military mind as admiral (free of pool cost: a commission, not a scheme)
+            foreach (var fleet in world.Fleets.Values.Where(f => f.OwnerId == house.Id && f.AdmiralId == "").OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal))
+            {
+                var taken = world.Fleets.Values.Select(f => f.AdmiralId).ToHashSet();
+                var best = npcs.Where(c => c.HouseId == house.Id && !taken.Contains(c.Id))
+                               .OrderByDescending(c => c.Skill("tactics") * 5 + c.Skill("gunnery") * 3 + c.Skill("leadership") * 2 + (c.CareerTrack == "military" ? 5 : 0))
+                               .ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (best == null) break;
+                fleet.AdmiralId = best.Id;
+                world.Log($"{best.Name} takes command of {fleet.Name}.");
+            }
+
+            // otherwise, keep the yards busy when the treasury is comfortable: the heaviest class it can field
             var holding = world.HoldingsOf(house.Id).Where(h => h.SystemId != "").OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
             if (holding == null) continue;
-            bool comfortable = Resource.All.All(r => house.Treasury.Get(r) >= rules.ShipCost.Get(r) * 2);
-            if (comfortable) executor.TryExecute(new RaiseFleetCommand(head.Id, holding.Id, rules), ctx);
+            var classes = ShipClasses ?? ShipClassCatalog.Empty;
+            var candidates = classes.IsEmpty ? new[] { rules.DefaultClass } : classes.Defs.OrderByDescending(c => c.Attack + c.Defense).Select(c => c.Id).ToArray();
+            foreach (var cid in candidates)
+            {
+                var cls = classes.Resolve(cid);
+                bool comfortable = Resource.All.All(r => house.Treasury.Get(r) >= cls.Cost.Get(r) * 2);
+                if (!comfortable) continue;
+                if (executor.TryExecute(new RaiseFleetCommand(head.Id, holding.Id, rules, classes, cid, Titles), ctx)) break;
+            }
         }
     }
 

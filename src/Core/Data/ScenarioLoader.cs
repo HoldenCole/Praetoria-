@@ -104,8 +104,11 @@ public static class ScenarioLoader
                     SystemId = ConditionParser.Str(f, "system"),
                     Strength = ConditionParser.Int(f, "strength", 1),
                     Readiness = ConditionParser.Int(f, "readiness", 100),
-                    Office = ConditionParser.Bool(f, "office", false)
+                    Office = ConditionParser.Bool(f, "office", false),
+                    AdmiralId = ConditionParser.OptStr(f, "admiral", ""),
+                    Ships = IntMap(f, "ships")
                 });
+        foreach (var f in list) f.Recount();
         return list;
     }
 

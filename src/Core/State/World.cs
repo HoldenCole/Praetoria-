@@ -39,6 +39,9 @@ public sealed class World
     /// <summary>Every fleet, keyed by fleet id (GDD §8 office vs house fleets; §19 map markers).</summary>
     public Dictionary<string, Fleet> Fleets { get; set; } = new();
 
+    /// <summary>Holdings under blockade, keyed by holding id (GDD §6). The siege clock toward conquest.</summary>
+    public Dictionary<string, Siege> Sieges { get; set; } = new();
+
     /// <summary>Standing wars between houses (GDD §6). Fleets of warring houses fight where they meet.</summary>
     public List<War> Wars { get; set; } = new();
 

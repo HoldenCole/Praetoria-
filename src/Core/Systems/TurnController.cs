@@ -33,12 +33,13 @@ public sealed class TurnController
 
     private readonly IRng _rng;
     private readonly ContentDatabase _content;
-    private readonly NpcAi _npcAi = new();
+    private readonly NpcAi _npcAi;
     private readonly Economy? _economy;
     private readonly CrisisEngine? _crises;
     private readonly SphereSystem? _spheres;
     private readonly ProgressionSystem? _progression;
     private readonly FleetSystem _fleets;
+    private readonly HonorSystem _honors;
     private readonly DynastySystem _dynasty = new();   // always-on — the dynasty IS the game (GDD §14)
     private readonly int _briefingBudget;
     private readonly List<BriefingItem> _briefing = new();
@@ -60,6 +61,9 @@ public sealed class TurnController
     /// <summary>The fleet layer (GDD §6/§19): transit, upkeep, incursions, intel. A no-op without a galaxy.</summary>
     public FleetSystem Fleets => _fleets;
 
+    /// <summary>Honorifics & Orders (GDD §13).</summary>
+    public HonorSystem Honors => _honors;
+
     public TurnController(World world, ContentDatabase content, Director? director = null, int briefingBudget = 3)
     {
         World = world;
@@ -70,7 +74,9 @@ public sealed class TurnController
         _crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises);
         _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres);
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
-        _fleets = new FleetSystem(content.Fleets, content.Holdings);
+        _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
+        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles };
+        _honors = new HonorSystem(content.Honors);
         _briefingBudget = briefingBudget;
     }
 
@@ -92,6 +98,7 @@ public sealed class TurnController
         _fleets.UpdateIntel(World);            // ...and the picture after the fighting
         _spheres?.Recompute(World);  // power-balance projection + threat/coalition (GDD §7), also RNG-free
         _progression?.Apply(World);  // title soft-lock instability (GDD §13), also RNG-free
+        _honors.Apply(World, _rng);  // investitures when a distinction's conditions first hold (GDD §13)
 
         Phase = TurnPhase.Briefing;
         _briefing.Clear();

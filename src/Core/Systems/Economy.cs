@@ -64,6 +64,9 @@ public sealed class Economy
                     if (r == Resource.Manpower && spec.PopManpower > 0)
                         net += holding.Population / spec.PopManpower;
 
+                    // A blockade halves what gets through (GDD §6 siege).
+                    if (net > 0 && world.Sieges.ContainsKey(holding.Id)) net /= 2;
+
                     // Unrest is a tax on people: it throttles Manpower output (GDD §17).
                     if (r == Resource.Manpower && net > 0)
                         net = net * (100 - holding.Unrest) / 100;

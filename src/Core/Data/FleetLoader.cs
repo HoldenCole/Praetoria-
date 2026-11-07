@@ -38,12 +38,49 @@ public static class FleetLoader
                     DeclareWarCost = ConditionParser.Int(rules, "declareWarCost", d.DeclareWarCost),
                     PeaceCost = ConditionParser.Int(rules, "peaceCost", d.PeaceCost),
                     PeaceRefusalRatio = Dbl(rules, "peaceRefusalRatio", d.PeaceRefusalRatio),
-                    ConquestUnrest = ConditionParser.Int(rules, "conquestUnrest", d.ConquestUnrest)
+                    ConquestUnrest = ConditionParser.Int(rules, "conquestUnrest", d.ConquestUnrest),
+                    DefaultClass = ConditionParser.OptStr(rules, "defaultClass", d.DefaultClass),
+                    SiegeTurns = ConditionParser.Int(rules, "siegeTurns", d.SiegeTurns),
+                    VeterancyMax = ConditionParser.Int(rules, "veterancyMax", d.VeterancyMax),
+                    VeterancyBonus = Dbl(rules, "veterancyBonus", d.VeterancyBonus),
+                    AdmiralDeathChance = Dbl(rules, "admiralDeathChance", d.AdmiralDeathChance),
+                    WarWearinessTurns = ConditionParser.Int(rules, "warWearinessTurns", d.WarWearinessTurns),
+                    TributePerScore = ConditionParser.Int(rules, "tributePerScore", d.TributePerScore)
                 };
             }
             catch (JsonException ex) { throw new ContentException($"Invalid JSON in '{file}': {ex.Message}", ex); }
         }
         return FleetRules.Default;
+    }
+
+    /// <summary>Ship classes from any file in /content/fleets carrying a "classes" array.</summary>
+    public static ShipClassCatalog LoadClasses(string contentRoot)
+    {
+        var dir = Path.Combine(contentRoot, "fleets");
+        if (!Directory.Exists(dir)) return ShipClassCatalog.Empty;
+        var defs = new List<ShipClassDef>();
+        foreach (var file in Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories).OrderBy(static p => p, StringComparer.Ordinal))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(file), DocOptions);
+                if (!doc.RootElement.TryGetProperty("classes", out var arr) || arr.ValueKind != JsonValueKind.Array) continue;
+                foreach (var el in arr.EnumerateArray())
+                    defs.Add(new ShipClassDef
+                    {
+                        Id = ConditionParser.Str(el, "id"),
+                        Name = ConditionParser.OptStr(el, "name", ConditionParser.Str(el, "id")),
+                        Attack = ConditionParser.Int(el, "attack", 1),
+                        Defense = ConditionParser.Int(el, "defense", 1),
+                        Cost = HoldingCatalogLoader.ParseResources(el, "cost"),
+                        Upkeep = HoldingCatalogLoader.ParseResources(el, "upkeep"),
+                        MinTitleRank = ConditionParser.Int(el, "minTitleRank", 0),
+                        Requires = ConditionParser.OptStrOrNull(el, "requires")
+                    });
+            }
+            catch (JsonException ex) { throw new ContentException($"Invalid JSON in '{file}': {ex.Message}", ex); }
+        }
+        return new ShipClassCatalog(defs);
     }
 
     private static double Dbl(JsonElement el, string name, double fallback) =>

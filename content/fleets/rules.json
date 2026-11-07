@@ -26,6 +26,18 @@
     "declareWarCost": 2,
     "peaceCost": 1,
     "peaceRefusalRatio": 2.0,
-    "conquestUnrest": 20
+    "conquestUnrest": 20,
+
+    // SIEGE & WAR. Conquest is a siege, not a touch: an unopposed enemy fleet must hold the sky for siegeTurns
+    // (+2 per point of the holding's defense, rounded up) while the blockade halves the holding's yield. War
+    // score: +2 per battle won, +3 per conquest. Peace terms pay tributePerScore credits per point of score
+    // difference. After warWearinessTurns both sides' worlds grow restless each turn the war drags on.
+    "defaultClass": "frigate",
+    "siegeTurns": 2,
+    "veterancyMax": 5,
+    "veterancyBonus": 0.05,
+    "admiralDeathChance": 0.12,
+    "warWearinessTurns": 6,
+    "tributePerScore": 3
   }
 }

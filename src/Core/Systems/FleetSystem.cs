@@ -17,53 +17,194 @@ public sealed class FleetRules
     public int MovePoolCost { get; init; } = 1;
 
     // ---- combat (GDD §6) ----
-    /// <summary>Power multiplier for the side that holds the system (before holding/building defense).</summary>
     public double DefenderBonus { get; init; } = 0.25;
-    /// <summary>Share of hulls the loser loses (rounded up).</summary>
     public double LoserLossRatio { get; init; } = 0.5;
-    /// <summary>Share of hulls the winner loses, scaled by how close the fight was (rounded down).</summary>
     public double WinnerLossRatio { get; init; } = 0.3;
     public int WinnerReadinessCost { get; init; } = 20;
     public int LoserReadinessCost { get; init; } = 40;
-    /// <summary>Influence-pool cost to declare war / to sue for peace.</summary>
     public int DeclareWarCost { get; init; } = 2;
     public int PeaceCost { get; init; } = 1;
-    /// <summary>A house whose hulls exceed yours by this ratio refuses peace — it smells victory.</summary>
     public double PeaceRefusalRatio { get; init; } = 2.0;
-    /// <summary>Unrest a conquered holding carries into its new house.</summary>
     public int ConquestUnrest { get; init; } = 20;
+
+    // ---- classes, admirals, sieges, war score ----
+    public string DefaultClass { get; init; } = "frigate";
+    public int SiegeTurns { get; init; } = 2;
+    public int VeterancyMax { get; init; } = 5;
+    public double VeterancyBonus { get; init; } = 0.05;
+    public double AdmiralDeathChance { get; init; } = 0.12;
+    public int WarWearinessTurns { get; init; } = 6;
+    public int TributePerScore { get; init; } = 3;
 
     public static FleetRules Default { get; } = new();
 }
 
 /// <summary>
-/// The fleet layer's per-turn rules (GDD §6 military pillar, §19 map behaviour): transit along lanes, readiness,
-/// upkeep from the owning treasury, incursions (a fleet arriving in another house's territory), and the
-/// protagonist house's <em>intel</em> picture of rival fleets. RNG-free and id-ordered: deterministic.
+/// The fleet layer (GDD §6 military pillar, §8 office/house fleets, §19 map behaviour): transit along lanes,
+/// readiness, upkeep by hull class, incursions, the protagonist house's intel, <b>battle</b> (composition ×
+/// readiness × admiral × veterancy, defenders fortified by their holdings), <b>sieges</b> that end in conquest,
+/// war score and weariness. RNG only where a fight is decided; everything else id-ordered and deterministic.
 /// </summary>
 public sealed class FleetSystem
 {
     public const string IncursionsCounter = "incursions";
     public static string IncursionFlag(string houseId) => $"incursion:{houseId}";
-
-    // engine-written, player-centric (GDD §15 L1 — the state events read)
-    public const string BattlesCounter = "battles";            // every battle anywhere
-    public const string BattlesWonCounter = "battles_won";     // the player's house won
+    public const string BattlesCounter = "battles";
+    public const string BattlesWonCounter = "battles_won";
     public const string BattlesLostCounter = "battles_lost";
-    public const string ConquestsCounter = "conquests";        // holdings the player's house took
-    public const string BattleFoughtFlag = "battle_fought";    // the player's house fought this turn (content clears it)
-    public const string ConquestMadeFlag = "conquest_made";    // the player's house took a holding (content clears it)
-    public const string HoldingLostFlag = "holding_lost";      // ...or lost one
+    public const string ConquestsCounter = "conquests";
+    public const string BattleFoughtFlag = "battle_fought";
+    public const string ConquestMadeFlag = "conquest_made";
+    public const string HoldingLostFlag = "holding_lost";
+    public const string UnderSiegeFlag = "under_siege";          // one of the player's holdings is blockaded
     public const string WarsDeclaredCounter = "wars_declared";
     public static string AtWarFlag(string houseId) => $"at_war:{houseId}";
+    public const string SuingForPeaceFlag = "suing_for_peace";
+    public const string AdmiralFlag = "admiral";                  // the character commands a fleet
 
     private readonly FleetRules _rules;
     private readonly HoldingCatalog _catalog;
-    public FleetSystem(FleetRules rules, HoldingCatalog? catalog = null) { _rules = rules; _catalog = catalog ?? HoldingCatalog.Empty; }
-    public FleetRules Rules => _rules;
+    private readonly ShipClassCatalog _classes;
+    private readonly FrictionTable _friction;
 
-    /// <summary>The battles fought this turn (cleared at the next <see cref="Tick"/>), for the chronicle and UI.</summary>
+    public FleetSystem(FleetRules rules, HoldingCatalog? catalog = null, ShipClassCatalog? classes = null, FrictionTable? friction = null)
+    {
+        _rules = rules; _catalog = catalog ?? HoldingCatalog.Empty; _classes = classes ?? ShipClassCatalog.Empty; _friction = friction ?? FrictionTable.Empty;
+    }
+
+    public FleetRules Rules => _rules;
+    public ShipClassCatalog Classes => _classes;
     public List<BattleReport> LastBattles { get; } = new();
+
+    private ShipClassDef Class(string id) => _classes.Resolve(id);
+    private ShipClassDef DefaultClass => _classes.Resolve(_rules.DefaultClass);
+
+    // ---------------- composition ----------------
+
+    /// <summary>Hulls per class, materialising the default class for fleets authored by strength alone.</summary>
+    public IEnumerable<(ShipClassDef cls, int count)> Composition(Fleet f)
+    {
+        if (f.Ships.Count == 0) { if (f.Strength > 0) yield return (DefaultClass, f.Strength); yield break; }
+        foreach (var kv in f.Ships.OrderBy(k => k.Key, StringComparer.Ordinal)) if (kv.Value > 0) yield return (Class(kv.Key), kv.Value);
+    }
+
+    public string Describe(Fleet f) =>
+        string.Join(", ", Composition(f).Select(c => $"{c.count} {c.cls.Name.ToLowerInvariant()}{(c.count == 1 ? "" : "s")}"));
+
+    /// <summary>Per-turn upkeep of a fleet from its classes.</summary>
+    public Resources Upkeep(Fleet f)
+    {
+        var r = new Resources();
+        foreach (var (cls, n) in Composition(f)) foreach (var k in Resource.All) r.Add(k, cls.Upkeep.Get(k) * n);
+        return r;
+    }
+
+    // ---------------- the turn ----------------
+
+    public void Tick(World w)
+    {
+        LastBattles.Clear();
+        if (w.Galaxy == null) { UpdateIntel(w); return; }
+
+        foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal))
+        {
+            if (f.Moving)
+            {
+                f.Eta -= 1;
+                f.Readiness = Math.Max(0, f.Readiness - _rules.ReadinessDecayMoving);
+                if (f.Eta <= 0) { f.SystemId = f.DestinationId; f.DestinationId = ""; f.Eta = 0; Arrive(w, f); }
+            }
+            else f.Readiness = Math.Min(100, f.Readiness + _rules.ReadinessRecovery);
+        }
+
+        foreach (var house in w.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            var bill = new Resources();
+            foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id)) bill.Add(Upkeep(f));
+            if (bill.IsEmpty()) continue;
+            foreach (var r in Resource.All) house.Treasury.Add(r, -bill.Get(r));
+            house.Treasury.ClampNonCredit();
+        }
+
+        RefreshAdmiralFlags(w);
+        WarWeariness(w);
+        UpdateIntel(w);
+    }
+
+    private static void Arrive(World w, Fleet f)
+    {
+        string? owner = TerritoryOwner(w, f.SystemId);
+        var sys = w.Galaxy!.System(f.SystemId);
+        if (owner != null && owner != f.OwnerId)
+        {
+            w.WorldCounters[IncursionsCounter] = w.Counter(IncursionsCounter) + 1;
+            w.WorldFlags.Add(IncursionFlag(owner));
+            w.Log($"{f.Name} of {w.House(f.OwnerId)?.Name ?? f.OwnerId} arrives at {sys?.Name ?? f.SystemId} — {w.House(owner)?.Name ?? owner}'s space.");
+        }
+        else w.Log($"{f.Name} arrives at {sys?.Name ?? f.SystemId}.");
+    }
+
+    public static string? TerritoryOwner(World w, string systemId)
+    {
+        var owners = w.Holdings.Values.Where(h => h.SystemId == systemId)
+            .GroupBy(h => h.OwnerId).OrderByDescending(g => g.Count()).ThenBy(g => g.Key, StringComparer.Ordinal)
+            .Select(g => g.Key).ToList();
+        return owners.Count == 0 ? null : owners[0];
+    }
+
+    public static int StrengthOf(World w, string houseId) => w.Fleets.Values.Where(f => f.OwnerId == houseId).Sum(f => f.Strength);
+    public static int StrengthAt(World w, string houseId, string systemId) =>
+        w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId).Sum(f => f.Strength);
+
+    /// <summary>Characters commanding a fleet carry the <c>admiral</c> flag so content can bind "the admiral".</summary>
+    public static void RefreshAdmiralFlags(World w)
+    {
+        var admirals = w.Fleets.Values.Select(f => f.AdmiralId).Where(a => a.Length > 0).ToHashSet();
+        foreach (var c in w.Characters.Values)
+        {
+            if (admirals.Contains(c.Id) && c.Alive) c.Flags.Add(AdmiralFlag); else c.Flags.Remove(AdmiralFlag);
+        }
+        foreach (var f in w.Fleets.Values) if (f.AdmiralId.Length > 0 && w.Char(f.AdmiralId) is not { Alive: true }) f.AdmiralId = "";
+    }
+
+    /// <summary>Long wars grind: past the weariness threshold, every holding of a warring house grows restless each turn.</summary>
+    private void WarWeariness(World w)
+    {
+        foreach (var war in w.Wars)
+        {
+            if (w.Turn - war.Since < _rules.WarWearinessTurns) continue;
+            foreach (var h in w.Holdings.Values.Where(h => war.Involves(h.OwnerId))) h.Unrest = Math.Min(100, h.Unrest + 2);
+        }
+    }
+
+    public static HashSet<string> Watched(World w)
+    {
+        var set = new HashSet<string>();
+        var house = w.Protagonist?.HouseId;
+        if (w.Galaxy == null || house == null) return set;
+        foreach (var s in w.Holdings.Values.Where(h => h.OwnerId == house && h.SystemId != "").Select(h => h.SystemId).Distinct().ToList())
+        { set.Add(s); foreach (var n in w.Galaxy.Neighbors(s)) set.Add(n); }
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house && !f.Moving)) { set.Add(f.SystemId); foreach (var n in w.Galaxy.Neighbors(f.SystemId)) set.Add(n); }
+        return set;
+    }
+
+    public void UpdateIntel(World w)
+    {
+        var house = w.Protagonist?.HouseId;
+        if (house == null) return;
+        var ownSystems = w.Holdings.Values.Where(h => h.OwnerId == house).Select(h => h.SystemId).ToHashSet();
+        var watched = Watched(w);
+        foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal))
+        {
+            if (f.OwnerId == house) continue;
+            bool seen = watched.Contains(f.SystemId) || (f.Moving && watched.Contains(f.DestinationId));
+            if (seen)
+                w.Intel[f.Id] = new FleetIntel { FleetId = f.Id, SystemId = f.SystemId, Strength = f.Strength,
+                    Confidence = ownSystems.Contains(f.SystemId) ? _rules.ConfidenceInTerritory : _rules.ConfidenceAdjacent, TurnObserved = w.Turn };
+            else if (w.Intel.TryGetValue(f.Id, out var old)) old.Confidence = Math.Max(0, old.Confidence - _rules.IntelDecay);
+        }
+        foreach (var id in w.Intel.Keys.Where(id => !w.Fleets.ContainsKey(id)).ToList()) w.Intel.Remove(id);
+    }
 
     // ---------------- war & peace ----------------
 
@@ -73,28 +214,41 @@ public sealed class FleetSystem
         w.Wars.Add(new War { HouseA = a, HouseB = b, Since = w.Turn });
         w.WorldCounters[WarsDeclaredCounter] = w.Counter(WarsDeclaredCounter) + 1;
         RefreshWarFlags(w);
-        var who = byCharacterId != null ? w.Char(byCharacterId)?.Name : null;
-        w.Log($"{(who ?? w.House(a)?.Name ?? a)} declares war on {w.House(b)?.Name ?? b}.");
+        var who = byCharacterId != null ? w.Char(byCharacterId) : null;
+        w.Log($"{(who?.Name ?? w.House(a)?.Name ?? a)} declares war on {w.House(b)?.Name ?? b}.");
+        if (who != null) _friction.Apply(w, who, "declare_war");
     }
 
     public void MakePeace(World w, string a, string b)
     {
-        int removed = w.Wars.RemoveAll(x => x.Between(a, b));
-        if (removed == 0) return;
+        var war = w.Wars.FirstOrDefault(x => x.Between(a, b));
+        if (war == null) return;
+        w.Wars.Remove(war);
+        foreach (var s in w.Sieges.Values.Where(s => (war.Involves(s.BesiegerId)) && war.Involves(w.Holding(s.HoldingId)?.OwnerId ?? "")).ToList()) w.Sieges.Remove(s.HoldingId);
+        foreach (var c in w.Characters.Values.Where(c => war.Involves(c.HouseId))) c.Flags.Remove(SuingForPeaceFlag);
         RefreshWarFlags(w);
+        RefreshSiegeFlag(w);
         w.Log($"{w.House(a)?.Name ?? a} and {w.House(b)?.Name ?? b} make peace.");
     }
 
-    /// <summary>Would NPC house <paramref name="houseId"/> accept peace from <paramref name="from"/>? Not while it
-    /// smells victory (its hulls exceed the suitor's by the refusal ratio). The player's house never auto-decides:
-    /// an NPC suing for peace raises <see cref="SuingForPeaceFlag"/> on its head and the envoy event asks.</summary>
-    public bool WouldAcceptPeace(World w, string houseId, string from) =>
-        StrengthOf(w, houseId) <= Math.Max(1, StrengthOf(w, from)) * _rules.PeaceRefusalRatio;
+    /// <summary>Tribute the lower-scoring side pays the higher on peace (credits), from the war's score difference.</summary>
+    public int Tribute(World w, string from, string to)
+    {
+        var war = w.Wars.FirstOrDefault(x => x.Between(from, to));
+        if (war == null) return 0;
+        int lead = war.Lead(to);
+        return lead > 0 ? Math.Min(w.House(from)?.Treasury.Credits ?? 0, lead * _rules.TributePerScore) : 0;
+    }
 
-    /// <summary>Char flag on an NPC head that has sued the player's house for peace; content answers it.</summary>
-    public const string SuingForPeaceFlag = "suing_for_peace";
+    /// <summary>Would NPC house <paramref name="houseId"/> accept peace from <paramref name="from"/>? Not while it smells
+    /// victory — ahead on war score, or hulls past the refusal ratio.</summary>
+    public bool WouldAcceptPeace(World w, string houseId, string from)
+    {
+        var war = w.Wars.FirstOrDefault(x => x.Between(houseId, from));
+        if (war != null && war.Lead(houseId) >= 5 && StrengthOf(w, houseId) >= StrengthOf(w, from)) return false;
+        return StrengthOf(w, houseId) <= Math.Max(1, StrengthOf(w, from)) * _rules.PeaceRefusalRatio;
+    }
 
-    /// <summary>Mirror the protagonist house's wars into <c>at_war:&lt;house&gt;</c> flags so content can read them.</summary>
     public static void RefreshWarFlags(World w)
     {
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("at_war:")).ToList()) w.WorldFlags.Remove(f);
@@ -103,10 +257,15 @@ public sealed class FleetSystem
         foreach (var e in w.EnemiesOf(house)) w.WorldFlags.Add(AtWarFlag(e));
     }
 
+    private static void RefreshSiegeFlag(World w)
+    {
+        var house = w.Protagonist?.HouseId;
+        bool any = house != null && w.Sieges.Values.Any(s => w.Holding(s.HoldingId)?.OwnerId == house);
+        if (any) w.WorldFlags.Add(UnderSiegeFlag); else w.WorldFlags.Remove(UnderSiegeFlag);
+    }
+
     // ---------------- battle ----------------
 
-    /// <summary>Fleets of warring houses that share a system fight — once per hostile pair per system per turn,
-    /// in ordinal order so the outcome is reproducible from the seed. Call after <see cref="Tick"/>.</summary>
     public void ResolveBattles(World w, IRng rng)
     {
         LastBattles.Clear();
@@ -120,16 +279,17 @@ public sealed class FleetSystem
                 for (int j = i + 1; j < houses.Count; j++)
                 {
                     string a = houses[i], b = houses[j];
-                    if (!w.AtWar(a, b)) continue;
-                    if (StrengthAt(w, a, systemId) == 0 || StrengthAt(w, b, systemId) == 0) continue;   // already broken this turn
+                    if (!w.AtWar(a, b) || StrengthAt(w, a, systemId) == 0 || StrengthAt(w, b, systemId) == 0) continue;
                     var report = Battle(w, rng, systemId, a, b);
                     LastBattles.Add(report);
                     w.WorldCounters[BattlesCounter] = w.Counter(BattlesCounter) + 1;
+                    w.Wars.First(x => x.Between(a, b)).AddScore(report.Winner, 2);
                     if (player != null && (a == player || b == player))
                     {
                         w.WorldFlags.Add(BattleFoughtFlag);
-                        w.WorldCounters[report.Winner == player ? BattlesWonCounter : BattlesLostCounter] =
-                            w.Counter(report.Winner == player ? BattlesWonCounter : BattlesLostCounter) + 1;
+                        bool won = report.Winner == player;
+                        w.WorldCounters[won ? BattlesWonCounter : BattlesLostCounter] = w.Counter(won ? BattlesWonCounter : BattlesLostCounter) + 1;
+                        _friction.Apply(w, w.Protagonist, won ? "battle_won" : "battle_lost");
                     }
                 }
         }
@@ -138,7 +298,6 @@ public sealed class FleetSystem
     private BattleReport Battle(World w, IRng rng, string systemId, string a, string b)
     {
         string? owner = TerritoryOwner(w, systemId);
-        // the house holding the system defends; otherwise the ordinal-first house is the nominal attacker
         string attacker = owner == a ? b : a, defender = owner == a ? a : b;
         double pa = Power(w, attacker, systemId, defending: false);
         double pd = Power(w, defender, systemId, defending: owner == defender);
@@ -149,32 +308,80 @@ public sealed class FleetSystem
 
         int loserStrength = StrengthAt(w, loser, systemId), winnerStrength = StrengthAt(w, winner, systemId);
         int loserLosses = Math.Min(loserStrength, Math.Max(1, (int)Math.Ceiling(loserStrength * _rules.LoserLossRatio)));
-        int winnerLosses = Math.Min(winnerStrength - 1, (int)Math.Floor(winnerStrength * _rules.WinnerLossRatio * Math.Min(1.0, pl / pw)));
-        winnerLosses = Math.Max(0, winnerLosses);
+        int winnerLosses = Math.Max(0, Math.Min(winnerStrength - 1, (int)Math.Floor(winnerStrength * _rules.WinnerLossRatio * Math.Min(1.0, pl / pw))));
 
+        var loserAdmirals = Admirals(w, loser, systemId); var winnerAdmirals = Admirals(w, winner, systemId);
         ApplyLosses(w, loser, systemId, loserLosses, _rules.LoserReadinessCost);
         ApplyLosses(w, winner, systemId, winnerLosses, _rules.WinnerReadinessCost);
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == winner && !f.Moving && f.SystemId == systemId))
+            f.Veterancy = Math.Min(_rules.VeterancyMax, f.Veterancy + 1);
+        AdmiralOutcomes(w, rng, winnerAdmirals, loserAdmirals);
         Retreat(w, loser, systemId);
 
         var sys = w.Galaxy!.System(systemId)?.Name ?? systemId;
         w.Log($"Battle of {sys}: {w.House(winner)?.Name ?? winner} defeats {w.House(loser)?.Name ?? loser} " +
               $"({w.House(attacker)?.Name ?? attacker} attacking, {w.House(defender)?.Name ?? defender} holding). " +
               $"Hulls lost — {w.House(attacker)?.Name ?? attacker} {(attackerWins ? winnerLosses : loserLosses)}, {w.House(defender)?.Name ?? defender} {(attackerWins ? loserLosses : winnerLosses)}.");
-        return new BattleReport(systemId, attacker, defender, winner,
-            attackerWins ? winnerLosses : loserLosses, attackerWins ? loserLosses : winnerLosses, pa, pd, w.Turn);
+        return new BattleReport(systemId, attacker, defender, winner, attackerWins ? winnerLosses : loserLosses, attackerWins ? loserLosses : winnerLosses, pa, pd, w.Turn);
     }
 
-    /// <summary>Combat power: hulls × (0.5 + readiness/200), defenders × (1 + bonus + the system's holdings' defense).</summary>
+    private static List<Character> Admirals(World w, string houseId, string systemId) =>
+        w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId && f.AdmiralId.Length > 0)
+            .Select(f => w.Char(f.AdmiralId)).Where(c => c is { Alive: true }).Select(c => c!).Distinct().OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
+
+    /// <summary>The victor's admiral learns (tactics, then gunnery); the loser's is wounded — or, on a seeded roll, killed
+    /// (GDD §5 "losing a Fleet Admiral means the heir starts as a green cadet"; a dead protagonist triggers succession).</summary>
+    private void AdmiralOutcomes(World w, IRng rng, List<Character> winners, List<Character> losers)
+    {
+        foreach (var c in winners)
+        {
+            string skill = c.Skill("tactics") <= c.Skill("gunnery") ? "tactics" : "gunnery";
+            c.Skills[skill] = c.Skill(skill) + 1;
+            w.Log($"{c.Name} learns from the victory ({skill} {c.Skill(skill)}).");
+        }
+        foreach (var c in losers)
+        {
+            if (rng.NextDouble() < _rules.AdmiralDeathChance)
+            {
+                w.Log($"{c.Name} goes down with the line.");
+                DynastySystem.Die(w, c.Id);
+            }
+            else
+            {
+                c.Flags.Add("wounded");
+                c.Stress = Math.Min(100, c.Stress + 10);
+            }
+        }
+    }
+
+    /// <summary>Power = Σ hulls × class stat (attack assaulting, defense holding) × (0.5 + readiness/200) × admiral × veterancy;
+    /// defenders × (1 + bonus + the system's holdings' defense).</summary>
     public double Power(World w, string houseId, string systemId, bool defending)
     {
         double p = 0;
         foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId))
-            p += f.Strength * (0.5 + f.Readiness / 200.0);
+        {
+            double hulls = 0;
+            foreach (var (cls, n) in Composition(f)) hulls += n * (defending ? cls.Defense : cls.Attack);
+            p += hulls * (0.5 + f.Readiness / 200.0) * AdmiralFactor(w, f) * (1 + f.Veterancy * _rules.VeterancyBonus);
+        }
         if (defending) p *= 1 + _rules.DefenderBonus + Defense(w, systemId, houseId);
         return p;
     }
 
-    /// <summary>Fortress worlds and batteries a house holds in the system (data: spec/building `defense`).</summary>
+    /// <summary>The admiral's skill (GDD §6): tactics 5%, gunnery 3%, leadership 2% per point; Tactician +10%, Strategist +5%;
+    /// a wounded or broken admiral −10%. Unled fleets fight at 0.85.</summary>
+    public static double AdmiralFactor(World w, Fleet f)
+    {
+        var c = f.AdmiralId.Length > 0 ? w.Char(f.AdmiralId) : null;
+        if (c is not { Alive: true }) return 0.85;
+        double k = 1.0 + c.Skill("tactics") * 0.05 + c.Skill("gunnery") * 0.03 + c.Skill("leadership") * 0.02;
+        if (c.AptitudeTraits.Contains("Tactician")) k += 0.10;
+        if (c.AptitudeTraits.Contains("Strategist")) k += 0.05;
+        if (c.Flags.Contains("wounded") || c.Flags.Contains(DynastySystem.BrokenFlag)) k -= 0.10;
+        return Math.Clamp(k, 0.6, 2.0);
+    }
+
     public double Defense(World w, string systemId, string houseId)
     {
         double d = 0;
@@ -186,184 +393,109 @@ public sealed class FleetSystem
         return d;
     }
 
-    public static int StrengthAt(World w, string houseId, string systemId) =>
-        w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId).Sum(f => f.Strength);
-
-    private static void ApplyLosses(World w, string houseId, string systemId, int losses, int readinessCost)
+    /// <summary>Hulls are lost screen-first: the most numerous (cheapest) class in the largest fleet goes first.</summary>
+    private void ApplyLosses(World w, string houseId, string systemId, int losses, int readinessCost)
     {
-        var fleets = w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId)
-            .OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).ToList();
+        var fleets = w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId).ToList();
         foreach (var f in fleets) f.Readiness = Math.Max(0, f.Readiness - readinessCost);
         while (losses > 0 && fleets.Any(f => f.Strength > 0))
         {
             var f = fleets.Where(f => f.Strength > 0).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).First();
-            f.Strength -= 1; losses -= 1;
+            if (f.Ships.Count > 0)
+            {
+                var cls = f.Ships.Where(k => k.Value > 0).OrderByDescending(k => k.Value).ThenBy(k => Class(k.Key).Attack).ThenBy(k => k.Key, StringComparer.Ordinal).First().Key;
+                f.Ships[cls] -= 1;
+                if (f.Ships[cls] == 0) f.Ships.Remove(cls);
+                f.Recount();
+                if (f.Ships.Count == 0) f.Strength = 0;
+            }
+            else f.Strength -= 1;
+            losses -= 1;
         }
         foreach (var f in fleets.Where(f => f.Strength <= 0).ToList())
         {
-            w.Fleets.Remove(f.Id);
-            w.Intel.Remove(f.Id);
+            w.Fleets.Remove(f.Id); w.Intel.Remove(f.Id);
             w.Log($"{f.Name} is destroyed.");
         }
     }
 
-    /// <summary>Survivors fall back to the nearest system their house holds; with nowhere to go they scatter and are lost.</summary>
     private static void Retreat(World w, string houseId, string systemId)
     {
         var survivors = w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId).OrderBy(f => f.Id, StringComparer.Ordinal).ToList();
         if (survivors.Count == 0) return;
         var havens = w.Holdings.Values.Where(h => h.OwnerId == houseId && h.SystemId != "" && h.SystemId != systemId)
-            .Select(h => h.SystemId).Distinct()
-            .Select(s => (s, hops: w.Galaxy!.Hops(systemId, s))).Where(x => x.hops > 0)
+            .Select(h => h.SystemId).Distinct().Select(s => (s, hops: w.Galaxy!.Hops(systemId, s))).Where(x => x.hops > 0)
             .OrderBy(x => x.hops).ThenBy(x => x.s, StringComparer.Ordinal).ToList();
         foreach (var f in survivors)
         {
-            if (havens.Count == 0)
-            {
-                w.Fleets.Remove(f.Id); w.Intel.Remove(f.Id);
-                w.Log($"{f.Name}, with no port to run to, scatters and is lost.");
-                continue;
-            }
+            if (havens.Count == 0) { w.Fleets.Remove(f.Id); w.Intel.Remove(f.Id); w.Log($"{f.Name}, with no port to run to, scatters and is lost."); continue; }
             f.DestinationId = havens[0].s; f.Eta = havens[0].hops;
             w.Log($"{f.Name} falls back toward {w.Galaxy!.System(havens[0].s)?.Name ?? havens[0].s}.");
         }
     }
 
-    // ---------------- conquest ----------------
+    // ---------------- siege & conquest ----------------
 
-    /// <summary>An unopposed fleet in an enemy's system takes its holdings (GDD §13 Military — "take it"; every
-    /// seizure spikes rival fear via the <c>seizures</c> counter when the player does it). Call after battles.</summary>
+    /// <summary>Turns a blockade needs to take a holding: the base plus two per point of its defense.</summary>
+    public int SiegeRequired(World w, Holding h) =>
+        _rules.SiegeTurns + (int)Math.Ceiling(2 * ((_catalog.Spec(h.Specialization)?.Defense ?? 0) + h.Buildings.Sum(b => _catalog.Building(b)?.Defense ?? 0)));
+
+    /// <summary>Advance sieges: an enemy fleet alone in the sky over a holding tightens the blockade; when the clock
+    /// reaches the holding's resistance it changes hands (GDD §13 Military — "take it"). A contested sky lifts the siege.</summary>
     public void ResolveConquests(World w)
     {
-        if (w.Wars.Count == 0 || w.Galaxy == null) return;
+        if (w.Galaxy == null) return;
         var player = w.Protagonist?.HouseId;
+
         foreach (var h in w.Holdings.Values.Where(h => h.SystemId != "").OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
-            if (StrengthAt(w, h.OwnerId, h.SystemId) > 0) continue;                       // the owner still holds the sky
-            var enemy = w.EnemiesOf(h.OwnerId).Where(e => StrengthAt(w, e, h.SystemId) > 0).FirstOrDefault();
-            if (enemy == null) continue;
-
-            string old = h.OwnerId;
-            h.OwnerId = enemy;
-            h.Unrest = Math.Clamp(h.Unrest + _rules.ConquestUnrest, 0, 100);
-            w.WorldCounters[ConquestsCounter] = w.Counter(ConquestsCounter) + (enemy == player ? 1 : 0);
-            if (enemy == player) { w.WorldFlags.Add(ConquestMadeFlag); w.WorldCounters["seizures"] = w.Counter("seizures") + 1; }
-            if (old == player) w.WorldFlags.Add(HoldingLostFlag);
-            w.Log($"{w.House(enemy)?.Name ?? enemy} takes {h.Name} from {w.House(old)?.Name ?? old}.");
-        }
-    }
-
-    /// <summary>Call once per turn, after the economy accrues.</summary>
-    public void Tick(World w)
-    {
-        if (w.Galaxy == null) { UpdateIntel(w); return; }
-
-        // 1. transit + readiness
-        foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal))
-        {
-            if (f.Moving)
+            var besieger = StrengthAt(w, h.OwnerId, h.SystemId) > 0 ? null
+                : w.EnemiesOf(h.OwnerId).FirstOrDefault(e => StrengthAt(w, e, h.SystemId) > 0);
+            if (besieger == null)
             {
-                f.Eta -= 1;
-                f.Readiness = Math.Max(0, f.Readiness - _rules.ReadinessDecayMoving);
-                if (f.Eta <= 0)
-                {
-                    f.SystemId = f.DestinationId;
-                    f.DestinationId = "";
-                    f.Eta = 0;
-                    Arrive(w, f);
-                }
+                if (w.Sieges.Remove(h.Id)) w.Log($"The blockade of {h.Name} is lifted.");
+                continue;
             }
-            else
+            if (!w.Sieges.TryGetValue(h.Id, out var siege) || siege.BesiegerId != besieger)
             {
-                f.Readiness = Math.Min(100, f.Readiness + _rules.ReadinessRecovery);
+                siege = new Siege { HoldingId = h.Id, BesiegerId = besieger, Turns = 0, Required = SiegeRequired(w, h) };
+                w.Sieges[h.Id] = siege;
+                w.Log($"{w.House(besieger)?.Name ?? besieger} lays siege to {h.Name} ({siege.Required} turns to fall).");
             }
-        }
+            siege.Turns += 1;
+            if (siege.Turns < siege.Required) continue;
 
-        // 2. upkeep — ships eat (GDD §17 Credits "the one you run out of")
-        foreach (var house in w.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
-        {
-            int strength = w.Fleets.Values.Where(f => f.OwnerId == house.Id).Sum(f => f.Strength);
-            if (strength == 0) continue;
-            foreach (var r in Resource.All)
-                if (_rules.UpkeepPerStrength.Get(r) != 0)
-                    house.Treasury.Add(r, -_rules.UpkeepPerStrength.Get(r) * strength);
-            house.Treasury.ClampNonCredit();
+            w.Sieges.Remove(h.Id);
+            Conquer(w, h, besieger, player);
         }
-
-        UpdateIntel(w);
+        RefreshSiegeFlag(w);
     }
 
-    /// <summary>A fleet entering territory another house holds is an incursion: public, remembered, and the
-    /// kind of thing the §7 fear machine and authored events read (`incursions` counter, `incursion:&lt;house&gt;` flag).</summary>
-    private static void Arrive(World w, Fleet f)
+    private void Conquer(World w, Holding h, string conqueror, string? player)
     {
-        string? owner = TerritoryOwner(w, f.SystemId);
-        var sys = w.Galaxy!.System(f.SystemId);
-        if (owner != null && owner != f.OwnerId)
+        string old = h.OwnerId;
+        h.OwnerId = conqueror;
+        h.Unrest = Math.Clamp(h.Unrest + _rules.ConquestUnrest, 0, 100);
+        w.Wars.FirstOrDefault(x => x.Between(old, conqueror))?.AddScore(conqueror, 3);
+        if (conqueror == player)
         {
-            w.WorldCounters[IncursionsCounter] = w.Counter(IncursionsCounter) + 1;
-            w.WorldFlags.Add(IncursionFlag(owner));
-            w.Log($"{f.Name} of {w.House(f.OwnerId)?.Name ?? f.OwnerId} arrives at {sys?.Name ?? f.SystemId} — {w.House(owner)?.Name ?? owner}'s space.");
+            w.WorldCounters[ConquestsCounter] = w.Counter(ConquestsCounter) + 1;
+            w.WorldFlags.Add(ConquestMadeFlag);
+            w.WorldCounters["seizures"] = w.Counter("seizures") + 1;
+            _friction.Apply(w, w.Protagonist, "conquest");
         }
-        else
+        if (old == player) { w.WorldFlags.Add(HoldingLostFlag); _friction.Apply(w, w.Protagonist, "holding_lost"); }
+        w.Log($"{w.House(conqueror)?.Name ?? conqueror} takes {h.Name} from {w.House(old)?.Name ?? old}.");
+
+        // titles follow the land (GDD §13): a house stripped of its last holding falls to landless, and the
+        // conqueror gains a claim to the rung it held — pressable through the Intrigue path.
+        var loser = w.House(old);
+        if (loser != null && !w.HoldingsOf(old).Any() && loser.Title != "landless")
         {
-            w.Log($"{f.Name} arrives at {sys?.Name ?? f.SystemId}.");
+            string fallen = loser.Title;
+            loser.Title = "landless";
+            w.House(conqueror)?.Claims.Add(fallen);
+            w.Log($"{loser.Name}, landless, loses its {fallen} rank; {w.House(conqueror)?.Name ?? conqueror} holds a claim to it.");
         }
-    }
-
-    /// <summary>The house holding a system (by its holdings), or null for the frontier. Ties → ordinal id.</summary>
-    public static string? TerritoryOwner(World w, string systemId)
-    {
-        var owners = w.Holdings.Values.Where(h => h.SystemId == systemId)
-            .GroupBy(h => h.OwnerId).OrderByDescending(g => g.Count()).ThenBy(g => g.Key, StringComparer.Ordinal)
-            .Select(g => g.Key).ToList();
-        return owners.Count == 0 ? null : owners[0];
-    }
-
-    /// <summary>Total fleet strength a house commands.</summary>
-    public static int StrengthOf(World w, string houseId) =>
-        w.Fleets.Values.Where(f => f.OwnerId == houseId).Sum(f => f.Strength);
-
-    /// <summary>Systems the protagonist's house can see into: its territory and everything one lane out.</summary>
-    public static HashSet<string> Watched(World w)
-    {
-        var set = new HashSet<string>();
-        var house = w.Protagonist?.HouseId;
-        if (w.Galaxy == null || house == null) return set;
-        var own = w.Holdings.Values.Where(h => h.OwnerId == house && h.SystemId != "").Select(h => h.SystemId).Distinct().ToList();
-        foreach (var s in own) { set.Add(s); foreach (var n in w.Galaxy.Neighbors(s)) set.Add(n); }
-        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house && !f.Moving)) { set.Add(f.SystemId); foreach (var n in w.Galaxy.Neighbors(f.SystemId)) set.Add(n); }
-        return set;
-    }
-
-    /// <summary>Refresh the protagonist house's picture of rival fleets (GDD §19 mixed visibility).</summary>
-    public void UpdateIntel(World w)
-    {
-        var house = w.Protagonist?.HouseId;
-        if (house == null) return;
-        var ownSystems = w.Holdings.Values.Where(h => h.OwnerId == house).Select(h => h.SystemId).ToHashSet();
-        var watched = Watched(w);
-
-        foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal))
-        {
-            if (f.OwnerId == house) continue;
-            string where = f.Moving ? f.DestinationId : f.SystemId;   // a fleet in transit is seen where it is bound
-            bool seen = watched.Contains(f.SystemId) || (f.Moving && watched.Contains(f.DestinationId));
-            if (seen)
-            {
-                w.Intel[f.Id] = new FleetIntel
-                {
-                    FleetId = f.Id, SystemId = f.Moving ? f.SystemId : where, Strength = f.Strength,
-                    Confidence = ownSystems.Contains(f.SystemId) ? _rules.ConfidenceInTerritory : _rules.ConfidenceAdjacent,
-                    TurnObserved = w.Turn
-                };
-            }
-            else if (w.Intel.TryGetValue(f.Id, out var old))
-            {
-                old.Confidence = Math.Max(0, old.Confidence - _rules.IntelDecay);
-            }
-        }
-        // fleets that no longer exist fall out of the picture
-        foreach (var id in w.Intel.Keys.Where(id => !w.Fleets.ContainsKey(id)).ToList()) w.Intel.Remove(id);
     }
 }

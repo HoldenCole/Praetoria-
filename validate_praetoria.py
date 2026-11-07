@@ -209,9 +209,24 @@ def validate_creation():
     for f in glob.glob("content/traits/*.json"):
         t=_read_jsonc(f)
         for key,locked in (("nature",NATURE),("aptitude",APTITUDE),("ambitions",AMBITIONS)):
+            if key not in t: continue
             ids={x["id"] for x in t.get(key,[])}
             if ids!=locked:
-                errors.append(f"traits.json '{key}' differs from the locked vocabulary: missing {sorted(locked-ids)}, extra {sorted(ids-locked)}")
+                errors.append(f"{f} '{key}' differs from the locked vocabulary: missing {sorted(locked-ids)}, extra {sorted(ids-locked)}")
+        for act,row in t.get("friction",{}).items():
+            for tr in row:
+                if tr not in NATURE|APTITUDE: errors.append(f"friction '{act}': unlocked trait '{tr}'")
+    for f in glob.glob("content/honors/*.json"):
+        for h in _read_jsonc(f).get("honors",[]):
+            walk(h.get("when",[]),f"honor:{h.get('id')}",{"self"})
+            for ef in h.get("effects",[]):
+                if ef.get("type") not in EFF: errors.append(f"honor {h.get('id')}: bad effect '{ef.get('type')}'")
+    for f in glob.glob("content/fleets/*.json"):
+        d=_read_jsonc(f)
+        for c in d.get("classes",[]):
+            for grp in ("cost","upkeep"):
+                for k in c.get(grp,{}):
+                    if k not in RES: errors.append(f"ship class {c.get('id')}.{grp} bad resource '{k}'")
     for f in glob.glob("content/backgrounds/*.json"):
         for b in _read_jsonc(f).get("backgrounds",[]):
             bid=b.get("id","?")

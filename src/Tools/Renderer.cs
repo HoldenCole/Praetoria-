@@ -81,8 +81,13 @@ public static class Renderer
         var fleets = Praetoria.Core.Galaxy.GalaxyProjection.Fleets(world);
         if (fleets.Count == 0 || world.Galaxy == null) return;
         foreach (var f in fleets)
-            Console.WriteLine($"     {(f.IsPlayer ? "⚓" : "◦")} {f.Name} ({f.OwnerHouseName}) at {world.Galaxy.System(f.SystemId)?.Name ?? f.SystemId} · str {f.Strength}" +
-                              (f.IsPlayer ? (f.Moving ? $" · en route to {world.Galaxy.System(f.DestinationId)?.Name} ({f.Eta})" : $" · readiness {f.Readiness}") : $" · reported {f.Confidence}%"));
+        {
+            var live = world.Fleets.GetValueOrDefault(f.FleetId);
+            string admiral = f.IsPlayer && live?.AdmiralId.Length > 0 ? $" · {world.Char(live.AdmiralId)?.Name} commanding" : f.IsPlayer ? " · unled" : "";
+            string vet = f.IsPlayer && live?.Veterancy > 0 ? $" · veterancy {live.Veterancy}" : "";
+            Console.WriteLine($"     {(f.IsPlayer ? "⚓" : "◦")} {f.Name} ({f.OwnerHouseName}) at {world.Galaxy.System(f.SystemId)?.Name ?? f.SystemId} · {f.Strength} hull(s)" +
+                              (f.IsPlayer ? (f.Moving ? $" · en route to {world.Galaxy.System(f.DestinationId)?.Name} ({f.Eta})" : $" · readiness {f.Readiness}") + admiral + vet : $" · reported {f.Confidence}%"));
+        }
     }
 
     public static void RenderCommandLog(IReadOnlyList<string> log, int from)

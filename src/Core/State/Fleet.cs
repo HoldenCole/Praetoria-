@@ -18,7 +18,24 @@ public sealed class Fleet
     /// <summary>True for an Imperial/state fleet held by office (GDD §8 treasury 1); false for a house fleet (treasury 2).</summary>
     public bool Office { get; set; }
 
+    /// <summary>Hull count — the quick measure intel, threat and content read. Kept in step with <see cref="Ships"/>.</summary>
     public int Strength { get; set; } = 1;
+
+    /// <summary>Composition by ship class (class id → hulls). Empty ⇒ <see cref="Strength"/> hulls of the rules' default class.</summary>
+    public Dictionary<string, int> Ships { get; set; } = new();
+
+    /// <summary>The character commanding it, or "" for an unled fleet (GDD §6 "the admiral's skill").</summary>
+    public string AdmiralId { get; set; } = "";
+
+    /// <summary>Battles survived, 0..veterancyMax; each adds veterancyBonus to power.</summary>
+    public int Veterancy { get; set; }
+
+    /// <summary>Hulls of a class, or all of <see cref="Strength"/> for the default class when no composition is recorded.</summary>
+    public int Of(string classId, string defaultClass) =>
+        Ships.Count == 0 ? (classId == defaultClass ? Strength : 0) : Ships.GetValueOrDefault(classId);
+
+    /// <summary>Make <see cref="Strength"/> agree with the composition (call after changing <see cref="Ships"/>).</summary>
+    public void Recount() { if (Ships.Count > 0) Strength = Ships.Values.Sum(); }
 
     /// <summary>0..100. Recovers while holding, erodes in transit; a worn fleet is a liability.</summary>
     public int Readiness { get; set; } = 100;
