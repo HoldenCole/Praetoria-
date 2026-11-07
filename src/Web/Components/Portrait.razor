@@ -1,20 +1,9 @@
-@* A procedural portrait: a bust silhouette whose head, hair and shoulders vary with the character id, ringed in the house
-   accent and greying with age. Stable per character, so a face is recognisable across the court, the tree and the map. *@
-<svg class="portrait @(Alive ? "" : "dead")" width="@Size" height="@Size" viewBox="0 0 48 48" aria-label="@Name">
-    <circle cx="24" cy="24" r="23" fill="#0d1119" stroke="@Accent" stroke-width="2"/>
-    <clipPath id="@("pc" + Key)"><circle cx="24" cy="24" r="21"/></clipPath>
-    <g clip-path="url(#@("pc" + Key))">
-        <ellipse cx="24" cy="49" rx="@(16 + V(0, 5))" ry="16" fill="@Cloth"/>
-        <rect x="21" y="26" width="6" height="8" fill="@Skin"/>
-        <ellipse cx="24" cy="21" rx="@(7 + V(1, 3))" ry="@(8 + V(2, 3))" fill="@Skin"/>
-        @if (Hair == 0) { <path d="M15 20 C15 10 33 10 33 20 L31 16 C28 13 20 13 17 16 Z" fill="@HairColor"/> }
-        else if (Hair == 1) { <path d="M14 24 C13 8 35 8 34 24 L32 15 C28 11 20 11 16 15 Z" fill="@HairColor"/> <path d="M14 24 C14 30 16 34 16 34 L17 22 Z M34 24 C34 30 32 34 32 34 L31 22 Z" fill="@HairColor"/> }
-        else if (Hair == 2) { <path d="M16 19 C17 11 31 11 32 19 C30 15 18 15 16 19 Z" fill="@HairColor"/> }
-        else { <path d="M14 22 C14 6 34 6 34 22 L33 14 C29 9 19 9 15 14 Z" fill="@HairColor"/> <ellipse cx="24" cy="31" rx="7" ry="3" fill="@HairColor" opacity=".8"/> }
-        @if (Age >= 60) { <path d="M18 26 Q24 29 30 26" stroke="#8a7f6a" stroke-width=".8" fill="none"/> }
-    </g>
-    @if (!Alive) { <line x1="12" y1="12" x2="36" y2="36" stroke="#d8705a" stroke-width="1.5"/> }
-</svg>
+@* An illustrated portrait from the pre-drawn pool (DiceBear "Lorelei", CC0), chosen by the character's id and sex so a face is
+   stable across every screen, set in a medallion ringed in the house accent and shaded with age. *@
+<span class="portrait @(Alive ? "" : "dead") @(Age >= 60 ? "elder" : "")" style="--ring:@Accent; width:@(Size)px; height:@(Size)px" title="@Name">
+    <img src="@Src" alt="@Name" width="@Size" height="@Size" loading="lazy" />
+    @if (!Alive) { <i class="cross"></i> }
+</span>
 
 @code {
     [Parameter] public string Id { get; set; } = "";
@@ -24,13 +13,6 @@
     [Parameter] public bool Alive { get; set; } = true;
     [Parameter] public string Accent { get; set; } = "#888";
     [Parameter] public int Size { get; set; } = 48;
-
-    private int H => Math.Abs(Hash(Id));
-    private string Key => H.ToString();
-    private int V(int slot, int range) => (H >> (slot * 4)) % (range + 1);
-    private int Hair => Sex == "female" ? 1 + (V(3, 1) * 2) : V(3, 1) * 2;           // 1/3 long, 0/2 short
-    private string Skin => new[] { "#e9c8a8", "#d8ab86", "#b98363", "#8d5a3c", "#f0d9c2", "#6b3f2a" }[V(4, 5)];
-    private string HairColor => Age >= 60 ? "#c9c3b6" : Age >= 45 ? "#8a8070" : new[] { "#2a2320", "#4a2f1e", "#6b4a2a", "#9a7340", "#d2b06a", "#3a3a3a" }[V(5, 5)];
-    private string Cloth => Accent;
-    private static int Hash(string s) { unchecked { int h = 23; foreach (var ch in s) h = h * 31 + ch; return h; } }
+    private const int Pool = 40;
+    private string Src { get { unchecked { int h = 23; foreach (var ch in Id) h = h * 31 + ch; string s = Sex == "female" ? "f" : Sex == "male" ? "m" : (Math.Abs(h) % 2 == 0 ? "m" : "f"); return $"img/portraits/{s}{Math.Abs(h) % Pool}.svg"; } } }
 }

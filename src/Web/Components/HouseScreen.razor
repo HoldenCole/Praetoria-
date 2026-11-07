@@ -5,7 +5,7 @@
 }
 <div class="house-screen" style="--accent:@m.HouseAccent">
     <div class="col">
-        <section class="card">
+        <section class="panel">
             <div class="who-head"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="56" /><div><h2>@house.Name</h2><div class="sub">@m.Character.TitleName · legitimacy @house.Legitimacy · @house.Culture culture</div></div></div>
             <div class="res-grid">
                 @foreach (var (name, val, d) in new[] { ("credits", m.Treasury.Credits, fc?.Credits), ("materials", m.Treasury.Materials, fc?.Materials), ("manpower", m.Treasury.Manpower, fc?.Manpower), ("influence", m.Treasury.Influence, fc?.Influence), ("exotics", m.Treasury.Exotics, fc?.Exotics) })
@@ -16,7 +16,7 @@
 
         @if (m.Standing is { } s)
         {
-            <section class="card">
+            <section class="panel">
                 <h3>Standing</h3>
                 <div class="kv"><span>Threat the galaxy reads in us</span><b>@s.Threat</b></div>
                 @if (s.Instability > 0) { <div class="kv"><span>Title instability</span><b class="warn">@s.Instability</b></div> }
@@ -29,7 +29,7 @@
                     @foreach (var p in s.Paths) { <button class="opt" disabled="@(!p.Available)" title="@p.Tooltip" @onclick="() => G.Execute(PathCommand(p.Id))">@p.Label</button> }
                 }
             </section>
-            <section class="card">
+            <section class="panel">
                 <h3>Decrees</h3>
                 <details><summary>Succession: @s.SuccessionLaw</summary>@foreach (var o in s.LawOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new SetSuccessionLawCommand(pid, o.Id))">@o.Label</button> }</details>
                 <details><summary>Tithe: @s.TaxPolicy</summary>@foreach (var o in s.TaxOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new SetTaxPolicyCommand(pid, o.Id, c.Holdings))">@o.Label</button> }</details>
@@ -45,7 +45,7 @@
 
         @if (m.Crises is { } cr)
         {
-            <section class="card">
+            <section class="panel">
                 <h3>The realm's temperature</h3>
                 <div class="muted small">@cr.Counters</div>
                 @foreach (var a in cr.Active)
@@ -60,7 +60,7 @@
     </div>
 
     <div class="col">
-        <section class="card">
+        <section class="panel">
             <h3>Holdings <span class="muted">@m.Holdings.Count</span></h3>
             @if (m.Holdings.Count == 0) { <div class="muted">Your house holds no land. A fief is won, granted, or married into.</div> }
             @foreach (var h in m.Holdings)
@@ -81,7 +81,7 @@
                 </details>
             }
         </section>
-        <section class="card">
+        <section class="panel">
             <h3>Household</h3>
             @foreach (var h in m.Household)
             {

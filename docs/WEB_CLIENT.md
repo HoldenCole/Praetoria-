@@ -69,3 +69,19 @@ event windows with the cast's portraits; the first visitor steps forward when a 
 - `Components/CreationScreen.razor` — the title and creation screen.
 - `Components/Portrait.razor`, `Sigil.razor` — procedural portraits and heraldry; `Services/Svg.cs` — SVG helpers.
 - `Services/GameClient.cs` — the one object the UI talks to. `wwwroot/css/app.css` — the look.
+
+## Art and where it comes from
+
+The client is meant to look like a game, not a form. Its art is open-licensed or procedural (full list in `CREDITS.md`):
+
+- **Landscapes** — public-domain photographs (via the Endless Sky collection) chosen by planet class, shown in the office
+  window, the planet card and the worlds table. `Services/Land.cs` maps a world to a stable picture.
+- **Portraits** — a pre-drawn pool of 80 illustrated faces (DiceBear *Lorelei*, CC0), two per sex, chosen by a hash of the
+  character id so a face is stable everywhere; set in medallions ringed with the house accent and greyed with age.
+- **Icons** — game-icons.net glyphs (CC BY 3.0) baked into `Services/Icons.cs` as path data; `Components/Icon.razor`.
+- **Planets and nebulae** — drawn at runtime on canvas by `wwwroot/js/fx.js` (value-noise sphere with lighting, atmosphere,
+  clouds, bands or rock-scatter per class; a nebula field with stars); the shell calls `praetoriaFx.paint()` after every
+  render to fill `data-planet` images from a cache.
+- **Chrome** — smoked-glass panels over night-steel with hairline brass frames and corner brackets; Cinzel for titles,
+  Cormorant for prose, Plex Sans for readouts; a procedural noise texture on panels; house accents on everything that is a
+  house's.

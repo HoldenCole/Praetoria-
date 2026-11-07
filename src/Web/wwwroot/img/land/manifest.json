@@ -1,0 +1,50 @@
+{
+ "terran": [
+  "forest14.jpg",
+  "hills11.jpg",
+  "forest9.jpg",
+  "fields20.jpg"
+ ],
+ "arid": [
+  "desert2.jpg",
+  "dune0.jpg",
+  "canyon4.jpg",
+  "canyon0.jpg"
+ ],
+ "ocean": [
+  "water16.jpg",
+  "sea19.jpg",
+  "beach5.jpg",
+  "water28.jpg"
+ ],
+ "forge": [
+  "city26.jpg",
+  "city28.jpg",
+  "city21.jpg",
+  "city0.jpg"
+ ],
+ "frozen": [
+  "snow19.jpg",
+  "snow39.jpg",
+  "snow5.jpg",
+  "snow36.jpg"
+ ],
+ "gas": [
+  "clouds9.jpeg",
+  "sky0.jpg",
+  "sky8.jpg",
+  "clouds11.jpg"
+ ],
+ "belt": [
+  "moon1.jpg",
+  "mercury1.jpg",
+  "moon0.jpg",
+  "asteroid0.jpg"
+ ],
+ "barren": [
+  "mars2.jpg",
+  "badlands8.jpg",
+  "badlands5.jpg",
+  "badlands1.jpg"
+ ]
+}

@@ -13,7 +13,7 @@
 }
 <div class="character" style="--accent:@house.AccentColor">
     <div class="col">
-        <section class="card sheet-head">
+        <section class="panel sheet-head">
             <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="112" />
             <div class="sheet-id">
                 <h2>@p.Name</h2>
@@ -27,7 +27,7 @@
             <Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="56" />
         </section>
 
-        <section class="card">
+        <section class="panel">
             <h3>Career · @(track?.Name ?? p.CareerTrack)</h3>
             <div class="ladder">
                 @for (int r = 0; r <= maxRank; r++) { <span class="rung @(r == p.CareerRank ? "here" : r < p.CareerRank ? "past" : "")" title="@(track?.RankName(r) ?? r.ToString())">@(track?.RankName(r) ?? r.ToString())</span> }
@@ -39,7 +39,7 @@
             @if (flags.Count > 0) { <div class="kv"><span>Marks</span><b>@string.Join(" · ", flags.Select(f => f.Replace('_', ' ')))</b></div> }
         </section>
 
-        <section class="card">
+        <section class="panel">
             <h3>Skills</h3>
             @if (skills.Count == 0) { <div class="muted">Untrained.</div> }
             @foreach (var sk in skills) { <div class="skill"><span>@sk.Key</span><span class="bar wide"><i style="width:@(Math.Min(100, sk.Value * 20))%"></i></span><b>@sk.Value</b></div> }
@@ -48,14 +48,14 @@
     </div>
 
     <div class="col">
-        <section class="card">
+        <section class="panel">
             <h3>Blood and bonds</h3>
             @if (spouse != null) { <div class="person"><Portrait Id="@spouse.Id" Name="@spouse.Name" Sex="@spouse.Sex" Age="@spouse.Age" Alive="@spouse.Alive" Accent="@(w.House(spouse.HouseId)?.AccentColor ?? "#888")" Size="34" /><span><b>@spouse.Name</b> <span class="muted">spouse · @(w.House(spouse.HouseId)?.Name) · @spouse.Age</span></span></div> }
             else { <div class="muted">Unwed.</div> }
             @foreach (var k in children) { <div class="person"><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@house.AccentColor" Size="30" /><span><b>@k.Name</b> <span class="muted">@(k.Alive ? $"{k.Sex}, {k.Age}" : "†")</span></span></div> }
             @if (children.Count == 0) { <div class="muted">No children yet. The line is you.</div> }
         </section>
-        <section class="card">
+        <section class="panel">
             <h3>Those who matter</h3>
             @foreach (var t in ties)
             {
@@ -67,7 +67,7 @@
                 </div>
             }
         </section>
-        <section class="card">
+        <section class="panel">
             <h3>Your story so far</h3>
             @if (mine.Count == 0) { <div class="muted">Nothing written yet.</div> }
             @foreach (var h in mine) { <div class="line"><span class="muted">T@(h.Turn)</span> @h.Text</div> }

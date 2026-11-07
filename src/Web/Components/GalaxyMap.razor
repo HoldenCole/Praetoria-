@@ -1,5 +1,6 @@
 @inject GameClient G
 @inject IJSRuntime JS
+@implements IDisposable
 @{
     var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var playerHouse = w.Protagonist!.HouseId;
     var nodes = GalaxyProjection.Nodes(w); var lanes = GalaxyProjection.Lanes(w); var fleets = GalaxyProjection.Fleets(w); var regions = GalaxyProjection.Regions(w);
@@ -23,7 +24,8 @@
                     <radialGradient id="@("pg_" + n.SystemId)" cx="35%" cy="35%" r="75%"><stop offset="0" stop-color="@pg"/><stop offset=".55" stop-color="@pf"/><stop offset="1" stop-color="#05070c"/></radialGradient>
                 }
             </defs>
-            <rect x="@Svg.F(_home.x - 2000)" y="@Svg.F(_home.y - 2000)" width="@Svg.F(_home.w + 4000)" height="@Svg.F(_home.h + 4000)" fill="url(#bg)"/>
+            <rect x="@Svg.F(_home.x - 2000)" y="@Svg.F(_home.y - 2000)" width="@Svg.F(_home.w + 4000)" height="@Svg.F(_home.h + 4000)" fill="#05070c"/>
+            <image x="@Svg.F(_home.x - 120)" y="@Svg.F(_home.y - 120)" width="@Svg.F(_home.w + 240)" height="@Svg.F(_home.h + 240)" preserveAspectRatio="none" href="@_nebula" opacity=".9" style="pointer-events:none"/>
             @foreach (var st in Stars(_home)) { <circle cx="@Svg.F(st.x)" cy="@Svg.F(st.y)" r="@Svg.F(st.r)" fill="#9fb3d9" opacity="@Svg.F(st.o)"/> }
 
             @* regions: a soft field of the dominant house's colour, and a name *@
@@ -57,7 +59,9 @@
                     @foreach (var sg in sieges) { <path d="@Svg.Arc(n.X, n.Y, r + 9, Math.Clamp(sg.Turns / (double)Math.Max(1, sg.Required), 0, 1))" class="siege"/> }
                     @if (n.IsPlayerTerritory) { <circle cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" r="@Svg.F(r + 6)" class="home-ring"/> }
                     @if (n.Contested) { <circle cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" r="@Svg.F(r + 4)" class="contested"/> }
-                    <circle cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" r="@Svg.F(r)" fill="url(#@("pg_" + n.SystemId))" class="planet"><title>@n.Name — @(n.OwnerHouseName ?? "unclaimed") · @n.PlanetClass world · @n.Culture@(n.Population > 0 ? $" · pop {n.Population} · loyalty {100 - n.Unrest}" : "")@(n.GovernorName != null ? $" · governor {n.GovernorName}" : "")</title></circle>
+                    <circle cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" r="@Svg.F(r)" fill="url(#@("pg_" + n.SystemId))" class="planet"/>
+                    <image x="@Svg.F(n.X - r - 2)" y="@Svg.F(n.Y - r - 2)" width="@Svg.F(2 * r + 4)" height="@Svg.F(2 * r + 4)" data-planet="@n.PlanetClass|@n.SystemId" class="planet-img" style="pointer-events:none"/>
+                    <circle cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" r="@Svg.F(r)" fill="transparent" class="planet-hit"><title>@n.Name — @(n.OwnerHouseName ?? "unclaimed") · @n.PlanetClass world · @n.Culture@(n.Population > 0 ? $" · pop {n.Population} · loyalty {100 - n.Unrest}" : "")@(n.GovernorName != null ? $" · governor {n.GovernorName}" : "")</title></circle>
                     @if (n.PlanetClass == "belt") { <ellipse cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" rx="@Svg.F(r + 6)" ry="@Svg.F(r / 3)" fill="none" stroke="#c9bca8" stroke-width="1.5" opacity=".7"/> }
                     @if (n.PlanetClass == "gas") { <ellipse cx="@Svg.F(n.X)" cy="@Svg.F(n.Y)" rx="@Svg.F(r + 5)" ry="@Svg.F(r / 4)" fill="none" stroke="#f0d0a0" stroke-width="1.2" opacity=".6"/> }
                     @if (n.Stations > 0) { <rect x="@Svg.F(n.X + r + 2)" y="@Svg.F(n.Y - r - 4)" width="5" height="5" class="station" transform="rotate(45 @Svg.F(n.X + r + 4.5) @Svg.F(n.Y - r - 1.5))"><title>@n.Stations station(s) in orbit</title></rect> }
@@ -113,9 +117,9 @@
             var gov = planet != null && planet.GovernorId.Length > 0 ? w.Char(planet.GovernorId) : null;
             var stations = w.Holdings.Values.Where(h => h.SystemId == sel.SystemId && !h.IsPlanet).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
             var (pf, pg) = Svg.Planet(sel.PlanetClass);
-            <section class="card planet-card">
+            <section class="panel planet-card">
+                <div class="planet-hero"><img src="@Land.For(sel.PlanetClass, sel.SystemId)" alt="" /><div class="hero-fade"></div><img class="planet-sprite" data-planet="@sel.PlanetClass|@sel.SystemId|96" alt="" /></div>
                 <div class="planet-head">
-                    <svg width="64" height="64" viewBox="0 0 64 64"><defs><radialGradient id="pcard" cx="35%" cy="35%" r="75%"><stop offset="0" stop-color="@pg"/><stop offset=".6" stop-color="@pf"/><stop offset="1" stop-color="#05070c"/></radialGradient></defs><circle cx="32" cy="32" r="28" fill="url(#pcard)"/></svg>
                     <div>
                         <h2>@sel.Name</h2>
                         <div class="muted">@sel.PlanetClass world · @region?.Name · @sel.Culture culture</div>
@@ -157,7 +161,7 @@
         }
         else if (_regionId != null && regions.FirstOrDefault(r => r.Id == _regionId) is { } reg)
         {
-            <section class="card">
+            <section class="panel">
                 <h2>@reg.Name</h2>
                 <div class="muted">@reg.Culture culture · @reg.Planets worlds · loyalty @(100 - reg.Unrest) · @(reg.DominantHouseName != null ? $"{reg.DominantHouseName} holds most of it" : "no house dominates")</div>
                 <p class="muted small">@reg.Description</p>
@@ -166,13 +170,13 @@
         }
         else
         {
-            <section class="card"><h2>@w.Galaxy!.Name</h2><div class="muted">@regions.Count regions · @nodes.Count worlds · @w.Houses.Count houses. Click a world or a region. Click one of your fleets, then a ringed world, to set its course.</div></section>
-            <section class="card">
+            <section class="panel"><h2>@w.Galaxy!.Name</h2><div class="muted">@regions.Count regions · @nodes.Count worlds · @w.Houses.Count houses. Click a world or a region. Click one of your fleets, then a ringed world, to set its course.</div></section>
+            <section class="panel">
                 <h3>Regions</h3>
                 @foreach (var r in regions) { <button class="ol-row" @onclick="() => { _regionId = r.Id; _systemId = null; }"><i class="sw" style="background:@r.AccentColor"></i> <b>@r.Name</b> <span class="muted">@r.Culture · @(r.DominantHouseName ?? "contested") · loyalty @(100 - r.Unrest)</span></button> }
             </section>
         }
-        <section class="card">
+        <section class="panel">
             <h3>Your fleets</h3>
             @foreach (var f in fleets.Where(f => f.IsPlayer))
             {
@@ -184,7 +188,13 @@
 </div>
 
 @code {
-    private string? _fleetId, _systemId, _regionId;
+    private string? _fleetId, _systemId, _regionId; private string _nebula = "";
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (first) { try { _nebula = await JS.InvokeAsync<string>("praetoriaFx.nebula", "the-reach", 1024, 640); StateHasChanged(); } catch { } }
+        try { await JS.InvokeVoidAsync("praetoriaFx.paint"); } catch { }
+    }
+    public void Dispose() { }
     private (double x, double y, double w, double h)? _vb; private (double x, double y, double w, double h) _home;
     private bool _drag; private double _lx, _ly; private ElementReference _svg; private double _pxPerUnit = 1;
 

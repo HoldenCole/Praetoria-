@@ -6,7 +6,7 @@
     var houses = w.Houses.Values.Where(h => h.Id != mine.Id).OrderByDescending(h => c.Titles.RankOf(h.Title)).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
 }
 <div class="houses-screen">
-    <section class="card">
+    <section class="panel">
         <h2>The houses of the Reach</h2>
         <div class="muted">@w.Houses.Count houses. Great houses hold worlds; minor houses hold stations, or nothing but a name. Your standing with each is the disposition of its people toward you.</div>
     </section>
@@ -17,7 +17,7 @@
         int disp = members.Count == 0 ? 0 : (int)members.Average(x => w.GetRelationship(x.Id, pid)?.Disposition ?? 0);
         var worlds = w.HoldingsOf(h.Id).Where(x => x.IsPlanet).ToList(); var stations = w.HoldingsOf(h.Id).Where(x => !x.IsPlanet).ToList();
         bool atWar = w.AtWar(mine.Id, h.Id);
-        <details class="card house-row @(atWar ? "hostile" : "") @(_open == h.Id ? "open" : "")" open="@(_open == h.Id)" @ontoggle="() => _open = _open == h.Id ? null : h.Id">
+        <details class="panel house-row @(atWar ? "hostile" : "") @(_open == h.Id ? "open" : "")" open="@(_open == h.Id)" @ontoggle="() => _open = _open == h.Id ? null : h.Id">
             <summary>
                 <Sigil HouseId="@h.Id" Accent="@h.AccentColor" Size="34" />
                 <span class="hname"><b>@h.Name</b> <span class="muted">@(c.Titles.ById(h.Title)?.Name ?? h.Title) · @h.Culture</span></span>

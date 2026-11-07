@@ -6,14 +6,14 @@
 }
 <div class="military" style="--accent:@m.HouseAccent">
     <div class="col">
-        <section class="card">
+        <section class="panel">
             <h2>The @house.Name navy</h2>
             <div class="muted">@ours hull(s) in @m.Fleets.Count fleet(s) · upkeep @(m.Fleets.Count == 0 ? 0 : w.Fleets.Values.Where(f => f.OwnerId == house.Id).Sum(f => G.Turn.Fleets.Upkeep(f).Credits)) credits a turn · manpower @m.Treasury.Manpower</div>
         </section>
         @foreach (var f in m.Fleets)
         {
             var fleet = w.Fleets[f.Id];
-            <section class="card fleet-card">
+            <section class="panel fleet-card">
                 <div class="fleet-head"><h3>@f.Name</h3><span class="muted">@f.Composition · @(f.Moving ? $"en route to {f.Destination} ({f.Eta})" : f.Where)</span></div>
                 <div class="kv"><span>Readiness</span><b><span class="bar"><i style="width:@f.Readiness%" class="@(f.Readiness < 50 ? "low" : "")"></i></span> @f.Readiness</b></div>
                 <div class="kv"><span>Admiral</span><b>@(f.AdmiralName ?? "unled")</b></div>
@@ -25,10 +25,10 @@
                 <div class="muted small">Orders of movement are given on the Galaxy map.</div>
             </section>
         }
-        @if (m.Fleets.Count == 0) { <section class="card"><div class="muted">No hull flies your colours. Lay one down at a holding (House → Holdings → Shipyard).</div></section> }
+        @if (m.Fleets.Count == 0) { <section class="panel"><div class="muted">No hull flies your colours. Lay one down at a holding (House → Holdings → Shipyard).</div></section> }
     </div>
     <div class="col">
-        <section class="card">
+        <section class="panel">
             <h3>Wars</h3>
             @foreach (var war in m.Wars)
             {
@@ -39,13 +39,13 @@
             @if (m.Wars.Count == 0) { <div class="muted">At peace.</div> }
             @foreach (var sg in m.Sieges) { <div class="line @(sg.Ours ? "warn" : "")">@sg.HoldingName under siege by @sg.BesiegerName · @sg.Turns/@sg.Required turns@(sg.Ours ? " — ours" : "")</div> }
         </section>
-        <section class="card">
+        <section class="panel">
             <h3>Recent battles</h3>
             @{ var battles = w.History.Where(h => h.Text.Contains("battle", StringComparison.OrdinalIgnoreCase) || h.Text.Contains("destroyed") || h.Text.Contains("desert")).Reverse().Take(8).ToList(); }
             @if (battles.Count == 0) { <div class="muted">The lanes have been quiet.</div> }
             @foreach (var h in battles) { <div class="line"><span class="muted">T@(h.Turn)</span> @h.Text</div> }
         </section>
-        <section class="card">
+        <section class="panel">
             <h3>Rival navies <span class="muted">(as reported)</span></h3>
             @foreach (var grp in GalaxyProjection.Fleets(w).Where(f => !f.IsPlayer).GroupBy(f => f.OwnerHouseId).OrderByDescending(g => g.Sum(f => f.Strength)))
             {

@@ -5,7 +5,7 @@
     var turns = w.History.GroupBy(h => h.Turn).OrderByDescending(g => g.Key).ToList();
 }
 <div class="chronicle">
-    <section class="card">
+    <section class="panel">
         <h2>The chronicle of @(w.House(w.Protagonist!.HouseId)?.Name)</h2>
         <div class="muted">@w.History.Count entries over @w.Turn turns · wars @w.Counter(FleetSystem.WarsDeclaredCounter) · battles @w.Counter(FleetSystem.BattlesCounter) · births @w.Counter("dynasty_births") · generation @(w.Counter("generation") + 1)</div>
         <label class="inline"><input type="checkbox" @bind="_onlyNotable" /> only the notable</label>
@@ -14,7 +14,7 @@
     {
         var lines = g.Where(h => !_onlyNotable || h.EventId != null || Notable(h.Text)).ToList();
         if (lines.Count == 0) continue;
-        <section class="card turn-block">
+        <section class="panel turn-block">
             <h3>Turn @g.Key</h3>
             @foreach (var h in lines) { <div class="line @(h.EventId != null ? "event" : "")">@h.Text</div> }
         </section>

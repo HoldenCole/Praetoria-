@@ -7,14 +7,14 @@
     var heirs = Heirs(w, house, c);
 }
 <div class="dynasty" style="--accent:@house.AccentColor">
-    <section class="card">
+    <section class="panel">
         <h2>@house.Name</h2>
         <div class="muted">@(c.Titles.ById(house.Title)?.Name ?? house.Title) · legitimacy @house.Legitimacy · succession by @house.SuccessionLaw · generation @(w.Counter("generation") + 1)</div>
         @if (heirs.Count > 0) { <div class="kv"><span>Line of succession</span><b>@string.Join(" → ", heirs.Take(4).Select(h => $"{h.Name} ({h.Age})"))</b></div> }
         else { <div class="kv warn"><span>Line of succession</span><b>no heir — the line hangs by a thread</b></div> }
     </section>
 
-    <section class="card tree">
+    <section class="panel tree">
         <h3>The family tree</h3>
         @{ _shown.Clear(); }
         @foreach (var r in roots)
@@ -26,7 +26,7 @@
         }
     </section>
 
-    <section class="card">
+    <section class="panel">
         <h3>Bonds within the house</h3>
         @foreach (var k in kin.Where(k => k.Alive && k.Id != p.Id).OrderBy(k => k.Id, StringComparer.Ordinal))
         {

@@ -4,124 +4,85 @@
     var seat = w.HoldingsOf(house.Id).Where(h => h.IsPlanet && h.SystemId.Length > 0).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
     var seatSys = seat != null ? w.Galaxy?.System(seat.SystemId) : null;
     string wall = Cos("wall", "stone"), floor = Cos("floor", "slate"), window = Cos("window", "arched"), desk = Cos("desk", "oak"), decor = Cos("decor", "chart"), banner = Cos("banner", "sigil");
-    string planetClass = Cos("view", "") is { Length: > 0 } v ? v : seatSys?.PlanetClass ?? "terran";
-    var (pf, pg) = Svg.Planet(planetClass);
-    var visitors = m.Briefing.Where(b => !b.Resolved).Take(4).Select(b => (card: b, ch: b.Item.Fired.Binding.All.Where(kv => kv.Key != "self").Select(kv => w.Char(kv.Value)).FirstOrDefault(x => x != null))).ToList();
+    string viewClass = Cos("view", "") is { Length: > 0 } v ? v : seatSys?.PlanetClass ?? "terran";
+    string landscape = Land.For(viewClass, seat?.SystemId ?? house.Id);
+    var visitors = m.Briefing.Where(b => !b.Resolved).Select(b => (card: b, ch: b.Item.Fired.Binding.All.Where(kv => kv.Key != "self").Select(kv => w.Char(kv.Value)).FirstOrDefault(x => x != null)))
+        .GroupBy(v => v.ch?.Id ?? v.card.Title).Select(g => g.First()).Take(4).ToList();   // one figure per person, even with two reports
     var honors = m.Standing?.Honors ?? new List<string>();
-    var since = w.History.Where(h => h.Turn >= m.Turn - 1 && h.EventId == null).Reverse().Take(6).ToList();
+    var since = w.History.Where(h => h.Turn >= m.Turn - 1 && h.EventId == null).Reverse().Take(7).ToList();
+    string hour = (m.Turn % 3) switch { 0 => "dawn", 1 => "day", _ => "dusk" };
 }
 <div class="office" style="--accent:@house.AccentColor">
-    <div class="office-stage">
-        <svg class="room" viewBox="0 0 960 540" preserveAspectRatio="xMidYMid meet">
-            <defs>
-                <linearGradient id="wallg" x1="0" y1="0" x2="0" y2="1">
-                    @switch (wall)
-                    {
-                        case "brass": <stop offset="0" stop-color="#3b2f1a"/><stop offset="1" stop-color="#1c160d"/> break;
-                        case "marble": <stop offset="0" stop-color="#3a3f4a"/><stop offset="1" stop-color="#1e2229"/> break;
-                        case "wood": <stop offset="0" stop-color="#3a2418"/><stop offset="1" stop-color="#1a100a"/> break;
-                        default: <stop offset="0" stop-color="#262b36"/><stop offset="1" stop-color="#12151c"/> break;
-                    }
-                </linearGradient>
-                <linearGradient id="floorg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="@(floor == "carpet" ? "#4a1f24" : floor == "marble" ? "#5a5f6a" : floor == "wood" ? "#4a2e1c" : "#1b1f28")"/><stop offset="1" stop-color="@(floor == "carpet" ? "#2a1014" : floor == "marble" ? "#2c3038" : floor == "wood" ? "#2a1a10" : "#0d1016")"/></linearGradient>
-                <radialGradient id="space" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#101a30"/><stop offset="1" stop-color="#05070c"/></radialGradient>
-                <radialGradient id="planet" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="@pg"/><stop offset="0.6" stop-color="@pf"/><stop offset="1" stop-color="#05070c"/></radialGradient>
-                <clipPath id="winclip">
-                    @if (window == "arched") { <path d="M320 40 A160 160 0 0 1 640 40 L640 250 L320 250 Z"/> }
-                    else if (window == "porthole") { <circle cx="480" cy="140" r="115"/> }
-                    else { <rect x="200" y="30" width="560" height="220"/> }
-                </clipPath>
-                <pattern id="brasspanel" width="80" height="80" patternUnits="userSpaceOnUse"><rect width="80" height="80" fill="none" stroke="#5a4a26" stroke-width="2"/></pattern>
-                <pattern id="marblev" width="120" height="60" patternUnits="userSpaceOnUse"><path d="M0 30 Q30 10 60 30 T120 30" stroke="#59606d" stroke-width="1" fill="none" opacity=".6"/></pattern>
-            </defs>
+    <div class="office-stage wall-@wall floor-@floor hour-@hour">
+        <div class="room-window win-@window">
+            <img class="land" src="@landscape" alt="" />
+            <div class="land-tint"></div>
+            <div class="mullions"></div>
+        </div>
+        <div class="light-shaft"></div>
+        <div class="room-wall"></div>
+        <div class="pilaster left"></div><div class="pilaster right"></div>
+        <div class="sconce left"></div><div class="sconce right"></div>
+        <div class="baseboard"></div>
+        <div class="room-floor"></div>
+        <div class="room-cornice"></div>
 
-            <rect width="960" height="400" fill="url(#wallg)"/>
-            @if (wall == "brass") { <rect width="960" height="400" fill="url(#brasspanel)"/> }
-            @if (wall == "marble") { <rect width="960" height="400" fill="url(#marblev)"/> }
-            <rect y="400" width="960" height="140" fill="url(#floorg)"/>
-            @if (floor == "marble") { <g stroke="#7a8090" stroke-width="1" opacity=".35"><line x1="0" y1="440" x2="960" y2="440"/><line x1="0" y1="490" x2="960" y2="490"/></g> }
-            <rect y="396" width="960" height="6" fill="#0a0c10"/>
+        <div class="banner left banner-@banner"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="54" /><span class="tail"></span></div>
+        <div class="banner right banner-@banner"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="54" /><span class="tail"></span></div>
 
-            <g clip-path="url(#winclip)">
-                <rect x="150" y="10" width="660" height="260" fill="url(#space)"/>
-                @foreach (var st in Stars()) { <circle cx="@Svg.F(st.x)" cy="@Svg.F(st.y)" r="@Svg.F(st.r)" fill="#cfe0ff" opacity="@Svg.F(st.o)"/> }
-                <circle cx="600" cy="250" r="120" fill="url(#planet)"/>
-                @if (planetClass == "gas") { <g stroke="#f0d0a0" stroke-width="5" opacity=".35"><path d="M485 230 Q600 215 715 230"/><path d="M482 262 Q600 247 718 262"/></g> }
-                @if (planetClass == "belt") { <ellipse cx="600" cy="250" rx="165" ry="32" fill="none" stroke="#c9bca8" stroke-width="8" opacity=".5"/> }
-                <circle cx="600" cy="250" r="120" fill="none" stroke="@pg" stroke-width="2" opacity=".5"/>
-                @foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id && seat != null && f.SystemId == seat.SystemId).Take(1)) { <path d="M400 120 l18 6 l-18 6 l5 -6 z" fill="#e6c77a"/> }
-            </g>
-            @if (window == "arched") { <path d="M320 40 A160 160 0 0 1 640 40 L640 250 L320 250 Z" fill="none" stroke="#6b5a35" stroke-width="10"/><line x1="480" y1="-120" x2="480" y2="250" stroke="#6b5a35" stroke-width="4"/> }
-            else if (window == "porthole") { <circle cx="480" cy="140" r="115" fill="none" stroke="#6b5a35" stroke-width="12"/> }
-            else { <rect x="200" y="30" width="560" height="220" fill="none" stroke="#6b5a35" stroke-width="10"/><line x1="480" y1="30" x2="480" y2="250" stroke="#6b5a35" stroke-width="4"/> }
+        @if (decor == "chart")
+        {
+            <div class="decor chart" title="The Reach">
+                <svg viewBox="0 0 220 140">
+                    @foreach (var l in GalaxyProjection.Lanes(w)) { var a = w.Galaxy!.System(l.A)!; var b = w.Galaxy.System(l.B)!; <line x1="@Svg.F(a.X / 5.6)" y1="@Svg.F(a.Y / 5.2)" x2="@Svg.F(b.X / 5.6)" y2="@Svg.F(b.Y / 5.2)" stroke="#3a4668" stroke-width=".6"/> }
+                    @foreach (var n in GalaxyProjection.Nodes(w)) { <circle cx="@Svg.F(n.X / 5.6)" cy="@Svg.F(n.Y / 5.2)" r="@(n.IsPlayerTerritory ? 3 : 2)" fill="@(n.OwnerHouseId != null ? n.AccentColor : "#55617a")"/> }
+                </svg>
+                <span class="plaque">the Reach</span>
+            </div>
+        }
+        else if (decor == "trophies")
+        {
+            <div class="decor trophies"><div class="shelf">@for (int i = 0; i < 4; i++) { <span class="trophy @(i < honors.Count ? "won" : "")" title="@(i < honors.Count ? honors[i] : "an empty place")"><Icon Name="honor" Size="26" /></span> }</div><span class="plaque">@(honors.Count == 0 ? "no honors yet" : $"{honors.Count} honor(s)")</span></div>
+        }
+        else
+        {
+            <div class="decor archive"><div class="books">@for (int i = 0; i < 18; i++) { <i style="height:@(26 + (i * 7) % 12)px; background:@(new[] { "#4a2f1e", "#2b3a5a", "#5a2a2a", "#3a4a2a", "#5a4a26" }[i % 5])"></i> }</div><span class="plaque">the archive</span></div>
+        }
 
-            @* banners *@
-            @foreach (var bx in new[] { 110, 850 })
-            {
-                <g transform="translate(@bx,70)">
-                    <path d="M-40 0 H40 V200 L0 240 L-40 200 Z" fill="@house.AccentColor" opacity=".9"/>
-                    <path d="M-40 0 H40 V200 L0 240 L-40 200 Z" fill="none" stroke="#e6c77a" stroke-width="2"/>
-                    @if (banner == "stripes") { <g stroke="#f3e9cf" stroke-width="6" opacity=".7"><line x1="-40" y1="60" x2="40" y2="60"/><line x1="-40" y1="120" x2="40" y2="120"/></g> }
-                    else { <g transform="translate(-30,60) scale(1.5)"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="40" /></g> }
-                    <rect x="-48" y="-8" width="96" height="10" fill="#6b5a35"/>
-                </g>
-            }
+        <div class="holo" title="The house's holdings">
+            <div class="holo-ring"></div>
+            <div class="holo-ring r2"></div>
+            <div class="holo-core" data-planet="@(seatSys?.PlanetClass ?? "terran")|@(seat?.SystemId ?? "none")|64"><img data-planet="@(seatSys?.PlanetClass ?? "terran")|@(seat?.SystemId ?? house.Id)|64" alt="" /></div>
+        </div>
 
-            @* decor *@
-            @if (decor == "chart")
-            {
-                <g transform="translate(60,250)">
-                    <rect x="-10" y="-10" width="200" height="130" fill="#0d1119" stroke="#6b5a35" stroke-width="3"/>
-                    @foreach (var n in GalaxyProjection.Nodes(w)) { <circle cx="@Svg.F(n.X / 6.5)" cy="@Svg.F(n.Y / 6.5)" r="2.5" fill="@(n.OwnerHouseId != null ? n.AccentColor : "#55617a")"/> }
-                    @Svg.Text(90, 112, "room-label", "the Reach")
-                </g>
-            }
-            else if (decor == "trophies")
-            {
-                <g transform="translate(60,250)">
-                    <rect x="-10" y="-10" width="200" height="130" fill="#1a1512" stroke="#6b5a35" stroke-width="3"/>
-                    @for (int i = 0; i < Math.Max(1, honors.Count); i++) { <g transform="translate(@(10 + i * 48),20)"><rect width="36" height="50" rx="3" fill="#2a2318" stroke="#c9a24a"/><path d="M18 8 l5 10 11 1 -8 8 2 11 -10 -5 -10 5 2 -11 -8 -8 11 -1z" fill="@(i < honors.Count ? "#e6c77a" : "#3a3328")"/></g> }
-                    @Svg.Text(90, 112, "room-label", honors.Count == 0 ? "no honors yet" : $"{honors.Count} honor(s)")
-                </g>
-            }
-            else
-            {
-                <g transform="translate(60,230)"><rect x="0" y="0" width="180" height="160" fill="#1a1a22" stroke="#6b5a35" stroke-width="3"/>@for (int i = 0; i < 4; i++) { <rect x="12" y="@(14 + i * 36)" width="156" height="6" fill="#6b5a35"/><g>@for (int j = 0; j < 7; j++) { <rect x="@(14 + j * 22)" y="@(-14 + 14 + i * 36)" width="14" height="26" fill="@(new[] { "#4a2f1e", "#2b3a5a", "#5a2a2a", "#3a4a2a" }[(i + j) % 4])"/> }</g> }@Svg.Text(90, 152, "room-label", "the archive")</g>
-            }
+        <div class="desk desk-@desk">
+            <div class="papers"></div>
+            <div class="nameplate">@p.Name · @m.Character.RankName · @m.Character.TitleName</div>
+        </div>
+        <div class="chair"></div>
+        <div class="player">
+            <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="124" />
+            <div class="pname">@p.Name</div>
+        </div>
 
-            @* desk and the player *@
-            <g transform="translate(480,445)">
-                <g transform="translate(-200,-40)"><rect width="400" height="70" rx="6" fill="@(desk == "steel" ? "#4a5160" : desk == "marble" ? "#7a7f8a" : "#5a3a22")"/><rect y="0" width="400" height="8" fill="@(desk == "steel" ? "#6a7180" : desk == "marble" ? "#9a9faa" : "#7a5236")"/><rect x="20" y="30" width="80" height="20" fill="#0d1119" opacity=".6"/><rect x="300" y="30" width="60" height="20" fill="#0d1119" opacity=".6"/></g>
-                <rect x="-90" y="-46" width="180" height="12" fill="#1a1407" stroke="#c9a24a"/>
-                @Svg.Text(0, -36, "plate", $"{m.Character.RankName} · {m.Character.TitleName}", "text-anchor=\"middle\"")
-            </g>
-            <rect x="430" y="280" width="100" height="110" rx="14" fill="#1b1612" stroke="#3a3028" stroke-width="3"/>
-            <foreignObject x="405" y="265" width="150" height="150">
-                <div xmlns="http://www.w3.org/1999/xhtml" class="player-seat">
-                    <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="120" />
-                    <div class="pname">@p.Name</div>
-                </div>
-            </foreignObject>
-
-            @* visitors *@
-            @{ int vi = 0; }
+        <div class="visitors">
             @foreach (var vis in visitors)
             {
-                double vx = 700 + vi * 70; vi++;
-                <foreignObject x="@Svg.F(vx)" y="330" width="70" height="110">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="visitor" title="@vis.card.Title" @onclick="() => OnOpenReport.InvokeAsync(vis.card)">
-                        @if (vis.ch != null) { <Portrait Id="@vis.ch.Id" Name="@vis.ch.Name" Sex="@vis.ch.Sex" Age="@vis.ch.Age" Accent="@(w.House(vis.ch.HouseId)?.AccentColor ?? "#888")" Size="56" /> }
-                        else { <div class="letter">✉</div> }
-                        <div class="vname">@(vis.ch?.Name.Split(' ')[0] ?? "A report")</div>
-                    </div>
-                </foreignObject>
+                <button class="visitor @vis.card.Tier.ToLowerInvariant()" title="@vis.card.Title" @onclick="() => OnOpenReport.InvokeAsync(vis.card)">
+                    <span class="bubble">@vis.card.Title</span>
+                    @if (vis.ch != null) { <Portrait Id="@vis.ch.Id" Name="@vis.ch.Name" Sex="@vis.ch.Sex" Age="@vis.ch.Age" Accent="@(w.House(vis.ch.HouseId)?.AccentColor ?? "#888")" Size="74" /> }
+                    else { <span class="courier"><Icon Name="report" Size="34" /></span> }
+                    <span class="vname">@(vis.ch?.Name ?? "A courier")</span>
+                    @if (vis.ch != null) { <span class="vsub">@(w.House(vis.ch.HouseId)?.Name)</span> }
+                </button>
             }
-        </svg>
+            @if (visitors.Count == 0) { <div class="empty-room">The antechamber is empty. The realm waits on you.</div> }
+        </div>
+        <div class="vignette"></div>
+
         <div class="stage-foot">
-            <div class="stage-title"><b>@(seat?.Name ?? "A borrowed room")</b> <span class="muted">@(seatSys != null ? $"{seatSys.Name} · {w.Galaxy!.Region(seatSys.RegionId)?.Name}" : "no seat of your own")</span></div>
-            <div class="stage-actions">
-                <button class="btn sm" @onclick="() => _customize = !_customize">@(_customize ? "Done" : "Furnish the office")</button>
-            </div>
+            <div class="stage-title"><Icon Name="office" Size="16" /> <b>@(seat?.Name ?? "A borrowed room")</b> <span class="muted">@(seatSys != null ? $"{seatSys.Name} · {w.Galaxy!.Region(seatSys.RegionId)?.Name} · {hour}" : "no seat of your own")</span></div>
+            <button class="btn sm" @onclick="() => _customize = !_customize"><Icon Name="furnish" Size="14" /> @(_customize ? "Done" : "Furnish the office")</button>
         </div>
         @if (_customize)
         {
@@ -129,7 +90,7 @@
                 @Slot("wall", "Walls", new[] { ("stone", "Stone"), ("brass", "Brass panels"), ("marble", "Marble"), ("wood", "Dark wood") })
                 @Slot("floor", "Floor", new[] { ("slate", "Slate"), ("carpet", "Crimson carpet"), ("marble", "Marble"), ("wood", "Wood") })
                 @Slot("window", "Window", new[] { ("arched", "Arched"), ("wide", "Wide"), ("porthole", "Porthole") })
-                @Slot("view", "View", new[] { ("", "Your seat's world"), ("terran", "A green world"), ("ocean", "An ocean world"), ("forge", "A forge-world"), ("frozen", "An ice world"), ("gas", "A gas giant"), ("belt", "A belt") })
+                @Slot("view", "View", new[] { ("", "Your seat's world"), ("terran", "Green hills"), ("ocean", "The sea"), ("forge", "A forge-city"), ("frozen", "Ice"), ("arid", "Desert"), ("gas", "The cloud-tops"), ("barren", "Badlands") })
                 @Slot("desk", "Desk", new[] { ("oak", "Oak"), ("steel", "Steel"), ("marble", "Marble") })
                 @Slot("banner", "Banners", new[] { ("sigil", "House sigil"), ("stripes", "Stripes") })
                 @Slot("decor", "Decor", new[] { ("chart", "Star chart"), ("trophies", "Trophy case"), ("archive", "The archive") })
@@ -138,7 +99,7 @@
     </div>
 
     <aside class="office-side">
-        <section class="card who">
+        <section class="panel who">
             <div class="who-head">
                 <div>
                     <h2>@p.Name</h2>
@@ -149,20 +110,20 @@
                 @foreach (var t in m.Character.Nature) { <span class="trait nature" title="@TraitDesc(t)">@TraitName(t)</span> }
                 @foreach (var t in m.Character.Aptitude) { <span class="trait apt" title="@TraitDesc(t)">@TraitName(t)</span> }
             </div>
-            <div class="kv"><span>Ambition</span><b>@m.Character.AmbitionName</b></div>
+            <div class="kv"><span><Icon Name="ambition" Size="13" /> Ambition</span><b>@m.Character.AmbitionName</b></div>
             @if (m.Character.Background != null) { <div class="kv"><span>Background</span><b>@m.Character.Background</b></div> }
-            <div class="kv"><span>Stress</span><b class="@(p.Stress >= 70 ? "warn" : "")">@p.Stress@(m.Character.Broken ? " · broken" : "")</b></div>
+            <div class="kv"><span><Icon Name="stress" Size="13" /> Stress</span><b class="@(p.Stress >= 70 ? "warn" : "")">@p.Stress@(m.Character.Broken ? " · broken" : "")</b></div>
             <div class="kv"><span>Skills</span><b>@string.Join(" · ", p.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value).Take(4).Select(k => $"{k.Key} {k.Value}"))</b></div>
         </section>
-        <section class="card">
-            <h3>Since your last turn</h3>
+        <section class="panel">
+            <h3><Icon Name="turn" Size="13" /> Since your last turn</h3>
             @if (since.Count == 0) { <div class="muted">Nothing of note.</div> }
             @foreach (var h in since) { <div class="line">@h.Text</div> }
         </section>
         @if (m.GreatCrisis is { } gc)
         {
-            <section class="card great @(gc.Resolved ? "resolved" : "")">
-                <h3>@gc.Name</h3>
+            <section class="panel great @(gc.Resolved ? "resolved" : "")">
+                <h3><Icon Name="crisis" Size="13" /> @gc.Name</h3>
                 <div class="kv"><span>Stage</span><b>@(gc.Resolved ? "resolved" : gc.Stage ?? "not yet")</b></div>
                 <div class="kv"><span>Clock</span><b>@gc.Clock@(gc.NextAt != null ? $" / {gc.NextAt}" : "")</b></div>
                 @if (gc.Bloc.Length > 0) { <div class="kv"><span>Your bloc</span><b>@gc.Bloc</b></div> }
@@ -176,24 +137,13 @@
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<BriefingCard> OnOpenReport { get; set; }
     private bool _customize;
-
     private string Cos(string slot, string dflt) => G.World!.Cosmetics.TryGetValue(slot, out var v) ? v : dflt;
     private void Set(string slot, string value) { if (value == "") G.World!.Cosmetics.Remove(slot); else G.World!.Cosmetics[slot] = value; }
-
     private RenderFragment Slot(string slot, string label, (string id, string name)[] options) => __builder =>
     {
         string cur = Cos(slot, options[0].id);
-        <div class="slot"><span class="slot-label">@label</span>
-            @foreach (var o in options) { <button class="chip @(cur == o.id ? "on" : "")" @onclick="() => Set(slot, o.id)">@o.name</button> }
-        </div>
+        <div class="slot"><span class="slot-label">@label</span>@foreach (var o in options) { <button class="chip @(cur == o.id ? "on" : "")" @onclick="() => Set(slot, o.id)">@o.name</button> }</div>
     };
-
     private string TraitName(string id) => G.Content!.Traits.Nature.Concat(G.Content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Name ?? id;
     private string TraitDesc(string id) => G.Content!.Traits.Nature.Concat(G.Content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Description ?? "";
-
-    private static IEnumerable<(double x, double y, double r, double o)> Stars()
-    {
-        var rng = new Praetoria.Core.Rng.SplitMix64Rng(5);
-        for (int i = 0; i < 90; i++) yield return (150 + rng.NextDouble() * 660, 30 + rng.NextDouble() * 320, 0.5 + rng.NextDouble() * 1.4, 0.3 + rng.NextDouble() * 0.6);
-    }
 }

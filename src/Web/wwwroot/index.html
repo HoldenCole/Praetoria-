@@ -6,7 +6,7 @@
     <title>Praetoria</title>
     <base href="/" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="css/app.css" rel="stylesheet" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 </head>
@@ -36,6 +36,7 @@
         keys: (ref) => { window.addEventListener('keydown', e => { if (e.target && ['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return; if (e.key === 'Enter' || e.key === 'Escape' || /^[1-9]$/.test(e.key)) ref.invokeMethodAsync('Key', e.key); }); }
       };
     </script>
+    <script src="js/fx.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 </html>

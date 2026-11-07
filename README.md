@@ -10,6 +10,8 @@ Source *Deploy from a branch* → `gh-pages` / `(root)`.
 
 > *You don't play an empire. You play a family trying to survive one.*
 
+Third-party art in the browser client (public-domain landscapes, CC0 portraits, CC BY icons) is listed in [`CREDITS.md`](CREDITS.md).
+
 **Praetoria** is a human-only galactic grand-strategy / dynasty-roleplay game. You begin as the heir
 of a minor noble house holding a single barony, and you climb — through war, merit, intrigue, and
 bloodline — toward the throne of a fractured human galaxy. Your character will age and die. Your

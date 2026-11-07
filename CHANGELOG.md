@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- **Art pass**: landscape photographs for every world class in the office window, planet card and worlds table;
+  illustrated portraits (a pool of 80, stable per character); game-icons glyphs across the shell; procedural planet
+  sprites and nebulae on canvas; a redesigned office scene (window on your world, pilasters, sconces, banners, holo-globe,
+  star chart or trophy case, visitors who step forward); smoked-glass panels with brass frames; Cinzel titles.
 - **Grand-strategy shell** for the browser client: resource strip with forecasts, navigation rail, outliner, event
   windows with the cast, End Turn dock; screens for the Office (a furnishable SVG room visitors walk into), Galaxy
   (regions, planets by class, pan/zoom, planet cards), Worlds, House, Military, Dynasty, Houses and Chronicle; a

@@ -14,7 +14,7 @@
 }
 <aside class="outliner">
     <section class="ol-block">
-        <h4>Reports <span class="count">@open.Count</span></h4>
+        <h4><Icon Name="report" Size="13" /> Reports <span class="count">@open.Count</span></h4>
         @if (m.Briefing.Count == 0) { <div class="ol-empty">A quiet turn. No one waits at your door.</div> }
         @foreach (var b in m.Briefing)
         {
@@ -26,20 +26,20 @@
         }
     </section>
     <section class="ol-block">
-        <h4>Alerts <span class="count">@alerts.Count</span></h4>
+        <h4><Icon Name="alert" Size="13" /> Alerts <span class="count">@alerts.Count</span></h4>
         @if (alerts.Count == 0) { <div class="ol-empty">Nothing presses.</div> }
         @foreach (var a in alerts) { <button class="ol-alert @a.cls" @onclick='() => OnGo.InvokeAsync(a.go ?? "office")'>@a.text</button> }
     </section>
     <section class="ol-block">
-        <h4>Council</h4>
+        <h4><Icon Name="claim" Size="13" /> Council</h4>
         @foreach (var a in m.Advisors) { <div class="ol-adv @(a.Warning ? "warn" : "")" title="@a.Line"><b>@a.Seat</b> <span class="muted">@(a.AdvisorName ?? "vacant")</span><div class="line">@a.Line</div></div> }
     </section>
     <section class="ol-block">
-        <h4>Fleets <span class="count">@m.Fleets.Count</span></h4>
+        <h4><Icon Name="fleet" Size="13" /> Fleets <span class="count">@m.Fleets.Count</span></h4>
         @foreach (var f in m.Fleets) { <button class="ol-row" @onclick='() => OnGo.InvokeAsync("galaxy")'><b>@f.Name</b> <span class="muted">@f.Strength hulls · @(f.Moving ? $"→ {f.Destination}" : f.Where)</span></button> }
     </section>
     <section class="ol-block">
-        <h4>Holdings <span class="count">@m.Holdings.Count</span></h4>
+        <h4><Icon Name="planet" Size="13" /> Holdings <span class="count">@m.Holdings.Count</span></h4>
         @foreach (var h in m.Holdings) { <button class="ol-row" @onclick='() => OnGo.InvokeAsync("house")'><b>@h.Name</b> <span class="muted">@h.SpecName@(h.Unrest >= 50 ? " · restless" : "")@(h.Besieged ? " · besieged" : "")</span></button> }
     </section>
 </aside>
