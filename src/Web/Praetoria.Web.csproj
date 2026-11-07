@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!-- The browser client (BuildSpec §1 Pillar 1: presentation reads from Core and sends commands, never the
+       reverse). It is the one-click build: published to GitHub Pages by .github/workflows/pages.yml, and drivable by
+       a headless browser for QA. Content ships beside it as static files and is loaded into the WASM file system
+       at start, so the very same loaders the console harness and tests use run unchanged in the browser. -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>0.8.0</Version>
+    <BlazorEnableCompression>true</BlazorEnableCompression>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <BlazorWebAssemblyLoadAllGlobalizationData>false</BlazorWebAssemblyLoadAllGlobalizationData>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.33" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.33" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Core/Praetoria.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Stage /content into wwwroot/content with a manifest the client fetches. Runs before static-asset discovery so a
+       plain `dotnet publish` ships the content; the staged copy is build output, not source (see .gitignore). -->
+  <ItemGroup>
+    <GameContent Include="../../content/**/*.json" />
+  </ItemGroup>
+  <Target Name="StageContent" BeforeTargets="ResolveProjectStaticWebAssets;BeforeBuild">
+    <Copy SourceFiles="@(GameContent)" DestinationFiles="@(GameContent->'wwwroot/content/%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <WriteLinesToFile File="wwwroot/content/manifest.txt" Lines="@(GameContent->'%(RecursiveDir)%(Filename)%(Extension)')" Overwrite="true" />
+    <ItemGroup>
+      <Content Include="wwwroot/content/**" Exclude="@(Content)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

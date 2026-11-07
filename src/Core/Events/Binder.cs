@@ -28,10 +28,14 @@ public static class Binder
             // Deterministic candidate order (by Id), filtered by the role's constraints
             // evaluated with the candidate provisionally bound to this role.
             var candidates = new List<Character>();
+            // Children never fill a role unless the role says something about age (a newborn is not a steward, a rival or a
+            // suitor); events about the young opt in with an explicit age constraint on that role.
+            bool bindsChildren = role.Constraints.Any(k => k is AgeCondition a && a.Role == role.Name);
             foreach (var c in world.LivingCharacters())
             {
                 if (used.Contains(c.Id)) continue;
                 if (c.Flags.Contains(Systems.DynastySystem.HiddenFlag)) continue;   // fostered away — unreachable (GDD §14 scatter the seed)
+                if (!bindsChildren && c.Age < Systems.DynastySystem.AgeOfMajority) continue;
                 var trial = binding.With(role.Name, c.Id);
                 var ctx = new EvalContext(world, trial, rng);
                 if (AllHold(role.Constraints, ctx))

@@ -72,6 +72,7 @@ public sealed class ProposeMarriageCommand : ICommand
         var w = ctx.World; var actor = w.Char(ActorId); var s = w.Char(_suitorId); var t = w.Char(_targetId);
         if (actor?.Alive != true || s?.Alive != true || t?.Alive != true) return "no such person";
         if (s.HouseId != actor.HouseId) return "not of your house";
+        if (DynastySystem.AreKin(w, s, t)) return "too close in blood";
         if (s.Id == t.Id || s.HouseId == t.HouseId) return "too close";
         if (s.Age < DynastySystem.AgeOfMajority || t.Age < DynastySystem.AgeOfMajority) return "too young";
         if (s.Sex == "" || t.Sex == "" || s.Sex == t.Sex) return "no heirs could come of it";

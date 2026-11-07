@@ -1,0 +1,214 @@
+@inject GameClient G
+
+<div class="title-screen">
+    <section class="hero">
+        <div class="hero-mark">✦</div>
+        <h1>PRAETORIA</h1>
+        <p class="tag">You don't play an empire. You play a family trying to survive one.</p>
+        <p class="ver">@PraetoriaVersion.Current · @PraetoriaVersion.Codename</p>
+        @if (HasAutosave)
+        {
+            <button class="btn primary big" @onclick="OnContinue">Continue the saved saga</button>
+        }
+        <label class="btn ghost file">Load a save file <InputFile OnChange="OnFile" accept=".json" /></label>
+    </section>
+
+    <section class="creation">
+        <div class="col">
+            <h2>The scenario</h2>
+            <div class="scenario-list">
+                @foreach (var id in G.ScenarioIds)
+                {
+                    var sc = _scenarios[id];
+                    <button class="scenario @(id == _scenario ? "selected" : "")" @onclick="() => Pick(id)">
+                        <div class="sc-name">@Title(id)</div>
+                        <div class="sc-meta">@sc.Era.Replace('_', ' ') · @sc.Houses.Count houses · @sc.Characters.Count souls@(sc.Galaxy != null ? $" · {sc.Galaxy.Systems.Count} systems" : "")</div>
+                        <div class="sc-desc">@Describe(sc)</div>
+                    </button>
+                }
+            </div>
+
+            <h2>The world</h2>
+            <div class="grid2">
+                <label>Seed <input type="number" @bind="_seed" min="1" /></label>
+                <label>Mode
+                    <select @bind="_mode">
+                        <option value="ironman">Ironman — when the bloodline ends, the run ends</option>
+                        <option value="continue">Continue — a sworn house takes up the banner</option>
+                    </select>
+                </label>
+                <label>Difficulty
+                    <select @bind="_difficulty">
+                        <option value="0.5">Forgiving — rivals slow to act</option>
+                        <option value="1">Standard</option>
+                        <option value="1.5">Hard</option>
+                        <option value="2">Harsh — the galaxy hunts you</option>
+                    </select>
+                </label>
+                <label>Crisis intensity
+                    <select @bind="_intensity">
+                        <option value="off">Off — no Great Crisis</option>
+                        <option value="low">Low — a slow-burning century</option>
+                        <option value="default">Default</option>
+                        <option value="dominant">Dominant — the war comes fast</option>
+                    </select>
+                </label>
+                <label>Family autonomy
+                    <select @bind="_autonomy">
+                        <option value="0">Deferential kin</option>
+                        <option value="1">Wills of their own</option>
+                        <option value="2">A nest of schemers</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+
+        <div class="col">
+            <h2>The character</h2>
+            <p class="hint">Leave anything blank to play the scenario's protagonist as written.</p>
+            <div class="grid2">
+                <label>Name <input @bind="_name" placeholder="@_protagonistName" /></label>
+                <label>Sex
+                    <select @bind="_sex"><option value="">as written</option><option value="male">male</option><option value="female">female</option></select>
+                </label>
+                <label>Career track
+                    <select @bind="_track"><option value="">as written</option>
+                        @foreach (var t in G.Content!.Careers.Defs) { <option value="@t.Id">@t.Name</option> }
+                    </select>
+                </label>
+                <label>Ambition
+                    <select @bind="_ambition"><option value="">as written</option>
+                        @foreach (var a in G.Content!.Traits.Ambitions) { <option value="@a.Id">@a.Name</option> }
+                    </select>
+                </label>
+            </div>
+
+            <h3>Background</h3>
+            <div class="chips">
+                <button class="chip @(_background == "" ? "on" : "")" @onclick='() => _background = ""'>As written</button>
+                @foreach (var b in G.Content!.Backgrounds.Defs)
+                {
+                    <button class="chip @(_background == b.Id ? "on" : "")" @onclick="() => _background = b.Id" title="@b.Description">@b.Name</button>
+                }
+            </div>
+            @if (_background != "" && G.Content!.Backgrounds.ById(_background) is { } bgd)
+            {
+                <p class="bg-desc">@bgd.Description
+                    <span class="muted">@BackgroundEffects(bgd)</span></p>
+            }
+
+            <h3>Nature <span class="muted">(up to @CharacterCreation.MaxPickedNature)</span></h3>
+            <div class="chips">
+                @foreach (var t in G.Content!.Traits.Nature)
+                {
+                    <button class="chip @(_nature.Contains(t.Id) ? "on" : "")" title="@t.Description" @onclick="() => Toggle(_nature, t.Id, CharacterCreation.MaxPickedNature)">@t.Name</button>
+                }
+            </div>
+            <h3>Aptitude <span class="muted">(up to @CharacterCreation.MaxPickedAptitude)</span></h3>
+            <div class="chips">
+                @foreach (var t in G.Content!.Traits.Aptitude)
+                {
+                    <button class="chip @(_aptitude.Contains(t.Id) ? "on" : "")" title="@t.Description" @onclick="() => Toggle(_aptitude, t.Id, CharacterCreation.MaxPickedAptitude)">@t.Name</button>
+                }
+            </div>
+
+            @if (_error != null) { <p class="error">@_error</p> }
+            <button class="btn primary big begin" @onclick="Begin">Begin the saga ▸</button>
+        </div>
+    </section>
+
+    <footer class="title-foot">
+        <span>Each turn: read the briefing → spend Influence, Treasury and Agents answering it → end the turn and the houses move.</span>
+    </footer>
+</div>
+
+@code {
+    [Parameter] public bool HasAutosave { get; set; }
+    [Parameter] public EventCallback OnContinue { get; set; }
+    [Parameter] public EventCallback<string> OnLoadJson { get; set; }
+
+    private readonly Dictionary<string, Scenario> _scenarios = new();
+    private string _scenario = "";
+    private string _protagonistName = "";
+    private int _seed = 1;
+    private string _mode = "ironman", _intensity = "default";
+    private string _difficulty = "1", _autonomy = "1";
+    private string _name = "", _sex = "", _track = "", _ambition = "", _background = "";
+    private readonly List<string> _nature = new(), _aptitude = new();
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        foreach (var id in G.ScenarioIds) _scenarios[id] = G.Scenario(id);
+        Pick(G.ScenarioIds.Contains("the_circling_heir") ? "the_circling_heir" : G.ScenarioIds.FirstOrDefault() ?? "");
+    }
+
+    private void Pick(string id)
+    {
+        _scenario = id;
+        var sc = _scenarios[id];
+        _protagonistName = sc.Characters.FirstOrDefault(c => c.Id == sc.ProtagonistId)?.Name ?? "";
+    }
+
+    private static string Title(string id) => string.Join(' ', id.Split('_').Select(w => w.Length == 0 ? w : char.ToUpperInvariant(w[0]) + w[1..]));
+
+    private string Describe(Scenario sc)
+    {
+        var p = sc.Characters.FirstOrDefault(c => c.Id == sc.ProtagonistId);
+        if (p == null) return "";
+        var house = sc.Houses.FirstOrDefault(h => h.Id == p.HouseId);
+        var title = house != null ? G.Content!.Titles.ById(house.Title)?.Name ?? house.Title : "";
+        var rank = G.Content!.Careers.RankName(p.CareerTrack, p.CareerRank) ?? "";
+        return $"{p.Name}, {p.Age}, {rank} of {house?.Name ?? p.HouseId} ({title}). {sc.Holdings.Count} holdings, {sc.Fleets.Count} fleets in play.";
+    }
+
+    private static string BackgroundEffects(BackgroundDef b)
+    {
+        var parts = new List<string>();
+        if (b.Legitimacy != 0) parts.Add($"legitimacy {b.Legitimacy:+#;-#;0}");
+        if (!b.Treasury.IsEmpty()) parts.Add("treasury " + CourtProjection.Bundle(b.Treasury));
+        if (b.Nature.Count > 0) parts.Add("nature +" + string.Join(", ", b.Nature));
+        if (b.Aptitude.Count > 0) parts.Add("aptitude +" + string.Join(", ", b.Aptitude));
+        if (b.Skills.Count > 0) parts.Add(string.Join(", ", b.Skills.Select(s => $"{s.Key} {s.Value:+#;-#;0}")));
+        if (b.Stress != 0) parts.Add($"stress {b.Stress:+#;-#;0}");
+        return parts.Count == 0 ? "" : " — " + string.Join(" · ", parts);
+    }
+
+    private static void Toggle(List<string> set, string id, int max)
+    {
+        if (set.Contains(id)) set.Remove(id);
+        else if (set.Count < max) set.Add(id);
+    }
+
+    private async Task OnFile(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            using var s = e.File.OpenReadStream(16 * 1024 * 1024);
+            using var r = new StreamReader(s);
+            await OnLoadJson.InvokeAsync(await r.ReadToEndAsync());
+        }
+        catch (Exception ex) { _error = "Could not read that save: " + ex.Message; }
+    }
+
+    private void Begin()
+    {
+        _error = null;
+        var creation = new CreationOptions
+        {
+            Name = string.IsNullOrWhiteSpace(_name) ? null : _name,
+            Sex = _sex == "" ? null : _sex,
+            BackgroundId = _background == "" ? null : _background,
+            CareerTrack = _track == "" ? null : _track,
+            Ambition = _ambition == "" ? null : _ambition,
+            Nature = _nature.ToList(), Aptitude = _aptitude.ToList()
+        };
+        try
+        {
+            G.Start(_scenario, (ulong)Math.Max(1, _seed), creation, _mode,
+                double.Parse(_difficulty, System.Globalization.CultureInfo.InvariantCulture), _intensity,
+                double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture));
+        }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+}

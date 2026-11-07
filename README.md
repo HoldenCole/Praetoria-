@@ -1,5 +1,12 @@
 # Praetoria
 
+## ▶ [Play it in your browser](https://holdencole.github.io/Praetoria-/)
+
+No install. The whole game — creation, Court, Galaxy map, dynasty tree, chronicle, saves in your browser — runs as a
+WebAssembly build of the same engine the tests run. It is published to GitHub Pages from `main` by
+[`pages.yml`](.github/workflows/pages.yml) (first deploy needs Pages enabled once in the repository's Settings → Pages →
+Source: *GitHub Actions*; the workflow attempts that itself).
+
 > *You don't play an empire. You play a family trying to survive one.*
 
 **Praetoria** is a human-only galactic grand-strategy / dynasty-roleplay game. You begin as the heir
@@ -7,14 +14,15 @@ of a minor noble house holding a single barony, and you climb — through war, m
 bloodline — toward the throne of a fractured human galaxy. Your character will age and die. Your
 *dynasty* is what you are really playing: it outlives every person in it, or it ends.
 
-**Engine:** Godot 4.3 · C# (.NET 8). **Status: v0.8.0-alpha — "The War of the Reach".** The whole human game is
+**Engine:** C# (.NET 8) headless core · **browser client** (Blazor WebAssembly, `src/Web`) · Godot 4.3 desktop layer (`src/Game`). **Status: v0.8.0-alpha — "The War of the Reach".** The whole human game is
 built headless and tested — ships, admirals, sieges, wars with score and terms, named heirs who come of age,
 succession laws, fostering, assassination, marriage, honors, megastructures, the throne, **the Great Crisis** (a
 clocked galaxy-war that sorts the houses into blocs and births an Imperium), family with wills of their own,
 advisors who speak from intel, and the saga epilogue — and the Godot layer (creation, Court, Galaxy, dynasty tree)
-renders all of it. A balance simulation (`praetoria simulate`) drives tuning. The UI compiles against the Godot SDK and is wired
-end-to-end to the Core, but it has **not yet been run in a Godot editor** (the sessions that built it had no
-display) — treat it as a first draft to open and polish. See
+renders all of it. A balance simulation (`praetoria simulate`) drives tuning. The browser client is the playable build and is
+driven through a headless browser for QA every session (`docs/WEB_CLIENT.md`). The Godot layer compiles against the Godot SDK and is
+wired to the same Core, but Godot's .NET build cannot target the web and it has **not yet been run in a Godot editor** —
+treat it as the future desktop shell. See
 [What's built](#whats-built-the-current-state), [What's not](#whats-not-built-the-gaps),
 [`docs/MILESTONE_3_NOTES.md`](docs/MILESTONE_3_NOTES.md) and [`docs/RELEASE_0.5.md`](docs/RELEASE_0.5.md).
 

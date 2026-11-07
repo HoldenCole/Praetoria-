@@ -17,7 +17,7 @@ internal static class TestContent
         w.Houses["h"] = new House { Id = "h", Name = "House Test" };
         foreach (var id in new[] { "self", "rivalA", "rivalB" })
         {
-            w.Characters[id] = new Character { Id = id, Name = id, HouseId = "h", Alive = true };
+            w.Characters[id] = new Character { Age = 30, Id = id, Name = id, HouseId = "h", Alive = true };
             w.Houses["h"].Members.Add(id);
         }
         return w;
@@ -72,7 +72,7 @@ internal static class TestContent
             Id = "vega", Name = "House Vega",
             Treasury = new Resources { Credits = credits, Materials = materials }
         };
-        w.Characters["self"] = new Character { Id = "self", Name = "self", HouseId = "vega", Alive = true };
+        w.Characters["self"] = new Character { Age = 30, Id = "self", Name = "self", HouseId = "vega", Alive = true };
         w.Houses["vega"].Members.Add("self");
         w.Pools["self"] = ActionPools.ForPlayer();
         w.Holdings["barony"] = new Holding

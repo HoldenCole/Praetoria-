@@ -178,4 +178,41 @@ public class DepthTests
         Assert.NotNull(defiant);
         Assert.Equal("bastien_castellan", defiant.binding.Resolve("kin"));
     }
+
+    [Fact]
+    public void Marriage_RefusesKin_WithinTwoGenerations()
+    {
+        var (content, w) = Fresh("the_circling_heir");
+        var lucia = w.Protagonist!;                                    // Lucia's aunt Vera is her mother's sister; Castor is her brother
+        var vera = w.Char("serval_aunt_vera")!; var castor = w.Char("serval_castor")!;
+        var mother = new Character { Id = "serval_mother", Name = "Mother", HouseId = "serval", Age = 50, Sex = "female", MotherId = "serval_grandmother", Alive = false };
+        var grand = new Character { Id = "serval_grandmother", Name = "Grandmother", HouseId = "serval", Age = 80, Sex = "female", Alive = false };
+        w.Characters[mother.Id] = mother; w.Characters[grand.Id] = grand;
+        lucia.MotherId = mother.Id; castor.MotherId = mother.Id; vera.MotherId = grand.Id;
+        Assert.True(DynastySystem.AreKin(w, castor, vera));            // nephew and aunt share a grandmother
+        Assert.True(DynastySystem.AreKin(w, castor, lucia));           // siblings
+        Assert.False(DynastySystem.AreKin(w, castor, w.Char("rowena_thalen")!));
+
+        var cmd = new ProposeMarriageCommand(w.ProtagonistId, castor.Id, vera.Id, content.Titles);
+        Assert.Equal("too close in blood", cmd.Refusal(new CommandContext(w, TestContent.Rng())));
+    }
+
+    [Fact]
+    public void Binder_NeverBindsChildren_UnlessTheRoleSpeaksOfAge()
+    {
+        var (content, w) = Fresh("the_circling_heir");
+        var baby = new Character { Id = "serval_baby", Name = "Brisa", HouseId = "serval", Age = 0, Sex = "female", CareerRank = 9 };
+        w.Characters[baby.Id] = baby;
+        var steward = content.Events.First(e => e.Id == "the_skimming_steward");
+        for (int i = 0; i < 20; i++)
+        {
+            var b = Praetoria.Core.Events.Binder.TryBind(steward, w, TestContent.Rng((ulong)i));
+            if (b != null) Assert.NotEqual(baby.Id, b.Resolve("steward"));
+        }
+        var young = new Praetoria.Core.Events.EventDef { Id = "t", Roles = new[] { new Praetoria.Core.Events.RoleDef { Name = "child",
+            Constraints = new Praetoria.Core.Events.ICondition[] { new Praetoria.Core.Events.AgeCondition("child", Praetoria.Core.Events.CompareOp.Lt, 10) } } } };
+        var bound = Praetoria.Core.Events.Binder.TryBind(young, w, TestContent.Rng());
+        Assert.NotNull(bound);
+        Assert.Equal(baby.Id, bound!.Resolve("child"));
+    }
 }

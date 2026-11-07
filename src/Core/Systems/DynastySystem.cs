@@ -196,6 +196,7 @@ public sealed class DynastySystem
         {
             var father = Spouse(world, mother);
             if (father == null || father.Sex != "male") continue;   // births need a mother and a father
+            if (world.Characters.Values.Any(k => k.MotherId == mother.Id && k.Age < 2)) continue;   // a year between children
             if (rng.NextDouble() < BirthChance)
                 Bear(world, mother, father, rng);
         }
@@ -204,6 +205,30 @@ public sealed class DynastySystem
     /// <summary>The living spouse a character is married to (a Marriage bond on <em>either</em> edge — a
     /// marriage authored from one side still counts), or null. Deterministic: edges are scanned in
     /// insertion order and the first living spouse wins.</summary>
+    /// <summary>Blood too close to wed (GDD §14): parent and child, siblings and half-siblings, grandparent and grandchild,
+    /// aunt or uncle and niece or nephew, first cousins — anyone who shares an ancestor within two generations.</summary>
+    public static bool AreKin(World world, Character a, Character b)
+    {
+        if (a.Id == b.Id) return true;
+        var ka = Ancestry(world, a); var kb = Ancestry(world, b);
+        return ka.Overlaps(kb);
+    }
+
+    private static HashSet<string> Ancestry(World world, Character c)
+    {
+        var set = new HashSet<string> { c.Id };
+        void Add(string id, int depth)
+        {
+            if (id.Length == 0 || depth > 2) return;
+            set.Add(id);
+            var p = world.Char(id);
+            if (p == null) return;
+            Add(p.MotherId, depth + 1); Add(p.FatherId, depth + 1);
+        }
+        Add(c.MotherId, 1); Add(c.FatherId, 1);
+        return set;
+    }
+
     public static Character? Spouse(World world, Character c)
     {
         foreach (var r in world.Relationships)

@@ -1,5 +1,20 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **Browser client** (`src/Web`): a Blazor WebAssembly build of the game — creation, Court, Galaxy map, Dynasty tree,
+  Chronicle, saves in the browser — published to GitHub Pages from `main` and linked at the top of the README.
+- `praetoria qa`: the QA soak — randomised player over every scenario, determinism replay, save/load round-trip, event and
+  choice coverage, unresolved text tokens, chronicle oddities, engine flags no content reads.
+- Unpaid fleets lose readiness and desert past 20 credits of debt; NPC stewards sell on the exchange and adjust the tithe
+  when insolvent; the exchange works without a market at half yield; forge-worlds tithe a credit.
+- Marriage refuses kin within two generations; the Binder never fills a role with a child unless the role speaks of age.
+
+### Fixed
+- The First Morning now reliably opens the Academy; crisis logs name their author; a mother bears at most one child a year.
+
+
 All notable changes to Praetoria. The format follows Keep a Changelog; versions follow SemVer with 1.0 = the
 Build Spec's V1 ("a complete human game").
 

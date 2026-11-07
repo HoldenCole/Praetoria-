@@ -1,0 +1,119 @@
+@page "/"
+@inject GameClient G
+@inject IJSRuntime JS
+@implements IDisposable
+
+@if (!G.Ready)
+{
+    <div class="boot">
+        <div class="boot-mark">✦</div>
+        <div class="boot-title">PRAETORIA</div>
+        @if (G.LoadError != null) { <div class="boot-sub error">Could not load the game's content: @G.LoadError</div> }
+        else { <div class="boot-sub">reading the archives… @G.LoadedFiles / @(G.TotalFiles == 0 ? "?" : G.TotalFiles.ToString())</div> }
+    </div>
+}
+else if (G.Turn == null)
+{
+    <CreationScreen HasAutosave="@_hasAutosave" OnContinue="ContinueAutosave" OnLoadJson="LoadFromJson" />
+}
+else
+{
+    var m = G.Court();
+    <div class="shell">
+        <header class="topbar" style="--accent:@m.HouseAccent">
+            <div class="brand"><span class="mark">✦</span> PRAETORIA <span class="ver">@PraetoriaVersion.Current</span></div>
+            <nav class="tabs">
+                <button class="@Tab("court")" @onclick='() => _tab = "court"'>Court</button>
+                <button class="@Tab("galaxy")" @onclick='() => _tab = "galaxy"' disabled="@(G.World!.Galaxy == null)">Galaxy</button>
+                <button class="@Tab("dynasty")" @onclick='() => _tab = "dynasty"'>Dynasty</button>
+                <button class="@Tab("chronicle")" @onclick='() => _tab = "chronicle"'>Chronicle</button>
+            </nav>
+            <div class="turnbox">
+                <span class="era">@(m.Era == "imperium" ? "The Imperium" : "The Fractured Stars")</span>
+                <span class="turn">Turn @m.Turn · Gen @m.Generation</span>
+                <button class="btn ghost" title="Save to this browser" @onclick="SaveLocal">Save</button>
+                <button class="btn ghost" title="Download the save as a file" @onclick="Download">Export</button>
+                <button class="btn ghost" title="Abandon this run and return to the title" @onclick="Abandon">Quit</button>
+                @if (!m.DynastyDead)
+                {
+                    <button class="btn primary endturn" @onclick="EndTurn">End Turn ▸</button>
+                }
+            </div>
+        </header>
+
+        @if (G.LastNotice != null) { <div class="notice">@G.LastNotice</div> }
+
+        <main class="content">
+            @if (_tab == "court") { <CourtScreen Model="m" /> }
+            else if (_tab == "galaxy") { <GalaxyMap /> }
+            else if (_tab == "dynasty") { <DynastyPanel /> }
+            else { <ChroniclePanel /> }
+        </main>
+
+        @if (m.EpilogueText != null && !_epilogueDismissed)
+        {
+            <div class="overlay">
+                <div class="epilogue">
+                    <h2>@(m.DynastyDead ? "The line ends" : "A saga's turning")</h2>
+                    <p class="epi-text">@m.EpilogueText</p>
+                    <div class="row">
+                        @if (!m.DynastyDead) { <button class="btn primary" @onclick="() => _epilogueDismissed = true">Play on</button> }
+                        <button class="btn" @onclick="Abandon">Back to the title</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private string _tab = "court";
+    private bool _hasAutosave;
+    private bool _epilogueDismissed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        G.Changed += OnChanged;
+        await G.LoadAsync();
+        try { _hasAutosave = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey)); } catch { }
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    private string Tab(string id) => _tab == id ? "tab active" : "tab";
+
+    private async Task EndTurn()
+    {
+        G.EndTurn();
+        _epilogueDismissed = false;
+        await Autosave();
+        try { await JS.InvokeVoidAsync("praetoria.scrollTop"); } catch { }
+    }
+
+    private async Task Autosave()
+    {
+        try { await JS.InvokeVoidAsync("praetoria.save", GameClient.AutosaveKey, G.SaveJson()); _hasAutosave = true; } catch { }
+    }
+
+    private async Task SaveLocal() => await Autosave();
+
+    private async Task Download()
+    {
+        try { await JS.InvokeVoidAsync("praetoria.download", $"praetoria-turn{G.World!.Turn}.json", G.SaveJson()); } catch { }
+    }
+
+    private async Task ContinueAutosave()
+    {
+        try
+        {
+            var json = await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey);
+            if (!string.IsNullOrEmpty(json)) G.LoadJson(json);
+        }
+        catch { }
+    }
+
+    private void LoadFromJson(string json) { try { G.LoadJson(json); } catch { } }
+
+    private void Abandon() { _epilogueDismissed = false; _tab = "court"; G.Abandon(); }
+
+    public void Dispose() => G.Changed -= OnChanged;
+}

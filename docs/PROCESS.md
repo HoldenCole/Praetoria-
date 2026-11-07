@@ -21,7 +21,15 @@ current phase without asking.
 **The bar for V1:** at minimum everything Star Dynasties does; since the simulation is already deeper, V1 should
 make Star Dynasties look unfinished. Nothing in V1 may feel like it is building toward an absent finale (GDD §16).
 
+**Playing it.** The playable build is the browser client (`src/Web`, Blazor WebAssembly over Core), published to GitHub
+Pages from `main`. Every session can play it headless: `dotnet publish src/Web -c Release -o out`, serve `out/wwwroot`, and
+drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on screenshots from that loop.
+
 **Phase log**
 - 2026-11-07 — "40 things" phase: 31 done (v0.7.0-alpha) + 20 done (v0.8.0-alpha) = 51. First QA pass run with
   the simulation (found and fixed: an isolated scenario, lines dying out, cadet events for grown nobles, relentless
   heir-hunting). Next: QA proper, then the graphics phases (need a Godot session).
+- 2026-11-07 — QA phase: `praetoria qa` soak added (randomised player, determinism replay, save/load round-trip, coverage,
+  oddities). Found and fixed: unbounded NPC debt (fleet desertion + steward selling/tithe), caravan exchange rate, the
+  First Morning never opening, newborns bound as stewards (adult-only Binder default), nephew wed to aunt (kin rule),
+  raw ids in crisis logs, yearly births. Then "implement graphics": the browser client, built and screenshotted end to end.

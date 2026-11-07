@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Praetoria</title>
+    <base href="/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="css/app.css" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+</head>
+<body>
+    <div id="app">
+        <div class="boot">
+            <div class="boot-mark">✦</div>
+            <div class="boot-title">PRAETORIA</div>
+            <div class="boot-sub">waking the engine…</div>
+        </div>
+    </div>
+    <div id="blazor-error-ui">
+        Something broke. <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script>
+      window.praetoria = {
+        save: (k, v) => { try { localStorage.setItem(k, v); return true; } catch { return false; } },
+        load: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+        remove: (k) => { try { localStorage.removeItem(k); } catch {} },
+        download: (name, text) => {
+          const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type: 'application/json'}));
+          a.download = name; a.click(); URL.revokeObjectURL(a.href);
+        },
+        scrollTop: () => window.scrollTo({ top: 0, behavior: 'smooth' })
+      };
+    </script>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+</html>

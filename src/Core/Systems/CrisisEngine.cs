@@ -82,7 +82,7 @@ public sealed class CrisisEngine
         w.WorldFlags.Add(World.CrisisFlag(def.Id));
         foreach (var eff in def.OnTrigger) eff.Apply(Ctx(w, rng));
 
-        string who = string.IsNullOrEmpty(authorId) ? "organically" : $"by {authorId}";
+        string who = string.IsNullOrEmpty(authorId) ? "organically" : $"at the hand of {w.Char(authorId)?.Name ?? authorId}";
         w.Log($"Crisis '{def.Name}' ({def.Tier}) erupts {who}.");
     }
 

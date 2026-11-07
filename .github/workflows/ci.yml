@@ -39,3 +39,7 @@ jobs:
       # so CI keeps it building; it cannot run it (no display, no Godot runtime).
       - name: Build Godot layer (compile check)
         run: dotnet build src/Game/Praetoria.Game.csproj -c Release
+
+      # The browser client (Blazor WebAssembly over the same Core) — the one-click build GitHub Pages serves.
+      - name: Build web client
+        run: dotnet publish src/Web/Praetoria.Web.csproj -c Release -o /tmp/web-out
