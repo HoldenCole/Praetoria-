@@ -86,7 +86,30 @@ public partial class GalaxyView : HBoxContainer
         else
         {
             sv.AddChild(CourtTheme.Heading(node.Name, CourtTheme.Accent(node.OwnerHouseId != null ? node.AccentColor : null, era), 20));
-            sv.AddChild(CourtTheme.Body(node.OwnerHouseName != null ? $"Held by {node.OwnerHouseName}{(node.Contested ? " — CONTESTED" : "")}" : "Unclaimed — the frontier.", CourtTheme.Ink(era), 13));
+            bool atWar = node.OwnerHouseId != null && w.Protagonist != null && w.AtWar(node.OwnerHouseId, w.Protagonist.HouseId);
+            sv.AddChild(CourtTheme.Body(node.OwnerHouseName != null ? $"Held by {node.OwnerHouseName}{(node.Contested ? " — CONTESTED" : "")}{(atWar ? "  ⚔ AT WAR" : "")}" : "Unclaimed — the frontier.", atWar ? CourtTheme.Danger : CourtTheme.Ink(era), 13));
+            if (node.OwnerHouseId != null && w.Protagonist != null && node.OwnerHouseId != w.Protagonist.HouseId)
+            {
+                var rules = _state.Content.Fleets;
+                var noRng = new Praetoria.Core.Rng.SplitMix64Rng(0);
+                if (!atWar)
+                {
+                    var cmd = new DeclareWarCommand(w.ProtagonistId, node.OwnerHouseId, rules);
+                    var btn = CourtTheme.Action($"Declare war on {node.OwnerHouseName}  ({rules.DeclareWarCost} influence)", cmd.CanExecute(new CommandContext(w, noRng)),
+                        "Your fleets will fight theirs wherever they meet; an unopposed fleet in their space takes their holdings — and theirs yours.");
+                    btn.Pressed += () => _state.Execute(cmd);
+                    sv.AddChild(btn);
+                }
+                else
+                {
+                    var cmd = new SueForPeaceCommand(w.ProtagonistId, node.OwnerHouseId, rules);
+                    bool can = cmd.CanExecute(new CommandContext(w, noRng));
+                    var btn = CourtTheme.Action($"Sue for peace with {node.OwnerHouseName}  ({rules.PeaceCost} influence)", can,
+                        can ? null : "Refused while they outgun you, or no Influence left this turn.");
+                    btn.Pressed += () => _state.Execute(cmd);
+                    sv.AddChild(btn);
+                }
+            }
             foreach (var hid in node.HoldingIds)
             {
                 var h = w.Holding(hid)!;

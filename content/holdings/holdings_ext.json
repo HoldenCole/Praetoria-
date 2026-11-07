@@ -28,7 +28,8 @@
       "popGrowth": 1,
       "//": "MATERIALS powerhouse but EXPENSIVE & populated. Net materials huge, but heavy credit upkeep means it bleeds you when insolvent (and then unrest hits its manpower). The military house's crown jewel and its biggest liability. Most slots of any spec.",
       "maxPopulation": 40,
-      "popManpower": 20
+      "popManpower": 20,
+      "defense": 0.15
     },
     {
       "id": "agri_collective",
@@ -56,7 +57,8 @@
       },
       "slots": 3,
       "popGrowth": 0,
-      "//": "Pure UPKEEP SINK, zero yield — the §17 'marginal in most runs, decisive in some'. You build it for defense/projection (a future military-layer hook), not income. Sterile, so no unrest. A fortress economy is a bet that survival outvalues growth."
+      "//": "Pure UPKEEP SINK, zero yield — the §17 'marginal in most runs, decisive in some'. You build it for defense/projection (a future military-layer hook), not income. Sterile, so no unrest. A fortress economy is a bet that survival outvalues growth.",
+      "defense": 0.6
     },
     {
       "id": "research_enclave",
@@ -162,7 +164,8 @@
       "upkeep": {
         "materials": 1
       },
-      "//": "No yield — a defensive build-out for the fortress_station (hooks the future military layer). Materials sink that buys safety, not income. Deliberately 'useless' on a spreadsheet, decisive in a siege."
+      "//": "No yield — a defensive build-out for the fortress_station (hooks the future military layer). Materials sink that buys safety, not income. Deliberately 'useless' on a spreadsheet, decisive in a siege.",
+      "defense": 0.4
     },
     {
       "id": "exotics_lab",

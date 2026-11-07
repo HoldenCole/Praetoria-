@@ -290,6 +290,20 @@ public sealed class AgeCondition : ICondition
     }
 }
 
+/// <summary>Is the role's house at war with self's house? JSON: { "type": "atWar", "role": "rival", "present": true }.</summary>
+public sealed class AtWarCondition : ICondition
+{
+    public string Role { get; }
+    public bool Present { get; }
+    public AtWarCondition(string role, bool present) { Role = role; Present = present; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var self = ctx.Actor(Binding.Self); var other = ctx.Actor(Role);
+        if (self == null || other == null) return false;
+        return ctx.World.AtWar(self.HouseId, other.HouseId) == Present;
+    }
+}
+
 /// <summary>Total fleet strength the role's house commands (GDD §6/§8). JSON: { "type": "fleetStrength", "role": "self", "op": "gte", "value": 2 }.</summary>
 public sealed class FleetStrengthCondition : ICondition
 {

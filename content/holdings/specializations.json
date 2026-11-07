@@ -28,7 +28,7 @@
       "id": "fortress", "name": "Fortress World",
       "yield":  { },
       "upkeep": { "credits": 1, "materials": 1 },
-      "slots": 2, "popGrowth": 0
+      "slots": 2, "popGrowth": 0, "defense": 0.5
     },
     {
       "id": "research_station", "name": "Research Station",

@@ -12,6 +12,20 @@
     "intelDecay": 15,
     "confidenceInTerritory": 100,
     "confidenceAdjacent": 65,
-    "movePoolCost": 1
+    "movePoolCost": 1,
+
+    // COMBAT. Power = hulls × (0.5 + readiness/200); the house holding the system defends at
+    // ×(1 + defenderBonus + Σ holding/building `defense`). A seeded roll on power share picks the winner; the
+    // loser sheds loserLossRatio of its hulls (≥1) and falls back to its nearest port, the winner sheds
+    // winnerLossRatio scaled by how close it was. An unopposed fleet in enemy space takes its holdings.
+    "defenderBonus": 0.25,
+    "loserLossRatio": 0.5,
+    "winnerLossRatio": 0.3,
+    "winnerReadinessCost": 20,
+    "loserReadinessCost": 40,
+    "declareWarCost": 2,
+    "peaceCost": 1,
+    "peaceRefusalRatio": 2.0,
+    "conquestUnrest": 20
   }
 }

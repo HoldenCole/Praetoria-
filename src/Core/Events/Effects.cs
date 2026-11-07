@@ -262,6 +262,32 @@ public sealed class KillEffect : IEffect
     }
 }
 
+/// <summary>Self's house declares war on the role's house (GDD §6). JSON: { "type": "declareWar", "role": "rival" }.</summary>
+public sealed class DeclareWarEffect : IEffect
+{
+    public string Role { get; }
+    public DeclareWarEffect(string role) => Role = role;
+    public void Apply(EvalContext ctx)
+    {
+        var self = ctx.Actor(Binding.Self); var other = ctx.Actor(Role);
+        if (self == null || other == null) return;
+        new Systems.FleetSystem(ctx.Content?.Fleets ?? Systems.FleetRules.Default).DeclareWar(ctx.World, self.HouseId, other.HouseId, self.Id);
+    }
+}
+
+/// <summary>Self's house and the role's house make peace. JSON: { "type": "makePeace", "role": "rival" }.</summary>
+public sealed class MakePeaceEffect : IEffect
+{
+    public string Role { get; }
+    public MakePeaceEffect(string role) => Role = role;
+    public void Apply(EvalContext ctx)
+    {
+        var self = ctx.Actor(Binding.Self); var other = ctx.Actor(Role);
+        if (self == null || other == null) return;
+        new Systems.FleetSystem(ctx.Content?.Fleets ?? Systems.FleetRules.Default).MakePeace(ctx.World, self.HouseId, other.HouseId);
+    }
+}
+
 /// <summary>Write a line to the history log (GDD §15 L1). JSON: { "type": "log", "text": "..." } — supports {role.name} tokens.</summary>
 public sealed class LogEffect : IEffect
 {

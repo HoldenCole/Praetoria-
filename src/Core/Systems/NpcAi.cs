@@ -25,6 +25,10 @@ public sealed class NpcAi
             .OrderBy(c => c.Id, StringComparer.Ordinal)
             .ToList();
 
+        // House-level strategy first (it spends the same pools), then personal jabs, then schemes.
+        if (catalog is { IsEmpty: false }) Invest(npcs, catalog, executor, ctx);
+        if (fleetRules != null && world.Galaxy != null) Sail(npcs, fleetRules, executor, ctx);
+
         foreach (var npc in npcs)
         {
             var command = ChooseAction(npc, world);
@@ -32,8 +36,6 @@ public sealed class NpcAi
                 executor.TryExecute(command, ctx);
         }
 
-        if (catalog is { IsEmpty: false }) Invest(npcs, catalog, executor, ctx);
-        if (fleetRules != null && world.Galaxy != null) Sail(npcs, fleetRules, executor, ctx);
         if (crises != null) AuthorCrisis(npcs, crises, executor, ctx);
     }
 
@@ -54,8 +56,21 @@ public sealed class NpcAi
             var head = npcs.FirstOrDefault(c => c.HouseId == house.Id);
             if (head == null) continue;
 
-            // menace: a hostile, rested house fleet moves on the player's seat
-            if (seat != null && player != null && (world.GetRelationship(head.Id, player.Id)?.Disposition ?? 0) < -40)
+            int disposition = player != null ? world.GetRelationship(head.Id, player.Id)?.Disposition ?? 0 : 0;
+            bool atWar = playerHouse != null && world.AtWar(house.Id, playerHouse);
+
+            // war and peace (GDD §7 fear with teeth): a house that hates you and outguns you declares war;
+            // one that has lost half its hulls sues for peace.
+            if (player != null && playerHouse != null)
+            {
+                if (!atWar && disposition < -60 && FleetSystem.StrengthOf(world, house.Id) > FleetSystem.StrengthOf(world, playerHouse))
+                { if (executor.TryExecute(new DeclareWarCommand(head.Id, playerHouse, rules), ctx)) atWar = true; }
+                else if (atWar && FleetSystem.StrengthOf(world, house.Id) * 2 < FleetSystem.StrengthOf(world, playerHouse))
+                { if (executor.TryExecute(new SueForPeaceCommand(head.Id, playerHouse, rules), ctx)) continue; }
+            }
+
+            // menace: a hostile (or belligerent), rested house fleet moves on the player's seat
+            if (seat != null && player != null && (atWar || disposition < -40))
             {
                 var fleet = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.Readiness >= 80 && f.SystemId != seat)
                                                .OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();

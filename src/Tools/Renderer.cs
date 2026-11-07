@@ -65,6 +65,16 @@ public static class Renderer
         }
     }
 
+    /// <summary>Standing wars involving the player's house.</summary>
+    public static void RenderWars(World world)
+    {
+        var house = world.Protagonist?.HouseId;
+        if (house == null) return;
+        var enemies = world.EnemiesOf(house).ToList();
+        if (enemies.Count > 0)
+            Console.WriteLine($"   ⚔ AT WAR with {string.Join(", ", enemies.Select(e => world.House(e)?.Name ?? e))}");
+    }
+
     /// <summary>Fleets as the player sees them (own exact, rivals' as intel) — GDD §19 mixed visibility in text.</summary>
     public static void RenderFleets(World world)
     {

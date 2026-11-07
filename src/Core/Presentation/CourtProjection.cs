@@ -23,6 +23,8 @@ public sealed record PathOption(string Id, string Label, string Tooltip, bool Av
 public sealed record StandingCard(int Legitimacy, int Instability, IReadOnlyList<string> Claims, string? NextTitle, int NextRequirement,
     IReadOnlyList<PathOption> Paths, string Spheres, int Threat);
 public sealed record FleetLine(string Id, string Name, string Where, int Strength, int Readiness, bool Moving, string? Destination, int Eta, bool Office);
+public sealed record WarLine(string EnemyHouseId, string EnemyName, int Since, int EnemyHulls, bool PeaceAvailable, string PeaceTooltip, bool TheyAreSuing);
+public sealed record BattleLine(string Text);
 public sealed record ChoiceCard(string Id, string Label, string Cost, bool Available);
 public sealed record BriefingCard(BriefingItem Item, string Title, string Tier, bool Setpiece, string Body, bool Resolved, IReadOnlyList<ChoiceCard> Choices);
 public sealed record MemberLine(string Name, string Detail, bool Alive, int Disposition, string Bond);
@@ -32,7 +34,7 @@ public sealed record CrisisLine(string Id, string Name, int Severity, int Since,
 public sealed record CrisisClock(string Counters, IReadOnlyList<CrisisLine> Active, IReadOnlyList<string> Causable);
 public sealed record CourtModel(int Turn, string Era, string Mode, int Generation, bool DynastyDead, bool Quiet,
     CharacterCard Character, PoolsLine Pools, TreasuryLine Treasury, IReadOnlyList<HoldingCard> Holdings, StandingCard? Standing,
-    IReadOnlyList<FleetLine> Fleets, IReadOnlyList<BriefingCard> Briefing, string HouseName, string HouseAccent,
+    IReadOnlyList<FleetLine> Fleets, IReadOnlyList<WarLine> Wars, IReadOnlyList<BriefingCard> Briefing, string HouseName, string HouseAccent,
     IReadOnlyList<MemberLine> Members, IReadOnlyList<ConnectionLine> Connections, CrisisClock? Crises, IReadOnlyList<string> Chronicle);
 
 public static class CourtProjection
@@ -102,6 +104,18 @@ public static class CourtProjection
             .Select(f => new FleetLine(f.Id, f.Name, w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId, f.Strength, f.Readiness, f.Moving,
                 f.Moving ? w.Galaxy?.System(f.DestinationId)?.Name ?? f.DestinationId : null, f.Eta, f.Office)).ToList();
 
+        var wars = new List<WarLine>();
+        foreach (var enemy in w.EnemiesOf(house.Id))
+        {
+            var war = w.Wars.First(x => x.Between(house.Id, enemy));
+            var peace = new SueForPeaceCommand(p.Id, enemy, content.Fleets);
+            bool can = peace.CanExecute(ctx);
+            bool refuses = !tc.Fleets.WouldAcceptPeace(w, enemy, house.Id);
+            bool suing = w.LivingCharacters().Any(c => c.HouseId == enemy && c.Flags.Contains(FleetSystem.SuingForPeaceFlag));
+            wars.Add(new WarLine(enemy, w.House(enemy)?.Name ?? enemy, war.Since, FleetSystem.StrengthOf(w, enemy), can,
+                can ? "" : refuses ? "They smell victory — their hulls far outnumber yours." : "No Influence left this turn.", suing));
+        }
+
         var briefing = new List<BriefingCard>();
         foreach (var item in tc.Briefing)
         {
@@ -145,7 +159,7 @@ public static class CourtProjection
                 active.Add(new CrisisLine(a.Id, def?.Name ?? a.Id, a.Severity, a.TurnStarted, a.Organic ? null : w.Char(a.AuthorId)?.Name ?? a.AuthorId, dampers));
             }
             clock = new CrisisClock(
-                $"unrest {w.Counter("unrest")} · corruption {w.Counter("corruption")} · goodwill {w.Counter("goodwill")} · coalition pressure {w.Counter("coalition_pressure")} · incursions {w.Counter(FleetSystem.IncursionsCounter)}",
+                $"unrest {w.Counter("unrest")} · corruption {w.Counter("corruption")} · goodwill {w.Counter("goodwill")} · coalition pressure {w.Counter("coalition_pressure")} · incursions {w.Counter(FleetSystem.IncursionsCounter)} · battles {w.Counter(FleetSystem.BattlesCounter)} · conquests {w.Counter(FleetSystem.ConquestsCounter)}",
                 active, crises.Causable(w, NoRng).Select(c => c.Name).ToList());
         }
 
@@ -154,7 +168,7 @@ public static class CourtProjection
         return new CourtModel(w.Turn, w.Era, w.Mode, w.Counter("generation") + 1, w.IsDynastyDead, tc.Briefing.Count == 0,
             character, new PoolsLine(pools.Influence, pools.Treasury, pools.Agents),
             new TreasuryLine(t.Credits, t.Materials, t.Manpower, t.Influence, t.Exotics, t.Credits < 0),
-            holdings, standing, fleets, briefing, house.Name, house.AccentColor, members, connections, clock, chronicle);
+            holdings, standing, fleets, wars, briefing, house.Name, house.AccentColor, members, connections, clock, chronicle);
     }
 
     private static string BondName(Relationship? rel) => rel?.Bond is { } b && b != BondType.None ? b.ToString().ToLowerInvariant() : "";

@@ -15,8 +15,8 @@ engine's loader accepts. Exit code 0 = clean, 1 = errors. Run after every batch.
 """
 import json, re, sys, glob, os
 
-COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","eventFired"}
-EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","revokeClaim","adjustLegitimacy","setTitle","succeed","kill","log"}
+COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","atWar","eventFired"}
+EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","revokeClaim","adjustLegitimacy","setTitle","succeed","kill","declareWar","makePeace","log"}
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
 RES={"credits","materials","manpower","influence","exotics"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
 SPHERES={"navy","treasury","senate"}; TITLES={"landless","knight","baron","count","duke","archduke","emperor"}

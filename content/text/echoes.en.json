@@ -95,6 +95,46 @@
         "inspect_it": "Walk the decks yourself. Ask the questions a name is not supposed to ask.",
         "parade_it": "Parade it past the capital in review order. Let the houses count."
       }
+    },
+    {
+      "id": "the_butchers_bill",
+      "title": "The Butcher's Bill",
+      "body": "The reports come in the way they always do: first the outcome, then the numbers, then — later, when the signals officers have found the courage — the names. Hulls are rebuilt. Crews are not. Whatever happened out there under your colours, the house must now decide what a battle costs it beyond the ledger.",
+      "choices": {
+        "honor_the_dead": "Read the names aloud. Pay the families from the house's own purse.",
+        "press_the_advantage": "No pause. Refit, resupply, press on before the wreckage cools.",
+        "count_the_cost": "Sit with the reports until you understand exactly what happened, and why."
+      }
+    },
+    {
+      "id": "the_conquered_world",
+      "title": "The Conquered World",
+      "body": "The sky is yours, and so, by the only law that applies when the fleets have spoken, is the world beneath it. Its councils are waiting to learn what kind of conqueror has come. There are three answers, and the galaxy is listening for which one you give.",
+      "choices": {
+        "garrison_and_govern": "Garrison it, keep order, leave the old laws where they do no harm. Hold it by consent.",
+        "plunder_it": "Let the fleet have it for a season. The treasury needs it more than the world does.",
+        "proclaim_the_conquest": "Proclaim it from their own council steps, fleet overhead. Let the galaxy count."
+      }
+    },
+    {
+      "id": "the_lost_world",
+      "title": "The Lost World",
+      "body": "A world that bore your name does not any more. {enemy.name} of {enemy.house} holds its sky, and the courier who brought the news would not meet your eye. The household is watching to see what a house does when it is made smaller by force — and so, from a careful distance, is everyone else.",
+      "choices": {
+        "swear_to_retake_it": "Swear before the household that it will be yours again. Make it a feud.",
+        "sue_for_terms": "Send for terms. End the war, keep what remains, bleed standing instead of blood.",
+        "absorb_the_loss": "Say nothing. Go on smaller. Let the towns draw their own conclusions."
+      }
+    },
+    {
+      "id": "the_envoy_of_peace",
+      "title": "The Envoy",
+      "body": "{envoy.name} of {envoy.house} comes under a white banner, which costs a house more than any battle. They are asking for the war to end. Behind the courtesy is arithmetic — hulls lost, worlds taken, a treasury bleeding — and behind the arithmetic a question only you can answer: what was this war for, and do you have it yet?",
+      "choices": {
+        "accept_peace": "Accept. End it. Let both sides light their lamps.",
+        "demand_tribute": "Name a price. Peace, yes — paid for.",
+        "refuse_terms": "Send them back with nothing. The war is not finished."
+      }
     }
   ]
 }

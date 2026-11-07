@@ -57,7 +57,8 @@ public static class HoldingCatalogLoader
         Slots = ConditionParser.Int(el, "slots", 0),
         PopGrowth = ConditionParser.Int(el, "popGrowth", 0),
         MaxPopulation = ConditionParser.Int(el, "maxPopulation", 0),
-        PopManpower = ConditionParser.Int(el, "popManpower", 0)
+        PopManpower = ConditionParser.Int(el, "popManpower", 0),
+        Defense = Dbl(el, "defense")
     };
 
     private static BuildingDef ParseBuilding(JsonElement el) => new()
@@ -67,8 +68,12 @@ public static class HoldingCatalogLoader
         Cost = ParseResources(el, "cost"),
         Yield = ParseResources(el, "yield"),
         Upkeep = ParseResources(el, "upkeep"),
-        Requires = ConditionParser.OptStrOrNull(el, "requires")
+        Requires = ConditionParser.OptStrOrNull(el, "requires"),
+        Defense = Dbl(el, "defense")
     };
+
+    private static double Dbl(JsonElement el, string name) =>
+        el.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetDouble() : 0.0;
 
     /// <summary>Parse a resource bundle from an object property; missing ⇒ all zero.</summary>
     public static Resources ParseResources(JsonElement el, string name)

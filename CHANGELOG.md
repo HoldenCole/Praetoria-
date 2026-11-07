@@ -20,6 +20,12 @@ Build Spec's V1 ("a complete human game").
 - **`CourtProjection`**: the Godot-free, tested model of everything Court mode shows; `CourtView` renders it.
 - UI: Admiral panel, ship-laying buttons, fleet glyphs and movement orders on the map, serif/sans typography,
   portrait badge slot. NPC action pools gain one Treasury point a turn (fleet orders).
+- **War & combat**: `War` state, `DeclareWarCommand` / `SueForPeaceCommand`, `atWar` condition, `declareWar` /
+  `makePeace` effects; `FleetSystem.ResolveBattles` (hulls × readiness, defender + fortress/battery `defense`,
+  seeded roll, losses, retreat) and `ResolveConquests` (an unopposed fleet in enemy space takes its holdings,
+  `seizures`+1 for the player); NPC houses declare war when hostile and stronger, sue for peace when broken
+  (the player answers through *The Envoy*). Four events: *The Butcher's Bill*, *The Conquered World*,
+  *The Lost World*, *The Envoy*. War/peace buttons in the Court (Admiral) and on the map.
 
 ## [0.5.0] — 2026-11-07 — "headless complete"
 See `docs/RELEASE_0.5.md` for the full notes.

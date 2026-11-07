@@ -70,7 +70,7 @@ public sealed class TurnController
         _crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises);
         _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres);
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
-        _fleets = new FleetSystem(content.Fleets);
+        _fleets = new FleetSystem(content.Fleets, content.Holdings);
         _briefingBudget = briefingBudget;
     }
 
@@ -87,6 +87,9 @@ public sealed class TurnController
         foreach (var pools in World.Pools.Values) pools.Regenerate();
         _economy?.Accrue(World);     // RNG-free, so determinism is preserved (GDD §17)
         _fleets.Tick(World);         // fleets move, eat, arrive; the intel picture refreshes (GDD §19) — RNG-free
+        _fleets.ResolveBattles(World, _rng);   // warring fleets that share a system fight (seeded roll)
+        _fleets.ResolveConquests(World);       // an unopposed fleet in enemy space takes its holdings
+        _fleets.UpdateIntel(World);            // ...and the picture after the fighting
         _spheres?.Recompute(World);  // power-balance projection + threat/coalition (GDD §7), also RNG-free
         _progression?.Apply(World);  // title soft-lock instability (GDD §13), also RNG-free
 

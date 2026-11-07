@@ -170,6 +170,7 @@ AND). Comparison `op` ∈ `eq, neq, lt, lte, gt, gte` (symbols `==, !=, <, <=, >
 | `track` | `role`(default `self`), `track`, `present:bool` | is the character on this career track? (`military\|stewardship\|law`) — gate each track's arc on it |
 | `era` | `era: fractured_stars\|imperium`, `present:bool` | which start the world is in (GDD §10) — gate court-of-the-emperor content on `imperium` |
 | `fleetStrength` | `role`(default `self`), `op`, `value` | total hulls the role's house commands (GDD §6/§8) |
+| `atWar` | `role`, `present:bool` | is the role's house at war with self's house? |
 | `turn` | `op`, `value` | current turn number compare |
 | `age` | `role`(default `self`), `op`, `value` | character age compare (GDD §14) |
 | `counter` | `key`, `op`, `value` | world-counter compare (gate accumulators, clocks) |
@@ -215,6 +216,8 @@ Used in a choice's `effects` array. Applied in order when the choice is taken.
 | `grantClaim` | `role`(default `self`), `title` | add a claim to a title to the role's **house** (GDD §13) |
 | `revokeClaim` | `role`(default `self`), `title` | remove a claim — a pressed or sold claim is spent (pair with `setTitle`) |
 | `succeed` | `role` | hand the seat to a living character: they become the protagonist, the House keeps its title (abdication) |
+| `declareWar` | `role` | self's house declares war on the role's house (GDD §6) |
+| `makePeace` | `role` | self's house and the role's house make peace |
 | `adjustLegitimacy` | `role`(default `self`), `delta` | change the house's legitimacy/standing (clamped ≥0, GDD §13) |
 | `setTitle` | `role`(default `self`), `title` | set the house's title outright — grant / usurp / abdicate (GDD §13) |
 | `kill` | `role` | kill a character — assassination / duel / Bloody Event; if it's the protagonist, succession fires (GDD §14) |
@@ -452,7 +455,18 @@ one lane out at `confidenceAdjacent`; out of sight the report loses `intelDecay`
 position stands. **Engine-written, read-only:** `incursions` counter and `incursion:<houseId>` flags (a fleet
 arrived in another house's space), `ships_raised`, `fleets_raised`. Rival houses raise hulls when flush and a
 hostile head sends a rested fleet at your seat. *Unfamiliar Sails* and *The Review* are the first fleet events.
-Combat, blockade and seizure-by-fleet are the next layer — don't author outcomes that assume them yet.
+**War and combat.** Houses go to war by the *Declare war* command (Influence), by an NPC head that hates and
+outguns you, or by the `declareWar` effect. Fleets of warring houses that share a system **fight** at the start
+of the turn after moving: power = hulls × (0.5 + readiness/200), the house holding the system defends at
+×(1 + `defenderBonus` + Σ its holdings' and buildings' `defense` — fortress worlds 0.5, fortress-stations 0.6,
+bastion batteries 0.4); a seeded roll on power share picks the winner; the loser sheds `loserLossRatio` of its
+hulls and falls back to its nearest port (or scatters), the winner sheds `winnerLossRatio` scaled by how close it
+was. An **unopposed fleet in enemy space takes its holdings** (conquest: +`conquestUnrest`, and `seizures`+1 when
+the player does it — the §7 fear machine). Peace: the player sues by command (an NPC refuses while its hulls exceed
+yours by `peaceRefusalRatio`); an NPC suing the player flags its head `suing_for_peace` and *The Envoy* asks you.
+**Engine-written, read-only:** `battles`, `battles_won`, `battles_lost`, `conquests`, `wars_declared` counters;
+`battle_fought`, `conquest_made`, `holding_lost` flags (content clears them — see *The Butcher's Bill*, *The
+Conquered World*, *The Lost World*); `at_war:<house>` flags; the `suing_for_peace` char flag.
 
 ## 4f. Save files
 
@@ -696,9 +710,10 @@ TOKENS     {role.name} {role.house} {role.rank} {role.rankName}   (role = self o
 TRACKS     military | stewardship | law                 (ladders + rung names in /content/careers)
 CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
 FLAGS      background:<id> char flag (set at creation)       regency · dynasty_adopted world flags
-CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age counter resource sphere title claim fleetStrength eventFired
+CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age counter resource sphere title claim fleetStrength atWar eventFired
 FLEETS     incursions · ships_raised · fleets_raised counters · incursion:<house> flags   (system-written, §19)
-EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim revokeClaim adjustLegitimacy setTitle succeed kill log
+WAR        battles · battles_won · battles_lost · conquests · wars_declared counters · battle_fought · conquest_made · holding_lost · at_war:<house> flags · suing_for_peace char flag
+EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim revokeClaim adjustLegitimacy setTitle succeed kill declareWar makePeace log
 READ-ONLY  title_rank · house_legitimacy · title_instability   (system-written, protagonist house)
 LIFECYCLE  generation · dynasty_births · breakdowns · adoptions counters · dynasty_dead · dynasty_adopted · regency flags · broken char flag   (system-written, §14/§18)
 CRISES     crisis:<id>:active · crisis:<id>:spent flags            (system-written, §16)

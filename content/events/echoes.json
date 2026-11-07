@@ -1,5 +1,5 @@
 {
-  "//": "ECHOES — consequences for earlier choices whose flags had no reader. Consumes: debt_to_crown (the_crowns_due), anomaly_hoarded/anomaly_studied (the_anomaly_stirs), oath_sworn_academy (the_oath_remembered), coalition_broken (the_coalitions_remnant), reconciled (the_old_wound_healed), sabotaged (what_the_sabotage_taught), wed (the_household), and the engine-written `broken` stress flag (the_breaking_point). Every event here clears the flag it reads so chains end cleanly. FLEETS: the_unfamiliar_sails (an incursion into your space — reads the engine `incursions` counter) and the_review_of_the_fleet (gates on fleetStrength).",
+  "//": "ECHOES — consequences for earlier choices whose flags had no reader. Consumes: debt_to_crown (the_crowns_due), anomaly_hoarded/anomaly_studied (the_anomaly_stirs), oath_sworn_academy (the_oath_remembered), coalition_broken (the_coalitions_remnant), reconciled (the_old_wound_healed), sabotaged (what_the_sabotage_taught), wed (the_household), and the engine-written `broken` stress flag (the_breaking_point). Every event here clears the flag it reads so chains end cleanly. FLEETS: the_unfamiliar_sails (an incursion into your space — reads the engine `incursions` counter) and the_review_of_the_fleet (gates on fleetStrength). WAR: the_butchers_bill (reads engine flag battle_fought and clears it), the_conquered_world (reads conquest_made), the_lost_world (reads holding_lost). the_envoy_of_peace: an enemy head flagged suing_for_peace (engine) asks for terms.",
   "events": [
     {
       "id": "the_crowns_due",
@@ -967,6 +967,554 @@
             {
               "type": "log",
               "text": "{self.name} paraded the house fleet past the capital in review order, every hull polished and every flaw hidden. The watching houses counted. That was the point."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_butchers_bill",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "battle_fought",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "honor_the_dead",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "battle_fought",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} read the names of the dead aloud, every one, and paid the families from the house's own purse. The fleet noticed. So did the towns that crew it."
+            }
+          ]
+        },
+        {
+          "id": "press_the_advantage",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ambitious",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "battle_fought",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not stop for the dead. Orders went out before the wreckage had cooled: refit, resupply, press on. Victory or defeat, the war would not be allowed to pause for grief."
+            }
+          ]
+        },
+        {
+          "id": "count_the_cost",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "battle_fought",
+              "value": false
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sat with the battle reports until the shape of the thing was clear — what had worked, what had been luck, what would not be allowed to happen twice."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_conquered_world",
+      "tier": "setpiece",
+      "weight": 5,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "conquest_made",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "garrison_and_govern",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "conquest_made",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the conquered world the slow way: a garrison that kept order and paid for its bread, courts that sat, the old laws left standing where they did no harm. A world taken by force can still be held by consent, if the consent is bought honestly."
+            }
+          ]
+        },
+        {
+          "id": "plunder_it",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Cruel",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Greedy",
+                  "kind": "aptitude",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "conquest_made",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 10
+            },
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the fleet have the conquered world for a season. The treasury swelled. The world would remember the house's name for a hundred years, and not kindly."
+            }
+          ]
+        },
+        {
+          "id": "proclaim_the_conquest",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Proud",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "conquest_made",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "seizures",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} proclaimed the conquest from the steps of the taken world's own council hall, with the fleet overhead for emphasis. The galaxy heard. The galaxy took note of exactly how large the house had decided to be."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_lost_world",
+      "tier": "setpiece",
+      "weight": 5,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "enemy",
+          "when": [
+            {
+              "type": "atWar",
+              "role": "enemy",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "holding_lost",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "swear_to_retake_it",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Vengeful",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "holding_lost",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "enemy",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} swore, before the household and the gods the household still kept, that the lost world would be the house's again. {enemy.name} of {enemy.house} would learn what the oath cost."
+            }
+          ]
+        },
+        {
+          "id": "sue_for_terms",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "holding_lost",
+              "value": false
+            },
+            {
+              "type": "makePeace",
+              "role": "enemy"
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent to {enemy.name} of {enemy.house} for terms. The world stayed lost; the war ended; the household ate. Standing bled for it, but standing can be rebuilt, and the dead cannot."
+            }
+          ]
+        },
+        {
+          "id": "absorb_the_loss",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "holding_lost",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing in public about the lost world, and the house went on smaller. The towns that remained drew their own conclusions about a house that could not keep what it held."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_envoy_of_peace",
+      "tier": "setpiece",
+      "weight": 6,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "envoy",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "envoy",
+              "flag": "suing_for_peace",
+              "value": true
+            },
+            {
+              "type": "atWar",
+              "role": "envoy",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "accept_peace",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "envoy",
+              "flag": "suing_for_peace",
+              "value": false
+            },
+            {
+              "type": "makePeace",
+              "role": "envoy"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} received {envoy.name} of {envoy.house} and gave the only answer that ends a war: yes. The fleets stood down. The towns on both sides lit lamps that night, and did not ask who had won."
+            }
+          ]
+        },
+        {
+          "id": "demand_tribute",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Greedy",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "envoy",
+              "flag": "suing_for_peace",
+              "value": false
+            },
+            {
+              "type": "makePeace",
+              "role": "envoy"
+            },
+            {
+              "type": "adjustResource",
+              "role": "envoy",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} named a price for peace and {envoy.name} of {envoy.house} paid it, which is what losing means. The war ended with the treasury heavier and a grievance filed carefully away."
+            }
+          ]
+        },
+        {
+          "id": "refuse_terms",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "envoy",
+              "flag": "suing_for_peace",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {envoy.name} back to {envoy.house} with nothing. The war went on. Whatever {self.name} wanted from it, it was not yet in hand."
             }
           ]
         }

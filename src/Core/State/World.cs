@@ -39,6 +39,13 @@ public sealed class World
     /// <summary>Every fleet, keyed by fleet id (GDD §8 office vs house fleets; §19 map markers).</summary>
     public Dictionary<string, Fleet> Fleets { get; set; } = new();
 
+    /// <summary>Standing wars between houses (GDD §6). Fleets of warring houses fight where they meet.</summary>
+    public List<War> Wars { get; set; } = new();
+
+    public bool AtWar(string a, string b) => a != b && Wars.Any(w => w.Between(a, b));
+    public IEnumerable<string> EnemiesOf(string houseId) =>
+        Wars.Where(w => w.Involves(houseId)).Select(w => w.Other(houseId)).OrderBy(h => h, StringComparer.Ordinal);
+
     /// <summary>The protagonist house's reported picture of rival fleets, keyed by fleet id (GDD §19 mixed visibility).</summary>
     public Dictionary<string, FleetIntel> Intel { get; set; } = new();
 

@@ -65,6 +65,10 @@ public static class EffectParser
                 return new AdjustLegitimacyEffect(ConditionParser.OptStr(el, "role", "self"), I(el, "delta", 0));
             case "setTitle":
                 return new SetTitleEffect(ConditionParser.OptStr(el, "role", "self"), S(el, "title"));
+            case "declareWar":
+                return new DeclareWarEffect(S(el, "role"));
+            case "makePeace":
+                return new MakePeaceEffect(S(el, "role"));
             case "log":
                 return new LogEffect(S(el, "text"));
 

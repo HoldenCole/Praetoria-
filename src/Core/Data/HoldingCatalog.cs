@@ -34,6 +34,10 @@ public sealed class HoldingSpec
     /// decorative for this specialization.</summary>
     public int PopManpower { get; init; }
 
+    /// <summary>Defensive weight a holding of this kind lends fleets defending its system (0.5 = +50% power).
+    /// The fortress specializations' whole point (GDD §17 "marginal in most runs, decisive in a siege").</summary>
+    public double Defense { get; init; }
+
     public bool Populated => PopGrowth > 0;
 }
 
@@ -53,6 +57,9 @@ public sealed class BuildingDef
 
     /// <summary>Specialization id this building requires, or null to allow any holding.</summary>
     public string? Requires { get; init; }
+
+    /// <summary>Defensive weight the building adds to fleets defending its system (bastion batteries).</summary>
+    public double Defense { get; init; }
 
     public bool FitsSpecialization(string specialization) =>
         Requires == null || Requires == specialization;

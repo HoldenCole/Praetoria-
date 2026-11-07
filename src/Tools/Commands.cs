@@ -50,6 +50,7 @@ internal static class Commands
             {
                 Renderer.RenderTreasury(playerHouse);
                 Renderer.RenderHoldings(world, playerHouse.Id);
+                Renderer.RenderWars(world);
                 Renderer.RenderFleets(world);
             }
 
@@ -524,6 +525,8 @@ internal static class Commands
                                   (f.IsPlayer ? $" · readiness {f.Readiness}{(f.Moving ? $" · → {world.Galaxy.System(f.DestinationId)?.Name} in {f.Eta}" : "")}" : $" [{f.Confidence}% as of T{f.TurnObserved}]") +
                                   (f.Office ? " · OFFICE" : ""));
         }
+        if (world.Wars.Count > 0)
+            Console.WriteLine("\nWars: " + string.Join("; ", world.Wars.Select(x => $"{world.House(x.HouseA)?.Name} vs {world.House(x.HouseB)?.Name} (since T{x.Since})")));
         var home = world.Holdings.Values.FirstOrDefault(h => h.OwnerId == world.Protagonist!.HouseId && h.SystemId != "");
         if (home != null)
         {

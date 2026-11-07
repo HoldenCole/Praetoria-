@@ -119,7 +119,16 @@ public partial class CourtView : HBoxContainer
         foreach (var f in m.Fleets)
             av.AddChild(CourtTheme.Body($"{f.Name}{(f.Office ? " (office)" : "")} — {f.Strength} hull{(f.Strength == 1 ? "" : "s")}, readiness {f.Readiness}, " +
                                         (f.Moving ? $"en route to {f.Destination} ({f.Eta})" : $"at {f.Where}"), ink, 12));
-        av.AddChild(CourtTheme.Muted("Give movement orders from the Galaxy map.", era, 11));
+        if (m.Wars.Count > 0)
+        {
+            av.AddChild(CourtTheme.Rule());
+            foreach (var war in m.Wars)
+            {
+                av.AddChild(CourtTheme.Body($"⚔ At war with {war.EnemyName} since turn {war.Since} — they field ~{war.EnemyHulls} hull(s).{(war.TheyAreSuing ? "  Their envoy awaits your answer in the briefing." : "")}", CourtTheme.Danger, 12));
+                av.AddChild(Cmd($"Sue for peace with {war.EnemyName}  (1 influence)", war.PeaceAvailable, war.PeaceTooltip, new SueForPeaceCommand(pid, war.EnemyHouseId, _state.Content.Fleets)));
+            }
+        }
+        av.AddChild(CourtTheme.Muted("Give movement orders — and declare war — from the Galaxy map.", era, 11));
 
         if (m.Standing is { } s)
         {
