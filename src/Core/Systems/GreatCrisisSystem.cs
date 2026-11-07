@@ -81,6 +81,7 @@ public sealed class GreatCrisisSystem
         hegemon.Bloc = HegemonBloc;
         foreach (var h in houses.Skip(1))
         {
+            if (!w.HoldingsOf(h.Id).Any() && FleetSystem.StrengthOf(w, h.Id) == 0) { h.Bloc = ""; continue; }   // the landless have nothing to bring
             int disp = 0;
             if (hegemonHead != null)
                 foreach (var c in w.LivingCharacters().Where(c => c.HouseId == h.Id)) disp += w.GetRelationship(c.Id, hegemonHead.Id)?.Disposition ?? 0;
@@ -93,9 +94,15 @@ public sealed class GreatCrisisSystem
     /// <summary>Every hegemon house goes to war with every alliance house. Rival-vs-rival wars included.</summary>
     public void BlocWar(World w)
     {
+        // The hegemon fights the whole alliance; each of its followers takes one alliance house (paired in id order), so a
+        // galaxy of twenty houses has twenty-odd wars, not a hundred — fronts, not a free-for-all.
         var a = w.Houses.Values.Where(h => h.Bloc == HegemonBloc).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
         var b = w.Houses.Values.Where(h => h.Bloc == AllianceBloc).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
-        foreach (var x in a) foreach (var y in b) _fleets.DeclareWar(w, x.Id, y.Id);
+        if (a.Count == 0 || b.Count == 0) return;
+        var hegemon = a.OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).First();
+        foreach (var y in b) _fleets.DeclareWar(w, hegemon.Id, y.Id);
+        var others = a.Where(h => h.Id != hegemon.Id).ToList();
+        for (int i = 0; i < others.Count; i++) _fleets.DeclareWar(w, others[i].Id, b[i % b.Count].Id);
     }
 
     private void Climax(World w)

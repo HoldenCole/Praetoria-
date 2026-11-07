@@ -12,14 +12,16 @@ public static class ScenarioLoader
         AllowTrailingCommas = true
     };
 
-    public static Scenario LoadFile(string path)
+    /// <param name="includeBaseline">False loads the scenario exactly as written, without the galaxy's minor houses (tests, tools).</param>
+    public static Scenario LoadFile(string path, bool includeBaseline = true)
     {
         try
         {
             using var doc = JsonDocument.Parse(File.ReadAllText(path), DocOptions);
             var root = doc.RootElement;
             var galaxyId = ConditionParser.OptStrOrNull(root, "galaxy");
-            return new Scenario
+            var galaxy = galaxyId == null ? null : ResolveGalaxy(path, galaxyId);
+            var scenario = new Scenario
             {
                 Id = ConditionParser.Str(root, "id"),
                 ProtagonistId = ConditionParser.Str(root, "protagonist"),
@@ -29,13 +31,70 @@ public static class ScenarioLoader
                 Relationships = ParseRelationships(root),
                 Holdings = ParseHoldings(root),
                 Fleets = ParseFleets(root),
-                Galaxy = galaxyId == null ? null : ResolveGalaxy(path, galaxyId)
+                Galaxy = galaxy
             };
+            // The galaxy's minor houses (GDD §19 "smaller houses that control smaller things, or nothing"): merged in unless
+            // the scenario names its own baseline, or "" to play on an empty map.
+            string baseline = ConditionParser.OptStr(root, "baseline", galaxy?.Baseline ?? "");
+            if (includeBaseline && baseline.Length > 0 && galaxy != null) scenario = MergeBaseline(scenario, LoadBaseline(path, baseline));
+            return scenario;
         }
         catch (JsonException ex)
         {
             throw new ContentException($"Invalid JSON in scenario '{path}': {ex.Message}", ex);
         }
+    }
+
+    private static Scenario LoadBaseline(string scenarioPath, string baselineId)
+    {
+        var scenariosDir = Path.GetDirectoryName(Path.GetFullPath(scenarioPath)) ?? ".";
+        var contentRoot = Path.GetDirectoryName(scenariosDir) ?? ".";
+        var file = Path.Combine(contentRoot, "galaxy", baselineId + ".json");
+        if (!File.Exists(file)) throw new ContentException($"Baseline '{baselineId}' not found at {file}.");
+        using var doc = JsonDocument.Parse(File.ReadAllText(file), DocOptions);
+        var root = doc.RootElement;
+        return new Scenario
+        {
+            Id = baselineId,
+            Houses = ParseHouses(root), Characters = ParseCharacters(root), Relationships = ParseRelationships(root),
+            Holdings = ParseHoldings(root), Fleets = ParseFleets(root)
+        };
+    }
+
+    /// <summary>Scenario wins every collision: a baseline house, character, holding or fleet is added only when the scenario
+    /// has not defined that id, a baseline planet only where the scenario placed no planet in that system, and a baseline
+    /// house's people and ships only when the house itself came from the baseline.</summary>
+    public static Scenario MergeBaseline(Scenario sc, Scenario baseline)
+    {
+        var houseIds = sc.Houses.Select(h => h.Id).ToHashSet();
+        var charIds = sc.Characters.Select(c => c.Id).ToHashSet();
+        var holdingIds = sc.Holdings.Select(h => h.Id).ToHashSet();
+        var fleetIds = sc.Fleets.Select(f => f.Id).ToHashSet();
+        var claimedSystems = sc.Holdings.Where(h => h.IsPlanet && h.SystemId.Length > 0).Select(h => h.SystemId).ToHashSet();
+
+        var houses = sc.Houses.ToList(); var added = new HashSet<string>();
+        foreach (var h in baseline.Houses) if (!houseIds.Contains(h.Id)) { houses.Add(h); added.Add(h.Id); }
+        var chars = sc.Characters.ToList();
+        foreach (var c in baseline.Characters) if (!charIds.Contains(c.Id) && added.Contains(c.HouseId)) chars.Add(c);
+        var charNow = chars.Select(c => c.Id).ToHashSet();
+        var rels = sc.Relationships.ToList();
+        foreach (var r in baseline.Relationships) if (charNow.Contains(r.FromId) && charNow.Contains(r.ToId) && !rels.Any(x => x.FromId == r.FromId && x.ToId == r.ToId)) rels.Add(r);
+        var holdings = sc.Holdings.ToList();
+        foreach (var h in baseline.Holdings)
+        {
+            if (holdingIds.Contains(h.Id) || !added.Contains(h.OwnerId)) continue;
+            if (h.IsPlanet && claimedSystems.Contains(h.SystemId)) continue;
+            if (h.GovernorId.Length > 0 && !charNow.Contains(h.GovernorId)) h.GovernorId = "";
+            holdings.Add(h);
+        }
+        var fleets = sc.Fleets.ToList();
+        foreach (var f in baseline.Fleets) if (!fleetIds.Contains(f.Id) && added.Contains(f.OwnerId)) fleets.Add(f);
+
+        return new Scenario
+        {
+            Id = sc.Id, ProtagonistId = sc.ProtagonistId, Era = sc.Era, Galaxy = sc.Galaxy,
+            Houses = houses, Characters = chars, Relationships = rels, Holdings = holdings, Fleets = fleets
+        };
     }
 
     /// <summary>A scenario's galaxy lives in the sibling /content/galaxy directory.</summary>
@@ -46,12 +105,12 @@ public static class ScenarioLoader
         return GalaxyLoader.LoadFromContent(contentRoot, galaxyId);
     }
 
-    public static Scenario LoadFromContent(string contentRoot, string scenarioId)
+    public static Scenario LoadFromContent(string contentRoot, string scenarioId, bool includeBaseline = true)
     {
         var path = Path.Combine(contentRoot, "scenarios", scenarioId + ".json");
         if (!File.Exists(path))
             throw new ContentException($"Scenario '{scenarioId}' not found at {path}.");
-        return LoadFile(path);
+        return LoadFile(path, includeBaseline);
     }
 
     private static IReadOnlyList<House> ParseHouses(JsonElement root)
@@ -88,7 +147,10 @@ public static class ScenarioLoader
                     SystemId = ConditionParser.OptStr(h, "system", ""),
                     Population = ConditionParser.Int(h, "population", 0),
                     Unrest = ConditionParser.Int(h, "unrest", 0),
-                    Buildings = StrList(h, "buildings")
+                    Buildings = StrList(h, "buildings"),
+                    Kind = ConditionParser.OptStr(h, "kind", Holding.Planet),
+                    GovernorId = ConditionParser.OptStr(h, "governor", ""),
+                    Culture = ConditionParser.OptStr(h, "culture", "")
                 });
         return list;
     }

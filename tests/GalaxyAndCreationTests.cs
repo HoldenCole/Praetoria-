@@ -76,7 +76,7 @@ public class GalaxyTests
     public void Projection_DerivesTerritory_FromHoldings_WithPlayerAndContestedMarks()
     {
         var (_, root) = Load();
-        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, "academy_crucible"), 1);
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, "academy_crucible", includeBaseline: false), 1);
         var nodes = GalaxyProjection.Nodes(w).ToDictionary(n => n.SystemId);
 
         Assert.Equal("vega", nodes["tessaly"].OwnerHouseId);

@@ -23,7 +23,7 @@ public class DynastyDepthTests
         var dyn = new DynastySystem { Content = content };
         var rng = new SplitMix64Rng(3);
         for (int t = 0; t < 12; t++) dyn.Tick(w, rng);
-        var child = w.Characters.Values.FirstOrDefault(c => c.Id.StartsWith("scion_"));
+        var child = w.Characters.Values.FirstOrDefault(c => c.Id.StartsWith("scion_") && c.HouseId == "thorne");
         Assert.NotNull(child);
         Assert.EndsWith(" Thorne", child!.Name);
         Assert.DoesNotContain("Scion", child.Name);

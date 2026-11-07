@@ -45,7 +45,15 @@ public static class WorldBuilder
             if (world.Galaxy != null && !string.IsNullOrEmpty(holding.SystemId) && world.Galaxy.System(holding.SystemId) == null)
                 throw new ContentException(
                     $"Holding '{holding.Id}' sits in unknown system '{holding.SystemId}' (galaxy '{world.Galaxy.Id}').");
+            if (holding.Culture.Length == 0 && world.Galaxy != null && holding.SystemId.Length > 0) holding.Culture = world.Galaxy.CultureOf(holding.SystemId);
             world.Holdings[holding.Id] = holding;
+        }
+        // Every holding has a governor (GDD §13): the one named, else the house's senior living member.
+        foreach (var holding in world.Holdings.Values)
+        {
+            if (holding.GovernorId.Length > 0 && world.Char(holding.GovernorId)?.Alive == true) continue;
+            holding.GovernorId = world.Characters.Values.Where(c => c.Alive && c.HouseId == holding.OwnerId && c.Age >= Systems.DynastySystem.AgeOfMajority)
+                .OrderByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault()?.Id ?? "";
         }
 
         foreach (var fleet in scenario.Fleets)

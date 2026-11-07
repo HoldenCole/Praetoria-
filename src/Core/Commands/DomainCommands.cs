@@ -127,3 +127,40 @@ public sealed class SetTaxPolicyCommand : ICommand
         ctx.World.Log($"{house.Name} decrees the {_catalog.Tax(_policyId)!.Name.ToLowerInvariant()}.");
     }
 }
+
+
+/// <summary>Seat one of your house in the governor's chair of a holding (GDD §13 "a governor of a planet is a bigger deal").
+/// Costs 1 Influence; the governor must be a living adult of the owning house who is not already governing it.</summary>
+public sealed class AppointGovernorCommand : ICommand
+{
+    private static readonly Dictionary<string, int> CostMap = new() { [Pool.Influence] = 1 };
+    private readonly string _holdingId, _governorId;
+    public AppointGovernorCommand(string actorId, string holdingId, string governorId) { ActorId = actorId; _holdingId = holdingId; _governorId = governorId; }
+    public string ActorId { get; }
+    public string Describe() => $"appoint {_governorId} governor of {_holdingId}";
+
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var h = w.Holding(_holdingId); var g = w.Char(_governorId);
+        if (actor?.Alive != true || h == null || g?.Alive != true) return "no such person or place";
+        if (h.OwnerId != actor.HouseId) return "not your holding";
+        if (g.HouseId != actor.HouseId) return "not of your house";
+        if (g.Age < Systems.DynastySystem.AgeOfMajority) return "too young";
+        if (g.Flags.Contains(Systems.DynastySystem.HiddenFlag)) return "fostered away";
+        if (h.GovernorId == g.Id) return "already governs it";
+        return ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "no influence";
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World;
+        ctx.PoolsOf(ActorId).Spend(CostMap);
+        var h = w.Holding(_holdingId)!; var g = w.Char(_governorId)!;
+        var old = w.Char(h.GovernorId);
+        if (old != null && old.Id != g.Id && old.Id != w.ProtagonistId) w.Relationship(old.Id, ActorId).Disposition = Math.Clamp(w.Relationship(old.Id, ActorId).Disposition - 10, -100, 100);   // the displaced resent it
+        h.GovernorId = g.Id;
+        w.WorldCounters["appointments"] = w.Counter("appointments") + 1;
+        w.Log($"{g.Name} is named governor of {h.Name}{(old != null && old.Id != g.Id ? $", displacing {old.Name}" : "")}.");
+    }
+}

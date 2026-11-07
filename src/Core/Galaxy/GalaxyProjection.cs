@@ -6,9 +6,16 @@ namespace Praetoria.Core.Galaxy;
 public sealed record MapNode(
     string SystemId, string Name, double X, double Y,
     string? OwnerHouseId, string? OwnerHouseName, string AccentColor,
-    IReadOnlyList<string> HoldingIds, bool IsPlayerTerritory, bool Contested);
+    IReadOnlyList<string> HoldingIds, bool IsPlayerTerritory, bool Contested,
+    string RegionId = "", string Culture = "", string PlanetClass = "terran", string? GovernorName = null, int Population = 0, int Unrest = 0,
+    string? PlanetHoldingId = null, int Stations = 0);
 
 public sealed record MapLane(string A, string B);
+
+/// <summary>A region of the map: its systems, its centre, the house that holds most of its planets (if any), and how
+/// restless it is (mean unrest of its populated worlds).</summary>
+public sealed record MapRegion(string Id, string Name, string Culture, string Description, IReadOnlyList<string> SystemIds, double CX, double CY,
+    string? DominantHouseId, string? DominantHouseName, string AccentColor, int Planets, int Unrest);
 
 /// <summary>A fleet marker. Own fleets are exact (confidence 100); rival fleets come from the house's intel —
 /// last-known system, estimated strength, and how much to trust it (GDD §19 "reported intel with a confidence").</summary>
@@ -39,16 +46,22 @@ public static class GalaxyProjection
                 .Where(h => h.SystemId == sys.Id)
                 .OrderBy(h => h.Id, StringComparer.Ordinal)
                 .ToList();
-            var owners = holdings.Select(h => h.OwnerId).Distinct().OrderBy(o => o, StringComparer.Ordinal).ToList();
-            string? owner = owners.Count == 1 ? owners[0] : owners.Count > 1 ? MajorityOwner(holdings) : null;
+            // the planet decides the system; stations are the smaller things minor houses live on and do not contest it
+            var planets = holdings.Where(h => h.IsPlanet).ToList();
+            var owners = planets.Select(h => h.OwnerId).Distinct().OrderBy(o => o, StringComparer.Ordinal).ToList();
+            string? owner = owners.Count == 1 ? owners[0] : owners.Count > 1 ? MajorityOwner(planets) : null;
             var house = owner != null ? world.House(owner) : null;
+            var planet = planets.FirstOrDefault(h => h.OwnerId == owner);
 
             list.Add(new MapNode(
                 sys.Id, sys.Name, sys.X, sys.Y,
                 owner, house?.Name, house?.AccentColor ?? UnclaimedAccent,
                 holdings.Select(h => h.Id).ToList(),
                 owner != null && owner == playerHouse,
-                owners.Count > 1));
+                owners.Count > 1,
+                sys.RegionId, world.Galaxy.CultureOf(sys.Id), sys.PlanetClass,
+                planet != null && planet.GovernorId.Length > 0 ? world.Char(planet.GovernorId)?.Name : null,
+                planet?.Population ?? 0, planet?.Unrest ?? 0, planet?.Id, holdings.Count(h => !h.IsPlanet)));
         }
         return list;
     }
@@ -58,6 +71,26 @@ public static class GalaxyProjection
                 .OrderByDescending(g => g.Count())
                 .ThenBy(g => g.Key, StringComparer.Ordinal)
                 .First().Key;
+
+    public static IReadOnlyList<MapRegion> Regions(World world)
+    {
+        var list = new List<MapRegion>();
+        if (world.Galaxy == null) return list;
+        var nodes = Nodes(world);
+        foreach (var r in world.Galaxy.Regions)
+        {
+            var systems = world.Galaxy.SystemsIn(r.Id).ToList();
+            if (systems.Count == 0) continue;
+            var mine = nodes.Where(n => n.RegionId == r.Id).ToList();
+            var dominant = mine.Where(n => n.OwnerHouseId != null).GroupBy(n => n.OwnerHouseId!).OrderByDescending(g => g.Count()).ThenBy(g => g.Key, StringComparer.Ordinal).FirstOrDefault()?.Key;
+            var house = dominant != null ? world.House(dominant) : null;
+            var populated = mine.Where(n => n.Population > 0).ToList();
+            list.Add(new MapRegion(r.Id, r.Name, r.Culture, r.Description, systems.Select(s => s.Id).ToList(),
+                systems.Average(s => s.X), systems.Average(s => s.Y), dominant, house?.Name, house?.AccentColor ?? UnclaimedAccent,
+                mine.Count(n => n.PlanetHoldingId != null), populated.Count == 0 ? 0 : (int)populated.Average(n => n.Unrest)));
+        }
+        return list;
+    }
 
     public static IReadOnlyList<MapLane> Lanes(World world) =>
         world.Galaxy == null

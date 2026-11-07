@@ -1,91 +1,208 @@
 {
-  "//": "THE REACH — the curated star map every shipped scenario is played on (GDD §19: 2D node-and-lane, curated scale, not a 4X sprawl). Positions are map units (~1000×600); the UI scales. Territory is DERIVED: a system belongs to whoever owns the holdings placed in it by the scenario, shaded by that house's accent. Empty systems (The Veil, Cinder Gate) are the frontier — where the Crisis creeps in from an edge, later. Fleets/lanes-as-movement arrive with the military layer.",
+  "//": "THE REACH — the curated star map every shipped scenario is played on (GDD §19). Six regions of three systems each; territory is DERIVED from the planet holding in each system; `baseline` names the minor-houses file merged into every scenario here so no world is empty. Positions are map units (~1200×700).",
   "id": "the_reach",
   "name": "The Reach",
+  "baseline": "the_reach_houses",
+  "regions": [
+    {
+      "id": "western_marches",
+      "name": "The Western Marches",
+      "culture": "marcher",
+      "description": "Frontier worlds at the edge of the lanes: hard soil, harder people, and houses that remember when no one ruled them."
+    },
+    {
+      "id": "drake_lanes",
+      "name": "The Drake Lanes",
+      "culture": "lanefolk",
+      "description": "The trade spine of the Reach. Everything that moves, moves through here, and everyone who moves it wants a cut."
+    },
+    {
+      "id": "greywater_reach",
+      "name": "The Greywater Reach",
+      "culture": "reach",
+      "description": "Old blood. The counts and dukes of the Reach proper, their forges, their feuds, their long memories."
+    },
+    {
+      "id": "imperial_core",
+      "name": "The Imperial Core",
+      "culture": "imperial",
+      "description": "Aurelia Prime and the worlds that orbit its favour. Where the throne stands, or where it will."
+    },
+    {
+      "id": "southern_spire",
+      "name": "The Southern Spire",
+      "culture": "spirean",
+      "description": "Scholars, archivists and the belt-miners who feed them. Quiet, clever, and never as neutral as it claims."
+    },
+    {
+      "id": "valmont_anvils",
+      "name": "The Valmont Anvils",
+      "culture": "forgeborn",
+      "description": "Industry without apology. Hull-yards, refineries and kilns under a sky the colour of slag."
+    }
+  ],
   "systems": [
     {
       "id": "tessaly",
       "name": "Tessaly",
       "x": 120,
-      "y": 160
+      "y": 160,
+      "region": "western_marches",
+      "planet": "terran",
+      "description": "Grain terraces and a stubborn barony."
     },
     {
       "id": "anvil",
       "name": "The Anvil",
       "x": 300,
-      "y": 110
-    },
-    {
-      "id": "drake_crossing",
-      "name": "Drake Crossing",
-      "x": 420,
-      "y": 230
-    },
-    {
-      "id": "sato_holdfast",
-      "name": "Sato Holdfast",
-      "x": 260,
-      "y": 330
+      "y": 110,
+      "region": "western_marches",
+      "planet": "forge",
+      "description": "Foundries older than the houses that run them."
     },
     {
       "id": "the_veil",
       "name": "The Veil",
       "x": 140,
-      "y": 440
+      "y": 440,
+      "region": "western_marches",
+      "planet": "frozen",
+      "description": "A cold frontier relay; the last light before the dark."
     },
     {
-      "id": "greywater",
-      "name": "Greywater",
-      "x": 560,
-      "y": 120
+      "id": "drake_crossing",
+      "name": "Drake Crossing",
+      "x": 420,
+      "y": 230,
+      "region": "drake_lanes",
+      "planet": "ocean",
+      "description": "The customs world of the Reach. Every lane pays here."
     },
     {
-      "id": "cinder_gate",
-      "name": "Cinder Gate",
-      "x": 660,
-      "y": 330
-    },
-    {
-      "id": "anvils_rest",
-      "name": "Anvil's Rest",
-      "x": 700,
-      "y": 180
+      "id": "sato_holdfast",
+      "name": "Sato Holdfast",
+      "x": 260,
+      "y": 330,
+      "region": "drake_lanes",
+      "planet": "barren",
+      "description": "A fortress on a rock, held by a knightly house for six generations."
     },
     {
       "id": "highmarch",
       "name": "Highmarch",
       "x": 480,
-      "y": 420
+      "y": 420,
+      "region": "drake_lanes",
+      "planet": "terran",
+      "description": "Rich agri-terraces and a market that never sleeps."
     },
     {
-      "id": "the_spire",
-      "name": "The Spire",
-      "x": 620,
-      "y": 480
+      "id": "greywater",
+      "name": "Greywater",
+      "x": 560,
+      "y": 120,
+      "region": "greywater_reach",
+      "planet": "ocean",
+      "description": "Harbour-world of the old counts."
     },
     {
-      "id": "drydock_nine",
-      "name": "Drydock Nine",
-      "x": 820,
-      "y": 330
+      "id": "anvils_rest",
+      "name": "Anvil's Rest",
+      "x": 700,
+      "y": 180,
+      "region": "greywater_reach",
+      "planet": "forge",
+      "description": "The great forge of the Reach, and the ducal seat beside it."
+    },
+    {
+      "id": "cinder_gate",
+      "name": "Cinder Gate",
+      "x": 660,
+      "y": 330,
+      "region": "greywater_reach",
+      "planet": "arid",
+      "description": "Bastion-world guarding the lane to the Core."
     },
     {
       "id": "aurelia_prime",
       "name": "Aurelia Prime",
       "x": 900,
-      "y": 160
+      "y": 160,
+      "region": "imperial_core",
+      "planet": "terran",
+      "description": "The jewel. Marble, senates, and the shadow of a throne."
+    },
+    {
+      "id": "drydock_nine",
+      "name": "Drydock Nine",
+      "x": 820,
+      "y": 330,
+      "region": "imperial_core",
+      "planet": "gas",
+      "description": "Orbital yards strung around a gas giant."
+    },
+    {
+      "id": "castrum",
+      "name": "Castrum",
+      "x": 1000,
+      "y": 270,
+      "region": "imperial_core",
+      "planet": "barren",
+      "description": "The garrison world of the Core; its legions answer to whoever holds the Prime."
+    },
+    {
+      "id": "the_spire",
+      "name": "The Spire",
+      "x": 620,
+      "y": 480,
+      "region": "southern_spire",
+      "planet": "arid",
+      "description": "The Academy's archive-world; tall, dry and proud."
     },
     {
       "id": "lesser_marrow",
       "name": "Lesser Marrow",
       "x": 780,
-      "y": 520
+      "y": 520,
+      "region": "southern_spire",
+      "planet": "terran",
+      "description": "A modest colony with ambitions."
+    },
+    {
+      "id": "ember_shoal",
+      "name": "Ember Shoal",
+      "x": 560,
+      "y": 590,
+      "region": "southern_spire",
+      "planet": "belt",
+      "description": "A mining belt lit by its own slag-fires."
     },
     {
       "id": "valmont_anvils",
       "name": "The Valmont Anvils",
       "x": 960,
-      "y": 420
+      "y": 420,
+      "region": "valmont_anvils",
+      "planet": "forge",
+      "description": "Valmont's forges; the hulls of half the Reach were laid here."
+    },
+    {
+      "id": "ironhold",
+      "name": "Ironhold",
+      "x": 1080,
+      "y": 520,
+      "region": "valmont_anvils",
+      "planet": "barren",
+      "description": "Deep mines and the people who do not come up."
+    },
+    {
+      "id": "the_kilns",
+      "name": "The Kilns",
+      "x": 900,
+      "y": 590,
+      "region": "valmont_anvils",
+      "planet": "arid",
+      "description": "Refineries and kilns; smoke you can see from orbit."
     }
   ],
   "lanes": [
@@ -168,6 +285,46 @@
     [
       "the_veil",
       "highmarch"
+    ],
+    [
+      "aurelia_prime",
+      "castrum"
+    ],
+    [
+      "drydock_nine",
+      "castrum"
+    ],
+    [
+      "castrum",
+      "ironhold"
+    ],
+    [
+      "ironhold",
+      "valmont_anvils"
+    ],
+    [
+      "the_kilns",
+      "ironhold"
+    ],
+    [
+      "the_kilns",
+      "lesser_marrow"
+    ],
+    [
+      "the_kilns",
+      "valmont_anvils"
+    ],
+    [
+      "ember_shoal",
+      "the_spire"
+    ],
+    [
+      "ember_shoal",
+      "highmarch"
+    ],
+    [
+      "ember_shoal",
+      "lesser_marrow"
     ]
   ]
 }

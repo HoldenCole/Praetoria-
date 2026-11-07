@@ -12,7 +12,7 @@ public class GreatCrisisTests
     {
         var root = ContentLocator.FindContentDir();
         var content = ContentLoader.LoadFromDirectory(root);
-        return (content, WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, scenario), seed));
+        return (content, WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, scenario, includeBaseline: false), seed));
     }
 
     [Fact]

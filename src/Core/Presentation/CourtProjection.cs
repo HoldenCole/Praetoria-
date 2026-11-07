@@ -19,7 +19,7 @@ public sealed record TreasuryLine(int Credits, int Materials, int Manpower, int 
 public sealed record BuildOption(string HoldingId, string BuildingId, string Label, string Tooltip, bool Available);
 public sealed record HoldingCard(string Id, string Name, string SpecName, string? SystemName, int Population, int MaxPopulation, int Unrest,
     int SlotsUsed, int Slots, IReadOnlyList<string> Buildings, IReadOnlyList<BuildOption> Builds, bool CanRaiseShips, string RaiseShipsLabel,
-    IReadOnlyList<ShipOption> Ships, bool Besieged);
+    IReadOnlyList<ShipOption> Ships, bool Besieged, string Kind = "planet", string? GovernorName = null, IReadOnlyList<Option>? GovernorOptions = null, string Culture = "");
 public sealed record PathOption(string Id, string Label, string Tooltip, bool Available);
 public sealed record StandingCard(int Legitimacy, int Instability, IReadOnlyList<string> Claims, string? NextTitle, int NextRequirement,
     IReadOnlyList<PathOption> Paths, string Spheres, int Threat, IReadOnlyList<string> Honors, string SuccessionLaw, IReadOnlyList<Option> LawOptions,
@@ -101,7 +101,11 @@ public static class CourtProjection
             holdings.Add(new HoldingCard(h.Id, h.Name, spec?.Name ?? h.Specialization, w.Galaxy?.System(h.SystemId)?.Name,
                 h.Population, spec?.MaxPopulation ?? 0, h.Unrest, h.Buildings.Count, spec?.Slots ?? 0,
                 h.Buildings.Select(b => content.Holdings.Building(b)?.Name ?? b).ToList(), builds,
-                canRaise, $"Lay down a hull at {h.Name}  ({Bundle(content.Fleets.ShipCost)})", ships, w.Sieges.ContainsKey(h.Id)));
+                canRaise, $"Lay down a hull at {h.Name}  ({Bundle(content.Fleets.ShipCost)})", ships, w.Sieges.ContainsKey(h.Id),
+                h.Kind, h.GovernorId.Length > 0 ? w.Char(h.GovernorId)?.Name : null,
+                w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority).OrderBy(c => c.Id, StringComparer.Ordinal)
+                    .Select(c => new Option(c.Id, $"Name {c.Name} governor of {h.Name}  (1 influence · administration {c.Skill("administration")})", new AppointGovernorCommand(p.Id, h.Id, c.Id).Refusal(ctx))).ToList(),
+                h.Culture));
         }
 
         StandingCard? standing = null;

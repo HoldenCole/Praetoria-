@@ -31,4 +31,19 @@ public sealed class Holding
 
     /// <summary>Building ids built into this holding's slots. Slot count comes from the specialization.</summary>
     public List<string> Buildings { get; set; } = new();
+
+    /// <summary>"planet" (the world itself — whoever holds it holds the system) or "station" (an orbital, a belt
+    /// claim, a customs post — the smaller things minor houses live on). GDD §19.</summary>
+    public string Kind { get; set; } = Planet;
+    public const string Planet = "planet";
+    public const string Station = "station";
+
+    /// <summary>The character who governs this holding for its house (GDD §13 "governor of a planet is a seat of real
+    /// power"). Empty = the house head governs in person.</summary>
+    public string GovernorId { get; set; } = "";
+
+    /// <summary>The culture of the people living here (defaults to the system's region).</summary>
+    public string Culture { get; set; } = "";
+
+    public bool IsPlanet => Kind != Station;
 }

@@ -82,6 +82,10 @@ public sealed class World
 
     public List<HistoryEntry> History { get; set; } = new();
 
+    /// <summary>The player's office and other presentation choices that belong to the saga, not the device (GDD §19 "the
+    /// court is yours to furnish"): wall, floor, window, desk, banner... keyed by slot. Plain strings so any front-end can read them.</summary>
+    public Dictionary<string, string> Cosmetics { get; set; } = new();
+
     /// <summary>Most-recently-fired event ids (newest last). Director suppression reads this (GDD §15 L4).</summary>
     public List<string> RecentEventIds { get; set; } = new();
 

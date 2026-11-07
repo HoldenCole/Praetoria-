@@ -35,6 +35,30 @@
       "yield":  { "influence": 1 },
       "upkeep": { "credits": 1 },
       "slots": 2, "popGrowth": 0
+    },
+    {
+      "id": "mining_belt", "name": "Mining Belt",
+      "yield":  { "materials": 3, "exotics": 1 },
+      "upkeep": { "credits": 1 },
+      "slots": 2, "popGrowth": 1, "maxPopulation": 20, "popManpower": 20
+    },
+    {
+      "id": "frontier_colony", "name": "Frontier Colony",
+      "yield":  { "manpower": 2, "credits": 1 },
+      "upkeep": { },
+      "slots": 1, "popGrowth": 2, "maxPopulation": 30, "popManpower": 10
+    },
+    {
+      "id": "orbital_yard", "name": "Orbital Yard",
+      "yield":  { "credits": 2 },
+      "upkeep": { "materials": 1 },
+      "slots": 1, "popGrowth": 0
+    },
+    {
+      "id": "customs_post", "name": "Customs Post",
+      "yield":  { "credits": 3 },
+      "upkeep": { "credits": 1 },
+      "slots": 1, "popGrowth": 0
     }
   ]
 }

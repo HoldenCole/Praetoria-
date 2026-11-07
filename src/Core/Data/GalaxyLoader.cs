@@ -28,8 +28,18 @@ public static class GalaxyLoader
             var g = new Galaxy.Galaxy
             {
                 Id = ConditionParser.Str(root, "id"),
-                Name = ConditionParser.OptStr(root, "name", ConditionParser.Str(root, "id"))
+                Name = ConditionParser.OptStr(root, "name", ConditionParser.Str(root, "id")),
+                Baseline = ConditionParser.OptStr(root, "baseline", "")
             };
+            if (root.TryGetProperty("regions", out var regions) && regions.ValueKind == JsonValueKind.Array)
+                foreach (var r in regions.EnumerateArray())
+                    g.Regions.Add(new Region
+                    {
+                        Id = ConditionParser.Str(r, "id"),
+                        Name = ConditionParser.OptStr(r, "name", ConditionParser.Str(r, "id")),
+                        Culture = ConditionParser.OptStr(r, "culture", "reach"),
+                        Description = ConditionParser.OptStr(r, "description", "")
+                    });
             if (root.TryGetProperty("systems", out var systems) && systems.ValueKind == JsonValueKind.Array)
                 foreach (var s in systems.EnumerateArray())
                 {
@@ -38,7 +48,11 @@ public static class GalaxyLoader
                         Id = ConditionParser.Str(s, "id"),
                         Name = ConditionParser.OptStr(s, "name", ConditionParser.Str(s, "id")),
                         X = s.TryGetProperty("x", out var x) && x.ValueKind == JsonValueKind.Number ? x.GetDouble() : 0,
-                        Y = s.TryGetProperty("y", out var y) && y.ValueKind == JsonValueKind.Number ? y.GetDouble() : 0
+                        Y = s.TryGetProperty("y", out var y) && y.ValueKind == JsonValueKind.Number ? y.GetDouble() : 0,
+                        RegionId = ConditionParser.OptStr(s, "region", ""),
+                        Culture = ConditionParser.OptStr(s, "culture", ""),
+                        PlanetClass = ConditionParser.OptStr(s, "planet", "terran"),
+                        Description = ConditionParser.OptStr(s, "description", "")
                     };
                     if (g.Systems.ContainsKey(sys.Id)) throw new ContentException($"Duplicate system id '{sys.Id}'.");
                     g.Systems[sys.Id] = sys;

@@ -197,14 +197,36 @@ def validate_holdings(sp,bd):
             errors.append(f"building {bid} requires unknown spec '{b['requires']}'")
     return specs,builds
 
+HOLDING_KINDS={"planet","station"}
+PLANET_CLASSES={"terran","arid","ocean","forge","frozen","gas","belt","barren"}
+
 def _load_galaxies():
+    """Galaxies (systems + regions + lanes) and the minor-house baselines that share the directory."""
     gal={}
     for f in glob.glob("content/galaxy/*.json"):
-        g=_read_jsonc(f); ids={s["id"] for s in g.get("systems",[])}
+        g=_read_jsonc(f)
+        if "systems" not in g: continue          # a baseline (minor houses) file — validated with the scenarios
+        ids={s["id"] for s in g.get("systems",[])}
+        regions={r["id"] for r in g.get("regions",[])}
+        for s in g.get("systems",[]):
+            if s.get("region") and s["region"] not in regions: errors.append(f"galaxy {g.get('id')} system {s['id']} in unknown region '{s['region']}'")
+            if s.get("planet","terran") not in PLANET_CLASSES: errors.append(f"galaxy {g.get('id')} system {s['id']} unknown planet class '{s.get('planet')}'")
+        for r in regions:
+            if not any(s.get("region")==r for s in g.get("systems",[])): errors.append(f"galaxy {g.get('id')} region {r} has no systems")
         for a,b in g.get("lanes",[]):
             if a not in ids or b not in ids: errors.append(f"galaxy {g.get('id')} lane {a}-{b} references an unknown system")
+        if g.get("baseline") and not os.path.exists(f"content/galaxy/{g['baseline']}.json"): errors.append(f"galaxy {g.get('id')} names missing baseline '{g['baseline']}'")
         gal[g["id"]]=ids
     return gal
+
+def _baselines():
+    out=[]
+    for f in glob.glob("content/galaxy/*.json"):
+        g=_read_jsonc(f)
+        if "systems" in g: continue
+        g.setdefault("protagonist", None); g.setdefault("era","fractured_stars"); g["galaxy"]=None; g["_baseline"]=True
+        out.append(g)
+    return out
 
 def validate_creation():
     """traits.json must BE the locked lists; backgrounds may only use locked vocabulary."""
@@ -265,7 +287,18 @@ def validate_scenarios(sc,allspecs):
                     if f.get("owner") not in {h["id"] for h in d.get("houses",[])}: errors.append(f"[{sid}] fleet {f.get('id')} has unknown owner '{f.get('owner')}'")
         chars={c["id"] for c in d.get("characters",[])}
         houses={h["id"] for h in d.get("houses",[])}
-        if d.get("protagonist") not in chars: errors.append(f"[{sid}] protagonist not in characters")
+        for h in d.get("holdings",[]):
+            if h.get("kind","planet") not in HOLDING_KINDS: errors.append(f"[{sid}] holding {h['id']} unknown kind '{h.get('kind')}'")
+            if h.get("governor") and h["governor"] not in chars: errors.append(f"[{sid}] holding {h['id']} governor '{h['governor']}' is not a character")
+            if h.get("governor") and next((c for c in d.get("characters",[]) if c["id"]==h["governor"]),{}).get("house")!=h.get("owner"): errors.append(f"[{sid}] holding {h['id']} governor is not of the owning house")
+            if h.get("owner") not in houses: errors.append(f"[{sid}] holding {h['id']} unknown owner '{h.get('owner')}'")
+        if d.get("_baseline"):
+            seen={}
+            for h in d.get("holdings",[]):
+                if h.get("kind","planet")=="planet": 
+                    if h["system"] in seen: errors.append(f"[{sid}] two baseline planets in system {h['system']}")
+                    seen[h["system"]]=h["id"]
+        if not d.get("_baseline") and d.get("protagonist") not in chars: errors.append(f"[{sid}] protagonist not in characters")
         if d.get("era") not in ERAS: errors.append(f"[{sid}] bad era '{d.get('era')}'")
         for h in d.get("houses",[]):
             for k in h.get("treasury",{}):
@@ -300,7 +333,7 @@ def main():
     validate_events(ev,tx)
     if not BUNDLE: validate_creation()
     specs,builds=validate_holdings(sp,bd)
-    vocab=validate_scenarios(sc, set(specs)|EXIST_SPECS)
+    vocab=validate_scenarios(sc + ([] if BUNDLE else _baselines()), set(specs)|EXIST_SPECS)
 
     mode="bundle" if BUNDLE else "./content"
     print(f"CORPUS ({mode}): {len(ev)} events, {len(tx)} texts, {len(sp)} specs, {len(bd)} buildings, {len(sc)} scenarios")

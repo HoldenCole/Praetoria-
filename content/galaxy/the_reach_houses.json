@@ -1,0 +1,1884 @@
+{
+  "//": "THE MINOR HOUSES OF THE REACH (GDD §19 'smaller houses that control smaller things, or nothing at all'). Merged into every scenario played on the_reach: a house, its people, its planet or station appear wherever the scenario has not placed its own. Scenario definitions always win on an id or a system. Two houses are landless by design.",
+  "id": "the_reach_houses",
+  "houses": [
+    {
+      "id": "brannock",
+      "name": "House Brannock",
+      "accent": "#8C5A2B",
+      "title": "baron",
+      "legitimacy": 24,
+      "culture": "reach",
+      "treasury": {
+        "credits": 12,
+        "materials": 7,
+        "manpower": 6,
+        "influence": 2,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "ashgrove",
+      "name": "House Ashgrove",
+      "accent": "#4F6F52",
+      "title": "knight",
+      "legitimacy": 14,
+      "culture": "reach",
+      "treasury": {
+        "credits": 8,
+        "materials": 5,
+        "manpower": 4,
+        "influence": 1,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "quill",
+      "name": "House Quill",
+      "accent": "#5B6C8F",
+      "title": "knight",
+      "legitimacy": 10,
+      "culture": "reach",
+      "treasury": {
+        "credits": 8,
+        "materials": 5,
+        "manpower": 4,
+        "influence": 1,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "harker",
+      "name": "House Harker",
+      "accent": "#B08D2E",
+      "title": "count",
+      "legitimacy": 46,
+      "culture": "reach",
+      "treasury": {
+        "credits": 16,
+        "materials": 9,
+        "manpower": 8,
+        "influence": 3,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "sato",
+      "name": "House Sato",
+      "accent": "#6E5A1F",
+      "title": "knight",
+      "legitimacy": 12,
+      "culture": "reach",
+      "treasury": {
+        "credits": 8,
+        "materials": 5,
+        "manpower": 4,
+        "influence": 1,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "lyle",
+      "name": "House Lyle",
+      "accent": "#3F7F6F",
+      "title": "baron",
+      "legitimacy": 28,
+      "culture": "reach",
+      "treasury": {
+        "credits": 12,
+        "materials": 7,
+        "manpower": 6,
+        "influence": 2,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "rourke",
+      "name": "House Rourke",
+      "accent": "#2E6E8E",
+      "title": "baron",
+      "legitimacy": 26,
+      "culture": "reach",
+      "treasury": {
+        "credits": 12,
+        "materials": 7,
+        "manpower": 6,
+        "influence": 2,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "ferro",
+      "name": "House Ferro",
+      "accent": "#7A2E2E",
+      "title": "count",
+      "legitimacy": 44,
+      "culture": "reach",
+      "treasury": {
+        "credits": 16,
+        "materials": 9,
+        "manpower": 8,
+        "influence": 3,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "thalen",
+      "name": "House Thalen",
+      "accent": "#2B7A4B",
+      "title": "count",
+      "legitimacy": 40,
+      "culture": "reach",
+      "treasury": {
+        "credits": 16,
+        "materials": 9,
+        "manpower": 8,
+        "influence": 3,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "aurelian",
+      "name": "House Aurelian",
+      "accent": "#C9A227",
+      "title": "duke",
+      "legitimacy": 70,
+      "culture": "imperial",
+      "treasury": {
+        "credits": 20,
+        "materials": 11,
+        "manpower": 10,
+        "influence": 4,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "marrow",
+      "name": "House Marrow",
+      "accent": "#6B4FA0",
+      "title": "baron",
+      "legitimacy": 25,
+      "culture": "imperial",
+      "treasury": {
+        "credits": 12,
+        "materials": 7,
+        "manpower": 6,
+        "influence": 2,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "severin",
+      "name": "House Severin",
+      "accent": "#8E3B5B",
+      "title": "count",
+      "legitimacy": 48,
+      "culture": "imperial",
+      "treasury": {
+        "credits": 16,
+        "materials": 9,
+        "manpower": 8,
+        "influence": 3,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "dorne",
+      "name": "House Dorne",
+      "accent": "#4A7FA5",
+      "title": "baron",
+      "legitimacy": 30,
+      "culture": "reach",
+      "treasury": {
+        "credits": 12,
+        "materials": 7,
+        "manpower": 6,
+        "influence": 2,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "pike",
+      "name": "House Pike",
+      "accent": "#7F7F3F",
+      "title": "knight",
+      "legitimacy": 11,
+      "culture": "reach",
+      "treasury": {
+        "credits": 8,
+        "materials": 5,
+        "manpower": 4,
+        "influence": 1,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "ishida",
+      "name": "House Ishida",
+      "accent": "#A0522D",
+      "title": "knight",
+      "legitimacy": 13,
+      "culture": "imperial",
+      "treasury": {
+        "credits": 8,
+        "materials": 5,
+        "manpower": 4,
+        "influence": 1,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "valmont",
+      "name": "House Valmont",
+      "accent": "#9A2F2F",
+      "title": "count",
+      "legitimacy": 50,
+      "culture": "imperial",
+      "treasury": {
+        "credits": 16,
+        "materials": 9,
+        "manpower": 8,
+        "influence": 3,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "graves",
+      "name": "House Graves",
+      "accent": "#5A5A6E",
+      "title": "baron",
+      "legitimacy": 22,
+      "culture": "reach",
+      "treasury": {
+        "credits": 12,
+        "materials": 7,
+        "manpower": 6,
+        "influence": 2,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "cask",
+      "name": "House Cask",
+      "accent": "#B35A1F",
+      "title": "knight",
+      "legitimacy": 12,
+      "culture": "reach",
+      "treasury": {
+        "credits": 8,
+        "materials": 5,
+        "manpower": 4,
+        "influence": 1,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "wren",
+      "name": "House Wren",
+      "accent": "#777777",
+      "title": "landless",
+      "legitimacy": 6,
+      "culture": "reach",
+      "treasury": {
+        "credits": 4,
+        "materials": 3,
+        "manpower": 2,
+        "influence": 0,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "orlov",
+      "name": "House Orlov",
+      "accent": "#8A8A5A",
+      "title": "landless",
+      "legitimacy": 8,
+      "culture": "imperial",
+      "treasury": {
+        "credits": 4,
+        "materials": 3,
+        "manpower": 2,
+        "influence": 0,
+        "exotics": 0
+      }
+    }
+  ],
+  "characters": [
+    {
+      "id": "brannock_head",
+      "name": "Una Brannock",
+      "house": "brannock",
+      "age": 46,
+      "sex": "female",
+      "careerTrack": "military",
+      "careerRank": 3,
+      "nature": [
+        "Ambitious",
+        "Arrogant"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {
+        "tactics": 1,
+        "leadership": 2,
+        "discipline": 3
+      },
+      "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "brannock_spouse",
+      "name": "Rowan Brannock",
+      "house": "brannock",
+      "age": 47,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 0,
+      "nature": [
+        "Proud"
+      ],
+      "aptitude": [
+        "Paranoid"
+      ],
+      "skills": {},
+      "ambition": "win_a_great_love"
+    },
+    {
+      "id": "brannock_heir",
+      "name": "Darius Brannock",
+      "house": "brannock",
+      "age": 19,
+      "sex": "male",
+      "father": "brannock_spouse",
+      "mother": "brannock_head",
+      "careerTrack": "law",
+      "careerRank": 0,
+      "nature": [
+        "Proud"
+      ],
+      "aptitude": [
+        "Administrator"
+      ],
+      "skills": {},
+      "ambition": "command_a_fleet"
+    },
+    {
+      "id": "ashgrove_head",
+      "name": "Nero Ashgrove",
+      "house": "ashgrove",
+      "age": 52,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 2,
+      "nature": [
+        "Ambitious",
+        "Honorable"
+      ],
+      "aptitude": [
+        "Administrator"
+      ],
+      "skills": {
+        "law": 3,
+        "oratory": 1,
+        "intrigue": 2
+      },
+      "ambition": "seize_the_throne"
+    },
+    {
+      "id": "ashgrove_spouse",
+      "name": "Elara Ashgrove",
+      "house": "ashgrove",
+      "age": 48,
+      "sex": "female",
+      "careerTrack": "military",
+      "careerRank": 2,
+      "nature": [
+        "Just"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {},
+      "ambition": "win_a_great_love"
+    },
+    {
+      "id": "quill_head",
+      "name": "Varro Quill",
+      "house": "quill",
+      "age": 52,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 2,
+      "nature": [
+        "Honorable",
+        "Loyal"
+      ],
+      "aptitude": [
+        "Brilliant"
+      ],
+      "skills": {
+        "law": 3,
+        "oratory": 3,
+        "intrigue": 1
+      },
+      "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "quill_spouse",
+      "name": "Thessaly Quill",
+      "house": "quill",
+      "age": 53,
+      "sex": "female",
+      "careerTrack": "stewardship",
+      "careerRank": 2,
+      "nature": [
+        "Vengeful"
+      ],
+      "aptitude": [
+        "Paranoid"
+      ],
+      "skills": {},
+      "ambition": "win_a_great_love"
+    },
+    {
+      "id": "harker_head",
+      "name": "Livia Harker",
+      "house": "harker",
+      "age": 48,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 4,
+      "nature": [
+        "Just",
+        "Honorable"
+      ],
+      "aptitude": [
+        "Diplomat"
+      ],
+      "skills": {
+        "law": 3,
+        "oratory": 1,
+        "intrigue": 1
+      },
+      "ambition": "outshine_all_rivals"
+    },
+    {
+      "id": "harker_spouse",
+      "name": "Quintus Harker",
+      "house": "harker",
+      "age": 47,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 1,
+      "nature": [
+        "Just"
+      ],
+      "aptitude": [
+        "Strategist"
+      ],
+      "skills": {},
+      "ambition": "master_the_senate"
+    },
+    {
+      "id": "harker_heir",
+      "name": "Orrin Harker",
+      "house": "harker",
+      "age": 17,
+      "sex": "male",
+      "father": "harker_spouse",
+      "mother": "harker_head",
+      "careerTrack": "military",
+      "careerRank": 0,
+      "nature": [
+        "Loyal"
+      ],
+      "aptitude": [
+        "Diplomat"
+      ],
+      "skills": {},
+      "ambition": "win_a_great_love"
+    },
+    {
+      "id": "sato_head",
+      "name": "Severin Sato",
+      "house": "sato",
+      "age": 36,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 2,
+      "nature": [
+        "Loyal",
+        "Vengeful"
+      ],
+      "aptitude": [
+        "Orator"
+      ],
+      "skills": {
+        "law": 3,
+        "oratory": 2,
+        "intrigue": 3
+      },
+      "ambition": "win_a_great_love"
+    },
+    {
+      "id": "sato_spouse",
+      "name": "Cassia Sato",
+      "house": "sato",
+      "age": 39,
+      "sex": "female",
+      "careerTrack": "stewardship",
+      "careerRank": 1,
+      "nature": [
+        "Arrogant"
+      ],
+      "aptitude": [
+        "Administrator"
+      ],
+      "skills": {},
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "lyle_head",
+      "name": "Mira Lyle",
+      "house": "lyle",
+      "age": 56,
+      "sex": "female",
+      "careerTrack": "stewardship",
+      "careerRank": 3,
+      "nature": [
+        "Loyal",
+        "Ambitious"
+      ],
+      "aptitude": [
+        "Quartermaster"
+      ],
+      "skills": {
+        "administration": 2,
+        "economics": 1,
+        "logistics": 3
+      },
+      "ambition": "command_a_fleet"
+    },
+    {
+      "id": "lyle_spouse",
+      "name": "Cassian Lyle",
+      "house": "lyle",
+      "age": 57,
+      "sex": "male",
+      "careerTrack": "stewardship",
+      "careerRank": 0,
+      "nature": [
+        "Honorable"
+      ],
+      "aptitude": [
+        "Paranoid"
+      ],
+      "skills": {},
+      "ambition": "win_a_great_love"
+    },
+    {
+      "id": "lyle_heir",
+      "name": "Fenna Lyle",
+      "house": "lyle",
+      "age": 23,
+      "sex": "female",
+      "father": "lyle_spouse",
+      "mother": "lyle_head",
+      "careerTrack": "stewardship",
+      "careerRank": 1,
+      "nature": [
+        "Proud"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {},
+      "ambition": "outshine_all_rivals"
+    },
+    {
+      "id": "rourke_head",
+      "name": "Nessa Rourke",
+      "house": "rourke",
+      "age": 42,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 3,
+      "nature": [
+        "Loyal",
+        "Proud"
+      ],
+      "aptitude": [
+        "Duelist"
+      ],
+      "skills": {
+        "law": 1,
+        "oratory": 1,
+        "intrigue": 1
+      },
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "rourke_spouse",
+      "name": "Idris Rourke",
+      "house": "rourke",
+      "age": 36,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 0,
+      "nature": [
+        "Ruthless"
+      ],
+      "aptitude": [
+        "Strategist"
+      ],
+      "skills": {},
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "rourke_heir",
+      "name": "Kael Rourke",
+      "house": "rourke",
+      "age": 20,
+      "sex": "male",
+      "father": "rourke_spouse",
+      "mother": "rourke_head",
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Cruel"
+      ],
+      "aptitude": [
+        "Paranoid"
+      ],
+      "skills": {},
+      "ambition": "restore_house_fortunes"
+    },
+    {
+      "id": "ferro_head",
+      "name": "Ulric Ferro",
+      "house": "ferro",
+      "age": 61,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 4,
+      "nature": [
+        "Ambitious",
+        "Ruthless"
+      ],
+      "aptitude": [
+        "Tactician"
+      ],
+      "skills": {
+        "law": 3,
+        "oratory": 2,
+        "intrigue": 2
+      },
+      "ambition": "seize_the_throne"
+    },
+    {
+      "id": "ferro_spouse",
+      "name": "Delia Ferro",
+      "house": "ferro",
+      "age": 58,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 1,
+      "nature": [
+        "Ambitious"
+      ],
+      "aptitude": [
+        "Duelist"
+      ],
+      "skills": {},
+      "ambition": "command_a_fleet"
+    },
+    {
+      "id": "ferro_heir",
+      "name": "Pell Ferro",
+      "house": "ferro",
+      "age": 19,
+      "sex": "male",
+      "father": "ferro_head",
+      "mother": "ferro_spouse",
+      "careerTrack": "military",
+      "careerRank": 0,
+      "nature": [
+        "Arrogant"
+      ],
+      "aptitude": [
+        "Orator"
+      ],
+      "skills": {},
+      "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "thalen_head",
+      "name": "Eamon Thalen",
+      "house": "thalen",
+      "age": 38,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 4,
+      "nature": [
+        "Loyal",
+        "Ambitious"
+      ],
+      "aptitude": [
+        "Brilliant"
+      ],
+      "skills": {
+        "law": 1,
+        "oratory": 3,
+        "intrigue": 2
+      },
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "thalen_spouse",
+      "name": "Ione Thalen",
+      "house": "thalen",
+      "age": 37,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 1,
+      "nature": [
+        "Ruthless"
+      ],
+      "aptitude": [
+        "Brilliant"
+      ],
+      "skills": {},
+      "ambition": "win_a_great_love"
+    },
+    {
+      "id": "thalen_heir",
+      "name": "Felix Thalen",
+      "house": "thalen",
+      "age": 23,
+      "sex": "male",
+      "father": "thalen_head",
+      "mother": "thalen_spouse",
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Loyal"
+      ],
+      "aptitude": [
+        "Greedy"
+      ],
+      "skills": {},
+      "ambition": "win_a_great_love"
+    },
+    {
+      "id": "aurelian_head",
+      "name": "Lucius Aurelian",
+      "house": "aurelian",
+      "age": 50,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 5,
+      "nature": [
+        "Cruel",
+        "Ambitious"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {
+        "tactics": 2,
+        "leadership": 3,
+        "discipline": 1
+      },
+      "ambition": "outshine_all_rivals"
+    },
+    {
+      "id": "aurelian_spouse",
+      "name": "Placidia Aurelian",
+      "house": "aurelian",
+      "age": 49,
+      "sex": "female",
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Honorable"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {},
+      "ambition": "outshine_all_rivals"
+    },
+    {
+      "id": "aurelian_heir",
+      "name": "Flavia Aurelian",
+      "house": "aurelian",
+      "age": 26,
+      "sex": "female",
+      "father": "aurelian_head",
+      "mother": "aurelian_spouse",
+      "careerTrack": "law",
+      "careerRank": 1,
+      "nature": [
+        "Honorable"
+      ],
+      "aptitude": [
+        "Duelist"
+      ],
+      "skills": {},
+      "ambition": "seize_the_throne"
+    },
+    {
+      "id": "marrow_head",
+      "name": "Vespasian Marrow",
+      "house": "marrow",
+      "age": 49,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 3,
+      "nature": [
+        "Ambitious",
+        "Vengeful"
+      ],
+      "aptitude": [
+        "Greedy"
+      ],
+      "skills": {
+        "law": 2,
+        "oratory": 2,
+        "intrigue": 1
+      },
+      "ambition": "restore_house_fortunes"
+    },
+    {
+      "id": "marrow_spouse",
+      "name": "Octavia Marrow",
+      "house": "marrow",
+      "age": 41,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 1,
+      "nature": [
+        "Loyal"
+      ],
+      "aptitude": [
+        "Brilliant"
+      ],
+      "skills": {},
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "marrow_heir",
+      "name": "Flavian Marrow",
+      "house": "marrow",
+      "age": 17,
+      "sex": "male",
+      "father": "marrow_head",
+      "mother": "marrow_spouse",
+      "careerTrack": "stewardship",
+      "careerRank": 0,
+      "nature": [
+        "Honorable"
+      ],
+      "aptitude": [
+        "Orator"
+      ],
+      "skills": {},
+      "ambition": "master_the_senate"
+    },
+    {
+      "id": "severin_head",
+      "name": "Valerian Severin",
+      "house": "severin",
+      "age": 54,
+      "sex": "male",
+      "careerTrack": "stewardship",
+      "careerRank": 4,
+      "nature": [
+        "Arrogant",
+        "Vengeful"
+      ],
+      "aptitude": [
+        "Paranoid"
+      ],
+      "skills": {
+        "administration": 3,
+        "economics": 1,
+        "logistics": 2
+      },
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "severin_spouse",
+      "name": "Marcella Severin",
+      "house": "severin",
+      "age": 46,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 1,
+      "nature": [
+        "Arrogant"
+      ],
+      "aptitude": [
+        "Paranoid"
+      ],
+      "skills": {},
+      "ambition": "command_a_fleet"
+    },
+    {
+      "id": "severin_heir",
+      "name": "Vibia Severin",
+      "house": "severin",
+      "age": 22,
+      "sex": "female",
+      "father": "severin_head",
+      "mother": "severin_spouse",
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Cruel"
+      ],
+      "aptitude": [
+        "Diplomat"
+      ],
+      "skills": {},
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "dorne_head",
+      "name": "Wendel Dorne",
+      "house": "dorne",
+      "age": 62,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 3,
+      "nature": [
+        "Loyal",
+        "Cruel"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {
+        "law": 3,
+        "oratory": 1,
+        "intrigue": 1
+      },
+      "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "dorne_spouse",
+      "name": "Quilla Dorne",
+      "house": "dorne",
+      "age": 55,
+      "sex": "female",
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Honorable"
+      ],
+      "aptitude": [
+        "Duelist"
+      ],
+      "skills": {},
+      "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "dorne_heir",
+      "name": "Hadrian Dorne",
+      "house": "dorne",
+      "age": 20,
+      "sex": "male",
+      "father": "dorne_head",
+      "mother": "dorne_spouse",
+      "careerTrack": "stewardship",
+      "careerRank": 1,
+      "nature": [
+        "Vengeful"
+      ],
+      "aptitude": [
+        "Duelist"
+      ],
+      "skills": {},
+      "ambition": "restore_house_fortunes"
+    },
+    {
+      "id": "pike_head",
+      "name": "Vera Pike",
+      "house": "pike",
+      "age": 35,
+      "sex": "female",
+      "careerTrack": "military",
+      "careerRank": 2,
+      "nature": [
+        "Vengeful",
+        "Proud"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {
+        "tactics": 1,
+        "leadership": 3,
+        "discipline": 1
+      },
+      "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "pike_spouse",
+      "name": "Gaius Pike",
+      "house": "pike",
+      "age": 30,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 0,
+      "nature": [
+        "Cruel"
+      ],
+      "aptitude": [
+        "Diplomat"
+      ],
+      "skills": {},
+      "ambition": "seize_the_throne"
+    },
+    {
+      "id": "ishida_head",
+      "name": "Priscus Ishida",
+      "house": "ishida",
+      "age": 35,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 2,
+      "nature": [
+        "Vengeful",
+        "Ruthless"
+      ],
+      "aptitude": [
+        "Brilliant"
+      ],
+      "skills": {
+        "law": 3,
+        "oratory": 1,
+        "intrigue": 1
+      },
+      "ambition": "master_the_senate"
+    },
+    {
+      "id": "ishida_spouse",
+      "name": "Justina Ishida",
+      "house": "ishida",
+      "age": 39,
+      "sex": "female",
+      "careerTrack": "military",
+      "careerRank": 2,
+      "nature": [
+        "Ruthless"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {},
+      "ambition": "win_a_great_love"
+    },
+    {
+      "id": "valmont_head",
+      "name": "Septimus Valmont",
+      "house": "valmont",
+      "age": 44,
+      "sex": "male",
+      "careerTrack": "stewardship",
+      "careerRank": 4,
+      "nature": [
+        "Vengeful",
+        "Honorable"
+      ],
+      "aptitude": [
+        "Greedy"
+      ],
+      "skills": {
+        "administration": 2,
+        "economics": 3,
+        "logistics": 3
+      },
+      "ambition": "win_a_great_love"
+    },
+    {
+      "id": "valmont_spouse",
+      "name": "Domitia Valmont",
+      "house": "valmont",
+      "age": 42,
+      "sex": "female",
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Ruthless"
+      ],
+      "aptitude": [
+        "Orator"
+      ],
+      "skills": {},
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "valmont_heir",
+      "name": "Maximian Valmont",
+      "house": "valmont",
+      "age": 26,
+      "sex": "male",
+      "father": "valmont_head",
+      "mother": "valmont_spouse",
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Honorable"
+      ],
+      "aptitude": [
+        "Tactician"
+      ],
+      "skills": {},
+      "ambition": "outshine_all_rivals"
+    },
+    {
+      "id": "graves_head",
+      "name": "Marcus Graves",
+      "house": "graves",
+      "age": 54,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 3,
+      "nature": [
+        "Cruel",
+        "Just"
+      ],
+      "aptitude": [
+        "Diplomat"
+      ],
+      "skills": {
+        "law": 2,
+        "oratory": 1,
+        "intrigue": 3
+      },
+      "ambition": "command_a_fleet"
+    },
+    {
+      "id": "graves_spouse",
+      "name": "Petra Graves",
+      "house": "graves",
+      "age": 56,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 0,
+      "nature": [
+        "Cruel"
+      ],
+      "aptitude": [
+        "Paranoid"
+      ],
+      "skills": {},
+      "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "graves_heir",
+      "name": "Galla Graves",
+      "house": "graves",
+      "age": 21,
+      "sex": "female",
+      "father": "graves_head",
+      "mother": "graves_spouse",
+      "careerTrack": "stewardship",
+      "careerRank": 1,
+      "nature": [
+        "Loyal"
+      ],
+      "aptitude": [
+        "Brilliant"
+      ],
+      "skills": {},
+      "ambition": "restore_house_fortunes"
+    },
+    {
+      "id": "cask_head",
+      "name": "Adria Cask",
+      "house": "cask",
+      "age": 48,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 2,
+      "nature": [
+        "Proud",
+        "Loyal"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {
+        "law": 3,
+        "oratory": 2,
+        "intrigue": 3
+      },
+      "ambition": "command_a_fleet"
+    },
+    {
+      "id": "cask_spouse",
+      "name": "Julian Cask",
+      "house": "cask",
+      "age": 48,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 0,
+      "nature": [
+        "Just"
+      ],
+      "aptitude": [
+        "Diplomat"
+      ],
+      "skills": {},
+      "ambition": "command_a_fleet"
+    },
+    {
+      "id": "wren_head",
+      "name": "Rhea Wren",
+      "house": "wren",
+      "age": 38,
+      "sex": "female",
+      "careerTrack": "stewardship",
+      "careerRank": 1,
+      "nature": [
+        "Vengeful",
+        "Ruthless"
+      ],
+      "aptitude": [
+        "Orator"
+      ],
+      "skills": {
+        "administration": 1,
+        "economics": 2,
+        "logistics": 1
+      },
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "wren_spouse",
+      "name": "Aldous Wren",
+      "house": "wren",
+      "age": 32,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Arrogant"
+      ],
+      "aptitude": [
+        "Strategist"
+      ],
+      "skills": {},
+      "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "orlov_head",
+      "name": "Claudian Orlov",
+      "house": "orlov",
+      "age": 42,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Ruthless",
+        "Ambitious"
+      ],
+      "aptitude": [
+        "Orator"
+      ],
+      "skills": {
+        "tactics": 3,
+        "leadership": 2,
+        "discipline": 2
+      },
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "orlov_spouse",
+      "name": "Aurelia Orlov",
+      "house": "orlov",
+      "age": 38,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 0,
+      "nature": [
+        "Arrogant"
+      ],
+      "aptitude": [
+        "Diplomat"
+      ],
+      "skills": {},
+      "ambition": "amass_a_fortune"
+    }
+  ],
+  "relationships": [
+    {
+      "from": "brannock_head",
+      "to": "brannock_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "brannock_spouse",
+      "to": "brannock_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "ashgrove_head",
+      "to": "ashgrove_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "ashgrove_spouse",
+      "to": "ashgrove_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "quill_head",
+      "to": "quill_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "quill_spouse",
+      "to": "quill_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "harker_head",
+      "to": "harker_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "harker_spouse",
+      "to": "harker_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "sato_head",
+      "to": "sato_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "sato_spouse",
+      "to": "sato_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "lyle_head",
+      "to": "lyle_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "lyle_spouse",
+      "to": "lyle_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "rourke_head",
+      "to": "rourke_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "rourke_spouse",
+      "to": "rourke_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "ferro_head",
+      "to": "ferro_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "ferro_spouse",
+      "to": "ferro_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "thalen_head",
+      "to": "thalen_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "thalen_spouse",
+      "to": "thalen_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "aurelian_head",
+      "to": "aurelian_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "aurelian_spouse",
+      "to": "aurelian_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "marrow_head",
+      "to": "marrow_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "marrow_spouse",
+      "to": "marrow_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "severin_head",
+      "to": "severin_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "severin_spouse",
+      "to": "severin_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "dorne_head",
+      "to": "dorne_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "dorne_spouse",
+      "to": "dorne_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "pike_head",
+      "to": "pike_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "pike_spouse",
+      "to": "pike_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "ishida_head",
+      "to": "ishida_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "ishida_spouse",
+      "to": "ishida_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "valmont_head",
+      "to": "valmont_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "valmont_spouse",
+      "to": "valmont_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "graves_head",
+      "to": "graves_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "graves_spouse",
+      "to": "graves_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "cask_head",
+      "to": "cask_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "cask_spouse",
+      "to": "cask_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "wren_head",
+      "to": "wren_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "wren_spouse",
+      "to": "wren_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "orlov_head",
+      "to": "orlov_spouse",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    },
+    {
+      "from": "orlov_spouse",
+      "to": "orlov_head",
+      "bond": "marriage",
+      "strength": 50,
+      "disposition": 30
+    }
+  ],
+  "holdings": [
+    {
+      "id": "brannock_seat",
+      "owner": "brannock",
+      "name": "Tessaly Downs",
+      "specialization": "agri_world",
+      "system": "tessaly",
+      "population": 30,
+      "unrest": 0,
+      "governor": "brannock_head",
+      "kind": "planet"
+    },
+    {
+      "id": "ashgrove_seat",
+      "owner": "ashgrove",
+      "name": "Anvil Foundries",
+      "specialization": "forge_world",
+      "system": "anvil",
+      "population": 22,
+      "unrest": 0,
+      "governor": "ashgrove_head",
+      "kind": "planet"
+    },
+    {
+      "id": "quill_seat",
+      "owner": "quill",
+      "name": "Veil Relay",
+      "specialization": "frontier_colony",
+      "system": "the_veil",
+      "population": 12,
+      "unrest": 5,
+      "governor": "quill_head",
+      "kind": "planet"
+    },
+    {
+      "id": "harker_seat",
+      "owner": "harker",
+      "name": "Drake Port",
+      "specialization": "trade_hub",
+      "system": "drake_crossing",
+      "population": 38,
+      "unrest": 10,
+      "governor": "harker_head",
+      "kind": "planet"
+    },
+    {
+      "id": "sato_seat",
+      "owner": "sato",
+      "name": "Sato Holdfast",
+      "specialization": "fortress",
+      "system": "sato_holdfast",
+      "population": 0,
+      "unrest": 5,
+      "governor": "sato_head",
+      "kind": "planet"
+    },
+    {
+      "id": "lyle_seat",
+      "owner": "lyle",
+      "name": "Highmarch Terraces",
+      "specialization": "agri_world",
+      "system": "highmarch",
+      "population": 40,
+      "unrest": 0,
+      "governor": "lyle_head",
+      "kind": "planet"
+    },
+    {
+      "id": "rourke_seat",
+      "owner": "rourke",
+      "name": "Greywater Harbour",
+      "specialization": "trade_hub",
+      "system": "greywater",
+      "population": 34,
+      "unrest": 5,
+      "governor": "rourke_head",
+      "kind": "planet"
+    },
+    {
+      "id": "ferro_seat",
+      "owner": "ferro",
+      "name": "Anvil's Rest Forge",
+      "specialization": "forge_world",
+      "system": "anvils_rest",
+      "population": 36,
+      "unrest": 0,
+      "governor": "ferro_head",
+      "kind": "planet"
+    },
+    {
+      "id": "thalen_seat",
+      "owner": "thalen",
+      "name": "Cinder Gate Bastion",
+      "specialization": "fortress",
+      "system": "cinder_gate",
+      "population": 0,
+      "unrest": 0,
+      "governor": "thalen_head",
+      "kind": "planet"
+    },
+    {
+      "id": "aurelian_seat",
+      "owner": "aurelian",
+      "name": "Aurelia Prime",
+      "specialization": "trade_hub",
+      "system": "aurelia_prime",
+      "population": 50,
+      "unrest": 0,
+      "governor": "aurelian_head",
+      "kind": "planet"
+    },
+    {
+      "id": "marrow_seat",
+      "owner": "marrow",
+      "name": "Drydock Nine",
+      "specialization": "orbital_yard",
+      "system": "drydock_nine",
+      "population": 0,
+      "unrest": 10,
+      "governor": "marrow_head",
+      "kind": "planet"
+    },
+    {
+      "id": "severin_seat",
+      "owner": "severin",
+      "name": "Castrum Garrison",
+      "specialization": "fortress",
+      "system": "castrum",
+      "population": 0,
+      "unrest": 0,
+      "governor": "severin_head",
+      "kind": "planet"
+    },
+    {
+      "id": "dorne_seat",
+      "owner": "dorne",
+      "name": "The Spire Archive",
+      "specialization": "research_station",
+      "system": "the_spire",
+      "population": 0,
+      "unrest": 5,
+      "governor": "dorne_head",
+      "kind": "planet"
+    },
+    {
+      "id": "pike_seat",
+      "owner": "pike",
+      "name": "Lesser Marrow Colony",
+      "specialization": "frontier_colony",
+      "system": "lesser_marrow",
+      "population": 16,
+      "unrest": 10,
+      "governor": "pike_head",
+      "kind": "planet"
+    },
+    {
+      "id": "ishida_seat",
+      "owner": "ishida",
+      "name": "Ember Shoal Belt",
+      "specialization": "mining_belt",
+      "system": "ember_shoal",
+      "population": 10,
+      "unrest": 0,
+      "governor": "ishida_head",
+      "kind": "planet"
+    },
+    {
+      "id": "valmont_seat",
+      "owner": "valmont",
+      "name": "The Valmont Anvils",
+      "specialization": "forge_world",
+      "system": "valmont_anvils",
+      "population": 40,
+      "unrest": 0,
+      "governor": "valmont_head",
+      "kind": "planet"
+    },
+    {
+      "id": "graves_seat",
+      "owner": "graves",
+      "name": "Ironhold Mines",
+      "specialization": "mining_belt",
+      "system": "ironhold",
+      "population": 14,
+      "unrest": 0,
+      "governor": "graves_head",
+      "kind": "planet"
+    },
+    {
+      "id": "cask_seat",
+      "owner": "cask",
+      "name": "The Kilns",
+      "specialization": "forge_world",
+      "system": "the_kilns",
+      "population": 18,
+      "unrest": 10,
+      "governor": "cask_head",
+      "kind": "planet"
+    },
+    {
+      "id": "quill_customs",
+      "owner": "quill",
+      "name": "Veil Customs Post",
+      "specialization": "customs_post",
+      "system": "drake_crossing",
+      "population": 0,
+      "unrest": 0,
+      "kind": "station"
+    },
+    {
+      "id": "cask_refinery",
+      "owner": "cask",
+      "name": "Kilns Refinery Station",
+      "specialization": "orbital_yard",
+      "system": "valmont_anvils",
+      "population": 0,
+      "unrest": 0,
+      "kind": "station"
+    },
+    {
+      "id": "ishida_claim",
+      "owner": "ishida",
+      "name": "Ishida Belt Claim",
+      "specialization": "mining_belt",
+      "system": "the_kilns",
+      "population": 0,
+      "unrest": 0,
+      "kind": "station"
+    }
+  ],
+  "fleets": [
+    {
+      "id": "fleet_harker",
+      "name": "The Harker Guard",
+      "owner": "harker",
+      "system": "drake_crossing",
+      "ships": {
+        "frigate": 2
+      }
+    },
+    {
+      "id": "fleet_ferro",
+      "name": "The Ferro Guard",
+      "owner": "ferro",
+      "system": "anvils_rest",
+      "ships": {
+        "frigate": 2
+      }
+    },
+    {
+      "id": "fleet_thalen",
+      "name": "The Thalen Guard",
+      "owner": "thalen",
+      "system": "cinder_gate",
+      "ships": {
+        "frigate": 2
+      }
+    },
+    {
+      "id": "fleet_aurelian",
+      "name": "The Aurelian Guard",
+      "owner": "aurelian",
+      "system": "aurelia_prime",
+      "ships": {
+        "frigate": 3
+      }
+    },
+    {
+      "id": "fleet_severin",
+      "name": "The Severin Guard",
+      "owner": "severin",
+      "system": "castrum",
+      "ships": {
+        "frigate": 2
+      }
+    },
+    {
+      "id": "fleet_valmont",
+      "name": "The Valmont Guard",
+      "owner": "valmont",
+      "system": "valmont_anvils",
+      "ships": {
+        "frigate": 2
+      }
+    }
+  ]
+}

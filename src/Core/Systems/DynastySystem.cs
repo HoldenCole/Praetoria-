@@ -244,8 +244,8 @@ public sealed class DynastySystem
 
     private void Bear(World world, Character mother, Character father, IRng rng)
     {
-        int n = world.Counter("dynasty_births") + 1;
-        world.WorldCounters["dynasty_births"] = n;
+        int n = world.Counter("births") + 1;
+        world.WorldCounters["births"] = n;
 
         // Whose name does the child carry (GDD §14 "bodies carrying your name")? The head of a house keeps the
         // seat's children; otherwise the greater house does; otherwise the father's. So a woman who rules, or who
@@ -255,6 +255,7 @@ public sealed class DynastySystem
             || (father.Id != world.ProtagonistId && houseMother != null && houseFather != null && Content != null && Content.Titles.RankOf(houseMother.Title) > Content.Titles.RankOf(houseFather.Title));
         var lineParent = motherKeeps ? mother : father;
         var house = world.House(lineParent.HouseId);
+        if (lineParent.HouseId == world.Protagonist?.HouseId) world.WorldCounters["dynasty_births"] = world.Counter("dynasty_births") + 1;   // the saga's own count
         string sex = rng.NextDouble() < 0.5 ? "male" : "female";
         string surname = (house?.Name ?? lineParent.HouseId).Replace("House ", "");
         string given = $"Scion {n}";
