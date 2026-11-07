@@ -120,8 +120,10 @@ public sealed class EventEngine
         if (!Binder.AllHold(choice.Requirements, ctx))
             throw new InvalidOperationException($"Choice '{choiceId}' requirements are not met.");
 
+        int before = world.History.Count;
         foreach (var effect in choice.Effects)
             effect.Apply(ctx);
+        for (int i = before; i < world.History.Count; i++) world.History[i].EventId ??= fired.Def.Id;   // the chronicle knows which report wrote each line
 
         MarkFired(fired.Def, world);
     }

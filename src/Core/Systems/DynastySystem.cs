@@ -257,7 +257,17 @@ public sealed class DynastySystem
         var house = world.House(lineParent.HouseId);
         string sex = rng.NextDouble() < 0.5 ? "male" : "female";
         string surname = (house?.Name ?? lineParent.HouseId).Replace("House ", "");
-        string given = Content is { Names.IsEmpty: false } ? Content.Names.Pick(house?.Culture ?? "reach", sex, rng) : $"Scion {n}";
+        string given = $"Scion {n}";
+        if (Content is { Names.IsEmpty: false })
+        {
+            // no two living kin share a given name — a house with two Dariuses reads like a bug, not a family
+            var taken = world.Characters.Values.Where(k => k.Alive && k.HouseId == lineParent.HouseId).Select(k => k.Name.Split(' ')[0]).ToHashSet();
+            for (int attempt = 0; attempt < 8; attempt++)
+            {
+                given = Content.Names.Pick(house?.Culture ?? "reach", sex, rng);
+                if (!taken.Contains(given)) break;
+            }
+        }
         var child = new Character
         {
             Id = $"scion_{n}",

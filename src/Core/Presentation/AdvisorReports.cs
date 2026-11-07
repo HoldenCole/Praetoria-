@@ -29,7 +29,8 @@ public static class AdvisorReports
         var steward = Seat("stewardship");
         var t = house.Treasury;
         int upkeepHint = w.HoldingsOf(house.Id).Count();
-        string stewardLine = t.Credits < 0 ? $"We are insolvent — {t.Credits} credits. Unrest climbs on every populated world until the ledger turns."
+        string stewardLine = upkeepHint == 0 ? $"We hold no land. The house lives on what it has banked — {t.Credits} credits — until a fief is won, granted or married into."
+            : t.Credits < 0 ? $"We are insolvent — {t.Credits} credits. Unrest climbs on every populated world until the ledger turns."
             : t.Credits < 5 ? $"The coffers are thin ({t.Credits} credits). One bad season and we borrow."
             : w.Sieges.Values.Any(s => w.Holding(s.HoldingId)?.OwnerId == house.Id) ? "A world of ours is blockaded; its yield reaches us halved."
             : $"The domain yields; {t.Credits} credits banked, {t.Materials} materials, {t.Manpower} manpower. The {house.TaxPolicy} tithe stands.";

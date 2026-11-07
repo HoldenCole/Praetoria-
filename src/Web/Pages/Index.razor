@@ -36,12 +36,13 @@ else
             <div class="turnbox">
                 <span class="era">@(m.Era == "imperium" ? "The Imperium" : "The Fractured Stars")</span>
                 <span class="turn">Turn @m.Turn · Gen @m.Generation</span>
-                <button class="btn ghost" title="Save to this browser" @onclick="SaveLocal">Save</button>
+                <button class="btn ghost" title="Save to this browser (the game also autosaves every turn)" @onclick="SaveLocal">@(_savedFlash ? "Saved ✓" : "Save")</button>
                 <button class="btn ghost" title="Download the save as a file" @onclick="Download">Export</button>
                 <button class="btn ghost" title="Abandon this run and return to the title" @onclick="Abandon">Quit</button>
                 @if (!m.DynastyDead)
                 {
-                    <button class="btn primary endturn" @onclick="EndTurn">End Turn ▸</button>
+                    var open = m.Briefing.Count(b => !b.Resolved);
+                    <button class="btn primary endturn" @onclick="EndTurn" title="@(open > 0 ? $"{open} report(s) still unanswered — ending the turn sets them aside" : "Resolve the turn")">End Turn ▸@if (open > 0) { <span class="badge">@open</span> }</button>
                 }
             </div>
         </header>
@@ -49,7 +50,7 @@ else
         @if (G.LastNotice != null) { <div class="notice">@G.LastNotice</div> }
 
         <main class="content">
-            @if (_tab == "court") { <CourtScreen Model="m" /> }
+            @if (_tab == "court") { <CourtScreen Model="m" OnOpenChronicle='() => _tab = "chronicle"' /> }
             else if (_tab == "galaxy") { <GalaxyMap /> }
             else if (_tab == "dynasty") { <DynastyPanel /> }
             else { <ChroniclePanel /> }
@@ -99,7 +100,14 @@ else
         try { await JS.InvokeVoidAsync("praetoria.save", GameClient.AutosaveKey, G.SaveJson()); _hasAutosave = true; } catch { }
     }
 
-    private async Task SaveLocal() => await Autosave();
+    private bool _savedFlash;
+    private async Task SaveLocal()
+    {
+        await Autosave();
+        _savedFlash = true; StateHasChanged();
+        await Task.Delay(1500);
+        _savedFlash = false;
+    }
 
     private async Task Download()
     {

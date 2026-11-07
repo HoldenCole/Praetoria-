@@ -35,7 +35,9 @@ public sealed record ThroneCard(string? ProclaimRefusal, string? SeizeRefusal, b
 public sealed record GreatCrisisCard(string Name, string? Stage, int Clock, int? NextAt, string Intensity, string Bloc, bool Resolved, string? HegemonName);
 public sealed record WarLine(string EnemyHouseId, string EnemyName, int Since, int EnemyHulls, bool PeaceAvailable, string PeaceTooltip, bool TheyAreSuing);
 public sealed record BattleLine(string Text);
-public sealed record ChoiceCard(string Id, string Label, string Cost, bool Available);
+/// <summary>A choice as offered: <paramref name="Reason"/> is null when available, else why not ("requirements not met" — a trait,
+/// skill or rank gate — or "cannot afford: 2 influence").</summary>
+public sealed record ChoiceCard(string Id, string Label, string Cost, bool Available, string? Reason = null);
 public sealed record BriefingCard(BriefingItem Item, string Title, string Tier, bool Setpiece, string Body, bool Resolved, IReadOnlyList<ChoiceCard> Choices);
 public sealed record MemberLine(string Name, string Detail, bool Alive, int Disposition, string Bond);
 public sealed record ConnectionLine(string Id, string Name, string HouseName, string Detail, int Disposition, string Bond, IReadOnlyList<string> Flags, bool Hostile,
@@ -156,11 +158,16 @@ public static class CourtProjection
             var fired = item.Fired;
             var text = content.Text(fired.Def.Id);
             var ectx = new EvalContext(w, fired.Binding, NoRng, content);
-            var choices = item.Resolved ? new List<ChoiceCard>() : tc.Offer(item).Select(oc => new ChoiceCard(
-                oc.Choice.Id,
-                text != null && text.Choices.TryGetValue(oc.Choice.Id, out var ct) ? TextRenderer.Substitute(ct, ectx) : oc.Choice.Id,
-                oc.Choice.Cost.Count == 0 ? "" : string.Join(", ", oc.Choice.Cost.Select(c => $"{c.Value} {c.Key}")),
-                oc.Available)).ToList();
+            var choices = item.Resolved ? new List<ChoiceCard>() : tc.Offer(item).Select(oc =>
+            {
+                string cost = oc.Choice.Cost.Count == 0 ? "" : string.Join(", ", oc.Choice.Cost.Select(c => $"{c.Value} {c.Key}"));
+                string? reason = oc.Available ? null
+                    : !tc.Engine.IsChoiceAvailable(fired, w, oc.Choice.Id) ? "requirements not met"
+                    : $"cannot afford: {cost}";
+                return new ChoiceCard(oc.Choice.Id,
+                    text != null && text.Choices.TryGetValue(oc.Choice.Id, out var ct) ? TextRenderer.Substitute(ct, ectx) : oc.Choice.Id,
+                    cost, oc.Available, reason);
+            }).ToList();
             briefing.Add(new BriefingCard(item, TextRenderer.Substitute(text?.Title ?? fired.Def.Id, ectx), fired.Def.Tier.ToString().ToUpperInvariant(),
                 fired.Def.Tier == EventTier.Setpiece, string.IsNullOrWhiteSpace(text?.Body) ? "" : TextRenderer.Substitute(text!.Body, ectx), item.Resolved, choices));
         }
@@ -184,7 +191,7 @@ public static class CourtProjection
                 }
                 var kill = new AssassinateCommand(p.Id, c.Id, content.Friction);
                 actions.Add(new Option("assassinate", $"Arrange an accident  (2 agents · {AssassinateCommand.Odds(w, p, c):P0})", kill.CanExecute(ctx) ? null : "unreachable, or no agents"));
-                return new ConnectionLine(c.Id, c.Name, w.House(c.HouseId)?.Name ?? c.HouseId, content.Careers.RankName(c.CareerTrack, c.CareerRank) ?? $"rank {c.CareerRank}", d, BondName(rel),
+                return new ConnectionLine(c.Id, c.Name, w.House(c.HouseId)?.Name ?? c.HouseId, content.Careers.RankName(c.CareerTrack, c.CareerRank) ?? (c.Age < DynastySystem.AgeOfMajority ? $"child, {c.Age}" : $"{c.Age}, untitled"), d, BondName(rel),
                     c.Flags.Where(f => !f.StartsWith("background:")).OrderBy(f => f, StringComparer.Ordinal).ToList(), d < -20, actions);
             }).ToList();
 

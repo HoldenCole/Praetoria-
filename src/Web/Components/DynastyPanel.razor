@@ -16,7 +16,14 @@
 
     <section class="card tree">
         <h3>The family tree</h3>
-        @foreach (var r in roots) { @Person(r, 0, kin, w, c) }
+        @{ _shown.Clear(); }
+        @foreach (var r in roots)
+        {
+            // a spouse already drawn beside their partner is not a second root; a person is drawn once, under the first parent met
+            var sp = DynastySystem.Spouse(w, r);
+            if (_shown.Contains(r.Id) || (sp != null && _shown.Contains(sp.Id))) continue;
+            @Person(r, 0, kin, w, c)
+        }
     </section>
 
     <section class="card">
@@ -41,13 +48,18 @@
     }
     private static bool SharesParent(Character a, Character b) => (a.MotherId.Length > 0 && a.MotherId == b.MotherId) || (a.FatherId.Length > 0 && a.FatherId == b.FatherId);
 
+    private readonly HashSet<string> _shown = new();
+
     private RenderFragment Person(Character ch, int depth, List<Character> kin, World w, ContentDatabase c) => __builder =>
     {
+        _shown.Add(ch.Id);
         var spouse = DynastySystem.Spouse(w, ch);
-        var children = kin.Where(k => k.MotherId == ch.Id || k.FatherId == ch.Id).OrderByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal).ToList();
+        if (spouse != null) _shown.Add(spouse.Id);
+        var children = kin.Where(k => (k.MotherId == ch.Id || k.FatherId == ch.Id) && !_shown.Contains(k.Id)).OrderByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal).ToList();
         bool me = ch.Id == w.ProtagonistId;
         <div class="node depth-@Math.Min(depth, 4)">
             <div class="node-card @(me ? "me" : "") @(ch.Alive ? "" : "dead")">
+                <Portrait Id="@ch.Id" Name="@ch.Name" Sex="@ch.Sex" Age="@ch.Age" Alive="@ch.Alive" Accent="@(w.House(ch.HouseId)?.AccentColor ?? "#888")" Size="40" />
                 <div class="name">@ch.Name @(me ? "✦" : "")</div>
                 <div class="muted small">@(ch.Alive ? $"{ch.Age}" : "†") · @(ch.Sex.Length > 0 ? ch.Sex : "")@(ch.Alive && c.Careers.RankName(ch.CareerTrack, ch.CareerRank) is { } rn ? $" · {rn}" : "")</div>
                 @if (spouse != null) { <div class="muted small">⚭ @spouse.Name@(spouse.HouseId != ch.HouseId ? $" of {w.House(spouse.HouseId)?.Name}" : "")@(spouse.Alive ? "" : " †")</div> }

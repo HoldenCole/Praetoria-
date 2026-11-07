@@ -111,6 +111,16 @@
     </aside>
 
     <section class="col middle">
+        @{
+            var since = w.History.Where(h => h.Turn >= m.Turn - 1 && h.EventId == null && !h.Text.StartsWith(m.Character.Name + " ")).Reverse().Take(8).ToList();
+        }
+        @if (since.Count > 0 && m.Turn > 1)
+        {
+            <section class="card since">
+                <h3>Since your last turn</h3>
+                @foreach (var h in since) { <div class="line">@h.Text</div> }
+            </section>
+        }
         @if (m.DynastyDead)
         {
             <div class="card dead"><h2>The dynasty is ended.</h2><p>No name-bearer remains to inherit the seat.</p></div>
@@ -135,7 +145,7 @@
                             <button class="choice" disabled="@(!ch.Available)" @onclick="() => G.Resolve(b.Item, ch.Id)">
                                 <span class="label">@ch.Label</span>
                                 @if (ch.Cost.Length > 0) { <span class="cost">@ch.Cost</span> }
-                                @if (!ch.Available) { <span class="cost">unavailable</span> }
+                                @if (!ch.Available) { <span class="cost why">@ch.Reason</span> }
                             </button>
                         }
                     </div>
@@ -163,7 +173,7 @@
         }
 
         <section class="card chron">
-            <h3>Lately</h3>
+            <h3>Lately <button class="linkish" @onclick="OnOpenChronicle">the whole chronicle ▸</button></h3>
             @foreach (var line in m.Chronicle) { <div class="line">@line</div> }
         </section>
     </section>
@@ -180,6 +190,7 @@
                         @if (h.Besieged) { <span class="pill warn">besieged</span> }
                     </summary>
                     <div class="muted">Built: @(h.Buildings.Count == 0 ? "nothing yet" : string.Join(", ", h.Buildings)) (@h.SlotsUsed/@h.Slots slots)</div>
+                    <div class="muted small">Yield ≈ @Yield(w.Holding(h.Id)!, c) a turn</div>
                     @foreach (var b in h.Builds) { <button class="opt" disabled="@(!b.Available)" title="@b.Tooltip" @onclick="() => G.Execute(new BuildCommand(pid, h.Id, b.BuildingId, c.Holdings, c.Titles))">@b.Label</button> }
                     @if (h.Ships.Count > 0)
                     {
@@ -261,6 +272,22 @@
 
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
+    [Parameter] public EventCallback OnOpenChronicle { get; set; }
+
+    /// <summary>A holding's net yield a turn, from its specialization and buildings (the Economy's own arithmetic, read-only).</summary>
+    private static string Yield(Holding h, ContentDatabase c)
+    {
+        var spec = c.Holdings.Spec(h.Specialization); if (spec == null) return "—";
+        var parts = new List<string>();
+        foreach (var r in Resource.All)
+        {
+            int net = spec.BaseYield.Get(r) - spec.Upkeep.Get(r);
+            foreach (var bid in h.Buildings) { var b = c.Holdings.Building(bid); if (b != null) net += b.Yield.Get(r) - b.Upkeep.Get(r); }
+            if (r == Resource.Manpower && spec.PopManpower > 0) net += h.Population / spec.PopManpower;
+            if (net != 0) parts.Add($"{net:+#;-#;0} {r}");
+        }
+        return parts.Count == 0 ? "nothing" : string.Join(", ", parts);
+    }
 
     private static MarkupString Pips(int value, int cap, string cls)
     {
