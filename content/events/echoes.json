@@ -1,5 +1,5 @@
 {
-  "//": "ECHOES — consequences for earlier choices whose flags had no reader. Consumes: debt_to_crown (the_crowns_due), anomaly_hoarded/anomaly_studied (the_anomaly_stirs), oath_sworn_academy (the_oath_remembered), coalition_broken (the_coalitions_remnant), reconciled (the_old_wound_healed), sabotaged (what_the_sabotage_taught), wed (the_household), and the engine-written `broken` stress flag (the_breaking_point). Every event here clears the flag it reads so chains end cleanly. FLEETS: the_unfamiliar_sails (an incursion into your space — reads the engine `incursions` counter) and the_review_of_the_fleet (gates on fleetStrength). WAR: the_butchers_bill (reads engine flag battle_fought and clears it), the_conquered_world (reads conquest_made), the_lost_world (reads holding_lost). the_envoy_of_peace: an enemy head flagged suing_for_peace (engine) asks for terms.",
+  "//": "ECHOES — consequences for earlier choices whose flags had no reader. Consumes: debt_to_crown (the_crowns_due), anomaly_hoarded/anomaly_studied (the_anomaly_stirs), oath_sworn_academy (the_oath_remembered), coalition_broken (the_coalitions_remnant), reconciled (the_old_wound_healed), sabotaged (what_the_sabotage_taught), wed (the_household), and the engine-written `broken` stress flag (the_breaking_point). Every event here clears the flag it reads so chains end cleanly. FLEETS: the_unfamiliar_sails (an incursion into your space — reads the engine `incursions` counter) and the_review_of_the_fleet (gates on fleetStrength). WAR: the_butchers_bill (reads engine flag battle_fought and clears it), the_conquered_world (reads conquest_made), the_lost_world (reads holding_lost). the_envoy_of_peace: an enemy head flagged suing_for_peace (engine) asks for terms. the_great_work (reads megastructure_raised). ENDGAME: the_proclamation (reads imperium_proclaimed / throne_seized). BLOODY EVENT: the_wedding_feast (a gala that turns to slaughter — uses kill).",
   "events": [
     {
       "id": "the_crowns_due",
@@ -676,6 +676,9 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "win_a_great_love"
       ]
     },
     {
@@ -1515,6 +1518,512 @@
             {
               "type": "log",
               "text": "{self.name} sent {envoy.name} back to {envoy.house} with nothing. The war went on. Whatever {self.name} wanted from it, it was not yet in hand."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_great_work",
+      "tier": "setpiece",
+      "weight": 5,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "envious",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "envious",
+              "to": "self",
+              "op": "lte",
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "megastructure_raised",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "dedicate_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "megastructure_raised",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envious",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} dedicated the great work before every house that could be made to attend. {envious.name} of {envious.house} applauded with the rest and did the arithmetic of what it had cost, and what it meant."
+            }
+          ]
+        },
+        {
+          "id": "open_it_to_all",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "megastructure_raised",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envious",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} opened the great work to the Reach — toll-free lanes, light for every world in reach of it. The treasury groaned. The towns did not stop talking about it for a generation."
+            }
+          ]
+        },
+        {
+          "id": "keep_it_quiet",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Paranoid",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "megastructure_raised",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "coalition_pressure",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} raised the great work without ceremony and let the Reach discover it on its own, which took longer and frightened fewer people."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_proclamation",
+      "tier": "setpiece",
+      "weight": 10,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "grandee",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "grandee",
+              "to": "self",
+              "op": "lte",
+              "value": -10
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "imperium_proclaimed",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "throne_seized",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "clemency",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "imperium_proclaimed",
+              "value": false
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "throne_seized",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": 25
+            },
+            {
+              "type": "adjustCounter",
+              "key": "coalition_pressure",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "The first act of the new reign was clemency: {grandee.name} of {grandee.house}, who had opposed it, kept lands, title, and head. The Reach exhaled. A throne that can afford mercy looks, to those beneath it, like a throne that will last."
+            }
+          ]
+        },
+        {
+          "id": "purge",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Cruel",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "cost": {
+            "agents": 2
+          },
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "imperium_proclaimed",
+              "value": false
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "throne_seized",
+              "value": false
+            },
+            {
+              "type": "kill",
+              "role": "grandee"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "seizures",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The first act of the new reign was a list of names, and {grandee.name} of {grandee.house} was on it. The Reach learned at once what kind of throne this would be. So did the houses that had knelt gladly, and began to wonder."
+            }
+          ]
+        },
+        {
+          "id": "convene_the_senate",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Orator",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Diplomat",
+                  "kind": "aptitude",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "cost": {
+            "influence": 2
+          },
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "imperium_proclaimed",
+              "value": false
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "throne_seized",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "The first act of the new reign was to convene a Senate and give the houses — {grandee.name}'s among them — a chamber in which to lose their arguments lawfully. Power shared is power that lasts; power shared is also power that argues back."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_wedding_feast",
+      "tier": "setpiece",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "enemy",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "enemy",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "relationship",
+              "from": "enemy",
+              "to": "self",
+              "op": "lte",
+              "value": -30
+            }
+          ]
+        },
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "wed",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 8
+        }
+      ],
+      "choices": [
+        {
+          "id": "spring_the_trap",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "cost": {
+            "agents": 2
+          },
+          "effects": [
+            {
+              "type": "kill",
+              "role": "enemy"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "seizures",
+              "delta": 1
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "realm_unstable",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "The feast was {self.name}'s, and so were the doors. When they closed, {enemy.name} of {enemy.house} understood, too late, what the invitation had meant. The Reach would call it the Red Feast for a hundred years, and would never again accept {self.name}'s hospitality without counting the exits."
+            }
+          ]
+        },
+        {
+          "id": "survive_the_ambush",
+          "effects": [
+            {
+              "type": "kill",
+              "role": "kin"
+            },
+            {
+              "type": "setCharFlag",
+              "role": "enemy",
+              "flag": "marked_for_death",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "enemy",
+              "delta": -50
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 15
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "realm_unstable",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "The blades came out at the toast, and they were not {self.name}'s. {enemy.name} of {enemy.house} had planned the feast more carefully than the host. {self.name} lived. {kin.name} did not. There is a kind of grief that is only the first draft of a plan."
+            }
+          ]
+        },
+        {
+          "id": "make_peace_at_the_table",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Diplomat",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Just",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "cost": {
+            "influence": 2
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "enemy",
+              "flag": "feud",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "enemy",
+              "flag": "reconciled",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "enemy",
+              "to": "self",
+              "delta": 40
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "Everyone at the feast knew why {enemy.name} of {enemy.house} had been invited, and everyone watched the toast. {self.name} raised a cup to the quarrel's end, and {enemy.name}, after a long moment the whole hall held its breath through, raised one back."
             }
           ]
         }

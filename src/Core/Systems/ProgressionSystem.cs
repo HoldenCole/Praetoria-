@@ -112,6 +112,7 @@ public sealed class ProgressionSystem
         int instability = Math.Max(0, t.LegitimacyRequirement - h.Legitimacy);
         w.WorldCounters["title_instability"] = instability;
         w.WorldCounters["title_rank"] = t.Rank;
+        if (t.Rank > w.Counter("peak_title_rank")) w.WorldCounters["peak_title_rank"] = t.Rank;
         w.WorldCounters["house_legitimacy"] = h.Legitimacy;
 
         if (instability > 0)

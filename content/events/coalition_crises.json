@@ -104,6 +104,9 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "command_a_fleet"
       ]
     },
     {
@@ -275,6 +278,9 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "master_the_senate"
       ]
     },
     {

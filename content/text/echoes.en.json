@@ -135,6 +135,36 @@
         "demand_tribute": "Name a price. Peace, yes — paid for.",
         "refuse_terms": "Send them back with nothing. The war is not finished."
       }
+    },
+    {
+      "id": "the_great_work",
+      "title": "The Great Work",
+      "body": "It is finished — a thing of a scale the Reach reserves for its oldest houses, hanging in your sky where everyone can see it. {envious.name} of {envious.house} has already seen it. A megastructure is not a building. It is a statement, and the galaxy is now deciding what you meant by it.",
+      "choices": {
+        "dedicate_it": "Dedicate it before every house that can be made to attend.",
+        "open_it_to_all": "Open it to the Reach. Let the towns talk for a generation.",
+        "keep_it_quiet": "No ceremony. Let them find it on their own, and frighten fewer."
+      }
+    },
+    {
+      "id": "the_proclamation",
+      "title": "The Proclamation",
+      "body": "It is done. The houses of the Reach have knelt — some gladly, some because the alternative was in orbit — and you hold the throne that did not exist a season ago, or that someone else held. {grandee.name} of {grandee.house} opposed you, and is waiting to learn what that costs. The first act of a reign is the one the chronicles remember.",
+      "choices": {
+        "clemency": "Clemency. Let {grandee.name} keep lands, title and head. A throne that can afford mercy will last.",
+        "purge": "A list of names, and {grandee.name}'s on it. Let the Reach learn at once what this throne is.",
+        "convene_the_senate": "Convene a Senate. Give the houses a chamber to lose their arguments in lawfully."
+      }
+    },
+    {
+      "id": "the_wedding_feast",
+      "title": "The Wedding Feast",
+      "body": "A feast in your hall to mark the marriage, with every house of consequence at the tables — {enemy.name} of {enemy.house} among them, by the oldest law, which says a feast is sacred and a guest is safe. {kin.name} is seated at your right hand. The toast is about to be raised, and someone in this hall has decided tonight is the night the old law breaks.",
+      "choices": {
+        "spring_the_trap": "The doors are yours. Close them. End the feud with the toast.",
+        "survive_the_ambush": "Live through what is coming. Bury who must be buried. Begin to plan.",
+        "make_peace_at_the_table": "Raise a cup to the quarrel's end, before the whole hall, and wait to see if it is raised back."
+      }
     }
   ]
 }

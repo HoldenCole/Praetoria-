@@ -36,6 +36,7 @@ public sealed class Economy
             // Snapshot solvency once, before this turn's income, so all of a house's holdings react
             // to the position the player left them in (deterministic regardless of holding order).
             bool insolvent = house.Treasury.Credits < 0;
+            var tax = _catalog.Tax(house.TaxPolicy);
 
             foreach (var holding in holdings)
             {
@@ -45,7 +46,7 @@ public sealed class Economy
                 if (spec.Populated || holding.Population > 0)
                 {
                     holding.Unrest = Math.Clamp(
-                        holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay), 0, 100);
+                        holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0), 0, 100);
                     int pop = Math.Max(0, holding.Population + spec.PopGrowth);
                     if (spec.MaxPopulation > 0) pop = Math.Min(pop, spec.MaxPopulation);
                     holding.Population = pop;
@@ -64,6 +65,15 @@ public sealed class Economy
                     if (r == Resource.Manpower && spec.PopManpower > 0)
                         net += holding.Population / spec.PopManpower;
 
+                    // The tax posture (GDD §17) and territory (GDD §19 — a compact realm is a richer one).
+                    if (r == Resource.Credits)
+                    {
+                        net += tax?.CreditsBonus ?? 0;
+                        if (_catalog.ContiguityBonus > 0 && world.Galaxy != null && holding.SystemId != "")
+                            net += _catalog.ContiguityBonus * world.Galaxy.Neighbors(holding.SystemId)
+                                .Count(n => world.Holdings.Values.Any(o => o.OwnerId == house.Id && o.SystemId == n));
+                    }
+
                     // A blockade halves what gets through (GDD §6 siege).
                     if (net > 0 && world.Sieges.ContainsKey(holding.Id)) net /= 2;
 
@@ -76,6 +86,7 @@ public sealed class Economy
             }
 
             house.Treasury.ClampNonCredit();
+            if (tax is { LegitimacyPerTurn: not 0 }) house.Legitimacy = Math.Max(0, house.Legitimacy + tax.LegitimacyPerTurn);
         }
     }
 }

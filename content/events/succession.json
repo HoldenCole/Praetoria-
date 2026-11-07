@@ -246,6 +246,9 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "win_a_great_love"
       ]
     },
     {
@@ -449,6 +452,10 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "seize_the_throne",
+        "restore_house_fortunes"
       ]
     },
     {

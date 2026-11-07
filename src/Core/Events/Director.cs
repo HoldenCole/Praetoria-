@@ -22,6 +22,11 @@ public sealed class Director
         _suppressionFactor = suppressionFactor;
     }
 
+    /// <summary>World counter the engine maintains: turns since anything above ambient fired. The Director lifts
+    /// situations and set-pieces as a lull lengthens (GDD §15 L4 "inject a complication if things are quiet too long").</summary>
+    public const string LullCounter = "lull";
+    public const double AmbitionBias = 1.6;
+
     public double WeightOf(EventDef def, World world)
     {
         double w = Math.Max(0.0001, def.Weight);
@@ -29,6 +34,15 @@ public sealed class Director
         // Rising action: set-pieces grow more likely the longer the run has gone.
         if (def.Tier == EventTier.Setpiece)
             w *= 1.0 + Math.Min(2.0, world.Turn * 0.15);
+
+        // Personal story: events that speak to the protagonist's ambition come to them.
+        var ambition = world.Protagonist?.Ambition;
+        if (ambition != null && def.Ambitions.Count > 0)
+            w *= def.Ambitions.Contains(ambition) ? AmbitionBias : 0.8;
+
+        // A lull breeds complications: weight above-ambient events up the longer nothing has happened.
+        if (def.Tier != EventTier.Ambient)
+            w *= 1.0 + Math.Min(1.5, world.Counter(LullCounter) * 0.25);
 
         // Suppress recent repeats (look at the tail of the recent-event memory).
         int from = Math.Max(0, world.RecentEventIds.Count - _suppressionWindow);

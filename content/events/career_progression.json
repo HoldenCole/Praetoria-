@@ -145,6 +145,10 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "earn_a_command",
+        "command_a_fleet"
       ]
     },
     {
@@ -298,6 +302,9 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "outshine_all_rivals"
       ]
     },
     {
@@ -607,6 +614,9 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "command_a_fleet"
       ]
     },
     {
@@ -727,6 +737,9 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "amass_a_fortune"
       ]
     },
     {
@@ -1234,6 +1247,9 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "master_the_senate"
       ]
     },
     {
@@ -1329,6 +1345,9 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "master_the_senate"
       ]
     },
     {

@@ -87,7 +87,10 @@ public static class ContentLoader
                 Conditions = el.TryGetProperty("when", out var when)
                     ? ConditionParser.ParseList(when)
                     : Array.Empty<ICondition>(),
-                Choices = ParseChoices(el)
+                Choices = ParseChoices(el),
+                Ambitions = el.TryGetProperty("ambitions", out var amb) && amb.ValueKind == JsonValueKind.Array
+                    ? amb.EnumerateArray().Where(a => a.ValueKind == JsonValueKind.String).Select(a => a.GetString()!).ToList()
+                    : Array.Empty<string>()
             };
         }
         catch (ContentException ex)

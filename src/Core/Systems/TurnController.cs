@@ -72,7 +72,7 @@ public sealed class TurnController
         Engine = new EventEngine(content, _rng, director);
         _economy = content.Holdings.IsEmpty ? null : new Economy(content.Holdings);
         _crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises);
-        _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres);
+        _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres, world.Difficulty);
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
         _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles };
@@ -150,7 +150,7 @@ public sealed class TurnController
         // turn are already active, so they're excluded from the causable pool here.
         if (_crises != null)
         {
-            var organic = _crises.RollOrganic(World, _rng);
+            var organic = _crises.RollOrganic(World, _rng, abstainWeight: 3.0 / Math.Max(0.25, World.Difficulty));
             if (organic != null) _crises.Trigger(organic, World, _rng);
             _crises.Decay(World, _rng);   // active crises wind down once their root cause eases (GDD §16)
         }

@@ -73,8 +73,12 @@ public sealed class EventEngine
             var picked = _director.Select(pool, world, Rng);
             if (picked is not { } p) break;
             pool.RemoveAll(x => x.def.Id == p.def.Id);
+            // One set-piece per briefing: dramatic peaks don't collide (GDD §15 "suppress nearby collisions").
+            if (p.def.Tier == EventTier.Setpiece) pool.RemoveAll(x => x.def.Tier == EventTier.Setpiece);
             result.Add(new FiredEvent(p.def, p.binding));
         }
+        // the lull clock: reset when the briefing carries anything above ambient, else lengthen
+        world.WorldCounters[Director.LullCounter] = result.Any(f => f.Def.Tier != EventTier.Ambient) ? 0 : world.Counter(Director.LullCounter) + 1;
         return result;
     }
 

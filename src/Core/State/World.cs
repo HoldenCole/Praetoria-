@@ -25,6 +25,10 @@ public sealed class World
     public const string ModeIronman = "ironman";
     public const string ModeContinue = "continue";
 
+    /// <summary>GDD §14 "one knob": scales how aggressively rivals convert threat into action (coalition threshold,
+    /// NPC war appetite, organic crisis odds). 1.0 = default; 0.5 forgiving; 2.0 harsh.</summary>
+    public double Difficulty { get; set; } = 1.0;
+
     /// <summary>The character the player currently inhabits — bound to the "self" role every event.</summary>
     public string ProtagonistId { get; set; } = "";
 

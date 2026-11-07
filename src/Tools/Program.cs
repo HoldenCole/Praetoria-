@@ -29,6 +29,7 @@ try
         "version" or "--version" => Version(),
         "create"   => Commands.Create(),
         "map"      => Commands.Map(opts),
+        "epilogue" => Commands.EpilogueOf(opts),
         _ => Unknown(command)
     };
 }
@@ -51,6 +52,7 @@ static (string, Options) ParseArgs(string[] args)
             case "--scenario" when i + 1 < args.Length: o.Scenario = args[++i]; break;
             case "--auto": o.Auto = true; break;
             case "--continue": o.Continue = true; break;
+            case "--difficulty" when i + 1 < args.Length: o.Difficulty = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
             case "--name" when i + 1 < args.Length: o.Creation.Name = args[++i]; break;
             case "--sex" when i + 1 < args.Length: o.Creation.Sex = args[++i]; break;
             case "--background" when i + 1 < args.Length: o.Creation.BackgroundId = args[++i]; break;
@@ -69,9 +71,10 @@ static int Help()
 {
     Console.WriteLine($"praetoria {Praetoria.Core.PraetoriaVersion.Current} — <command> [options]");
     Console.WriteLine("  play [--seed N] [--turns N] [--auto] [--scenario id] [--save file] [--load file] [--continue]");
-    Console.WriteLine("       [--name N] [--sex male|female] [--background id] [--nature A,B] [--aptitude A,B] [--track t] [--ambition a]");
+    Console.WriteLine("       [--name N] [--sex male|female] [--background id] [--nature A,B] [--aptitude A,B] [--track t] [--ambition a] [--difficulty 0.5..2]");
     Console.WriteLine("  create                         list character-creation choices (backgrounds, traits, tracks, ambitions)");
     Console.WriteLine("  map [--scenario id]            the galaxy: systems, lanes, and who holds what");
+    Console.WriteLine("  epilogue --load file           the saga epilogue of a saved game");
     Console.WriteLine("  turn [--seed N] [--turns N]   full Briefing→Action→Resolve cycle with pools + NPCs");
     Console.WriteLine("  economy [--seed N] [--turns N] domain economy: holdings accrue, invest in buildings");
     Console.WriteLine("  crisis [--seed N]              crisis gate/cascade/damper demonstration");
@@ -108,5 +111,6 @@ sealed class Options
     public string? Save;    // write the World here when the run ends (between turns)
     public string? Load;    // resume from a save instead of a fresh scenario
     public bool Continue;   // GDD §14 continue mode: a sworn house takes up the banner on dynasty death
+    public double Difficulty = 1.0;   // GDD §14 one knob
     public Praetoria.Core.Creation.CreationOptions Creation = new();   // character customisation at start
 }

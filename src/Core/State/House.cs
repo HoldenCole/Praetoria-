@@ -16,6 +16,9 @@ public sealed class House
 
     public List<string> Members { get; set; } = new();
 
+    /// <summary>Standing tax posture (id into the catalog's taxPolicies; "normal" by default) — GDD §17.</summary>
+    public string TaxPolicy { get; set; } = "normal";
+
     /// <summary>Name culture for children born into the house (key into /content/names).</summary>
     public string Culture { get; set; } = "reach";
 

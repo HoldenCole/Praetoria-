@@ -122,6 +122,8 @@ def validate_events(ev,tx):
         for r in e.get("roles",[]):
             roles.add(r["name"]); walk(r.get("when",[]),f"{eid}/role:{r['name']}",roles)
         walk(e.get("when",[]),f"{eid}/when",roles)
+        for a in e.get("ambitions",[]):
+            if a not in AMBITIONS: errors.append(f"[{eid}] unlocked ambition tag '{a}'")
         if eid not in tx: errors.append(f"[{eid}] NO TEXT RECORD"); continue
         t=tx[eid]
         if not t.get("title") or not t.get("body"): errors.append(f"[{eid}] missing title/body")

@@ -52,6 +52,10 @@ public sealed class EventDef
     public IReadOnlyList<ICondition> Conditions { get; init; } = Array.Empty<ICondition>();
     public IReadOnlyList<Choice> Choices { get; init; } = Array.Empty<Choice>();
 
+    /// <summary>Ambitions this event speaks to (GDD §18 "personal-story events"); the Director favours them for a
+    /// protagonist who holds one. Empty = no bias.</summary>
+    public IReadOnlyList<string> Ambitions { get; init; } = Array.Empty<string>();
+
     public Choice? Choice(string id)
     {
         foreach (var c in Choices) if (c.Id == id) return c;

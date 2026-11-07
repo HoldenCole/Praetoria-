@@ -144,6 +144,9 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "restore_house_fortunes"
       ]
     },
     {
@@ -1005,6 +1008,9 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "amass_a_fortune"
       ]
     },
     {
@@ -1201,6 +1207,9 @@
             }
           ]
         }
+      ],
+      "ambitions": [
+        "amass_a_fortune"
       ]
     },
     {

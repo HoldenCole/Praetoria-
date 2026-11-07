@@ -26,6 +26,10 @@ public static class HoldingCatalogLoader
 
         var specs = new List<HoldingSpec>();
         var buildings = new List<BuildingDef>();
+        var rates = new List<ExchangeRate>();
+        var exchangeBuildings = new List<string>();
+        var taxes = new List<TaxPolicy>();
+        int contiguity = 0;
 
         foreach (var file in Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories)
                                       .OrderBy(static p => p, StringComparer.Ordinal))
@@ -38,6 +42,20 @@ public static class HoldingCatalogLoader
                     foreach (var el in sArr.EnumerateArray()) specs.Add(ParseSpec(el));
                 if (root.TryGetProperty("buildings", out var bArr) && bArr.ValueKind == JsonValueKind.Array)
                     foreach (var el in bArr.EnumerateArray()) buildings.Add(ParseBuilding(el));
+                if (root.TryGetProperty("exchange", out var ex) && ex.ValueKind == JsonValueKind.Object)
+                {
+                    if (ex.TryGetProperty("requiresBuilding", out var rb) && rb.ValueKind == JsonValueKind.Array)
+                        foreach (var s in rb.EnumerateArray()) if (s.ValueKind == JsonValueKind.String) exchangeBuildings.Add(s.GetString()!);
+                    if (ex.TryGetProperty("rates", out var rArr) && rArr.ValueKind == JsonValueKind.Array)
+                        foreach (var r in rArr.EnumerateArray())
+                            rates.Add(new ExchangeRate(ConditionParser.Str(r, "give"), ConditionParser.Str(r, "get"),
+                                ConditionParser.Int(r, "giveAmount", 1), ConditionParser.Int(r, "getAmount", 1)));
+                }
+                if (root.TryGetProperty("taxPolicies", out var tArr) && tArr.ValueKind == JsonValueKind.Array)
+                    foreach (var t in tArr.EnumerateArray())
+                        taxes.Add(new TaxPolicy(ConditionParser.Str(t, "id"), ConditionParser.OptStr(t, "name", ConditionParser.Str(t, "id")),
+                            ConditionParser.Int(t, "creditsBonus", 0), ConditionParser.Int(t, "unrestDrift", 0), ConditionParser.Int(t, "legitimacyPerTurn", 0)));
+                contiguity = Math.Max(contiguity, ConditionParser.Int(root, "contiguityBonus", 0));
             }
             catch (JsonException ex)
             {
@@ -45,7 +63,7 @@ public static class HoldingCatalogLoader
             }
         }
 
-        return new HoldingCatalog(specs, buildings);
+        return new HoldingCatalog(specs, buildings, rates, exchangeBuildings, taxes, contiguity);
     }
 
     private static HoldingSpec ParseSpec(JsonElement el) => new()
@@ -69,7 +87,9 @@ public static class HoldingCatalogLoader
         Yield = ParseResources(el, "yield"),
         Upkeep = ParseResources(el, "upkeep"),
         Requires = ConditionParser.OptStrOrNull(el, "requires"),
-        Defense = Dbl(el, "defense")
+        Defense = Dbl(el, "defense"),
+        MinTitleRank = ConditionParser.Int(el, "minTitleRank", 0),
+        Megastructure = ConditionParser.Bool(el, "megastructure", false)
     };
 
     private static double Dbl(JsonElement el, string name) =>

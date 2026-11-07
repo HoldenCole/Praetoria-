@@ -18,13 +18,15 @@ public sealed class BuildCommand : ICommand
     private readonly string _holdingId;
     private readonly string _buildingId;
     private readonly HoldingCatalog _catalog;
+    private readonly Progression.TitleCatalog? _titles;
 
-    public BuildCommand(string actorId, string holdingId, string buildingId, HoldingCatalog catalog)
+    public BuildCommand(string actorId, string holdingId, string buildingId, HoldingCatalog catalog, Progression.TitleCatalog? titles = null)
     {
         ActorId = actorId;
         _holdingId = holdingId;
         _buildingId = buildingId;
         _catalog = catalog;
+        _titles = titles;
     }
 
     public string ActorId { get; }
@@ -47,7 +49,9 @@ public sealed class BuildCommand : ICommand
         if (!building.FitsSpecialization(holding.Specialization)) return false;
 
         var house = ctx.World.House(actor.HouseId);
-        return house != null && house.Treasury.CanAfford(building.Cost);
+        if (house == null) return false;
+        if (building.MinTitleRank > 0 && (_titles?.RankOf(house.Title) ?? 0) < building.MinTitleRank) return false;   // megastructures want a seat
+        return house.Treasury.CanAfford(building.Cost);
     }
 
     public void Execute(CommandContext ctx)
@@ -59,5 +63,63 @@ public sealed class BuildCommand : ICommand
 
         house.Treasury.Spend(building.Cost);
         holding.Buildings.Add(_buildingId);
+        if (building.Megastructure)
+        {
+            ctx.World.WorldCounters["megastructures"] = ctx.World.Counter("megastructures") + 1;
+            if (actor.Id == ctx.World.ProtagonistId) ctx.World.WorldFlags.Add("megastructure_raised");
+            ctx.World.Log($"{house.Name} raises the {building.Name} over {holding.Name} — a thing the whole Reach can see.");
+        }
+    }
+}
+
+/// <summary>Convert resources at the Exchange (GDD §17 conversion chains). Needs a market-type building anywhere in
+/// the house's domain; rates are data. Spends the house treasury.</summary>
+public sealed class ExchangeCommand : ICommand
+{
+    private readonly ExchangeRate _rate;
+    private readonly int _times;
+    private readonly HoldingCatalog _catalog;
+    public ExchangeCommand(string actorId, ExchangeRate rate, HoldingCatalog catalog, int times = 1) { ActorId = actorId; _rate = rate; _catalog = catalog; _times = Math.Max(1, times); }
+    public string ActorId { get; }
+    public string Describe() => $"exchange {_rate.GiveAmount * _times} {_rate.Give} → {_rate.GetAmount * _times} {_rate.Get}";
+
+    public static bool HasExchange(World w, string houseId, HoldingCatalog catalog) =>
+        catalog.ExchangeBuildings.Count == 0 || w.HoldingsOf(houseId).Any(h => h.Buildings.Any(b => catalog.ExchangeBuildings.Contains(b)));
+
+    public bool CanExecute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null || _catalog.Rates.Count == 0) return false;
+        if (!HasExchange(w, house.Id, _catalog)) return false;
+        return house.Treasury.Get(_rate.Give) >= _rate.GiveAmount * _times;
+    }
+
+    public void Execute(CommandContext ctx)
+    {
+        var house = ctx.World.House(ctx.World.Char(ActorId)!.HouseId)!;
+        house.Treasury.Add(_rate.Give, -_rate.GiveAmount * _times);
+        house.Treasury.Add(_rate.Get, _rate.GetAmount * _times);
+        house.Treasury.ClampNonCredit();
+    }
+}
+
+/// <summary>Set the house's tax posture (GDD §17). Free: a decree, not a scheme — but the realm feels it every turn.</summary>
+public sealed class SetTaxPolicyCommand : ICommand
+{
+    private readonly string _policyId;
+    private readonly HoldingCatalog _catalog;
+    public SetTaxPolicyCommand(string actorId, string policyId, HoldingCatalog catalog) { ActorId = actorId; _policyId = policyId; _catalog = catalog; }
+    public string ActorId { get; }
+    public string Describe() => $"tax policy → {_policyId}";
+    public bool CanExecute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        return actor?.Alive == true && house != null && _catalog.Tax(_policyId) != null && house.TaxPolicy != _policyId;
+    }
+    public void Execute(CommandContext ctx)
+    {
+        var house = ctx.World.House(ctx.World.Char(ActorId)!.HouseId)!;
+        house.TaxPolicy = _policyId;
+        ctx.World.Log($"{house.Name} decrees the {_catalog.Tax(_policyId)!.Name.ToLowerInvariant()}.");
     }
 }

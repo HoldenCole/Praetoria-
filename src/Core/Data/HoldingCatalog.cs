@@ -61,6 +61,12 @@ public sealed class BuildingDef
     /// <summary>Defensive weight the building adds to fleets defending its system (bastion batteries).</summary>
     public double Defense { get; init; }
 
+    /// <summary>Minimum title rank of the building house (0 = anyone). Megastructures gate on it (GDD §17).</summary>
+    public int MinTitleRank { get; init; }
+
+    /// <summary>A megastructure: the §12/§17 "apocalypse-scale" slot. Presentation flags it; the engine treats it as a building.</summary>
+    public bool Megastructure { get; init; }
+
     public bool FitsSpecialization(string specialization) =>
         Requires == null || Requires == specialization;
 }
@@ -70,16 +76,35 @@ public sealed class BuildingDef
 /// data). Joined to live <see cref="Holding"/>s by id at runtime, exactly as events join to text.
 /// An empty catalog means a scenario has no domain layer, and the economy system becomes a no-op.
 /// </summary>
+/// <summary>One conversion the Exchange offers (GDD §17 conversion chains).</summary>
+public sealed record ExchangeRate(string Give, string Get, int GiveAmount, int GetAmount);
+
+/// <summary>A standing tax posture (GDD §17): credits per holding per turn vs unrest drift on populated worlds.</summary>
+public sealed record TaxPolicy(string Id, string Name, int CreditsBonus, int UnrestDrift, int LegitimacyPerTurn);
+
 public sealed class HoldingCatalog
 {
     private readonly Dictionary<string, HoldingSpec> _specs;
     private readonly Dictionary<string, BuildingDef> _buildings;
 
-    public HoldingCatalog(IEnumerable<HoldingSpec> specs, IEnumerable<BuildingDef> buildings)
+    public HoldingCatalog(IEnumerable<HoldingSpec> specs, IEnumerable<BuildingDef> buildings,
+        IEnumerable<ExchangeRate>? rates = null, IEnumerable<string>? exchangeBuildings = null,
+        IEnumerable<TaxPolicy>? taxPolicies = null, int contiguityBonus = 0)
     {
         _specs = specs.ToDictionary(s => s.Id);
         _buildings = buildings.ToDictionary(b => b.Id);
+        Rates = (rates ?? Array.Empty<ExchangeRate>()).ToList();
+        ExchangeBuildings = (exchangeBuildings ?? Array.Empty<string>()).ToHashSet();
+        TaxPolicies = (taxPolicies ?? Array.Empty<TaxPolicy>()).ToList();
+        ContiguityBonus = contiguityBonus;
     }
+
+    public IReadOnlyList<ExchangeRate> Rates { get; }
+    public IReadOnlySet<string> ExchangeBuildings { get; }
+    public IReadOnlyList<TaxPolicy> TaxPolicies { get; }
+    public TaxPolicy? Tax(string id) => TaxPolicies.FirstOrDefault(t => t.Id == id);
+    /// <summary>Credits a holding earns per adjacent system its house also holds (GDD §19 territory).</summary>
+    public int ContiguityBonus { get; }
 
     public static HoldingCatalog Empty { get; } =
         new(Array.Empty<HoldingSpec>(), Array.Empty<BuildingDef>());

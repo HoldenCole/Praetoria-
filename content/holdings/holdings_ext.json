@@ -224,6 +224,62 @@
         "credits": 1
       },
       "//": "UNIVERSAL unrest-mitigation. No resource yield — its 'output' is social stability on a populated world (pairs with the steward unrest events; treat as a standing reason to keep a world calm). The build-out for a humane or cautious economy."
+    },
+    {
+      "id": "orbital_ring",
+      "name": "Orbital Ring",
+      "cost": {
+        "materials": 40,
+        "credits": 20,
+        "exotics": 2
+      },
+      "yield": {
+        "credits": 6,
+        "materials": 2
+      },
+      "upkeep": {
+        "credits": 2
+      },
+      "minTitleRank": 3,
+      "megastructure": true,
+      "//": "MEGASTRUCTURE (GDD §17/§12). A ring around a populated world: the first thing a Count builds to be seen building. Counts and above."
+    },
+    {
+      "id": "dyson_lattice",
+      "name": "Dyson Lattice",
+      "cost": {
+        "materials": 60,
+        "credits": 30,
+        "exotics": 4
+      },
+      "yield": {
+        "credits": 12
+      },
+      "upkeep": {
+        "materials": 2
+      },
+      "minTitleRank": 4,
+      "megastructure": true,
+      "//": "MEGASTRUCTURE. Harvests a star. Dukes and above; the credit engine of a great house."
+    },
+    {
+      "id": "gate_anchor",
+      "name": "Lane Gate Anchor",
+      "cost": {
+        "materials": 50,
+        "credits": 25,
+        "exotics": 6
+      },
+      "yield": {
+        "influence": 3
+      },
+      "upkeep": {
+        "credits": 3
+      },
+      "minTitleRank": 4,
+      "megastructure": true,
+      "defense": 0.3,
+      "//": "MEGASTRUCTURE. Anchors a hyperlane gate: influence (everyone must ask to pass) and a fortified approach. Dukes and above."
     }
   ]
 }

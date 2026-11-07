@@ -71,6 +71,7 @@ internal static class Commands
 
         if (world.IsDynastyDead) Renderer.RenderDynastyDeath(world);
         Renderer.RenderEpilogueHints(world);
+        Console.WriteLine("\n" + Praetoria.Core.Presentation.Epilogue.Generate(world, content));
 
         if (o.Save != null)                          // saves = the World, between turns (phase Idle)
         {
@@ -469,6 +470,7 @@ internal static class Commands
         var scenario = ScenarioLoader.LoadFromContent(contentRoot, o.Scenario);
         var world = WorldBuilder.FromScenario(scenario, o.Seed);
         if (o.Continue) world.Mode = Praetoria.Core.State.World.ModeContinue;
+        world.Difficulty = o.Difficulty;
         if (!o.Creation.IsEmpty) Console.WriteLine(CharacterCreation.Apply(world, content, o.Creation) + "\n");
         return (new TurnController(world, content), content, world);
     }
@@ -498,6 +500,16 @@ internal static class Commands
         Console.WriteLine("\nAMBITIONS (--ambition id)");
         foreach (var a in content.Traits.Ambitions) Console.WriteLine($"  {a.Id,-24} {a.Name} — {a.Description}");
         Console.WriteLine("\nExample: play --scenario the_risen_officer --background upjumped --nature Ambitious,Just --aptitude Tactician --track military --name \"Kessa Vane\"");
+        return 0;
+    }
+
+    /// <summary>The saga epilogue of a saved game (GDD §14).</summary>
+    public static int EpilogueOf(Options o)
+    {
+        if (o.Load == null) { Console.Error.WriteLine("epilogue needs --load <save>"); return 1; }
+        var content = LoadContent();
+        var world = SaveSystem.Load(o.Load);
+        Console.WriteLine(Praetoria.Core.Presentation.Epilogue.Generate(world, content));
         return 0;
     }
 
