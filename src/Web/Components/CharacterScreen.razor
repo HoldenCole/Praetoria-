@@ -70,7 +70,7 @@
         <section class="card">
             <h3>Your story so far</h3>
             @if (mine.Count == 0) { <div class="muted">Nothing written yet.</div> }
-            @foreach (var h in mine) { <div class="line"><span class="muted">T@h.Turn</span> @h.Text</div> }
+            @foreach (var h in mine) { <div class="line"><span class="muted">T@(h.Turn)</span> @h.Text</div> }
         </section>
     </div>
 </div>

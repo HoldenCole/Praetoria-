@@ -43,7 +43,7 @@
             <h3>Recent battles</h3>
             @{ var battles = w.History.Where(h => h.Text.Contains("battle", StringComparison.OrdinalIgnoreCase) || h.Text.Contains("destroyed") || h.Text.Contains("desert")).Reverse().Take(8).ToList(); }
             @if (battles.Count == 0) { <div class="muted">The lanes have been quiet.</div> }
-            @foreach (var h in battles) { <div class="line"><span class="muted">T@h.Turn</span> @h.Text</div> }
+            @foreach (var h in battles) { <div class="line"><span class="muted">T@(h.Turn)</span> @h.Text</div> }
         </section>
         <section class="card">
             <h3>Rival navies <span class="muted">(as reported)</span></h3>
