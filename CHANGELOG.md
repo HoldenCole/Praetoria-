@@ -14,6 +14,12 @@ Build Spec's V1 ("a complete human game").
 - **Character creation**: `/content/traits` (vocabularies as data), `/content/backgrounds` (six origins),
   `CharacterCreation` with validation; `create` command and `play --name/--sex/--background/--nature/--aptitude/--track/--ambition`.
 - CI compiles the Godot layer.
+- **Fleets (first layer)**: `Fleet`/`FleetIntel` state, `FleetSystem` (transit, readiness, upkeep, incursions, intel),
+  `MoveFleetCommand` / `RaiseFleetCommand`, `/content/fleets/rules.json`, scenario `fleets`, `fleetStrength`
+  condition, NPC houses raise and sail, `GalaxyProjection.Fleets`; two fleet events (*Unfamiliar Sails*, *The Review*).
+- **`CourtProjection`**: the Godot-free, tested model of everything Court mode shows; `CourtView` renders it.
+- UI: Admiral panel, ship-laying buttons, fleet glyphs and movement orders on the map, serif/sans typography,
+  portrait badge slot. NPC action pools gain one Treasury point a turn (fleet orders).
 
 ## [0.5.0] — 2026-11-07 — "headless complete"
 See `docs/RELEASE_0.5.md` for the full notes.

@@ -187,5 +187,14 @@
       "buildings": [],
       "//": "A second, prestige holding — research_station signals an old, established house with resources to spare on knowledge."
     }
+  ],
+  "fleets": [
+    {
+      "id": "fleet_serval_guard",
+      "name": "The Highmarch Guard",
+      "owner": "serval",
+      "system": "highmarch",
+      "strength": 2
+    }
   ]
 }

@@ -289,5 +289,23 @@
         "power_plant"
       ]
     }
+  ],
+  "fleets": [
+    {
+      "id": "fleet_imperial_home",
+      "name": "The Imperial Home Fleet",
+      "owner": "aurelian",
+      "system": "aurelia_prime",
+      "strength": 6,
+      "office": true,
+      "//": "An OFFICE fleet (GDD §8): the Emperor commands it by the throne, not by blood."
+    },
+    {
+      "id": "fleet_valmont",
+      "name": "The Valmont Line",
+      "owner": "valmont",
+      "system": "valmont_anvils",
+      "strength": 2
+    }
   ]
 }

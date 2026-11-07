@@ -20,6 +20,9 @@ first-run polish pass, not a rewrite.
 | Court mode | `src/Game/CourtView.cs` | **Left:** the character card (rank name, traits, ambition, stress, regency), action pools, the Steward (treasury, holdings, build buttons through `BuildCommand`), the Chancellor (legitimacy, instability, claims, the three rise-path buttons through the progression commands, spheres/threat). **Centre:** the briefing — one card per fired event: title + tier, substituted prose, one button per choice (disabled with a tooltip when gated/unaffordable), resolved state; the dynasty-death end card. **Right:** the dynasty rail (members, bonds, dispositions), connections outside the house (with their flags), the crisis clock (counters, active crises with damper buttons through `ApplyDamperCommand`, gates-cleared list), the last ten chronicle lines. |
 | Galaxy mode | `src/Game/GalaxyView.cs` (`GalaxyView`, `GalaxyMap`) | A `Control` that `_Draw`s the `GalaxyProjection`: lanes, nodes filled with the owning house's accent (unclaimed = steel), a glow for held territory, a gilt ring for the player's systems, a red ring for contested ones, names + owners. Click selects; the side panel shows legend (houses + system counts), the selected system's owner, holdings (your own in depth; rivals' as rough public record — GDD §19 mixed visibility), lanes, and jumps from your seat. |
 | Theme | `src/Game/CourtTheme.cs` | Base palette + the first reactivity: fractured-stars (cold steel) vs Imperium (gilt) palettes; house accent on headers; panel/heading/body/button helpers. |
+| Court model | `src/Core/Presentation/CourtProjection.cs` | Everything the Court shows as plain records (character card, pools, treasury, holdings with build/ship options, standing with path availability, fleets, briefing cards with substituted prose and per-choice availability, members, connections, crisis clock with damper availability, chronicle). `CourtProjectionTests` check it against the engine for all five scenarios — the Court's logic is verified without a window. |
+| Fleets | `src/Core/State/Fleet.cs`, `Systems/FleetSystem.cs`, `Commands/FleetCommands.cs`, `/content/fleets/rules.json` | House vs office fleets; move orders (one jump/turn, Treasury pool); readiness; per-hull upkeep; *Lay down a hull*; incursions (`incursions`, `incursion:<house>`); the protagonist house's decaying intel on rival fleets; NPC houses raise hulls and hostile heads sail on your seat. Map glyphs: chevron = house fleet, diamond = office fleet; rivals hollow and faded by confidence; dashed course lines for your own. Orders are given from the system panel. |
+| Typography + portrait slot | `CourtTheme.Serif / Sans`, `PortraitBadge` | System serif for Court, sans for Galaxy (BuildSpec §6), by family name with fallbacks — no font files yet. An initials badge in the house accent stands where a portrait will go. |
 | Core additions | `src/Core/Galaxy/*`, `src/Core/Creation/*`, loaders | `Galaxy` (systems, lanes, neighbours, hops, problems), `GalaxyProjection` (nodes/lanes/territory), `TraitCatalog`, `BackgroundDef/Catalog`, `CharacterCreation`; scenario `galaxy` + holding `system`; character `flags`. All unit-tested headless. |
 | Content | `/content/galaxy/the_reach.json`, `/content/traits/traits.json`, `/content/backgrounds/backgrounds.json`; all five scenarios placed on the map | 14 systems, 20 lanes; 9/11/8 vocab entries; 6 backgrounds. |
 | Harness | `create`, `map`, `play --background …` | The same creation and map data, headless. |
@@ -44,9 +47,19 @@ console verb has a button. **Unverified at runtime.** The checklist for the firs
 - **Mixed visibility is enforced at the panel**, not in Core: the map panel shows a rival's holding as "pop ~tens · 2 building(s) reported". When fleets arrive, intel confidence belongs in Core state (BuildSpec §3 "reported intel with a confidence value").
 - **Character creation is a Core service** (`CharacterCreation.Apply`), so the console and the UI share one validated path.
 
+## Why it is still unrun (and the two ways to change that)
+
+This repository's cloud sessions cannot execute a downloaded Godot binary: the attempt (official 4.3 .NET
+release, checksum verified against Godot's `SHA512-SUMS.txt`) was refused by the session's safety policy.
+Xvfb and Mesa *are* available in the environment, so with permission a headless/virtual-display run and
+screenshots are possible. Either:
+1. **Run it locally** — Godot 4.3 (.NET) → open `project.godot` → Play; follow the checklist above.
+2. **Allow it in a cloud session** — add a Bash permission rule for running the Godot binary; the session can
+   then import, build and run the project under Xvfb and attach screenshots to the next pass.
+
 ## Deferred
 
-- Running it. Fonts/typography, portraits, audio (Milestone 7).
-- Fleets, fleet markers (house vs office sigils), fogged intel — the military layer.
+- Running it. Font files, real portraits, audio (Milestone 7).
+- Combat / blockade / seizure-by-fleet — fleets move and are seen but do not fight.
 - A dedicated full-tree dynasty overlay (GDD §19); today the rail lists members and connections.
 - Contextual connection-surfacing inside event cards ("who do I know in House Corwin?").

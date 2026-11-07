@@ -36,6 +36,12 @@ public sealed class World
     /// Academy fixture). Territory is derived from holdings' <see cref="Holding.SystemId"/>.</summary>
     public Galaxy.Galaxy? Galaxy { get; set; }
 
+    /// <summary>Every fleet, keyed by fleet id (GDD §8 office vs house fleets; §19 map markers).</summary>
+    public Dictionary<string, Fleet> Fleets { get; set; } = new();
+
+    /// <summary>The protagonist house's reported picture of rival fleets, keyed by fleet id (GDD §19 mixed visibility).</summary>
+    public Dictionary<string, FleetIntel> Intel { get; set; } = new();
+
     /// <summary>Every controlled place, keyed by holding id (GDD §17). The domain economy reads
     /// these each turn to feed each owner's treasury. Empty in scenarios with no domain layer.</summary>
     public Dictionary<string, Holding> Holdings { get; set; } = new();

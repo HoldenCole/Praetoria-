@@ -290,6 +290,21 @@ public sealed class AgeCondition : ICondition
     }
 }
 
+/// <summary>Total fleet strength the role's house commands (GDD §6/§8). JSON: { "type": "fleetStrength", "role": "self", "op": "gte", "value": 2 }.</summary>
+public sealed class FleetStrengthCondition : ICondition
+{
+    public string Role { get; }
+    public CompareOp Op { get; }
+    public int Value { get; }
+    public FleetStrengthCondition(string role, CompareOp op, int value) { Role = role; Op = op; Value = value; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c == null) return false;
+        return Comparison.Apply(Op, Systems.FleetSystem.StrengthOf(ctx.World, c.HouseId), Value);
+    }
+}
+
 /// <summary>Which start the world is in (GDD §10): "fractured_stars" (no imperium yet) or "imperium".
 /// JSON: { "type": "era", "era": "imperium", "present": true }. Gates court-of-the-emperor content on the
 /// Imperium start and proclamation content on the fractured one.</summary>

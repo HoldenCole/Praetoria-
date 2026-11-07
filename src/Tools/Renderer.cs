@@ -65,6 +65,16 @@ public static class Renderer
         }
     }
 
+    /// <summary>Fleets as the player sees them (own exact, rivals' as intel) — GDD §19 mixed visibility in text.</summary>
+    public static void RenderFleets(World world)
+    {
+        var fleets = Praetoria.Core.Galaxy.GalaxyProjection.Fleets(world);
+        if (fleets.Count == 0 || world.Galaxy == null) return;
+        foreach (var f in fleets)
+            Console.WriteLine($"     {(f.IsPlayer ? "⚓" : "◦")} {f.Name} ({f.OwnerHouseName}) at {world.Galaxy.System(f.SystemId)?.Name ?? f.SystemId} · str {f.Strength}" +
+                              (f.IsPlayer ? (f.Moving ? $" · en route to {world.Galaxy.System(f.DestinationId)?.Name} ({f.Eta})" : $" · readiness {f.Readiness}") : $" · reported {f.Confidence}%"));
+    }
+
     public static void RenderCommandLog(IReadOnlyList<string> log, int from)
     {
         if (from >= log.Count) return;

@@ -1,5 +1,5 @@
 {
-  "//": "ECHOES — consequences for earlier choices whose flags had no reader. Consumes: debt_to_crown (the_crowns_due), anomaly_hoarded/anomaly_studied (the_anomaly_stirs), oath_sworn_academy (the_oath_remembered), coalition_broken (the_coalitions_remnant), reconciled (the_old_wound_healed), sabotaged (what_the_sabotage_taught), wed (the_household), and the engine-written `broken` stress flag (the_breaking_point). Every event here clears the flag it reads so chains end cleanly.",
+  "//": "ECHOES — consequences for earlier choices whose flags had no reader. Consumes: debt_to_crown (the_crowns_due), anomaly_hoarded/anomaly_studied (the_anomaly_stirs), oath_sworn_academy (the_oath_remembered), coalition_broken (the_coalitions_remnant), reconciled (the_old_wound_healed), sabotaged (what_the_sabotage_taught), wed (the_household), and the engine-written `broken` stress flag (the_breaking_point). Every event here clears the flag it reads so chains end cleanly. FLEETS: the_unfamiliar_sails (an incursion into your space — reads the engine `incursions` counter) and the_review_of_the_fleet (gates on fleetStrength).",
   "events": [
     {
       "id": "the_crowns_due",
@@ -792,6 +792,181 @@
             {
               "type": "log",
               "text": "{self.name} withdrew — from the court, the ledgers, the thousand demands — and let the house run itself for a season. It ran badly. {self.name} came back able to run it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_unfamiliar_sails",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "intruder",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "intruder",
+              "to": "self",
+              "op": "lte",
+              "value": -20
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "counter",
+          "key": "incursions",
+          "op": "gte",
+          "value": 1
+        },
+        {
+          "type": "worldFlag",
+          "flag": "sails_answered",
+          "value": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "muster",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "sails_answered",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "Unfamiliar sails in {self.name}'s own sky, and {self.name} answered them the old way: every hull crewed, every battery manned, the harbour lights burning all night so that {intruder.name} of {intruder.house} could count them. Nothing was fired. Everything was said."
+            }
+          ]
+        },
+        {
+          "id": "protest",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "intruder",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "sails_answered",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a formal protest to every court that would receive one. The sails stayed. The protest was noted, which is what protests are for."
+            }
+          ]
+        },
+        {
+          "id": "let_them_pass",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "sails_answered",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the foreign sails hang over the harbour unanswered. The towns talked. A house that does not answer its own sky is a house the sky begins to doubt."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_review_of_the_fleet",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "fleetStrength",
+          "role": "self",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "inspect_it",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "gunnery",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} walked the decks of the house's ships and asked the questions a crew does not expect from a name. The answers were uneven. {self.name} wrote them down."
+            }
+          ]
+        },
+        {
+          "id": "parade_it",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paraded the house fleet past the capital in review order, every hull polished and every flaw hidden. The watching houses counted. That was the point."
             }
           ]
         }

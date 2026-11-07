@@ -50,6 +50,7 @@ internal static class Commands
             {
                 Renderer.RenderTreasury(playerHouse);
                 Renderer.RenderHoldings(world, playerHouse.Id);
+                Renderer.RenderFleets(world);
             }
 
             foreach (var item in briefing)           // Action phase
@@ -512,6 +513,16 @@ internal static class Commands
             string holdings = n.HoldingIds.Count == 0 ? "" : $"  holdings: {string.Join(", ", n.HoldingIds.Select(h => world.Holding(h)!.Name))}";
             Console.WriteLine($"  {mark} {n.Name,-20} ({n.X,4:F0},{n.Y,4:F0})  {owner,-16}{(n.Contested ? " CONTESTED" : "")}{holdings}");
             Console.WriteLine($"      lanes → {string.Join(", ", world.Galaxy.Neighbors(n.SystemId).Select(s => world.Galaxy.System(s)!.Name))}");
+        }
+        tc.Fleets.UpdateIntel(world);                   // what the house can see from its seat on turn 0
+        var fleets = GalaxyProjection.Fleets(world);
+        if (fleets.Count > 0)
+        {
+            Console.WriteLine("\nFleets (yours exact; rivals' as reported — confidence in brackets):");
+            foreach (var f in fleets)
+                Console.WriteLine($"   {(f.IsPlayer ? "★" : "■")} {f.Name,-26} {f.OwnerHouseName,-16} at {world.Galaxy.System(f.SystemId)?.Name ?? f.SystemId,-18} str {f.Strength}" +
+                                  (f.IsPlayer ? $" · readiness {f.Readiness}{(f.Moving ? $" · → {world.Galaxy.System(f.DestinationId)?.Name} in {f.Eta}" : "")}" : $" [{f.Confidence}% as of T{f.TurnObserved}]") +
+                                  (f.Office ? " · OFFICE" : ""));
         }
         var home = world.Holdings.Values.FirstOrDefault(h => h.OwnerId == world.Protagonist!.HouseId && h.SystemId != "");
         if (home != null)

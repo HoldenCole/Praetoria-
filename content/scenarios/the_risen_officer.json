@@ -194,5 +194,15 @@
       "buildings": [],
       "//": "Not a domain — a granted billet, a fortress posting with almost no population or economy. She holds a position, not land. The merit path starts with a JOB, not an inheritance."
     }
+  ],
+  "fleets": [
+    {
+      "id": "fleet_calderon_grand",
+      "name": "Calderon Grand Fleet",
+      "owner": "calderon",
+      "system": "drydock_nine",
+      "strength": 4,
+      "//": "The Admiral's fleet, berthed at the billet Kessa holds — she serves under its guns."
+    }
   ]
 }

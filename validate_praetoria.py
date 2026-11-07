@@ -15,7 +15,7 @@ engine's loader accepts. Exit code 0 = clean, 1 = errors. Run after every batch.
 """
 import json, re, sys, glob, os
 
-COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","eventFired"}
+COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","eventFired"}
 EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","revokeClaim","adjustLegitimacy","setTitle","succeed","kill","log"}
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
 RES={"credits","materials","manpower","influence","exotics"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
@@ -237,6 +237,9 @@ def validate_scenarios(sc,allspecs):
             else:
                 for h in d.get("holdings",[]):
                     if h.get("system") and h["system"] not in galaxies[gid]: errors.append(f"[{sid}] holding {h['id']} in unknown system '{h['system']}'")
+                for f in d.get("fleets",[]):
+                    if f.get("system") not in galaxies[gid]: errors.append(f"[{sid}] fleet {f.get('id')} in unknown system '{f.get('system')}'")
+                    if f.get("owner") not in {h["id"] for h in d.get("houses",[])}: errors.append(f"[{sid}] fleet {f.get('id')} has unknown owner '{f.get('owner')}'")
         chars={c["id"] for c in d.get("characters",[])}
         houses={h["id"] for h in d.get("houses",[])}
         if d.get("protagonist") not in chars: errors.append(f"[{sid}] protagonist not in characters")

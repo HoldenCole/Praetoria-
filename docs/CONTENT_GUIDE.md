@@ -41,6 +41,7 @@ v0.5.0, 2026-11-07 (see `docs/GAP_ANALYSIS.md` and `docs/RELEASE_0.5.md`).
   /galaxy      *.json   — star maps: systems + lanes; a scenario names one and places holdings in it (§4g)
   /traits      *.json   — the §8 vocabularies as data (nature, aptitude, ambitions) for character creation (§4h)
   /backgrounds *.json   — character origins applied at creation (§4h)
+  /fleets      *.json   — the fleet layer's tuning: ship cost, upkeep, readiness, intel (§4i)
 ```
 All loaders accept JSONC (`//` and `/* */` comments, trailing commas).
 File names don't matter to the engine (it loads every `*.json` in each dir); group by theme for sanity
@@ -168,6 +169,7 @@ AND). Comparison `op` ∈ `eq, neq, lt, lte, gt, gte` (symbols `==, !=, <, <=, >
 | `rank` | `role`, `op`, `value` **or** `vsRole` | career-rank compare (literal, or against another role) |
 | `track` | `role`(default `self`), `track`, `present:bool` | is the character on this career track? (`military\|stewardship\|law`) — gate each track's arc on it |
 | `era` | `era: fractured_stars\|imperium`, `present:bool` | which start the world is in (GDD §10) — gate court-of-the-emperor content on `imperium` |
+| `fleetStrength` | `role`(default `self`), `op`, `value` | total hulls the role's house commands (GDD §6/§8) |
 | `turn` | `op`, `value` | current turn number compare |
 | `age` | `role`(default `self`), `op`, `value` | character age compare (GDD §14) |
 | `counter` | `key`, `op`, `value` | world-counter compare (gate accumulators, clocks) |
@@ -434,6 +436,24 @@ The engine writes `background:<id>` as a char flag, so events can read where the
 (`charFlag self background:upjumped`). Picks are capped at 2 nature + 2 aptitude; a background may add one
 more of each (hard cap 3). Everything is validated against the catalogs — an unknown trait throws.
 
+## 4i. Fleets — `/content/fleets/rules.json` and scenario `fleets` (§6, §8, §19)
+
+Strength is an abstract hull count; one jump per turn along lanes. A scenario seeds fleets:
+```jsonc
+"fleets": [
+  { "id": "fleet_imperial_home", "name": "The Imperial Home Fleet", "owner": "aurelian",
+    "system": "aurelia_prime", "strength": 6, "readiness": 100,
+    "office": true }      // GDD §8: commanded by the post, not owned by the blood; false = a house fleet
+]
+```
+`rules.json` tunes `shipCost` (paid from the house treasury by the *Lay down a hull* command), `upkeepPerStrength`
+(per turn), readiness recovery/decay, and intel: a rival fleet in your territory is seen at full confidence,
+one lane out at `confidenceAdjacent`; out of sight the report loses `intelDecay`/turn while the last-known
+position stands. **Engine-written, read-only:** `incursions` counter and `incursion:<houseId>` flags (a fleet
+arrived in another house's space), `ships_raised`, `fleets_raised`. Rival houses raise hulls when flush and a
+hostile head sends a rested fleet at your seat. *Unfamiliar Sails* and *The Review* are the first fleet events.
+Combat, blockade and seizure-by-fleet are the next layer — don't author outcomes that assume them yet.
+
 ## 4f. Save files
 
 A save is the serialised `World` (RNG position included) in a versioned envelope — nothing else.
@@ -676,7 +696,8 @@ TOKENS     {role.name} {role.house} {role.rank} {role.rankName}   (role = self o
 TRACKS     military | stewardship | law                 (ladders + rung names in /content/careers)
 CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
 FLAGS      background:<id> char flag (set at creation)       regency · dynasty_adopted world flags
-CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age counter resource sphere title claim eventFired
+CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age counter resource sphere title claim fleetStrength eventFired
+FLEETS     incursions · ships_raised · fleets_raised counters · incursion:<house> flags   (system-written, §19)
 EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim revokeClaim adjustLegitimacy setTitle succeed kill log
 READ-ONLY  title_rank · house_legitimacy · title_instability   (system-written, protagonist house)
 LIFECYCLE  generation · dynasty_births · breakdowns · adoptions counters · dynasty_dead · dynasty_adopted · regency flags · broken char flag   (system-written, §14/§18)

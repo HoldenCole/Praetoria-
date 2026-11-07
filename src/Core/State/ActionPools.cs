@@ -80,10 +80,11 @@ public sealed class ActionPools
         InfluenceRegen = 3, TreasuryRegen = 3, AgentsRegen = 2
     };
 
-    /// <summary>A lean, abstracted budget for an NPC house (GDD §3).</summary>
+    /// <summary>A lean, abstracted budget for an NPC house (GDD §3). One Treasury point a turn lets a rival
+    /// house issue a fleet order (GDD §9 "fleet orders" spend Treasury) without matching the player's reach.</summary>
     public static ActionPools ForNpc() => new()
     {
-        Influence = 2, Treasury = 0, Agents = 1,
-        InfluenceRegen = 2, TreasuryRegen = 0, AgentsRegen = 1
+        Influence = 2, Treasury = 1, Agents = 1,
+        InfluenceRegen = 2, TreasuryRegen = 1, AgentsRegen = 1
     };
 }

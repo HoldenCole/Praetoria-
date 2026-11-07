@@ -76,6 +76,25 @@
         "lash_out": "Break outward. Let everyone nearby pay for the pressure.",
         "withdraw": "Withdraw for a season. Let the house run itself, badly, and come back whole."
       }
+    },
+    {
+      "id": "the_unfamiliar_sails",
+      "title": "Unfamiliar Sails",
+      "body": "They are in your sky. Not a raid — nothing so honest — but a fleet flying {intruder.house}'s colours, holding station over your own worlds as if the lanes belonged to it, close enough that the harbour towns can read the names on the hulls. {intruder.name} has sent no word. The absence of a message is the message. A house answers its own sky or it does not; the galaxy will remember which.",
+      "choices": {
+        "muster": "Crew every hull, man every battery, burn the harbour lights all night. Let them count.",
+        "protest": "Protest to every court that will listen. Make it cost them in reputation.",
+        "let_them_pass": "Do nothing. They will leave, and you will have lost nothing but face."
+      }
+    },
+    {
+      "id": "the_review_of_the_fleet",
+      "title": "The Review",
+      "body": "The house's ships lie at anchor — more than one now, enough to be called a fleet without irony. A fleet is a promise the house makes to its enemies and its friends alike, and promises want inspecting.",
+      "choices": {
+        "inspect_it": "Walk the decks yourself. Ask the questions a name is not supposed to ask.",
+        "parade_it": "Parade it past the capital in review order. Let the houses count."
+      }
     }
   ]
 }

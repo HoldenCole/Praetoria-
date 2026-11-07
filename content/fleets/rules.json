@@ -1,0 +1,17 @@
+{
+  // THE FLEET LAYER (GDD §6 military pillar · §8 office vs house fleets · §19 fleets as map markers with
+  // reported intel). Strength is an abstract hull count at curated scale. One jump per turn along lanes.
+  // shipCost is paid from the HOUSE treasury (Materials → fleet, GDD §17); upkeep is per hull per turn.
+  // Intel: a rival fleet in your territory is seen at full confidence, one lane out at `confidenceAdjacent`;
+  // unseen reports lose `intelDecay` a turn while the last-known position stands.
+  "rules": {
+    "shipCost": { "materials": 6, "manpower": 3, "credits": 2 },
+    "upkeepPerStrength": { "credits": 1 },
+    "readinessRecovery": 10,
+    "readinessDecayMoving": 5,
+    "intelDecay": 15,
+    "confidenceInTerritory": 100,
+    "confidenceAdjacent": 65,
+    "movePoolCost": 1
+  }
+}

@@ -28,6 +28,7 @@ public static class ScenarioLoader
                 Characters = ParseCharacters(root),
                 Relationships = ParseRelationships(root),
                 Holdings = ParseHoldings(root),
+                Fleets = ParseFleets(root),
                 Galaxy = galaxyId == null ? null : ResolveGalaxy(path, galaxyId)
             };
         }
@@ -86,6 +87,24 @@ public static class ScenarioLoader
                     Population = ConditionParser.Int(h, "population", 0),
                     Unrest = ConditionParser.Int(h, "unrest", 0),
                     Buildings = StrList(h, "buildings")
+                });
+        return list;
+    }
+
+    private static IReadOnlyList<Fleet> ParseFleets(JsonElement root)
+    {
+        var list = new List<Fleet>();
+        if (root.TryGetProperty("fleets", out var arr) && arr.ValueKind == JsonValueKind.Array)
+            foreach (var f in arr.EnumerateArray())
+                list.Add(new Fleet
+                {
+                    Id = ConditionParser.Str(f, "id"),
+                    Name = ConditionParser.OptStr(f, "name", ConditionParser.Str(f, "id")),
+                    OwnerId = ConditionParser.Str(f, "owner"),
+                    SystemId = ConditionParser.Str(f, "system"),
+                    Strength = ConditionParser.Int(f, "strength", 1),
+                    Readiness = ConditionParser.Int(f, "readiness", 100),
+                    Office = ConditionParser.Bool(f, "office", false)
                 });
         return list;
     }

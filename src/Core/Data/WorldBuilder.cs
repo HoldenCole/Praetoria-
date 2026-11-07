@@ -48,6 +48,17 @@ public static class WorldBuilder
             world.Holdings[holding.Id] = holding;
         }
 
+        foreach (var fleet in scenario.Fleets)
+        {
+            if (!world.Houses.ContainsKey(fleet.OwnerId))
+                throw new ContentException($"Fleet '{fleet.Id}' is owned by unknown house '{fleet.OwnerId}'.");
+            if (world.Galaxy == null)
+                throw new ContentException($"Fleet '{fleet.Id}' needs a galaxy to sit in; the scenario names none.");
+            if (world.Galaxy.System(fleet.SystemId) == null)
+                throw new ContentException($"Fleet '{fleet.Id}' sits in unknown system '{fleet.SystemId}'.");
+            world.Fleets[fleet.Id] = fleet;
+        }
+
         if (world.Protagonist == null)
             throw new ContentException($"Scenario protagonist '{scenario.ProtagonistId}' is not among its characters.");
 

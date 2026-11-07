@@ -1,6 +1,8 @@
 using Godot;
+using Praetoria.Core.Commands;
 using Praetoria.Core.Galaxy;
 using Praetoria.Core.State;
+using Praetoria.Core.Systems;
 
 namespace Praetoria.Game;
 
@@ -58,14 +60,17 @@ public partial class GalaxyView : HBoxContainer
         var legend = CourtTheme.MakePanel(CourtTheme.Panel(era));
         var lv = CourtTheme.Column(3); legend.AddChild(lv);
         lv.AddChild(CourtTheme.Heading(w.Galaxy.Name, CourtTheme.Gilt(era), 18));
-        lv.AddChild(CourtTheme.Muted("Territory is public knowledge; fleets and strength will be reported intel.", era, 11));
+        lv.AddChild(CourtTheme.Muted("Territory is public knowledge. Fleets: yours exact (filled), rivals' as reported intel (hollow, faded by confidence). Chevron = house fleet, diamond = office fleet.", era, 11));
         foreach (var h in w.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var systems = GalaxyProjection.TerritoryOf(w, h.Id);
             var row = new HBoxContainer();
             var swatch = new ColorRect { Color = CourtTheme.Accent(h.AccentColor, era), CustomMinimumSize = new Vector2(14, 14) };
             row.AddChild(swatch);
-            row.AddChild(CourtTheme.Body($"  {h.Name} — {systems.Count} system(s){(h.Id == w.Protagonist?.HouseId ? "  (you)" : "")}", CourtTheme.Ink(era), 12, wrap: false));
+            int hulls = FleetSystem.StrengthOf(w, h.Id);
+            bool mine = h.Id == w.Protagonist?.HouseId;
+            string fleet = mine ? $" · {hulls} hull(s)" : (GalaxyProjection.Fleets(w).Where(f => f.OwnerHouseId == h.Id).Sum(f => f.Strength) is var seen && seen > 0 ? $" · ~{seen} hull(s) reported" : "");
+            row.AddChild(CourtTheme.Body($"  {h.Name} — {systems.Count} system(s){fleet}{(mine ? "  (you)" : "")}", CourtTheme.Ink(era), 12, wrap: false, serif: false));
             lv.AddChild(row);
         }
         _panel.AddChild(legend);
@@ -94,6 +99,34 @@ public partial class GalaxyView : HBoxContainer
                     ? $"pop {h.Population} · unrest {h.Unrest} · buildings: {(h.Buildings.Count == 0 ? "—" : string.Join(", ", h.Buildings.Select(b => _state.Content.Holdings.Building(b)?.Name ?? b)))}"
                     : $"pop ~{Rough(h.Population)} · {h.Buildings.Count} building(s) reported", era, 11));
             }
+            var here = GalaxyProjection.Fleets(w).Where(f => f.SystemId == node.SystemId).ToList();
+            if (here.Count > 0)
+            {
+                sv.AddChild(CourtTheme.Rule());
+                foreach (var f in here)
+                    sv.AddChild(CourtTheme.Body(f.IsPlayer
+                            ? $"⚓ {f.Name}{(f.Office ? " (office)" : "")} — {f.Strength} hull(s), readiness {f.Readiness}{(f.Moving ? $", en route to {w.Galaxy.System(f.DestinationId)?.Name}" : "")}"
+                            : $"◦ {f.Name} ({f.OwnerHouseName}) — ~{f.Strength} hull(s), reported {f.Confidence}% as of turn {f.TurnObserved}",
+                        f.IsPlayer ? CourtTheme.Ink(era) : CourtTheme.Muted(era), 12, serif: false));
+            }
+            // orders: send one of your idle fleets here (GDD §9 fleet orders spend Treasury)
+            var own = w.Fleets.Values.Where(f => f.OwnerId == w.Protagonist?.HouseId && !f.Moving && f.SystemId != node.SystemId)
+                                      .OrderBy(f => f.Id, StringComparer.Ordinal).ToList();
+            if (own.Count > 0)
+            {
+                sv.AddChild(CourtTheme.Rule());
+                var pid = w.ProtagonistId;
+                foreach (var f in own)
+                {
+                    var cmd = new MoveFleetCommand(pid, f.Id, node.SystemId, _state.Content.Fleets);
+                    int hops = w.Galaxy.Hops(f.SystemId, node.SystemId);
+                    bool can = cmd.CanExecute(new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0)));
+                    var btn = CourtTheme.Action($"Order {f.Name} here  ({(hops < 0 ? "unreachable" : hops + " jump(s)")}, 1 treasury)", can,
+                        can ? null : "Unreachable, already underway, or no Treasury left this turn.");
+                    btn.Pressed += () => _state.Execute(cmd);
+                    sv.AddChild(btn);
+                }
+            }
             sv.AddChild(CourtTheme.Rule());
             var lanes = w.Galaxy.Neighbors(node.SystemId).Select(s => w.Galaxy.System(s)!.Name);
             sv.AddChild(CourtTheme.Muted("Lanes → " + string.Join(", ", lanes), era, 12));
@@ -119,6 +152,7 @@ public partial class GalaxyMap : Control
     private readonly GameState _state;
     private IReadOnlyList<MapNode> _nodes = Array.Empty<MapNode>();
     private IReadOnlyList<MapLane> _lanes = Array.Empty<MapLane>();
+    private IReadOnlyList<MapFleet> _fleets = Array.Empty<MapFleet>();
     private readonly Dictionary<string, Vector2> _screen = new();
 
     private const float Pad = 48f;
@@ -141,6 +175,7 @@ public partial class GalaxyMap : Control
         var w = _state.World;
         _nodes = w == null ? Array.Empty<MapNode>() : GalaxyProjection.Nodes(w);
         _lanes = w == null ? Array.Empty<MapLane>() : GalaxyProjection.Lanes(w);
+        _fleets = w == null ? Array.Empty<MapFleet>() : GalaxyProjection.Fleets(w);
         if (SelectedNode != null) SelectedNode = _nodes.FirstOrDefault(n => n.SystemId == SelectedNode.SystemId);
         QueueRedraw();
     }
@@ -176,7 +211,7 @@ public partial class GalaxyMap : Control
             if (_screen.TryGetValue(l.A, out var a) && _screen.TryGetValue(l.B, out var b))
                 DrawLine(a, b, CourtTheme.Lane, 2f, true);
 
-        var font = ThemeDB.FallbackFont;
+        var font = CourtTheme.Sans;   // Galaxy mode speaks in a technical sans (BuildSpec §6)
         foreach (var n in _nodes)
         {
             var p = _screen[n.SystemId];
@@ -196,6 +231,42 @@ public partial class GalaxyMap : Control
                 float w2 = font.GetStringSize(n.OwnerHouseName, HorizontalAlignment.Left, -1, 11).X;
                 DrawString(font, new Vector2(p.X - w2 / 2, p.Y + Radius + 32), n.OwnerHouseName, HorizontalAlignment.Left, -1, 11, CourtTheme.Muted(era));
             }
+        }
+
+        // fleet markers (GDD §19): house fleets as chevrons, office fleets as diamonds; own exact, rivals faded by confidence
+        var bySystem = _fleets.GroupBy(f => f.SystemId);
+        foreach (var group in bySystem)
+        {
+            if (!_screen.TryGetValue(group.Key, out var p)) continue;
+            int i = 0;
+            foreach (var f in group.OrderByDescending(f => f.IsPlayer).ThenBy(f => f.FleetId, StringComparer.Ordinal))
+            {
+                var at = p + new Vector2(Radius + 10f + i * 16f, -Radius - 6f);
+                var col = CourtTheme.Accent(f.AccentColor, era);
+                float alpha = f.IsPlayer ? 1f : Mathf.Clamp(f.Confidence / 100f, 0.25f, 0.9f);
+                DrawFleetGlyph(at, f.Office, new Color(col, alpha), !f.IsPlayer);
+                string s = f.Strength.ToString();
+                DrawString(font, at + new Vector2(-3, 14 + 10), s, HorizontalAlignment.Left, -1, 10, new Color(CourtTheme.Ink(era), alpha));
+                if (f.IsPlayer && f.Moving && _screen.TryGetValue(f.DestinationId, out var dest))
+                    DrawDashedLine(p, dest, new Color(col, 0.7f), 1.5f, 6f);
+                i++;
+            }
+        }
+    }
+
+    private void DrawFleetGlyph(Vector2 at, bool office, Color col, bool hollow)
+    {
+        Vector2[] pts = office
+            ? new[] { at + new Vector2(0, -7), at + new Vector2(6, 0), at + new Vector2(0, 7), at + new Vector2(-6, 0) }
+            : new[] { at + new Vector2(-6, 5), at + new Vector2(0, -7), at + new Vector2(6, 5), at + new Vector2(0, 1) };
+        if (hollow)
+        {
+            var closed = pts.Append(pts[0]).ToArray();
+            DrawPolyline(closed, col, 1.5f, true);
+        }
+        else
+        {
+            DrawColoredPolygon(pts, col);
         }
     }
 

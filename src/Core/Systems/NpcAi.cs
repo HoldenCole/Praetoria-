@@ -17,7 +17,7 @@ public sealed class NpcAi
     /// crisis engine is supplied, an ambitious NPC may also <em>author</em> a causable crisis
     /// (GDD §16 "crises have authors") — through the same command bus the player uses.</summary>
     public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
-        HoldingCatalog? catalog = null)
+        HoldingCatalog? catalog = null, FleetRules? fleetRules = null)
     {
         var world = ctx.World;
         var npcs = world.LivingCharacters()
@@ -33,7 +33,41 @@ public sealed class NpcAi
         }
 
         if (catalog is { IsEmpty: false }) Invest(npcs, catalog, executor, ctx);
+        if (fleetRules != null && world.Galaxy != null) Sail(npcs, fleetRules, executor, ctx);
         if (crises != null) AuthorCrisis(npcs, crises, executor, ctx);
+    }
+
+    /// <summary>Rival houses keep ships (GDD §3 abstracted realms): a house with a comfortable treasury lays
+    /// down a hull at its seat; a hostile head (disposition &lt; −40 toward the protagonist) with a rested fleet
+    /// sends it toward the protagonist's seat — the menace the map is for. One order per house per turn.</summary>
+    private static void Sail(List<Character> npcs, FleetRules rules, CommandExecutor executor, CommandContext ctx)
+    {
+        var world = ctx.World;
+        var player = world.Protagonist;
+        var playerHouse = player?.HouseId;
+        var seat = world.Holdings.Values.Where(h => h.OwnerId == playerHouse && h.SystemId != "")
+                                        .OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault()?.SystemId;
+
+        foreach (var house in world.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            if (house.Id == playerHouse) continue;
+            var head = npcs.FirstOrDefault(c => c.HouseId == house.Id);
+            if (head == null) continue;
+
+            // menace: a hostile, rested house fleet moves on the player's seat
+            if (seat != null && player != null && (world.GetRelationship(head.Id, player.Id)?.Disposition ?? 0) < -40)
+            {
+                var fleet = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.Readiness >= 80 && f.SystemId != seat)
+                                               .OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (fleet != null && executor.TryExecute(new MoveFleetCommand(head.Id, fleet.Id, seat, rules), ctx)) continue;
+            }
+
+            // otherwise, keep the yards busy when the treasury is comfortable (twice the ship cost in hand)
+            var holding = world.HoldingsOf(house.Id).Where(h => h.SystemId != "").OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (holding == null) continue;
+            bool comfortable = Resource.All.All(r => house.Treasury.Get(r) >= rules.ShipCost.Get(r) * 2);
+            if (comfortable) executor.TryExecute(new RaiseFleetCommand(head.Id, holding.Id, rules), ctx);
+        }
     }
 
     /// <summary>Rival houses develop their (abstracted, GDD §3) domains: each NPC house's senior living

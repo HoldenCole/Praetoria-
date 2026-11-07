@@ -4,6 +4,7 @@ using Praetoria.Core.Crises;
 using Praetoria.Core.Events;
 using Praetoria.Core.Progression;
 using Praetoria.Core.Spheres;
+using Praetoria.Core.Systems;
 
 namespace Praetoria.Core.Data;
 
@@ -38,6 +39,9 @@ public sealed class ContentDatabase
     /// <summary>Character origins applied at creation (GDD §13 birth baseline).</summary>
     public BackgroundCatalog Backgrounds { get; }
 
+    /// <summary>Fleet-layer tuning (ship cost, upkeep, readiness, intel) from /content/fleets.</summary>
+    public FleetRules Fleets { get; }
+
     private readonly Dictionary<string, EventDef> _eventsById;
 
     public ContentDatabase(
@@ -49,7 +53,8 @@ public sealed class ContentDatabase
         TitleCatalog? titles = null,
         CareerCatalog? careers = null,
         TraitCatalog? traits = null,
-        BackgroundCatalog? backgrounds = null)
+        BackgroundCatalog? backgrounds = null,
+        FleetRules? fleets = null)
     {
         Events = events;
         Texts = texts;
@@ -60,6 +65,7 @@ public sealed class ContentDatabase
         Careers = careers ?? CareerCatalog.Empty;
         Traits = traits ?? TraitCatalog.Empty;
         Backgrounds = backgrounds ?? BackgroundCatalog.Empty;
+        Fleets = fleets ?? FleetRules.Default;
         _eventsById = new Dictionary<string, EventDef>();
         foreach (var e in events) _eventsById[e.Id] = e;
     }

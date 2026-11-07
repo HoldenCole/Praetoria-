@@ -222,5 +222,23 @@
       ],
       "//": "Harrow's wealth engine — what a forge-world buys you, and what Voss lacks."
     }
+  ],
+  "fleets": [
+    {
+      "id": "fleet_voss_home",
+      "name": "The Greywater Remnant",
+      "owner": "voss",
+      "system": "greywater",
+      "strength": 1,
+      "readiness": 70,
+      "//": "What the fall left: one tired squadron."
+    },
+    {
+      "id": "fleet_harrow_main",
+      "name": "Harrow's Hammer",
+      "owner": "harrow",
+      "system": "anvils_rest",
+      "strength": 3
+    }
   ]
 }

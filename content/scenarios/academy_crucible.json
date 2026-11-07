@@ -25,6 +25,15 @@
     { "id": "sato_holdfast", "system": "sato_holdfast",  "owner": "sato",  "name": "Sato Holdfast",   "specialization": "fortress",    "population": 0 }
   ],
 
+  // Each house keeps a small house fleet at its seat (GDD §8 treasury 2). Corwin's is the largest — the
+  // Count's standing shows on the map before a single word is spoken at the Academy.
+  "fleets": [
+    { "id": "fleet_vega",   "name": "Vega Household Squadron", "owner": "vega",   "system": "tessaly",        "strength": 1 },
+    { "id": "fleet_corwin", "name": "The Corwin Line",         "owner": "corwin", "system": "anvil",          "strength": 2 },
+    { "id": "fleet_drake",  "name": "Drake Convoy Guard",      "owner": "drake",  "system": "drake_crossing", "strength": 1 },
+    { "id": "fleet_sato",   "name": "Sato Picket",             "owner": "sato",   "system": "sato_holdfast",  "strength": 1 }
+  ],
+
   "characters": [
     {
       "id": "vega_marcus", "sex": "male", "name": "Marcus Vega", "house": "vega", "age": 17,

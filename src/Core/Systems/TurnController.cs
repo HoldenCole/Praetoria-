@@ -38,6 +38,7 @@ public sealed class TurnController
     private readonly CrisisEngine? _crises;
     private readonly SphereSystem? _spheres;
     private readonly ProgressionSystem? _progression;
+    private readonly FleetSystem _fleets;
     private readonly DynastySystem _dynasty = new();   // always-on — the dynasty IS the game (GDD §14)
     private readonly int _briefingBudget;
     private readonly List<BriefingItem> _briefing = new();
@@ -56,6 +57,9 @@ public sealed class TurnController
     /// <summary>The dynasty lifecycle (GDD §14) — always present (aging/death/birth/succession).</summary>
     public DynastySystem Dynasty => _dynasty;
 
+    /// <summary>The fleet layer (GDD §6/§19): transit, upkeep, incursions, intel. A no-op without a galaxy.</summary>
+    public FleetSystem Fleets => _fleets;
+
     public TurnController(World world, ContentDatabase content, Director? director = null, int briefingBudget = 3)
     {
         World = world;
@@ -66,6 +70,7 @@ public sealed class TurnController
         _crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises);
         _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres);
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
+        _fleets = new FleetSystem(content.Fleets);
         _briefingBudget = briefingBudget;
     }
 
@@ -81,6 +86,7 @@ public sealed class TurnController
         World.Turn++;
         foreach (var pools in World.Pools.Values) pools.Regenerate();
         _economy?.Accrue(World);     // RNG-free, so determinism is preserved (GDD §17)
+        _fleets.Tick(World);         // fleets move, eat, arrive; the intel picture refreshes (GDD §19) — RNG-free
         _spheres?.Recompute(World);  // power-balance projection + threat/coalition (GDD §7), also RNG-free
         _progression?.Apply(World);  // title soft-lock instability (GDD §13), also RNG-free
 
@@ -127,7 +133,7 @@ public sealed class TurnController
     public void EndTurn()
     {
         Phase = TurnPhase.Resolve;
-        _npcAi.Act(Executor, Context(), _crises, _economy == null ? null : _content.Holdings);   // NPCs act, invest, and may author a crisis
+        _npcAi.Act(Executor, Context(), _crises, _economy == null ? null : _content.Holdings, _fleets.Rules);   // NPCs act, invest, sail, and may author a crisis
 
         // Organic onset: the ripe-conditions roll (GDD §16 mixed origin). NPC-authored crises this
         // turn are already active, so they're excluded from the causable pool here.

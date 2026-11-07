@@ -19,6 +19,9 @@ public sealed class Scenario
     /// <summary>Starting holdings (GDD §17 — "one barony = one modest holding"). Owned by houses.</summary>
     public IReadOnlyList<Holding> Holdings { get; init; } = Array.Empty<Holding>();
 
+    /// <summary>Starting fleets (GDD §8 — a house fleet, or an office fleet the house commands by its post).</summary>
+    public IReadOnlyList<Fleet> Fleets { get; init; } = Array.Empty<Fleet>();
+
     /// <summary>The galaxy this scenario is played on (GDD §19), resolved from its "galaxy" id at load; null = no map.</summary>
     public Galaxy.Galaxy? Galaxy { get; init; }
 }

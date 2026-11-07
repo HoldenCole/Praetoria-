@@ -10,6 +10,12 @@ namespace Praetoria.Game;
 /// </summary>
 public static class CourtTheme
 {
+    // System fonts by family so no font files ship yet: Court speaks in a serif, Galaxy in a technical sans.
+    // Godot falls back along the list, then to its built-in font, so a missing family is never a crash.
+    private static SystemFont? _serif, _sans;
+    public static SystemFont Serif => _serif ??= new SystemFont { FontNames = new[] { "Georgia", "Liberation Serif", "DejaVu Serif", "Times New Roman", "serif" } };
+    public static SystemFont Sans => _sans ??= new SystemFont { FontNames = new[] { "Inter", "Liberation Sans", "DejaVu Sans", "Segoe UI", "sans-serif" } };
+
     public static Color Background(string era) => era == "imperium" ? Color.FromHtml("#17130C") : Color.FromHtml("#0E1116");
     public static Color Panel(string era) => era == "imperium" ? Color.FromHtml("#26201A") : Color.FromHtml("#171C24");
     public static Color PanelAlt(string era) => era == "imperium" ? Color.FromHtml("#2F2820") : Color.FromHtml("#1E2530");
@@ -41,17 +47,19 @@ public static class CourtTheme
         return p;
     }
 
-    public static Label Heading(string text, Color color, int size = 20)
+    public static Label Heading(string text, Color color, int size = 20, bool serif = true)
     {
         var l = new Label { Text = text };
+        l.AddThemeFontOverride("font", serif ? Serif : Sans);
         l.AddThemeFontSizeOverride("font_size", size);
         l.AddThemeColorOverride("font_color", color);
         return l;
     }
 
-    public static Label Body(string text, Color color, int size = 14, bool wrap = true)
+    public static Label Body(string text, Color color, int size = 14, bool wrap = true, bool serif = true)
     {
         var l = new Label { Text = text };
+        l.AddThemeFontOverride("font", serif ? Serif : Sans);
         l.AddThemeFontSizeOverride("font_size", size);
         l.AddThemeColorOverride("font_color", color);
         if (wrap)
@@ -88,6 +96,21 @@ public static class CourtTheme
         return v;
     }
 
+    /// <summary>The portrait slot (GDD §4 "text + character portraits"): until art exists, a badge in the house
+    /// accent bearing the character's initials. Drop a TextureRect in its place when portraits arrive.</summary>
+    public static Control Portrait(string name, Color accent, Color ink, int size = 56)
+    {
+        var badge = new PortraitBadge(Initials(name), accent, ink) { CustomMinimumSize = new Vector2(size, size) };
+        return badge;
+    }
+
+    private static string Initials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "?";
+        return parts.Length == 1 ? parts[0][..1].ToUpperInvariant() : (parts[0][..1] + parts[^1][..1]).ToUpperInvariant();
+    }
+
     public static void Clear(Node parent)
     {
         foreach (var child in parent.GetChildren())
@@ -95,5 +118,26 @@ public static class CourtTheme
             parent.RemoveChild(child);
             child.QueueFree();
         }
+    }
+}
+
+/// <summary>A drawn initials badge standing in for a portrait.</summary>
+public partial class PortraitBadge : Control
+{
+    private readonly string _initials;
+    private readonly Color _accent, _ink;
+
+    public PortraitBadge(string initials, Color accent, Color ink) { _initials = initials; _accent = accent; _ink = ink; }
+
+    public override void _Draw()
+    {
+        float r = Mathf.Min(Size.X, Size.Y) / 2f;
+        var c = Size / 2f;
+        DrawCircle(c, r, _accent);
+        DrawArc(c, r - 1.5f, 0, Mathf.Tau, 48, new Color(_ink, 0.6f), 2f, true);
+        int fs = (int)(r * 0.9f);
+        var font = CourtTheme.Serif;
+        var sz = font.GetStringSize(_initials, HorizontalAlignment.Left, -1, fs);
+        DrawString(font, new Vector2(c.X - sz.X / 2f, c.Y + sz.Y / 4f), _initials, HorizontalAlignment.Left, -1, fs, _ink);
     }
 }

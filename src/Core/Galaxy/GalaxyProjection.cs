@@ -10,6 +10,13 @@ public sealed record MapNode(
 
 public sealed record MapLane(string A, string B);
 
+/// <summary>A fleet marker. Own fleets are exact (confidence 100); rival fleets come from the house's intel —
+/// last-known system, estimated strength, and how much to trust it (GDD §19 "reported intel with a confidence").</summary>
+public sealed record MapFleet(
+    string FleetId, string Name, string OwnerHouseId, string OwnerHouseName, string AccentColor,
+    string SystemId, int Strength, int Readiness, bool Office, bool Moving, string DestinationId, int Eta,
+    bool IsPlayer, int Confidence, int TurnObserved);
+
 /// <summary>
 /// The Godot-free projection the Galaxy view renders (BuildSpec §1 — presentation reads from Core, never
 /// the reverse). Territory shading comes from holding ownership and the owning house's accent colour
@@ -56,6 +63,23 @@ public static class GalaxyProjection
         world.Galaxy == null
             ? Array.Empty<MapLane>()
             : world.Galaxy.Lanes.Select(l => new MapLane(l.A, l.B)).ToList();
+
+    /// <summary>Fleet markers: the player's own fleets as they are; rivals' as the intel picture says.</summary>
+    public static IReadOnlyList<MapFleet> Fleets(World world)
+    {
+        var list = new List<MapFleet>();
+        var player = world.Protagonist?.HouseId;
+        foreach (var f in world.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal))
+        {
+            var house = world.House(f.OwnerId);
+            string accent = house?.AccentColor ?? UnclaimedAccent;
+            if (f.OwnerId == player)
+                list.Add(new MapFleet(f.Id, f.Name, f.OwnerId, house?.Name ?? f.OwnerId, accent, f.SystemId, f.Strength, f.Readiness, f.Office, f.Moving, f.DestinationId, f.Eta, true, 100, world.Turn));
+            else if (world.Intel.TryGetValue(f.Id, out var intel) && intel.Confidence > 0)
+                list.Add(new MapFleet(f.Id, f.Name, f.OwnerId, house?.Name ?? f.OwnerId, accent, intel.SystemId, intel.Strength, -1, f.Office, false, "", 0, false, intel.Confidence, intel.TurnObserved));
+        }
+        return list;
+    }
 
     /// <summary>Systems a house holds territory in, in id order.</summary>
     public static IReadOnlyList<string> TerritoryOf(World world, string houseId) =>

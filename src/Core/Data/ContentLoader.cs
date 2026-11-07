@@ -40,8 +40,9 @@ public static class ContentLoader
         var careers = CareerLoader.LoadFromDirectory(contentRoot);
         var traits = TraitLoader.LoadFromDirectory(contentRoot);
         var backgrounds = BackgroundLoader.LoadFromDirectory(contentRoot);
+        var fleets = FleetLoader.LoadFromDirectory(contentRoot);
 
-        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers, traits, backgrounds);
+        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers, traits, backgrounds, fleets);
     }
 
     private static IEnumerable<string> EnumerateJson(string dir) =>
