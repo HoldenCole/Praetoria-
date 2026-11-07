@@ -170,6 +170,19 @@ public sealed class NpcAi
             var steward = npcs.FirstOrDefault(c => c.HouseId == house.Id);
             if (steward == null) continue;
 
+            // an insolvent steward raises coin where it can (GDD §17 "the one you run out of"): sells surplus materials or
+            // exotics on the exchange, and tightens the tithe; a solvent one with a restless world eases it again.
+            if (house.Treasury.Credits < 0)
+            {
+                var sellExotics = catalog.Rates.FirstOrDefault(r => r.Give == Resource.Exotics && r.Get == Resource.Credits);
+                var sellMaterials = catalog.Rates.FirstOrDefault(r => r.Give == Resource.Materials && r.Get == Resource.Credits);
+                if (sellExotics != null && house.Treasury.Exotics >= sellExotics.GiveAmount) executor.TryExecute(new ExchangeCommand(steward.Id, sellExotics, catalog), ctx);
+                else if (sellMaterials != null && house.Treasury.Materials >= sellMaterials.GiveAmount * 3 + 6) executor.TryExecute(new ExchangeCommand(steward.Id, sellMaterials, catalog, times: 3), ctx);
+                if (catalog.Tax("harsh") != null && !world.HoldingsOf(house.Id).Any(h => h.Unrest >= 60)) executor.TryExecute(new SetTaxPolicyCommand(steward.Id, "harsh", catalog), ctx);
+            }
+            else if (house.TaxPolicy == "harsh" && house.Treasury.Credits > 10 && catalog.Tax("normal") != null) executor.TryExecute(new SetTaxPolicyCommand(steward.Id, "normal", catalog), ctx);
+            else if (house.TaxPolicy != "lenient" && house.Treasury.Credits > 25 && catalog.Tax("lenient") != null && world.HoldingsOf(house.Id).Any(h => h.Unrest >= 60)) executor.TryExecute(new SetTaxPolicyCommand(steward.Id, "lenient", catalog), ctx);
+
             // a rich house with a market buys the materials it lacks (GDD §17 conversion chains)
             if (house.Treasury.Materials < 6 && house.Treasury.Credits > 20)
             {

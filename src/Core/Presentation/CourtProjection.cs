@@ -117,7 +117,7 @@ public static class CourtProjection
             var laws = SetSuccessionLawCommand.Laws.Select(l => new Option(l, l, new SetSuccessionLawCommand(p.Id, l).CanExecute(ctx) ? null : (house.SuccessionLaw == l ? "current law" : "no influence"))).ToList();
             var taxes = content.Holdings.TaxPolicies.Select(t => new Option(t.Id, $"{t.Name} ({t.CreditsBonus:+#;-#;0} credits/holding, unrest {t.UnrestDrift:+#;-#;0})", new SetTaxPolicyCommand(p.Id, t.Id, content.Holdings).CanExecute(ctx) ? null : "current")).ToList();
             var exchange = content.Holdings.Rates.Select(r => new Option($"{r.Give}>{r.Get}", $"{r.GiveAmount} {r.Give} → {r.GetAmount} {r.Get}",
-                new ExchangeCommand(p.Id, r, content.Holdings).CanExecute(ctx) ? null : (ExchangeCommand.HasExchange(w, house.Id, content.Holdings) ? "cannot afford" : "needs a market, free port or patronage office"))).ToList();
+                new ExchangeCommand(p.Id, r, content.Holdings).CanExecute(ctx) ? null : "cannot afford")).ToList();
             var emperor = ThroneSystem.Emperor(w);
             var throne = new ThroneCard(new ProclaimImperiumCommand(p.Id, content.Titles).Refusal(ctx), new SeizeThroneCommand(p.Id, content.Titles, content.Friction).Refusal(ctx),
                 house.Title == "emperor", emperor?.Name);

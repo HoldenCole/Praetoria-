@@ -29,7 +29,32 @@ public class StrategyTests
         Assert.Equal(materials + 4, house.Treasury.Materials);
 
         var (_, w2) = Fresh("the_risen_officer");                     // Vane: a bare fortress billet, no market
-        Assert.False(new ExchangeCommand(w2.ProtagonistId, rate, content.Holdings).CanExecute(new CommandContext(w2, TestContent.Rng())));
+        var vane = w2.House(w2.Protagonist!.HouseId)!;                 // ...so the caravaneers take half (GDD §17: never locked out)
+        Assert.False(ExchangeCommand.HasExchange(w2, vane.Id, content.Holdings));
+        Assert.Equal(1, ExchangeCommand.Received(w2, vane.Id, rate, content.Holdings, 1));
+        Assert.Equal(4, ExchangeCommand.Received(w, "serval", rate, content.Holdings, 2));
+        Assert.Equal(vane.Treasury.Credits >= 3, new ExchangeCommand(w2.ProtagonistId, rate, content.Holdings).CanExecute(new CommandContext(w2, TestContent.Rng())));
+    }
+
+    [Fact]
+    public void UnpaidFleets_LoseReadiness_ThenDesert_UntilTheDebtIsPayable()
+    {
+        var (content, w) = Fresh("academy_crucible");
+        var corwin = w.House("corwin")!;
+        corwin.Treasury.Credits = -FleetSystem.DesertionDebt - 5;
+        var fleet = w.Fleets.Values.First(f => f.OwnerId == "corwin");
+        fleet.Ships["frigate"] = 3; fleet.Recount();
+        int before = fleet.Strength, readiness = fleet.Readiness;
+        var fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
+        fleets.Tick(w);
+        Assert.Equal(before - 1, fleet.Strength);
+        Assert.True(fleet.Readiness < readiness);
+        Assert.Equal(1, w.Counter(FleetSystem.DesertionsCounter));
+        Assert.Contains(w.History, h => h.Text.Contains("desert"));
+
+        corwin.Treasury.Credits = 50;                                   // paid again: nobody walks
+        fleets.Tick(w);
+        Assert.Equal(before - 1, fleet.Strength);
     }
 
     [Fact]

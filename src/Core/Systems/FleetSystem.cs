@@ -124,11 +124,47 @@ public sealed class FleetSystem
             if (bill.IsEmpty()) continue;
             foreach (var r in Resource.All) house.Treasury.Add(r, -bill.Get(r));
             house.Treasury.ClampNonCredit();
+            Desert(w, house);
         }
 
         RefreshAdmiralFlags(w);
         WarWeariness(w);
         UpdateIntel(w);
+    }
+
+    /// <summary>Credits a house is allowed to owe before its unpaid crews start walking (GDD §17 "the one you run out of").</summary>
+    public const int DesertionDebt = 20;
+    public const int UnpaidReadinessLoss = 10;
+    public const string DesertionsCounter = "desertions";
+
+    /// <summary>An insolvent house cannot pay its crews: readiness slides, and past <see cref="DesertionDebt"/> one hull a turn
+    /// slips away from the least-ready fleet. Debt is therefore self-limiting — a fleet shrinks until its upkeep is payable —
+    /// and the chronicle says why the picket thinned.</summary>
+    private void Desert(World w, House house)
+    {
+        if (house.Treasury.Credits >= 0) return;
+        var fleets = w.Fleets.Values.Where(f => f.OwnerId == house.Id).OrderBy(f => f.Id, StringComparer.Ordinal).ToList();
+        if (fleets.Count == 0) return;
+        foreach (var f in fleets) f.Readiness = Math.Max(0, f.Readiness - UnpaidReadinessLoss);
+        if (house.Treasury.Credits > -DesertionDebt) return;
+
+        var victim = fleets.OrderBy(f => f.Readiness).ThenBy(f => f.Id, StringComparer.Ordinal).First();
+        if (victim.Ships.Count > 0)
+        {
+            var cls = victim.Ships.Where(k => k.Value > 0).OrderByDescending(k => k.Value).ThenBy(k => k.Key, StringComparer.Ordinal).First().Key;
+            victim.Ships[cls] -= 1;
+            if (victim.Ships[cls] == 0) victim.Ships.Remove(cls);
+            victim.Recount();
+            if (victim.Ships.Count == 0) victim.Strength = 0;
+        }
+        else victim.Strength -= 1;
+        w.WorldCounters[DesertionsCounter] = w.Counter(DesertionsCounter) + 1;
+        if (victim.Strength <= 0)
+        {
+            w.Fleets.Remove(victim.Id); w.Intel.Remove(victim.Id);
+            w.Log($"Unpaid for too long, the last crews of {victim.Name} desert; {house.Name} has no fleet left there.");
+        }
+        else w.Log($"Unpaid crews desert {victim.Name}: {house.Name} owes {-house.Treasury.Credits} credits it does not have.");
     }
 
     private static void Arrive(World w, Fleet f)

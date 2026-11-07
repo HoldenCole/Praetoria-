@@ -31,6 +31,7 @@ try
         "map"      => Commands.Map(opts),
         "epilogue" => Commands.EpilogueOf(opts),
         "simulate" => Commands.Simulate(opts),
+        "qa"       => Qa.Run(opts),
         _ => Unknown(command)
     };
 }
@@ -80,6 +81,7 @@ static int Help()
     Console.WriteLine("  map [--scenario id]            the galaxy: systems, lanes, and who holds what");
     Console.WriteLine("  epilogue --load file           the saga epilogue of a saved game");
     Console.WriteLine("  simulate [--scenario id|all] [--seeds N] [--turns N]   balance soak: aggregate stats over many seeds");
+    Console.WriteLine("  qa       [--scenario id|all] [--seeds N] [--turns N]   QA soak: randomised play, determinism, save/load, coverage");
     Console.WriteLine("  turn [--seed N] [--turns N]   full Briefing→Action→Resolve cycle with pools + NPCs");
     Console.WriteLine("  economy [--seed N] [--turns N] domain economy: holdings accrue, invest in buildings");
     Console.WriteLine("  crisis [--seed N]              crisis gate/cascade/damper demonstration");

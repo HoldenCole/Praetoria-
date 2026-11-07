@@ -3,7 +3,7 @@
     {
       "id": "first_formation",
       "tier": "ambient",
-      "weight": 6,
+      "weight": 40,
       "repeatable": false,
       "when": [
         {

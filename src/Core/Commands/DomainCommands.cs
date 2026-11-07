@@ -86,11 +86,15 @@ public sealed class ExchangeCommand : ICommand
     public static bool HasExchange(World w, string houseId, HoldingCatalog catalog) =>
         catalog.ExchangeBuildings.Count == 0 || w.HoldingsOf(houseId).Any(h => h.Buildings.Any(b => catalog.ExchangeBuildings.Contains(b)));
 
+    /// <summary>What a house without a market of its own receives: the caravaneers take half (GDD §17 — a market is
+    /// worth building, but no house is ever locked out of converting what it has into what it lacks).</summary>
+    public static int Received(World w, string houseId, ExchangeRate rate, HoldingCatalog catalog, int times) =>
+        HasExchange(w, houseId, catalog) ? rate.GetAmount * times : Math.Max(1, rate.GetAmount * times / 2);
+
     public bool CanExecute(CommandContext ctx)
     {
         var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
         if (actor?.Alive != true || house == null || _catalog.Rates.Count == 0) return false;
-        if (!HasExchange(w, house.Id, _catalog)) return false;
         return house.Treasury.Get(_rate.Give) >= _rate.GiveAmount * _times;
     }
 
@@ -98,7 +102,7 @@ public sealed class ExchangeCommand : ICommand
     {
         var house = ctx.World.House(ctx.World.Char(ActorId)!.HouseId)!;
         house.Treasury.Add(_rate.Give, -_rate.GiveAmount * _times);
-        house.Treasury.Add(_rate.Get, _rate.GetAmount * _times);
+        house.Treasury.Add(_rate.Get, Received(ctx.World, house.Id, _rate, _catalog, _times));
         house.Treasury.ClampNonCredit();
     }
 }

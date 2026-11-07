@@ -14,7 +14,7 @@
     },
     {
       "id": "forge_world", "name": "Forge-World",
-      "yield":  { "materials": 4 },
+      "yield":  { "materials": 4, "credits": 1 },
       "upkeep": { "credits": 2 },
       "slots": 3, "popGrowth": 1, "maxPopulation": 40, "popManpower": 20
     },
