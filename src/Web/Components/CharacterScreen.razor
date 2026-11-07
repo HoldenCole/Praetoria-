@@ -1,0 +1,81 @@
+@inject GameClient G
+@{
+    var m = Model; var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
+    var track = c.Careers.ById(p.CareerTrack); int maxRank = track?.MaxRank ?? 0;
+    var skills = p.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value).ThenBy(k => k.Key, StringComparer.Ordinal).ToList();
+    var mine = w.History.Where(h => h.EventId != null && h.Text.Contains(p.Name)).Reverse().Take(12).ToList();
+    var spouse = DynastySystem.Spouse(w, p);
+    var children = w.Characters.Values.Where(k => k.MotherId == p.Id || k.FatherId == p.Id).OrderByDescending(k => k.Age).ToList();
+    var ambition = c.Traits.Ambitions.FirstOrDefault(a => a.Id == p.Ambition);
+    var honors = m.Standing?.Honors ?? new List<string>();
+    var flags = p.Flags.Where(f => !f.StartsWith("background:") && !f.StartsWith("honor:")).OrderBy(f => f, StringComparer.Ordinal).ToList();
+    var ties = m.Connections.OrderByDescending(x => Math.Abs(x.Disposition)).Take(8).ToList();
+}
+<div class="character" style="--accent:@house.AccentColor">
+    <div class="col">
+        <section class="card sheet-head">
+            <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="112" />
+            <div class="sheet-id">
+                <h2>@p.Name</h2>
+                <div class="sub">@m.Character.RankName of @house.Name · @m.Character.TitleName · @p.Age years · @(p.Sex.Length > 0 ? p.Sex : "")</div>
+                @if (m.Character.Background != null) { <div class="sub muted">Background: @m.Character.Background</div> }
+                <div class="traits">
+                    @foreach (var t in m.Character.Nature) { <span class="trait nature" title="@TraitDesc(t)">@TraitName(t)</span> }
+                    @foreach (var t in m.Character.Aptitude) { <span class="trait apt" title="@TraitDesc(t)">@TraitName(t)</span> }
+                </div>
+            </div>
+            <Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="56" />
+        </section>
+
+        <section class="card">
+            <h3>Career · @(track?.Name ?? p.CareerTrack)</h3>
+            <div class="ladder">
+                @for (int r = 0; r <= maxRank; r++) { <span class="rung @(r == p.CareerRank ? "here" : r < p.CareerRank ? "past" : "")" title="@(track?.RankName(r) ?? r.ToString())">@(track?.RankName(r) ?? r.ToString())</span> }
+            </div>
+            <div class="kv"><span>Ambition</span><b>@(ambition?.Name ?? p.Ambition)</b></div>
+            @if (ambition != null) { <p class="muted small">@ambition.Description</p> }
+            <div class="kv"><span>Stress</span><b class="@(p.Stress >= 70 ? "warn" : "")"><span class="bar"><i style="width:@p.Stress%" class="@(p.Stress >= 70 ? "low" : "")"></i></span>@p.Stress@(m.Character.Broken ? " · broken" : "")</b></div>
+            @if (honors.Count > 0) { <div class="kv"><span>Honors</span><b>@string.Join(", ", honors)</b></div> }
+            @if (flags.Count > 0) { <div class="kv"><span>Marks</span><b>@string.Join(" · ", flags.Select(f => f.Replace('_', ' ')))</b></div> }
+        </section>
+
+        <section class="card">
+            <h3>Skills</h3>
+            @if (skills.Count == 0) { <div class="muted">Untrained.</div> }
+            @foreach (var sk in skills) { <div class="skill"><span>@sk.Key</span><span class="bar wide"><i style="width:@(Math.Min(100, sk.Value * 20))%"></i></span><b>@sk.Value</b></div> }
+            <div class="muted small">Skills grow through choices and training; ranks unlock what the galaxy will let you attempt.</div>
+        </section>
+    </div>
+
+    <div class="col">
+        <section class="card">
+            <h3>Blood and bonds</h3>
+            @if (spouse != null) { <div class="person"><Portrait Id="@spouse.Id" Name="@spouse.Name" Sex="@spouse.Sex" Age="@spouse.Age" Alive="@spouse.Alive" Accent="@(w.House(spouse.HouseId)?.AccentColor ?? "#888")" Size="34" /><span><b>@spouse.Name</b> <span class="muted">spouse · @(w.House(spouse.HouseId)?.Name) · @spouse.Age</span></span></div> }
+            else { <div class="muted">Unwed.</div> }
+            @foreach (var k in children) { <div class="person"><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@house.AccentColor" Size="30" /><span><b>@k.Name</b> <span class="muted">@(k.Alive ? $"{k.Sex}, {k.Age}" : "†")</span></span></div> }
+            @if (children.Count == 0) { <div class="muted">No children yet. The line is you.</div> }
+        </section>
+        <section class="card">
+            <h3>Those who matter</h3>
+            @foreach (var t in ties)
+            {
+                var ch = w.Char(t.Id)!;
+                <div class="person"><Portrait Id="@ch.Id" Name="@ch.Name" Sex="@ch.Sex" Age="@ch.Age" Accent="@(w.House(ch.HouseId)?.AccentColor ?? "#888")" Size="30" />
+                    <span><b>@t.Name</b> <span class="muted">@t.Detail of @t.HouseName</span></span>
+                    <span class="pill @(t.Disposition < -20 ? "warn" : t.Disposition > 20 ? "good" : "")">@(t.Disposition >= 0 ? "+" : "")@t.Disposition@(t.Bond.Length > 0 ? $" · {t.Bond}" : "")</span>
+                    @foreach (var f in t.Flags.Take(3)) { <span class="pill small">@f.Replace('_', ' ')</span> }
+                </div>
+            }
+        </section>
+        <section class="card">
+            <h3>Your story so far</h3>
+            @if (mine.Count == 0) { <div class="muted">Nothing written yet.</div> }
+            @foreach (var h in mine) { <div class="line"><span class="muted">T@h.Turn</span> @h.Text</div> }
+        </section>
+    </div>
+</div>
+@code {
+    [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
+    private string TraitName(string id) => G.Content!.Traits.Nature.Concat(G.Content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Name ?? id;
+    private string TraitDesc(string id) => G.Content!.Traits.Nature.Concat(G.Content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Description ?? "";
+}

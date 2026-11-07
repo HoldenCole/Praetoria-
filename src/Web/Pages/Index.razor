@@ -23,7 +23,7 @@ else if (G.Turn == null)
 else
 {
     var m = G.Court();
-    <div class="gs-shell" style="--accent:@m.HouseAccent">
+    <div class="gs-shell" style="--accent:@m.HouseAccent" @ref="_shell">
         <TopBar OnSave="SaveLocal" OnExport="Download" OnQuit="Abandon" SavedFlash="@_savedFlash" />
         <nav class="rail">
             @foreach (var (id, glyph, label) in Screens)
@@ -36,6 +36,7 @@ else
         <main class="screen">
             @switch (_screen)
             {
+                case "character": <CharacterScreen Model="m" /> break;
                 case "galaxy": <GalaxyMap @ref="_map" /> break;
                 case "planets": <PlanetsScreen OnFocus="FocusSystem" /> break;
                 case "house": <HouseScreen Model="m" /> break;
@@ -89,7 +90,7 @@ else
 @code {
     private static readonly (string id, string glyph, string label)[] Screens =
     {
-        ("office", "⌂", "Office"), ("galaxy", "✦", "Galaxy"), ("planets", "◍", "Worlds"), ("house", "⚜", "House"),
+        ("office", "⌂", "Office"), ("character", "☺", "You"), ("galaxy", "✦", "Galaxy"), ("planets", "◍", "Worlds"), ("house", "⚜", "House"),
         ("military", "⚔", "Military"), ("dynasty", "⚭", "Dynasty"), ("houses", "☗", "Houses"), ("chronicle", "☰", "Chronicle")
     };
     private string _screen = "office";
@@ -98,6 +99,25 @@ else
     private string? _succession;
     private string? _lastProtagonist;
     private GalaxyMap? _map;
+    private ElementReference _shell;
+    private DotNetObjectReference<Index>? _self;
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (first) { _self = DotNetObjectReference.Create(this); try { await JS.InvokeVoidAsync("praetoria.keys", _self); } catch { } }
+    }
+
+    /// <summary>Keyboard: 1–9 switch screens, Enter ends the turn (when no report is open), Escape closes a window.</summary>
+    [JSInvokable]
+    public async Task Key(string key)
+    {
+        if (G.Turn == null) return;
+        if (key == "Escape") { _openReport = null; _succession = null; }
+        else if (key == "Enter" && _openReport == null && _succession == null) await EndTurn();
+        else if (key.Length == 1 && char.IsDigit(key[0])) { int i = key[0] - '1'; if (i >= 0 && i < Screens.Length) _screen = Screens[i].id; }
+        else return;
+        StateHasChanged();
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,5 +163,5 @@ else
     private async Task ContinueAutosave() { try { var json = await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey); if (!string.IsNullOrEmpty(json)) G.LoadJson(json); } catch { } }
     private void LoadFromJson(string json) { try { G.LoadJson(json); } catch { } }
     private void Abandon() { _epilogueDismissed = false; _screen = "office"; _openReport = null; _succession = null; _lastProtagonist = null; G.Abandon(); }
-    public void Dispose() => G.Changed -= OnChanged;
+    public void Dispose() { G.Changed -= OnChanged; _self?.Dispose(); }
 }

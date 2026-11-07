@@ -32,7 +32,8 @@
           a.download = name; a.click(); URL.revokeObjectURL(a.href);
         },
         scrollTop: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
-        size: (el) => { const r = el.getBoundingClientRect(); return [r.width, r.height]; }
+        size: (el) => { const r = el.getBoundingClientRect(); return [r.width, r.height]; },
+        keys: (ref) => { window.addEventListener('keydown', e => { if (e.target && ['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return; if (e.key === 'Enter' || e.key === 'Escape' || /^[1-9]$/.test(e.key)) ref.invokeMethodAsync('Key', e.key); }); }
       };
     </script>
     <script src="_framework/blazor.webassembly.js"></script>
