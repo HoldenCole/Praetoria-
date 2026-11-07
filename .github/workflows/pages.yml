@@ -1,8 +1,8 @@
 name: Play (GitHub Pages)
 
-# Publishes the browser client (src/Web, Blazor WebAssembly over the headless Core) to GitHub Pages on every push to
-# main. The live game is the README's first link. Pages must be set to "GitHub Actions" as its source; the
-# configure-pages step turns that on the first time it runs.
+# Publishes the browser client (src/Web, Blazor WebAssembly over the headless Core) on every push to main by pushing
+# the built site to the `gh-pages` branch, which GitHub Pages serves. The live game is the README's first link.
+# If the link ever 404s, Pages needs enabling once: Settings → Pages → Source "Deploy from a branch" → gh-pages / (root).
 
 on:
   push:
@@ -10,16 +10,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,19 +31,10 @@ jobs:
           sed -i 's|<base href="/" />|<base href="/${{ github.event.repository.name }}/" />|' out/wwwroot/index.html
           cp out/wwwroot/index.html out/wwwroot/404.html
           touch out/wwwroot/.nojekyll
-      - uses: actions/configure-pages@v5
+      - name: Push to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: out/wwwroot
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: out/wwwroot
+          force_orphan: true
+          commit_message: "Publish web client from ${{ github.sha }}"

@@ -36,9 +36,9 @@ development sessions use; it screenshots each screen and fails on any console or
 
 ## Deployment
 
-`.github/workflows/pages.yml` publishes `out/wwwroot` to GitHub Pages on every push to `main`, rewriting `<base href>` to the
-repository path and copying `index.html` to `404.html` for deep links. Pages must have *GitHub Actions* as its source; the
-`configure-pages` step enables that the first time if the token is allowed to.
+`.github/workflows/pages.yml` publishes `out/wwwroot` to the `gh-pages` branch on every push to `main`, rewriting `<base href>`
+to the repository path and copying `index.html` to `404.html` for deep links. GitHub Pages serves that branch; if it is not
+yet switched on, Settings → Pages → Source *Deploy from a branch* → `gh-pages` / `(root)` does it once.
 
 ## Layout
 
