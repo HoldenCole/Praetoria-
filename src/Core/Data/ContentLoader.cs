@@ -44,8 +44,9 @@ public static class ContentLoader
         var shipClasses = FleetLoader.LoadClasses(contentRoot);
         var honors = HonorLoader.LoadFromDirectory(contentRoot);
         var friction = HonorLoader.LoadFriction(contentRoot);
+        var names = NameLoader.LoadFromDirectory(contentRoot);
 
-        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers, traits, backgrounds, fleets, shipClasses, honors, friction);
+        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers, traits, backgrounds, fleets, shipClasses, honors, friction, names);
     }
 
     private static IEnumerable<string> EnumerateJson(string dir) =>

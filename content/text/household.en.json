@@ -1,0 +1,54 @@
+{
+  "texts": [
+    {
+      "id": "the_regents_hand",
+      "title": "The Regent's Hand",
+      "body": "You are too young to rule, and the house knows it. {regent.name} rules in your name — signs what must be signed, receives whom must be received, decides what you will be told. A regency is a loan of power, and like any loan it accrues interest to the lender.",
+      "choices": {
+        "defer_to_them": "Let {regent.name} rule. Learn what a house looks like from the inside.",
+        "assert_yourself": "Overrule them once, publicly, on something small. Let it be known you can.",
+        "learn_at_their_elbow": "Sit through every audience and every ledger. Say nothing. Miss nothing."
+      }
+    },
+    {
+      "id": "the_coming_of_age",
+      "title": "Coming of Age",
+      "body": "{heir.name} is sixteen. The child who was a liability to hide is now a person with a path to choose, and the choosing — in this house, as in every house — is yours to make first.",
+      "choices": {
+        "send_to_the_academy": "The Academy, as the heirs have always gone. Break them among the children of rivals.",
+        "keep_them_close": "Keep them at your side. Teach them the house from the inside.",
+        "grant_them_a_command": "Give them a ship. The household will call it early."
+      }
+    },
+    {
+      "id": "the_old_blood_sneers",
+      "title": "The Old Blood",
+      "body": "{grandee.name} of {grandee.house} does not need to say it; the way the greeting is delayed says it. Your house rose. Theirs was always there. Nothing you hold will make that untrue, and they intend you to know it every time you meet.",
+      "choices": {
+        "outwork_them": "Let it lie. Work. The old blood never learns to answer that.",
+        "answer_the_slight": "Answer in the register they respect. Make it a feud.",
+        "buy_a_welcome": "Find what they want and give it. Be, for a season, almost welcome."
+      }
+    },
+    {
+      "id": "the_knife_turned",
+      "title": "The Knife, Turned",
+      "body": "The attempt failed — a poison tasted, a window that would not open, a servant who talked. Someone reached for your blood, and the trail runs to {plotter.name} of {plotter.house}. The household has gone quiet in the way households do when they have understood that the walls are not as thick as they looked.",
+      "choices": {
+        "scatter_the_seed": "Send the children away under other names. Sleep no better.",
+        "demand_satisfaction": "Name them before every court that will listen.",
+        "return_the_knife": "Say nothing in public. Begin to arrange their accident."
+      }
+    },
+    {
+      "id": "the_plot_exposed",
+      "title": "The Plot, Exposed",
+      "body": "It was supposed to be an accident. It was not, and now the whole court knows whose purse the knife came from. Yours. There are three ways out of a room like this one.",
+      "choices": {
+        "deny_everything": "Deny it until the denial becomes a fact the court agrees to believe.",
+        "offer_a_scapegoat": "A steward confesses and hangs. The matter closes.",
+        "own_it": "Own it before the household. Say it would have been deserved."
+      }
+    }
+  ]
+}

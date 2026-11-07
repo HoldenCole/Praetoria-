@@ -33,6 +33,8 @@ public sealed class NpcAi
         if (catalog is { IsEmpty: false }) Invest(npcs, catalog, executor, ctx);
         if (fleetRules != null && world.Galaxy != null) Sail(npcs, fleetRules, executor, ctx);
 
+        Dynasty(npcs, executor, ctx);
+
         foreach (var npc in npcs)
         {
             var command = ChooseAction(npc, world);
@@ -105,6 +107,38 @@ public sealed class NpcAi
                 if (!comfortable) continue;
                 if (executor.TryExecute(new RaiseFleetCommand(head.Id, holding.Id, rules, classes, cid, Titles), ctx)) break;
             }
+        }
+    }
+
+    /// <summary>Rival houses marry and, at war and ruthless, hunt heirs (GDD §14 "a kill-the-bloodline war is a
+    /// terrifying lategame threat the enemy commits to"). One dynastic act per house per turn.</summary>
+    private void Dynasty(List<Character> npcs, CommandExecutor executor, CommandContext ctx)
+    {
+        var world = ctx.World;
+        var player = world.Protagonist; var playerHouse = player?.HouseId;
+        foreach (var house in world.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            if (house.Id == playerHouse) continue;
+            var head = npcs.FirstOrDefault(c => c.HouseId == house.Id);
+            if (head == null) continue;
+
+            // heir-hunting: at war, a Cruel or Ruthless head with agents to spare moves on the player's heirs
+            if (player != null && playerHouse != null && world.AtWar(house.Id, playerHouse) &&
+                (head.NatureTraits.Contains("Cruel") || head.NatureTraits.Contains("Ruthless")))
+            {
+                var heir = world.LivingCharacters().Where(c => c.HouseId == playerHouse && c.Id != player.Id && !c.Flags.Contains(DynastySystem.HiddenFlag))
+                                .OrderBy(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (heir != null && executor.TryExecute(new AssassinateCommand(head.Id, heir.Id), ctx)) continue;
+            }
+
+            // marriage: an unmarried adult of the house courts the best-disposed eligible match anywhere
+            var suitor = npcs.Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority && c.Sex != "" && !ProposeMarriageCommand.IsMarried(world, c.Id))
+                             .OrderBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (suitor == null) continue;
+            var match = world.LivingCharacters()
+                .Where(c => c.HouseId != house.Id && c.Id != world.ProtagonistId && c.Sex != "" && c.Sex != suitor.Sex && c.Age >= DynastySystem.AgeOfMajority && !ProposeMarriageCommand.IsMarried(world, c.Id))
+                .OrderByDescending(c => world.GetRelationship(c.Id, suitor.Id)?.Disposition ?? 0).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (match != null) executor.TryExecute(new ProposeMarriageCommand(head.Id, suitor.Id, match.Id, Titles), ctx);
         }
     }
 

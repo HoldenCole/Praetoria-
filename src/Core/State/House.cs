@@ -16,6 +16,14 @@ public sealed class House
 
     public List<string> Members { get; set; } = new();
 
+    /// <summary>Name culture for children born into the house (key into /content/names).</summary>
+    public string Culture { get; set; } = "reach";
+
+    /// <summary>Who inherits the seat (GDD §14): "primogeniture" (eldest blood child, then eldest member),
+    /// "ultimogeniture" (youngest blood child), "seniority" (eldest member regardless of blood), or
+    /// "merit" (the member with the highest skills). Data, so a scenario or an event can set it.</summary>
+    public string SuccessionLaw { get; set; } = "primogeniture";
+
     /// <summary>The dynasty's title rung (GDD §13 — persists across character deaths). Id into the
     /// title ladder catalog. Default landless/commoner.</summary>
     public string Title { get; set; } = "landless";

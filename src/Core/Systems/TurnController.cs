@@ -40,7 +40,7 @@ public sealed class TurnController
     private readonly ProgressionSystem? _progression;
     private readonly FleetSystem _fleets;
     private readonly HonorSystem _honors;
-    private readonly DynastySystem _dynasty = new();   // always-on — the dynasty IS the game (GDD §14)
+    private readonly DynastySystem _dynasty;           // always-on — the dynasty IS the game (GDD §14)
     private readonly int _briefingBudget;
     private readonly List<BriefingItem> _briefing = new();
 
@@ -76,6 +76,7 @@ public sealed class TurnController
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
         _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles };
+        _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);
         _briefingBudget = briefingBudget;
     }

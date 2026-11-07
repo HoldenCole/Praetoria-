@@ -67,6 +67,8 @@ public static class ScenarioLoader
                     Title = ConditionParser.OptStr(h, "title", "landless"),
                     Legitimacy = ConditionParser.Int(h, "legitimacy", 0),
                     Claims = new HashSet<string>(StrList(h, "claims")),
+                    Culture = ConditionParser.OptStr(h, "culture", "reach"),
+                    SuccessionLaw = ConditionParser.OptStr(h, "successionLaw", "primogeniture"),
                     Treasury = HoldingCatalogLoader.ParseResources(h, "treasury")
                 });
         return list;

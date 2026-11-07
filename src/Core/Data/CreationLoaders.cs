@@ -40,6 +40,39 @@ public static class TraitLoader
     }
 }
 
+/// <summary>Loads /content/names — given names by culture.</summary>
+public static class NameLoader
+{
+    private static readonly JsonDocumentOptions DocOptions = new() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true };
+
+    public static NameCatalog LoadFromDirectory(string contentRoot)
+    {
+        var dir = Path.Combine(contentRoot, "names");
+        if (!Directory.Exists(dir)) return NameCatalog.Empty;
+        var cultures = new Dictionary<string, (IReadOnlyList<string>, IReadOnlyList<string>)>();
+        foreach (var file in Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories).OrderBy(static p => p, StringComparer.Ordinal))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(file), DocOptions);
+                if (!doc.RootElement.TryGetProperty("cultures", out var cs) || cs.ValueKind != JsonValueKind.Object) continue;
+                foreach (var c in cs.EnumerateObject())
+                    cultures[c.Name] = (Names(c.Value, "male"), Names(c.Value, "female"));
+            }
+            catch (JsonException ex) { throw new ContentException($"Invalid JSON in '{file}': {ex.Message}", ex); }
+        }
+        return new NameCatalog(cultures);
+    }
+
+    private static List<string> Names(JsonElement el, string key)
+    {
+        var list = new List<string>();
+        if (el.TryGetProperty(key, out var arr) && arr.ValueKind == JsonValueKind.Array)
+            foreach (var s in arr.EnumerateArray()) if (s.ValueKind == JsonValueKind.String) list.Add(s.GetString()!);
+        return list;
+    }
+}
+
 /// <summary>Loads /content/backgrounds — character origins applied at creation.</summary>
 public static class BackgroundLoader
 {

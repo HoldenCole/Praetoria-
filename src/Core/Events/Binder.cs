@@ -31,6 +31,7 @@ public static class Binder
             foreach (var c in world.LivingCharacters())
             {
                 if (used.Contains(c.Id)) continue;
+                if (c.Flags.Contains(Systems.DynastySystem.HiddenFlag)) continue;   // fostered away — unreachable (GDD §14 scatter the seed)
                 var trial = binding.With(role.Name, c.Id);
                 var ctx = new EvalContext(world, trial, rng);
                 if (AllHold(role.Constraints, ctx))

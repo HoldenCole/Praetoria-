@@ -1,0 +1,15 @@
+{
+  // GIVEN NAMES for children born in play (GDD §14). A house's `culture` picks a list (default "reach"); the engine
+  // draws deterministically from the seeded RNG and appends the house's name ("House Vega" → "Vega"). Add a culture
+  // here and name it on a scenario house to flavour a region — zero engine work.
+  "cultures": {
+    "reach": {
+      "male":   ["Aldous", "Cassian", "Darius", "Eamon", "Felix", "Gaius", "Hadrian", "Idris", "Julian", "Kael", "Lucan", "Marcus", "Nero", "Orrin", "Pell", "Quintus", "Rowan", "Severin", "Tiberius", "Ulric", "Varro", "Wendel"],
+      "female": ["Adria", "Brisa", "Cassia", "Delia", "Elara", "Fenna", "Galla", "Helia", "Ione", "Junia", "Kessa", "Livia", "Mira", "Nessa", "Octavia", "Petra", "Quilla", "Rhea", "Sela", "Thessaly", "Una", "Vera"]
+    },
+    "imperial": {
+      "male":   ["Augustin", "Claudian", "Decimus", "Flavian", "Hadrian", "Lucius", "Maximian", "Octavian", "Priscus", "Septimus", "Valerian", "Vespasian"],
+      "female": ["Aurelia", "Claudia", "Domitia", "Flavia", "Justina", "Lucilla", "Marcella", "Octavia", "Placidia", "Sabina", "Valeria", "Vibia"]
+    }
+  }
+}

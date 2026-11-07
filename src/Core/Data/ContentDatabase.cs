@@ -51,6 +51,9 @@ public sealed class ContentDatabase
     /// <summary>Nature-trait friction (GDD §18) from /content/traits/friction.json.</summary>
     public FrictionTable Friction { get; }
 
+    /// <summary>Given names by culture (/content/names) for children born in play.</summary>
+    public NameCatalog Names { get; }
+
     private readonly Dictionary<string, EventDef> _eventsById;
 
     public ContentDatabase(
@@ -66,7 +69,8 @@ public sealed class ContentDatabase
         FleetRules? fleets = null,
         ShipClassCatalog? shipClasses = null,
         IReadOnlyList<HonorDef>? honors = null,
-        FrictionTable? friction = null)
+        FrictionTable? friction = null,
+        NameCatalog? names = null)
     {
         Events = events;
         Texts = texts;
@@ -81,6 +85,7 @@ public sealed class ContentDatabase
         ShipClasses = shipClasses ?? ShipClassCatalog.Empty;
         Honors = honors ?? Array.Empty<HonorDef>();
         Friction = friction ?? FrictionTable.Empty;
+        Names = names ?? NameCatalog.Empty;
         _eventsById = new Dictionary<string, EventDef>();
         foreach (var e in events) _eventsById[e.Id] = e;
     }
