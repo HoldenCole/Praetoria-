@@ -1,6 +1,5 @@
 {
   "texts": [
-
     {
       "id": "the_navy_grows",
       "title": "The Fleet Grows",
@@ -11,7 +10,6 @@
         "refuse_growth": "Decline the expansion. Stay beneath the ceiling that frightens."
       }
     },
-
     {
       "id": "the_treasury_tightens",
       "title": "The Threads of Money",
@@ -21,7 +19,6 @@
         "loosen_purse": "Let the coin flow easier than advantage demands. Velvet over iron."
       }
     },
-
     {
       "id": "the_senate_listens",
       "title": "The Growing Bloc",
@@ -31,7 +28,6 @@
         "spread_credit": "Let others wear your wins. Grow a bloc no one can see the shape of."
       }
     },
-
     {
       "id": "the_whisper_of_fear",
       "title": "A Word in the Dark",
@@ -41,7 +37,6 @@
         "dismiss_it": "Let them whisper. A house that trims itself to soothe lessers has begun to kneel."
       }
     },
-
     {
       "id": "the_coalition_moves",
       "title": "The Coalition Moves",
@@ -53,7 +48,6 @@
         "bend_then_strike": "Kneel convincingly. Begin that same night to ensure there's no second coalition."
       }
     },
-
     {
       "id": "the_coalition_holds",
       "title": "The Coalition Holds",
@@ -64,7 +58,6 @@
         "open_war": "Stop pretending it can be talked down. Strike first, become mightier still."
       }
     },
-
     {
       "id": "the_humbled_house",
       "title": "After the Kneeling",
@@ -72,10 +65,10 @@
       "choices": {
         "rebuild_quietly": "Rebuild beneath notice. Their belief that you're broken is your treasure.",
         "swear_vengeance": "Bank the humiliation like a coal. Collect it, with interest, later.",
-        "accept_the_lesson": "Take it as a correction. Rebuild the slow way that provokes no second coalition."
+        "accept_the_lesson": "Take it as a correction. Rebuild the slow way that provokes no second coalition.",
+        "endure_it": "Endure it. Be smaller for a while. Let time, not design, do the mending."
       }
     },
-
     {
       "id": "the_crowns_eye",
       "title": "The Crown's Eye",
@@ -85,6 +78,5 @@
         "remain_independent": "Every courtesy, no oath. Be the most powerful unsworn house in the realm — magnificent, precarious, rarely for long."
       }
     }
-
   ]
 }

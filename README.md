@@ -150,10 +150,10 @@ the turn is a formal **Briefing → Action → Resolve** cycle.
     /Systems            TurnController, Economy, CrisisEngine, SphereSystem, ProgressionSystem, DynastySystem, NpcAi
     /Commands           the command bus + every player/NPC intent
     /Data               JSON loaders, content validator, scenario builder
-    /Crises /Spheres /Progression   data models for the §16/§7/§13 catalogs
+    /Crises /Spheres /Progression /Careers   data models for the §16/§7/§13 catalogs
   /Tools                headless console harness (play · demos · validate)
   /Game                 Godot layer — staged for Milestone 3, deliberately NOT in Praetoria.sln
-/content                events · text · scenarios · holdings · crises · spheres · titles  (JSON/JSONC)
+/content                events · text · scenarios · holdings · crises · spheres · titles · careers  (JSON/JSONC)
 /tests                  xUnit against Core — runs without Godot
 Praetoria.sln           Core + Tools + Tests (everything that builds headless)
 validate_praetoria.py   pre-flight content validator (mirrors + extends the engine's gates)
@@ -178,30 +178,34 @@ together, deterministic, soaked for 40-turn playthroughs, with an authored conte
 | **Crisis system** | §16 | ✅ | Crises as gated states with onset by organic roll *or* authored trigger (NPC houses light fuses); cascades through shared counters; dampers gated on prior play; **natural de-escalation** when a crisis's root cause eases. **Proven:** crushing a revolt arms the civil-war gate. |
 | **Power-balance spheres** | §7 | ✅ | Navy/Treasury/Senate influence **derived from member careers**; a threat score (dominance + holdings + seizures); coalition pressure that arms a coalition-war crisis; bridged into the player-facing coalition event chain. |
 | **Progression & soft-lock** | §13 | ✅ | A 7-rung title ladder with legitimacy requirements; the three rise paths as commands (Seize / Petition / Claim) at three exchange rates; holding above your legitimacy breeds instability that feeds the crisis web. |
-| **Dynasty lifecycle** | §14 | ✅ | Aging; mortality from 50; births to married couples (patrilineal, blood ties); protagonist death → heir handoff (eldest blood child first) with the house persisting; dynasty death when no heir remains. `kill` and `age` verbs for events. |
+| **Dynasty lifecycle** | §14 | ✅ | Aging; mortality from 50; births to married couples (patrilineal, blood ties; a marriage counts from either spouse's edge); protagonist death → heir handoff (eldest blood child first) with the house persisting; voluntary handover via the `succeed` verb; dynasty death ends the run. `kill` and `age` verbs for events. |
+| **Career ladders** | §13 | ✅ | Tracks and named rank ladders are data (`/content/careers`); `advanceCareer` caps at the ladder top; events gate on `track`; prose names the rung. |
+| **Save / load** | BuildSpec §3, §7 | ✅ | The `World` (RNG position included) serialises to a versioned JSON envelope; a resumed run continues the exact same deterministic stream. `play --save` / `--load`. |
 | **NPC AI** | §3, §18 | ✅ (basic) | Trait/ambition-driven actions through the same command bus; ambitious NPCs author crises. Deliberately abstracted (no NPC economies). |
-| **Content pipeline** | §15, §20 | ✅ | JSON loaders, JSONC-tolerant; an engine validator (text pairing, token resolution) and a stricter Python pre-flight (locked vocab, read-only counters, flag-chain audit). |
+| **Content pipeline** | §15, §20 | ✅ | JSON loaders, JSONC-tolerant; an engine validator (text pairing, token resolution, the ungated-choice rule) and a stricter Python pre-flight (locked vocab, read-only counters, flag-chain audit in both directions). Both run in CI. |
 | **Console harness** | BuildSpec §2 | ✅ | `play` (the whole game as text), plus focused demos for every system, and `validate`. |
 
 **The authored content set** (all validated, all in `/content`):
 
 | | Count | Notes |
 |---|---|---|
-| Events (+ paired prose) | **62** | Academy Crucible 17 · Career progression 15 · Steward/economy 15 · Coalition chain 8 · Succession 7 |
-| Scenarios | 4 | `academy_crucible` (the fixture) + the three rise-path openings: *The Fallen House*, *The Circling Heir*, *The Risen Officer* |
-| Crises | 5 | local revolt → civil war cascade · coalition war · contested title · court scandal |
+| Events (+ paired prose) | **65** | Academy Crucible 18 · Career progression 16 · Steward/economy 15 · Coalition chain 8 · Succession 8 |
+| Scenarios | 4 | `academy_crucible` (the fixture) + the three rise-path openings: *The Fallen House*, *The Circling Heir*, *The Risen Officer* — every cast sexed, every house titled, so the dynasty and soft-lock layers are live in all of them |
+| Crises | 5 | local revolt → civil war cascade · coalition war · contested title · court scandal (the wars un-arm the realm when they subside) |
 | Holding specializations / buildings | 12 / 12 | |
-| Spheres / title rungs | 3 / 7 | |
+| Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 104 automated tests, including a 40-turn whole-stack soak that asserts end-to-end
-determinism, succession landing, crises de-escalating, and no absurd state; both validators clean;
-every scenario runs 30+ turns crash-free.
+**Verification:** 123 automated tests, including a 40-turn whole-stack soak that asserts end-to-end
+determinism, succession landing, crises de-escalating, and no absurd state, and a save/load round-trip
+that must reproduce an uninterrupted run; both validators clean and both run in CI; every scenario
+auto-plays 40 turns crash-free across five seeds.
 
 Per-milestone detail, with the acceptance proof for each: [`MILESTONE_1`](docs/MILESTONE_1_NOTES.md)
 (engine) · [`MILESTONE_2`](docs/MILESTONE_2_NOTES.md) (turn loop) · [`MILESTONE_4`](docs/MILESTONE_4_NOTES.md)
 (economy) · [`MILESTONE_5`](docs/MILESTONE_5_NOTES.md) (crises, spheres, progression) ·
-[`MILESTONE_DYNASTY`](docs/MILESTONE_DYNASTY_NOTES.md) (lifecycle + hardening pass).
+[`MILESTONE_DYNASTY`](docs/MILESTONE_DYNASTY_NOTES.md) (lifecycle + hardening pass) ·
+[`GAP_ANALYSIS`](docs/GAP_ANALYSIS.md) (the 2026-11 audit: what was broken, what was fixed, what remains).
 
 ---
 
@@ -223,23 +227,30 @@ if it's listed, it does not exist yet.
 | **Marriage/fostering as *systems*** | §18 | Marriage exists as a bond and forges claims via content; there's no proposal/negotiation system or fostering. |
 | **Family autonomy** | §18 | Family members resisting/defying the player's direction based on loyalty + ambition + traits. NPC *houses* have will; the player's *own family* does not yet. |
 | **Anomalies/archaeology & Exotics sources** | §17 | The Exotics resource exists; the exploration system that produces it (and foreshadows the Crisis) is DLC-era design and not built. |
-| **Save/load** | BuildSpec §7 | The `World` is designed to serialise (RNG position included) and is deterministic, but no save-file format or loader is implemented yet. |
+| **Ironman vs continue** | §14 | Dynasty death now ends the run; the "adopt a sworn cadet house and play on" mode is not built. |
+| **Stress consequences** | §18 | Stress accumulates (0–100) and nothing relieves or triggers on it — no breakdown, no per-turn decay. A long run pins the protagonist at 90+. |
 
 ### Built but shallow (works; known to need depth or tuning)
 - **Succession law** is primogeniture-by-age among blood children, then eldest house member. No
   regency for child rulers, no matrilineal/elective law, no contested successions as a system.
-- **Births** are patrilineal only; **the shipped scenarios have no sexed characters or marriages**, so the
-  dynasty layer is structurally present but *dormant* in them until a cast is seeded.
+- **Births** are patrilineal only, and need a mother and a father. Scenario casts are sexed but start
+  unmarried, so the first generation depends on the match event firing.
+- **Population is decorative**: holdings grow population every turn but yields don't read it; Manpower
+  comes from the specialization, throttled by unrest. The GDD's population→manpower link is not wired.
 - **Sphere influence** derives only from careers; titles, marriages and standing don't yet feed it.
 - **Threat formula**: a house that's the *sole* holder of a sphere reads as maximally threatening even
   at trivial absolute influence (defensible — "you own the whole Navy" — but coarse).
-- **Accumulators** `realm_unstable` (never clears) and imperial `legitimacy` (unbounded negative) can
-  keep late-game crisis gates warm; mitigated by de-escalation, flagged for a balance pass.
-- **Non-repeatable crises** can re-onset after resolving (the flag only blocks re-onset *while active*).
+- **Imperial `legitimacy` counter** (distinct from house legitimacy) is unbounded-negative with no
+  recovery except the civil war ending; flagged for a balance pass.
+- **Crises recur by design** (a realm can revolt twice); a one-time crisis sets `"once": true`. None of
+  the shipped five do yet.
+- **Relationship lookups are linear scans** over one list; fine at 4–6 characters, will need an index
+  once casts grow to dozens (the Binder evaluates every event × every candidate each turn).
 - **NPC AI** is a small set of trait-driven verbs — enough to prove the shared-command architecture,
   not a strategic opponent.
-- The three rise-path scenarios default to **landless / zero legitimacy**, so the title and soft-lock
-  systems are inert in them until seeded with starting titles and standing.
+- **Flag dead-ends** remain for markers the handoff seeded for future content: `anomaly_*`,
+  `oath_sworn_academy`, `coalition_broken`, `debt_to_crown`, `reconciled`, `sabotaged`, `wed` are
+  written and never read (the validator lists them).
 
 ---
 
@@ -315,6 +326,8 @@ dotnet run --project src/Tools -- validate
 # Play the game as text — the Academy Crucible, full Briefing→Action→Resolve turns
 dotnet run --project src/Tools -- play --seed 1 --turns 8          # interactive
 dotnet run --project src/Tools -- play --seed 1 --turns 30 --auto  # auto-pilot, any scenario via --scenario
+dotnet run --project src/Tools -- play --auto --turns 10 --save run.json   # save between turns…
+dotnet run --project src/Tools -- play --load run.json --turns 10          # …and resume the same stream
 
 # Watch each system prove its design, deterministically from a seed:
 dotnet run --project src/Tools -- demo --seed 1          # the cascade: an insult makes an impossible duel possible
@@ -325,7 +338,7 @@ dotnet run --project src/Tools -- spheres --seed 1       # an heir's Navy career
 dotnet run --project src/Tools -- progression --seed 1   # the meritocrat rules secure; the conqueror rules a powder keg
 dotnet run --project src/Tools -- dynasty --seed 3       # a ruler dies, his heir succeeds, children are born
 
-# The test suite (104 tests, incl. a 40-turn whole-stack soak)
+# The test suite (123 tests, incl. a 40-turn whole-stack soak and a save/load round-trip)
 dotnet test
 ```
 
@@ -366,10 +379,11 @@ dotnet run --project src/Tools -- validate      # the engine's own load-time gat
 dotnet test                                     # nothing regressed
 ```
 
-Highest-value content right now: **Bloody Event set-pieces** (the mechanism is ready), **seeding the
-three rise-path scenarios** with titles/legitimacy/sexed married casts (so the progression and dynasty
-layers come alive in them), and more **academy / career / succession** depth toward a 40–60 event
-opening act.
+Highest-value content right now: **Bloody Event set-pieces** (the mechanism is ready; the academy's
+*The Marked Man* is the first to use `kill`), events that **consume the seeded marker flags** (`anomaly_*`,
+`oath_sworn_academy`, `coalition_broken`, `debt_to_crown`), an **Imperium-era scenario**, and more
+**academy / career / succession** depth toward a 40–60 event opening act. Rules of the road: gate each
+track's arc with `track`, spend claims with `revokeClaim`, and leave every event one ungated choice.
 
 ## License
 

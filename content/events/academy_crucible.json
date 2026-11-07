@@ -1687,10 +1687,8 @@
           },
           "effects": [
             {
-              "type": "setCharFlag",
-              "role": "enemy",
-              "flag": "marked_for_death",
-              "value": false
+              "type": "kill",
+              "role": "enemy"
             },
             {
               "type": "adjustStress",
@@ -1701,6 +1699,11 @@
               "type": "adjustCounter",
               "key": "standing",
               "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
             },
             {
               "type": "log",
@@ -1800,6 +1803,173 @@
             {
               "type": "log",
               "text": "{self.name} did the drill well and no more, and saved something for the long war that the academy only pretends to be a rehearsal for. Endurance is a skill too, and quieter."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_frame_unravels",
+      "tier": "setpiece",
+      "weight": 2,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "rival",
+              "flag": "framed",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 5
+        }
+      ],
+      "choices": [
+        {
+          "id": "brazen_it_out",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "framed",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -30
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "The proctors could prove nothing, and {self.name} gave them nothing. {rival.name} of {rival.house} knows anyway. So, now, does the cohort — and a thing everyone knows but no one can prove is the most expensive kind of secret to keep."
+            }
+          ]
+        },
+        {
+          "id": "confess_it",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Honorable",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Just",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "framed",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} walked into the proctors' office and said it plainly. The marks came down hard. {rival.name} was cleared, and looked at {self.name} afterward with something that was not forgiveness yet, but was no longer hatred either."
+            }
+          ]
+        },
+        {
+          "id": "bury_it_deeper",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Schemer",
+                  "kind": "aptitude",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "framed",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "marked_for_death",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A witness was reassigned. A record was corrected. By the time the inquiry closed, the only person who still knew what {self.name} had done was {rival.name} — who now knew something else as well: that {self.name} would go this far, and might go further."
             }
           ]
         }

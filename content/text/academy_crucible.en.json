@@ -169,6 +169,16 @@
         "push_hard": "Run it past where they call it. Make skill the hard way.",
         "pace_yourself": "Do it well and no more. Save something for the long war."
       }
+    },
+    {
+      "id": "the_frame_unravels",
+      "title": "The Frame Unravels",
+      "body": "A cut strap mended with the wrong thread. A locker key that was in two places at once. The proctors have been pulling at the loose end of {rival.name}'s failed inspection, and the thread leads, slowly, somewhere you would rather it did not. {rival.name} of {rival.house} has already guessed. The question is no longer whether you did it — it is what you are prepared to do about having done it.",
+      "choices": {
+        "brazen_it_out": "Deny everything. Let them prove it. Let {rival.name} hate you in the open.",
+        "confess_it": "Go to the proctors yourself. Take the marks. Clear {rival.name}'s name.",
+        "bury_it_deeper": "Make the thread lead nowhere. Whatever that takes."
+      }
     }
   ]
 }

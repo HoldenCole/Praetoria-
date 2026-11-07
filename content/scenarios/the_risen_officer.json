@@ -15,7 +15,9 @@
         "influence": 0,
         "exotics": 0
       },
-      "//": "Barely a house at all — almost no treasury, ZERO influence (the lowborn has no favor-network). The fantasy: you have nothing but yourself. Every resource event bites hard here."
+      "//": "Barely a house at all — almost no treasury, ZERO influence (the lowborn has no favor-network). The fantasy: you have nothing but yourself. Every resource event bites hard here. TITLE: No name, no land, near-zero standing — the merit path begins at the bottom of BOTH ladders (§13). Every rung must be earned or taken.",
+      "title": "landless",
+      "legitimacy": 5
     },
     {
       "id": "calderon",
@@ -28,7 +30,9 @@
         "influence": 9,
         "exotics": 1
       },
-      "//": "The great house Kessa serves under and is despised by — the aristocracy that holds rank she'll have to take by sheer merit."
+      "//": "The great house Kessa serves under and is despised by — the aristocracy that holds rank she'll have to take by sheer merit. TITLE: The great house: a Dukedom held with standing to spare (needs 60). The aristocracy Kessa serves and must surpass.",
+      "title": "duke",
+      "legitimacy": 65
     }
   ],
   "characters": [
@@ -55,7 +59,8 @@
         "charisma": 1
       },
       "ambition": "earn_a_command",
-      "//": "THE GAP (§4): careerRank 2 but skills maxed for her tier — a better officer than the dukes above her, and resented for it. Ambitious+Just+Brilliant = rises on merit and refuses to become what she's fighting. Highest skill-load of any protagonist; lowest birth."
+      "//": "THE GAP (§4): careerRank 2 but skills maxed for her tier — a better officer than the dukes above her, and resented for it. Ambitious+Just+Brilliant = rises on merit and refuses to become what she's fighting. Highest skill-load of any protagonist; lowest birth.",
+      "sex": "female"
     },
     {
       "id": "calderon_duke",
@@ -77,7 +82,8 @@
         "charisma": 3
       },
       "ambition": "amass_a_fortune",
-      "//": "THE GAP inverted: rank 5 (Admiral) by birth, but tactics 1 — 'a useless duke a low-born admiral could outfight' (§4 verbatim). Outranks Kessa massively; binds to superior/admiral roles. The contemptuous aristocrat she must serve and surpass."
+      "//": "THE GAP inverted: rank 5 (Admiral) by birth, but tactics 1 — 'a useless duke a low-born admiral could outfight' (§4 verbatim). Outranks Kessa massively; binds to superior/admiral roles. The contemptuous aristocrat she must serve and surpass.",
+      "sex": "male"
     },
     {
       "id": "calderon_juno",
@@ -100,7 +106,8 @@
         "charisma": 2
       },
       "ambition": "outshine_all_rivals",
-      "//": "The WORTHY rival — highborn but actually good (unlike her uncle the duke). Outranks Kessa by one. The brief's 'worthy enemy' / LotGH dignity: a rival you could respect. Disposition neutral-ish, could go either way (feud OR sworn). The richest relationship to leave open."
+      "//": "The WORTHY rival — highborn but actually good (unlike her uncle the duke). Outranks Kessa by one. The brief's 'worthy enemy' / LotGH dignity: a rival you could respect. Disposition neutral-ish, could go either way (feud OR sworn). The richest relationship to leave open.",
+      "sex": "female"
     },
     {
       "id": "vane_dorn",
@@ -121,7 +128,8 @@
         "charisma": 1
       },
       "ambition": "earn_a_command",
-      "//": "The grizzled lowborn sergeant who rose with Kessa from nothing — sworn bond, the found-family the merit path builds instead of inheriting. Loyal+Quartermaster = keeps her supplied and honest."
+      "//": "The grizzled lowborn sergeant who rose with Kessa from nothing — sworn bond, the found-family the merit path builds instead of inheriting. Loyal+Quartermaster = keeps her supplied and honest.",
+      "sex": "male"
     }
   ],
   "relationships": [

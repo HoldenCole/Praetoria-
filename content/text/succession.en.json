@@ -1,6 +1,5 @@
 {
   "texts": [
-
     {
       "id": "the_petition",
       "title": "The Petition",
@@ -11,7 +10,6 @@
         "refuse": "Deny the petition. Blood asks once; refused, it starts counting."
       }
     },
-
     {
       "id": "the_advantageous_match",
       "title": "The Match",
@@ -22,7 +20,6 @@
         "decline_match": "Decline the match, the alliance, the claim. Remain unbound — free, or isolated."
       }
     },
-
     {
       "id": "press_the_claim",
       "title": "Press the Claim",
@@ -30,10 +27,10 @@
       "choices": {
         "claim_lawfully": "Press it through every law and form. Slow, costly, unanswerable — and legitimate.",
         "take_by_force": "Don't wait for the courts. Take the county; leave a grievance behind.",
-        "trade_the_claim": "Let the claim be known — then decline to press it, for a price. A claim is worth most unused."
+        "trade_the_claim": "Let the claim be known — then decline to press it, for a price. A claim is worth most unused.",
+        "press_it_plainly": "Press it the ordinary way. A petition, a reading, a transfer. Done, not clean."
       }
     },
-
     {
       "id": "the_instability_gap",
       "title": "Above Your Station",
@@ -44,7 +41,6 @@
         "ignore_the_gap": "Let it stand. Too proud to do the small slow work. Carry the stone."
       }
     },
-
     {
       "id": "the_rival_claimant",
       "title": "The Rival Claim",
@@ -55,7 +51,6 @@
         "buy_them_off": "Buy the claim away. Discover their principles' price — and teach the world you pay."
       }
     },
-
     {
       "id": "the_abdication",
       "title": "The Handover",
@@ -66,7 +61,6 @@
         "hold_until_death": "Loosen nothing. The title is yours until your last breath. Let them wait."
       }
     },
-
     {
       "id": "the_succession_dispute",
       "title": "The Succession Dispute",
@@ -76,7 +70,16 @@
         "play_them_against": "Name no one. Let the claimants check each other. The oldest trick — until it isn't.",
         "purge_the_claimants": "Secure the line by subtraction. End the dispute; learn what's left standing beside you."
       }
+    },
+    {
+      "id": "the_slighted_kinsman",
+      "title": "The Slighted Kinsman",
+      "body": "{kin.name} of {kin.house} has not forgotten. Refused something they believed was theirs by blood, they have been correct and courteous and absent — missing from the table, present at every gathering where your name might be weighed. A grievance in a stranger is a nuisance. A grievance in family is a crack in the foundation, and it is still, for the moment, small enough to mend.",
+      "choices": {
+        "make_amends": "Go to {kin.name} first. Mend it before the household learns it was broken.",
+        "bind_with_coin": "Settle it with money quietly spent. Turn a grievance into a debt.",
+        "let_them_stew": "Let {kin.name} sulk. A ruler who mends every pout has no time to rule."
+      }
     }
-
   ]
 }

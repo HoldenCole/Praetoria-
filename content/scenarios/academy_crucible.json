@@ -26,28 +26,28 @@
 
   "characters": [
     {
-      "id": "vega_marcus", "name": "Marcus Vega", "house": "vega", "age": 17,
+      "id": "vega_marcus", "sex": "male", "name": "Marcus Vega", "house": "vega", "age": 17,
       "careerTrack": "military", "careerRank": 0,
       "nature": ["Proud"], "aptitude": ["Strategist"],
       "skills": { "tactics": 1, "discipline": 1, "charisma": 1 },
       "ambition": "command_a_fleet"
     },
     {
-      "id": "corwin_lucan", "name": "Lucan Corwin", "house": "corwin", "age": 18,
+      "id": "corwin_lucan", "sex": "male", "name": "Lucan Corwin", "house": "corwin", "age": 18,
       "careerTrack": "military", "careerRank": 1,
       "nature": ["Arrogant"], "aptitude": ["Duelist"],
       "skills": { "tactics": 2, "discipline": 2, "charisma": 2 },
       "ambition": "outshine_all_rivals"
     },
     {
-      "id": "drake_sela", "name": "Sela Drake", "house": "drake", "age": 17,
+      "id": "drake_sela", "sex": "female", "name": "Sela Drake", "house": "drake", "age": 17,
       "careerTrack": "military", "careerRank": 0,
       "nature": ["Honorable"], "aptitude": ["Diplomat"],
       "skills": { "tactics": 1, "discipline": 1, "charisma": 2 },
       "ambition": "earn_a_command"
     },
     {
-      "id": "sato_ren", "name": "Ren Sato", "house": "sato", "age": 18,
+      "id": "sato_ren", "sex": "female", "name": "Ren Sato", "house": "sato", "age": 18,
       "careerTrack": "military", "careerRank": 0,
       "nature": ["Ambitious"], "aptitude": ["Quartermaster"],
       "skills": { "tactics": 1, "discipline": 2, "charisma": 1 },

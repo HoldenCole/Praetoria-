@@ -20,6 +20,11 @@
       ],
       "when": [
         {
+          "type": "track",
+          "role": "self",
+          "track": "military"
+        },
+        {
           "type": "rank",
           "role": "self",
           "op": "gte",
@@ -169,10 +174,21 @@
       ],
       "when": [
         {
+          "type": "track",
+          "role": "self",
+          "track": "military"
+        },
+        {
           "type": "rank",
           "role": "self",
           "op": "gte",
           "value": 2
+        },
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "lt",
+          "value": 6
         }
       ],
       "choices": [
@@ -304,6 +320,11 @@
       ],
       "when": [
         {
+          "type": "track",
+          "role": "self",
+          "track": "military"
+        },
+        {
           "type": "rank",
           "role": "self",
           "op": "gte",
@@ -409,6 +430,11 @@
       "repeatable": true,
       "when": [
         {
+          "type": "track",
+          "role": "self",
+          "track": "military"
+        },
+        {
           "type": "rank",
           "role": "self",
           "op": "gte",
@@ -420,6 +446,12 @@
           "skill": "leadership",
           "op": "gte",
           "value": 2
+        },
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "lt",
+          "value": 6
         }
       ],
       "choices": [
@@ -493,6 +525,11 @@
         }
       ],
       "when": [
+        {
+          "type": "track",
+          "role": "self",
+          "track": "military"
+        },
         {
           "type": "rank",
           "role": "self",
@@ -578,6 +615,11 @@
       "weight": 3,
       "repeatable": false,
       "when": [
+        {
+          "type": "track",
+          "role": "self",
+          "track": "stewardship"
+        },
         {
           "type": "rank",
           "role": "self",
@@ -707,6 +749,11 @@
       ],
       "when": [
         {
+          "type": "track",
+          "role": "self",
+          "track": "stewardship"
+        },
+        {
           "type": "rank",
           "role": "self",
           "op": "gte",
@@ -785,6 +832,11 @@
       "weight": 3,
       "repeatable": false,
       "when": [
+        {
+          "type": "track",
+          "role": "self",
+          "track": "stewardship"
+        },
         {
           "type": "rank",
           "role": "self",
@@ -882,6 +934,11 @@
       ],
       "when": [
         {
+          "type": "track",
+          "role": "self",
+          "track": "law"
+        },
+        {
           "type": "rank",
           "role": "self",
           "op": "gte",
@@ -948,7 +1005,7 @@
               "type": "setCharFlag",
               "role": "defendant",
               "flag": "owes_you",
-              "value": false
+              "value": true
             },
             {
               "type": "adjustResource",
@@ -997,6 +1054,29 @@
               "text": "{self.name} made of {defendant.name} an example sharper than the crime required — a verdict meant to be talked about, and feared. The court learned what kind of magistrate it now served. So did everyone with a case yet to bring. Fear clears a docket fast. It also empties the room of justice, one frightened plaintiff at a time."
             }
           ]
+        },
+        {
+          "id": "rule_by_precedent",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name}'s first case, and {self.name} found the precedent, followed it, and let it carry the weight — a ruling no one could fault and no one would remember. {defendant.name} of {defendant.house} got exactly what the books said. Safe is also a kind of statement."
+            }
+          ]
         }
       ]
     },
@@ -1019,6 +1099,11 @@
         }
       ],
       "when": [
+        {
+          "type": "track",
+          "role": "self",
+          "track": "law"
+        },
         {
           "type": "rank",
           "role": "self",
@@ -1119,6 +1204,35 @@
               "text": "{accused.name} of {accused.house} paid, and {self.name} found the law surprisingly accommodating. The acquittal advanced {self.name}'s career as a reliable friend to the powerful — which is a career, and a cage. {self.name} is now a person {accused.name} can ruin with a word, and both of them know it, and that knowledge is the actual price."
             }
           ]
+        },
+        {
+          "id": "prosecute_by_the_book",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "accused",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} prosecuted {accused.name} of {accused.house} by the book — every form observed, every door for an appeal left open, the verdict narrow and defensible. The realm learned that {self.name}'s law reached upward, cautiously. {accused.name} learned {self.name}'s name."
+            }
+          ]
         }
       ]
     },
@@ -1141,6 +1255,11 @@
         }
       ],
       "when": [
+        {
+          "type": "track",
+          "role": "self",
+          "track": "law"
+        },
         {
           "type": "rank",
           "role": "self",
@@ -1528,6 +1647,132 @@
             {
               "type": "log",
               "text": "{self.name} pushed the routine down to those who should be learning it, freeing {self.name}'s own hours for the decisions only {self.name} could make. The art of rising is partly the art of knowing what to stop doing. {self.name} is learning to lead instead of merely to work."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_favor_called",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "debtor",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "debtor",
+              "flag": "owes_you",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_it_in",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "debtor",
+              "flag": "owes_you",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "debtor",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called in what {debtor.name} of {debtor.house} owed — a vote, a signature, a door held open. The debt is paid. {debtor.name} will not forget having been collected from."
+            }
+          ]
+        },
+        {
+          "id": "forgive_it",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Honorable",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Just",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "debtor",
+              "flag": "owes_you",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "debtor",
+              "to": "self",
+              "delta": 25
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} tore up the debt {debtor.name} owed and asked nothing. {debtor.name} understood exactly what had been given, which is the only kind of gift that binds."
+            }
+          ]
+        },
+        {
+          "id": "let_it_ride",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "debtor",
+              "delta": 5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "debtor",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {debtor.name}'s debt stand uncollected — a small weight that {debtor.name} will carry into every room they share, which is worth more than any single favor."
             }
           ]
         }

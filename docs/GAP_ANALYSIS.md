@@ -1,0 +1,71 @@
+# Praetoria — Gap Analysis & Hardening Pass (2026-11-07)
+
+A full read of the design docs, the engine, the content and the tests, measured against the GDD and the
+Build Spec. Three parts: **what was wrong and is now fixed**, **what is missing** (ranked), and **what to
+build next**. Everything in part 1 is committed with tests; parts 2–3 are the honest to-do list.
+
+Verification at the end of the pass: `dotnet test` 123/123 · engine `validate` 65/65, 0 errors ·
+`validate_praetoria.py` 0 errors · all four scenarios auto-play 40 turns on seeds 1/2/3/7/42 without a
+crash · save → load → continue reproduces an uninterrupted run exactly.
+
+---
+
+## 1. Defects found and fixed in this pass
+
+### Engine
+| # | Defect | Fix |
+|---|---|---|
+| 1 | **No way to gate an event on career track.** The vocabulary had `rank` but no `track`, so every career-arc event (a first fleet command, the governor's seat, the first case) was eligible for *any* protagonist of sufficient rank — a magistrate was receiving fleet commands in the circling-heir scenario. | New `track` condition (`Conditions.cs`, parser, both validators); all 11 track-specific career events gated. Test: `AuthoredCareerEvents_DoNotFireForTheWrongTrack`. |
+| 2 | **Career rank was an uncapped integer.** The repeatable *Field Promotion* pushed the risen officer to rank 17 by turn 38; the Vocab doc's ladders existed only as prose. Sphere influence (derived from rank) inflated with it. | Career ladders are now data (`/content/careers/careers.json`, `CareerCatalog`, `CareerLoader`); `advanceCareer` caps at the ladder top; `{role.rankName}` names the rung; the harness shows "Lieutenant (rank 2)". The two repeatable promotions also gate on `rank lt 6`. |
+| 3 | **A marriage authored from one spouse produced no children.** The match event writes `self→bride`; the birth roll only read edges *leaving the mother*, so a male protagonist's marriage was invisible to the dynasty system. There was also no check that the "father" was male. | `addBond marriage` writes both edges; `DynastySystem.Spouse` reads either direction; births require a male father (a same-sex marriage is an alliance, not a bloodline, and draws no RNG). |
+| 4 | **The run continued after dynasty death.** `dynasty_dead` was set but nothing read it; the harness kept firing events for a dead protagonist for the remaining turns. | `World.IsDynastyDead` / `DynastyDeadFlag`; `play` stops and prints the end-of-line banner. |
+| 5 | **No save/load** (BuildSpec §3/§7 requirement, README gap). | `SaveSystem` — versioned JSON envelope around the `World`, enum names not ints, computed lookups `[JsonIgnore]`d. `play --save/--load`. Round-trip test proves a resumed run equals an uninterrupted one. |
+| 6 | **Crises could not be one-time, and could not un-arm what they armed.** `realm_unstable` and `civil_war_active` were set on onset and never cleared (a known issue in the dynasty notes). | `CrisisDef.Once` + `crisis:<id>:spent` marker; `onResolve` effects applied when a crisis subsides. Civil and coalition wars now clear the realm's instability when they end; the revolt's *concessions* damper does too (crushing it deliberately does not — that is the cascade). |
+| 7 | **An event whose every choice is gated is re-offered forever.** Unresolved briefing items are never marked fired; four events (`first_case`, `the_great_trial`, `the_humbled_house`, `press_the_claim`) had `requires` on every choice, so *The Great Trial* surfaced ten times per run for a character with none of the traits. | Both validators now reject all-gated events (error); each of the four got an ungated default choice with prose. |
+| 8 | **No way to spend a claim or hand over the seat.** A pressed claim stayed pressable (the repeatable `press_the_claim` kept re-firing, and would *demote* a house that had climbed past Count); `the_abdication` set the house's title to Duke then to Count — demoting your own house. | New `revokeClaim` and `succeed` effects; `press_the_claim` spends the claim and gates on `title_rank lt 3`; abdication hands the seat to the heir and the House keeps its rung. |
+
+### Content
+| # | Defect | Fix |
+|---|---|---|
+| 9 | `first_case/rule_by_favor` **cleared** `owes_you` on the defendant ("collect the debt judges learn to collect") — the flag was armed once in 65 events and never read. | Now arms it; new event `the_favor_called` consumes it (collect / forgive / let it ride). |
+| 10 | `slighted` (refused petition, withheld handover) and `framed` (the sabotage reprisal) were written and never read — dead-end chains in the handoff's own chain list. | New `the_slighted_kinsman` (mend / buy / let it harden into `feud`) and `the_frame_unravels` (brazen / confess / bury deeper → `marked_for_death`). |
+| 11 | `the_marked_man/finish_it` ("end it where the lights don't reach") did not kill anyone — written before the `kill` verb existed. | It kills the enemy: the first Bloody-Event beat in the content. |
+| 12 | The three rise-path scenarios were **landless / legitimacy 0 / unsexed**, so the title soft-lock, claims, marriage and births were all inert in them (README noted this). | Seeded: Voss holds a Baron title on legitimacy 12 (instant soft-lock drama), Harrow a County, Serval a secure County, Vane landless/5, Calderon a Dukedom; every character sexed. |
+
+### Repo / docs / tooling
+| # | Issue | Fix |
+|---|---|---|
+| 13 | `CONTENT_GUIDE.md` had drifted badly: §10 still listed spheres, crises and marriage as "not loadable"; §6/§7 catalog and scenario lists were stale; `bond` omitted `marriage`; §8 said the vocabularies were unlocked. | Reconciled with the code; new §4d (crises), §4e (careers), §4f (saves); the ungated-choice rule; dated. |
+| 14 | The Python pre-flight validator — the stricter gate — was not run in CI. | Added as a CI step. |
+| 15 | A stale `praetoria_content.json` bundle (62 events, 3 scenarios, no crises) sat at the repo root duplicating `/content`. | Removed; `/content` is the one source. The validator's bundle mode remains for handoffs. |
+| 16 | `main` only holds the uploaded design docs and three generations of duplicate `praetoria_content (N).json` / `validate_praetoria (N).py` files; all engineering lives on a feature branch. | Not changed here (a branch decision for the owner) — see part 3. |
+
+---
+
+## 2. Gaps that remain (ranked by how much they block a playable game)
+
+1. **No UI (Milestone 3).** The game is not playable without the console. The Godot `/src/Game` project is a stub. Needs a session with Godot and a display.
+2. **No Galaxy mode, no fleets, no military unit model.** The military rise path has no "take it" mechanism beyond the `Seize` command's rank check; `Holding.SystemId` is unused.
+3. **No Great Crisis / era flip / epilogue (Milestone 6).** `World.Era` exists but nothing flips or reads it; the saga epilogue is a `History` dump.
+4. **Stress has no consequences.** It only rises (0–100) and nothing relieves it or fires on it; long runs pin the protagonist at 90+. The GDD §18 "stress-bearing nature traits" loop needs a breakdown/relief design.
+5. **Population is decorative.** Holdings grow population forever and nothing reads it; Manpower yield comes from the spec alone. The GDD's population→manpower→unrest chain is half-wired.
+6. **Ironman vs continue mode** (§14) — dynasty death ends the run; the "adopt a sworn house" continuation is not built.
+7. **Scenarios start unmarried**, so the first generation depends on `the_advantageous_match` firing (it did in most 40-turn soaks, not all). A seeded married couple in one scenario would make the dynasty layer live from turn 1.
+8. **Only `fractured_stars` scenarios.** The Imperium start (§10) has no scenario and no content gating on `era`.
+9. **Succession law is thin**: primogeniture by age, patrilineal only, no regency for child heirs, no contested succession as a *system*, no "scatter the seed".
+10. **Sphere influence derives only from careers**; titles/marriages/standing don't feed it. Threat is coarse at tiny absolute scales.
+11. **NPC AI** is three verbs plus "light a fuse"; not a strategic opponent. NPC houses never build, marry or climb titles.
+12. **Relationship graph is a linear list**; fine at 4–6 characters, will need an index for larger casts (binding is events × candidates × conditions per turn).
+13. **Seeded marker flags with no consumer**: `anomaly_hoarded`, `anomaly_studied`, `oath_sworn_academy`, `coalition_broken`, `debt_to_crown`, `reconciled`, `sabotaged`, `wed`. Harmless, but each is a promised payoff.
+14. **Honorifics & Orders** (§13), **megastructures**, **anomalies/archaeology** — GDD slots with no loader.
+15. **Content volume**: 65 events against a 40–60-event *opening act* target; the academy pool (18) repeats within one run.
+
+---
+
+## 3. Recommended next steps
+
+1. **Decide the branch story.** Merge the engine branch to `main` (or make it the default) and delete the duplicate `(1)`/`(2)` uploads there; today `main` misleads anyone who lands on it.
+2. **Milestone 3 — Court UI** in a Godot-equipped session. Everything built becomes visible; the headless `TurnController` API (`BeginTurn` → `Offer`/`Resolve` → `EndTurn`) is the surface it wraps.
+3. **Small, high-leverage engine items** (each a day or less): stress relief/breakdown rule; population feeding Manpower yield; a married couple in one scenario; `era` condition + an Imperium scenario; relationship index.
+4. **Content**: consume the marker flags; more academy depth; Bloody-Event set-pieces using `kill` + `once` crises.
+5. **Then Galaxy mode + fleets**, which also unlocks the military path's real "take it".

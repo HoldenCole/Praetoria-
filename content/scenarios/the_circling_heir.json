@@ -15,7 +15,9 @@
         "influence": 12,
         "exotics": 1
       },
-      "//": "Influence-RICH, materials-thin: the intrigue house economy (pairs with 'the_influence_broker', senatorial_seat). A different game from Voss entirely — your power is people and favor, not forges."
+      "//": "Influence-RICH, materials-thin: the intrigue house economy (pairs with 'the_influence_broker', senatorial_seat). A different game from Voss entirely — your power is people and favor, not forges. TITLE: Born to power: a secure County (needs 40). The intrigue heir starts legitimate — the danger is inside the walls, not above them.",
+      "title": "count",
+      "legitimacy": 48
     }
   ],
   "characters": [
@@ -41,7 +43,8 @@
         "law": 1
       },
       "ambition": "master_the_senate",
-      "//": "Heir on the law/intrigue track — starts at rank 2 (privilege of birth), so the contested-promotion/great-trial events are immediately in range. Ambitious+Schemer = plays the long game."
+      "//": "Heir on the law/intrigue track — starts at rank 2 (privilege of birth), so the contested-promotion/great-trial events are immediately in range. Ambitious+Schemer = plays the long game.",
+      "sex": "female"
     },
     {
       "id": "serval_castor",
@@ -63,7 +66,8 @@
         "charisma": 1
       },
       "ambition": "seize_the_throne",
-      "//": "The elder cousin who believes HE should have been heir — same rank as Lucia, blood bond but hostile disposition. The knife in the family (brief §3 'a cousin who'd poison you'). Pre-armed for feud/succession tension."
+      "//": "The elder cousin who believes HE should have been heir — same rank as Lucia, blood bond but hostile disposition. The knife in the family (brief §3 'a cousin who'd poison you'). Pre-armed for feud/succession tension.",
+      "sex": "male"
     },
     {
       "id": "serval_aunt_vera",
@@ -84,7 +88,8 @@
         "charisma": 2
       },
       "ambition": "restore_house_fortunes",
-      "//": "The loyal aunt-regent who actually runs things — outranks Lucia, can bind to mentor/superior roles. Loyal+Diplomat = the steadying hand, and the advisor whose framing the player trusts (maybe too much)."
+      "//": "The loyal aunt-regent who actually runs things — outranks Lucia, can bind to mentor/superior roles. Loyal+Diplomat = the steadying hand, and the advisor whose framing the player trusts (maybe too much).",
+      "sex": "female"
     },
     {
       "id": "serval_oren",
@@ -105,7 +110,8 @@
         "charisma": 1
       },
       "ambition": "win_a_great_love",
-      "//": "Lowborn-raised sworn man, no house name of his own (uses house tag for engine but is 'Oren' only) — the chosen-bond foil to Castor's blood-betrayal. The friend who'd die for you vs. the cousin who'd poison you, both in one family."
+      "//": "Lowborn-raised sworn man, no house name of his own (uses house tag for engine but is 'Oren' only) — the chosen-bond foil to Castor's blood-betrayal. The friend who'd die for you vs. the cousin who'd poison you, both in one family.",
+      "sex": "male"
     }
   ],
   "relationships": [

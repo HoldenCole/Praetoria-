@@ -15,7 +15,9 @@
         "influence": 1,
         "exotics": 0
       },
-      "//": "Credit-poor on purpose: starts near insolvency to trigger steward crisis events early. Materials/manpower survive from better days."
+      "//": "Credit-poor on purpose: starts near insolvency to trigger steward crisis events early. Materials/manpower survive from better days. TITLE: Baron on legitimacy 12 (Baron needs 25): the fallen house holds a title it can no longer carry — instant §13 soft-lock drama, vassals grumble, the contested-title web looms.",
+      "title": "baron",
+      "legitimacy": 12
     },
     {
       "id": "harrow",
@@ -28,7 +30,9 @@
         "influence": 6,
         "exotics": 1
       },
-      "//": "The risen rival who took what Voss lost — wealthier, contemptuous. The antagonist house."
+      "//": "The risen rival who took what Voss lost — wealthier, contemptuous. The antagonist house. TITLE: The risen rival holds a County comfortably (needs 40) — their standing outstrips Voss's as much as their coffers do.",
+      "title": "count",
+      "legitimacy": 50
     }
   ],
   "characters": [
@@ -53,7 +57,8 @@
         "administration": 1
       },
       "ambition": "restore_house_fortunes",
-      "//": "Proud+Vengeful = feels the family's fall as personal wound (drives the §13 contempt-for-the-risen). Rank 1 already (a half-step up) so career events are reachable."
+      "//": "Proud+Vengeful = feels the family's fall as personal wound (drives the §13 contempt-for-the-risen). Rank 1 already (a half-step up) so career events are reachable.",
+      "sex": "male"
     },
     {
       "id": "voss_mira",
@@ -74,7 +79,8 @@
         "charisma": 1
       },
       "ambition": "restore_house_fortunes",
-      "//": "Younger sibling, the steward to Aldric's soldier. Just+Administrator = the conscience and the ledger. A blood bond worth protecting (and a vulnerability)."
+      "//": "Younger sibling, the steward to Aldric's soldier. Just+Administrator = the conscience and the ledger. A blood bond worth protecting (and a vulnerability).",
+      "sex": "female"
     },
     {
       "id": "harrow_drusus",
@@ -96,7 +102,8 @@
         "charisma": 2
       },
       "ambition": "outshine_all_rivals",
-      "//": "The risen rival, outranks Aldric (rank 3 vs 1) — binds to 'a_rival_who_outranks_you' roles. Cruel/Ambitious, the face of the contempt."
+      "//": "The risen rival, outranks Aldric (rank 3 vs 1) — binds to 'a_rival_who_outranks_you' roles. Cruel/Ambitious, the face of the contempt.",
+      "sex": "male"
     }
   ],
   "relationships": [

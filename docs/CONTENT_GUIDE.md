@@ -6,7 +6,8 @@ This is the definitive list of **what content the engine can load today**, the *
 so no writing is wasted.
 
 Everything here is grounded in the current Core (`/src/Core`). When the engine grows (military layer,
-spheres, crises), this guide gets new sections — it won't silently drift.
+galaxy map), this guide gets new sections — it won't silently drift. Last reconciled with the code:
+2026-11-07 (see `docs/GAP_ANALYSIS.md`).
 
 > **Golden rule:** the engine only accepts the vocabulary documented here. Anything outside it throws
 > a `ContentException` at load and fails `validate`. Author *against this doc*, run `validate`, ship.
@@ -33,7 +34,12 @@ spheres, crises), this guide gets new sections — it won't silently drift.
   /text        *.en.json — event PROSE (title, body, choice labels)   [.en = English locale]
   /scenarios   *.json   — starting situations (houses, characters, holdings)
   /holdings    *.json   — economy catalog (specializations, buildings)
+  /crises      *.json   — gated crises: gates / onTrigger / onResolve / dampers   (§4d)
+  /spheres     *.json   — the power-balance estates and the career track feeding each (§7)
+  /titles      *.json   — the title ladder + legitimacy requirements (§13)
+  /careers     *.json   — career tracks + named rank ladders; the top rung caps advanceCareer (§4e)
 ```
+All loaders accept JSONC (`//` and `/* */` comments, trailing commas).
 File names don't matter to the engine (it loads every `*.json` in each dir); group by theme for sanity
 (e.g. `academy_crucible.json`, `steward_decisions.json`).
 
@@ -103,6 +109,9 @@ File names don't matter to the engine (it loads every `*.json` in each dir); gro
 - `cost` spends **action pools** (per-turn budget, §9), not resources. A choice is only *available* if
   requirements hold **and** pools are affordable.
 - `effects` apply atomically when taken, through the command bus (logged for replay).
+- **Always leave one choice ungated.** A briefing item the player cannot act on is re-offered every
+  turn (it is never marked fired), so an event whose every choice has a `requires` is a trap for any
+  character meeting none of them. Both validators reject it.
 
 ---
 
@@ -130,6 +139,7 @@ Only these resolve. Anything else is left intact **and flagged by the validator*
 | `{role.name}` | the character's name |
 | `{role.house}` | the character's house name |
 | `{role.rank}` | the character's career rank (number) |
+| `{role.rankName}` | the rung's name from `/content/careers` ("Lieutenant"); falls back to the number |
 
 `role` is `self` or any role you declared. Example: `{self.name}`, `{rival.house}`.
 
@@ -149,10 +159,11 @@ AND). Comparison `op` ∈ `eq, neq, lt, lte, gt, gte` (symbols `==, !=, <, <=, >
 | `worldFlag` | `flag`, `value:bool` | is a world flag set? |
 | `charFlag` | `role`, `flag`, `value:bool` | is a per-character flag set? |
 | `relationship` | `from`, `to`, `op`, `value` | directed disposition compare (−100..100) |
-| `bond` | `from`, `to`, `bond: blood\|sworn`, `present:bool` | is there a formal bond of that type? |
+| `bond` | `from`, `to`, `bond: blood\|sworn\|marriage`, `present:bool` | is there a formal bond of that type? (marriage is written on both edges) |
 | `skill` | `role`, `skill`, `op`, `value` | skill-level compare |
 | `trait` | `role`, `trait`, `kind: nature\|aptitude\|any`, `present:bool` | does the character have the trait? |
 | `rank` | `role`, `op`, `value` **or** `vsRole` | career-rank compare (literal, or against another role) |
+| `track` | `role`(default `self`), `track`, `present:bool` | is the character on this career track? (`military\|stewardship\|law`) — gate each track's arc on it |
 | `turn` | `op`, `value` | current turn number compare |
 | `age` | `role`(default `self`), `op`, `value` | character age compare (GDD §14) |
 | `counter` | `key`, `op`, `value` | world-counter compare (gate accumulators, clocks) |
@@ -193,9 +204,11 @@ Used in a choice's `effects` array. Applied in order when the choice is taken.
 | `adjustStress` | `role`, `delta` | change stress (clamped 0..100) |
 | `adjustCounter` | `key`, `delta` | change a world counter (gate accumulator / clock) |
 | `addTrait` | `role`, `trait`, `kind: nature\|aptitude`(default aptitude) | grant a trait |
-| `advanceCareer` | `role` | +1 career rank |
+| `advanceCareer` | `role` | +1 career rank, capped at the top rung of the track's ladder in `/content/careers` |
 | `adjustResource` | `role`(default `self`), `resource`, `delta` | move a house-treasury resource (Credits may go negative; others clamp ≥0) |
 | `grantClaim` | `role`(default `self`), `title` | add a claim to a title to the role's **house** (GDD §13) |
+| `revokeClaim` | `role`(default `self`), `title` | remove a claim — a pressed or sold claim is spent (pair with `setTitle`) |
+| `succeed` | `role` | hand the seat to a living character: they become the protagonist, the House keeps its title (abdication) |
 | `adjustLegitimacy` | `role`(default `self`), `delta` | change the house's legitimacy/standing (clamped ≥0, GDD §13) |
 | `setTitle` | `role`(default `self`), `title` | set the house's title outright — grant / usurp / abdicate (GDD §13) |
 | `kill` | `role` | kill a character — assassination / duel / Bloody Event; if it's the protagonist, succession fires (GDD §14) |
@@ -292,8 +305,12 @@ each turn a title is held above legitimacy.
   ] }
 ```
 
-(There is **no** `adjustResource` for claims/titles and no "transfer title" verb — model handoffs with
-`setTitle` on the gainer + a `log`. A future pass may add an explicit `succeed`/inheritance effect.)
+**Two rules the title model imposes (titles live on the House, not the character):**
+- A pressed claim must be **spent** — `revokeClaim` alongside the `setTitle` — or a repeatable
+  claim event keeps re-firing (and could even *demote* a house that has since climbed higher). Gate
+  "press a claim to a County" on `title_rank lt 3` as well.
+- A handover **inside** the house is not two `setTitle`s (that demotes your own house). Use
+  `succeed` on the heir: they become the protagonist and the House keeps its rung.
 
 ---
 
@@ -327,8 +344,57 @@ duel, Bloody Event; auto-fires succession if the target is the protagonist). Exa
   ] }
 ```
 
-> **Content needed for births:** scenario characters currently have no `sex`/spouse, so no children are
-> born. Add `sex` + a `marriage` relationship to a scenario's cast to make the dynasty layer live.
+> Every shipped scenario cast now has `sex`, and the match event (`the_advantageous_match`) can create a
+> marriage mid-run, so births happen in play. Births need a mother **and** a father (a same-sex marriage is
+> an alliance, not a bloodline). A marriage written from either spouse counts — the bond is mutual.
+
+---
+
+## 4d. Crises — `/content/crises/*.json` (§16)
+
+A crisis is a *gated, buildable state*, not an event. Gates reuse the condition vocabulary; trigger,
+resolve and damper writes reuse the effect vocabulary.
+```jsonc
+{ "crises": [
+  { "id": "local_revolt", "name": "Local Revolt", "tier": "regional",   // personal|house|regional|imperial|existential
+    "weight": 3,                 // organic-onset roll weight (an abstain weight competes, so ripe ≠ instant)
+    "severity": 2,               // onsets at this severity; a re-trigger adds it again
+    "repeatable": false,         // may it re-onset WHILE active? (usually no)
+    "once": false,               // true = at most once per run; after it resolves it is marked spent
+    "gates":     [ { "type": "counter", "key": "unrest", "op": "gte", "value": 5 } ],   // ALL must hold
+    "onTrigger": [ { "type": "setWorldFlag", "flag": "realm_unstable", "value": true } ],// writes that cascade
+    "onResolve": [ /* effects applied when it subsides — un-arm what onTrigger armed */ ],
+    "dampers": [
+      { "id": "concessions", "name": "Grant Concessions", "relief": 2,      // severity removed
+        "available": [ { "type": "counter", "key": "goodwill", "op": "gte", "value": 2 } ],  // earned by prior play
+        "cost": { "influence": 1 },                                          // optional pool cost
+        "effects": [ { "type": "adjustCounter", "key": "unrest", "delta": -3 } ] }
+    ] }
+]}
+```
+An active crisis whose gates **no longer hold** decays one severity per turn and resolves (natural
+de-escalation). The engine raises `crisis:<id>:active` while active and `crisis:<id>:spent` after a
+`once` crisis resolves — read them with `worldFlag`, never set them.
+
+## 4e. Careers — `/content/careers/careers.json` (§13)
+
+```jsonc
+{ "tracks": [
+  { "id": "military", "name": "the Navy",
+    "ranks": ["Cadet", "Ensign", "Lieutenant", "Commander", "Captain", "Admiral", "Grand Admiral"] }
+]}
+```
+Rank *i* is named `ranks[i]`; the last rung caps `advanceCareer`. Gate a track's events with the
+`track` condition and name rungs in prose with `{role.rankName}`. A new track is a new entry — no C#.
+
+## 4f. Save files
+
+A save is the serialised `World` (RNG position included) in a versioned envelope — nothing else.
+Content is *not* in the save; it reloads from `/content`, so content patches apply to saved games.
+```bash
+dotnet run --project src/Tools -- play --auto --turns 10 --save my.json
+dotnet run --project src/Tools -- play --load my.json --turns 10        # resumes the same deterministic stream
+```
 
 ---
 
@@ -361,7 +427,9 @@ chain is documented.
     "popGrowth": 1 }                   // population added per turn; >0 marks a POPULATED world (carries unrest)
 ]}
 ```
-Currently authored: `agri_world, forge_world, trade_hub, fortress, research_station`.
+Currently authored (`specializations.json` + `holdings_ext.json`): `agri_world, forge_world, trade_hub,
+fortress, research_station, mining_outpost, shipyard_world, agri_collective, fortress_station,
+research_enclave, trade_consortium, senatorial_seat`.
 
 ### Buildings — `/content/holdings/buildings.json`
 ```jsonc
@@ -373,7 +441,9 @@ Currently authored: `agri_world, forge_world, trade_hub, fortress, research_stat
     "upkeep": { "credits": 2 } }
 ]}
 ```
-Currently authored: `power_plant, mine, farm_complex, market`.
+Currently authored (`buildings.json` + `holdings_ext.json`): `power_plant, mine, farm_complex, market,
+deep_drill, orbital_foundry, conscription_hall, bastion_guns, exotics_lab, free_port, patronage_office,
+granary_relief`.
 
 Resource keys (everywhere): `credits, materials, manpower, influence, exotics`.
 
@@ -391,7 +461,9 @@ Resource keys (everywhere): `credits, materials, manpower, influence, exotics`.
 
 ## 7. Scenarios — starting situations
 
-`/content/scenarios/<id>.json` — currently only `academy_crucible`.
+`/content/scenarios/<id>.json` — four ship: `academy_crucible` (the fixture) and the three rise-path
+openings `the_fallen_house` / `the_circling_heir` / `the_risen_officer`. Every character carries `sex`;
+every house a `title` + `legitimacy` (the fallen house holds a Baron title above its standing on purpose).
 ```jsonc
 {
   "id": "academy_crucible",
@@ -399,11 +471,11 @@ Resource keys (everywhere): `credits, materials, manpower, influence, exotics`.
   "era": "fractured_stars",            // "fractured_stars" (pre-Imperium) | "imperium"
 
   "houses": [
-    { "id": "vega", "name": "House Vega", "accent": "#7A1F2B",
+    { "id": "vega", "name": "House Vega", "accent": "#7A1F2B", "title": "baron", "legitimacy": 28,
       "treasury": { "credits": 10, "materials": 8, "manpower": 5, "influence": 3, "exotics": 0 } }
   ],
   "characters": [
-    { "id": "vega_marcus", "name": "Marcus Vega", "house": "vega", "age": 17,
+    { "id": "vega_marcus", "name": "Marcus Vega", "house": "vega", "age": 17, "sex": "male",
       "careerTrack": "military", "careerRank": 0,
       "nature": ["Proud"], "aptitude": ["Strategist"],
       "skills": { "tactics": 1, "discipline": 1, "charisma": 1 },
@@ -420,18 +492,17 @@ Resource keys (everywhere): `credits, materials, manpower, influence, exotics`.
   ]
 }
 ```
-**Want:** alternative openings — a fallen house clawing back from one poor holding; a great-house heir
-with rivals already circling; a low-born self-made officer (the §13 rise-paths each want a distinct
-starting fantasy).
+**Want:** an `imperium`-era opening (every shipped scenario is `fractured_stars`), and a cast that starts
+*married* so the dynasty layer is live from turn 1 rather than after a match event.
 
 ---
 
-## 8. Controlled vocabularies (referenced by string — lock these down)
+## 8. Controlled vocabularies — LOCKED
 
-These are **not** JSON files the engine validates — characters and events just *use the strings*. So the
-single most valuable thing you can give me is a **canonical list** for each, used consistently. Below is
-a **strawman drawn from the GDD** — edit names, add/remove, define meanings, and this becomes the
-project bible.
+**The canonical lists live in [`PRAETORIA_VOCAB.md`](PRAETORIA_VOCAB.md) (v1.1)** and
+`validate_praetoria.py` enforces them as a hard gate. Traits/skills/ambitions are still bare strings to
+the engine (no loader); tracks and rank ladders are now data in `/content/careers` (§4e). The sections
+below are kept as the original strawman for history — when they disagree with the bible, the bible wins.
 
 ### 8a. Nature traits (constraining, stress-bearing — GDD §18)
 Identity traits that *are* the character. Acting against them should cost stress (events you author
@@ -459,8 +530,8 @@ amass_a_fortune, become_legend`.
 → *Give me: final list + one line on what each character pursues (so I can write ambition-driven events).*
 
 ### 8e. Career tracks + rank ladders (GDD §13)
-Currently: `careerTrack` ∈ `military, stewardship, law`; `careerRank` is an integer the `advanceCareer`
-effect increments. The GDD wants **named rungs**. Strawman:
+Now **data**: `/content/careers/careers.json` (§4e) names each rung and caps `advanceCareer` at the top.
+`careerTrack` ∈ `military, stewardship, law`; the locked ladders:
 - **Military:** 0 Cadet → 1 Ensign → 2 Lieutenant → 3 Commander → 4 Captain → 5 Admiral → 6 Grand Admiral
 - **Stewardship:** 0 Clerk → 1 Administrator → 2 Governor → 3 Minister → 4 Imperial Treasurer
 - **Law/Intrigue:** 0 Aspirant → 1 Advocate → 2 Magistrate → 3 Praetor → 4 High Justice
@@ -507,16 +578,17 @@ content would have nowhere to go:
 
 | Area | Status | When |
 |---|---|---|
-| **Weapons / ships / fleet units** | No military layer at all. No data shape. | needs a future milestone |
-| **Megastructures** | GDD slot, no loader. | M4-deferred / later |
-| **Spheres (power balance) + threat/coalition** | No loader. | Milestone 5 |
-| **Crisis gates / cascades / Bloody Events** | The `counter` plumbing exists; the gate *system* doesn't. | Milestone 5 |
-| **Marriage / fostering / succession** | No data shape yet. | M4-deferred / M5 |
-| **Exotics *sources* / anomalies / archaeology** | The Exotics resource exists; the anomaly→Crisis-foreshadowing system (its whole point) is M5. | Milestone 5 |
+| **Weapons / ships / fleet units** | No military layer at all. No data shape. | Galaxy-mode milestone |
+| **Megastructures** | GDD slot, no loader. | later |
+| **Fostering / hidden kin ("scatter the seed")** | No data shape. Marriage, claims, succession and `kill` *are* loadable. | later |
+| **Honorifics & Orders** | GDD §13 slot, no loader. | later |
+| **Exotics *sources* / anomalies / archaeology** | The Exotics resource exists; the anomaly→Crisis-foreshadowing system is DLC-era. | DLC |
 | **Galaxy map / systems / hyperlanes** | `Holding.system` field is reserved but unused. | Milestone 3/4 UI |
+| **The Great Crisis / era flip / epilogue** | `World.Era` exists; nothing flips it or reads it yet. | Milestone 6 |
 
-You *can* write generic exotic-find or anomaly *flavor* events now as ordinary events (they'd just grant
-`adjustResource exotics` and set a flag) — but hold the structured Crisis-foreshadowing framing until M5.
+Spheres, crises (gates / cascades / dampers / `once` / `onResolve`), titles, claims, marriage, careers,
+`kill` and `succeed` **are** all loadable now — see §4b–§4e. Bloody Events are ordinary set-pieces that
+use `kill` (the academy's `the_marked_man/finish_it` is the first).
 
 ---
 
@@ -548,10 +620,13 @@ TITLES     landless knight baron count duke archduke emperor   (§13 ladder ids)
 OPS        eq neq lt lte gt gte   (== != < <= > >=)
 BONDS      none | blood | sworn | marriage
 TRAIT KIND nature | aptitude | any
-TOKENS     {role.name} {role.house} {role.rank}      (role = self or a declared role)
+TOKENS     {role.name} {role.house} {role.rank} {role.rankName}   (role = self or a declared role)
+TRACKS     military | stewardship | law                 (ladders + rung names in /content/careers)
 CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
-CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank turn age counter resource sphere title claim eventFired
-EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim adjustLegitimacy setTitle kill log
+CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track turn age counter resource sphere title claim eventFired
+EFFECTS    setWorldFlag setCharFlag adjustRelationship addBond adjustSkill adjustStress adjustCounter addTrait advanceCareer adjustResource grantClaim revokeClaim adjustLegitimacy setTitle succeed kill log
 READ-ONLY  title_rank · house_legitimacy · title_instability   (system-written, protagonist house)
 LIFECYCLE  generation · dynasty_births counters · dynasty_dead flag   (system-written, §14)
+CRISES     crisis:<id>:active · crisis:<id>:spent flags            (system-written, §16)
+RULE       every event keeps at least one choice with no `requires`
 ```

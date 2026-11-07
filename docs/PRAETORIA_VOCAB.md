@@ -74,7 +74,11 @@ Skill/disposition traits that gate or flavor options. `kind: aptitude`.
 | **seize_the_throne** | Ultimate power — rule itself. |
 | **win_a_great_love** | A personal, romantic, or familial bond above ambition. |
 
-## 8e. Career tracks (3) + rank ladders — LOCKED
+## 8e. Career tracks (3) + rank ladders — LOCKED, and now DATA
+
+The ladders below are loaded from **`/content/careers/careers.json`**; the engine caps `advanceCareer`
+at each ladder's top rung, the `track` condition gates a track's events, and `{role.rankName}` renders
+the rung in prose. Rename a rung there, not here (then update this table).
 
 `careerTrack` ∈ `military, stewardship, law`. `careerRank` is the integer the `advanceCareer` effect
 increments. **These ladders are now locked; the career events' `rank` thresholds are written against them.**
@@ -86,12 +90,14 @@ increments. **These ladders are now locked; the career events' `rank` thresholds
 > **Rank-threshold note for engineers:** career events gate on literal integers (e.g. `the_admirals_shadow`
 > binds an `admiral` role at `rank gte 5`; `first_command` needs `self rank gte 1`). These match the ladders
 > above. If any ladder is renumbered, grep `career_progression` for `"type": "rank"` and re-check thresholds.
-> A track-aware check isn't enforced by the validator (the engine treats rank as a bare int across tracks),
-> so the stewardship/law caps (4) vs military (6) are a design constraint to honor manually.
+> The caps are now enforced by the engine from the careers catalog (stewardship/law stop at 4, military
+> at 6), and every career-arc event is gated on its `track`, so a magistrate never receives a fleet command.
 
 ---
 
 ## Change log
+- **v1.1 + careers data (2026-11-07)** — §8e ladders moved into `/content/careers/careers.json`; the engine
+  caps ranks at the ladder top; career events gate on `track`. Names unchanged.
 - **v1.1** — Extended the lock to reconcile with strings the engine/fixture already use (decision:
   *extend the lock*). Added nature trait **Arrogant** (the canonical aggression trait keyed by
   `NpcAi`, and used by the `academy_crucible` fixture) and ambition **command_a_fleet** (the

@@ -1,0 +1,15 @@
+{
+  // CAREER TRACKS + RANK LADDERS (GDD §13; docs/PRAETORIA_VOCAB.md §8e — LOCKED v1.0). The character's
+  // ladder, reset each generation. Rank index i is named ranks[i]; the LAST rung is the ladder's top and
+  // CAPS the `advanceCareer` effect — a Grand Admiral cannot be promoted again. Events gate on the bare
+  // integer (`rank` condition) and on the track (`track` condition); prose can name the rung with
+  // {role.rankName}. DLC tracks (Intelligence, Church, Science) are new entries here, zero engine work.
+  "tracks": [
+    { "id": "military",    "name": "the Navy",
+      "ranks": ["Cadet", "Ensign", "Lieutenant", "Commander", "Captain", "Admiral", "Grand Admiral"] },
+    { "id": "stewardship", "name": "the Administration",
+      "ranks": ["Clerk", "Administrator", "Governor", "Minister", "Imperial Treasurer"] },
+    { "id": "law",         "name": "the Courts",
+      "ranks": ["Aspirant", "Advocate", "Magistrate", "Praetor", "High Justice"] }
+  ]
+}

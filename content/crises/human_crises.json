@@ -9,6 +9,10 @@
   //
   // THE DAMPERS are scaled by prior play: the loyalist rally that arrests a civil war needs banked
   // `goodwill` — the ruler who clawed up through brutality spent that goodwill and cannot rally.
+  //
+  // onResolve un-arms what onTrigger armed (realm_unstable / civil_war_active) when a civil or coalition
+  // war subsides, so the §16 web cools once the great crises pass instead of staying warm forever.
+  // Crises here are recurring by design (a realm can revolt twice); mark a true one-off with "once": true.
   // Counters used (fed by the steward/academy event pools): unrest, legitimacy, goodwill, corruption, standing.
   "crises": [
     {
@@ -25,13 +29,16 @@
         { "type": "adjustCounter", "key": "legitimacy", "delta": -2 },
         { "type": "setWorldFlag", "flag": "realm_unstable", "value": true }
       ],
+      // No onResolve here on purpose: a revolt that is CRUSHED leaves the realm unstable (that is the
+      // cascade into civil war). Only concessions — addressing the cause — restore stability.
       "dampers": [
         {
           "id": "concessions", "name": "Grant Concessions", "relief": 2,
           "available": [ { "type": "counter", "key": "goodwill", "op": "gte", "value": 2 } ],
           "effects": [
             { "type": "adjustCounter", "key": "unrest", "delta": -3 },
-            { "type": "adjustCounter", "key": "goodwill", "delta": -1 }
+            { "type": "adjustCounter", "key": "goodwill", "delta": -1 },
+            { "type": "setWorldFlag", "flag": "realm_unstable", "value": false }
           ]
         },
         {
@@ -58,6 +65,11 @@
       "onTrigger": [
         { "type": "setWorldFlag", "flag": "civil_war_active", "value": true },
         { "type": "adjustCounter", "key": "legitimacy", "delta": -2 }
+      ],
+      "onResolve": [
+        { "type": "setWorldFlag", "flag": "civil_war_active", "value": false },
+        { "type": "setWorldFlag", "flag": "realm_unstable", "value": false },
+        { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }
       ],
       "dampers": [
         {
@@ -90,6 +102,9 @@
         { "type": "adjustCounter", "key": "legitimacy", "delta": -2 },
         { "type": "adjustCounter", "key": "coalition_pressure", "delta": -6 },
         { "type": "setWorldFlag", "flag": "realm_unstable", "value": true }
+      ],
+      "onResolve": [
+        { "type": "setWorldFlag", "flag": "realm_unstable", "value": false }
       ],
       "dampers": [
         {

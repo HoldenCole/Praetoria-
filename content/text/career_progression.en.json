@@ -83,7 +83,8 @@
       "choices": {
         "rule_by_law": "Rule as the law demands, whatever power prefers. Build the slow reputation.",
         "rule_by_favor": "Find the verdict that serves you. Collect the debt judges learn to collect.",
-        "rule_harshly": "Make an example sharper than the crime. Clear the docket with fear."
+        "rule_harshly": "Make an example sharper than the crime. Clear the docket with fear.",
+        "rule_by_precedent": "Find the precedent and follow it. Let the books carry the weight."
       }
     },
     {
@@ -92,7 +93,8 @@
       "body": "The case of your career so far: {accused.name} of {accused.house}, a power above your station, who walked in assuming that station was armor — and may be right, unless you prove otherwise before the whole court. Convict them and the realm learns your law reaches upward. Let them buy their way clear and you learn what your robe is really worth.",
       "choices": {
         "convict_the_mighty": "Make the conviction stick. Show the realm your law reaches up.",
-        "accept_the_bribe": "Let them pay. Advance as a reliable friend to the powerful — and their hostage."
+        "accept_the_bribe": "Let them pay. Advance as a reliable friend to the powerful — and their hostage.",
+        "prosecute_by_the_book": "Prosecute by the book. Narrow, careful, defensible — and still upward."
       }
     },
     {
@@ -139,6 +141,16 @@
       "choices": {
         "do_the_work": "Do the work. Set-pieces are rare; the days between are the career.",
         "delegate_it": "Push the routine down. Learn what to stop doing. Lead, don't just labor."
+      }
+    },
+    {
+      "id": "the_favor_called",
+      "title": "The Favor Called",
+      "body": "There is a ledger no treasury keeps, and {debtor.name} of {debtor.house} is written in yours. The moment has come when the thing you are owed could be spent — a vote where you need one, a silence, a name struck from a list. Every court runs on these debts, and everyone in it knows the two ways a debt can be ruined: by calling it too soon, or by never calling it at all.",
+      "choices": {
+        "call_it_in": "Collect. Turn the debt into something you can hold.",
+        "forgive_it": "Forgive it, openly. Let {debtor.name} owe you nothing — and everything.",
+        "let_it_ride": "Say nothing. Let {debtor.name} go on owing. The waiting is the point."
       }
     }
   ]
