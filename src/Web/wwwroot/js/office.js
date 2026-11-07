@@ -11,7 +11,7 @@ import { render as cameo } from './portrait.js';
 function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 
 // ---- procedural textures ----
-function noiseCanvas(size, seed, scale, base, variance) {
+export function noiseCanvas(size, seed, scale, base, variance) {
   const c = document.createElement('canvas'); c.width = c.height = size; const ctx = c.getContext('2d'); const img = ctx.createImageData(size, size); const d = img.data;
   let t = seed; const r = () => { t = (t * 1664525 + 1013904223) >>> 0; return t / 4294967296; };
   const grid = []; const g = Math.ceil(size / scale) + 2; for (let i = 0; i < g * g; i++) grid.push(r());
@@ -23,8 +23,8 @@ function noiseCanvas(size, seed, scale, base, variance) {
   }
   ctx.putImageData(img, 0, 0); return c;
 }
-function texture(canvas, repeat = 1) { const t = new THREE.CanvasTexture(canvas); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat, repeat); t.colorSpace = THREE.SRGBColorSpace; return t; }
-function sigilCanvas(houseId, accent) {
+export function texture(canvas, repeat = 1) { const t = new THREE.CanvasTexture(canvas); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat, repeat); t.colorSpace = THREE.SRGBColorSpace; return t; }
+export function sigilCanvas(houseId, accent) {
   const c = document.createElement('canvas'); c.width = 256; c.height = 384; const ctx = c.getContext('2d');
   ctx.fillStyle = accent; ctx.fillRect(0, 0, 256, 384);
   const grad = ctx.createLinearGradient(0, 0, 0, 384); grad.addColorStop(0, 'rgba(255,255,255,.18)'); grad.addColorStop(1, 'rgba(0,0,0,.35)'); ctx.fillStyle = grad; ctx.fillRect(0, 0, 256, 384);
@@ -48,7 +48,7 @@ function sigilCanvas(houseId, accent) {
 }
 function hashSigned(s) { let h = 17; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) | 0; return h; }
 
-const PLANET = { terran: [0x3f8f62, 0x8ad9ff], ocean: [0x2f6fb5, 0x8ac8ff], arid: [0xc98f4a, 0xffd9a0], forge: [0xa5452a, 0xff9060], frozen: [0xb9d4ea, 0xe6f4ff], gas: [0xc9a06a, 0xffe0b0], belt: [0x7a6f60, 0x555555], barren: [0x6f6a66, 0x999999] };
+export const PLANET = { terran: [0x3f8f62, 0x8ad9ff], ocean: [0x2f6fb5, 0x8ac8ff], arid: [0xc98f4a, 0xffd9a0], forge: [0xa5452a, 0xff9060], frozen: [0xb9d4ea, 0xe6f4ff], gas: [0xc9a06a, 0xffe0b0], belt: [0x7a6f60, 0x555555], barren: [0x6f6a66, 0x999999] };
 const WALLS = { stone: { color: 0x3a4152, rough: .85, metal: .05 }, brass: { color: 0x5a4a28, rough: .35, metal: .8 }, marble: { color: 0x9a9fab, rough: .25, metal: .05 }, wood: { color: 0x4a2e1c, rough: .6, metal: .02 } };
 const FLOORS = { slate: { color: 0x2a3142, rough: .3, metal: .7 }, carpet: { color: 0x4a1f24, rough: .95, metal: 0 }, marble: { color: 0x6a6f7a, rough: .15, metal: .2 }, wood: { color: 0x3a2416, rough: .5, metal: .05 } };
 const DESKS = { oak: { color: 0x4d3221, rough: .55, metal: .05 }, steel: { color: 0x3a4150, rough: .3, metal: .9 }, marble: { color: 0x7a7f8a, rough: .2, metal: .1 } };
@@ -227,13 +227,13 @@ export class Office {
   dispose() { this.disposed = true; this.resizeObserver.disconnect(); this.renderer.dispose(); this.renderer.domElement.remove(); }
 }
 
-function plaqueCanvas(name) {
+export function plaqueCanvas(name) {
   const c = document.createElement('canvas'); c.width = 256; c.height = 56; const ctx = c.getContext('2d');
   ctx.fillStyle = '#1a1407'; ctx.fillRect(0, 0, 256, 56); ctx.strokeStyle = '#c9a24a'; ctx.lineWidth = 3; ctx.strokeRect(2, 2, 252, 52);
   ctx.fillStyle = '#e6c77a'; ctx.font = '600 24px Cinzel, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(name.toUpperCase(), 128, 30, 236);
   return c;
 }
-function stripeCanvas(accent) {
+export function stripeCanvas(accent) {
   const c = document.createElement('canvas'); c.width = 128; c.height = 170; const ctx = c.getContext('2d');
   const bg = ctx.createLinearGradient(0, 0, 0, 170); bg.addColorStop(0, '#1b2233'); bg.addColorStop(1, '#0b0e16'); ctx.fillStyle = bg; ctx.fillRect(0, 0, 128, 170); ctx.fillStyle = accent; ctx.globalAlpha = .32;
   for (let i = -170; i < 300; i += 44) { ctx.beginPath(); ctx.moveTo(i, 170); ctx.lineTo(i + 10, 170); ctx.lineTo(i + 10 + 170, 0); ctx.lineTo(i + 170, 0); ctx.closePath(); ctx.fill(); }
@@ -241,7 +241,7 @@ function stripeCanvas(accent) {
   ctx.globalAlpha = 1; const g = ctx.createLinearGradient(0, 0, 0, 170); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.6)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 128, 170);
   return c;
 }
-function nebulaCanvas(size, seed) {
+export function nebulaCanvas(size, seed) {
   const c = noiseCanvas(size, seed, 48, 40, 120); const ctx = c.getContext('2d'); ctx.globalCompositeOperation = 'multiply'; const g = ctx.createLinearGradient(0, 0, size, size); g.addColorStop(0, '#3a4a9a'); g.addColorStop(.5, '#6a3a86'); g.addColorStop(1, '#2a7a8a'); ctx.fillStyle = g; ctx.fillRect(0, 0, size, size);
   ctx.globalCompositeOperation = 'destination-in'; const rg = ctx.createRadialGradient(size / 2, size / 2, size * .1, size / 2, size / 2, size * .5); rg.addColorStop(0, 'rgba(0,0,0,1)'); rg.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = rg; ctx.fillRect(0, 0, size, size); return c;
 }

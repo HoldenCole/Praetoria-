@@ -48,3 +48,5 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   references directly (Star Dynasties, Stellaris, Endless Space 2 screenshots) → `docs/ART_DIRECTION.md`. Rebuilt the
   galaxy as a rendered WebGL scene, the office as a lit 3D set, portraits as drawn cameos; removed all stock photographs
   and avatars. Every pass screenshotted through headless WebGL before commit.
+- 2026-11-07 — Owner: office good; portraits can wait; galaxy needs a little more; then UI for the Academy and the
+  political system at the office's level; then depth. Done: galaxy polish; Senate and Academy screens on new 3D sets.

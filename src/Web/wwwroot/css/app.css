@@ -306,3 +306,12 @@ input:focus, select:focus { outline: none; border-color: var(--brass); }
 .stage-chip:hover { border-color: var(--brass); box-shadow: 0 0 12px rgba(201,162,74,.3); } .stage-chip.setpiece { border-left-color: #d8705a; } .stage-chip.ambient { border-left-color: #4a6a8a; }
 .stage-chip .who { font-family: var(--display); font-size: .85rem; color: var(--brass2); } .stage-chip .what { font-size: .8rem; color: var(--ink2); }
 .stage-chip.empty { color: var(--muted); font-style: italic; font-family: var(--serif); }
+
+.map-tip { background: rgba(8,11,17,.9); border: 1px solid var(--brass3); border-radius: 3px; padding: .35rem .6rem; font-size: 11px; color: var(--ink2); white-space: nowrap; box-shadow: 0 6px 20px rgba(0,0,0,.6); transform: translateY(-100%); }
+.map-tip b { color: var(--brass2); font-family: var(--display); font-size: 12px; }
+
+/* senate & academy sets */
+.stage-card { position: absolute; left: .8rem; bottom: 3.4rem; z-index: 6; display: flex; gap: .7rem; align-items: flex-start; max-width: 560px; background: rgba(8,11,17,.9); border: 1px solid var(--brass3); border-radius: 3px; padding: .6rem .8rem; backdrop-filter: blur(4px); }
+.stage-card .sc-name { font-family: var(--display); font-size: 1rem; color: var(--brass2); } .stage-card .sc-body { flex: 1; min-width: 0; } .stage-card .sc-actions { margin-top: .3rem; }
+.sphere { padding: .3rem 0; border-bottom: 1px dotted var(--line); } .sphere-head { display: flex; justify-content: space-between; font-size: .9rem; }
+.sphere-bar { display: flex; height: 10px; border-radius: 2px; overflow: hidden; background: rgba(0,0,0,.5); border: 1px solid var(--line); margin-top: .25rem; } .sphere-bar i { display: block; height: 100%; } .sphere-bar i.mine { box-shadow: inset 0 0 0 1px #fff; }

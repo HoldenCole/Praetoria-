@@ -30,6 +30,8 @@ function textures() {
   TEX.glow = radialTexture(128, [[0, 'rgba(255,255,255,.9)'], [0.4, 'rgba(255,255,255,.25)'], [1, 'rgba(255,255,255,0)']]);
   TEX.star = radialTexture(32, [[0, 'rgba(255,255,255,1)'], [0.3, 'rgba(255,255,255,.6)'], [1, 'rgba(255,255,255,0)']]);
   TEX.ship = glyphTexture(ctx => { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(32, 4); ctx.lineTo(56, 56); ctx.lineTo(32, 44); ctx.lineTo(8, 56); ctx.closePath(); ctx.fill(); });
+  TEX.lane = (() => { const c = document.createElement('canvas'); c.width = 4; c.height = 32; const ctx = c.getContext('2d'); const g = ctx.createLinearGradient(0, 0, 0, 32); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 4, 32); const t = new THREE.CanvasTexture(c); return t; })();
+  TEX.flare = (() => { const c = document.createElement('canvas'); c.width = 256; c.height = 16; const ctx = c.getContext('2d'); const g = ctx.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, 'rgba(255,255,255,.9)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 256, 16); const t = new THREE.CanvasTexture(c); return t; })();
   TEX.station = glyphTexture(ctx => { ctx.strokeStyle = '#fff'; ctx.lineWidth = 6; ctx.beginPath(); ctx.rect(14, 14, 36, 36); ctx.stroke(); ctx.beginPath(); ctx.arc(32, 32, 8, 0, 6.283); ctx.fill(); });
   return TEX;
 }
@@ -48,7 +50,9 @@ void main(){
   float n3 = fbm(p*0.6 + vec2(-3.0, 8.0));
   float cloud = smoothstep(-0.15, 0.75, n1) * smoothstep(-0.3, 0.6, n3);
   float wisps = pow(max(0.0, n2), 2.2) * 0.9;
-  vec3 col = uA * cloud * 1.35 + uB * wisps * 1.6 + uC * pow(cloud, 3.0) * 1.4;
+  vec3 col = uA * cloud * 0.95 + uB * wisps * 1.1 + uC * pow(cloud, 3.0) * 1.2;
+  // a brighter core band and scattered bright knots, like a real emission cloud
+  float knots = pow(max(0.0, fbm(p*3.3 + 21.0)), 5.0) * cloud * 2.5; col += vec3(0.9, 0.75, 0.6) * knots;
   // faint dust lanes
   float dust = smoothstep(0.2, 0.5, fbm(p*2.5 + 40.0)) * 0.35;
   col *= (1.0 - dust);
@@ -62,19 +66,19 @@ void main(){
   vec2 p = vUv * uSize;
   float hw[${MAX_HOUSES}]; for (int h = 0; h < ${MAX_HOUSES}; h++) hw[h] = 0.0;
   float total = 0.0;
-  for (int i = 0; i < ${MAX_SYS}; i++) { if (i >= uCount) break; int o = uOwner[i]; if (o < 0) continue; float d = distance(p, uPos[i].xy); float w = exp(-(d*d) / (uRadius*uRadius)) * uPos[i].z; hw[o] += w; total += w; }
+  for (int i = 0; i < ${MAX_SYS}; i++) { if (i >= uCount) break; int o = uOwner[i]; if (o < 0) continue; float d = distance(p, uPos[i].xy); float w = exp(-(d*d) / (uRadius*uRadius)) * uPos[i].z * 0.55; hw[o] += w; total += w; }
   int best = -1; float bw = 0.0, second = 0.0;
   for (int h = 0; h < ${MAX_HOUSES}; h++) { if (hw[h] > bw) { second = bw; bw = hw[h]; best = h; } else if (hw[h] > second) second = hw[h]; }
   if (best < 0) discard;
   vec3 col = uHouseColor[best];
   float field = bw;
-  float inside = smoothstep(0.2, 0.45, field);
-  float edge = smoothstep(0.19, 0.225, field) * (1.0 - smoothstep(0.225, 0.275, field));   // the glowing border band
-  float seam = 1.0 - smoothstep(0.0, 0.06, bw - second);                                    // where two houses meet
-  float alpha = inside * 0.075 + edge * 0.42;
-  alpha *= (1.0 - seam * 0.7);
-  vec3 c = mix(col * 0.8, col * 1.7, edge);
-  if (best == uPlayer) alpha *= 1.3;
+  float inside = smoothstep(0.2, 0.5, field);
+  float edge = smoothstep(0.205, 0.222, field) * (1.0 - smoothstep(0.222, 0.245, field));   // a thin lit border
+  float seam = 1.0 - smoothstep(0.0, 0.05, bw - second);                                     // where two houses meet
+  float alpha = inside * 0.05 + edge * 0.36;
+  alpha *= (1.0 - seam * 0.75);
+  vec3 c = mix(col * 0.7, col * 1.8, edge);
+  if (best == uPlayer) alpha *= 1.4;
   gl_FragColor = vec4(c, alpha);
 }`;
 
@@ -103,7 +107,7 @@ export class Galaxy {
     textures();
     const geo = new THREE.PlaneGeometry(6000, 4000);
     this.nebula = new THREE.Mesh(geo, new THREE.ShaderMaterial({ vertexShader: NEBULA_VS, fragmentShader: NEBULA_FS, depthWrite: false,
-      uniforms: { uTime: { value: 0 }, uA: { value: new THREE.Color(0x24357a) }, uB: { value: new THREE.Color(0x6a3a86) }, uC: { value: new THREE.Color(0x2a7a8a) } } }));
+      uniforms: { uTime: { value: 0 }, uA: { value: new THREE.Color(0x1d2c66) }, uB: { value: new THREE.Color(0x4a2f6e) }, uC: { value: new THREE.Color(0x1f6a7a) } } }));
     this.nebula.position.set(600, -350, -900); this.scene.add(this.nebula);
     // stars in depth for parallax
     const r = rnd(1234); const n = 2600; const pos = new Float32Array(n * 3); const col = new Float32Array(n * 3); const size = new Float32Array(n);
@@ -123,11 +127,13 @@ export class Galaxy {
     for (const l of this.labels) l.element.remove(); this.labels = [];
     while (this.objects.children.length) { const o = this.objects.children[0]; this.objects.remove(o); o.traverse?.(c => { c.geometry?.dispose?.(); if (c.material && !c.material.__shared) c.material.dispose?.(); }); }
     this.hitTargets = [];
+    if (this.tip) { this.tip.element.remove(); this.tip = null; }
     if (!model) return;
+    const tipEl = document.createElement('div'); tipEl.className = 'map-tip'; tipEl.style.display = 'none'; this.tip = new CSS2DObject(tipEl); this.tip.position.set(0, 0, 20); this.objects.add(this.tip); this.labels.push(this.tip);
     const T = textures();
     const byId = {}; for (const s of model.systems) byId[s.id] = s;
     // bounds → home camera
-    if (!this.homeSet) { const xs = model.systems.map(s => s.x), ys = model.systems.map(s => -s.y); this.target.set((Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2, 0); this.distance = Math.max(Math.max(...xs) - Math.min(...xs), (Math.max(...ys) - Math.min(...ys)) * 1.6) * 1.05 + 200; this.home = { t: this.target.clone(), d: this.distance }; this.homeSet = true; this.updateCamera(); }
+    if (!this.homeSet) { const xs = model.systems.map(s => s.x), ys = model.systems.map(s => -s.y); this.target.set((Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2, 0); this.distance = Math.max(Math.max(...xs) - Math.min(...xs), (Math.max(...ys) - Math.min(...ys)) * 1.6) * 1.05 + 200; this.home = { t: this.target.clone(), d: this.distance }; this.homeSet = true; this.updateCamera(true); }
 
     // territory field
     const houses = []; const houseIdx = {}; const colorOf = {};
@@ -137,27 +143,32 @@ export class Galaxy {
     for (let i = 0; i < MAX_SYS; i++) { const s = model.systems[i]; if (s) { uPos.push(new THREE.Vector3(s.x - minX, maxY - s.y, 1.0 + Math.min(1.0, (s.pop || 0) / 60))); uOwner.push(s.ownerId ? houseIdx[s.ownerId] : -1); } else { uPos.push(new THREE.Vector3()); uOwner.push(-1); } }
     for (let h = 0; h < MAX_HOUSES; h++) uCol.push(houses[h] ? colorOf[houses[h]] : new THREE.Color(0));
     const terr = new THREE.Mesh(new THREE.PlaneGeometry(maxX - minX, maxY - minY), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, vertexShader: NEBULA_VS, fragmentShader: TERR_FS,
-      uniforms: { uSize: { value: new THREE.Vector2(maxX - minX, maxY - minY) }, uCount: { value: Math.min(MAX_SYS, model.systems.length) }, uPos: { value: uPos }, uOwner: { value: uOwner }, uHouseColor: { value: uCol }, uRadius: { value: 82 }, uPlayer: { value: model.playerHouse ? (houseIdx[model.playerHouse] ?? -1) : -1 } } }));
+      uniforms: { uSize: { value: new THREE.Vector2(maxX - minX, maxY - minY) }, uCount: { value: Math.min(MAX_SYS, model.systems.length) }, uPos: { value: uPos }, uOwner: { value: uOwner }, uHouseColor: { value: uCol }, uRadius: { value: 108 }, uPlayer: { value: model.playerHouse ? (houseIdx[model.playerHouse] ?? -1) : -1 } } }));
     terr.position.set((minX + maxX) / 2, -(minY + maxY) / 2, -2); this.objects.add(terr);
 
     // lanes
     const laneGeo = new THREE.BufferGeometry(); const lp = [], lc = [];
     for (const l of model.lanes) { const a = byId[l.a], b = byId[l.b]; if (!a || !b) continue; const c = l.front ? [0.75, 0.22, 0.16] : l.reach ? [0.85, 0.68, 0.3] : [0.22, 0.3, 0.46]; lp.push(a.x, -a.y, 0, b.x, -b.y, 0); lc.push(...c, ...c); }
     laneGeo.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3)); laneGeo.setAttribute('color', new THREE.Float32BufferAttribute(lc, 3));
-    this.objects.add(new THREE.LineSegments(laneGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9 })));
+    this.objects.add(new THREE.LineSegments(laneGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending })));
+    // glow: tubes of light under the hairlines
+    for (const l of model.lanes) { const a = byId[l.a], b = byId[l.b]; if (!a || !b) continue; const dx = b.x - a.x, dy = -(b.y - a.y); const len = Math.hypot(dx, dy); const tube = new THREE.Mesh(new THREE.PlaneGeometry(len, l.front ? 7 : 4.5), new THREE.MeshBasicMaterial({ map: T.lane, color: l.front ? 0xff5a3c : l.reach ? 0xe6c77a : 0x6f8ad0, transparent: true, opacity: l.front ? .5 : l.reach ? .6 : .22, blending: THREE.AdditiveBlending, depthWrite: false })); tube.position.set((a.x + b.x) / 2, -(a.y + b.y) / 2, -1); tube.rotation.z = Math.atan2(dy, dx); this.objects.add(tube); }
 
     // systems
     const sunMat = (color) => new THREE.SpriteMaterial({ map: T.sun, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
     const ringGeo = new THREE.RingGeometry(1, 1.08, 64);
     for (const s of model.systems) {
       const g = new THREE.Group(); g.position.set(s.x, -s.y, 0);
-      const h = hash(s.id); const starCol = [0xfff4e0, 0xffe2a8, 0xffc78a, 0xcfe0ff, 0xffffff][h % 5];
-      const sun = new THREE.Sprite(sunMat(starCol)); const sz = 26 + Math.min(14, (s.pop || 0) / 4); sun.scale.set(sz, sz, 1); g.add(sun);
-      const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); core.scale.set(7, 7, 1); g.add(core);
-      // the world: a lit sphere beside its star
-      const pr = 5 + Math.min(4, (s.pop || 0) / 15);
-      const planet = new THREE.Mesh(new THREE.SphereGeometry(pr, 32, 24), new THREE.MeshStandardMaterial({ color: planetColor(s.planetClass), roughness: 0.75, metalness: 0.05, emissive: new THREE.Color(planetColor(s.planetClass)).multiplyScalar(0.08) }));
-      planet.position.set(14, -9, 4); g.add(planet);
+      const h = hash(s.id); const cls = [[0xfff4e0, 1.0], [0xffe2a8, 0.9], [0xffb070, 0.8], [0xbfd4ff, 1.15], [0xffffff, 1.05], [0xffd0a0, 0.85]][h % 6];
+      const sun = new THREE.Sprite(sunMat(cls[0])); const sz = (24 + Math.min(14, (s.pop || 0) / 4)) * cls[1]; sun.scale.set(sz, sz, 1); g.add(sun);
+      const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); core.scale.set(7 * cls[1], 7 * cls[1], 1); g.add(core);
+      const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.flare, color: cls[0], transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false })); flare.scale.set(sz * 2.6, sz * .16, 1); g.add(flare);
+      if (s.isPlayer) { const home = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffe8a3, transparent: true, opacity: .35, blending: THREE.AdditiveBlending, depthWrite: false })); home.scale.set(sz * 2.2, sz * 2.2, 1); home.userData.pulse = true; g.add(home); }
+      // the world: a lit, textured sphere beside its star
+      const pr = 5.5 + Math.min(4, (s.pop || 0) / 15);
+      const ptex = window.praetoriaFx ? new THREE.TextureLoader().load(window.praetoriaFx.planet(s.planetClass, s.id, 128)) : null; if (ptex) ptex.colorSpace = THREE.SRGBColorSpace;
+      const planet = new THREE.Mesh(new THREE.SphereGeometry(pr, 32, 24), new THREE.MeshStandardMaterial({ color: ptex ? 0xffffff : planetColor(s.planetClass), map: ptex, roughness: 0.8, metalness: 0.0, emissive: new THREE.Color(planetColor(s.planetClass)).multiplyScalar(0.12) }));
+      planet.position.set(15, -10, 5); planet.rotation.x = 0.4; g.add(planet); planet.userData.spin = 0.15 + (h % 7) * 0.02;
       if (s.planetClass === 'gas' || s.planetClass === 'belt') { const ring = new THREE.Mesh(new THREE.RingGeometry(pr * 1.35, pr * 1.9, 48), new THREE.MeshBasicMaterial({ color: s.planetClass === 'gas' ? 0xf0d0a0 : 0xc9bca8, transparent: true, opacity: 0.5, side: THREE.DoubleSide })); ring.position.copy(planet.position); ring.rotation.x = 1.2; g.add(ring); }
       // atmosphere rim
       const atm = new THREE.Mesh(new THREE.SphereGeometry(pr * 1.12, 24, 18), new THREE.MeshBasicMaterial({ color: planetGlow(s.planetClass), transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, side: THREE.BackSide, depthWrite: false })); atm.position.copy(planet.position); g.add(atm);
@@ -166,7 +177,7 @@ export class Galaxy {
       if (s.siege != null) { const arc = new THREE.Mesh(new THREE.RingGeometry(sz * 0.7, sz * 0.76, 48, 1, Math.PI / 2, -Math.PI * 2 * Math.max(0.02, s.siege)), new THREE.MeshBasicMaterial({ color: 0xff5a3c, transparent: true, opacity: 0.95, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); g.add(arc); }
       if (s.contested) { const c = new THREE.Mesh(new THREE.RingGeometry(sz * 0.5, sz * 0.52, 48), new THREE.MeshBasicMaterial({ color: 0xff6a4a, transparent: true, opacity: 0.8, side: THREE.DoubleSide })); g.add(c); }
       if (s.target) { const tr = new THREE.Mesh(new THREE.RingGeometry(sz * 0.9, sz * 0.93, 64), new THREE.MeshBasicMaterial({ color: 0xc9a24a, transparent: true, opacity: s.target === 1 ? 0.95 : 0.4, side: THREE.DoubleSide })); tr.userData.pulse = true; g.add(tr); }
-      if (s.id === this.selected.systemId) { const sel = new THREE.Mesh(new THREE.RingGeometry(sz * 0.56, sz * 0.6, 64), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: 0.95, side: THREE.DoubleSide })); g.add(sel); }
+      if (s.id === this.selected.systemId) { const sel = new THREE.Mesh(new THREE.RingGeometry(sz * 0.56, sz * 0.6, 64), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: 0.95, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); sel.userData.spinZ = 0.6; g.add(sel); const sel2 = new THREE.Mesh(new THREE.RingGeometry(sz * 0.66, sz * 0.67, 64), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: 0.5, side: THREE.DoubleSide })); g.add(sel2); }
       for (let k = 0; k < (s.stations || 0); k++) { const st = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.station, color: 0xc9bca8, transparent: true, depthWrite: false })); st.scale.set(5, 5, 1); st.position.set(-12 - k * 6, 10, 3); g.add(st); }
       const hit = new THREE.Mesh(new THREE.SphereGeometry(sz * 0.55, 8, 8), new THREE.MeshBasicMaterial({ visible: false })); hit.userData = { kind: 'system', id: s.id }; g.add(hit); this.hitTargets.push(hit);
       // label
@@ -184,6 +195,7 @@ export class Galaxy {
         const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.ship, color: f.accent, transparent: true, opacity: f.isPlayer ? 1 : 0.35 + 0.65 * (f.confidence || 0) / 100, depthWrite: false })); const sc = f.isPlayer ? 13 : 10; spr.scale.set(sc, sc, 1); spr.position.set(fx, fy, 6); this.objects.add(spr);
         const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: f.accent, transparent: true, opacity: f.isPlayer ? 0.7 : 0.3, blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.set(sc * 2.2, sc * 2.2, 1); glow.position.set(fx, fy, 5); glow.userData.pulse = true; this.objects.add(glow);
         if (f.id === this.selected.fleetId) { const sel = new THREE.Mesh(new THREE.RingGeometry(sc * 0.9, sc * 1.0, 48), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: 0.95, side: THREE.DoubleSide })); sel.position.set(fx, fy, 5.5); this.objects.add(sel); }
+        if (f.moving) { const trail = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.flare, color: f.accent, transparent: true, opacity: .7, blending: THREE.AdditiveBlending, depthWrite: false })); trail.scale.set(sc * 2.4, sc * .25, 1); trail.position.set(fx - sc * .9, fy - sc * .3, 5.5); this.objects.add(trail); }
         if (f.moving && byId[f.destId]) { const d = byId[f.destId]; const lg = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(fx, fy, 5), new THREE.Vector3(d.x, -d.y, 5)]); this.objects.add(new THREE.Line(lg, new THREE.LineDashedMaterial({ color: 0xe6c77a, dashSize: 8, gapSize: 6, transparent: true, opacity: 0.8 }))); this.objects.children[this.objects.children.length - 1].computeLineDistances(); }
         const hit = new THREE.Mesh(new THREE.SphereGeometry(sc * 0.8, 8, 8), new THREE.MeshBasicMaterial({ visible: false })); hit.position.set(fx, fy, 6); hit.userData = { kind: 'fleet', id: f.id, systemId: sid }; this.objects.add(hit); this.hitTargets.push(hit);
         const el = document.createElement('div'); el.className = 'fleet-label'; el.style.color = f.accent; el.textContent = `${f.strength}${f.isPlayer ? '' : '?'}`; const lab = new CSS2DObject(el); lab.position.set(fx + sc * 0.9, fy + 2, 6); this.objects.add(lab); this.labels.push(lab);
@@ -195,8 +207,15 @@ export class Galaxy {
   setSelection(sel) { this.selected = sel || { systemId: null, fleetId: null }; }
 
   // ---- camera ----
-  updateCamera() {
-    const d = this.distance; this.camera.position.set(this.target.x, this.target.y - d * Math.sin(this.tilt), d * Math.cos(this.tilt)); this.camera.lookAt(this.target); this.camera.updateProjectionMatrix(); this.dirty = true;
+  updateCamera(immediate) {
+    if (immediate || !this.cur) { this.cur = { x: this.target.x, y: this.target.y, d: this.distance }; }
+    this.applyCamera();
+  }
+  applyCamera() {
+    const c = this.cur || (this.cur = { x: this.target.x, y: this.target.y, d: this.distance });
+    c.x += (this.target.x - c.x) * 0.18; c.y += (this.target.y - c.y) * 0.18; c.d += (this.distance - c.d) * 0.18;
+    const tilt = this.tilt * (0.5 + 0.5 * Math.min(1, c.d / 1200));   // level out as you close in
+    this.camera.position.set(c.x, c.y - c.d * Math.sin(tilt), c.d * Math.cos(tilt)); this.camera.lookAt(c.x, c.y, 0); this.camera.updateProjectionMatrix(); this.dirty = true;
   }
   zoom(f, px, py) {
     const before = px != null ? this.planePoint(px, py) : null;
@@ -214,10 +233,17 @@ export class Galaxy {
     el.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, pt: this.planePoint(e.clientX, e.clientY) }; moved = false; el.setPointerCapture(e.pointerId); });
     el.addEventListener('pointermove', e => {
       if (down) { const pt = this.planePoint(e.clientX, e.clientY); if (Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) > 3) moved = true; if (pt && down.pt && moved) { this.target.x -= pt.x - down.pt.x; this.target.y -= pt.y - down.pt.y; this.updateCamera(); } el.style.cursor = 'grabbing'; return; }
-      const hit = this.pick(e.clientX, e.clientY); el.style.cursor = hit ? 'pointer' : 'grab';
+      const hit = this.pick(e.clientX, e.clientY); el.style.cursor = hit ? 'pointer' : 'grab'; this.showTip(hit);
     });
     el.addEventListener('pointerup', e => { if (down && !moved) { const hit = this.pick(e.clientX, e.clientY); if (hit) this.dotnet?.invokeMethodAsync('OnPick', hit.kind, hit.id); else this.dotnet?.invokeMethodAsync('OnPick', 'none', ''); } down = null; el.style.cursor = 'grab'; });
     el.addEventListener('wheel', e => { e.preventDefault(); this.zoom(e.deltaY > 0 ? 1.15 : 0.87, e.clientX, e.clientY); }, { passive: false });
+  }
+  showTip(hit) {
+    if (!this.tip || !this.model) return;
+    if (!hit) { this.tip.element.style.display = 'none'; return; }
+    const el = this.tip.element; el.style.display = 'block';
+    if (hit.kind === 'system') { const s = this.model.systems.find(x => x.id === hit.id); if (!s) return; this.tip.position.set(s.x, -s.y - 30, 20); el.innerHTML = `<b>${esc(s.name)}</b><div>${esc(s.planetClass)} world · ${esc(s.ownerName || 'unclaimed')}${s.governor ? ` · gov. ${esc(s.governor)}` : ''}</div>${s.pop ? `<div>pop ${s.pop} · loyalty ${100 - s.unrest}</div>` : ''}${s.industry ? `<div>${esc(s.industry)}</div>` : ''}`; }
+    else { const f = this.model.fleets.find(x => x.id === hit.id); const s = f && this.model.systems.find(x => x.id === f.systemId); if (!f || !s) return; this.tip.position.set(s.x, -s.y - 30, 20); el.innerHTML = `<b>${esc(f.name)}</b><div>${esc(f.ownerName || '')} · ${f.strength} hulls${f.isPlayer ? ` · readiness ${f.readiness}` : ` · intel ${f.confidence}%`}</div>`; }
   }
   pick(px, py) {
     const rect = this.renderer.domElement.getBoundingClientRect(); this.mouse.set(((px - rect.left) / rect.width) * 2 - 1, -((py - rect.top) / rect.height) * 2 + 1);
@@ -229,7 +255,8 @@ export class Galaxy {
     // a frame budget: about 20 fps, nothing while the tab is hidden — the map is a chart, not a shooter
     setTimeout(() => requestAnimationFrame(this.loop), 50);
     if (document.hidden) return;
-    const t = this.clock.getElapsedTime(); this.nebula.material.uniforms.uTime.value = t; this.stars.material.uniforms.uTime.value = t;
+    const t = this.clock.getElapsedTime(); this.nebula.material.uniforms.uTime.value = t; this.stars.material.uniforms.uTime.value = t; this.applyCamera();
+    this.objects.traverse(o => { if (o.userData.spin) o.rotation.y = t * o.userData.spin; if (o.userData.spinZ) o.rotation.z = t * o.userData.spinZ; });
     this.objects.traverse(o => { if (o.userData.pulse) { const s = 1 + 0.08 * Math.sin(t * 3 + o.position.x * 0.01); o.scale.setScalar ? (o.isSprite ? null : o.scale.set(s, s, 1)) : null; if (o.material?.opacity != null && o.isSprite) o.material.opacity = 0.45 + 0.25 * Math.sin(t * 2.5); } });
     // labels fade with distance
     const far = this.distance > 1500; for (const l of this.labels) l.element.classList.toggle('far', far);

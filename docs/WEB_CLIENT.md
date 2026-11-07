@@ -56,6 +56,13 @@ event windows with the cast's portraits; the first visitor steps forward when a 
   lanes (front lines in red), fleets (own exact, rivals as intel), siege clocks, bloc rings; drag to pan, wheel to zoom,
   click a world for its planet card (class, culture, held by, governor, industry, population, loyalty, orbit, fleets,
   lanes), click a region for its roster; click your fleet then a ringed world to set course.
+- `Components/SenateScreen.razor` — **Senate**: the political system on the Senate-chamber set (`sets.js`): the heads of
+  the great houses seated by influence, the speaker's podium (or the throne under the Imperium), house banners; panels for
+  the spheres of power (every house's share of Navy, Treasury and Senate), threat and coalition pressure, the ladder of
+  titles with legitimacy and the three paths, the throne, succession, honors, crises and dampers.
+- `Components/AcademyScreen.razor` — **Academy** (shown while the protagonist is 22 or younger): the parade-ground set at
+  dawn with the cohort in ranks, the instructor on the dais, the cohort houses' banners; panels for your record and
+  standing, the cohort with dispositions, bonds and marks, and the year so far.
 - `Components/PlanetsScreen.razor` — **Worlds**: every world by region in a table (class, holder, governor, industry,
   population, loyalty, stations).
 - `Components/HouseScreen.razor` — **House**: treasury and forecast, standing, title paths, decrees (succession, tithe,
@@ -84,6 +91,9 @@ nothing is Earth; everything is rendered or drawn in-fiction at runtime (`src/We
   the house colour, banners carrying the sigil, a desk with a lamp, a holographic star table of the Reach, a star chart,
   trophy case or archive on the far wall; the player and the visitors as framed cameo plates with nameplates; haze,
   shadows and bloom; furnishing changes materials and props.
+- **The Senate and the Academy** (`sets.js`, Three.js): two more lit sets built with the office's helpers — a domed
+  chamber with an oculus light shaft, colonnade, tiers of benches and banners; a flagstone parade ground under a dawn sky
+  with a gas giant, a skyline of lit towers, colonnades, braziers and a reviewing dais.
 - **Portraits** (`portrait.js`, canvas): cameos — imperial coin profiles drawn from a parametric bust (forehead, brow,
   nose, lips, chin, jaw, neck), hair and beard shapes, a uniform collar and brass gorget in the house colour, relief
   shading, on a plate with the house's diagonal stripe; stable per character, greying and lined with age.

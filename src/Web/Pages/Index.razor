@@ -28,8 +28,9 @@ else
         <nav class="rail">
             @foreach (var (id, glyph, label) in Screens)
             {
+                if (id == "academy" && !(G.World!.Protagonist!.Age <= 22)) continue;
                 <button class="rail-btn @(_screen == id ? "active" : "")" title="@label" @onclick="() => Go(id)" disabled="@(id == "galaxy" && G.World!.Galaxy == null)">
-                    <Icon Name="@(id == "character" ? "you" : id == "planets" ? "worlds" : id)" Size="22" /><span class="rl">@label</span>
+                    <Icon Name="@(id == "character" ? "you" : id == "planets" ? "worlds" : id == "senate" ? "influence" : id == "academy" ? "military" : id)" Size="22" /><span class="rl">@label</span>
                 </button>
             }
         </nav>
@@ -37,6 +38,8 @@ else
             @switch (_screen)
             {
                 case "character": <CharacterScreen Model="m" /> break;
+                case "senate": <SenateScreen Model="m" /> break;
+                case "academy": <AcademyScreen Model="m" /> break;
                 case "galaxy": <GalaxyMap @ref="_map" /> break;
                 case "planets": <PlanetsScreen OnFocus="FocusSystem" /> break;
                 case "house": <HouseScreen Model="m" /> break;
@@ -90,10 +93,11 @@ else
 @code {
     private static readonly (string id, string glyph, string label)[] Screens =
     {
-        ("office", "", "Office"), ("character", "", "You"), ("galaxy", "", "Galaxy"), ("planets", "", "Worlds"), ("house", "", "House"),
+        ("office", "", "Office"), ("character", "", "You"), ("academy", "", "Academy"), ("galaxy", "", "Galaxy"), ("planets", "", "Worlds"), ("senate", "", "Senate"), ("house", "", "House"),
         ("military", "", "Military"), ("dynasty", "", "Dynasty"), ("houses", "", "Houses"), ("chronicle", "", "Chronicle")
     };
     private string _screen = "office";
+    private bool _screenChosen;
     private bool _hasAutosave, _epilogueDismissed, _savedFlash;
     private BriefingCard? _openReport;
     private string? _succession;

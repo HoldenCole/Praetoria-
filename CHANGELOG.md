@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- **Senate and Academy screens** on their own lit 3D sets: the political system (spheres of power, threat and coalition
+  pressure, the ladder of titles, the throne, laws, honors, crises) in a domed chamber with the great houses seated by
+  influence; the cadet year on a parade ground at dawn with the cohort in ranks. Galaxy polish: textured lit planets,
+  star classes with flares, glowing lanes, hover tooltips, smoothed camera, merged territory fields.
 - **Art direction** (`docs/ART_DIRECTION.md`) from the reference games, and the first pass against it: the galaxy as a
   rendered WebGL scene (shader nebula, bloomed stars, suns, hyperlane web, territory fields with lit borders, lit
   planets, fleet glyphs); the office as a lit 3D set (reflective floor, viewport onto the seat's world, holographic star
