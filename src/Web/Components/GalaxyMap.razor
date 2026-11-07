@@ -41,7 +41,7 @@
                     }
                     @if (n.IsPlayerTerritory) { <circle cx="@F(n.X)" cy="@F(n.Y)" r="18" class="home-ring"/> }
                     @if (n.Contested) { <circle cx="@F(n.X)" cy="@F(n.Y)" r="14" class="contested"/> }
-                    <circle cx="@F(n.X)" cy="@F(n.Y)" r="@(owned ? 9 : 5)" fill="@(owned ? n.AccentColor : "#55617a")" class="star"/>
+                    <circle cx="@F(n.X)" cy="@F(n.Y)" r="@(owned ? 9 : 5)" fill="@(owned ? n.AccentColor : "#55617a")" class="star"><title>@n.Name — @(n.OwnerHouseName ?? "unclaimed")@(n.HoldingIds.Count > 0 ? $" · {n.HoldingIds.Count} holding(s)" : "")</title></circle>
                     @if (canMove)
                     {
                         int hops = w.Galaxy!.Hops(selectedFleet!.SystemId, n.SystemId);
@@ -65,6 +65,8 @@
                     <g class="fleet @(f.IsPlayer ? "own" : "intel") @(isSel ? "selected" : "")" @onclick="() => ClickFleet(f)" @onclick:stopPropagation="true">
                         <path d="@Tri(fx, fy, f.IsPlayer ? 9 : 7)" fill="@f.AccentColor" opacity="@F(f.IsPlayer ? 1 : 0.35 + 0.65 * f.Confidence / 100.0)" stroke="@(isSel ? "#ffe8a3" : "#0b0e14")" stroke-width="@(isSel ? 2.5 : 1)"/>
                         @SvgText(fx + 10, fy + 3, "fleet-label", f.Strength + (f.IsPlayer ? "" : "?"))
+                        @if (f.IsPlayer) { <rect x="@F(fx - 8)" y="@F(fy + 8)" width="16" height="2" fill="#2b3651"/> <rect x="@F(fx - 8)" y="@F(fy + 8)" width="@F(16 * f.Readiness / 100.0)" height="2" fill="@(f.Readiness < 50 ? "#d8705a" : "#6fbf8a")"/> }
+                        <title>@f.Name (@f.OwnerHouseName) · @f.Strength hulls@(f.IsPlayer ? $" · readiness {f.Readiness}" : $" · reported at {f.Confidence}% confidence, turn {f.TurnObserved}")</title>
                         @if (f.Moving && pos.TryGetValue(f.DestinationId, out var dest)) { <line x1="@F(fx)" y1="@F(fy)" x2="@F(dest.X)" y2="@F(dest.Y)" class="course"/> }
                     </g>
                 }

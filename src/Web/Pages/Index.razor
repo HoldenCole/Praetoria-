@@ -9,7 +9,11 @@
         <div class="boot-mark">✦</div>
         <div class="boot-title">PRAETORIA</div>
         @if (G.LoadError != null) { <div class="boot-sub error">Could not load the game's content: @G.LoadError</div> }
-        else { <div class="boot-sub">reading the archives… @G.LoadedFiles / @(G.TotalFiles == 0 ? "?" : G.TotalFiles.ToString())</div> }
+        else
+        {
+            <div class="boot-sub">reading the archives… @G.LoadedFiles / @(G.TotalFiles == 0 ? "?" : G.TotalFiles.ToString())</div>
+            <div class="boot-bar"><div class="boot-fill" style="width:@(G.TotalFiles == 0 ? 5 : 5 + 95 * G.LoadedFiles / G.TotalFiles)%"></div></div>
+        }
     </div>
 }
 else if (G.Turn == null)
@@ -22,6 +26,7 @@ else
     <div class="shell">
         <header class="topbar" style="--accent:@m.HouseAccent">
             <div class="brand"><span class="mark">✦</span> PRAETORIA <span class="ver">@PraetoriaVersion.Current</span></div>
+            <div class="house-badge"><Sigil HouseId="@(G.World!.Protagonist!.HouseId)" Accent="@m.HouseAccent" Size="26" /> <span>@m.HouseName</span></div>
             <nav class="tabs">
                 <button class="@Tab("court")" @onclick='() => _tab = "court"'>Court</button>
                 <button class="@Tab("galaxy")" @onclick='() => _tab = "galaxy"' disabled="@(G.World!.Galaxy == null)">Galaxy</button>

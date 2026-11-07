@@ -165,3 +165,19 @@ details summary::before { content: "▸ "; color: var(--muted); } details[open] 
   .court { grid-template-columns: 1fr; } .galaxy { grid-template-columns: 1fr; } .map { height: 60vh; }
   .creation { grid-template-columns: 1fr; } .topbar { flex-wrap: wrap; } .turnbox { margin-left: 0; width: 100%; }
 }
+
+/* graphics pass 1: sigils, portraits, pips, ornaments */
+.who-head { display: flex; align-items: center; gap: .7rem; } .who-head > div { flex: 1; min-width: 0; }
+.portrait { flex: none; display: inline-block; vertical-align: middle; } .portrait.dead { opacity: .5; }
+.sigil { flex: none; display: inline-block; vertical-align: middle; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+.house-badge { display: flex; align-items: center; gap: .4rem; color: var(--ink2); font-family: var(--serif); font-size: 1.05rem; }
+.pips { display: inline-flex; gap: 3px; margin-left: .5rem; }
+.pip { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--line2); display: inline-block; }
+.pip.on.inf { background: var(--inf); border-color: var(--inf); } .pip.on.tre { background: var(--tre); border-color: var(--tre); } .pip.on.agt { background: var(--agt); border-color: var(--agt); }
+.report { animation: rise .35s ease-out both; } .report:nth-child(2) { animation-delay: .08s; } .report:nth-child(3) { animation-delay: .16s; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.report .glyph { color: var(--brass); } .report.setpiece .glyph { color: #e08a74; }
+.ornament { text-align: center; color: var(--brass); letter-spacing: .3em; font-size: .8rem; margin-bottom: .2rem; }
+.boot-bar { width: 260px; height: 3px; background: var(--line); border-radius: 2px; margin: .6rem auto 0; overflow: hidden; }
+.boot-fill { height: 100%; background: linear-gradient(90deg, #a8822f, #e6c77a); transition: width .2s; }
+.conn summary .portrait, .person .portrait { margin-right: .3rem; }

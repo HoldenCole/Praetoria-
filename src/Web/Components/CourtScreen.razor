@@ -1,14 +1,21 @@
 @inject GameClient G
 
 @{
-    var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId;
+    var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var tc = G.Turn!;
 }
 <div class="court" style="--accent:@m.HouseAccent">
     <aside class="col left">
         <section class="card who">
             <div class="house-stripe"></div>
-            <h2>@m.Character.Name</h2>
-            <div class="sub">@m.Character.RankName of @m.HouseName · @m.Character.TitleName · age @m.Character.Age</div>
+            <div class="who-head">
+                <Portrait Id="@pid" Name="@m.Character.Name" Sex="@(w.Protagonist!.Sex)" Age="@m.Character.Age" Alive="@m.Character.Alive" Accent="@m.HouseAccent" Size="64" />
+                <div>
+                    <h2>@m.Character.Name</h2>
+                    <div class="sub">@m.Character.RankName of @m.HouseName</div>
+                    <div class="sub">@m.Character.TitleName · age @m.Character.Age</div>
+                </div>
+                <Sigil HouseId="@(w.Protagonist!.HouseId)" Accent="@m.HouseAccent" Size="40" />
+            </div>
             <div class="traits">
                 @foreach (var t in m.Character.Nature) { <span class="trait nature" title="@TraitDesc(t)">@TraitName(t)</span> }
                 @foreach (var t in m.Character.Aptitude) { <span class="trait apt" title="@TraitDesc(t)">@TraitName(t)</span> }
@@ -21,9 +28,9 @@
 
         <section class="card pools">
             <h3>This turn</h3>
-            <div class="pool"><span class="dot inf"></span>Influence <b>@m.Pools.Influence</b></div>
-            <div class="pool"><span class="dot tre"></span>Treasury <b>@m.Pools.Treasury</b></div>
-            <div class="pool"><span class="dot agt"></span>Agents <b>@m.Pools.Agents</b></div>
+            <div class="pool" title="Influence: favours, decrees, diplomacy"><span class="dot inf"></span>Influence @Pips(m.Pools.Influence, tc.PlayerPools.Cap, "inf")<b>@m.Pools.Influence</b></div>
+            <div class="pool" title="Treasury actions: building, sailing, bribing"><span class="dot tre"></span>Treasury @Pips(m.Pools.Treasury, tc.PlayerPools.Cap, "tre")<b>@m.Pools.Treasury</b></div>
+            <div class="pool" title="Agents: schemes, knives, fostering"><span class="dot agt"></span>Agents @Pips(m.Pools.Agents, tc.PlayerPools.Cap, "agt")<b>@m.Pools.Agents</b></div>
         </section>
 
         <section class="card treasury @(m.Treasury.Insolvent ? "insolvent" : "")">
@@ -115,7 +122,8 @@
         @foreach (var b in m.Briefing)
         {
             <article class="card report @b.Tier.ToLowerInvariant() @(b.Resolved ? "resolved" : "")">
-                <div class="tier">@b.Tier</div>
+                <div class="tier"><span class="glyph">@(b.Setpiece ? "✦" : b.Tier == "AMBIENT" ? "·" : "◆")</span> @b.Tier</div>
+                @if (b.Setpiece) { <div class="ornament">— ✦ —</div> }
                 <h2>@b.Title</h2>
                 <p class="body">@b.Body</p>
                 @if (b.Resolved) { <div class="done">Answered.</div> }
@@ -221,6 +229,7 @@
             @foreach (var h in m.Household)
             {
                 <div class="person">
+                    <Portrait Id="@h.Id" Name="@h.Name" Sex="@h.Sex" Age="@h.Age" Accent="@m.HouseAccent" Size="26" />
                     <span><b>@h.Name</b> <span class="muted">@h.Age@(h.Sex.Length > 0 ? $" · {h.Sex}" : "")@(h.Married ? " · wed" : "")@(h.Hidden ? " · fostered away" : "")</span></span>
                     @foreach (var o in h.Actions)
                     {
@@ -238,7 +247,7 @@
             @foreach (var cn in m.Connections)
             {
                 <details class="conn @(cn.Hostile ? "hostile" : "")">
-                    <summary><b>@cn.Name</b> <span class="muted">@cn.Detail of @cn.HouseName</span> <span class="pill @(cn.Disposition < -20 ? "warn" : cn.Disposition > 20 ? "good" : "")">@(cn.Disposition >= 0 ? "+" : "")@cn.Disposition@(cn.Bond.Length > 0 ? $" · {cn.Bond}" : "")</span></summary>
+                    <summary><Portrait Id="@cn.Id" Name="@cn.Name" Sex="@(w.Char(cn.Id)?.Sex ?? "")" Age="@(w.Char(cn.Id)?.Age ?? 30)" Accent="@(w.House(w.Char(cn.Id)?.HouseId ?? "")?.AccentColor ?? "#888")" Size="26" /> <b>@cn.Name</b> <span class="muted">@cn.Detail of @cn.HouseName</span> <span class="pill @(cn.Disposition < -20 ? "warn" : cn.Disposition > 20 ? "good" : "")">@(cn.Disposition >= 0 ? "+" : "")@cn.Disposition@(cn.Bond.Length > 0 ? $" · {cn.Bond}" : "")</span></summary>
                     @if (cn.Flags.Count > 0) { <div class="muted small">@string.Join(" · ", cn.Flags)</div> }
                     @foreach (var o in cn.Actions)
                     {
@@ -252,6 +261,14 @@
 
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
+
+    private static MarkupString Pips(int value, int cap, string cls)
+    {
+        int n = Math.Max(cap, value); if (n <= 0 || n > 12) return new MarkupString("");
+        var sb = new System.Text.StringBuilder("<span class=\"pips\">");
+        for (int i = 0; i < n; i++) sb.Append($"<i class=\"pip {cls} {(i < value ? "on" : "")}\"></i>");
+        return new MarkupString(sb.Append("</span>").ToString());
+    }
 
     private string TraitName(string id) => G.Content!.Traits.Nature.Concat(G.Content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Name ?? id;
     private string TraitDesc(string id) => G.Content!.Traits.Nature.Concat(G.Content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Description ?? "";

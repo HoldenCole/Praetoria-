@@ -25,6 +25,9 @@ public sealed class Director
     /// <summary>World counter the engine maintains: turns since anything above ambient fired. The Director lifts
     /// situations and set-pieces as a lull lengthens (GDD §15 L4 "inject a complication if things are quiet too long").</summary>
     public const string LullCounter = "lull";
+    /// <summary>World counter: the turn an event last surfaced. Repeats within <see cref="RepeatWindowTurns"/> turns are suppressed.</summary>
+    public static string LastFiredCounter(string eventId) => $"evt:{eventId}:turn";
+    public const int RepeatWindowTurns = 4;
     public const double AmbitionBias = 1.6;
 
     public double WeightOf(EventDef def, World world)
@@ -44,10 +47,15 @@ public sealed class Director
         if (def.Tier != EventTier.Ambient)
             w *= 1.0 + Math.Min(1.5, world.Counter(LullCounter) * 0.25);
 
-        // Suppress recent repeats (look at the tail of the recent-event memory).
-        int from = Math.Max(0, world.RecentEventIds.Count - _suppressionWindow);
-        for (int i = from; i < world.RecentEventIds.Count; i++)
-            if (world.RecentEventIds[i] == def.Id) { w *= _suppressionFactor; break; }
+        // Suppress recent repeats: by turn (a report seen four turns ago is still fresh in mind) and by the tail of the
+        // recent-event memory (within a briefing).
+        if (world.WorldCounters.TryGetValue(LastFiredCounter(def.Id), out var last) && world.Turn - last < RepeatWindowTurns) w *= _suppressionFactor;
+        else
+        {
+            int from = Math.Max(0, world.RecentEventIds.Count - _suppressionWindow);
+            for (int i = from; i < world.RecentEventIds.Count; i++)
+                if (world.RecentEventIds[i] == def.Id) { w *= _suppressionFactor; break; }
+        }
 
         return w;
     }

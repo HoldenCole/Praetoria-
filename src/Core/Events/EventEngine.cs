@@ -78,6 +78,7 @@ public sealed class EventEngine
             // At most one ambient beat while weightier reports wait: texture fills gaps, it doesn't crowd the feed.
             if (p.def.Tier == EventTier.Ambient && pool.Any(x => x.def.Tier != EventTier.Ambient)) pool.RemoveAll(x => x.def.Tier == EventTier.Ambient);
             result.Add(new FiredEvent(p.def, p.binding));
+            MarkFired(p.def, world);   // presented is fired: a report read and set aside still happened (GDD §9 "reading is free")
         }
         // the lull clock: reset when the briefing carries anything above ambient, else lengthen
         world.WorldCounters[Director.LullCounter] = result.Any(f => f.Def.Tier != EventTier.Ambient) ? 0 : world.Counter(Director.LullCounter) + 1;
@@ -130,6 +131,8 @@ public sealed class EventEngine
         if (!def.Repeatable)
             world.WorldFlags.Add(EventFlags.Fired(def.Id));
 
+        world.WorldCounters[Director.LastFiredCounter(def.Id)] = world.Turn;
+        if (world.RecentEventIds.Count > 0 && world.RecentEventIds[^1] == def.Id) return;   // already recorded this briefing
         world.RecentEventIds.Add(def.Id);
         const int memory = 16;
         if (world.RecentEventIds.Count > memory)

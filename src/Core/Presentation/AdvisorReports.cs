@@ -21,7 +21,7 @@ public static class AdvisorReports
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null;
         if (p == null || house == null) return list;
 
-        Character? Seat(string track) => w.LivingCharacters().Where(c => c.HouseId == house.Id && c.CareerTrack == track && c.Id != p.Id)
+        Character? Seat(string track) => w.LivingCharacters().Where(c => c.HouseId == house.Id && c.CareerTrack == track && c.Id != p.Id && c.Age >= DynastySystem.AgeOfMajority)
             .OrderByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault()
             ?? (p.CareerTrack == track ? p : null);
 
@@ -52,7 +52,7 @@ public static class AdvisorReports
         int inst = w.Counter("title_instability"), pressure = w.Counter("coalition_pressure");
         string chanLine = inst > 0 ? $"Our {content.Titles.ById(house.Title)?.Name ?? house.Title} outstrips our standing by {inst}; the vassals grumble and rivals take note."
             : pressure >= 3 ? "The houses are drawing together against us. Our rise frightens them."
-            : w.Crises.Count > 0 ? $"A crisis is upon the realm: {string.Join(", ", w.Crises.Keys)}. Dampers may be available."
+            : w.Crises.Count > 0 ? $"A crisis is upon the realm: {string.Join(", ", w.Crises.Keys.Select(k => content.Crises.FirstOrDefault(d => d.Id == k)?.Name ?? k))}. Dampers may be available."
             : p.Flags.Contains(DynastySystem.ParvenuFlag) ? "The old blood looks down on us still. Standing, not coin, will change that."
             : $"Our standing is sound at legitimacy {house.Legitimacy}. The chambers are quiet.";
         list.Add(new AdvisorReport("Chancellor", chancellor?.Name, chanLine, inst > 0 || pressure >= 3 || w.Crises.Count > 0));
