@@ -190,3 +190,8 @@ details summary::before { content: "▸ "; color: var(--muted); } details[open] 
 .badge { display: inline-grid; place-items: center; min-width: 1.25rem; height: 1.25rem; padding: 0 .3rem; margin-left: .4rem; border-radius: 999px; background: #1a1407; color: var(--brass2); font-size: .72rem; font-weight: 700; }
 .node-card { display: inline-grid; grid-template-columns: auto 1fr; column-gap: .6rem; align-items: center; }
 .node-card .portrait { grid-row: span 3; } .node-card > div { grid-column: 2; }
+
+@media (max-width: 700px) {
+  .topbar { position: static; gap: .5rem .8rem; } .brand .ver, .turnbox .era { display: none; }
+  .turnbox .turn { margin-right: auto; } .tabs { width: 100%; justify-content: space-between; } .tab { padding: .3rem .5rem; }
+}

@@ -78,3 +78,40 @@ is kept as written for the record — see `RELEASE_0.5.md` for what remains afte
 3. **Small, high-leverage engine items** (each a day or less): stress relief/breakdown rule; population feeding Manpower yield; a married couple in one scenario; `era` condition + an Imperium scenario; relationship index.
 4. **Content**: consume the marker flags; more academy depth; Bloody-Event set-pieces using `kill` + `once` crises.
 5. **Then Galaxy mode + fleets**, which also unlocks the military path's real "take it".
+
+---
+
+## 4. Reassessment — 2026-11-07, after the web client (v0.8.0-alpha + QA/graphics/QoL cycle)
+
+Of the fifteen gaps in §2, items 1–12 and 14 are closed (browser client; galaxy, fleets and combat; the Great
+Crisis, era flip and epilogue; stress break-point; population; continue mode; married starts; the Imperium start;
+succession laws, regents and matrilineal naming; sphere feeds; strategic NPC AI; relationship index; honors and
+megastructures). Verification today: 246 tests · both validators clean · `praetoria qa` 24 runs (determinism replay,
+save/load round-trip) clean at default and at difficulty 2 / dominant / autonomy 2 · six scenarios driven 20 turns
+each in a headless browser with zero console errors.
+
+### Ranked gaps now
+1. **A landless house has no way back.** Conquest can strip every holding; nothing offers mercenary service, a fief
+   by petition or marriage, or peace terms that return a world. Two of six browser runs ended that way by turn 21.
+2. **Pools are too generous.** With cap 9 and regen 3/3/2 an ordinary turn never runs short, so the action economy
+   (GDD §9) is not yet a constraint. Needs a tuning pass: lower cap, costs on more choices, or regen tied to standing.
+3. **24 events never surface** in 24 soak runs — the coalition chain (`coalition_leader`, `coalition_broken` are
+   never written by the engine), the break point (stress never reaches it), stewardship-track events (no scenario
+   protagonist is a steward), the favor chain. Each needs either an engine writer or a scenario that reaches it.
+4. **Engine flags content never reads**: `at_war:<house>`, `assassin:<house>`, `incursion:<house>`,
+   `coalition_forming`, `crisis:<id>:active`. Each is a free hook for reactive events (the enemy's envoy, the knife
+   traced home, the raid remembered).
+5. **Scenario families lack parent links**, so the tree draws every seeded relative as a root; `mother`/`father` on
+   scenario characters would make siblings, aunts and grandparents read as such from turn one.
+6. **Courtship has no cooldown**: a refused suitor asks again two turns later.
+7. **The seat passing is silent** in the UI; the heir simply appears next turn. An interstitial — who died, who
+   inherits, what changed — is the dynasty's signature moment and should be staged.
+8. **No first-turn guidance**: the title screen's one line is the whole tutorial.
+9. **Era theming** (GDD §19): the Imperium looks like the Fractured Stars.
+10. **Godot layer** drifts further from the web client every session; keep it compiling, or retire it.
+
+### Where the next forty come from
+Landless recovery (events, petition for a fief, peace terms, mercenary contracts) · pool tuning · engine writers for
+the coalition chain and reachable breakdowns · a stewardship-start scenario · reactive events on the engine flags ·
+scenario family links · courtship cooldown · succession interstitial · first-turn guidance · era theming · more
+content (the pool is 97 events; the target for V1 is several hundred).

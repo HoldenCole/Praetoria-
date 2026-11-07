@@ -33,3 +33,8 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   oddities). Found and fixed: unbounded NPC debt (fleet desertion + steward selling/tithe), caravan exchange rate, the
   First Morning never opening, newborns bound as stewards (adult-only Binder default), nephew wed to aunt (kin rule),
   raw ids in crisis logs, yearly births. Then "implement graphics": the browser client, built and screenshotted end to end.
+- 2026-11-07 — Graphics (sigils, portraits, pips, map tooltips/readiness/jumps, tree) → QA (six scenarios × 20 turns in a
+  headless browser, hostile-settings soak) → 10 QoL fixes (choice reasons, since-last-turn, yields, badges, save flash,
+  chronicle link, tree dedupe, phone layout, unique child names, landless steward line) → bug check (events fired on
+  presentation, four-turn repeat suppression, adult advisors, named crises, chronicle event ids) → reassessed in
+  `GAP_ANALYSIS.md` §4. Next: the forty drawn from §4.

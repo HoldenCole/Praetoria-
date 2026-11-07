@@ -251,7 +251,9 @@ if it's listed, it does not exist yet.
 ### Not started
 | Gap | Spec | Why it matters / notes |
 |---|---|---|
-| **Running and polishing the Court UI** — Milestone 3 | §19, §6 | The Godot layer is written and compiles, but no one has opened it in the editor yet: layout, sizing, fonts and feel are unverified; portraits and the ceremonial/functional typography are not started. First session with Godot 4.3: open `project.godot`, press Play, fix what's ugly. |
+| **Desktop shell** — the Godot layer | §19 | The browser client is the playable build. The Godot layer compiles against the same Core but has never been run in an editor, and Godot's .NET build cannot target the web; it waits for a session with Godot 4.3 and a display, or a decision to retire it. |
+| **A way back for a landless house** | §6, §14 | A house stripped of every holding has no path back today: no mercenary service, no fief by petition or marriage, no peace terms that return a world. Seen in browser QA (the Fallen House and the Imperial Court both ended landless by turn 21). |
+| **Succession interstitial & tutorial** | §19 | The web client shows an epilogue on dynasty death or a throne, but the seat passing to an heir happens silently between turns; there is no first-turn guidance beyond the title screen's one line. |
 | **Military depth still thin** | §6 | One roll per battle (no rounds, no retreat-before-contact); no hull repair or refit; sieges don't starve (yield halves, population doesn't fall). |
 | **Bloody Events** | §16 | The gala/wedding/tournament set-piece class (safe gathering → sudden violence → arms a larger crisis). The *mechanism* now exists (`kill` + crisis gates), so this is authorable content, not engine work. |
 | **Reactive UI, polish, content depth** — Milestone 7 | §19 | Era × role × house theming, ceremonial/functional typography, portraits, audio, the free-content pipeline, the balance pass. |
@@ -287,15 +289,14 @@ if it's listed, it does not exist yet.
 |---|---|---|---|
 | ✅ | **1 — The Engine Breathes** | headless event engine + Academy Crucible | a choice makes a different, unscripted event eligible later |
 | ✅ | **2 — Turn Loop, Pools & Commands** | Briefing→Action→Resolve, pools, command bus, NPCs | a full turn cycle resolves deterministically from a seed |
-| ◐ | **3 — Court Mode UI** | first Godot layer ✅ written & compiling · base theme ✅ · creation screen ✅ · **run, lay out and polish in the editor ⬜** | the Academy + early court game fully playable via UI |
-| ◐ | **4 — Economy, Holdings & Galaxy** | economy ✅ · succession ✅ · save/load ✅ · galaxy map ✅ · fleets, war & combat ✅ · **Galaxy UI run in the editor ⬜** | play from a barony, move fleets, advance through a succession |
+| ✅ | **3 — Court Mode UI** | browser client ✅ (creation, Court with every command, portraits & sigils, saves) · Godot desktop shell compiles, unrun | the Academy + early court game fully playable via UI — **in the browser** |
+| ✅ | **4 — Economy, Holdings & Galaxy** | economy ✅ · succession ✅ · save/load ✅ · galaxy map ✅ (SVG, click-to-move, intel, sieges, blocs) · fleets, war & combat ✅ | play from a barony, move fleets, advance through a succession |
 | ✅ | **5 — Spheres, Progression & Crises** | crises ✅ · spheres ✅ · progression ✅ · Bloody Events ✅ (*The Marked Man*, *The Wedding Feast*, the purge) | engineer/defuse a crisis via gates; a damper arrests a cascade; an NPC triggers one |
 | ✅ | **6 — The Human Endgame** | ironman/continue · Imperium start + `era` gating · proclaim/seize the throne + era flip · saga epilogue · the Great-Crisis framework with the galaxy-war archetype | a full run from Baron to a throne-endgame, won or lost. **V1-complete on systems** (headless). |
-| ⬜ | **7 — Reactive UI, Polish, Content Depth** | era × role × house theming; typography; portraits; audio; content volume; balance | the UI transforms on proclamation; enough content for replayability |
+| ◐ | **7 — Reactive UI, Polish, Content Depth** | house accents ✅ · procedural portraits & sigils ✅ · **era theming ⬜ · audio ⬜ · content volume ⬜ · balance ⬜** | the UI transforms on proclamation; enough content for replayability |
 
-The recommended order from here: **open the UI in Godot and finish Milestone 3** — everything built
-becomes visible; then **6** (the throne endgame — the era flip, the Great-Crisis framework, the epilogue);
-then military depth (ship classes, sieges, war goals). Bloody Events can land any time as content.
+The recommended order from here follows `docs/PROCESS.md`: forty things → QA → graphics → QA → ten QoL fixes → bug
+check → reassess, with `docs/GAP_ANALYSIS.md` §4 holding the ranked list the next forty are drawn from.
 
 ### The expansion philosophy: "slots in V1, fillers in DLC" (GDD §20)
 Every extensible system is built as a *generalised mechanism exposed to data*. DLC adds **instances**
