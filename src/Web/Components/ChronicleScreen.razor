@@ -1,0 +1,69 @@
+@inject GameClient G
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+@{
+    var w = G.World!; var house = w.House(w.Protagonist!.HouseId)!;
+    var volumes = Volumes(w);
+    if (_volume == null || !volumes.Any(v => v.key == _volume)) _volume = volumes.LastOrDefault().key;
+    var vol = volumes.FirstOrDefault(v => v.key == _volume);
+    _pending = BuildOptions(w, house, volumes);
+    var turns = w.History.Where(h => vol.key != null && h.Turn >= vol.from && h.Turn <= vol.to).GroupBy(h => h.Turn).OrderByDescending(g => g.Key).ToList();
+}
+<div class="office archive" style="--accent:@house.AccentColor">
+    <div class="office-stage">
+        <div class="gl-host" @ref="_host"></div>
+        <div class="stage-foot">
+            <div class="stage-title"><Icon Name="chronicle" Size="16" /> <b>The Archive of @house.Name</b> <span class="muted">@w.History.Count entries over @w.Turn turns · wars @w.Counter(FleetSystem.WarsDeclaredCounter) · battles @w.Counter(FleetSystem.BattlesCounter) · births @w.Counter("dynasty_births") · generation @(w.Counter("generation") + 1)</span></div>
+            <span class="muted small">the chronicle on the far wall · a volume per ten turns on the table · click one to open it</span>
+        </div>
+    </div>
+
+    <aside class="office-side">
+        <section class="panel">
+            <h3><Icon Name="chronicle" Size="13" /> The volumes</h3>
+            <div class="vols">@foreach (var v in volumes) { <button class="rung @(v.key == _volume ? "here" : "")" @onclick="() => _volume = v.key">@v.label</button> }</div>
+            <label class="inline"><input type="checkbox" @bind="_onlyNotable" /> only the notable</label>
+        </section>
+        @foreach (var g in turns)
+        {
+            var lines = g.Where(h => !_onlyNotable || h.EventId != null || Notable(h.Text)).ToList();
+            if (lines.Count == 0) continue;
+            <section class="panel turn-block">
+                <h3>Turn @g.Key</h3>
+                @foreach (var h in lines) { <div class="line @(h.EventId != null ? "event" : "")">@h.Text</div> }
+            </section>
+        }
+        @if (turns.Count == 0) { <section class="panel"><div class="muted">Nothing is written in this volume yet.</div></section> }
+    </aside>
+</div>
+
+@code {
+    private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N"); private DotNetObjectReference<ChronicleScreen>? _self; private bool _created; private string _pending = "", _sent = ""; private string? _volume; private bool _onlyNotable;
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (first) { _self = DotNetObjectReference.Create(this); try { if (await JS.InvokeAsync<bool>("praetoria.ready", "praetoriaSets")) { await JS.InvokeVoidAsync("praetoriaSets.create", "archive", _id, _host, _self); _created = true; } } catch { } }
+        if (_created && _pending != _sent) { _sent = _pending; try { await JS.InvokeVoidAsync("praetoriaSets.build", _id, _pending); } catch { } }
+    }
+    [JSInvokable] public void OnPlate(string key) { _volume = key; StateHasChanged(); }
+
+    private static bool Notable(string t) =>
+        t.Contains("war", StringComparison.OrdinalIgnoreCase) || t.Contains("dies") || t.Contains("born") || t.Contains("wed") || t.Contains("takes ") ||
+        t.Contains("destroyed") || t.Contains("Crisis") || t.Contains("throne", StringComparison.OrdinalIgnoreCase) || t.Contains("succeeds") || t.Contains("desert");
+    private static bool Martial(string t) => t.Contains("war", StringComparison.OrdinalIgnoreCase) || t.Contains("battle", StringComparison.OrdinalIgnoreCase) || t.Contains("destroyed") || t.Contains("siege", StringComparison.OrdinalIgnoreCase);
+
+    // a volume per ten turns, the current one always present even when empty
+    private static List<(string key, string label, int from, int to)> Volumes(World w)
+    {
+        var list = new List<(string, string, int, int)>(); int last = Math.Max(1, w.Turn);
+        for (int from = 1; from <= last; from += 10) { int to = from + 9; list.Add(($"v{from}", $"Turns {from}–{to}", from, to)); }
+        return list;
+    }
+    private string BuildOptions(World w, House house, List<(string key, string label, int from, int to)> volumes)
+    {
+        var vols = volumes.Select(v => new { v.key, v.label, accent = v.key == _volume ? house.AccentColor : "#4a3222", lines = w.History.Where(h => h.Turn >= v.from && h.Turn <= v.to && (h.EventId != null || Notable(h.Text))).Take(16).Select(h => $"T{h.Turn} {h.Text}").ToList() }).ToList();
+        var ticks = w.History.GroupBy(h => h.Turn).Select(g => new { turn = g.Key, notable = g.Any(h => h.EventId != null || Notable(h.Text)), war = g.Any(h => Martial(h.Text)), gen = g.Any(h => h.Text.Contains("succeeds")) ? 1 : 0 }).ToList();
+        return System.Text.Json.JsonSerializer.Serialize(new { accent = house.AccentColor, turn = w.Turn, open = _volume, volumes = vols, timeline = ticks });
+    }
+    public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaSets.destroy", _id); } catch { } _self?.Dispose(); }
+}

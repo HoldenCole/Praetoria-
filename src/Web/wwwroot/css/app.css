@@ -212,9 +212,6 @@ details > summary::before { content: "▸ "; color: var(--brass3); } details[ope
 
 /* ===== worlds ===== */
 .region-block { border-left: 3px solid var(--accent); } .region-head { display: flex; align-items: baseline; gap: .8rem; }
-.tbl { width: 100%; border-collapse: collapse; font-size: .86rem; } .tbl th { text-align: left; color: var(--muted); font-weight: 500; font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; padding: .3rem .4rem; border-bottom: 1px solid var(--line2); font-family: var(--display); }
-.tbl td { padding: .3rem .4rem; border-bottom: 1px dotted var(--line); vertical-align: middle; } .tbl tr { cursor: pointer; } .tbl tbody tr:hover td { background: rgba(201,162,74,.06); } .tbl tr.mine td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
-.world-cell { display: flex; align-items: center; gap: .5rem; } .world-cell .thumb { width: 64px; height: 36px; object-fit: cover; border-radius: 2px; border: 1px solid var(--line2); } .world-cell .sprite { width: 26px; height: 26px; }
 .pdot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; margin-right: .2rem; }
 
 /* ===== house / military / houses / character ===== */
@@ -223,9 +220,6 @@ details > summary::before { content: "▸ "; color: var(--brass3); } details[ope
 .holding.besieged { border-left: 2px solid var(--warn); padding-left: .4rem; }
 .fleet-head { display: flex; align-items: baseline; gap: .6rem; } .ships { display: flex; flex-wrap: wrap; gap: .3rem; margin: .3rem 0; }
 .war { padding: .3rem 0; border-top: 1px dotted var(--line); font-size: .9rem; } .crisis { padding: .35rem 0; border-top: 1px dotted var(--line); font-size: .9rem; }
-.houses-screen { max-width: 1100px; }
-.house-row summary { display: flex; align-items: center; gap: .7rem; } .house-row summary::before { display: none; } .house-row .hname { min-width: 200px; } .house-row .hstats { flex: 1; font-size: .8rem; }
-.house-row.hostile { border-color: #5a3b2e; } .house-body { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-top: .5rem; border-top: 1px solid var(--line); padding-top: .5rem; }
 .sheet-head { display: flex; align-items: center; gap: 1rem; } .sheet-id { flex: 1; } .sheet-head h2 { font-size: 1.8rem; }
 .ladder { display: flex; flex-wrap: wrap; gap: .3rem; margin: .3rem 0 .6rem; } .rung { font-size: .74rem; padding: .15rem .55rem; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
 .rung.past { color: var(--ink2); border-color: var(--line2); } .rung.here { color: var(--brass2); border-color: var(--brass); background: #1d1a12; font-weight: 600; }
@@ -327,3 +321,14 @@ input:focus, select:focus { outline: none; border-color: var(--brass); }
 .navy-row b { text-align: right; font-variant-numeric: tabular-nums; } .navy-row.mine span:nth-of-type(1) { color: var(--brass2); } .navy-row.warn span { color: #e07a5f; }
 .stage-title { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
 .office-side .res-grid { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); }
+.office.wide { grid-template-columns: minmax(0, 1fr) 400px; }
+.house-line, .world-line { display: flex; align-items: center; gap: .45rem; padding: .22rem .3rem; border-radius: 3px; cursor: pointer; font-size: .9rem; } .house-line:hover, .world-line:hover { background: rgba(201,162,74,.06); }
+.house-line.here, .world-line.here { background: rgba(201,162,74,.1); box-shadow: inset 2px 0 0 var(--brass2); } .house-line.hostile b { color: #e07a5f; } .world-line.mine b { color: var(--brass2); }
+.house-line > span:nth-of-type(1), .world-line > span:nth-of-type(1) { flex: 1; min-width: 0; } .world-line .holder { display: inline-flex; align-items: center; gap: .25rem; }
+.house-line .pill, .world-line .pill { margin-left: auto; }
+.focus-house h4 { margin: .6rem 0 .2rem; font-family: var(--display); font-size: .78rem; letter-spacing: .08em; color: var(--brass2); text-transform: uppercase; }
+.focus-house .who-head { align-items: center; } .focus-house .who-head .pill { margin-left: auto; }
+.office-side .sheet-head { gap: .7rem; } .office-side .sheet-head h2 { font-size: 1.4rem; }
+.vols { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .4rem; } .vols .rung { cursor: pointer; background: none; }
+.sprite.big { width: 64px; height: 64px; }
+.stage-card .sprite { flex-shrink: 0; }

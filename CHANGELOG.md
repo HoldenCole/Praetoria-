@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Houses, Worlds, Chronicle and You screens** on their own lit 3D sets: the hall of banners (every house on the walls,
+  heads on plates, the greatest nearest the crest, war under a red pulse); the orrery (a dome, an armillary sun, one arm
+  per region with the worlds as turning globes); the archive (stacks, the chronicle as a framed timeline, a volume per
+  ten turns on the reading table); the quarters (a viewport, the family on the mantel, a trophy case of honors, a desk
+  with the record of service). Every screen in the game now stands on a set.
 - **Dynasty, Military and House screens** on their own lit 3D sets: the family tree as generations down a vaulted hall
   (parent-to-child lines on the floor, spouse threads, other houses' spouses in their colours, heirs and the remembered);
   the command deck with a holographic strategic table (fronts in red, fleets as markers), the admirals at the table, the

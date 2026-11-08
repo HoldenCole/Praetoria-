@@ -63,8 +63,11 @@ event windows with the cast's portraits; the first visitor steps forward when a 
 - `Components/AcademyScreen.razor` — **Academy** (shown while the protagonist is 22 or younger): the parade-ground set at
   dawn with the cohort in ranks, the instructor on the dais, the cohort houses' banners; panels for your record and
   standing, the cohort with dispositions, bonds and marks, and the year so far.
-- `Components/PlanetsScreen.razor` — **Worlds**: every world by region in a table (class, holder, governor, industry,
-  population, loyalty, stations).
+- `Components/PlanetsScreen.razor` — **Worlds**: the orrery set: under a star-pricked dome, a brass armillary sun at the
+  heart and one arm per region, each region's worlds as turning textured globes on brass stalks (stations as rings,
+  restless worlds under a red light, your worlds larger with a brighter halo); click a globe for its card (class, region,
+  culture, holder, governor, industry, population, loyalty, stations, the system's description, open on the galaxy map);
+  panels list every region's worlds with holder and loyalty.
 - `Components/HouseScreen.razor` — **House**: the keep's great hall set (`sets.js`): the house banner over the dais, your
   worlds as turning globes (stations as rings) on pedestals down the hall, a red warning light on any restless one, the
   household seated at the long table (click one for their card and foster/recall); panels for treasury and forecast,
@@ -79,9 +82,20 @@ event windows with the cast's portraits; the first visitor steps forward when a 
   parent to child, a gold thread between spouses, spouses from other houses in their own colours (click anyone for their
   card: parents, spouse, disposition, heir mark, flags); panels for the house, the line of succession, bonds within the
   house, the remembered dead.
-- `Components/HousesScreen.razor` — **Houses**: every house with sigil, title, worlds, stations, hulls, legitimacy, bloc,
-  disposition; its people with marriage and intrigue actions; its domain; war and peace.
-- `Components/ChroniclePanel.razor` — **Chronicle**: the whole history by turn.
+- `Components/HousesScreen.razor` — **Houses**: the hall of banners set: every house's banner on the gallery walls with a
+  brass floor plaque and its head on a plate before it, the greatest nearest the crest at the far end, smaller banners for
+  the landless, a red pulse under any house at war with you; click a banner or a head for the house's card (title, culture,
+  bloc, legitimacy, domain, navy, spheres, its people with marriage and intrigue actions, its worlds and stations, war and
+  peace) and a roster of every house with its disposition.
+- `Components/ChronicleScreen.razor` — **Chronicle**: the archive set: stacks of lit spines on both walls, the chronicle
+  as an illuminated timeline on the far wall (notable turns as gold marks, wars as red, the present in red), a reading
+  table with one bound volume per ten turns, the open one showing its notable lines; click a volume to open it, and the
+  panels show that volume's turns with an "only the notable" filter.
+- `Components/CharacterScreen.razor` — **You**: the quarters set: a viewport onto the seat's world, your great portrait
+  over the mantel with the family as small plates along it (click one for their card), the house banner, a trophy case
+  of honors, a desk with your record of service (career, ambition, skills) under a lamp, an armchair and a decanter;
+  panels for the sheet (traits), career ladder, ambition, stress, honors, marks, skills, blood and bonds, those who
+  matter, your story so far.
 - `Components/CreationScreen.razor` — the title and creation screen.
 - `Components/Portrait.razor`, `Sigil.razor` — procedural portraits and heraldry; `Services/Svg.cs` — SVG helpers.
 - `Services/GameClient.cs` — the one object the UI talks to. `wwwroot/css/app.css` — the look.
@@ -106,8 +120,12 @@ nothing is Earth; everything is rendered or drawn in-fiction at runtime (`src/We
   barrel-vaulted hall with ribs, hanging lamps and sconces, a hearth and the great banner, the family tree laid out by
   generation), the Command Deck (a steel deck with light rails, a glass wall onto the seat's world and the fleet outside,
   a holographic strategic table, wall displays) and the Keep (a timbered great hall with tall windows, a dais and seat,
-  the worlds on pedestals, a candle-lit long table). Each set takes plain JSON from Blazor, places framed cameo plates
-  for its people and calls back `OnPlate(key)` when one is clicked.
+  the worlds on pedestals, a candle-lit long table), the Gallery (a skylit hall of banners with floor plaques and the
+  crest at its end), the Orrery (a star-pricked dome, a lamp-lit parapet, a brass armillary sun with one arm per region
+  and the worlds as globes on stalks), the Archive (stacks of lit spines, gallery rails and lamps, the chronicle framed on
+  the far wall, a reading table of bound volumes) and the Quarters (a viewport, a mantel of family portraits, a banner, a
+  trophy case, a desk with a lit record of service, an armchair). Each set takes plain JSON from Blazor, places framed
+  cameo plates for its people and calls back `OnPlate(key)` when a plate, globe, banner or volume is clicked.
 - **Portraits** (`portrait.js`, canvas): cameos — imperial coin profiles drawn from a parametric bust (forehead, brow,
   nose, lips, chin, jaw, neck), hair and beard shapes, a uniform collar and brass gorget in the house colour, relief
   shading, on a plate with the house's diagonal stripe; stable per character, greying and lined with age.

@@ -53,5 +53,9 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   Academy sets, then the Hall, Command Deck and Keep sets with their screens. Lesson from the lighting passes: a
   downward-facing surface under a HemisphereLight takes the *ground* colour, so a near-black ground leaves every ceiling
   and vault black however strong the sky; and materials under 0x40 grey read as unlit at any light level.
+- 2026-11-08 — Houses, Worlds, Chronicle and You on sets (gallery, orrery, archive, quarters): every screen now stands
+  on a set. Lessons: a screen with a wide aside has a near-square stage, so its camera sits further back; a set whose
+  camera is outside its dome shows stars as squares at the frame edge, so the dome must enclose the camera; plaques
+  closest to the camera dominate, so arms nearest the viewer are the ones to shrink. UI phase closed; next is depth.
 - 2026-11-07 — Owner: office good; portraits can wait; galaxy needs a little more; then UI for the Academy and the
   political system at the office's level; then depth. Done: galaxy polish; Senate and Academy screens on new 3D sets.

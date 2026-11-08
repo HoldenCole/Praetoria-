@@ -1,59 +1,99 @@
 @inject GameClient G
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var mine = w.House(p.HouseId)!;
     var ctx = new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0));
     var conns = m.Connections.ToDictionary(x => x.Id);
     var houses = w.Houses.Values.Where(h => h.Id != mine.Id).OrderByDescending(h => c.Titles.RankOf(h.Title)).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
+    _focus ??= houses.FirstOrDefault()?.Id;
+    _pending = BuildOptions(w, mine, houses);
+    int great = houses.Count(h => w.HoldingsOf(h.Id).Any(x => x.IsPlanet)), wars = houses.Count(h => w.AtWar(mine.Id, h.Id));
+    var fh = _focus != null ? w.House(_focus) : null;
 }
-<div class="houses-screen">
-    <section class="panel">
-        <h2>The houses of the Reach</h2>
-        <div class="muted">@w.Houses.Count houses. Great houses hold worlds; minor houses hold stations, or nothing but a name. Your standing with each is the disposition of its people toward you.</div>
-    </section>
-    @foreach (var h in houses)
-    {
-        var members = w.LivingCharacters().Where(x => x.HouseId == h.Id).OrderByDescending(x => x.CareerRank).ThenBy(x => x.Id, StringComparer.Ordinal).ToList();
-        var head = members.FirstOrDefault();
-        int disp = members.Count == 0 ? 0 : (int)members.Average(x => w.GetRelationship(x.Id, pid)?.Disposition ?? 0);
-        var worlds = w.HoldingsOf(h.Id).Where(x => x.IsPlanet).ToList(); var stations = w.HoldingsOf(h.Id).Where(x => !x.IsPlanet).ToList();
-        bool atWar = w.AtWar(mine.Id, h.Id);
-        <details class="panel house-row @(atWar ? "hostile" : "") @(_open == h.Id ? "open" : "")" open="@(_open == h.Id)" @ontoggle="() => _open = _open == h.Id ? null : h.Id">
-            <summary>
-                <Sigil HouseId="@h.Id" Accent="@h.AccentColor" Size="34" />
-                <span class="hname"><b>@h.Name</b> <span class="muted">@(c.Titles.ById(h.Title)?.Name ?? h.Title) · @h.Culture</span></span>
-                <span class="hstats muted">@worlds.Count world(s) · @stations.Count station(s) · @FleetSystem.StrengthOf(w, h.Id) hulls · legitimacy @h.Legitimacy@(h.Bloc.Length > 0 ? $" · bloc {h.Bloc}" : "")</span>
-                <span class="pill @(disp < -20 ? "warn" : disp > 20 ? "good" : "")">@(disp >= 0 ? "+" : "")@disp</span>
-                @if (atWar) { <span class="pill warn">AT WAR</span> }
-            </summary>
-            <div class="house-body">
-                <div class="house-people">
-                    @foreach (var ch in members.Take(6))
-                    {
-                        conns.TryGetValue(ch.Id, out var cn); var rel = w.GetRelationship(ch.Id, pid); int d = rel?.Disposition ?? 0;
-                        <div class="person">
-                            <Portrait Id="@ch.Id" Name="@ch.Name" Sex="@ch.Sex" Age="@ch.Age" Accent="@h.AccentColor" Size="36" />
-                            <span><b>@ch.Name</b> <span class="muted">@(c.Careers.RankName(ch.CareerTrack, ch.CareerRank) ?? $"{ch.Age}") · @ch.Age@(ch == head ? " · head" : "")</span>
-                                <span class="pill @(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span>
-                                @if (cn != null) { foreach (var f in cn.Flags) { <span class="pill small">@f.Replace('_', ' ')</span> } }
-                            </span>
-                            @if (cn != null) { foreach (var o in cn.Actions) { <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(Conn(o.Id, cn.Id))">@o.Label</button> } }
-                        </div>
-                    }
+<div class="office gallery wide" style="--accent:@mine.AccentColor">
+    <div class="office-stage">
+        <div class="gl-host" @ref="_host"></div>
+        <div class="stage-foot">
+            <div class="stage-title"><Icon Name="houses" Size="16" /> <b>The Hall of Banners</b> <span class="muted">@houses.Count houses · @great hold worlds · @(houses.Count - great) hold stations or a name@(wars > 0 ? $" · {wars} at war with you" : "")</span></div>
+            <span class="muted small">the greatest hang nearest the crest · click a banner or a head</span>
+        </div>
+    </div>
+
+    <aside class="office-side">
+        @if (fh != null)
+        {
+            var members = w.LivingCharacters().Where(x => x.HouseId == fh.Id).OrderByDescending(x => x.CareerRank).ThenBy(x => x.Id, StringComparer.Ordinal).ToList();
+            var head = members.FirstOrDefault(); int disp = members.Count == 0 ? 0 : (int)members.Average(x => w.GetRelationship(x.Id, pid)?.Disposition ?? 0);
+            var worlds = w.HoldingsOf(fh.Id).Where(x => x.IsPlanet).ToList(); var stations = w.HoldingsOf(fh.Id).Where(x => !x.IsPlanet).ToList(); bool atWar = w.AtWar(mine.Id, fh.Id);
+            <section class="panel focus-house" style="--accent:@fh.AccentColor">
+                <div class="who-head"><Sigil HouseId="@fh.Id" Accent="@fh.AccentColor" Size="48" /><div><h2>@fh.Name</h2><div class="sub">@(c.Titles.ById(fh.Title)?.Name ?? fh.Title) · @fh.Culture culture@(fh.Bloc.Length > 0 ? $" · bloc {fh.Bloc}" : "")</div></div>
+                    <span class="pill @(disp < -20 ? "warn" : disp > 20 ? "good" : "")">@(disp >= 0 ? "+" : "")@disp</span>@if (atWar) { <span class="pill warn">AT WAR</span> }</div>
+                <div class="kv"><span>Legitimacy</span><b>@fh.Legitimacy</b></div>
+                <div class="kv"><span>Domain</span><b>@worlds.Count world(s) · @stations.Count station(s)</b></div>
+                <div class="kv"><span>Navy</span><b>@FleetSystem.StrengthOf(w, fh.Id) hull(s)</b></div>
+                @if (fh.SphereInfluence.Any(k => k.Value > 0)) { <div class="kv"><span>Spheres</span><b>@string.Join(" · ", fh.SphereInfluence.Where(k => k.Value > 0).Select(k => $"{k.Key} {k.Value}"))</b></div> }
+                <h4>The people</h4>
+                @foreach (var ch in members.Take(6))
+                {
+                    conns.TryGetValue(ch.Id, out var cn); var rel = w.GetRelationship(ch.Id, pid); int d = rel?.Disposition ?? 0;
+                    <div class="person">
+                        <Portrait Id="@ch.Id" Name="@ch.Name" Sex="@ch.Sex" Age="@ch.Age" Accent="@fh.AccentColor" Size="32" />
+                        <span><b>@ch.Name</b> <span class="muted">@(c.Careers.RankName(ch.CareerTrack, ch.CareerRank) ?? "") · @ch.Age@(ch == head ? " · head" : "")</span>
+                            <span class="pill @(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span>
+                            @if (cn != null) { foreach (var f in cn.Flags.Take(3)) { <span class="pill small">@f.Replace('_', ' ')</span> } }
+                        </span>
+                        @if (cn != null) { foreach (var o in cn.Actions) { <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(Conn(o.Id, cn.Id))">@o.Label</button> } }
+                    </div>
+                }
+                @if (members.Count == 0) { <div class="muted">No one of the name still lives.</div> }
+                <h4>The domain</h4>
+                @foreach (var hd in worlds) { var sys = w.Galaxy?.System(hd.SystemId); <div class="line"><img class="sprite" data-planet="@(sys?.PlanetClass ?? "terran")|@hd.SystemId|24" alt="" /> <b>@hd.Name</b> <span class="muted">@(c.Holdings.Spec(hd.Specialization)?.Name) · @(sys?.Name) · loyalty @(100 - hd.Unrest)</span></div> }
+                @foreach (var hd in stations) { <div class="line muted"><Icon Name="station" Size="12" /> @hd.Name · station at @(w.Galaxy?.System(hd.SystemId)?.Name)</div> }
+                @if (worlds.Count == 0 && stations.Count == 0) { <div class="muted">Landless: a name, a few retainers, and ambitions.</div> }
+                @{ var dw = new DeclareWarCommand(pid, fh.Id, c.Fleets); }
+                @if (!atWar) { <button class="opt" disabled="@(!dw.CanExecute(ctx))" title="@(dw.CanExecute(ctx) ? "" : "no influence")" @onclick="() => G.Execute(new DeclareWarCommand(pid, fh.Id, c.Fleets))">Declare war on @fh.Name (2 influence)</button> }
+                else { var peace = m.Wars.FirstOrDefault(x => x.EnemyHouseId == fh.Id); if (peace != null) { <button class="opt" disabled="@(!peace.PeaceAvailable)" title="@peace.PeaceTooltip" @onclick="() => G.Execute(new SueForPeaceCommand(pid, fh.Id, c.Fleets))">Sue for peace (1 influence)</button> } }
+            </section>
+        }
+        <section class="panel">
+            <h3><Icon Name="houses" Size="13" /> The houses of the Reach</h3>
+            @foreach (var h in houses)
+            {
+                var worlds = w.HoldingsOf(h.Id).Count(x => x.IsPlanet); var members = w.LivingCharacters().Where(x => x.HouseId == h.Id).ToList();
+                int disp = members.Count == 0 ? 0 : (int)members.Average(x => w.GetRelationship(x.Id, pid)?.Disposition ?? 0); bool atWar = w.AtWar(mine.Id, h.Id);
+                <div class="house-line @(h.Id == _focus ? "here" : "") @(atWar ? "hostile" : "")" @onclick="() => _focus = h.Id">
+                    <Sigil HouseId="@h.Id" Accent="@h.AccentColor" Size="18" />
+                    <span><b>@h.Name</b> <span class="muted">@(c.Titles.ById(h.Title)?.Name ?? h.Title)@(worlds > 0 ? $" · {worlds} world(s)" : " · landless")</span></span>
+                    <span class="pill @(atWar ? "warn" : disp < -20 ? "warn" : disp > 20 ? "good" : "")">@(atWar ? "⚔" : "")@(disp >= 0 ? "+" : "")@disp</span>
                 </div>
-                <div class="house-domain">
-                    @foreach (var hd in worlds) { <div class="line"><b>@hd.Name</b> <span class="muted">@(c.Holdings.Spec(hd.Specialization)?.Name) · @(w.Galaxy?.System(hd.SystemId)?.Name) · loyalty @(100 - hd.Unrest)</span></div> }
-                    @foreach (var hd in stations) { <div class="line muted">@hd.Name · station at @(w.Galaxy?.System(hd.SystemId)?.Name)</div> }
-                    @if (worlds.Count == 0 && stations.Count == 0) { <div class="muted">Landless: a name, a few retainers, and ambitions.</div> }
-                    @{ var dw = new DeclareWarCommand(pid, h.Id, c.Fleets); }
-                    @if (!atWar) { <button class="opt" disabled="@(!dw.CanExecute(ctx))" title="@(dw.CanExecute(ctx) ? "" : "no influence")" @onclick="() => G.Execute(new DeclareWarCommand(pid, h.Id, c.Fleets))">Declare war on @h.Name (2 influence)</button> }
-                    else { var peace = m.Wars.FirstOrDefault(x => x.EnemyHouseId == h.Id); if (peace != null) { <button class="opt" disabled="@(!peace.PeaceAvailable)" title="@peace.PeaceTooltip" @onclick="() => G.Execute(new SueForPeaceCommand(pid, h.Id, c.Fleets))">Sue for peace (1 influence)</button> } }
-                </div>
-            </div>
-        </details>
-    }
+            }
+        </section>
+    </aside>
 </div>
+
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
-    private string? _open;
+    private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N"); private DotNetObjectReference<HousesScreen>? _self; private bool _created; private string _pending = "", _sent = ""; private string? _focus;
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (first) { _self = DotNetObjectReference.Create(this); try { if (await JS.InvokeAsync<bool>("praetoria.ready", "praetoriaSets")) { await JS.InvokeVoidAsync("praetoriaSets.create", "gallery", _id, _host, _self); _created = true; } } catch { } }
+        if (_created && _pending != _sent) { _sent = _pending; try { await JS.InvokeVoidAsync("praetoriaSets.build", _id, _pending); } catch { } }
+        try { await JS.InvokeVoidAsync("praetoriaFx.paint"); await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }
+    }
+    [JSInvokable] public void OnPlate(string key) { _focus = key; StateHasChanged(); }
+
+    private string BuildOptions(World w, House mine, List<House> houses)
+    {
+        object? Plate(Character? ch, string key) { if (ch == null) return null; var acc = w.House(ch.HouseId)?.AccentColor ?? "#888"; return new { key, name = ch.Name, accent = acc, bust = new { id = ch.Id, sex = ch.Sex.Length > 0 ? ch.Sex : "male", age = ch.Age, accent = acc, alive = ch.Alive } }; }
+        var list = houses.Select(h => new
+        {
+            id = h.Id, name = h.Name, accent = h.AccentColor, war = w.AtWar(mine.Id, h.Id), landless = !w.HoldingsOf(h.Id).Any(x => x.IsPlanet),
+            head = Plate(w.LivingCharacters().Where(x => x.HouseId == h.Id).OrderByDescending(x => x.CareerRank).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault(), h.Id)
+        }).ToList();
+        return System.Text.Json.JsonSerializer.Serialize(new { accent = mine.AccentColor, title = w.Era == "imperium" ? "THE IMPERIUM" : "THE REACH", houses = list });
+    }
     private ICommand Conn(string optionId, string targetId) { var pid = G.World!.ProtagonistId; var c = G.Content!; return optionId.StartsWith("marry:") ? new ProposeMarriageCommand(pid, optionId["marry:".Length..], targetId, c.Titles) : new AssassinateCommand(pid, targetId, c.Friction); }
+    public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaSets.destroy", _id); } catch { } _self?.Dispose(); }
 }
