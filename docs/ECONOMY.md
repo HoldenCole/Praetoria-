@@ -149,8 +149,8 @@ rare earths in six belts, isotopes in four dead or forge worlds, most of them on
 
 A deposit building or venture yields its listed amount × the deposit's richness; a belt claim brings up the belt's rare
 earths as well as its ore. **Fuel**: `FleetRules.FuelHullsPerUnit` (3); short, readiness slides fifteen a turn, no fleet
-of the house may sail, and the player hears of it through `fuel_short` (*Dry Tanks*). Tanks start part full (six plus
-one a hull). **The open market** (`ProcureCommand`): credits alone (no pool point) buy helium-3 or rare earths at the base price plus
+of the house may sail, and the player hears of it through `fuel_short` (*Dry Tanks*). Tanks start part full (ten plus two
+a hull). **The open market** (`ProcureCommand`): credits alone (no pool point) buy helium-3 or rare earths at the base price plus
 two credits for every producer short of four — so a Reach where one house skims pays double, and a rich house without a
 deposit can still buy its way in. The exchange trades them too (and sells isotopes, 6 credits each, but never buys).
 

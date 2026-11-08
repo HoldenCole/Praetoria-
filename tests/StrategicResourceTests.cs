@@ -137,6 +137,6 @@ public class StrategicResourceTests
         Assert.Equal(Resource.Isotopes, content.Businesses.Def("enrichment_concern")!.RequiresDeposit);
         Assert.Equal(3, content.Fleets.FuelHullsPerUnit);
         Assert.Contains(content.Holdings.Rates, r => r.Give == Resource.Credits && r.Get == Resource.Helium3); Assert.DoesNotContain(content.Holdings.Rates, r => r.Get == Resource.Isotopes);
-        Assert.All(w.Houses.Values.Where(h => w.Fleets.Values.Where(f => f.OwnerId == h.Id).Sum(f => f.Strength) >= 2), h => Assert.True(h.Treasury.Helium3 >= 8));   // tanks start part full
+        Assert.All(w.Houses.Values.Where(h => w.Fleets.Values.Where(f => f.OwnerId == h.Id).Sum(f => f.Strength) >= 2), h => Assert.True(h.Treasury.Helium3 >= 14));   // tanks start part full
     }
 }

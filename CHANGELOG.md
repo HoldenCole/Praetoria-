@@ -51,6 +51,10 @@
   with, up to three, so a fortress house lives by its guns rather than by luck.
 
 ### Fixed
+- CI had been red since the strategic three: the pre-flight validator's locked vocabularies lacked the new resources and
+  the `wealth`/`deposit` conditions. The Military screen listed the Lawless both as raiders and as a rival navy, put the
+  fuel line among the rivals, and called a fleet without an admiral "unled". A scenario's starting tank lasted nine turns;
+  it is ten helium-3 plus two a hull now, and the Admiral's report says when the tanks are low or dry.
 - A character born or raised in play had no action budget at all (an empty pool with a cap of zero), so a rival house
   whose founding head died could never again raise a hull, sail, buy or build — only its scripted stewardship ran. Any
   character the world meets without a pool now gets a rival's lean budget. Found by the fuel probe: rich houses sat dry

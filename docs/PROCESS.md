@@ -106,3 +106,8 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   (ECONOMY.md). Lesson: every new sink or source must be probed against the NPC economy the same day — the first
   probe showed fifteen of twenty navies dry and a thousand-credit house that could not act, and each fix exposed the
   next (pools, manpower, deadlocks, inflation, absolute tiers). Six probe rounds, each under two minutes, beat guessing.
+- 2026-11-08 — Owner: "time for a gap analysis." GAP_ANALYSIS §10: the whole game read against the GDD's pillars,
+  with the harness numbers and a thirty-turn playthrough. Verdict: economy and galaxy are the deep pillars; the
+  political pillar (the Senate as a place of action) and onboarding (first turn, the seat passing) are the gaps a
+  stranger hits first. Lesson: a gap analysis that only reassesses the last cycle drifts toward what was just built;
+  once a day, read the design document again from the top.

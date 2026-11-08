@@ -48,6 +48,8 @@ public static class AdvisorReports
             : $"We field {ours} hull(s); {biggest.name} is reported at {(biggest.conf >= 90 ? "" : "perhaps ")}{biggest.hulls}{(biggest.conf < 60 ? " — an old report, trust it lightly" : "")}.";
         var enemies = w.EnemiesOf(house.Id).Select(e => w.House(e)?.Name ?? e).ToList();
         if (enemies.Count > 0) admiralLine += $" We are at war with {string.Join(", ", enemies)}.";
+        if (w.HasFlag("fuel_short")) admiralLine += " The tanks are dry: no fleet of ours can sail until we find helium-3 — a skimmer, the exchange, or the open market.";
+        else if (ours >= 2 && house.Treasury.Helium3 <= FleetSystem.FuelBillFor(w, house.Id, 3) * 2) admiralLine += $" The tanks hold {house.Treasury.Helium3} helium-3 — two turns at most. Buy or skim.";
         list.Add(new AdvisorReport("Admiral", admiral?.Name, admiralLine, enemies.Count > 0 || (biggest.name != null && biggest.hulls > ours * 2)));
 
         // Chancellor — standing and the realm

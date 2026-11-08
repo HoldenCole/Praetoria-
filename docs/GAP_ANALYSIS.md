@@ -276,3 +276,115 @@ browser drive through every screen with save/reload and the map-cycle captures.
 Credit sinks (tithe, venture upkeep, prices) · a rival stock target for rare earths · isotopes as diplomacy · the throne
 as a climb · chain playthroughs for the deep events · the free hold's price · and the first pass at the Senate as a
 market for the strategic three (embargoes, quotas, the inspectors).
+
+## 10. Full gap analysis — 2026-11-08, the game against the design
+
+Method: 312 tests · both validators · `praetoria qa --seeds 6 --turns 60` with the acting player (36 runs, 0 failures,
+109/126 events surfacing) · `simulate --seeds 6 --turns 60` · the economy probe · a thirty-turn browser playthrough of
+*The Fallen House* read screen by screen against GDD §19 · the GDD's pillars (§5–§8, §13–§19) read against the engine,
+the content and the client. Where §4–§9 reassessed one cycle, this section asks the whole question again: how far is this
+from the game the design document describes, and what blocks a stranger from enjoying it tonight?
+
+### The numbers
+
+| measure | value | reading |
+|---|---|---|
+| tests · validators | 312 · 0 errors | the engine is trustworthy; CI was red only because the pre-flight validator's resource vocabulary predated the strategic three (fixed this pass) |
+| events surfacing in 36 runs | 109 of 126 | content is reachable; 17 never fire for real reasons (deep chains, player wars won by ten) |
+| battles per 60 turns | 3–7 | wars have teeth again after the fuel rebalance |
+| thrones taken | 24 of 36 runs | the Imperium forms in two runs of three by turn sixty — too often (§8, §9) |
+| generations per 60 turns | 1.0–1.2 (2.5 for the Old Lion) | one succession a run; the three-generation arc needs 120 turns or faster time |
+| mean credits at T60 | 290–350 | still rich (pre-strategic 130–210); tiers now relative so it does not break the gates |
+| dynasties ended | 5 of 36 | the fail state exists and is rare, as §14 wants |
+| chronicle oddities | early-turn negative treasuries only | rival houses dip below zero in turns 2–5 before ventures pay |
+
+### Pillar by pillar
+
+**Political / Court (GDD §6.1, §7).** Spheres, finite influence, threat and coalition pressure, titles with legitimacy
+requirements, three rise paths, honours, the throne (proclaim or seize), the capital as the Senate's chair, friction for
+the parvenu, dampers on crises. **Missing:** the Senate as a *place of action*. There are no motions, votes, blocs or
+legislation; a Magistrate with the ambition "Master the Senate" finds a screen that shows standings and offers nothing
+to do. Plots are one verb (an accident); there is no blackmail, no forged claim, no favour economy beyond disposition.
+The political pillar is the shallowest of the three against its design.
+
+**Military / Naval (§6.2, §8).** Fleets by class, readiness, veterancy, admirals, intel with confidence, sieges, battles
+with defender bonus and fortress worlds, wars that end (exhaustion, cession), chokepoints, raiders, fuel, heavy hulls
+gated on strategic resources, office fleets that pass with the office. **Missing:** the §8 drama — the player never
+*commands* an Imperial fleet they do not own; office fleets exist only as the Emperor's. No fleet doctrine, no
+blockade-as-order, no mercenaries, and the player's first fleet in *The Fallen House* runs dry by turn nine unless they
+read the alert (the starting tank is raised this pass; the Admiral now says so).
+
+**Domain / Economy (§6.3, §17).** The deepest pillar: specializations, buildings, prosperity, population, unrest, ventures,
+claims, loans, charters, tolls, escort fees, rings, lawlessness, governors, the strategic three, an exchange and an open
+market, wealth tiers, houses that fall, the fief. **Missing:** a credit sink proportional to income (the ledger runs
+rich), trade that is spatial (nothing moves along lanes), and ventures with risk. Anomalies and megastructures exist as
+data slots (three megastructures, anomaly markers in events) but anomalies have no mechanic.
+
+**Dynasty (§14, §18).** Nature and aptitude traits, stress with breakdowns, ambitions, sworn bonds, fostering (hidden
+kin), marriages with matrilineal/patrilineal lines, succession laws, regency, continue mode, cousins for headless
+houses, the saga epilogue, family autonomy. **Missing:** heir-hunting as a *campaign* (find, then pay, then risk — today
+it is one assassination roll), defiance that costs the player something concrete, and a dynasty tree: the Hall shows a row
+of portraits and a line of succession, not the generations.
+
+**Progression (§13).** Two ladders, three paths, legitimacy as a modifier with instability counters, honours, the academy
+crucible as an opening act with a cohort that persists. **Missing:** career rank gates that *matter* mid-game — ranks
+unlock events but not authority (a Grand Admiral commands nothing the Captain did not); and the Merit path's "be granted
+it" has one petition verb.
+
+**Crises and the Great Crisis (§11, §16).** Twelve human crises with gates, cascades, dampers and recovery, the War of the
+Reach with blocs, stages and a resolution that can crown. **Missing:** only the human archetype (by design for V1); but
+the war resolves decisively too often (the throne numbers above), and the cosmic foreshadowing slot (anomaly digs that
+later erupt) is empty.
+
+**Galaxy (§19).** Node-and-lane map, heraldic territory, rings, chokepoints, deposits, raiders, intel fog on fleets,
+route preview, minimap, sets per screen, era theming. **Missing:** role theming (an admiral's game should look
+different from a senator's — only the era register exists), the intel ticker as a strip (alerts live in the outliner),
+and crisis presence on the map beyond the front line.
+
+**Event engine and content (§15).** 126 events, 356 choices (118 trait- or resource-gated), tiers, roles, tokens, flags,
+counters, two validators, a soak that acts. **Missing:** volume. 126 events across six scenarios means the academy pool
+(18) repeats within a run and a sixty-turn game sees most of the generic pool once. The GDD's "opening act" target was
+40–60 events *per act*; a full arc wants three to four hundred. No event is scenario-gated; the Imperium start reuses
+the fractured-stars pool with an era condition on three.
+
+**UI and art (§19).** Three-column court, galaxy command table, ten lit 3D sets, procedural portraits and sigils, dark
+warm palette with house accents, imperial gold on proclamation, outliner, chronicle with filters, save and reload.
+**Missing:** first-turn guidance (the title screen's one line is the tutorial), the seat passing as a moment (the heir
+appears next turn), contextual connections (the GDD's "see your tie to this house wherever it appears" exists only on
+the Houses screen), audio of any kind, and the Military screen listed the Lawless twice and put the fuel line among the
+rivals (fixed this pass).
+
+**Process and QA.** Tests, two validators, a soak that acts, a simulate harness, an economy probe, a browser drive, a
+changelog and a gap log kept per cycle. **Missing:** the probe lives outside the repository (`/tmp`), and nothing
+measures *fun*: every number above is about the simulation, none about a player's turn-to-turn decisions.
+
+### Found and fixed this pass
+- CI red since the strategic three: the pre-flight validator's locked vocabularies lacked the new resources and the
+  `wealth`/`deposit` conditions.
+- The Military screen listed the Lawless as a rival navy *and* as raiders, and showed the fuel line under rival navies;
+  an unled fleet read "unled". The Admiral's report said nothing about dry tanks; the starting tank in a scenario lasted
+  nine turns.
+
+### Ranked gaps — what blocks a stranger from enjoying it tonight
+1. **No first-turn guidance and no seat-passing moment.** A new player lands in a lit office with three cards and no
+   idea what the pools, the ledger or the War of the Reach clock mean; when they die, the heir simply appears. An
+   onboarding briefing (five cards, dismissable) and a succession interstitial are the two cheapest large wins left.
+2. **The Senate is a display, not a pillar.** Motions, votes weighted by Senate influence and titles, blocs that form
+   around them, and a Magistrate's career that climbs through them. This is the political pillar's "take it".
+3. **Thrones fall in two runs of three.** The War of the Reach's decisiveness bar, or a stalemate as the common ending.
+4. **Content volume.** 126 events; a sixty-turn run exhausts the generic pool. Fifty more situations across the three
+   pillars and the first scenario-specific chains.
+5. **The office-versus-house drama (§8) is absent.** The player never commands fleets they do not own; appointments to
+   office (Admiral of the Reach, Treasurer, Consul) with their resources and their loss would make careers matter.
+6. **Heir-hunting and plots are one verb.** Find, then pay, then risk — and blackmail, forged claims and favours.
+7. **The ledger runs rich** (mean 290–350 credits at T60). A sink proportional to income.
+8. **Role theming** (admiral / steward / senator chrome) — the GDD's second register of reactive UI.
+9. **A dynasty tree** over the generations, and the contextual ties on every rival's card.
+10. **Trade that is spatial** and ventures with risk.
+11. **Seventeen events never surface**; chain playthroughs rather than more randomness.
+12. **Audio.** None. Even a hum, a page, a gong on End Turn.
+
+### Where the next forty come from
+Onboarding and the seat-passing moment · the Senate as a place of action (motions, votes, blocs) · the throne as a climb
+· fifty situations · offices and their fleets · plots with steps · a credit sink · role theming · the dynasty tree ·
+spatial trade · chain playthroughs · a first sound.

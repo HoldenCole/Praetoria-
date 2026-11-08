@@ -5,7 +5,7 @@
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var house = w.House(w.Protagonist!.HouseId)!;
     int ours = FleetSystem.StrengthOf(w, house.Id);
     int upkeep = w.Fleets.Values.Where(f => f.OwnerId == house.Id).Sum(f => G.Turn!.Fleets.Upkeep(f).Credits);
-    var rivals = GalaxyProjection.Fleets(w).Where(f => !f.IsPlayer).GroupBy(f => f.OwnerHouseId).Select(g => (house: w.House(g.Key)!, hulls: g.Sum(f => f.Strength), conf: (int)g.Average(f => f.Confidence))).OrderByDescending(x => x.hulls).ToList();
+    var rivals = GalaxyProjection.Fleets(w).Where(f => !f.IsPlayer && f.OwnerHouseId != PirateSystem.HouseId).GroupBy(f => f.OwnerHouseId).Select(g => (house: w.House(g.Key)!, hulls: g.Sum(f => f.Strength), conf: (int)g.Average(f => f.Confidence))).OrderByDescending(x => x.hulls).ToList();
     var battles = w.History.Where(h => h.Text.Contains("battle", StringComparison.OrdinalIgnoreCase) || h.Text.Contains("destroyed") || h.Text.Contains("desert")).Reverse().Take(6).ToList();
     _pending = BuildOptions(w, house, m, rivals);
     var focusFleet = _focus != null ? m.Fleets.FirstOrDefault(f => f.Id == _focus) : null;
@@ -25,7 +25,7 @@
                 else { <div class="sc-glyph"><Icon Name="fleet" Size="44" /></div> }
                 <div class="sc-body">
                     <div class="sc-name">@ff.Name <span class="muted">@ff.Composition · @(ff.Moving ? $"en route to {ff.Destination} ({ff.Eta})" : ff.Where)</span></div>
-                    <div class="muted small">@(adm != null ? $"Admiral {adm.Name}" : "unled") · readiness @ff.Readiness@(ff.Veterancy > 0 ? $" · veterancy {ff.Veterancy}" : "")@(ff.Office ? " · held by office" : "")</div>
+                    <div class="muted small">@(adm != null ? $"Admiral {adm.Name}" : "no admiral") · readiness @ff.Readiness@(ff.Veterancy > 0 ? $" · veterancy {ff.Veterancy}" : "")@(ff.Office ? " · held by office" : "")</div>
                     <div class="sc-actions">
                         <button class="opt inline" disabled="@(ff.Refit.Refusal != null)" title="@ff.Refit.Refusal" @onclick="() => G.Execute(new RefitFleetCommand(pid, ff.Id))">@ff.Refit.Label</button>
                         @foreach (var o in ff.AdmiralOptions.Take(3)) { <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AssignAdmiralCommand(pid, ff.Id, o.Id))">@o.Label</button> }
@@ -42,12 +42,14 @@
             <div class="kv"><span>Hulls</span><b>@ours</b></div>
             <div class="kv"><span>Upkeep</span><b>@upkeep credits a turn</b></div>
             <div class="kv"><span>Manpower</span><b>@m.Treasury.Manpower</b></div>
+            @{ int fuelBurn = FleetSystem.FuelBillFor(w, house.Id, c.Fleets.FuelHullsPerUnit); }
+            <div class="kv @(w.HasFlag("fuel_short") ? "warn" : "")"><span><Icon Name="helium3" Size="12" /> Fuel</span><b>@house.Treasury.Helium3 helium-3@(fuelBurn > 0 ? $" · burning {fuelBurn} a turn · {house.Treasury.Helium3 / Math.Max(1, fuelBurn)} turns" : " · under two hulls runs on scraps")@(w.HasFlag("fuel_short") ? " · DRY: at anchor" : "")</b></div>
             @foreach (var f in m.Fleets)
             {
                 var fleet = w.Fleets[f.Id];
                 <details class="fleet-card" open="@(m.Fleets.Count <= 2 || _focus == f.Id)">
                     <summary @onclick="() => _focus = f.Id"><b>@f.Name</b> <span class="muted">@f.Composition · @(f.Moving ? $"→ {f.Destination} ({f.Eta})" : f.Where)</span> <span class="pill @(f.Readiness < 50 ? "warn" : "")">rdy @f.Readiness</span></summary>
-                    <div class="kv"><span>Admiral</span><b>@(f.AdmiralName ?? "unled")</b></div>
+                    <div class="kv"><span>Admiral</span><b>@(f.AdmiralName ?? "no admiral")</b></div>
                     @if (f.Veterancy > 0) { <div class="kv"><span>Veterancy</span><b>@f.Veterancy</b></div> }
                     <div class="ships">@foreach (var (cls, n) in G.Turn!.Fleets.Composition(fleet)) { <span class="pill" title="atk @cls.Attack / def @cls.Defense"><Icon Name="@(Icons.Paths.ContainsKey(cls.Id) ? cls.Id : "fleet")" Size="12" /> @n × @cls.Name</span> }</div>
                     <button class="opt" disabled="@(f.Refit.Refusal != null)" title="@f.Refit.Refusal" @onclick="() => G.Execute(new RefitFleetCommand(pid, f.Id))">@f.Refit.Label</button>
@@ -75,8 +77,7 @@
             <h3><Icon Name="threat" Size="13" /> Rival navies <span class="muted">as reported</span></h3>
             @{ int maxHulls = Math.Max(1, Math.Max(ours, rivals.Count == 0 ? 0 : rivals.Max(r => r.hulls))); }
             <div class="navy-row mine"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="14" /> <span>@house.Name</span><span class="bar"><i style="width:@(100 * ours / maxHulls)%; background:@house.AccentColor"></i></span><b>@ours</b></div>
-            @{ var raiderHulls = w.Fleets.Values.Where(f => f.OwnerId == PirateSystem.HouseId).Sum(f => f.Strength); int fuelBurn = FleetSystem.FuelBillFor(w, house.Id, c.Fleets.FuelHullsPerUnit); }
-            @if (ours > 0) { <div class="muted small fuel @(w.HasFlag("fuel_short") ? "warn" : "")"><Icon Name="helium3" Size="12" /> Fuel: @house.Treasury.Helium3 helium-3 in the tanks@(fuelBurn > 0 ? $", burning {fuelBurn} a turn ({(house.Treasury.Helium3 / Math.Max(1, fuelBurn))} turns)" : " — a navy under two hulls runs on scraps")@(w.HasFlag("fuel_short") ? " · DRY: the fleet rides at anchor" : "")</div> }
+            @{ var raiderHulls = w.Fleets.Values.Where(f => f.OwnerId == PirateSystem.HouseId).Sum(f => f.Strength); }
             @if (raiderHulls > 0) { <div class="navy-row warn"><span>☠</span> <span>Raiders on the lanes</span><span class="bar"><i style="width:@(100 * raiderHulls / maxHulls)%; background:#c0392b"></i></span><b>@raiderHulls</b></div> }
             @foreach (var r in rivals.Take(8))
             {

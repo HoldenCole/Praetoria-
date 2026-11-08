@@ -15,10 +15,10 @@ engine's loader accepts. Exit code 0 = clean, 1 = errors. Run after every batch.
 """
 import json, re, sys, glob, os
 
-COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","atWar","bloc","sex","eventFired"}
+COND={"all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","atWar","bloc","sex","eventFired","wealth","deposit"}
 EFF={"setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","revokeClaim","adjustLegitimacy","setTitle","succeed","kill","declareWar","makePeace","joinBloc","log"}
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
-RES={"credits","materials","manpower","influence","exotics"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
+RES={"credits","materials","manpower","influence","exotics","helium3","rare_earths","isotopes"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
 SPHERES={"navy","treasury","senate"}; TITLES={"landless","knight","baron","count","duke","archduke","emperor"}
 # §4b: engine-written projections of the player's house — gate on them, but never adjustCounter them.
 READONLY_COUNTERS={"title_rank","house_legitimacy","title_instability"}
