@@ -50,8 +50,9 @@ costs the capital five, and the two heads fall out. The player's house never wal
 
 `holds_capital`, `rebellion`, `region_lawless`, `secession_tempting`, `free_march`, `ring:<core|middle|rim>`,
 `lost_a_world_to_rebellion`, `secession:<system>`, `free_march:<region>`; decrees `declare_free_march`,
-`concede_to_rebels`, `purge_rebels`; counters `rebellions`, `secessions`, `free_marches`. Five ring events ship in
-`content/events/rings.json`.
+`concede_to_rebels`, `purge_rebels`, `fief_granted`, `house_fell:<name>`; counters `rebellions`, `secessions`,
+`free_marches`, `fiefs_granted`, `houses_fallen`, `landless_since:<house>`. The ring, capital, free-hold, raider,
+governor, fief and peace-term events ship in `content/events/rings.json`.
 
 ## The throne stands in the capital
 
@@ -113,9 +114,18 @@ unguarded chokepoint between home and the enemy, or strikes the enemy's weakest 
 
 ## The fief
 
-A landless house of some standing (legitimacy 20) **petitions the court** for a fief (three influence): if the capital's
-holder thinks well of its head (disposition 10) and has two worlds or more, it grants its least peopled one; the grantor
-gains five legitimacy, the petitioner a barony and a governor's chair (`fief_granted`). Rival landless houses petition too.
+A landless house of some standing (legitimacy 20) **petitions for a fief** (three influence). The grantor is the court if
+it holds a world beyond the capital, else the greatest landed house at peace with the petitioner — a **patron**, never
+a free hold. If the grantor's head thinks well of the petitioner (disposition 10) it grants its least peopled world;
+the grantor gains five legitimacy, the petitioner a barony and a governor's chair (`fief_granted`). Rival landless
+houses court the grantor first, then petition too.
+
+## Houses that fall
+
+A rival house that has lost everything ends (`HouseSystem`, see ECONOMY.md): struck from the rolls when no one is
+left, folded into whoever took its last world if it was a free hold, or — landless, penniless and hull-less for twelve
+years — entering another house's service. The counter `houses_fallen` counts them; `house_fell:<name>` is set for one
+turn so the outliner and events can mark the passing. The player's house never ends this way.
 
 ## Systems, bodies and the lane web
 

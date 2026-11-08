@@ -171,6 +171,11 @@ public sealed class FleetSystem
     {
         string? owner = TerritoryOwner(w, f.SystemId);
         var sys = w.Galaxy!.System(f.SystemId);
+        if (f.OwnerId == PirateSystem.HouseId)   // raiders roam every turn; the chronicle hears of them only when they reach someone's world
+        {
+            if (owner != null && w.PlanetHolder(f.SystemId) == owner) w.Log($"{f.Name} prowl {sys?.Name ?? f.SystemId} — {w.House(owner)?.Name ?? owner}'s world lies under their guns.");
+            return;
+        }
         if (owner != null && owner != f.OwnerId)
         {
             w.WorldCounters[IncursionsCounter] = w.Counter(IncursionsCounter) + 1;

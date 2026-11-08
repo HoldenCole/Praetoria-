@@ -94,3 +94,10 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   touched twenty files.
 - 2026-11-07 — Owner: office good; portraits can wait; galaxy needs a little more; then UI for the Academy and the
   political system at the office's level; then depth. Done: galaxy polish; Senate and Academy screens on new 3D sets.
+- 2026-11-08 — QA phase of the depth cycle. The soak's randomised player only ever answered events, so every
+  player-economy, fleet and court event was unreachable and the "never fired" list lied by twelve. It now gives
+  commands too (every legal intent listed, a shuffled few tried, coverage reported). Lesson: a QA harness that cannot
+  reach half the verbs reports the content as broken when the harness is; give the soak the same verbs the player has.
+  The probe then found that "insolvent" meant "a name with nothing left" for a third of the red ledgers — houses now
+  fall (struck, folded, or entering another's service), and the fief comes from a patron when the court has only the
+  capital.

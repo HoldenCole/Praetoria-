@@ -137,7 +137,7 @@ export class Galaxy {
     const byId = {}; for (const s of model.systems) byId[s.id] = s;
     // bounds → home camera
     const xs = model.systems.map(s => s.x), ys = model.systems.map(s => -s.y);
-    this.fitView = { t: new THREE.Vector3((Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2, 0), d: Math.max(Math.max(...xs) - Math.min(...xs), (Math.max(...ys) - Math.min(...ys)) * 1.6) * 1.05 + 200 };
+    this.fitView = { t: new THREE.Vector3((Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2, 0), d: Math.max((Math.max(...xs) - Math.min(...xs)) * 1.22, (Math.max(...ys) - Math.min(...ys)) * 1.7) + 240 };   // room at the edges for the outermost names
     this.bounds = { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) };
     if (!this.homeSet) {
       // the view opens on your own seat with the Reach running off the edges (ART_DIRECTION: you see a corner, not the galaxy)
@@ -282,14 +282,17 @@ export class Galaxy {
     const regions = this.labels.map(l => l.element).filter(e => e.classList.contains('region-label') && vis(e))
       .map(e => ({ e, b: box(e, parseFloat(e.style.marginLeft) || 0, parseFloat(e.style.marginTop) || 0) })).filter(o => o.b.w > 0).sort((a, b) => a.b.y - b.b.y);
     const overlap = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) + 6) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) + 4);
-    const placed = []; const step = 18;
-    const cands = [[0, 0]]; for (let k = 1; k <= 4; k++) { cands.push([0, -k * step], [0, k * step]); if (k <= 2) cands.push([-k * 60, 0], [k * 60, 0], [-k * 60, -k * step], [k * 60, -k * step], [-k * 60, k * step], [k * 60, k * step]); }
+    const placed = []; const step = 18; const view = this.renderer.domElement.getBoundingClientRect();
+    // how much of a box lies outside the map's own rectangle (a name half off the edge is worse than one nudged inward)
+    const outside = b => Math.max(0, view.left + 8 - b.x) + Math.max(0, b.x + b.w - (view.right - 8)) + Math.max(0, view.top + 8 - b.y) + Math.max(0, b.y + b.h - (view.bottom - 8));
+    const cands = [[0, 0]]; for (let k = 1; k <= 5; k++) { cands.push([0, -k * step], [0, k * step]); if (k <= 3) cands.push([-k * 70, 0], [k * 70, 0], [-k * 70, -k * step], [k * 70, -k * step], [-k * 70, k * step], [k * 70, k * step]); }
     for (const r of regions) {
       let best = null;
       for (const [dx, dy] of cands) {
         const b = { x: r.b.x + dx, y: r.b.y + dy, w: r.b.w, h: r.b.h }; let score = 0;
         for (const q of placed) score += overlap(b, q) * 3; for (const q of sys) score += overlap(b, q);
-        score += (Math.abs(dx) + Math.abs(dy)) * 0.6;   // prefer staying near the centre
+        score += outside(b) * b.h * 2;                  // keep the name inside the map
+        score += (Math.abs(dx) + Math.abs(dy)) * 0.45;  // prefer staying near the centre
         if (!best || score < best.score) best = { score, dx, dy, b };
         if (score === 0 && dx === 0 && dy === 0) break;
       }

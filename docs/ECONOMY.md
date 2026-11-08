@@ -107,3 +107,28 @@ the table.
 
 `business:<kind>`, `business:any`, `claim_holder`, `in_debt`, `richest:<house>`; counters `wealth`, `wealth_rank`,
 `claims`, `ventures_founded`, `loans`, `investments`. Five venture events ship in `content/events/ventures.json`.
+
+## Houses that fall
+
+A house that has lost everything is not left as a debt frozen in the ledger (`HouseSystem`, every end of turn, NPC
+houses only — the player's ending is the saga's):
+
+- **Struck from the rolls** — no living member, no world, no venture, no hull: the name ends, its wars with it.
+- **The free hold folds** — a free-hold house whose last world was taken has no reason to exist; its people and its
+  guard pass to whoever holds the world now, as the buy-back already did.
+- **Enters the service** — a landed name made landless, penniless and hull-less waits twelve turns
+  (`landless_since:<house>`), then enters the service of the richest landed house of its culture (or the court): its
+  characters become that house's retainers, its debts are written off, its name is struck.
+
+The counter `houses_fallen` counts them. Before this rule a third of the Reach's "insolvent" houses at turn sixty were
+such names, frozen at the credit floor; after it, four to seven of some thirty-three houses are in the red, and they are
+houses with a world in revolt or a loan to work off — a game still to play.
+
+## The fief, and who grants it
+
+A landless house with legitimacy twenty or more petitions for a fief (three influence). The grantor is the court if it
+holds a world beyond the capital, else the greatest landed house at peace with the petitioner (two worlds at least,
+never a free hold); the grantor's head must think well of the petitioner (disposition ten), so a landless rival courts
+them first. The grantor's least peopled world changes hands, the petitioner rises a baron, the grantor gains five
+legitimacy for the generosity. Fortress worlds, meanwhile, earn a garrison credit and a levy of manpower on top of
+their escort fees, so a march lord is marginal rather than broke.

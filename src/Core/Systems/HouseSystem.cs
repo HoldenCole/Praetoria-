@@ -22,6 +22,7 @@ public static class HouseSystem
     public static void Tick(World w)
     {
         var mine = w.Protagonist?.HouseId;
+        foreach (var f in w.WorldFlags.Where(f => f.StartsWith("house_fell:")).ToList()) w.WorldFlags.Remove(f);   // last turn's news
         foreach (var house in w.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             if (house.Id == mine || house.Id == PirateSystem.HouseId) continue;
@@ -65,7 +66,7 @@ public static class HouseSystem
         foreach (var k in w.WorldCounters.Keys.Where(k => k.EndsWith(":" + house.Id)).ToList()) w.WorldCounters.Remove(k);
         foreach (var f in w.WorldFlags.Where(f => f.EndsWith(":" + house.Id)).ToList()) w.WorldFlags.Remove(f);
         w.Houses.Remove(house.Id);
-        w.WorldCounters["houses_fallen"] = w.Counter("houses_fallen") + 1;
+        w.WorldCounters["houses_fallen"] = w.Counter("houses_fallen") + 1; w.WorldFlags.Add("house_fell:" + house.Name);
         w.Log(line);
     }
 }

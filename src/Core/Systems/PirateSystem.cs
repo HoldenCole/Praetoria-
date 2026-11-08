@@ -15,7 +15,7 @@ namespace Praetoria.Core.Systems;
 public sealed class PirateSystem
 {
     public const string HouseId = "pirates", Bloc = "pirates";
-    public const int SpawnLawlessness = 60, DissolveLawlessness = 30, RaidProsperity = 3, RaidLawlessness = 2, HuntLegitimacy = 1, HuntLawlessnessRelief = 10;
+    public const int SpawnLawlessness = 60, DissolveLawlessness = 30, RaidProsperity = 3, RaidLawlessness = 2, HuntLegitimacy = 1, HuntLawlessnessRelief = 10, HuntCooldown = 6;
 
     public static bool IsPirate(string houseId) => houseId == HouseId;
 
@@ -35,7 +35,8 @@ public sealed class PirateSystem
         {
             var state = RegionSystem.StateOf(w, region.Id); var systems = g.SystemsIn(region.Id).Select(s => s.Id).ToList();
             var raiders = w.Fleets.Values.Where(f => f.OwnerId == HouseId && (systems.Contains(f.SystemId) || systems.Contains(f.DestinationId))).ToList();
-            if (raiders.Count == 0 && state.Lawlessness >= SpawnLawlessness)
+            string huntKey = "raiders_hunted:" + region.Id;   // a scattered band needs years to gather again
+            if (raiders.Count == 0 && state.Lawlessness >= SpawnLawlessness && (!w.WorldCounters.ContainsKey(huntKey) || w.Turn - w.Counter(huntKey) >= HuntCooldown))
             {
                 Ensure(w);
                 var at = systems.OrderBy(s => w.PlanetHolder(s) == null ? 0 : 1).ThenBy(s => w.Fleets.Values.Where(f => f.SystemId == s && f.OwnerId != HouseId).Sum(f => f.Strength)).ThenBy(s => s, StringComparer.Ordinal).First();
@@ -80,7 +81,7 @@ public sealed class PirateSystem
             if (b.Winner != hunter) continue;
             var house = w.House(hunter); if (house == null) continue;
             house.Legitimacy = Math.Min(100, house.Legitimacy + HuntLegitimacy);
-            if (g.System(b.SystemId) is { } sys) { var rs = RegionSystem.StateOf(w, sys.RegionId); rs.Lawlessness = Math.Max(0, rs.Lawlessness - HuntLawlessnessRelief); }
+            if (g.System(b.SystemId) is { } sys) { var rs = RegionSystem.StateOf(w, sys.RegionId); rs.Lawlessness = Math.Max(0, rs.Lawlessness - HuntLawlessnessRelief); w.WorldCounters["raiders_hunted:" + sys.RegionId] = w.Turn; }
             w.WorldCounters["pirates_hunted"] = w.Counter("pirates_hunted") + 1;
             if (hunter == w.Protagonist?.HouseId) w.WorldFlags.Add("pirate_hunter");
             w.Log($"{house.Name} scatters the raiders at {g.System(b.SystemId)?.Name ?? b.SystemId}; the lanes breathe easier.");

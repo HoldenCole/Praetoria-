@@ -463,7 +463,8 @@ public class HouseFallTests
         w.Houses["ghost"] = new House { Id = "ghost", Name = "House Ghost", Treasury = new Resources { Credits = -20 } };
         w.Wars.Add(new War { HouseA = "ghost", HouseB = "corwin" });
         HouseSystem.Tick(w);
-        Assert.False(w.Houses.ContainsKey("ghost")); Assert.Empty(w.Wars); Assert.Equal(1, w.Counter("houses_fallen"));
+        Assert.False(w.Houses.ContainsKey("ghost")); Assert.Empty(w.Wars); Assert.Equal(1, w.Counter("houses_fallen")); Assert.True(w.HasFlag("house_fell:House Ghost"));
+        HouseSystem.Tick(w); Assert.False(w.HasFlag("house_fell:House Ghost"));                        // news for one turn
         Assert.Contains(w.History, h => h.Text.Contains("House Ghost") && h.Text.Contains("rolls"));
     }
 

@@ -3,6 +3,16 @@
 ## [Unreleased]
 
 ### Added
+- Quality of life: the Houses roster counts the names that have passed out of the rolls; the chronicle's realm volume
+  carries fallen houses and fiefs; the outliner marks a fief granted and a house fallen; the petition names its grantor.
+- **Houses that fall**: a name with no one left is struck from the rolls; a free hold whose world is taken folds into
+  the taker; a landless, penniless, hull-less house enters another's service after twelve years, its debts written
+  off (`houses_fallen`). **The patron's fief**: when the court holds only the capital, the greatest landed house at
+  peace grants the fief, and landless rivals court the grantor first. Fortress worlds earn a garrison credit and a
+  levy of manpower.
+- **A QA player who acts**: the `qa` soak's randomised player now gives commands as well as answering events — every
+  legal intent listed each turn, a shuffled few tried — and reports the coverage; distinct events surfacing rose from
+  90 to 101 of 120.
 - **Raiders** (lawlessness with a face): where a region's lanes go lawless a raider fleet gathers under The Lawless, at
   war with everyone; it roams, plunders unguarded worlds and is hunted by any fleet that meets it; the map shows raiders
   as a red skull, the outliner warns of them, and two events bring them to the door.
@@ -32,6 +42,14 @@
   with, up to three, so a fortress house lives by its guns rather than by luck.
 
 ### Fixed
+- The chronicle's war volume was a roll of raider movements ("… arrives at The Veil — House Quill's space", several a
+  turn); raiders are now heard of only when they reach someone's world, and a scattered band needs six years to gather
+  again in the same region. The map's "fit the whole Reach" clipped the outermost systems and ran region names off
+  the edges; it has room now, and region names stay inside the map.
+- Rival stewards staked belt claims every turn they could afford one (six claims, no coin); capped at two unless the
+  ledger is comfortably in the black. The Lawless ran up a debt paying hull upkeep; they keep no ledger now. Two
+  academy set-pieces (*The Marked Man*, *The Frame Unravels*) asked for a protagonist aged 22 or under on a turn no
+  academy protagonist could still be; widened.
 - **Half the Reach went bankrupt and stayed there.** Rival stewards founded ventures in alphabetical order (Academy
   Patronage first, a credit drain), borrowed on a sinking ledger (a loan every seven turns, each deeper), and let
   materials pile up unsold; a house whose last member died kept its worlds and let them rot at unrest 100. Stewards now

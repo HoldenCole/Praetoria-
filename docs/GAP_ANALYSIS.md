@@ -198,3 +198,44 @@ houses at turns 11, 31 and 60.
 ### Where the next forty come from
 Fortress income · free holds as actors · the capital as a prize · pirate fleets · governors who scheme · the throne as a
 climb · NPC fleets that contest chokepoints · pool tuning · peace terms · the unreachable events · era theming.
+
+## 8. Reassessment — 2026-11-08, after the depth cycle (raiders, governors, wars with ends, the fief, houses that fall)
+
+Method: 305 tests · validator · `praetoria qa --seeds 6` with the new acting player (36 runs, 101/120 events, 0
+failures, 0 token issues) · `simulate --scenario all --seeds 6 --turns 60` · the economy probe · a browser drive
+through every screen with save/reload and the map-cycle captures.
+
+### Found and fixed this pass
+- **The QA soak could not act.** Its player only answered events, so twelve player-economy, fleet and court events
+  were reported as never firing when the harness simply had no verbs. It now lists every legal command each turn and
+  tries a shuffled few; the "never fired" list fell from 30 to 19 and now names real gaps.
+- **"Insolvent" meant "a name with nothing left."** A third of the red ledgers at turn sixty were landless, often
+  headless houses frozen at the credit floor (the Free Cinderfall twice over, Valmont a count with no world). Houses
+  now fall: struck from the rolls, folded into whoever took their world, or entering another's service after twelve
+  years. Insolvent at T60: 13–16 → 4–7 of ~33.
+- **The fief was dead content.** Its grantor was the court, and the court holds only the capital in the Reach. The
+  greatest landed house at peace now grants when the court cannot, and landless rivals court the grantor first; one or
+  two fiefs are granted per sixty turns and *The Fief* can fire.
+- Fortress free holds were broke by construction (no yield, no neighbours): a garrison credit and a levy. Rival stewards
+  staked a belt claim every turn they could afford one (Pike: six claims, no coin): capped at two unless the ledger is
+  in the black. The Lawless were running up a debt on hull upkeep. Two academy set-pieces had an unreachable age window.
+
+### Still open, ranked
+1. **Thrones fall too readily**: 19 of 36 sixty-turn runs end with an Emperor, most by the War of the Reach's decisive
+   victor. The capital gate holds; the crisis itself resolves too often in one bloc's favour. Tune the decisiveness bar
+   or let a stalemate be the common ending.
+2. **Nineteen events never surface**, now for real reasons: *The Governor's Revolt*, *Whispers of Secession* and *The
+   Terms of Peace* need the player's own world to turn or the player to win a war by ten, which a random player rarely
+   does; the rest are deep chains (*The Regent's Hand*, *The Plot Exposed*, the stewardship audit). Worth a scripted
+   playthrough per chain rather than more randomness.
+3. **Reclaiming a free hold never happens for rivals** (`reclaimed` 0–1): the war path is cheaper than the price. Either
+   the price should fall with the leader's years in the chair, or war on a free hold should cost legitimacy.
+4. **Early-turn insolvency**: half a dozen landed houses dip below zero in turns two to five before ventures pay. A
+   starting cushion of five credits per world, or a first-turn grace on upkeep.
+5. **Wars still end in exhaustion more than terms** (battles 6–11 per run, conquests 3–5): acceptable, but the AI never
+   sues for peace from strength to bank a cession.
+
+### Where the next forty come from
+The throne as a climb (decisiveness, coalitions that hold) · scripted chain playthroughs for the deep events · the
+free hold's price and grudge · a starting cushion · peace from strength · the Senate as a place where fallen houses
+are spoken for · the chronicle of fallen names on the Houses screen.

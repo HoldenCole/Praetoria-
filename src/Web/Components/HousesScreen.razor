@@ -18,7 +18,7 @@
     <div class="office-stage">
         <div class="gl-host" @ref="_host"></div>
         <div class="stage-foot">
-            <div class="stage-title"><Icon Name="houses" Size="16" /> <b>The Hall of Banners</b> <span class="muted">@houses.Count houses · @great hold worlds · @(houses.Count - great) hold stations or a name@(wars > 0 ? $" · {wars} at war with you" : "")@capLine</span></div>
+            <div class="stage-title"><Icon Name="houses" Size="16" /> <b>The Hall of Banners</b> <span class="muted">@houses.Count houses · @great hold worlds · @(houses.Count - great) hold stations or a name@(wars > 0 ? $" · {wars} at war with you" : "")@(w.Counter("houses_fallen") > 0 ? $" · {w.Counter("houses_fallen")} passed out of the rolls" : "")@capLine</span></div>
             <span class="muted small">the greatest hang nearest the crest · click a banner or a head</span>
         </div>
     </div>
