@@ -101,3 +101,8 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   The probe then found that "insolvent" meant "a name with nothing left" for a third of the red ledgers — houses now
   fall (struck, folded, or entering another's service), and the fief comes from a patron when the court has only the
   capital.
+- 2026-11-08 — Owner: economic additions — asteroid mining, helium-3, rare earths, special materials for weapons; not
+  every planet or region has everything; decisions gated behind wealth and resources. Done as "the strategic three"
+  (ECONOMY.md). Lesson: every new sink or source must be probed against the NPC economy the same day — the first
+  probe showed fifteen of twenty navies dry and a thousand-credit house that could not act, and each fix exposed the
+  next (pools, manpower, deadlocks, inflation, absolute tiers). Six probe rounds, each under two minutes, beat guessing.

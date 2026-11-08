@@ -239,3 +239,40 @@ through every screen with save/reload and the map-cycle captures.
 The throne as a climb (decisiveness, coalitions that hold) · scripted chain playthroughs for the deep events · the
 free hold's price and grudge · a starting cushion · peace from strength · the Senate as a place where fallen houses
 are spoken for · the chronicle of fallen names on the Houses screen.
+
+## 9. Reassessment — 2026-11-08, after the strategic three
+
+Method: 312 tests · validator (126 events) · `praetoria qa --seeds 3` with the acting player (18 runs, 0 failures) ·
+`simulate --seeds 4 --turns 60` · the economy probe, extended to fuel, producers, deposits, hull totals and tiers · a
+browser drive through every screen with save/reload and the map-cycle captures.
+
+### Found and fixed this pass
+- **Characters born in play had no action budget.** `World.PoolsFor` gave an unknown actor an empty pool with a cap of
+  zero, so a rival house whose founding head died could never again raise a hull, sail, buy or build. Surfaced by the
+  fuel probe ("no treasury action left" on houses with a thousand credits). Every character now gets a rival's budget.
+- **Stewards ate their own manpower.** Free companies cost men a turn; rich houses founded two and could never lay a
+  keel again (manpower 0, credits 1,900). Ventures that eat men are founded or expanded only while the worlds breed more.
+- **Fuel deadlocks**: a house with no navy never bought its first tank; a dry navy stayed dry; procurement took the one
+  Treasury action a rival has. Fuel is bought first and pool-free, a dry navy is laid up a hull at a time, and the yards
+  lay down no hull the tanks could not carry three turns.
+- **Inflation.** Hoards sold at the exchange, a skimmer yielding six a turn, and an unbounded hull sink removed: mean
+  credits at turn sixty went 120 → 1,900 → 450 → 290–350 after trimming yields, sell rates and the two richest ventures.
+  Still above the pre-batch 130–210; see below.
+- **Wealth tiers were absolute** (26 of 32 houses "opulent"), which made *The Arms Broker*'s wealth gate meaningless.
+  Tiers are now relative by rank: 7–8 poor, 11 comfortable, 7–8 rich, 5–6 opulent in a Reach of 32.
+
+### Still open, ranked
+1. **Thrones fall too readily** (14 of 24 runs; unchanged from §8).
+2. **The ledger runs rich**: mean credits 290–350 at turn sixty, median 17–276. The remaining sinks are hulls (capped at
+   ten plus six a world) and ventures (sixty a Reach). A court tithe to the capital's holder, upkeep that scales with
+   a house's venture count, or prices that rise with the Reach's money supply are the candidates.
+3. **Heavy hulls are rare** (6–11 across the Reach): rare earths flow (nine producers) but stewards buy them only for the
+   class they are about to lay down. A standing stock target would put cruisers in rival navies by mid-game.
+4. **Nineteen events never surface** (§8 item 2, unchanged) and **rivals never buy back free holds** (§8 item 3).
+5. **Isotopes have three producers and no trade**: by design never on the open market, but no rival sells them to an
+   ally either; a fuel-contract-style event between houses at peace would make them a diplomatic currency.
+
+### Where the next forty come from
+Credit sinks (tithe, venture upkeep, prices) · a rival stock target for rare earths · isotopes as diplomacy · the throne
+as a climb · chain playthroughs for the deep events · the free hold's price · and the first pass at the Senate as a
+market for the strategic three (embargoes, quotas, the inspectors).
