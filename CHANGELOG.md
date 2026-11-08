@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Changed
+- **Territory as areas, not bubbles**: the map is partitioned the way Star Dynasties does it — every point belongs to
+  its nearest system's region, regions are crisp bordered areas in the dominant house's colour with a dark tinted fill
+  (hatched for a free march), region names sit at the centre of their area and no longer collide, and the minimap shows
+  the same partition. The per-house glow field and the ring ellipses are gone.
 - **A quieter map** after a second look at the reference games: lanes are hairlines with no glow (fronts and your own
   reach excepted), the default view opens on your own seat with the Reach running off the edges, a minimap in the
   corner shows the whole with the viewport drawn on it (click to travel), a fit button shows everything, system

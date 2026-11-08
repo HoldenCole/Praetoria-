@@ -145,16 +145,32 @@ export class Galaxy {
       this.home = { t: this.target.clone(), d: this.distance }; this.homeSet = true; this.updateCamera(true);
     }
 
-    // territory field
-    const houses = []; const houseIdx = {}; const colorOf = {};
-    for (const s of model.systems) if (s.ownerId && houseIdx[s.ownerId] == null) { houseIdx[s.ownerId] = houses.length; houses.push(s.ownerId); colorOf[s.ownerId] = new THREE.Color(s.accent); }
-    const minX = Math.min(...model.systems.map(s => s.x)) - 160, maxX = Math.max(...model.systems.map(s => s.x)) + 160, minY = Math.min(...model.systems.map(s => s.y)) - 160, maxY = Math.max(...model.systems.map(s => s.y)) + 160;
-    const uPos = [], uOwner = [], uCol = [];
-    for (let i = 0; i < MAX_SYS; i++) { const s = model.systems[i]; if (s) { uPos.push(new THREE.Vector3(s.x - minX, maxY - s.y, 1.0 + Math.min(1.0, (s.pop || 0) / 60))); uOwner.push(s.ownerId ? houseIdx[s.ownerId] : -1); } else { uPos.push(new THREE.Vector3()); uOwner.push(-1); } }
-    for (let h = 0; h < MAX_HOUSES; h++) uCol.push(houses[h] ? colorOf[houses[h]] : new THREE.Color(0));
-    const terr = new THREE.Mesh(new THREE.PlaneGeometry(maxX - minX, maxY - minY), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, vertexShader: NEBULA_VS, fragmentShader: TERR_FS,
-      uniforms: { uSize: { value: new THREE.Vector2(maxX - minX, maxY - minY) }, uCount: { value: Math.min(MAX_SYS, model.systems.length) }, uPos: { value: uPos }, uOwner: { value: uOwner }, uHouseColor: { value: uCol }, uRadius: { value: 56 }, uPlayer: { value: model.playerHouse ? (houseIdx[model.playerHouse] ?? -1) : -1 } } }));
-    terr.position.set((minX + maxX) / 2, -(minY + maxY) / 2, -2); this.objects.add(terr);
+    // territory as Star Dynasties draws it: the whole area partitioned, every point belonging to its nearest system's region,
+    // crisp borders in the dominant house's colour, a dark tinted fill, a hatch for a free march — rasterised once per model
+    const PADR = 300, rx0 = this.bounds.minX - PADR, ry0 = this.bounds.minY - PADR, rw = (this.bounds.maxX - this.bounds.minX) + 2 * PADR, rh = (this.bounds.maxY - this.bounds.minY) + 2 * PADR;
+    const RW = 1024, RH = Math.max(64, Math.round(RW * rh / rw)); const cv = document.createElement('canvas'); cv.width = RW; cv.height = RH; const rctx = cv.getContext('2d'); const img = rctx.createImageData(RW, RH); const px = img.data;
+    const regIndex = {}; (model.regions || []).forEach((r, i) => regIndex[r.id] = i);
+    const sites = model.systems.map(s => ({ x: s.x, y: -s.y, r: regIndex[s.regionId] ?? -1 }));
+    const ringTint = r => r.ring === 'core' ? [230, 199, 122] : r.ring === 'rim' ? [208, 120, 90] : [143, 168, 216];
+    const regCol = (model.regions || []).map(r => { const t = ringTint(r); const a = new THREE.Color(r.accent || '#8fa8d8'); const acc = [a.r * 255, a.g * 255, a.b * 255]; return { fill: [(t[0] * .4 + acc[0] * .6) * .7, (t[1] * .4 + acc[1] * .6) * .7, (t[2] * .4 + acc[2] * .6) * .7], border: acc, free: !!r.free }; });
+    const idx = new Int16Array(RW * RH); const fade = new Float32Array(RW * RH); const cx = new Float64Array(regCol.length), cy = new Float64Array(regCol.length), cn = new Float64Array(regCol.length);
+    for (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++) {
+      const wx = rx0 + (x + .5) / RW * rw, wy = ry0 + (RH - .5 - y) / RH * rh; let best = -1, bd = Infinity;
+      for (let i = 0; i < sites.length; i++) { const dx = sites[i].x - wx, dy = sites[i].y - wy; const d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
+      const dist = Math.sqrt(bd); const k = y * RW + x; const ri = best >= 0 ? sites[best].r : -1; idx[k] = ri; fade[k] = dist < 210 ? 1 : dist > 300 ? 0 : 1 - (dist - 210) / 90;
+      if (ri >= 0 && fade[k] > .5) { cx[ri] += wx; cy[ri] += wy; cn[ri]++; }
+    }
+    for (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++) {
+      const k = y * RW + x; const ri = idx[k]; if (ri < 0 || fade[k] <= 0) continue; const c = regCol[ri]; let border = false;
+      for (const [ox, oy] of [[1, 0], [0, 1], [-1, 0], [0, -1], [2, 0], [0, 2]]) { const xx = x + ox, yy = y + oy; if (xx < 0 || yy < 0 || xx >= RW || yy >= RH) continue; const j = idx[yy * RW + xx]; if (j !== ri && j >= 0) { border = true; break; } }
+      const hatch = c.free && ((x + y) % 14) < 4; const o = k * 4;
+      if (border) { px[o] = c.border[0]; px[o + 1] = c.border[1]; px[o + 2] = c.border[2]; px[o + 3] = Math.round(190 * fade[k]); }
+      else { px[o] = c.fill[0]; px[o + 1] = c.fill[1]; px[o + 2] = c.fill[2]; px[o + 3] = Math.round((hatch ? 58 : 26) * fade[k]); }
+    }
+    rctx.putImageData(img, 0, 0); this.regionRaster = { canvas: cv, x0: rx0, y0: ry0, w: rw, h: rh };
+    this.regionCentres = {}; (model.regions || []).forEach((r, i) => { this.regionCentres[r.id] = cn[i] > 0 ? { x: cx[i] / cn[i], y: cy[i] / cn[i] } : { x: r.cx, y: -r.cy }; });
+    const rtex = new THREE.CanvasTexture(cv); rtex.colorSpace = THREE.SRGBColorSpace; rtex.minFilter = THREE.LinearFilter;
+    const terr = new THREE.Mesh(new THREE.PlaneGeometry(rw, rh), new THREE.MeshBasicMaterial({ map: rtex, transparent: true, depthWrite: false })); terr.position.set(rx0 + rw / 2, ry0 + rh / 2, -3); this.objects.add(terr);
 
     // lanes
     const laneGeo = new THREE.BufferGeometry(); const lp = [], lc = [];
@@ -213,23 +229,7 @@ export class Galaxy {
       const lab = new CSS2DObject(el); lab.position.set(0, -(14 + bodies.length * 10.5) * .78 - 8, 0); g.add(lab); this.labels.push(lab);
       this.objects.add(g);
     }
-    // regions as highlighted areas: a soft hull around each region's systems, the ring's tint, the dominant house's hairline
-    for (const r of model.regions || []) {
-      const pts = model.systems.filter(s => s.regionId === r.id).map(s => new THREE.Vector2(s.x, -s.y)); if (pts.length < 1) continue;
-      const c = pts.reduce((a, p) => a.add(p), new THREE.Vector2()).multiplyScalar(1 / pts.length);
-      // the union of soft discs around the region's systems, seen from its centre: a rounded blob that hugs the worlds
-      const pad = 125; const outline = [];
-      for (let i = 0; i < 72; i++) { const a = i / 72 * Math.PI * 2; const dir = new THREE.Vector2(Math.cos(a), Math.sin(a)); let r = 0;
-        for (const p of pts) { const d = p.clone().sub(c); const along = d.dot(dir), across = d.x * dir.y - d.y * dir.x; if (Math.abs(across) < pad) r = Math.max(r, along + Math.sqrt(pad * pad - across * across)); }
-        outline.push(c.clone().add(dir.multiplyScalar(Math.max(r, pad * .6)))); }
-      const shape = new THREE.Shape(); const smooth = smoothClosed(outline, 3); shape.moveTo(smooth[0].x, smooth[0].y); for (const p of smooth.slice(1)) shape.lineTo(p.x, p.y); shape.closePath();
-      const tint = r.ring === 'core' ? 0xe6c77a : r.ring === 'rim' ? 0xd0785a : 0x8fa8d8;
-      const fill = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: r.free ? .07 : .035, depthWrite: false, blending: THREE.AdditiveBlending })); fill.position.z = -3; this.objects.add(fill);
-      const edge = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(smooth.map(p => new THREE.Vector3(p.x, p.y, -2.5))), new THREE.LineBasicMaterial({ color: new THREE.Color(r.accent || '#8fa8d8'), transparent: true, opacity: .32 })); this.objects.add(edge);
-    }
-    for (const r of model.regions || []) { const el = document.createElement('div'); el.className = 'region-label ring-' + (r.ring || 'middle') + (r.free ? ' free' : ''); el.innerHTML = `<span class="rn">${esc(r.name)}</span><span class="rs">${esc(r.ring || '')}${r.free ? ' · free march' : ''} · ${esc(r.dominant || 'no one')} · ⚜ ${r.allegiance} · ☠ ${r.lawlessness}</span>`; const lab = new CSS2DObject(el); if (r.ring === 'core') el.classList.add('centre'); lab.position.set(r.cx, r.ring === 'core' ? -r.cy : -(r.top - 80), 0); this.objects.add(lab); this.labels.push(lab); }
-    // the three rings: faint brass ellipses, the rim's a little redder
-    if (model.rings) { const rg = model.rings; for (const [k, rad, col, op] of [['core', rg.core, 0xe6c77a, .08], ['middle', rg.middle, 0xc9a24a, .06], ['rim', rg.rim, 0xd08a5a, .06]]) { if (!rad) continue; const pts = []; for (let i = 0; i <= 160; i++) { const a = i / 160 * Math.PI * 2; pts.push(new THREE.Vector3(rg.cx + Math.cos(a) * rad, -(rg.cy + Math.sin(a) * rad * 0.62), -1)); } const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending })); this.objects.add(line); } }
+    for (const r of model.regions || []) { const el = document.createElement('div'); el.className = 'region-label ring-' + (r.ring || 'middle') + (r.free ? ' free' : ''); el.innerHTML = `<span class="rn">${esc(r.name)}</span><span class="rs">${esc(r.ring || '')}${r.free ? ' · free march' : ''} · ${esc(r.dominant || 'no one')} · ⚜ ${r.allegiance} · ☠ ${r.lawlessness}</span>`; const lab = new CSS2DObject(el); const rc = this.regionCentres[r.id] || { x: r.cx, y: -r.cy }; lab.position.set(rc.x, rc.y, 0); this.objects.add(lab); this.labels.push(lab); }
     // fleets
     const groups = {}; for (const f of model.fleets) (groups[f.systemId] ||= []).push(f);
     for (const [sid, list] of Object.entries(groups)) {
@@ -270,10 +270,20 @@ export class Galaxy {
   // the minimap: the whole Reach in a corner, the viewport drawn on it, click to travel
   setMinimap(canvas) { this.mini = canvas; if (!canvas) return; canvas.addEventListener('pointerdown', e => { if (!this.bounds) return; const r = canvas.getBoundingClientRect(); const m = this.miniMap(); const x = (e.clientX - r.left) / r.width * canvas.width, y = (e.clientY - r.top) / r.height * canvas.height; this.target.set(m.minX + (x - m.ox) / m.k, m.maxY - (y - m.oy) / m.k, 0); this.updateCamera(); }); }
   miniMap() { const b = this.bounds, pad = 70; const w = this.mini.width, h = this.mini.height; const kx = (w - 12) / (b.maxX - b.minX + pad * 2), ky = (h - 12) / (b.maxY - b.minY + pad * 2); const k = Math.min(kx, ky); const ox = (w - (b.maxX - b.minX + pad * 2) * k) / 2 + pad * k, oy = (h - (b.maxY - b.minY + pad * 2) * k) / 2 + pad * k; return { k, ox, oy, minX: b.minX, maxY: b.maxY }; }
+  separateRegionLabels() {
+    // region names keep off one another by the smallest vertical nudge, up or down; system names are not obstacles
+    const vis = e => e.style.display !== 'none' && getComputedStyle(e).display !== 'none';
+    const items = this.labels.map(l => l.element).filter(e => e.classList.contains('region-label') && vis(e))
+      .map(e => { const m = parseFloat(e.style.marginTop) || 0; const r = e.getBoundingClientRect(); return { e, x: r.left, y: r.top - m, w: r.width, h: r.height, dy: 0 }; }).filter(o => o.w > 0).sort((a, b) => a.y - b.y);
+    for (let i = 0; i < items.length; i++) { const a = items[i]; for (let pass = 0; pass < 8; pass++) { let moved = false; for (let j = 0; j < i; j++) { const b = items[j];
+      const ax0 = a.x, ax1 = a.x + a.w, bx0 = b.x, bx1 = b.x + b.w; const ay0 = a.y + a.dy, ay1 = ay0 + a.h, by0 = b.y + b.dy, by1 = by0 + b.h;
+      if (ax0 < bx1 + 8 && ax1 + 8 > bx0 && ay0 < by1 + 4 && ay1 + 4 > by0) { const down = (by1 + 5) - ay0, up = (by0 - 5) - ay1; a.dy += Math.abs(up) < down ? up : down; moved = true; } } if (!moved) break; } }
+    for (const it of items) it.e.style.marginTop = it.dy ? it.dy + 'px' : '';
+  }
   drawMinimap() {
     const c = this.mini; if (!c || !this.model || !this.bounds) return; const ctx = c.getContext('2d'); const m = this.miniMap(); const P = (x, y) => [m.ox + (x - m.minX) * m.k, m.oy + (m.maxY - y) * m.k];
     ctx.clearRect(0, 0, c.width, c.height);
-    for (const r of this.model.regions || []) { const pts = this.model.systems.filter(s => s.regionId === r.id); if (!pts.length) continue; ctx.fillStyle = r.ring === 'core' ? 'rgba(230,199,122,.14)' : r.ring === 'rim' ? 'rgba(208,120,90,.14)' : 'rgba(143,168,216,.12)'; for (const s of pts) { const [x, y] = P(s.x, -s.y); ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fill(); } }
+    if (this.regionRaster) { const rr = this.regionRaster; const [ax, ay] = P(rr.x0, rr.y0 + rr.h); ctx.globalAlpha = .9; ctx.drawImage(rr.canvas, ax, ay, rr.w * m.k, rr.h * m.k); ctx.globalAlpha = 1; }
     for (const l of this.model.lanes) { const a = this.model.systems.find(s => s.id === l.a), b = this.model.systems.find(s => s.id === l.b); if (!a || !b) continue; const [ax, ay] = P(a.x, -a.y), [bx, by] = P(b.x, -b.y); ctx.strokeStyle = l.front ? 'rgba(255,90,60,.6)' : 'rgba(160,180,220,.16)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); }
     for (const s of this.model.systems) { const [x, y] = P(s.x, -s.y); ctx.fillStyle = s.isPlayer ? '#ffe8a3' : s.ownerId ? s.accent : '#6a7384'; ctx.beginPath(); ctx.arc(x, y, s.isPlayer ? 2.6 : 1.8, 0, Math.PI * 2); ctx.fill(); if (s.capital) { ctx.strokeStyle = '#ffe8a3'; ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.stroke(); } }
     // the viewport: sample the map plane on a grid and frame whatever the camera can see (robust to the tilt at any distance)
@@ -319,7 +329,7 @@ export class Galaxy {
     // labels fade with distance
     const lr = this.labelRenderer.domElement; lr.classList.toggle('near', this.distance < 700); lr.classList.toggle('far', this.distance > 1700); lr.classList.toggle('veryfar', this.distance > 3200);
     this.composer.render(); this.labelRenderer.render(this.scene, this.camera);
-    if ((this.miniTick = (this.miniTick || 0) + 1) % 3 === 0) this.drawMinimap();
+    if ((this.miniTick = (this.miniTick || 0) + 1) % 3 === 0) { this.drawMinimap(); this.separateRegionLabels(); }
   }
   dispose() { this.disposed = true; this.resizeObserver.disconnect(); this.setModel(null); this.renderer.dispose(); this.renderer.domElement.remove(); this.labelRenderer.domElement.remove(); }
 }
