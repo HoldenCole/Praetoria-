@@ -61,5 +61,11 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   loans, house wealth and the ledger. The accrual was rebuilt around one ledger the forecast and the turn both read.
   Lesson: the order of state updates inside a turn is a contract the tests hold — unrest and population move before
   the yield is read, prosperity after it, and a refactor that read the yield first broke an exact assertion.
+- 2026-11-08 — Owner: make the galaxy more interesting — inner, middle and outer rings; the core is commerce and the
+  capital, the rim is lawlessness and rebellion and houses breaking off, the middle can go either way; expand the scope
+  and give regions behaviour. Done (`docs/GALAXY.md`): ten regions in three rings with a capital, allegiance and
+  lawlessness per region, risings, garrisons, free holds and free marches, four new regions with their houses and two
+  worlds no one holds. Lesson: a ring rule changes exact economy numbers everywhere, so the tests that pin the shipped
+  scenarios' arithmetic are the first to shout — read them as a list of what the rule touched, then update them.
 - 2026-11-07 — Owner: office good; portraits can wait; galaxy needs a little more; then UI for the Academy and the
   political system at the office's level; then depth. Done: galaxy polish; Senate and Academy screens on new 3D sets.

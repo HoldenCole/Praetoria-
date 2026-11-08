@@ -29,6 +29,29 @@ public sealed class Region
     public string Name { get; set; } = "";
     public string Culture { get; set; } = "reach";
     public string Description { get; set; } = "";
+
+    /// <summary>Where the region sits: the <see cref="Galaxy.Ring.Core"/> (commerce, the capital, order), the <see cref="Galaxy.Ring.Middle"/>
+    /// (which way it leans is the question) or the <see cref="Galaxy.Ring.Rim"/> (lawless, restless, where houses break away). GDD §19.</summary>
+    public string Ring { get; set; } = Praetoria.Core.Galaxy.Ring.Middle;
+}
+
+/// <summary>The three rings of a galaxy and the rules that make them behave differently (data, from the galaxy file).</summary>
+public static class Ring
+{
+    public const string Core = "core", Middle = "middle", Rim = "rim";
+    public static readonly string[] All = { Core, Middle, Rim };
+}
+
+/// <summary>How a ring behaves (GDD §19): what it does to prosperity and unrest on its worlds, how fast lawlessness grows,
+/// where allegiance to the capital settles, and what commerce it adds.</summary>
+public sealed record RingRules(string Id, int Prosperity, int UnrestDrift, int LawlessnessDrift, int LawlessnessStart, int Allegiance, int TradeBonus, int CharterBonus)
+{
+    public static RingRules Default(string ring) => ring switch
+    {
+        Ring.Core => new(ring, 10, -1, -2, 5, 30, 1, 1),
+        Ring.Rim => new(ring, -10, 1, 1, 40, -20, 0, 0),
+        _ => new(ring, 0, 0, 0, 20, 0, 0, 0)
+    };
 }
 
 /// <summary>An undirected hyperlane between two systems.</summary>
@@ -55,6 +78,14 @@ public sealed class Galaxy
 
     /// <summary>Id of the shared "minor houses" file merged into every scenario on this galaxy (empty = none).</summary>
     public string Baseline { get; set; } = "";
+
+    /// <summary>The system the galaxy turns on (GDD §19 "where the capital is"): whoever holds its planet keeps the court.</summary>
+    public string Capital { get; set; } = "";
+
+    /// <summary>Per-ring rules; a ring not listed takes its defaults.</summary>
+    public Dictionary<string, RingRules> Rings { get; set; } = new();
+    public RingRules RulesFor(string ring) => Rings.TryGetValue(ring, out var r) ? r : RingRules.Default(ring);
+    public string RingOf(string systemId) { var s = System(systemId); var r = s != null ? Region(s.RegionId) : null; return r?.Ring ?? Ring.Middle; }
 
     public StarSystem? System(string id) => Systems.TryGetValue(id, out var s) ? s : null;
     public Region? Region(string id) => Regions.FirstOrDefault(r => r.Id == id);
@@ -110,5 +141,7 @@ public sealed class Galaxy
             if (s.RegionId.Length > 0 && Region(s.RegionId) == null) yield return $"system {s.Id}: unknown region '{s.RegionId}'";
         foreach (var r in Regions)
             if (!Systems.Values.Any(s => s.RegionId == r.Id)) yield return $"region {r.Id} has no systems";
+        foreach (var r in Regions) if (!Ring.All.Contains(r.Ring)) yield return $"region {r.Id}: unknown ring '{r.Ring}'";
+        if (Capital.Length > 0 && !Systems.ContainsKey(Capital)) yield return $"capital '{Capital}' is not a system";
     }
 }

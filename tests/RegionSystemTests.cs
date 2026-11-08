@@ -1,0 +1,185 @@
+using Praetoria.Core.Data;
+using Praetoria.Core.Galaxy;
+using Praetoria.Core.State;
+using Praetoria.Core.Systems;
+using Xunit;
+
+namespace Praetoria.Tests;
+
+/// <summary>The rings of the galaxy (GDD §19): the core as order and commerce, the rim as lawlessness and secession,
+/// allegiance and lawlessness drifting each turn, risings, garrisons, free holds and free marches. RNG-free except a
+/// new leader's name, so the numbers are exact.</summary>
+public class RegionSystemTests
+{
+    /// <summary>A capital in the core held by Aurelian, Vega's barony on the rim, Corwin's world in the middle, lanes between.</summary>
+    private static World Rings(int unrest = 0)
+    {
+        var w = TestContent.EconomyWorld(credits: 20, materials: 8);
+        w.Houses["aurelian"] = new House { Id = "aurelian", Name = "House Aurelian", Legitimacy = 60, Title = "duke", Treasury = new Resources { Credits = 30 } };
+        w.Characters["aurelian_head"] = new Character { Id = "aurelian_head", Name = "Lucius", HouseId = "aurelian", Age = 50, Alive = true }; w.Houses["aurelian"].Members.Add("aurelian_head"); w.Pools["aurelian_head"] = ActionPools.ForNpc();
+        w.Houses["corwin"] = new House { Id = "corwin", Name = "House Corwin", Legitimacy = 40, Treasury = new Resources { Credits = 10 } };
+        w.Characters["corwin_head"] = new Character { Id = "corwin_head", Name = "Mara", HouseId = "corwin", Age = 40, Alive = true }; w.Houses["corwin"].Members.Add("corwin_head"); w.Pools["corwin_head"] = ActionPools.ForNpc();
+        var g = new Galaxy { Id = "g", Name = "G", Capital = "prime" };
+        g.Regions.Add(new Region { Id = "core", Name = "The Core", Ring = Ring.Core });
+        g.Regions.Add(new Region { Id = "mid", Name = "The Middle", Ring = Ring.Middle });
+        g.Regions.Add(new Region { Id = "rim", Name = "The Rim", Ring = Ring.Rim });
+        g.Systems["prime"] = new StarSystem { Id = "prime", Name = "Prime", RegionId = "core" };
+        g.Systems["mid1"] = new StarSystem { Id = "mid1", Name = "Midway", RegionId = "mid" };
+        g.Systems["tessaly"] = new StarSystem { Id = "tessaly", Name = "Tessaly", RegionId = "rim" };
+        g.Systems["empty"] = new StarSystem { Id = "empty", Name = "Empty", RegionId = "rim" };
+        g.Lanes.Add(new Hyperlane { A = "prime", B = "mid1" }); g.Lanes.Add(new Hyperlane { A = "mid1", B = "tessaly" }); g.Lanes.Add(new Hyperlane { A = "tessaly", B = "empty" });
+        w.Galaxy = g;
+        w.Holdings["prime_seat"] = new Holding { Id = "prime_seat", OwnerId = "aurelian", Name = "Prime", Specialization = "agri", SystemId = "prime", Population = 40, GovernorId = "aurelian_head" };
+        w.Holdings["corwin_world"] = new Holding { Id = "corwin_world", OwnerId = "corwin", Name = "Midway", Specialization = "agri", SystemId = "mid1", Population = 20, GovernorId = "corwin_head" };
+        var barony = w.Holding("barony")!; barony.SystemId = "tessaly"; barony.GovernorId = "self"; barony.Unrest = unrest; barony.Culture = "reach";
+        return w;
+    }
+
+    [Fact]
+    public void Rings_StartWhereTheirRulesPutThem_AndDrift()
+    {
+        var w = Rings(); var rs = new RegionSystem();
+        Assert.Equal(80, RegionSystem.StateOf(w, "core").Allegiance); Assert.Equal(30, RegionSystem.StateOf(w, "rim").Allegiance);
+        Assert.Equal(5, RegionSystem.StateOf(w, "core").Lawlessness); Assert.Equal(40, RegionSystem.StateOf(w, "rim").Lawlessness);
+        rs.Tick(w);
+        // rim: +1 drift, +2 for the empty world, no hulls; core: −2
+        Assert.Equal(43, RegionSystem.StateOf(w, "rim").Lawlessness); Assert.Equal(3, RegionSystem.StateOf(w, "core").Lawlessness);
+        // rim target: 50 − 20 + (capital legitimacy 60 − 40)/4 + (loyalty 100 − 50)/4 − lawlessness 43/4 = 37; it drifts three a turn toward it
+        Assert.Equal(37, rs.AllegianceTarget(w, w.Galaxy!.Region("rim")!)); Assert.Equal(33, RegionSystem.StateOf(w, "rim").Allegiance);
+        Assert.Equal(97, rs.AllegianceTarget(w, w.Galaxy!.Region("core")!)); Assert.Equal(83, RegionSystem.StateOf(w, "core").Allegiance);
+    }
+
+    [Fact]
+    public void ParkedHulls_KeepThePeace()
+    {
+        var w = Rings(); var rs = new RegionSystem();
+        w.Fleets["f"] = new Fleet { Id = "f", OwnerId = "vega", SystemId = "tessaly", Strength = 3 };
+        rs.Tick(w);
+        Assert.Equal(40 + 1 + 2 - 6, RegionSystem.StateOf(w, "rim").Lawlessness);
+    }
+
+    [Fact]
+    public void TheCapitalHolder_KeepsTheCourt_AndTheCoreTrades()
+    {
+        var w = Rings(); var eco = new Economy(TestContent.EconomyCatalog());
+        var court = eco.Compute(w, "aurelian").Lines.Single(l => l.Kind == "court");
+        Assert.Equal(2, court.Delta.Credits); Assert.Equal(1, court.Delta.Influence);
+        // the core world: agri +2 −1, +1 trade bonus (core), scaled by prosperity 50 → 2; the rim world has no bonus and pays the raiders
+        Assert.Equal(2, eco.Compute(w, "aurelian").Lines.Single(l => l.Kind == "world").Delta.Credits);
+        RegionSystem.StateOf(w, "rim").Lawlessness = 100;
+        Assert.Equal(1 * 100 / 200, eco.Compute(w, "vega").Lines.Single(l => l.Kind == "world").Delta.Credits);
+        Assert.Equal(RegionSystem.CapitalHolder(w)!.Id, "aurelian");
+    }
+
+    [Fact]
+    public void ARestlessWorld_InADisaffectedRegion_Rises_AndYieldsNothing()
+    {
+        var w = Rings(unrest: 75); var rs = new RegionSystem(); var eco = new Economy(TestContent.EconomyCatalog());
+        RegionSystem.StateOf(w, "rim").Allegiance = 20;
+        rs.Tick(w);
+        var barony = w.Holding("barony")!;
+        Assert.True(barony.InRebellion); Assert.Equal(1, w.Counter("rebellions"));
+        var line = eco.Compute(w, "vega").Lines.Single(l => l.Source == "Barony");
+        Assert.Equal("rebellion", line.Kind); Assert.Equal(-1, line.Delta.Credits); Assert.Equal(0, line.Delta.Manpower);
+        Assert.True(w.HasFlag("rebellion"));
+    }
+
+    [Fact]
+    public void AGarrison_PutsTheRisingDown()
+    {
+        var w = Rings(unrest: 75); var rs = new RegionSystem();
+        RegionSystem.StateOf(w, "rim").Allegiance = 20; rs.Tick(w);
+        Assert.True(w.Holding("barony")!.InRebellion);
+        w.Fleets["f"] = new Fleet { Id = "f", OwnerId = "vega", SystemId = "tessaly", Strength = 2 };
+        rs.Tick(w);
+        Assert.False(w.Holding("barony")!.InRebellion); Assert.Equal(60, w.Holding("barony")!.Unrest);
+        Assert.Contains(w.History, h => h.Text.Contains("puts the rising down"));
+    }
+
+    [Fact]
+    public void FourTurnsOfRebellion_AndTheWorldBreaksAway()
+    {
+        var w = Rings(unrest: 90); var rs = new RegionSystem();
+        RegionSystem.StateOf(w, "rim").Allegiance = 10;
+        for (int t = 0; t < 6; t++) { w.Turn++; rs.Tick(w); }
+        var barony = w.Holding("barony")!;
+        Assert.Equal("free_tessaly", barony.OwnerId);
+        var free = w.House("free_tessaly")!;
+        Assert.Equal("The Free Tessaly", free.Name); Assert.Equal(RegionSystem.FreeholdsBloc, free.Bloc); Assert.Single(free.Members);
+        var leader = w.Char(free.Members[0])!;
+        Assert.Equal("free_tessaly", leader.HouseId); Assert.Equal(leader.Id, barony.GovernorId); Assert.True(leader.Alive);
+        Assert.False(barony.InRebellion); Assert.Equal(20, barony.Unrest);
+        Assert.Equal(1, w.Counter("secessions")); Assert.True(w.HasFlag("secession:tessaly")); Assert.True(w.HasFlag("lost_a_world_to_rebellion"));
+        Assert.Equal(-60, w.GetRelationship(leader.Id, "self")!.Disposition);
+        Assert.Empty(w.HoldingsOf("vega"));
+    }
+
+    [Fact]
+    public void TheGovernorOfAnotherHouse_LeadsTheBreakaway()
+    {
+        var w = Rings(unrest: 90); var rs = new RegionSystem();
+        w.Holding("barony")!.GovernorId = "corwin_head";                       // a Corwin governs Vega's world
+        RegionSystem.StateOf(w, "rim").Allegiance = 10;
+        for (int t = 0; t < 6; t++) { w.Turn++; rs.Tick(w); }
+        Assert.Equal("free_tessaly", w.Char("corwin_head")!.HouseId);
+        Assert.DoesNotContain("corwin_head", w.House("corwin")!.Members);
+    }
+
+    [Fact]
+    public void ADominantHouse_InARegionThatHasStoppedBelieving_DeclaresAFreeMarch()
+    {
+        var w = Rings(); var rs = new RegionSystem();
+        // Corwin dominates the middle; the middle has lost faith in the capital
+        RegionSystem.StateOf(w, "mid").Allegiance = 10;
+        rs.Tick(w);
+        Assert.Equal(RegionSystem.FreeholdsBloc, w.House("corwin")!.Bloc);
+        Assert.Equal(45, w.House("corwin")!.Legitimacy); Assert.Equal(55, w.House("aurelian")!.Legitimacy);
+        Assert.True(w.HasFlag("free_march:mid")); Assert.Equal(1, w.Counter("free_marches"));
+        Assert.True(w.GetRelationship("aurelian_head", "corwin_head")!.Disposition <= -30);
+        // the player's house never walks out on its own: it needs the decree
+        RegionSystem.StateOf(w, "rim").Allegiance = 10; rs.Tick(w);
+        Assert.Equal("", w.House("vega")!.Bloc); Assert.True(w.HasFlag("secession_tempting"));
+        w.WorldFlags.Add("declare_free_march"); rs.Tick(w);
+        Assert.Equal(RegionSystem.FreeholdsBloc, w.House("vega")!.Bloc); Assert.True(w.HasFlag("free_march"));
+    }
+
+    [Fact]
+    public void ThePlayersDecrees_ConcedeOrPurge()
+    {
+        var w = Rings(unrest: 75); var rs = new RegionSystem(); RegionSystem.StateOf(w, "rim").Allegiance = 20; rs.Tick(w);
+        Assert.True(w.Holding("barony")!.InRebellion);
+        w.WorldFlags.Add("concede_to_rebels"); rs.Tick(w);
+        Assert.False(w.Holding("barony")!.InRebellion); Assert.Equal(45, w.Holding("barony")!.Unrest);
+        w.Holding("barony")!.Unrest = 80; rs.Tick(w); Assert.True(w.Holding("barony")!.InRebellion);
+        int pop = w.Holding("barony")!.Population; w.WorldFlags.Add("purge_rebels"); rs.Tick(w);
+        Assert.False(w.Holding("barony")!.InRebellion); Assert.Equal(pop - 3, w.Holding("barony")!.Population); Assert.Equal(3, w.Counter("threat"));
+    }
+
+    [Fact]
+    public void TheShippedReach_IsRinged_WithACapital_AndTheRimStartsRestless()
+    {
+        var root = ContentLocator.FindContentDir(); var content = ContentLoader.LoadFromDirectory(root);
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, "academy_crucible"), 5);
+        var g = w.Galaxy!;
+        Assert.Equal("aurelia_prime", g.Capital); Assert.Equal(Ring.Core, g.RingOf("aurelia_prime")); Assert.Equal(Ring.Rim, g.RingOf("cinderfall"));
+        Assert.Equal(2, g.Regions.Count(r => r.Ring == Ring.Core)); Assert.Equal(4, g.Regions.Count(r => r.Ring == Ring.Middle)); Assert.Equal(4, g.Regions.Count(r => r.Ring == Ring.Rim));
+        Assert.Null(w.PlanetHolder("the_gallows")); Assert.Null(w.PlanetHolder("sorrow"));
+        var tc = new TurnController(w, content);
+        for (int t = 0; t < 24 && !w.IsDynastyDead; t++) { foreach (var i in tc.BeginTurn()) { var c = tc.Offer(i).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(i, c.Choice.Id); } tc.EndTurn(); }
+        Assert.True(RegionSystem.StateOf(w, "ashen_verge").Lawlessness > RegionSystem.StateOf(w, "imperial_core").Lawlessness);
+        Assert.True(RegionSystem.StateOf(w, "imperial_core").Allegiance > RegionSystem.StateOf(w, "pale_reaches").Allegiance);
+        Assert.True(GalaxyProjection.Regions(w).All(r => r.Ring is Ring.Core or Ring.Middle or Ring.Rim));
+        Assert.NotNull(GalaxyProjection.Rings(w));
+    }
+
+    [Fact]
+    public void Tick_IsDeterministic()
+    {
+        World Make() { var w = Rings(unrest: 90); RegionSystem.StateOf(w, "rim").Allegiance = 10; return w; }
+        var a = Make(); var b = Make(); var rs = new RegionSystem();
+        for (int t = 0; t < 8; t++) { a.Turn++; b.Turn++; rs.Tick(a); rs.Tick(b); }
+        Assert.Equal(a.Houses.Keys.OrderBy(k => k), b.Houses.Keys.OrderBy(k => k));
+        Assert.Equal(a.Char("free_tessaly_leader")?.Name, b.Char("free_tessaly_leader")?.Name);
+        Assert.Equal(RegionSystem.StateOf(a, "rim").Lawlessness, RegionSystem.StateOf(b, "rim").Lawlessness);
+    }
+}

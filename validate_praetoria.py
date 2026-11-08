@@ -208,6 +208,15 @@ def _load_galaxies():
         if "systems" not in g: continue          # a baseline (minor houses) file — validated with the scenarios
         ids={s["id"] for s in g.get("systems",[])}
         regions={r["id"] for r in g.get("regions",[])}
+        for r in g.get("regions",[]):
+            if r.get("ring","middle") not in {"core","middle","rim"}: errors.append(f"galaxy {g.get('id')} region {r['id']} unknown ring '{r.get('ring')}'")
+        if g.get("capital") and g["capital"] not in ids: errors.append(f"galaxy {g.get('id')} capital '{g['capital']}' is not a system")
+        for ring,rules in (g.get("rings") or {}).items():
+            if ring=="//": continue
+            if ring not in {"core","middle","rim"}: errors.append(f"galaxy {g.get('id')} rings: unknown ring '{ring}'")
+            for k in rules:
+                if k not in {"prosperity","unrestDrift","lawlessnessDrift","lawlessnessStart","allegiance","tradeBonus","charterBonus","//"}: errors.append(f"galaxy {g.get('id')} rings.{ring}: unknown rule '{k}'")
+        if g.get("systems") and not g.get("capital"): warns.append(f"galaxy {g.get('id')} names no capital")
         for s in g.get("systems",[]):
             if s.get("region") and s["region"] not in regions: errors.append(f"galaxy {g.get('id')} system {s['id']} in unknown region '{s['region']}'")
             if s.get("planet","terran") not in PLANET_CLASSES: errors.append(f"galaxy {g.get('id')} system {s['id']} unknown planet class '{s.get('planet')}'")

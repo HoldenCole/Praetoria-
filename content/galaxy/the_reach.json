@@ -1,52 +1,117 @@
 {
-  "//": "THE REACH — the curated star map every shipped scenario is played on (GDD §19). Six regions of three systems each; territory is DERIVED from the planet holding in each system; `baseline` names the minor-houses file merged into every scenario here so no world is empty. Positions are map units (~1200×700).",
+  "//": "THE REACH — the curated star map every shipped scenario is played on (GDD §19). Nine regions in three rings — the Core (commerce, the capital, order), the Middle (leaning whichever way it is pushed) and the Rim (lawless, restless, where houses break away) — of three or four systems each. Territory is DERIVED from the planet holding in each system; `baseline` names the minor-houses file merged into every scenario here so few worlds are empty — and the ones that are, on the Rim, are where the trouble starts. `capital` is the system whose holder keeps the court. `rings` tunes how each ring behaves. Positions are map units (~1280×780), laid out as rings.",
   "id": "the_reach",
   "name": "The Reach",
   "baseline": "the_reach_houses",
+  "capital": "aurelia_prime",
+  "rings": {
+    "//": "prosperity: added to every holding's prosperity target. unrestDrift: added to populated worlds' unrest each turn. lawlessnessDrift/Start: raiders on the lanes (taxes ledgers, feeds risings). allegiance: where the region's loyalty to the capital settles (offset from 50). tradeBonus: credits per peopled world. charterBonus: extra charter per venture level to the world's holder.",
+    "core": {
+      "prosperity": 10,
+      "unrestDrift": -1,
+      "lawlessnessDrift": -2,
+      "lawlessnessStart": 5,
+      "allegiance": 30,
+      "tradeBonus": 1,
+      "charterBonus": 1
+    },
+    "middle": {
+      "prosperity": 0,
+      "unrestDrift": 0,
+      "lawlessnessDrift": 0,
+      "lawlessnessStart": 20,
+      "allegiance": 0,
+      "tradeBonus": 0,
+      "charterBonus": 0
+    },
+    "rim": {
+      "prosperity": -10,
+      "unrestDrift": 1,
+      "lawlessnessDrift": 1,
+      "lawlessnessStart": 40,
+      "allegiance": -20,
+      "tradeBonus": 0,
+      "charterBonus": 0
+    }
+  },
   "regions": [
     {
       "id": "western_marches",
       "name": "The Western Marches",
       "culture": "marcher",
-      "description": "Frontier worlds at the edge of the lanes: hard soil, harder people, and houses that remember when no one ruled them."
+      "description": "Frontier worlds at the edge of the lanes: hard soil, harder people, and houses that remember when no one ruled them.",
+      "ring": "rim"
     },
     {
       "id": "drake_lanes",
       "name": "The Drake Lanes",
       "culture": "lanefolk",
-      "description": "The trade spine of the Reach. Everything that moves, moves through here, and everyone who moves it wants a cut."
+      "description": "The trade spine of the Reach. Everything that moves, moves through here, and everyone who moves it wants a cut.",
+      "ring": "middle"
     },
     {
       "id": "greywater_reach",
       "name": "The Greywater Reach",
       "culture": "reach",
-      "description": "Old blood. The counts and dukes of the Reach proper, their forges, their feuds, their long memories."
+      "description": "Old blood. The counts and dukes of the Reach proper, their forges, their feuds, their long memories.",
+      "ring": "middle"
     },
     {
       "id": "imperial_core",
       "name": "The Imperial Core",
       "culture": "imperial",
-      "description": "Aurelia Prime and the worlds that orbit its favour. Where the throne stands, or where it will."
+      "description": "Aurelia Prime and the worlds that orbit its favour. Where the throne stands, or where it will.",
+      "ring": "core"
     },
     {
       "id": "southern_spire",
       "name": "The Southern Spire",
       "culture": "spirean",
-      "description": "Scholars, archivists and the belt-miners who feed them. Quiet, clever, and never as neutral as it claims."
+      "description": "Scholars, archivists and the belt-miners who feed them. Quiet, clever, and never as neutral as it claims.",
+      "ring": "middle"
     },
     {
       "id": "valmont_anvils",
       "name": "The Valmont Anvils",
       "culture": "forgeborn",
-      "description": "Industry without apology. Hull-yards, refineries and kilns under a sky the colour of slag."
+      "description": "Industry without apology. Hull-yards, refineries and kilns under a sky the colour of slag.",
+      "ring": "rim"
+    },
+    {
+      "id": "golden_concourse",
+      "name": "The Golden Concourse",
+      "culture": "concourse",
+      "ring": "core",
+      "description": "The money-worlds of the Core. Banks older than titles, prices set by breakfast, and a bourse that has outlasted three thrones."
+    },
+    {
+      "id": "lantern_shoals",
+      "name": "The Lantern Shoals",
+      "culture": "shoalfolk",
+      "ring": "middle",
+      "description": "Lighthouse-worlds on the long lane south. Loyal when the Core is strong, forgetful when it is not."
+    },
+    {
+      "id": "ashen_verge",
+      "name": "The Ashen Verge",
+      "culture": "vergeborn",
+      "ring": "rim",
+      "description": "Ash plains, smugglers' harbours and a prison-world turned pirate haven. The law arrives here by fleet or not at all."
+    },
+    {
+      "id": "pale_reaches",
+      "name": "The Pale Reaches",
+      "culture": "palefolk",
+      "ring": "rim",
+      "description": "Hard winters at the end of the lanes. Knightly houses that answer to no count, and the richest, loneliest belt in the Reach."
     }
   ],
   "systems": [
     {
       "id": "tessaly",
       "name": "Tessaly",
-      "x": 120,
-      "y": 160,
+      "x": 262,
+      "y": 566,
       "region": "western_marches",
       "planet": "terran",
       "description": "Grain terraces and a stubborn barony."
@@ -55,8 +120,8 @@
       "id": "anvil",
       "name": "The Anvil",
       "belt": 1,
-      "x": 300,
-      "y": 110,
+      "x": 147,
+      "y": 499,
       "region": "western_marches",
       "planet": "forge",
       "description": "Foundries older than the houses that run them."
@@ -64,8 +129,8 @@
     {
       "id": "the_veil",
       "name": "The Veil",
-      "x": 140,
-      "y": 440,
+      "x": 192,
+      "y": 405,
       "region": "western_marches",
       "planet": "frozen",
       "description": "A cold frontier relay; the last light before the dark."
@@ -73,8 +138,8 @@
     {
       "id": "drake_crossing",
       "name": "Drake Crossing",
-      "x": 420,
-      "y": 230,
+      "x": 394,
+      "y": 461,
       "region": "drake_lanes",
       "planet": "ocean",
       "description": "The customs world of the Reach. Every lane pays here."
@@ -83,8 +148,8 @@
       "id": "sato_holdfast",
       "name": "Sato Holdfast",
       "belt": 1,
-      "x": 260,
-      "y": 330,
+      "x": 318,
+      "y": 410,
       "region": "drake_lanes",
       "planet": "barren",
       "description": "A fortress on a rock, held by a knightly house for six generations."
@@ -92,8 +157,8 @@
     {
       "id": "highmarch",
       "name": "Highmarch",
-      "x": 480,
-      "y": 420,
+      "x": 394,
+      "y": 359,
       "region": "drake_lanes",
       "planet": "terran",
       "description": "Rich agri-terraces and a market that never sleeps."
@@ -101,8 +166,8 @@
     {
       "id": "greywater",
       "name": "Greywater",
-      "x": 560,
-      "y": 120,
+      "x": 623,
+      "y": 229,
       "region": "greywater_reach",
       "planet": "ocean",
       "description": "Harbour-world of the old counts."
@@ -110,8 +175,8 @@
     {
       "id": "anvils_rest",
       "name": "Anvil's Rest",
-      "x": 700,
-      "y": 180,
+      "x": 712,
+      "y": 186,
       "region": "greywater_reach",
       "planet": "forge",
       "description": "The great forge of the Reach, and the ducal seat beside it."
@@ -120,8 +185,8 @@
       "id": "cinder_gate",
       "name": "Cinder Gate",
       "belt": 2,
-      "x": 660,
-      "y": 330,
+      "x": 787,
+      "y": 238,
       "region": "greywater_reach",
       "planet": "arid",
       "description": "Bastion-world guarding the lane to the Core."
@@ -129,8 +194,8 @@
     {
       "id": "aurelia_prime",
       "name": "Aurelia Prime",
-      "x": 900,
-      "y": 160,
+      "x": 750,
+      "y": 372,
       "region": "imperial_core",
       "planet": "terran",
       "description": "The jewel. Marble, senates, and the shadow of a throne."
@@ -139,8 +204,8 @@
       "id": "drydock_nine",
       "name": "Drydock Nine",
       "belt": 1,
-      "x": 820,
-      "y": 330,
+      "x": 822,
+      "y": 369,
       "region": "imperial_core",
       "planet": "gas",
       "description": "Orbital yards strung around a gas giant."
@@ -148,8 +213,8 @@
     {
       "id": "castrum",
       "name": "Castrum",
-      "x": 1000,
-      "y": 270,
+      "x": 772,
+      "y": 401,
       "region": "imperial_core",
       "planet": "barren",
       "description": "The garrison world of the Core; its legions answer to whoever holds the Prime."
@@ -157,8 +222,8 @@
     {
       "id": "the_spire",
       "name": "The Spire",
-      "x": 620,
-      "y": 480,
+      "x": 952,
+      "y": 485,
       "region": "southern_spire",
       "planet": "arid",
       "description": "The Academy's archive-world; tall, dry and proud."
@@ -167,8 +232,8 @@
       "id": "lesser_marrow",
       "name": "Lesser Marrow",
       "belt": 2,
-      "x": 780,
-      "y": 520,
+      "x": 957,
+      "y": 554,
       "region": "southern_spire",
       "planet": "terran",
       "description": "A modest colony with ambitions."
@@ -177,8 +242,8 @@
       "id": "ember_shoal",
       "name": "Ember Shoal",
       "belt": 3,
-      "x": 560,
-      "y": 590,
+      "x": 847,
+      "y": 563,
       "region": "southern_spire",
       "planet": "belt",
       "description": "A mining belt lit by its own slag-fires."
@@ -186,8 +251,8 @@
     {
       "id": "valmont_anvils",
       "name": "The Valmont Anvils",
-      "x": 960,
-      "y": 420,
+      "x": 1165,
+      "y": 378,
       "region": "valmont_anvils",
       "planet": "forge",
       "description": "Valmont's forges; the hulls of half the Reach were laid here."
@@ -196,8 +261,8 @@
       "id": "ironhold",
       "name": "Ironhold",
       "belt": 1,
-      "x": 1080,
-      "y": 520,
+      "x": 1224,
+      "y": 469,
       "region": "valmont_anvils",
       "planet": "barren",
       "description": "Deep mines and the people who do not come up."
@@ -206,11 +271,133 @@
       "id": "the_kilns",
       "name": "The Kilns",
       "belt": 2,
-      "x": 900,
-      "y": 590,
+      "x": 1119,
+      "y": 543,
       "region": "valmont_anvils",
       "planet": "arid",
       "description": "Refineries and kilns; smoke you can see from orbit."
+    },
+    {
+      "id": "lucent",
+      "name": "Lucent",
+      "x": 590,
+      "y": 396,
+      "region": "golden_concourse",
+      "planet": "terran",
+      "description": "The money-world of the Core: a thousand banks and a sky of courier lights."
+    },
+    {
+      "id": "meridian_exchange",
+      "name": "Meridian Exchange",
+      "x": 544,
+      "y": 361,
+      "region": "golden_concourse",
+      "planet": "ocean",
+      "description": "Where the Reach's prices are set, and where they are argued about."
+    },
+    {
+      "id": "pallas_reach",
+      "name": "Pallas Reach",
+      "x": 615,
+      "y": 369,
+      "region": "golden_concourse",
+      "planet": "gas",
+      "description": "Gas-skimmers and a bourse that trades in fuel futures.",
+      "belt": 1
+    },
+    {
+      "id": "lanternfall",
+      "name": "Lanternfall",
+      "x": 583,
+      "y": 585,
+      "region": "lantern_shoals",
+      "planet": "ocean",
+      "description": "A lighthouse-world on the long lane south; every ship that passes owes it a lamp."
+    },
+    {
+      "id": "saltmere",
+      "name": "Saltmere",
+      "x": 472,
+      "y": 594,
+      "region": "lantern_shoals",
+      "planet": "terran",
+      "description": "Salt-farms, wide skies, and a people who have never much cared who ruled the Core."
+    },
+    {
+      "id": "harrow_deep",
+      "name": "Harrow Deep",
+      "x": 448,
+      "y": 526,
+      "region": "lantern_shoals",
+      "planet": "barren",
+      "description": "A deep-belt mining world where the lanes thin and the law thins with them.",
+      "belt": 2
+    },
+    {
+      "id": "cinderfall",
+      "name": "Cinderfall",
+      "x": 680,
+      "y": 713,
+      "region": "ashen_verge",
+      "planet": "arid",
+      "description": "Ash plains under a red sun; the houses here are young and hungry.",
+      "belt": 2
+    },
+    {
+      "id": "last_harbour",
+      "name": "Last Harbour",
+      "x": 553,
+      "y": 743,
+      "region": "ashen_verge",
+      "planet": "ocean",
+      "description": "The last safe water before the Verge proper. Smugglers call it home."
+    },
+    {
+      "id": "the_gallows",
+      "name": "The Gallows",
+      "x": 461,
+      "y": 680,
+      "region": "ashen_verge",
+      "planet": "barren",
+      "description": "A prison-world once, a pirate haven now. No house has held it in living memory."
+    },
+    {
+      "id": "hollow_reach",
+      "name": "Hollow Reach",
+      "x": 325,
+      "y": 672,
+      "region": "ashen_verge",
+      "planet": "frozen",
+      "description": "Ice and a listening post that stopped listening a generation ago.",
+      "belt": 1
+    },
+    {
+      "id": "wintermoor",
+      "name": "Wintermoor",
+      "x": 1031,
+      "y": 620,
+      "region": "pale_reaches",
+      "planet": "frozen",
+      "description": "Hard winters, hard people, and a knightly house that answers to no count."
+    },
+    {
+      "id": "brackwater",
+      "name": "Brackwater",
+      "x": 956,
+      "y": 706,
+      "region": "pale_reaches",
+      "planet": "ocean",
+      "description": "Fishing fleets, fog, and a grudge against every tithe ever levied."
+    },
+    {
+      "id": "sorrow",
+      "name": "Sorrow",
+      "x": 798,
+      "y": 704,
+      "region": "pale_reaches",
+      "planet": "barren",
+      "description": "Named by the first survey and never renamed. The richest belt in the Reach, and the loneliest.",
+      "belt": 3
     }
   ],
   "lanes": [
@@ -333,6 +520,102 @@
     [
       "ember_shoal",
       "lesser_marrow"
+    ],
+    [
+      "lucent",
+      "aurelia_prime"
+    ],
+    [
+      "lucent",
+      "greywater"
+    ],
+    [
+      "meridian_exchange",
+      "drake_crossing"
+    ],
+    [
+      "meridian_exchange",
+      "lucent"
+    ],
+    [
+      "pallas_reach",
+      "meridian_exchange"
+    ],
+    [
+      "pallas_reach",
+      "drydock_nine"
+    ],
+    [
+      "pallas_reach",
+      "the_spire"
+    ],
+    [
+      "lanternfall",
+      "highmarch"
+    ],
+    [
+      "lanternfall",
+      "saltmere"
+    ],
+    [
+      "saltmere",
+      "harrow_deep"
+    ],
+    [
+      "saltmere",
+      "the_veil"
+    ],
+    [
+      "harrow_deep",
+      "ember_shoal"
+    ],
+    [
+      "lanternfall",
+      "cinderfall"
+    ],
+    [
+      "cinderfall",
+      "last_harbour"
+    ],
+    [
+      "last_harbour",
+      "the_gallows"
+    ],
+    [
+      "the_gallows",
+      "hollow_reach"
+    ],
+    [
+      "hollow_reach",
+      "the_veil"
+    ],
+    [
+      "cinderfall",
+      "harrow_deep"
+    ],
+    [
+      "wintermoor",
+      "the_kilns"
+    ],
+    [
+      "wintermoor",
+      "brackwater"
+    ],
+    [
+      "brackwater",
+      "sorrow"
+    ],
+    [
+      "sorrow",
+      "ember_shoal"
+    ],
+    [
+      "brackwater",
+      "lesser_marrow"
+    ],
+    [
+      "wintermoor",
+      "ironhold"
     ]
   ]
 }

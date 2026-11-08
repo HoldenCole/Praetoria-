@@ -52,6 +52,11 @@ public sealed class Holding
     /// <summary>The culture of the people living here (defaults to the system's region).</summary>
     public string Culture { get; set; } = "";
 
+    /// <summary>Turns this world has been in open rebellion against its owner (GDD §19 the rim): 0 = none. It yields nothing while
+    /// it lasts; left long enough it breaks away as a free hold. See <see cref="Systems.RegionSystem"/>.</summary>
+    public int Rebellion { get; set; }
+    public bool InRebellion => Rebellion > 0;
+
     public bool IsPlanet => Kind == Planet;
     public bool IsClaim => Kind == Claim;
 }

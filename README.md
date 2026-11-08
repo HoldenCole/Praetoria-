@@ -24,6 +24,7 @@ clocked galaxy-war that sorts the houses into blocs and births an Imperium), fam
 advisors who speak from intel, and the saga epilogue — and the Godot layer (creation, Court, Galaxy, dynasty tree)
 renders all of it. A balance simulation (`praetoria simulate`) drives tuning. The browser client is the playable build and is
 driven through a headless browser for QA every session (`docs/WEB_CLIENT.md`). The Godot layer compiles against the Godot SDK and is
+- [`docs/GALAXY.md`](docs/GALAXY.md) — the galaxy: three rings, the capital, allegiance and lawlessness, risings, free holds and free marches.
 - [`docs/ECONOMY.md`](docs/ECONOMY.md) — the economy: the ledger, prosperity, belts and claims, ventures and charters, loans, house wealth.
 wired to the same Core, but Godot's .NET build cannot target the web and it has **not yet been run in a Godot editor** —
 treat it as the future desktop shell. See

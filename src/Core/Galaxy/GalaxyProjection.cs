@@ -8,14 +8,17 @@ public sealed record MapNode(
     string? OwnerHouseId, string? OwnerHouseName, string AccentColor,
     IReadOnlyList<string> HoldingIds, bool IsPlayerTerritory, bool Contested,
     string RegionId = "", string Culture = "", string PlanetClass = "terran", string? GovernorName = null, int Population = 0, int Unrest = 0,
-    string? PlanetHoldingId = null, int Stations = 0, int Belt = 0, int Claims = 0, int Ventures = 0, int Prosperity = 50);
+    string? PlanetHoldingId = null, int Stations = 0, int Belt = 0, int Claims = 0, int Ventures = 0, int Prosperity = 50, string Ring = "middle", int Rebellion = 0, bool Capital = false);
 
 public sealed record MapLane(string A, string B);
 
 /// <summary>A region of the map: its systems, its centre, the house that holds most of its planets (if any), and how
 /// restless it is (mean unrest of its populated worlds).</summary>
 public sealed record MapRegion(string Id, string Name, string Culture, string Description, IReadOnlyList<string> SystemIds, double CX, double CY,
-    string? DominantHouseId, string? DominantHouseName, string AccentColor, int Planets, int Unrest);
+    string? DominantHouseId, string? DominantHouseName, string AccentColor, int Planets, int Unrest, string Ring = "middle", int Allegiance = 50, int Lawlessness = 20, int Rebellions = 0, bool FreeMarch = false);
+
+/// <summary>The rings drawn: the galaxy's centre and the mean radius of each ring's systems (map units).</summary>
+public sealed record MapRings(double CX, double CY, double Core, double Middle, double Rim);
 
 /// <summary>A fleet marker. Own fleets are exact (confidence 100); rival fleets come from the house's intel —
 /// last-known system, estimated strength, and how much to trust it (GDD §19 "reported intel with a confidence").</summary>
@@ -62,7 +65,8 @@ public static class GalaxyProjection
                 sys.RegionId, world.Galaxy.CultureOf(sys.Id), sys.PlanetClass,
                 planet != null && planet.GovernorId.Length > 0 ? world.Char(planet.GovernorId)?.Name : null,
                 planet?.Population ?? 0, planet?.Unrest ?? 0, planet?.Id, holdings.Count(h => h.Kind == Holding.Station),
-                sys.Belt, holdings.Count(h => h.IsClaim), world.Businesses.Values.Count(b => b.SystemId == sys.Id), planet?.Prosperity ?? 50));
+                sys.Belt, holdings.Count(h => h.IsClaim), world.Businesses.Values.Count(b => b.SystemId == sys.Id), planet?.Prosperity ?? 50,
+                world.Galaxy.RingOf(sys.Id), planet?.Rebellion ?? 0, world.Galaxy.Capital == sys.Id));
         }
         return list;
     }
@@ -88,9 +92,20 @@ public static class GalaxyProjection
             var populated = mine.Where(n => n.Population > 0).ToList();
             list.Add(new MapRegion(r.Id, r.Name, r.Culture, r.Description, systems.Select(s => s.Id).ToList(),
                 systems.Average(s => s.X), systems.Average(s => s.Y), dominant, house?.Name, house?.AccentColor ?? UnclaimedAccent,
-                mine.Count(n => n.PlanetHoldingId != null), populated.Count == 0 ? 0 : (int)populated.Average(n => n.Unrest)));
+                mine.Count(n => n.PlanetHoldingId != null), populated.Count == 0 ? 0 : (int)populated.Average(n => n.Unrest),
+                r.Ring, world.Regions.TryGetValue(r.Id, out var rs) ? rs.Allegiance : Math.Clamp(50 + world.Galaxy.RulesFor(r.Ring).Allegiance, 0, 100),
+                rs?.Lawlessness ?? world.Galaxy.RulesFor(r.Ring).LawlessnessStart, mine.Count(n => n.Rebellion > 0), house?.Bloc == Systems.RegionSystem.FreeholdsBloc));
         }
         return list;
+    }
+
+    /// <summary>Centre and ring radii for drawing the three rings (null without a galaxy or rings).</summary>
+    public static MapRings? Rings(World world)
+    {
+        var g = world.Galaxy; if (g == null || g.Systems.Count == 0) return null;
+        double cx = g.Systems.Values.Average(s => s.X), cy = g.Systems.Values.Average(s => s.Y);
+        double R(string ring) { var xs = g.Systems.Values.Where(s => g.RingOf(s.Id) == ring).ToList(); return xs.Count == 0 ? 0 : xs.Average(s => Math.Sqrt((s.X - cx) * (s.X - cx) + (s.Y - cy) * (s.Y - cy) / 0.38)); }
+        return new MapRings(cx, cy, R(Ring.Core), R(Ring.Middle), R(Ring.Rim));
     }
 
     public static IReadOnlyList<MapLane> Lanes(World world) =>

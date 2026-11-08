@@ -322,7 +322,7 @@ export class Gallery extends Set {
 
 // ---------------- the orrery (Worlds) ----------------
 export class Orrery extends Set {
-  constructor(container, dotnet) { super(container, dotnet, { fov: 44, pos: [0, 10.5, 14], look: [0, 1.4, -3] }); }
+  constructor(container, dotnet) { super(container, dotnet, { fov: 44, pos: [0, 12.5, 16.5], look: [0, 1.2, -3] }); }
   build(opts) {
     this.clear(); const R = this.root; const accent = new THREE.Color(opts.accent || '#c9a24a');
     const RAD = 26;
@@ -350,7 +350,7 @@ export class Orrery extends Set {
       const ped = new THREE.Mesh(new THREE.CylinderGeometry(.9, 1.2, 1.2, 24), new THREE.MeshStandardMaterial({ color: 0x1b1f2a, metalness: .5, roughness: .4 })); ped.position.set(cx, .6, cz); ped.castShadow = true; R.add(ped);
       const halo = new THREE.Mesh(new THREE.RingGeometry(1.25, 1.6, 48), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .35, side: THREE.DoubleSide })); halo.rotation.x = -Math.PI / 2; halo.position.set(cx, .01, cz); R.add(halo);
       const pl = new THREE.PointLight(col, rg.unrest >= 50 ? 6 : 4, 7, 2); pl.position.set(cx, 2.2, cz); R.add(pl);
-      const name = new THREE.Mesh(new THREE.PlaneGeometry(2.0, .42), new THREE.MeshBasicMaterial({ map: texture(plaqueCanvas(rg.name || '')), transparent: true })); name.position.set(cx, 1.3, cz + 1.1); name.lookAt(this.camera.position.x, 1.3, this.camera.position.z + 4); R.add(name);
+      const name = new THREE.Mesh(new THREE.PlaneGeometry(1.8, .38), new THREE.MeshBasicMaterial({ map: texture(plaqueCanvas(rg.name || '')), transparent: true })); name.position.set(cx, 1.3, cz + 1.1); name.lookAt(this.camera.position.x, 1.3, this.camera.position.z + 4); R.add(name);
       (rg.worlds || []).forEach((wd, k) => {
         const wa = a + (k - 1) * .55; const wr = 1.35; const wx = cx + Math.cos(wa) * wr, wz = cz + Math.sin(wa) * wr * .8, wy = 1.9 + k * .75;
         const stalk = new THREE.Mesh(new THREE.CylinderGeometry(.025, .025, wy - 1.2, 6), BRIGHT_BRASS()); stalk.position.set(wx, 1.2 + (wy - 1.2) / 2, wz); R.add(stalk);

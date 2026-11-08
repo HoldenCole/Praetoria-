@@ -18,13 +18,14 @@ public class RegionsAndMinorHousesTests
     }
 
     [Fact]
-    public void TheReach_HasSixRegionsOfThreeSystems()
+    public void TheReach_HasTenRegionsOfThreeOrFourSystems_InThreeRings()
     {
         var (_, w) = Fresh("the_circling_heir");
         var g = w.Galaxy!;
-        Assert.Equal(18, g.Systems.Count);
-        Assert.Equal(6, g.Regions.Count);
-        foreach (var r in g.Regions) Assert.Equal(3, g.SystemsIn(r.Id).Count());
+        Assert.Equal(31, g.Systems.Count);
+        Assert.Equal(10, g.Regions.Count);
+        foreach (var r in g.Regions) Assert.InRange(g.SystemsIn(r.Id).Count(), 3, 4);
+        Assert.Equal(2, g.Regions.Count(r => r.Ring == "core")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "middle")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "rim"));
         Assert.All(g.Systems.Values, s => Assert.NotNull(g.Region(s.RegionId)));
         Assert.Equal("imperial", g.CultureOf("castrum"));
         Assert.Empty(g.Problems());
@@ -37,12 +38,14 @@ public class RegionsAndMinorHousesTests
     public void EveryWorld_IsHeld_AndGoverned_InEveryScenario(string scenario)
     {
         var (_, w) = Fresh(scenario);
+        // every world is held, except the lawless worlds of the rim that no house has held in living memory (GDD §19)
         foreach (var sys in w.Galaxy!.Systems.Keys)
         {
             var planets = w.Holdings.Values.Where(h => h.SystemId == sys && h.IsPlanet).ToList();
-            Assert.True(planets.Count >= 1, $"{scenario}: {sys} has no planet holding");
+            if (planets.Count == 0) { Assert.Equal("rim", w.Galaxy.RingOf(sys)); continue; }
             Assert.Single(planets.Select(p => p.OwnerId).Distinct());
         }
+        Assert.Equal(2, w.Galaxy.Systems.Keys.Count(sys => !w.Holdings.Values.Any(h => h.SystemId == sys && h.IsPlanet)));
         foreach (var h in w.Holdings.Values)
         {
             Assert.True(w.Houses.ContainsKey(h.OwnerId));
@@ -73,12 +76,13 @@ public class RegionsAndMinorHousesTests
     {
         var (_, w) = Fresh("the_old_lion");
         var regions = GalaxyProjection.Regions(w);
-        Assert.Equal(6, regions.Count);
+        Assert.Equal(10, regions.Count);
         var grey = regions.Single(r => r.Id == "greywater_reach");
         Assert.Equal("castellan", grey.DominantHouseId);     // the Castellans hold two of its three worlds
         Assert.Equal(3, grey.Planets);
         var nodes = GalaxyProjection.Nodes(w);
-        Assert.All(nodes, n => Assert.NotNull(n.OwnerHouseId));
+        Assert.All(nodes.Where(n => n.Ring != "rim"), n => Assert.NotNull(n.OwnerHouseId));
+        Assert.Equal(2, nodes.Count(n => n.OwnerHouseId == null));
         Assert.Contains(nodes, n => n.Stations > 0);
         Assert.DoesNotContain(nodes, n => n.Contested);     // stations do not contest a system
     }

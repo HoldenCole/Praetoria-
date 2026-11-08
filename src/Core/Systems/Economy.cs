@@ -58,6 +58,9 @@ public sealed class Economy
             var spec = _catalog.Spec(holding.Specialization); if (spec == null) continue;
             var d = new Resources(); bool besieged = world.Sieges.ContainsKey(holding.Id);
             int belt = holding.IsClaim ? world.Galaxy?.System(holding.SystemId)?.Belt ?? 0 : 0;
+            var ring = world.Galaxy != null && holding.SystemId.Length > 0 ? world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)) : null;
+            int lawless = world.Galaxy?.System(holding.SystemId) is { } hs && world.Regions.TryGetValue(hs.RegionId, out var rs) ? rs.Lawlessness : 0;
+            if (holding.InRebellion) { ledger.Add(holding.Name, "rebellion", new Resources { Credits = -spec.Upkeep.Credits }); continue; }
             foreach (var r in Resource.All)
             {
                 int v = spec.BaseYield.Get(r) - spec.Upkeep.Get(r);
@@ -68,6 +71,7 @@ public sealed class Economy
                     v += tax?.CreditsBonus ?? 0;
                     if (_catalog.ContiguityBonus > 0 && world.Galaxy != null && holding.SystemId != "")
                         v += _catalog.ContiguityBonus * world.Galaxy.Neighbors(holding.SystemId).Count(n => world.Holdings.Values.Any(o => o.OwnerId == houseId && o.SystemId == n));
+                    if (ring != null && holding.IsPlanet && holding.Population > 0) v += ring.TradeBonus;          // the core is where the commerce is (GDD §19)
                 }
                 // a belt claim brings up what the belt holds (GDD §17 asteroids): richer belts, more rock; the richest hide exotics
                 if (r == Resource.Materials) v += belt;
@@ -75,6 +79,7 @@ public sealed class Economy
                 // prosperity scales the economic output (credits, materials) — par at 50
                 if ((r == Resource.Credits || r == Resource.Materials) && v > 0) v = v * (50 + holding.Prosperity) / 100;
                 if (v > 0 && besieged) v /= 2;                                            // a blockade halves what gets through (GDD §6)
+                if ((r == Resource.Credits || r == Resource.Materials) && v > 0 && lawless > 0) v = v * (200 - lawless) / 200;   // raiders on the lanes take their cut (GDD §19 the rim)
                 if (r == Resource.Manpower && v > 0) v = v * (100 - holding.Unrest) / 100; // unrest taxes people (GDD §17)
                 d.Add(r, v);
             }
@@ -96,7 +101,9 @@ public sealed class Economy
                 if (v > 0 && troubled) v /= 2;
                 d.Add(r, v);
             }
-            if (planet != null && planet.OwnerId != houseId && def.Charter > 0) d.Add(Resource.Credits, -def.Charter * b.Level);
+            int vl = world.Galaxy?.System(b.SystemId) is { } vs && world.Regions.TryGetValue(vs.RegionId, out var vr) ? vr.Lawlessness : 0;
+            if (vl > 0) foreach (var r in new[] { Resource.Credits, Resource.Materials }) if (d.Get(r) > 0) d.Set(r, d.Get(r) * (200 - vl) / 200);
+            if (planet != null && planet.OwnerId != houseId && def.Charter > 0) d.Add(Resource.Credits, -(def.Charter + (world.Galaxy?.RulesFor(world.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0)) * b.Level);
             ledger.Add(b.Name, "venture", d);
         }
         // charters received from others' ventures on our worlds
@@ -104,8 +111,10 @@ public sealed class Economy
         {
             var def = _ventures.Def(b.Kind); if (def == null || def.Charter == 0) continue;
             if (world.PlanetHolder(b.SystemId) != houseId) continue;
-            ledger.Add($"charter · {b.Name}", "charter", new Resources { Credits = def.Charter * b.Level });
+            ledger.Add($"charter · {b.Name}", "charter", new Resources { Credits = (def.Charter + (world.Galaxy?.RulesFor(world.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0)) * b.Level });
         }
+        // the court: whoever holds the capital keeps it, and it pays (GDD §19 "where the capital is")
+        if (world.Galaxy is { Capital.Length: > 0 } cg && world.PlanetHolder(cg.Capital) == houseId) ledger.Add($"the court at {cg.System(cg.Capital)?.Name ?? cg.Capital}", "court", new Resources { Credits = 2, Influence = 1 });
         // the loan
         if (house.Debt > 0) ledger.Add("loan instalment", "loan", new Resources { Credits = -Math.Min(_ventures.Finance.LoanInstalment, house.Debt) });
         int interest = world.Houses.Values.Count(h => h.Debt > 0 && h.LenderId == houseId && h.Id != houseId);
@@ -131,6 +140,8 @@ public sealed class Economy
         var governor = holding.GovernorId.Length > 0 ? world.Char(holding.GovernorId) : null;
         int t = 50 + (governor?.Skill("administration") ?? 0) * ProsperityPerAdministration + holding.Buildings.Count * ProsperityPerBuilding - holding.Unrest / 2 - (tax?.CreditsBonus ?? 0) * 4;
         if (world.Sieges.ContainsKey(holding.Id)) t -= ProsperitySiege;
+        if (world.Galaxy != null && holding.SystemId.Length > 0) t += world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)).Prosperity;
+        if (holding.InRebellion) t -= 20;
         if (holding.IsPlanet) t += ProsperityPerVentureLevel * world.Businesses.Values.Where(b => b.SystemId == holding.SystemId).Sum(b => b.Level);
         return Math.Clamp(t, 0, 100);
     }
@@ -160,7 +171,8 @@ public sealed class Economy
                 if (spec == null) continue;
                 if (spec.Populated || holding.Population > 0)
                 {
-                    holding.Unrest = Math.Clamp(holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0), 0, 100);
+                    int ringDrift = world.Galaxy != null && holding.SystemId.Length > 0 ? world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)).UnrestDrift : 0;
+                    holding.Unrest = Math.Clamp(holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0) + ringDrift, 0, 100);
                     int growth = holding.Unrest > 50 ? spec.PopGrowth / 2 : spec.PopGrowth;      // the restless do not settle
                     if (holding.Prosperity >= 75 && spec.PopGrowth > 0) growth += 1;             // a thriving world draws people
                     int pop = Math.Max(0, holding.Population + growth);

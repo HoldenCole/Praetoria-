@@ -39,7 +39,7 @@
                 <div class="planet-head">
                     <div>
                         <h2>@sel.Name</h2>
-                        <div class="muted">@sel.PlanetClass world · @region?.Name · @sel.Culture culture</div>
+                        <div class="muted">@sel.PlanetClass world · @region?.Name <span class="ring @sel.Ring">@sel.Ring</span> · @sel.Culture culture@(sel.Capital ? " · THE CAPITAL" : "")</div>
                     </div>
                     @if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="36" /> }
                 </div>
@@ -55,6 +55,9 @@
                     <div class="kv"><span>Loyalty</span><b class="@(planet.Unrest >= 50 ? "warn" : "")">@(100 - planet.Unrest)<span class="bar"><i style="width:@(100 - planet.Unrest)%"></i></span></b></div>
                     <div class="kv"><span>Built</span><b>@(planet.Buildings.Count == 0 ? "nothing" : string.Join(", ", planet.Buildings.Select(b => c.Holdings.Building(b)?.Name ?? b)))</b></div>
                     @if (w.Sieges.TryGetValue(planet.Id, out var sg)) { <div class="kv warn"><span>Siege</span><b>@(w.House(sg.BesiegerId)?.Name) · @sg.Turns/@sg.Required</b></div> }
+                    @if (planet.InRebellion) { <div class="kv warn"><span>Rising</span><b>in revolt for @planet.Rebellion turn(s) · breaks away after @RegionSystem.SecessionTurns</b></div> }
+                    var rstate = RegionSystem.StateOf(w, sys.RegionId);
+                    <div class="kv"><span>Region</span><b>allegiance @rstate.Allegiance · <span class="@(rstate.Lawlessness >= 60 ? "warn" : "")">lawlessness @rstate.Lawlessness</span></b></div>
                 }
                 else { <div class="muted">No one holds this world.</div> }
                 @if (stations.Count > 0)
@@ -81,7 +84,11 @@
             <section class="panel"><h2>@w.Galaxy!.Name</h2><div class="muted">@regions.Count regions · @nodes.Count worlds · @w.Houses.Count houses. Click a world or a fleet. Click one of your fleets, then a ringed world, to set its course.</div></section>
             <section class="panel">
                 <h3>Regions</h3>
-                @foreach (var r in regions) { <button class="ol-row" @onclick="() => Focus(r.CX, r.CY)"><i class="sw" style="background:@r.AccentColor"></i> <b>@r.Name</b> <span class="muted">@r.Culture · @(r.DominantHouseName ?? "contested") · loyalty @(100 - r.Unrest)</span></button> }
+                @foreach (var ring in new[] { "core", "middle", "rim" })
+                {
+                    <div class="ring-head"><span class="ring @ring">@ring</span> <span class="muted small">@(ring == "core" ? "commerce and the court" : ring == "rim" ? "lawless, restless, breaking away" : "leaning either way")</span></div>
+                    @foreach (var r in regions.Where(x => x.Ring == ring)) { <button class="ol-row region-row @(r.FreeMarch ? "free" : "")" @onclick="() => Focus(r.CX, r.CY)"><i class="sw" style="background:@r.AccentColor"></i> <b>@r.Name</b> <span class="muted">@(r.DominantHouseName ?? "contested")@(r.FreeMarch ? " · FREE MARCH" : "") · loyalty @(100 - r.Unrest)</span><span class="rstats"><span title="allegiance to the capital">⚜ @r.Allegiance</span> <span class="@(r.Lawlessness >= 60 ? "warn" : "")" title="lawlessness">☠ @r.Lawlessness</span>@(r.Rebellions > 0 ? $" ✦ {r.Rebellions} rising" : "")</span></button> }
+                }
             </section>
         }
         <section class="panel">
@@ -138,7 +145,7 @@
             var siege = w.Sieges.Values.FirstOrDefault(s => w.Holding(s.HoldingId)?.SystemId == n.SystemId);
             int target = selectedFleet != null && new MoveFleetCommand(pid, selectedFleet.Id, n.SystemId, c.Fleets).CanExecute(ctx) ? w.Galaxy!.Hops(selectedFleet.SystemId, n.SystemId) : 0;
             return new { id = n.SystemId, name = n.Name, x = n.X, y = n.Y, ownerId = n.OwnerHouseId, ownerName = n.OwnerHouseName, accent = n.AccentColor, isPlayer = n.IsPlayerTerritory, contested = n.Contested,
-                planetClass = n.PlanetClass, pop = n.Population, unrest = n.Unrest, stations = n.Stations, regionId = n.RegionId, governor = n.GovernorName,
+                planetClass = n.PlanetClass, pop = n.Population, unrest = n.Unrest, stations = n.Stations, regionId = n.RegionId, governor = n.GovernorName, rebel = n.Rebellion > 0, capital = n.Capital, ring = n.Ring,
                 industry = n.PlanetHoldingId != null ? c.Holdings.Spec(w.Holding(n.PlanetHoldingId)!.Specialization)?.Name : null,
                 siege = siege != null ? (double?)Math.Clamp(siege.Turns / (double)Math.Max(1, siege.Required), 0, 1) : null,
                 bloc = owner != null && owner.Bloc.Length > 0 ? (owner.Bloc == GreatCrisisSystem.HegemonBloc ? "hegemon" : "alliance") : null, target };
@@ -151,8 +158,9 @@
             return new { a = l.A, b = l.B, front, reach };
         }).ToList();
         var fl = fleets.Select(f => new { id = f.FleetId, name = f.Name, ownerId = f.OwnerHouseId, ownerName = f.OwnerHouseName, accent = f.AccentColor, systemId = f.SystemId, strength = f.Strength, readiness = f.Readiness, isPlayer = f.IsPlayer, moving = f.Moving, destId = f.DestinationId, eta = f.Eta, confidence = f.Confidence }).ToList();
-        var rg = regions.Select(r => new { id = r.Id, name = r.Name, culture = r.Culture, cx = r.CX, cy = r.CY, top = r.SystemIds.Select(id => nodes.First(n => n.SystemId == id).Y).Min(), accent = r.AccentColor, dominant = r.DominantHouseName, loyalty = 100 - r.Unrest }).ToList();
-        return System.Text.Json.JsonSerializer.Serialize(new { systems, lanes, fleets = fl, regions = rg, playerHouse = w.Protagonist!.HouseId, selected = new { systemId = _systemId, fleetId = _fleetId } });
+        var rg = regions.Select(r => new { id = r.Id, name = r.Name, culture = r.Culture, cx = r.CX, cy = r.CY, top = r.SystemIds.Select(id => nodes.First(n => n.SystemId == id).Y).Min(), bottom = r.SystemIds.Select(id => nodes.First(n => n.SystemId == id).Y).Max(), accent = r.AccentColor, dominant = r.DominantHouseName, loyalty = 100 - r.Unrest, ring = r.Ring, allegiance = r.Allegiance, lawlessness = r.Lawlessness, free = r.FreeMarch }).ToList();
+        var rings = GalaxyProjection.Rings(w);
+        return System.Text.Json.JsonSerializer.Serialize(new { systems, lanes, fleets = fl, regions = rg, rings = rings == null ? null : new { cx = rings.CX, cy = rings.CY, core = rings.Core, middle = rings.Middle, rim = rings.Rim }, playerHouse = w.Protagonist!.HouseId, selected = new { systemId = _systemId, fleetId = _fleetId } });
     }
 
     public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaSpace.destroy", _id); } catch { } _self?.Dispose(); }

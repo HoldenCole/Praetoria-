@@ -35,6 +35,7 @@ public sealed class TurnController
     private readonly ContentDatabase _content;
     private readonly NpcAi _npcAi;
     private readonly Economy? _economy;
+    private readonly RegionSystem _regions;
     private readonly CrisisEngine? _crises;
     private readonly SphereSystem? _spheres;
     private readonly ProgressionSystem? _progression;
@@ -50,6 +51,8 @@ public sealed class TurnController
 
     /// <summary>The domain economy (GDD §17), or null when the content set defines no holdings catalog.</summary>
     public Economy? Economy => _economy;
+    /// <summary>The rings of the galaxy as behaviour (GDD §19): allegiance, lawlessness, rebellion, secession.</summary>
+    public RegionSystem Regions => _regions;
 
     /// <summary>The crisis system (GDD §16), or null when the content set defines no crises.</summary>
     public CrisisEngine? Crises => _crises;
@@ -79,6 +82,7 @@ public sealed class TurnController
         _rng = WorldBuilder.RngFor(world);
         Engine = new EventEngine(content, _rng, director);
         _economy = content.Holdings.IsEmpty ? null : new Economy(content.Holdings, content.Businesses);
+        _regions = new RegionSystem(content.Names);
         _crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises, content.Recovery);
         _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres, world.Difficulty);
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
@@ -102,6 +106,7 @@ public sealed class TurnController
         World.Turn++;
         foreach (var pools in World.Pools.Values) pools.Regenerate();
         _economy?.Accrue(World);     // RNG-free, so determinism is preserved (GDD §17)
+        _regions.Tick(World);        // the rings: lawlessness, allegiance, risings and secessions (GDD §19) — seeded only for a new leader's name
         _fleets.Tick(World);         // fleets move, eat, arrive; the intel picture refreshes (GDD §19) — RNG-free
         _fleets.ResolveBattles(World, _rng);   // warring fleets that share a system fight (seeded roll)
         _fleets.ResolveConquests(World);       // an unopposed fleet in enemy space takes its holdings

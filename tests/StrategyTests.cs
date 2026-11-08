@@ -69,7 +69,7 @@ public class StrategyTests
         new CommandExecutor().TryExecute(new SetTaxPolicyCommand(w.ProtagonistId, "harsh", content.Holdings), new CommandContext(w, TestContent.Rng()));
         eco.Accrue(w);
         Assert.Equal(normalCredits + 2, house.Treasury.Credits);     // +2 per holding
-        Assert.Equal(2, barony.Unrest);                               // drift +5 against the solvent decay of −3
+        Assert.Equal(3, barony.Unrest);                               // drift +5 against the solvent decay of −3, +1 for a world on the rim (GDD §19)
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class StrategyTests
         int withBonus = w.House("serval")!.Treasury.Credits - before;
 
         var (_, w2) = Fresh("the_circling_heir");
-        w2.Holding("serval_seat_minor")!.SystemId = "aurelia_prime"; // same holdings, scattered across the map
+        w2.Holding("serval_seat_minor")!.SystemId = "sato_holdfast"; // same holdings, scattered across the map (another middle-ring world, so no ring bonus changes)
         int before2 = w2.House("serval")!.Treasury.Credits;
         eco.Accrue(w2);
         Assert.Equal(withBonus - 2, w2.House("serval")!.Treasury.Credits - before2);   // one bonus per holding lost

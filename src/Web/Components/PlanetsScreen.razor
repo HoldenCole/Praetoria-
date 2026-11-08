@@ -22,7 +22,7 @@
                 <img class="sprite big" data-planet="@fn.PlanetClass|@fn.SystemId|64" alt="" />
                 <div class="sc-body">
                     <div class="sc-name">@fn.Name <span class="muted">@fn.PlanetClass world@(region != null ? $" · {region.Name}" : "") · @fn.Culture culture</span></div>
-                    <div class="muted small">@(owner != null ? $"held by {owner.Name}" : "unclaimed")@(fn.GovernorName != null ? $" · governor {fn.GovernorName}" : "")@(planet != null ? $" · {c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization} · pop {fn.Population} · loyalty {100 - fn.Unrest}" : "")@(stations.Count > 0 ? $" · {string.Join(", ", stations.Select(s => $"{s.Name} ({w.House(s.OwnerId)?.Name})"))}" : "")@(fn.Contested ? " · contested" : "")@(planet != null ? $" · prosperity {fn.Prosperity}" : "")@(fn.Belt > 0 ? $" · belt {new string('●', fn.Belt)} ({fn.Claims}/{fn.Belt} claims)" : "")@(fn.Ventures > 0 ? $" · {fn.Ventures} venture(s)" : "")</div>
+                    <div class="muted small">@(owner != null ? $"held by {owner.Name}" : "unclaimed")@(fn.GovernorName != null ? $" · governor {fn.GovernorName}" : "")@(planet != null ? $" · {c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization} · pop {fn.Population} · loyalty {100 - fn.Unrest}" : "")@(stations.Count > 0 ? $" · {string.Join(", ", stations.Select(s => $"{s.Name} ({w.House(s.OwnerId)?.Name})"))}" : "")@(fn.Contested ? " · contested" : "")@(fn.Capital ? " · the capital" : "")@(fn.Rebellion > 0 ? $" · IN REVOLT ({fn.Rebellion})" : "")@(planet != null ? $" · prosperity {fn.Prosperity}" : "")@(fn.Belt > 0 ? $" · belt {new string('●', fn.Belt)} ({fn.Claims}/{fn.Belt} claims)" : "")@(fn.Ventures > 0 ? $" · {fn.Ventures} venture(s)" : "")</div>
                     @if (sys != null && sys.Description.Length > 0) { <div class="muted small">@sys.Description</div> }
                     <div class="sc-actions"><button class="opt inline" @onclick="() => OnFocus.InvokeAsync(fn.SystemId)">Open on the galaxy map</button></div>
                 </div>
@@ -35,7 +35,7 @@
         @foreach (var r in regions)
         {
             <section class="panel region-block" style="--accent:@r.AccentColor">
-                <div class="region-head"><h3>@r.Name</h3><span class="muted">@r.Culture · @(r.DominantHouseName != null ? $"{r.DominantHouseName} dominates" : "no house dominates") · loyalty @(100 - r.Unrest)</span></div>
+                <div class="region-head"><h3>@r.Name <span class="ring @r.Ring">@r.Ring</span></h3><span class="muted">@r.Culture · @(r.DominantHouseName != null ? $"{r.DominantHouseName} dominates" : "no house dominates")@(r.FreeMarch ? " · FREE MARCH" : "") · loyalty @(100 - r.Unrest) · ⚜ @r.Allegiance · <span class="@(r.Lawlessness >= 60 ? "warn" : "")">☠ @r.Lawlessness</span>@(r.Rebellions > 0 ? $" · {r.Rebellions} rising" : "")</span></div>
                 @foreach (var id in r.SystemIds)
                 {
                     var n = nodes[id]; var owner = n.OwnerHouseId != null ? w.House(n.OwnerHouseId) : null;
@@ -70,7 +70,7 @@
     {
         var list = regions.Select(r => new
         {
-            id = r.Id, name = r.Name, accent = r.AccentColor, unrest = r.Unrest,
+            id = r.Id, name = r.Name + " · " + r.Ring, accent = r.AccentColor, unrest = r.Unrest,
             worlds = r.SystemIds.Select(id => nodes[id]).Select(n => new { id = n.SystemId, name = n.Name, planetClass = n.PlanetClass, accent = n.OwnerHouseId == null ? "#4a5468" : n.AccentColor, mine = n.IsPlayerTerritory, stations = n.Stations, unrest = n.Unrest, belt = n.Belt }).ToList()
         }).ToList();
         return System.Text.Json.JsonSerializer.Serialize(new { accent = house.AccentColor, regions = list });

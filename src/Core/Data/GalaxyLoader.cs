@@ -38,8 +38,18 @@ public static class GalaxyLoader
                         Id = ConditionParser.Str(r, "id"),
                         Name = ConditionParser.OptStr(r, "name", ConditionParser.Str(r, "id")),
                         Culture = ConditionParser.OptStr(r, "culture", "reach"),
-                        Description = ConditionParser.OptStr(r, "description", "")
+                        Description = ConditionParser.OptStr(r, "description", ""),
+                        Ring = ConditionParser.OptStr(r, "ring", Praetoria.Core.Galaxy.Ring.Middle)
                     });
+            g.Capital = ConditionParser.OptStr(root, "capital", "");
+            if (root.TryGetProperty("rings", out var rings) && rings.ValueKind == JsonValueKind.Object)
+                foreach (var rp in rings.EnumerateObject())
+                {
+                    if (rp.Value.ValueKind != JsonValueKind.Object) continue;   // the "//" note
+                    var d = RingRules.Default(rp.Name); var e = rp.Value;
+                    g.Rings[rp.Name] = new RingRules(rp.Name, ConditionParser.Int(e, "prosperity", d.Prosperity), ConditionParser.Int(e, "unrestDrift", d.UnrestDrift), ConditionParser.Int(e, "lawlessnessDrift", d.LawlessnessDrift),
+                        ConditionParser.Int(e, "lawlessnessStart", d.LawlessnessStart), ConditionParser.Int(e, "allegiance", d.Allegiance), ConditionParser.Int(e, "tradeBonus", d.TradeBonus), ConditionParser.Int(e, "charterBonus", d.CharterBonus));
+                }
             if (root.TryGetProperty("systems", out var systems) && systems.ValueKind == JsonValueKind.Array)
                 foreach (var s in systems.EnumerateArray())
                 {

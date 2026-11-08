@@ -70,6 +70,10 @@ public sealed class World
     /// holder of the world it works from.</summary>
     public Dictionary<string, Business> Businesses { get; set; } = new();
 
+    /// <summary>Per-region mood (GDD §19 rings): allegiance to the capital and lawlessness, keyed by region id. Created on
+    /// first tick from the ring's defaults.</summary>
+    public Dictionary<string, RegionState> Regions { get; set; } = new();
+
     /// <summary>Currently-active crises, keyed by crisis id (GDD §16). A crisis persists and
     /// escalates here until a damper resolves it. The gate/cascade system reads and writes these.</summary>
     public Dictionary<string, ActiveCrisis> Crises { get; set; } = new();

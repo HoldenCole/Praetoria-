@@ -139,3 +139,28 @@ house can stake a claim anywhere and found a venture on anyone's world; peace te
 ### Where the next forty come from
 Venture risk and war on the ledger · governors as people · regional prices and lane trade · peace terms and petitions ·
 pool tuning · the unreachable events · era theming.
+
+
+## 6. Reassessment — 2026-11-08, after the rings
+
+The galaxy is ten regions in three rings with a capital; regions carry allegiance and lawlessness; worlds rise, break
+away and declare free marches (`docs/GALAXY.md`). §5 items 1 (venture risk: raiders now tax ventures on lawless lanes)
+and 4 (geography: the rings) are partly closed.
+
+### Ranked gaps now
+1. **A free hold is an orphan.** It has a leader and a world and nothing else: no fleet, no ventures, no ambitions, no
+   way to be reabsorbed or courted. Free holds and free marches should be able to be bought back, married back, or
+   conquered, and should trade among themselves.
+2. **The capital is only a ledger line.** Holding it should bring the Senate's chair, a say in titles, and a target on
+   the holder's back; losing it should be the stuff of chronicles.
+3. **Lawlessness has no face.** Raiders are a tax; a pirate fleet on the map that a house can hunt (or hire) would make
+   the rim legible as a place.
+4. **Governors are passive** (§5 item 3) — now sharper: a governor of another house is the natural leader of a
+   breakaway, which makes the appointment a real gamble, but nothing in the court plays on it yet.
+5. **Pools are still too generous** (§4 item 2).
+6. **Peace terms, petitions for a fief** (§4 item 1).
+7. **24 events never surface** (§4 item 3); **era theming** (§4 item 9).
+
+### Where the next forty come from
+Free holds as actors · the capital as a prize · pirate fleets · governors who scheme · pool tuning · peace terms ·
+the unreachable events · era theming.

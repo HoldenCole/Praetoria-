@@ -70,6 +70,14 @@ public sealed class NpcAi
             int disposition = player != null ? world.GetRelationship(head.Id, player.Id)?.Disposition ?? 0 : 0;
             bool atWar = playerHouse != null && world.AtWar(house.Id, playerHouse);
 
+            // a rising at home comes first (GDD §19 the rim): the nearest idle fleet sails to sit in orbit over the world in revolt
+            var rising = world.HoldingsOf(house.Id).Where(h => h.InRebellion).OrderByDescending(h => h.Rebellion).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (rising != null && !world.Fleets.Values.Any(f => f.OwnerId == house.Id && f.SystemId == rising.SystemId && !f.Moving))
+            {
+                var garrison = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.Strength >= RegionSystem.GarrisonStrength).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (garrison != null) executor.TryExecute(new MoveFleetCommand(head.Id, garrison.Id, rising.SystemId, rules), ctx);
+            }
+
             // war and peace (GDD §7 fear with teeth): a house that hates you and outguns you declares war;
             // one that has lost half its hulls sues for peace.
             if (player != null && playerHouse != null)

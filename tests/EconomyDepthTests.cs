@@ -239,13 +239,13 @@ public class EconomyDepthContentTests
         Assert.NotNull(content.Holdings.Spec(StakeClaimCommand.Spec));
         var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, "academy_crucible"), 3);
         Assert.True(w.Galaxy!.Systems.Values.Count(s => s.Belt > 0) >= 6);
-        Assert.Equal(2, w.Businesses.Count);                                  // the two landless houses' ventures
+        Assert.Equal(4, w.Businesses.Count);                                  // the two landless houses' ventures, the Lucent bank, the Morrow traders
         Assert.All(w.Businesses.Values, b => Assert.NotNull(content.Businesses.Def(b.Kind)));
 
         var tc = new TurnController(w, content);
         for (int t = 0; t < 30 && !w.IsDynastyDead; t++) { foreach (var i in tc.BeginTurn()) { var c = tc.Offer(i).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(i, c.Choice.Id); } tc.EndTurn(); }
 
-        Assert.True(w.Businesses.Count > 2, "no steward founded a venture in thirty turns");
+        Assert.True(w.Businesses.Count > 4, "no steward founded a venture in thirty turns");
         Assert.True(w.Holdings.Values.Any(h => h.IsClaim), "no steward staked a claim in thirty turns");
         Assert.True(w.Houses.Values.All(h => h.Wealth != 0 || !w.HoldingsOf(h.Id).Any()), "wealth never reckoned");
         Assert.True(w.HasFlag("richest:" + Wealth.Ranked(w)[0].house.Id));

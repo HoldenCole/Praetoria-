@@ -1,5 +1,5 @@
 {
-  "//": "THE MINOR HOUSES OF THE REACH (GDD §19 'smaller houses that control smaller things, or nothing at all'). Merged into every scenario played on the_reach: a house, its people, its planet or station appear wherever the scenario has not placed its own. Scenario definitions always win on an id or a system. Two houses are landless by design.",
+  "//": "THE MINOR HOUSES OF THE REACH (GDD §19 'smaller houses that control smaller things, or nothing at all'). Merged into every scenario played on the_reach: a house, its people, its planet or station appear wherever the scenario has not placed its own. Scenario definitions always win on an id or a system. Two houses are landless by design. The Golden Concourse, the Lantern Shoals, the Ashen Verge and the Pale Reaches each bring their own houses; the Gallows and Sorrow are held by no one.",
   "id": "the_reach_houses",
   "houses": [
     {
@@ -299,6 +299,171 @@
         "materials": 3,
         "manpower": 2,
         "influence": 0,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "lucent",
+      "name": "House Lucent",
+      "accent": "#C9A24A",
+      "title": "count",
+      "legitimacy": 48,
+      "culture": "concourse",
+      "treasury": {
+        "credits": 26,
+        "materials": 8,
+        "manpower": 6,
+        "influence": 4,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "meridian",
+      "name": "House Meridian",
+      "accent": "#5A7FB5",
+      "title": "baron",
+      "legitimacy": 30,
+      "culture": "concourse",
+      "treasury": {
+        "credits": 20,
+        "materials": 7,
+        "manpower": 5,
+        "influence": 3,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "pallas",
+      "name": "House Pallas",
+      "accent": "#8A9BB0",
+      "title": "knight",
+      "legitimacy": 14,
+      "culture": "concourse",
+      "treasury": {
+        "credits": 12,
+        "materials": 6,
+        "manpower": 3,
+        "influence": 1,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "varga",
+      "name": "House Varga",
+      "accent": "#2F7F8F",
+      "title": "baron",
+      "legitimacy": 27,
+      "culture": "shoalfolk",
+      "treasury": {
+        "credits": 12,
+        "materials": 7,
+        "manpower": 6,
+        "influence": 2,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "holloway",
+      "name": "House Holloway",
+      "accent": "#7F9F5F",
+      "title": "knight",
+      "legitimacy": 12,
+      "culture": "shoalfolk",
+      "treasury": {
+        "credits": 8,
+        "materials": 5,
+        "manpower": 5,
+        "influence": 1,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "dreyer",
+      "name": "House Dreyer",
+      "accent": "#6F6F7F",
+      "title": "knight",
+      "legitimacy": 11,
+      "culture": "shoalfolk",
+      "treasury": {
+        "credits": 7,
+        "materials": 8,
+        "manpower": 3,
+        "influence": 1,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "ashkar",
+      "name": "House Ashkar",
+      "accent": "#B5452F",
+      "title": "baron",
+      "legitimacy": 22,
+      "culture": "vergeborn",
+      "treasury": {
+        "credits": 9,
+        "materials": 7,
+        "manpower": 7,
+        "influence": 1,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "morrow",
+      "name": "House Morrow",
+      "accent": "#3F6F9F",
+      "title": "knight",
+      "legitimacy": 9,
+      "culture": "vergeborn",
+      "treasury": {
+        "credits": 9,
+        "materials": 4,
+        "manpower": 4,
+        "influence": 1,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "kessler",
+      "name": "House Kessler",
+      "accent": "#9FB0C0",
+      "title": "knight",
+      "legitimacy": 8,
+      "culture": "vergeborn",
+      "treasury": {
+        "credits": 6,
+        "materials": 5,
+        "manpower": 3,
+        "influence": 0,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "strand",
+      "name": "House Strand",
+      "accent": "#4F6F8F",
+      "title": "knight",
+      "legitimacy": 13,
+      "culture": "palefolk",
+      "treasury": {
+        "credits": 7,
+        "materials": 6,
+        "manpower": 6,
+        "influence": 1,
+        "exotics": 0
+      }
+    },
+    {
+      "id": "teague",
+      "name": "House Teague",
+      "accent": "#5F8F7F",
+      "title": "knight",
+      "legitimacy": 10,
+      "culture": "palefolk",
+      "treasury": {
+        "credits": 8,
+        "materials": 5,
+        "manpower": 6,
+        "influence": 1,
         "exotics": 0
       }
     }
@@ -1311,6 +1476,294 @@
       ],
       "skills": {},
       "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "lucent_head",
+      "name": "Octavia Lucent",
+      "house": "lucent",
+      "age": 52,
+      "sex": "female",
+      "careerTrack": "stewardship",
+      "careerRank": 4,
+      "nature": [
+        "Ambitious",
+        "Proud"
+      ],
+      "aptitude": [
+        "Administrator"
+      ],
+      "skills": {
+        "administration": 4,
+        "economics": 4,
+        "charisma": 2
+      },
+      "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "lucent_heir",
+      "name": "Lucius Lucent",
+      "house": "lucent",
+      "age": 24,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 1,
+      "nature": [
+        "Honorable"
+      ],
+      "aptitude": [
+        "Orator"
+      ],
+      "skills": {
+        "law": 2,
+        "oratory": 2
+      },
+      "ambition": "master_the_senate"
+    },
+    {
+      "id": "meridian_head",
+      "name": "Severus Meridian",
+      "house": "meridian",
+      "age": 44,
+      "sex": "male",
+      "careerTrack": "stewardship",
+      "careerRank": 3,
+      "nature": [
+        "Ruthless"
+      ],
+      "aptitude": [
+        "Greedy"
+      ],
+      "skills": {
+        "economics": 3,
+        "administration": 2,
+        "intrigue": 1
+      },
+      "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "pallas_head",
+      "name": "Livia Pallas",
+      "house": "pallas",
+      "age": 38,
+      "sex": "female",
+      "careerTrack": "stewardship",
+      "careerRank": 2,
+      "nature": [
+        "Just"
+      ],
+      "aptitude": [
+        "Quartermaster"
+      ],
+      "skills": {
+        "logistics": 2,
+        "administration": 2
+      },
+      "ambition": "restore_house_fortunes"
+    },
+    {
+      "id": "varga_head",
+      "name": "Tomas Varga",
+      "house": "varga",
+      "age": 47,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 3,
+      "nature": [
+        "Loyal"
+      ],
+      "aptitude": [
+        "Tactician"
+      ],
+      "skills": {
+        "tactics": 2,
+        "leadership": 2,
+        "administration": 1
+      },
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "varga_heir",
+      "name": "Petra Varga",
+      "house": "varga",
+      "age": 19,
+      "sex": "female",
+      "careerTrack": "military",
+      "careerRank": 0,
+      "nature": [
+        "Proud"
+      ],
+      "aptitude": [
+        "Duelist"
+      ],
+      "skills": {
+        "tactics": 1,
+        "discipline": 1
+      },
+      "ambition": "command_a_fleet"
+    },
+    {
+      "id": "holloway_head",
+      "name": "Ines Holloway",
+      "house": "holloway",
+      "age": 41,
+      "sex": "female",
+      "careerTrack": "stewardship",
+      "careerRank": 2,
+      "nature": [
+        "Honorable"
+      ],
+      "aptitude": [
+        "Administrator"
+      ],
+      "skills": {
+        "administration": 3,
+        "economics": 1
+      },
+      "ambition": "restore_house_fortunes"
+    },
+    {
+      "id": "dreyer_head",
+      "name": "Rook Dreyer",
+      "house": "dreyer",
+      "age": 36,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Vengeful"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {
+        "tactics": 1,
+        "intrigue": 2
+      },
+      "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "ashkar_head",
+      "name": "Zara Ashkar",
+      "house": "ashkar",
+      "age": 39,
+      "sex": "female",
+      "careerTrack": "military",
+      "careerRank": 3,
+      "nature": [
+        "Ambitious",
+        "Ruthless"
+      ],
+      "aptitude": [
+        "Strategist"
+      ],
+      "skills": {
+        "tactics": 3,
+        "leadership": 2
+      },
+      "ambition": "outshine_all_rivals"
+    },
+    {
+      "id": "ashkar_heir",
+      "name": "Sef Ashkar",
+      "house": "ashkar",
+      "age": 22,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [
+        "Cruel"
+      ],
+      "aptitude": [
+        "Duelist"
+      ],
+      "skills": {
+        "tactics": 1,
+        "discipline": 2
+      },
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "morrow_head",
+      "name": "Caden Morrow",
+      "house": "morrow",
+      "age": 33,
+      "sex": "male",
+      "careerTrack": "stewardship",
+      "careerRank": 1,
+      "nature": [
+        "Ambitious"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {
+        "economics": 2,
+        "intrigue": 2
+      },
+      "ambition": "amass_a_fortune"
+    },
+    {
+      "id": "kessler_head",
+      "name": "Hanne Kessler",
+      "house": "kessler",
+      "age": 50,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 2,
+      "nature": [
+        "Just",
+        "Loyal"
+      ],
+      "aptitude": [
+        "Paranoid"
+      ],
+      "skills": {
+        "law": 2,
+        "administration": 1
+      },
+      "ambition": "restore_house_fortunes"
+    },
+    {
+      "id": "strand_head",
+      "name": "Brynn Strand",
+      "house": "strand",
+      "age": 45,
+      "sex": "female",
+      "careerTrack": "military",
+      "careerRank": 2,
+      "nature": [
+        "Proud",
+        "Honorable"
+      ],
+      "aptitude": [
+        "Tactician"
+      ],
+      "skills": {
+        "tactics": 2,
+        "discipline": 2,
+        "leadership": 1
+      },
+      "ambition": "earn_a_command"
+    },
+    {
+      "id": "teague_head",
+      "name": "Oren Teague",
+      "house": "teague",
+      "age": 42,
+      "sex": "male",
+      "careerTrack": "stewardship",
+      "careerRank": 1,
+      "nature": [
+        "Vengeful"
+      ],
+      "aptitude": [
+        "Quartermaster"
+      ],
+      "skills": {
+        "logistics": 2,
+        "administration": 1
+      },
+      "ambition": "restore_house_fortunes"
     }
   ],
   "relationships": [
@@ -1823,6 +2276,127 @@
       "population": 0,
       "unrest": 0,
       "kind": "station"
+    },
+    {
+      "id": "lucent_seat",
+      "owner": "lucent",
+      "name": "Lucent",
+      "specialization": "trade_hub",
+      "system": "lucent",
+      "population": 40,
+      "unrest": 0,
+      "governor": "lucent_head",
+      "kind": "planet"
+    },
+    {
+      "id": "meridian_seat",
+      "owner": "meridian",
+      "name": "Meridian Exchange",
+      "specialization": "trade_hub",
+      "system": "meridian_exchange",
+      "population": 34,
+      "unrest": 0,
+      "governor": "meridian_head",
+      "kind": "planet"
+    },
+    {
+      "id": "pallas_seat",
+      "owner": "pallas",
+      "name": "Pallas Skimmers",
+      "specialization": "orbital_yard",
+      "system": "pallas_reach",
+      "population": 12,
+      "unrest": 0,
+      "governor": "pallas_head",
+      "kind": "planet"
+    },
+    {
+      "id": "varga_seat",
+      "owner": "varga",
+      "name": "Lanternfall",
+      "specialization": "trade_hub",
+      "system": "lanternfall",
+      "population": 24,
+      "unrest": 0,
+      "governor": "varga_head",
+      "kind": "planet"
+    },
+    {
+      "id": "holloway_seat",
+      "owner": "holloway",
+      "name": "Saltmere Farms",
+      "specialization": "agri_world",
+      "system": "saltmere",
+      "population": 28,
+      "unrest": 0,
+      "governor": "holloway_head",
+      "kind": "planet"
+    },
+    {
+      "id": "dreyer_seat",
+      "owner": "dreyer",
+      "name": "Harrow Deep",
+      "specialization": "mining_belt",
+      "system": "harrow_deep",
+      "population": 10,
+      "unrest": 25,
+      "governor": "dreyer_head",
+      "kind": "planet"
+    },
+    {
+      "id": "ashkar_seat",
+      "owner": "ashkar",
+      "name": "Cinderfall",
+      "specialization": "frontier_colony",
+      "system": "cinderfall",
+      "population": 18,
+      "unrest": 25,
+      "governor": "ashkar_head",
+      "kind": "planet"
+    },
+    {
+      "id": "morrow_seat",
+      "owner": "morrow",
+      "name": "Last Harbour",
+      "specialization": "trade_hub",
+      "system": "last_harbour",
+      "population": 16,
+      "unrest": 25,
+      "governor": "morrow_head",
+      "kind": "planet"
+    },
+    {
+      "id": "kessler_seat",
+      "owner": "kessler",
+      "name": "Hollow Reach Post",
+      "specialization": "frontier_colony",
+      "system": "hollow_reach",
+      "population": 8,
+      "unrest": 0,
+      "governor": "kessler_head",
+      "kind": "planet"
+    },
+    {
+      "id": "strand_seat",
+      "owner": "strand",
+      "name": "Wintermoor Keep",
+      "specialization": "fortress",
+      "system": "wintermoor",
+      "population": 14,
+      "unrest": 0,
+      "governor": "strand_head",
+      "kind": "planet"
+    },
+    {
+      "id": "teague_seat",
+      "owner": "teague",
+      "name": "Brackwater",
+      "specialization": "agri_world",
+      "system": "brackwater",
+      "population": 20,
+      "unrest": 25,
+      "governor": "teague_head",
+      "kind": "planet"
     }
   ],
   "fleets": [
@@ -1879,11 +2453,68 @@
       "ships": {
         "frigate": 2
       }
+    },
+    {
+      "id": "fleet_lucent",
+      "name": "The Lucent Escort",
+      "owner": "lucent",
+      "system": "lucent",
+      "ships": {
+        "frigate": 2
+      }
+    },
+    {
+      "id": "fleet_ashkar",
+      "name": "Ashkar's Raiders",
+      "owner": "ashkar",
+      "system": "cinderfall",
+      "ships": {
+        "frigate": 1
+      }
+    },
+    {
+      "id": "fleet_strand",
+      "name": "The Wintermoor Picket",
+      "owner": "strand",
+      "system": "wintermoor",
+      "ships": {
+        "frigate": 1
+      }
     }
   ],
   "//ventures": "What the landless houses live on (GDD §19 'houses that control nothing at all' still have to eat): a venture each, paying its charter to whoever holds the world.",
   "businesses": [
-    { "id": "biz_wren_trading_company_drake_crossing", "owner": "wren", "kind": "trading_company", "system": "drake_crossing", "level": 1, "name": "Wren Trading Company of Drake Crossing" },
-    { "id": "biz_orlov_mining_concern_ember_shoal", "owner": "orlov", "kind": "mining_concern", "system": "ember_shoal", "level": 1, "name": "Orlov Mining Concern of Ember Shoal" }
+    {
+      "id": "biz_wren_trading_company_drake_crossing",
+      "owner": "wren",
+      "kind": "trading_company",
+      "system": "drake_crossing",
+      "level": 1,
+      "name": "Wren Trading Company of Drake Crossing"
+    },
+    {
+      "id": "biz_orlov_mining_concern_ember_shoal",
+      "owner": "orlov",
+      "kind": "mining_concern",
+      "system": "ember_shoal",
+      "level": 1,
+      "name": "Orlov Mining Concern of Ember Shoal"
+    },
+    {
+      "id": "biz_lucent_merchant_bank_lucent",
+      "owner": "lucent",
+      "kind": "merchant_bank",
+      "system": "lucent",
+      "level": 2,
+      "name": "The Lucent Bank"
+    },
+    {
+      "id": "biz_morrow_trading_company_last_harbour",
+      "owner": "morrow",
+      "kind": "trading_company",
+      "system": "last_harbour",
+      "level": 1,
+      "name": "Morrow Free Traders of Last Harbour"
+    }
   ]
 }

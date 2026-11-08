@@ -19,6 +19,13 @@ is what will happen.
 | `interest` | a credit per house paying down a loan your bank holds |
 | `fleet` | fleet upkeep (forecast only; the fleet system charges it) |
 
+## The rings
+
+A holding's ring (`docs/GALAXY.md`) changes its ledger: the core adds a credit per peopled world and doubles the charters
+its holder collects; prosperity targets carry the ring's offset (core +10, rim −10); unrest drifts with the ring; a
+region's lawlessness taxes credits and materials from holdings and ventures alike (half at 100); a world in revolt
+yields nothing but its upkeep; the capital's holder keeps the court (two credits, an influence).
+
 ## Holdings: prosperity
 
 Every holding has **prosperity** (0..100, par 50). It scales credit and material output: a world at 100 yields half

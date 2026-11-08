@@ -342,3 +342,9 @@ input:focus, select:focus { outline: none; border-color: var(--brass); }
 .wealth-row { display: grid; grid-template-columns: auto minmax(0, 1fr) 2.6rem; align-items: center; gap: .4rem; padding: .16rem 0; font-size: .88rem; } .wealth-row .bar { grid-column: 1 / -1; height: 4px; background: rgba(255,255,255,.05); border-radius: 2px; overflow: hidden; margin-top: -.1rem; } .wealth-row .bar i { display: block; height: 100%; } .wealth-row b { text-align: right; } .wealth-row.mine span { color: var(--brass2); }
 details.venture, details.found { border: 1px solid var(--line); border-radius: 3px; padding: .3rem .5rem; margin: .3rem 0; background: rgba(5,7,12,.4); } details.venture > summary, details.found > summary { cursor: pointer; }
 .house-line .tier.small { font-size: .62rem; padding: 0 .3rem; }
+
+/* ===== the rings ===== */
+.ring { font-family: var(--display); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; padding: .02rem .36rem; border-radius: 2px; border: 1px solid var(--line2); vertical-align: middle; }
+.ring.core { color: #ffe8a3; border-color: var(--brass2); } .ring.middle { color: var(--brass2); } .ring.rim { color: #e08a5f; border-color: #6a3b2e; }
+.ring-head { display: flex; align-items: center; gap: .4rem; margin: .5rem 0 .2rem; } .region-row .rstats { margin-left: auto; font-size: .78rem; white-space: nowrap; color: var(--muted); } .region-row .rstats .warn { color: #e07a5f; } .region-row.free b { color: #e08a5f; }
+.region-label.ring-rim .rs { color: #d9a085; } .region-label.ring-core .rs { color: #ffe8a3; } .region-label.free .rn { color: #e08a5f; }

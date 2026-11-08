@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **The rings of the Reach** (GDD §19; `docs/GALAXY.md`): the galaxy grows to ten regions and thirty-one systems laid
+  out in three rings with a **capital**. The **core** is commerce and the court (more coin, doubled charters, order);
+  the **rim** is lawless and restless (raiders tax the ledger, unrest climbs, allegiance to the capital settles low);
+  the **middle** leans whichever way it is pushed. Every region carries **allegiance** and **lawlessness** that drift
+  each turn; a restless world in a disaffected region **rises** and yields nothing; a garrison ends it; left four turns
+  it **breaks away** as a free hold under a new house; a region's dominant house that has stopped believing in the
+  capital **declares a free march**. Four new regions with eleven houses, two worlds no one holds, five ring events,
+  the player's decrees on a rising, NPC fleets that sail to put risings down, and the rings drawn on the map.
 - **The economy, deeper** (GDD §17; `docs/ECONOMY.md`): every holding has **prosperity** (a governor's administration,
   what is built, the tithe, unrest and blockade move it; it scales output; an investment lifts it); systems carry
   **asteroid belts** and houses stake **claims** in them (the landless anywhere); **ventures** — trading companies,

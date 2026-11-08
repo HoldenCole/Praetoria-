@@ -1,0 +1,52 @@
+{
+  "texts": [
+    {
+      "id": "raiders_on_the_lanes",
+      "title": "Raiders on the Lanes",
+      "body": "The lanes around the house's holdings have gone bad. Freighters arrive late, or light, or not at all, and the ones that do carry a polite note naming a price for the next run. No fleet has been seen in the region for a season. The raiders know it; so does everyone who ships through it.",
+      "choices": {
+        "pay_the_toll": "Pay the toll and call it a convoy fee.",
+        "arm_the_freighters": "Put guns on the freighters and veterans behind them.",
+        "hire_the_raiders": "Buy the raiders. Better they fly your colours than no one's."
+      }
+    },
+    {
+      "id": "a_world_in_revolt",
+      "title": "A World in Revolt",
+      "body": "A world of {self.house} has stopped paying. The governor's writ ends at the palace gate; beyond it the square is full every night and the tithe-houses are shuttered. The region has not loved the Core in years and does not love the house now. Nothing comes off that world until the rising ends — by gift, by steel, or by a fleet in orbit.",
+      "choices": {
+        "concede": "Go down to the square unguarded. Forgive the tithe. Make councillors of the ringleaders.",
+        "break_them": "Give the order. The square will be quiet by morning.",
+        "wait_for_the_fleet": "Send for the fleet and wait. A garrison ends a rising."
+      }
+    },
+    {
+      "id": "whispers_of_secession",
+      "title": "Whispers of Secession",
+      "body": "A delegation from the region's towns waits in the hall: merchants, a guild-master, two priests and a very old soldier. They have come to say what everyone already knows. The region holds {self.house} in a way it has never held the Core, and if the house were to declare a Free March tonight the squares would fill in its favour. The Core would not forget it. Neither would the region, either way.",
+      "choices": {
+        "declare_the_march": "Stand on the balcony and say the words.",
+        "stay_loyal": "Send them home with gifts and a refusal.",
+        "keep_them_guessing": "Promise the region everything and the Core nothing."
+      }
+    },
+    {
+      "id": "the_courts_favour",
+      "title": "The Court Convenes",
+      "body": "The capital is {self.house}'s, and the capital is where the Reach comes to be seen. Envoys, petitioners, cousins and creditors fill the marble halls, each with a request and a gift of carefully calculated size. To hold court costs coin and buys influence. To close the doors keeps the coin and buys something else.",
+      "choices": {
+        "hold_court": "Hold court. Let them come and be heard.",
+        "close_the_doors": "Close the doors. Keep the coin."
+      }
+    },
+    {
+      "id": "the_rim_remembers",
+      "title": "The Rim Remembers",
+      "body": "The house's seat is on the Rim, where the lanes end and the law thins. Out here a lord is a rumour unless they come in person, and a tithe is an insult unless it is collected by someone who has shared the hall's bread. The season is right for a ride along the frontier; the ledger says a steward would do.",
+      "choices": {
+        "ride_out": "Ride the frontier yourself. Sleep in their halls.",
+        "send_a_steward": "Send a steward with a ledger."
+      }
+    }
+  ]
+}
