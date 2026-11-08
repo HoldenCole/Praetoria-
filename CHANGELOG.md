@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Fixed
+- **Half the Reach went bankrupt and stayed there.** Rival stewards founded ventures in alphabetical order (Academy
+  Patronage first, a credit drain), borrowed on a sinking ledger (a loan every seven turns, each deeper), and let
+  materials pile up unsold; a house whose last member died kept its worlds and let them rot at unrest 100. Stewards now
+  found the venture that clears the most coin and nothing that loses it, sell a losing venture before borrowing,
+  borrow only when the ledger is positive, sell materials in smaller lots, and stake claims on a thinner cushion when
+  their land earns nothing; a headless rival house raises a cousin from the provinces to take up the banner.
+- The court offered a marriage match and an "accident" against children of other houses; neither is listed now, and the
+  assassinate command refuses a target under sixteen outright. The Houses card names the system of each venture.
+- The simulate harness's auto-player now weds, so sixty-turn soaks have heirs; the fallen house no longer "dies" every
+  run for want of a marriage the harness never proposed.
+
 ### Changed
 - **Territory as areas, not bubbles**: the map is partitioned the way Star Dynasties does it — every point belongs to
   its nearest system's region, regions are crisp bordered areas in the dominant house's colour with a dark tinted fill
@@ -13,6 +25,10 @@
   markers and orbit rings are smaller and fainter, region fills lighter, and labels thin out as you zoom away.
 
 ### Added
+- **Reactive events on the engine's own flags** (GAP_ANALYSIS §4 item 4): the enemy's envoy under a flag of parley, the
+  assassin's knife traced to its house, the coalition gathering at one inn; the engine now also writes the generic
+  `at_war_any` and `assassin_any` flags content can read.
+- **Region names avoid system names too**, by a bounded search around each region's centre.
 - **The galaxy as a galaxy** (GDD §19): the map is laid out twice as wide; every system carries two to five bodies
   (worlds, moons, giants, belts) drawn on their orbits around the star; regions are highlighted as soft areas around
   their systems; the lane web is sparse (forty lanes, under three a system) and runs through gateways; **chokepoints**

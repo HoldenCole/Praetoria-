@@ -252,3 +252,41 @@ public class EconomyDepthContentTests
         Assert.Contains(w.History, h => h.Text.Contains("founds a"));
     }
 }
+
+/// <summary>The QA pass of 2026-11-08: stewards that do not dig debt spirals or found losing ventures, and houses that do not die headless.</summary>
+public class StewardQaTests
+{
+    [Fact]
+    public void AHeadlessRivalHouse_GetsACousin_ButThePlayersDoesNot()
+    {
+        var w = TestContent.EconomyWorld();
+        w.Houses["corwin"] = new House { Id = "corwin", Name = "House Corwin", Culture = "reach" };
+        w.Holdings["corwin_world"] = new Holding { Id = "corwin_world", OwnerId = "corwin", Name = "Ember Hold", Specialization = "agri", Population = 10, GovernorId = "ghost" };
+        w.Houses["empty"] = new House { Id = "empty", Name = "House Empty" };                                 // nothing left: ends quietly
+        var dyn = new DynastySystem(); dyn.Tick(w, TestContent.Rng());
+        var cousin = w.Characters.Values.Single(c => c.HouseId == "corwin");
+        Assert.True(cousin.Alive); Assert.StartsWith("cousin_corwin_", cousin.Id); Assert.Equal(cousin.Id, w.Holding("corwin_world")!.GovernorId);
+        Assert.Contains(cousin.Id, w.House("corwin")!.Members); Assert.True(w.Pools.ContainsKey(cousin.Id));
+        Assert.DoesNotContain(w.Characters.Values, c => c.HouseId == "empty");
+        Assert.Contains(w.History, h => h.Text.Contains("raises the banner of House Corwin"));
+        // the player's house: kill the protagonist with no heir and no cousin appears
+        w.Char("self")!.Alive = false; dyn.Tick(w, TestContent.Rng());
+        Assert.DoesNotContain(w.Characters.Values, c => c.HouseId == "vega" && c.Alive);
+    }
+
+    [Fact]
+    public void ASteward_DoesNotBorrow_OnASinkingLedger_AndSellsALosingVenture()
+    {
+        var w = TestContent.EconomyWorld(credits: -12, materials: 0); var cat = TestContent.EconomyCatalog();
+        var ventures = new BusinessCatalog(new[] { new BusinessDef { Id = "academy_patronage", Name = "Academy Patronage", Cost = new Resources { Credits = 12 }, FlatYield = new Resources { Influence = 1 }, Upkeep = new Resources { Credits = 1 }, MaxLevel = 2 } });
+        w.Houses["npc"] = new House { Id = "npc", Name = "House Npc", Treasury = new Resources { Credits = -12 } };
+        w.Characters["npc_head"] = new Character { Id = "npc_head", Name = "Mara", HouseId = "npc", Age = 40, Alive = true }; w.Houses["npc"].Members.Add("npc_head"); w.Pools["npc_head"] = ActionPools.ForNpc();
+        w.Holdings["npc_fort"] = new Holding { Id = "npc_fort", OwnerId = "npc", Name = "Fort", Specialization = "forge", SystemId = "" };          // forge: −2 credits a turn, materials only
+        w.Businesses["biz"] = new Business { Id = "biz", Name = "Npc Patronage", OwnerId = "npc", Kind = "academy_patronage", SystemId = "", Level = 1 };
+        var ai = new NpcAi(); var exec = new CommandExecutor(); var ctx = new CommandContext(w, TestContent.Rng());
+        ai.Act(exec, ctx, null, cat, null, ventures);
+        Assert.Equal(0, w.House("npc")!.Debt);                                            // no loan on a negative forecast
+        Assert.False(w.Businesses.ContainsKey("biz"));                                      // the losing venture was sold
+        Assert.True(w.House("npc")!.Treasury.Credits > -12);
+    }
+}

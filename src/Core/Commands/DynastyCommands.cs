@@ -131,6 +131,7 @@ public sealed class AssassinateCommand : ICommand
     {
         var w = ctx.World; var actor = w.Char(ActorId); var t = w.Char(_targetId);
         return actor?.Alive == true && t?.Alive == true && t.Id != ActorId && t.HouseId != actor.HouseId
+            && t.Age >= DynastySystem.AgeOfMajority   // no house, however ruthless, puts a knife to a child (GDD §14)
             && !t.Flags.Contains(DynastySystem.HiddenFlag) && ctx.PoolsOf(ActorId).CanAfford(CostMap);
     }
 
@@ -164,7 +165,7 @@ public sealed class AssassinateCommand : ICommand
                 var rel = w.Relationship(c.Id, actor.Id); rel.Disposition = Math.Clamp(rel.Disposition - 40, -100, 100);
                 c.Flags.Add("feud");
             }
-            w.WorldFlags.Add($"assassin:{actor.HouseId}");
+            w.WorldFlags.Add($"assassin:{actor.HouseId}"); if (!player) w.WorldFlags.Add("assassin_any");   // a knife from somewhere, for content to trace
             if (w.House(actor.HouseId) is { } h) h.Legitimacy = Math.Max(0, h.Legitimacy - 5);
             if (player) { w.WorldCounters["seizures"] = w.Counter("seizures") + 1; w.WorldFlags.Add("plot_exposed"); }
             if (t.Id == w.ProtagonistId || t.HouseId == w.Protagonist?.HouseId) w.WorldFlags.Add("knife_turned");

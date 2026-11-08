@@ -531,6 +531,7 @@ internal static class Commands
                 for (int t = 0; t < turns && !world.IsDynastyDead; t++)
                 {
                     foreach (var item in tc.BeginTurn()) { events++; var c = tc.Offer(item).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(item, c.Choice.Id); }
+                    AutoWed(tc, content, world);
                     tc.EndTurn();
                 }
                 if (world.IsDynastyDead) ended++;
@@ -544,6 +545,16 @@ internal static class Commands
         }
         Console.WriteLine("\n(ended = runs where the dynasty died; per-seed averages elsewhere; throne = total throne takes)");
         return 0;
+    }
+
+    /// <summary>The auto-player's one dynastic duty: an unwed adult protagonist proposes to the first acceptable match (id order), so a
+    /// long run has heirs and the dynasty outlives its first head as the design intends (GDD §14).</summary>
+    private static void AutoWed(TurnController tc, ContentDatabase content, Praetoria.Core.State.World world)
+    {
+        var p = world.Protagonist; if (p is not { Alive: true } || p.Age < DynastySystem.AgeOfMajority || DynastySystem.Spouse(world, p) != null) return;
+        var ctx = new CommandContext(world, WorldBuilder.RngFor(world));
+        foreach (var t in world.LivingCharacters().Where(c => c.HouseId != p.HouseId).OrderBy(c => c.Id, StringComparer.Ordinal))
+            if (tc.Executor.TryExecute(new ProposeMarriageCommand(p.Id, p.Id, t.Id, content.Titles), ctx)) return;
     }
 
     /// <summary>The saga epilogue of a saved game (GDD §14).</summary>

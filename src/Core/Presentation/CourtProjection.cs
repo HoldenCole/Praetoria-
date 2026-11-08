@@ -240,13 +240,17 @@ public static class CourtProjection
             {
                 var rel = w.GetRelationship(c.Id, p.Id); int d = rel?.Disposition ?? 0;
                 var actions = new List<Option>();
-                if (suitor != null)
+                // no match and no knife is offered against a child (GDD §14): the court does not list what the house would not do
+                if (c.Age >= DynastySystem.AgeOfMajority)
                 {
-                    var pm = new ProposeMarriageCommand(p.Id, suitor.Id, c.Id, content.Titles);
-                    actions.Add(new Option("marry:" + suitor.Id, $"Propose {suitor.Name} ⚭ {c.Name}  (2 influence)", pm.Refusal(ctx)));
+                    if (suitor != null)
+                    {
+                        var pm = new ProposeMarriageCommand(p.Id, suitor.Id, c.Id, content.Titles);
+                        actions.Add(new Option("marry:" + suitor.Id, $"Propose {suitor.Name} ⚭ {c.Name}  (2 influence)", pm.Refusal(ctx)));
+                    }
+                    var kill = new AssassinateCommand(p.Id, c.Id, content.Friction);
+                    actions.Add(new Option("assassinate", $"Arrange an accident  (2 agents · {AssassinateCommand.Odds(w, p, c):P0})", kill.CanExecute(ctx) ? null : "unreachable, or no agents"));
                 }
-                var kill = new AssassinateCommand(p.Id, c.Id, content.Friction);
-                actions.Add(new Option("assassinate", $"Arrange an accident  (2 agents · {AssassinateCommand.Odds(w, p, c):P0})", kill.CanExecute(ctx) ? null : "unreachable, or no agents"));
                 return new ConnectionLine(c.Id, c.Name, w.House(c.HouseId)?.Name ?? c.HouseId, content.Careers.RankName(c.CareerTrack, c.CareerRank) ?? (c.Age < DynastySystem.AgeOfMajority ? $"child, {c.Age}" : $"{c.Age}, untitled"), d, BondName(rel),
                     c.Flags.Where(f => !f.StartsWith("background:")).OrderBy(f => f, StringComparer.Ordinal).ToList(), d < -20, actions);
             }).ToList();

@@ -271,14 +271,27 @@ export class Galaxy {
   setMinimap(canvas) { this.mini = canvas; if (!canvas) return; canvas.addEventListener('pointerdown', e => { if (!this.bounds) return; const r = canvas.getBoundingClientRect(); const m = this.miniMap(); const x = (e.clientX - r.left) / r.width * canvas.width, y = (e.clientY - r.top) / r.height * canvas.height; this.target.set(m.minX + (x - m.ox) / m.k, m.maxY - (y - m.oy) / m.k, 0); this.updateCamera(); }); }
   miniMap() { const b = this.bounds, pad = 70; const w = this.mini.width, h = this.mini.height; const kx = (w - 12) / (b.maxX - b.minX + pad * 2), ky = (h - 12) / (b.maxY - b.minY + pad * 2); const k = Math.min(kx, ky); const ox = (w - (b.maxX - b.minX + pad * 2) * k) / 2 + pad * k, oy = (h - (b.maxY - b.minY + pad * 2) * k) / 2 + pad * k; return { k, ox, oy, minX: b.minX, maxY: b.maxY }; }
   separateRegionLabels() {
-    // region names keep off one another by the smallest vertical nudge, up or down; system names are not obstacles
+    // region names keep off one another and off system names: each tries a ring of candidate offsets around its centre
+    // and takes the one with the least overlap (a region name counts triple), nearest the centre on a tie
     const vis = e => e.style.display !== 'none' && getComputedStyle(e).display !== 'none';
-    const items = this.labels.map(l => l.element).filter(e => e.classList.contains('region-label') && vis(e))
-      .map(e => { const m = parseFloat(e.style.marginTop) || 0; const r = e.getBoundingClientRect(); return { e, x: r.left, y: r.top - m, w: r.width, h: r.height, dy: 0 }; }).filter(o => o.w > 0).sort((a, b) => a.y - b.y);
-    for (let i = 0; i < items.length; i++) { const a = items[i]; for (let pass = 0; pass < 8; pass++) { let moved = false; for (let j = 0; j < i; j++) { const b = items[j];
-      const ax0 = a.x, ax1 = a.x + a.w, bx0 = b.x, bx1 = b.x + b.w; const ay0 = a.y + a.dy, ay1 = ay0 + a.h, by0 = b.y + b.dy, by1 = by0 + b.h;
-      if (ax0 < bx1 + 8 && ax1 + 8 > bx0 && ay0 < by1 + 4 && ay1 + 4 > by0) { const down = (by1 + 5) - ay0, up = (by0 - 5) - ay1; a.dy += Math.abs(up) < down ? up : down; moved = true; } } if (!moved) break; } }
-    for (const it of items) it.e.style.marginTop = it.dy ? it.dy + 'px' : '';
+    const box = (e, dx, dy) => { const r = e.getBoundingClientRect(); return { x: r.left - dx, y: r.top - dy, w: r.width, h: r.height }; };
+    const sys = this.labels.map(l => l.element).filter(e => e.classList.contains('sys-label') && vis(e)).map(e => box(e, 0, 0)).filter(b => b.w > 0);
+    const regions = this.labels.map(l => l.element).filter(e => e.classList.contains('region-label') && vis(e))
+      .map(e => ({ e, b: box(e, parseFloat(e.style.marginLeft) || 0, parseFloat(e.style.marginTop) || 0) })).filter(o => o.b.w > 0).sort((a, b) => a.b.y - b.b.y);
+    const overlap = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) + 6) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) + 4);
+    const placed = []; const step = 18;
+    const cands = [[0, 0]]; for (let k = 1; k <= 4; k++) { cands.push([0, -k * step], [0, k * step]); if (k <= 2) cands.push([-k * 60, 0], [k * 60, 0], [-k * 60, -k * step], [k * 60, -k * step], [-k * 60, k * step], [k * 60, k * step]); }
+    for (const r of regions) {
+      let best = null;
+      for (const [dx, dy] of cands) {
+        const b = { x: r.b.x + dx, y: r.b.y + dy, w: r.b.w, h: r.b.h }; let score = 0;
+        for (const q of placed) score += overlap(b, q) * 3; for (const q of sys) score += overlap(b, q);
+        score += (Math.abs(dx) + Math.abs(dy)) * 0.6;   // prefer staying near the centre
+        if (!best || score < best.score) best = { score, dx, dy, b };
+        if (score === 0 && dx === 0 && dy === 0) break;
+      }
+      placed.push(best.b); r.e.style.marginLeft = best.dx ? best.dx + 'px' : ''; r.e.style.marginTop = best.dy ? best.dy + 'px' : '';
+    }
   }
   drawMinimap() {
     const c = this.mini; if (!c || !this.model || !this.bounds) return; const ctx = c.getContext('2d'); const m = this.miniMap(); const P = (x, y) => [m.ox + (x - m.minX) * m.k, m.oy + (m.maxY - y) * m.k];

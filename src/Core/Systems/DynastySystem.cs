@@ -57,8 +57,32 @@ public sealed class DynastySystem
 
         RollDeaths(world, rng);
         RollBirths(world, rng);
+        RaiseCousins(world, rng);
         UpdateRegency(world);
         Society(world);
+    }
+
+    /// <summary>A rival house whose last member has died does not vanish with its worlds rotting unheld (GDD §19 the galaxy stays
+    /// peopled): a cousin from the provinces takes up the banner — an adult of the house's culture with a modest career, who
+    /// governs what the house still holds. The player's house never gets this mercy; its ending is the saga's.</summary>
+    private void RaiseCousins(World world, IRng rng)
+    {
+        var mine = world.Protagonist?.HouseId;
+        foreach (var house in world.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            if (house.Id == mine) continue;
+            if (world.Characters.Values.Any(c => c.Alive && c.HouseId == house.Id)) continue;
+            if (!world.HoldingsOf(house.Id).Any() && !world.BusinessesOf(house.Id).Any() && !world.Fleets.Values.Any(f => f.OwnerId == house.Id)) continue;   // a name with nothing left ends quietly
+            int n = world.Counter("cousins") + 1; world.WorldCounters["cousins"] = n;
+            string sex = rng.NextDouble() < 0.5 ? "male" : "female"; string surname = house.Name.Replace("House ", "");
+            string given = Content is { Names.IsEmpty: false } ? Content.Names.Pick(house.Culture, sex, rng) : $"Cousin {n}";
+            var tracks = Content is { Careers.IsEmpty: false } ? Content.Careers.Defs.Select(t => t.Id).ToList() : new List<string> { "military", "stewardship", "law" };
+            var cousin = new Character { Id = $"cousin_{house.Id}_{n}", Name = $"{given} {surname}", HouseId = house.Id, Age = 26 + rng.NextInt(0, 15), Sex = sex, CareerTrack = tracks[rng.NextInt(0, tracks.Count)], CareerRank = 1 };
+            cousin.Skills["administration"] = 1 + rng.NextInt(0, 2);
+            world.Characters[cousin.Id] = cousin; house.Members.Add(cousin.Id); world.Pools[cousin.Id] = ActionPools.ForNpc();
+            foreach (var h in world.HoldingsOf(house.Id)) if (h.GovernorId.Length == 0 || world.Char(h.GovernorId)?.Alive != true) h.GovernorId = cousin.Id;
+            world.Log($"{cousin.Name}, a cousin out of the provinces, raises the banner of {house.Name}.");
+        }
     }
 
     /// <summary>At sixteen a child becomes a person (GDD §5/§13 — each heir starts a fresh career): one nature trait

@@ -47,6 +47,36 @@
         "ride_out": "Ride the frontier yourself. Sleep in their halls.",
         "send_a_steward": "Send a steward with a ledger."
       }
+    },
+    {
+      "id": "the_enemys_envoy",
+      "title": "The Enemy's Envoy",
+      "body": "An envoy from the house {self.house} is at war with waits in the antechamber under a flag of parley. The terms are in a sealed case; the smile is unsealed. To hear him is to admit the war could end on someone else's words; to refuse him is to say it will end on yours; and the man himself, it is whispered, has a price.",
+      "choices": {
+        "hear_terms": "Hear the terms. Send him back with wine and no answer.",
+        "send_him_back": "Read the terms aloud to the household, then burn them.",
+        "buy_him": "Buy the envoy. Have a friend at the enemy's table."
+      }
+    },
+    {
+      "id": "the_knife_traced_home",
+      "title": "The Knife Traced Home",
+      "body": "The assassin is dead and the household is counting its blessings, but the steward has done more than count. A seal on the hilt, a letter in a lining, a payment through a counting-house that keeps records: the knife has been traced to a house, and {self.name} now holds a proof that could be read aloud in the chamber, kept for a better day, or answered in the only language its senders respect.",
+      "choices": {
+        "name_them": "Lay the proof before the chamber and name them.",
+        "keep_the_proof": "Keep it. A proof is worth most on the day it is needed.",
+        "answer_in_kind": "Answer in kind."
+      }
+    },
+    {
+      "id": "the_coalition_gathers",
+      "title": "The Coalition Gathers",
+      "body": "The envoys of four houses have taken the same inn on the same world and are not pretending otherwise. The rise of {self.house} has frightened them into each other's company. {self.name} can break the seam before it sets, show them the fleet and let fear do the rest, or give them something large enough to send them home satisfied and the house diminished.",
+      "choices": {
+        "divide_them": "Find the weakest seam and pay for it.",
+        "show_strength": "Hold a fleet review within sight of their envoys.",
+        "bend": "Concede something they can see from orbit."
+      }
     }
   ]
 }

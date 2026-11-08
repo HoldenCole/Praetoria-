@@ -187,7 +187,7 @@ public sealed class NpcAi
                 var sellExotics = catalog.Rates.FirstOrDefault(r => r.Give == Resource.Exotics && r.Get == Resource.Credits);
                 var sellMaterials = catalog.Rates.FirstOrDefault(r => r.Give == Resource.Materials && r.Get == Resource.Credits);
                 if (sellExotics != null && house.Treasury.Exotics >= sellExotics.GiveAmount) executor.TryExecute(new ExchangeCommand(steward.Id, sellExotics, catalog), ctx);
-                else if (sellMaterials != null && house.Treasury.Materials >= sellMaterials.GiveAmount * 3 + 6) executor.TryExecute(new ExchangeCommand(steward.Id, sellMaterials, catalog, times: 3), ctx);
+                else if (sellMaterials != null && house.Treasury.Materials >= sellMaterials.GiveAmount + 2) executor.TryExecute(new ExchangeCommand(steward.Id, sellMaterials, catalog, times: Math.Clamp((house.Treasury.Materials - 2) / sellMaterials.GiveAmount, 1, 4)), ctx);   // sell what can be spared, as much as four lots
                 if (catalog.Tax("harsh") != null && !world.HoldingsOf(house.Id).Any(h => h.Unrest >= 60)) executor.TryExecute(new SetTaxPolicyCommand(steward.Id, "harsh", catalog), ctx);
             }
             else if (house.TaxPolicy == "harsh" && house.Treasury.Credits > 10 && catalog.Tax("normal") != null) executor.TryExecute(new SetTaxPolicyCommand(steward.Id, "normal", catalog), ctx);
@@ -222,8 +222,16 @@ public sealed class NpcAi
     /// rival fortunes grow steadily and reproducibly.</summary>
     private void Venture(House house, Character steward, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
     {
-        var world = ctx.World; var f = _ventures.Finance; var galaxy = world.Galaxy;
-        if (house.Treasury.Credits < -5 && house.Debt == 0) executor.TryExecute(new TakeLoanCommand(steward.Id, _ventures), ctx);
+        var world = ctx.World; var f = _ventures.Finance; var galaxy = world.Galaxy; var eco = new Economy(catalog, _ventures);
+        int net = eco.Forecast(world, house.Id).Credits;
+        // deep in the red with a venture to sell: sell the one that pays least before anything else (a loan on a sinking ledger is a spiral)
+        if (house.Treasury.Credits < -10)
+        {
+            var worst = world.BusinessesOf(house.Id).Select(b => (b, pay: VentureNet(world, house, b))).OrderBy(x => x.pay).ThenBy(x => x.b.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (worst.b != null && (worst.pay <= 0 || house.Treasury.Credits < -25)) executor.TryExecute(new SellBusinessCommand(steward.Id, worst.b.Id, _ventures), ctx);
+        }
+        // a loan is a bridge, not a floor: borrow only when the ledger is positive, so the instalments can be met
+        if (house.Treasury.Credits < -5 && house.Debt == 0 && net > 0) executor.TryExecute(new TakeLoanCommand(steward.Id, _ventures), ctx);
         if (house.Debt > 0 && house.Treasury.Credits >= house.Debt + 15) executor.TryExecute(new RepayLoanCommand(steward.Id), ctx);
         if (house.Treasury.Credits >= f.InvestCredits + 14)
         {
@@ -231,30 +239,46 @@ public sealed class NpcAi
             if (slack != null) executor.TryExecute(new InvestCommand(steward.Id, slack.Id, _ventures), ctx);
         }
         if (galaxy == null) return;
-        if (house.Treasury.Credits >= f.ClaimCredits + 8 && house.Treasury.Materials >= f.ClaimMaterials + 2)
+        // a house whose land earns nothing must find its coin elsewhere: it stakes and founds on a thinner cushion
+        int cushion = net <= 0 ? 2 : 10;
+        if (house.Treasury.Credits >= f.ClaimCredits + cushion && house.Treasury.Materials >= f.ClaimMaterials)
             foreach (var sys in galaxy.Systems.Values.Where(s => s.Belt > 0).OrderBy(s => s.Id, StringComparer.Ordinal))
                 if (executor.TryExecute(new StakeClaimCommand(steward.Id, sys.Id, catalog, _ventures), ctx)) break;
         if (_ventures.IsEmpty) return;
         var mine = world.BusinessesOf(house.Id).ToList();
         if (mine.Count < 3)
         {
-            // where the house already is first, then the rest of the map
-            var own = world.HoldingsOf(house.Id).Select(h => h.SystemId).Where(s => s.Length > 0).Distinct().OrderBy(s => s, StringComparer.Ordinal).ToList();
-            var systems = own.Concat(galaxy.Systems.Keys.Where(s => !own.Contains(s)).OrderBy(s => s, StringComparer.Ordinal)).ToList();
-            bool founded = false;
+            // every kind in every system it can afford, ranked by what it would clear in credits a turn; nothing that would lose coin
+            var own = world.HoldingsOf(house.Id).Select(h => h.SystemId).Where(s => s.Length > 0).Distinct().ToHashSet();
+            (string def, string sys, int pay)? best = null;
             foreach (var def in _ventures.Defs)
             {
-                if (!Resource.All.All(r => house.Treasury.Get(r) >= def.Cost.Get(r) + (r == Resource.Credits ? 10 : 0))) continue;   // keep a cushion
-                foreach (var sys in systems) if (executor.TryExecute(new FoundBusinessCommand(steward.Id, def.Id, sys, _ventures, catalog, Titles), ctx)) { founded = true; break; }
-                if (founded) break;
+                if (!Resource.All.All(r => house.Treasury.Get(r) >= def.Cost.Get(r) + (r == Resource.Credits ? cushion : 0))) continue;
+                foreach (var sys in galaxy.Systems.Values.OrderBy(s => s.Id, StringComparer.Ordinal))
+                {
+                    if (new FoundBusinessCommand(steward.Id, def.Id, sys.Id, _ventures, catalog, Titles).Refusal(ctx) != null) continue;
+                    int pay = ProjectedNet(world, house, def, sys.Id) + (own.Contains(sys.Id) ? 1 : 0);
+                    if (pay <= 0) continue;
+                    if (best == null || pay > best.Value.pay) best = (def.Id, sys.Id, pay);
+                }
             }
+            if (best != null) executor.TryExecute(new FoundBusinessCommand(steward.Id, best.Value.def, best.Value.sys, _ventures, catalog, Titles), ctx);
         }
         foreach (var b in mine)
         {
-            var def = _ventures.Def(b.Kind); if (def == null || b.Level >= def.MaxLevel) continue;
+            var def = _ventures.Def(b.Kind); if (def == null || b.Level >= def.MaxLevel || VentureNet(world, house, b) <= 0) continue;
             if (house.Treasury.Credits >= def.ExpandCost.Credits + 16 && executor.TryExecute(new ExpandBusinessCommand(steward.Id, b.Id, _ventures), ctx)) break;
         }
     }
+
+    /// <summary>Credits a turn a venture of this kind would clear for the house in a system at level one: yield and flat yield, less
+    /// upkeep, less the charter (with the ring's bonus) if the world is another house's.</summary>
+    private int ProjectedNet(World w, House house, BusinessDef def, string systemId)
+    {
+        var holder = w.PlanetHolder(systemId); int charter = holder != null && holder != house.Id ? def.Charter + (w.Galaxy?.RulesFor(w.Galaxy.RingOf(systemId)).CharterBonus ?? 0) : 0;
+        return def.Yield.Credits + def.FlatYield.Credits - def.Upkeep.Credits - charter;
+    }
+    private int VentureNet(World w, House house, Business b) { var def = _ventures.Def(b.Kind); if (def == null) return 0; var holder = w.PlanetHolder(b.SystemId); int charter = holder != null && holder != house.Id ? def.Charter + (w.Galaxy?.RulesFor(w.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0) : 0; return (def.Yield.Credits - def.Upkeep.Credits - charter) * b.Level + def.FlatYield.Credits; }
 
     /// <summary>The first ambitious NPC (id order) lights the fuse on the first causable crisis
     /// (id order) — a deliberate, ambition-serving onset. At most one authored crisis per turn,

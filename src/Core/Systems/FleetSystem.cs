@@ -288,9 +288,11 @@ public sealed class FleetSystem
     public static void RefreshWarFlags(World w)
     {
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("at_war:")).ToList()) w.WorldFlags.Remove(f);
+        w.WorldFlags.Remove("at_war_any");
         var house = w.Protagonist?.HouseId;
         if (house == null) return;
         foreach (var e in w.EnemiesOf(house)) w.WorldFlags.Add(AtWarFlag(e));
+        if (w.EnemiesOf(house).Any()) w.WorldFlags.Add("at_war_any");   // the generic flag content reads (GAP_ANALYSIS §4 item 4)
     }
 
     private static void RefreshSiegeFlag(World w)

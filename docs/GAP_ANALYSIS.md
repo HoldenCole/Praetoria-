@@ -164,3 +164,39 @@ and 4 (geography: the rings) are partly closed.
 ### Where the next forty come from
 Free holds as actors · the capital as a prize · pirate fleets · governors who scheme · pool tuning · peace terms ·
 the unreachable events · era theming.
+
+
+## 7. Full gap QA — 2026-11-08
+
+Method: 285 tests · validator · `praetoria qa` · `simulate --scenario all --seeds 6 --turns 60` · a twenty-turn
+browser drive through all ten screens with save/reload (0 console errors) · an economy probe printing the poorest
+houses at turns 11, 31 and 60.
+
+### Found and fixed this pass
+- Rival stewards founded ventures alphabetically (Academy Patronage, a drain) and without a profit test; borrowed on a
+  negative ledger every seven turns; never sold materials under fifteen; a headless house let its worlds rot. Fixed
+  (profit-ranked founding, sell before borrowing, borrow only when positive, smaller material lots, thinner cushion for
+  landless or yield-less houses, a cousin for a headless rival house). Mean credits at T60: 14 → 99; houses in debt 7 → 1.
+- The auto-player never wed, so the fallen house ended every sixty-turn run. Fixed in the harness.
+- Engine flags no content read (`at_war:*`, `assassin:*`, `coalition_forming`): three reactive events and two generic flags.
+- The Houses screen offered marriage and assassination against infants (a 0-year-old "match", an "accident" for a
+  5-year-old). Hidden in the projection and refused in the command.
+
+### Still open, ranked
+1. **Fortress and fortress-station worlds have no income** (Thalen, Severin, Sato, Strand sit at −1 a turn forever
+   unless they find a venture). A garrison stipend from the capital's holder, or tolls wherever a fortress stands,
+   would make a fortress house viable by design rather than by luck.
+2. **Free holds are orphans** (§6 item 1): no fleet, no ventures, no way back; two of twelve poorest houses at T60 are
+   free holds that cannot act.
+3. **The capital is only a ledger line** (§6 item 2). **Lawlessness has no face** (§6 item 3). **Governors are passive**
+   (§6 item 4).
+4. **The throne falls in every run by turn 60** (`throne 6/6` in five scenarios): the proclaim / seize path is too
+   easy once legitimacy climbs; needs a gate on wealth rank or coalition pressure.
+5. **Wars are frequent and bloodless**: ~30 declarations per 60 turns, under two battles. Fleets rarely meet because
+   NPC sailing is mostly garrison duty now; the chokepoints give a reason to sail that the AI does not yet use.
+6. **Pools are too generous** (§4 item 2); **peace terms, petitions for a fief** (§4 item 1); **24 unreachable events**
+   (§4 item 3); **era theming** (§4 item 9).
+
+### Where the next forty come from
+Fortress income · free holds as actors · the capital as a prize · pirate fleets · governors who scheme · the throne as a
+climb · NPC fleets that contest chokepoints · pool tuning · peace terms · the unreachable events · era theming.

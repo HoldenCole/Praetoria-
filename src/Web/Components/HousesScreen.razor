@@ -33,7 +33,7 @@
                 <div class="kv"><span>Domain</span><b>@worlds.Count world(s) · @stations.Count station(s)</b></div>
                 <div class="kv"><span>Navy</span><b>@FleetSystem.StrengthOf(w, fh.Id) hull(s)</b></div>
                 <div class="kv"><span>Wealth</span><b>@fh.Wealth · <span class="tier @Wealth.Tier(fh.Wealth)">@Wealth.Tier(fh.Wealth)</span>@(fh.Debt > 0 ? " · in debt" : "")</b></div>
-                @if (w.BusinessesOf(fh.Id).Any()) { <div class="kv"><span>Ventures</span><b>@string.Join(", ", w.BusinessesOf(fh.Id).Select(b => $"{c.Businesses.Def(b.Kind)?.Name ?? b.Kind} ({b.Level})"))</b></div> }
+                @if (w.BusinessesOf(fh.Id).Any()) { <div class="kv"><span>Ventures</span><b>@string.Join(", ", w.BusinessesOf(fh.Id).Select(b => $"{c.Businesses.Def(b.Kind)?.Name ?? b.Kind} at {w.Galaxy?.System(b.SystemId)?.Name ?? b.SystemId} ({b.Level})"))</b></div> }
                 @if (fh.SphereInfluence.Any(k => k.Value > 0)) { <div class="kv"><span>Spheres</span><b>@string.Join(" · ", fh.SphereInfluence.Where(k => k.Value > 0).Select(k => $"{k.Key} {k.Value}"))</b></div> }
                 <h4>The people</h4>
                 @foreach (var ch in members.Take(6))

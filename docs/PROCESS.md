@@ -77,5 +77,12 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   too big to fit and you move around it. Reference pass (Star Dynasties, Stellaris) → `docs/ART_DIRECTION.md` "The
   map, second look". Done: hairline lanes, a default view on the player's seat, a minimap with the viewport, a fit
   button, smaller markers, fainter fills, labels that thin out with distance.
+- 2026-11-08 — Full gap QA after the map work: 285 tests, validator, `qa` soak, sixty-turn `simulate` across every
+  scenario, a twenty-turn browser drive through every screen with a save/reload, and a probe of the whole economy at
+  turns 11/31/60. Found: half the houses insolvent by turn 60 (alphabetical venture founding, debt spirals, unsold
+  materials, headless houses), and the fallen house "dying" every sixty-turn run because the auto-player never wed.
+  Fixed all five; mean house credits at turn 60 went from 14 to 99 and houses in debt from 7 to 1. Lesson: a soak
+  that only asks "did it crash" misses an economy that quietly fails; the probe that prints the twelve poorest houses
+  with their specializations found in one line what forty turns of green QA had not.
 - 2026-11-07 — Owner: office good; portraits can wait; galaxy needs a little more; then UI for the Academy and the
   political system at the office's level; then depth. Done: galaxy polish; Senate and Academy screens on new 3D sets.
