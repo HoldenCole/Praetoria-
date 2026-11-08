@@ -176,6 +176,7 @@ public sealed class TurnController
 
         _dynasty.Tick(World, _rng);   // age, deaths→succession, births (GDD §14). RNG only where life turns.
         _family.Tick(World);          // kin with wills of their own (GDD §18) — RNG-free
+        HouseSystem.Tick(World);      // names that have lost everything pass out of the rolls (GDD §13) — RNG-free
 
         SyncRng();
         Phase = TurnPhase.Idle;

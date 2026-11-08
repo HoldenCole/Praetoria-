@@ -449,3 +449,93 @@ public class DepthCycleTests
         Assert.Equal(6, p.Influence);
     }
 }
+
+/// <summary>Houses that fall (HouseSystem): names struck from the rolls, free holds that fold when their world is taken, landless
+/// penniless houses that enter another's service — and the player's house, which never ends this way.</summary>
+public class HouseFallTests
+{
+    private static World Rings(int unrest) { var m = typeof(RegionSystemTests).GetMethod("Rings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!; return (World)m.Invoke(null, new object[] { unrest })!; }
+
+    [Fact]
+    public void ANameWithNoOneLeft_PassesOutOfTheRolls()
+    {
+        var w = Rings(0);
+        w.Houses["ghost"] = new House { Id = "ghost", Name = "House Ghost", Treasury = new Resources { Credits = -20 } };
+        w.Wars.Add(new War { HouseA = "ghost", HouseB = "corwin" });
+        HouseSystem.Tick(w);
+        Assert.False(w.Houses.ContainsKey("ghost")); Assert.Empty(w.Wars); Assert.Equal(1, w.Counter("houses_fallen"));
+        Assert.Contains(w.History, h => h.Text.Contains("House Ghost") && h.Text.Contains("rolls"));
+    }
+
+    [Fact]
+    public void AFreeHoldWhoseWorldIsTaken_FoldsIntoTheTaker()
+    {
+        var w = Rings(90); var rs = new RegionSystem(); RegionSystem.StateOf(w, "rim").Allegiance = 10;
+        for (int t = 0; t < 6; t++) { w.Turn++; rs.Tick(w); }
+        var barony = w.Holding("barony")!; Assert.Equal("free_tessaly", barony.OwnerId);
+        var leader = barony.GovernorId;
+        barony.OwnerId = "corwin"; barony.FormerOwnerId = "free_tessaly";          // Corwin's fleet takes the world
+        HouseSystem.Tick(w);
+        Assert.False(w.Houses.ContainsKey("free_tessaly"));
+        Assert.Equal("corwin", w.Char(leader)!.HouseId); Assert.Contains(leader, w.House("corwin")!.Members);
+        Assert.All(w.Fleets.Values, f => Assert.NotEqual("free_tessaly", f.OwnerId));
+        Assert.Equal("", barony.FormerOwnerId);                                    // nothing left to reclaim from
+        Assert.Contains(w.History, h => h.Text.Contains("pass to House Corwin"));
+    }
+
+    [Fact]
+    public void ALandlessPennilessHouse_EntersAnothersService_AfterTwelveYears_ButNotWhileItHasAHullOrCoin()
+    {
+        var w = Rings(0);
+        w.Houses["poor"] = new House { Id = "poor", Name = "House Poor", Culture = "reach", Treasury = new Resources { Credits = -15 } };
+        w.Characters["poor_head"] = new Character { Id = "poor_head", Name = "Tam", HouseId = "poor", Age = 40 }; w.Houses["poor"].Members.Add("poor_head");
+        w.House("aurelian")!.Culture = "reach"; w.House("corwin")!.Culture = "other"; w.House("corwin")!.Treasury.Credits = 500;
+        HouseSystem.Tick(w);                                                        // the wait begins
+        Assert.True(w.Houses.ContainsKey("poor")); Assert.Equal(w.Turn, w.Counter("landless_since:poor"));
+        w.Turn += HouseSystem.ServiceTurns;
+        w.Fleets["poor_hull"] = new Fleet { Id = "poor_hull", Name = "Last Hull", OwnerId = "poor", SystemId = "empty", Strength = 1 };
+        HouseSystem.Tick(w); Assert.True(w.Houses.ContainsKey("poor"));          // a hull is still a game
+        w.Fleets.Remove("poor_hull"); w.House("poor")!.Treasury.Credits = 3;
+        HouseSystem.Tick(w); Assert.True(w.Houses.ContainsKey("poor"));          // so is coin in hand
+        w.House("poor")!.Treasury.Credits = -15;
+        HouseSystem.Tick(w);
+        Assert.False(w.Houses.ContainsKey("poor"));
+        Assert.Equal("aurelian", w.Char("poor_head")!.HouseId);                    // the richest house of its own culture, not the richest house
+        Assert.Equal(30, w.House("aurelian")!.Treasury.Credits);                   // debts are written off, not inherited
+        Assert.False(w.WorldCounters.ContainsKey("landless_since:poor"));
+        Assert.Contains(w.History, h => h.Text.Contains("enters the service of House Aurelian"));
+    }
+
+    [Fact]
+    public void ThePlayersHouse_AndTheLawless_NeverFallThisWay()
+    {
+        var w = Rings(0); var mine = w.Protagonist!.HouseId;
+        foreach (var h in w.HoldingsOf(mine).ToList()) w.Holdings.Remove(h.Id);
+        w.House(mine)!.Treasury.Credits = -50; w.WorldCounters["landless_since:" + mine] = -100;
+        PirateSystem.Ensure(w);
+        HouseSystem.Tick(w);
+        Assert.True(w.Houses.ContainsKey(mine)); Assert.True(w.Houses.ContainsKey(PirateSystem.HouseId));
+    }
+}
+
+public class PatronTests
+{
+    private static World Rings(int unrest) { var m = typeof(RegionSystemTests).GetMethod("Rings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!; return (World)m.Invoke(null, new object[] { unrest })!; }
+
+    [Fact]
+    public void WhenTheCourtHoldsOnlyTheCapital_TheFiefComesFromAPatron()
+    {
+        var w = Rings(0); w.Holdings.Remove("barony");
+        w.Holdings["corwin_two"] = new Holding { Id = "corwin_two", OwnerId = "corwin", Name = "Corwin's Lesser", Specialization = "agri", SystemId = "empty", Population = 4 };
+        w.House("vega")!.Legitimacy = 25; w.House("vega")!.Title = "landless"; var ctx = new CommandContext(w, TestContent.Rng());
+        Assert.Equal("corwin", PetitionFiefCommand.Grantor(w, "vega")!.Id);                      // the court has no world to spare; Corwin has two
+        var cmd = new PetitionFiefCommand("self");
+        Assert.Equal("House Corwin does not think well enough of you", cmd.Refusal(ctx));
+        w.Relationship("corwin_head", "self").Disposition = 15; w.Pools["self"].Influence = 3;
+        Assert.True(new CommandExecutor().TryExecute(cmd, ctx));
+        Assert.Equal("vega", w.Holding("corwin_two")!.OwnerId); Assert.Equal("baron", w.House("vega")!.Title);
+        Assert.Contains(w.History, h => h.Text.Contains("as patron"));
+        w.Wars.Add(new War { HouseA = "vega", HouseB = "aurelian" }); w.Holdings.Remove("corwin_two");
+        Assert.Null(PetitionFiefCommand.Grantor(w, "vega"));                                        // no one left with a world to spare
+    }
+}

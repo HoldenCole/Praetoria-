@@ -295,10 +295,16 @@ public sealed class NpcAi
             if (slack != null) executor.TryExecute(new InvestCommand(steward.Id, slack.Id, _ventures), ctx);
         }
         if (galaxy == null) return;
-        if (!world.HoldingsOf(house.Id).Any(h => h.IsPlanet)) executor.TryExecute(new PetitionFiefCommand(steward.Id), ctx);   // a landless house asks the court for land
+        if (!world.HoldingsOf(house.Id).Any(h => h.IsPlanet))   // a landless house pays court to the crown, then asks it for land
+        {
+            var court = PetitionFiefCommand.Grantor(world, house.Id); var crown = court != null ? Economy.HeadOf(world, court) : null;
+            if (crown != null && (world.GetRelationship(crown.Id, steward.Id)?.Disposition ?? 0) < 10) executor.TryExecute(new SeekAllyCommand(steward.Id, crown.Id), ctx);
+            executor.TryExecute(new PetitionFiefCommand(steward.Id), ctx);
+        }
         // a house whose land earns nothing must find its coin elsewhere: it stakes and founds on a thinner cushion
         int cushion = net <= 0 ? 2 : 10;
-        if (house.Treasury.Credits >= f.ClaimCredits + cushion && house.Treasury.Materials >= f.ClaimMaterials)
+        // and it stakes no more than two belt claims unless the ledger is comfortably in the black: claims pay in ore, not coin
+        if (house.Treasury.Credits >= f.ClaimCredits + cushion && house.Treasury.Materials >= f.ClaimMaterials && (world.HoldingsOf(house.Id).Count(h => h.IsClaim) < 2 || net > 3))
             foreach (var sys in galaxy.Systems.Values.Where(s => s.Belt > 0).OrderBy(s => s.Id, StringComparer.Ordinal))
                 if (executor.TryExecute(new StakeClaimCommand(steward.Id, sys.Id, catalog, _ventures), ctx)) break;
         if (_ventures.IsEmpty) return;

@@ -1,5 +1,6 @@
 using System.Text;
 using Praetoria.Core;
+using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.Events;
 using Praetoria.Core.Rng;
@@ -76,6 +77,7 @@ internal static class Qa
         Section("Events that never fired", never);
         Section($"Rarely fired (≤ {Math.Max(1, runs / 10)} across all runs)", rare.Select(kv => $"{kv.Key} ×{kv.Value}"));
         Section("Choices never taken (on events that did fire)", neverTaken);
+        Section("Commands the randomised player gave", taken.Where(kv => kv.Key.StartsWith("cmd/")).OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key[4..]} ×{kv.Value}"));
         Section("Unresolved text tokens", tokens.OrderBy(t => t, StringComparer.Ordinal));
         Section("Chronicle oddities (first 40)", oddities.Distinct().Take(40));
 
@@ -193,7 +195,82 @@ internal static class Qa
                 taken[key] = taken.GetValueOrDefault(key) + 1;
             }
         }
+        Act(tc, world, content, decisions, taken);
         tc.EndTurn();
+    }
+
+    private static readonly string[] Skills = { "administration", "charisma", "discipline", "economics", "engineering", "intrigue", "law", "leadership", "logistics", "oratory" };
+
+    /// <summary>The randomised player's action phase (GAP §4 item 3): events alone cannot reach the economy, the fleet or the court,
+    /// so every turn the soak lists every command the protagonist might give — ventures, claims, loans, builds, ships, moves, wars,
+    /// peace, the fief, the free hold, governors, titles, the throne — shuffles them on the decision stream, and tries up to four,
+    /// stopping after two take. <see cref="CommandExecutor.TryExecute"/> guards each with CanExecute, so illegal picks cost nothing;
+    /// what is recorded under <c>cmd/</c> in the "taken" table is the coverage. Candidates are built in id order so a replay and a
+    /// resumed save draw the same list.</summary>
+    private static void Act(TurnController tc, World w, ContentDatabase content, IRng decisions, Dictionary<string, int>? taken)
+    {
+        var p = w.Protagonist; if (p is not { Alive: true }) return;
+        var house = w.House(p.HouseId); if (house == null) return;
+        var ctx = new CommandContext(w, WorldBuilder.RngFor(w));
+        var g = w.Galaxy; var bc = content.Businesses;
+        var cands = new List<ICommand>();
+        string Ord(string a) => a;
+        var worlds = w.HoldingsOf(house.Id).Where(h => h.IsPlanet).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var fleets = w.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Office).OrderBy(f => f.Id, StringComparer.Ordinal).ToList();
+        var others = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var members = house.Members.Where(id => w.Char(id)?.Alive == true && id != p.Id).OrderBy(Ord, StringComparer.Ordinal).ToList();
+
+        cands.Add(new TrainCommand(p.Id, Skills[decisions.NextInt(0, Skills.Length)]));
+        foreach (var h in worlds)
+        {
+            foreach (var b in content.Holdings.Buildings.OrderBy(b => b.Id, StringComparer.Ordinal))
+                if (b.FitsSpecialization(h.Specialization) && !h.Buildings.Contains(b.Id)) cands.Add(new BuildCommand(p.Id, h.Id, b.Id, content.Holdings, content.Titles));
+            cands.Add(new RaiseFleetCommand(p.Id, h.Id, content.Fleets, content.ShipClasses, null, content.Titles));
+            cands.Add(new InvestCommand(p.Id, h.Id, bc));
+            if (members.Count > 0) cands.Add(new AppointGovernorCommand(p.Id, h.Id, members[decisions.NextInt(0, members.Count)]));
+        }
+        foreach (var t in content.Holdings.TaxPolicies.OrderBy(t => t.Id, StringComparer.Ordinal)) cands.Add(new SetTaxPolicyCommand(p.Id, t.Id, content.Holdings));
+        if (g != null)
+        {
+            foreach (var f in fleets)
+            {
+                var nbrs = g.Neighbors(f.SystemId).OrderBy(Ord, StringComparer.Ordinal).ToList();
+                if (nbrs.Count > 0) cands.Add(new MoveFleetCommand(p.Id, f.Id, nbrs[decisions.NextInt(0, nbrs.Count)], content.Fleets));
+                if (g.Capital.Length > 0) cands.Add(new MoveFleetCommand(p.Id, f.Id, g.Capital, content.Fleets));
+                if (members.Count > 0) cands.Add(new AssignAdmiralCommand(p.Id, f.Id, members[decisions.NextInt(0, members.Count)]));
+                cands.Add(new RefitFleetCommand(p.Id, f.Id));
+            }
+            if (fleets.Count >= 2) cands.Add(new MergeFleetsCommand(p.Id, fleets[0].Id, fleets[1].Id));
+            var own = worlds.Select(h => h.SystemId).ToHashSet();
+            foreach (var def in bc.Defs.OrderBy(d => d.Id, StringComparer.Ordinal))
+            {
+                foreach (var sys in own.OrderBy(Ord, StringComparer.Ordinal)) cands.Add(new FoundBusinessCommand(p.Id, def.Id, sys, bc, content.Holdings, content.Titles));
+                var any = g.Systems.Values.OrderBy(s => s.Id, StringComparer.Ordinal).ToList();
+                cands.Add(new FoundBusinessCommand(p.Id, def.Id, any[decisions.NextInt(0, any.Count)].Id, bc, content.Holdings, content.Titles));
+            }
+            foreach (var sys in g.Systems.Values.Where(s => s.Belt > 0).OrderBy(s => s.Id, StringComparer.Ordinal)) cands.Add(new StakeClaimCommand(p.Id, sys.Id, content.Holdings, bc));
+            foreach (var h in w.Holdings.Values.Where(h => h.FormerOwnerId == house.Id).OrderBy(h => h.Id, StringComparer.Ordinal)) cands.Add(new ReclaimFreeholdCommand(p.Id, h.Id));
+        }
+        foreach (var b in w.BusinessesOf(house.Id).OrderBy(b => b.Id, StringComparer.Ordinal)) { cands.Add(new ExpandBusinessCommand(p.Id, b.Id, bc)); if (decisions.NextInt(0, 6) == 0) cands.Add(new SellBusinessCommand(p.Id, b.Id, bc)); }
+        cands.Add(new TakeLoanCommand(p.Id, bc)); cands.Add(new RepayLoanCommand(p.Id)); cands.Add(new PetitionFiefCommand(p.Id));
+        if (others.Count > 0 && decisions.NextInt(0, 4) == 0) cands.Add(new DeclareWarCommand(p.Id, others[decisions.NextInt(0, others.Count)].Id, content.Fleets));
+        foreach (var war in w.Wars.Where(x => x.Involves(house.Id)).OrderBy(x => x.HouseA + x.HouseB, StringComparer.Ordinal)) cands.Add(new SueForPeaceCommand(p.Id, war.HouseA == house.Id ? war.HouseB : war.HouseA, content.Fleets));
+        if (tc.Progression is { } prog) { cands.Add(new SeizeTitleCommand(p.Id, prog)); cands.Add(new PetitionTitleCommand(p.Id, prog)); cands.Add(new ClaimTitleCommand(p.Id, prog)); }
+        cands.Add(new ProclaimImperiumCommand(p.Id, content.Titles)); cands.Add(new SeizeThroneCommand(p.Id, content.Titles, content.Friction));
+        if (p.Age >= DynastySystem.AgeOfMajority && DynastySystem.Spouse(w, p) == null)
+        {
+            var match = w.LivingCharacters().Where(c => c.HouseId != p.HouseId).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
+            if (match.Count > 0) cands.Add(new ProposeMarriageCommand(p.Id, p.Id, match[decisions.NextInt(0, match.Count)].Id, content.Titles));
+        }
+
+        int done = 0;
+        for (int tries = 0; tries < 4 && cands.Count > 0 && done < 2; tries++)
+        {
+            int i = decisions.NextInt(0, cands.Count); var c = cands[i]; cands.RemoveAt(i);
+            if (!tc.Executor.TryExecute(c, ctx)) continue;
+            done++;
+            if (taken != null) { string key = "cmd/" + c.GetType().Name.Replace("Command", ""); taken[key] = taken.GetValueOrDefault(key) + 1; }
+        }
     }
 
     private static void CheckText(FiredEvent fired, ContentDatabase content, World world, HashSet<string> tokens)

@@ -29,6 +29,7 @@ public sealed class PirateSystem
     public void Tick(World w)
     {
         var g = w.Galaxy; if (g == null) return;
+        if (w.House(HouseId) is { } lawless) lawless.Treasury = new Resources();   // the Lawless keep no ledger: hull upkeep never puts them in debt
         var regions = g.Regions.OrderBy(r => r.Id, StringComparer.Ordinal).ToList();
         foreach (var region in regions)
         {
