@@ -12,6 +12,9 @@ public static class Title
     public const string Duke = "duke";
     public const string Archduke = "archduke";
     public const string Emperor = "emperor";
+
+    /// <summary>The fixed ladder's rank of a title id (landless 0 … emperor 6); unknown titles rank 0.</summary>
+    public static int RankOf(string title) => title switch { Knight => 1, Baron => 2, Count => 3, Duke => 4, Archduke => 5, Emperor => 6, _ => 0 };
 }
 
 /// <summary>

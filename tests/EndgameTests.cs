@@ -27,6 +27,9 @@ public class EndgameTests
         w.House("vega")!.Title = "archduke";
         Assert.StartsWith("the realm will not accept it", cmd.Refusal(ctx));
         w.House("vega")!.Legitimacy = 95;
+        Assert.EndsWith("has not knelt", cmd.Refusal(ctx));                    // Aurelian holds the capital (GDD §19)
+        var ours = w.Protagonist!; var theirs = Economy.HeadOf(w, w.House("aurelian")!)!;
+        w.Relationship(theirs.Id, ours.Id).Disposition = 25;                  // and now it kneels
         Assert.Null(cmd.Refusal(ctx));
 
         Assert.True(new CommandExecutor().TryExecute(cmd, ctx));
@@ -63,6 +66,8 @@ public class EndgameTests
         fleets.DeclareWar(w, "thorne", "aurelian");
         Assert.StartsWith("you must be winning", cmd.Refusal(ctx));
         w.Wars[0].AddScore("thorne", 6);
+        Assert.StartsWith("the throne stands at", cmd.Refusal(ctx));          // the fleet is at Lesser Marrow, not Aurelia Prime
+        w.Fleets["fleet_thorne"].SystemId = "aurelia_prime";
         Assert.Null(cmd.Refusal(ctx));
 
         Assert.True(new CommandExecutor().TryExecute(cmd, ctx));

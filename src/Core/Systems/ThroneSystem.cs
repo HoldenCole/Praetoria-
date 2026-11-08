@@ -27,7 +27,23 @@ public static class ThroneSystem
         if (titles.RankOf(h.Title) < titles.RankOf(Title.Archduke)) return "only an Archduke may proclaim";
         int bar = titles.ById(Title.Emperor)?.LegitimacyRequirement ?? 95;
         if (h.Legitimacy < bar) return $"the realm will not accept it below legitimacy {bar}";
-        return null;
+        return CapitalGate(w, houseId, byForce: false);
+    }
+
+    /// <summary>The throne stands in the capital (GDD §19 "where the capital is"). To take it by force a fleet of yours must hold the
+    /// capital's orbit; to be proclaimed, the capital must be yours or its holder must have knelt — at peace with you and well
+    /// disposed. A galaxy without a capital has no gate.</summary>
+    public static string? CapitalGate(World w, string houseId, bool byForce)
+    {
+        var g = w.Galaxy; if (g == null || g.Capital.Length == 0) return null;
+        var holder = w.PlanetHolder(g.Capital); string name = g.System(g.Capital)?.Name ?? g.Capital;
+        if (holder == houseId) return null;
+        if (byForce) return w.Fleets.Values.Any(f => f.OwnerId == houseId && !f.Moving && f.SystemId == g.Capital && f.Strength >= 2) ? null : $"the throne stands at {name}; a fleet of yours must hold its orbit";
+        if (holder == null) return null;
+        if (w.AtWar(holder, houseId)) return $"{w.House(holder)?.Name ?? holder} holds {name} and is at war with you";
+        var ours = Economy.HeadOf(w, w.House(houseId)!); var theirs = Economy.HeadOf(w, w.House(holder)!);
+        int disp = ours != null && theirs != null ? w.GetRelationship(theirs.Id, ours.Id)?.Disposition ?? 0 : 0;
+        return disp >= 20 ? null : $"{w.House(holder)?.Name ?? holder} holds {name} and has not knelt";
     }
 
     public static string? SeizeRefusal(World w, string houseId, TitleCatalog titles)
@@ -46,7 +62,7 @@ public static class ThroneSystem
             if (war == null) return $"you must be at war with {emperor.Name}";
             if (war.Lead(houseId) < 5) return $"you must be winning the war against {emperor.Name} (score lead 5)";
         }
-        return null;
+        return CapitalGate(w, houseId, byForce: true);
     }
 
     /// <summary>Take the throne. <paramref name="seized"/> = by force (legitimacy untouched, fear maxed); otherwise proclaimed.</summary>

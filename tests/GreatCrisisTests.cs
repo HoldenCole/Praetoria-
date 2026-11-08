@@ -77,7 +77,8 @@ public class GreatCrisisTests
         var fleets = new FleetSystem(content.Fleets);
         var sys = new GreatCrisisSystem(content.GreatCrisis, fleets);
         sys.FormBlocs(w); sys.BlocWar(w);
-        w.Fleets["fleet_corwin"].Strength = 8;                        // the hegemon bloc wins on hulls
+        w.Fleets["fleet_corwin"].Strength = 40;                       // the hegemon bloc wins on hulls, decisively
+        w.Fleets["fleet_corwin"].SystemId = "aurelia_prime";          // and holds the capital's orbit: a throne is taken where it stands
         sys.Resolve(w);
         Assert.Empty(w.Wars);
         Assert.True(w.HasFlag(GreatCrisisSystem.ResolvedFlag));
@@ -85,6 +86,23 @@ public class GreatCrisisTests
         Assert.Equal("emperor", w.House("corwin")!.Title);
         Assert.True(w.HasFlag("great_crisis:player_lost"));
         Assert.All(w.Houses.Values, h => Assert.Equal("", h.Bloc));
+    }
+
+    [Fact]
+    public void Resolution_WithoutTheCapital_OrADecisiveField_EndsInExhaustion()
+    {
+        var (content, w) = Fresh();
+        var fleets = new FleetSystem(content.Fleets);
+        var sys = new GreatCrisisSystem(content.GreatCrisis, fleets);
+        sys.FormBlocs(w); sys.BlocWar(w);
+        w.Fleets["fleet_corwin"].Strength = 40;                       // decisive, but the fleet sits at home, far from Aurelia Prime
+        sys.Resolve(w);
+        Assert.Empty(w.Wars);
+        Assert.NotEqual("imperium", w.Era);
+        Assert.NotEqual("emperor", w.House("corwin")!.Title);
+        Assert.True(w.HasFlag("great_crisis:stalemate"));
+        Assert.True(Praetoria.Core.Progression.Title.RankOf(w.House("corwin")!.Title) >= 4);     // the field still earns a duke's rank
+        Assert.Contains(w.History, h => h.Text.Contains("ends in exhaustion"));
     }
 
     [Fact]

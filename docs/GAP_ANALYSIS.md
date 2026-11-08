@@ -183,15 +183,13 @@ houses at turns 11, 31 and 60.
   5-year-old). Hidden in the projection and refused in the command.
 
 ### Still open, ranked
-1. **Fortress and fortress-station worlds have no income** (Thalen, Severin, Sato, Strand sit at −1 a turn forever
-   unless they find a venture). A garrison stipend from the capital's holder, or tolls wherever a fortress stands,
-   would make a fortress house viable by design rather than by luck.
+1. ~~Fortress worlds have no income~~ — closed: escort fees from peaceful neighbours (up to three credits a turn).
 2. **Free holds are orphans** (§6 item 1): no fleet, no ventures, no way back; two of twelve poorest houses at T60 are
    free holds that cannot act.
 3. **The capital is only a ledger line** (§6 item 2). **Lawlessness has no face** (§6 item 3). **Governors are passive**
    (§6 item 4).
-4. **The throne falls in every run by turn 60** (`throne 6/6` in five scenarios): the proclaim / seize path is too
-   easy once legitimacy climbs; needs a gate on wealth rank or coalition pressure.
+4. ~~The throne falls in every run by turn 60~~ — closed: the throne stands in the capital; the War of the Reach
+   crowns only a decisive victor who holds it, else ends in exhaustion.
 5. **Wars are frequent and bloodless**: ~30 declarations per 60 turns, under two battles. Fleets rarely meet because
    NPC sailing is mostly garrison duty now; the chokepoints give a reason to sail that the AI does not yet use.
 6. **Pools are too generous** (§4 item 2); **peace terms, petitions for a fief** (§4 item 1); **24 unreachable events**

@@ -239,6 +239,24 @@ public class ChokepointTests
     }
 
     [Fact]
+    public void AFortressWorld_EarnsEscortFees_FromPeacefulNeighbours()
+    {
+        var w = TestContent.EconomyWorld(credits: 20); var g = Barbell(); w.Galaxy = g;
+        var cat = new HoldingCatalog(new[] { new HoldingSpec { Id = "agri", Name = "Agri", BaseYield = new Resources { Credits = 2 }, Upkeep = new Resources { Credits = 1 } }, new HoldingSpec { Id = "fort", Name = "Fortress", Upkeep = new Resources { Credits = 1 }, Defense = .5 } }, Array.Empty<BuildingDef>());
+        foreach (var id in new[] { "corwin", "drake", "sato" }) { w.Houses[id] = new House { Id = id, Name = id }; }
+        w.Holding("barony")!.SystemId = "gate"; w.Holding("barony")!.Specialization = "fort";       // Vega's fortress sits at the gate
+        w.Holdings["w3"] = new Holding { Id = "w3", OwnerId = "corwin", Name = "W3", Specialization = "agri", SystemId = "w3" };
+        w.Holdings["e1"] = new Holding { Id = "e1", OwnerId = "drake", Name = "E1", Specialization = "agri", SystemId = "e1" };
+        var eco = new Economy(cat);
+        var fees = eco.Compute(w, "vega").Lines.Single(l => l.Kind == "escort");
+        Assert.Equal(2, fees.Delta.Credits);                                   // two neighbours held by others
+        w.Wars.Add(new War { HouseA = "vega", HouseB = "drake", Since = 1 });
+        Assert.Equal(1, eco.Compute(w, "vega").Lines.Single(l => l.Kind == "escort").Delta.Credits);   // an enemy pays no fee
+        w.Holding("barony")!.Specialization = "agri";
+        Assert.DoesNotContain(eco.Compute(w, "vega").Lines, l => l.Kind == "escort");                 // a farm escorts no one
+    }
+
+    [Fact]
     public void TheShippedReach_IsASparseWeb_WithChokepoints_AndEverySystemHasItsBodies()
     {
         var root = ContentLocator.FindContentDir();

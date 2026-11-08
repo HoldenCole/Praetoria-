@@ -53,6 +53,16 @@ costs the capital five, and the two heads fall out. The player's house never wal
 `concede_to_rebels`, `purge_rebels`; counters `rebellions`, `secessions`, `free_marches`. Five ring events ship in
 `content/events/rings.json`.
 
+## The throne stands in the capital
+
+A throne is taken where it stands (`ThroneSystem.CapitalGate`). To **seize** it, a fleet of yours of two hulls or more
+must hold the capital's orbit, on top of the fleet-dominance and won-war rules. To be **proclaimed**, the capital must
+be yours, or its holder must have knelt: at peace with you and its head disposed twenty or better toward yours. The
+War of the Reach crowns its victor only when the field was won decisively (hulls at five to four) *and* the victor's
+bloc holds the capital or the victor's fleet its orbit; otherwise the war ends in exhaustion (`great_crisis:stalemate`),
+the victor is raised to Duke at least with ten legitimacy, and the Fractured Stars go on. A fortress world earns
+**escort fees** from the lanes around it (`docs/ECONOMY.md`).
+
 ## Systems, bodies and the lane web
 
 A system is a system, not a planet: every one carries two to five **bodies** (`bodies` in the galaxy file) — the

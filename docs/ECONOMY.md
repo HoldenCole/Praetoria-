@@ -15,6 +15,9 @@ is what will happen.
 | `world` / `station` / `claim` | a holding: specialization yield, buildings, population → manpower, the tithe, contiguity, the belt; scaled by prosperity; halved under blockade; manpower throttled by unrest; less a credit if the governor hates the head |
 | `venture` | a business: yield × level + flat yield − upkeep × level; scaled by the world's prosperity; halved when the world's holder is at war with you or besieged; less the charter owed |
 | `charter` | credits paid by another house's venture on a world you hold |
+| `tolls` | two credits for each chokepoint whose world you hold (`docs/GALAXY.md`) |
+| `escort` | a fortress world (specialization defense ≥ 0.4) earns a credit per neighbouring system another house holds and is at peace with, up to three: ships pass under its guns and pay |
+| `court` | two credits and an influence for holding the capital |
 | `loan` | this turn's instalment |
 | `interest` | a credit per house paying down a loan your bank holds |
 | `fleet` | fleet upkeep (forecast only; the fleet system charges it) |

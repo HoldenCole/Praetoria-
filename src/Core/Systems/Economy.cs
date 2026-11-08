@@ -33,7 +33,9 @@ public sealed class Economy
     public const int ProsperitySiege = 30;
     public const int ProsperityPerVentureLevel = 2;
     public const int GovernorSkimThreshold = -20;
-    public const int TollCredits = 2;             // a chokepoint's holder taxes the lane // a governor who dislikes the head this much pockets a credit a turn
+    public const int TollCredits = 2;             // a chokepoint's holder taxes the lane
+    public const int EscortFeeCap = 3;            // a fortress world escorts its neighbours' shipping for a credit a lane
+    public const double FortressDefense = 0.4;    // a specialization this defensive is a fortress // a governor who dislikes the head this much pockets a credit a turn
 
     private readonly HoldingCatalog _catalog;
     private readonly BusinessCatalog _ventures;
@@ -118,6 +120,14 @@ public sealed class Economy
         if (world.Galaxy != null)
             foreach (var h in world.HoldingsOf(houseId).Where(h => h.IsPlanet && !h.InRebellion && world.Galaxy.IsChokepoint(h.SystemId)).OrderBy(h => h.Id, StringComparer.Ordinal))
                 ledger.Add($"tolls at {world.Galaxy.System(h.SystemId)?.Name ?? h.SystemId}", "tolls", new Resources { Credits = TollCredits });
+        // escort fees (GDD §17 "a fortress is marginal in most runs"): a fortress world earns a credit for every neighbouring system
+        // another house holds and is at peace with — ships pass under its guns and pay for the privilege — up to the cap
+        if (world.Galaxy != null)
+            foreach (var h in world.HoldingsOf(houseId).Where(h => !h.InRebellion && h.SystemId.Length > 0 && (_catalog.Spec(h.Specialization)?.Defense ?? 0) >= FortressDefense).OrderBy(h => h.Id, StringComparer.Ordinal))
+            {
+                int fees = Math.Min(EscortFeeCap, world.Galaxy.Neighbors(h.SystemId).Select(n => world.PlanetHolder(n)).Count(o => o != null && o != houseId && !world.AtWar(o, houseId)));
+                if (fees > 0) ledger.Add($"escort fees · {h.Name}", "escort", new Resources { Credits = fees });
+            }
         // the court: whoever holds the capital keeps it, and it pays (GDD §19 "where the capital is")
         if (world.Galaxy is { Capital.Length: > 0 } cg && world.PlanetHolder(cg.Capital) == houseId) ledger.Add($"the court at {cg.System(cg.Capital)?.Name ?? cg.Capital}", "court", new Resources { Credits = 2, Influence = 1 });
         // the loan

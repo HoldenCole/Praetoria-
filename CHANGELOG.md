@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+- **The throne stands in the capital** (GDD §19): seizing it needs a fleet of yours in the capital's orbit; being
+  proclaimed needs the capital to be yours or its holder to have knelt; the War of the Reach crowns its victor only
+  after a decisive field *and* the capital, and otherwise ends in exhaustion with no one crowned.
+- **Fortress worlds earn escort fees**: a credit a turn for each neighbouring system another house holds and is at peace
+  with, up to three, so a fortress house lives by its guns rather than by luck.
+
 ### Fixed
 - **Half the Reach went bankrupt and stayed there.** Rival stewards founded ventures in alphabetical order (Academy
   Patronage first, a credit drain), borrowed on a sinking ledger (a loan every seven turns, each deeper), and let
