@@ -15,7 +15,7 @@ public sealed record CharacterCard(string Name, string HouseName, string Accent,
     int Age, bool Alive, IReadOnlyList<string> Nature, IReadOnlyList<string> Aptitude, string AmbitionName, int Stress, bool Broken,
     bool Regency, string? Background);
 public sealed record PoolsLine(int Influence, int Treasury, int Agents);
-public sealed record TreasuryLine(int Credits, int Materials, int Manpower, int Influence, int Exotics, bool Insolvent);
+public sealed record TreasuryLine(int Credits, int Materials, int Manpower, int Influence, int Exotics, bool Insolvent, int Helium3 = 0, int RareEarths = 0, int Isotopes = 0);
 public sealed record BuildOption(string HoldingId, string BuildingId, string Label, string Tooltip, bool Available);
 public sealed record HoldingCard(string Id, string Name, string SpecName, string? SystemName, int Population, int MaxPopulation, int Unrest,
     int SlotsUsed, int Slots, IReadOnlyList<string> Buildings, IReadOnlyList<BuildOption> Builds, bool CanRaiseShips, string RaiseShipsLabel,
@@ -68,7 +68,7 @@ public sealed record CourtModel(int Turn, string Era, string Mode, int Generatio
     IReadOnlyList<HouseholdLine> Household, IReadOnlyList<SiegeLine> Sieges, string? EpilogueText,
     IReadOnlyList<AdvisorReport> Advisors, GreatCrisisCard? GreatCrisis,
     LedgerCard? Ledger = null, IReadOnlyList<BusinessCard>? Businesses = null, IReadOnlyList<VentureOption>? Ventures = null, IReadOnlyList<ClaimOption>? Claims = null,
-    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null);
+    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null, IReadOnlyList<Option>? Procure = null, IReadOnlyList<string>? Deposits = null);
 
 public static class CourtProjection
 {
@@ -105,6 +105,7 @@ public static class CourtProjection
             foreach (var b in content.Holdings.Buildings.OrderBy(b => b.Megastructure).ThenBy(b => b.Id, StringComparer.Ordinal))
             {
                 if (!b.FitsSpecialization(h.Specialization) || h.Buildings.Contains(b.Id)) continue;
+                if (b.RequiresDeposit != null && (w.Galaxy?.System(h.SystemId)?.Deposit(b.RequiresDeposit) ?? 0) == 0) continue;   // nothing here to work
                 var cmd = new BuildCommand(p.Id, h.Id, b.Id, content.Holdings, content.Titles);
                 builds.Add(new BuildOption(h.Id, b.Id, $"{(b.Megastructure ? "Raise" : "Build")} {b.Name}  ({Bundle(b.Cost)})",
                     $"yield {Bundle(b.Yield)}" + (b.Upkeep.IsEmpty() ? "" : $" · upkeep {Bundle(b.Upkeep)}") + (b.MinTitleRank > 0 ? $" · needs title rank {b.MinTitleRank}" : ""), cmd.CanExecute(ctx)));
@@ -137,9 +138,9 @@ public static class CourtProjection
             var bc = content.Businesses; var f = bc.Finance;
             var lg = eco.Compute(w, house.Id, tc.Fleets);
             if (house.Wealth == 0 && w.Houses.Values.All(h => h.Wealth == 0)) eco.Reckon(w);
-            var table = Wealth.Ranked(w).Select(x => new WealthLine(x.house.Id, x.house.Name, x.house.AccentColor, x.wealth, Wealth.Tier(x.wealth), x.house.Id == house.Id)).ToList();
+            var table = Wealth.Ranked(w).Select(x => new WealthLine(x.house.Id, x.house.Name, x.house.AccentColor, x.wealth, Wealth.TierFor(w, x.house.Id), x.house.Id == house.Id)).ToList();
             var lender = house.LenderId.Length > 0 ? w.House(house.LenderId)?.Name : null;
-            ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Count, Wealth.Tier(house.Wealth), house.Debt, lender, f.LoanPrincipal, f.LoanRepay, f.LoanInstalment,
+            ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Count, Wealth.TierFor(w, house.Id), house.Debt, lender, f.LoanPrincipal, f.LoanRepay, f.LoanInstalment,
                 new Option("loan", $"Borrow {f.LoanPrincipal} credits (owe {f.LoanRepay}, {f.LoanInstalment} a turn)", new TakeLoanCommand(p.Id, bc).Refusal(ctx)),
                 new Option("repay", $"Clear the debt ({house.Debt} credits)", new RepayLoanCommand(p.Id).Refusal(ctx)), table);
             foreach (var b in w.BusinessesOf(house.Id))
@@ -313,20 +314,22 @@ public static class CourtProjection
 
         return new CourtModel(w.Turn, w.Era, w.Mode, w.Counter("generation") + 1, w.IsDynastyDead, tc.Briefing.Count == 0,
             character, new PoolsLine(pools.Influence, pools.Treasury, pools.Agents),
-            new TreasuryLine(t.Credits, t.Materials, t.Manpower, t.Influence, t.Exotics, t.Credits < 0),
+            new TreasuryLine(t.Credits, t.Materials, t.Manpower, t.Influence, t.Exotics, t.Credits < 0, t.Helium3, t.RareEarths, t.Isotopes),
             holdings, standing, fleets, wars, briefing, house.Name, house.AccentColor, members, connections, clock, chronicle, household, sieges, epilogue, advisors, great,
             ledger, businessCards, ventureOptions, claimOptions,
             w.Holdings.Values.Where(h => h.FormerOwnerId == house.Id && w.House(h.OwnerId)?.Bloc == RegionSystem.FreeholdsBloc).OrderBy(h => h.Id, StringComparer.Ordinal)
                 .Select(h => new ReclaimOption(h.Id, h.Name, w.House(h.OwnerId)!.Name, ReclaimFreeholdCommand.Price(w, h, house.Id), new ReclaimFreeholdCommand(p.Id, h.Id).Refusal(ctx))).ToList(),
             w.Galaxy is { Capital.Length: > 0 } cg ? new CapitalCard(cg.System(cg.Capital)?.Name ?? cg.Capital, RegionSystem.CapitalHolder(w)?.Id, RegionSystem.CapitalHolder(w)?.Name, RegionSystem.CapitalHolder(w)?.Id == house.Id) : null,
-            new Option("petition_fief", $"Petition {PetitionFiefCommand.Grantor(w, house.Id)?.Name ?? "the court"} for a fief  (3 influence)", new PetitionFiefCommand(p.Id).Refusal(ctx)));
+            new Option("petition_fief", $"Petition {PetitionFiefCommand.Grantor(w, house.Id)?.Name ?? "the court"} for a fief  (3 influence)", new PetitionFiefCommand(p.Id).Refusal(ctx)),
+            Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var pc = new ProcureCommand(p.Id, r, 3, content.Holdings, content.Businesses); int price = ProcureCommand.Price(w, r, content.Holdings, content.Businesses); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the open market  ({(price == int.MaxValue ? "—" : (price * 3).ToString())} credits · {Economy.Producers(w, r, content.Holdings, content.Businesses)} producer(s))", pc.Refusal(ctx)); }).ToList(),
+            Economy.Deposits(w, house.Id).OrderBy(x => x, StringComparer.Ordinal).ToList());
     }
 
     private static string BondName(Relationship? rel) => rel?.Bond is { } b && b != BondType.None ? b.ToString().ToLowerInvariant() : "";
 
     public static string Bundle(Resources r)
     {
-        var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{r.Get(k)} {k}").ToList();
+        var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{r.Get(k)} {Resource.Label(k)}").ToList();
         return parts.Count == 0 ? "—" : string.Join(", ", parts);
     }
 }

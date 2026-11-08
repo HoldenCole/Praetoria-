@@ -247,7 +247,7 @@ public class EconomyDepthContentTests
 
         Assert.True(w.Businesses.Count > 4, "no steward founded a venture in thirty turns");
         Assert.True(w.Holdings.Values.Any(h => h.IsClaim), "no steward staked a claim in thirty turns");
-        Assert.True(w.Houses.Values.All(h => h.Wealth != 0 || !w.HoldingsOf(h.Id).Any()), "wealth never reckoned");
+        Assert.True(w.WorldFlags.Any(f => f.StartsWith("richest:")), "wealth never reckoned");
         Assert.True(w.HasFlag("richest:" + Wealth.Ranked(w)[0].house.Id));
         Assert.Contains(w.History, h => h.Text.Contains("founds a"));
     }

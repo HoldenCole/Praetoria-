@@ -24,6 +24,7 @@ public static class FleetLoader
                 {
                     ShipCost = rules.TryGetProperty("shipCost", out _) ? HoldingCatalogLoader.ParseResources(rules, "shipCost") : d.ShipCost,
                     UpkeepPerStrength = rules.TryGetProperty("upkeepPerStrength", out _) ? HoldingCatalogLoader.ParseResources(rules, "upkeepPerStrength") : d.UpkeepPerStrength,
+                    FuelHullsPerUnit = ConditionParser.Int(rules, "fuelHullsPerUnit", d.FuelHullsPerUnit),
                     ReadinessRecovery = ConditionParser.Int(rules, "readinessRecovery", d.ReadinessRecovery),
                     ReadinessDecayMoving = ConditionParser.Int(rules, "readinessDecayMoving", d.ReadinessDecayMoving),
                     IntelDecay = ConditionParser.Int(rules, "intelDecay", d.IntelDecay),

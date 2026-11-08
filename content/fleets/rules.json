@@ -13,6 +13,9 @@
     "confidenceInTerritory": 100,
     "confidenceAdjacent": 65,
     "movePoolCost": 1,
+    // FUEL (GDD §17): a navy of two hulls or more burns one helium-3 a turn per this many hulls (rounded up). Dry tanks: readiness
+    // slides fifteen a turn and no fleet of the house may sail until the tanks are filled — from a skimmer, or the open market.
+    "fuelHullsPerUnit": 3,
 
     // COMBAT. Power = hulls × (0.5 + readiness/200); the house holding the system defends at
     // ×(1 + defenderBonus + Σ holding/building `defense`). A seeded roll on power share picks the winner; the

@@ -87,6 +87,7 @@ public static class HoldingCatalogLoader
         Yield = ParseResources(el, "yield"),
         Upkeep = ParseResources(el, "upkeep"),
         Requires = ConditionParser.OptStrOrNull(el, "requires"),
+        RequiresDeposit = ConditionParser.OptStrOrNull(el, "requiresDeposit"),
         Defense = Dbl(el, "defense"),
         MinTitleRank = ConditionParser.Int(el, "minTitleRank", 0),
         Megastructure = ConditionParser.Bool(el, "megastructure", false)

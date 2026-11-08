@@ -11,7 +11,13 @@
       { "give": "credits",   "get": "manpower",  "giveAmount": 4, "getAmount": 2 },
       { "give": "exotics",   "get": "credits",   "giveAmount": 1, "getAmount": 6 },
       { "give": "credits",   "get": "influence", "giveAmount": 6, "getAmount": 1 },
-      { "give": "influence", "get": "credits",   "giveAmount": 1, "getAmount": 4 }
+      { "give": "influence", "get": "credits",   "giveAmount": 1, "getAmount": 4 },
+      // the strategic three: fuel and rare earths trade at the exchange; weapons-grade isotopes can be sold but never bought here
+      { "give": "credits",   "get": "helium3",     "giveAmount": 5, "getAmount": 1 },
+      { "give": "helium3",   "get": "credits",     "giveAmount": 1, "getAmount": 2 },
+      { "give": "credits",   "get": "rare_earths", "giveAmount": 8, "getAmount": 1 },
+      { "give": "rare_earths", "get": "credits",   "giveAmount": 1, "getAmount": 3 },
+      { "give": "isotopes",  "get": "credits",     "giveAmount": 1, "getAmount": 6 }
     ]
   },
 

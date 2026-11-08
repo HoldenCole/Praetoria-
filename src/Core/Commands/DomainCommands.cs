@@ -47,6 +47,7 @@ public sealed class BuildCommand : ICommand
         if (holding.Buildings.Count >= spec.Slots) return false;       // no free slot
         if (holding.Buildings.Contains(_buildingId)) return false;     // no duplicates
         if (!building.FitsSpecialization(holding.Specialization)) return false;
+        if (building.RequiresDeposit != null && (ctx.World.Galaxy?.System(holding.SystemId)?.Deposit(building.RequiresDeposit) ?? 0) == 0) return false;   // no deposit, nothing to work
 
         var house = ctx.World.House(actor.HouseId);
         if (house == null) return false;

@@ -127,6 +127,13 @@ left, folded into whoever took its last world if it was a free hold, or — land
 years — entering another house's service. The counter `houses_fallen` counts them; `house_fell:<name>` is set for one
 turn so the outliner and events can mark the passing. The player's house never ends this way.
 
+## Deposits
+
+Nineteen systems hold a strategic deposit (`deposits` in the galaxy JSON; see ECONOMY.md "The strategic three"): helium-3
+where a gas giant rides, rare earths in a belt, isotopes in a dead world's crust — richness 1..3, multiplying what a
+skimmer, refinery, works or claim brings up. The map marks them under the system's name (³He · RE · Iso); the planet card
+lists them. Holding the only rich giant in a sector is a thing worth a war.
+
 ## Systems, bodies and the lane web
 
 A system is a system, not a planet: every one carries two to five **bodies** (`bodies` in the galaxy file) — the

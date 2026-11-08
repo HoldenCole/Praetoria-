@@ -74,6 +74,13 @@ public static class WorldBuilder
             world.Fleets[fleet.Id] = fleet;
         }
 
+        // every navy sails with its tanks part full (GDD §17 fuel): six helium-3 and one per hull, unless the scenario says more
+        foreach (var house in world.Houses.Values)
+        {
+            int hulls = world.Fleets.Values.Where(f => f.OwnerId == house.Id).Sum(f => f.Strength);
+            if (hulls >= 2) house.Treasury.Helium3 = Math.Max(house.Treasury.Helium3, 6 + hulls);
+        }
+
         if (world.Protagonist == null)
             throw new ContentException($"Scenario protagonist '{scenario.ProtagonistId}' is not among its characters.");
 

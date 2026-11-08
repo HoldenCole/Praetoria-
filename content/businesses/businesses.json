@@ -2,9 +2,21 @@
   "//": "VENTURES (GDD §17 businesses, §19 'smaller houses that control smaller things'). A venture is a house's property that is not land: founded in a system for `cost`, it pays `yield` per level and `flat` whatever its level, costs `upkeep` per level, can be expanded to `maxLevel` for `expandCost` a step, and pays `charter` credits per level each turn to whoever holds the planet there when that is another house. `requires` says where it can be founded. A lender's bank holds other houses' loans and takes their interest.",
   "businesses": [
     {
+      "id": "skimmer_fleet", "name": "Skimmer Fleet",
+      "description": "Ramscoops in a giant's upper clouds, run on contract. Fuel for whoever holds the paper, and a charter to whoever holds the world.",
+      "cost": { "credits": 12, "materials": 6 }, "yield": { "helium3": 1 }, "expandCost": { "credits": 10, "materials": 4 }, "maxLevel": 3, "charter": 1,
+      "requires": { "deposit": "helium3" }
+    },
+    {
+      "id": "enrichment_concern", "name": "Enrichment Concern",
+      "description": "Centrifuges behind a wall of guards. Weapons-grade isotopes do not reach the open market; they reach whoever owns this.",
+      "cost": { "credits": 20, "materials": 10 }, "yield": { "isotopes": 1 }, "expandCost": { "credits": 16, "materials": 8 }, "maxLevel": 2, "charter": 2,
+      "requires": { "deposit": "isotopes", "minTitleRank": 2 }
+    },
+    {
       "id": "trading_company", "name": "Trading Company",
       "description": "Factors, warehouses and a seal on the customs house. The first thing a house with coin and no land buys.",
-      "cost": { "credits": 12, "materials": 4 }, "yield": { "credits": 4 }, "expandCost": { "credits": 10, "materials": 3 }, "maxLevel": 3, "charter": 1,
+      "cost": { "credits": 12, "materials": 4 }, "yield": { "credits": 3 }, "expandCost": { "credits": 10, "materials": 3 }, "maxLevel": 3, "charter": 1,
       "requires": { "populated": true }
     },
     {
@@ -16,7 +28,7 @@
     {
       "id": "shipping_line", "name": "Shipping Line",
       "description": "Hulls on the lanes under your colours. Where three lanes meet, everything pays to pass.",
-      "cost": { "credits": 14, "materials": 6 }, "yield": { "credits": 3 }, "flat": { "influence": 1 }, "expandCost": { "credits": 12, "materials": 4 }, "maxLevel": 3, "charter": 2,
+      "cost": { "credits": 14, "materials": 6 }, "yield": { "credits": 2 }, "flat": { "influence": 1 }, "expandCost": { "credits": 12, "materials": 4 }, "maxLevel": 3, "charter": 2,
       "requires": { "minLanes": 3 }
     },
     {

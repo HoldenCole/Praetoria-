@@ -19,6 +19,12 @@ public sealed class StarSystem
     /// <summary>Asteroid belt richness, 0 = none. Also the number of mining claims the belt supports (GDD §17 asteroids).</summary>
     public int Belt { get; set; }
 
+    /// <summary>Strategic deposits here (GDD §17 "not every world has everything"): resource id → richness 1..3. Helium-3 in a gas
+    /// giant's clouds, rare earths in a belt, isotopes in a dead world's crust. Worked by a building or a venture that
+    /// <c>requiresDeposit</c>, or brought up by a belt claim (rare earths).</summary>
+    public Dictionary<string, int> Deposits { get; set; } = new();
+    public int Deposit(string resource) => Deposits.TryGetValue(resource, out var v) ? v : 0;
+
     /// <summary>Everything that orbits the star (GDD §19 "show all the planets"): the primary world (the one a holding sits on)
     /// and its sisters, moons, giants and belts. At least one body, marked primary, matching <see cref="PlanetClass"/>.</summary>
     public List<Body> Bodies { get; set; } = new();

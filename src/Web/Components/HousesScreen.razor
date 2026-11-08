@@ -35,7 +35,7 @@
                 <div class="kv"><span>Legitimacy</span><b>@fh.Legitimacy</b></div>
                 <div class="kv"><span>Domain</span><b>@worlds.Count world(s) · @stations.Count station(s)</b></div>
                 <div class="kv"><span>Navy</span><b>@FleetSystem.StrengthOf(w, fh.Id) hull(s)</b></div>
-                <div class="kv"><span>Wealth</span><b>@fh.Wealth · <span class="tier @Wealth.Tier(fh.Wealth)">@Wealth.Tier(fh.Wealth)</span>@(fh.Debt > 0 ? " · in debt" : "")</b></div>
+                <div class="kv"><span>Wealth</span><b>@fh.Wealth · <span class="tier @Wealth.TierFor(w, fh.Id)">@Wealth.TierFor(w, fh.Id)</span>@(fh.Debt > 0 ? " · in debt" : "")</b></div>
                 @if (m.Capital is { } cap && cap.HolderId == fh.Id) { <div class="kv"><span>The capital</span><b>holds @cap.SystemName — the court, the Senate's chair, and a target</b></div> }
                 @if (fh.Bloc == RegionSystem.FreeholdsBloc) { <div class="kv"><span>Standing</span><b class="warn">a free hold — sworn to no one</b></div> }
                 @if (m.Reclaims is { Count: > 0 } rcs) { foreach (var rc in rcs.Where(r => w.Holding(r.HoldingId)?.OwnerId == fh.Id)) { <button class="opt" disabled="@(rc.Refusal != null)" title="@rc.Refusal" @onclick="() => G.Execute(new ReclaimFreeholdCommand(pid, rc.HoldingId))">Buy @rc.HoldingName back (@rc.Price credits)</button> } }
@@ -75,7 +75,7 @@
                     <Sigil HouseId="@h.Id" Accent="@h.AccentColor" Size="18" />
                     <span><b>@h.Name</b> <span class="muted">@(c.Titles.ById(h.Title)?.Name ?? h.Title)@(worlds > 0 ? $" · {worlds} world(s)" : " · landless")</span></span>
                     @if (h.Bloc == RegionSystem.FreeholdsBloc) { <span class="tier small destitute">free hold</span> } else if (m.Capital?.HolderId == h.Id) { <span class="tier small opulent">capital</span> }
-                    <span class="tier small @Wealth.Tier(h.Wealth)" title="wealth @h.Wealth">@Wealth.Tier(h.Wealth)</span>
+                    <span class="tier small @Wealth.TierFor(w, h.Id)" title="wealth @h.Wealth">@Wealth.TierFor(w, h.Id)</span>
                     <span class="pill @(atWar ? "warn" : disp < -20 ? "warn" : disp > 20 ? "good" : "")">@(atWar ? "⚔" : "")@(disp >= 0 ? "+" : "")@disp</span>
                 </div>
             }

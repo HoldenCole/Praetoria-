@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+- **The strategic three** (GDD §17 "not every world has everything"): helium-3, rare earths and isotopes come only
+  from deposits the galaxy placed (nineteen in the Reach — giants, belts, dead worlds). Helium Skimmers, a Rare-Earth
+  Refinery and Isotope Works (buildings), a Skimmer Fleet and an Enrichment Concern (ventures), and belt claims bring
+  them up, richness multiplying the yield. The fleet burns helium-3 (one a turn per three hulls; dry tanks hold it at
+  anchor); cruisers and carriers want rare earths, battleships and bastions isotopes; a sensor array and a planetary
+  arsenal spend them. An open market sells fuel and rare earths at a scarcity price — never isotopes — so wealth buys
+  what geography withheld. Six events, two new conditions (`wealth` tier, `deposit`), map glyphs, planet-card deposits,
+  a fuel line on the Military screen, and stewards who work deposits, buy fuel, sell hoards and buy the rare earths a
+  heavy hull wants.
 - Quality of life: the Houses roster counts the names that have passed out of the rolls; the chronicle's realm volume
   carries fallen houses and fiefs; the outliner marks a fief granted and a house fallen; the petition names its grantor.
 - **Houses that fall**: a name with no one left is struck from the rolls; a free hold whose world is taken folds into
@@ -42,6 +51,10 @@
   with, up to three, so a fortress house lives by its guns rather than by luck.
 
 ### Fixed
+- A character born or raised in play had no action budget at all (an empty pool with a cap of zero), so a rival house
+  whose founding head died could never again raise a hull, sail, buy or build — only its scripted stewardship ran. Any
+  character the world meets without a pool now gets a rival's lean budget. Found by the fuel probe: rich houses sat dry
+  for twenty turns with "no treasury action left".
 - The chronicle's war volume was a roll of raider movements ("… arrives at The Veil — House Quill's space", several a
   turn); raiders are now heard of only when they reach someone's world, and a scattered band needs six years to gather
   again in the same region. The map's "fit the whole Reach" clipped the outermost systems and ran region names off

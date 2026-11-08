@@ -15,6 +15,8 @@ public sealed class FleetRules
     public int ConfidenceInTerritory { get; init; } = 100;
     public int ConfidenceAdjacent { get; init; } = 65;
     public int MovePoolCost { get; init; } = 1;
+    /// <summary>Hulls per unit of helium-3 a turn (GDD §17 fuel): three hulls burn one, rounded up. Fleets under two hulls run on scraps and pay nothing.</summary>
+    public int FuelHullsPerUnit { get; init; } = 3;
 
     // ---- combat (GDD §6) ----
     public double DefenderBonus { get; init; } = 0.25;
@@ -125,11 +127,58 @@ public sealed class FleetSystem
             foreach (var r in Resource.All) house.Treasury.Add(r, -bill.Get(r));
             house.Treasury.ClampNonCredit();
             Desert(w, house);
+            Refuel(w, house);
         }
 
         RefreshAdmiralFlags(w);
         WarWeariness(w);
         UpdateIntel(w);
+    }
+
+    public const int FuelReadinessLoss = 15, LayUpTurns = 6;
+    public static string FuelShortKey(string houseId) => "fuel_short:" + houseId;
+
+    /// <summary>Helium-3 the house's fleets burn this turn: one unit per <see cref="FleetRules.FuelHullsPerUnit"/> hulls, rounded up;
+    /// nothing under two hulls, nothing for the Lawless.</summary>
+    public int FuelBill(World w, string houseId) => FuelBillFor(w, houseId, _rules.FuelHullsPerUnit);
+    public static int FuelBillFor(World w, string houseId, int hullsPerUnit)
+    {
+        if (houseId == PirateSystem.HouseId) return 0;
+        int hulls = w.Fleets.Values.Where(f => f.OwnerId == houseId).Sum(f => f.Strength);
+        return hulls < 2 ? 0 : (hulls + hullsPerUnit - 1) / Math.Max(1, hullsPerUnit);
+    }
+
+    /// <summary>A house whose tanks have run dry: its fleets ride at anchor (GDD §17 fuel). Counter <c>fuel_short:&lt;house&gt;</c> counts the turns.</summary>
+    public static bool Unfuelled(World w, string houseId) => w.Counter(FuelShortKey(houseId)) > 0 && (w.House(houseId)?.Treasury.Helium3 ?? 0) == 0;
+
+    /// <summary>The fleet burns helium-3 (GDD §17 "fuel is the other thing you run out of"): paid in full the tanks are fine; short,
+    /// readiness slides, the fleets cannot sail, and the player hears of it through <c>fuel_short</c>.</summary>
+    private void Refuel(World w, House house)
+    {
+        int need = FuelBill(w, house.Id); string key = FuelShortKey(house.Id); bool mine = house.Id == w.Protagonist?.HouseId;
+        if (need == 0 || house.Treasury.Helium3 >= need)
+        {
+            house.Treasury.Helium3 -= need;
+            if (w.WorldCounters.Remove(key) && mine) w.WorldFlags.Remove("fuel_short");
+            return;
+        }
+        house.Treasury.Helium3 = 0;
+        int turns = w.Counter(key) + 1; w.WorldCounters[key] = turns;
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id)) f.Readiness = Math.Max(0, f.Readiness - FuelReadinessLoss);
+        if (mine) w.WorldFlags.Add("fuel_short");
+        if (turns == 1) w.Log($"The tanks of {house.Name} run dry: its fleets ride at anchor for want of helium-3 ({need} a turn).");
+        else if (turns % LayUpTurns == 0)   // a navy dry for years is laid up a hull at a time: fewer mouths, a smaller bill, a way back
+        {
+            var victim = w.Fleets.Values.Where(f => f.OwnerId == house.Id && f.Strength > 0).OrderBy(f => f.Readiness).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (victim != null)
+            {
+                if (victim.Ships.Count > 0) { var cls = victim.Ships.Where(k => k.Value > 0).OrderByDescending(k => k.Value).ThenBy(k => k.Key, StringComparer.Ordinal).First().Key; victim.Ships[cls] -= 1; if (victim.Ships[cls] == 0) victim.Ships.Remove(cls); victim.Recount(); if (victim.Ships.Count == 0) victim.Strength = 0; }
+                else victim.Strength -= 1;
+                if (victim.Strength <= 0) { w.Fleets.Remove(victim.Id); w.Intel.Remove(victim.Id); }
+                w.WorldCounters["laid_up"] = w.Counter("laid_up") + 1;
+                w.Log($"Dry these {turns} years, {house.Name} lays up a hull of {victim.Name} for want of helium-3.");
+            }
+        }
     }
 
     /// <summary>Credits a house is allowed to owe before its unpaid crews start walking (GDD §17 "the one you run out of").</summary>

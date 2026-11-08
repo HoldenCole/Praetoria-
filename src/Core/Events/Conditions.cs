@@ -371,3 +371,31 @@ public sealed class ConstCondition : ICondition
     public ConstCondition(bool value) => Value = value;
     public bool Evaluate(EvalContext ctx) => Value;
 }
+
+/// <summary>Wealth-tier compare for the role's house (GDD §17 "decisions gated behind wealth"). JSON:
+/// { "type": "wealth", "role": "self", "op": "gte", "tier": "rich" } — tiers destitute, poor, comfortable, rich, opulent.</summary>
+public sealed class WealthCondition : ICondition
+{
+    public string Role { get; } public CompareOp Op { get; } public string Tier { get; }
+    public WealthCondition(string role, CompareOp op, string tier) { Role = role; Op = op; Tier = tier; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c == null || !ctx.World.Houses.TryGetValue(c.HouseId, out var house)) return false;
+        return Comparison.Apply(Op, Systems.Wealth.TierIndex(Systems.Wealth.TierFor(ctx.World, house.Id)), Systems.Wealth.TierIndex(Tier));
+    }
+}
+
+/// <summary>Does the role's house sit on a strategic deposit (a world or claim in a system that holds one)? JSON:
+/// { "type": "deposit", "role": "self", "resource": "helium3", "present": true }.</summary>
+public sealed class DepositCondition : ICondition
+{
+    public string Role { get; } public string ResourceKey { get; } public bool Present { get; }
+    public DepositCondition(string role, string resource, bool present) { Role = role; ResourceKey = resource; Present = present; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role);
+        if (c == null || !ctx.World.Houses.ContainsKey(c.HouseId)) return !Present;
+        return Systems.Economy.Deposits(ctx.World, c.HouseId).Contains(ResourceKey) == Present;
+    }
+}

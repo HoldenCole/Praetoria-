@@ -216,7 +216,7 @@ details > summary::before { content: "▸ "; color: var(--brass3); } details[ope
 
 /* ===== house / military / houses / character ===== */
 .house-screen, .military, .character { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
-.res-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: .4rem; margin-top: .6rem; } .res-cell { background: rgba(5,7,12,.5); border: 1px solid var(--line); border-radius: 3px; padding: .35rem .5rem; display: flex; flex-direction: column; } .res-cell b { font-size: 1.1rem; font-variant-numeric: tabular-nums; } .res-cell small { font-size: .7rem; } .res-cell .up { color: var(--good); } .res-cell .down { color: var(--warn); }
+.res-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem; margin-top: .6rem; } .res-cell { background: rgba(5,7,12,.5); border: 1px solid var(--line); border-radius: 3px; padding: .35rem .5rem; display: flex; flex-direction: column; } .res-cell b { font-size: 1.1rem; font-variant-numeric: tabular-nums; } .res-cell small { font-size: .7rem; } .res-cell .up { color: var(--good); } .res-cell .down { color: var(--warn); }
 .holding.besieged { border-left: 2px solid var(--warn); padding-left: .4rem; }
 .fleet-head { display: flex; align-items: baseline; gap: .6rem; } .ships { display: flex; flex-wrap: wrap; gap: .3rem; margin: .3rem 0; }
 .war { padding: .3rem 0; border-top: 1px dotted var(--line); font-size: .9rem; } .crisis { padding: .35rem 0; border-top: 1px dotted var(--line); font-size: .9rem; }
@@ -370,3 +370,11 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 /* governors, raiders */
 .gov-chip { font-size: .72rem; padding: .02rem .4rem; border-radius: 999px; border: 1px solid var(--line2); margin-left: .3rem; } .gov-chip.loyal { color: #9ed0a0; } .gov-chip.cool { color: var(--muted); } .gov-chip.hostile { color: #e07a5f; border-color: #6a3b2e; } .gov-chip.able { color: #ffe8a3; }
 .sw.raid { background: #c0392b; border-radius: 50%; }
+
+/* the strategic three */
+.tb-res.strat { gap: .7rem; border-color: rgba(120,160,220,.25); } .tb-res.strat .res .ri { color: #7fb6e6; } .tb-res.strat .res:nth-child(2) .ri { color: #b8a0e6; } .tb-res.strat .res:nth-child(3) .ri { color: #e68a7a; }
+.tb-res.strat.dry { border-color: var(--warn); box-shadow: 0 0 0 1px rgba(220,80,60,.35) inset; } .tb-res.strat.dry .res:first-child b { color: var(--warn); }
+.res-cell.strat { border-color: rgba(120,160,220,.25); }
+.deposits { margin-top: .4rem; } .pill.dep { color: #9fc8ee; border-color: rgba(120,160,220,.35); }
+.sys-label .d { font-size: 8px; letter-spacing: .04em; color: #9fc8ee; opacity: .85; } .gl-labels.far .sys-label .d { display: none; }
+.legend .sw.dep { background: none; color: #9fc8ee; font-size: 8px; width: auto; padding: 0 2px; } .fuel { margin: .3rem 0 .5rem; } .fuel.warn { color: var(--warn); }

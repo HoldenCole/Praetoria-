@@ -33,9 +33,12 @@
         <section class="panel">
             <div class="who-head"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="48" /><div><h2>@house.Name</h2><div class="sub">@m.Character.TitleName · legitimacy @house.Legitimacy · @house.Culture culture</div></div></div>
             <div class="res-grid">
-                @foreach (var (name, val, d) in new[] { ("credits", m.Treasury.Credits, fc?.Credits), ("materials", m.Treasury.Materials, fc?.Materials), ("manpower", m.Treasury.Manpower, fc?.Manpower), ("influence", m.Treasury.Influence, fc?.Influence), ("exotics", m.Treasury.Exotics, fc?.Exotics) })
-                { <div class="res-cell"><span class="muted"><Icon Name="@name" Size="12" /> @name</span><b>@val</b>@if (d != null && d != 0) { <small class="@(d > 0 ? "up" : "down")">@(d > 0 ? "+" : "")@d /turn</small> }</div> }
+                @foreach (var (name, val, d) in new[] { ("credits", m.Treasury.Credits, fc?.Credits), ("materials", m.Treasury.Materials, fc?.Materials), ("manpower", m.Treasury.Manpower, fc?.Manpower), ("influence", m.Treasury.Influence, fc?.Influence), ("exotics", m.Treasury.Exotics, fc?.Exotics), ("helium3", m.Treasury.Helium3, fc?.Helium3), ("rare_earths", m.Treasury.RareEarths, fc?.RareEarths), ("isotopes", m.Treasury.Isotopes, fc?.Isotopes) })
+                { <div class="res-cell @(Resource.IsStrategic(name) ? "strat" : "")"><span class="muted"><Icon Name="@name" Size="12" /> @Resource.Label(name)</span><b>@val</b>@if (d != null && d != 0) { <small class="@(d > 0 ? "up" : "down")">@(d > 0 ? "+" : "")@d /turn</small> }</div> }
             </div>
+            @if (w.HasFlag("fuel_short")) { <div class="flag">The tanks are dry: readiness slides fifteen a turn and no fleet of yours may sail until helium-3 is found — a skimmer, the exchange, or the open market.</div> }
+            <div class="muted small deposits">Deposits under your worlds and claims: @(m.Deposits is { Count: > 0 } ? string.Join(" · ", m.Deposits.Select(Resource.Label)) : "none — what you need, you buy")</div>
+            @if (m.Procure != null) { <div class="opts">@foreach (var o in m.Procure) { var res = o.Id["procure_".Length..]; <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new ProcureCommand(pid, res, 3, c.Holdings, c.Businesses))">@o.Label</button> } </div> }
             @if (m.Treasury.Insolvent) { <div class="flag">Insolvent: unrest climbs on every populated world and unpaid crews will desert.</div> }
         </section>
 

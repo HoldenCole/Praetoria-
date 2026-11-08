@@ -61,6 +61,10 @@ public static class ConditionParser
                 return new AtWarCondition(Str(el, "role"), Bool(el, "present", true));
             case "fleetStrength":
                 return new FleetStrengthCondition(OptStr(el, "role", "self"), Op(el), Int(el, "value", 0));
+            case "wealth":
+                return new WealthCondition(OptStr(el, "role", "self"), Op(el), Str(el, "tier"));
+            case "deposit":
+                return new DepositCondition(OptStr(el, "role", "self"), Str(el, "resource"), Bool(el, "present", true));
             case "era":
                 return new EraCondition(Str(el, "era"), Bool(el, "present", true));
             case "track":

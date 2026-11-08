@@ -253,6 +253,7 @@ internal static class Qa
         }
         foreach (var b in w.BusinessesOf(house.Id).OrderBy(b => b.Id, StringComparer.Ordinal)) { cands.Add(new ExpandBusinessCommand(p.Id, b.Id, bc)); if (decisions.NextInt(0, 6) == 0) cands.Add(new SellBusinessCommand(p.Id, b.Id, bc)); }
         cands.Add(new TakeLoanCommand(p.Id, bc)); cands.Add(new RepayLoanCommand(p.Id)); cands.Add(new PetitionFiefCommand(p.Id));
+        cands.Add(new ProcureCommand(p.Id, Resource.Helium3, 2, content.Holdings, bc)); cands.Add(new ProcureCommand(p.Id, Resource.RareEarths, 1, content.Holdings, bc));
         if (others.Count > 0 && decisions.NextInt(0, 4) == 0) cands.Add(new DeclareWarCommand(p.Id, others[decisions.NextInt(0, others.Count)].Id, content.Fleets));
         foreach (var war in w.Wars.Where(x => x.Involves(house.Id)).OrderBy(x => x.HouseA + x.HouseB, StringComparer.Ordinal)) cands.Add(new SueForPeaceCommand(p.Id, war.HouseA == house.Id ? war.HouseB : war.HouseA, content.Fleets));
         if (tc.Progression is { } prog) { cands.Add(new SeizeTitleCommand(p.Id, prog)); cands.Add(new PetitionTitleCommand(p.Id, prog)); cands.Add(new ClaimTitleCommand(p.Id, prog)); }

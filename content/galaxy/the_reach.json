@@ -108,7 +108,7 @@
   ],
   "systems": [
     {
-      "id": "tessaly",
+      "id": "tessaly", "deposits": { "helium3": 1 },
       "name": "Tessaly",
       "x": 546,
       "y": 1148,
@@ -185,7 +185,7 @@
       ]
     },
     {
-      "id": "drake_crossing",
+      "id": "drake_crossing", "deposits": { "helium3": 2 },
       "name": "Drake Crossing",
       "x": 799,
       "y": 933,
@@ -294,7 +294,7 @@
       ]
     },
     {
-      "id": "anvils_rest",
+      "id": "anvils_rest", "deposits": { "helium3": 2 },
       "name": "Anvil's Rest",
       "x": 1424,
       "y": 369,
@@ -331,7 +331,7 @@
       ]
     },
     {
-      "id": "cinder_gate",
+      "id": "cinder_gate", "deposits": { "rare_earths": 2 },
       "name": "Cinder Gate",
       "belt": 2,
       "x": 1591,
@@ -391,7 +391,7 @@
       ]
     },
     {
-      "id": "drydock_nine",
+      "id": "drydock_nine", "deposits": { "helium3": 2 },
       "name": "Drydock Nine",
       "belt": 1,
       "x": 1659,
@@ -429,7 +429,7 @@
       ]
     },
     {
-      "id": "castrum",
+      "id": "castrum", "deposits": { "isotopes": 1 },
       "name": "Castrum",
       "x": 1549,
       "y": 806,
@@ -461,7 +461,7 @@
       ]
     },
     {
-      "id": "the_spire",
+      "id": "the_spire", "deposits": { "helium3": 3 },
       "name": "The Spire",
       "x": 1907,
       "y": 957,
@@ -526,7 +526,7 @@
       ]
     },
     {
-      "id": "ember_shoal",
+      "id": "ember_shoal", "deposits": { "rare_earths": 3 },
       "name": "Ember Shoal",
       "belt": 3,
       "x": 1673,
@@ -549,7 +549,7 @@
       ]
     },
     {
-      "id": "valmont_anvils",
+      "id": "valmont_anvils", "deposits": { "isotopes": 2 },
       "name": "The Valmont Anvils",
       "x": 2321,
       "y": 736,
@@ -581,7 +581,7 @@
       ]
     },
     {
-      "id": "ironhold",
+      "id": "ironhold", "deposits": { "rare_earths": 2 },
       "name": "Ironhold",
       "belt": 1,
       "x": 2453,
@@ -609,7 +609,7 @@
       ]
     },
     {
-      "id": "the_kilns",
+      "id": "the_kilns", "deposits": { "rare_earths": 1 },
       "name": "The Kilns",
       "belt": 2,
       "x": 2216,
@@ -637,7 +637,7 @@
       ]
     },
     {
-      "id": "lucent",
+      "id": "lucent", "deposits": { "helium3": 1 },
       "name": "Lucent",
       "x": 1174,
       "y": 796,
@@ -696,7 +696,7 @@
       ]
     },
     {
-      "id": "pallas_reach",
+      "id": "pallas_reach", "deposits": { "helium3": 3 },
       "name": "Pallas Reach",
       "x": 1233,
       "y": 732,
@@ -793,7 +793,7 @@
       ]
     },
     {
-      "id": "harrow_deep",
+      "id": "harrow_deep", "deposits": { "helium3": 1 },
       "name": "Harrow Deep",
       "x": 889,
       "y": 1040,
@@ -854,7 +854,7 @@
       ]
     },
     {
-      "id": "last_harbour",
+      "id": "last_harbour", "deposits": { "helium3": 1 },
       "name": "Last Harbour",
       "x": 1117,
       "y": 1491,
@@ -881,7 +881,7 @@
       ]
     },
     {
-      "id": "the_gallows",
+      "id": "the_gallows", "deposits": { "isotopes": 1 },
       "name": "The Gallows",
       "x": 915,
       "y": 1354,
@@ -903,7 +903,7 @@
       ]
     },
     {
-      "id": "hollow_reach",
+      "id": "hollow_reach", "deposits": { "rare_earths": 1 },
       "name": "Hollow Reach",
       "x": 617,
       "y": 1331,
@@ -931,7 +931,7 @@
       ]
     },
     {
-      "id": "wintermoor",
+      "id": "wintermoor", "deposits": { "isotopes": 2 },
       "name": "Wintermoor",
       "x": 2081,
       "y": 1222,
@@ -985,7 +985,7 @@
       ]
     },
     {
-      "id": "sorrow",
+      "id": "sorrow", "deposits": { "rare_earths": 2 },
       "name": "Sorrow",
       "x": 1562,
       "y": 1408,

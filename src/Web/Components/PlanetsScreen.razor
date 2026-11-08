@@ -46,6 +46,7 @@
                         @if (n.Population > 0) { <span class="pill @(n.Unrest >= 50 ? "warn" : "")">@(100 - n.Unrest)</span> }
                         @if (n.Stations > 0) { <span class="pill small">@n.Stations st</span> }
                         @if (n.Belt > 0) { <span class="pill small" title="belt richness @n.Belt">@(new string('●', n.Belt))</span> }
+                        @if (n.Deposits is { Count: > 0 }) { foreach (var d in n.Deposits) { <span class="pill small dep" title="@Resource.Label(d.Key) deposit, richness @d.Value">@(d.Key == "helium3" ? "³He" : d.Key == "rare_earths" ? "RE" : "Iso") @d.Value</span> } }
                         @if (n.Ventures > 0) { <span class="pill small" title="ventures">@n.Ventures v</span> }
                     </div>
                 }

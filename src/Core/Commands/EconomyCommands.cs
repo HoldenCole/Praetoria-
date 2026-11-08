@@ -84,6 +84,7 @@ public sealed class FoundBusinessCommand : ICommand
         if (w.Businesses.ContainsKey(IdFor(house.Id, _defId, _systemId))) return "you already have one here";
         var planet = w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId == _systemId).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
         if (def.RequiresBelt && sys.Belt <= 0) return "needs a belt";
+        if (def.RequiresDeposit != null && sys.Deposit(def.RequiresDeposit) == 0) return $"needs a {Resource.Label(def.RequiresDeposit)} deposit";
         if (def.RequiresPopulated && (planet == null || planet.Population <= 0)) return "needs a peopled world";
         if (def.RequiresOwnWorld && (planet == null || planet.OwnerId != house.Id)) return "needs a world of your own";
         if (def.MinLanes > 0 && w.Galaxy!.Neighbors(_systemId).Count() < def.MinLanes) return $"needs a hub of {def.MinLanes} lanes";
@@ -197,5 +198,47 @@ public sealed class RepayLoanCommand : ICommand
         var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!;
         house.Treasury.Credits -= house.Debt; house.Debt = 0; house.LenderId = "";
         w.Log($"{house.Name} clears its debt.");
+    }
+}
+
+/// <summary>
+/// Buy a strategic resource on the open market (GDD §17 "decisions gated behind wealth and resources"). Helium-3 and rare earths
+/// are sold at the capital's exchanges by whoever brings them up; the price climbs when few do. Isotopes are weapons-grade and
+/// never on the open market — they come from a deposit, a venture, or an event. Credits per unit and no pool point: buying fuel is
+/// a purser's errand, not a decree, and a rival's one Treasury action a turn should go to the yards and the lanes.
+/// </summary>
+public sealed class ProcureCommand : ICommand
+{
+    public const int Helium3Price = 6, RareEarthsPrice = 9, ScarcityStep = 2, ScarcityBelow = 4;
+    private readonly string _resource; private readonly int _units; private readonly HoldingCatalog _catalog; private readonly BusinessCatalog _ventures;
+    public ProcureCommand(string actorId, string resource, int units, HoldingCatalog catalog, BusinessCatalog ventures) { ActorId = actorId; _resource = resource; _units = Math.Max(1, units); _catalog = catalog; _ventures = ventures; }
+    public string ActorId { get; }
+    public string Describe() => $"procure {_units} {Resource.Label(_resource)}";
+
+    /// <summary>Credits per unit: the base price, plus a step for every producer short of <see cref="ScarcityBelow"/>.</summary>
+    public static int Price(World w, string resource, HoldingCatalog catalog, BusinessCatalog ventures)
+    {
+        int basePrice = resource == Resource.Helium3 ? Helium3Price : resource == Resource.RareEarths ? RareEarthsPrice : int.MaxValue;
+        if (basePrice == int.MaxValue) return basePrice;
+        return basePrice + Math.Max(0, ScarcityBelow - Systems.Economy.Producers(w, resource, catalog, ventures)) * ScarcityStep;
+    }
+    public int Cost(World w) => Price(w, _resource, _catalog, _ventures) * _units;
+
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null) return "no house";
+        if (_resource == Resource.Isotopes) return "weapons-grade isotopes are not sold on any open market";
+        if (!Resource.IsStrategic(_resource)) return "not a thing the exchanges deal in";
+        if (Systems.Economy.Producers(w, _resource, _catalog, _ventures) == 0) return $"no one in the Reach brings {Resource.Label(_resource)} up";
+        return house.Treasury.Credits < Cost(w) ? $"needs {Cost(w)} credits" : null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId)!; var house = w.House(actor.HouseId)!;
+        house.Treasury.Credits -= Cost(w); house.Treasury.Add(_resource, _units);
+        w.WorldCounters["procured"] = w.Counter("procured") + _units;
     }
 }

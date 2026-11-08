@@ -27,6 +27,7 @@ public sealed class NpcAi
     public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
         HoldingCatalog? catalog = null, FleetRules? fleetRules = null, BusinessCatalog? ventures = null)
     {
+        _fuelHullsPerUnit = fleetRules?.FuelHullsPerUnit ?? 3; _catalog = catalog;
         _ventures = ventures ?? BusinessCatalog.Empty;
         var world = ctx.World;
         var npcs = world.LivingCharacters()
@@ -34,7 +35,8 @@ public sealed class NpcAi
             .OrderBy(c => c.Id, StringComparer.Ordinal)
             .ToList();
 
-        // House-level strategy first (it spends the same pools), then personal jabs, then schemes.
+        // Fuel first (a dry navy is a navy on paper), then house-level strategy (it spends the same pools), then personal jabs, then schemes.
+        if (catalog != null) Refuel(npcs, catalog, executor, ctx);
         if (catalog is { IsEmpty: false }) Invest(npcs, catalog, executor, ctx);
         if (fleetRules != null && world.Galaxy != null) Sail(npcs, fleetRules, executor, ctx);
 
@@ -168,11 +170,22 @@ public sealed class NpcAi
             // otherwise, keep the yards busy when the treasury is comfortable: the heaviest class it can field
             var holding = world.HoldingsOf(house.Id).Where(h => h.SystemId != "").OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
             if (holding == null) continue;
+            // a hull is a mouth to feed (GDD §17 fuel): no new hull while the tanks could not carry the navy three turns, and no navy out of all
+            // proportion to the worlds that pay for it — ten hulls, plus six a world and one a station or claim
+            int hullsNow = world.Fleets.Values.Where(f => f.OwnerId == house.Id).Sum(f => f.Strength);
+            int hullCap = 10 + 6 * world.HoldingsOf(house.Id).Count(h => h.IsPlanet) + world.HoldingsOf(house.Id).Count(h => !h.IsPlanet);
+            if (hullsNow >= hullCap) continue;
+            if (house.Treasury.Helium3 < ((hullsNow + 1 + _fuelHullsPerUnit - 1) / _fuelHullsPerUnit) * 3) continue;   // what the navy would burn with one more hull, three turns over
             var classes = ShipClasses ?? ShipClassCatalog.Empty;
             var candidates = classes.IsEmpty ? new[] { rules.DefaultClass } : classes.Defs.OrderByDescending(c => c.Attack + c.Defense).Select(c => c.Id).ToArray();
             foreach (var cid in candidates)
             {
                 var cls = classes.Resolve(cid);
+                if (cls.Cost.RareEarths > 0 && house.Treasury.RareEarths < cls.Cost.RareEarths * 2 && Resource.All.Where(r => r != Resource.RareEarths).All(r => house.Treasury.Get(r) >= cls.Cost.Get(r) * 2))
+                {   // the hull wants rare earths the house has not got: buy them if the coin is comfortably there
+                    var buy = new ProcureCommand(head.Id, Resource.RareEarths, cls.Cost.RareEarths * 2 - house.Treasury.RareEarths, _catalog ?? new HoldingCatalog(Array.Empty<HoldingSpec>(), Array.Empty<BuildingDef>()), _ventures);
+                    if (house.Treasury.Credits >= buy.Cost(world) + cls.Cost.Credits * 2) executor.TryExecute(buy, ctx);
+                }
                 bool comfortable = Resource.All.All(r => house.Treasury.Get(r) >= cls.Cost.Get(r) * 2);
                 if (!comfortable) continue;
                 if (executor.TryExecute(new RaiseFleetCommand(head.Id, holding.Id, rules, classes, cid, Titles), ctx)) break;
@@ -260,7 +273,7 @@ public sealed class NpcAi
             bool built = false;
             foreach (var holding in world.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
             {
-                foreach (var b in catalog.Buildings.OrderByDescending(b => b.Megastructure).ThenBy(b => b.Id, StringComparer.Ordinal))
+                foreach (var b in catalog.Buildings.OrderByDescending(b => b.Megastructure).ThenByDescending(b => b.RequiresDeposit != null).ThenBy(b => b.Id, StringComparer.Ordinal))   // work the deposit before the rest
                 {
                     if (b.Megastructure && house.Treasury.Credits < b.Cost.Credits * 2) continue;      // only when it can afford to show off
                     if (executor.TryExecute(new BuildCommand(steward.Id, holding.Id, b.Id, catalog, Titles), ctx)) { built = true; break; }
@@ -276,10 +289,29 @@ public sealed class NpcAi
     /// invests in it; a house with coin to spare stakes a belt claim near home (or anywhere, if it holds nothing), founds
     /// one venture where the catalog lets it, and expands the one it has. One of each a turn at most, in id order, so
     /// rival fortunes grow steadily and reproducibly.</summary>
+    private int _fuelHullsPerUnit = 3; private HoldingCatalog? _catalog;
+
+    /// <summary>Fuel before finery (GDD §17): every rival house with a navy and dry or low tanks buys helium-3 on the open market before it
+    /// spends a pool point on anything else — three turns' worth when the coin is comfortable, one turn's worth when it is not.</summary>
+    private void Refuel(List<Character> npcs, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
+    {
+        var world = ctx.World;
+        foreach (var house in world.Houses.Values.Where(h => h.Id != world.Protagonist?.HouseId && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            int hulls = world.Fleets.Values.Where(f => f.OwnerId == house.Id).Sum(f => f.Strength);
+            if (hulls == 0 && !world.HoldingsOf(house.Id).Any(h => h.SystemId.Length > 0)) continue;   // nothing to fuel and nowhere to lay a keel
+            int need = Math.Max(1, FleetSystem.FuelBillFor(world, house.Id, _fuelHullsPerUnit));   // a house without a navy still wants a tank in hand before it lays down a keel
+            if (house.Treasury.Helium3 >= need * 2) continue;
+            var head = Economy.HeadOf(world, house); if (head == null) continue;
+            var buy = new ProcureCommand(head.Id, Resource.Helium3, need * 3, catalog, _ventures);
+            if (house.Treasury.Credits >= buy.Cost(world) + 4) { executor.TryExecute(buy, ctx); continue; }
+            var one = new ProcureCommand(head.Id, Resource.Helium3, need, catalog, _ventures); if (house.Treasury.Credits >= one.Cost(world)) executor.TryExecute(one, ctx);
+        }
+    }
     private void Venture(House house, Character steward, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
     {
         var world = ctx.World; var f = _ventures.Finance; var galaxy = world.Galaxy; var eco = new Economy(catalog, _ventures);
-        int net = eco.Forecast(world, house.Id).Credits;
+        var fc = eco.Forecast(world, house.Id); int net = fc.Credits, mpNet = fc.Manpower;   // a venture that eats men (a free company) is only worth it while the worlds breed more than it eats
         // deep in the red with a venture to sell: sell the one that pays least before anything else (a loan on a sinking ledger is a spiral)
         if (house.Treasury.Credits < -10)
         {
@@ -289,6 +321,14 @@ public sealed class NpcAi
         // a loan is a bridge, not a floor: borrow only when the ledger is positive, so the instalments can be met
         if (house.Treasury.Credits < -5 && house.Debt == 0 && net > f.LoanInstalment) executor.TryExecute(new TakeLoanCommand(steward.Id, _ventures), ctx);   // the instalment must be payable out of income
         if (house.Debt > 0 && house.Treasury.Credits >= house.Debt + 15) executor.TryExecute(new RepayLoanCommand(steward.Id), ctx);
+        int fuelNeed = FleetSystem.FuelBillFor(world, house.Id, _fuelHullsPerUnit);
+        // a hoard is coin standing idle: sell helium-3 beyond six turns of burn (plus ten), and rare earths beyond a dozen, at the exchange
+        foreach (var (res, keep) in new[] { (Resource.Helium3, fuelNeed * 6 + 10), (Resource.RareEarths, 12) })
+        {
+            int surplus = house.Treasury.Get(res) - keep; if (surplus < 3) continue;
+            var rate = catalog.Rates.FirstOrDefault(r => r.Give == res && r.Get == Resource.Credits);
+            if (rate != null) executor.TryExecute(new ExchangeCommand(steward.Id, rate, catalog, times: Math.Min(6, surplus / Math.Max(1, rate.GiveAmount))), ctx);
+        }
         if (house.Treasury.Credits >= f.InvestCredits + 14)
         {
             var slack = world.HoldingsOf(house.Id).Where(h => h.IsPlanet && h.Prosperity < 45).OrderBy(h => h.Prosperity).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
@@ -305,7 +345,7 @@ public sealed class NpcAi
         int cushion = net <= 0 ? 2 : 10;
         // and it stakes no more than two belt claims unless the ledger is comfortably in the black: claims pay in ore, not coin
         if (house.Treasury.Credits >= f.ClaimCredits + cushion && house.Treasury.Materials >= f.ClaimMaterials && (world.HoldingsOf(house.Id).Count(h => h.IsClaim) < 2 || net > 3))
-            foreach (var sys in galaxy.Systems.Values.Where(s => s.Belt > 0).OrderBy(s => s.Id, StringComparer.Ordinal))
+            foreach (var sys in galaxy.Systems.Values.Where(s => s.Belt > 0).OrderByDescending(s => s.Deposit(Resource.RareEarths)).ThenBy(s => s.Id, StringComparer.Ordinal))   // the rare-earth belts first
                 if (executor.TryExecute(new StakeClaimCommand(steward.Id, sys.Id, catalog, _ventures), ctx)) break;
         if (_ventures.IsEmpty) return;
         var mine = world.BusinessesOf(house.Id).ToList();
@@ -320,6 +360,7 @@ public sealed class NpcAi
                 foreach (var sys in galaxy.Systems.Values.OrderBy(s => s.Id, StringComparer.Ordinal))
                 {
                     if (new FoundBusinessCommand(steward.Id, def.Id, sys.Id, _ventures, catalog, Titles).Refusal(ctx) != null) continue;
+                    if (def.Upkeep.Manpower > 0 && mpNet - def.Upkeep.Manpower < 1) continue;   // no men to spare: the yards come first
                     int pay = ProjectedNet(world, house, def, sys.Id) + (own.Contains(sys.Id) ? 1 : 0);
                     if (pay <= 0) continue;
                     if (best == null || pay > best.Value.pay) best = (def.Id, sys.Id, pay);
@@ -330,6 +371,7 @@ public sealed class NpcAi
         foreach (var b in mine)
         {
             var def = _ventures.Def(b.Kind); if (def == null || b.Level >= def.MaxLevel || VentureNet(world, house, b) <= 0) continue;
+            if (def.Upkeep.Manpower > 0 && mpNet - def.Upkeep.Manpower < 1) continue;
             if (house.Treasury.Credits >= def.ExpandCost.Credits + 16 && executor.TryExecute(new ExpandBusinessCommand(steward.Id, b.Id, _ventures), ctx)) break;
         }
     }
@@ -339,9 +381,11 @@ public sealed class NpcAi
     private int ProjectedNet(World w, House house, BusinessDef def, string systemId)
     {
         var holder = w.PlanetHolder(systemId); int charter = holder != null && holder != house.Id ? def.Charter + (w.Galaxy?.RulesFor(w.Galaxy.RingOf(systemId)).CharterBonus ?? 0) : 0;
-        return def.Yield.Credits + def.FlatYield.Credits - def.Upkeep.Credits - charter;
+        return def.Yield.Credits + def.FlatYield.Credits - def.Upkeep.Credits - charter + StrategicWorth(def.Yield);
     }
-    private int VentureNet(World w, House house, Business b) { var def = _ventures.Def(b.Kind); if (def == null) return 0; var holder = w.PlanetHolder(b.SystemId); int charter = holder != null && holder != house.Id ? def.Charter + (w.Galaxy?.RulesFor(w.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0) : 0; return (def.Yield.Credits - def.Upkeep.Credits - charter) * b.Level + def.FlatYield.Credits; }
+    /// <summary>What a bundle's strategic yield would fetch: helium-3 two, rare earths three, isotopes six credits a unit (the exchange's selling rates).</summary>
+    private static int StrategicWorth(Resources r) => r.Helium3 * 2 + r.RareEarths * 3 + r.Isotopes * 6;
+    private int VentureNet(World w, House house, Business b) { var def = _ventures.Def(b.Kind); if (def == null) return 0; var holder = w.PlanetHolder(b.SystemId); int charter = holder != null && holder != house.Id ? def.Charter + (w.Galaxy?.RulesFor(w.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0) : 0; return (def.Yield.Credits - def.Upkeep.Credits - charter + StrategicWorth(def.Yield)) * b.Level + def.FlatYield.Credits; }
 
     /// <summary>The first ambitious NPC (id order) lights the fuse on the first causable crisis
     /// (id order) — a deliberate, ambition-serving onset. At most one authored crisis per turn,

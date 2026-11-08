@@ -99,7 +99,9 @@ credits + ⅔ materials + 4 × influence + 6 × exotics
 + each venture at book value − debt
 ```
 
-Tiers: destitute (< 0), poor (< 40), comfortable (< 100), rich (< 200), opulent. The player's rank is the counter
+Tiers are relative (GDD §17 "gated behind wealth"): destitute below zero, else by rank among the houses — the top sixth
+opulent, the next quarter rich, the middle comfortable, the bottom quarter poor — so a rich age does not make every
+house opulent, and *The Arms Broker* still finds only the rich. The player's rank is the counter
 `wealth_rank`, the richest house the flag `richest:<house>`; the Steward reports your standing, the House screen shows
 the table.
 
@@ -132,3 +134,33 @@ never a free hold); the grantor's head must think well of the petitioner (dispos
 them first. The grantor's least peopled world changes hands, the petitioner rises a baron, the grantor gains five
 legitimacy for the generosity. Fortress worlds, meanwhile, earn a garrison credit and a levy of manpower on top of
 their escort fees, so a march lord is marginal rather than broke.
+
+## The strategic three
+
+Not every world has everything (GDD §17). Three resources come only from **deposits** the galaxy placed — `deposits` on a
+system in the galaxy JSON, resource → richness 1..3 — and the Reach has nineteen: helium-3 in nine gas giants' clouds,
+rare earths in six belts, isotopes in four dead or forge worlds, most of them on the rim.
+
+| resource | from | for | on the open market |
+|---|---|---|---|
+| **helium-3** | Helium Skimmers (building) or a Skimmer Fleet (venture) on a giant | fuel: a navy of two hulls or more burns one a turn per three hulls | yes, 6 credits + scarcity |
+| **rare earths** | a belt claim in a rare-earth belt (one, two at richness 3), or a Rare-Earth Refinery | cruisers, carriers, battleships, the orbital foundry, the exotics lab, the sensor array | yes, 9 credits + scarcity |
+| **isotopes** | Isotope Works (building) or an Enrichment Concern (venture, count or better) | battleships, bastion guns, the planetary arsenal | **never** — a deposit, a venture or an event |
+
+A deposit building or venture yields its listed amount × the deposit's richness; a belt claim brings up the belt's rare
+earths as well as its ore. **Fuel**: `FleetRules.FuelHullsPerUnit` (3); short, readiness slides fifteen a turn, no fleet
+of the house may sail, and the player hears of it through `fuel_short` (*Dry Tanks*). Tanks start part full (six plus
+one a hull). **The open market** (`ProcureCommand`): credits alone (no pool point) buy helium-3 or rare earths at the base price plus
+two credits for every producer short of four — so a Reach where one house skims pays double, and a rich house without a
+deposit can still buy its way in. The exchange trades them too (and sells isotopes, 6 credits each, but never buys).
+
+Rival stewards buy fuel before they spend a pool point on anything else (three turns' worth when the coin is comfortable,
+one when it is not), work a deposit before anything else they could build, value a strategic yield at its exchange worth
+when choosing a venture, sell a hoard, and buy the rare earths a heavy hull wants. The yards lay down no hull the tanks
+could not carry three turns, and no navy out of proportion to its worlds (ten hulls, plus six a world and one a station
+or claim). Wealth counts stocks at 2, 3 and 5 credits a unit.
+
+Flags for content: `deposit:<res>` (a world or claim of yours sits on one), `strategic:<res>` (you hold a unit),
+`fuel_short`; counters `deposits_held`, `procured`, `fuel_short:<house>`. Conditions: `wealth` (tier compare) and
+`deposit`. Six events ship in `content/events/resources.json` — *Dry Tanks*, *The Skimmer Barons*, *A Vein of Rare
+Earths*, *The Arms Broker* (rich, no isotopes: buy from a man with a false name), *The Fuel Contract*, *The Embargo*.

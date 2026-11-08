@@ -17,6 +17,11 @@
         @Res("influence", t.Influence, fc?.Influence, "Influence (stock) — spent through the exchange and by decrees.")
         @Res("exotics", t.Exotics, fc?.Exotics, "Exotics — rare finds; sell dear or study them.")
     </div>
+    <div class="tb-res strat @(w.HasFlag("fuel_short") ? "dry" : "")" title="The strategic three — dug or skimmed only where the galaxy put them. Helium-3 fuels the fleet (three hulls burn one a turn); rare earths build the heavy hulls and the clever buildings; isotopes arm battleships and bastions and are never on the open market.">
+        @Res("helium3", t.Helium3, fc?.Helium3, w.HasFlag("fuel_short") ? "Helium-3 — THE TANKS ARE DRY: the fleet rides at anchor." : "Helium-3 — fusion fuel; the fleet burns it every turn.")
+        @Res("rare_earths", t.RareEarths, fc?.RareEarths, "Rare earths — drives, sensors, electronics; cruisers, carriers, foundries.")
+        @Res("isotopes", t.Isotopes, fc?.Isotopes, "Isotopes — weapons-grade; battleships, bastion guns, arsenals. Never sold on the open market.")
+    </div>
     <div class="tb-pools" title="This turn's action pools (GDD §9): reading is free, acting costs">
         <span class="pool inf" title="Influence this turn"><Icon Name="influence_pool" Size="14" />@pools.Influence</span>
         <span class="pool tre" title="Treasury actions this turn"><Icon Name="treasury_pool" Size="14" />@pools.Treasury</span>

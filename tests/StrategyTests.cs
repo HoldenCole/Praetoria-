@@ -19,7 +19,7 @@ public class StrategyTests
     public void Exchange_LoadsRates_AndNeedsAMarket()
     {
         var (content, w) = Fresh();                                    // Serval's Highmarch has a market
-        Assert.Equal(6, content.Holdings.Rates.Count);
+        Assert.Equal(11, content.Holdings.Rates.Count);   // five classic, five strategic (isotopes sell only)
         var rate = content.Holdings.Rates.First(r => r.Give == "credits" && r.Get == "materials");
         var ctx = new CommandContext(w, TestContent.Rng());
         var house = w.House("serval")!;

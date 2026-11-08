@@ -31,6 +31,8 @@ public sealed class BusinessDef
     public bool RequiresBelt { get; init; }
     public bool RequiresPopulated { get; init; }
     public bool RequiresOwnWorld { get; init; }
+    /// <summary>A strategic deposit the system must hold; the venture's yield of that resource is multiplied by the richness.</summary>
+    public string? RequiresDeposit { get; init; }
     public int MinLanes { get; init; }
     public int MinTitleRank { get; init; }
     public IReadOnlyList<string> PlanetClasses { get; init; } = Array.Empty<string>();
@@ -85,6 +87,7 @@ public static class BusinessLoader
                             RequiresBelt = req.ValueKind == JsonValueKind.Object && ConditionParser.Bool(req, "belt", false),
                             RequiresPopulated = req.ValueKind == JsonValueKind.Object && ConditionParser.Bool(req, "populated", false),
                             RequiresOwnWorld = req.ValueKind == JsonValueKind.Object && ConditionParser.Bool(req, "ownWorld", false),
+                            RequiresDeposit = req.ValueKind == JsonValueKind.Object ? ConditionParser.OptStrOrNull(req, "deposit") : null,
                             MinLanes = req.ValueKind == JsonValueKind.Object ? ConditionParser.Int(req, "minLanes", 0) : 0,
                             MinTitleRank = req.ValueKind == JsonValueKind.Object ? ConditionParser.Int(req, "minTitleRank", 0) : 0,
                             PlanetClasses = req.ValueKind == JsonValueKind.Object ? StrList(req, "planetClasses") : Array.Empty<string>(),

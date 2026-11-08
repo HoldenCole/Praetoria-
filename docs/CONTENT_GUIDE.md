@@ -188,7 +188,8 @@ AND). Comparison `op` ∈ `eq, neq, lt, lte, gt, gte` (symbols `==, !=, <, <=, >
 
 `resource` ∈ `credits, materials, manpower, influence, exotics`.
 `sphere` ∈ `navy, treasury, senate`.
-`title`/`claim` title ids ∈ `landless, knight, baron, count, duke, archduke, emperor`.
+`title`/`claim` title ids ∈ `landless, knight, baron, count, duke, archduke, emperor`. Resource ids ∈ `credits, materials,
+manpower, influence, exotics, helium3, rare_earths, isotopes` (the last three come only from deposits; see ECONOMY.md).
 Note `title`/`claim` test an **exact title id** (held / not-held), not a rank threshold — for "Count or
 higher" gate on the `title_rank` counter (see §Progression below).
 

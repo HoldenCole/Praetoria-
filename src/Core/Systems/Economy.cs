@@ -66,10 +66,13 @@ public sealed class Economy
             var ring = world.Galaxy != null && holding.SystemId.Length > 0 ? world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)) : null;
             int lawless = world.Galaxy?.System(holding.SystemId) is { } hs && world.Regions.TryGetValue(hs.RegionId, out var rs) ? rs.Lawlessness : 0;
             if (holding.InRebellion) { ledger.Add(holding.Name, "rebellion", new Resources { Credits = -spec.Upkeep.Credits }); continue; }
+            var depSys = world.Galaxy?.System(holding.SystemId);
             foreach (var r in Resource.All)
             {
                 int v = spec.BaseYield.Get(r) - spec.Upkeep.Get(r);
-                foreach (var bid in holding.Buildings) { var b = _catalog.Building(bid); if (b != null) v += b.Yield.Get(r) - b.Upkeep.Get(r); }
+                // a building that works a deposit brings up richness-many of what it yields (GDD §17 "not every world has everything")
+                foreach (var bid in holding.Buildings) { var b = _catalog.Building(bid); if (b != null) v += (b.RequiresDeposit == r ? b.Yield.Get(r) * Math.Max(1, depSys?.Deposit(r) ?? 0) : b.Yield.Get(r)) - b.Upkeep.Get(r); }
+                if (r == Resource.RareEarths && holding.IsClaim) v += ((depSys?.Deposit(r) ?? 0) + 1) / 2;   // a belt claim brings up some of the rare earths the belt holds (1 at richness 1–2, 2 at 3)
                 if (r == Resource.Manpower && spec.PopManpower > 0) v += holding.Population / spec.PopManpower;
                 if (r == Resource.Credits)
                 {
@@ -102,7 +105,7 @@ public sealed class Economy
             bool troubled = planet != null && (world.Sieges.ContainsKey(planet.Id) || world.AtWar(houseId, planet.OwnerId));
             foreach (var r in Resource.All)
             {
-                int v = def.Yield.Get(r) * b.Level + def.FlatYield.Get(r) - def.Upkeep.Get(r) * b.Level;
+                int v = (def.RequiresDeposit == r ? def.Yield.Get(r) * Math.Max(1, world.Galaxy?.System(b.SystemId)?.Deposit(r) ?? 0) : def.Yield.Get(r)) * b.Level + def.FlatYield.Get(r) - def.Upkeep.Get(r) * b.Level;
                 if ((r == Resource.Credits || r == Resource.Materials) && v > 0 && planet != null) v = v * (50 + planet.Prosperity) / 100;
                 if (v > 0 && troubled) v /= 2;
                 d.Add(r, v);
@@ -139,7 +142,10 @@ public sealed class Economy
         if (interest > 0) ledger.Add("interest on loans", "interest", new Resources { Credits = interest });
 
         if (fleets != null)
+        {
             foreach (var f in world.Fleets.Values.Where(f => f.OwnerId == houseId).OrderBy(f => f.Id, StringComparer.Ordinal)) { var up = fleets.Upkeep(f); var d = new Resources(); foreach (var r in Resource.All) d.Add(r, -up.Get(r)); ledger.Add(f.Name, "fleet", d); }
+            int fuel = fleets.FuelBill(world, houseId); if (fuel > 0) ledger.Add("fuel for the fleet", "fuel", new Resources { Helium3 = -fuel });
+        }
         return ledger;
     }
 
@@ -240,5 +246,32 @@ public sealed class Economy
         foreach (var b in world.BusinessesOf(mine.Id)) world.WorldFlags.Add("business:" + b.Kind);
         if (world.BusinessesOf(mine.Id).Any()) world.WorldFlags.Add("business:any");
         if (world.HoldingsOf(mine.Id).Any(h => h.IsClaim)) world.WorldFlags.Add("claim_holder");
+        // the strategic three: deposit:<res> where a world or claim of yours sits on one, strategic:<res> when you hold a unit
+        foreach (var f in world.WorldFlags.Where(f => f.StartsWith("deposit:") || f.StartsWith("strategic:")).ToList()) world.WorldFlags.Remove(f);
+        var deposits = Deposits(world, mine.Id); world.WorldCounters["deposits_held"] = deposits.Count;
+        foreach (var r in deposits) world.WorldFlags.Add("deposit:" + r);
+        foreach (var r in Resource.Strategic) if (mine.Treasury.Get(r) > 0) world.WorldFlags.Add("strategic:" + r);
+    }
+
+    /// <summary>The strategic resources a house sits on: every deposit in a system where it holds a world or a claim.</summary>
+    public static HashSet<string> Deposits(World world, string houseId)
+    {
+        var set = new HashSet<string>(); var g = world.Galaxy; if (g == null) return set;
+        foreach (var h in world.HoldingsOf(houseId)) if ((h.IsPlanet || h.IsClaim) && g.System(h.SystemId) is { } s) foreach (var kv in s.Deposits) if (kv.Value > 0) set.Add(kv.Key);
+        return set;
+    }
+
+    /// <summary>Houses that actually bring a strategic resource up: a worked deposit (building or venture), or a claim in a rare-earth belt.</summary>
+    public static int Producers(World world, string resource, HoldingCatalog catalog, BusinessCatalog ventures)
+    {
+        var g = world.Galaxy; if (g == null) return 0; var set = new HashSet<string>();
+        foreach (var h in world.Holdings.Values)
+        {
+            if (g.System(h.SystemId)?.Deposit(resource) is not > 0) continue;
+            if (resource == Resource.RareEarths && h.IsClaim) set.Add(h.OwnerId);
+            if (h.Buildings.Any(b => catalog.Building(b)?.RequiresDeposit == resource)) set.Add(h.OwnerId);
+        }
+        foreach (var b in world.Businesses.Values) if (ventures.Def(b.Kind)?.RequiresDeposit == resource && g.System(b.SystemId)?.Deposit(resource) is > 0) set.Add(b.OwnerId);
+        return set.Count;
     }
 }

@@ -141,8 +141,8 @@ public sealed class World
     /// <summary>Get-or-create the action pools for an actor (empty pools if none were seeded).</summary>
     public ActionPools PoolsFor(string actorId)
     {
-        if (!Pools.TryGetValue(actorId, out var p))
-            Pools[actorId] = p = new ActionPools { Cap = 0 };
+        if (!Pools.TryGetValue(actorId, out var p))   // a character born or raised in play gets a rival's lean budget; anything else an empty one
+            Pools[actorId] = p = Characters.ContainsKey(actorId) && actorId != ProtagonistId ? ActionPools.ForNpc() : new ActionPools { Cap = 0 };
         return p;
     }
 

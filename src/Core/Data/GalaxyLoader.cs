@@ -63,6 +63,7 @@ public static class GalaxyLoader
                         Culture = ConditionParser.OptStr(s, "culture", ""),
                         PlanetClass = ConditionParser.OptStr(s, "planet", "terran"),
                         Belt = ConditionParser.Int(s, "belt", 0),
+                        Deposits = s.TryGetProperty("deposits", out var dep) && dep.ValueKind == JsonValueKind.Object ? dep.EnumerateObject().Where(p => p.Value.ValueKind == JsonValueKind.Number).ToDictionary(p => p.Name, p => p.Value.GetInt32()) : new(),
                         Description = ConditionParser.OptStr(s, "description", "")
                     };
                     if (s.TryGetProperty("bodies", out var bodies) && bodies.ValueKind == JsonValueKind.Array)

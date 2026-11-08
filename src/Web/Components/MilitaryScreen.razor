@@ -75,7 +75,8 @@
             <h3><Icon Name="threat" Size="13" /> Rival navies <span class="muted">as reported</span></h3>
             @{ int maxHulls = Math.Max(1, Math.Max(ours, rivals.Count == 0 ? 0 : rivals.Max(r => r.hulls))); }
             <div class="navy-row mine"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="14" /> <span>@house.Name</span><span class="bar"><i style="width:@(100 * ours / maxHulls)%; background:@house.AccentColor"></i></span><b>@ours</b></div>
-            @{ var raiderHulls = w.Fleets.Values.Where(f => f.OwnerId == PirateSystem.HouseId).Sum(f => f.Strength); }
+            @{ var raiderHulls = w.Fleets.Values.Where(f => f.OwnerId == PirateSystem.HouseId).Sum(f => f.Strength); int fuelBurn = FleetSystem.FuelBillFor(w, house.Id, c.Fleets.FuelHullsPerUnit); }
+            @if (ours > 0) { <div class="muted small fuel @(w.HasFlag("fuel_short") ? "warn" : "")"><Icon Name="helium3" Size="12" /> Fuel: @house.Treasury.Helium3 helium-3 in the tanks@(fuelBurn > 0 ? $", burning {fuelBurn} a turn ({(house.Treasury.Helium3 / Math.Max(1, fuelBurn))} turns)" : " — a navy under two hulls runs on scraps")@(w.HasFlag("fuel_short") ? " · DRY: the fleet rides at anchor" : "")</div> }
             @if (raiderHulls > 0) { <div class="navy-row warn"><span>☠</span> <span>Raiders on the lanes</span><span class="bar"><i style="width:@(100 * raiderHulls / maxHulls)%; background:#c0392b"></i></span><b>@raiderHulls</b></div> }
             @foreach (var r in rivals.Take(8))
             {

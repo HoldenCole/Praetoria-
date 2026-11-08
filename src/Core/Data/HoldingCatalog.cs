@@ -58,6 +58,9 @@ public sealed class BuildingDef
     /// <summary>Specialization id this building requires, or null to allow any holding.</summary>
     public string? Requires { get; init; }
 
+    /// <summary>A strategic resource the system must hold a deposit of (GDD §17); the building's yield of that resource is multiplied by the richness.</summary>
+    public string? RequiresDeposit { get; init; }
+
     /// <summary>Defensive weight the building adds to fleets defending its system (bastion batteries).</summary>
     public double Defense { get; init; }
 

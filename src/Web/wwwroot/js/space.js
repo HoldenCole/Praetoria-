@@ -226,7 +226,7 @@ export class Galaxy {
       for (let k = 0; k < (s.stations || 0); k++) { const st = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.station, color: 0xc9bca8, transparent: true, depthWrite: false })); st.scale.set(5, 5, 1); st.position.set(-12 - k * 6, 10, 3); g.add(st); }
       const hit = new THREE.Mesh(new THREE.SphereGeometry(Math.max(sz * 0.55, 14 + bodies.length * 10.5), 8, 8), new THREE.MeshBasicMaterial({ visible: false })); hit.userData = { kind: 'system', id: s.id }; g.add(hit); this.hitTargets.push(hit);
       // label
-      const el = document.createElement('div'); el.className = 'sys-label' + (s.isPlayer ? ' mine' : ''); el.innerHTML = `<span class="n">${s.capital ? '♛ ' : ''}${esc(s.name)}</span>${s.ownerName ? `<span class="o" style="color:${s.accent}">${esc(s.ownerName)}</span>` : ''}${s.target ? `<span class="j">${s.target}j</span>` : ''}`;
+      const el = document.createElement('div'); el.className = 'sys-label' + (s.isPlayer ? ' mine' : ''); el.innerHTML = `<span class="n">${s.capital ? '♛ ' : ''}${esc(s.name)}</span>${s.ownerName ? `<span class="o" style="color:${s.accent}">${esc(s.ownerName)}</span>` : ''}${s.target ? `<span class="j">${s.target}j</span>` : ''}${s.deposits ? `<span class="d">${esc(s.deposits)}</span>` : ''}`;
       const lab = new CSS2DObject(el); lab.position.set(0, -(14 + bodies.length * 10.5) * .78 - 8, 0); g.add(lab); this.labels.push(lab);
       this.objects.add(g);
     }

@@ -15,8 +15,18 @@ public static class Resource
     public const string Manpower = "manpower";   // population — crews, garrisons; carries unrest
     public const string Influence = "influence"; // political capital — climbs, claims, marriages
     public const string Exotics = "exotics";     // strategic spice — megastructures, Crisis countermeasures
+    // The strategic three (GDD §17 "not every world has everything"): dug or skimmed only where the galaxy put them.
+    public const string Helium3 = "helium3";         // fusion fuel — fleets burn it; a dry house rides at anchor
+    public const string RareEarths = "rare_earths";  // sensors, drives, electronics — the heavy hulls and the clever buildings
+    public const string Isotopes = "isotopes";       // weapons-grade — warheads, bastion guns, battleships; never on the open market
 
-    public static readonly string[] All = { Credits, Materials, Manpower, Influence, Exotics };
+    public static readonly string[] All = { Credits, Materials, Manpower, Influence, Exotics, Helium3, RareEarths, Isotopes };
+    /// <summary>The resources that come only from deposits.</summary>
+    public static readonly string[] Strategic = { Helium3, RareEarths, Isotopes };
+    public static bool IsStrategic(string r) => r == Helium3 || r == RareEarths || r == Isotopes;
+
+    /// <summary>How the game writes the resource's name in prose.</summary>
+    public static string Label(string r) => r switch { Helium3 => "helium-3", RareEarths => "rare earths", Isotopes => "isotopes", _ => r };
 }
 
 /// <summary>
@@ -33,6 +43,9 @@ public sealed class Resources
     public int Manpower { get; set; }
     public int Influence { get; set; }
     public int Exotics { get; set; }
+    public int Helium3 { get; set; }
+    public int RareEarths { get; set; }
+    public int Isotopes { get; set; }
 
     public int Get(string r) => r switch
     {
@@ -41,6 +54,9 @@ public sealed class Resources
         Resource.Manpower => Manpower,
         Resource.Influence => Influence,
         Resource.Exotics => Exotics,
+        Resource.Helium3 => Helium3,
+        Resource.RareEarths => RareEarths,
+        Resource.Isotopes => Isotopes,
         _ => 0
     };
 
@@ -53,6 +69,9 @@ public sealed class Resources
             case Resource.Manpower: Manpower = value; break;
             case Resource.Influence: Influence = value; break;
             case Resource.Exotics: Exotics = value; break;
+            case Resource.Helium3: Helium3 = value; break;
+            case Resource.RareEarths: RareEarths = value; break;
+            case Resource.Isotopes: Isotopes = value; break;
         }
     }
 
@@ -97,6 +116,9 @@ public sealed class Resources
         if (Manpower < 0) Manpower = 0;
         if (Influence < 0) Influence = 0;
         if (Exotics < 0) Exotics = 0;
+        if (Helium3 < 0) Helium3 = 0;
+        if (RareEarths < 0) RareEarths = 0;
+        if (Isotopes < 0) Isotopes = 0;
     }
 
     public bool IsEmpty()
@@ -108,6 +130,6 @@ public sealed class Resources
     public Resources Clone() => new()
     {
         Credits = Credits, Materials = Materials, Manpower = Manpower,
-        Influence = Influence, Exotics = Exotics
+        Influence = Influence, Exotics = Exotics, Helium3 = Helium3, RareEarths = RareEarths, Isotopes = Isotopes
     };
 }
