@@ -42,7 +42,8 @@ public sealed class ProposeMotionCommand : ICommand
         return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = cost }) ? null : $"needs {cost} influence";
     }
     /// <summary>The kind's influence, less the Speaker's discount, never under one.</summary>
-    public int Cost(World w, string houseId, MotionDef def) => Math.Max(1, def.ProposeInfluence - OfficeSystem.HeldBy(w, houseId).Sum(o => _senate.Offices.Def(o.OfficeId)?.MotionDiscount ?? 0));
+    public int Cost(World w, string houseId, MotionDef def) => Math.Max(1, def.ProposeInfluence - OfficeSystem.HeldBy(w, houseId).Sum(o => _senate.Offices.Def(o.OfficeId)?.MotionDiscount ?? 0)
+        + (OfficeSystem.Holds(w, houseId, "speaker") ? 0 : PolicySystem.ReachModifier(w, _senate.Policies, "motion_cost")));   // the Speaker's standing orders bind everyone else
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
     {

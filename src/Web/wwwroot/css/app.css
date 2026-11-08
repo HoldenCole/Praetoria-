@@ -402,3 +402,14 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 /* the benches */
 .factions { margin: .5rem 0 .6rem; } .bench { border-left: 2px solid var(--line2); padding: .25rem .5rem; margin: .3rem 0; overflow-wrap: anywhere; } .bench.mine { border-left-color: var(--brass2); }
 .bench-members { display: flex; align-items: center; gap: .25rem; flex-wrap: wrap; margin: .2rem 0; } .bench-members .member { display: inline-flex; }
+
+/* the chancery */
+.estate { border-left: 2px solid var(--line2); padding: .3rem .5rem; margin: .35rem 0; } .estate.loyal { border-left-color: var(--good); } .estate.hostile { border-left-color: var(--warn); }
+.es-head { display: flex; align-items: center; gap: .5rem; } .mood { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; padding: 0 .35rem; border: 1px solid var(--line); border-radius: 3px; } .mood.loyal { color: var(--good); border-color: var(--good); } .mood.hostile { color: var(--warn); border-color: var(--warn); } .mood.warm { color: var(--good); } .mood.cool { color: var(--warn); }
+.es-bar { position: relative; height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; margin: .3rem 0; } .es-bar .zero { position: absolute; left: 50%; top: -2px; width: 1px; height: 10px; background: rgba(255,255,255,.35); } .es-bar .fill { position: absolute; top: 0; height: 100%; border-radius: 3px; } .es-bar .fill.pos { background: var(--good); } .es-bar .fill.neg { background: var(--warn); }
+.law-cat { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--brass2); margin: .6rem 0 .2rem; }
+.law { border: 1px solid var(--line); border-radius: 4px; padding: .35rem .55rem; margin: .3rem 0; background: rgba(5,7,12,.4); } .law.open { border-color: var(--brass3); } .law-head { cursor: pointer; display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; } .law-desc { margin: .3rem 0 .45rem; }
+.law-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; } .law-opt { text-align: left; background: rgba(0,0,0,.35); color: inherit; border: 1px solid var(--line); border-radius: 4px; padding: .4rem .5rem; cursor: pointer; font: inherit; } .law-opt:hover:not(:disabled) { border-color: var(--brass2); } .law-opt:disabled { opacity: .55; cursor: default; } .law-opt.here { border-color: var(--brass2); box-shadow: 0 0 0 1px var(--brass3) inset; opacity: 1; }
+.lo-name { font-weight: 600; } .lo-fx { min-height: 1.2em; margin: .15rem 0; } .lo-op { display: flex; flex-wrap: wrap; gap: .2rem; } .opin { font-size: .68rem; padding: 0 .3rem; border-radius: 3px; border: 1px solid var(--line); } .opin.pos { color: var(--good); } .opin.neg { color: var(--warn); }
+.not-held { margin-top: .5rem; }
+@media (max-width: 1100px) { .law-options { grid-template-columns: 1fr; } }

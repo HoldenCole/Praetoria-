@@ -210,19 +210,25 @@ public sealed class RepayLoanCommand : ICommand
 public sealed class ProcureCommand : ICommand
 {
     public const int Helium3Price = 6, RareEarthsPrice = 9, ScarcityStep = 2, ScarcityBelow = 4;
-    private readonly string _resource; private readonly int _units; private readonly HoldingCatalog _catalog; private readonly BusinessCatalog _ventures;
-    public ProcureCommand(string actorId, string resource, int units, HoldingCatalog catalog, BusinessCatalog ventures) { ActorId = actorId; _resource = resource; _units = Math.Max(1, units); _catalog = catalog; _ventures = ventures; }
+    private readonly string _resource; private readonly int _units; private readonly HoldingCatalog _catalog; private readonly BusinessCatalog _ventures; private readonly PolicyCatalog _policies;
+    public ProcureCommand(string actorId, string resource, int units, HoldingCatalog catalog, BusinessCatalog ventures, PolicyCatalog? policies = null) { ActorId = actorId; _resource = resource; _units = Math.Max(1, units); _catalog = catalog; _ventures = ventures; _policies = policies ?? PolicyCatalog.Empty; }
     public string ActorId { get; }
     public string Describe() => $"procure {_units} {Resource.Label(_resource)}";
 
     /// <summary>Credits per unit: the base price, plus a step for every producer short of <see cref="ScarcityBelow"/>.</summary>
-    public static int Price(World w, string resource, HoldingCatalog catalog, BusinessCatalog ventures)
+    public static int Price(World w, string resource, HoldingCatalog catalog, BusinessCatalog ventures, PolicyCatalog? policies = null, string? buyerHouseId = null)
     {
         int basePrice = resource == Resource.Helium3 ? Helium3Price : resource == Resource.RareEarths ? RareEarthsPrice : int.MaxValue;
         if (basePrice == int.MaxValue) return basePrice;
-        return basePrice + Math.Max(0, ScarcityBelow - Systems.Economy.Producers(w, resource, catalog, ventures)) * ScarcityStep;
+        int price = basePrice + Math.Max(0, ScarcityBelow - Systems.Economy.Producers(w, resource, catalog, ventures)) * ScarcityStep;
+        if (policies != null && !policies.IsEmpty)   // tariffs and the merchants' regard on the buyer, the Treasurer's exchanges on everyone
+        {
+            int pct = Systems.PolicySystem.ReachModifier(w, policies, "market_price_pct") + (buyerHouseId != null ? Systems.PolicySystem.Modifier(w, policies, buyerHouseId, "market_price_pct") : 0);
+            price = Math.Max(1, price * (100 + pct) / 100);
+        }
+        return price;
     }
-    public int Cost(World w) => Price(w, _resource, _catalog, _ventures) * _units;
+    public int Cost(World w) => Price(w, _resource, _catalog, _ventures, _policies, w.Char(ActorId)?.HouseId) * _units;
 
     public string? Refusal(CommandContext ctx)
     {

@@ -123,3 +123,7 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
 - 2026-11-08 — Owner: "go ahead with persistent Senate factions." Done as the benches (SENATE.md). Lesson: order the
   clearing of one-turn flags once, at the top of the tick that owns the turn, never inside the sub-systems that set them
   — the offices' flags had been wiped the same tick they were written, and only the factions' test caught it.
+- 2026-11-08 — Owner: flesh out the politics — laws aimed at the planet, the position, the house, with groups that
+  support and dislike them, Democracy-4 style. Done as laws by position and six estates (POLITICS.md). Lesson: one
+  generic modifier table read by every system beats bespoke hooks per law; seventeen laws cost one pass through the
+  economy, the regions, the fleet and the Senate, and the eighteenth will cost a line of JSON.

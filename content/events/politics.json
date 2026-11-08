@@ -1,0 +1,73 @@
+{
+  "//": "THE ESTATES SPEAK (GDD §6.1; the owner's ask: groups that support and dislike your laws). These read PolicySystem's flags — estate_hostile:<id>, estate_loyal:<id>, law:<law>:<option> — and move the estates' regard through the counters estate_offset:<id> (which decay), so a cultivated mood lasts a few turns and then the laws reassert themselves.",
+  "events": [
+    {
+      "id": "the_commons_march", "tier": "setpiece", "weight": 10, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "estate_hostile:commons" }, { "type": "turn", "op": "gte", "value": 3 } ],
+      "choices": [
+        { "id": "hear_the_petition", "effects": [ { "type": "adjustCounter", "key": "estate_offset:commons", "delta": 15 }, { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }, { "type": "adjustCounter", "key": "estate_offset:old_blood", "delta": -5 },
+            { "type": "log", "text": "{self.name} came down to the square and heard the petition read to the end. The crowd went home; the old blood noted who they went home praising." } ] },
+        { "id": "bread_and_a_holiday", "requires": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 8 } ],
+          "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -8 }, { "type": "adjustCounter", "key": "estate_offset:commons", "delta": 20 },
+            { "type": "log", "text": "{self.name} declared a holiday and paid for the bread. Eight credits, and a square that sang the house's name for a season." } ] },
+        { "id": "clear_the_square", "effects": [ { "type": "adjustCounter", "key": "estate_offset:commons", "delta": -15 }, { "type": "adjustCounter", "key": "estate_offset:officers", "delta": 10 }, { "type": "adjustCounter", "key": "unrest", "delta": 3 },
+            { "type": "log", "text": "{self.name} had the guard clear the square. The officers approved of the order. The square remembered the boots." } ] }
+      ]
+    },
+    {
+      "id": "the_merchants_delegation", "tier": "situation", "weight": 8, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "estate_hostile:merchants" }, { "type": "turn", "op": "gte", "value": 3 } ],
+      "choices": [
+        { "id": "a_concession", "effects": [ { "type": "adjustCounter", "key": "estate_offset:merchants", "delta": 15 }, { "type": "adjustResource", "resource": "credits", "delta": -4 },
+            { "type": "log", "text": "{self.name} gave the factors a concession on the customs house and lost four credits of duty. The lanes reopened by the week's end." } ] },
+        { "id": "show_them_the_law", "effects": [ { "type": "adjustCounter", "key": "estate_offset:magistrates", "delta": 10 }, { "type": "adjustCounter", "key": "estate_offset:merchants", "delta": -10 },
+            { "type": "log", "text": "{self.name} read the factors the law and showed them the door. The magistrates loved it. The warehouses stayed shut another month." } ] }
+      ]
+    },
+    {
+      "id": "the_officers_grievance", "tier": "situation", "weight": 8, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "estate_hostile:officers" }, { "type": "fleetStrength", "role": "self", "op": "gte", "value": 2 } ],
+      "choices": [
+        { "id": "dine_the_wardroom", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -5 }, { "type": "adjustCounter", "key": "estate_offset:officers", "delta": 15 },
+            { "type": "log", "text": "{self.name} dined the wardroom and listened to every grievance twice. Five credits of wine, and captains who stopped drafting letters." } ] },
+        { "id": "promote_the_loudest", "effects": [ { "type": "adjustCounter", "key": "estate_offset:officers", "delta": 10 }, { "type": "adjustCounter", "key": "estate_offset:old_blood", "delta": -5 },
+            { "type": "log", "text": "{self.name} promoted the loudest of the complainers over an old-blood captain. The wardroom quieted; the old blood did not." } ] },
+        { "id": "remind_them_who_pays", "effects": [ { "type": "adjustCounter", "key": "estate_offset:officers", "delta": -10 }, { "type": "adjustResource", "resource": "influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} reminded the wardroom who paid for the hulls. It was true, and it was remembered." } ] }
+      ]
+    },
+    {
+      "id": "the_old_bloods_letter", "tier": "situation", "weight": 8, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "estate_hostile:old_blood" }, { "type": "turn", "op": "gte", "value": 3 } ],
+      "choices": [
+        { "id": "a_ceremony", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -6 }, { "type": "adjustCounter", "key": "estate_offset:old_blood", "delta": 15 }, { "type": "adjustCounter", "key": "estate_offset:commons", "delta": -5 },
+            { "type": "log", "text": "{self.name} held a ceremony of the old form and sat the old houses in the old order. Six credits, and letters that stopped." } ] },
+        { "id": "let_them_write", "effects": [ { "type": "adjustCounter", "key": "estate_offset:commons", "delta": 5 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -1 },
+            { "type": "log", "text": "{self.name} let the old blood write their letters. The commons liked that; the Senate read the letters." } ] }
+      ]
+    },
+    {
+      "id": "the_magistrates_bench", "tier": "situation", "weight": 7, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "estate_loyal:magistrates" }, { "type": "turn", "op": "gte", "value": 4 } ],
+      "choices": [
+        { "id": "take_the_gift", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 6 }, { "type": "adjustCounter", "key": "estate_offset:commons", "delta": -5 },
+            { "type": "log", "text": "The magistrates found six credits the collectors had missed and brought them to {self.name} with a bow. The commons wondered whose six credits they had been." } ] },
+        { "id": "return_it", "effects": [ { "type": "adjustCounter", "key": "estate_offset:commons", "delta": 10 }, { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} sent the magistrates' find back to the worlds it came from. A small thing; the squares heard of it." } ] }
+      ]
+    },
+    {
+      "id": "the_frontier_rides_in", "tier": "situation", "weight": 8, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "estate_hostile:frontier" }, { "type": "worldFlag", "flag": "ring:rim" } ],
+      "choices": [
+        { "id": "ease_the_patrols", "effects": [ { "type": "adjustCounter", "key": "estate_offset:frontier", "delta": 15 }, { "type": "adjustCounter", "key": "estate_offset:magistrates", "delta": -5 },
+            { "type": "log", "text": "{self.name} eased the patrols for a season and let the belt-rats fly without papers. The frontier cheered; the magistrates filed a complaint." } ] },
+        { "id": "hang_a_few", "requires": [ { "type": "trait", "role": "self", "trait": "Ruthless", "kind": "nature", "present": true } ],
+          "effects": [ { "type": "adjustCounter", "key": "estate_offset:frontier", "delta": -15 }, { "type": "adjustCounter", "key": "estate_offset:magistrates", "delta": 10 }, { "type": "adjustCounter", "key": "threat", "delta": 1 },
+            { "type": "log", "text": "{self.name} hanged a few of the loudest and the frontier went quiet, the way a held breath is quiet." } ] },
+        { "id": "buy_them_a_drink", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -3 }, { "type": "adjustCounter", "key": "estate_offset:frontier", "delta": 8 },
+            { "type": "log", "text": "{self.name} stood the free companies a night's drinking. Three credits, and a frontier that would remember the house kindly for a while." } ] }
+      ]
+    }
+  ]
+}

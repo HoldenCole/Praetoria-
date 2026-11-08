@@ -45,6 +45,15 @@ public sealed record OfficeCard(string Id, string Name, string Description, stri
 /// <summary>The Senate as a place of action (GDD §6.1): the docket, the history, what the player may move, and their weight in the chamber.</summary>
 public sealed record SenateCard(IReadOnlyList<MotionCard> Docket, IReadOnlyList<MotionCard> History, IReadOnlyList<MotionProposal> Proposals, int MyWeight, int TotalWeight, bool MayPropose, bool Embargoed, int EmbargoLifts, IReadOnlyList<OfficeCard>? Offices = null,
     IReadOnlyList<FactionCard>? Factions = null, string? FoundRefusal = null, string? LeaveRefusal = null, int Followers = 0);
+
+/// <summary>One option of a law: in force or not, what it does, what the estates think of it, and why it cannot be chosen.</summary>
+public sealed record LawOptionCard(string Id, string Name, bool InForce, string Effects, IReadOnlyList<(string Estate, string Name, int Opinion)> Opinions, string? Refusal);
+/// <summary>A law: its scope (held or not), its options, its cooldown.</summary>
+public sealed record LawCard(string Id, string Name, string Category, string Description, string Scope, string ScopeName, bool Held, int Cost, int CooldownLeft, IReadOnlyList<LawOptionCard> Options);
+/// <summary>An estate's regard for the house: approval, where the laws would take it, and what its mood does.</summary>
+public sealed record EstateCard(string Id, string Name, string Description, int Approval, int Target, string Mood, string Effects, string LawsSay);
+/// <summary>The chancery: laws by category and the six estates.</summary>
+public sealed record ChanceryCard(IReadOnlyList<LawCard> Laws, IReadOnlyList<EstateCard> Estates, int InfluencePool);
 /// <summary>One house on the wealth table.</summary>
 public sealed record WealthLine(string HouseId, string Name, string Accent, int Wealth, string Tier, bool Mine);
 /// <summary>The house ledger (GDD §17): every per-turn line, the net, wealth and its rank, the loan.</summary>
@@ -82,7 +91,7 @@ public sealed record CourtModel(int Turn, string Era, string Mode, int Generatio
     IReadOnlyList<HouseholdLine> Household, IReadOnlyList<SiegeLine> Sieges, string? EpilogueText,
     IReadOnlyList<AdvisorReport> Advisors, GreatCrisisCard? GreatCrisis,
     LedgerCard? Ledger = null, IReadOnlyList<BusinessCard>? Businesses = null, IReadOnlyList<VentureOption>? Ventures = null, IReadOnlyList<ClaimOption>? Claims = null,
-    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null, IReadOnlyList<Option>? Procure = null, IReadOnlyList<string>? Deposits = null, SenateCard? Senate = null);
+    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null, IReadOnlyList<Option>? Procure = null, IReadOnlyList<string>? Deposits = null, SenateCard? Senate = null, ChanceryCard? Chancery = null);
 
 public static class CourtProjection
 {
@@ -337,7 +346,8 @@ public static class CourtProjection
             new Option("petition_fief", $"Petition {PetitionFiefCommand.Grantor(w, house.Id)?.Name ?? "the court"} for a fief  (3 influence)", new PetitionFiefCommand(p.Id).Refusal(ctx)),
             Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var pc = new ProcureCommand(p.Id, r, 3, content.Holdings, content.Businesses); int price = ProcureCommand.Price(w, r, content.Holdings, content.Businesses); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the open market  ({(price == int.MaxValue ? "—" : (price * 3).ToString())} credits · {Economy.Producers(w, r, content.Holdings, content.Businesses)} producer(s))", pc.Refusal(ctx)); }).ToList(),
             Economy.Deposits(w, house.Id).OrderBy(x => x, StringComparer.Ordinal).ToList(),
-            BuildSenate(w, p, house, tc.Senate, ctx));
+            BuildSenate(w, p, house, tc.Senate, ctx),
+            BuildChancery(w, p, house, content.Policies, ctx));
     }
 
     private static string BondName(Relationship? rel) => rel?.Bond is { } b && b != BondType.None ? b.ToString().ToLowerInvariant() : "";
@@ -397,5 +407,38 @@ public static class CourtProjection
         }).ToList();
         return new SenateCard(docket, history, proposals, senate.Weight(w, house.Id), total, senate.MayPropose(w, house.Id), SenateSystem.Embargoed(w, house.Id), Math.Max(0, w.Counter("embargo:" + house.Id) - w.Turn), offices,
             factions, new FoundFactionCommand(p.Id).Refusal(ctx), new LeaveFactionCommand(p.Id).Refusal(ctx), FoundFactionCommand.Followers(w, house.Id).Count);
+    }
+
+    private static string Prose(string key) => key switch
+    {
+        "credits_per_world" => "credits a world", "materials_per_world" => "materials a world", "manpower_per_world" => "manpower a world", "unrest_drift" => "unrest a turn",
+        "prosperity_drift" => "prosperity drift", "pop_growth" => "population growth", "lawlessness_drift" => "lawlessness a turn", "allegiance_drift" => "allegiance a turn",
+        "venture_yield_pct" => "% venture coin", "charter_pct" => "% charters", "market_price_pct" => "% market prices", "fleet_upkeep_pct" => "% fleet upkeep", "readiness" => "readiness a turn",
+        "senate_weight" => "Senate weight", "legitimacy_per_5" => "legitimacy every fifth turn", "motion_cost" => "influence per motion (others)", "tolls_bonus" => "credits a toll", _ => key.Replace('_', ' ')
+    };
+    public static string Effects(IReadOnlyDictionary<string, int> fx) => fx.Count == 0 ? "no effect of its own" : string.Join(" · ", fx.Select(kv => $"{(kv.Value > 0 ? "+" : "")}{kv.Value} {Prose(kv.Key)}"));
+
+    /// <summary>Laws by category with every option's refusal, and the estates with their drift and mood (PolicySystem).</summary>
+    private static ChanceryCard? BuildChancery(World w, Character p, House house, PolicyCatalog cat, CommandContext ctx)
+    {
+        if (cat.IsEmpty) return null;
+        var laws = cat.Laws.Select(l =>
+        {
+            string inForce = PolicySystem.OptionId(w, cat, house.Id, l.Id);
+            var options = l.Options.Select(o => new LawOptionCard(o.Id, o.Name, o.Id == inForce, Effects(o.Effects),
+                o.Opinions.OrderByDescending(kv => Math.Abs(kv.Value)).Select(kv => (kv.Key, cat.Estate(kv.Key)?.Name ?? kv.Key, kv.Value)).ToList(),
+                new EnactLawCommand(p.Id, l.Id, o.Id, cat).Refusal(ctx))).ToList();
+            return new LawCard(l.Id, l.Name, l.Category, l.Description, l.Scope, PolicySystem.ScopeName(l.Scope), PolicySystem.HoldsScope(w, house.Id, l.Scope), l.Cost, Math.Max(0, w.Counter($"law_cd:{house.Id}:{l.Id}") - w.Turn), options);
+        }).OrderByDescending(l => l.Held).ThenBy(l => l.Category, StringComparer.Ordinal).ThenBy(l => l.Name, StringComparer.Ordinal).ToList();
+        var estates = cat.Estates.Select(e =>
+        {
+            int a = w.Counter("estate:" + e.Id); int target = Math.Clamp(PolicySystem.LawOpinion(w, cat, house.Id, e.Id) + w.Counter("estate_offset:" + e.Id), -100, 100);
+            string mood = a >= PolicySystem.Loyal ? "loyal" : a <= PolicySystem.Hostile ? "hostile" : a >= 10 ? "warm" : a <= -10 ? "cool" : "indifferent";
+            string fx = a >= PolicySystem.Loyal ? Effects(e.Loyal) : a <= PolicySystem.Hostile ? Effects(e.Hostile) : $"loyal would give {Effects(e.Loyal)}; hostile would cost {Effects(e.Hostile)}";
+            var says = cat.Laws.Where(l => PolicySystem.HoldsScope(w, house.Id, l.Scope)).Select(l => (l, o: PolicySystem.Option(w, cat, house.Id, l.Id))).Where(x => x.o != null && x.o.Opinions.GetValueOrDefault(e.Id) != 0)
+                .Select(x => $"{x.o!.Name.ToLowerInvariant()} {(x.o.Opinions[e.Id] > 0 ? "+" : "")}{x.o.Opinions[e.Id]}").ToList();
+            return new EstateCard(e.Id, e.Name, e.Description, a, target, mood, fx, says.Count == 0 ? "no law of yours moves them" : string.Join(" · ", says));
+        }).ToList();
+        return new ChanceryCard(laws, estates, w.PoolsFor(p.Id).Influence);
     }
 }

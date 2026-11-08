@@ -78,6 +78,9 @@ public sealed class World
     /// <summary>Motions before the Senate and the last dozen decided (GDD §6.1).</summary>
     public List<Motion> Motions { get; set; } = new();
 
+    /// <summary>Laws in force, house id → law id → option id (GDD §6.1); a law not named is at its default.</summary>
+    public Dictionary<string, Dictionary<string, string>> Laws { get; set; } = new();
+
     /// <summary>Senate factions: benches that vote together (GDD §6.1).</summary>
     public List<Faction> Factions { get; set; } = new();
 

@@ -261,6 +261,7 @@ internal static class Qa
             cands.Add(new ProposeMotionCommand(p.Id, def.Id, target, tc.Senate));
         }
         foreach (var f in w.Factions) cands.Add(new JoinFactionCommand(p.Id, f.Id));
+        foreach (var law in content.Policies.Laws) cands.Add(new EnactLawCommand(p.Id, law.Id, law.Options[decisions.NextInt(0, law.Options.Count)].Id, content.Policies));
         cands.Add(new LeaveFactionCommand(p.Id)); cands.Add(new FoundFactionCommand(p.Id));
         foreach (var m in SenateSystem.Docket(w))
         {

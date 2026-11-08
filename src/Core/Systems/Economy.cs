@@ -42,7 +42,11 @@ public sealed class Economy
     private readonly HoldingCatalog _catalog;
     private readonly BusinessCatalog _ventures;
 
-    public Economy(HoldingCatalog catalog, BusinessCatalog? ventures = null) { _catalog = catalog; _ventures = ventures ?? BusinessCatalog.Empty; }
+    public Economy(HoldingCatalog catalog, BusinessCatalog? ventures = null, PolicyCatalog? policies = null) { _catalog = catalog; _ventures = ventures ?? BusinessCatalog.Empty; Policies = policies ?? PolicyCatalog.Empty; }
+    /// <summary>Laws and estates (PolicySystem); empty when the content has none.</summary>
+    public PolicyCatalog Policies { get; set; }
+    private int Law(World w, string houseId, string key, string? regionId = null) => PolicySystem.Modifier(w, Policies, houseId, key, regionId);
+    private int ReachLaw(World w, string key) => PolicySystem.ReachModifier(w, Policies, key);
     public BusinessCatalog Ventures => _ventures;
 
     /// <summary>What a house's domain will net next turn — the same arithmetic accrual applies, as the resource strip's deltas.
@@ -91,6 +95,11 @@ public sealed class Economy
                 if (r == Resource.Manpower && v > 0) v = v * (100 - holding.Unrest) / 100; // unrest taxes people (GDD §17)
                 d.Add(r, v);
             }
+            if (holding.IsPlanet && !Policies.IsEmpty)   // the law of the house, and the estates' regard (PolicySystem)
+            {
+                string? rid = depSys?.RegionId;
+                d.Add(Resource.Credits, Law(world, houseId, "credits_per_world", rid)); d.Add(Resource.Materials, Law(world, houseId, "materials_per_world", rid)); d.Add(Resource.Manpower, Law(world, houseId, "manpower_per_world", rid));
+            }
             // a governor who hates the head skims; an able one finds a credit the ledger did not know it had
             if (holding.GovernorId.Length > 0 && (world.Char(holding.GovernorId)?.Skill("administration") ?? 0) >= AbleGovernorAdministration && holding.IsPlanet) d.Add(Resource.Credits, 1);
             if (head != null && holding.GovernorId.Length > 0 && holding.GovernorId != head.Id && (world.GetRelationship(holding.GovernorId, head.Id)?.Disposition ?? 0) <= GovernorSkimThreshold) d.Add(Resource.Credits, -1);
@@ -111,6 +120,7 @@ public sealed class Economy
                 d.Add(r, v);
             }
             if (SenateSystem.Embargoed(world, houseId) && d.Credits > 0) d.Credits /= 2;                      // the Senate's embargo: the factors cannot sell
+            int vyp = Law(world, houseId, "venture_yield_pct"); if (vyp != 0 && d.Credits > 0) d.Credits = d.Credits * (100 + vyp) / 100;   // tariffs and the merchants' regard
             int vl = world.Galaxy?.System(b.SystemId) is { } vs && world.Regions.TryGetValue(vs.RegionId, out var vr) ? vr.Lawlessness : 0;
             if (vl > 0) foreach (var r in new[] { Resource.Credits, Resource.Materials }) if (d.Get(r) > 0) d.Set(r, d.Get(r) * (200 - vl) / 200);
             if (planet != null && planet.OwnerId != houseId && def.Charter > 0) d.Add(Resource.Credits, -(def.Charter + (world.Galaxy?.RulesFor(world.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0)) * b.Level);
@@ -121,12 +131,13 @@ public sealed class Economy
         {
             var def = _ventures.Def(b.Kind); if (def == null || def.Charter == 0) continue;
             if (world.PlanetHolder(b.SystemId) != houseId) continue;
-            ledger.Add($"charter · {b.Name}", "charter", new Resources { Credits = (def.Charter + (world.Galaxy?.RulesFor(world.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0)) * b.Level });
+            int charter = (def.Charter + (world.Galaxy?.RulesFor(world.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0)) * b.Level; int cp = Law(world, houseId, "charter_pct"); if (cp != 0) charter = Math.Max(0, charter * (100 + cp) / 100);
+            ledger.Add($"charter · {b.Name}", "charter", new Resources { Credits = charter });
         }
         // tolls: whoever holds a chokepoint's world taxes what passes (GDD §19 "a key system along a route")
         if (world.Galaxy != null)
             foreach (var h in world.HoldingsOf(houseId).Where(h => h.IsPlanet && !h.InRebellion && world.Galaxy.IsChokepoint(h.SystemId)).OrderBy(h => h.Id, StringComparer.Ordinal))
-                ledger.Add($"tolls at {world.Galaxy.System(h.SystemId)?.Name ?? h.SystemId}", "tolls", new Resources { Credits = TollCredits });
+                ledger.Add($"tolls at {world.Galaxy.System(h.SystemId)?.Name ?? h.SystemId}", "tolls", new Resources { Credits = Math.Max(0, TollCredits + ReachLaw(world, "tolls_bonus")) });
         // escort fees (GDD §17 "a fortress is marginal in most runs"): a fortress world earns a credit for every neighbouring system
         // another house holds and is at peace with — ships pass under its guns and pay for the privilege — up to the cap
         if (world.Galaxy != null)
@@ -165,6 +176,7 @@ public sealed class Economy
         var house = world.House(holding.OwnerId); var tax = house != null ? _catalog.Tax(house.TaxPolicy) : null;
         var governor = holding.GovernorId.Length > 0 ? world.Char(holding.GovernorId) : null;
         int t = 50 + (governor?.Skill("administration") ?? 0) * ProsperityPerAdministration + holding.Buildings.Count * ProsperityPerBuilding - holding.Unrest / 2 - (tax?.CreditsBonus ?? 0) * 4;
+        if (house != null) t += Law(world, house.Id, "prosperity_drift", world.Galaxy?.System(holding.SystemId)?.RegionId) * 2;   // justice, settlement, the magistrates' regard
         var headOf = house != null ? HeadOf(world, house) : null;
         if (governor != null && headOf != null && governor.Id != headOf.Id && (world.GetRelationship(governor.Id, headOf.Id)?.Disposition ?? 0) <= GovernorSabotageThreshold) t -= 10;   // a hostile governor lets the world slide
         if (world.Sieges.ContainsKey(holding.Id)) t -= ProsperitySiege;
@@ -201,8 +213,10 @@ public sealed class Economy
                 if (spec.Populated || holding.Population > 0)
                 {
                     int ringDrift = world.Galaxy != null && holding.SystemId.Length > 0 ? world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)).UnrestDrift : 0;
-                    holding.Unrest = Math.Clamp(holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0) + ringDrift, 0, 100);
+                    string? lawRegion = world.Galaxy?.System(holding.SystemId)?.RegionId;
+                    holding.Unrest = Math.Clamp(holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0) + ringDrift + Law(world, house.Id, "unrest_drift", lawRegion) + ReachLaw(world, "unrest_drift"), 0, 100);
                     int growth = holding.Unrest > 50 ? spec.PopGrowth / 2 : spec.PopGrowth;      // the restless do not settle
+                    growth += Law(world, house.Id, "pop_growth", lawRegion);                        // homesteads, bonded labour, the commons' regard
                     if (holding.Prosperity >= 75 && spec.PopGrowth > 0) growth += 1;             // a thriving world draws people
                     int pop = Math.Max(0, holding.Population + growth);
                     if (world.Sieges.ContainsKey(holding.Id)) pop -= Math.Max(1, pop / 20);          // a blockade starves (GDD §6)

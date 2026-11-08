@@ -1,0 +1,94 @@
+@inject GameClient G
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+@{
+    var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var house = w.House(p.HouseId)!; var ch = m.Chancery;
+    var held = ch?.Laws.Where(l => l.Held).ToList() ?? new List<LawCard>(); var notHeld = ch?.Laws.Where(l => !l.Held).ToList() ?? new List<LawCard>();
+    var positions = new List<string> { "head of " + house.Name };
+    if (PolicySystem.HoldsScope(w, house.Id, "world")) positions.Add($"holder of {w.HoldingsOf(house.Id).Count(h => h.IsPlanet)} world(s)");
+    var dom = PolicySystem.RegionsDominated(w, house.Id).Select(r => w.Galaxy?.Regions.FirstOrDefault(x => x.Id == r)?.Name ?? r).ToList(); if (dom.Count > 0) positions.Add("dominant in " + string.Join(", ", dom));
+    if (PolicySystem.HoldsScope(w, house.Id, "chair")) positions.Add("the chair"); if (PolicySystem.HoldsScope(w, house.Id, "emperor")) positions.Add("the throne"); if (PolicySystem.HoldsScope(w, house.Id, "bench")) positions.Add("leader of a bench");
+    foreach (var o in OfficeSystem.HeldBy(w, house.Id)) positions.Add(c.Offices.Def(o.OfficeId)?.Name ?? o.OfficeId);
+    _pending = BuildOptions(w, house);
+}
+<div class="office laws" style="--accent:@house.AccentColor">
+    <div class="office-stage">
+        <div class="gl-host" @ref="_host"></div>
+        <div class="stage-foot">
+            <div class="stage-title"><Icon Name="influence" Size="16" /> <b>The Chancery of @house.Name</b> <span class="muted">@string.Join(" · ", positions)@(ch != null ? $" · {ch.Laws.Count(l => l.Held)} laws in your gift · {ch.InfluencePool} influence this turn" : "")</span></div>
+            <span class="muted small">the estates on the wall · the laws at the desk</span>
+        </div>
+    </div>
+    <aside class="office-side">
+        @if (ch == null) { <section class="panel"><div class="muted">No laws in this age.</div></section> }
+        else
+        {
+            <section class="panel">
+                <h3><Icon Name="houses" Size="13" /> The estates <span class="muted">who likes what you do</span></h3>
+                @foreach (var e in ch.Estates)
+                {
+                    <div class="estate @e.Mood" title="@e.Description">
+                        <div class="es-head"><b>@e.Name</b> <span class="mood @e.Mood">@e.Mood</span> <span class="muted small">@(e.Approval >= 0 ? "+" : "")@e.Approval@(e.Target != e.Approval ? $" → {(e.Target >= 0 ? "+" : "")}{e.Target}" : "")</span></div>
+                        <div class="es-bar"><i class="zero"></i><i class="fill @(e.Approval >= 0 ? "pos" : "neg")" style="left:@(e.Approval >= 0 ? 50 : 50 + e.Approval / 2)%; width:@(Math.Abs(e.Approval) / 2)%"></i></div>
+                        <div class="muted small">@e.Effects</div>
+                        <div class="muted small">Your laws: @e.LawsSay</div>
+                    </div>
+                }
+            </section>
+            <section class="panel">
+                <h3><Icon Name="throne" Size="13" /> The laws in your gift</h3>
+                @foreach (var cat in held.GroupBy(l => l.Category).OrderBy(g => g.Key, StringComparer.Ordinal))
+                {
+                    <div class="law-cat">@cat.Key</div>
+                    @foreach (var l in cat)
+                    {
+                        <div class="law @(_open == l.Id ? "open" : "")">
+                            <div class="law-head" @onclick="() => _open = _open == l.Id ? null : l.Id"><b>@l.Name</b> <span class="muted small">@l.ScopeName · @(l.Options.First(o => o.InForce).Name.ToLowerInvariant())@(l.CooldownLeft > 0 ? $" · settled for {l.CooldownLeft} more turn(s)" : $" · {l.Cost} influence to change")</span></div>
+                            @if (_open == l.Id)
+                            {
+                                <div class="muted small law-desc">@l.Description</div>
+                                <div class="law-options">
+                                    @foreach (var o in l.Options)
+                                    {
+                                        <button class="law-opt @(o.InForce ? "here" : "")" disabled="@(o.Refusal != null && !o.InForce)" title="@(o.InForce ? "in force" : o.Refusal)" @onclick="() => G.Execute(new EnactLawCommand(pid, l.Id, o.Id, c.Policies))">
+                                            <div class="lo-name">@o.Name</div>
+                                            <div class="lo-fx muted small">@o.Effects</div>
+                                            <div class="lo-op">@foreach (var op in o.Opinions) { <span class="opin @(op.Opinion > 0 ? "pos" : "neg")" title="@op.Name">@op.Name.Replace("The ", "") @(op.Opinion > 0 ? "+" : "")@op.Opinion</span> }</div>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                @if (notHeld.Count > 0)
+                {
+                    <details class="not-held"><summary>Laws beyond your gift · @notHeld.Count</summary>
+                        @foreach (var l in notHeld) { <div class="muted small"><b>@l.Name</b> — @l.ScopeName may set it · now @l.Options.First(o => o.InForce).Name.ToLowerInvariant()</div> }
+                    </details>
+                }
+            </section>
+        }
+    </aside>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
+    private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N"); private DotNetObjectReference<LawsScreen>? _self; private bool _created; private string _pending = "", _sent = ""; private string? _open;
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (first) { _self = DotNetObjectReference.Create(this); try { if (await JS.InvokeAsync<bool>("praetoria.ready", "praetoriaSets")) { await JS.InvokeVoidAsync("praetoriaSets.create", "keep", _id, _host, _self); _created = true; } } catch { } }
+        if (_created && _pending != _sent) { _sent = _pending; try { await JS.InvokeVoidAsync("praetoriaSets.build", _id, _pending); } catch { } }
+        try { await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }
+    }
+    [JSInvokable] public void OnPlate(string key) { }
+
+    private string BuildOptions(World w, House house) => System.Text.Json.JsonSerializer.Serialize(new
+    {
+        accent = house.AccentColor, imperium = w.Era == "imperium",
+        worlds = w.HoldingsOf(house.Id).Where(h => h.IsPlanet).Take(4).Select(h => new { id = h.Id, name = h.Name, cls = w.Galaxy?.System(h.SystemId)?.PlanetClass ?? "terran" }).ToList(),
+        household = Array.Empty<object>(), banner = true
+    });
+    public async ValueTask DisposeAsync() { try { await JS.InvokeVoidAsync("praetoriaSets.dispose", _id); } catch { } _self?.Dispose(); }
+}

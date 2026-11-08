@@ -27,6 +27,8 @@ public sealed class ContentDatabase
     public MotionCatalog Motions { get; }
     /// <summary>The offices of the Reach (content/senate/offices.json).</summary>
     public OfficeCatalog Offices { get; }
+    /// <summary>Laws and estates (content/politics).</summary>
+    public PolicyCatalog Policies { get; }
 
     /// <summary>The crisis definitions (GDD §16). Empty for scenarios with no crisis layer.</summary>
     public IReadOnlyList<CrisisDef> Crises { get; }
@@ -88,11 +90,13 @@ public sealed class ContentDatabase
         IReadOnlyList<RecoveryRule>? recovery = null,
         BusinessCatalog? businesses = null,
         MotionCatalog? motions = null,
-        OfficeCatalog? offices = null)
+        OfficeCatalog? offices = null,
+        PolicyCatalog? policies = null)
     {
         Businesses = businesses ?? BusinessCatalog.Empty;
         Motions = motions ?? MotionCatalog.Empty;
         Offices = offices ?? OfficeCatalog.Empty;
+        Policies = policies ?? PolicyCatalog.Empty;
         Events = events;
         Texts = texts;
         Holdings = holdings ?? HoldingCatalog.Empty;

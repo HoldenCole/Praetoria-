@@ -90,7 +90,8 @@ public sealed class TurnController
         _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres, world.Difficulty, content.Offices);
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
         _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
-        _senate = new SenateSystem(content.Motions, content.Titles, _fleets, content.Offices);
+        _senate = new SenateSystem(content.Motions, content.Titles, _fleets, content.Offices) { Policies = content.Policies };
+        _fleets.Policies = content.Policies; _regions.Policies = content.Policies; if (_economy != null) _economy.Policies = content.Policies;
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles };
         _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);
@@ -167,6 +168,7 @@ public sealed class TurnController
         Phase = TurnPhase.Resolve;
         _npcAi.Act(Executor, Context(), _crises, _economy == null ? null : _content.Holdings, _fleets.Rules, _content.Businesses);   // NPCs act, invest, sail, and may author a crisis
         _senate.Tick(World);          // the Senate votes last session's motions and hears new ones (GDD §6.1) — RNG-free
+        PolicySystem.Tick(World, _content.Policies);   // the estates weigh the laws (GDD §6.1) — RNG-free
 
         // Organic onset: the ripe-conditions roll (GDD §16 mixed origin). NPC-authored crises this
         // turn are already active, so they're excluded from the causable pool here.

@@ -27,6 +27,7 @@ driven through a headless browser for QA every session (`docs/WEB_CLIENT.md`). T
 - [`docs/GALAXY.md`](docs/GALAXY.md) — the galaxy: three rings, the capital, allegiance and lawlessness, risings, free holds and free marches.
 - [`docs/ECONOMY.md`](docs/ECONOMY.md) — the economy: the ledger, prosperity, belts and claims, ventures and charters, loans, house wealth.
 - [`docs/SENATE.md`](docs/SENATE.md) — the Senate as a place of action: motions, weights, whipping, what rivals move and why.
+- [`docs/POLITICS.md`](docs/POLITICS.md) — laws by position, their effects, and the six estates that approve or resent them.
 wired to the same Core, but Godot's .NET build cannot target the web and it has **not yet been run in a Godot editor** —
 treat it as the future desktop shell. See
 [What's built](#whats-built-the-current-state), [What's not](#whats-not-built-the-gaps),

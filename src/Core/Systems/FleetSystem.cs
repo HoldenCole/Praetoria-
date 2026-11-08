@@ -94,10 +94,14 @@ public sealed class FleetSystem
         string.Join(", ", Composition(f).Select(c => $"{c.count} {c.cls.Name.ToLowerInvariant()}{(c.count == 1 ? "" : "s")}"));
 
     /// <summary>Per-turn upkeep of a fleet from its classes.</summary>
+    /// <summary>Laws and estates (PolicySystem): the household guard, the Admiral's doctrine, the officers' regard.</summary>
+    public PolicyCatalog Policies { get; set; } = PolicyCatalog.Empty;
+    private World? _world;
     public Resources Upkeep(Fleet f)
     {
         var r = new Resources();
         foreach (var (cls, n) in Composition(f)) foreach (var k in Resource.All) r.Add(k, cls.Upkeep.Get(k) * n);
+        int pct = _world != null ? PolicySystem.Modifier(_world, Policies, f.OwnerId, "fleet_upkeep_pct") : 0; if (pct != 0 && r.Credits > 0) r.Credits = Math.Max(0, r.Credits * (100 + pct) / 100);
         return r;
     }
 
@@ -105,6 +109,7 @@ public sealed class FleetSystem
 
     public void Tick(World w)
     {
+        _world = w;
         LastBattles.Clear();
         if (w.Galaxy == null) { UpdateIntel(w); return; }
 
@@ -116,7 +121,7 @@ public sealed class FleetSystem
                 f.Readiness = Math.Max(0, f.Readiness - _rules.ReadinessDecayMoving);
                 if (f.Eta <= 0) { f.SystemId = f.DestinationId; f.DestinationId = ""; f.Eta = 0; Arrive(w, f); }
             }
-            else f.Readiness = Math.Min(100, f.Readiness + _rules.ReadinessRecovery);
+            else f.Readiness = Math.Clamp(f.Readiness + _rules.ReadinessRecovery + PolicySystem.Modifier(w, Policies, f.OwnerId, "readiness"), 0, 100);
         }
 
         var chairId = RegionSystem.CapitalHolder(w)?.Id;

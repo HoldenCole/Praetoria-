@@ -23,6 +23,8 @@ public sealed class SenateSystem
     public SenateSystem(MotionCatalog motions, TitleCatalog titles, FleetSystem? fleets = null, OfficeCatalog? offices = null) { _motions = motions; _titles = titles; _fleets = fleets; _offices = offices ?? OfficeCatalog.Empty; }
     public MotionCatalog Motions => _motions;
     public OfficeCatalog Offices => _offices;
+    /// <summary>Laws and estates (PolicySystem): the franchise, the Speaker's orders, the old blood's regard.</summary>
+    public PolicyCatalog Policies { get; set; } = PolicyCatalog.Empty;
 
     /// <summary>A house's vote weight: Senate influence (the chair's two are in it) + title rank + one if its head is a Praetor or better.</summary>
     public int Weight(World w, string houseId)
@@ -31,6 +33,7 @@ public sealed class SenateSystem
         int weight = h.SphereInfluence.GetValueOrDefault("senate") + _titles.RankOf(h.Title);
         var head = Economy.HeadOf(w, h); if (head is { CareerTrack: "law" } && head.CareerRank >= ProposerLawRank) weight += 1;
         weight += OfficeSystem.HeldBy(w, houseId).Sum(o => _offices.Def(o.OfficeId)?.Weight ?? 0);   // the Speaker's gavel
+        weight += PolicySystem.Modifier(w, Policies, houseId, "senate_weight");                       // the franchise, the bench's platform, the old blood's regard
         return Math.Max(1, weight);
     }
 

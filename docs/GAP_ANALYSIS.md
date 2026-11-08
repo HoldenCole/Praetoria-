@@ -475,3 +475,29 @@ leader's motion carries the bench's name), the chair's casting vote, and the Gre
 
 ### Where the next forty come from
 Fifty situations · plots with steps · a credit sink · role theming · the dynasty tree · benches in the War of the Reach.
+
+## 14. Reassessment — 2026-11-08, after the laws and the estates
+
+Method: 334 tests · both validators (148 events) · `praetoria qa --seeds 3` (18 runs, 0 failures, 110/148 events) ·
+`simulate --seeds 4` (unchanged: battles 2–7, thrones 9 of 24) · a browser run that set two laws and watched the Commons cool.
+
+### Done this pass (the owner's ask: politics with laws and groups)
+- **Laws by position** (docs/POLITICS.md): seventeen laws in seven categories, each with the position it needs — head of
+  house, holder of a world, dominant house of a region, the chair, an office, the throne, the leader of a bench — and
+  three options whose effects one modifier table carries into the economy, the regions, the fleet, the Senate and the
+  open market. The tithe is a law now.
+- **Six estates** with an approval that drifts toward what the laws say and that events can cultivate for a while; loyal
+  or hostile, their effects join the house's. Six events let them speak. A Chancery screen shows both.
+
+### Still open, ranked
+1. **Rivals have no estates and keep their defaults.** The GDD abstracts rivals, but a rival whose tithe is harsh should
+   have a restless world or two; a cheap pass would give each rival house one law off default by culture, and read the
+   Commons' effect on its unrest.
+2. **Three estate events never surfaced** in eighteen runs (the Officers, the Old Blood, the Frontier): their gates want
+   hostility the random player rarely produces on their estate; a scripted playthrough with harsh laws should check them.
+3. **Content volume** (148 events). 4. **Plots with steps.** 5. **The ledger runs rich.** 6. **Role theming.** 7. **A
+dynasty tree.** 8. **Spatial trade.** 9. **Audio.**
+
+### Where the next forty come from
+Rival laws by culture · the estates in the Senate (a bench's platform read by the estates) · fifty situations · plots
+with steps · a credit sink · role theming · the dynasty tree.

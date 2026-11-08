@@ -128,7 +128,7 @@
         {
             <section class="panel">
                 <h3><Icon Name="legitimacy" Size="13" /> Decrees</h3>
-                <details><summary>Tithe: @s.TaxPolicy</summary>@foreach (var o in s.TaxOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new SetTaxPolicyCommand(pid, o.Id, c.Holdings))">@o.Label</button> }</details>
+                <div class="muted small">Tithe: @s.TaxPolicy — set in the Chancery (Laws), with the rest of the house's law.</div>
                 <details><summary>The exchange @(ExchangeCommand.HasExchange(w, house.Id, c.Holdings) ? "" : "· no market: the caravaneers take half")</summary>
                     @foreach (var o in s.ExchangeOptions) { var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))">@o.Label</button> }
                 </details>

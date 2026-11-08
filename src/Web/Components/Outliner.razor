@@ -21,6 +21,7 @@
     if (w.HasFlag("broke_the_whip")) alerts.Add(("warn", "You voted against your bench", "senate"));
     if (w.HasFlag("faction_formed")) alerts.Add(("info", "A bench has formed with you on it", "senate"));
     if (w.HasFlag("faction_dissolved")) alerts.Add(("info", "Your bench has broken", "senate"));
+    foreach (var f in w.WorldFlags.Where(f => f.StartsWith("estate_hostile:")).Take(2)) alerts.Add(("warn", $"{G.Content!.Policies.Estate(f["estate_hostile:".Length..])?.Name ?? f} are hostile to the house", "laws"));
     if (w.HasFlag("governor_revolt")) alerts.Add(("warn", "A governor has declared a world for themselves", "houses"));
     if (w.HasFlag("freehold_of_ours")) alerts.Add(("info", "A world of yours is a free hold — buy it back or take it", "houses"));
     if (w.HasFlag("capital_taken")) alerts.Add(("good", "You hold the capital", "senate"));

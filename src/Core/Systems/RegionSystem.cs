@@ -1,3 +1,4 @@
+using Praetoria.Core.Data;
 using Praetoria.Core.Creation;
 using Praetoria.Core.Galaxy;
 using Praetoria.Core.Rng;
@@ -23,6 +24,8 @@ public sealed class RegionSystem
 
     private readonly NameCatalog _names;
     public RegionSystem(NameCatalog? names = null) => _names = names ?? NameCatalog.Empty;
+    /// <summary>Laws and estates (PolicySystem).</summary>
+    public PolicyCatalog Policies { get; set; } = PolicyCatalog.Empty;
 
     public static RegionState StateOf(World w, string regionId)
     {
@@ -66,6 +69,9 @@ public sealed class RegionSystem
 
             // lawlessness: the ring's drift, less parked hulls, less a thriving economy, plus empty worlds and revolts
             int law = state.Lawlessness + rules.LawlessnessDrift - Math.Min(LawlessnessFleetCap, ParkedHulls(w, region.Id)) * LawlessnessFleetRelief - (prosperity - 50) / 10 + unheld * 2 + worlds.Count(h => h.InRebellion) * 3;
+            var dominantHouse = PolicySystem.Dominant(w, region.Id);   // march law, justice, the frontier's regard; the chair's letters of marque
+            if (dominantHouse != null) { law += PolicySystem.Modifier(w, Policies, dominantHouse, "lawlessness_drift", region.Id); state.Allegiance = Math.Clamp(state.Allegiance + PolicySystem.Modifier(w, Policies, dominantHouse, "allegiance_drift", region.Id), 0, 100); }
+            law += PolicySystem.ReachModifier(w, Policies, "lawlessness_drift");
             state.Lawlessness = Math.Clamp(law, 0, 100);
 
             // allegiance drifts toward where the ring, the capital's standing and the worlds' loyalty put it

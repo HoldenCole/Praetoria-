@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **Laws and estates** (GDD §6.1 legislation; docs/POLITICS.md): seventeen laws in seven categories, each with a scope —
+  the position you must hold to set it: a head of house, the holder of a world, the dominant house of a region, the
+  chair, an office, the throne, the leader of a bench — and three options whose effects the economy, the regions, the
+  fleet, the Senate and the open market read. Six estates — the Commons, the Merchants, the Officers, the Old Blood,
+  the Magistrates, the Frontier — hold an approval of the house that drifts toward what its laws say, and loyal or
+  hostile they help or hurt it. A Chancery screen (Laws) shows the estates and the laws in your gift; six events let the
+  estates speak. The tithe is a law now.
 - **Persistent Senate factions** (GDD §6.1 "voting blocs"): every decided motion leaves an affinity between the houses
   that declared; benches form around the weightiest of three friends, grow, break and dissolve on their own, and the
   chamber names them (*The Rim Benches*, *The Old Blood*, *The Court Party*, *The Purse-Strings*…). Members lean toward

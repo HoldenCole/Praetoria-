@@ -1,0 +1,124 @@
+{
+  "//": "THE LAWS (GDD §6.1 'legislation'; §9 'resource policy'). A law has a scope — the position you must hold to set it: house (any head), world (you hold a planet), region (you are the dominant house of a region; the effects fall on the regions you dominate), chair (you hold the capital; effects fall on the whole Reach), office:<id> (you hold that office), emperor, bench (you lead a faction) — and options, one of which is in force (the `default` for every house that has never chosen). Each option carries effects (modifier keys, see estates.json) and opinions: what each estate thinks of it. Changing a law costs `cost` influence and cannot be changed again for `cooldown` turns. `taxPolicy: true` makes the option id the house's tithe (the exchange.json tax policies). `reach: true` means the effects apply to every house in the Reach, not the enacting one.",
+  "laws": [
+    { "id": "tithe", "name": "The Tithe", "category": "Taxation", "scope": "house", "cost": 1, "cooldown": 6, "taxPolicy": true,
+      "description": "What the house takes from its worlds. The customary tithe is what everyone expects; a harsh one pays and is hated; a lenient one calms and costs.",
+      "options": [
+        { "id": "lenient", "name": "Lenient tithe", "opinions": { "commons": 15, "magistrates": -5 } },
+        { "id": "normal", "name": "Customary tithe", "default": true },
+        { "id": "harsh", "name": "Harsh tithe", "opinions": { "commons": -25, "merchants": -10, "magistrates": 5 } }
+      ] },
+    { "id": "levies", "name": "The Levies", "category": "Military", "scope": "house", "cost": 1, "cooldown": 6,
+      "description": "How the house raises crews. Volunteers come willingly and slowly; conscription fills the yards and empties the villages.",
+      "options": [
+        { "id": "volunteers", "name": "Volunteers only", "effects": { "manpower_per_world": -1 }, "opinions": { "commons": 10, "officers": -10 } },
+        { "id": "household", "name": "The household levy", "default": true },
+        { "id": "conscription", "name": "Conscription", "effects": { "manpower_per_world": 2, "unrest_drift": 1 }, "opinions": { "commons": -20, "officers": 15 } }
+      ] },
+    { "id": "court_etiquette", "name": "The Court", "category": "Court", "scope": "house", "cost": 1, "cooldown": 6,
+      "description": "How the house holds court. An open hall is loved below and sneered at above; a closed court is the reverse, and costs a credit a world in ceremony.",
+      "options": [
+        { "id": "open_hall", "name": "An open hall", "opinions": { "commons": 10, "old_blood": -10 } },
+        { "id": "customary", "name": "Customary court", "default": true },
+        { "id": "closed_court", "name": "A closed court", "effects": { "legitimacy_per_5": 1, "credits_per_world": -1 }, "opinions": { "old_blood": 20, "commons": -10, "magistrates": 5 } }
+      ] },
+    { "id": "household_guard", "name": "The Household Guard", "category": "Military", "scope": "house", "cost": 1, "cooldown": 6,
+      "description": "A standing guard keeps the hulls ready and the officers content, and costs more each turn.",
+      "options": [
+        { "id": "none", "name": "No standing guard", "effects": { "readiness": -2, "fleet_upkeep_pct": -15 }, "opinions": { "officers": -10, "merchants": 5 } },
+        { "id": "standing", "name": "A standing guard", "default": true },
+        { "id": "doubled", "name": "The guard doubled", "effects": { "readiness": 5, "fleet_upkeep_pct": 25 }, "opinions": { "officers": 20, "merchants": -10 } }
+      ] },
+    { "id": "tariffs", "name": "Tariffs", "category": "Trade", "scope": "world", "cost": 1, "cooldown": 6,
+      "description": "What the house's customs houses take. Free trade pleases the factors and the market; protective tariffs fill the chest and raise prices.",
+      "options": [
+        { "id": "free_trade", "name": "Free trade", "effects": { "market_price_pct": -10 }, "opinions": { "merchants": 20, "magistrates": -5 } },
+        { "id": "customary", "name": "Customary duties", "default": true },
+        { "id": "protective", "name": "Protective tariffs", "effects": { "credits_per_world": 1, "charter_pct": 50, "market_price_pct": 15 }, "opinions": { "merchants": -20, "commons": 5, "magistrates": 5 } }
+      ] },
+    { "id": "labour", "name": "Labour", "category": "Labour", "scope": "world", "cost": 1, "cooldown": 6,
+      "description": "Who owns the work. Guild rights calm the yards and slow them; bonded labour fills the forges and the gaols.",
+      "options": [
+        { "id": "guild_rights", "name": "Guild rights", "effects": { "unrest_drift": -1 }, "opinions": { "commons": 15, "merchants": -10 } },
+        { "id": "customary", "name": "Customary labour", "default": true },
+        { "id": "bonded", "name": "Bonded labour", "effects": { "materials_per_world": 1, "credits_per_world": 1, "unrest_drift": 2, "pop_growth": -1 }, "opinions": { "commons": -25, "merchants": 10, "magistrates": -5 } }
+      ] },
+    { "id": "justice", "name": "Justice", "category": "Justice", "scope": "world", "cost": 1, "cooldown": 6,
+      "description": "How the house's courts sit. Lenient courts are loved and lawless; iron law is orderly and resented on the frontier.",
+      "options": [
+        { "id": "lenient", "name": "Lenient courts", "effects": { "unrest_drift": 1, "prosperity_drift": 1, "lawlessness_drift": 1 }, "opinions": { "commons": 10, "magistrates": -10, "frontier": 5 } },
+        { "id": "customary", "name": "Customary justice", "default": true },
+        { "id": "iron_law", "name": "Iron law", "effects": { "unrest_drift": -1, "prosperity_drift": -1, "lawlessness_drift": -2 }, "opinions": { "commons": -10, "magistrates": 15, "frontier": -15 } }
+      ] },
+    { "id": "franchise", "name": "The Franchise", "category": "Court", "scope": "world", "cost": 2, "cooldown": 8,
+      "description": "Who speaks for the house's worlds. An open ballot sends delegates to the Senate and horrifies the old blood.",
+      "options": [
+        { "id": "closed", "name": "The closed franchise", "effects": { "legitimacy_per_5": 1 }, "opinions": { "old_blood": 10, "commons": -10 } },
+        { "id": "customary", "name": "Customary franchise", "default": true },
+        { "id": "open_ballot", "name": "The open ballot", "effects": { "senate_weight": 1 }, "opinions": { "commons": 15, "old_blood": -15 } }
+      ] },
+    { "id": "march_law", "name": "March Law", "category": "Frontier", "scope": "region", "cost": 2, "cooldown": 6,
+      "description": "How the regions you dominate are policed. Open lanes please the frontier and feed the raiders; martial law empties the lanes and the markets.",
+      "options": [
+        { "id": "open_lanes", "name": "Open lanes", "effects": { "lawlessness_drift": 1 }, "opinions": { "frontier": 10, "merchants": 5 } },
+        { "id": "patrols", "name": "Patrols", "default": true },
+        { "id": "martial_law", "name": "Martial law", "effects": { "lawlessness_drift": -3, "credits_per_world": -1, "allegiance_drift": -1 }, "opinions": { "frontier": -20, "officers": 10, "commons": -10 } }
+      ] },
+    { "id": "settlement", "name": "Settlement", "category": "Frontier", "scope": "region", "cost": 2, "cooldown": 8,
+      "description": "Whether the regions you dominate are opened to homesteaders. Open land grows and gets rowdy.",
+      "options": [
+        { "id": "closed_land", "name": "Closed land", "effects": { "lawlessness_drift": -1 }, "opinions": { "frontier": -10, "old_blood": 5 } },
+        { "id": "customary", "name": "Customary settlement", "default": true },
+        { "id": "homesteads", "name": "Homesteads", "effects": { "pop_growth": 1, "prosperity_drift": 1, "lawlessness_drift": 1 }, "opinions": { "frontier": 15, "commons": 5, "old_blood": -5 } }
+      ] },
+    { "id": "reach_tolls", "name": "The Tolls of the Reach", "category": "Trade", "scope": "chair", "reach": true, "cost": 2, "cooldown": 8,
+      "description": "The chair sets what the chokepoints may take. Heavy tolls enrich every holder of a key system and sour every factor in the Reach.",
+      "options": [
+        { "id": "none", "name": "Free passage", "effects": { "tolls_bonus": -1 }, "opinions": { "merchants": 15, "frontier": 5 } },
+        { "id": "customs", "name": "Customary tolls", "default": true },
+        { "id": "heavy", "name": "Heavy tolls", "effects": { "tolls_bonus": 2 }, "opinions": { "merchants": -25, "magistrates": 5 } }
+      ] },
+    { "id": "letters_of_marque", "name": "Letters of Marque", "category": "Military", "scope": "chair", "reach": true, "cost": 2, "cooldown": 8,
+      "description": "Whether the chair tolerates private war on the lanes. Sanctioned marque arms the frontier and frightens the factors.",
+      "options": [
+        { "id": "forbidden", "name": "Forbidden", "effects": { "lawlessness_drift": -1 }, "opinions": { "merchants": 10, "frontier": -10 } },
+        { "id": "tolerated", "name": "Tolerated", "default": true },
+        { "id": "sanctioned", "name": "Sanctioned", "effects": { "lawlessness_drift": 2 }, "opinions": { "frontier": 15, "merchants": -20, "officers": 5 } }
+      ] },
+    { "id": "fleet_doctrine", "name": "Fleet Doctrine", "category": "Military", "scope": "office:admiral", "cost": 2, "cooldown": 6,
+      "description": "The Admiral's doctrine for every hull under the house's colours. Conserve the hulls, or keep them hot.",
+      "options": [
+        { "id": "conserve", "name": "Conserve the hulls", "effects": { "fleet_upkeep_pct": -15, "readiness": -3 }, "opinions": { "officers": -5, "merchants": 5 } },
+        { "id": "customary", "name": "Customary doctrine", "default": true },
+        { "id": "aggressive", "name": "Aggressive doctrine", "effects": { "fleet_upkeep_pct": 15, "readiness": 5 }, "opinions": { "officers": 10 } }
+      ] },
+    { "id": "exchange_rates", "name": "The Exchanges", "category": "Trade", "scope": "office:treasurer", "reach": true, "cost": 2, "cooldown": 8,
+      "description": "The Treasurer sets the terms of the open market for the whole Reach.",
+      "options": [
+        { "id": "open", "name": "Open exchanges", "effects": { "market_price_pct": -15 }, "opinions": { "merchants": 15 } },
+        { "id": "customary", "name": "Customary exchanges", "default": true },
+        { "id": "guarded", "name": "Guarded exchanges", "effects": { "market_price_pct": 15 }, "opinions": { "merchants": -15, "magistrates": 5 } }
+      ] },
+    { "id": "standing_orders", "name": "Standing Orders", "category": "Court", "scope": "office:speaker", "reach": true, "cost": 2, "cooldown": 8,
+      "description": "The Speaker's rules for the chamber. A tight docket makes every other house's motion cost one more.",
+      "options": [
+        { "id": "open_docket", "name": "An open docket", "effects": { "motion_cost": -1 }, "opinions": { "old_blood": -5, "commons": 5 } },
+        { "id": "customary", "name": "Customary orders", "default": true },
+        { "id": "tight", "name": "A tight docket", "effects": { "motion_cost": 1 }, "opinions": { "old_blood": 5, "magistrates": 5 } }
+      ] },
+    { "id": "imperial_edict", "name": "The Imperial Edict", "category": "Court", "scope": "emperor", "reach": true, "cost": 3, "cooldown": 10,
+      "description": "The throne's temper toward the houses. Clemency calms the Reach; proscriptions terrify it and steady the crown.",
+      "options": [
+        { "id": "clemency", "name": "Clemency", "effects": { "unrest_drift": -1 }, "opinions": { "commons": 10, "old_blood": 10 } },
+        { "id": "customary", "name": "The customary peace", "default": true },
+        { "id": "proscriptions", "name": "Proscriptions", "effects": { "unrest_drift": 1, "legitimacy_per_5": 2 }, "opinions": { "old_blood": -20, "commons": -15, "officers": 5 } }
+      ] },
+    { "id": "bench_platform", "name": "The Bench's Platform", "category": "Court", "scope": "bench", "cost": 1, "cooldown": 6,
+      "description": "What the bench you lead stands for. Binding the bench to a cause sharpens its votes and narrows who will sit with it.",
+      "options": [
+        { "id": "loose", "name": "A loose bench", "default": true },
+        { "id": "reform", "name": "A reform platform", "effects": { "senate_weight": 1 }, "opinions": { "commons": 10, "old_blood": -10 } },
+        { "id": "tradition", "name": "A platform of tradition", "effects": { "senate_weight": 1 }, "opinions": { "old_blood": 10, "commons": -10 } }
+      ] }
+  ]
+}

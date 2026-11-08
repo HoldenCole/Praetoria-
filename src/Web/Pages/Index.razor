@@ -30,7 +30,7 @@ else
             {
                 if (id == "academy" && !(G.World!.Protagonist!.Age <= 22)) continue;
                 <button class="rail-btn @(_screen == id ? "active" : "")" title="@label" @onclick="() => Go(id)" disabled="@(id == "galaxy" && G.World!.Galaxy == null)">
-                    <Icon Name="@(id == "character" ? "you" : id == "planets" ? "worlds" : id == "senate" ? "influence" : id == "academy" ? "military" : id)" Size="22" /><span class="rl">@label</span>
+                    <Icon Name="@(id == "character" ? "you" : id == "planets" ? "worlds" : id == "senate" ? "influence" : id == "academy" ? "military" : id == "laws" ? "throne" : id)" Size="22" /><span class="rl">@label</span>
                 </button>
             }
         </nav>
@@ -43,6 +43,7 @@ else
                 case "galaxy": <GalaxyMap @ref="_map" /> break;
                 case "planets": <PlanetsScreen OnFocus="FocusSystem" /> break;
                 case "house": <HouseScreen Model="m" /> break;
+                case "laws": <LawsScreen Model="m" /> break;
                 case "military": <MilitaryScreen Model="m" /> break;
                 case "dynasty": <DynastyScreen Model="m" /> break;
                 case "houses": <HousesScreen Model="m" /> break;
@@ -92,7 +93,7 @@ else
     private static readonly (string id, string glyph, string label)[] Screens =
     {
         ("office", "", "Office"), ("character", "", "You"), ("academy", "", "Academy"), ("galaxy", "", "Galaxy"), ("planets", "", "Worlds"), ("senate", "", "Senate"), ("house", "", "House"),
-        ("military", "", "Military"), ("dynasty", "", "Dynasty"), ("houses", "", "Houses"), ("chronicle", "", "Chronicle")
+        ("laws", "", "Laws"), ("military", "", "Military"), ("dynasty", "", "Dynasty"), ("houses", "", "Houses"), ("chronicle", "", "Chronicle")
     };
     private string _screen = "office";
     private bool _screenChosen;
