@@ -232,9 +232,6 @@ details > summary::before { content: "▸ "; color: var(--brass3); } details[ope
 .skill { display: grid; grid-template-columns: 110px 1fr 2rem; align-items: center; gap: .5rem; padding: .2rem 0; font-size: .9rem; } .skill b { text-align: right; }
 
 /* ===== dynasty & chronicle ===== */
-.dynasty { max-width: 1100px; } .tree .node { margin: .2rem 0; } .tree .children { margin-left: 1.6rem; padding-left: .8rem; border-left: 1px solid var(--line2); }
-.node-card { display: inline-grid; grid-template-columns: auto 1fr; column-gap: .6rem; align-items: center; background: rgba(5,7,12,.5); border: 1px solid var(--line); border-radius: 3px; padding: .35rem .7rem; margin: .2rem 0; min-width: 12rem; }
-.node-card .portrait { grid-row: span 3; } .node-card > div { grid-column: 2; } .node-card.me { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); } .node-card.dead { opacity: .5; } .node-card .name { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; }
 .chronicle { max-width: 900px; } .turn-block .line { font-size: .92rem; } .turn-block .line.event { color: var(--ink); font-family: var(--serif); font-size: 1.02rem; }
 
 /* ===== overlays ===== */
@@ -315,3 +312,18 @@ input:focus, select:focus { outline: none; border-color: var(--brass); }
 .stage-card .sc-name { font-family: var(--display); font-size: 1rem; color: var(--brass2); } .stage-card .sc-body { flex: 1; min-width: 0; } .stage-card .sc-actions { margin-top: .3rem; }
 .sphere { padding: .3rem 0; border-bottom: 1px dotted var(--line); } .sphere-head { display: flex; justify-content: space-between; font-size: .9rem; }
 .sphere-bar { display: flex; height: 10px; border-radius: 2px; overflow: hidden; background: rgba(0,0,0,.5); border: 1px solid var(--line); margin-top: .25rem; } .sphere-bar i { display: block; height: 100%; } .sphere-bar i.mine { box-shadow: inset 0 0 0 1px #fff; }
+
+/* ===== the hall, the command deck, the keep ===== */
+.office-side { max-height: calc(100vh - 58px - 1.6rem); overflow-y: auto; padding-right: .2rem; }
+.person.heir { cursor: pointer; } .person.heir .rank { font-family: var(--display); color: var(--brass2); width: 1.2rem; text-align: center; }
+.office-side .person { cursor: pointer; } .office-side .person:hover { background: rgba(201,162,74,.06); }
+.office-side .line { cursor: default; }
+.sc-flags { margin-top: .25rem; display: flex; flex-wrap: wrap; gap: .25rem; }
+.sc-glyph { width: 64px; height: 64px; display: grid; place-items: center; border: 1px solid var(--brass3); border-radius: 3px; background: rgba(5,7,12,.6); color: var(--brass2); }
+.office-side details.fleet-card { border: 1px solid var(--line); border-radius: 3px; padding: .3rem .5rem; margin: .35rem 0; background: rgba(5,7,12,.4); }
+.office-side details.fleet-card > summary { cursor: pointer; display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; } .office-side details.fleet-card > summary .pill { margin-left: auto; }
+.navy-row { display: grid; grid-template-columns: auto minmax(0, 1fr) 2.6rem; align-items: center; gap: .4rem; padding: .18rem 0; font-size: .9rem; }
+.navy-row .bar { grid-column: 1 / -1; height: 5px; background: rgba(255,255,255,.05); border-radius: 2px; overflow: hidden; margin-top: -.1rem; } .navy-row .bar i { display: block; height: 100%; }
+.navy-row b { text-align: right; font-variant-numeric: tabular-nums; } .navy-row.mine span:nth-of-type(1) { color: var(--brass2); } .navy-row.warn span { color: #e07a5f; }
+.stage-title { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.office-side .res-grid { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); }

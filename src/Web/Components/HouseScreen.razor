@@ -1,108 +1,122 @@
 @inject GameClient G
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var house = w.House(w.Protagonist!.HouseId)!;
     var fc = G.Turn!.Economy?.Forecast(w, house.Id, G.Turn.Fleets);
+    _pending = BuildOptions(w, house, m);
+    int planets = m.Holdings.Count(h => h.Kind != "station"), stations = m.Holdings.Count - planets, pop = m.Holdings.Sum(h => h.Population);
 }
-<div class="house-screen" style="--accent:@m.HouseAccent">
-    <div class="col">
+<div class="office keep" style="--accent:@m.HouseAccent">
+    <div class="office-stage">
+        <div class="gl-host" @ref="_host"></div>
+        <div class="stage-foot">
+            <div class="stage-title"><Icon Name="house" Size="16" /> <b>The Keep of @house.Name</b> <span class="muted">@(c.Titles.ById(house.Title)?.Name ?? house.Title) · @planets world(s)@(stations > 0 ? $" · {stations} station(s)" : "") · @pop pop · tithe @m.Standing?.TaxPolicy</span></div>
+            <span class="muted small">your worlds stand on pedestals · the household at table</span>
+        </div>
+        @if (_focus != null && w.Char(_focus) is { } ch)
+        {
+            var hl = m.Household.FirstOrDefault(x => x.Id == ch.Id); var rel = w.GetRelationship(ch.Id, pid); int d = rel?.Disposition ?? 0;
+            <div class="stage-card">
+                <Portrait Id="@ch.Id" Name="@ch.Name" Sex="@ch.Sex" Age="@ch.Age" Alive="@ch.Alive" Accent="@m.HouseAccent" Size="64" />
+                <div class="sc-body">
+                    <div class="sc-name">@ch.Name <span class="muted">@ch.Age@(ch.Sex.Length > 0 ? $" · {ch.Sex}" : "")@(c.Careers.RankName(ch.CareerTrack, ch.CareerRank) is { } rn ? $" · {rn}" : "")</span></div>
+                    <div class="muted small">@(hl?.Married == true ? "wed · " : "")@(hl?.Hidden == true ? "fostered away · " : "")<span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d toward you</span></div>
+                    @if (hl != null && hl.Actions.Count > 0) { <div class="sc-actions">@foreach (var o in hl.Actions) { if (o.Id == "defiant") { <span class="pill warn">defiant</span> } else { <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(Household(o.Id, hl.Id))">@o.Label</button> } }</div> }
+                </div>
+                <button class="win-close" @onclick="() => _focus = null">✕</button>
+            </div>
+        }
+    </div>
+
+    <aside class="office-side">
         <section class="panel">
-            <div class="who-head"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="56" /><div><h2>@house.Name</h2><div class="sub">@m.Character.TitleName · legitimacy @house.Legitimacy · @house.Culture culture</div></div></div>
+            <div class="who-head"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="48" /><div><h2>@house.Name</h2><div class="sub">@m.Character.TitleName · legitimacy @house.Legitimacy · @house.Culture culture</div></div></div>
             <div class="res-grid">
                 @foreach (var (name, val, d) in new[] { ("credits", m.Treasury.Credits, fc?.Credits), ("materials", m.Treasury.Materials, fc?.Materials), ("manpower", m.Treasury.Manpower, fc?.Manpower), ("influence", m.Treasury.Influence, fc?.Influence), ("exotics", m.Treasury.Exotics, fc?.Exotics) })
-                { <div class="res-cell"><span class="muted">@name</span><b>@val</b>@if (d != null && d != 0) { <small class="@(d > 0 ? "up" : "down")">@(d > 0 ? "+" : "")@d /turn</small> }</div> }
+                { <div class="res-cell"><span class="muted"><Icon Name="@name" Size="12" /> @name</span><b>@val</b>@if (d != null && d != 0) { <small class="@(d > 0 ? "up" : "down")">@(d > 0 ? "+" : "")@d /turn</small> }</div> }
             </div>
             @if (m.Treasury.Insolvent) { <div class="flag">Insolvent: unrest climbs on every populated world and unpaid crews will desert.</div> }
         </section>
 
-        @if (m.Standing is { } s)
-        {
-            <section class="panel">
-                <h3>Standing</h3>
-                <div class="kv"><span>Threat the galaxy reads in us</span><b>@s.Threat</b></div>
-                @if (s.Instability > 0) { <div class="kv"><span>Title instability</span><b class="warn">@s.Instability</b></div> }
-                @if (s.Spheres.Length > 0) { <div class="kv"><span>Spheres</span><b>@s.Spheres</b></div> }
-                @if (s.Honors.Count > 0) { <div class="kv"><span>Honors</span><b>@string.Join(", ", s.Honors)</b></div> }
-                @if (s.Claims.Count > 0) { <div class="kv"><span>Claims</span><b>@string.Join(", ", s.Claims)</b></div> }
-                @if (s.NextTitle != null)
-                {
-                    <h4>Toward @s.NextTitle <span class="muted">(needs legitimacy @s.NextRequirement)</span></h4>
-                    @foreach (var p in s.Paths) { <button class="opt" disabled="@(!p.Available)" title="@p.Tooltip" @onclick="() => G.Execute(PathCommand(p.Id))">@p.Label</button> }
-                }
-            </section>
-            <section class="panel">
-                <h3>Decrees</h3>
-                <details><summary>Succession: @s.SuccessionLaw</summary>@foreach (var o in s.LawOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new SetSuccessionLawCommand(pid, o.Id))">@o.Label</button> }</details>
-                <details><summary>Tithe: @s.TaxPolicy</summary>@foreach (var o in s.TaxOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new SetTaxPolicyCommand(pid, o.Id, c.Holdings))">@o.Label</button> }</details>
-                <details><summary>The exchange @(ExchangeCommand.HasExchange(w, house.Id, c.Holdings) ? "" : "· no market: the caravaneers take half")</summary>
-                    @foreach (var o in s.ExchangeOptions) { var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))">@o.Label</button> }
-                </details>
-                <details><summary>The throne @(s.Throne.HoldsThrone ? "· yours" : s.Throne.EmperorName != null ? $"· {s.Throne.EmperorName}" : "· empty")</summary>
-                    <button class="opt" disabled="@(s.Throne.ProclaimRefusal != null)" title="@s.Throne.ProclaimRefusal" @onclick="() => G.Execute(new ProclaimImperiumCommand(pid, c.Titles))">Proclaim the Imperium (3 influence, 2 agents)</button>
-                    <button class="opt" disabled="@(s.Throne.SeizeRefusal != null)" title="@s.Throne.SeizeRefusal" @onclick="() => G.Execute(new SeizeThroneCommand(pid, c.Titles, c.Friction))">Seize the throne (2 treasury, 2 agents)</button>
-                </details>
-            </section>
-        }
-
-        @if (m.Crises is { } cr)
-        {
-            <section class="panel">
-                <h3>The realm's temperature</h3>
-                <div class="muted small">@cr.Counters</div>
-                @foreach (var a in cr.Active)
-                {
-                    <div class="crisis"><div><b>@a.Name</b> · severity @a.Severity · since turn @a.Since @(a.Author != null ? $"· authored by {a.Author}" : "· organic")</div>
-                        @foreach (var d in a.Dampers) { <button class="opt" disabled="@(!d.Available)" title="@d.Tooltip" @onclick="() => Damper(d)">@d.Label</button> }</div>
-                }
-                @if (cr.Active.Count == 0) { <div class="muted">No crisis is active.</div> }
-                @if (cr.Causable.Count > 0) { <div class="muted small">Ripe to be lit: @string.Join(", ", cr.Causable)</div> }
-            </section>
-        }
-    </div>
-
-    <div class="col">
         <section class="panel">
-            <h3>Holdings <span class="muted">@m.Holdings.Count</span></h3>
+            <h3><Icon Name="worlds" Size="13" /> Holdings <span class="muted">@m.Holdings.Count</span></h3>
             @if (m.Holdings.Count == 0) { <div class="muted">Your house holds no land. A fief is won, granted, or married into.</div> }
             @foreach (var h in m.Holdings)
             {
-                var planet = w.Holding(h.Id)!; var sys = w.Galaxy?.System(planet.SystemId); var (pf, pg) = Svg.Planet(sys?.PlanetClass ?? "terran");
+                var holding = w.Holding(h.Id)!; var sys = w.Galaxy?.System(holding.SystemId); var (pf, pg) = Svg.Planet(sys?.PlanetClass ?? "terran");
                 <details class="holding @(h.Besieged ? "besieged" : "")" open="@(m.Holdings.Count <= 2)">
                     <summary><i class="pdot" style="background:radial-gradient(circle at 35% 35%, @pg, @pf)"></i> <b>@h.Name</b> <span class="muted">@h.SpecName@(h.Kind == "station" ? " (station)" : "")@(h.SystemName != null ? $" · {h.SystemName}" : "")</span>
                         @if (h.MaxPopulation > 0) { <span class="pill">pop @h.Population/@h.MaxPopulation</span> }
                         <span class="pill @(h.Unrest >= 50 ? "warn" : "")">loyalty @(100 - h.Unrest)</span>
                         @if (h.Besieged) { <span class="pill warn">besieged</span> }
                     </summary>
-                    <div class="kv"><span>Governor</span><b>@(h.GovernorName ?? "—")</b></div>
+                    <div class="kv"><span><Icon Name="governor" Size="12" /> Governor</span><b>@(h.GovernorName ?? "—")</b></div>
                     <div class="kv"><span>Culture</span><b>@h.Culture</b></div>
                     <div class="kv"><span>Built</span><b>@(h.Buildings.Count == 0 ? "nothing yet" : string.Join(", ", h.Buildings)) (@h.SlotsUsed/@h.Slots)</b></div>
-                    <details><summary>Build</summary>@foreach (var b in h.Builds) { <button class="opt" disabled="@(!b.Available)" title="@b.Tooltip" @onclick="() => G.Execute(new BuildCommand(pid, h.Id, b.BuildingId, c.Holdings, c.Titles))">@b.Label</button> }</details>
-                    @if (h.Ships.Count > 0) { <details><summary>Shipyard</summary>@foreach (var sh in h.Ships) { <button class="opt" disabled="@(sh.Refusal != null)" title="@sh.Refusal" @onclick="() => G.Execute(new RaiseFleetCommand(pid, h.Id, c.Fleets, c.ShipClasses, sh.ClassId, c.Titles))">@sh.Label</button> }</details> }
+                    <details><summary><Icon Name="build" Size="12" /> Build</summary>@foreach (var b in h.Builds) { <button class="opt" disabled="@(!b.Available)" title="@b.Tooltip" @onclick="() => G.Execute(new BuildCommand(pid, h.Id, b.BuildingId, c.Holdings, c.Titles))">@b.Label</button> }</details>
+                    @if (h.Ships.Count > 0) { <details><summary><Icon Name="ship" Size="12" /> Shipyard</summary>@foreach (var sh in h.Ships) { <button class="opt" disabled="@(sh.Refusal != null)" title="@sh.Refusal" @onclick="() => G.Execute(new RaiseFleetCommand(pid, h.Id, c.Fleets, c.ShipClasses, sh.ClassId, c.Titles))">@sh.Label</button> }</details> }
                     @if (h.GovernorOptions is { Count: > 0 }) { <details><summary>Governor's chair</summary>@foreach (var o in h.GovernorOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AppointGovernorCommand(pid, h.Id, o.Id))">@o.Label</button> }</details> }
                 </details>
             }
         </section>
+
+        @if (m.Standing is { } s)
+        {
+            <section class="panel">
+                <h3><Icon Name="legitimacy" Size="13" /> Decrees</h3>
+                <details><summary>Tithe: @s.TaxPolicy</summary>@foreach (var o in s.TaxOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new SetTaxPolicyCommand(pid, o.Id, c.Holdings))">@o.Label</button> }</details>
+                <details><summary>The exchange @(ExchangeCommand.HasExchange(w, house.Id, c.Holdings) ? "" : "· no market: the caravaneers take half")</summary>
+                    @foreach (var o in s.ExchangeOptions) { var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))">@o.Label</button> }
+                </details>
+                <details><summary>Succession: @s.SuccessionLaw</summary>@foreach (var o in s.LawOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new SetSuccessionLawCommand(pid, o.Id))">@o.Label</button> }</details>
+                <div class="kv"><span><Icon Name="threat" Size="12" /> Threat read in us</span><b class="@(s.Threat >= 60 ? "warn" : "")">@s.Threat</b></div>
+                @if (s.Instability > 0) { <div class="kv"><span>Title instability</span><b class="warn">@s.Instability</b></div> }
+                @if (s.Honors.Count > 0) { <div class="kv"><span><Icon Name="honor" Size="12" /> Honors</span><b>@string.Join(", ", s.Honors)</b></div> }
+                @if (s.Claims.Count > 0) { <div class="kv"><span><Icon Name="claim" Size="12" /> Claims</span><b>@string.Join(", ", s.Claims)</b></div> }
+                <div class="muted small">Titles, the throne and the spheres are pursued in the Senate.</div>
+            </section>
+        }
+
         <section class="panel">
-            <h3>Household</h3>
+            <h3><Icon Name="dynasty" Size="13" /> Household</h3>
             @foreach (var h in m.Household)
             {
-                <div class="person">
+                <div class="person" @onclick="() => _focus = h.Id">
                     <Portrait Id="@h.Id" Name="@h.Name" Sex="@h.Sex" Age="@h.Age" Accent="@m.HouseAccent" Size="28" />
                     <span><b>@h.Name</b> <span class="muted">@h.Age@(h.Sex.Length > 0 ? $" · {h.Sex}" : "")@(h.Married ? " · wed" : "")@(h.Hidden ? " · fostered away" : "")</span></span>
                     @foreach (var o in h.Actions)
                     {
                         @if (o.Id == "defiant") { <span class="pill warn">defiant</span> }
-                        else { <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(Household(o.Id, h.Id))">@o.Label</button> }
+                        else { <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick:stopPropagation @onclick="() => G.Execute(Household(o.Id, h.Id))">@o.Label</button> }
                     }
                 </div>
             }
             @if (m.Household.Count == 0) { <div class="muted">You are the last of your name.</div> }
         </section>
-    </div>
+    </aside>
 </div>
 
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
+    private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N"); private DotNetObjectReference<HouseScreen>? _self; private bool _created; private string _pending = "", _sent = ""; private string? _focus;
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (first) { _self = DotNetObjectReference.Create(this); try { if (await JS.InvokeAsync<bool>("praetoria.ready", "praetoriaSets")) { await JS.InvokeVoidAsync("praetoriaSets.create", "keep", _id, _host, _self); _created = true; } } catch { } }
+        if (_created && _pending != _sent) { _sent = _pending; try { await JS.InvokeVoidAsync("praetoriaSets.build", _id, _pending); } catch { } }
+        try { await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }
+    }
+    [JSInvokable] public void OnPlate(string key) { _focus = key; StateHasChanged(); }
+
+    private string BuildOptions(World w, House house, CourtModel m)
+    {
+        var p = w.Protagonist!;
+        object Plate(Character ch, string? key) { var acc = w.House(ch.HouseId)?.AccentColor ?? "#888"; return new { key, name = ch.Name, accent = acc, bust = new { id = ch.Id, sex = ch.Sex.Length > 0 ? ch.Sex : "male", age = ch.Age, accent = acc, alive = ch.Alive } }; }
+        var holdings = m.Holdings.Select(h => { var hd = w.Holding(h.Id)!; var sys = w.Galaxy?.System(hd.SystemId); return new { id = h.Id, name = h.Name, planetClass = sys?.PlanetClass ?? "terran", kind = h.Kind, unrest = h.Unrest }; }).ToList();
+        var household = m.Household.Where(h => !h.Hidden).Select(h => w.Char(h.Id)).Where(x => x != null).Select(x => Plate(x!, x!.Id)).ToList();
+        return System.Text.Json.JsonSerializer.Serialize(new { accent = house.AccentColor, houseId = house.Id, holdings, household, player = Plate(p, null) });
+    }
     private ICommand Household(string optionId, string childId) => optionId == "recall" ? new RecallCommand(G.World!.ProtagonistId, childId) : new FosterCommand(G.World!.ProtagonistId, childId);
-    private ICommand PathCommand(string id) { var pid = G.World!.ProtagonistId; var prog = G.Turn!.Progression!; return id switch { "seize" => new SeizeTitleCommand(pid, prog), "petition" => new PetitionTitleCommand(pid, prog), _ => new ClaimTitleCommand(pid, prog) }; }
-    private void Damper(DamperOption d) { var crises = G.Turn!.Crises!; var def = crises.Def(d.CrisisId)!; G.Execute(new ApplyDamperCommand(G.World!.ProtagonistId, crises, def, def.Dampers.First(x => x.Id == d.DamperId))); }
+    public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaSets.destroy", _id); } catch { } _self?.Dispose(); }
 }

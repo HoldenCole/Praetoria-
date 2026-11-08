@@ -65,11 +65,20 @@ event windows with the cast's portraits; the first visitor steps forward when a 
   standing, the cohort with dispositions, bonds and marks, and the year so far.
 - `Components/PlanetsScreen.razor` — **Worlds**: every world by region in a table (class, holder, governor, industry,
   population, loyalty, stations).
-- `Components/HouseScreen.razor` — **House**: treasury and forecast, standing, title paths, decrees (succession, tithe,
-  exchange, throne), the realm's temperature, holdings with build / shipyard / governor's chair, household.
-- `Components/MilitaryScreen.razor` — **Military**: fleets with readiness, admiral, composition, refit, command, merge;
-  wars with score and peace; recent battles; rival navies as reported.
-- `Components/DynastyPanel.razor` — **Dynasty**: succession, the family tree, bonds.
+- `Components/HouseScreen.razor` — **House**: the keep's great hall set (`sets.js`): the house banner over the dais, your
+  worlds as turning globes (stations as rings) on pedestals down the hall, a red warning light on any restless one, the
+  household seated at the long table (click one for their card and foster/recall); panels for treasury and forecast,
+  holdings with build / shipyard / governor's chair, decrees (tithe, exchange, succession), threat, honors, claims.
+- `Components/MilitaryScreen.razor` — **Military**: the command deck set: a strategic table projecting the Reach as a
+  hologram (your systems bright, war fronts in red, your fleets as markers), your admirals at the table (click one for the
+  fleet's card: refit, command), the fleet parked outside the viewport above the seat's world, readiness / hulls / fronts
+  on the wall displays; panels for the navy and each fleet, wars with score and peace, rival navies as reported bars,
+  recent battles.
+- `Components/DynastyScreen.razor` — **Dynasty**: the hall of the house set: the family tree as generations down a
+  vaulted hall — the eldest by the hearth and great banner, children in rows toward you, brass lines on the floor from
+  parent to child, a gold thread between spouses, spouses from other houses in their own colours (click anyone for their
+  card: parents, spouse, disposition, heir mark, flags); panels for the house, the line of succession, bonds within the
+  house, the remembered dead.
 - `Components/HousesScreen.razor` — **Houses**: every house with sigil, title, worlds, stations, hulls, legitimacy, bloc,
   disposition; its people with marriage and intrigue actions; its domain; war and peace.
 - `Components/ChroniclePanel.razor` — **Chronicle**: the whole history by turn.
@@ -91,9 +100,14 @@ nothing is Earth; everything is rendered or drawn in-fiction at runtime (`src/We
   the house colour, banners carrying the sigil, a desk with a lamp, a holographic star table of the Reach, a star chart,
   trophy case or archive on the far wall; the player and the visitors as framed cameo plates with nameplates; haze,
   shadows and bloom; furnishing changes materials and props.
-- **The Senate and the Academy** (`sets.js`, Three.js): two more lit sets built with the office's helpers — a domed
-  chamber with an oculus light shaft, colonnade, tiers of benches and banners; a flagstone parade ground under a dawn sky
-  with a gas giant, a skyline of lit towers, colonnades, braziers and a reviewing dais.
+- **The sets** (`sets.js`, Three.js): lit 3D rooms built with the office's helpers, one per screen — the Senate (a domed
+  chamber with an oculus light shaft, colonnade, tiers of benches and banners), the Academy (a flagstone parade ground
+  under a dawn sky with a gas giant, a skyline of lit towers, colonnades, braziers and a reviewing dais), the Hall (a
+  barrel-vaulted hall with ribs, hanging lamps and sconces, a hearth and the great banner, the family tree laid out by
+  generation), the Command Deck (a steel deck with light rails, a glass wall onto the seat's world and the fleet outside,
+  a holographic strategic table, wall displays) and the Keep (a timbered great hall with tall windows, a dais and seat,
+  the worlds on pedestals, a candle-lit long table). Each set takes plain JSON from Blazor, places framed cameo plates
+  for its people and calls back `OnPlate(key)` when one is clicked.
 - **Portraits** (`portrait.js`, canvas): cameos — imperial coin profiles drawn from a parametric bust (forehead, brow,
   nose, lips, chin, jaw, neck), hair and beard shapes, a uniform collar and brass gorget in the house colour, relief
   shading, on a plate with the house's diagonal stripe; stable per character, greying and lined with age.

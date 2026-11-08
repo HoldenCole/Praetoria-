@@ -48,5 +48,10 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   references directly (Star Dynasties, Stellaris, Endless Space 2 screenshots) → `docs/ART_DIRECTION.md`. Rebuilt the
   galaxy as a rendered WebGL scene, the office as a lit 3D set, portraits as drawn cameos; removed all stock photographs
   and avatars. Every pass screenshotted through headless WebGL before commit.
+- 2026-11-08 — Owner: the office is the bar; portraits can wait; the galaxy needs a little more; now the Academy, the
+  political system, then Dynasty, Military and House to the office's standard, and only then depth. Done: Senate and
+  Academy sets, then the Hall, Command Deck and Keep sets with their screens. Lesson from the lighting passes: a
+  downward-facing surface under a HemisphereLight takes the *ground* colour, so a near-black ground leaves every ceiling
+  and vault black however strong the sky; and materials under 0x40 grey read as unlit at any light level.
 - 2026-11-07 — Owner: office good; portraits can wait; galaxy needs a little more; then UI for the Academy and the
   political system at the office's level; then depth. Done: galaxy polish; Senate and Academy screens on new 3D sets.

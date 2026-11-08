@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Dynasty, Military and House screens** on their own lit 3D sets: the family tree as generations down a vaulted hall
+  (parent-to-child lines on the floor, spouse threads, other houses' spouses in their colours, heirs and the remembered);
+  the command deck with a holographic strategic table (fronts in red, fleets as markers), the admirals at the table, the
+  fleet outside the glass, readiness / hulls / fronts on the wall; the keep's great hall with the worlds on pedestals
+  (restless ones under a red light), the household at the long table, treasury, decrees, holdings and their chairs.
 - **Senate and Academy screens** on their own lit 3D sets: the political system (spheres of power, threat and coalition
   pressure, the ladder of titles, the throne, laws, honors, crises) in a domed chamber with the great houses seated by
   influence; the cadet year on a parade ground at dawn with the cohort in ranks. Galaxy polish: textured lit planets,
