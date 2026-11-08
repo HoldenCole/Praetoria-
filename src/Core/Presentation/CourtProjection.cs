@@ -37,9 +37,11 @@ public sealed record StanceLine(string HouseId, string HouseName, string Accent,
 public sealed record MotionCard(string Id, string KindId, string KindName, string ProposerName, string ProposerAccent, string? TargetName, string Text, int ProposedTurn, bool Open, bool Passed,
     int ForWeight, int AgainstWeight, int MyStance, bool Mine, bool AgainstMe, IReadOnlyList<StanceLine> Stances);
 /// <summary>A motion the player could move, with its targets.</summary>
-public sealed record MotionProposal(string KindId, string KindName, string Description, int Influence, string TargetType, IReadOnlyList<(string Id, string Name)> Targets, string? Refusal);
+public sealed record MotionProposal(string KindId, string KindName, string Description, int Influence, string TargetType, IReadOnlyList<(string Id, string Name)> Targets, string? Refusal, bool NeedsOffice = false, IReadOnlyList<(string Id, string Name)>? Offices = null);
+/// <summary>An office of the Reach: who holds it, what it confers, and whether the player has a candidate for it.</summary>
+public sealed record OfficeCard(string Id, string Name, string Description, string? HolderHouseId, string? HolderHouse, string? HolderName, string? HolderAccent, int Since, bool Mine, string? MyCandidate, int Hulls, string Track, int MinRank);
 /// <summary>The Senate as a place of action (GDD §6.1): the docket, the history, what the player may move, and their weight in the chamber.</summary>
-public sealed record SenateCard(IReadOnlyList<MotionCard> Docket, IReadOnlyList<MotionCard> History, IReadOnlyList<MotionProposal> Proposals, int MyWeight, int TotalWeight, bool MayPropose, bool Embargoed, int EmbargoLifts);
+public sealed record SenateCard(IReadOnlyList<MotionCard> Docket, IReadOnlyList<MotionCard> History, IReadOnlyList<MotionProposal> Proposals, int MyWeight, int TotalWeight, bool MayPropose, bool Embargoed, int EmbargoLifts, IReadOnlyList<OfficeCard>? Offices = null);
 /// <summary>One house on the wealth table.</summary>
 public sealed record WealthLine(string HouseId, string Name, string Accent, int Wealth, string Tier, bool Mine);
 /// <summary>The house ledger (GDD §17): every per-turn line, the net, wealth and its rank, the loan.</summary>
@@ -366,11 +368,21 @@ public static class CourtProjection
         var proposals = senate.Motions.Defs.Select(d =>
         {
             List<(string Id, string Name)> targets = d.Target == "house" ? houses.Where(x => (x.Id != house.Id || d.TargetSelfAllowed) && (!d.TargetMustBeAtWar || w.Wars.Any(x2 => x2.Involves(x.Id)))).ToList() : d.Target == "region" ? regions : new List<(string Id, string Name)>();
-            var probe = new ProposeMotionCommand(p.Id, d.Id, targets.Count > 0 ? targets[0].Id : "", senate).Refusal(ctx);
-            if (probe != null && targets.Count > 1 && (probe == "not against yourself" || probe == "already before the Senate")) probe = new ProposeMotionCommand(p.Id, d.Id, targets[1].Id, senate).Refusal(ctx);
-            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : ""), d.ProposeInfluence, d.Target, targets, probe);
+            if (d.Office) targets = targets.Where(x => senate.Offices.Defs.Any(o => OfficeSystem.Candidate(w, o, x.Id) != null)).ToList();   // only houses with someone of the rank
+            string firstOffice = d.Office && senate.Offices.Defs.Count > 0 ? senate.Offices.Defs[0].Id : "";
+            var probe = new ProposeMotionCommand(p.Id, d.Id, targets.Count > 0 ? targets[0].Id : "", senate, firstOffice).Refusal(ctx);
+            if (probe != null && targets.Count > 1 && (probe == "not against yourself" || probe == "already before the Senate" || probe.StartsWith("no one of") || probe.EndsWith("holds it already"))) probe = new ProposeMotionCommand(p.Id, d.Id, targets[1].Id, senate, firstOffice).Refusal(ctx);
+            int cost = new ProposeMotionCommand(p.Id, d.Id, "", senate).Cost(w, house.Id, d);
+            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : "").Replace("{office}", "an office"), cost, d.Target, targets, probe, d.Office,
+                d.Office ? senate.Offices.Defs.Select(o => (Id: o.Id, Name: o.Name)).ToList() : null);
         }).ToList();
         int total = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).Sum(h => senate.Weight(w, h.Id));
-        return new SenateCard(docket, history, proposals, senate.Weight(w, house.Id), total, senate.MayPropose(w, house.Id), SenateSystem.Embargoed(w, house.Id), Math.Max(0, w.Counter("embargo:" + house.Id) - w.Turn));
+        var offices = senate.Offices.Defs.Select(o =>
+        {
+            var h = OfficeSystem.Holding(w, o.Id); var hh = h != null ? w.House(h.HouseId) : null; var who = h != null ? w.Char(h.CharacterId) : null;
+            int hulls = o.CommandsFleets ? w.Fleets.Values.Where(f => f.Office).Sum(f => f.Strength) : 0;
+            return new OfficeCard(o.Id, o.Name, o.Description, hh?.Id, hh?.Name, who?.Name, hh?.AccentColor, h?.SinceTurn ?? 0, hh?.Id == house.Id, OfficeSystem.Candidate(w, o, house.Id)?.Name, hulls, o.Track, o.MinRank);
+        }).ToList();
+        return new SenateCard(docket, history, proposals, senate.Weight(w, house.Id), total, senate.MayPropose(w, house.Id), SenateSystem.Embargoed(w, house.Id), Math.Max(0, w.Counter("embargo:" + house.Id) - w.Turn), offices);
     }
 }

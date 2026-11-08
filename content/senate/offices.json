@@ -1,0 +1,11 @@
+{
+  "//": "THE OFFICES OF THE REACH (GDD §8 'the gap between office-power and house-power'). An office is granted by a Commission motion to a house whose member holds `minRank` on `track`; it is the state's, not the house's — the Admiralty commands the office fleets (the chair pays their upkeep and fuel), the Treasury draws a stipend from the chair, the Speaker weighs more in the chamber. A commission to another house strips the holder; an Admiral whose house makes war on the chair is stripped for treason; the Emperor holds every office by the throne.",
+  "offices": [
+    { "id": "admiral", "name": "Admiral of the Reach", "sphere": "navy", "track": "military", "minRank": 2, "sphereBonus": 3, "commandsFleets": true,
+      "description": "Command of the Reach Squadron — the office fleet the chair pays for. The Admiral's house sails it as its own, until the Senate commissions another, or the Admiral turns it on the chair." },
+    { "id": "treasurer", "name": "Treasurer of the Reach", "sphere": "treasury", "track": "stewardship", "minRank": 2, "sphereBonus": 3, "stipend": 3,
+      "description": "The keys to the court's coffers: three credits a turn from the chair, and the Treasury sphere leans the holder's way." },
+    { "id": "speaker", "name": "Speaker of the Senate", "sphere": "senate", "track": "law", "minRank": 2, "sphereBonus": 2, "weight": 3, "motionDiscount": 1,
+      "description": "The gavel: three more votes of weight, and motions cost the Speaker's house one influence less." }
+  ]
+}

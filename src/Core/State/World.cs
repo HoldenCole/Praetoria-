@@ -78,6 +78,9 @@ public sealed class World
     /// <summary>Motions before the Senate and the last dozen decided (GDD §6.1).</summary>
     public List<Motion> Motions { get; set; } = new();
 
+    /// <summary>The offices of the Reach and who holds them (GDD §8).</summary>
+    public List<OfficeHolding> Offices { get; set; } = new();
+
     /// <summary>Every passing of the seat, oldest first (GDD §14).</summary>
     public List<SuccessionRecord> Successions { get; set; } = new();
 

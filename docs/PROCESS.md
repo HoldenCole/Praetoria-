@@ -116,3 +116,7 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   system is cheap once leans are *data about interests* rather than scripted outcomes — six interest rules and a jitter
   produced votes that read as politics in the probe on the first run; the one surprise (a house moving the same motion
   twelve times) was a cooldown away.
+- 2026-11-08 — Owner: "go ahead with the Commission motion and office fleets." Done as the offices of the Reach
+  (SENATE.md). Lesson: the probe's first office line — one house qualified for the Admiralty — was the real finding:
+  rival careers had never advanced, which quietly hollowed out the spheres and the Senate. Build the probe line for the
+  new system first; it tells you what the old systems were not doing.

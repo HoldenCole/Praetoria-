@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **The offices of the Reach** (GDD §8): the Admiralty, the Treasury and the Speaker's gavel, granted by a Commission
+  motion to a house whose member has the rank on the office's track. The Admiral's house commands the office fleets
+  (the Reach Squadron, three frigates and a cruiser at the capital; the Imperial Home Fleet under the throne) and fights
+  its wars with them while the chair pays their upkeep and the state fuels them — and loses them for treason the turn it
+  makes war on the chair. The Treasurer draws a stipend from the chair; the Speaker weighs three more and moves motions
+  for less. Rivals move commissions for themselves; the Emperor holds every office by the throne; a fallen house's
+  offices fall vacant. Five events, the offices on the Senate screen, the Admiralty on the Military screen.
 - **The Senate as a place of action** (GDD §6.1; GAP §10 item 2): houses move motions — censure, recognition, the
   levy, relief for a region, the Peace of the Reach, an embargo — and every house votes by weight (Senate influence,
   title rank, the chair's two, a Praetor's one). Rivals lean by interest and move their own business; the player votes,
@@ -59,6 +66,10 @@
   with, up to three, so a fortress house lives by its guns rather than by luck.
 
 ### Fixed
+- Rival careers never advanced: three hundred rival adults sat at rank zero for sixty years, so the spheres, the Senate's
+  weights and the offices were the player's alone (found when the offices probe showed one house in the Reach qualified
+  for the Admiralty). Every adult outside the player's seat now climbs a rung every nine turns, heads every six, never
+  faster than a rung per six years of adult life.
 - CI had been red since the strategic three: the pre-flight validator's locked vocabularies lacked the new resources and
   the `wealth`/`deposit` conditions. The Military screen listed the Lawless both as raiders and as a rival navy, put the
   fuel line among the rivals, and called a fleet without an admiral "unled". A scenario's starting tank lasted nine turns;

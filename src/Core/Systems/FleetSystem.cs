@@ -119,10 +119,11 @@ public sealed class FleetSystem
             else f.Readiness = Math.Min(100, f.Readiness + _rules.ReadinessRecovery);
         }
 
+        var chairId = RegionSystem.CapitalHolder(w)?.Id;
         foreach (var house in w.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var bill = new Resources();
-            foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id)) bill.Add(Upkeep(f));
+            foreach (var f in w.Fleets.Values.Where(f => BilledTo(f, chairId) == house.Id)) bill.Add(Upkeep(f));
             if (bill.IsEmpty()) continue;
             foreach (var r in Resource.All) house.Treasury.Add(r, -bill.Get(r));
             house.Treasury.ClampNonCredit();
@@ -140,11 +141,13 @@ public sealed class FleetSystem
 
     /// <summary>Helium-3 the house's fleets burn this turn: one unit per <see cref="FleetRules.FuelHullsPerUnit"/> hulls, rounded up;
     /// nothing under two hulls, nothing for the Lawless.</summary>
+    /// <summary>Who pays a fleet's upkeep: its owner, except an office fleet, which the chair pays for (GDD §8) — the owner if there is no chair.</summary>
+    public static string BilledTo(Fleet f, string? chairId) => f.Office && chairId != null ? chairId : f.OwnerId;
     public int FuelBill(World w, string houseId) => FuelBillFor(w, houseId, _rules.FuelHullsPerUnit);
     public static int FuelBillFor(World w, string houseId, int hullsPerUnit)
     {
         if (houseId == PirateSystem.HouseId) return 0;
-        int hulls = w.Fleets.Values.Where(f => f.OwnerId == houseId).Sum(f => f.Strength);
+        int hulls = w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Office).Sum(f => f.Strength);   // the state's bunkers fuel the office fleets
         return hulls < 2 ? 0 : (hulls + hullsPerUnit - 1) / Math.Max(1, hullsPerUnit);
     }
 

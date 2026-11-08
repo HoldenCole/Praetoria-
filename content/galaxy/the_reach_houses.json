@@ -2401,6 +2401,15 @@
   ],
   "fleets": [
     {
+      "id": "fleet_reach_squadron",
+      "name": "The Reach Squadron",
+      "owner": "aurelian",
+      "system": "aurelia_prime",
+      "ships": { "frigate": 3, "cruiser": 1 },
+      "office": true,
+      "//": "The OFFICE fleet (GDD §8): the chair pays for it and fuels it; the Admiral of the Reach commands it; a commission moves it."
+    },
+    {
       "id": "fleet_harker",
       "name": "The Harker Guard",
       "owner": "harker",

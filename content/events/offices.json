@@ -1,0 +1,58 @@
+{
+  "//": "THE OFFICES OF THE REACH (GDD §8 'the gap between office-power and house-power'). These read OfficeSystem's flags: office_granted / office_lost / treason (one turn), holds_office:<id> while held, office_vacant:<id> while empty. The Admiral's temptation is the design's classic arc: the fleet is the state's, the guns are in your hand.",
+  "events": [
+    {
+      "id": "the_commission", "tier": "setpiece", "weight": 12, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "office_granted" } ],
+      "choices": [
+        { "id": "swear_it_gladly", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 2 }, { "type": "adjustResource", "resource": "influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} swore the oath of office before the Senate and meant every word of it, for now." } ] },
+        { "id": "swear_it_and_count", "requires": [ { "type": "trait", "role": "self", "trait": "Ambitious", "kind": "nature", "present": true } ],
+          "effects": [ { "type": "adjustCounter", "key": "threat", "delta": 2 }, { "type": "adjustResource", "resource": "influence", "delta": 2 },
+            { "type": "log", "text": "{self.name} swore the oath and, walking out, counted what the office commanded and what it would take to keep it." } ] }
+      ]
+    },
+    {
+      "id": "the_office_lost", "tier": "setpiece", "weight": 12, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "office_lost" }, { "type": "not", "of": { "type": "worldFlag", "flag": "treason" } } ],
+      "choices": [
+        { "id": "hand_over_the_seals", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 2 },
+            { "type": "log", "text": "{self.name} handed over the seals of office with a bow. The Senate noted the grace; the successor noted the bow." } ] },
+        { "id": "take_what_you_can", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 8 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -3 },
+            { "type": "log", "text": "{self.name} left the office with its ledgers thinner by eight credits and its archive thinner by a drawer." } ] },
+        { "id": "remember_the_vote", "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 1 }, { "type": "adjustCounter", "key": "goodwill", "delta": -1 },
+            { "type": "log", "text": "{self.name} said nothing at the handover and wrote down who had moved the commission." } ] }
+      ]
+    },
+    {
+      "id": "the_admirals_temptation", "tier": "setpiece", "weight": 10, "repeatable": false,
+      "when": [ { "type": "worldFlag", "flag": "holds_office:admiral" }, { "type": "worldFlag", "flag": "at_war_any" }, { "type": "turn", "op": "gte", "value": 4 } ],
+      "choices": [
+        { "id": "the_fleet_is_the_reachs", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 3 }, { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
+            { "type": "log", "text": "{self.name} kept the Reach Squadron out of the house's war. The admirals muttered; the Senate remembered who did not." } ] },
+        { "id": "the_guns_are_in_my_hand", "effects": [ { "type": "adjustCounter", "key": "war_score_bonus", "delta": 2 }, { "type": "adjustCounter", "key": "threat", "delta": 4 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -2 },
+            { "type": "log", "text": "{self.name} sent the Reach Squadron into the house's own war under the state's colours. The guns did not ask whose quarrel it was. The Senate will." } ] }
+      ]
+    },
+    {
+      "id": "the_treasurers_books", "tier": "situation", "weight": 7, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "holds_office:treasurer" }, { "type": "turn", "op": "gte", "value": 3 } ],
+      "choices": [
+        { "id": "keep_them_honest", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }, { "type": "adjustCounter", "key": "treasury_influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} kept the Reach's books honest and open, and let the clerks see it. A dull virtue, and a rare one." } ] },
+        { "id": "a_quiet_margin", "requires": [ { "type": "skill", "role": "self", "skill": "economics", "op": "gte", "value": 2 } ],
+          "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 7 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -1 }, { "type": "setCharFlag", "role": "self", "flag": "skimmed", "value": true },
+            { "type": "log", "text": "{self.name} found a margin in the Reach's books that no one else would, and kept it." } ] }
+      ]
+    },
+    {
+      "id": "the_vacant_admiralty", "tier": "situation", "weight": 6, "repeatable": false,
+      "when": [ { "type": "worldFlag", "flag": "office_vacant:admiral" }, { "type": "track", "role": "self", "track": "military", "present": true }, { "type": "rank", "role": "self", "op": "gte", "value": 2 }, { "type": "turn", "op": "gte", "value": 3 } ],
+      "choices": [
+        { "id": "put_your_name_forward", "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 2 }, { "type": "adjustCounter", "key": "navy_influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} let it be known in the right colonnades that the Admiralty wanted a hand on it, and whose." } ] },
+        { "id": "let_it_lie", "effects": [ { "type": "log", "text": "{self.name} let the Admiralty lie vacant. A fleet nobody commands threatens nobody." } ] }
+      ]
+    }
+  ]
+}

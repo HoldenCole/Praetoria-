@@ -16,6 +16,7 @@ docket. A motion moved in turn T is voted at the end of turn T+1, so there is al
 | The Levy | — | every landed house pays 3 credits to the chair; the chair gains 2 legitimacy |
 | Relief | a region | lawlessness −15, allegiance +10, prosperity +5 on its worlds; the proposer pays 8 credits (half effect if it cannot) |
 | The Peace of the Reach | a house at war | white peace in all its wars |
+| Commission | a house and an office | the house's best-qualified member takes the office; the previous holder is relieved; target legitimacy +2 |
 | Embargo | a house | the exchanges close to it for eight turns: no open market, venture credits halved |
 
 ## Weight and the benches
@@ -32,8 +33,8 @@ credits bribe any house by three. Once per house per motion. **Voting** (`VoteCo
 
 ## Rivals bring their own business
 
-About one turn in three the most influential house with a reason moves: a losing war (peace), a title above its
-legitimacy (recognition), an empty chair's coffers (the levy), a lawless home region (relief), a hated rival (censure, or
+About one turn in three the most influential house with a reason moves: a losing war (peace), an office it has the
+rank for that is vacant or held by a house it hates or fights (commission), a title above its legitimacy (recognition), an empty chair's coffers (the levy), a lawless home region (relief), a hated rival (censure, or
 embargo if at war with it). The chamber tires of repetition: the same house may not move the same motion against the same
 target for ten turns.
 
@@ -49,3 +50,25 @@ Flags: `motion_open`, `motion_against_me` (a censure or embargo of yours is on t
 `motions_proposed`, `motions_passed`, `motions_passed:<house>`, `embargo:<house>` (the turn it lifts), `lobbied`. Six
 events ship in `content/events/senate.json`: *The Whip*, *A Motion Against the House*, *The Censure Carries*,
 *Recognised*, *The Levy Falls Due*, *The Motion Carried*.
+
+## The offices of the Reach
+
+GDD §8 puts the drama in the gap between office-power and house-power. `content/senate/offices.json` names three offices,
+each granted by a **Commission** motion to a house whose member holds the rank on the office's career track:
+
+| office | track · rank | confers |
+|---|---|---|
+| Admiral of the Reach | military · Lieutenant | command of the **office fleets** (`Fleet.Office`): they sail under the holder's colours and fight its wars, the chair pays their upkeep and the state's bunkers fuel them; +3 Navy influence |
+| Treasurer of the Reach | stewardship · Governor | three credits a turn from the chair's coffers; +3 Treasury influence |
+| Speaker of the Senate | law · Magistrate | three more votes of weight, motions cost one influence less; +2 Senate influence |
+
+An office is the state's, not the house's. It is lost when the Senate commissions another (the holder's friends vote
+against, a house with its own candidate is jealous, the chair likes a safe pair of hands), when the holder dies without
+a kinsman of the rank, when the house falls — and the Admiralty is lost for **treason** the turn the holder's house is at
+war with the chair (legitimacy −6, the fleets return to the chair). The Emperor holds every office by the throne. Rivals
+move commissions for themselves when an office is vacant or held by a house they hate or fight. The Reach Squadron (three
+frigates and a cruiser at the capital) is the office fleet of the fractured stars; the Imperial Home Fleet of the Imperium.
+
+Flags: `holds_office:<id>`, `office_granted`, `office_lost`, `treason`, `office_vacant:<id>`; counter `offices_granted`.
+Five events in `content/events/offices.json`, among them *The Admiral's Temptation* — the design's classic arc: the fleet
+is the state's, the guns are in your hand.

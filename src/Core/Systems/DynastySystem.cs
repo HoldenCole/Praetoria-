@@ -55,6 +55,7 @@ public sealed class DynastySystem
             TickStress(world, c);
         }
 
+        AdvanceRivalCareers(world);
         RollDeaths(world, rng);
         RollBirths(world, rng);
         RaiseCousins(world, rng);
@@ -82,6 +83,29 @@ public sealed class DynastySystem
             world.Characters[cousin.Id] = cousin; house.Members.Add(cousin.Id); world.Pools[cousin.Id] = ActionPools.ForNpc();
             foreach (var h in world.HoldingsOf(house.Id)) if (h.GovernorId.Length == 0 || world.Char(h.GovernorId)?.Alive != true) h.GovernorId = cousin.Id;
             world.Log($"{cousin.Name}, a cousin out of the provinces, raises the banner of {house.Name}.");
+        }
+    }
+
+    public const int CareerStartAge = 20, HeadPromotionYears = 6, PromotionYears = 9, YearsPerRank = 6;
+
+    /// <summary>Rival careers advance (GDD §5 "your career feeds your house's sphere-influence" — theirs too). Every adult outside the
+    /// player's seat climbs a rung every <see cref="PromotionYears"/> turns (heads of houses every <see cref="HeadPromotionYears"/>), by a
+    /// hash of their id so promotions spread across turns, never faster than a rung per <see cref="YearsPerRank"/> years of adult life and
+    /// never past the track's top rung. Before this, three hundred rival adults sat at rank zero for sixty years and the spheres, the
+    /// Senate's weights and the offices were the player's alone. RNG-free.</summary>
+    private void AdvanceRivalCareers(World world)
+    {
+        var tracks = Content is { Careers.IsEmpty: false } ? Content.Careers : null;
+        foreach (var c in world.Characters.Values.Where(c => c.Alive && c.Id != world.ProtagonistId && c.Age >= CareerStartAge && c.CareerTrack.Length > 0).OrderBy(c => c.Id, StringComparer.Ordinal))
+        {
+            int top = tracks?.ById(c.CareerTrack)?.Ranks.Count - 1 ?? 4; if (c.CareerRank >= top) continue;
+            if (c.CareerRank >= (c.Age - AgeOfMajority) / YearsPerRank) continue;                  // no admirals at twenty-two
+            var house = world.House(c.HouseId); bool head = house != null && Economy.HeadOf(world, house)?.Id == c.Id;
+            uint hash = 2166136261; foreach (var ch in c.Id) hash = (hash ^ ch) * 16777619;
+            int period = head ? HeadPromotionYears : PromotionYears;
+            if ((world.Turn + (int)(hash % (uint)period)) % period != 0) continue;
+            c.CareerRank++;
+            if (head && c.CareerRank >= 3 && house != null && house.Id != world.Protagonist?.HouseId) world.Log($"{c.Name} of {house.Name} is made {Content?.Careers.RankName(c.CareerTrack, c.CareerRank) ?? $"rank {c.CareerRank}"}.");
         }
     }
 

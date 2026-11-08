@@ -64,6 +64,9 @@ public class IntegrationTests
                 if (choice != null) tc.Resolve(item, choice.Choice.Id);
             }
             tc.EndTurn();
+            // the Senate and the offices now settle a weak title before it festers, so no seed ignites a crisis on its own in forty turns:
+            // light one deliberately and watch it de-escalate once its cause (instability of twenty) is not there
+            if (t == 3 && tc.Crises is { } ce && ce.Def("contested_title") is { } ct) ce.Trigger(ct, w, TestContent.Rng(seed));
 
             // ---- invariants every turn ----
             Assert.True(w.HasFlag("dynasty_dead") || w.Protagonist is { Alive: true },

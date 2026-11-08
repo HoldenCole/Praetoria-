@@ -13,6 +13,8 @@ public sealed class Motion
     public string ProposerHouseId { get; set; } = "";
     /// <summary>A house id, a region id, or empty — by the kind's target type.</summary>
     public string TargetId { get; set; } = "";
+    /// <summary>For a Commission: the office named.</summary>
+    public string OfficeId { get; set; } = "";
     public int ProposedTurn { get; set; }
     /// <summary>Declared votes: house id → +1 for, −1 against, 0 abstain. Rival houses declare at the vote; the player may declare early.</summary>
     public Dictionary<string, int> Votes { get; set; } = new();

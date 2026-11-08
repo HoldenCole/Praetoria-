@@ -55,6 +55,20 @@
         {
             <section class="panel docket">
                 <h3><Icon Name="influence" Size="13" /> The docket <span class="muted">your weight @sen.MyWeight of @sen.TotalWeight@(sen.Embargoed ? $" · UNDER EMBARGO, {sen.EmbargoLifts} turn(s)" : "")</span></h3>
+                @if (sen.Offices is { Count: > 0 })
+                {
+                    <div class="offices">
+                        <div class="muted small">The offices of the Reach — the state's, lent by the Senate</div>
+                        @foreach (var o in sen.Offices)
+                        {
+                            <div class="office @(o.Mine ? "mine" : "") @(o.HolderHouse == null ? "vacant" : "")" title="@o.Description">
+                                <div class="of-head"><b>@o.Name</b> <span class="muted small">@o.Track rank @o.MinRank+@(o.Hulls > 0 ? $" · {o.Hulls} office hull(s)" : "")</span></div>
+                                <div class="small">@if (o.HolderHouse != null) { <Sigil HouseId="@o.HolderHouseId" Accent="@o.HolderAccent" Size="12" /> <span>@o.HolderName of @o.HolderHouse</span> <span class="muted">since turn @o.Since</span> } else { <span class="muted">vacant</span> }
+                                    @if (o.MyCandidate != null && !o.Mine) { <span class="muted"> · @o.MyCandidate qualifies — move a Commission</span> }</div>
+                            </div>
+                        }
+                    </div>
+                }
                 @if (sen.Docket.Count == 0) { <div class="muted">Nothing before the Senate this session.</div> }
                 @foreach (var mo in sen.Docket)
                 {
@@ -94,6 +108,13 @@
                                     <option value="">— choose @(pr.TargetType == "house" ? "a house" : "a region") —</option>
                                     @foreach (var t in pr.Targets) { <option value="@t.Id">@t.Name</option> }
                                 </select>
+                                @if (pr.NeedsOffice && pr.Offices != null)
+                                {
+                                    <select class="sel" @onchange="e => SetOffice(pr.KindId, e)">
+                                        <option value="">— which office —</option>
+                                        @foreach (var o in pr.Offices) { <option value="@o.Id">@o.Name</option> }
+                                    </select>
+                                }
                                 <button class="opt inline" disabled="@(!CanMove(pr))" title="@pr.Refusal" @onclick="() => MoveTarget(pr.KindId)">Move it</button>
                             }
                         </div>
@@ -147,10 +168,13 @@
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N"); private DotNetObjectReference<SenateScreen>? _self; private bool _created; private string _pending = "", _sent = "";
     private List<(House house, Character? head)> _members = new(); private string? _focus; private readonly Dictionary<string, string> _target = new();
+    private readonly Dictionary<string, string> _office = new();
     private void SetTarget(string kind, ChangeEventArgs e) => _target[kind] = e.Value?.ToString() ?? "";
-    private bool CanMove(MotionProposal pr) => !string.IsNullOrEmpty(_target.GetValueOrDefault(pr.KindId)) && (pr.Refusal == null || pr.Refusal == "not against yourself" || pr.Refusal == "already before the Senate");
+    private void SetOffice(string kind, ChangeEventArgs e) => _office[kind] = e.Value?.ToString() ?? "";
+    private bool CanMove(MotionProposal pr) => !string.IsNullOrEmpty(_target.GetValueOrDefault(pr.KindId)) && (!pr.NeedsOffice || !string.IsNullOrEmpty(_office.GetValueOrDefault(pr.KindId)))
+        && (pr.Refusal == null || pr.Refusal == "not against yourself" || pr.Refusal == "already before the Senate" || pr.Refusal.StartsWith("no one of") || pr.Refusal.EndsWith("holds it already"));
     private void MoveNone(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, "", G.Turn!.Senate));
-    private void MoveTarget(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, _target.GetValueOrDefault(kind) ?? "", G.Turn!.Senate));
+    private void MoveTarget(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, _target.GetValueOrDefault(kind) ?? "", G.Turn!.Senate, _office.GetValueOrDefault(kind) ?? ""));
 
     protected override async Task OnAfterRenderAsync(bool first)
     {

@@ -16,6 +16,9 @@
     { "id": "peace", "name": "The Peace of the Reach", "target": "house", "interest": "peace", "proposeInfluence": 3, "targetSelfAllowed": true, "targetMustBeAtWar": true,
       "description": "{proposer} moves that the Senate impose the Peace of the Reach on the wars of {target}.",
       "peace": true },
+    { "id": "commission", "name": "Commission", "target": "house", "interest": "commission", "proposeInfluence": 3, "targetSelfAllowed": true, "office": true,
+      "description": "{proposer} moves that the Senate commission {target} to the office of {office}.",
+      "legitimacyTarget": 2 },
     { "id": "embargo", "name": "Embargo", "target": "house", "interest": "embargo", "proposeInfluence": 3,
       "description": "{proposer} moves that the Senate close the exchanges of the Reach to {target} for eight years.",
       "embargoTurns": 8 }

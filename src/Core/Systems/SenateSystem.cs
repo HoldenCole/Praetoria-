@@ -19,9 +19,10 @@ public sealed class SenateSystem
     public const int DocketSize = 2, HistoryKept = 12, LobbyWeight = 2, BribeWeight = 3, BribeCredits = 5, ProposerLawRank = 3, ProposerTitleRank = 2, RepeatTurns = 10;
     public static readonly string[] TurnFlags = { "censured", "recognised", "levied", "motion_passed_mine", "motion_failed_mine" };
 
-    private readonly MotionCatalog _motions; private readonly TitleCatalog _titles; private readonly FleetSystem? _fleets;
-    public SenateSystem(MotionCatalog motions, TitleCatalog titles, FleetSystem? fleets = null) { _motions = motions; _titles = titles; _fleets = fleets; }
+    private readonly MotionCatalog _motions; private readonly TitleCatalog _titles; private readonly FleetSystem? _fleets; private readonly OfficeCatalog _offices;
+    public SenateSystem(MotionCatalog motions, TitleCatalog titles, FleetSystem? fleets = null, OfficeCatalog? offices = null) { _motions = motions; _titles = titles; _fleets = fleets; _offices = offices ?? OfficeCatalog.Empty; }
     public MotionCatalog Motions => _motions;
+    public OfficeCatalog Offices => _offices;
 
     /// <summary>A house's vote weight: Senate influence (the chair's two are in it) + title rank + one if its head is a Praetor or better.</summary>
     public int Weight(World w, string houseId)
@@ -29,6 +30,7 @@ public sealed class SenateSystem
         var h = w.House(houseId); if (h == null || houseId == PirateSystem.HouseId) return 0;
         int weight = h.SphereInfluence.GetValueOrDefault("senate") + _titles.RankOf(h.Title);
         var head = Economy.HeadOf(w, h); if (head is { CareerTrack: "law" } && head.CareerRank >= ProposerLawRank) weight += 1;
+        weight += OfficeSystem.HeldBy(w, houseId).Sum(o => _offices.Def(o.OfficeId)?.Weight ?? 0);   // the Speaker's gavel
         return Math.Max(1, weight);
     }
 
@@ -75,6 +77,18 @@ public sealed class SenateSystem
                 if (w.Galaxy != null && w.HoldingsOf(houseId).Any(x => x.IsPlanet && w.Galaxy.System(x.SystemId)?.RegionId == m.TargetId)) lean += 3;
                 else if (w.Galaxy != null && w.HoldingsOf(houseId).Any(x => x.IsPlanet && w.Galaxy.RingOf(x.SystemId) == Galaxy.Ring.Rim)) lean += 1;   // the rim knows what lawless lanes cost
                 break;
+            case "commission":
+                if (houseId == m.TargetId) lean += 4;
+                else
+                {
+                    var holder = OfficeSystem.HolderHouse(w, m.OfficeId); var holderHouse = holder != null ? w.House(holder) : null; var holderHead = holderHouse != null ? Economy.HeadOf(w, holderHouse) : null;
+                    if (holder == houseId) lean -= 4;                                                      // no one votes themselves out of office
+                    else if (holderHouse != null && Disp(head, holderHead) >= 30) lean -= 2;             // the holder's friends
+                    if (_offices.Def(m.OfficeId) is { } od && OfficeSystem.Candidate(w, od, houseId) is { } ownC && targetHouse != null && (OfficeSystem.Candidate(w, od, targetHouse.Id)?.CareerRank ?? 0) < ownC.CareerRank) lean -= 2;   // a house with a better candidate is jealous
+                    lean += toTarget >= 10 ? 1 : toTarget <= -20 ? -2 : 0;
+                    if (RegionSystem.CapitalHolder(w)?.Id == houseId && toTarget >= 0) lean += 1;         // the chair likes a safe pair of hands
+                }
+                break;
             case "peace":
                 if (houseId == m.TargetId) lean += 3;
                 else if (w.AtWar(houseId, m.TargetId)) { var war = w.Wars.FirstOrDefault(x => x.Between(houseId, m.TargetId)); lean += war != null && war.Lead(houseId) < 0 ? 1 : -3; }
@@ -101,7 +115,7 @@ public sealed class SenateSystem
     {
         var def = _motions.Def(m.Kind); if (def == null) return m.Kind;
         string target = def.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name ?? m.TargetId : def.Target == "house" ? w.House(m.TargetId)?.Name ?? m.TargetId : "";
-        return def.Description.Replace("{proposer}", w.House(m.ProposerHouseId)?.Name ?? m.ProposerHouseId).Replace("{target}", target);
+        return def.Description.Replace("{proposer}", w.House(m.ProposerHouseId)?.Name ?? m.ProposerHouseId).Replace("{target}", target).Replace("{office}", _offices.Def(m.OfficeId)?.Name ?? m.OfficeId);
     }
 
     public void Tick(World w)
@@ -110,6 +124,7 @@ public sealed class SenateSystem
         var mine = w.Protagonist?.HouseId;
         foreach (var f in TurnFlags) w.WorldFlags.Remove(f);
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn).ToList()) Resolve(w, m, mine);
+        OfficeSystem.Tick(w, _offices);
         Propose(w, mine);
         // prune history
         var resolved = w.Motions.Where(m => m.Resolved).OrderByDescending(m => m.ResolvedTurn).ThenBy(m => m.Id, StringComparer.Ordinal).Skip(HistoryKept).ToList();
@@ -172,6 +187,12 @@ public sealed class SenateSystem
         }
         if (def.Peace && target != null && _fleets != null)
             foreach (var enemy in w.EnemiesOf(target.Id).ToList()) _fleets.MakePeace(w, target.Id, enemy, terms: false);
+        if (def.Office && target != null && _offices.Def(m.OfficeId) is { } office)
+        {
+            var who = OfficeSystem.Candidate(w, office, target.Id);
+            if (who != null) OfficeSystem.Grant(w, office, target.Id, who);
+            else w.Log($"The commission to {target.Name} lapses: no one of the house has the rank for the {office.Name}.");
+        }
         if (def.EmbargoTurns > 0 && target != null)
         {
             w.WorldCounters["embargo:" + target.Id] = w.Turn + def.EmbargoTurns;
@@ -197,6 +218,15 @@ public sealed class SenateSystem
             var head = Economy.HeadOf(w, h); if (head == null) continue;
             var war = w.Wars.Where(x => x.Involves(h.Id)).OrderBy(x => x.Lead(h.Id)).FirstOrDefault();
             if (war != null && war.Lead(h.Id) <= -3 && _motions.Def("peace") != null && !Stale(w, h.Id, "peace", h.Id)) { Add(w, h.Id, "peace", h.Id); return; }
+            if (_motions.Def("commission") != null)
+                foreach (var office in _offices.Defs.OrderBy(o => o.Id, StringComparer.Ordinal))
+                {
+                    var holder = OfficeSystem.HolderHouse(w, office.Id); if (holder == h.Id || OfficeSystem.Candidate(w, office, h.Id) == null) continue;
+                    if (office.CommandsFleets && RegionSystem.CapitalHolder(w) is { } ch && ch.Id != h.Id && w.AtWar(h.Id, ch.Id)) continue;   // the chair will not arm its enemy
+                    var holderHead = holder != null && w.House(holder) is { } hh ? Economy.HeadOf(w, hh) : null;
+                    bool wants = holder == null || (holderHead != null && (w.GetRelationship(head.Id, holderHead.Id)?.Disposition ?? 0) <= -20) || w.AtWar(h.Id, holder);
+                    if (wants && !Stale(w, h.Id, "commission", h.Id + ":" + office.Id)) { Add(w, h.Id, "commission", h.Id, office.Id); return; }
+                }
             var title = _titles.ById(h.Title);
             if (title != null && title.LegitimacyRequirement > h.Legitimacy && _motions.Def("recognition") != null && !Stale(w, h.Id, "recognition", h.Id)) { Add(w, h.Id, "recognition", h.Id); return; }
             if (RegionSystem.CapitalHolder(w)?.Id == h.Id && h.Treasury.Credits < 40 && _motions.Def("levy") != null && !Stale(w, h.Id, "levy", "")) { Add(w, h.Id, "levy", ""); return; }
@@ -218,11 +248,11 @@ public sealed class SenateSystem
     /// <summary>The chamber tires of the same motion: the same house may not move the same kind against the same target for <see cref="RepeatTurns"/> turns.</summary>
     public static bool Stale(World w, string proposerHouseId, string kind, string targetId) => w.Counter($"motion_cd:{proposerHouseId}:{kind}:{targetId}") > w.Turn;
 
-    public Motion Add(World w, string proposerHouseId, string kind, string targetId)
+    public Motion Add(World w, string proposerHouseId, string kind, string targetId, string officeId = "")
     {
         int n = w.Counter("motions_proposed") + 1; w.WorldCounters["motions_proposed"] = n;
-        w.WorldCounters[$"motion_cd:{proposerHouseId}:{kind}:{targetId}"] = w.Turn + RepeatTurns;
-        var m = new Motion { Id = $"motion_{n}", Kind = kind, ProposerHouseId = proposerHouseId, TargetId = targetId, ProposedTurn = w.Turn };
+        w.WorldCounters[$"motion_cd:{proposerHouseId}:{kind}:{(officeId.Length > 0 ? targetId + ":" + officeId : targetId)}"] = w.Turn + RepeatTurns;
+        var m = new Motion { Id = $"motion_{n}", Kind = kind, ProposerHouseId = proposerHouseId, TargetId = targetId, OfficeId = officeId, ProposedTurn = w.Turn };
         w.Motions.Add(m);
         w.Log($"Before the Senate: {Describe(w, m)} The vote is next session.");
         return m;

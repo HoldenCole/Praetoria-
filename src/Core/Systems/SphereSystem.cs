@@ -1,3 +1,4 @@
+using Praetoria.Core.Data;
 using Praetoria.Core.Spheres;
 using Praetoria.Core.State;
 
@@ -24,10 +25,12 @@ public sealed class SphereSystem
     private readonly SphereCatalog _catalog;
     private readonly double _difficulty;
 
-    public SphereSystem(SphereCatalog catalog, double difficulty = 1.0)
+    private readonly OfficeCatalog _offices;
+    public SphereSystem(SphereCatalog catalog, double difficulty = 1.0, OfficeCatalog? offices = null)
     {
         _catalog = catalog;
         _difficulty = difficulty <= 0 ? 1.0 : difficulty;
+        _offices = offices ?? OfficeCatalog.Empty;
     }
 
     /// <summary>Recompute every house's sphere influence from member careers, then update the
@@ -86,9 +89,9 @@ public sealed class SphereSystem
 
     /// <summary>A house's influence in a sphere = the summed career ranks of its living members on
     /// that sphere's feeder track (GDD §7 "your career feeds your house's sphere-influence").</summary>
-    private static int DerivedInfluence(World w, House house, SphereDef sphere)
+    private int DerivedInfluence(World w, House house, SphereDef sphere)
     {
-        int sum = 0;
+        int sum = OfficeSystem.SphereBonus(w, _offices, house.Id, sphere.Id);   // the office's weight in its sphere (GDD §8)
         foreach (var id in house.Members)
         {
             var c = w.Char(id);

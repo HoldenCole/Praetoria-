@@ -42,7 +42,8 @@
             <div class="kv"><span>Hulls</span><b>@ours</b></div>
             <div class="kv"><span>Upkeep</span><b>@upkeep credits a turn</b></div>
             <div class="kv"><span>Manpower</span><b>@m.Treasury.Manpower</b></div>
-            @{ int fuelBurn = FleetSystem.FuelBillFor(w, house.Id, c.Fleets.FuelHullsPerUnit); }
+            @{ int fuelBurn = FleetSystem.FuelBillFor(w, house.Id, c.Fleets.FuelHullsPerUnit); var officeHulls = w.Fleets.Values.Where(f => f.Office && f.OwnerId == house.Id).Sum(f => f.Strength); }
+            @if (officeHulls > 0) { <div class="kv good"><span>The Admiralty</span><b>@officeHulls office hull(s) sail under your colours · the chair pays their upkeep and the state fuels them · war on the chair is treason</b></div> }
             <div class="kv @(w.HasFlag("fuel_short") ? "warn" : "")"><span><Icon Name="helium3" Size="12" /> Fuel</span><b>@house.Treasury.Helium3 helium-3@(fuelBurn > 0 ? $" · burning {fuelBurn} a turn · {house.Treasury.Helium3 / Math.Max(1, fuelBurn)} turns" : " · under two hulls runs on scraps")@(w.HasFlag("fuel_short") ? " · DRY: at anchor" : "")</b></div>
             @foreach (var f in m.Fleets)
             {

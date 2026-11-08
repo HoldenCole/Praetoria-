@@ -144,7 +144,8 @@ public sealed class Economy
 
         if (fleets != null)
         {
-            foreach (var f in world.Fleets.Values.Where(f => f.OwnerId == houseId).OrderBy(f => f.Id, StringComparer.Ordinal)) { var up = fleets.Upkeep(f); var d = new Resources(); foreach (var r in Resource.All) d.Add(r, -up.Get(r)); ledger.Add(f.Name, "fleet", d); }
+            var chairId = RegionSystem.CapitalHolder(world)?.Id;
+            foreach (var f in world.Fleets.Values.Where(f => FleetSystem.BilledTo(f, chairId) == houseId).OrderBy(f => f.Id, StringComparer.Ordinal)) { var up = fleets.Upkeep(f); var d = new Resources(); foreach (var r in Resource.All) d.Add(r, -up.Get(r)); ledger.Add(f.Office ? f.Name + " (office)" : f.Name, "fleet", d); }
             int fuel = fleets.FuelBill(world, houseId); if (fuel > 0) ledger.Add("fuel for the fleet", "fuel", new Resources { Helium3 = -fuel });
         }
         return ledger;

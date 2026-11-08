@@ -87,10 +87,10 @@ public sealed class TurnController
         _economy = content.Holdings.IsEmpty ? null : new Economy(content.Holdings, content.Businesses);
         _regions = new RegionSystem(content.Names);
         _crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises, content.Recovery);
-        _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres, world.Difficulty);
+        _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres, world.Difficulty, content.Offices);
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
         _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
-        _senate = new SenateSystem(content.Motions, content.Titles, _fleets);
+        _senate = new SenateSystem(content.Motions, content.Titles, _fleets, content.Offices);
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles };
         _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);

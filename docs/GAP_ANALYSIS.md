@@ -416,3 +416,37 @@ Method: 318 tests · both validators (132 events) · `praetoria qa --seeds 3` (1
 ### Where the next forty come from
 A Commission motion that grants an office fleet · persistent factions · the throne as a climb · fifty situations ·
 plots with steps · a credit sink · role theming · the dynasty tree.
+
+## 12. Reassessment — 2026-11-08, after the offices of the Reach
+
+Method: 324 tests · both validators (137 events) · `praetoria qa --seeds 3` (18 runs, 0 failures) · `simulate --seeds 4`
+· the probe, extended to offices, office hulls, commissions and rival career ranks · a browser run to the Senate screen.
+
+### Done this pass (GAP §10 item 5, §11 item 3)
+- **The offices of the Reach** (docs/SENATE.md): the Admiralty (command of the office fleets — the Reach Squadron at the
+  capital, the Imperial Home Fleet under the throne — paid and fuelled by the state, lost for treason the turn the
+  holder makes war on the chair), the Treasury (a stipend from the chair), the Speaker (weight and cheaper motions);
+  granted by a Commission motion to a house with a member of the rank; the Emperor holds every office by the throne;
+  five events including *The Admiral's Temptation*.
+- **Found on the way: rival careers never advanced.** Three hundred rival adults sat at rank zero for sixty years, so the
+  spheres, the Senate's weights and the offices were effectively the player's alone — one house in the Reach qualified
+  for the Admiralty. Every adult outside the player's seat now climbs a rung every nine turns (heads every six). After
+  it: fifteen to twenty-three houses qualify, four to nine commissions a run are moved, one to six granted, the
+  offices change hands between four or five houses in sixty turns, treason happens, and Senate votes weigh twice what
+  they did. A house at war with the chair cannot be commissioned to the Admiralty (it was, and was stripped the same turn).
+- The integration test's "a crisis arose and cleared" rode on a seed; the Senate and the offices now settle a weak title
+  before it festers, so the test ignites a crisis deliberately and asserts it de-escalates.
+
+### Numbers worth noting
+- Thrones taken fell to 3 of 24 runs (from 16): the chair's four office hulls and treason-for-war-on-the-chair make the
+  capital a harder prize. This is close to where §8 wanted it; watch that it does not fall to zero.
+- Battles fell with it (1–4 a run). The Admiral's house now fights with the state's hulls, but rivals strike the chair
+  less; the next balance pass should ask whether wars find other fronts.
+
+### Still open, ranked
+1. **Content volume** (137 events). 2. **Plots with steps.** 3. **The ledger runs rich** (mean 280–340). 4. **Role
+theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.** 8. **Persistent factions** in the Senate, and the
+player as the whip's target by name.
+
+### Where the next forty come from
+Fifty situations across the pillars · plots with steps · a credit sink · role theming · the dynasty tree · factions.

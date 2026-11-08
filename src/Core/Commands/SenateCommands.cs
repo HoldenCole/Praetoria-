@@ -8,10 +8,10 @@ namespace Praetoria.Core.Commands;
 /// a house; the docket holds two. The vote is at the end of the next turn.</summary>
 public sealed class ProposeMotionCommand : ICommand
 {
-    private readonly string _kind, _targetId; private readonly SenateSystem _senate;
-    public ProposeMotionCommand(string actorId, string kind, string targetId, SenateSystem senate) { ActorId = actorId; _kind = kind; _targetId = targetId; _senate = senate; }
+    private readonly string _kind, _targetId, _officeId; private readonly SenateSystem _senate;
+    public ProposeMotionCommand(string actorId, string kind, string targetId, SenateSystem senate, string officeId = "") { ActorId = actorId; _kind = kind; _targetId = targetId; _senate = senate; _officeId = officeId; }
     public string ActorId { get; }
-    public string Describe() => $"move {_kind}{(_targetId.Length > 0 ? " against " + _targetId : "")} before the Senate";
+    public string Describe() => $"move {_kind}{(_targetId.Length > 0 ? " on " + _targetId : "")}{(_officeId.Length > 0 ? " for the " + _officeId : "")} before the Senate";
 
     public string? Refusal(CommandContext ctx)
     {
@@ -21,7 +21,15 @@ public sealed class ProposeMotionCommand : ICommand
         if (!_senate.MayPropose(w, house.Id)) return "the Senate hears a baron, or a Magistrate";
         if (w.Motions.Any(m => m.Open && m.ProposerHouseId == house.Id)) return "you already have a motion before the Senate";
         if (SenateSystem.Docket(w).Count() >= SenateSystem.DocketSize) return "the docket is full this session";
-        if (SenateSystem.Stale(w, house.Id, _kind, def.Target == "none" ? "" : _targetId)) return "the chamber heard that from you lately";
+        if (SenateSystem.Stale(w, house.Id, _kind, def.Target == "none" ? "" : def.Office ? _targetId + ":" + _officeId : _targetId)) return "the chamber heard that from you lately";
+        if (def.Office)
+        {
+            var office = _senate.Offices.Def(_officeId); if (office == null) return "name an office";
+            if (OfficeSystem.Holds(w, _targetId, office.Id)) return $"{w.House(_targetId)?.Name} holds it already";
+            if (OfficeSystem.Candidate(w, office, _targetId) == null) return $"no one of {w.House(_targetId)?.Name} has the rank for the {office.Name}";
+            if (office.CommandsFleets && RegionSystem.CapitalHolder(w) is { } chair && chair.Id != _targetId && w.AtWar(_targetId, chair.Id)) return "the chair will not arm a house at war with it";
+            if (w.Motions.Any(m => m.Open && m.Kind == _kind && m.OfficeId == _officeId)) return "the office is already before the Senate";
+        }
         if (def.Target == "house")
         {
             var t = w.House(_targetId); if (t == null || _targetId == PirateSystem.HouseId) return "no such house";
@@ -30,14 +38,17 @@ public sealed class ProposeMotionCommand : ICommand
             if (w.Motions.Any(m => m.Open && m.Kind == _kind && m.TargetId == _targetId)) return "already before the Senate";
         }
         else if (def.Target == "region") { if (w.Galaxy?.Regions.Any(r => r.Id == _targetId) != true) return "no such region"; }
-        return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = def.ProposeInfluence }) ? null : $"needs {def.ProposeInfluence} influence";
+        int cost = Cost(w, house.Id, def);
+        return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = cost }) ? null : $"needs {cost} influence";
     }
+    /// <summary>The kind's influence, less the Speaker's discount, never under one.</summary>
+    public int Cost(World w, string houseId, MotionDef def) => Math.Max(1, def.ProposeInfluence - OfficeSystem.HeldBy(w, houseId).Sum(o => _senate.Offices.Def(o.OfficeId)?.MotionDiscount ?? 0));
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
     {
         var w = ctx.World; var actor = w.Char(ActorId)!; var def = _senate.Motions.Def(_kind)!;
-        ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = def.ProposeInfluence });
-        var m = _senate.Add(w, actor.HouseId, _kind, def.Target == "none" ? "" : _targetId);
+        ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = Cost(w, actor.HouseId, def) });
+        var m = _senate.Add(w, actor.HouseId, _kind, def.Target == "none" ? "" : _targetId, def.Office ? _officeId : "");
         m.Votes[actor.HouseId] = 1;
     }
 }
