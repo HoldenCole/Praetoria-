@@ -71,7 +71,10 @@ event windows with the cast's portraits; the first visitor steps forward when a 
 - `Components/HouseScreen.razor` — **House**: the keep's great hall set (`sets.js`): the house banner over the dais, your
   worlds as turning globes (stations as rings) on pedestals down the hall, a red warning light on any restless one, the
   household seated at the long table (click one for their card and foster/recall); panels for treasury and forecast,
-  holdings with build / shipyard / governor's chair, decrees (tithe, exchange, succession), threat, honors, claims.
+  holdings with prosperity and its drift, invest, build / shipyard / governor's chair; the per-turn ledger (every
+  world, claim, venture, charter, loan and fleet line, the net, wealth with tier and rank, the loan, the wealth table
+  of the houses); ventures with expand / sell, the kinds that can be founded and where, belts to stake; decrees
+  (tithe, exchange, succession), threat, honors, claims.
 - `Components/MilitaryScreen.razor` — **Military**: the command deck set: a strategic table projecting the Reach as a
   hologram (your systems bright, war fronts in red, your fleets as markers), your admirals at the table (click one for the
   fleet's card: refit, command), the fleet parked outside the viewport above the seat's world, readiness / hulls / fronts

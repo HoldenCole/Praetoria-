@@ -332,3 +332,13 @@ input:focus, select:focus { outline: none; border-color: var(--brass); }
 .vols { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .4rem; } .vols .rung { cursor: pointer; background: none; }
 .sprite.big { width: 64px; height: 64px; }
 .stage-card .sprite { flex-shrink: 0; }
+
+/* ===== the ledger and the ventures ===== */
+.ledger-tbl { width: 100%; border-collapse: collapse; font-size: .84rem; margin: .3rem 0; table-layout: fixed; } .ledger-tbl td { padding: .14rem .2rem; border-bottom: 1px dotted var(--line); vertical-align: top; } .ledger-tbl td.src { width: 48%; }
+.ledger-tbl td.amt { text-align: right; white-space: normal; font-variant-numeric: tabular-nums; color: var(--ink); } .ledger-tbl tr.net td { border-top: 1px solid var(--brass3); border-bottom: 0; padding-top: .3rem; }
+.ledger-tbl tr.loan td.amt, .ledger-tbl tr.fleet td.amt { color: #e07a5f; } .ledger-tbl tr.charter td.amt, .ledger-tbl tr.interest td.amt { color: #9ed0a0; }
+.tier { font-family: var(--display); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; padding: .05rem .4rem; border-radius: 2px; border: 1px solid var(--line2); }
+.tier.destitute { color: #e07a5f; border-color: #6a3b2e; } .tier.poor { color: #c9a24a; opacity: .8; } .tier.comfortable { color: var(--ink); } .tier.rich { color: #e6c77a; border-color: var(--brass3); } .tier.opulent { color: #ffe8a3; border-color: var(--brass2); background: rgba(201,162,74,.12); }
+.wealth-row { display: grid; grid-template-columns: auto minmax(0, 1fr) 2.6rem; align-items: center; gap: .4rem; padding: .16rem 0; font-size: .88rem; } .wealth-row .bar { grid-column: 1 / -1; height: 4px; background: rgba(255,255,255,.05); border-radius: 2px; overflow: hidden; margin-top: -.1rem; } .wealth-row .bar i { display: block; height: 100%; } .wealth-row b { text-align: right; } .wealth-row.mine span { color: var(--brass2); }
+details.venture, details.found { border: 1px solid var(--line); border-radius: 3px; padding: .3rem .5rem; margin: .3rem 0; background: rgba(5,7,12,.4); } details.venture > summary, details.found > summary { cursor: pointer; }
+.house-line .tier.small { font-size: .62rem; padding: 0 .3rem; }

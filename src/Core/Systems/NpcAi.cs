@@ -22,10 +22,12 @@ public sealed class NpcAi
     /// <summary>Catalogs the fleet AI consults (optional; without them NPCs raise the default class, unled).</summary>
     public ShipClassCatalog? ShipClasses { get; init; }
     public Progression.TitleCatalog? Titles { get; init; }
+    private BusinessCatalog _ventures = BusinessCatalog.Empty;
 
     public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
-        HoldingCatalog? catalog = null, FleetRules? fleetRules = null)
+        HoldingCatalog? catalog = null, FleetRules? fleetRules = null, BusinessCatalog? ventures = null)
     {
+        _ventures = ventures ?? BusinessCatalog.Empty;
         var world = ctx.World;
         var npcs = world.LivingCharacters()
             .Where(c => c.Id != world.ProtagonistId)
@@ -201,6 +203,48 @@ public sealed class NpcAi
                 }
                 if (built) break;
             }
+
+            Venture(house, steward, catalog, executor, ctx);
+        }
+    }
+
+    /// <summary>The steward's wider ledger (GDD §17): a house deep in the red borrows; a solvent one with a slack world
+    /// invests in it; a house with coin to spare stakes a belt claim near home (or anywhere, if it holds nothing), founds
+    /// one venture where the catalog lets it, and expands the one it has. One of each a turn at most, in id order, so
+    /// rival fortunes grow steadily and reproducibly.</summary>
+    private void Venture(House house, Character steward, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
+    {
+        var world = ctx.World; var f = _ventures.Finance; var galaxy = world.Galaxy;
+        if (house.Treasury.Credits < -5 && house.Debt == 0) executor.TryExecute(new TakeLoanCommand(steward.Id, _ventures), ctx);
+        if (house.Debt > 0 && house.Treasury.Credits >= house.Debt + 15) executor.TryExecute(new RepayLoanCommand(steward.Id), ctx);
+        if (house.Treasury.Credits >= f.InvestCredits + 14)
+        {
+            var slack = world.HoldingsOf(house.Id).Where(h => h.IsPlanet && h.Prosperity < 45).OrderBy(h => h.Prosperity).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (slack != null) executor.TryExecute(new InvestCommand(steward.Id, slack.Id, _ventures), ctx);
+        }
+        if (galaxy == null) return;
+        if (house.Treasury.Credits >= f.ClaimCredits + 8 && house.Treasury.Materials >= f.ClaimMaterials + 2)
+            foreach (var sys in galaxy.Systems.Values.Where(s => s.Belt > 0).OrderBy(s => s.Id, StringComparer.Ordinal))
+                if (executor.TryExecute(new StakeClaimCommand(steward.Id, sys.Id, catalog, _ventures), ctx)) break;
+        if (_ventures.IsEmpty) return;
+        var mine = world.BusinessesOf(house.Id).ToList();
+        if (mine.Count < 3)
+        {
+            // where the house already is first, then the rest of the map
+            var own = world.HoldingsOf(house.Id).Select(h => h.SystemId).Where(s => s.Length > 0).Distinct().OrderBy(s => s, StringComparer.Ordinal).ToList();
+            var systems = own.Concat(galaxy.Systems.Keys.Where(s => !own.Contains(s)).OrderBy(s => s, StringComparer.Ordinal)).ToList();
+            bool founded = false;
+            foreach (var def in _ventures.Defs)
+            {
+                if (!Resource.All.All(r => house.Treasury.Get(r) >= def.Cost.Get(r) + (r == Resource.Credits ? 10 : 0))) continue;   // keep a cushion
+                foreach (var sys in systems) if (executor.TryExecute(new FoundBusinessCommand(steward.Id, def.Id, sys, _ventures, catalog, Titles), ctx)) { founded = true; break; }
+                if (founded) break;
+            }
+        }
+        foreach (var b in mine)
+        {
+            var def = _ventures.Def(b.Kind); if (def == null || b.Level >= def.MaxLevel) continue;
+            if (house.Treasury.Credits >= def.ExpandCost.Credits + 16 && executor.TryExecute(new ExpandBusinessCommand(steward.Id, b.Id, _ventures), ctx)) break;
         }
     }
 

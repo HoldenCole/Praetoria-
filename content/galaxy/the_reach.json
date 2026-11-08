@@ -54,6 +54,7 @@
     {
       "id": "anvil",
       "name": "The Anvil",
+      "belt": 1,
       "x": 300,
       "y": 110,
       "region": "western_marches",
@@ -81,6 +82,7 @@
     {
       "id": "sato_holdfast",
       "name": "Sato Holdfast",
+      "belt": 1,
       "x": 260,
       "y": 330,
       "region": "drake_lanes",
@@ -117,6 +119,7 @@
     {
       "id": "cinder_gate",
       "name": "Cinder Gate",
+      "belt": 2,
       "x": 660,
       "y": 330,
       "region": "greywater_reach",
@@ -135,6 +138,7 @@
     {
       "id": "drydock_nine",
       "name": "Drydock Nine",
+      "belt": 1,
       "x": 820,
       "y": 330,
       "region": "imperial_core",
@@ -162,6 +166,7 @@
     {
       "id": "lesser_marrow",
       "name": "Lesser Marrow",
+      "belt": 2,
       "x": 780,
       "y": 520,
       "region": "southern_spire",
@@ -171,6 +176,7 @@
     {
       "id": "ember_shoal",
       "name": "Ember Shoal",
+      "belt": 3,
       "x": 560,
       "y": 590,
       "region": "southern_spire",
@@ -189,6 +195,7 @@
     {
       "id": "ironhold",
       "name": "Ironhold",
+      "belt": 1,
       "x": 1080,
       "y": 520,
       "region": "valmont_anvils",
@@ -198,6 +205,7 @@
     {
       "id": "the_kilns",
       "name": "The Kilns",
+      "belt": 2,
       "x": 900,
       "y": 590,
       "region": "valmont_anvils",

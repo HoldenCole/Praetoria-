@@ -21,6 +21,9 @@ public sealed class ContentDatabase
     /// <summary>The domain-economy catalog (GDD §17). Empty for scenarios with no domain layer.</summary>
     public HoldingCatalog Holdings { get; }
 
+    /// <summary>The ventures a house can found and the finance rules (content/businesses).</summary>
+    public BusinessCatalog Businesses { get; }
+
     /// <summary>The crisis definitions (GDD §16). Empty for scenarios with no crisis layer.</summary>
     public IReadOnlyList<CrisisDef> Crises { get; }
 
@@ -78,8 +81,10 @@ public sealed class ContentDatabase
         FrictionTable? friction = null,
         NameCatalog? names = null,
         GreatCrisisDef? greatCrisis = null,
-        IReadOnlyList<RecoveryRule>? recovery = null)
+        IReadOnlyList<RecoveryRule>? recovery = null,
+        BusinessCatalog? businesses = null)
     {
+        Businesses = businesses ?? BusinessCatalog.Empty;
         Events = events;
         Texts = texts;
         Holdings = holdings ?? HoldingCatalog.Empty;

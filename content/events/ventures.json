@@ -1,0 +1,165 @@
+{
+  "//": "VENTURES (GDD §17): what a house's businesses, claims and debts bring to the door. Engine flags: business:<kind>, business:any, claim_holder, in_debt, richest:<house>; counters: wealth_rank, wealth.",
+  "events": [
+    {
+      "id": "factors_strike",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": true,
+      "when": [
+        { "type": "worldFlag", "flag": "business:trading_company" },
+        { "type": "turn", "op": "gte", "value": 3 }
+      ],
+      "choices": [
+        {
+          "id": "pay_them",
+          "effects": [
+            { "type": "adjustResource", "resource": "credits", "delta": -4 },
+            { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
+            { "type": "log", "text": "{self.name} paid the factors what they asked. The warehouses opened by morning, and the story that went round the lanes was a kind one." }
+          ]
+        },
+        {
+          "id": "break_them",
+          "effects": [
+            { "type": "adjustCounter", "key": "unrest", "delta": 2 },
+            { "type": "adjustResource", "resource": "credits", "delta": 2 },
+            { "type": "log", "text": "{self.name} hired new factors and locked the old ones out. The company kept its margin. The lanes kept the grudge." }
+          ]
+        },
+        {
+          "id": "hear_them",
+          "effects": [
+            { "type": "adjustSkill", "role": "self", "skill": "charisma", "delta": 1 },
+            { "type": "adjustResource", "resource": "credits", "delta": -1 },
+            { "type": "log", "text": "{self.name} sat with the factors until the lamps burned down, and left with a smaller margin and a company that would answer the house's call." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "creditor_calls",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        { "type": "worldFlag", "flag": "in_debt" },
+        { "type": "resource", "resource": "credits", "op": "lte", "value": 0 }
+      ],
+      "choices": [
+        {
+          "id": "sell_plate",
+          "effects": [
+            { "type": "adjustResource", "resource": "credits", "delta": 8 },
+            { "type": "adjustLegitimacy", "delta": -1 },
+            { "type": "log", "text": "The house plate went to the counting-house by night. {self.name} ate off pewter and paid the instalment." }
+          ]
+        },
+        {
+          "id": "beg_the_senate",
+          "effects": [
+            { "type": "adjustResource", "resource": "credits", "delta": 10 },
+            { "type": "adjustResource", "resource": "influence", "delta": -1 },
+            { "type": "adjustLegitimacy", "delta": -2 },
+            { "type": "log", "text": "{self.name} asked the chamber for relief and got it, with a smile from every rival present." }
+          ]
+        },
+        {
+          "id": "stare_them_down",
+          "effects": [
+            { "type": "adjustCounter", "key": "corruption", "delta": 1 },
+            { "type": "adjustStress", "role": "self", "delta": 8 },
+            { "type": "log", "text": "{self.name} let the creditor wait in the hall for a day and a night, and sent him away with nothing. The ledger did not improve. The reputation did not either." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rich_vein",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        { "type": "worldFlag", "flag": "claim_holder" }
+      ],
+      "choices": [
+        {
+          "id": "work_it",
+          "effects": [
+            { "type": "adjustResource", "resource": "materials", "delta": 6 },
+            { "type": "log", "text": "The belt-rats on the house's claim struck a seam of clean alloy and worked it round the clock. The crates came home heavy." }
+          ]
+        },
+        {
+          "id": "sell_the_news",
+          "effects": [
+            { "type": "adjustResource", "resource": "credits", "delta": 8 },
+            { "type": "adjustCounter", "key": "corruption", "delta": 1 },
+            { "type": "log", "text": "{self.name} sold word of the seam to three concerns before the first crate was cut. The belt was crowded within the month." }
+          ]
+        },
+        {
+          "id": "keep_quiet",
+          "effects": [
+            { "type": "adjustResource", "resource": "exotics", "delta": 1 },
+            { "type": "log", "text": "The seam held something stranger than alloy. {self.name} had it crated separately, and said nothing to anyone." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "buyout_offer",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "when": [
+        { "type": "worldFlag", "flag": "business:any" },
+        { "type": "turn", "op": "gte", "value": 6 }
+      ],
+      "choices": [
+        {
+          "id": "take_the_shares",
+          "effects": [
+            { "type": "adjustResource", "resource": "credits", "delta": 14 },
+            { "type": "adjustResource", "resource": "influence", "delta": -1 },
+            { "type": "log", "text": "{self.name} sold a third of the venture to a consortium that did not give its name. The coin was real. So, later, were the conditions." }
+          ]
+        },
+        {
+          "id": "refuse",
+          "effects": [
+            { "type": "adjustLegitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} sent the consortium's envoy away with his offer unopened. Word went round that the house was not for sale." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "richest_in_the_reach",
+      "tier": "ambient",
+      "weight": 6,
+      "repeatable": false,
+      "when": [
+        { "type": "counter", "key": "wealth_rank", "op": "eq", "value": 1 },
+        { "type": "turn", "op": "gte", "value": 4 }
+      ],
+      "choices": [
+        {
+          "id": "endow",
+          "effects": [
+            { "type": "adjustResource", "resource": "credits", "delta": -8 },
+            { "type": "adjustLegitimacy", "delta": 3 },
+            { "type": "log", "text": "The richest house in the Reach endowed a hospital, a chapel and a bridge, and {self.name} let the chroniclers spell the name correctly." }
+          ]
+        },
+        {
+          "id": "hoard",
+          "effects": [
+            { "type": "adjustCounter", "key": "threat", "delta": 3 },
+            { "type": "log", "text": "The richest house in the Reach bought nothing it did not need and said nothing it did not have to. The other houses noticed anyway." }
+          ]
+        }
+      ]
+    }
+  ]
+}

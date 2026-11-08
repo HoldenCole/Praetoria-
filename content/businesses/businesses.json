@@ -1,0 +1,59 @@
+{
+  "//": "VENTURES (GDD §17 businesses, §19 'smaller houses that control smaller things'). A venture is a house's property that is not land: founded in a system for `cost`, it pays `yield` per level and `flat` whatever its level, costs `upkeep` per level, can be expanded to `maxLevel` for `expandCost` a step, and pays `charter` credits per level each turn to whoever holds the planet there when that is another house. `requires` says where it can be founded. A lender's bank holds other houses' loans and takes their interest.",
+  "businesses": [
+    {
+      "id": "trading_company", "name": "Trading Company",
+      "description": "Factors, warehouses and a seal on the customs house. The first thing a house with coin and no land buys.",
+      "cost": { "credits": 12, "materials": 4 }, "yield": { "credits": 4 }, "expandCost": { "credits": 10, "materials": 3 }, "maxLevel": 3, "charter": 1,
+      "requires": { "populated": true }
+    },
+    {
+      "id": "mining_concern", "name": "Mining Concern",
+      "description": "Tugs, crushers and a company of belt-rats on contract. Works a belt without owning a claim in it.",
+      "cost": { "credits": 10, "materials": 6 }, "yield": { "materials": 3, "credits": 1 }, "expandCost": { "credits": 8, "materials": 4 }, "maxLevel": 3, "charter": 1,
+      "requires": { "belt": true }
+    },
+    {
+      "id": "shipping_line", "name": "Shipping Line",
+      "description": "Hulls on the lanes under your colours. Where three lanes meet, everything pays to pass.",
+      "cost": { "credits": 14, "materials": 6 }, "yield": { "credits": 3 }, "flat": { "influence": 1 }, "expandCost": { "credits": 12, "materials": 4 }, "maxLevel": 3, "charter": 2,
+      "requires": { "minLanes": 3 }
+    },
+    {
+      "id": "merchant_bank", "name": "Merchant Bank",
+      "description": "A counting-house with the house's seal on its door. Other houses' debts come here, and so does their interest.",
+      "cost": { "credits": 24 }, "yield": { "credits": 2 }, "flat": { "influence": 1 }, "expandCost": { "credits": 16 }, "maxLevel": 3, "charter": 0, "lender": true,
+      "requires": { "ownWorld": true, "minTitleRank": 2 }
+    },
+    {
+      "id": "salvage_guild", "name": "Salvage Guild",
+      "description": "Wreckers and scrap-smelters on a world nobody wanted. Now and then they bring up something stranger than steel.",
+      "cost": { "credits": 8, "materials": 2 }, "yield": { "materials": 2 }, "flat": { "exotics": 1 }, "upkeep": { "credits": 1 }, "expandCost": { "credits": 8 }, "maxLevel": 2, "charter": 1,
+      "requires": { "planetClasses": ["barren", "frozen", "belt"] }
+    },
+    {
+      "id": "spice_syndicate", "name": "Spice Syndicate",
+      "description": "Licences, laboratories and a quiet arrangement with the archivists. Exotics by the gram, credits by the crate.",
+      "cost": { "credits": 16, "materials": 2 }, "yield": { "credits": 2 }, "flat": { "exotics": 1 }, "expandCost": { "credits": 12 }, "maxLevel": 2, "charter": 2,
+      "requires": { "specializations": ["research_station", "research_enclave"] }
+    },
+    {
+      "id": "mercenary_company", "name": "Free Company",
+      "description": "Veterans under contract, paid by whoever is frightened this season. Costs you people; pays in coin.",
+      "cost": { "credits": 10, "manpower": 6 }, "yield": { "credits": 3 }, "upkeep": { "manpower": 1 }, "expandCost": { "credits": 8, "manpower": 4 }, "maxLevel": 3, "charter": 0,
+      "requires": { "populated": true }
+    },
+    {
+      "id": "academy_patronage", "name": "Academy Patronage",
+      "description": "Chairs endowed, cadets sponsored, names remembered. It earns nothing a steward can count and everything a chancellor can.",
+      "cost": { "credits": 12, "influence": 1 }, "flat": { "influence": 1 }, "upkeep": { "credits": 1 }, "expandCost": { "credits": 10 }, "maxLevel": 2, "charter": 0,
+      "requires": { "ownWorld": true, "populated": true }
+    }
+  ],
+  "finance": {
+    "//": "The standing loan: borrow loanPrincipal, owe loanRepay, pay loanInstalment a turn whether the ledger can bear it or not. A belt claim costs claimCredits + claimMaterials. An investment spends investCredits for +investProsperity on a holding.",
+    "loanPrincipal": 20, "loanRepay": 26, "loanInstalment": 4,
+    "claimCredits": 6, "claimMaterials": 4,
+    "investCredits": 6, "investProsperity": 15
+  }
+}

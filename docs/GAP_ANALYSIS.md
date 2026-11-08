@@ -115,3 +115,27 @@ Landless recovery (events, petition for a fief, peace terms, mercenary contracts
 the coalition chain and reachable breakdowns · a stewardship-start scenario · reactive events on the engine flags ·
 scenario family links · courtship cooldown · succession interstitial · first-turn guidance · era theming · more
 content (the pool is 97 events; the target for V1 is several hundred).
+
+
+## 5. Reassessment — 2026-11-08, after the UI phase and the economy depth pass
+
+Every screen stands on a lit 3D set (office, galaxy, academy, senate, hall, command deck, keep, hall of banners, orrery,
+archive, quarters). The economy now has prosperity, belts and claims, ventures with charters, loans, and house wealth
+reckoned and ranked (`docs/ECONOMY.md`). Gap 1 from §4 (a landless house has no way back) is half-closed: a landless
+house can stake a claim anywhere and found a venture on anyone's world; peace terms and petitions remain.
+
+### Ranked gaps now
+1. **Ventures have no risk.** Nothing burns, is pirated, embargoed or nationalised; a venture is a bond, not a bet.
+   Events exist for strikes and buyouts; the engine needs a few teeth (a war seizing ventures on the enemy's world).
+2. **Pools are still too generous** (§4 item 2).
+3. **Governors are passive.** Prosperity reads their administration, and a hostile one skims, but no governor
+   schemes, petitions, or has to be kept sweet; the "bigger deal" of the chair is still on the ledger, not in the court.
+4. **Trade is not spatial.** Charters and contiguity are the only geography; lanes carry no goods and no price differs
+   by region.
+5. **Peace terms, petitions for a fief, mercenary service** (§4 item 1, the rest of it).
+6. **24 events never surface** (§4 item 3) — unchanged.
+7. **Era theming** (§4 item 9) — unchanged.
+
+### Where the next forty come from
+Venture risk and war on the ledger · governors as people · regional prices and lane trade · peace terms and petitions ·
+pool tuning · the unreachable events · era theming.

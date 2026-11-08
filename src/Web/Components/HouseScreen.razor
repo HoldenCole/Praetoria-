@@ -11,7 +11,7 @@
     <div class="office-stage">
         <div class="gl-host" @ref="_host"></div>
         <div class="stage-foot">
-            <div class="stage-title"><Icon Name="house" Size="16" /> <b>The Keep of @house.Name</b> <span class="muted">@(c.Titles.ById(house.Title)?.Name ?? house.Title) · @planets world(s)@(stations > 0 ? $" · {stations} station(s)" : "") · @pop pop · tithe @m.Standing?.TaxPolicy</span></div>
+            <div class="stage-title"><Icon Name="house" Size="16" /> <b>The Keep of @house.Name</b> <span class="muted">@(c.Titles.ById(house.Title)?.Name ?? house.Title) · @planets world(s)@(stations > 0 ? $" · {stations} station(s)" : "") · @pop pop · tithe @m.Standing?.TaxPolicy@(m.Ledger != null ? $" · wealth {m.Ledger.Wealth} ({m.Ledger.Tier})" : "")</span></div>
             <span class="muted small">your worlds stand on pedestals · the household at table</span>
         </div>
         @if (_focus != null && w.Char(_focus) is { } ch)
@@ -46,13 +46,16 @@
             {
                 var holding = w.Holding(h.Id)!; var sys = w.Galaxy?.System(holding.SystemId); var (pf, pg) = Svg.Planet(sys?.PlanetClass ?? "terran");
                 <details class="holding @(h.Besieged ? "besieged" : "")" open="@(m.Holdings.Count <= 2)">
-                    <summary><i class="pdot" style="background:radial-gradient(circle at 35% 35%, @pg, @pf)"></i> <b>@h.Name</b> <span class="muted">@h.SpecName@(h.Kind == "station" ? " (station)" : "")@(h.SystemName != null ? $" · {h.SystemName}" : "")</span>
+                    <summary><i class="pdot" style="background:radial-gradient(circle at 35% 35%, @pg, @pf)"></i> <b>@h.Name</b> <span class="muted">@h.SpecName@(h.Kind == "station" ? " (station)" : h.Kind == "claim" ? " (claim)" : "")@(h.SystemName != null ? $" · {h.SystemName}" : "")</span>
                         @if (h.MaxPopulation > 0) { <span class="pill">pop @h.Population/@h.MaxPopulation</span> }
                         <span class="pill @(h.Unrest >= 50 ? "warn" : "")">loyalty @(100 - h.Unrest)</span>
                         @if (h.Besieged) { <span class="pill warn">besieged</span> }
                     </summary>
                     <div class="kv"><span><Icon Name="governor" Size="12" /> Governor</span><b>@(h.GovernorName ?? "—")</b></div>
                     <div class="kv"><span>Culture</span><b>@h.Culture</b></div>
+                    @if (h.Kind != "claim") { <div class="kv"><span>Prosperity</span><b class="@(h.Prosperity < 35 ? "warn" : h.Prosperity >= 75 ? "good" : "")"><span class="bar"><i style="width:@h.Prosperity%" class="@(h.Prosperity < 35 ? "low" : "")"></i></span>@h.Prosperity <span class="muted small">@(h.ProsperityTarget > h.Prosperity ? "↗" : h.ProsperityTarget < h.Prosperity ? "↘" : "→") @h.ProsperityTarget</span></b></div> }
+                    @if (h.Belt > 0) { <div class="kv"><span>Belt</span><b>@(new string('●', h.Belt)) richness @h.Belt</b></div> }
+                    @if (h.Invest != null && h.Kind != "claim") { <button class="opt" disabled="@(h.Invest.Refusal != null)" title="@h.Invest.Refusal" @onclick="() => G.Execute(new InvestCommand(pid, h.Id, c.Businesses))">@h.Invest.Label</button> }
                     <div class="kv"><span>Built</span><b>@(h.Buildings.Count == 0 ? "nothing yet" : string.Join(", ", h.Buildings)) (@h.SlotsUsed/@h.Slots)</b></div>
                     <details><summary><Icon Name="build" Size="12" /> Build</summary>@foreach (var b in h.Builds) { <button class="opt" disabled="@(!b.Available)" title="@b.Tooltip" @onclick="() => G.Execute(new BuildCommand(pid, h.Id, b.BuildingId, c.Holdings, c.Titles))">@b.Label</button> }</details>
                     @if (h.Ships.Count > 0) { <details><summary><Icon Name="ship" Size="12" /> Shipyard</summary>@foreach (var sh in h.Ships) { <button class="opt" disabled="@(sh.Refusal != null)" title="@sh.Refusal" @onclick="() => G.Execute(new RaiseFleetCommand(pid, h.Id, c.Fleets, c.ShipClasses, sh.ClassId, c.Titles))">@sh.Label</button> }</details> }
@@ -60,6 +63,62 @@
                 </details>
             }
         </section>
+
+        @if (m.Ledger is { } lg)
+        {
+            <section class="panel ledger">
+                <h3><Icon Name="credits" Size="13" /> The ledger <span class="muted">per turn</span></h3>
+                <div class="kv"><span>Wealth</span><b>@lg.Wealth · <span class="tier @lg.Tier">@lg.Tier</span> · @Ordinal(lg.Rank) of @lg.Houses houses</b></div>
+                <table class="ledger-tbl">
+                    @foreach (var l in lg.Lines) { <tr class="@l.Kind"><td class="src"><Icon Name="@(l.Kind == "world" ? "planet" : l.Kind == "station" || l.Kind == "claim" ? "station" : l.Kind == "fleet" ? "fleet" : l.Kind == "loan" || l.Kind == "interest" ? "treasury_pool" : "trade_hub")" Size="11" /> @l.Source <span class="muted small">@l.Kind</span></td><td class="amt">@Delta(l.Delta)</td></tr> }
+                    <tr class="net"><td class="src"><b>Net</b></td><td class="amt"><b>@Delta(lg.Net)</b></td></tr>
+                </table>
+                @if (lg.Debt > 0) { <div class="kv warn"><span>Debt</span><b>@lg.Debt credits@(lg.LenderName != null ? $" to the bank of {lg.LenderName}" : " to the counting-houses") · @lg.LoanInstalment a turn</b></div> }
+                <div class="row">
+                    @if (lg.Debt == 0) { <button class="opt" disabled="@(lg.Loan.Refusal != null)" title="@lg.Loan.Refusal" @onclick="() => G.Execute(new TakeLoanCommand(pid, c.Businesses))">@lg.Loan.Label</button> }
+                    else { <button class="opt" disabled="@(lg.Repay.Refusal != null)" title="@lg.Repay.Refusal" @onclick="() => G.Execute(new RepayLoanCommand(pid))">@lg.Repay.Label</button> }
+                </div>
+                <details><summary>The wealth of the houses</summary>
+                    @foreach (var wl in lg.Table.Take(10)) { <div class="wealth-row @(wl.Mine ? "mine" : "")"><Sigil HouseId="@wl.HouseId" Accent="@wl.Accent" Size="14" /> <span>@wl.Name</span><span class="bar"><i style="width:@(Math.Max(2, 100 * Math.Max(0, wl.Wealth) / Math.Max(1, lg.Table[0].Wealth)))%; background:@wl.Accent"></i></span><b>@wl.Wealth</b></div> }
+                </details>
+            </section>
+            <section class="panel">
+                <h3><Icon Name="trade_hub" Size="13" /> Ventures <span class="muted">@(m.Businesses?.Count ?? 0)</span></h3>
+                @if (m.Businesses is { Count: > 0 } bz)
+                {
+                    foreach (var b in bz)
+                    {
+                        <details class="venture">
+                            <summary><b>@b.Name</b> <span class="muted">@b.KindName · level @b.Level/@b.MaxLevel@(b.SystemName != null ? $" · {b.SystemName}" : "")</span> <span class="pill">@b.Yield</span></summary>
+                            <div class="kv"><span>Book value</span><b>@b.Value</b></div>
+                            @if (b.Charter != null) { <div class="kv"><span>Charter</span><b>@b.Charter</b></div> }
+                            <button class="opt" disabled="@(b.Expand.Refusal != null)" title="@b.Expand.Refusal" @onclick="() => G.Execute(new ExpandBusinessCommand(pid, b.Id, c.Businesses))">@b.Expand.Label</button>
+                            <button class="opt" disabled="@(b.Sell.Refusal != null)" title="@b.Sell.Refusal" @onclick="() => G.Execute(new SellBusinessCommand(pid, b.Id, c.Businesses))">@b.Sell.Label</button>
+                        </details>
+                    }
+                }
+                else { <div class="muted">The house owns no venture. Coin that is not land still counts.</div> }
+                @if (m.Ventures is { Count: > 0 } vo)
+                {
+                    <details><summary>Found a venture</summary>
+                        @foreach (var grp in vo.GroupBy(v => v.DefId))
+                        {
+                            var first = grp.First();
+                            <details class="found"><summary><b>@first.Name</b> <span class="muted">@first.Cost</span></summary>
+                                <div class="muted small">@first.Description</div>
+                                @foreach (var v in grp) { <button class="opt" disabled="@(v.Refusal != null)" title="@v.Refusal" @onclick="() => G.Execute(new FoundBusinessCommand(pid, v.DefId, v.SystemId, c.Businesses, c.Holdings, c.Titles))">@v.SystemName@(v.Refusal != null ? $" — {v.Refusal}" : "")</button> }
+                            </details>
+                        }
+                    </details>
+                }
+                @if (m.Claims is { Count: > 0 } cl)
+                {
+                    <details><summary>Stake a belt claim <span class="muted">@c.Businesses.Finance.ClaimCredits credits, @c.Businesses.Finance.ClaimMaterials materials</span></summary>
+                        @foreach (var k in cl) { <button class="opt" disabled="@(k.Refusal != null)" title="@k.Refusal" @onclick="() => G.Execute(new StakeClaimCommand(pid, k.SystemId, c.Holdings, c.Businesses))">@k.SystemName belt @(new string('●', k.Belt)) · @k.Staked/@k.Belt staked@(k.Refusal != null ? $" — {k.Refusal}" : "")</button> }
+                    </details>
+                }
+            </section>
+        }
 
         @if (m.Standing is { } s)
         {
@@ -117,6 +176,8 @@
         var household = m.Household.Where(h => !h.Hidden).Select(h => w.Char(h.Id)).Where(x => x != null).Select(x => Plate(x!, x!.Id)).ToList();
         return System.Text.Json.JsonSerializer.Serialize(new { accent = house.AccentColor, houseId = house.Id, holdings, household, player = Plate(p, null) });
     }
+    private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
+    private static string Delta(Resources r) { var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{(r.Get(k) > 0 ? "+" : "")}{r.Get(k)} {k}").ToList(); return parts.Count == 0 ? "—" : string.Join(" · ", parts); }
     private ICommand Household(string optionId, string childId) => optionId == "recall" ? new RecallCommand(G.World!.ProtagonistId, childId) : new FosterCommand(G.World!.ProtagonistId, childId);
     public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaSets.destroy", _id); } catch { } _self?.Dispose(); }
 }

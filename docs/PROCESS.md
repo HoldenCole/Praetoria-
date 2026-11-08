@@ -57,5 +57,9 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   on a set. Lessons: a screen with a wide aside has a near-square stage, so its camera sits further back; a set whose
   camera is outside its dome shows stars as squares at the frame edge, so the dome must enclose the camera; plaques
   closest to the camera dominate, so arms nearest the viewer are the ones to shrink. UI phase closed; next is depth.
+- 2026-11-08 — Depth phase, the economy (`docs/ECONOMY.md`): prosperity, belts and claims, ventures with charters,
+  loans, house wealth and the ledger. The accrual was rebuilt around one ledger the forecast and the turn both read.
+  Lesson: the order of state updates inside a turn is a contract the tests hold — unrest and population move before
+  the yield is read, prosperity after it, and a refactor that read the yield first broke an exact assertion.
 - 2026-11-07 — Owner: office good; portraits can wait; galaxy needs a little more; then UI for the Academy and the
   political system at the office's level; then depth. Done: galaxy polish; Senate and Academy screens on new 3D sets.

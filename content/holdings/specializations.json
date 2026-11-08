@@ -60,5 +60,15 @@
       "upkeep": { "credits": 1 },
       "slots": 1, "popGrowth": 0
     }
-  ]
+      ,
+    {
+      "id": "belt_claim",
+      "name": "Belt Claim",
+      "yield": { "materials": 2 },
+      "upkeep": { "credits": 1 },
+      "slots": 0,
+      "popGrowth": 0,
+      "//": "ASTEROIDS (GDD §17). The smallest holding there is: a staked claim in a system's belt. Materials by the belt's richness (the engine adds +richness, and an exotic a turn from a rich belt). Sterile, cheap, and the landless house's first rung."
+    }
+]
 }

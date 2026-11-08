@@ -8,7 +8,7 @@ public sealed record MapNode(
     string? OwnerHouseId, string? OwnerHouseName, string AccentColor,
     IReadOnlyList<string> HoldingIds, bool IsPlayerTerritory, bool Contested,
     string RegionId = "", string Culture = "", string PlanetClass = "terran", string? GovernorName = null, int Population = 0, int Unrest = 0,
-    string? PlanetHoldingId = null, int Stations = 0);
+    string? PlanetHoldingId = null, int Stations = 0, int Belt = 0, int Claims = 0, int Ventures = 0, int Prosperity = 50);
 
 public sealed record MapLane(string A, string B);
 
@@ -61,7 +61,8 @@ public static class GalaxyProjection
                 owners.Count > 1,
                 sys.RegionId, world.Galaxy.CultureOf(sys.Id), sys.PlanetClass,
                 planet != null && planet.GovernorId.Length > 0 ? world.Char(planet.GovernorId)?.Name : null,
-                planet?.Population ?? 0, planet?.Unrest ?? 0, planet?.Id, holdings.Count(h => !h.IsPlanet)));
+                planet?.Population ?? 0, planet?.Unrest ?? 0, planet?.Id, holdings.Count(h => h.Kind == Holding.Station),
+                sys.Belt, holdings.Count(h => h.IsClaim), world.Businesses.Values.Count(b => b.SystemId == sys.Id), planet?.Prosperity ?? 50));
         }
         return list;
     }

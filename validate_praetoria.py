@@ -197,7 +197,7 @@ def validate_holdings(sp,bd):
             errors.append(f"building {bid} requires unknown spec '{b['requires']}'")
     return specs,builds
 
-HOLDING_KINDS={"planet","station"}
+HOLDING_KINDS={"planet","station","claim"}
 PLANET_CLASSES={"terran","arid","ocean","forge","frozen","gas","belt","barren"}
 
 def _load_galaxies():
@@ -211,6 +211,7 @@ def _load_galaxies():
         for s in g.get("systems",[]):
             if s.get("region") and s["region"] not in regions: errors.append(f"galaxy {g.get('id')} system {s['id']} in unknown region '{s['region']}'")
             if s.get("planet","terran") not in PLANET_CLASSES: errors.append(f"galaxy {g.get('id')} system {s['id']} unknown planet class '{s.get('planet')}'")
+            if not isinstance(s.get("belt",0),int) or not 0 <= s.get("belt",0) <= 5: errors.append(f"galaxy {g.get('id')} system {s['id']} belt must be 0..5")
         for r in regions:
             if not any(s.get("region")==r for s in g.get("systems",[])): errors.append(f"galaxy {g.get('id')} region {r} has no systems")
         for a,b in g.get("lanes",[]):
@@ -284,6 +285,9 @@ def validate_scenarios(sc,allspecs):
                     if h.get("system") and h["system"] not in galaxies[gid]: errors.append(f"[{sid}] holding {h['id']} in unknown system '{h['system']}'")
                 for f in d.get("fleets",[]):
                     if f.get("system") not in galaxies[gid]: errors.append(f"[{sid}] fleet {f.get('id')} in unknown system '{f.get('system')}'")
+                for b in d.get("businesses",[]):
+                    if b.get("system") not in galaxies[gid]: errors.append(f"[{sid}] venture {b.get('id')} in unknown system '{b.get('system')}'")
+                    if b.get("owner") not in {h["id"] for h in d.get("houses",[])}: errors.append(f"[{sid}] venture {b.get('id')} owned by unknown house '{b.get('owner')}'")
                     if f.get("owner") not in {h["id"] for h in d.get("houses",[])}: errors.append(f"[{sid}] fleet {f.get('id')} has unknown owner '{f.get('owner')}'")
         chars={c["id"] for c in d.get("characters",[])}
         houses={h["id"] for h in d.get("houses",[])}
@@ -328,15 +332,39 @@ def validate_scenarios(sc,allspecs):
             if h["specialization"] not in allspecs: errors.append(f"[{sid}] holding unknown spec '{h['specialization']}'")
     return vocab
 
+def validate_businesses(allspecs):
+    """content/businesses: ids, resource keys, requirement targets, finance rules."""
+    n=0
+    for f in glob.glob("content/businesses/*.json"):
+        d=_read_jsonc(f); seen=set()
+        for b in d.get("businesses",[]):
+            n+=1
+            if b["id"] in seen: errors.append(f"dup business id '{b['id']}'")
+            seen.add(b["id"])
+            for grp in ("cost","yield","flat","upkeep","expandCost"):
+                for k in b.get(grp,{}):
+                    if k not in RES: errors.append(f"business {b['id']}.{grp} bad resource '{k}'")
+            if not b.get("yield") and not b.get("flat"): warns.append(f"business {b['id']} yields nothing")
+            req=b.get("requires",{})
+            for sp_ in req.get("specializations",[]):
+                if sp_ not in allspecs: errors.append(f"business {b['id']} requires unknown spec '{sp_}'")
+            for pc in req.get("planetClasses",[]):
+                if pc not in PLANET_CLASSES: errors.append(f"business {b['id']} requires unknown planet class '{pc}'")
+            if b.get("maxLevel",3)<1: errors.append(f"business {b['id']} maxLevel < 1")
+        fin=d.get("finance",{})
+        if fin and fin.get("loanRepay",26)<=fin.get("loanPrincipal",20): errors.append("finance: loanRepay must exceed loanPrincipal")
+    return n
+
 def main():
     ev,tx,sp,bd,sc=load_corpus()
     validate_events(ev,tx)
     if not BUNDLE: validate_creation()
     specs,builds=validate_holdings(sp,bd)
+    nbiz=validate_businesses(set(specs)|EXIST_SPECS) if not BUNDLE else 0
     vocab=validate_scenarios(sc + ([] if BUNDLE else _baselines()), set(specs)|EXIST_SPECS)
 
     mode="bundle" if BUNDLE else "./content"
-    print(f"CORPUS ({mode}): {len(ev)} events, {len(tx)} texts, {len(sp)} specs, {len(bd)} buildings, {len(sc)} scenarios")
+    print(f"CORPUS ({mode}): {len(ev)} events, {len(tx)} texts, {len(sp)} specs, {len(bd)} buildings, {nbiz} ventures, {len(sc)} scenarios")
     # §17 dominance audit
     cov={max(s['yield'],key=s['yield'].get) for s in sp if s.get('yield')}
     print(f"§17 resource dominance (specs): {sorted(cov)}  | upkeep-sinks: {[s['id'] for s in sp if not s.get('yield')]}")

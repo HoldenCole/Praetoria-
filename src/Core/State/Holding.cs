@@ -37,6 +37,13 @@ public sealed class Holding
     public string Kind { get; set; } = Planet;
     public const string Planet = "planet";
     public const string Station = "station";
+    /// <summary>An asteroid-belt mining claim: the smallest holding there is, staked in a system with a belt.</summary>
+    public const string Claim = "claim";
+
+    /// <summary>0..100, the health of the local economy (GDD §17). Drifts each turn toward a target set by the governor's
+    /// administration, unrest, what is built, the tithe and whether the world is blockaded; scales credit and material
+    /// output (50 = par). Investment lifts it at once.</summary>
+    public int Prosperity { get; set; } = 50;
 
     /// <summary>The character who governs this holding for its house (GDD §13 "governor of a planet is a seat of real
     /// power"). Empty = the house head governs in person.</summary>
@@ -45,5 +52,6 @@ public sealed class Holding
     /// <summary>The culture of the people living here (defaults to the system's region).</summary>
     public string Culture { get; set; } = "";
 
-    public bool IsPlanet => Kind != Station;
+    public bool IsPlanet => Kind == Planet;
+    public bool IsClaim => Kind == Claim;
 }

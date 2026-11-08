@@ -1,0 +1,52 @@
+{
+  "texts": [
+    {
+      "id": "factors_strike",
+      "title": "The Factors Down Tools",
+      "body": "The house's trading company has not shipped a crate in nine days. The factors want a larger share, a shorter contract, and an apology for something said by a steward three turns dead. The warehouses are full, the customs seals are drying, and every rival factor on the lanes is watching to see whether {self.house} pays, breaks, or listens.",
+      "choices": {
+        "pay_them": "Pay what they ask. A margin is cheaper than a grudge.",
+        "break_them": "Lock them out and hire new hands. The company keeps its margin.",
+        "hear_them": "Sit with them until it is settled. Lose a little coin; gain a company that answers."
+      }
+    },
+    {
+      "id": "creditor_calls",
+      "title": "The Creditor's Man",
+      "body": "A man in a good coat waits in the hall with a ledger under his arm and the patience of someone who has been refused by better houses than this one. The instalment is due. The treasury is dry. He does not need to say what happens to a house that will not pay; everyone in the hall already knows.",
+      "choices": {
+        "sell_plate": "Sell the house plate. Pay the instalment. Eat off pewter.",
+        "beg_the_senate": "Ask the chamber for relief, and give every rival the pleasure of granting it.",
+        "stare_them_down": "Let him wait, and send him away with nothing."
+      }
+    },
+    {
+      "id": "rich_vein",
+      "title": "A Seam in the Belt",
+      "body": "The claim's foreman sends word on the fast packet: the cutters have broken into a seam that does not look like the rest of the belt. Clean alloy, and something else in it the assayers will not name over an open channel. What the house does in the next ten days decides what the seam is worth, and to whom.",
+      "choices": {
+        "work_it": "Work it round the clock and bring the crates home.",
+        "sell_the_news": "Sell word of the seam to the concerns before the first crate is cut.",
+        "keep_quiet": "Crate the strange part separately. Tell no one."
+      }
+    },
+    {
+      "id": "buyout_offer",
+      "title": "An Offer for Shares",
+      "body": "An envoy who will not name his principals offers a sum in good credits for a third of the house's ventures. The sum is generous. The terms are vague in the way that only expensive lawyers can make them. {self.name} has until the envoy's ship leaves orbit to decide whether the house sells.",
+      "choices": {
+        "take_the_shares": "Take the coin. Read the conditions later.",
+        "refuse": "Send the envoy away. The house is not for sale."
+      }
+    },
+    {
+      "id": "richest_in_the_reach",
+      "title": "The Richest House in the Reach",
+      "body": "The counting-houses agree on it, and the counting-houses agree on nothing: no house in the Reach is worth more than {self.house}. Envoys arrive with proposals. Cousins arrive with needs. The other great houses arrive with nothing at all, and that is the thing to watch.",
+      "choices": {
+        "endow": "Endow a hospital, a chapel and a bridge, and let the chroniclers spell the name correctly.",
+        "hoard": "Buy nothing the house does not need. Say nothing it does not have to."
+      }
+    }
+  ]
+}

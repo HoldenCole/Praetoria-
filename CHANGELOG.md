@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **The economy, deeper** (GDD §17; `docs/ECONOMY.md`): every holding has **prosperity** (a governor's administration,
+  what is built, the tithe, unrest and blockade move it; it scales output; an investment lifts it); systems carry
+  **asteroid belts** and houses stake **claims** in them (the landless anywhere); **ventures** — trading companies,
+  mining concerns, shipping lines, merchant banks, salvage guilds, spice syndicates, free companies, academy patronage —
+  founded, expanded and sold, paying a **charter** to whoever holds the world; the standing **loan** with instalments
+  and a lender's interest; **house wealth** reckoned and ranked every turn with tiers from destitute to opulent. A
+  per-turn **ledger** on the House screen shows every line; the Steward reports your rank; NPC stewards borrow, invest,
+  stake and trade; five venture events; the two landless houses of the Reach each start with a venture.
 - **Houses, Worlds, Chronicle and You screens** on their own lit 3D sets: the hall of banners (every house on the walls,
   heads on plates, the greatest nearest the crest, war under a red pulse); the orrery (a dome, an armillary sun, one arm
   per region with the worlds as turning globes); the archive (stacks, the chronicle as a framed timeline, a volume per

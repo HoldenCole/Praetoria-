@@ -47,6 +47,17 @@ public sealed class House
     /// builds, bribes and upkeep draw it down. Distinct from per-turn action pools (§9).</summary>
     public Resources Treasury { get; set; } = new();
 
+    /// <summary>Credits still owed on a loan (GDD §17 "the one you run out of"). Paid down in instalments each turn;
+    /// zero when clear. A house in debt cannot borrow again.</summary>
+    public int Debt { get; set; }
+
+    /// <summary>The house whose bank holds the loan, or "" for the caravaneers' counting-houses (no one in particular).</summary>
+    public string LenderId { get; set; } = "";
+
+    /// <summary>The house's wealth as last reckoned by the economy (treasury, land, ventures, less debt) — cached each turn
+    /// so content, AI and the UI read one number. See <see cref="Systems.Wealth"/>.</summary>
+    public int Wealth { get; set; }
+
     /// <summary>Per-sphere influence (GDD §7). Empty until Milestone 5; present so saves are forward-compatible.</summary>
     public Dictionary<string, int> SphereInfluence { get; set; } = new();
 }

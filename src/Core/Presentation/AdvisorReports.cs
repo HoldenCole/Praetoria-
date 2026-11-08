@@ -33,7 +33,9 @@ public static class AdvisorReports
             : t.Credits < 0 ? $"We are insolvent — {t.Credits} credits. Unrest climbs on every populated world until the ledger turns."
             : t.Credits < 5 ? $"The coffers are thin ({t.Credits} credits). One bad season and we borrow."
             : w.Sieges.Values.Any(s => w.Holding(s.HoldingId)?.OwnerId == house.Id) ? "A world of ours is blockaded; its yield reaches us halved."
-            : $"The domain yields; {t.Credits} credits banked, {t.Materials} materials, {t.Manpower} manpower. The {house.TaxPolicy} tithe stands.";
+            : house.Debt > 0 ? $"We owe {house.Debt} credits{(house.LenderId.Length > 0 ? $" to the bank of {w.House(house.LenderId)?.Name}" : "")}; the instalments fall due each turn. {t.Credits} credits banked."
+            : w.HoldingsOf(house.Id).Any(h => h.IsPlanet && h.Prosperity < 35) ? $"{w.HoldingsOf(house.Id).Where(h => h.IsPlanet && h.Prosperity < 35).OrderBy(h => h.Prosperity).First().Name} languishes; coin invested there would lift it. {t.Credits} credits banked."
+            : $"The domain yields; {t.Credits} credits banked, {t.Materials} materials, {t.Manpower} manpower. We stand {Wealth.RankOf(w, house.Id)}{(Wealth.RankOf(w, house.Id) == 1 ? "st" : Wealth.RankOf(w, house.Id) == 2 ? "nd" : Wealth.RankOf(w, house.Id) == 3 ? "rd" : "th")} in wealth among {w.Houses.Count} houses. The {house.TaxPolicy} tithe stands.";
         list.Add(new AdvisorReport("Steward", steward?.Name, stewardLine, t.Credits < 5));
 
         // Admiral — from intel, not truth (GDD §19 mixed visibility)

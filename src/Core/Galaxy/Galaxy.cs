@@ -15,6 +15,9 @@ public sealed class StarSystem
     public string Culture { get; set; } = "";
     /// <summary>What the primary world looks like — terran, arid, ocean, forge, frozen, gas, belt, barren — for the map and the office window.</summary>
     public string PlanetClass { get; set; } = "terran";
+
+    /// <summary>Asteroid belt richness, 0 = none. Also the number of mining claims the belt supports (GDD §17 asteroids).</summary>
+    public int Belt { get; set; }
     public string Description { get; set; } = "";
 }
 

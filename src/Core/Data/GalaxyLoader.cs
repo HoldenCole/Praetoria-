@@ -52,6 +52,7 @@ public static class GalaxyLoader
                         RegionId = ConditionParser.OptStr(s, "region", ""),
                         Culture = ConditionParser.OptStr(s, "culture", ""),
                         PlanetClass = ConditionParser.OptStr(s, "planet", "terran"),
+                        Belt = ConditionParser.Int(s, "belt", 0),
                         Description = ConditionParser.OptStr(s, "description", "")
                     };
                     if (g.Systems.ContainsKey(sys.Id)) throw new ContentException($"Duplicate system id '{sys.Id}'.");

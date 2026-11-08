@@ -32,6 +32,8 @@
                 <div class="kv"><span>Legitimacy</span><b>@fh.Legitimacy</b></div>
                 <div class="kv"><span>Domain</span><b>@worlds.Count world(s) · @stations.Count station(s)</b></div>
                 <div class="kv"><span>Navy</span><b>@FleetSystem.StrengthOf(w, fh.Id) hull(s)</b></div>
+                <div class="kv"><span>Wealth</span><b>@fh.Wealth · <span class="tier @Wealth.Tier(fh.Wealth)">@Wealth.Tier(fh.Wealth)</span>@(fh.Debt > 0 ? " · in debt" : "")</b></div>
+                @if (w.BusinessesOf(fh.Id).Any()) { <div class="kv"><span>Ventures</span><b>@string.Join(", ", w.BusinessesOf(fh.Id).Select(b => $"{c.Businesses.Def(b.Kind)?.Name ?? b.Kind} ({b.Level})"))</b></div> }
                 @if (fh.SphereInfluence.Any(k => k.Value > 0)) { <div class="kv"><span>Spheres</span><b>@string.Join(" · ", fh.SphereInfluence.Where(k => k.Value > 0).Select(k => $"{k.Key} {k.Value}"))</b></div> }
                 <h4>The people</h4>
                 @foreach (var ch in members.Take(6))
@@ -65,6 +67,7 @@
                 <div class="house-line @(h.Id == _focus ? "here" : "") @(atWar ? "hostile" : "")" @onclick="() => _focus = h.Id">
                     <Sigil HouseId="@h.Id" Accent="@h.AccentColor" Size="18" />
                     <span><b>@h.Name</b> <span class="muted">@(c.Titles.ById(h.Title)?.Name ?? h.Title)@(worlds > 0 ? $" · {worlds} world(s)" : " · landless")</span></span>
+                    <span class="tier small @Wealth.Tier(h.Wealth)" title="wealth @h.Wealth">@Wealth.Tier(h.Wealth)</span>
                     <span class="pill @(atWar ? "warn" : disp < -20 ? "warn" : disp > 20 ? "good" : "")">@(atWar ? "⚔" : "")@(disp >= 0 ? "+" : "")@disp</span>
                 </div>
             }

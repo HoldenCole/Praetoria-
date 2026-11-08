@@ -3,34 +3,61 @@ using Praetoria.Core.State;
 
 namespace Praetoria.Core.Systems;
 
+/// <summary>One line of a house's ledger: where a delta comes from (a holding, a venture, a charter, the loan, a fleet).</summary>
+public sealed record LedgerLine(string Source, string Kind, Resources Delta);
+
+/// <summary>A house's per-turn ledger: every line and the net (GDD §17). Forecast and accrual read the same arithmetic.</summary>
+public sealed class Ledger
+{
+    public List<LedgerLine> Lines { get; } = new();
+    public Resources Net { get; } = new();
+    public void Add(string source, string kind, Resources d) { if (d.IsEmpty()) return; Lines.Add(new LedgerLine(source, kind, d)); Net.Add(d); }
+}
+
 /// <summary>
 /// The domain economy (GDD §17, BuildSpec §97): per-turn accrual and upkeep applied on turn advance.
-/// For each house, every holding it owns feeds its treasury by the holding's specialization yield
-/// plus its buildings' yields, less all upkeep. Populated holdings grow and carry <em>unrest</em>:
-/// when a house is insolvent (Credits &lt; 0) unrest climbs and suppresses Manpower output; when
-/// solvent it decays — the §17 "the one you run out of" tension, in miniature. Deliberately
-/// <b>RNG-free and order-stable</b> (houses and holdings processed in id order) so a turn cycle
-/// stays exactly reproducible from a seed. A no-op when the catalog is empty.
+/// Every holding feeds its owner's treasury by its specialization yield plus its buildings' yields, less upkeep,
+/// scaled by the holding's <see cref="Holding.Prosperity"/>; every venture pays its owner and a charter to the
+/// world's holder; loans are paid down; and each house's wealth is reckoned and ranked. Populated holdings grow and
+/// carry <em>unrest</em>: when a house is insolvent unrest climbs and suppresses Manpower; when solvent it decays.
+/// Deliberately <b>RNG-free and order-stable</b> (houses, holdings and ventures in id order) so a turn cycle stays
+/// exactly reproducible from a seed. A no-op when the holdings catalog is empty.
 /// </summary>
 public sealed class Economy
 {
     public const int UnrestStep = 5;   // per-turn unrest gain while the owner is insolvent
     public const int UnrestDecay = 3;  // per-turn unrest relief while the owner is solvent
+    public const int ProsperityStep = 5;          // how far prosperity moves toward its target in a turn
+    public const int ProsperityPerBuilding = 3;
+    public const int ProsperityPerAdministration = 4;
+    public const int ProsperitySiege = 30;
+    public const int ProsperityPerVentureLevel = 2;
+    public const int GovernorSkimThreshold = -20; // a governor who dislikes the head this much pockets a credit a turn
 
     private readonly HoldingCatalog _catalog;
+    private readonly BusinessCatalog _ventures;
 
-    public Economy(HoldingCatalog catalog) => _catalog = catalog;
+    public Economy(HoldingCatalog catalog, BusinessCatalog? ventures = null) { _catalog = catalog; _ventures = ventures ?? BusinessCatalog.Empty; }
+    public BusinessCatalog Ventures => _ventures;
 
-    /// <summary>What a house's domain will net next turn (the Accrue arithmetic, read-only; no siege or unrest throttling,
-    /// which are shown separately): the resource strip's per-turn deltas (GDD §17). Fleet upkeep is subtracted when given.</summary>
-    public Resources Forecast(World world, string houseId, FleetSystem? fleets = null)
+    /// <summary>What a house's domain will net next turn — the same arithmetic accrual applies, as the resource strip's deltas.
+    /// Fleet upkeep is subtracted when the fleet system is given.</summary>
+    public Resources Forecast(World world, string houseId, FleetSystem? fleets = null) => Compute(world, houseId, fleets).Net;
+
+    /// <summary>The full ledger for a house this turn (GDD §17): holdings, ventures, charters paid and received, the loan,
+    /// interest earned, fleet upkeep. Read-only.</summary>
+    public Ledger Compute(World world, string houseId, FleetSystem? fleets = null)
     {
-        var net = new Resources();
-        var house = world.House(houseId); if (house == null) return net;
+        var ledger = new Ledger();
+        var house = world.House(houseId); if (house == null) return ledger;
         var tax = _catalog.Tax(house.TaxPolicy);
-        foreach (var holding in world.HoldingsOf(houseId))
+        var head = HeadOf(world, house);
+
+        foreach (var holding in world.HoldingsOf(houseId).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var spec = _catalog.Spec(holding.Specialization); if (spec == null) continue;
+            var d = new Resources(); bool besieged = world.Sieges.ContainsKey(holding.Id);
+            int belt = holding.IsClaim ? world.Galaxy?.System(holding.SystemId)?.Belt ?? 0 : 0;
             foreach (var r in Resource.All)
             {
                 int v = spec.BaseYield.Get(r) - spec.Upkeep.Get(r);
@@ -42,84 +69,143 @@ public sealed class Economy
                     if (_catalog.ContiguityBonus > 0 && world.Galaxy != null && holding.SystemId != "")
                         v += _catalog.ContiguityBonus * world.Galaxy.Neighbors(holding.SystemId).Count(n => world.Holdings.Values.Any(o => o.OwnerId == houseId && o.SystemId == n));
                 }
-                if (r == Resource.Manpower && v > 0) v = v * (100 - holding.Unrest) / 100;
-                net.Add(r, v);
+                // a belt claim brings up what the belt holds (GDD §17 asteroids): richer belts, more rock; the richest hide exotics
+                if (r == Resource.Materials) v += belt;
+                if (r == Resource.Exotics && belt >= 3) v += 1;
+                // prosperity scales the economic output (credits, materials) — par at 50
+                if ((r == Resource.Credits || r == Resource.Materials) && v > 0) v = v * (50 + holding.Prosperity) / 100;
+                if (v > 0 && besieged) v /= 2;                                            // a blockade halves what gets through (GDD §6)
+                if (r == Resource.Manpower && v > 0) v = v * (100 - holding.Unrest) / 100; // unrest taxes people (GDD §17)
+                d.Add(r, v);
             }
+            // a governor who hates the head skims
+            if (head != null && holding.GovernorId.Length > 0 && holding.GovernorId != head.Id && (world.GetRelationship(holding.GovernorId, head.Id)?.Disposition ?? 0) <= GovernorSkimThreshold) d.Add(Resource.Credits, -1);
+            ledger.Add(holding.Name, holding.IsClaim ? "claim" : holding.IsPlanet ? "world" : "station", d);
         }
+
+        // ventures: what they pay, less upkeep, less the charter owed to the world's holder
+        foreach (var b in world.BusinessesOf(houseId))
+        {
+            var def = _ventures.Def(b.Kind); if (def == null) continue;
+            var d = new Resources(); var planet = world.Holdings.Values.Where(h => h.IsPlanet && h.SystemId == b.SystemId).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+            bool troubled = planet != null && (world.Sieges.ContainsKey(planet.Id) || world.AtWar(houseId, planet.OwnerId));
+            foreach (var r in Resource.All)
+            {
+                int v = def.Yield.Get(r) * b.Level + def.FlatYield.Get(r) - def.Upkeep.Get(r) * b.Level;
+                if ((r == Resource.Credits || r == Resource.Materials) && v > 0 && planet != null) v = v * (50 + planet.Prosperity) / 100;
+                if (v > 0 && troubled) v /= 2;
+                d.Add(r, v);
+            }
+            if (planet != null && planet.OwnerId != houseId && def.Charter > 0) d.Add(Resource.Credits, -def.Charter * b.Level);
+            ledger.Add(b.Name, "venture", d);
+        }
+        // charters received from others' ventures on our worlds
+        foreach (var b in world.Businesses.Values.Where(x => x.OwnerId != houseId).OrderBy(x => x.Id, StringComparer.Ordinal))
+        {
+            var def = _ventures.Def(b.Kind); if (def == null || def.Charter == 0) continue;
+            if (world.PlanetHolder(b.SystemId) != houseId) continue;
+            ledger.Add($"charter · {b.Name}", "charter", new Resources { Credits = def.Charter * b.Level });
+        }
+        // the loan
+        if (house.Debt > 0) ledger.Add("loan instalment", "loan", new Resources { Credits = -Math.Min(_ventures.Finance.LoanInstalment, house.Debt) });
+        int interest = world.Houses.Values.Count(h => h.Debt > 0 && h.LenderId == houseId && h.Id != houseId);
+        if (interest > 0) ledger.Add("interest on loans", "interest", new Resources { Credits = interest });
+
         if (fleets != null)
-            foreach (var f in world.Fleets.Values.Where(f => f.OwnerId == houseId)) { var up = fleets.Upkeep(f); foreach (var r in Resource.All) net.Add(r, -up.Get(r)); }
-        return net;
+            foreach (var f in world.Fleets.Values.Where(f => f.OwnerId == houseId).OrderBy(f => f.Id, StringComparer.Ordinal)) { var up = fleets.Upkeep(f); var d = new Resources(); foreach (var r in Resource.All) d.Add(r, -up.Get(r)); ledger.Add(f.Name, "fleet", d); }
+        return ledger;
     }
 
-    /// <summary>Apply one turn of accrual to every holding's owning treasury. Call on turn advance.</summary>
+    /// <summary>The house head: the protagonist for the player's house, else its senior living member.</summary>
+    public static Character? HeadOf(World w, House house)
+    {
+        if (w.Protagonist is { } p && p.HouseId == house.Id) return p;
+        return w.LivingCharacters().Where(c => c.HouseId == house.Id).OrderByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+    }
+
+    /// <summary>Where a holding's prosperity is heading (GDD §17): the governor's administration, what is built, the tithe,
+    /// unrest, a blockade, the ventures working the world.</summary>
+    public int ProsperityTarget(World world, Holding holding)
+    {
+        var house = world.House(holding.OwnerId); var tax = house != null ? _catalog.Tax(house.TaxPolicy) : null;
+        var governor = holding.GovernorId.Length > 0 ? world.Char(holding.GovernorId) : null;
+        int t = 50 + (governor?.Skill("administration") ?? 0) * ProsperityPerAdministration + holding.Buildings.Count * ProsperityPerBuilding - holding.Unrest / 2 - (tax?.CreditsBonus ?? 0) * 4;
+        if (world.Sieges.ContainsKey(holding.Id)) t -= ProsperitySiege;
+        if (holding.IsPlanet) t += ProsperityPerVentureLevel * world.Businesses.Values.Where(b => b.SystemId == holding.SystemId).Sum(b => b.Level);
+        return Math.Clamp(t, 0, 100);
+    }
+
+    /// <summary>Apply one turn of accrual to every house. Call on turn advance.</summary>
     public void Accrue(World world)
     {
-        if (_catalog.IsEmpty || world.Holdings.Count == 0) return;
+        if (_catalog.IsEmpty || (world.Holdings.Count == 0 && world.Businesses.Count == 0)) return;
 
+        // interest flows to lenders out of this turn's instalments, so snapshot who is paying before anyone's debt moves
+        var paying = world.Houses.Values.Where(h => h.Debt > 0).Select(h => h.Id).ToHashSet();
         foreach (var house in world.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
         {
-            var holdings = world.HoldingsOf(house.Id)
-                                .OrderBy(h => h.Id, StringComparer.Ordinal)
-                                .ToList();
-            if (holdings.Count == 0) continue;
+            var holdings = world.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+            if (holdings.Count == 0 && !world.BusinessesOf(house.Id).Any() && house.Debt == 0 && !world.Businesses.Values.Any(b => world.PlanetHolder(b.SystemId) == house.Id) && !world.Houses.Values.Any(h => h.LenderId == house.Id && paying.Contains(h.Id))) continue;
 
             // Snapshot solvency once, before this turn's income, so all of a house's holdings react
             // to the position the player left them in (deterministic regardless of holding order).
             bool insolvent = house.Treasury.Credits < 0;
             var tax = _catalog.Tax(house.TaxPolicy);
 
+            // the people move first — unrest reacts to the position the house is in, population settles or flees, prosperity
+            // drifts — and this turn's yield is then read from the holdings as they now stand
             foreach (var holding in holdings)
             {
                 var spec = _catalog.Spec(holding.Specialization);
                 if (spec == null) continue;
-
                 if (spec.Populated || holding.Population > 0)
                 {
-                    holding.Unrest = Math.Clamp(
-                        holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0), 0, 100);
+                    holding.Unrest = Math.Clamp(holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0), 0, 100);
                     int growth = holding.Unrest > 50 ? spec.PopGrowth / 2 : spec.PopGrowth;      // the restless do not settle
+                    if (holding.Prosperity >= 75 && spec.PopGrowth > 0) growth += 1;             // a thriving world draws people
                     int pop = Math.Max(0, holding.Population + growth);
                     if (world.Sieges.ContainsKey(holding.Id)) pop -= Math.Max(1, pop / 20);          // a blockade starves (GDD §6)
                     if (holding.Unrest >= 80) pop -= 2;                                               // flight from a world in revolt
                     if (spec.MaxPopulation > 0) pop = Math.Min(pop, spec.MaxPopulation);
                     holding.Population = Math.Max(0, pop);
                 }
+            }
 
-                foreach (var r in Resource.All)
-                {
-                    int net = spec.BaseYield.Get(r) - spec.Upkeep.Get(r);
-                    foreach (var bid in holding.Buildings)
-                    {
-                        var b = _catalog.Building(bid);
-                        if (b != null) net += b.Yield.Get(r) - b.Upkeep.Get(r);
-                    }
+            var ledger = Compute(world, house.Id);
+            house.Treasury.Add(ledger.Net);
+            if (house.Debt > 0) house.Debt = Math.Max(0, house.Debt - _ventures.Finance.LoanInstalment);
+            if (house.Debt == 0) house.LenderId = "";
 
-                    // People are soldiers (GDD §17): population feeds Manpower, then unrest taxes it below.
-                    if (r == Resource.Manpower && spec.PopManpower > 0)
-                        net += holding.Population / spec.PopManpower;
-
-                    // The tax posture (GDD §17) and territory (GDD §19 — a compact realm is a richer one).
-                    if (r == Resource.Credits)
-                    {
-                        net += tax?.CreditsBonus ?? 0;
-                        if (_catalog.ContiguityBonus > 0 && world.Galaxy != null && holding.SystemId != "")
-                            net += _catalog.ContiguityBonus * world.Galaxy.Neighbors(holding.SystemId)
-                                .Count(n => world.Holdings.Values.Any(o => o.OwnerId == house.Id && o.SystemId == n));
-                    }
-
-                    // A blockade halves what gets through (GDD §6 siege).
-                    if (net > 0 && world.Sieges.ContainsKey(holding.Id)) net /= 2;
-
-                    // Unrest is a tax on people: it throttles Manpower output (GDD §17).
-                    if (r == Resource.Manpower && net > 0)
-                        net = net * (100 - holding.Unrest) / 100;
-
-                    house.Treasury.Add(r, net);
-                }
+            // prosperity is the slow variable: it drifts after the yield is read, so a decree is felt next turn
+            foreach (var holding in holdings)
+            {
+                if (_catalog.Spec(holding.Specialization) == null) continue;
+                int target = ProsperityTarget(world, holding);
+                holding.Prosperity = Math.Clamp(holding.Prosperity + Math.Clamp(target - holding.Prosperity, -ProsperityStep, ProsperityStep), 0, 100);
             }
 
             house.Treasury.ClampNonCredit();
-            if (tax is { LegitimacyPerTurn: not 0 }) house.Legitimacy = Math.Max(0, house.Legitimacy + tax.LegitimacyPerTurn);
+            if (tax is { LegitimacyPerTurn: not 0 } && holdings.Count > 0) house.Legitimacy = Math.Max(0, house.Legitimacy + tax.LegitimacyPerTurn);
         }
+
+        Reckon(world);
+    }
+
+    /// <summary>Reckon and rank every house's wealth; write the flags and counters content reads
+    /// (<c>richest:&lt;house&gt;</c>, <c>wealth_rank</c>, <c>in_debt</c>, <c>business:&lt;kind&gt;</c>, <c>claim_holder</c>).</summary>
+    public void Reckon(World world)
+    {
+        foreach (var h in world.Houses.Values) h.Wealth = Wealth.Of(world, h, _catalog, _ventures);
+        var ranked = Wealth.Ranked(world);
+        foreach (var f in world.WorldFlags.Where(f => f.StartsWith("richest:") || f.StartsWith("business:") || f == "in_debt" || f == "claim_holder").ToList()) world.WorldFlags.Remove(f);
+        if (ranked.Count > 0) world.WorldFlags.Add("richest:" + ranked[0].house.Id);
+        var p = world.Protagonist; var mine = p != null ? world.House(p.HouseId) : null;
+        if (mine == null) return;
+        world.WorldCounters["wealth_rank"] = Wealth.RankOf(world, mine.Id);
+        world.WorldCounters["wealth"] = mine.Wealth;
+        if (mine.Debt > 0) world.WorldFlags.Add("in_debt");
+        foreach (var b in world.BusinessesOf(mine.Id)) world.WorldFlags.Add("business:" + b.Kind);
+        if (world.BusinessesOf(mine.Id).Any()) world.WorldFlags.Add("business:any");
+        if (world.HoldingsOf(mine.Id).Any(h => h.IsClaim)) world.WorldFlags.Add("claim_holder");
     }
 }

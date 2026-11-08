@@ -22,7 +22,7 @@
                 <img class="sprite big" data-planet="@fn.PlanetClass|@fn.SystemId|64" alt="" />
                 <div class="sc-body">
                     <div class="sc-name">@fn.Name <span class="muted">@fn.PlanetClass world@(region != null ? $" · {region.Name}" : "") · @fn.Culture culture</span></div>
-                    <div class="muted small">@(owner != null ? $"held by {owner.Name}" : "unclaimed")@(fn.GovernorName != null ? $" · governor {fn.GovernorName}" : "")@(planet != null ? $" · {c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization} · pop {fn.Population} · loyalty {100 - fn.Unrest}" : "")@(stations.Count > 0 ? $" · {string.Join(", ", stations.Select(s => $"{s.Name} ({w.House(s.OwnerId)?.Name})"))}" : "")@(fn.Contested ? " · contested" : "")</div>
+                    <div class="muted small">@(owner != null ? $"held by {owner.Name}" : "unclaimed")@(fn.GovernorName != null ? $" · governor {fn.GovernorName}" : "")@(planet != null ? $" · {c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization} · pop {fn.Population} · loyalty {100 - fn.Unrest}" : "")@(stations.Count > 0 ? $" · {string.Join(", ", stations.Select(s => $"{s.Name} ({w.House(s.OwnerId)?.Name})"))}" : "")@(fn.Contested ? " · contested" : "")@(planet != null ? $" · prosperity {fn.Prosperity}" : "")@(fn.Belt > 0 ? $" · belt {new string('●', fn.Belt)} ({fn.Claims}/{fn.Belt} claims)" : "")@(fn.Ventures > 0 ? $" · {fn.Ventures} venture(s)" : "")</div>
                     @if (sys != null && sys.Description.Length > 0) { <div class="muted small">@sys.Description</div> }
                     <div class="sc-actions"><button class="opt inline" @onclick="() => OnFocus.InvokeAsync(fn.SystemId)">Open on the galaxy map</button></div>
                 </div>
@@ -45,6 +45,8 @@
                         <span class="holder">@if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="14" /> }<span class="muted">@(owner?.Name ?? "—")</span></span>
                         @if (n.Population > 0) { <span class="pill @(n.Unrest >= 50 ? "warn" : "")">@(100 - n.Unrest)</span> }
                         @if (n.Stations > 0) { <span class="pill small">@n.Stations st</span> }
+                        @if (n.Belt > 0) { <span class="pill small" title="belt richness @n.Belt">@(new string('●', n.Belt))</span> }
+                        @if (n.Ventures > 0) { <span class="pill small" title="ventures">@n.Ventures v</span> }
                     </div>
                 }
             </section>
@@ -69,7 +71,7 @@
         var list = regions.Select(r => new
         {
             id = r.Id, name = r.Name, accent = r.AccentColor, unrest = r.Unrest,
-            worlds = r.SystemIds.Select(id => nodes[id]).Select(n => new { id = n.SystemId, name = n.Name, planetClass = n.PlanetClass, accent = n.OwnerHouseId == null ? "#4a5468" : n.AccentColor, mine = n.IsPlayerTerritory, stations = n.Stations, unrest = n.Unrest }).ToList()
+            worlds = r.SystemIds.Select(id => nodes[id]).Select(n => new { id = n.SystemId, name = n.Name, planetClass = n.PlanetClass, accent = n.OwnerHouseId == null ? "#4a5468" : n.AccentColor, mine = n.IsPlayerTerritory, stations = n.Stations, unrest = n.Unrest, belt = n.Belt }).ToList()
         }).ToList();
         return System.Text.Json.JsonSerializer.Serialize(new { accent = house.AccentColor, regions = list });
     }

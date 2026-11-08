@@ -1880,5 +1880,10 @@
         "frigate": 2
       }
     }
+  ],
+  "//ventures": "What the landless houses live on (GDD §19 'houses that control nothing at all' still have to eat): a venture each, paying its charter to whoever holds the world.",
+  "businesses": [
+    { "id": "biz_wren_trading_company_drake_crossing", "owner": "wren", "kind": "trading_company", "system": "drake_crossing", "level": 1, "name": "Wren Trading Company of Drake Crossing" },
+    { "id": "biz_orlov_mining_concern_ember_shoal", "owner": "orlov", "kind": "mining_concern", "system": "ember_shoal", "level": 1, "name": "Orlov Mining Concern of Ember Shoal" }
   ]
 }

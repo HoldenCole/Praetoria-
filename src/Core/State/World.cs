@@ -66,6 +66,10 @@ public sealed class World
     /// these each turn to feed each owner's treasury. Empty in scenarios with no domain layer.</summary>
     public Dictionary<string, Holding> Holdings { get; set; } = new();
 
+    /// <summary>Every venture (GDD §17 businesses), keyed by id. Yields to its owner each turn; pays a charter to the
+    /// holder of the world it works from.</summary>
+    public Dictionary<string, Business> Businesses { get; set; } = new();
+
     /// <summary>Currently-active crises, keyed by crisis id (GDD §16). A crisis persists and
     /// escalates here until a damper resolves it. The gate/cascade system reads and writes these.</summary>
     public Dictionary<string, ActiveCrisis> Crises { get; set; } = new();
@@ -100,6 +104,10 @@ public sealed class World
     public House? House(string id) => Houses.TryGetValue(id, out var h) ? h : null;
 
     public Holding? Holding(string id) => Holdings.TryGetValue(id, out var h) ? h : null;
+    public Business? Business(string id) => Businesses.TryGetValue(id, out var b) ? b : null;
+    public IEnumerable<Business> BusinessesOf(string houseId) => Businesses.Values.Where(b => b.OwnerId == houseId).OrderBy(b => b.Id, StringComparer.Ordinal);
+    /// <summary>The house holding the planet in a system, or null when no one does.</summary>
+    public string? PlanetHolder(string systemId) => Holdings.Values.Where(h => h.IsPlanet && h.SystemId == systemId).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault()?.OwnerId;
 
     /// <summary>The house treasury for a character's house, or null if either is missing.</summary>
     public Resources? TreasuryOf(string characterId)

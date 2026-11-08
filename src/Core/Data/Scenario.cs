@@ -22,6 +22,9 @@ public sealed class Scenario
     /// <summary>Starting fleets (GDD §8 — a house fleet, or an office fleet the house commands by its post).</summary>
     public IReadOnlyList<Fleet> Fleets { get; init; } = Array.Empty<Fleet>();
 
+    /// <summary>Starting ventures (GDD §17 businesses) — what a landless house lives on.</summary>
+    public IReadOnlyList<Business> Businesses { get; init; } = Array.Empty<Business>();
+
     /// <summary>The galaxy this scenario is played on (GDD §19), resolved from its "galaxy" id at load; null = no map.</summary>
     public Galaxy.Galaxy? Galaxy { get; init; }
 }

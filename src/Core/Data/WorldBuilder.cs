@@ -48,6 +48,13 @@ public static class WorldBuilder
             if (holding.Culture.Length == 0 && world.Galaxy != null && holding.SystemId.Length > 0) holding.Culture = world.Galaxy.CultureOf(holding.SystemId);
             world.Holdings[holding.Id] = holding;
         }
+        foreach (var b in scenario.Businesses)
+        {
+            if (!world.Houses.ContainsKey(b.OwnerId)) throw new ContentException($"Venture '{b.Id}' is owned by unknown house '{b.OwnerId}'.");
+            if (world.Galaxy != null && b.SystemId.Length > 0 && world.Galaxy.System(b.SystemId) == null) throw new ContentException($"Venture '{b.Id}' sits in unknown system '{b.SystemId}'.");
+            if (b.Name.Length == 0) b.Name = $"{world.Houses[b.OwnerId].Name.Replace("House ", "")} {b.Kind.Replace('_', ' ')} of {world.Galaxy?.System(b.SystemId)?.Name ?? b.SystemId}";
+            world.Businesses[b.Id] = b;
+        }
         // Every holding has a governor (GDD §13): the one named, else the house's senior living member.
         foreach (var holding in world.Holdings.Values)
         {

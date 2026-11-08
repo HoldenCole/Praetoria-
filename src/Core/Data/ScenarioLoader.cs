@@ -29,7 +29,7 @@ public static class ScenarioLoader
                 Houses = ParseHouses(root),
                 Characters = ParseCharacters(root),
                 Relationships = ParseRelationships(root),
-                Holdings = ParseHoldings(root),
+                Holdings = ParseHoldings(root), Businesses = ParseBusinesses(root),
                 Fleets = ParseFleets(root),
                 Galaxy = galaxy
             };
@@ -57,7 +57,7 @@ public static class ScenarioLoader
         {
             Id = baselineId,
             Houses = ParseHouses(root), Characters = ParseCharacters(root), Relationships = ParseRelationships(root),
-            Holdings = ParseHoldings(root), Fleets = ParseFleets(root)
+            Holdings = ParseHoldings(root), Fleets = ParseFleets(root), Businesses = ParseBusinesses(root)
         };
     }
 
@@ -73,7 +73,7 @@ public static class ScenarioLoader
         var claimedSystems = sc.Holdings.Where(h => h.IsPlanet && h.SystemId.Length > 0).Select(h => h.SystemId).ToHashSet();
 
         // a baseline house comes along only if something of its own survives the scenario's claims — or it is landless by design
-        bool Survives(House h) => h.Title == "landless" || baseline.Holdings.Any(x => x.OwnerId == h.Id && !holdingIds.Contains(x.Id) && !(x.IsPlanet && claimedSystems.Contains(x.SystemId)));
+        bool Survives(House h) => h.Title == "landless" || baseline.Businesses.Any(b => b.OwnerId == h.Id) || baseline.Holdings.Any(x => x.OwnerId == h.Id && !holdingIds.Contains(x.Id) && !(x.IsPlanet && claimedSystems.Contains(x.SystemId)));
         var houses = sc.Houses.ToList(); var added = new HashSet<string>();
         foreach (var h in baseline.Houses) if (!houseIds.Contains(h.Id) && Survives(h)) { houses.Add(h); added.Add(h.Id); }
         var chars = sc.Characters.ToList();
@@ -91,11 +91,13 @@ public static class ScenarioLoader
         }
         var fleets = sc.Fleets.ToList();
         foreach (var f in baseline.Fleets) if (!fleetIds.Contains(f.Id) && added.Contains(f.OwnerId)) fleets.Add(f);
+        var bizIds = sc.Businesses.Select(b => b.Id).ToHashSet(); var businesses = sc.Businesses.ToList();
+        foreach (var b in baseline.Businesses) if (!bizIds.Contains(b.Id) && added.Contains(b.OwnerId)) businesses.Add(b);
 
         return new Scenario
         {
             Id = sc.Id, ProtagonistId = sc.ProtagonistId, Era = sc.Era, Galaxy = sc.Galaxy,
-            Houses = houses, Characters = chars, Relationships = rels, Holdings = holdings, Fleets = fleets
+            Houses = houses, Characters = chars, Relationships = rels, Holdings = holdings, Fleets = fleets, Businesses = businesses
         };
     }
 
@@ -153,6 +155,19 @@ public static class ScenarioLoader
                     Kind = ConditionParser.OptStr(h, "kind", Holding.Planet),
                     GovernorId = ConditionParser.OptStr(h, "governor", ""),
                     Culture = ConditionParser.OptStr(h, "culture", "")
+                });
+        return list;
+    }
+
+    private static IReadOnlyList<Business> ParseBusinesses(JsonElement root)
+    {
+        var list = new List<Business>();
+        if (root.TryGetProperty("businesses", out var arr) && arr.ValueKind == JsonValueKind.Array)
+            foreach (var b in arr.EnumerateArray())
+                list.Add(new Business
+                {
+                    Id = ConditionParser.Str(b, "id"), OwnerId = ConditionParser.Str(b, "owner"), Kind = ConditionParser.Str(b, "kind"),
+                    SystemId = ConditionParser.OptStr(b, "system", ""), Name = ConditionParser.OptStr(b, "name", ""), Level = Math.Max(1, ConditionParser.Int(b, "level", 1))
                 });
         return list;
     }
