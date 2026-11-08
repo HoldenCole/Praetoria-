@@ -378,3 +378,20 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .deposits { margin-top: .4rem; } .pill.dep { color: #9fc8ee; border-color: rgba(120,160,220,.35); }
 .sys-label .d { font-size: 8px; letter-spacing: .04em; color: #9fc8ee; opacity: .85; } .gl-labels.far .sys-label .d { display: none; }
 .legend .sw.dep { background: none; color: #9fc8ee; font-size: 8px; width: auto; padding: 0 2px; } .fuel { margin: .3rem 0 .5rem; } .fuel.warn { color: var(--warn); }
+
+/* the docket */
+.motion { border: 1px solid var(--line); border-radius: 4px; padding: .5rem .6rem; margin: .45rem 0; background: rgba(5,7,12,.45); } .motion.against { border-color: var(--warn); } .motion.mine { border-color: var(--brass3); }
+.mo-head { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; } .mo-text { margin: .25rem 0 .4rem; }
+.whip { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: rgba(255,255,255,.08); } .whip .for { background: var(--good); } .whip .against { background: var(--warn); }
+.bench-row { display: flex; align-items: center; gap: .35rem; padding: .15rem 0; border-bottom: 1px dashed rgba(255,255,255,.06); font-size: .82rem; } .bench-row .bn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .bench-row .stance { min-width: 3.6rem; font-size: .78rem; text-align: right; } .bench-row .stance.for { color: var(--good); } .bench-row .stance.against { color: var(--warn); }
+.opt.inline.tiny { padding: .05rem .4rem; font-size: .72rem; } .opt.inline.here { border-color: var(--brass2); color: var(--brass2); }
+.proposal { padding: .35rem 0; border-bottom: 1px dashed rgba(255,255,255,.06); } .proposal .sel { background: rgba(0,0,0,.4); color: inherit; border: 1px solid var(--line); border-radius: 3px; padding: .2rem .4rem; margin: .2rem .4rem .2rem 0; max-width: 14rem; }
+.hist { padding: .15rem 0; } .hist .good { color: var(--good); } .hist .warn { color: var(--warn); }
+
+/* the seat passes · the primer */
+.epilogue.wide { max-width: 760px; } .epilogue .tier { font-size: .72rem; letter-spacing: .14em; color: var(--brass2); margin-bottom: .3rem; }
+.succ-cast { display: flex; align-items: center; justify-content: center; gap: 1.4rem; margin: .8rem 0 1rem; } .succ-arrow { font-size: 2rem; color: var(--brass2); }
+.succ-grid { display: grid; gap: .5rem; text-align: left; margin: .4rem 0 .8rem; } .succ-grid > div { display: flex; flex-direction: column; gap: .15rem; border-left: 2px solid var(--accent, var(--brass3)); padding-left: .6rem; } .succ-grid .warn b { color: var(--warn); }
+.succ-lines { text-align: left; border-top: 1px dashed var(--line); padding-top: .5rem; margin-bottom: .6rem; }
+.primer h2 { margin-bottom: .4rem; } .primer .epi-text { min-height: 6.5rem; }
+.bench-row .wt { min-width: 1.2rem; text-align: right; }

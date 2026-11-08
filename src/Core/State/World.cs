@@ -75,6 +75,12 @@ public sealed class World
     /// first tick from the ring's defaults.</summary>
     public Dictionary<string, RegionState> Regions { get; set; } = new();
 
+    /// <summary>Motions before the Senate and the last dozen decided (GDD §6.1).</summary>
+    public List<Motion> Motions { get; set; } = new();
+
+    /// <summary>Every passing of the seat, oldest first (GDD §14).</summary>
+    public List<SuccessionRecord> Successions { get; set; } = new();
+
     /// <summary>Currently-active crises, keyed by crisis id (GDD §16). A crisis persists and
     /// escalates here until a damper resolves it. The gate/cascade system reads and writes these.</summary>
     public Dictionary<string, ActiveCrisis> Crises { get; set; } = new();

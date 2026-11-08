@@ -28,6 +28,8 @@ public static class Epilogue
             : $"Over {w.Turn} years and {generations} generations the seat of {name} passed {generations - 1} time{(generations == 2 ? "" : "s")}{(heads.Count > 0 ? ", to " + string.Join(", then to ", heads.Distinct()) : "")}.");
         lines.Add($"It rose as high as {peakName}{(peakName != title ? $" and ended as {title}" : "")}, with legitimacy {house?.Legitimacy ?? 0} in the eyes of the Reach.");
 
+        int carried = house != null ? w.Counter("motions_passed:" + house.Id) : 0;
+        if (carried > 0) lines.Add($"In the Senate it carried {carried} motion{(carried == 1 ? "" : "s")}; the chamber knew its name.");
         var sb = new List<string>();
         int wars = w.Counter(FleetSystem.WarsDeclaredCounter), battles = w.Counter(FleetSystem.BattlesCounter), won = w.Counter(FleetSystem.BattlesWonCounter);
         if (wars > 0) sb.Add(wars == 1 ? "a war was declared in its time" : $"{wars} wars were declared in its time");

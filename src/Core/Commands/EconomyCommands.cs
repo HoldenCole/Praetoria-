@@ -230,6 +230,7 @@ public sealed class ProcureCommand : ICommand
         if (actor?.Alive != true || house == null) return "no house";
         if (_resource == Resource.Isotopes) return "weapons-grade isotopes are not sold on any open market";
         if (!Resource.IsStrategic(_resource)) return "not a thing the exchanges deal in";
+        if (Systems.SenateSystem.Embargoed(w, house.Id)) return "the Senate's embargo closes the exchanges to you";
         if (Systems.Economy.Producers(w, _resource, _catalog, _ventures) == 0) return $"no one in the Reach brings {Resource.Label(_resource)} up";
         return house.Treasury.Credits < Cost(w) ? $"needs {Cost(w)} credits" : null;
     }

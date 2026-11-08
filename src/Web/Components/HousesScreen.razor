@@ -36,6 +36,7 @@
                 <div class="kv"><span>Domain</span><b>@worlds.Count world(s) · @stations.Count station(s)</b></div>
                 <div class="kv"><span>Navy</span><b>@FleetSystem.StrengthOf(w, fh.Id) hull(s)</b></div>
                 <div class="kv"><span>Wealth</span><b>@fh.Wealth · <span class="tier @Wealth.TierFor(w, fh.Id)">@Wealth.TierFor(w, fh.Id)</span>@(fh.Debt > 0 ? " · in debt" : "")</b></div>
+                <div class="kv"><span>In the Senate</span><b>weight @G.Turn!.Senate.Weight(w, fh.Id)@(w.Counter("motions_passed:" + fh.Id) > 0 ? $" · {w.Counter("motions_passed:" + fh.Id)} motion(s) carried" : "")@(SenateSystem.Embargoed(w, fh.Id) ? " · under embargo" : "")</b></div>
                 @if (m.Capital is { } cap && cap.HolderId == fh.Id) { <div class="kv"><span>The capital</span><b>holds @cap.SystemName — the court, the Senate's chair, and a target</b></div> }
                 @if (fh.Bloc == RegionSystem.FreeholdsBloc) { <div class="kv"><span>Standing</span><b class="warn">a free hold — sworn to no one</b></div> }
                 @if (m.Reclaims is { Count: > 0 } rcs) { foreach (var rc in rcs.Where(r => w.Holding(r.HoldingId)?.OwnerId == fh.Id)) { <button class="opt" disabled="@(rc.Refusal != null)" title="@rc.Refusal" @onclick="() => G.Execute(new ReclaimFreeholdCommand(pid, rc.HoldingId))">Buy @rc.HoldingName back (@rc.Price credits)</button> } }

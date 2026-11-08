@@ -49,6 +49,7 @@
 
         <section class="panel">
             <h3><Icon Name="throne" Size="13" /> The line of succession</h3>
+            @if (w.Successions.Count > 0) { <div class="muted small seats-before">The seats before: @string.Join(" · ", w.Successions.Select(s => $"{s.DeceasedName} ({(s.Cause == "abdication" ? "yielded" : "d.")} turn {s.Turn}) → {s.HeirName}"))</div> }
             @if (heirs.Count == 0) { <div class="flag">No heir. The line hangs by a thread: wed, or the name dies with you.</div> }
             @{ int rank = 0; }
             @foreach (var h in heirs.Take(6))

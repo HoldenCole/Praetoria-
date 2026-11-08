@@ -1,0 +1,41 @@
+@inject GameClient G
+@{
+    var w = G.World!; var c = G.Content!; var r = Record; var heir = w.Char(r.HeirId); var old = r.DeceasedId.Length > 0 ? w.Char(r.DeceasedId) : null;
+    var house = heir != null ? w.House(heir.HouseId) : null; string accent = house?.AccentColor ?? "#888";
+    int worlds = house != null ? w.HoldingsOf(house.Id).Count(h => h.IsPlanet) : 0, hulls = house != null ? w.Fleets.Values.Where(f => f.OwnerId == house.Id).Sum(f => f.Strength) : 0;
+    string heirRank = heir != null ? c.Careers.RankName(heir.CareerTrack, heir.CareerRank) ?? "" : "";
+    string oldRank = old != null ? c.Careers.RankName(old.CareerTrack, old.CareerRank) ?? "" : "";
+    var lines = w.History.Where(h => h.Turn >= r.Turn - 1 && h.Turn <= r.Turn && (r.DeceasedName.Length > 0 && h.Text.Contains(r.DeceasedName) || h.Text.Contains("regent") || h.Text.Contains("succeeds"))).Select(h => h.Text).Distinct().Take(4).ToList();
+    var regent = heir != null && heir.Age < DynastySystem.AgeOfMajority ? w.LivingCharacters().Where(x => x.HouseId == heir.HouseId && x.Id != heir.Id && x.Age >= DynastySystem.AgeOfMajority).OrderByDescending(x => x.Age).FirstOrDefault() : null;
+}
+<div class="overlay">
+    <div class="epilogue succession wide" style="--accent:@accent">
+        <div class="tier"><span class="glyph">✦</span> GENERATION @r.Generation</div>
+        <h2>@(r.Cause == "abdication" ? "The seat yields" : r.Cause == "adoption" ? "A sworn house takes up the banner" : "The seat passes")</h2>
+        <div class="succ-cast">
+            @if (old != null)
+            {
+                <div class="cast"><Portrait Id="@old.Id" Name="@old.Name" Sex="@old.Sex" Age="@old.Age" Alive="@old.Alive" Accent="@accent" Size="88" />
+                    <div class="cast-name">@old.Name</div><div class="cast-sub">@(r.Cause == "abdication" ? "yields at" : "dies at") @r.DeceasedAge@(oldRank.Length > 0 ? $" · {oldRank}" : "")</div></div>
+                <div class="succ-arrow">→</div>
+            }
+            @if (heir != null)
+            {
+                <div class="cast"><Portrait Id="@heir.Id" Name="@heir.Name" Sex="@heir.Sex" Age="@heir.Age" Accent="@accent" Size="88" />
+                    <div class="cast-name">@heir.Name</div><div class="cast-sub">takes the seat at @heir.Age@(heirRank.Length > 0 ? $" · {heirRank}" : "")</div></div>
+            }
+        </div>
+        <div class="succ-grid">
+            <div><span class="muted">What passes with the name</span><b>@(house != null ? c.Titles.ById(house.Title)?.Name ?? house.Title : "") · @worlds world(s) · @hulls hull(s) · @(house?.Treasury.Credits ?? 0) credits · legitimacy @(house?.Legitimacy ?? 0)</b></div>
+            <div><span class="muted">What does not</span><b>@(oldRank.Length > 0 ? $"The {oldRank}'s career. " : "")The heir begins again@(heirRank.Length > 0 ? $" as {heirRank}" : "")@(heir?.CareerTrack is { Length: > 0 } t ? $" on the {t} track" : "").</b></div>
+            @if (heir != null && (heir.NatureTraits.Count > 0 || heir.Ambition.Length > 0)) { <div><span class="muted">Who they are</span><b>@string.Join(" · ", heir.NatureTraits.Concat(heir.AptitudeTraits))@(heir.Ambition.Length > 0 ? $" · wants to {heir.Ambition.Replace('_', ' ')}" : "")</b></div> }
+            @if (regent != null) { <div class="warn"><span class="muted">A minority</span><b>@regent.Name rules as regent until @heir!.Name comes of age at @DynastySystem.AgeOfMajority.</b></div> }
+        </div>
+        @if (lines.Count > 0) { <div class="succ-lines">@foreach (var l in lines) { <div class="muted small">@l</div> }</div> }
+        <div class="row"><button class="btn primary" @onclick="OnClose">Take up the name</button></div>
+    </div>
+</div>
+@code {
+    [Parameter, EditorRequired] public SuccessionRecord Record { get; set; } = default!;
+    [Parameter] public EventCallback OnClose { get; set; }
+}

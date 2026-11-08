@@ -111,3 +111,8 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   political pillar (the Senate as a place of action) and onboarding (first turn, the seat passing) are the gaps a
   stranger hits first. Lesson: a gap analysis that only reassesses the last cycle drifts toward what was just built;
   once a day, read the design document again from the top.
+- 2026-11-08 — Owner: "go ahead" on GAP §10 items 1 and 2. Done: the Senate as a place of action (motions, weights,
+  leans, whipping, rivals who move their own business), the primer, the seat-passing interstitial. Lesson: a political
+  system is cheap once leans are *data about interests* rather than scripted outcomes — six interest rules and a jitter
+  produced votes that read as politics in the probe on the first run; the one surprise (a house moving the same motion
+  twelve times) was a cooldown away.

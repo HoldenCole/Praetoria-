@@ -24,7 +24,7 @@ else
 {
     var m = G.Court();
     <div class="gs-shell" style="--accent:@m.HouseAccent" @ref="_shell" data-nebula data-era="@m.Era">
-        <TopBar OnSave="SaveLocal" OnExport="Download" OnQuit="Abandon" SavedFlash="@_savedFlash" />
+        <TopBar OnSave="SaveLocal" OnExport="Download" OnQuit="Abandon" OnPrimer="() => _primer = true" SavedFlash="@_savedFlash" />
         <nav class="rail">
             @foreach (var (id, glyph, label) in Screens)
             {
@@ -79,13 +79,11 @@ else
         }
         @if (_succession != null)
         {
-            <div class="overlay">
-                <div class="epilogue succession">
-                    <h2>The seat passes</h2>
-                    <p class="epi-text">@_succession</p>
-                    <div class="row"><button class="btn primary" @onclick="() => _succession = null">Take up the name</button></div>
-                </div>
-            </div>
+            <SuccessionInterstitial Record="_succession" OnClose="() => _succession = null" />
+        }
+        @if (_primer)
+        {
+            <Primer OnClose="ClosePrimer" />
         }
     </div>
 }
@@ -100,7 +98,7 @@ else
     private bool _screenChosen;
     private bool _hasAutosave, _epilogueDismissed, _savedFlash;
     private BriefingCard? _openReport;
-    private string? _succession;
+    private SuccessionRecord? _succession; private bool _primer, _primerChecked;
     private string? _lastProtagonist;
     private GalaxyMap? _map;
     private ElementReference _shell;
@@ -108,6 +106,7 @@ else
 
     protected override async Task OnAfterRenderAsync(bool first)
     {
+        if (G.Turn != null) await CheckPrimer();
         if (first) { _self = DotNetObjectReference.Create(this); try { await JS.InvokeVoidAsync("praetoria.keys", _self); } catch { } }
         try { await JS.InvokeVoidAsync("praetoriaFx.paint"); await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }
     }
@@ -137,10 +136,7 @@ else
         {
             if (_lastProtagonist != null && _lastProtagonist != G.World.ProtagonistId && !G.World.IsDynastyDead)
             {
-                var np = G.World.Protagonist; var old = G.World.Char(_lastProtagonist);
-                string oldName = old?.Name ?? "", newName = np?.Name ?? "";
-                _succession = $"{(oldName.Length > 0 ? oldName : "The head of the house")} is dead. {newName} takes up the seat of {G.World.House(np?.HouseId ?? "")?.Name} at {np?.Age}. " +
-                              string.Join(" ", G.World.History.Where(h => h.Turn >= G.World.Turn - 1 && ((oldName.Length > 0 && h.Text.Contains(oldName)) || h.Text.Contains("regent"))).Select(h => h.Text).Take(3));
+                _succession = G.World.Successions.LastOrDefault(s => s.HeirId == G.World.ProtagonistId) ?? new SuccessionRecord { Turn = G.World.Turn, Generation = G.World.Counter("generation"), DeceasedId = _lastProtagonist, DeceasedName = G.World.Char(_lastProtagonist)?.Name ?? "", DeceasedAge = G.World.Char(_lastProtagonist)?.Age ?? 0, HeirId = G.World.ProtagonistId, HeirName = G.World.Protagonist?.Name ?? "", HeirAge = G.World.Protagonist?.Age ?? 0 };
             }
             _lastProtagonist = G.World.ProtagonistId;
         }
@@ -148,6 +144,15 @@ else
     }
 
     private void Go(string id) => _screen = id;
+
+    /// <summary>The primer opens once, on the first turn of a new run, unless this browser has seen it (GAP §10 item 1).</summary>
+    private async Task CheckPrimer()
+    {
+        if (_primerChecked || G.World == null) return; _primerChecked = true;
+        if (G.World.Turn > 1) return;
+        try { var seen = await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.primer.seen"); if (string.IsNullOrEmpty(seen)) { _primer = true; StateHasChanged(); } } catch { }
+    }
+    private async Task ClosePrimer() { _primer = false; try { await JS.InvokeVoidAsync("localStorage.setItem", "praetoria.primer.seen", "1"); } catch { } }
     private void FocusSystem(string systemId) { _screen = "galaxy"; }
     private void OpenReport(BriefingCard card) => _openReport = card;
     private void Choose((BriefingCard card, string choiceId) pick) { G.Resolve(pick.card.Item, pick.choiceId); _openReport = null; }

@@ -1,0 +1,30 @@
+@inject GameClient G
+@{
+    var w = G.World!; var p = w.Protagonist!; var house = w.House(p.HouseId)!; var c = G.Content!;
+    var cards = new[]
+    {
+        ("The house and you", $"You are {p.Name}, head of {house.Name}. The dynasty is what survives you: its title, its worlds, its fleet, its name. You are one life in it. When you die, you play the heir — and the heir starts their career from the bottom."),
+        ("The briefing", "Each turn your advisors bring reports — the cards on the desk. Some are decisions with choices that cost from your pools; some are news. Reading is free. Acting is not. Unanswered reports are set aside when the turn ends."),
+        ("The three pools", "Influence (plots, the Senate, favours), Treasury actions (builds, fleet orders, the market) and Agents (schemes, training). They refill a little each turn and cap at six. The strip at the top shows what you have left."),
+        ("Coin, hulls and the strategic three", "The ledger is in the House screen: worlds, ventures, claims, loans. Credits are the thing you run out of. Helium-3 fuels the fleet, rare earths build the heavy hulls, isotopes arm them — and not every world has them."),
+        ("The climb", "Titles are a ladder: knight, baron, count, duke, archduke, and the throne. Take a rung by force, by merit, or by marriage and claim. The Senate votes motions by weight; the War of the Reach is the storm every house is sailing toward. Survive it with the name intact.")
+    };
+}
+<div class="overlay">
+    <div class="epilogue primer wide">
+        <div class="tier"><span class="glyph">◆</span> A PRIMER · @(_i + 1) of @cards.Length</div>
+        <h2>@cards[_i].Item1</h2>
+        <p class="epi-text">@cards[_i].Item2</p>
+        <div class="row">
+            @if (_i > 0) { <button class="btn" @onclick="() => _i--">Back</button> }
+            @if (_i < cards.Length - 1) { <button class="btn primary" @onclick="() => _i++">Next</button> }
+            else { <button class="btn primary" @onclick="() => OnClose.InvokeAsync()">To the desk</button> }
+            <button class="btn ghost sm" @onclick="() => OnClose.InvokeAsync()">Skip</button>
+        </div>
+        <div class="muted small">You can reopen this from the ? in the top bar.</div>
+    </div>
+</div>
+@code {
+    [Parameter] public EventCallback OnClose { get; set; }
+    private int _i;
+}

@@ -11,6 +11,9 @@
     if (w.HasFlag("pirates_near")) alerts.Add(("warn", "Raiders within a lane of your worlds", "galaxy"));
     if (w.HasFlag("raided")) alerts.Add(("warn", "Your shipping was plundered", "galaxy"));
     if (w.HasFlag("fuel_short")) alerts.Add(("warn", "The tanks are dry — the fleet cannot sail", "military"));
+    if (w.HasFlag("motion_against_me")) alerts.Add(("warn", "A motion against your house is before the Senate", "senate"));
+    else if (w.HasFlag("motion_open")) alerts.Add(("info", "A motion is before the Senate — your vote has weight", "senate"));
+    if (w.HasFlag("embargoed")) alerts.Add(("warn", "The Senate's embargo closes the exchanges to you", "senate"));
     if (w.HasFlag("governor_revolt")) alerts.Add(("warn", "A governor has declared a world for themselves", "houses"));
     if (w.HasFlag("freehold_of_ours")) alerts.Add(("info", "A world of yours is a free hold — buy it back or take it", "houses"));
     if (w.HasFlag("capital_taken")) alerts.Add(("good", "You hold the capital", "senate"));

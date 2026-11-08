@@ -23,7 +23,7 @@
         @Res("isotopes", t.Isotopes, fc?.Isotopes, "Isotopes — weapons-grade; battleships, bastion guns, arsenals. Never sold on the open market.")
     </div>
     <div class="tb-pools" title="This turn's action pools (GDD §9): reading is free, acting costs">
-        <span class="pool inf" title="Influence this turn"><Icon Name="influence_pool" Size="14" />@pools.Influence</span>
+        <span class="pool inf" title="Influence this turn: plots, favours, motions and whips in the Senate"><Icon Name="influence_pool" Size="14" />@pools.Influence</span>
         <span class="pool tre" title="Treasury actions this turn"><Icon Name="treasury_pool" Size="14" />@pools.Treasury</span>
         <span class="pool agt" title="Agents this turn"><Icon Name="agents_pool" Size="14" />@pools.Agents</span>
     </div>
@@ -32,6 +32,7 @@
         <div class="tb-turn"><Icon Name="turn" Size="13" /> Turn @w.Turn · Gen @(w.Counter("generation") + 1)</div>
         <button class="btn ghost sm" title="Save to this browser (autosaves every turn)" @onclick="OnSave">@(SavedFlash ? "Saved ✓" : "Save")</button>
         <button class="btn ghost sm" title="Download the save as a file" @onclick="OnExport">Export</button>
+        <button class="btn ghost sm" title="The primer: what the screens and the pools are" @onclick="OnPrimer">?</button>
         <button class="btn ghost sm" title="Abandon this run" @onclick="OnQuit">Quit</button>
     </div>
 </header>
@@ -40,6 +41,7 @@
     [Parameter] public EventCallback OnSave { get; set; }
     [Parameter] public EventCallback OnExport { get; set; }
     [Parameter] public EventCallback OnQuit { get; set; }
+    [Parameter] public EventCallback OnPrimer { get; set; }
     [Parameter] public bool SavedFlash { get; set; }
 
     private static RenderFragment Res(string name, int value, int? delta, string tip) => __builder =>

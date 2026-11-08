@@ -23,6 +23,8 @@ public sealed class ContentDatabase
 
     /// <summary>The ventures a house can found and the finance rules (content/businesses).</summary>
     public BusinessCatalog Businesses { get; }
+    /// <summary>The motions the Senate hears (content/senate).</summary>
+    public MotionCatalog Motions { get; }
 
     /// <summary>The crisis definitions (GDD §16). Empty for scenarios with no crisis layer.</summary>
     public IReadOnlyList<CrisisDef> Crises { get; }
@@ -82,9 +84,11 @@ public sealed class ContentDatabase
         NameCatalog? names = null,
         GreatCrisisDef? greatCrisis = null,
         IReadOnlyList<RecoveryRule>? recovery = null,
-        BusinessCatalog? businesses = null)
+        BusinessCatalog? businesses = null,
+        MotionCatalog? motions = null)
     {
         Businesses = businesses ?? BusinessCatalog.Empty;
+        Motions = motions ?? MotionCatalog.Empty;
         Events = events;
         Texts = texts;
         Holdings = holdings ?? HoldingCatalog.Empty;

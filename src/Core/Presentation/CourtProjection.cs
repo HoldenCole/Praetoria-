@@ -31,6 +31,15 @@ public sealed record ClaimOption(string SystemId, string SystemName, int Belt, i
 public sealed record ReclaimOption(string HoldingId, string HoldingName, string FreeHouseName, int Price, string? Refusal);
 /// <summary>The capital: who holds it, and what it gives.</summary>
 public sealed record CapitalCard(string SystemName, string? HolderId, string? HolderName, bool Mine);
+/// <summary>One house's stance on a motion: declared or predicted, with its weight and whether the player may still whip it.</summary>
+public sealed record StanceLine(string HouseId, string HouseName, string Accent, int Weight, int Stance, bool Declared, string? LobbyRefusal, string? BribeRefusal);
+/// <summary>A motion on the docket or in the history.</summary>
+public sealed record MotionCard(string Id, string KindId, string KindName, string ProposerName, string ProposerAccent, string? TargetName, string Text, int ProposedTurn, bool Open, bool Passed,
+    int ForWeight, int AgainstWeight, int MyStance, bool Mine, bool AgainstMe, IReadOnlyList<StanceLine> Stances);
+/// <summary>A motion the player could move, with its targets.</summary>
+public sealed record MotionProposal(string KindId, string KindName, string Description, int Influence, string TargetType, IReadOnlyList<(string Id, string Name)> Targets, string? Refusal);
+/// <summary>The Senate as a place of action (GDD §6.1): the docket, the history, what the player may move, and their weight in the chamber.</summary>
+public sealed record SenateCard(IReadOnlyList<MotionCard> Docket, IReadOnlyList<MotionCard> History, IReadOnlyList<MotionProposal> Proposals, int MyWeight, int TotalWeight, bool MayPropose, bool Embargoed, int EmbargoLifts);
 /// <summary>One house on the wealth table.</summary>
 public sealed record WealthLine(string HouseId, string Name, string Accent, int Wealth, string Tier, bool Mine);
 /// <summary>The house ledger (GDD §17): every per-turn line, the net, wealth and its rank, the loan.</summary>
@@ -68,7 +77,7 @@ public sealed record CourtModel(int Turn, string Era, string Mode, int Generatio
     IReadOnlyList<HouseholdLine> Household, IReadOnlyList<SiegeLine> Sieges, string? EpilogueText,
     IReadOnlyList<AdvisorReport> Advisors, GreatCrisisCard? GreatCrisis,
     LedgerCard? Ledger = null, IReadOnlyList<BusinessCard>? Businesses = null, IReadOnlyList<VentureOption>? Ventures = null, IReadOnlyList<ClaimOption>? Claims = null,
-    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null, IReadOnlyList<Option>? Procure = null, IReadOnlyList<string>? Deposits = null);
+    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null, IReadOnlyList<Option>? Procure = null, IReadOnlyList<string>? Deposits = null, SenateCard? Senate = null);
 
 public static class CourtProjection
 {
@@ -322,7 +331,8 @@ public static class CourtProjection
             w.Galaxy is { Capital.Length: > 0 } cg ? new CapitalCard(cg.System(cg.Capital)?.Name ?? cg.Capital, RegionSystem.CapitalHolder(w)?.Id, RegionSystem.CapitalHolder(w)?.Name, RegionSystem.CapitalHolder(w)?.Id == house.Id) : null,
             new Option("petition_fief", $"Petition {PetitionFiefCommand.Grantor(w, house.Id)?.Name ?? "the court"} for a fief  (3 influence)", new PetitionFiefCommand(p.Id).Refusal(ctx)),
             Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var pc = new ProcureCommand(p.Id, r, 3, content.Holdings, content.Businesses); int price = ProcureCommand.Price(w, r, content.Holdings, content.Businesses); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the open market  ({(price == int.MaxValue ? "—" : (price * 3).ToString())} credits · {Economy.Producers(w, r, content.Holdings, content.Businesses)} producer(s))", pc.Refusal(ctx)); }).ToList(),
-            Economy.Deposits(w, house.Id).OrderBy(x => x, StringComparer.Ordinal).ToList());
+            Economy.Deposits(w, house.Id).OrderBy(x => x, StringComparer.Ordinal).ToList(),
+            BuildSenate(w, p, house, tc.Senate, ctx));
     }
 
     private static string BondName(Relationship? rel) => rel?.Bond is { } b && b != BondType.None ? b.ToString().ToLowerInvariant() : "";
@@ -331,5 +341,36 @@ public static class CourtProjection
     {
         var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{r.Get(k)} {Resource.Label(k)}").ToList();
         return parts.Count == 0 ? "—" : string.Join(", ", parts);
+    }
+
+    /// <summary>The docket and the history with every house's stance, and the motions the player could move with their legal targets.</summary>
+    private static SenateCard BuildSenate(World w, Character p, House house, SenateSystem senate, CommandContext ctx)
+    {
+        MotionCard Card(Motion m)
+        {
+            var def = senate.Motions.Def(m.Kind); var proposer = w.House(m.ProposerHouseId);
+            string? targetName = def?.Target == "house" ? w.House(m.TargetId)?.Name : def?.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name : null;
+            var stances = new List<StanceLine>();
+            foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != house.Id).OrderByDescending(h => senate.Weight(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal))
+                stances.Add(new StanceLine(h.Id, h.Name, h.AccentColor, senate.Weight(w, h.Id), senate.Stance(w, m, h.Id), m.Votes.ContainsKey(h.Id),
+                    m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, 1).Refusal(ctx) : "decided", m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, 1, bribe: true).Refusal(ctx) : "decided"));
+            var (f, a) = m.Open ? senate.Tally(w, m) : (m.ForWeight, m.AgainstWeight);
+            bool againstMe = m.TargetId == house.Id && def != null && (def.LegitimacyTarget < 0 || def.EmbargoTurns > 0);
+            return new MotionCard(m.Id, m.Kind, def?.Name ?? m.Kind, proposer?.Name ?? m.ProposerHouseId, proposer?.AccentColor ?? "#888", targetName, senate.Describe(w, m), m.ProposedTurn, m.Open, m.Passed,
+                f, a, m.Votes.GetValueOrDefault(house.Id), m.ProposerHouseId == house.Id, againstMe, stances);
+        }
+        var docket = SenateSystem.Docket(w).Select(Card).ToList();
+        var history = w.Motions.Where(m => m.Resolved).OrderByDescending(m => m.ResolvedTurn).ThenBy(m => m.Id, StringComparer.Ordinal).Take(8).Select(Card).ToList();
+        var houses = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Name, StringComparer.Ordinal).Select(h => (Id: h.Id, Name: h.Name)).ToList();
+        var regions = w.Galaxy?.Regions.OrderBy(r => r.Name, StringComparer.Ordinal).Select(r => (Id: r.Id, Name: r.Name)).ToList() ?? new List<(string Id, string Name)>();
+        var proposals = senate.Motions.Defs.Select(d =>
+        {
+            List<(string Id, string Name)> targets = d.Target == "house" ? houses.Where(x => (x.Id != house.Id || d.TargetSelfAllowed) && (!d.TargetMustBeAtWar || w.Wars.Any(x2 => x2.Involves(x.Id)))).ToList() : d.Target == "region" ? regions : new List<(string Id, string Name)>();
+            var probe = new ProposeMotionCommand(p.Id, d.Id, targets.Count > 0 ? targets[0].Id : "", senate).Refusal(ctx);
+            if (probe != null && targets.Count > 1 && (probe == "not against yourself" || probe == "already before the Senate")) probe = new ProposeMotionCommand(p.Id, d.Id, targets[1].Id, senate).Refusal(ctx);
+            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : ""), d.ProposeInfluence, d.Target, targets, probe);
+        }).ToList();
+        int total = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).Sum(h => senate.Weight(w, h.Id));
+        return new SenateCard(docket, history, proposals, senate.Weight(w, house.Id), total, senate.MayPropose(w, house.Id), SenateSystem.Embargoed(w, house.Id), Math.Max(0, w.Counter("embargo:" + house.Id) - w.Turn));
     }
 }

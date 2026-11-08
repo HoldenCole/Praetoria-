@@ -1,0 +1,76 @@
+{
+  "//": "THE SENATE AS A PLACE OF ACTION (GDD §6.1; GAP §10 item 2). These read SenateSystem's flags: motion_against_me (a censure or embargo of yours is on the docket), censured / recognised / levied / embargoed (a motion that touched you carried), motion_passed_mine / motion_failed_mine (your own motion was decided). They make the chamber personal: a whip at your door with coin, a censure to answer, a levy to pay or refuse.",
+  "events": [
+    {
+      "id": "the_whip", "tier": "situation", "weight": 9, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "motion_open" }, { "type": "turn", "op": "gte", "value": 2 } ],
+      "roles": [ { "name": "whip", "when": [ { "type": "rank", "role": "whip", "op": "gte", "value": 2 } ] } ],
+      "choices": [
+        { "id": "take_the_coin", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 6 }, { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": 8 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -1 },
+            { "type": "log", "text": "{self.name} took {whip.name}'s purse and promised a vote. Six credits, a friend in the chamber, and a story the benches will tell." } ] },
+        { "id": "name_your_price", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 } ],
+          "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 2 }, { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": 3 },
+            { "type": "log", "text": "{self.name} wanted no coin from {whip.name} — a favour, to be named later. The whip agreed; whips always do." } ] },
+        { "id": "show_them_the_door", "effects": [ { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": -10 }, { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} showed {whip.name} the door with the purse still in their hand. The vote stays the house's own." } ] }
+      ]
+    },
+    {
+      "id": "a_censure_on_the_docket", "tier": "setpiece", "weight": 12, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "motion_against_me" } ],
+      "choices": [
+        { "id": "answer_in_the_chamber", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 } ],
+          "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 2 }, { "type": "adjustResource", "resource": "influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} answered the motion from the floor, and the chamber went quiet to hear it. Whatever the vote, the Reach heard the house speak." } ] },
+        { "id": "call_in_favours", "cost": { "influence": 2 }, "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": -1 },
+            { "type": "log", "text": "{self.name} spent the night calling in favours. Three houses that owed the house something remembered it before the vote." } ] },
+        { "id": "let_them_talk", "effects": [ { "type": "log", "text": "{self.name} let the motion stand unanswered. Contempt is also an argument." } ] }
+      ]
+    },
+    {
+      "id": "censured", "tier": "setpiece", "weight": 12, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "censured" } ],
+      "choices": [
+        { "id": "bow_to_it", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 2 }, { "type": "adjustCounter", "key": "stress", "delta": 5 },
+            { "type": "log", "text": "{self.name} bowed to the Senate's censure and said the words. The chamber likes a house that knows how to lose." } ] },
+        { "id": "defy_it", "requires": [ { "type": "trait", "role": "self", "trait": "Proud", "kind": "nature", "present": true } ],
+          "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": -2 }, { "type": "adjustResource", "resource": "influence", "delta": 2 }, { "type": "adjustCounter", "key": "threat", "delta": 2 },
+            { "type": "log", "text": "{self.name} tore the censure in half on the floor of the Senate. Half the chamber was appalled. The other half took notes." } ] },
+        { "id": "remember_who_voted", "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": -1 }, { "type": "setWorldFlag", "flag": "grudge_list", "value": true },
+            { "type": "log", "text": "{self.name} said nothing, and wrote down every house that voted for it." } ] }
+      ]
+    },
+    {
+      "id": "recognised_by_the_senate", "tier": "situation", "weight": 10, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "recognised" } ],
+      "choices": [
+        { "id": "a_feast", "cost": { "treasury": 1 }, "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -6 }, { "type": "adjustCounter", "key": "goodwill", "delta": 2 },
+            { "type": "log", "text": "{self.name} gave a feast for the houses that voted the recognition. Six credits, and a Senate that remembers the wine." } ] },
+        { "id": "bank_it", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} accepted the recognition with a nod and went back to work. Standing is a thing you spend later." } ] }
+      ]
+    },
+    {
+      "id": "the_levy_falls_due", "tier": "situation", "weight": 10, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "levied" } ],
+      "choices": [
+        { "id": "pay_with_grace", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} paid the Senate's levy and let the chair see it paid. A good subject, this season." } ] },
+        { "id": "pay_and_complain", "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 1 }, { "type": "adjustCounter", "key": "goodwill", "delta": -1 },
+            { "type": "log", "text": "{self.name} paid, and spoke for an hour about the paying. The chamber remembered the speech longer than the coin." } ] },
+        { "id": "pass_it_on", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 3 }, { "type": "adjustCounter", "key": "unrest", "delta": 3 },
+            { "type": "log", "text": "{self.name} passed the levy down to the worlds as a tithe. The coin came back; the loyalty did not." } ] }
+      ]
+    },
+    {
+      "id": "the_motion_carried", "tier": "situation", "weight": 8, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "motion_passed_mine" } ],
+      "choices": [
+        { "id": "press_the_advantage", "cost": { "influence": 1 }, "effects": [ { "type": "adjustCounter", "key": "senate_influence", "delta": 1 },
+            { "type": "log", "text": "{self.name}'s motion carried, and {self.name} spent the evening making sure every house knew whose it had been." } ] },
+        { "id": "be_gracious", "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
+            { "type": "log", "text": "{self.name}'s motion carried. {self.name} thanked the houses that opposed it for the quality of their opposition." } ] }
+      ]
+    }
+  ]
+}

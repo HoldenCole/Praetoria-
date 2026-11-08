@@ -51,7 +51,63 @@
 
         @if (s != null)
         {
-            <section class="panel">
+            @if (m.Senate is { } sen)
+        {
+            <section class="panel docket">
+                <h3><Icon Name="influence" Size="13" /> The docket <span class="muted">your weight @sen.MyWeight of @sen.TotalWeight@(sen.Embargoed ? $" · UNDER EMBARGO, {sen.EmbargoLifts} turn(s)" : "")</span></h3>
+                @if (sen.Docket.Count == 0) { <div class="muted">Nothing before the Senate this session.</div> }
+                @foreach (var mo in sen.Docket)
+                {
+                    int total = Math.Max(1, mo.ForWeight + mo.AgainstWeight);
+                    <div class="motion @(mo.AgainstMe ? "against" : mo.Mine ? "mine" : "")">
+                        <div class="mo-head"><b>@mo.KindName</b> <span class="muted small">moved by <span style="color:@mo.ProposerAccent">@mo.ProposerName</span> · vote @(mo.ProposedTurn < w.Turn ? "at the end of this turn" : "next session")</span></div>
+                        <div class="mo-text">@mo.Text</div>
+                        <div class="whip"><span class="for" style="width:@(100 * mo.ForWeight / total)%"></span><span class="against" style="width:@(100 * mo.AgainstWeight / total)%"></span></div>
+                        <div class="muted small">for @mo.ForWeight · against @mo.AgainstWeight — as the benches lean now; the vote is by weight and ties fail</div>
+                        <div class="row small">
+                            @foreach (var (stance, label) in new[] { (1, "Vote for"), (-1, "Vote against"), (0, "Abstain") })
+                            { <button class="opt inline @(mo.MyStance == stance && (stance != 0 || true) ? "here" : "")" @onclick="() => G.Execute(new VoteCommand(pid, mo.Id, stance))">@label</button> }
+                        </div>
+                        <details><summary>The benches · whip them</summary>
+                            @foreach (var st in mo.Stances.Take(16))
+                            {
+                                <div class="bench-row">
+                                    <Sigil HouseId="@st.HouseId" Accent="@st.Accent" Size="12" /> <span class="bn" title="@st.HouseName">@st.HouseName</span> <span class="muted small wt" title="vote weight">@st.Weight</span>
+                                    <span class="stance @(st.Stance > 0 ? "for" : st.Stance < 0 ? "against" : "")" title="@(st.Declared ? "declared" : "leaning — a whip may move it")">@(st.Stance > 0 ? "for" : st.Stance < 0 ? "against" : "abstains")@(st.Declared ? "" : "?")</span>
+                                    <button class="opt inline tiny" disabled="@(st.LobbyRefusal != null)" title="@(st.LobbyRefusal ?? "1 influence: lean them your way")" @onclick="() => G.Execute(new LobbyCommand(pid, mo.Id, st.HouseId, mo.MyStance >= 0 ? 1 : -1))">whip</button>
+                                    <button class="opt inline tiny" disabled="@(st.BribeRefusal != null)" title="@(st.BribeRefusal ?? $"{SenateSystem.BribeCredits} credits: a purse weighs more")" @onclick="() => G.Execute(new LobbyCommand(pid, mo.Id, st.HouseId, mo.MyStance >= 0 ? 1 : -1, bribe: true))">bribe</button>
+                                </div>
+                            }
+                            <div class="muted small">Whipping leans a house toward your own stance (for, unless you voted against).</div>
+                        </details>
+                    </div>
+                }
+                <details class="propose"><summary>Move a motion @(sen.MayPropose ? "" : "· a baron, or a Magistrate, may")</summary>
+                    @foreach (var pr in sen.Proposals)
+                    {
+                        <div class="proposal">
+                            <div><b>@pr.KindName</b> <span class="muted small">(@pr.Influence influence)</span> <span class="muted small">@pr.Description</span></div>
+                            @if (pr.TargetType == "none") { <button class="opt inline" disabled="@(pr.Refusal != null)" title="@pr.Refusal" @onclick="() => MoveNone(pr.KindId)">Move it</button> }
+                            else
+                            {
+                                <select class="sel" @onchange="e => SetTarget(pr.KindId, e)">
+                                    <option value="">— choose @(pr.TargetType == "house" ? "a house" : "a region") —</option>
+                                    @foreach (var t in pr.Targets) { <option value="@t.Id">@t.Name</option> }
+                                </select>
+                                <button class="opt inline" disabled="@(!CanMove(pr))" title="@pr.Refusal" @onclick="() => MoveTarget(pr.KindId)">Move it</button>
+                            }
+                        </div>
+                    }
+                </details>
+                @if (sen.History.Count > 0)
+                {
+                    <details><summary>Decided · last @sen.History.Count</summary>
+                        @foreach (var h in sen.History) { <div class="muted small hist"><b class="@(h.Passed ? "good" : "warn")">@(h.Passed ? "carried" : "thrown out")</b> @h.ForWeight–@h.AgainstWeight · turn @h.ProposedTurn · @h.Text</div> }
+                    </details>
+                }
+            </section>
+        }
+        <section class="panel">
                 <h3><Icon Name="throne" Size="13" /> The ladder of titles</h3>
                 <div class="ladder">
                     @foreach (var t in ladder) { int r = c.Titles.RankOf(t.Id); int mr = c.Titles.RankOf(house.Title); <span class="rung @(r == mr ? "here" : r < mr ? "past" : "")" title="@(t.LegitimacyRequirement > 0 ? $"needs legitimacy {t.LegitimacyRequirement}" : "")">@t.Name</span> }
@@ -90,7 +146,11 @@
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N"); private DotNetObjectReference<SenateScreen>? _self; private bool _created; private string _pending = "", _sent = "";
-    private List<(House house, Character? head)> _members = new(); private string? _focus;
+    private List<(House house, Character? head)> _members = new(); private string? _focus; private readonly Dictionary<string, string> _target = new();
+    private void SetTarget(string kind, ChangeEventArgs e) => _target[kind] = e.Value?.ToString() ?? "";
+    private bool CanMove(MotionProposal pr) => !string.IsNullOrEmpty(_target.GetValueOrDefault(pr.KindId)) && (pr.Refusal == null || pr.Refusal == "not against yourself" || pr.Refusal == "already before the Senate");
+    private void MoveNone(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, "", G.Turn!.Senate));
+    private void MoveTarget(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, _target.GetValueOrDefault(kind) ?? "", G.Turn!.Senate));
 
     protected override async Task OnAfterRenderAsync(bool first)
     {

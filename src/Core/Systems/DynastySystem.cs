@@ -392,6 +392,14 @@ public sealed class DynastySystem
         world.ProtagonistId = heir.Id;
         world.Pools[heir.Id] = ActionPools.ForPlayer();
         world.WorldCounters["generation"] = world.Counter("generation") + 1;
+        world.Successions.Add(new SuccessionRecord
+        {
+            Turn = world.Turn, Generation = world.Counter("generation"),
+            DeceasedId = previous?.Id ?? "", DeceasedName = previous?.Name ?? "", DeceasedAge = previous?.Age ?? 0,
+            Cause = previous == null ? "death" : previous.Alive ? "abdication" : previous.HouseId != heir.HouseId ? "adoption" : "death",
+            HeirId = heir.Id, HeirName = heir.Name, HeirAge = heir.Age,
+            LostCareer = previous != null && previous.CareerRank > 0 ? $"{previous.CareerTrack} rank {previous.CareerRank}" : ""
+        });
         var house = world.House(heir.HouseId);
         world.Log(previous is { Alive: true }
             ? $"{previous.Name} yields the seat; {heir.Name} succeeds as head of {(house?.Name ?? heir.HouseId)}."

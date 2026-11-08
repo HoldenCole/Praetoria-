@@ -254,6 +254,17 @@ internal static class Qa
         foreach (var b in w.BusinessesOf(house.Id).OrderBy(b => b.Id, StringComparer.Ordinal)) { cands.Add(new ExpandBusinessCommand(p.Id, b.Id, bc)); if (decisions.NextInt(0, 6) == 0) cands.Add(new SellBusinessCommand(p.Id, b.Id, bc)); }
         cands.Add(new TakeLoanCommand(p.Id, bc)); cands.Add(new RepayLoanCommand(p.Id)); cands.Add(new PetitionFiefCommand(p.Id));
         cands.Add(new ProcureCommand(p.Id, Resource.Helium3, 2, content.Holdings, bc)); cands.Add(new ProcureCommand(p.Id, Resource.RareEarths, 1, content.Holdings, bc));
+        foreach (var def in tc.Senate.Motions.Defs)
+        {
+            string target = def.Target == "house" && others.Count > 0 ? others[decisions.NextInt(0, others.Count)].Id : def.Target == "region" && g != null && g.Regions.Count > 0 ? g.Regions[decisions.NextInt(0, g.Regions.Count)].Id : "";
+            if (def.Target == "house" && def.TargetSelfAllowed && decisions.NextInt(0, 2) == 0) target = house.Id;
+            cands.Add(new ProposeMotionCommand(p.Id, def.Id, target, tc.Senate));
+        }
+        foreach (var m in SenateSystem.Docket(w))
+        {
+            cands.Add(new VoteCommand(p.Id, m.Id, decisions.NextInt(0, 3) - 1));
+            if (others.Count > 0) { var t = others[decisions.NextInt(0, others.Count)]; cands.Add(new LobbyCommand(p.Id, m.Id, t.Id, decisions.NextInt(0, 2) == 0 ? 1 : -1, bribe: decisions.NextInt(0, 3) == 0)); }
+        }
         if (others.Count > 0 && decisions.NextInt(0, 4) == 0) cands.Add(new DeclareWarCommand(p.Id, others[decisions.NextInt(0, others.Count)].Id, content.Fleets));
         foreach (var war in w.Wars.Where(x => x.Involves(house.Id)).OrderBy(x => x.HouseA + x.HouseB, StringComparer.Ordinal)) cands.Add(new SueForPeaceCommand(p.Id, war.HouseA == house.Id ? war.HouseB : war.HouseA, content.Fleets));
         if (tc.Progression is { } prog) { cands.Add(new SeizeTitleCommand(p.Id, prog)); cands.Add(new PetitionTitleCommand(p.Id, prog)); cands.Add(new ClaimTitleCommand(p.Id, prog)); }

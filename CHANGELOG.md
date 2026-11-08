@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **The Senate as a place of action** (GDD §6.1; GAP §10 item 2): houses move motions — censure, recognition, the
+  levy, relief for a region, the Peace of the Reach, an embargo — and every house votes by weight (Senate influence,
+  title rank, the chair's two, a Praetor's one). Rivals lean by interest and move their own business; the player votes,
+  whips with influence or bribes with coin, and sees every bench's lean before the vote. Carried motions lift the
+  proposer's standing in the Senate sphere. Six events; the docket, the whip count and the history on the Senate screen.
+- **Onboarding and the seat passing** (GAP §10 item 1): a five-card primer on the first turn of a run (remembered per
+  browser; reopen it from the ? in the top bar), and a succession interstitial with both portraits, what passes with the
+  name, what does not (the career), who the heir is, and a regency if the heir is a child.
 - **The strategic three** (GDD §17 "not every world has everything"): helium-3, rare earths and isotopes come only
   from deposits the galaxy placed (nineteen in the Reach — giants, belts, dead worlds). Helium Skimmers, a Rare-Earth
   Refinery and Isotope Works (buildings), a Skimmer Fleet and an Enrichment Concern (ventures), and belt claims bring

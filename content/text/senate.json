@@ -1,0 +1,22 @@
+{
+  "texts": [
+    { "id": "the_whip", "title": "The Whip",
+      "body": "{whip.name} of {whip.house} finds {self.name} in the colonnade before the session with a purse and a smile. There is a motion before the Senate and {self.house}'s vote has a weight. The purse is six credits. The smile says there are other purses.",
+      "choices": { "take_the_coin": "Take the purse and promise the vote. Six credits.", "name_your_price": "No coin — a favour, to be named later.", "show_them_the_door": "Show the whip the door, purse and all." } },
+    { "id": "a_censure_on_the_docket", "title": "A Motion Against the House",
+      "body": "The clerk reads the docket and {self.house}'s name is in it: a motion of censure or embargo, moved by a rival, to be voted next session. The benches are already counting. So should {self.name}.",
+      "choices": { "answer_in_the_chamber": "Answer it from the floor. Oratory.", "call_in_favours": "Spend the night calling in favours (2 influence).", "let_them_talk": "Let it stand unanswered. Contempt is an argument." } },
+    { "id": "censured", "title": "The Censure Carries",
+      "body": "The Senate has censured {self.house}. The clerk's copy is delivered with the seal still warm. Legitimacy bleeds from it; so does the question of what {self.name} does with the chamber's verdict in hand.",
+      "choices": { "bow_to_it": "Bow to it and say the words.", "defy_it": "Tear it in half on the floor. Proud.", "remember_who_voted": "Say nothing. Write down every name." } },
+    { "id": "recognised_by_the_senate", "title": "Recognised",
+      "body": "The Senate has recognised {self.house}'s title and standing. For a season no one will call the house upjumped where a clerk can hear. The houses that voted it are waiting to see whether the gratitude comes with wine.",
+      "choices": { "a_feast": "Give a feast for the houses that voted it. Six credits.", "bank_it": "Accept it with a nod and go back to work." } },
+    { "id": "the_levy_falls_due", "title": "The Levy Falls Due",
+      "body": "The Senate's levy has carried: three credits from every landed house to the chair, for the common defence. The chair's collector is polite and early.",
+      "choices": { "pay_with_grace": "Pay, and be seen paying.", "pay_and_complain": "Pay, and speak for an hour about it.", "pass_it_on": "Pass it down to the worlds as a tithe." } },
+    { "id": "the_motion_carried", "title": "The Motion Carried",
+      "body": "{self.house}'s motion has carried the Senate. The chamber is still deciding whether that makes {self.name} a statesman or a nuisance.",
+      "choices": { "press_the_advantage": "Make sure every house knows whose motion it was (1 influence).", "be_gracious": "Thank the opposition for the quality of its opposition." } }
+  ]
+}

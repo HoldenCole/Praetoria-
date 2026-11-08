@@ -388,3 +388,31 @@ measures *fun*: every number above is about the simulation, none about a player'
 Onboarding and the seat-passing moment · the Senate as a place of action (motions, votes, blocs) · the throne as a climb
 · fifty situations · offices and their fleets · plots with steps · a credit sink · role theming · the dynasty tree ·
 spatial trade · chain playthroughs · a first sound.
+
+## 11. Reassessment — 2026-11-08, after the Senate and the onboarding
+
+Method: 318 tests · both validators (132 events) · `praetoria qa --seeds 3` (18 runs, 0 failures, 100/132 events) ·
+`simulate --seeds 4 --turns 60` · the probe, extended to motions · a browser run through the primer to the docket.
+
+### Done this pass (GAP §10 items 1 and 2)
+- **The Senate as a place of action** (docs/SENATE.md): six motion kinds, votes by weight, leans by interest, whipping
+  and bribery, rivals who move their own business (about twenty motions a run, a third to two thirds carried), standing
+  that feeds the Senate sphere, six events, the docket on the Senate screen with every bench's lean. The first pass
+  showed the same house moving the same motion a dozen times; a ten-turn cooldown fixed it.
+- **Onboarding**: a five-card primer on turn one, remembered per browser, reopenable from the top bar. **The seat
+  passing**: an interstitial with both portraits, what passes, what does not, who the heir is, and a regency note.
+- The Chancellor reports the docket and the embargo; the Houses cards show Senate weight and motions carried; the
+  Dynasty hall lists the seats before; the epilogue remembers the chamber.
+
+### Still open, ranked (from §10)
+1. **Thrones fall in two runs of three.**
+2. **Content volume** — 132 events now; the Senate added six, and the War of the Reach still has four.
+3. **Offices and their fleets** (§8 of the GDD) — the Senate could *grant* them: a Commission motion is the natural next kind.
+4. **Plots with steps**; **the ledger runs rich**; **role theming**; **a dynasty tree**; **spatial trade**; **audio**.
+5. **The Senate's own next steps**: blocs that persist (houses that vote together three times become a faction with a
+   name), the chair's casting vote, a Magistrate's career climbing by motions carried, and the player as the whip's
+   target by name rather than by flag.
+
+### Where the next forty come from
+A Commission motion that grants an office fleet · persistent factions · the throne as a climb · fifty situations ·
+plots with steps · a credit sink · role theming · the dynasty tree.

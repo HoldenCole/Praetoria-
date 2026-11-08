@@ -96,6 +96,7 @@ public sealed class SphereSystem
                 sum += c.CareerRank;
         }
         if (sphere.Id == "senate" && RegionSystem.CapitalHolder(w)?.Id == house.Id) sum += CapitalSenateWeight;   // the chair is the capital's (GDD §19)
+        if (sphere.Id == "senate") sum += w.Counter("senate_standing:" + house.Id);                                   // motions carried, less motions thrown out (SenateSystem)
         return sum;
     }
 

@@ -55,12 +55,16 @@ public static class AdvisorReports
         // Chancellor — standing and the realm
         var chancellor = Seat("law");
         int inst = w.Counter("title_instability"), pressure = w.Counter("coalition_pressure");
-        string chanLine = inst > 0 ? $"Our {content.Titles.ById(house.Title)?.Name ?? house.Title} outstrips our standing by {inst}; the vassals grumble and rivals take note."
+        string chanLine = w.HasFlag("motion_against_me") ? "A motion against our house is on the Senate's docket; the vote is at the session's end. Whip the benches, or answer it from the floor."
+            : w.HasFlag("embargoed") ? "The Senate's embargo closes the exchanges to us. Our factors sell at half and the open market will not deal."
+            : inst > 0 ? $"Our {content.Titles.ById(house.Title)?.Name ?? house.Title} outstrips our standing by {inst}; the vassals grumble and rivals take note."
             : pressure >= 3 ? "The houses are drawing together against us. Our rise frightens them."
             : w.Crises.Count > 0 ? $"A crisis is upon the realm: {string.Join(", ", w.Crises.Keys.Select(k => content.Crises.FirstOrDefault(d => d.Id == k)?.Name ?? k))}. Dampers may be available."
             : p.Flags.Contains(DynastySystem.ParvenuFlag) ? "The old blood looks down on us still. Standing, not coin, will change that."
             : $"Our standing is sound at legitimacy {house.Legitimacy}. The chambers are quiet.";
-        list.Add(new AdvisorReport("Chancellor", chancellor?.Name, chanLine, inst > 0 || pressure >= 3 || w.Crises.Count > 0));
+        if (w.Motions.Any(m => m.Open && m.ProposerHouseId == house.Id)) chanLine += " Our own motion stands on the docket.";
+        else if (w.HasFlag("motion_open") && !w.HasFlag("motion_against_me")) chanLine += " A motion is before the Senate; our vote has weight.";
+        list.Add(new AdvisorReport("Chancellor", chancellor?.Name, chanLine, inst > 0 || pressure >= 3 || w.Crises.Count > 0 || w.HasFlag("motion_against_me") || w.HasFlag("embargoed")));
         return list;
     }
 }

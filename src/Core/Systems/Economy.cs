@@ -110,6 +110,7 @@ public sealed class Economy
                 if (v > 0 && troubled) v /= 2;
                 d.Add(r, v);
             }
+            if (SenateSystem.Embargoed(world, houseId) && d.Credits > 0) d.Credits /= 2;                      // the Senate's embargo: the factors cannot sell
             int vl = world.Galaxy?.System(b.SystemId) is { } vs && world.Regions.TryGetValue(vs.RegionId, out var vr) ? vr.Lawlessness : 0;
             if (vl > 0) foreach (var r in new[] { Resource.Credits, Resource.Materials }) if (d.Get(r) > 0) d.Set(r, d.Get(r) * (200 - vl) / 200);
             if (planet != null && planet.OwnerId != houseId && def.Charter > 0) d.Add(Resource.Credits, -(def.Charter + (world.Galaxy?.RulesFor(world.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0)) * b.Level);

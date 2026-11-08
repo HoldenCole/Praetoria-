@@ -75,6 +75,8 @@ public sealed class TurnController
 
     /// <summary>The Great-Crisis framework (GDD §16, M6): clock, stages, blocs, resolution.</summary>
     public GreatCrisisSystem GreatCrisis => _greatCrisis;
+    public SenateSystem Senate => _senate;
+    private readonly SenateSystem _senate;
 
     public TurnController(World world, ContentDatabase content, Director? director = null, int briefingBudget = 3)
     {
@@ -88,6 +90,7 @@ public sealed class TurnController
         _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres, world.Difficulty);
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
         _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
+        _senate = new SenateSystem(content.Motions, content.Titles, _fleets);
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles };
         _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);
@@ -163,6 +166,7 @@ public sealed class TurnController
     {
         Phase = TurnPhase.Resolve;
         _npcAi.Act(Executor, Context(), _crises, _economy == null ? null : _content.Holdings, _fleets.Rules, _content.Businesses);   // NPCs act, invest, sail, and may author a crisis
+        _senate.Tick(World);          // the Senate votes last session's motions and hears new ones (GDD §6.1) — RNG-free
 
         // Organic onset: the ripe-conditions roll (GDD §16 mixed origin). NPC-authored crises this
         // turn are already active, so they're excluded from the causable pool here.
