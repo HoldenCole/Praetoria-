@@ -450,3 +450,28 @@ player as the whip's target by name.
 
 ### Where the next forty come from
 Fifty situations across the pillars · plots with steps · a credit sink · role theming · the dynasty tree · factions.
+
+## 13. Reassessment — 2026-11-08, after the benches
+
+Method: 329 tests · both validators (142 events) · `praetoria qa --seeds 3` · `simulate --seeds 4` · the probe, extended to
+benches and affinities · a sixteen-turn browser run to the Senate screen.
+
+### Done this pass (GAP §12 item 8)
+- **Persistent factions** (docs/SENATE.md "The benches"): affinity from every decided vote, benches that form around the
+  weightiest of three friends, grow, break and dissolve on their own, named by the chamber; discipline (a member leans
+  toward its leader, a whip on the leader is half a whip on the bench); the player takes a seat, leaves, founds a bench,
+  or breaks the whip and pays. Three benches had formed by turn sixteen in the browser run; by turn sixty the probe shows five
+  or six benches of three to nine seats — nearly every house sits somewhere, and discipline turns majorities into
+  landslides (104 to 5). The first tuning item is to let affinity decay a point every few turns so only the benches that
+  keep voting together survive.
+- **Found on the way:** the offices' one-turn flags were cleared by the office tick right after a motion had set them,
+  so *The Commission* and *Relieved of Office* could never fire. All Senate, office and bench flags are cleared once,
+  before motions resolve.
+
+### Still open, ranked
+1. **Content volume** (142 events). 2. **Plots with steps.** 3. **The ledger runs rich.** 4. **Role theming.** 5. **A
+dynasty tree.** 6. **Spatial trade.** 7. **Audio.** 8. **The Senate's next**: benches that move motions as a bench (a
+leader's motion carries the bench's name), the chair's casting vote, and the Great Crisis blocs reading the benches.
+
+### Where the next forty come from
+Fifty situations · plots with steps · a credit sink · role theming · the dynasty tree · benches in the War of the Reach.

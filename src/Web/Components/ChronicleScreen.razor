@@ -57,7 +57,7 @@
         "war" => Martial(t) || t.Contains("declares") || t.Contains("peace") || t.Contains("Raiders") || t.Contains("raiders"),
         "dynasty" => t.Contains("born") || t.Contains("dies") || t.Contains("wed") || t.Contains("comes of age") || t.Contains("succeeds") || t.Contains("banner"),
         "coin" => t.Contains("credits") || t.Contains("founds") || t.Contains("stakes") || t.Contains("borrows") || t.Contains("sells") || t.Contains("buys") || t.Contains("tithe"),
-        "realm" => t.Contains("rises") || t.Contains("breaks from") || t.Contains("Free March") || t.Contains("capital") || t.Contains("Crisis") || t.Contains("throne", StringComparison.OrdinalIgnoreCase) || t.Contains("governor") || t.Contains("rolls") || t.Contains("enters the service") || t.Contains("in fief") || t.Contains("Senate"),
+        "realm" => t.Contains("rises") || t.Contains("breaks from") || t.Contains("Free March") || t.Contains("capital") || t.Contains("Crisis") || t.Contains("throne", StringComparison.OrdinalIgnoreCase) || t.Contains("governor") || t.Contains("rolls") || t.Contains("enters the service") || t.Contains("in fief") || t.Contains("Senate") || t.Contains("bench") || t.Contains("Bloc") || t.Contains("Benches") || t.Contains("Party"),
         _ => true
     };
     private static bool Martial(string t) => t.Contains("war", StringComparison.OrdinalIgnoreCase) || t.Contains("battle", StringComparison.OrdinalIgnoreCase) || t.Contains("destroyed") || t.Contains("siege", StringComparison.OrdinalIgnoreCase);

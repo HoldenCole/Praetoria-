@@ -62,6 +62,7 @@ public static class HouseSystem
     private static void Strike(World w, House house, string line)
     {
         w.Wars.RemoveAll(x => x.Involves(house.Id));
+        foreach (var f in w.Factions) f.Members.Remove(house.Id);
         if (w.Offices.RemoveAll(o => o.HouseId == house.Id) > 0) { var back = OfficeSystem.FleetsDefaultOwner(w); foreach (var f in w.Fleets.Values.Where(f => f.Office && f.OwnerId == house.Id)) f.OwnerId = back ?? f.OwnerId; }
         foreach (var h in w.Holdings.Values.Where(h => h.FormerOwnerId == house.Id)) h.FormerOwnerId = "";
         foreach (var k in w.WorldCounters.Keys.Where(k => k.EndsWith(":" + house.Id)).ToList()) w.WorldCounters.Remove(k);

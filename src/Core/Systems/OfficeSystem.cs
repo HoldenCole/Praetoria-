@@ -81,8 +81,7 @@ public static class OfficeSystem
     public static void Tick(World w, OfficeCatalog offices)
     {
         if (offices.IsEmpty) return;
-        var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w);
-        foreach (var f in TurnFlags) w.WorldFlags.Remove(f);
+        var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w);   // turn flags are cleared by SenateSystem.Tick before motions resolve
         if (w.Era == "imperium" && ThroneSystem.Emperor(w) is { } emperor) TakeAll(w, offices, emperor.Id);   // the Emperor holds every office by the throne
         foreach (var def in offices.Defs)
         {

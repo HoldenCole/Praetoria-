@@ -398,3 +398,7 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 
 /* the offices */
 .offices { margin: .5rem 0; } .off-card { border-left: 2px solid var(--line2); padding: .25rem .5rem; margin: .3rem 0; overflow-wrap: anywhere; } .off-card.mine { border-left-color: var(--brass2); } .off-card.vacant { opacity: .8; } .of-head b { white-space: nowrap; } .off-card .small { display: block; white-space: normal; }
+
+/* the benches */
+.factions { margin: .5rem 0 .6rem; } .bench { border-left: 2px solid var(--line2); padding: .25rem .5rem; margin: .3rem 0; overflow-wrap: anywhere; } .bench.mine { border-left-color: var(--brass2); }
+.bench-members { display: flex; align-items: center; gap: .25rem; flex-wrap: wrap; margin: .2rem 0; } .bench-members .member { display: inline-flex; }

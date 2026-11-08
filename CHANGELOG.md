@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Persistent Senate factions** (GDD §6.1 "voting blocs"): every decided motion leaves an affinity between the houses
+  that declared; benches form around the weightiest of three friends, grow, break and dissolve on their own, and the
+  chamber names them (*The Rim Benches*, *The Old Blood*, *The Court Party*, *The Purse-Strings*…). Members lean toward
+  their leader's stance and a whip on the leader is half a whip on the bench. The player takes a seat, leaves, founds a
+  bench, or breaks the whip and pays for it. Five events, the benches on the Senate screen with a tag on every bench row.
 - **The offices of the Reach** (GDD §8): the Admiralty, the Treasury and the Speaker's gavel, granted by a Commission
   motion to a house whose member has the rank on the office's track. The Admiral's house commands the office fleets
   (the Reach Squadron, three frigates and a cruiser at the capital; the Imperial Home Fleet under the throne) and fights
@@ -66,6 +71,9 @@
   with, up to three, so a fortress house lives by its guns rather than by luck.
 
 ### Fixed
+- The offices' one-turn flags (`office_granted`, `office_lost`, `treason`) were cleared by the office tick right after
+  the motion resolution had set them, so *The Commission* and *Relieved of Office* could never fire; all Senate, office
+  and bench flags are now cleared once, before motions resolve.
 - Rival careers never advanced: three hundred rival adults sat at rank zero for sixty years, so the spheres, the Senate's
   weights and the offices were the player's alone (found when the offices probe showed one house in the Reach qualified
   for the Admiralty). Every adult outside the player's seat now climbs a rung every nine turns, heads every six, never

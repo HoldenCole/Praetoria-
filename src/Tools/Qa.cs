@@ -260,6 +260,8 @@ internal static class Qa
             if (def.Target == "house" && def.TargetSelfAllowed && decisions.NextInt(0, 2) == 0) target = house.Id;
             cands.Add(new ProposeMotionCommand(p.Id, def.Id, target, tc.Senate));
         }
+        foreach (var f in w.Factions) cands.Add(new JoinFactionCommand(p.Id, f.Id));
+        cands.Add(new LeaveFactionCommand(p.Id)); cands.Add(new FoundFactionCommand(p.Id));
         foreach (var m in SenateSystem.Docket(w))
         {
             cands.Add(new VoteCommand(p.Id, m.Id, decisions.NextInt(0, 3) - 1));

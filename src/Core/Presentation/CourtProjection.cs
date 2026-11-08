@@ -32,7 +32,9 @@ public sealed record ReclaimOption(string HoldingId, string HoldingName, string 
 /// <summary>The capital: who holds it, and what it gives.</summary>
 public sealed record CapitalCard(string SystemName, string? HolderId, string? HolderName, bool Mine);
 /// <summary>One house's stance on a motion: declared or predicted, with its weight and whether the player may still whip it.</summary>
-public sealed record StanceLine(string HouseId, string HouseName, string Accent, int Weight, int Stance, bool Declared, string? LobbyRefusal, string? BribeRefusal);
+public sealed record StanceLine(string HouseId, string HouseName, string Accent, int Weight, int Stance, bool Declared, string? LobbyRefusal, string? BribeRefusal, string? Faction = null, bool FactionLeader = false);
+/// <summary>A Senate faction: its name, leader, benches, platform and record, and what the player may do about it.</summary>
+public sealed record FactionCard(string Id, string Name, string LeaderHouseId, string LeaderName, string LeaderAccent, IReadOnlyList<(string Id, string Name, string Accent)> Members, int Weight, bool Mine, bool Lead, string Platform, int Record, int Since, string? JoinRefusal);
 /// <summary>A motion on the docket or in the history.</summary>
 public sealed record MotionCard(string Id, string KindId, string KindName, string ProposerName, string ProposerAccent, string? TargetName, string Text, int ProposedTurn, bool Open, bool Passed,
     int ForWeight, int AgainstWeight, int MyStance, bool Mine, bool AgainstMe, IReadOnlyList<StanceLine> Stances);
@@ -41,7 +43,8 @@ public sealed record MotionProposal(string KindId, string KindName, string Descr
 /// <summary>An office of the Reach: who holds it, what it confers, and whether the player has a candidate for it.</summary>
 public sealed record OfficeCard(string Id, string Name, string Description, string? HolderHouseId, string? HolderHouse, string? HolderName, string? HolderAccent, int Since, bool Mine, string? MyCandidate, int Hulls, string Track, int MinRank);
 /// <summary>The Senate as a place of action (GDD §6.1): the docket, the history, what the player may move, and their weight in the chamber.</summary>
-public sealed record SenateCard(IReadOnlyList<MotionCard> Docket, IReadOnlyList<MotionCard> History, IReadOnlyList<MotionProposal> Proposals, int MyWeight, int TotalWeight, bool MayPropose, bool Embargoed, int EmbargoLifts, IReadOnlyList<OfficeCard>? Offices = null);
+public sealed record SenateCard(IReadOnlyList<MotionCard> Docket, IReadOnlyList<MotionCard> History, IReadOnlyList<MotionProposal> Proposals, int MyWeight, int TotalWeight, bool MayPropose, bool Embargoed, int EmbargoLifts, IReadOnlyList<OfficeCard>? Offices = null,
+    IReadOnlyList<FactionCard>? Factions = null, string? FoundRefusal = null, string? LeaveRefusal = null, int Followers = 0);
 /// <summary>One house on the wealth table.</summary>
 public sealed record WealthLine(string HouseId, string Name, string Accent, int Wealth, string Tier, bool Mine);
 /// <summary>The house ledger (GDD §17): every per-turn line, the net, wealth and its rank, the loan.</summary>
@@ -355,7 +358,8 @@ public static class CourtProjection
             var stances = new List<StanceLine>();
             foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != house.Id).OrderByDescending(h => senate.Weight(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal))
                 stances.Add(new StanceLine(h.Id, h.Name, h.AccentColor, senate.Weight(w, h.Id), senate.Stance(w, m, h.Id), m.Votes.ContainsKey(h.Id),
-                    m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, 1).Refusal(ctx) : "decided", m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, 1, bribe: true).Refusal(ctx) : "decided"));
+                    m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, 1).Refusal(ctx) : "decided", m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, 1, bribe: true).Refusal(ctx) : "decided",
+                    FactionSystem.Of(w, h.Id)?.Name, FactionSystem.Leads(w, h.Id)));
             var (f, a) = m.Open ? senate.Tally(w, m) : (m.ForWeight, m.AgainstWeight);
             bool againstMe = m.TargetId == house.Id && def != null && (def.LegitimacyTarget < 0 || def.EmbargoTurns > 0);
             return new MotionCard(m.Id, m.Kind, def?.Name ?? m.Kind, proposer?.Name ?? m.ProposerHouseId, proposer?.AccentColor ?? "#888", targetName, senate.Describe(w, m), m.ProposedTurn, m.Open, m.Passed,
@@ -383,6 +387,15 @@ public static class CourtProjection
             int hulls = o.CommandsFleets ? w.Fleets.Values.Where(f => f.Office).Sum(f => f.Strength) : 0;
             return new OfficeCard(o.Id, o.Name, o.Description, hh?.Id, hh?.Name, who?.Name, hh?.AccentColor, h?.SinceTurn ?? 0, hh?.Id == house.Id, OfficeSystem.Candidate(w, o, house.Id)?.Name, hulls, o.Track, o.MinRank);
         }).ToList();
-        return new SenateCard(docket, history, proposals, senate.Weight(w, house.Id), total, senate.MayPropose(w, house.Id), SenateSystem.Embargoed(w, house.Id), Math.Max(0, w.Counter("embargo:" + house.Id) - w.Turn), offices);
+        var factions = w.Factions.OrderByDescending(f => f.Members.Sum(h => senate.Weight(w, h))).ThenBy(f => f.Id, StringComparer.Ordinal).Select(f =>
+        {
+            var lh = w.House(f.LeaderHouseId);
+            string platform = string.Join(" · ", f.Platform.Where(kv => kv.Value != 0).OrderByDescending(kv => Math.Abs(kv.Value)).Take(3).Select(kv => $"{(kv.Value > 0 ? "for" : "against")} {senate.Motions.Def(kv.Key)?.Name.ToLowerInvariant() ?? kv.Key}"));
+            return new FactionCard(f.Id, f.Name, f.LeaderHouseId, lh?.Name ?? f.LeaderHouseId, lh?.AccentColor ?? "#888",
+                f.Members.Select(h => (Id: h, Name: w.House(h)?.Name ?? h, Accent: w.House(h)?.AccentColor ?? "#888")).ToList(), f.Members.Sum(h => senate.Weight(w, h)),
+                f.Members.Contains(house.Id), f.LeaderHouseId == house.Id, platform, f.Record, f.FormedTurn, new JoinFactionCommand(p.Id, f.Id).Refusal(ctx));
+        }).ToList();
+        return new SenateCard(docket, history, proposals, senate.Weight(w, house.Id), total, senate.MayPropose(w, house.Id), SenateSystem.Embargoed(w, house.Id), Math.Max(0, w.Counter("embargo:" + house.Id) - w.Turn), offices,
+            factions, new FoundFactionCommand(p.Id).Refusal(ctx), new LeaveFactionCommand(p.Id).Refusal(ctx), FoundFactionCommand.Followers(w, house.Id).Count);
     }
 }

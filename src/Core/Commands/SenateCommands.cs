@@ -103,3 +103,79 @@ public sealed class LobbyCommand : ICommand
         w.WorldCounters["lobbied"] = w.Counter("lobbied") + 1;
     }
 }
+
+/// <summary>Take a seat with a Senate faction (two influence): the leader's head must not dislike you, and you must sit with no other bench.</summary>
+public sealed class JoinFactionCommand : ICommand
+{
+    private readonly string _factionId;
+    public JoinFactionCommand(string actorId, string factionId) { ActorId = actorId; _factionId = factionId; }
+    public string ActorId { get; }
+    public string Describe() => $"join {_factionId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null) return "no house";
+        var f = w.Factions.FirstOrDefault(x => x.Id == _factionId); if (f == null) return "no such bench";
+        if (FactionSystem.Of(w, house.Id) != null) return "you sit with a bench already";
+        var leaderHead = w.House(f.LeaderHouseId) is { } lh ? Economy.HeadOf(w, lh) : null;
+        if (leaderHead != null && (w.GetRelationship(leaderHead.Id, actor.Id)?.Disposition ?? 0) < -10) return $"{leaderHead.Name} will not have you on the bench";
+        return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = FactionSystem.JoinInfluence }) ? null : $"needs {FactionSystem.JoinInfluence} influence";
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId)!; var f = w.Factions.First(x => x.Id == _factionId);
+        ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = FactionSystem.JoinInfluence });
+        f.Members.Add(actor.HouseId);
+        if (FactionSystem.Affinity(w, actor.HouseId, f.LeaderHouseId) < FactionSystem.FormThreshold) w.WorldCounters[FactionSystem.AffinityKey(actor.HouseId, f.LeaderHouseId)] = FactionSystem.FormThreshold;
+        w.WorldFlags.Add("faction_joined");
+        w.Log($"{w.House(actor.HouseId)?.Name} takes its seat with {f.Name}.");
+    }
+}
+
+/// <summary>Leave your bench. Free, but the leader takes it ill.</summary>
+public sealed class LeaveFactionCommand : ICommand
+{
+    public LeaveFactionCommand(string actorId) { ActorId = actorId; }
+    public string ActorId { get; }
+    public string Describe() => "leave the bench";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true || w.House(actor.HouseId) == null) return "no house";
+        return FactionSystem.Of(w, actor.HouseId) == null ? "you sit with no bench" : null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId)!; var f = FactionSystem.Of(w, actor.HouseId)!;
+        if (f.LeaderHouseId != actor.HouseId) FactionSystem.BreakWhip(w, actor.HouseId, f);
+        f.Members.Remove(actor.HouseId);
+        w.Log($"{w.House(actor.HouseId)?.Name} leaves {f.Name}.");
+    }
+}
+
+/// <summary>Found a bench of your own (two influence): two houses or more with the affinity for you and no bench of their own sit with you, and you lead.</summary>
+public sealed class FoundFactionCommand : ICommand
+{
+    public FoundFactionCommand(string actorId) { ActorId = actorId; }
+    public string ActorId { get; }
+    public string Describe() => "found a bench";
+    public static List<string> Followers(World w, string houseId) =>
+        w.Houses.Values.Where(h => h.Id != houseId && h.Id != PirateSystem.HouseId && FactionSystem.Of(w, h.Id) == null && FactionSystem.Affinity(w, h.Id, houseId) >= FactionSystem.FormThreshold)
+            .OrderByDescending(h => FactionSystem.Affinity(w, h.Id, houseId)).ThenBy(h => h.Id, StringComparer.Ordinal).Take(4).Select(h => h.Id).ToList();
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null) return "no house";
+        if (FactionSystem.Of(w, house.Id) != null) return "you sit with a bench already";
+        int n = Followers(w, house.Id).Count; if (n < 2) return n == 0 ? "no house has voted with you often enough" : "one house would follow; a bench needs two";
+        return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = FactionSystem.FoundInfluence }) ? null : $"needs {FactionSystem.FoundInfluence} influence";
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId)!;
+        ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = FactionSystem.FoundInfluence });
+        FactionSystem.Form(w, actor.HouseId, Followers(w, actor.HouseId), actor.HouseId);
+    }
+}

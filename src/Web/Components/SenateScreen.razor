@@ -69,6 +69,23 @@
                         }
                     </div>
                 }
+                @if (sen.Factions is { Count: > 0 } || sen.FoundRefusal == null || sen.Followers > 0)
+                {
+                    <div class="factions">
+                        <div class="muted small">The benches — houses that vote together are counted together</div>
+                        @foreach (var fa in sen.Factions ?? Array.Empty<FactionCard>())
+                        {
+                            <div class="bench @(fa.Mine ? "mine" : "")" title="@(fa.Platform.Length > 0 ? fa.Platform : "no record yet")">
+                                <div class="of-head"><b>@fa.Name</b> <span class="muted small">weight @fa.Weight · led by <span style="color:@fa.LeaderAccent">@fa.LeaderName</span>@(fa.Record != 0 ? $" · record {(fa.Record > 0 ? "+" : "")}{fa.Record}" : "")@(fa.Lead ? " · YOU LEAD" : fa.Mine ? " · you sit with it" : "")</span></div>
+                                <div class="bench-members">@foreach (var mb in fa.Members) { <span class="member" title="@mb.Name"><Sigil HouseId="@mb.Id" Accent="@mb.Accent" Size="13" /></span> }
+                                    @if (fa.Platform.Length > 0) { <span class="muted small"> · @fa.Platform</span> }</div>
+                                @if (!fa.Mine) { <button class="opt inline tiny" disabled="@(fa.JoinRefusal != null)" title="@(fa.JoinRefusal ?? $"{FactionSystem.JoinInfluence} influence: take a seat with them")" @onclick="() => G.Execute(new JoinFactionCommand(pid, fa.Id))">take a seat</button> }
+                                else if (sen.LeaveRefusal == null) { <button class="opt inline tiny" title="Leave the bench; the leader takes it ill" @onclick="() => G.Execute(new LeaveFactionCommand(pid))">leave</button> }
+                            </div>
+                        }
+                        @if (!(sen.Factions?.Any(f => f.Mine) ?? false)) { <button class="opt inline" disabled="@(sen.FoundRefusal != null)" title="@(sen.FoundRefusal ?? $"{FactionSystem.FoundInfluence} influence: a bench of your own, with {sen.Followers} house(s) that vote with you")" @onclick="() => G.Execute(new FoundFactionCommand(pid))">Found a bench@(sen.Followers > 0 ? $" ({sen.Followers} would follow)" : "")</button> }
+                    </div>
+                }
                 @if (sen.Docket.Count == 0) { <div class="muted">Nothing before the Senate this session.</div> }
                 @foreach (var mo in sen.Docket)
                 {
@@ -86,7 +103,7 @@
                             @foreach (var st in mo.Stances.Take(16))
                             {
                                 <div class="bench-row">
-                                    <Sigil HouseId="@st.HouseId" Accent="@st.Accent" Size="12" /> <span class="bn" title="@st.HouseName">@st.HouseName</span> <span class="muted small wt" title="vote weight">@st.Weight</span>
+                                    <Sigil HouseId="@st.HouseId" Accent="@st.Accent" Size="12" /> <span class="bn" title="@(st.Faction != null ? $"{st.HouseName} · {st.Faction}{(st.FactionLeader ? " (leads)" : "")}" : st.HouseName)">@st.HouseName@(st.Faction != null ? (st.FactionLeader ? " ★" : " ·") : "")</span> <span class="muted small wt" title="vote weight">@st.Weight</span>
                                     <span class="stance @(st.Stance > 0 ? "for" : st.Stance < 0 ? "against" : "")" title="@(st.Declared ? "declared" : "leaning — a whip may move it")">@(st.Stance > 0 ? "for" : st.Stance < 0 ? "against" : "abstains")@(st.Declared ? "" : "?")</span>
                                     <button class="opt inline tiny" disabled="@(st.LobbyRefusal != null)" title="@(st.LobbyRefusal ?? "1 influence: lean them your way")" @onclick="() => G.Execute(new LobbyCommand(pid, mo.Id, st.HouseId, mo.MyStance >= 0 ? 1 : -1))">whip</button>
                                     <button class="opt inline tiny" disabled="@(st.BribeRefusal != null)" title="@(st.BribeRefusal ?? $"{SenateSystem.BribeCredits} credits: a purse weighs more")" @onclick="() => G.Execute(new LobbyCommand(pid, mo.Id, st.HouseId, mo.MyStance >= 0 ? 1 : -1, bribe: true))">bribe</button>

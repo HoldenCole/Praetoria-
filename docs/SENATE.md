@@ -72,3 +72,23 @@ frigates and a cruiser at the capital) is the office fleet of the fractured star
 Flags: `holds_office:<id>`, `office_granted`, `office_lost`, `treason`, `office_vacant:<id>`; counter `offices_granted`.
 Five events in `content/events/offices.json`, among them *The Admiral's Temptation* — the design's classic arc: the fleet
 is the state's, the guns are in your hand.
+
+## The benches: persistent factions
+
+Every decided motion leaves an **affinity** between each pair of houses that declared: +1 for voting together, −1 for
+voting apart (counter `affinity:<a>|<b>`, clamped −6..12). When a house outside any bench has affinity three or more with
+two others also outside one, a **faction** forms around the weightiest of them; a house whose affinity with a leader
+reaches three joins (one a bench a turn); a member whose affinity with its leader falls under one breaks with it; a bench
+of one dissolves; a dead or fallen leader is replaced by the weightiest member. The chamber names a bench by what it is:
+*The Rim Benches*, *The Old Blood*, *The Court Party*, *The Purse-Strings*, *The Peace Benches*, or *The <Leader> Bloc*.
+
+**Discipline.** A member leans two toward its leader's stance on every motion that does not target it or come from it, and
+a whip on the leader is half a whip on the bench — so whipping the right house moves five votes. A leader's carried
+motions build the bench's **record**; its platform remembers the kinds it stood for and against.
+
+**The player** takes a seat (two influence; the leader's head must not dislike them), leaves (the leader takes it ill:
+affinity −2, disposition −5), or founds a bench of their own (two influence, two houses with the affinity). Voting against
+your own bench breaks the whip — the same cost — and the bench may drift you out. Flags: `in_faction`, `faction_leader`,
+`faction_formed`, `faction_joined`, `faction_dissolved`, `broke_the_whip`, `faction_against_me` (a bench's leader has a
+motion against you on the docket: the whole bench will follow); counter `factions`. Five events in
+`content/events/factions.json`, among them *Across the Aisle*.

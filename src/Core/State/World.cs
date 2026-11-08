@@ -78,6 +78,9 @@ public sealed class World
     /// <summary>Motions before the Senate and the last dozen decided (GDD §6.1).</summary>
     public List<Motion> Motions { get; set; } = new();
 
+    /// <summary>Senate factions: benches that vote together (GDD §6.1).</summary>
+    public List<Faction> Factions { get; set; } = new();
+
     /// <summary>The offices of the Reach and who holds them (GDD §8).</summary>
     public List<OfficeHolding> Offices { get; set; } = new();
 

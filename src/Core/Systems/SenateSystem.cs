@@ -47,6 +47,20 @@ public sealed class SenateSystem
     /// <summary>How a rival house leans on a motion before lobbying: positive for, negative against, zero abstain. Deterministic.</summary>
     public int Lean(World w, Motion m, string houseId)
     {
+        int lean = RawLean(w, m, houseId);
+        // bloc discipline (FactionSystem): a member leans toward its leader's stance on anything that does not target it; a whip on the leader is half a whip on the bench
+        var f = FactionSystem.Of(w, houseId);
+        if (f != null && f.LeaderHouseId != houseId && m.TargetId != houseId && m.ProposerHouseId != houseId)
+        {
+            int ls = FactionSystem.LeaderStance(w, m, f, id => RawLean(w, m, id));
+            lean += ls * FactionSystem.Discipline + m.Lobby.GetValueOrDefault(f.LeaderHouseId) / 2;
+        }
+        return lean;
+    }
+
+    /// <summary>A house's lean by its own interests alone, before its bench is counted.</summary>
+    public int RawLean(World w, Motion m, string houseId)
+    {
         var def = _motions.Def(m.Kind); var h = w.House(houseId); if (def == null || h == null) return 0;
         if (houseId == m.ProposerHouseId) return 3;
         var head = Economy.HeadOf(w, h); var proposerHead = w.House(m.ProposerHouseId) is { } ph ? Economy.HeadOf(w, ph) : null;
@@ -122,9 +136,11 @@ public sealed class SenateSystem
     {
         if (_motions.IsEmpty) return;
         var mine = w.Protagonist?.HouseId;
-        foreach (var f in TurnFlags) w.WorldFlags.Remove(f);
+        // last turn's news is cleared before this turn's is written — the offices' and the benches' too, since resolving a motion sets theirs
+        foreach (var f in TurnFlags.Concat(OfficeSystem.TurnFlags).Concat(FactionSystem.TurnFlags)) w.WorldFlags.Remove(f);
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn).ToList()) Resolve(w, m, mine);
         OfficeSystem.Tick(w, _offices);
+        FactionSystem.Tick(w, id => Weight(w, id));
         Propose(w, mine);
         // prune history
         var resolved = w.Motions.Where(m => m.Resolved).OrderByDescending(m => m.ResolvedTurn).ThenBy(m => m.Id, StringComparer.Ordinal).Skip(HistoryKept).ToList();
@@ -138,6 +154,12 @@ public sealed class SenateSystem
         foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId)) if (!m.Votes.ContainsKey(h.Id)) m.Votes[h.Id] = Math.Sign(Lean(w, m, h.Id));   // the rivals declare
         var (f, a) = Tally(w, m);
         m.ForWeight = f; m.AgainstWeight = a; m.Passed = f > a; m.Resolved = true; m.ResolvedTurn = w.Turn;
+        if (mine != null && FactionSystem.Of(w, mine) is { } bench && bench.LeaderHouseId != mine && m.TargetId != mine && m.Votes.GetValueOrDefault(mine) != 0)
+        {
+            int expected = FactionSystem.LeaderStance(w, m, bench, id => RawLean(w, m, id));
+            if (expected != 0 && m.Votes[mine] == -expected) FactionSystem.BreakWhip(w, mine, bench);
+        }
+        FactionSystem.RecordVotes(w, m, m.Kind);
         string standingKey = "senate_standing:" + m.ProposerHouseId;
         w.WorldCounters[standingKey] = Math.Max(0, w.Counter(standingKey) + (m.Passed ? 1 : -1));
         string text = Describe(w, m);

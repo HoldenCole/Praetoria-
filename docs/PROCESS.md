@@ -120,3 +120,6 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   (SENATE.md). Lesson: the probe's first office line — one house qualified for the Admiralty — was the real finding:
   rival careers had never advanced, which quietly hollowed out the spheres and the Senate. Build the probe line for the
   new system first; it tells you what the old systems were not doing.
+- 2026-11-08 — Owner: "go ahead with persistent Senate factions." Done as the benches (SENATE.md). Lesson: order the
+  clearing of one-turn flags once, at the top of the tick that owns the turn, never inside the sub-systems that set them
+  — the offices' flags had been wiped the same tick they were written, and only the factions' test caught it.
