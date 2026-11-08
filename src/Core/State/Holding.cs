@@ -55,6 +55,9 @@ public sealed class Holding
     /// <summary>Turns this world has been in open rebellion against its owner (GDD §19 the rim): 0 = none. It yields nothing while
     /// it lasts; left long enough it breaks away as a free hold. See <see cref="Systems.RegionSystem"/>.</summary>
     public int Rebellion { get; set; }
+
+    /// <summary>The house that held this world before it was taken or broke away — who has the grievance, and the right to buy or fight it back.</summary>
+    public string FormerOwnerId { get; set; } = "";
     public bool InRebellion => Rebellion > 0;
 
     public bool IsPlanet => Kind == Planet;

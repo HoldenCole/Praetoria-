@@ -27,6 +27,10 @@ public sealed record BusinessCard(string Id, string Name, string KindName, strin
 public sealed record VentureOption(string DefId, string Name, string Description, string SystemId, string SystemName, string Cost, string? Refusal);
 /// <summary>A belt the house could stake a claim in.</summary>
 public sealed record ClaimOption(string SystemId, string SystemName, int Belt, int Staked, string? Refusal);
+/// <summary>A world of the house's that broke away and may be bought back.</summary>
+public sealed record ReclaimOption(string HoldingId, string HoldingName, string FreeHouseName, int Price, string? Refusal);
+/// <summary>The capital: who holds it, and what it gives.</summary>
+public sealed record CapitalCard(string SystemName, string? HolderId, string? HolderName, bool Mine);
 /// <summary>One house on the wealth table.</summary>
 public sealed record WealthLine(string HouseId, string Name, string Accent, int Wealth, string Tier, bool Mine);
 /// <summary>The house ledger (GDD §17): every per-turn line, the net, wealth and its rank, the loan.</summary>
@@ -63,7 +67,8 @@ public sealed record CourtModel(int Turn, string Era, string Mode, int Generatio
     IReadOnlyList<MemberLine> Members, IReadOnlyList<ConnectionLine> Connections, CrisisClock? Crises, IReadOnlyList<string> Chronicle,
     IReadOnlyList<HouseholdLine> Household, IReadOnlyList<SiegeLine> Sieges, string? EpilogueText,
     IReadOnlyList<AdvisorReport> Advisors, GreatCrisisCard? GreatCrisis,
-    LedgerCard? Ledger = null, IReadOnlyList<BusinessCard>? Businesses = null, IReadOnlyList<VentureOption>? Ventures = null, IReadOnlyList<ClaimOption>? Claims = null);
+    LedgerCard? Ledger = null, IReadOnlyList<BusinessCard>? Businesses = null, IReadOnlyList<VentureOption>? Ventures = null, IReadOnlyList<ClaimOption>? Claims = null,
+    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null);
 
 public static class CourtProjection
 {
@@ -309,7 +314,10 @@ public static class CourtProjection
             character, new PoolsLine(pools.Influence, pools.Treasury, pools.Agents),
             new TreasuryLine(t.Credits, t.Materials, t.Manpower, t.Influence, t.Exotics, t.Credits < 0),
             holdings, standing, fleets, wars, briefing, house.Name, house.AccentColor, members, connections, clock, chronicle, household, sieges, epilogue, advisors, great,
-            ledger, businessCards, ventureOptions, claimOptions);
+            ledger, businessCards, ventureOptions, claimOptions,
+            w.Holdings.Values.Where(h => h.FormerOwnerId == house.Id && w.House(h.OwnerId)?.Bloc == RegionSystem.FreeholdsBloc).OrderBy(h => h.Id, StringComparer.Ordinal)
+                .Select(h => new ReclaimOption(h.Id, h.Name, w.House(h.OwnerId)!.Name, ReclaimFreeholdCommand.Price(w, h, house.Id), new ReclaimFreeholdCommand(p.Id, h.Id).Refusal(ctx))).ToList(),
+            w.Galaxy is { Capital.Length: > 0 } cg ? new CapitalCard(cg.System(cg.Capital)?.Name ?? cg.Capital, RegionSystem.CapitalHolder(w)?.Id, RegionSystem.CapitalHolder(w)?.Name, RegionSystem.CapitalHolder(w)?.Id == house.Id) : null);
     }
 
     private static string BondName(Relationship? rel) => rel?.Bond is { } b && b != BondType.None ? b.ToString().ToLowerInvariant() : "";

@@ -512,7 +512,7 @@ public sealed class FleetSystem
     private void Conquer(World w, Holding h, string conqueror, string? player)
     {
         string old = h.OwnerId;
-        h.OwnerId = conqueror;
+        h.OwnerId = conqueror; h.FormerOwnerId = old;
         h.Unrest = Math.Clamp(h.Unrest + _rules.ConquestUnrest, 0, 100);
         w.Wars.FirstOrDefault(x => x.Between(old, conqueror))?.AddScore(conqueror, 3);
         if (conqueror == player)

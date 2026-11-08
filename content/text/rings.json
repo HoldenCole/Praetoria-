@@ -77,6 +77,36 @@
         "show_strength": "Hold a fleet review within sight of their envoys.",
         "bend": "Concede something they can see from orbit."
       }
+    },
+    {
+      "id": "the_keys_of_the_capital",
+      "title": "The Keys of the Capital",
+      "body": "The capital is {self.house}'s. The marble is older than the title, the counting-houses older than the marble, and every house in the Reach is already composing the letter it will send. What {self.name} does in the first week will be the first thing anyone says about the new master of the court.",
+      "choices": {
+        "open_court": "Open the court to every house that will come.",
+        "garrison_it": "Put the household troops on every gate first.",
+        "tax_it": "Levy the capital's tithe within the week."
+      }
+    },
+    {
+      "id": "the_capital_falls",
+      "title": "The Capital Falls",
+      "body": "The capital is lost. Whether by siege, by rising or by a treaty signed in a hurry, the court is someone else's now, and {self.house} is a house that used to hold it. There is a ship waiting, a treasury half-emptied, and a household watching {self.name} to learn how this is to be borne.",
+      "choices": {
+        "swear_to_return": "Swear, before the household, to see it again.",
+        "salvage_the_treasury": "Empty what can be emptied before the gates close.",
+        "leave_with_grace": "Hand over the keys in person and walk out the great doors."
+      }
+    },
+    {
+      "id": "the_free_hold_sends_word",
+      "title": "The Free Hold Sends Word",
+      "body": "A world that was {self.house}'s has sent an envoy: not a rebel's defiance but a free hold's terms. They will swear again, for a price that reflects how they were governed; or they will keep their militia drilling and their market open to anyone but you. The envoy is polite, unarmed, and entirely unafraid.",
+      "choices": {
+        "hear_their_price": "Receive the envoy as an equal and hear the price.",
+        "send_the_fleet": "Send them home with a date, and a fleet to follow it.",
+        "let_them_go": "Recognise the free hold and ask only for trade."
+      }
     }
   ]
 }

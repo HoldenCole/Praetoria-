@@ -157,6 +157,7 @@ public sealed class Economy
         if (world.Sieges.ContainsKey(holding.Id)) t -= ProsperitySiege;
         if (world.Galaxy != null && holding.SystemId.Length > 0) t += world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)).Prosperity;
         if (holding.InRebellion) t -= 20;
+        if (world.Galaxy != null && holding.IsPlanet && world.Galaxy.Capital == holding.SystemId) t += 5;   // the court draws trade (GDD §19)
         if (holding.IsPlanet) t += ProsperityPerVentureLevel * world.Businesses.Values.Where(b => b.SystemId == holding.SystemId).Sum(b => b.Level);
         return Math.Clamp(t, 0, 100);
     }

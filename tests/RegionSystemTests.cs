@@ -1,3 +1,4 @@
+using Praetoria.Core.Spheres;
 using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.Galaxy;
@@ -268,5 +269,79 @@ public class ChokepointTests
         foreach (var a in g.Systems.Keys) foreach (var b in g.Systems.Keys) Assert.True(g.Hops(a, b) >= 0, $"{a} cannot reach {b}");
         Assert.All(GalaxyProjection.Nodes(w), n => Assert.True(n.Lanes >= 1));
         Assert.Contains(GalaxyProjection.Nodes(w), n => n.Chokepoint);
+    }
+}
+
+/// <summary>Free holds as actors and the capital as a prize (GAP §6 items 1 and 2).</summary>
+public class FreeholdAndCapitalTests
+{
+    private static World Rings(int unrest) { var m = typeof(RegionSystemTests).GetMethod("Rings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!; return (World)m.Invoke(null, new object[] { unrest })!; }
+
+    [Fact]
+    public void ASecededWorld_RaisesAMilitia_AndRemembersItsOldLord()
+    {
+        var w = Rings(90); var rs = new RegionSystem(); RegionSystem.StateOf(w, "rim").Allegiance = 10;
+        for (int t = 0; t < 6; t++) { w.Turn++; rs.Tick(w); }
+        var barony = w.Holding("barony")!;
+        Assert.Equal("vega", barony.FormerOwnerId);
+        var militia = w.Fleets.Values.Single(f => f.OwnerId == "free_tessaly");
+        Assert.Equal(1, militia.Strength); Assert.Equal("tessaly", militia.SystemId); Assert.Equal(barony.GovernorId, militia.AdmiralId);
+        Assert.True(w.HasFlag("freehold_of_ours"));
+    }
+
+    [Fact]
+    public void TheOldLord_BuysTheFreeHoldBack_AndTheHouseIsFolded()
+    {
+        var w = Rings(90); var rs = new RegionSystem(); RegionSystem.StateOf(w, "rim").Allegiance = 10;
+        for (int t = 0; t < 6; t++) { w.Turn++; rs.Tick(w); }
+        var barony = w.Holding("barony")!; var ctx = new CommandContext(w, TestContent.Rng());
+        var cmd = new ReclaimFreeholdCommand("self", "barony");
+        w.House("vega")!.Treasury.Credits = 0;
+        Assert.StartsWith("needs", cmd.Refusal(ctx));
+        int price = ReclaimFreeholdCommand.Price(w, barony, "vega");
+        Assert.True(price >= 15 + 30);                                          // the leader's grudge (−60) is in the price
+        w.House("vega")!.Treasury.Credits = price + 5;
+        Assert.Null(cmd.Refusal(ctx));
+        var leaderId = barony.GovernorId;
+        Assert.True(new CommandExecutor().TryExecute(cmd, ctx));
+        Assert.Equal("vega", barony.OwnerId); Assert.Equal(5 + 6, w.House("vega")!.Treasury.Credits);           // the folded house's six credits come home too
+        Assert.False(w.Houses.ContainsKey("free_tessaly"));                      // nothing left: folded away
+        Assert.Equal("vega", w.Char(leaderId)!.HouseId); Assert.Equal(leaderId, barony.GovernorId);
+        Assert.All(w.Fleets.Values, f => Assert.NotEqual("free_tessaly", f.OwnerId));
+        Assert.Equal(1, w.Counter("reclaimed"));
+        Assert.Equal("not a free hold", new ReclaimFreeholdCommand("self", "barony").Refusal(ctx));
+    }
+
+    [Fact]
+    public void TheCapital_ConfersLegitimacy_SenateWeight_Threat_AndMarksItsPassing()
+    {
+        var w = Rings(0); var rs = new RegionSystem();
+        w.Turn = 3; rs.Tick(w);
+        Assert.Equal(61, w.House("aurelian")!.Legitimacy);                      // +1 on a third turn
+        Assert.True(w.HasFlag("capital_holder:aurelian")); Assert.False(w.HasFlag("capital_taken"));
+        var spheres = new SphereSystem(new SphereCatalog(new[] { new SphereDef { Id = "senate", Name = "the Senate", CareerTrack = "law" } }), 1.0);
+        spheres.Recompute(w);
+        Assert.Equal(SphereSystem.CapitalSenateWeight, w.House("aurelian")!.SphereInfluence["senate"]);
+        Assert.True(spheres.Threat(w, "aurelian") >= SphereSystem.CapitalThreat);
+        // the player takes it
+        w.Holding("prime_seat")!.OwnerId = "vega"; w.Turn = 4; rs.Tick(w);
+        Assert.True(w.HasFlag("capital_taken")); Assert.True(w.HasFlag("holds_capital")); Assert.Equal(1, w.Counter("capital_changes"));
+        Assert.Contains(w.History, h => h.Text.Contains("changes hands") && h.Text.Contains("House Vega"));
+        w.Holding("prime_seat")!.OwnerId = "corwin"; w.Turn = 5; rs.Tick(w);
+        Assert.True(w.HasFlag("capital_lost")); Assert.True(w.HasFlag("capital_holder:corwin"));
+    }
+
+    [Fact]
+    public void AStrongRival_CovetsTheCapital_OnceADecade()
+    {
+        var w = Rings(0); var rules = new FleetRules();
+        w.Houses["corwin"]!.Legitimacy = 50; w.Houses["corwin"]!.Treasury.Credits = 40;
+        w.Fleets["corwin_fleet"] = new Fleet { Id = "corwin_fleet", Name = "Corwin Line", OwnerId = "corwin", SystemId = "mid1", Strength = 4 };
+        var ai = new NpcAi(); var exec = new CommandExecutor(); w.Turn = 12;
+        ai.Act(exec, new CommandContext(w, TestContent.Rng()), null, null, rules, null);
+        Assert.True(w.AtWar("corwin", "aurelian"));
+        Assert.Equal(12, w.Counter("capital_coveted_turn"));
+        Assert.Equal("prime", w.Fleets["corwin_fleet"].DestinationId);
+        Assert.Contains(w.History, h => h.Text.Contains("declares for the capital"));
     }
 }

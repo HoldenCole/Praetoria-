@@ -89,6 +89,30 @@ public sealed class NpcAi
                 { if (executor.TryExecute(new SueForPeaceCommand(head.Id, playerHouse, rules), ctx)) continue; }
             }
 
+            // a lord does not forgive a stolen world (GAP §6): a free hold that took one is bought back when the coin is there, else fought when the fleet is
+            var stolen = world.Holdings.Values.Where(h => h.FormerOwnerId == house.Id && world.House(h.OwnerId)?.Bloc == RegionSystem.FreeholdsBloc).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (stolen != null)
+            {
+                if (house.Treasury.Credits >= ReclaimFreeholdCommand.Price(world, stolen, house.Id) + 10 && executor.TryExecute(new ReclaimFreeholdCommand(head.Id, stolen.Id), ctx)) continue;
+                if (!world.AtWar(house.Id, stolen.OwnerId) && FleetSystem.StrengthOf(world, house.Id) >= 2 && FleetSystem.StrengthOf(world, house.Id) > FleetSystem.StrengthOf(world, stolen.OwnerId) && house.Treasury.Credits >= 0)
+                    if (executor.TryExecute(new DeclareWarCommand(head.Id, stolen.OwnerId, rules), ctx)) world.Log($"{house.Name} moves to take {stolen.Name} back from {world.House(stolen.OwnerId)?.Name}.");
+                var enemyAt = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.SystemId != stolen.SystemId && f.Strength >= 2).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (world.AtWar(house.Id, stolen.OwnerId) && enemyAt != null && executor.TryExecute(new MoveFleetCommand(head.Id, enemyAt.Id, stolen.SystemId, rules), ctx)) continue;
+            }
+
+            // the capital is coveted (GDD §19 "the capital as a prize"): a strong, legitimate, solvent house makes war on its holder, one such war a decade
+            var capital = RegionSystem.CapitalHolder(world);
+            if (capital != null && capital.Id != house.Id && !world.AtWar(house.Id, capital.Id) && world.Turn - world.Counter("capital_coveted_turn") >= 10
+                && house.Legitimacy >= 40 && house.Treasury.Credits >= 30 && FleetSystem.StrengthOf(world, house.Id) >= Math.Max(3, (int)Math.Ceiling(FleetSystem.StrengthOf(world, capital.Id) * 1.5))
+                && executor.TryExecute(new DeclareWarCommand(head.Id, capital.Id, rules), ctx))
+            {
+                world.WorldCounters["capital_coveted_turn"] = world.Turn;
+                world.Log($"{house.Name} declares for the capital: its fleets sail on {world.Galaxy!.System(world.Galaxy.Capital)?.Name ?? "the capital"} and {capital.Name} must hold it.");
+                var fleet = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.SystemId != world.Galaxy.Capital).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (fleet != null) executor.TryExecute(new MoveFleetCommand(head.Id, fleet.Id, world.Galaxy.Capital, rules), ctx);
+                continue;
+            }
+
             // menace: a hostile (or belligerent), rested house fleet moves on the player's seat
             if (seat != null && player != null && (atWar || disposition < -40))
             {
@@ -231,7 +255,7 @@ public sealed class NpcAi
             if (worst.b != null && (worst.pay <= 0 || house.Treasury.Credits < -25)) executor.TryExecute(new SellBusinessCommand(steward.Id, worst.b.Id, _ventures), ctx);
         }
         // a loan is a bridge, not a floor: borrow only when the ledger is positive, so the instalments can be met
-        if (house.Treasury.Credits < -5 && house.Debt == 0 && net > 0) executor.TryExecute(new TakeLoanCommand(steward.Id, _ventures), ctx);
+        if (house.Treasury.Credits < -5 && house.Debt == 0 && net > f.LoanInstalment) executor.TryExecute(new TakeLoanCommand(steward.Id, _ventures), ctx);   // the instalment must be payable out of income
         if (house.Debt > 0 && house.Treasury.Credits >= house.Debt + 15) executor.TryExecute(new RepayLoanCommand(steward.Id), ctx);
         if (house.Treasury.Credits >= f.InvestCredits + 14)
         {

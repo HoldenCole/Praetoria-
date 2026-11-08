@@ -95,6 +95,7 @@ public sealed class SphereSystem
             if (c is { Alive: true } && c.CareerTrack == sphere.CareerTrack)
                 sum += c.CareerRank;
         }
+        if (sphere.Id == "senate" && RegionSystem.CapitalHolder(w)?.Id == house.Id) sum += CapitalSenateWeight;   // the chair is the capital's (GDD §19)
         return sum;
     }
 
@@ -120,6 +121,11 @@ public sealed class SphereSystem
     /// share <em>above an even split</em> (dominance), plus a factor for holdings beyond the first and
     /// recent seizures. Over-concentration in any estate is what frightens the galaxy.
     /// </summary>
+    /// <summary>Senate influence the capital's holder carries by right of the chair.</summary>
+    public const int CapitalSenateWeight = 2;
+    /// <summary>Threat the capital puts on its holder's back.</summary>
+    public const int CapitalThreat = 5;
+
     public int Threat(World w, string houseId)
     {
         int houses = Math.Max(1, w.Houses.Count);
@@ -135,6 +141,7 @@ public sealed class SphereSystem
 
         int holdingsFactor = Math.Max(0, w.HoldingsOf(houseId).Count() - 1) * 5;
         int seizures = w.Counter("seizures") * 10;   // a hook for the military layer to feed later
-        return (int)Math.Round(dominance) + holdingsFactor + seizures;
+        int capital = RegionSystem.CapitalHolder(w)?.Id == houseId ? CapitalThreat : 0;   // the prize paints a target (GDD §19)
+        return (int)Math.Round(dominance) + holdingsFactor + seizures + capital;
     }
 }

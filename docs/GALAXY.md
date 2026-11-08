@@ -63,6 +63,26 @@ bloc holds the capital or the victor's fleet its orbit; otherwise the war ends i
 the victor is raised to Duke at least with ten legitimacy, and the Fractured Stars go on. A fortress world earns
 **escort fees** from the lanes around it (`docs/ECONOMY.md`).
 
+## Free holds as actors
+
+A world that breaks away is a house from its first day: a leader, a treasury, a **militia** hull in orbit with the leader
+in command, and a steward who trades, stakes claims and founds ventures like any other (`NpcAi`). It remembers its
+old lord (`Holding.FormerOwnerId`). The way back is coin or war: **buy it back** (`ReclaimFreeholdCommand`) for
+fifteen credits plus half its people plus half the leader's grudge, provided you are at peace with it, it is not in
+revolt and its unrest is under seventy — the world swears again, the leader takes the governor's chair under the old
+banner, and a free house left with nothing is folded away, militia and ventures with it; or **declare war** and
+besiege it. Rival lords do the same: they buy back when they have the coin and fight when they have the fleet. The
+player hears of it through *The Free Hold Sends Word* (`freehold_of_ours`).
+
+## The capital as a prize
+
+Holding the capital's world gives the **court** (two credits and an influence a turn), **the Senate's chair** (two
+Senate influence by right), a point of **legitimacy** every third turn, five more prosperity on the world, and the
+**throne gate** above. It also paints a target: five threat, and every ten turns a strong, legitimate, solvent rival
+(hulls at three to two) may **declare for the capital** and sail on it. When the capital changes hands the chronicle
+marks it (`capital_changes`), and the player's events *The Keys of the Capital* (`capital_taken`) and *The Capital
+Falls* (`capital_lost`) fire. The Houses screen shows who holds it; the galaxy card double-rings it.
+
 ## Systems, bodies and the lane web
 
 A system is a system, not a planet: every one carries two to five **bodies** (`bodies` in the galaxy file) — the

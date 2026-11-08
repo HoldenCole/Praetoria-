@@ -81,6 +81,7 @@
                 {
                     var dw = new DeclareWarCommand(pid, owner.Id, c.Fleets);
                     <button class="opt" disabled="@(!dw.CanExecute(ctx))" title="@(dw.CanExecute(ctx) ? "" : "already at war, or no influence")" @onclick="() => G.Execute(new DeclareWarCommand(pid, owner.Id, c.Fleets))">Declare war on @owner.Name (2 influence)</button>
+                    @if (planet != null && G.Court().Reclaims?.FirstOrDefault(r => r.HoldingId == planet.Id) is { } rc) { <button class="opt" disabled="@(rc.Refusal != null)" title="@rc.Refusal" @onclick="() => G.Execute(new ReclaimFreeholdCommand(pid, rc.HoldingId))">Buy @rc.HoldingName back from @rc.FreeHouseName (@rc.Price credits)</button> }
                 }
             </section>
         }

@@ -98,7 +98,32 @@ public sealed class RegionSystem
         }
         w.WorldFlags.Remove("declare_free_march");
         PlayerDecrees(w);
+        CapitalTick(w);
         WriteFlags(w);
+    }
+
+    /// <summary>The capital as a prize (GDD §19): its holder gains a point of legitimacy every third turn, and when it changes hands the
+    /// chronicle marks it — <c>capital_taken</c> / <c>capital_lost</c> for the player's events, a counter for everyone.</summary>
+    public static void CapitalTick(World w)
+    {
+        var g = w.Galaxy; if (g == null || g.Capital.Length == 0) return;
+        var holder = CapitalHolder(w); string name = g.System(g.Capital)?.Name ?? g.Capital;
+        var last = w.WorldFlags.FirstOrDefault(f => f.StartsWith("capital_holder:")); string? lastId = last?["capital_holder:".Length..];
+        string? nowId = holder?.Id;
+        if (lastId != nowId)
+        {
+            if (last != null) w.WorldFlags.Remove(last);
+            if (nowId != null) w.WorldFlags.Add("capital_holder:" + nowId);
+            if (lastId != null)   // the first tick only records who holds it
+            {
+                w.WorldCounters["capital_changes"] = w.Counter("capital_changes") + 1;
+                var mine = w.Protagonist?.HouseId;
+                if (nowId == mine) w.WorldFlags.Add("capital_taken"); if (lastId == mine) w.WorldFlags.Add("capital_lost");
+                w.Log(nowId != null ? $"{name} changes hands: {holder!.Name} holds the capital{(w.House(lastId) is { } old ? $", and {old.Name} the memory of it" : "")}. The court moves."
+                                    : $"{name} stands masterless; the court is dark.");
+            }
+        }
+        if (holder != null && w.Turn > 0 && w.Turn % 3 == 0) holder.Legitimacy = Math.Min(100, holder.Legitimacy + 1);
     }
 
     /// <summary>A world four turns in rebellion breaks away under a new house: its governor, if of another house, else a leader
@@ -122,7 +147,9 @@ public sealed class RegionSystem
             w.Characters[leader.Id] = leader; w.Pools[leader.Id] = ActionPools.ForNpc();
         }
         house.Members.Add(leader.Id);
-        h.OwnerId = id; h.GovernorId = leader.Id; h.Rebellion = 0; h.Unrest = 20; h.Prosperity = Math.Max(20, h.Prosperity - 10);
+        h.FormerOwnerId = h.OwnerId; h.OwnerId = id; h.GovernorId = leader.Id; h.Rebellion = 0; h.Unrest = 20; h.Prosperity = Math.Max(20, h.Prosperity - 10);
+        // the free hold is an actor from its first day (GAP §6): a militia hull from its own people, and a steward who trades, stakes and sails like any other
+        w.Fleets[$"militia_{id}"] = new Fleet { Id = $"militia_{id}", Name = $"{sys.Name.Replace("The ", "")} Militia", OwnerId = id, SystemId = sys.Id, Strength = 1, AdmiralId = leader.Id, Readiness = 80 };
         if (old != null)
         {
             old.Legitimacy = Math.Max(0, old.Legitimacy - 5);
@@ -163,6 +190,8 @@ public sealed class RegionSystem
         if (worlds.Any(h => h.InRebellion)) w.WorldFlags.Add("rebellion");
         if (worlds.Any(h => StateOf(w, g.System(h.SystemId)?.RegionId ?? "").Lawlessness >= 60)) w.WorldFlags.Add("region_lawless");
         if (house.Bloc == FreeholdsBloc) w.WorldFlags.Add("free_march");
+        w.WorldFlags.Remove("freehold_of_ours");
+        if (w.Holdings.Values.Any(h => h.FormerOwnerId == mine && w.House(h.OwnerId)?.Bloc == FreeholdsBloc)) w.WorldFlags.Add("freehold_of_ours");
         var seat = worlds.OrderByDescending(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
         if (seat != null) w.WorldFlags.Add("ring:" + g.RingOf(seat.SystemId));
         foreach (var region in g.Regions)

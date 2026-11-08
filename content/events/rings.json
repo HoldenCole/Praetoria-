@@ -584,6 +584,246 @@
           ]
         }
       ]
+    },
+    {
+      "id": "the_keys_of_the_capital",
+      "tier": "setpiece",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "capital_taken"
+        }
+      ],
+      "choices": [
+        {
+          "id": "open_court",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "capital_taken",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} opened the court to every house that would come, and most came. The capital had a master again, and the master had witnesses."
+            }
+          ]
+        },
+        {
+          "id": "garrison_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "capital_taken",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the household troops on every gate of the capital before the first envoy arrived. The envoys noticed the gates before they noticed the court."
+            }
+          ]
+        },
+        {
+          "id": "tax_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "capital_taken",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} levied the capital's tithe within the week. The counting-houses paid; the squares remembered."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_capital_falls",
+      "tier": "setpiece",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "capital_lost"
+        }
+      ],
+      "choices": [
+        {
+          "id": "swear_to_return",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "capital_lost",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood on the deck as the capital fell astern and swore, before the household, to see it again. Some of them believed it; all of them repeated it."
+            }
+          ]
+        },
+        {
+          "id": "salvage_the_treasury",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "capital_lost",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} emptied what could be emptied before the gates closed. The house left the capital richer and smaller."
+            }
+          ]
+        },
+        {
+          "id": "leave_with_grace",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "capital_lost",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} handed over the keys in person and walked out through the great doors. The Reach has long memories for grace, and longer ones for its absence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_free_hold_sends_word",
+      "tier": "situation",
+      "weight": 6,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "freehold_of_ours"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "hear_their_price",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} received the free hold's envoy as an equal and heard the price of their return. It was high. It was also a price, which is more than a rebellion usually offers."
+            }
+          ]
+        },
+        {
+          "id": "send_the_fleet",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 2
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the envoy home with a date and a fleet to follow it. The free hold began to drill its militia."
+            }
+          ]
+        },
+        {
+          "id": "let_them_go",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} recognised the free hold and asked only for trade. The Reach called it weakness and then, quietly, wisdom."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

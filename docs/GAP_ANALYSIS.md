@@ -184,10 +184,10 @@ houses at turns 11, 31 and 60.
 
 ### Still open, ranked
 1. ~~Fortress worlds have no income~~ — closed: escort fees from peaceful neighbours (up to three credits a turn).
-2. **Free holds are orphans** (§6 item 1): no fleet, no ventures, no way back; two of twelve poorest houses at T60 are
-   free holds that cannot act.
-3. **The capital is only a ledger line** (§6 item 2). **Lawlessness has no face** (§6 item 3). **Governors are passive**
-   (§6 item 4).
+2. ~~Free holds are orphans~~ — closed: a militia, a steward that acts, buy-back and war for the old lord, both for NPCs.
+3. ~~The capital is only a ledger line~~ — closed: the Senate's chair, legitimacy, prosperity, threat, rivals that
+   declare for it, and the chronicle marking its passing. **Lawlessness has no face** (§6 item 3) and **governors are
+   passive** (§6 item 4) remain.
 4. ~~The throne falls in every run by turn 60~~ — closed: the throne stands in the capital; the War of the Reach
    crowns only a decisive victor who holds it, else ends in exhaustion.
 5. **Wars are frequent and bloodless**: ~30 declarations per 60 turns, under two battles. Fleets rarely meet because

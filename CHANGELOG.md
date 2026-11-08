@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **Free holds as actors**: a world that breaks away raises a militia, trades and stakes like any house, and remembers
+  its old lord; the old lord may buy it back for a price that carries the leader's grudge (the leader keeps the
+  governor's chair under the old banner, and a free house left with nothing is folded away) or make war on it, and
+  rival lords do both. *The Free Hold Sends Word* brings it to the player.
+- **The capital as a prize**: its holder has the Senate's chair, a point of legitimacy every third turn, a richer
+  world, and five threat; a strong rival declares for the capital once a decade; its passing is a chronicle moment
+  with *The Keys of the Capital* and *The Capital Falls*; the Houses screen names its holder.
 - **The throne stands in the capital** (GDD §19): seizing it needs a fleet of yours in the capital's orbit; being
   proclaimed needs the capital to be yours or its holder to have knelt; the War of the Reach crowns its victor only
   after a decisive field *and* the capital, and otherwise ends in exhaustion with no one crowned.
