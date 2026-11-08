@@ -25,7 +25,7 @@ public sealed class ActionPools
     public int AgentsRegen { get; set; }
 
     /// <summary>Soft cap so unspent pools don't snowball across idle turns.</summary>
-    public int Cap { get; set; } = 9;
+    public int Cap { get; set; } = 6;
 
     public int Get(string pool) => pool switch
     {
@@ -76,8 +76,8 @@ public sealed class ActionPools
     /// <summary>A player-scale budget.</summary>
     public static ActionPools ForPlayer() => new()
     {
-        Influence = 3, Treasury = 3, Agents = 2,
-        InfluenceRegen = 3, TreasuryRegen = 3, AgentsRegen = 2
+        Influence = 2, Treasury = 2, Agents = 2,
+        InfluenceRegen = 2, TreasuryRegen = 2, AgentsRegen = 1
     };
 
     /// <summary>A lean, abstracted budget for an NPC house (GDD §3). One Treasury point a turn lets a rival

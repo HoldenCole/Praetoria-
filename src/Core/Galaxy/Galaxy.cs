@@ -148,6 +148,25 @@ public sealed class Galaxy
         return -1;
     }
 
+    /// <summary>The lane-by-lane route between two systems, routing around blocked systems (never the destination); empty when none.</summary>
+    public IReadOnlyList<string> Path(string from, string to, Func<string, bool>? blocked = null)
+    {
+        if (!Systems.ContainsKey(from) || !Systems.ContainsKey(to)) return Array.Empty<string>();
+        if (from == to) return new[] { from };
+        var prev = new Dictionary<string, string> { [from] = from }; var queue = new Queue<string>(); queue.Enqueue(from);
+        while (queue.Count > 0)
+        {
+            var cur = queue.Dequeue();
+            foreach (var n in Neighbors(cur))
+            {
+                if (prev.ContainsKey(n)) continue; if (n != to && blocked != null && blocked(n)) continue;
+                prev[n] = cur; if (n == to) { var path = new List<string> { to }; while (path[^1] != from) path.Add(prev[path[^1]]); path.Reverse(); return path; }
+                queue.Enqueue(n);
+            }
+        }
+        return Array.Empty<string>();
+    }
+
     private HashSet<string>? _chokepoints; private int _chokeLanes = -1;
 
     /// <summary>The chokepoints of the lane web (GDD §19 "if you control a key system along a route"): every articulation point

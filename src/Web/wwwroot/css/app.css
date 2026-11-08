@@ -359,3 +359,14 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .gl-labels.far .sys-label { font-size: 10px; opacity: .8; } .gl-labels.veryfar .sys-label { display: none; } .gl-labels.veryfar .region-label .rn { font-size: 15px; }
 .gl-labels.near .region-label { opacity: .45; }
 .region-label.centre .rn { font-size: 11px; opacity: .6; letter-spacing: .3em; } .region-label.centre .rs { display: none; }
+
+/* ===== era theming (GDD §19): the Imperium is older, colder and more gilded than the Fractured Stars ===== */
+.gs-shell[data-era="imperium"] { --brass: #d4b25a; --brass2: #f0d68a; --brass3: #7a6530; --line: #2a2740; --line2: #3b3659; }
+.gs-shell[data-era="imperium"] .topbar { background: linear-gradient(180deg, rgba(22,16,40,.95), rgba(10,8,20,.95)); border-bottom-color: var(--brass3); }
+.gs-shell[data-era="imperium"] .tb-era { color: var(--brass2); letter-spacing: .08em; } .gs-shell[data-era="imperium"] .tb-era::before { content: "✦ "; }
+.gs-shell[data-era="imperium"] .rail { background: linear-gradient(180deg, rgba(22,16,40,.9), rgba(8,8,16,.9)); }
+.gs-shell[data-era="imperium"] .panel h3, .gs-shell[data-era="imperium"] .panel h2 { color: var(--brass2); }
+.gs-shell[data-era="imperium"] .end-turn, .gs-shell[data-era="imperium"] button.primary { background: linear-gradient(180deg, #e0c070, #9a7a30); }
+/* governors, raiders */
+.gov-chip { font-size: .72rem; padding: .02rem .4rem; border-radius: 999px; border: 1px solid var(--line2); margin-left: .3rem; } .gov-chip.loyal { color: #9ed0a0; } .gov-chip.cool { color: var(--muted); } .gov-chip.hostile { color: #e07a5f; border-color: #6a3b2e; } .gov-chip.able { color: #ffe8a3; }
+.sw.raid { background: #c0392b; border-radius: 50%; }

@@ -8,6 +8,13 @@
     foreach (var sg in m.Sieges.Where(s => s.Ours)) alerts.Add(("warn", $"{sg.HoldingName} besieged by {sg.BesiegerName} ({sg.Turns}/{sg.Required})", "galaxy"));
     foreach (var h in m.Household.Where(h => h.Actions.Any(a => a.Id == "defiant"))) alerts.Add(("warn", $"{h.Name} is defiant", "dynasty"));
     if (m.Character.Regency) alerts.Add(("info", "A regent rules in your name", "dynasty"));
+    if (w.HasFlag("pirates_near")) alerts.Add(("warn", "Raiders within a lane of your worlds", "galaxy"));
+    if (w.HasFlag("raided")) alerts.Add(("warn", "Your shipping was plundered", "galaxy"));
+    if (w.HasFlag("governor_revolt")) alerts.Add(("warn", "A governor has declared a world for themselves", "houses"));
+    if (w.HasFlag("freehold_of_ours")) alerts.Add(("info", "A world of yours is a free hold — buy it back or take it", "houses"));
+    if (w.HasFlag("capital_taken")) alerts.Add(("good", "You hold the capital", "senate"));
+    if (w.HasFlag("capital_lost")) alerts.Add(("warn", "The capital is lost", "senate"));
+    if (w.HasFlag("rebellion")) alerts.Add(("warn", "A world of yours is in revolt", "house"));
     if (m.GreatCrisis is { Stage: not null, Resolved: false } gc) alerts.Add(("info", $"{gc.Name}: {gc.Stage}", "houses"));
     if (!w.Characters.Values.Any(c => c.Alive && c.HouseId == house.Id && c.Id != w.ProtagonistId)) alerts.Add(("warn", "No heir — the line hangs by a thread", "dynasty"));
     if (m.Crises != null) foreach (var c in m.Crises.Active) alerts.Add(("warn", $"Crisis: {c.Name} (severity {c.Severity})", "house"));

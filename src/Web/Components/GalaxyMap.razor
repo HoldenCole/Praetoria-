@@ -22,7 +22,7 @@
         </div>
         <div class="legend">
             <span><i class="sw own"></i> your fleet</span><span><i class="sw intel"></i> reported fleet (fainter = less certain)</span>
-            <span><i class="sw siege"></i> siege clock</span><span><i class="sw front"></i> front line</span><span><i class="sw station"></i> station</span> <span class="lg"><i class="sw ck"></i> chokepoint</span>
+            <span><i class="sw siege"></i> siege clock</span><span><i class="sw front"></i> front line</span><span><i class="sw station"></i> station</span><span><i class="sw raid"></i> raiders</span> <span class="lg"><i class="sw ck"></i> chokepoint</span>
             @if (selectedFleet != null) { <span class="hint">@selectedFleet.Name selected — click a ringed world to set course (1 treasury)</span> }
             else { <span class="muted">drag to pan · wheel to zoom · click a world or a fleet</span> }
         </div>
@@ -167,7 +167,8 @@
         var fl = fleets.Select(f => new { id = f.FleetId, name = f.Name, ownerId = f.OwnerHouseId, ownerName = f.OwnerHouseName, accent = f.AccentColor, systemId = f.SystemId, strength = f.Strength, readiness = f.Readiness, isPlayer = f.IsPlayer, moving = f.Moving, destId = f.DestinationId, eta = f.Eta, confidence = f.Confidence }).ToList();
         var rg = regions.Select(r => new { id = r.Id, name = r.Name, culture = r.Culture, cx = r.CX, cy = r.CY, top = r.SystemIds.Select(id => nodes.First(n => n.SystemId == id).Y).Min(), bottom = r.SystemIds.Select(id => nodes.First(n => n.SystemId == id).Y).Max(), accent = r.AccentColor, dominant = r.DominantHouseName, loyalty = 100 - r.Unrest, ring = r.Ring, allegiance = r.Allegiance, lawlessness = r.Lawlessness, free = r.FreeMarch }).ToList();
         var rings = GalaxyProjection.Rings(w);
-        return System.Text.Json.JsonSerializer.Serialize(new { systems, lanes, fleets = fl, regions = rg, rings = rings == null ? null : new { cx = rings.CX, cy = rings.CY, core = rings.Core, middle = rings.Middle, rim = rings.Rim }, playerHouse = w.Protagonist!.HouseId, selected = new { systemId = _systemId, fleetId = _fleetId } });
+        var route = selectedFleet != null && _systemId != null && _systemId != selectedFleet.SystemId ? w.Galaxy!.Path(selectedFleet.SystemId, _systemId, MoveFleetCommand.Barred(w, selectedFleet.OwnerId)) : null;
+        return System.Text.Json.JsonSerializer.Serialize(new { systems, lanes, fleets = fl, regions = rg, rings = rings == null ? null : new { cx = rings.CX, cy = rings.CY, core = rings.Core, middle = rings.Middle, rim = rings.Rim }, playerHouse = w.Protagonist!.HouseId, era = w.Era, route, selected = new { systemId = _systemId, fleetId = _fleetId } });
     }
 
     public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaSpace.destroy", _id); } catch { } _self?.Dispose(); }

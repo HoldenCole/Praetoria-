@@ -98,8 +98,38 @@ public sealed class RegionSystem
         }
         w.WorldFlags.Remove("declare_free_march");
         PlayerDecrees(w);
+        GovernorRevolts(w);
         CapitalTick(w);
         WriteFlags(w);
+    }
+
+    public const int RevoltDisposition = -30, RevoltOdds = 8;
+
+    /// <summary>Governors who scheme (GAP §6 item 4): an ambitious governor who hates the head, on a restless or a rich world, declares it
+    /// for themselves — a new house under the governor's name, a free hold for every purpose, and a grievance for the old lord. One
+    /// in eight such turns, by a hash of the turn and the world, so a hostile ambitious governor is a risk you can see coming.</summary>
+    public void GovernorRevolts(World w)
+    {
+        var g = w.Galaxy; if (g == null) return;
+        foreach (var h in w.Holdings.Values.Where(h => h.IsPlanet && h.GovernorId.Length > 0 && !h.InRebellion).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        {
+            var house = w.House(h.OwnerId); var gov = w.Char(h.GovernorId); if (house == null || gov is not { Alive: true } || house.Id == PirateSystem.HouseId) continue;
+            var head = Economy.HeadOf(w, house); if (head == null || gov.Id == head.Id) continue;
+            if (!gov.NatureTraits.Contains("Ambitious") || (w.GetRelationship(gov.Id, head.Id)?.Disposition ?? 0) > RevoltDisposition) continue;
+            if (h.Unrest < 50 && h.Prosperity < 70) continue;
+            uint hash = 2166136261; foreach (var ch in h.Id + ":" + w.Turn) hash = (hash ^ ch) * 16777619;
+            if (hash % RevoltOdds != 0) continue;
+            var sys = g.System(h.SystemId); string surname = gov.Name.Contains(' ') ? gov.Name[(gov.Name.IndexOf(' ') + 1)..] : gov.Name;
+            var id = $"house_{gov.Id}"; if (w.Houses.ContainsKey(id)) continue;
+            var nh = new House { Id = id, Name = $"House {surname} of {sys?.Name.Replace("The ", "") ?? h.Name}", AccentColor = $"#{(hash & 0x7F) + 0x50:X2}{((hash >> 8) & 0x7F) + 0x50:X2}{((hash >> 16) & 0x7F) + 0x50:X2}", Title = "knight", Legitimacy = 15, Culture = h.Culture.Length > 0 ? h.Culture : house.Culture, Bloc = FreeholdsBloc, Treasury = new Resources { Credits = 8, Materials = 4, Manpower = Math.Max(2, h.Population / 10) } };
+            w.Houses[id] = nh; house.Members.Remove(gov.Id); gov.HouseId = id; nh.Members.Add(gov.Id);
+            h.FormerOwnerId = house.Id; h.OwnerId = id; h.Unrest = Math.Max(0, h.Unrest - 10);
+            w.Fleets[$"militia_{id}"] = new Fleet { Id = $"militia_{id}", Name = $"{sys?.Name.Replace("The ", "") ?? h.Name} Guard", OwnerId = id, SystemId = h.SystemId, Strength = 1, AdmiralId = gov.Id, Readiness = 80 };
+            w.Relationship(gov.Id, head.Id).Disposition = -70; w.Relationship(head.Id, gov.Id).Disposition = Math.Clamp((w.GetRelationship(head.Id, gov.Id)?.Disposition ?? 0) - 50, -100, 100);
+            house.Legitimacy = Math.Max(0, house.Legitimacy - 4);
+            w.WorldCounters["governor_revolts"] = w.Counter("governor_revolts") + 1; if (house.Id == w.Protagonist?.HouseId) w.WorldFlags.Add("governor_revolt");
+            w.Log($"{gov.Name}, governor of {h.Name}, declares the world for {(gov.Sex == "female" ? "herself" : "himself")}: {nh.Name} is proclaimed from the palace steps, and {house.Name} learns what it gave away with the chair.");
+        }
     }
 
     /// <summary>The capital as a prize (GDD §19): its holder gains a point of legitimacy every third turn, and when it changes hands the
@@ -190,6 +220,8 @@ public sealed class RegionSystem
         if (worlds.Any(h => h.InRebellion)) w.WorldFlags.Add("rebellion");
         if (worlds.Any(h => StateOf(w, g.System(h.SystemId)?.RegionId ?? "").Lawlessness >= 60)) w.WorldFlags.Add("region_lawless");
         if (house.Bloc == FreeholdsBloc) w.WorldFlags.Add("free_march");
+        w.WorldFlags.Remove("governor_petition");
+        if (w.HoldingsOf(mine).Any(h => h.IsPlanet && h.Prosperity < 40 && h.GovernorId.Length > 0 && h.GovernorId != w.ProtagonistId && !h.InRebellion)) w.WorldFlags.Add("governor_petition");
         w.WorldFlags.Remove("freehold_of_ours");
         if (w.Holdings.Values.Any(h => h.FormerOwnerId == mine && w.House(h.OwnerId)?.Bloc == FreeholdsBloc)) w.WorldFlags.Add("freehold_of_ours");
         var seat = worlds.OrderByDescending(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();

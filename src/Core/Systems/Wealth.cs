@@ -27,7 +27,7 @@ public static class Wealth
 
     /// <summary>Every house by wealth, richest first; ties by id.</summary>
     public static IReadOnlyList<(House house, int wealth)> Ranked(World w) =>
-        w.Houses.Values.Select(h => (house: h, wealth: h.Wealth)).OrderByDescending(x => x.wealth).ThenBy(x => x.house.Id, StringComparer.Ordinal).ToList();
+        w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).Select(h => (house: h, wealth: h.Wealth)).OrderByDescending(x => x.wealth).ThenBy(x => x.house.Id, StringComparer.Ordinal).ToList();
 
     public static int RankOf(World w, string houseId) { var r = Ranked(w); for (int i = 0; i < r.Count; i++) if (r[i].house.Id == houseId) return i + 1; return r.Count; }
 

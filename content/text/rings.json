@@ -107,6 +107,73 @@
         "send_the_fleet": "Send them home with a date, and a fleet to follow it.",
         "let_them_go": "Recognise the free hold and ask only for trade."
       }
+    },
+    {
+      "id": "raiders_at_the_gate",
+      "title": "Raiders at the Gate",
+      "body": "The raiders have come within a lane of {self.house}'s worlds. Freighters are running dark, the orbital towns are asking for guns, and the squadron's captains are asking for orders. Raiders are not an enemy that can be made peace with; they can be fought, paid, or made someone else's problem.",
+      "choices": {
+        "sail_against_them": "Take the squadron out against them.",
+        "buy_them_off": "Pay them to work another house's lanes.",
+        "arm_the_towns": "Put guns on the orbital towns."
+      }
+    },
+    {
+      "id": "the_pirate_kings_offer",
+      "title": "The Pirate King's Offer",
+      "body": "A raider captain who calls himself a king has sent an envoy to {self.house}'s seat. The offer is the oldest on the rim: a tithe from his takings for a blind eye, a letter of marque if the house prefers to point him at an enemy, and a hanging if the house prefers to make an example. The envoy seems content with any of the three.",
+      "choices": {
+        "take_the_tithe": "Take the tithe and ask no questions.",
+        "hang_the_envoy": "Hang the envoy from the customs mast.",
+        "offer_a_letter_of_marque": "Give him a letter and a list of enemy lanes."
+      }
+    },
+    {
+      "id": "the_governors_petition",
+      "title": "The Governor's Petition",
+      "body": "A world of {self.house}'s is languishing, and its governor has written to say so: the markets are thin, the roads unmended, and a little coin from the house would go a long way. The letter is respectful. It is also, read a second time, a note of what the governor will say if nothing comes.",
+      "choices": {
+        "send_coin": "Send the coin and a kind letter.",
+        "send_a_steward": "Send a steward with authority to look at the books.",
+        "refuse": "Write that the house has its own debts."
+      }
+    },
+    {
+      "id": "the_governors_revolt",
+      "title": "The Governor's Revolt",
+      "body": "A governor of {self.house}'s has declared a world for themselves. The proclamation was read from the palace steps, the garrison swore to the new banner, and the house's tithe went into a treasury with another name on the door. Ambition, long nursed and poorly watched, has done what no enemy fleet managed.",
+      "choices": {
+        "swear_vengeance": "Swear before the household that the new house will not outlive the year.",
+        "name_the_price": "Send word the world can be bought back, and name a figure.",
+        "let_it_go": "Recognise the new house and ask only for the tithe owed to the day of the revolt."
+      }
+    },
+    {
+      "id": "the_fief",
+      "title": "The Fief",
+      "body": "The court has granted {self.house} a world. It is the least of the court's worlds and the whole of yours, and the ceremony requires a knee. The hall is full; every house that ever called {self.house} landless is watching to see how the knee is bent.",
+      "choices": {
+        "kneel_gladly": "Kneel gladly, and rise a baron.",
+        "kneel_and_plan": "Kneel, and count the court's guards while doing it."
+      }
+    },
+    {
+      "id": "the_terms_of_peace",
+      "title": "The Terms of Peace",
+      "body": "The war is over and the terms are signed: a world has changed hands, and it is now {self.house}'s. Its people did not ask for a new banner. Its governor is still the old lord's man. Its customs house has already written to ask whose tithe it collects this season.",
+      "choices": {
+        "garrison_the_prize": "Put a garrison on it before the ink dries.",
+        "leave_its_customs": "Leave it its customs and its governor, and tax it lightly."
+      }
+    },
+    {
+      "id": "the_ceded_world",
+      "title": "The Ceded World",
+      "body": "The war is over and the terms are signed: a world of {self.house}'s has gone to the victor. The chancellor presents the instrument for a seal. The household is watching to see what kind of lord signs away a world.",
+      "choices": {
+        "swear_to_retake_it": "Sign, and swear in the same breath to unsign it.",
+        "bear_it": "Sign, and say nothing."
+      }
     }
   ]
 }

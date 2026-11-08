@@ -5,7 +5,9 @@
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var mine = w.House(p.HouseId)!;
     var ctx = new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0));
     var conns = m.Connections.ToDictionary(x => x.Id);
-    var houses = w.Houses.Values.Where(h => h.Id != mine.Id).OrderByDescending(h => c.Titles.RankOf(h.Title)).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
+    var housesAll = w.Houses.Values.Where(h => h.Id != mine.Id && h.Id != PirateSystem.HouseId);
+    int Disp(House h) { var ms = w.LivingCharacters().Where(x => x.HouseId == h.Id).ToList(); return ms.Count == 0 ? 0 : (int)ms.Average(x => w.GetRelationship(x.Id, pid)?.Disposition ?? 0); }
+    var houses = (_sort switch { "wealth" => housesAll.OrderByDescending(h => h.Wealth), "disposition" => housesAll.OrderByDescending(Disp), "hulls" => housesAll.OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)), _ => housesAll.OrderByDescending(h => c.Titles.RankOf(h.Title)).ThenByDescending(h => h.Legitimacy) }).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
     _focus ??= houses.FirstOrDefault()?.Id;
     _pending = BuildOptions(w, mine, houses);
     int great = houses.Count(h => w.HoldingsOf(h.Id).Any(x => x.IsPlanet)), wars = houses.Count(h => w.AtWar(mine.Id, h.Id));
@@ -64,6 +66,7 @@
         }
         <section class="panel">
             <h3><Icon Name="houses" Size="13" /> The houses of the Reach</h3>
+            <div class="vols">@foreach (var k in new[] { "title", "wealth", "disposition", "hulls" }) { <button class="rung @(_sort == k ? "here" : "")" @onclick="() => _sort = k">by @k</button> }</div>
             @foreach (var h in houses)
             {
                 var worlds = w.HoldingsOf(h.Id).Count(x => x.IsPlanet); var members = w.LivingCharacters().Where(x => x.HouseId == h.Id).ToList();
@@ -82,7 +85,7 @@
 
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
-    private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N"); private DotNetObjectReference<HousesScreen>? _self; private bool _created; private string _pending = "", _sent = ""; private string? _focus;
+    private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N"); private DotNetObjectReference<HousesScreen>? _self; private bool _created; private string _pending = "", _sent = ""; private string? _focus; private string _sort = "title";
 
     protected override async Task OnAfterRenderAsync(bool first)
     {

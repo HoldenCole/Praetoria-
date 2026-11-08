@@ -36,6 +36,7 @@ public sealed class TurnController
     private readonly NpcAi _npcAi;
     private readonly Economy? _economy;
     private readonly RegionSystem _regions;
+    private readonly PirateSystem _pirates = new();
     private readonly CrisisEngine? _crises;
     private readonly SphereSystem? _spheres;
     private readonly ProgressionSystem? _progression;
@@ -107,8 +108,10 @@ public sealed class TurnController
         foreach (var pools in World.Pools.Values) pools.Regenerate();
         _economy?.Accrue(World);     // RNG-free, so determinism is preserved (GDD §17)
         _regions.Tick(World);        // the rings: lawlessness, allegiance, risings and secessions (GDD §19) — seeded only for a new leader's name
+        _pirates.Tick(World);        // raiders gather where the lanes are lawless, roam and plunder (GAP §6) — RNG-free
         _fleets.Tick(World);         // fleets move, eat, arrive; the intel picture refreshes (GDD §19) — RNG-free
         _fleets.ResolveBattles(World, _rng);   // warring fleets that share a system fight (seeded roll)
+        PirateSystem.AfterBattles(World, _fleets.LastBattles); PirateSystem.WriteFlags(World);
         _fleets.ResolveConquests(World);       // an unopposed fleet in enemy space takes its holdings
         _fleets.UpdateIntel(World);            // ...and the picture after the fighting
         _spheres?.Recompute(World);  // power-balance projection + threat/coalition (GDD §7), also RNG-free

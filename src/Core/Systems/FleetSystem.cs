@@ -204,12 +204,21 @@ public sealed class FleetSystem
     }
 
     /// <summary>Long wars grind: past the weariness threshold, every holding of a warring house grows restless each turn.</summary>
+    public const int ExhaustionTurns = 12;   // a war between rivals with no battle this long ends in a white peace
+
     private void WarWeariness(World w)
     {
         foreach (var war in w.Wars)
         {
             if (w.Turn - war.Since < _rules.WarWearinessTurns) continue;
             foreach (var h in w.Holdings.Values.Where(h => war.Involves(h.OwnerId))) h.Unrest = Math.Min(100, h.Unrest + 2);
+        }
+        // exhaustion (GAP §7 "wars are frequent and bloodless"): two rival houses that have not met in battle for twelve turns go home
+        var player = w.Protagonist?.HouseId;
+        foreach (var war in w.Wars.Where(x => !x.Involves(player ?? "") && w.Turn - Math.Max(x.Since, x.LastBattleTurn) >= ExhaustionTurns).ToList())
+        {
+            w.Log($"The war between {w.House(war.HouseA)?.Name ?? war.HouseA} and {w.House(war.HouseB)?.Name ?? war.HouseB} ends in exhaustion; no fleet has met another in a dozen turns.");
+            MakePeace(w, war.HouseA, war.HouseB, terms: false);
         }
     }
 
@@ -233,7 +242,7 @@ public sealed class FleetSystem
         foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal))
         {
             if (f.OwnerId == house) continue;
-            bool seen = watched.Contains(f.SystemId) || (f.Moving && watched.Contains(f.DestinationId));
+            bool seen = watched.Contains(f.SystemId) || (f.Moving && watched.Contains(f.DestinationId)) || f.OwnerId == PirateSystem.HouseId;   // raiders are talked about on every lane
             if (seen)
                 w.Intel[f.Id] = new FleetIntel { FleetId = f.Id, SystemId = f.SystemId, Strength = f.Strength,
                     Confidence = ownSystems.Contains(f.SystemId) ? _rules.ConfidenceInTerritory : _rules.ConfidenceAdjacent, TurnObserved = w.Turn };
@@ -255,11 +264,34 @@ public sealed class FleetSystem
         if (who != null) _friction.Apply(w, who, "declare_war");
     }
 
-    public void MakePeace(World w, string a, string b)
+    public const int CessionLead = 10;   // the side this far behind cedes a world at the peace
+
+    public void MakePeace(World w, string a, string b) => MakePeace(w, a, b, terms: true);
+
+    /// <summary>End a war. With <paramref name="terms"/>, the house behind by <see cref="CessionLead"/> or more cedes its least peopled
+    /// world (never the capital) to the winner: wars have prizes (GAP §7).</summary>
+    public void MakePeace(World w, string a, string b, bool terms)
     {
         var war = w.Wars.FirstOrDefault(x => x.Between(a, b));
         if (war == null) return;
         w.Wars.Remove(war);
+        if (terms)
+        {
+            string? loser = war.Lead(a) >= CessionLead ? b : war.Lead(b) >= CessionLead ? a : null;
+            if (loser != null)
+            {
+                string winner = loser == a ? b : a;
+                var ceded = w.HoldingsOf(loser).Where(h => h.IsPlanet && !(w.Galaxy is { Capital.Length: > 0 } g && g.Capital == h.SystemId)).OrderBy(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (ceded != null && w.HoldingsOf(loser).Count(h => h.IsPlanet) > 1)
+                {
+                    ceded.FormerOwnerId = loser; ceded.OwnerId = winner; ceded.Unrest = Math.Min(100, ceded.Unrest + 10);
+                    var newGov = Economy.HeadOf(w, w.House(winner)!); if (newGov != null) ceded.GovernorId = newGov.Id;
+                    w.WorldCounters["cessions"] = w.Counter("cessions") + 1;
+                    var player = w.Protagonist?.HouseId; if (winner == player) w.WorldFlags.Add("won_a_world"); if (loser == player) w.WorldFlags.Add("ceded_a_world");
+                    w.Log($"By the terms of the peace, {w.House(loser)?.Name ?? loser} cedes {ceded.Name} to {w.House(winner)?.Name ?? winner}.");
+                }
+            }
+        }
         foreach (var s in w.Sieges.Values.Where(s => (war.Involves(s.BesiegerId)) && war.Involves(w.Holding(s.HoldingId)?.OwnerId ?? "")).ToList()) w.Sieges.Remove(s.HoldingId);
         foreach (var c in w.Characters.Values.Where(c => war.Involves(c.HouseId))) c.Flags.Remove(SuingForPeaceFlag);
         RefreshWarFlags(w);
@@ -321,7 +353,7 @@ public sealed class FleetSystem
                     var report = Battle(w, rng, systemId, a, b);
                     LastBattles.Add(report);
                     w.WorldCounters[BattlesCounter] = w.Counter(BattlesCounter) + 1;
-                    w.Wars.First(x => x.Between(a, b)).AddScore(report.Winner, 2);
+                    var scored = w.Wars.FirstOrDefault(x => x.Between(a, b)); if (scored != null) { scored.AddScore(report.Winner, 2); scored.LastBattleTurn = w.Turn; }   // raiders have no war to score
                     if (player != null && (a == player || b == player))
                     {
                         w.WorldFlags.Add(BattleFoughtFlag);

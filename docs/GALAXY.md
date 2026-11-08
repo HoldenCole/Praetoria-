@@ -83,6 +83,40 @@ Senate influence by right), a point of **legitimacy** every third turn, five mor
 marks it (`capital_changes`), and the player's events *The Keys of the Capital* (`capital_taken`) and *The Capital
 Falls* (`capital_lost`) fire. The Houses screen shows who holds it; the galaxy card double-rings it.
 
+## Raiders: lawlessness with a face
+
+When a region's lawlessness passes 60 and no raiders prowl it, a raider fleet gathers at its most lawless corner (an unheld
+world first) under **The Lawless**, a pseudo-house at war with everyone that holds nothing (`PirateSystem`). Raiders roam a
+lane a turn, never into the core, avoiding stronger fleets; where they sit over a held world with no fleet of its owner's,
+they **raid** it (prosperity −3, the region's lawlessness +2, `raided` for the player). Any house fleet that meets them
+fights them by the ordinary battle rules; a hunter that breaks them gains a point of legitimacy and quiets the region by
+ten (`pirate_hunter`). Rival houses with two hulls or more sail on raiders within a lane of their worlds. Raiders dissolve
+when the region's lawlessness falls under 30. Raiders are talked about on every lane: the map always shows them, as a red
+skull. Content reads `pirates_near` (*Raiders at the Gate*, *The Pirate King's Offer*).
+
+## Governors who scheme
+
+A governor's loyalty is on the ledger: one who dislikes the head skims a credit; one who hates them (−40) lets the world
+slide (prosperity target −10); an able one (administration 3) finds a credit the ledger did not know it had; being named
+to the chair is an honour (+10 toward the one who named them). An **ambitious** governor who hates the head, on a restless
+(unrest ≥ 50) or rich (prosperity ≥ 70) world, **declares it for themselves** one such turn in eight: a new house under
+the governor's name, a free hold for every purpose, a militia hull, and a grievance for the old lord (`governor_revolt`).
+A governor of a languishing world petitions the head (`governor_petition`). The House screen shows each governor's
+loyalty and ability.
+
+## Wars that end, and have prizes
+
+Two rival houses whose fleets have not met in twelve turns go home in a white peace: exhaustion. Any peace with terms
+makes the side behind by ten or more **cede** its least peopled world (never the capital, never its last) to the winner
+(`won_a_world`, `ceded_a_world`). Rival fleets at war no longer sit at home: a strong, rested fleet sails to hold the
+unguarded chokepoint between home and the enemy, or strikes the enemy's weakest unguarded world.
+
+## The fief
+
+A landless house of some standing (legitimacy 20) **petitions the court** for a fief (three influence): if the capital's
+holder thinks well of its head (disposition 10) and has two worlds or more, it grants its least peopled one; the grantor
+gains five legitimacy, the petitioner a barony and a governor's chair (`fief_granted`). Rival landless houses petition too.
+
 ## Systems, bodies and the lane web
 
 A system is a system, not a planet: every one carries two to five **bodies** (`bodies` in the galaxy file) — the

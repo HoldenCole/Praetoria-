@@ -100,6 +100,15 @@ public sealed class NpcAi
                 if (world.AtWar(house.Id, stolen.OwnerId) && enemyAt != null && executor.TryExecute(new MoveFleetCommand(head.Id, enemyAt.Id, stolen.SystemId, rules), ctx)) continue;
             }
 
+            // raiders near home are hunted (GAP §6): a fleet of two or more sails on raiders sitting within a lane of a world of the house's
+            var nearHome = world.HoldingsOf(house.Id).Where(h => h.SystemId.Length > 0).SelectMany(h => world.Galaxy!.Neighbors(h.SystemId).Append(h.SystemId)).ToHashSet();
+            var raiders = world.Fleets.Values.Where(f => f.OwnerId == PirateSystem.HouseId && !f.Moving && nearHome.Contains(f.SystemId)).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (raiders != null)
+            {
+                var hunter = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.Strength > raiders.Strength && f.SystemId != raiders.SystemId).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (hunter != null && executor.TryExecute(new MoveFleetCommand(head.Id, hunter.Id, raiders.SystemId, rules), ctx)) continue;
+            }
+
             // the capital is coveted (GDD §19 "the capital as a prize"): a strong, legitimate, solvent house makes war on its holder, one such war a decade
             var capital = RegionSystem.CapitalHolder(world);
             if (capital != null && capital.Id != house.Id && !world.AtWar(house.Id, capital.Id) && world.Turn - world.Counter("capital_coveted_turn") >= 10
@@ -119,6 +128,29 @@ public sealed class NpcAi
                 var fleet = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.Readiness >= 80 && f.SystemId != seat)
                                                .OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (fleet != null && executor.TryExecute(new MoveFleetCommand(head.Id, fleet.Id, seat, rules), ctx)) continue;
+            }
+
+            // against any enemy (GAP §7 "wars are bloodless"): hold the chokepoint between home and the enemy if it is unguarded, else strike the enemy's weakest world
+            var enemy = world.EnemiesOf(house.Id).Where(e => e != playerHouse && e != PirateSystem.HouseId).OrderBy(e => e, StringComparer.Ordinal).FirstOrDefault();
+            var home = world.HoldingsOf(house.Id).Where(h => h.SystemId.Length > 0).OrderByDescending(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault()?.SystemId;
+            if (enemy != null && home != null)
+            {
+                var strike = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.Readiness >= 70 && f.Strength >= 2).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (strike != null)
+                {
+                    var theirSeat = world.HoldingsOf(enemy).Where(h => h.SystemId.Length > 0).OrderByDescending(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault()?.SystemId;
+                    string? target = null;
+                    if (theirSeat != null)
+                    {
+                        var gate = world.Galaxy!.Chokepoints().Where(c => c != home && world.PlanetHolder(c) != enemy && !world.Fleets.Values.Any(f => f.OwnerId == enemy && !f.Moving && f.SystemId == c))
+                            .Select(c => (c, d: world.Galaxy.Hops(home, c) + world.Galaxy.Hops(c, theirSeat))).Where(x => x.d > 0 && world.Galaxy.Hops(home, x.c) > 0 && world.Galaxy.Hops(x.c, theirSeat) > 0)
+                            .OrderBy(x => x.d).ThenBy(x => x.c, StringComparer.Ordinal).FirstOrDefault();
+                        if (gate.c != null && !world.Fleets.Values.Any(f => f.OwnerId == house.Id && f.SystemId == gate.c)) target = gate.c;
+                    }
+                    target ??= world.HoldingsOf(enemy).Where(h => h.IsPlanet && h.SystemId.Length > 0 && !world.Fleets.Values.Any(f => f.OwnerId == enemy && !f.Moving && f.SystemId == h.SystemId))
+                        .OrderBy(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault()?.SystemId;
+                    if (target != null && target != strike.SystemId && executor.TryExecute(new MoveFleetCommand(head.Id, strike.Id, target, rules), ctx)) continue;
+                }
             }
 
             // an unled fleet gets the house's best military mind as admiral (free of pool cost: a commission, not a scheme)
@@ -263,6 +295,7 @@ public sealed class NpcAi
             if (slack != null) executor.TryExecute(new InvestCommand(steward.Id, slack.Id, _ventures), ctx);
         }
         if (galaxy == null) return;
+        if (!world.HoldingsOf(house.Id).Any(h => h.IsPlanet)) executor.TryExecute(new PetitionFiefCommand(steward.Id), ctx);   // a landless house asks the court for land
         // a house whose land earns nothing must find its coin elsewhere: it stakes and founds on a thinner cushion
         int cushion = net <= 0 ? 2 : 10;
         if (house.Treasury.Credits >= f.ClaimCredits + cushion && house.Treasury.Materials >= f.ClaimMaterials)

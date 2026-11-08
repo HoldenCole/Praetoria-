@@ -118,7 +118,7 @@ public sealed class GreatCrisisSystem
         int hegemonHulls = w.Houses.Values.Where(h => h.Bloc == HegemonBloc).Sum(h => FleetSystem.StrengthOf(w, h.Id));
         int allianceHulls = w.Houses.Values.Where(h => h.Bloc == AllianceBloc).Sum(h => FleetSystem.StrengthOf(w, h.Id));
         string winning = hegemonHulls >= allianceHulls ? HegemonBloc : AllianceBloc;
-        foreach (var war in w.Wars.ToList()) _fleets.MakePeace(w, war.HouseA, war.HouseB);
+        foreach (var war in w.Wars.ToList()) _fleets.MakePeace(w, war.HouseA, war.HouseB, terms: false);   // the great peace is one settlement, not forty cessions
         var victor = w.Houses.Values.Where(h => h.Bloc == winning).OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
         w.WorldFlags.Add(ResolvedFlag);
         w.WorldFlags.Add($"great_crisis:won:{winning}");
@@ -128,21 +128,28 @@ public sealed class GreatCrisisSystem
         // the capital, or the victor's fleet its orbit (GDD §19) — otherwise the war ends in exhaustion and no one is crowned
         int winHulls = winning == HegemonBloc ? hegemonHulls : allianceHulls, loseHulls = winning == HegemonBloc ? allianceHulls : hegemonHulls;
         bool decisive = winHulls > 0 && winHulls >= (int)Math.Ceiling(loseHulls * 1.25);
-        bool holdsCapital = victor != null && (w.Galaxy == null || w.Galaxy.Capital.Length == 0
-            || (w.PlanetHolder(w.Galaxy.Capital) is { } ch && (ch == victor.Id || w.House(ch)?.Bloc == winning))
-            || w.Fleets.Values.Any(f => f.OwnerId == victor.Id && !f.Moving && f.SystemId == w.Galaxy.Capital && f.Strength >= 2));
-        if (victor != null && w.Era != "imperium" && victor.Title != Progression.Title.Emperor && decisive && holdsCapital)
+        // the throne stands in the capital: it goes to the winning bloc's house that holds the capital's world, or to the victor
+        // whose fleet holds its orbit — never to a strongest house that was somewhere else when the war ended
+        House? crowned = null;
+        if (victor != null && w.Galaxy is { Capital.Length: > 0 } cap)
         {
-            victor.Title = Progression.Title.Archduke;
-            ThroneSystem.Enthrone(w, victor.Id, seized: true);
-            w.Log($"The War of the Reach ends with {victor.Name} on a throne that did not exist when it began.");
+            var holder = w.PlanetHolder(cap.Capital) is { } ch ? w.House(ch) : null;
+            if (holder != null && holder.Bloc == winning) crowned = holder;
+            else if (w.Fleets.Values.Any(f => f.OwnerId == victor.Id && !f.Moving && f.SystemId == cap.Capital && f.Strength >= 2)) crowned = victor;
+        }
+        else crowned = victor;
+        if (crowned != null && w.Era != "imperium" && crowned.Title != Progression.Title.Emperor && decisive)
+        {
+            crowned.Title = Progression.Title.Archduke;
+            ThroneSystem.Enthrone(w, crowned.Id, seized: true);
+            w.Log($"The War of the Reach ends with {crowned.Name} on a throne that did not exist when it began{(crowned.Id != victor!.Id ? $"; {victor.Name} won the field and {crowned.Name} the capital" : "")}.");
         }
         else if (victor != null && w.Era != "imperium")
         {
             w.WorldFlags.Add("great_crisis:stalemate"); w.WorldCounters["stalemates"] = w.Counter("stalemates") + 1;
             if (Progression.Title.RankOf(victor.Title) < 4) victor.Title = Progression.Title.Duke;
             victor.Legitimacy += 10;
-            w.Log($"The War of the Reach ends in exhaustion. {victor.Name} holds the field but {(decisive ? $"not {w.Galaxy?.System(w.Galaxy.Capital)?.Name ?? "the capital"}" : "not decisively enough")}; no one is crowned, and the Fractured Stars go on.");
+            w.Log($"The War of the Reach ends in exhaustion. {victor.Name} holds the field but {(decisive ? $"no one of the winning side holds {w.Galaxy?.System(w.Galaxy.Capital)?.Name ?? "the capital"}" : "not decisively enough")}; no one is crowned, and the Fractured Stars go on.");
         }
         else w.Log($"The War of the Reach ends. The {winning} bloc holds the field{(victor != null ? $"; {victor.Name} stands tallest" : "")}.");
         foreach (var h in w.Houses.Values) h.Bloc = "";

@@ -75,6 +75,8 @@
             <h3><Icon Name="threat" Size="13" /> Rival navies <span class="muted">as reported</span></h3>
             @{ int maxHulls = Math.Max(1, Math.Max(ours, rivals.Count == 0 ? 0 : rivals.Max(r => r.hulls))); }
             <div class="navy-row mine"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="14" /> <span>@house.Name</span><span class="bar"><i style="width:@(100 * ours / maxHulls)%; background:@house.AccentColor"></i></span><b>@ours</b></div>
+            @{ var raiderHulls = w.Fleets.Values.Where(f => f.OwnerId == PirateSystem.HouseId).Sum(f => f.Strength); }
+            @if (raiderHulls > 0) { <div class="navy-row warn"><span>☠</span> <span>Raiders on the lanes</span><span class="bar"><i style="width:@(100 * raiderHulls / maxHulls)%; background:#c0392b"></i></span><b>@raiderHulls</b></div> }
             @foreach (var r in rivals.Take(8))
             {
                 <div class="navy-row @(w.AtWar(house.Id, r.house.Id) ? "warn" : "")" title="confidence @(r.conf)%"><Sigil HouseId="@r.house.Id" Accent="@r.house.AccentColor" Size="14" /> <span>@r.house.Name@(w.AtWar(house.Id, r.house.Id) ? " ⚔" : "")</span><span class="bar"><i style="width:@(100 * r.hulls / maxHulls)%; background:@r.house.AccentColor; opacity:@(0.35 + 0.65 * r.conf / 100.0)"></i></span><b>~@r.hulls</b></div>

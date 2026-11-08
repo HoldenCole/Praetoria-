@@ -55,7 +55,8 @@ public sealed class World
     /// <summary>Standing wars between houses (GDD §6). Fleets of warring houses fight where they meet.</summary>
     public List<War> Wars { get; set; } = new();
 
-    public bool AtWar(string a, string b) => a != b && Wars.Any(w => w.Between(a, b));
+    /// <summary>Two houses are at war when a war stands between them — or when either is the lawless (raiders fight everyone).</summary>
+    public bool AtWar(string a, string b) => a != b && (a == "pirates" || b == "pirates" || Wars.Any(w => w.Between(a, b)));
     public IEnumerable<string> EnemiesOf(string houseId) =>
         Wars.Where(w => w.Involves(houseId)).Select(w => w.Other(houseId)).OrderBy(h => h, StringComparer.Ordinal);
 

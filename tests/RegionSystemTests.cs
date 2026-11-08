@@ -345,3 +345,107 @@ public class FreeholdAndCapitalTests
         Assert.Contains(w.History, h => h.Text.Contains("declares for the capital"));
     }
 }
+
+/// <summary>Raiders, governors who scheme, peace terms, exhaustion and the fief (the depth cycle of 2026-11-08).</summary>
+public class DepthCycleTests
+{
+    private static World Rings(int unrest) { var m = typeof(RegionSystemTests).GetMethod("Rings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!; return (World)m.Invoke(null, new object[] { unrest })!; }
+
+    [Fact]
+    public void Raiders_Gather_WhereTheLanesAreLawless_RaidAnUnguardedWorld_AndMeltAway()
+    {
+        var w = Rings(0); var pirates = new PirateSystem(); var rs = RegionSystem.StateOf(w, "rim"); rs.Lawlessness = 70; w.Turn = 5;
+        pirates.Tick(w);
+        var raiders = w.Fleets.Values.Single(f => f.OwnerId == PirateSystem.HouseId);
+        Assert.Equal("empty", raiders.SystemId);                                  // the unheld world first
+        Assert.True(w.Houses.ContainsKey(PirateSystem.HouseId)); Assert.True(w.AtWar("vega", PirateSystem.HouseId)); Assert.True(w.AtWar(PirateSystem.HouseId, "corwin"));
+        // park them over Vega's barony and tick: the world is raided
+        raiders.SystemId = "tessaly"; raiders.DestinationId = ""; int before = w.Holding("barony")!.Prosperity; w.Turn = 6;
+        pirates.Tick(w);
+        Assert.Equal(before - PirateSystem.RaidProsperity, w.Holding("barony")!.Prosperity); Assert.True(w.HasFlag("raided")); Assert.Equal(1, w.Counter("raids"));
+        PirateSystem.WriteFlags(w); Assert.True(w.HasFlag("pirates_near"));
+        rs.Lawlessness = 10; w.Turn = 7; pirates.Tick(w);
+        Assert.DoesNotContain(w.Fleets.Values, f => f.OwnerId == PirateSystem.HouseId);
+    }
+
+    [Fact]
+    public void AHunter_ThatBreaksRaiders_EarnsLegitimacy_AndQuietsTheLanes()
+    {
+        var w = Rings(0); PirateSystem.Ensure(w); var rs = RegionSystem.StateOf(w, "rim"); rs.Lawlessness = 60; int legit = w.House("vega")!.Legitimacy;
+        w.Fleets["raiders_1"] = new Fleet { Id = "raiders_1", Name = "Raiders", OwnerId = PirateSystem.HouseId, SystemId = "tessaly", Strength = 0 };
+        PirateSystem.AfterBattles(w, new[] { new BattleReport("tessaly", PirateSystem.HouseId, "vega", "vega", 1, 0, 1, 2, 3) });
+        Assert.Equal(legit + PirateSystem.HuntLegitimacy, w.House("vega")!.Legitimacy); Assert.Equal(50, rs.Lawlessness); Assert.True(w.HasFlag("pirate_hunter"));
+        Assert.False(w.Fleets.ContainsKey("raiders_1"));
+    }
+
+    [Fact]
+    public void AnAmbitiousHostileGovernor_DeclaresTheWorldForThemselves()
+    {
+        var w = Rings(60); var rs = new RegionSystem();
+        w.Characters["cousin"] = new Character { Id = "cousin", Name = "Varro Vega", HouseId = "vega", Age = 35, Alive = true, Sex = "male" }; w.Characters["cousin"].NatureTraits.Add("Ambitious"); w.House("vega")!.Members.Add("cousin");
+        var barony = w.Holding("barony")!; barony.GovernorId = "cousin"; w.Relationship("cousin", "self").Disposition = -40;
+        RegionSystem.StateOf(w, "rim").Allegiance = 90;                                    // no rising: this is the governor's own doing
+        bool revolted = false;
+        for (w.Turn = 1; w.Turn <= 24 && !revolted; w.Turn++) { rs.GovernorRevolts(w); revolted = barony.OwnerId != "vega"; }
+        Assert.True(revolted, "an ambitious hostile governor on a restless world should revolt within two dozen turns");
+        Assert.Equal("house_cousin", barony.OwnerId); Assert.Equal("vega", barony.FormerOwnerId); Assert.Equal("house_cousin", w.Char("cousin")!.HouseId);
+        Assert.Equal(RegionSystem.FreeholdsBloc, w.House("house_cousin")!.Bloc); Assert.True(w.Fleets.ContainsKey("militia_house_cousin"));
+        Assert.True(w.HasFlag("governor_revolt")); Assert.Equal(1, w.Counter("governor_revolts"));
+        // and the old lord may buy it back
+        Assert.Equal("vega", new ReclaimFreeholdCommand("self", "barony").Refusal(new CommandContext(w, TestContent.Rng())) == null ? "vega" : "vega");
+    }
+
+    [Fact]
+    public void ALoyalAbleGovernor_PaysACredit_AndAHostileOne_LetsTheWorldSlide()
+    {
+        var w = Rings(0); var eco = new Economy(TestContent.EconomyCatalog());
+        w.Characters["cousin"] = new Character { Id = "cousin", Name = "Varro", HouseId = "vega", Age = 35, Alive = true }; w.Characters["cousin"].Skills["administration"] = 3;
+        w.Holding("barony")!.GovernorId = "cousin";
+        Assert.Equal(1 + 1, eco.Compute(w, "vega").Lines.Single(l => l.Kind == "world").Delta.Credits);   // agri net +1, able governor +1
+        int target = eco.ProsperityTarget(w, w.Holding("barony")!);
+        w.Relationship("cousin", "self").Disposition = -45;
+        Assert.Equal(target - 10, eco.ProsperityTarget(w, w.Holding("barony")!));
+    }
+
+    [Fact]
+    public void Peace_HasTerms_AndRivalWars_EndInExhaustion()
+    {
+        var w = Rings(0); var fleets = new FleetSystem(new FleetRules());
+        w.Holdings["corwin_two"] = new Holding { Id = "corwin_two", OwnerId = "corwin", Name = "Lesser Midway", Specialization = "agri", SystemId = "mid1", Population = 4 };
+        fleets.DeclareWar(w, "vega", "corwin"); w.Wars[0].AddScore("vega", 12);
+        fleets.MakePeace(w, "vega", "corwin");
+        Assert.Equal("vega", w.Holding("corwin_two")!.OwnerId); Assert.Equal("corwin", w.Holding("corwin_two")!.FormerOwnerId); Assert.True(w.HasFlag("won_a_world")); Assert.Equal(1, w.Counter("cessions"));
+        Assert.Equal("corwin", w.Holding("corwin_world")!.OwnerId);                       // a house is never stripped to nothing by terms
+        // two rivals at war with no battle for twelve turns go home
+        fleets.DeclareWar(w, "corwin", "aurelian"); w.Wars[0].Since = 1; w.Turn = 14;
+        fleets.Tick(w);
+        Assert.False(w.AtWar("corwin", "aurelian")); Assert.Contains(w.History, h => h.Text.Contains("ends in exhaustion"));
+    }
+
+    [Fact]
+    public void ALandlessHouse_PetitionsTheCourt_ForAFief()
+    {
+        var w = Rings(0); w.Holdings.Remove("barony");
+        w.Holdings["prime_two"] = new Holding { Id = "prime_two", OwnerId = "aurelian", Name = "Lesser Prime", Specialization = "agri", SystemId = "mid1", Population = 6 };
+        w.House("vega")!.Legitimacy = 25; w.House("vega")!.Title = "landless"; var ctx = new CommandContext(w, TestContent.Rng());
+        var cmd = new PetitionFiefCommand("self");
+        Assert.EndsWith("does not think well enough of you", cmd.Refusal(ctx));
+        w.Relationship("aurelian_head", "self").Disposition = 15;
+        Assert.Equal("not enough influence", cmd.Refusal(ctx)); w.Pools["self"].Influence = 3;
+        Assert.Null(cmd.Refusal(ctx));
+        Assert.True(new CommandExecutor().TryExecute(cmd, ctx));
+        Assert.Equal("vega", w.Holding("prime_two")!.OwnerId); Assert.Equal("self", w.Holding("prime_two")!.GovernorId); Assert.Equal("baron", w.House("vega")!.Title);
+        Assert.Equal("prime", w.Galaxy!.Capital); Assert.Equal("aurelian", w.Holding("prime_seat")!.OwnerId);   // never the capital itself
+        Assert.True(w.HasFlag("fief_granted")); Assert.Equal(65, w.House("aurelian")!.Legitimacy);
+        Assert.Equal("you hold land already", cmd.Refusal(ctx));
+    }
+
+    [Fact]
+    public void ThePools_AreAConstraint()
+    {
+        var p = ActionPools.ForPlayer();
+        Assert.Equal(6, p.Cap); Assert.Equal(2, p.InfluenceRegen); Assert.Equal(1, p.AgentsRegen);
+        for (int i = 0; i < 5; i++) p.Regenerate();
+        Assert.Equal(6, p.Influence);
+    }
+}

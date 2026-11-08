@@ -18,6 +18,9 @@ is what will happen.
 | `tolls` | two credits for each chokepoint whose world you hold (`docs/GALAXY.md`) |
 | `escort` | a fortress world (specialization defense ≥ 0.4) earns a credit per neighbouring system another house holds and is at peace with, up to three: ships pass under its guns and pay |
 | `court` | two credits and an influence for holding the capital |
+
+A governor's hand is in the `world` line too: a hostile governor (disposition ≤ −20 toward the head) skims a credit, an
+able one (administration ≥ 3) adds one, and a governor who hates the head (≤ −40) drags the prosperity target down ten.
 | `loan` | this turn's instalment |
 | `interest` | a credit per house paying down a loan your bank holds |
 | `fleet` | fleet upkeep (forecast only; the fleet system charges it) |
@@ -72,6 +75,12 @@ three lanes, a world of your own, a title rank, a planet class, a specialization
 
 The two landless houses of the Reach each start with one. NPC stewards found one where the catalog lets them when they
 have coin to spare, expand the one they have, stake claims near home, and invest in a slack world.
+
+## The action pools
+
+The per-turn action pools (GDD §9) are a constraint now: the player's cap is six, regenerating two influence, two
+treasury actions and one agent a turn (was nine and 3/3/2). A proclamation (three influence, two agents) or a war
+(two influence) is saved for, not spent on a whim.
 
 ## Loans
 

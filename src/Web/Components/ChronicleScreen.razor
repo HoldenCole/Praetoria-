@@ -23,10 +23,11 @@
             <h3><Icon Name="chronicle" Size="13" /> The volumes</h3>
             <div class="vols">@foreach (var v in volumes) { <button class="rung @(v.key == _volume ? "here" : "")" @onclick="() => _volume = v.key">@v.label</button> }</div>
             <label class="inline"><input type="checkbox" @bind="_onlyNotable" /> only the notable</label>
+            <div class="vols">@foreach (var k in new[] { "all", "war", "dynasty", "coin", "realm" }) { <button class="rung @(_kind == k ? "here" : "")" @onclick="() => _kind = k">@k</button> }</div>
         </section>
         @foreach (var g in turns)
         {
-            var lines = g.Where(h => !_onlyNotable || h.EventId != null || Notable(h.Text)).ToList();
+            var lines = g.Where(h => (!_onlyNotable || h.EventId != null || Notable(h.Text)) && Kind(h.Text)).ToList();
             if (lines.Count == 0) continue;
             <section class="panel turn-block">
                 <h3>Turn @g.Key</h3>
@@ -50,6 +51,15 @@
     private static bool Notable(string t) =>
         t.Contains("war", StringComparison.OrdinalIgnoreCase) || t.Contains("dies") || t.Contains("born") || t.Contains("wed") || t.Contains("takes ") ||
         t.Contains("destroyed") || t.Contains("Crisis") || t.Contains("throne", StringComparison.OrdinalIgnoreCase) || t.Contains("succeeds") || t.Contains("desert");
+    private string _kind = "all";
+    private bool Kind(string t) => _kind switch
+    {
+        "war" => Martial(t) || t.Contains("declares") || t.Contains("peace") || t.Contains("Raiders") || t.Contains("raiders"),
+        "dynasty" => t.Contains("born") || t.Contains("dies") || t.Contains("wed") || t.Contains("comes of age") || t.Contains("succeeds") || t.Contains("banner"),
+        "coin" => t.Contains("credits") || t.Contains("founds") || t.Contains("stakes") || t.Contains("borrows") || t.Contains("sells") || t.Contains("buys") || t.Contains("tithe"),
+        "realm" => t.Contains("rises") || t.Contains("breaks from") || t.Contains("Free March") || t.Contains("capital") || t.Contains("Crisis") || t.Contains("throne", StringComparison.OrdinalIgnoreCase) || t.Contains("governor"),
+        _ => true
+    };
     private static bool Martial(string t) => t.Contains("war", StringComparison.OrdinalIgnoreCase) || t.Contains("battle", StringComparison.OrdinalIgnoreCase) || t.Contains("destroyed") || t.Contains("siege", StringComparison.OrdinalIgnoreCase);
 
     // a volume per ten turns, the current one always present even when empty

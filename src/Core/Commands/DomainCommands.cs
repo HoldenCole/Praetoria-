@@ -160,7 +160,51 @@ public sealed class AppointGovernorCommand : ICommand
         var old = w.Char(h.GovernorId);
         if (old != null && old.Id != g.Id && old.Id != w.ProtagonistId) w.Relationship(old.Id, ActorId).Disposition = Math.Clamp(w.Relationship(old.Id, ActorId).Disposition - 10, -100, 100);   // the displaced resent it
         h.GovernorId = g.Id;
+        if (g.Id != ActorId) w.Relationship(g.Id, ActorId).Disposition = Math.Clamp(w.Relationship(g.Id, ActorId).Disposition + 10, -100, 100);   // the chair is an honour
         w.WorldCounters["appointments"] = w.Counter("appointments") + 1;
         w.Log($"{g.Name} is named governor of {h.Name}{(old != null && old.Id != g.Id ? $", displacing {old.Name}" : "")}.");
+    }
+}
+
+
+/// <summary>A landless house petitions the court for a fief (GAP §4 "a landless house has no way back"): the capital's holder, if well
+/// disposed and holding two worlds or more, grants its least peopled world. Three influence; the grantor gains legitimacy for the
+/// generosity and the petitioner a barony, a governor's chair and a debt of gratitude.</summary>
+public sealed class PetitionFiefCommand : ICommand
+{
+    private static readonly Dictionary<string, int> CostMap = new() { [Pool.Influence] = 3 };
+    public PetitionFiefCommand(string actorId) { ActorId = actorId; }
+    public string ActorId { get; }
+    public string Describe() => "petition the court for a fief";
+
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null) return "no house";
+        if (w.HoldingsOf(house.Id).Any(h => h.IsPlanet)) return "you hold land already";
+        var court = Systems.RegionSystem.CapitalHolder(w);
+        if (court == null) return "no court stands to grant it";
+        if (court.Id == house.Id) return "you are the court";
+        if (w.AtWar(house.Id, court.Id)) return $"{court.Name} is at war with you";
+        if (house.Legitimacy < 20) return "the court will not hear a house of so little standing";
+        if (w.HoldingsOf(court.Id).Count(h => h.IsPlanet) < 2) return $"{court.Name} has no world to spare";
+        var crown = Systems.Economy.HeadOf(w, court);
+        if (crown != null && (w.GetRelationship(crown.Id, actor.Id)?.Disposition ?? 0) < 10) return $"{court.Name} does not think well enough of you";
+        return ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "not enough influence";
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId)!; var house = w.House(actor.HouseId)!; var court = Systems.RegionSystem.CapitalHolder(w)!;
+        ctx.PoolsOf(ActorId).Spend(CostMap);
+        var fief = w.HoldingsOf(court.Id).Where(h => h.IsPlanet && !(w.Galaxy is { Capital.Length: > 0 } g && g.Capital == h.SystemId)).OrderBy(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).First();
+        fief.FormerOwnerId = court.Id; fief.OwnerId = house.Id; fief.GovernorId = actor.Id;
+        if (Progression.Title.RankOf(house.Title) < Progression.Title.RankOf(Progression.Title.Baron)) house.Title = Progression.Title.Baron;
+        house.Legitimacy += 3; court.Legitimacy = Math.Min(100, court.Legitimacy + 5);
+        var crown = Systems.Economy.HeadOf(w, court);
+        if (crown != null) { w.Relationship(actor.Id, crown.Id).Disposition = Math.Clamp((w.GetRelationship(actor.Id, crown.Id)?.Disposition ?? 0) + 20, -100, 100); w.Relationship(crown.Id, actor.Id).Disposition = Math.Clamp((w.GetRelationship(crown.Id, actor.Id)?.Disposition ?? 0) + 10, -100, 100); }
+        w.WorldCounters["fiefs_granted"] = w.Counter("fiefs_granted") + 1; if (house.Id == w.Protagonist?.HouseId) w.WorldFlags.Add("fief_granted");
+        w.Log($"{court.Name} grants {fief.Name} to {house.Name} in fief. {actor.Name} kneels for it, and rises a {house.Title}.");
     }
 }

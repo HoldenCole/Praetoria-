@@ -42,6 +42,7 @@
         <section class="panel">
             <h3><Icon Name="worlds" Size="13" /> Holdings <span class="muted">@m.Holdings.Count</span></h3>
             @if (m.Holdings.Count == 0) { <div class="muted">Your house holds no land. A fief is won, granted, or married into.</div> }
+            @if (m.Petition != null && !m.Holdings.Any(h => h.Kind == "planet")) { <button class="opt" disabled="@(m.Petition.Refusal != null)" title="@m.Petition.Refusal" @onclick="() => G.Execute(new PetitionFiefCommand(pid))">@m.Petition.Label</button> }
             @foreach (var h in m.Holdings)
             {
                 var holding = w.Holding(h.Id)!; var sys = w.Galaxy?.System(holding.SystemId); var (pf, pg) = Svg.Planet(sys?.PlanetClass ?? "terran");
@@ -51,7 +52,7 @@
                         <span class="pill @(h.Unrest >= 50 ? "warn" : "")">loyalty @(100 - h.Unrest)</span>
                         @if (h.Besieged) { <span class="pill warn">besieged</span> }
                     </summary>
-                    <div class="kv"><span><Icon Name="governor" Size="12" /> Governor</span><b>@(h.GovernorName ?? "—")</b></div>
+                    <div class="kv"><span><Icon Name="governor" Size="12" /> Governor</span><b>@(h.GovernorName ?? "—")@if (h.GovernorName != null && h.GovernorDisposition < 100) { <span class="gov-chip @GovClass(h)" title="@GovTitle(h)">@GovText(h)</span> }@if (h.GovernorAdministration >= 3) { <span class="gov-chip able" title="@("administration " + h.GovernorAdministration + " · +1 credit a turn")">able</span> }</b></div>
                     <div class="kv"><span>Culture</span><b>@h.Culture</b></div>
                     @if (h.Kind != "claim") { <div class="kv"><span>Prosperity</span><b class="@(h.Prosperity < 35 ? "warn" : h.Prosperity >= 75 ? "good" : "")"><span class="bar"><i style="width:@h.Prosperity%" class="@(h.Prosperity < 35 ? "low" : "")"></i></span>@h.Prosperity <span class="muted small">@(h.ProsperityTarget > h.Prosperity ? "↗" : h.ProsperityTarget < h.Prosperity ? "↘" : "→") @h.ProsperityTarget</span></b></div> }
                     @if (h.Belt > 0) { <div class="kv"><span>Belt</span><b>@(new string('●', h.Belt)) richness @h.Belt</b></div> }
@@ -176,6 +177,9 @@
         var household = m.Household.Where(h => !h.Hidden).Select(h => w.Char(h.Id)).Where(x => x != null).Select(x => Plate(x!, x!.Id)).ToList();
         return System.Text.Json.JsonSerializer.Serialize(new { accent = house.AccentColor, houseId = house.Id, holdings, household, player = Plate(p, null) });
     }
+    private static string GovClass(HoldingCard h) => h.GovernorDisposition <= -30 ? "hostile" : h.GovernorDisposition < 10 ? "cool" : "loyal";
+    private static string GovText(HoldingCard h) => h.GovernorDisposition <= -30 ? (h.GovernorAmbitious ? "hostile · ambitious" : "hostile") : h.GovernorDisposition < 10 ? "cool" : "loyal";
+    private static string GovTitle(HoldingCard h) => "disposition toward you " + h.GovernorDisposition + (h.GovernorAmbitious ? " · ambitious" : "");
     private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
     private static string Delta(Resources r) { var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{(r.Get(k) > 0 ? "+" : "")}{r.Get(k)} {k}").ToList(); return parts.Count == 0 ? "—" : string.Join(" · ", parts); }
     private ICommand Household(string optionId, string childId) => optionId == "recall" ? new RecallCommand(G.World!.ProtagonistId, childId) : new FosterCommand(G.World!.ProtagonistId, childId);

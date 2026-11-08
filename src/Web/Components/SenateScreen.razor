@@ -5,7 +5,7 @@
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
     var spheres = c.Spheres.IsEmpty ? new List<string>() : c.Spheres.Defs.Select(s => s.Id).ToList();
     if (spheres.Count == 0) spheres = w.Houses.Values.SelectMany(h => h.SphereInfluence.Keys).Distinct().OrderBy(x => x, StringComparer.Ordinal).ToList();
-    var ranked = w.Houses.Values.OrderByDescending(h => h.SphereInfluence.Values.Sum()).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
+    var ranked = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderByDescending(h => h.SphereInfluence.Values.Sum()).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
     _members = ranked.Where(h => h.Id != house.Id).Take(15).Select(h => (house: h, head: w.LivingCharacters().Where(x => x.HouseId == h.Id).OrderByDescending(x => x.CareerRank).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault())).Where(x => x.head != null).ToList();
     _pending = BuildOptions(w, p, house, ranked);
     var s = m.Standing; var ladder = c.Titles.ByRank.ToList();

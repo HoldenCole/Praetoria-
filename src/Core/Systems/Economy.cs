@@ -33,6 +33,8 @@ public sealed class Economy
     public const int ProsperitySiege = 30;
     public const int ProsperityPerVentureLevel = 2;
     public const int GovernorSkimThreshold = -20;
+    public const int GovernorSabotageThreshold = -40; // a governor who hates the head this much lets the world slide
+    public const int AbleGovernorAdministration = 3;
     public const int TollCredits = 2;             // a chokepoint's holder taxes the lane
     public const int EscortFeeCap = 3;            // a fortress world escorts its neighbours' shipping for a credit a lane
     public const double FortressDefense = 0.4;    // a specialization this defensive is a fortress // a governor who dislikes the head this much pockets a credit a turn
@@ -86,7 +88,8 @@ public sealed class Economy
                 if (r == Resource.Manpower && v > 0) v = v * (100 - holding.Unrest) / 100; // unrest taxes people (GDD §17)
                 d.Add(r, v);
             }
-            // a governor who hates the head skims
+            // a governor who hates the head skims; an able one finds a credit the ledger did not know it had
+            if (holding.GovernorId.Length > 0 && (world.Char(holding.GovernorId)?.Skill("administration") ?? 0) >= AbleGovernorAdministration && holding.IsPlanet) d.Add(Resource.Credits, 1);
             if (head != null && holding.GovernorId.Length > 0 && holding.GovernorId != head.Id && (world.GetRelationship(holding.GovernorId, head.Id)?.Disposition ?? 0) <= GovernorSkimThreshold) d.Add(Resource.Credits, -1);
             ledger.Add(holding.Name, holding.IsClaim ? "claim" : holding.IsPlanet ? "world" : "station", d);
         }
@@ -154,6 +157,8 @@ public sealed class Economy
         var house = world.House(holding.OwnerId); var tax = house != null ? _catalog.Tax(house.TaxPolicy) : null;
         var governor = holding.GovernorId.Length > 0 ? world.Char(holding.GovernorId) : null;
         int t = 50 + (governor?.Skill("administration") ?? 0) * ProsperityPerAdministration + holding.Buildings.Count * ProsperityPerBuilding - holding.Unrest / 2 - (tax?.CreditsBonus ?? 0) * 4;
+        var headOf = house != null ? HeadOf(world, house) : null;
+        if (governor != null && headOf != null && governor.Id != headOf.Id && (world.GetRelationship(governor.Id, headOf.Id)?.Disposition ?? 0) <= GovernorSabotageThreshold) t -= 10;   // a hostile governor lets the world slide
         if (world.Sieges.ContainsKey(holding.Id)) t -= ProsperitySiege;
         if (world.Galaxy != null && holding.SystemId.Length > 0) t += world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)).Prosperity;
         if (holding.InRebellion) t -= 20;
@@ -169,7 +174,7 @@ public sealed class Economy
 
         // interest flows to lenders out of this turn's instalments, so snapshot who is paying before anyone's debt moves
         var paying = world.Houses.Values.Where(h => h.Debt > 0).Select(h => h.Id).ToHashSet();
-        foreach (var house in world.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var house in world.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var holdings = world.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
             if (holdings.Count == 0 && !world.BusinessesOf(house.Id).Any() && house.Debt == 0 && !world.Businesses.Values.Any(b => world.PlanetHolder(b.SystemId) == house.Id) && !world.Houses.Values.Any(h => h.LenderId == house.Id && paying.Contains(h.Id))) continue;

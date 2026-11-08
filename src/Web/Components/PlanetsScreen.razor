@@ -35,7 +35,7 @@
         @foreach (var r in regions)
         {
             <section class="panel region-block" style="--accent:@r.AccentColor">
-                <div class="region-head"><h3>@r.Name <span class="ring @r.Ring">@r.Ring</span></h3><span class="muted">@r.Culture · @(r.DominantHouseName != null ? $"{r.DominantHouseName} dominates" : "no house dominates")@(r.FreeMarch ? " · FREE MARCH" : "") · loyalty @(100 - r.Unrest) · ⚜ @r.Allegiance · <span class="@(r.Lawlessness >= 60 ? "warn" : "")">☠ @r.Lawlessness</span>@(r.Rebellions > 0 ? $" · {r.Rebellions} rising" : "")</span></div>
+                <div class="region-head"><h3>@r.Name <span class="ring @r.Ring">@r.Ring</span></h3><span class="muted">@r.Culture · @(r.DominantHouseName != null ? $"{r.DominantHouseName} dominates" : "no house dominates")@(r.FreeMarch ? " · FREE MARCH" : "") · loyalty @(100 - r.Unrest) · ⚜ @r.Allegiance · <span class="@(r.Lawlessness >= 60 ? "warn" : "")">☠ @r.Lawlessness</span>@(r.Rebellions > 0 ? $" · {r.Rebellions} rising" : "")@(w.Fleets.Values.Any(f => f.OwnerId == PirateSystem.HouseId && r.SystemIds.Contains(f.SystemId)) ? " · ☠ raiders" : "")</span></div>
                 @foreach (var id in r.SystemIds)
                 {
                     var n = nodes[id]; var owner = n.OwnerHouseId != null ? w.House(n.OwnerHouseId) : null;

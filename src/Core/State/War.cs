@@ -10,6 +10,8 @@ public sealed class War
     public int Since { get; set; }
     public int ScoreA { get; set; }
     public int ScoreB { get; set; }
+    /// <summary>The last turn a battle was fought in this war (0 = none yet): a war with no battle for long is exhaustion, not war.</summary>
+    public int LastBattleTurn { get; set; }
     public int Score(string houseId) => HouseA == houseId ? ScoreA : HouseB == houseId ? ScoreB : 0;
     public void AddScore(string houseId, int delta) { if (HouseA == houseId) ScoreA += delta; else if (HouseB == houseId) ScoreB += delta; }
     /// <summary>How far ahead <paramref name="houseId"/> is (negative = behind).</summary>

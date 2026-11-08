@@ -84,5 +84,13 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   Fixed all five; mean house credits at turn 60 went from 14 to 99 and houses in debt from 7 to 1. Lesson: a soak
   that only asks "did it crash" misses an economy that quietly fails; the probe that prints the twelve poorest houses
   with their specializations found in one line what forty turns of green QA had not.
+- 2026-11-08 — Owner: fortress income and the throne gate; then free holds and the capital as a prize; then "remember
+  the cycle". Done: escort fees, the throne standing in the capital, free holds as actors with buy-back and war, the
+  capital with the Senate's chair and rivals who covet it. Then a full cycle batch: raiders (lawlessness with a face),
+  governors who scheme and revolt, wars that end in exhaustion and have prizes, fleets that hold chokepoints, the fief
+  petition, the pools as a constraint, era theming, a route preview, and ten QoL fixes. Lesson: a pseudo-house for the
+  lawless (at war with everyone, holding nothing) slots into every existing system — battles, intel, the map — for the
+  price of one `AtWar` special case and a handful of exclusions; building pirates as a separate entity would have
+  touched twenty files.
 - 2026-11-07 — Owner: office good; portraits can wait; galaxy needs a little more; then UI for the Academy and the
   political system at the office's level; then depth. Done: galaxy polish; Senate and Academy screens on new 3D sets.

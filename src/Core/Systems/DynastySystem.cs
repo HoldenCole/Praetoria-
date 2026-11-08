@@ -70,7 +70,7 @@ public sealed class DynastySystem
         var mine = world.Protagonist?.HouseId;
         foreach (var house in world.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
         {
-            if (house.Id == mine) continue;
+            if (house.Id == mine || house.Id == PirateSystem.HouseId) continue;
             if (world.Characters.Values.Any(c => c.Alive && c.HouseId == house.Id)) continue;
             if (!world.HoldingsOf(house.Id).Any() && !world.BusinessesOf(house.Id).Any() && !world.Fleets.Values.Any(f => f.OwnerId == house.Id)) continue;   // a name with nothing left ends quietly
             int n = world.Counter("cousins") + 1; world.WorldCounters["cousins"] = n;

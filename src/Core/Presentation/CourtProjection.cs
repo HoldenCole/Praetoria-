@@ -20,7 +20,7 @@ public sealed record BuildOption(string HoldingId, string BuildingId, string Lab
 public sealed record HoldingCard(string Id, string Name, string SpecName, string? SystemName, int Population, int MaxPopulation, int Unrest,
     int SlotsUsed, int Slots, IReadOnlyList<string> Buildings, IReadOnlyList<BuildOption> Builds, bool CanRaiseShips, string RaiseShipsLabel,
     IReadOnlyList<ShipOption> Ships, bool Besieged, string Kind = "planet", string? GovernorName = null, IReadOnlyList<Option>? GovernorOptions = null, string Culture = "",
-    int Prosperity = 50, int ProsperityTarget = 50, Option? Invest = null, int Belt = 0);
+    int Prosperity = 50, int ProsperityTarget = 50, Option? Invest = null, int Belt = 0, int GovernorDisposition = 0, int GovernorAdministration = 0, bool GovernorAmbitious = false);
 /// <summary>A venture the house owns (GDD §17 businesses) and what can be done with it.</summary>
 public sealed record BusinessCard(string Id, string Name, string KindName, string? SystemName, int Level, int MaxLevel, string Yield, string? Charter, int Value, Option Expand, Option Sell);
 /// <summary>A venture the house could found: a kind in a system, with the reason it cannot (null = it can).</summary>
@@ -68,7 +68,7 @@ public sealed record CourtModel(int Turn, string Era, string Mode, int Generatio
     IReadOnlyList<HouseholdLine> Household, IReadOnlyList<SiegeLine> Sieges, string? EpilogueText,
     IReadOnlyList<AdvisorReport> Advisors, GreatCrisisCard? GreatCrisis,
     LedgerCard? Ledger = null, IReadOnlyList<BusinessCard>? Businesses = null, IReadOnlyList<VentureOption>? Ventures = null, IReadOnlyList<ClaimOption>? Claims = null,
-    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null);
+    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null);
 
 public static class CourtProjection
 {
@@ -126,7 +126,8 @@ public static class CourtProjection
                 h.Culture,
                 h.Prosperity, tc.Economy?.ProsperityTarget(w, h) ?? 50,
                 new Option("invest", $"Invest in {h.Name}  ({content.Businesses.Finance.InvestCredits} credits → +{content.Businesses.Finance.InvestProsperity} prosperity)", new InvestCommand(p.Id, h.Id, content.Businesses).Refusal(ctx)),
-                w.Galaxy?.System(h.SystemId)?.Belt ?? 0));
+                w.Galaxy?.System(h.SystemId)?.Belt ?? 0,
+                h.GovernorId.Length > 0 && h.GovernorId != p.Id ? w.GetRelationship(h.GovernorId, p.Id)?.Disposition ?? 0 : 100, w.Char(h.GovernorId)?.Skill("administration") ?? 0, w.Char(h.GovernorId)?.NatureTraits.Contains("Ambitious") == true));
         }
 
         // the ledger, the ventures and the belts (GDD §17)
@@ -317,7 +318,8 @@ public static class CourtProjection
             ledger, businessCards, ventureOptions, claimOptions,
             w.Holdings.Values.Where(h => h.FormerOwnerId == house.Id && w.House(h.OwnerId)?.Bloc == RegionSystem.FreeholdsBloc).OrderBy(h => h.Id, StringComparer.Ordinal)
                 .Select(h => new ReclaimOption(h.Id, h.Name, w.House(h.OwnerId)!.Name, ReclaimFreeholdCommand.Price(w, h, house.Id), new ReclaimFreeholdCommand(p.Id, h.Id).Refusal(ctx))).ToList(),
-            w.Galaxy is { Capital.Length: > 0 } cg ? new CapitalCard(cg.System(cg.Capital)?.Name ?? cg.Capital, RegionSystem.CapitalHolder(w)?.Id, RegionSystem.CapitalHolder(w)?.Name, RegionSystem.CapitalHolder(w)?.Id == house.Id) : null);
+            w.Galaxy is { Capital.Length: > 0 } cg ? new CapitalCard(cg.System(cg.Capital)?.Name ?? cg.Capital, RegionSystem.CapitalHolder(w)?.Id, RegionSystem.CapitalHolder(w)?.Name, RegionSystem.CapitalHolder(w)?.Id == house.Id) : null,
+            new Option("petition_fief", "Petition the court for a fief  (3 influence)", new PetitionFiefCommand(p.Id).Refusal(ctx)));
     }
 
     private static string BondName(Relationship? rel) => rel?.Bond is { } b && b != BondType.None ? b.ToString().ToLowerInvariant() : "";

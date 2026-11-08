@@ -23,7 +23,7 @@ else if (G.Turn == null)
 else
 {
     var m = G.Court();
-    <div class="gs-shell" style="--accent:@m.HouseAccent" @ref="_shell" data-nebula>
+    <div class="gs-shell" style="--accent:@m.HouseAccent" @ref="_shell" data-nebula data-era="@m.Era">
         <TopBar OnSave="SaveLocal" OnExport="Download" OnQuit="Abandon" SavedFlash="@_savedFlash" />
         <nav class="rail">
             @foreach (var (id, glyph, label) in Screens)

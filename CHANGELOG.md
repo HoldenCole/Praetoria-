@@ -3,6 +3,21 @@
 ## [Unreleased]
 
 ### Added
+- **Raiders** (lawlessness with a face): where a region's lanes go lawless a raider fleet gathers under The Lawless, at
+  war with everyone; it roams, plunders unguarded worlds and is hunted by any fleet that meets it; the map shows raiders
+  as a red skull, the outliner warns of them, and two events bring them to the door.
+- **Governors who scheme**: loyalty and ability on the ledger, an honour for being named, and an ambitious hostile
+  governor on a restless or rich world who declares it for themselves; the House screen shows each governor's loyalty.
+- **Wars that end, and have prizes**: exhaustion ends a rival war with no battle in twelve turns; a peace cedes a world
+  to the side ten ahead; rival fleets at war sail to hold the chokepoint between home and the enemy or strike the
+  enemy's weakest world.
+- **The fief**: a landless house petitions the court for a world; rival landless houses do too.
+- **The pools as a constraint** (GDD §9): cap six, regenerating 2/2/1.
+- **Era theming**: the Imperium gilds the chrome. **Route preview**: a selected fleet's lane-by-lane path to a selected
+  system. **The capital wears a crown** on the map.
+- Quality of life: the resource strip's tooltip lists the ledger; the chronicle filters by war, dynasty, coin and
+  realm; the Houses roster sorts by title, wealth, disposition or hulls; the outliner warns of raiders, revolts, free
+  holds of yours, and the capital changing hands; the Military screen counts raiders among the navies.
 - **Free holds as actors**: a world that breaks away raises a militia, trades and stakes like any house, and remembers
   its old lord; the old lord may buy it back for a price that carries the leader's grudge (the leader keeps the
   governor's chair under the old banner, and a free house left with nothing is folded away) or make war on it, and

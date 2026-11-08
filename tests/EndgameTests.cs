@@ -30,6 +30,8 @@ public class EndgameTests
         Assert.EndsWith("has not knelt", cmd.Refusal(ctx));                    // Aurelian holds the capital (GDD §19)
         var ours = w.Protagonist!; var theirs = Economy.HeadOf(w, w.House("aurelian")!)!;
         w.Relationship(theirs.Id, ours.Id).Disposition = 25;                  // and now it kneels
+        Assert.StartsWith("not enough influence", cmd.Refusal(ctx));          // a proclamation is saved for, not spent on a whim (GDD §9)
+        w.Pools[w.ProtagonistId].Influence = 3; w.Pools[w.ProtagonistId].Agents = 2;
         Assert.Null(cmd.Refusal(ctx));
 
         Assert.True(new CommandExecutor().TryExecute(cmd, ctx));

@@ -23,6 +23,7 @@ public class CombatTests
     {
         var (content, w, _) = Fresh();
         var ctx = new CommandContext(w, TestContent.Rng());
+        w.Pools[w.ProtagonistId].Influence = 6;                                  // the pools are a constraint now (GDD §9); this test is about the commands
         var declare = new DeclareWarCommand(w.ProtagonistId, "corwin", content.Fleets);
         Assert.True(declare.CanExecute(ctx));
         new CommandExecutor().TryExecute(declare, ctx);
