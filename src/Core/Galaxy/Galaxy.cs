@@ -18,7 +18,22 @@ public sealed class StarSystem
 
     /// <summary>Asteroid belt richness, 0 = none. Also the number of mining claims the belt supports (GDD §17 asteroids).</summary>
     public int Belt { get; set; }
+
+    /// <summary>Everything that orbits the star (GDD §19 "show all the planets"): the primary world (the one a holding sits on)
+    /// and its sisters, moons, giants and belts. At least one body, marked primary, matching <see cref="PlanetClass"/>.</summary>
+    public List<Body> Bodies { get; set; } = new();
+    public Body Primary => Bodies.FirstOrDefault(b => b.IsPrimary) ?? new Body { Name = Name, Class = PlanetClass, Size = 3, IsPrimary = true };
     public string Description { get; set; } = "";
+}
+
+/// <summary>A body in a system: a world, a moon, a gas giant, a belt. Decorative except the primary, which is the world a holding sits on.</summary>
+public sealed class Body
+{
+    public string Name { get; set; } = "";
+    public string Class { get; set; } = "barren";
+    /// <summary>1 small (a moon, a rock), 2 a world, 3 the primary or a giant.</summary>
+    public int Size { get; set; } = 2;
+    public bool IsPrimary { get; set; }
 }
 
 /// <summary>A region of space: a handful of systems that share a culture and a character (GDD §19). Loyalties and houses
@@ -107,7 +122,11 @@ public sealed class Galaxy
     }
 
     /// <summary>Lane-hops between two systems by breadth-first search, or -1 if unreachable.</summary>
-    public int Hops(string from, string to)
+    public int Hops(string from, string to) => Hops(from, to, null);
+
+    /// <summary>Lane hops between two systems, routing around systems the predicate blocks (a garrisoned enemy chokepoint, GDD §19);
+    /// the destination itself is never blocked. −1 when no way remains.</summary>
+    public int Hops(string from, string to, Func<string, bool>? blocked)
     {
         if (from == to) return Systems.ContainsKey(from) ? 0 : -1;
         if (!Systems.ContainsKey(from) || !Systems.ContainsKey(to)) return -1;
@@ -120,6 +139,7 @@ public sealed class Galaxy
             foreach (var n in Neighbors(cur))
             {
                 if (dist.ContainsKey(n)) continue;
+                if (n != to && blocked != null && blocked(n)) continue;
                 dist[n] = dist[cur] + 1;
                 if (n == to) return dist[n];
                 queue.Enqueue(n);
@@ -127,6 +147,46 @@ public sealed class Galaxy
         }
         return -1;
     }
+
+    private HashSet<string>? _chokepoints; private int _chokeLanes = -1;
+
+    /// <summary>The chokepoints of the lane web (GDD §19 "if you control a key system along a route"): every articulation point
+    /// (cut it and the map falls apart) plus the quarter of systems the most shortest paths run through. Whoever holds a
+    /// chokepoint's world takes tolls, and may bar passage to an enemy while a fleet sits there. Cached per lane set.</summary>
+    public IReadOnlySet<string> Chokepoints()
+    {
+        if (_chokepoints != null && _chokeLanes == Lanes.Count) return _chokepoints;
+        var ids = Systems.Keys.OrderBy(k => k, StringComparer.Ordinal).ToList(); var set = new HashSet<string>();
+        if (ids.Count == 0) { _chokepoints = set; _chokeLanes = Lanes.Count; return set; }
+        // articulation points (Tarjan)
+        var disc = new Dictionary<string, int>(); var low = new Dictionary<string, int>(); int time = 0;
+        void Dfs(string u, string? parent)
+        {
+            disc[u] = low[u] = time++; int children = 0;
+            foreach (var v in Neighbors(u))
+            {
+                if (v == parent) continue;
+                if (!disc.ContainsKey(v)) { children++; Dfs(v, u); low[u] = Math.Min(low[u], low[v]); if (parent != null && low[v] >= disc[u]) set.Add(u); }
+                else low[u] = Math.Min(low[u], disc[v]);
+            }
+            if (parent == null && children > 1) set.Add(u);
+        }
+        foreach (var id in ids) if (!disc.ContainsKey(id)) Dfs(id, null);
+        // betweenness (Brandes), the top sixth
+        var bc = ids.ToDictionary(i => i, _ => 0.0);
+        foreach (var s in ids)
+        {
+            var stack = new Stack<string>(); var pred = ids.ToDictionary(i => i, _ => new List<string>()); var sigma = ids.ToDictionary(i => i, _ => 0.0); var d = ids.ToDictionary(i => i, _ => -1);
+            sigma[s] = 1; d[s] = 0; var q = new Queue<string>(); q.Enqueue(s);
+            while (q.Count > 0) { var v = q.Dequeue(); stack.Push(v); foreach (var w in Neighbors(v)) { if (d[w] < 0) { q.Enqueue(w); d[w] = d[v] + 1; } if (d[w] == d[v] + 1) { sigma[w] += sigma[v]; pred[w].Add(v); } } }
+            var delta = ids.ToDictionary(i => i, _ => 0.0);
+            while (stack.Count > 0) { var w = stack.Pop(); foreach (var v in pred[w]) delta[v] += sigma[v] / sigma[w] * (1 + delta[w]); if (w != s) bc[w] += delta[w]; }
+        }
+        int top = Math.Max(1, (ids.Count + 3) / 4);
+        foreach (var id in bc.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(top).Select(kv => kv.Key)) set.Add(id);
+        _chokepoints = set; _chokeLanes = Lanes.Count; return set;
+    }
+    public bool IsChokepoint(string systemId) => Chokepoints().Contains(systemId);
 
     /// <summary>Every id referenced by a lane must be a system; a lane may not loop.</summary>
     public IEnumerable<string> Problems()

@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **The galaxy as a galaxy** (GDD §19): the map is laid out twice as wide; every system carries two to five bodies
+  (worlds, moons, giants, belts) drawn on their orbits around the star; regions are highlighted as soft areas around
+  their systems; the lane web is sparse (forty lanes, under three a system) and runs through gateways; **chokepoints**
+  are computed from the web, pay **tolls** to the holder of their world, and bar passage to an enemy while the holder's
+  fleet sits there; the map marks them and the planet card lists a system's bodies, lanes and whether it is a chokepoint.
 - **The rings of the Reach** (GDD §19; `docs/GALAXY.md`): the galaxy grows to ten regions and thirty-one systems laid
   out in three rings with a **capital**. The **core** is commerce and the court (more coin, doubled charters, order);
   the **rim** is lawless and restless (raiders tax the ledger, unrest climbs, allegiance to the capital settles low);

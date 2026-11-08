@@ -53,7 +53,20 @@ costs the capital five, and the two heads fall out. The player's house never wal
 `concede_to_rebels`, `purge_rebels`; counters `rebellions`, `secessions`, `free_marches`. Five ring events ship in
 `content/events/rings.json`.
 
+## Systems, bodies and the lane web
+
+A system is a system, not a planet: every one carries two to five **bodies** (`bodies` in the galaxy file) — the
+primary world a holding sits on, its sisters, moons, giants and belts — and the map draws them all on their orbits.
+
+The lanes are **sparse** (forty lanes for thirty-one systems, fewer than three a system) and run through gateways:
+Cinder Gate and Drydock Nine from the Greywater side, the Spire and Pallas Reach from the south, Castrum from the
+Anvils, Lanternfall down to the Verge, the Veil and Saltmere out to the Marches. **Chokepoints** are computed from the
+web (`Galaxy.Chokepoints()`): every articulation point plus the quarter of systems the most shortest paths run through.
+Holding a chokepoint's world pays **tolls** (two credits a turn on the ledger), and while a fleet of the holder's sits
+there, a house at war with the holder cannot route *through* it — its fleets must go round, or cannot go at all. The
+map marks chokepoints with a brass diamond; the planet card names them.
+
 ## On the map
 
-The galaxy screen draws the three rings as faint ellipses, the capital with a double ring, a world in revolt with a red
+The galaxy screen is laid out twice as wide as before, draws every region as a soft highlighted area around its systems (the ring's tint, the dominant house's hairline), every system with its bodies on their orbits, the three rings as faint ellipses, the capital with a double ring, a world in revolt with a red
 pulse, and lists the regions by ring with allegiance (⚜) and lawlessness (☠). The orrery's plaques carry the ring.

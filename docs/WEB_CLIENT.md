@@ -52,7 +52,8 @@ event windows with the cast's portraits; the first visitor steps forward when a 
 - `Components/OfficeScreen.razor` — **the Office**: an SVG room (walls, floor, window on your seat's world, banners with the
   house sigil, desk and chair, decor) that visitors with reports walk into; *Furnish the office* changes it, stored in
   `World.Cosmetics` so the save carries it. Beside it: the character sheet, "since your last turn", the Great Crisis.
-- `Components/GalaxyMap.razor` — **the Galaxy**: ten regions in three rings (the rings drawn as faint ellipses, the capital
+- `Components/GalaxyMap.razor` — **the Galaxy**: every system with its bodies on their orbits, regions highlighted as
+  soft areas, a sparse lane web with chokepoints marked (brass diamonds); ten regions in three rings (the rings drawn as faint ellipses, the capital
   double-ringed, a world in revolt pulsing red; the region list grouped by ring with allegiance and lawlessness) as
   coloured fields with labels, planets drawn by class, stations,
   lanes (front lines in red), fleets (own exact, rivals as intel), siege clocks, bloc rings; drag to pan, wheel to zoom,

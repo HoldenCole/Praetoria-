@@ -77,15 +77,12 @@ public class StrategyTests
     {
         var (content, w) = Fresh("the_circling_heir");                // Highmarch ↔ The Spire are adjacent, both Serval
         var eco = new Economy(content.Holdings);
-        int before = w.House("serval")!.Treasury.Credits;
-        eco.Accrue(w);
-        int withBonus = w.House("serval")!.Treasury.Credits - before;
+        int Worlds(World x) => eco.Compute(x, "serval").Lines.Where(l => l.Kind == "world").Sum(l => l.Delta.Credits);   // the holdings' own lines, not tolls or the court
+        int withBonus = Worlds(w);
 
         var (_, w2) = Fresh("the_circling_heir");
         w2.Holding("serval_seat_minor")!.SystemId = "sato_holdfast"; // same holdings, scattered across the map (another middle-ring world, so no ring bonus changes)
-        int before2 = w2.House("serval")!.Treasury.Credits;
-        eco.Accrue(w2);
-        Assert.Equal(withBonus - 2, w2.House("serval")!.Treasury.Credits - before2);   // one bonus per holding lost
+        Assert.Equal(withBonus - 2, Worlds(w2));   // one bonus per holding lost
     }
 
     [Fact]

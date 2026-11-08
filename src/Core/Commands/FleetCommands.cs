@@ -29,9 +29,15 @@ public sealed class MoveFleetCommand : ICommand
         if (actor?.Alive != true || w.Galaxy == null) return false;
         if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return false;
         if (f.Moving || f.SystemId == _targetSystemId) return false;
-        if (w.Galaxy.Hops(f.SystemId, _targetSystemId) <= 0) return false;
+        if (w.Galaxy.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId)) <= 0) return false;
         return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Treasury] = _rules.MovePoolCost });
     }
+
+    /// <summary>A chokepoint whose world is held by a house at war with the mover, with that house's fleet sitting there, cannot be
+    /// passed through (GDD §19 chokepoints): the route must go round, or there is no route.</summary>
+    public static Func<string, bool> Barred(World w, string moverHouse) => sys =>
+        w.Galaxy != null && w.Galaxy.IsChokepoint(sys) && w.PlanetHolder(sys) is { } holder && holder != moverHouse && w.AtWar(holder, moverHouse)
+        && w.Fleets.Values.Any(x => x.OwnerId == holder && !x.Moving && x.SystemId == sys);
 
     public void Execute(CommandContext ctx)
     {
@@ -39,7 +45,7 @@ public sealed class MoveFleetCommand : ICommand
         ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Treasury] = _rules.MovePoolCost });
         var f = w.Fleets[_fleetId];
         f.DestinationId = _targetSystemId;
-        f.Eta = w.Galaxy!.Hops(f.SystemId, _targetSystemId);
+        f.Eta = w.Galaxy!.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId));
         w.Log($"{f.Name} sets course for {w.Galaxy.System(_targetSystemId)?.Name ?? _targetSystemId} ({f.Eta} jump{(f.Eta == 1 ? "" : "s")}).");
     }
 }

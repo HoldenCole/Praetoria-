@@ -8,7 +8,8 @@ public sealed record MapNode(
     string? OwnerHouseId, string? OwnerHouseName, string AccentColor,
     IReadOnlyList<string> HoldingIds, bool IsPlayerTerritory, bool Contested,
     string RegionId = "", string Culture = "", string PlanetClass = "terran", string? GovernorName = null, int Population = 0, int Unrest = 0,
-    string? PlanetHoldingId = null, int Stations = 0, int Belt = 0, int Claims = 0, int Ventures = 0, int Prosperity = 50, string Ring = "middle", int Rebellion = 0, bool Capital = false);
+    string? PlanetHoldingId = null, int Stations = 0, int Belt = 0, int Claims = 0, int Ventures = 0, int Prosperity = 50, string Ring = "middle", int Rebellion = 0, bool Capital = false,
+    bool Chokepoint = false, IReadOnlyList<Body>? Bodies = null, int Lanes = 0);
 
 public sealed record MapLane(string A, string B);
 
@@ -66,7 +67,8 @@ public static class GalaxyProjection
                 planet != null && planet.GovernorId.Length > 0 ? world.Char(planet.GovernorId)?.Name : null,
                 planet?.Population ?? 0, planet?.Unrest ?? 0, planet?.Id, holdings.Count(h => h.Kind == Holding.Station),
                 sys.Belt, holdings.Count(h => h.IsClaim), world.Businesses.Values.Count(b => b.SystemId == sys.Id), planet?.Prosperity ?? 50,
-                world.Galaxy.RingOf(sys.Id), planet?.Rebellion ?? 0, world.Galaxy.Capital == sys.Id));
+                world.Galaxy.RingOf(sys.Id), planet?.Rebellion ?? 0, world.Galaxy.Capital == sys.Id,
+                world.Galaxy.IsChokepoint(sys.Id), sys.Bodies, world.Galaxy.Neighbors(sys.Id).Count()));
         }
         return list;
     }

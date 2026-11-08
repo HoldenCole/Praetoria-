@@ -20,7 +20,7 @@
         </div>
         <div class="legend">
             <span><i class="sw own"></i> your fleet</span><span><i class="sw intel"></i> reported fleet (fainter = less certain)</span>
-            <span><i class="sw siege"></i> siege clock</span><span><i class="sw front"></i> front line</span><span><i class="sw station"></i> station</span>
+            <span><i class="sw siege"></i> siege clock</span><span><i class="sw front"></i> front line</span><span><i class="sw station"></i> station</span> <span class="lg"><i class="sw ck"></i> chokepoint</span>
             @if (selectedFleet != null) { <span class="hint">@selectedFleet.Name selected — click a ringed world to set course (1 treasury)</span> }
             else { <span class="muted">drag to pan · wheel to zoom · click a world or a fleet</span> }
         </div>
@@ -44,6 +44,9 @@
                     @if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="36" /> }
                 </div>
                 <p class="muted small">@sys.Description</p>
+                <div class="bodies">@foreach (var b in sys.Bodies) { <span class="body @(b.IsPrimary ? "primary" : "")" title="@b.Class"><img class="sprite" data-planet="@b.Class|@(sys.Id)_@(b.Name)|@(b.IsPrimary ? 40 : 20 + b.Size * 6)" alt="" /><span>@b.Name</span></span> }</div>
+                <div class="kv"><span>Lanes</span><b>@sel.Lanes@(sel.Chokepoint ? " · CHOKEPOINT" : "")</b></div>
+                @if (sel.Chokepoint) { <div class="muted small">A key system on the lanes: its holder takes tolls (+@Economy.TollCredits credits a turn), and an enemy fleet cannot pass through while a fleet of the holder's sits here.</div> }
                 @if (planet != null)
                 {
                     var spec = c.Holdings.Spec(planet.Specialization);
@@ -145,7 +148,8 @@
             var siege = w.Sieges.Values.FirstOrDefault(s => w.Holding(s.HoldingId)?.SystemId == n.SystemId);
             int target = selectedFleet != null && new MoveFleetCommand(pid, selectedFleet.Id, n.SystemId, c.Fleets).CanExecute(ctx) ? w.Galaxy!.Hops(selectedFleet.SystemId, n.SystemId) : 0;
             return new { id = n.SystemId, name = n.Name, x = n.X, y = n.Y, ownerId = n.OwnerHouseId, ownerName = n.OwnerHouseName, accent = n.AccentColor, isPlayer = n.IsPlayerTerritory, contested = n.Contested,
-                planetClass = n.PlanetClass, pop = n.Population, unrest = n.Unrest, stations = n.Stations, regionId = n.RegionId, governor = n.GovernorName, rebel = n.Rebellion > 0, capital = n.Capital, ring = n.Ring,
+                planetClass = n.PlanetClass, pop = n.Population, unrest = n.Unrest, stations = n.Stations, regionId = n.RegionId, governor = n.GovernorName, rebel = n.Rebellion > 0, capital = n.Capital, ring = n.Ring, chokepoint = n.Chokepoint,
+                bodies = (n.Bodies ?? Array.Empty<Body>()).Select(b => new { name = b.Name, cls = b.Class, size = b.Size, primary = b.IsPrimary }).ToList(),
                 industry = n.PlanetHoldingId != null ? c.Holdings.Spec(w.Holding(n.PlanetHoldingId)!.Specialization)?.Name : null,
                 siege = siege != null ? (double?)Math.Clamp(siege.Turns / (double)Math.Max(1, siege.Required), 0, 1) : null,
                 bloc = owner != null && owner.Bloc.Length > 0 ? (owner.Bloc == GreatCrisisSystem.HegemonBloc ? "hegemon" : "alliance") : null, target };

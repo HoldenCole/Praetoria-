@@ -67,5 +67,11 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   lawlessness per region, risings, garrisons, free holds and free marches, four new regions with their houses and two
   worlds no one holds. Lesson: a ring rule changes exact economy numbers everywhere, so the tests that pin the shipped
   scenarios' arithmetic are the first to shout — read them as a list of what the rule touched, then update them.
+- 2026-11-08 — Owner: the galaxy is small and cramped, one planet per region; show all the planets as Star Dynasties
+  does, highlight the regions, space it out, and make the lanes sparse so chokepoints matter for trade and war. Done:
+  bodies on every system drawn on their orbits, region hulls, a map twice as wide, forty lanes through gateways,
+  chokepoints computed from the web with tolls and barred passage. Lesson: when a hand-built lane list is meant to
+  create chokepoints, compute the betweenness before writing the flavour — the gate you named is not always the gate
+  the graph makes.
 - 2026-11-07 — Owner: office good; portraits can wait; galaxy needs a little more; then UI for the Academy and the
   political system at the office's level; then depth. Done: galaxy polish; Senate and Academy screens on new 3D sets.

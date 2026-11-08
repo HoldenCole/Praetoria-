@@ -348,3 +348,7 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .ring.core { color: #ffe8a3; border-color: var(--brass2); } .ring.middle { color: var(--brass2); } .ring.rim { color: #e08a5f; border-color: #6a3b2e; }
 .ring-head { display: flex; align-items: center; gap: .4rem; margin: .5rem 0 .2rem; } .region-row .rstats { margin-left: auto; font-size: .78rem; white-space: nowrap; color: var(--muted); } .region-row .rstats .warn { color: #e07a5f; } .region-row.free b { color: #e08a5f; }
 .region-label.ring-rim .rs { color: #d9a085; } .region-label.ring-core .rs { color: #ffe8a3; } .region-label.free .rn { color: #e08a5f; }
+
+/* ===== systems, bodies, chokepoints ===== */
+.bodies { display: flex; flex-wrap: wrap; gap: .4rem .7rem; margin: .3rem 0 .5rem; } .bodies .body { display: inline-flex; align-items: center; gap: .3rem; font-size: .78rem; color: var(--muted); } .bodies .body.primary { color: var(--ink); font-weight: 600; } .bodies .body .sprite { width: auto; height: auto; max-width: 40px; }
+.sw.ck { background: none; border: 1px solid var(--brass2); transform: rotate(45deg); width: 8px; height: 8px; }

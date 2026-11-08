@@ -1,3 +1,4 @@
+using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.Galaxy;
 using Praetoria.Core.State;
@@ -181,5 +182,73 @@ public class RegionSystemTests
         Assert.Equal(a.Houses.Keys.OrderBy(k => k), b.Houses.Keys.OrderBy(k => k));
         Assert.Equal(a.Char("free_tessaly_leader")?.Name, b.Char("free_tessaly_leader")?.Name);
         Assert.Equal(RegionSystem.StateOf(a, "rim").Lawlessness, RegionSystem.StateOf(b, "rim").Lawlessness);
+    }
+}
+
+/// <summary>Systems as systems, the lane web as a web with chokepoints (GDD §19): bodies, tolls and barred passage.</summary>
+public class ChokepointTests
+{
+    /// <summary>A barbell: west cluster and east cluster joined through one gate.</summary>
+    private static Galaxy Barbell()
+    {
+        var g = new Galaxy { Id = "g", Name = "G" };
+        foreach (var id in new[] { "w1", "w2", "w3", "gate", "e1", "e2", "e3" }) g.Systems[id] = new StarSystem { Id = id, Name = id };
+        foreach (var (a, b) in new[] { ("w1", "w2"), ("w2", "w3"), ("w3", "w1"), ("w3", "gate"), ("gate", "e1"), ("e1", "e2"), ("e2", "e3"), ("e3", "e1") }) g.Lanes.Add(new Hyperlane { A = a, B = b });
+        return g;
+    }
+
+    [Fact]
+    public void Chokepoints_AreArticulationPoints_AndTheBusiestCrossings()
+    {
+        var g = Barbell(); var ck = g.Chokepoints();
+        Assert.Contains("gate", ck); Assert.Contains("w3", ck); Assert.Contains("e1", ck);
+        Assert.DoesNotContain("w1", ck); Assert.DoesNotContain("e3", ck);
+        Assert.True(g.IsChokepoint("gate"));
+    }
+
+    [Fact]
+    public void Hops_RouteAroundBlockedSystems_OrFail()
+    {
+        var g = Barbell();
+        Assert.Equal(3, g.Hops("w1", "e1"));
+        Assert.Equal(-1, g.Hops("w1", "e1", s => s == "gate"));
+        Assert.Equal(2, g.Hops("w1", "gate", s => s == "gate"));           // the destination is never blocked
+        g.Lanes.Add(new Hyperlane { A = "w1", B = "e3" });
+        Assert.Equal(2, g.Hops("w1", "e1", s => s == "gate"));             // the new way round
+    }
+
+    [Fact]
+    public void AGarrisonedEnemyChokepoint_BarsPassage_AndItsHolderTakesTolls()
+    {
+        var w = TestContent.EconomyWorld(credits: 20); var g = Barbell(); w.Galaxy = g;
+        w.Houses["corwin"] = new House { Id = "corwin", Name = "House Corwin" };
+        w.Characters["corwin_head"] = new Character { Id = "corwin_head", Name = "Mara", HouseId = "corwin", Age = 40, Alive = true }; w.Houses["corwin"].Members.Add("corwin_head"); w.Pools["corwin_head"] = ActionPools.ForNpc();
+        w.Holding("barony")!.SystemId = "w1";
+        w.Holdings["gate_world"] = new Holding { Id = "gate_world", OwnerId = "corwin", Name = "The Gate", Specialization = "agri", SystemId = "gate", Population = 10 };
+        w.Fleets["vega_fleet"] = new Fleet { Id = "vega_fleet", Name = "Vega Squadron", OwnerId = "vega", SystemId = "w1", Strength = 2 };
+        var rules = new FleetRules(); var ctx = new CommandContext(w, TestContent.Rng());
+        Assert.True(new MoveFleetCommand("self", "vega_fleet", "e1", rules).CanExecute(ctx));                     // at peace: straight through
+        w.Wars.Add(new War { HouseA = "vega", HouseB = "corwin", Since = 1 });
+        Assert.True(new MoveFleetCommand("self", "vega_fleet", "e1", rules).CanExecute(ctx));                     // at war but the gate is unguarded
+        w.Fleets["corwin_fleet"] = new Fleet { Id = "corwin_fleet", Name = "Corwin Guard", OwnerId = "corwin", SystemId = "gate", Strength = 1 };
+        Assert.False(new MoveFleetCommand("self", "vega_fleet", "e1", rules).CanExecute(ctx));                    // guarded: no way through
+        Assert.True(new MoveFleetCommand("self", "vega_fleet", "gate", rules).CanExecute(ctx));                   // but you may sail at the gate itself
+        var tolls = new Economy(TestContent.EconomyCatalog()).Compute(w, "corwin").Lines.Single(l => l.Kind == "tolls");
+        Assert.Equal(Economy.TollCredits, tolls.Delta.Credits);
+        Assert.DoesNotContain(new Economy(TestContent.EconomyCatalog()).Compute(w, "vega").Lines, l => l.Kind == "tolls");
+    }
+
+    [Fact]
+    public void TheShippedReach_IsASparseWeb_WithChokepoints_AndEverySystemHasItsBodies()
+    {
+        var root = ContentLocator.FindContentDir();
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, "academy_crucible"), 1); var g = w.Galaxy!;
+        Assert.True(g.Lanes.Count * 2.0 / g.Systems.Count < 3.0, "the lane web should be sparse");
+        Assert.True(g.Chokepoints().Count >= 6);
+        Assert.Contains("the_spire", g.Chokepoints());                      // the southern gate into the Core
+        Assert.All(g.Systems.Values, s => { Assert.True(s.Bodies.Count >= 2, $"{s.Id} has {s.Bodies.Count} bodies"); Assert.Single(s.Bodies.Where(b => b.IsPrimary)); Assert.Equal(s.PlanetClass, s.Primary.Class); });
+        foreach (var a in g.Systems.Keys) foreach (var b in g.Systems.Keys) Assert.True(g.Hops(a, b) >= 0, $"{a} cannot reach {b}");
+        Assert.All(GalaxyProjection.Nodes(w), n => Assert.True(n.Lanes >= 1));
+        Assert.Contains(GalaxyProjection.Nodes(w), n => n.Chokepoint);
     }
 }

@@ -32,7 +32,8 @@ public sealed class Economy
     public const int ProsperityPerAdministration = 4;
     public const int ProsperitySiege = 30;
     public const int ProsperityPerVentureLevel = 2;
-    public const int GovernorSkimThreshold = -20; // a governor who dislikes the head this much pockets a credit a turn
+    public const int GovernorSkimThreshold = -20;
+    public const int TollCredits = 2;             // a chokepoint's holder taxes the lane // a governor who dislikes the head this much pockets a credit a turn
 
     private readonly HoldingCatalog _catalog;
     private readonly BusinessCatalog _ventures;
@@ -113,6 +114,10 @@ public sealed class Economy
             if (world.PlanetHolder(b.SystemId) != houseId) continue;
             ledger.Add($"charter · {b.Name}", "charter", new Resources { Credits = (def.Charter + (world.Galaxy?.RulesFor(world.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0)) * b.Level });
         }
+        // tolls: whoever holds a chokepoint's world taxes what passes (GDD §19 "a key system along a route")
+        if (world.Galaxy != null)
+            foreach (var h in world.HoldingsOf(houseId).Where(h => h.IsPlanet && !h.InRebellion && world.Galaxy.IsChokepoint(h.SystemId)).OrderBy(h => h.Id, StringComparer.Ordinal))
+                ledger.Add($"tolls at {world.Galaxy.System(h.SystemId)?.Name ?? h.SystemId}", "tolls", new Resources { Credits = TollCredits });
         // the court: whoever holds the capital keeps it, and it pays (GDD §19 "where the capital is")
         if (world.Galaxy is { Capital.Length: > 0 } cg && world.PlanetHolder(cg.Capital) == houseId) ledger.Add($"the court at {cg.System(cg.Capital)?.Name ?? cg.Capital}", "court", new Resources { Credits = 2, Influence = 1 });
         // the loan

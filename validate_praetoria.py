@@ -221,6 +221,20 @@ def _load_galaxies():
             if s.get("region") and s["region"] not in regions: errors.append(f"galaxy {g.get('id')} system {s['id']} in unknown region '{s['region']}'")
             if s.get("planet","terran") not in PLANET_CLASSES: errors.append(f"galaxy {g.get('id')} system {s['id']} unknown planet class '{s.get('planet')}'")
             if not isinstance(s.get("belt",0),int) or not 0 <= s.get("belt",0) <= 5: errors.append(f"galaxy {g.get('id')} system {s['id']} belt must be 0..5")
+            bodies=s.get("bodies",[])
+            if bodies:
+                prim=[b for b in bodies if b.get("primary")]
+                if len(prim)!=1: errors.append(f"galaxy {g.get('id')} system {s['id']} needs exactly one primary body")
+                elif prim[0].get("class")!=s.get("planet","terran"): errors.append(f"galaxy {g.get('id')} system {s['id']} primary body class differs from the system's planet")
+                for b in bodies:
+                    if b.get("class","barren") not in PLANET_CLASSES: errors.append(f"galaxy {g.get('id')} system {s['id']} body {b.get('name')} unknown class '{b.get('class')}'")
+            else: warns.append(f"galaxy {g.get('id')} system {s['id']} lists no bodies")
+        deg={i:0 for i in ids}
+        for a,b in g.get("lanes",[]):
+            if a in deg: deg[a]+=1
+            if b in deg: deg[b]+=1
+        if ids and max(deg.values())>5: warns.append(f"galaxy {g.get('id')}: a system has more than five lanes; the web is meant to be sparse")
+        if ids and min(deg.values())<1: errors.append(f"galaxy {g.get('id')}: a system has no lane")
         for r in regions:
             if not any(s.get("region")==r for s in g.get("systems",[])): errors.append(f"galaxy {g.get('id')} region {r} has no systems")
         for a,b in g.get("lanes",[]):

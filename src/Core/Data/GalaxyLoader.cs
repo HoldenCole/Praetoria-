@@ -65,6 +65,10 @@ public static class GalaxyLoader
                         Belt = ConditionParser.Int(s, "belt", 0),
                         Description = ConditionParser.OptStr(s, "description", "")
                     };
+                    if (s.TryGetProperty("bodies", out var bodies) && bodies.ValueKind == JsonValueKind.Array)
+                        foreach (var b in bodies.EnumerateArray())
+                            sys.Bodies.Add(new Body { Name = ConditionParser.OptStr(b, "name", sys.Name), Class = ConditionParser.OptStr(b, "class", "barren"), Size = ConditionParser.Int(b, "size", 2), IsPrimary = ConditionParser.Bool(b, "primary", false) });
+                    if (!sys.Bodies.Any(b => b.IsPrimary)) sys.Bodies.Insert(0, new Body { Name = sys.Name, Class = sys.PlanetClass, Size = 3, IsPrimary = true });
                     if (g.Systems.ContainsKey(sys.Id)) throw new ContentException($"Duplicate system id '{sys.Id}'.");
                     g.Systems[sys.Id] = sys;
                 }
