@@ -73,5 +73,9 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   chokepoints computed from the web with tolls and barred passage. Lesson: when a hand-built lane list is meant to
   create chokepoints, compute the betweenness before writing the flavour — the gate you named is not always the gate
   the graph makes.
+- 2026-11-08 — Owner: the lines need fading, there is too much on screen; go back to the references; the map should be
+  too big to fit and you move around it. Reference pass (Star Dynasties, Stellaris) → `docs/ART_DIRECTION.md` "The
+  map, second look". Done: hairline lanes, a default view on the player's seat, a minimap with the viewport, a fit
+  button, smaller markers, fainter fills, labels that thin out with distance.
 - 2026-11-07 — Owner: office good; portraits can wait; galaxy needs a little more; then UI for the Academy and the
   political system at the office's level; then depth. Done: galaxy polish; Senate and Academy screens on new 3D sets.

@@ -13,10 +13,12 @@
 <div class="galaxy">
     <div class="map-wrap">
         <div class="gl-host" @ref="_host"></div>
+        <canvas class="minimap" @ref="_minimap" width="220" height="132" title="the whole Reach · click to travel"></canvas>
         <div class="map-tools">
             <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.zoom", _id, 0.8)' title="Zoom in">+</button>
             <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.zoom", _id, 1.25)' title="Zoom out">−</button>
-            <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.home", _id)' title="Fit the Reach">⌂</button>
+            <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.home", _id)' title="Back to your seat">⌂</button>
+            <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.fit", _id)' title="Fit the whole Reach">▣</button>
         </div>
         <div class="legend">
             <span><i class="sw own"></i> your fleet</span><span><i class="sw intel"></i> reported fleet (fainter = less certain)</span>
@@ -106,7 +108,7 @@
 </div>
 
 @code {
-    private string? _fleetId, _systemId; private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N");
+    private string? _fleetId, _systemId; private ElementReference _host, _minimap; private readonly string _id = Guid.NewGuid().ToString("N");
     private DotNetObjectReference<GalaxyMap>? _self; private bool _created; private string _pendingModel = "";
     private string _lastSent = "";
 
@@ -115,7 +117,7 @@
         if (first)
         {
             _self = DotNetObjectReference.Create(this);
-            try { if (await JS.InvokeAsync<bool>("praetoria.ready", "praetoriaSpace")) { await JS.InvokeVoidAsync("praetoriaSpace.create", _id, _host, _self); _created = true; } } catch { }
+            try { if (await JS.InvokeAsync<bool>("praetoria.ready", "praetoriaSpace")) { await JS.InvokeVoidAsync("praetoriaSpace.create", _id, _host, _self); _created = true; await JS.InvokeVoidAsync("praetoriaSpace.minimap", _id, _minimap); } } catch { }
         }
         if (_created && _pendingModel != _lastSent) { _lastSent = _pendingModel; try { await JS.InvokeVoidAsync("praetoriaSpace.setModel", _id, _pendingModel); } catch { } }
         try { await JS.InvokeVoidAsync("praetoriaFx.paint"); await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }

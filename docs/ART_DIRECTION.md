@@ -55,3 +55,19 @@ screen; decorative elements that carry no information.
 ## Verification
 Every pass is screenshotted through the headless browser (WebGL via SwiftShader) and judged against this document
 before it is committed.
+
+
+## The map, second look (2026-11-08)
+
+Reference pass against Star Dynasties and Stellaris galaxy screens (Steam store captures):
+
+- **Lanes are hairlines.** In both games a lane is a thin, faint, non-glowing line; the eye reads the web as texture,
+  not as drawing. Fronts and the player's reach may carry colour, but thinly.
+- **You see a corner, not the galaxy.** The default view holds a dozen to twenty systems around your own seat and the
+  map runs off every edge; you pan to see the rest, and a minimap in a corner shows the whole with the viewport drawn
+  on it. Fitting the whole galaxy on screen is a mode you choose, not the default.
+- **Systems are small.** A bright dot or a small star, the name beneath, one or two small glyphs. Halos and rings mark
+  selection, the capital, trouble — not every system.
+- **Territory is quiet.** Dark fills with crisp coloured borders (Star Dynasties) or soft tinted blobs with a hairline
+  edge (Stellaris). The border carries the information; the fill is a hint.
+- **Few things glow.** Suns, a selected system, a fleet in motion. Everything else sits back.

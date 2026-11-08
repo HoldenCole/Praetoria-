@@ -352,3 +352,10 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 /* ===== systems, bodies, chokepoints ===== */
 .bodies { display: flex; flex-wrap: wrap; gap: .4rem .7rem; margin: .3rem 0 .5rem; } .bodies .body { display: inline-flex; align-items: center; gap: .3rem; font-size: .78rem; color: var(--muted); } .bodies .body.primary { color: var(--ink); font-weight: 600; } .bodies .body .sprite { width: auto; height: auto; max-width: 40px; }
 .sw.ck { background: none; border: 1px solid var(--brass2); transform: rotate(45deg); width: 8px; height: 8px; }
+
+/* ===== the map as a map: quiet lanes, a corner of the Reach at a time, a minimap ===== */
+.minimap { position: absolute; right: .6rem; bottom: 3.2rem; z-index: 7; width: 220px; height: 132px; border: 1px solid var(--brass3); border-radius: 3px; background: rgba(6,8,14,.85); box-shadow: 0 6px 20px rgba(0,0,0,.6); cursor: pointer; }
+.gl-labels.far .sys-label .o, .gl-labels.far .sys-label .j, .gl-labels.far .fleet-label, .gl-labels.far .region-label .rs { display: none; }
+.gl-labels.far .sys-label { font-size: 10px; opacity: .8; } .gl-labels.veryfar .sys-label { display: none; } .gl-labels.veryfar .region-label .rn { font-size: 15px; }
+.gl-labels.near .region-label { opacity: .45; }
+.region-label.centre .rn { font-size: 11px; opacity: .6; letter-spacing: .3em; } .region-label.centre .rs { display: none; }

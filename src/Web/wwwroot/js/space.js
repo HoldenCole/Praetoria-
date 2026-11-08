@@ -135,7 +135,15 @@ export class Galaxy {
     const T = textures();
     const byId = {}; for (const s of model.systems) byId[s.id] = s;
     // bounds → home camera
-    if (!this.homeSet) { const xs = model.systems.map(s => s.x), ys = model.systems.map(s => -s.y); this.target.set((Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2, 0); this.distance = Math.max(Math.max(...xs) - Math.min(...xs), (Math.max(...ys) - Math.min(...ys)) * 1.6) * 1.05 + 200; this.home = { t: this.target.clone(), d: this.distance }; this.homeSet = true; this.updateCamera(true); }
+    const xs = model.systems.map(s => s.x), ys = model.systems.map(s => -s.y);
+    this.fitView = { t: new THREE.Vector3((Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2, 0), d: Math.max(Math.max(...xs) - Math.min(...xs), (Math.max(...ys) - Math.min(...ys)) * 1.6) * 1.05 + 200 };
+    this.bounds = { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) };
+    if (!this.homeSet) {
+      // the view opens on your own seat with the Reach running off the edges (ART_DIRECTION: you see a corner, not the galaxy)
+      const seat = model.systems.find(s => s.isPlayer) || model.systems[0];
+      this.target.set(seat.x, -seat.y, 0); this.distance = Math.min(this.fitView.d, 1050);
+      this.home = { t: this.target.clone(), d: this.distance }; this.homeSet = true; this.updateCamera(true);
+    }
 
     // territory field
     const houses = []; const houseIdx = {}; const colorOf = {};
@@ -145,16 +153,16 @@ export class Galaxy {
     for (let i = 0; i < MAX_SYS; i++) { const s = model.systems[i]; if (s) { uPos.push(new THREE.Vector3(s.x - minX, maxY - s.y, 1.0 + Math.min(1.0, (s.pop || 0) / 60))); uOwner.push(s.ownerId ? houseIdx[s.ownerId] : -1); } else { uPos.push(new THREE.Vector3()); uOwner.push(-1); } }
     for (let h = 0; h < MAX_HOUSES; h++) uCol.push(houses[h] ? colorOf[houses[h]] : new THREE.Color(0));
     const terr = new THREE.Mesh(new THREE.PlaneGeometry(maxX - minX, maxY - minY), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, vertexShader: NEBULA_VS, fragmentShader: TERR_FS,
-      uniforms: { uSize: { value: new THREE.Vector2(maxX - minX, maxY - minY) }, uCount: { value: Math.min(MAX_SYS, model.systems.length) }, uPos: { value: uPos }, uOwner: { value: uOwner }, uHouseColor: { value: uCol }, uRadius: { value: 62 }, uPlayer: { value: model.playerHouse ? (houseIdx[model.playerHouse] ?? -1) : -1 } } }));
+      uniforms: { uSize: { value: new THREE.Vector2(maxX - minX, maxY - minY) }, uCount: { value: Math.min(MAX_SYS, model.systems.length) }, uPos: { value: uPos }, uOwner: { value: uOwner }, uHouseColor: { value: uCol }, uRadius: { value: 56 }, uPlayer: { value: model.playerHouse ? (houseIdx[model.playerHouse] ?? -1) : -1 } } }));
     terr.position.set((minX + maxX) / 2, -(minY + maxY) / 2, -2); this.objects.add(terr);
 
     // lanes
     const laneGeo = new THREE.BufferGeometry(); const lp = [], lc = [];
-    for (const l of model.lanes) { const a = byId[l.a], b = byId[l.b]; if (!a || !b) continue; const c = l.front ? [0.75, 0.22, 0.16] : l.reach ? [0.85, 0.68, 0.3] : [0.22, 0.3, 0.46]; lp.push(a.x, -a.y, 0, b.x, -b.y, 0); lc.push(...c, ...c); }
+    for (const l of model.lanes) { const a = byId[l.a], b = byId[l.b]; if (!a || !b) continue; const c = l.front ? [0.9, 0.3, 0.2] : l.reach ? [0.9, 0.75, 0.4] : [0.55, 0.62, 0.78]; lp.push(a.x, -a.y, 0, b.x, -b.y, 0); lc.push(...c, ...c); }
     laneGeo.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3)); laneGeo.setAttribute('color', new THREE.Float32BufferAttribute(lc, 3));
-    this.objects.add(new THREE.LineSegments(laneGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending })));
+    this.objects.add(new THREE.LineSegments(laneGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.28 })));
     // glow: tubes of light under the hairlines
-    for (const l of model.lanes) { const a = byId[l.a], b = byId[l.b]; if (!a || !b) continue; const dx = b.x - a.x, dy = -(b.y - a.y); const len = Math.hypot(dx, dy); const tube = new THREE.Mesh(new THREE.PlaneGeometry(len, l.front ? 7 : 4.5), new THREE.MeshBasicMaterial({ map: T.lane, color: l.front ? 0xff5a3c : l.reach ? 0xe6c77a : 0x6f8ad0, transparent: true, opacity: l.front ? .5 : l.reach ? .6 : .22, blending: THREE.AdditiveBlending, depthWrite: false })); tube.position.set((a.x + b.x) / 2, -(a.y + b.y) / 2, -1); tube.rotation.z = Math.atan2(dy, dx); this.objects.add(tube); }
+    for (const l of model.lanes) { if (!l.front && !l.reach) continue; const a = byId[l.a], b = byId[l.b]; if (!a || !b) continue; const dx = b.x - a.x, dy = -(b.y - a.y); const len = Math.hypot(dx, dy); const tube = new THREE.Mesh(new THREE.PlaneGeometry(len, l.front ? 7 : 4.5), new THREE.MeshBasicMaterial({ map: T.lane, color: l.front ? 0xff5a3c : l.reach ? 0xe6c77a : 0x6f8ad0, transparent: true, opacity: l.front ? .5 : l.reach ? .6 : .22, blending: THREE.AdditiveBlending, depthWrite: false })); tube.position.set((a.x + b.x) / 2, -(a.y + b.y) / 2, -1); tube.rotation.z = Math.atan2(dy, dx); this.objects.add(tube); }
 
     // systems
     const sunMat = (color) => new THREE.SpriteMaterial({ map: T.sun, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
@@ -162,13 +170,13 @@ export class Galaxy {
     for (const s of model.systems) {
       const g = new THREE.Group(); g.position.set(s.x, -s.y, 0);
       const h = hash(s.id); const cls = [[0xfff4e0, 1.0], [0xffe2a8, 0.9], [0xffb070, 0.8], [0xbfd4ff, 1.15], [0xffffff, 1.05], [0xffd0a0, 0.85]][h % 6];
-      const sun = new THREE.Sprite(sunMat(cls[0])); const sz = (24 + Math.min(14, (s.pop || 0) / 4)) * cls[1]; sun.scale.set(sz, sz, 1); g.add(sun);
+      const sun = new THREE.Sprite(sunMat(cls[0])); const sz = (17 + Math.min(9, (s.pop || 0) / 6)) * cls[1]; sun.scale.set(sz, sz, 1); g.add(sun);
       const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); core.scale.set(7 * cls[1], 7 * cls[1], 1); g.add(core);
-      const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.flare, color: cls[0], transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false })); flare.scale.set(sz * 2.6, sz * .16, 1); g.add(flare);
+      const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.flare, color: cls[0], transparent: true, opacity: .3, blending: THREE.AdditiveBlending, depthWrite: false })); flare.scale.set(sz * 2.6, sz * .16, 1); g.add(flare);
       if (s.isPlayer) { const home = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffe8a3, transparent: true, opacity: .35, blending: THREE.AdditiveBlending, depthWrite: false })); home.scale.set(sz * 2.2, sz * 2.2, 1); home.userData.pulse = true; g.add(home); }
       // the system, not one planet (GDD §19): every body on its own orbit, the primary a lit sphere, the rest sprites
       const bodies = (s.bodies && s.bodies.length) ? s.bodies : [{ name: s.name, cls: s.planetClass, size: 3, primary: true }];
-      const orbitMat = new THREE.LineBasicMaterial({ color: 0xc9a24a, transparent: true, opacity: .16 });
+      const orbitMat = new THREE.LineBasicMaterial({ color: 0xc9a24a, transparent: true, opacity: .09 });
       let planet = null; const pr = 5.5 + Math.min(4, (s.pop || 0) / 15);
       bodies.forEach((b, bi) => {
         const orb = 14 + bi * 10.5; const ang = ((h >> (bi * 3)) % 628) / 100 + bi * 1.7; const bx = Math.cos(ang) * orb, by = Math.sin(ang) * orb * .78;
@@ -216,12 +224,12 @@ export class Galaxy {
         outline.push(c.clone().add(dir.multiplyScalar(Math.max(r, pad * .6)))); }
       const shape = new THREE.Shape(); const smooth = smoothClosed(outline, 3); shape.moveTo(smooth[0].x, smooth[0].y); for (const p of smooth.slice(1)) shape.lineTo(p.x, p.y); shape.closePath();
       const tint = r.ring === 'core' ? 0xe6c77a : r.ring === 'rim' ? 0xd0785a : 0x8fa8d8;
-      const fill = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: r.free ? .09 : .05, depthWrite: false, blending: THREE.AdditiveBlending })); fill.position.z = -3; this.objects.add(fill);
-      const edge = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(smooth.map(p => new THREE.Vector3(p.x, p.y, -2.5))), new THREE.LineBasicMaterial({ color: new THREE.Color(r.accent || '#8fa8d8'), transparent: true, opacity: .45 })); this.objects.add(edge);
+      const fill = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: r.free ? .07 : .035, depthWrite: false, blending: THREE.AdditiveBlending })); fill.position.z = -3; this.objects.add(fill);
+      const edge = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(smooth.map(p => new THREE.Vector3(p.x, p.y, -2.5))), new THREE.LineBasicMaterial({ color: new THREE.Color(r.accent || '#8fa8d8'), transparent: true, opacity: .32 })); this.objects.add(edge);
     }
-    for (const r of model.regions || []) { const el = document.createElement('div'); el.className = 'region-label ring-' + (r.ring || 'middle') + (r.free ? ' free' : ''); el.innerHTML = `<span class="rn">${esc(r.name)}</span><span class="rs">${esc(r.ring || '')}${r.free ? ' · free march' : ''} · ${esc(r.dominant || 'no one')} · ⚜ ${r.allegiance} · ☠ ${r.lawlessness}</span>`; const lab = new CSS2DObject(el); lab.position.set(r.cx, r.ring === 'core' ? ((model.regions.indexOf(r) % 2) ? -(r.bottom + 70) : -(r.top - 80)) : -(r.top - 80), 0); this.objects.add(lab); this.labels.push(lab); }
+    for (const r of model.regions || []) { const el = document.createElement('div'); el.className = 'region-label ring-' + (r.ring || 'middle') + (r.free ? ' free' : ''); el.innerHTML = `<span class="rn">${esc(r.name)}</span><span class="rs">${esc(r.ring || '')}${r.free ? ' · free march' : ''} · ${esc(r.dominant || 'no one')} · ⚜ ${r.allegiance} · ☠ ${r.lawlessness}</span>`; const lab = new CSS2DObject(el); if (r.ring === 'core') el.classList.add('centre'); lab.position.set(r.cx, r.ring === 'core' ? -r.cy : -(r.top - 80), 0); this.objects.add(lab); this.labels.push(lab); }
     // the three rings: faint brass ellipses, the rim's a little redder
-    if (model.rings) { const rg = model.rings; for (const [k, rad, col, op] of [['core', rg.core, 0xe6c77a, .22], ['middle', rg.middle, 0xc9a24a, .14], ['rim', rg.rim, 0xd08a5a, .12]]) { if (!rad) continue; const pts = []; for (let i = 0; i <= 160; i++) { const a = i / 160 * Math.PI * 2; pts.push(new THREE.Vector3(rg.cx + Math.cos(a) * rad, -(rg.cy + Math.sin(a) * rad * 0.62), -1)); } const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending })); this.objects.add(line); } }
+    if (model.rings) { const rg = model.rings; for (const [k, rad, col, op] of [['core', rg.core, 0xe6c77a, .08], ['middle', rg.middle, 0xc9a24a, .06], ['rim', rg.rim, 0xd08a5a, .06]]) { if (!rad) continue; const pts = []; for (let i = 0; i <= 160; i++) { const a = i / 160 * Math.PI * 2; pts.push(new THREE.Vector3(rg.cx + Math.cos(a) * rad, -(rg.cy + Math.sin(a) * rad * 0.62), -1)); } const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending })); this.objects.add(line); } }
     // fleets
     const groups = {}; for (const f of model.fleets) (groups[f.systemId] ||= []).push(f);
     for (const [sid, list] of Object.entries(groups)) {
@@ -258,6 +266,21 @@ export class Galaxy {
     if (before) { const after = this.planePoint(px, py); if (after) { this.target.x += before.x - after.x; this.target.y += before.y - after.y; this.updateCamera(); } }
   }
   home() { if (this.home) { this.target.copy(this.home.t); this.distance = this.home.d; this.updateCamera(); } }
+  fit() { if (this.fitView) { this.target.copy(this.fitView.t); this.distance = this.fitView.d; this.updateCamera(); } }
+  // the minimap: the whole Reach in a corner, the viewport drawn on it, click to travel
+  setMinimap(canvas) { this.mini = canvas; if (!canvas) return; canvas.addEventListener('pointerdown', e => { if (!this.bounds) return; const r = canvas.getBoundingClientRect(); const m = this.miniMap(); const x = (e.clientX - r.left) / r.width * canvas.width, y = (e.clientY - r.top) / r.height * canvas.height; this.target.set(m.minX + (x - m.ox) / m.k, m.maxY - (y - m.oy) / m.k, 0); this.updateCamera(); }); }
+  miniMap() { const b = this.bounds, pad = 70; const w = this.mini.width, h = this.mini.height; const kx = (w - 12) / (b.maxX - b.minX + pad * 2), ky = (h - 12) / (b.maxY - b.minY + pad * 2); const k = Math.min(kx, ky); const ox = (w - (b.maxX - b.minX + pad * 2) * k) / 2 + pad * k, oy = (h - (b.maxY - b.minY + pad * 2) * k) / 2 + pad * k; return { k, ox, oy, minX: b.minX, maxY: b.maxY }; }
+  drawMinimap() {
+    const c = this.mini; if (!c || !this.model || !this.bounds) return; const ctx = c.getContext('2d'); const m = this.miniMap(); const P = (x, y) => [m.ox + (x - m.minX) * m.k, m.oy + (m.maxY - y) * m.k];
+    ctx.clearRect(0, 0, c.width, c.height);
+    for (const r of this.model.regions || []) { const pts = this.model.systems.filter(s => s.regionId === r.id); if (!pts.length) continue; ctx.fillStyle = r.ring === 'core' ? 'rgba(230,199,122,.14)' : r.ring === 'rim' ? 'rgba(208,120,90,.14)' : 'rgba(143,168,216,.12)'; for (const s of pts) { const [x, y] = P(s.x, -s.y); ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fill(); } }
+    for (const l of this.model.lanes) { const a = this.model.systems.find(s => s.id === l.a), b = this.model.systems.find(s => s.id === l.b); if (!a || !b) continue; const [ax, ay] = P(a.x, -a.y), [bx, by] = P(b.x, -b.y); ctx.strokeStyle = l.front ? 'rgba(255,90,60,.6)' : 'rgba(160,180,220,.16)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); }
+    for (const s of this.model.systems) { const [x, y] = P(s.x, -s.y); ctx.fillStyle = s.isPlayer ? '#ffe8a3' : s.ownerId ? s.accent : '#6a7384'; ctx.beginPath(); ctx.arc(x, y, s.isPlayer ? 2.6 : 1.8, 0, Math.PI * 2); ctx.fill(); if (s.capital) { ctx.strokeStyle = '#ffe8a3'; ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.stroke(); } }
+    // the viewport: sample the map plane on a grid and frame whatever the camera can see (robust to the tilt at any distance)
+    const b = this.bounds, pad = 140; let vx0 = Infinity, vy0 = Infinity, vx1 = -Infinity, vy1 = -Infinity; const v = new THREE.Vector3();
+    for (let i = 0; i <= 40; i++) for (let j = 0; j <= 24; j++) { const x = b.minX - pad + (b.maxX - b.minX + pad * 2) * i / 40, y = b.minY - pad + (b.maxY - b.minY + pad * 2) * j / 24; v.set(x, y, 0).project(this.camera); if (v.z < 1 && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1) { vx0 = Math.min(vx0, x); vx1 = Math.max(vx1, x); vy0 = Math.min(vy0, y); vy1 = Math.max(vy1, y); } }
+    if (vx0 < vx1) { const [ax, ay] = P(vx0, vy1), [bx, by] = P(vx1, vy0); ctx.strokeStyle = 'rgba(201,162,74,.9)'; ctx.lineWidth = 1; ctx.strokeRect(ax, ay, bx - ax, by - ay); }
+  }
   focus(x, y) { this.target.set(x, -y, 0); this.distance = Math.min(this.distance, 900); this.updateCamera(); }
   planePoint(px, py) {
     const rect = this.renderer.domElement.getBoundingClientRect(); this.mouse.set(((px - rect.left) / rect.width) * 2 - 1, -((py - rect.top) / rect.height) * 2 + 1);
@@ -294,8 +317,9 @@ export class Galaxy {
     this.objects.traverse(o => { if (o.userData.spin) o.rotation.y = t * o.userData.spin; if (o.userData.spinZ) o.rotation.z = t * o.userData.spinZ; });
     this.objects.traverse(o => { if (o.userData.pulse) { const s = 1 + 0.08 * Math.sin(t * 3 + o.position.x * 0.01); o.scale.setScalar ? (o.isSprite ? null : o.scale.set(s, s, 1)) : null; if (o.material?.opacity != null && o.isSprite) o.material.opacity = 0.45 + 0.25 * Math.sin(t * 2.5); } });
     // labels fade with distance
-    const far = this.distance > 1500; for (const l of this.labels) l.element.classList.toggle('far', far);
+    const lr = this.labelRenderer.domElement; lr.classList.toggle('near', this.distance < 700); lr.classList.toggle('far', this.distance > 1700); lr.classList.toggle('veryfar', this.distance > 3200);
     this.composer.render(); this.labelRenderer.render(this.scene, this.camera);
+    if ((this.miniTick = (this.miniTick || 0) + 1) % 3 === 0) this.drawMinimap();
   }
   dispose() { this.disposed = true; this.resizeObserver.disconnect(); this.setModel(null); this.renderer.dispose(); this.renderer.domElement.remove(); this.labelRenderer.domElement.remove(); }
 }
@@ -308,6 +332,7 @@ window.praetoriaSpace = {
   galaxies: new Map(),
   create(id, container, dotnet) { this.destroy(id); const g = new Galaxy(container, dotnet); this.galaxies.set(id, g); return true; },
   setModel(id, json) { const g = this.galaxies.get(id); if (!g) return false; const m = JSON.parse(json); g.setSelection(m.selected); g.setModel(m); return true; },
-  zoom(id, f) { this.galaxies.get(id)?.zoom(f); }, home(id) { this.galaxies.get(id)?.home(); }, focus(id, x, y) { this.galaxies.get(id)?.focus(x, y); },
+  zoom(id, f) { this.galaxies.get(id)?.zoom(f); }, home(id) { this.galaxies.get(id)?.home(); }, fit(id) { this.galaxies.get(id)?.fit(); }, focus(id, x, y) { this.galaxies.get(id)?.focus(x, y); },
+  minimap(id, canvas) { this.galaxies.get(id)?.setMinimap(canvas); },
   destroy(id) { const g = this.galaxies.get(id); if (g) { g.dispose(); this.galaxies.delete(id); } }
 };

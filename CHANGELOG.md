@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+- **A quieter map** after a second look at the reference games: lanes are hairlines with no glow (fronts and your own
+  reach excepted), the default view opens on your own seat with the Reach running off the edges, a minimap in the
+  corner shows the whole with the viewport drawn on it (click to travel), a fit button shows everything, system
+  markers and orbit rings are smaller and fainter, region fills lighter, and labels thin out as you zoom away.
+
 ### Added
 - **The galaxy as a galaxy** (GDD §19): the map is laid out twice as wide; every system carries two to five bodies
   (worlds, moons, giants, belts) drawn on their orbits around the star; regions are highlighted as soft areas around
