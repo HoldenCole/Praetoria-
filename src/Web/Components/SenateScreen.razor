@@ -61,7 +61,7 @@
                         <div class="muted small">The offices of the Reach — the state's, lent by the Senate</div>
                         @foreach (var o in sen.Offices)
                         {
-                            <div class="office @(o.Mine ? "mine" : "") @(o.HolderHouse == null ? "vacant" : "")" title="@o.Description">
+                            <div class="off-card @(o.Mine ? "mine" : "") @(o.HolderHouse == null ? "vacant" : "")" title="@o.Description">
                                 <div class="of-head"><b>@o.Name</b> <span class="muted small">@o.Track rank @o.MinRank+@(o.Hulls > 0 ? $" · {o.Hulls} office hull(s)" : "")</span></div>
                                 <div class="small">@if (o.HolderHouse != null) { <Sigil HouseId="@o.HolderHouseId" Accent="@o.HolderAccent" Size="12" /> <span>@o.HolderName of @o.HolderHouse</span> <span class="muted">since turn @o.Since</span> } else { <span class="muted">vacant</span> }
                                     @if (o.MyCandidate != null && !o.Mine) { <span class="muted"> · @o.MyCandidate qualifies — move a Commission</span> }</div>
