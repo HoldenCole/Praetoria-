@@ -1,177 +1,162 @@
 @inject GameClient G
-@inject IJSRuntime JS
-@implements IAsyncDisposable
 @{
-    var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var house = w.House(w.Protagonist!.HouseId)!;
+    var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var house = w.House(w.Protagonist!.HouseId)!; var fs = G.Turn!.Fleets;
     int ours = FleetSystem.StrengthOf(w, house.Id);
-    int upkeep = w.Fleets.Values.Where(f => f.OwnerId == house.Id).Sum(f => G.Turn!.Fleets.Upkeep(f).Credits);
-    var rivals = GalaxyProjection.Fleets(w).Where(f => !f.IsPlayer && f.OwnerHouseId != PirateSystem.HouseId).GroupBy(f => f.OwnerHouseId).Select(g => (house: w.House(g.Key)!, hulls: g.Sum(f => f.Strength), conf: (int)g.Average(f => f.Confidence))).OrderByDescending(x => x.hulls).ToList();
-    var battles = w.History.Where(h => h.Text.Contains("battle", StringComparison.OrdinalIgnoreCase) || h.Text.Contains("destroyed") || h.Text.Contains("desert")).Reverse().Take(6).ToList();
-    _pending = BuildOptions(w, house, m, rivals);
-    var focusFleet = _focus != null ? m.Fleets.FirstOrDefault(f => f.Id == _focus) : null;
+    int upkeep = w.Fleets.Values.Where(f => f.OwnerId == house.Id).Sum(f => fs.Upkeep(f).Credits);
+    var mapFleets = GalaxyProjection.Fleets(w);
+    var rivals = mapFleets.Where(f => !f.IsPlayer && f.OwnerHouseId != PirateSystem.HouseId).GroupBy(f => f.OwnerHouseId).Select(g => (house: w.House(g.Key)!, hulls: g.Sum(f => f.Strength), conf: (int)g.Average(f => f.Confidence))).Where(x => x.house != null).OrderByDescending(x => x.hulls).ToList();
+    var battles = w.History.Where(h => h.Text.Contains("battle", StringComparison.OrdinalIgnoreCase) || h.Text.Contains("destroyed") || h.Text.Contains("desert") || h.Text.Contains("Prize crews")).Reverse().Take(8).ToList();
+    int fuelBurn = FleetSystem.FuelBillFor(w, house.Id, c.Fleets.FuelHullsPerUnit); var officeHulls = w.Fleets.Values.Where(f => f.Office && f.OwnerId == house.Id).Sum(f => f.Strength);
+    var mil = m.Military;
+    // the plot: every system on a flat chart, lanes, fronts, our supply, our fleets and the enemy's as reported
+    var nodes = GalaxyProjection.Nodes(w); var lanes = GalaxyProjection.Lanes(w);
+    double minX = nodes.Count == 0 ? 0 : nodes.Min(n => n.X), maxX = nodes.Count == 0 ? 1 : nodes.Max(n => n.X), minY = nodes.Count == 0 ? 0 : nodes.Min(n => n.Y), maxY = nodes.Count == 0 ? 1 : nodes.Max(n => n.Y);
+    double PX(double x) => 30 + (maxX > minX ? (x - minX) / (maxX - minX) : .5) * 940; double PY(double y) => 30 + (maxY > minY ? (y - minY) / (maxY - minY) : .5) * 520;
+    var byId = nodes.ToDictionary(n => n.SystemId); var enemies = w.EnemiesOf(house.Id).ToHashSet();
+    bool Enemy(MapNode n) => n.OwnerHouseId != null && enemies.Contains(n.OwnerHouseId);
+    string? campaign = FleetSystem.CampaignTarget(w, house.Id);
+    var inSupply = w.Galaxy == null ? new HashSet<string>() : nodes.Where(n => fs.InSupply(w, house.Id, n.SystemId)).Select(n => n.SystemId).ToHashSet();
+    int maxHulls = Math.Max(1, Math.Max(ours, rivals.Count == 0 ? 0 : rivals.Max(r => r.hulls)));
+    string F(double v) => v.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
 }
-<div class="office war-room" style="--accent:@m.HouseAccent">
-    <div class="office-stage">
-        <div class="gl-host" @ref="_host"></div>
-        <div class="stage-foot">
-            <div class="stage-title"><Icon Name="military" Size="16" /> <b>The Command Deck</b> <span class="muted">@ours hull(s) in @m.Fleets.Count fleet(s) · upkeep @upkeep credits a turn · @(m.Wars.Count == 0 ? "at peace" : $"{m.Wars.Count} war(s)")</span></div>
-            <span class="muted small">your admirals stand at the table · movement is ordered on the Galaxy map</span>
+<div class="dash deck" style="--accent:@m.HouseAccent">
+    <header class="dash-head">
+        <div class="dh-title"><Icon Name="military" Size="18" /> <b>The Command Deck</b> <span class="muted">@ours hull(s) in @m.Fleets.Count fleet(s) · @(m.Wars.Count == 0 ? "at peace" : $"{m.Wars.Count} war(s)")@(campaign != null ? $" · campaign on {w.Galaxy?.System(campaign)?.Name ?? campaign}" : "")</span></div>
+        <div class="dh-stats">
+            <div class="stat"><span>Hulls</span><b>@ours @if (officeHulls > 0) { <i class="muted">+@officeHulls office</i> }</b></div>
+            <div class="stat"><span>Upkeep</span><b>@upkeep <i class="muted">/turn</i></b></div>
+            <div class="stat @(w.HasFlag("fuel_short") ? "warn" : "")"><span>Helium-3</span><b>@house.Treasury.Helium3 @if (fuelBurn > 0) { <i class="muted">−@fuelBurn/turn</i> }</b></div>
+            <div class="stat"><span>Manpower</span><b>@m.Treasury.Manpower</b></div>
+            <div class="stat"><span>Isotopes</span><b>@m.Treasury.Isotopes</b></div>
+            @if (mil != null) { <div class="stat"><span>You command from</span><b>@(mil.MyStyle == "front" ? "the front" : mil.MyStyle == "flag" ? "the flag" : "the staff")@(mil.MyAchilles ? " · ACHILLES" : "")</b></div> }
         </div>
-        @if (focusFleet is { } ff)
-        {
-            var fleet = w.Fleets[ff.Id]; var adm = fleet.AdmiralId.Length > 0 ? w.Char(fleet.AdmiralId) : null;
-            <div class="stage-card">
-                @if (adm != null) { <Portrait Id="@adm.Id" Name="@adm.Name" Sex="@adm.Sex" Age="@adm.Age" Accent="@m.HouseAccent" Size="64" /> }
-                else { <div class="sc-glyph"><Icon Name="fleet" Size="44" /></div> }
-                <div class="sc-body">
-                    <div class="sc-name">@ff.Name <span class="muted">@ff.Composition · @(ff.Moving ? $"en route to {ff.Destination} ({ff.Eta})" : ff.Where)</span></div>
-                    <div class="muted small">@(adm != null ? $"Admiral {adm.Name}" : "no admiral") · readiness @ff.Readiness@(ff.Veterancy > 0 ? $" · veterancy {ff.Veterancy}" : "")@(ff.Office ? " · held by office" : "")</div>
-                    <div class="sc-actions">
-                        <button class="opt inline" disabled="@(ff.Refit.Refusal != null)" title="@ff.Refit.Refusal" @onclick="() => G.Execute(new RefitFleetCommand(pid, ff.Id))">@ff.Refit.Label</button>
-                        @foreach (var o in ff.AdmiralOptions.Take(3)) { <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AssignAdmiralCommand(pid, ff.Id, o.Id))">@o.Label</button> }
-                    </div>
-                </div>
-                <button class="win-close" @onclick="() => _focus = null">✕</button>
-            </div>
-        }
-    </div>
+    </header>
 
-    <aside class="office-side">
+    <div class="dash-grid deck-grid">
         <section class="panel">
-            <h3><Icon Name="fleet" Size="13" /> The @house.Name navy</h3>
-            <div class="kv"><span>Hulls</span><b>@ours</b></div>
-            <div class="kv"><span>Upkeep</span><b>@upkeep credits a turn</b></div>
-            <div class="kv"><span>Manpower</span><b>@m.Treasury.Manpower</b></div>
-            @{ int fuelBurn = FleetSystem.FuelBillFor(w, house.Id, c.Fleets.FuelHullsPerUnit); var officeHulls = w.Fleets.Values.Where(f => f.Office && f.OwnerId == house.Id).Sum(f => f.Strength); }
-            @if (officeHulls > 0) { <div class="kv good"><span>The Admiralty</span><b>@officeHulls office hull(s) sail under your colours · the chair pays their upkeep and the state fuels them · war on the chair is treason</b></div> }
-            <div class="kv @(w.HasFlag("fuel_short") ? "warn" : "")"><span><Icon Name="helium3" Size="12" /> Fuel</span><b>@house.Treasury.Helium3 helium-3@(fuelBurn > 0 ? $" · burning {fuelBurn} a turn · {house.Treasury.Helium3 / Math.Max(1, fuelBurn)} turns" : " · under two hulls runs on scraps")@(w.HasFlag("fuel_short") ? " · DRY: at anchor" : "")</b></div>
-            @foreach (var f in m.Fleets)
-            {
-                var fleet = w.Fleets[f.Id];
-                <details class="fleet-card" open="@(m.Fleets.Count <= 2 || _focus == f.Id)">
-                    <summary @onclick="() => _focus = f.Id"><b>@f.Name</b> <span class="muted">@f.Composition · @(f.Moving ? $"→ {f.Destination} ({f.Eta})" : f.Where)</span> <span class="pill @(f.Readiness < 50 ? "warn" : "")">rdy @f.Readiness</span></summary>
-                    <div class="kv"><span>Admiral</span><b>@(f.AdmiralName ?? "no admiral")@(f.AdmiralName != null ? $" · {(f.AdmiralStyle == "front" ? "leads from the front" : f.AdmiralStyle == "flag" ? "commands from the flag" : "leaves the line to the captains")} · cap {f.Cap} hull(s)" : "")@(f.Valour > 0 ? $" · valour {f.Valour}" : "")@(f.Achilles ? " · ACHILLES" : "")</b></div>
-                    <div class="kv @(f.Loyalty < 30 ? "warn" : "")"><span>Loyalty</span><b>@f.Loyalty@(f.Loyalty < 15 ? " — mutinous, hulls deserting" : f.Loyalty < 30 ? " — the crews will not sail" : "")</b></div>
-                    <div class="kv @(f.Supply < 40 ? "warn" : "")"><span>Supply</span><b>@f.Supply@(f.Supply == 0 ? " — out of supply, hulls deserting" : f.Supply < 40 ? " — short; fights at four-fifths" : "")</b></div>
-                    <div class="row small"><span class="muted">Stance</span>@if (f.StanceOptions != null) { foreach (var o in f.StanceOptions) { <button class="opt inline tiny @(f.Stance == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? StanceHelp(o.Id))" @onclick="() => G.Execute(new SetStanceCommand(pid, f.Id, o.Id))">@o.Label</button> } }</div>
-                    <div class="row small"><span class="muted">Loadout</span>@if (f.LoadoutOptions != null) { foreach (var o in f.LoadoutOptions) { <button class="opt inline tiny @(f.Loadout == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? (o.Id == "torpedoes" ? "a quarter more power; burns an isotope a battle" : "the guns"))" @onclick="() => G.Execute(new SetLoadoutCommand(pid, f.Id, o.Id))">@o.Label</button> } }</div>
-                    @if (f.StyleOptions != null && f.AdmiralId != null) { <div class="row small"><span class="muted">Commands from</span>@foreach (var o in f.StyleOptions) { <button class="opt inline tiny @(f.AdmiralStyle == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? StyleHelp(o.Id))" @onclick="() => G.Execute(new SetCommandStyleCommand(pid, f.AdmiralId, o.Id))">@(o.Id == "none" ? "the staff" : "the " + o.Label)</button> }</div> }
-                    @if (f.Veterancy > 0) { <div class="kv"><span>Veterancy</span><b>@f.Veterancy</b></div> }
-                    <div class="ships">@foreach (var (cls, n) in G.Turn!.Fleets.Composition(fleet)) { <span class="pill" title="atk @cls.Attack / def @cls.Defense"><Icon Name="@(Icons.Paths.ContainsKey(cls.Id) ? cls.Id : "fleet")" Size="12" /> @n × @cls.Name</span> }</div>
-                    <button class="opt" disabled="@(f.Refit.Refusal != null)" title="@f.Refit.Refusal" @onclick="() => G.Execute(new RefitFleetCommand(pid, f.Id))">@f.Refit.Label</button>
-                    <details><summary>Command</summary>@foreach (var o in f.AdmiralOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AssignAdmiralCommand(pid, f.Id, o.Id))">@o.Label</button> }</details>
-                    @if (f.MergeOptions.Count > 0) { <details><summary>Merge</summary>@foreach (var o in f.MergeOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new MergeFleetsCommand(pid, o.Id, f.Id))">@o.Label</button> }</details> }
-                </details>
-            }
-            @if (m.Fleets.Count == 0) { <div class="muted">No hull flies your colours. Lay one down at a holding with a shipyard (House → Holdings).</div> }
-        </section>
-
-        @if (m.Military is { } mil)
-        {
-            <section class="panel brief">
-                <h3><Icon Name="war" Size="13" /> The battle brief <span class="muted">decided at the turn's end</span></h3>
-                @if (mil.Brief.Count == 0) { <div class="muted">No enemy shares a sky with your fleets.</div> }
-                @foreach (var b in mil.Brief)
+            <h3><Icon Name="galaxy" Size="13" /> The plot <span class="muted">our worlds and supply in gold · fronts in red · enemy fleets as reported</span></h3>
+            <svg class="plot" viewBox="0 0 1000 580" role="img" aria-label="the war plot">
+                @foreach (var l in lanes)
                 {
-                    <div class="line @(b.OurPower >= b.TheirPower ? "" : "warn")"><b>@b.SystemName</b> — @b.EnemyName, @b.EnemyHulls hull(s) as reported (@b.Confidence%) against our @b.OurHulls.
-                        Our @b.OurStance against their @b.TheirStance: @(b.Edge > 0 ? "the edge is ours" : b.Edge < 0 ? "the edge is theirs — change the stance" : "no edge either way").
-                        <span class="muted">Odds @((int)Math.Round(100 * b.OurPower / Math.Max(0.01, b.OurPower + b.TheirPower)))% as the plot reads.</span></div>
+                    if (!byId.TryGetValue(l.A, out var a) || !byId.TryGetValue(l.B, out var b)) { continue; }
+                    bool front = (a.IsPlayerTerritory && Enemy(b)) || (b.IsPlayerTerritory && Enemy(a));
+                    <line x1="@F(PX(a.X))" y1="@F(PY(a.Y))" x2="@F(PX(b.X))" y2="@F(PY(b.Y))" class="lane @(front ? "front" : "")" />
                 }
-                <div class="kv"><span>Where you stand</span><b>@(mil.MyStyle == "front" ? "at the front" : mil.MyStyle == "flag" ? "at the flag" : "with the staff")@(mil.MyValour > 0 ? $" · valour {mil.MyValour}" : "")@(mil.MyAchilles ? " · ACHILLES" : "") · you may lead @mil.MyCap hull(s) without strain</b></div>
-                <div class="row small">@foreach (var o in mil.MyStyleOptions) { <button class="opt inline tiny @(mil.MyStyle == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? StyleHelp(o.Id))" @onclick="() => G.Execute(new SetCommandStyleCommand(pid, pid, o.Id))">@(o.Id == "none" ? "the staff" : "the " + o.Label)</button> }</div>
-            </section>
-            <section class="panel">
-                <h3><Icon Name="galaxy" Size="13" /> The campaign</h3>
-                @if (mil.Campaign.TargetName != null) { <div class="kv good"><span>Object</span><b>@mil.Campaign.TargetName · @mil.Campaign.TurnsLeft turn(s) more · fleets within two lanes fight at +10% and count as supplied</b></div> }
-                else if (mil.Campaign.Targets.Count == 0) { <div class="muted">No war, no campaign. A campaign names an enemy's world as the war's object for eight turns (@mil.Campaign.Cost influence).</div> }
-                else
+                @foreach (var n in nodes)
                 {
-                    <select class="sel" @onchange="SetCampaign">
-                        <option value="">— name the war's object —</option>
-                        @foreach (var t in mil.Campaign.Targets) { <option value="@t.Id">@t.Label</option> }
-                    </select>
-                    var pick = mil.Campaign.Targets.FirstOrDefault(t => t.Id == _campaign);
-                    <button class="opt inline" disabled="@(pick == null || pick.Refusal != null)" title="@(pick?.Refusal ?? $"{mil.Campaign.Cost} influence")" @onclick="() => G.Execute(new DeclareCampaignCommand(pid, _campaign, c.Fleets))">Declare the campaign</button>
+                    bool mine = n.IsPlayerTerritory; bool enemy = Enemy(n);
+                    @if (inSupply.Contains(n.SystemId)) { <circle cx="@F(PX(n.X))" cy="@F(PY(n.Y))" r="22" class="supply" /> }
+                    @if (campaign == n.SystemId) { <circle cx="@F(PX(n.X))" cy="@F(PY(n.Y))" r="18" class="campaign" /> }
+                    <circle cx="@F(PX(n.X))" cy="@F(PY(n.Y))" r="@(n.Capital ? 8 : n.PlanetHoldingId != null ? 6 : 3.5)" class="node @(mine ? "mine" : "") @(enemy ? "enemy" : "") @(n.Chokepoint ? "choke" : "")" style="fill:@(n.OwnerHouseId != null ? n.AccentColor : "#3a3f47")"><title>@n.Name@(n.OwnerHouseName != null ? $" · {n.OwnerHouseName}" : " · unclaimed")@(n.Chokepoint ? " · chokepoint" : "")@(inSupply.Contains(n.SystemId) ? " · in your supply" : "")</title></circle>
+                    @if (mine || enemy || n.Capital) { @((MarkupString)$"<text x=\"{F(PX(n.X))}\" y=\"{F(PY(n.Y) - 11)}\" class=\"nlabel {(enemy ? "enemy" : "")}\">{System.Net.WebUtility.HtmlEncode(n.Name)}</text>") }
                 }
-            </section>
-        }
-        <section class="panel">
-            <h3><Icon Name="war" Size="13" /> Wars</h3>
-            @foreach (var war in m.Wars)
-            {
-                var wr = w.Wars.First(x => x.Between(house.Id, war.EnemyHouseId)); var eh = w.House(war.EnemyHouseId);
-                <div class="war"><div><Sigil HouseId="@war.EnemyHouseId" Accent="@(eh?.AccentColor ?? "#888")" Size="16" /> <b>@war.EnemyName</b> <span class="muted">since turn @war.Since · their hulls @war.EnemyHulls@(war.TheyAreSuing ? " · they sue for peace" : "")</span></div>
-                    <div class="kv"><span>War score</span><b>@wr.Score(house.Id) : @wr.Score(war.EnemyHouseId)</b></div>
-                    <button class="opt" disabled="@(!war.PeaceAvailable)" title="@war.PeaceTooltip" @onclick="() => G.Execute(new SueForPeaceCommand(pid, war.EnemyHouseId, c.Fleets))">Sue for peace (1 influence)</button></div>
-            }
-            @if (m.Wars.Count == 0) { <div class="muted">At peace. The lanes are quiet.</div> }
-            @foreach (var sg in m.Sieges) { <div class="line @(sg.Ours ? "warn" : "")"><Icon Name="siege" Size="12" /> @sg.HoldingName under siege by @sg.BesiegerName · @sg.Turns/@sg.Required@(sg.Ours ? " — ours" : "")</div> }
-        </section>
-
-        <section class="panel">
-            <h3><Icon Name="threat" Size="13" /> Rival navies <span class="muted">as reported</span></h3>
-            @{ int maxHulls = Math.Max(1, Math.Max(ours, rivals.Count == 0 ? 0 : rivals.Max(r => r.hulls))); }
+                @foreach (var f in mapFleets.Where(f => byId.ContainsKey(f.SystemId)))
+                {
+                    var n = byId[f.SystemId]; double x = PX(n.X) + (f.IsPlayer ? -12 : 12), y = PY(n.Y) + 12;
+                    <g class="fleet @(f.IsPlayer ? "mine" : f.OwnerHouseId == PirateSystem.HouseId ? "raider" : enemies.Contains(f.OwnerHouseId) ? "enemy" : "other")" transform="translate(@F(x),@F(y))">
+                        <path d="M0 -9 L8 0 L0 9 L-8 0 Z" style="fill:@f.AccentColor" /><text y="4" class="fl">@f.Strength</text>
+                        <title>@f.Name · @f.OwnerHouseName · @f.Strength hull(s)@(f.IsPlayer ? "" : $" · confidence {f.Confidence}%")@(f.Moving ? $" · under way, {f.Eta} jump(s)" : "")</title>
+                    </g>
+                }
+            </svg>
+            <h4>The navies <span class="muted">as reported</span></h4>
             <div class="navy-row mine"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="14" /> <span>@house.Name</span><span class="bar"><i style="width:@(100 * ours / maxHulls)%; background:@house.AccentColor"></i></span><b>@ours</b></div>
             @{ var raiderHulls = w.Fleets.Values.Where(f => f.OwnerId == PirateSystem.HouseId).Sum(f => f.Strength); }
             @if (raiderHulls > 0) { <div class="navy-row warn"><span>☠</span> <span>Raiders on the lanes</span><span class="bar"><i style="width:@(100 * raiderHulls / maxHulls)%; background:#c0392b"></i></span><b>@raiderHulls</b></div> }
             @foreach (var r in rivals.Take(8))
             {
-                <div class="navy-row @(w.AtWar(house.Id, r.house.Id) ? "warn" : "")" title="confidence @(r.conf)%"><Sigil HouseId="@r.house.Id" Accent="@r.house.AccentColor" Size="14" /> <span>@r.house.Name@(w.AtWar(house.Id, r.house.Id) ? " ⚔" : "")</span><span class="bar"><i style="width:@(100 * r.hulls / maxHulls)%; background:@r.house.AccentColor; opacity:@(0.35 + 0.65 * r.conf / 100.0)"></i></span><b>~@r.hulls</b></div>
+                <div class="navy-row @(w.AtWar(house.Id, r.house.Id) ? "warn" : "")" title="confidence @(r.conf)%"><Sigil HouseId="@r.house.Id" Accent="@r.house.AccentColor" Size="14" /> <span>@r.house.Name@(w.AtWar(house.Id, r.house.Id) ? " · at war" : "")</span><span class="bar"><i style="width:@(100 * r.hulls / maxHulls)%; background:@r.house.AccentColor"></i></span><b>~@r.hulls</b></div>
             }
-            @if (rivals.Count == 0) { <div class="muted">No rival hull has been sighted.</div> }
+            @if (rivals.Count == 0) { <div class="muted small">No rival hull has been sighted.</div> }
         </section>
 
         <section class="panel">
-            <h3><Icon Name="report" Size="13" /> Recent battles</h3>
-            @if (battles.Count == 0) { <div class="muted">No battle has been fought in living memory.</div> }
-            @foreach (var h in battles) { <div class="line"><span class="muted">T@(h.Turn)</span> @h.Text</div> }
+            <h3><Icon Name="fleet" Size="13" /> The fleets <span class="muted">movement is ordered on the Galaxy map</span></h3>
+            @if (mil != null)
+            {
+                <div class="brief">
+                    @if (mil.Brief.Count == 0) { <div class="muted small">No enemy shares a sky with your fleets this turn.</div> }
+                    @foreach (var b in mil.Brief)
+                    {
+                        <div class="line battle @(b.OurPower >= b.TheirPower ? "" : "warn")"><b>Battle at @b.SystemName at the turn's end</b> — @b.EnemyName, @b.EnemyHulls hull(s) as reported (@b.Confidence%) against our @b.OurHulls.
+                            Our @b.OurStance against their @b.TheirStance: @(b.Edge > 0 ? "the edge is ours" : b.Edge < 0 ? "the edge is theirs — change the stance" : "no edge either way").
+                            <span class="odds">Odds @((int)Math.Round(100 * b.OurPower / Math.Max(0.01, b.OurPower + b.TheirPower)))%</span></div>
+                    }
+                    <div class="row small"><span class="muted">You command from</span>@foreach (var o in mil.MyStyleOptions) { <button class="opt inline tiny @(mil.MyStyle == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? StyleHelp(o.Id))" @onclick="() => G.Execute(new SetCommandStyleCommand(pid, pid, o.Id))">@(o.Id == "none" ? "the staff" : "the " + o.Label)</button> }
+                        <span class="muted">· @mil.MyCap hull(s) without strain@(mil.MyValour > 0 ? $" · valour {mil.MyValour}" : "")</span></div>
+                </div>
+            }
+            @if (officeHulls > 0) { <div class="kv good"><span>The Admiralty</span><b>@officeHulls office hull(s) sail under your colours · the chair pays their upkeep and the state fuels them · war on the chair is treason</b></div> }
+            @if (w.HasFlag("fuel_short")) { <div class="flag">The tanks are dry: readiness slides fifteen a turn and no fleet may sail until helium-3 is found.</div> }
+            @foreach (var f in m.Fleets)
+            {
+                var fleet = w.Fleets[f.Id];
+                <div class="fcard @(f.Loyalty < 30 || f.Supply < 40 ? "warn" : "")">
+                    <div class="hc-head"><Icon Name="fleet" Size="18" /><div><b>@f.Name</b> <span class="muted small">@f.Composition · @(f.Moving ? $"→ {f.Destination} ({f.Eta})" : f.Where)@(f.Office ? " · held by office" : "")</span></div><span class="pill @(f.Readiness < 50 ? "warn" : "")">rdy @f.Readiness</span></div>
+                    <div class="gauges">
+                        <div class="gauge" title="readiness"><span>Readiness</span><i><b style="width:@f.Readiness%" class="@(f.Readiness < 50 ? "low" : "")"></b></i><em>@f.Readiness</em></div>
+                        <div class="gauge" title="the crews' loyalty: under 30 they will not sail, under 15 they desert"><span>Loyalty</span><i><b style="width:@f.Loyalty%" class="@(f.Loyalty < 30 ? "low" : "")"></b></i><em>@f.Loyalty</em></div>
+                        <div class="gauge" title="supply: under 40 the fleet fights at four-fifths; at nought hulls desert"><span>Supply</span><i><b style="width:@f.Supply%" class="@(f.Supply < 40 ? "low" : "")"></b></i><em>@f.Supply</em></div>
+                    </div>
+                    <div class="ships">@foreach (var (cls, n) in fs.Composition(fleet)) { <span class="pill" title="atk @cls.Attack / def @cls.Defense"><Icon Name="@(Icons.Paths.ContainsKey(cls.Id) ? cls.Id : "fleet")" Size="12" /> @n × @cls.Name</span> }@if (f.Veterancy > 0) { <span class="pill">veterancy @f.Veterancy</span> }</div>
+                    <div class="kv"><span>Admiral</span><b>@(f.AdmiralName ?? "no admiral")@(f.AdmiralName != null ? $" · {(f.AdmiralStyle == "front" ? "leads from the front" : f.AdmiralStyle == "flag" ? "commands from the flag" : "leaves the line to the captains")} · cap {f.Cap}" : "")@(f.Valour > 0 ? $" · valour {f.Valour}" : "")@(f.Achilles ? " · ACHILLES" : "")</b></div>
+                    <div class="row small"><span class="muted">Stance</span>@if (f.StanceOptions != null) { foreach (var o in f.StanceOptions) { <button class="opt inline tiny @(f.Stance == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? StanceHelp(o.Id))" @onclick="() => G.Execute(new SetStanceCommand(pid, f.Id, o.Id))">@o.Label</button> } }</div>
+                    <div class="row small"><span class="muted">Loadout</span>@if (f.LoadoutOptions != null) { foreach (var o in f.LoadoutOptions) { <button class="opt inline tiny @(f.Loadout == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? (o.Id == "torpedoes" ? "a quarter more power; burns an isotope a battle" : "the guns"))" @onclick="() => G.Execute(new SetLoadoutCommand(pid, f.Id, o.Id))">@o.Label</button> } }</div>
+                    @if (f.StyleOptions != null && f.AdmiralId != null) { <div class="row small"><span class="muted">Commands from</span>@foreach (var o in f.StyleOptions) { <button class="opt inline tiny @(f.AdmiralStyle == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? StyleHelp(o.Id))" @onclick="() => G.Execute(new SetCommandStyleCommand(pid, f.AdmiralId, o.Id))">@(o.Id == "none" ? "the staff" : "the " + o.Label)</button> }</div> }
+                    <div class="row small">
+                        <button class="opt inline tiny" disabled="@(f.Refit.Refusal != null)" title="@f.Refit.Refusal" @onclick="() => G.Execute(new RefitFleetCommand(pid, f.Id))">@f.Refit.Label</button>
+                        <details class="inline"><summary>Command</summary>@foreach (var o in f.AdmiralOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AssignAdmiralCommand(pid, f.Id, o.Id))">@o.Label</button> }</details>
+                        @if (f.MergeOptions.Count > 0) { <details class="inline"><summary>Merge</summary>@foreach (var o in f.MergeOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new MergeFleetsCommand(pid, f.Id, o.Id))">@o.Label</button> }</details> }
+                    </div>
+                </div>
+            }
+            @if (m.Fleets.Count == 0) { <div class="muted">No hull flies your colours. Lay one down at a holding with a shipyard (House → the domain).</div> }
         </section>
-    </aside>
+
+        <aside class="dash-side">
+            @if (mil != null)
+            {
+                <section class="panel">
+                    <h3><Icon Name="galaxy" Size="13" /> The campaign</h3>
+                    @if (mil.Campaign.TargetName != null) { <div class="kv good"><span>Object</span><b>@mil.Campaign.TargetName · @mil.Campaign.TurnsLeft turn(s) more</b></div><div class="muted small">Fleets within two lanes of it fight at +10% and count as supplied.</div> }
+                    else if (mil.Campaign.Targets.Count == 0) { <div class="muted small">No war, no campaign. A campaign names an enemy's world as the war's object for eight turns (@mil.Campaign.Cost influence).</div> }
+                    else
+                    {
+                        <select class="sel" @onchange="SetCampaign">
+                            <option value="">— name the war's object —</option>
+                            @foreach (var t in mil.Campaign.Targets) { <option value="@t.Id">@t.Label</option> }
+                        </select>
+                        var pick = mil.Campaign.Targets.FirstOrDefault(t => t.Id == _campaign);
+                        <button class="opt inline" disabled="@(pick == null || pick.Refusal != null)" title="@(pick?.Refusal ?? $"{mil.Campaign.Cost} influence")" @onclick="() => G.Execute(new DeclareCampaignCommand(pid, _campaign, c.Fleets))">Declare the campaign</button>
+                    }
+                </section>
+            }
+            <section class="panel">
+                <h3><Icon Name="war" Size="13" /> Wars</h3>
+                @foreach (var war in m.Wars)
+                {
+                    var wr = w.Wars.First(x => x.Between(house.Id, war.EnemyHouseId)); var eh = w.House(war.EnemyHouseId); int a = wr.Score(house.Id), b = wr.Score(war.EnemyHouseId); int tot = Math.Max(1, a + b);
+                    <div class="war"><div><Sigil HouseId="@war.EnemyHouseId" Accent="@(eh?.AccentColor ?? "#888")" Size="16" /> <b>@war.EnemyName</b> <span class="muted">since turn @war.Since · their hulls ~@war.EnemyHulls@(war.TheyAreSuing ? " · they sue for peace" : "")</span></div>
+                        <div class="tally"><span class="for" style="width:@(100 * a / tot)%"></span><span class="against" style="width:@(100 * b / tot)%"></span></div>
+                        <div class="kv"><span>War score</span><b>@a : @b</b></div>
+                        <button class="opt" disabled="@(!war.PeaceAvailable)" title="@war.PeaceTooltip" @onclick="() => G.Execute(new SueForPeaceCommand(pid, war.EnemyHouseId, c.Fleets))">Sue for peace (1 influence)</button></div>
+                }
+                @if (m.Wars.Count == 0) { <div class="muted">At peace. The lanes are quiet.</div> }
+                @foreach (var sg in m.Sieges) { <div class="line @(sg.Ours ? "warn" : "")"><Icon Name="siege" Size="12" /> @sg.HoldingName under siege by @sg.BesiegerName · @sg.Turns/@sg.Required@(sg.Ours ? " — ours" : "")</div> }
+            </section>
+            <section class="panel">
+                <h3><Icon Name="report" Size="13" /> Dispatches</h3>
+                @if (battles.Count == 0) { <div class="muted">No battle has been fought in living memory.</div> }
+                @foreach (var h in battles) { <div class="line small"><span class="muted">T@(h.Turn)</span> @h.Text</div> }
+            </section>
+        </aside>
+    </div>
 </div>
 
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
-    private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N"); private DotNetObjectReference<MilitaryScreen>? _self; private bool _created; private string _pending = "", _sent = ""; private string? _focus; private string _campaign = "";
+    private string _campaign = "";
     private void SetCampaign(ChangeEventArgs e) => _campaign = e.Value?.ToString() ?? "";
     private static string StanceHelp(string s) => s switch { "press" => "the charge: +15% power, more losses; beats the skirmish, beaten by the line", "skirmish" => "harass and evade: −10% power, far fewer losses; beats the line, beaten by the press", "boarding" => "the press with prize crews: on victory, 2 manpower take a hull per four the enemy lost", _ => "the line: steady; beats the press, beaten by the skirmish" };
     private static string StyleHelp(string s) => s switch { "front" => "+10% to this fleet, the crews' love, a point of valour a victory — and twice the risk of dying with the line", "flag" => "every fleet of the house +3% per point of tactics; never lost with the line; needs the rank of Commander", _ => "the captains fight the ships" };
-
-    protected override async Task OnAfterRenderAsync(bool first)
-    {
-        if (first) { _self = DotNetObjectReference.Create(this); try { if (await JS.InvokeAsync<bool>("praetoria.ready", "praetoriaSets")) { await JS.InvokeVoidAsync("praetoriaSets.create", "war", _id, _host, _self); _created = true; } } catch { } }
-        if (_created && _pending != _sent) { _sent = _pending; try { await JS.InvokeVoidAsync("praetoriaSets.build", _id, _pending); } catch { } }
-        try { await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }
-    }
-    // the plates at the table carry the fleet id, so a click opens that fleet's card
-    [JSInvokable] public void OnPlate(string key) { _focus = key; StateHasChanged(); }
-
-    private string BuildOptions(World w, House house, CourtModel m, List<(House house, int hulls, int conf)> rivals)
-    {
-        var p = w.Protagonist!; var fs = G.Turn!.Fleets;
-        object Plate(Character ch, string? key) { var acc = w.House(ch.HouseId)?.AccentColor ?? "#888"; return new { key, name = ch.Name, accent = acc, bust = new { id = ch.Id, sex = ch.Sex.Length > 0 ? ch.Sex : "male", age = ch.Age, accent = acc, alive = ch.Alive } }; }
-        var mine = w.Fleets.Values.Where(f => f.OwnerId == house.Id).OrderBy(f => f.Id, StringComparer.Ordinal).ToList();
-        var fleets = mine.Select(f => new { ships = f.Strength, classes = fs.Composition(f).SelectMany(x => Enumerable.Repeat(x.cls.Id, x.count)).ToArray() }).ToList();
-        var admirals = mine.Where(f => f.AdmiralId.Length > 0 && w.Char(f.AdmiralId) is { Alive: true }).Select(f => Plate(w.Char(f.AdmiralId)!, f.Id)).ToList();
-        // the hologram: every system, lanes, war fronts where our territory touches an enemy's
-        var nodes = GalaxyProjection.Nodes(w); var enemies = w.Houses.Keys.Where(h => w.AtWar(house.Id, h)).ToHashSet();
-        var byId = nodes.ToDictionary(n => n.SystemId); var fleetAt = GalaxyProjection.Fleets(w).Where(f => f.IsPlayer).Select(f => f.SystemId).ToHashSet();
-        bool Enemy(MapNode n) => n.OwnerHouseId != null && enemies.Contains(n.OwnerHouseId);
-        var chart = new
-        {
-            nodes = nodes.Select(n => new { id = n.SystemId, x = n.X, y = n.Y, color = n.OwnerHouseId == null ? "#4a5468" : n.AccentColor, mine = n.IsPlayerTerritory, fleet = fleetAt.Contains(n.SystemId), fleetColor = house.AccentColor }).ToList(),
-            lanes = GalaxyProjection.Lanes(w).Select(l => new { a = l.A, b = l.B, front = byId.TryGetValue(l.A, out var a) && byId.TryGetValue(l.B, out var b) && ((a.IsPlayerTerritory && Enemy(b)) || (b.IsPlayerTerritory && Enemy(a))) }).ToList()
-        };
-        // wall readouts: readiness per fleet, hull share per navy, war score per front
-        int maxHulls = Math.Max(1, Math.Max(FleetSystem.StrengthOf(w, house.Id), rivals.Count == 0 ? 0 : rivals.Max(r => r.hulls)));
-        var readouts = new[]
-        {
-            mine.Select(f => f.Readiness / 100.0).DefaultIfEmpty(0.0).ToArray(),
-            new[] { FleetSystem.StrengthOf(w, house.Id) / (double)maxHulls }.Concat(rivals.Take(5).Select(r => r.hulls / (double)maxHulls)).ToArray(),
-            m.Wars.Select(war => { var wr = w.Wars.First(x => x.Between(house.Id, war.EnemyHouseId)); int a = wr.Score(house.Id), b = wr.Score(war.EnemyHouseId); return a + b == 0 ? 0.5 : a / (double)(a + b); }).DefaultIfEmpty(0.0).ToArray()
-        };
-        var seat = w.Holdings.Values.Where(h => h.OwnerId == house.Id && h.IsPlanet).OrderByDescending(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
-        var sys = seat != null ? w.Galaxy?.System(seat.SystemId) : null;
-        return System.Text.Json.JsonSerializer.Serialize(new { accent = house.AccentColor, planetClass = sys?.PlanetClass ?? "terran", seed = sys?.Id ?? house.Id, fleets, admirals, chart, readouts, player = Plate(p, null) });
-    }
-    public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaSets.destroy", _id); } catch { } _self?.Dispose(); }
 }

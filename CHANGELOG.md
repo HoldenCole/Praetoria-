@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Changed
+- **Dashboards** (the owner's direction: the Office and the map keep their sets; every other screen is an information
+  surface, each with its own graphic). The **Senate** is a chamber view in the Stellaris-galactic-community and
+  Lawgivers mould: a header strip (seats, standing, bench, threat, pressure), a hemicycle of every seat coloured by
+  house, grouped by bench and rimmed by its lean on the watched resolution, a seat card with whip, bribe and connection
+  actions, the spheres of power, the resolutions with tallies and verdicts, the offices, benches, ladder and crises.
+  The **House** is a ledger register: resource tiles with the forecast, a signed bar chart of where the coin comes
+  from and goes, the wealth table, ventures and claims, a domain board of world cards with loyalty, prosperity and
+  population gauges, the household with a person card, and the decrees. The **Chancery** is an estates board (regard
+  bars with the loyal and hostile bands and the target tick, what each estate would warm to, petitions near) beside a
+  law grid by category with the option in force and its opinions on every card, the law of the Reach and the laws
+  beyond your gift aside. The **Command Deck** is a war plot (every system and lane, fronts in red, your supply in
+  gold, the campaign's object ringed, your fleets and the enemy's as reported), the navies as bars, fleet cards with
+  readiness, loyalty and supply gauges and every control, the battle brief, the campaign, the wars with their score
+  tallies, and the dispatches. Portraits now paint themselves wherever they appear.
+
 ### Added
 - **Military depth** (docs/MILITARY.md; the owner's ask for roles, promotions, campaigns, decisions in combat, weapons,
   tactics, the front-line commander against the general against the Achilles figure, loyalties, supply lines).

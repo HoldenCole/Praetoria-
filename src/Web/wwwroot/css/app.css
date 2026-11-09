@@ -477,3 +477,41 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .resolutions .motion { cursor: pointer; } .resolutions .motion.watched { box-shadow: inset 0 0 0 1px var(--brass3); }
 .tally { display: flex; height: 9px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,.08); margin: .35rem 0 .2rem; } .tally .for { background: var(--good); } .tally .against { background: var(--warn); }
 .tally-line b.good { color: var(--good); } .tally-line b.warn { color: var(--warn); }
+/* keep (House) */
+.keep-grid { grid-template-columns: minmax(0, 1.3fr) minmax(300px, 1fr) 300px; }
+.holding-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .6rem; }
+.hcard, .fcard { border: 1px solid var(--line); border-radius: 4px; padding: .5rem .6rem; background: rgba(5,7,12,.4); } .hcard.besieged, .fcard.warn { border-color: var(--warn); } .hcard.restless { border-color: rgba(216,112,90,.5); }
+.hc-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .3rem; } .hc-head > div { flex: 1; min-width: 0; } .hc-head .pdot { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
+.gauges { display: flex; flex-direction: column; gap: .18rem; margin: .3rem 0; }
+.gauge { display: grid; grid-template-columns: 70px 1fr 48px; align-items: center; gap: .4rem; font-size: .74rem; } .gauge span { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: .62rem; }
+.gauge i { position: relative; display: block; height: 7px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: visible; } .gauge i b { position: absolute; left: 0; top: 0; height: 100%; background: var(--good); border-radius: 3px; } .gauge i b.low { background: var(--warn); } .gauge i b.high { background: var(--brass2); }
+.gauge i u { position: absolute; top: -2px; width: 2px; height: 11px; background: var(--ink); opacity: .7; } .gauge em { font-style: normal; text-align: right; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: .2rem; align-items: center; margin: .25rem 0; } .pill.small { font-size: .64rem; }
+.ledger-bars { margin: .3rem 0; } .lb { display: grid; grid-template-columns: minmax(0, 1fr) 160px 80px; align-items: center; gap: .5rem; padding: .12rem 0; border-bottom: 1px dotted var(--line); font-size: .82rem; }
+.lb .src { color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .lb .track { position: relative; height: 8px; background: rgba(255,255,255,.06); border-radius: 2px; }
+.lb .track::before { content: ""; position: absolute; left: 50%; top: -2px; width: 1px; height: 12px; background: rgba(255,255,255,.3); }
+.lb .track i { position: absolute; top: 0; height: 100%; } .lb .track i.pos { left: 50%; background: var(--good); } .lb .track i.neg { right: 50%; background: var(--warn); }
+.lb b { text-align: right; font-variant-numeric: tabular-nums; } .lb b.good { color: var(--good); } .lb b.warn { color: var(--warn); } .lb.net { border-top: 1px solid var(--line2); border-bottom: none; }
+.dash h4 { margin-top: .8rem; }
+/* chancery (Laws) */
+.chancery-grid { grid-template-columns: minmax(300px, 1fr) minmax(0, 1.5fr) 280px; }
+.estate-board .estate { padding: .45rem .5rem; margin: .3rem 0; border: 1px solid var(--line); border-radius: 4px; background: rgba(5,7,12,.35); } .estate-board .estate.hostile { border-color: rgba(216,112,90,.6); } .estate-board .estate.loyal { border-color: rgba(201,162,74,.6); }
+.es-bar.big { height: 10px; margin: .4rem 0; } .es-bar .target { position: absolute; top: -3px; width: 2px; height: 16px; background: var(--ink); opacity: .8; }
+.es-bar .band { position: absolute; top: 0; height: 100%; opacity: .12; pointer-events: none; } .es-bar .band.loyal { left: 65%; right: 0; background: var(--brass2); } .es-bar .band.hostile { left: 0; right: 65%; background: var(--warn); }
+.estate .wants { color: var(--brass2); }
+.law-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .5rem; margin-bottom: .6rem; } .law-grid .law.open { grid-column: 1 / -1; }
+.law-grid .law { border: 1px solid var(--line); border-radius: 4px; padding: .45rem .55rem; background: rgba(5,7,12,.35); } .law-grid .law.custom { border-color: var(--brass3); } .law-grid .law-head { cursor: pointer; } .law-grid .inforce { color: var(--brass2); }
+/* deck (Military) */
+.deck-grid { grid-template-columns: minmax(0, 1.3fr) minmax(320px, 1fr) 300px; }
+.plot { width: 100%; height: auto; display: block; background: radial-gradient(ellipse at 50% 40%, rgba(122,162,255,.06), transparent 60%), #080b12; border: 1px solid var(--line); border-radius: 4px; }
+.plot .lane { stroke: #2a3348; stroke-width: 1.2; } .plot .lane.front { stroke: #d8705a; stroke-width: 2.5; stroke-dasharray: 6 4; }
+.plot .node { stroke: rgba(0,0,0,.7); stroke-width: 1; } .plot .node.mine { stroke: #f1d78e; stroke-width: 2.5; } .plot .node.enemy { stroke: #d8705a; stroke-width: 2.5; } .plot .node.choke { stroke-dasharray: 2 2; }
+.plot .supply { fill: rgba(201,162,74,.10); stroke: rgba(201,162,74,.35); stroke-width: 1; } .plot .campaign { fill: none; stroke: #7fd0ff; stroke-width: 2; stroke-dasharray: 4 3; }
+.plot .nlabel { fill: #b7b1a3; font-size: 11px; text-anchor: middle; font-family: var(--sans); } .plot .nlabel.enemy { fill: #e0937f; }
+.plot .fleet .fl { fill: #fff; font-size: 10px; text-anchor: middle; font-weight: 700; } .plot .fleet.enemy path { stroke: #d8705a; stroke-width: 2; } .plot .fleet.mine path { stroke: #f1d78e; stroke-width: 2; } .plot .fleet.raider path { stroke: #c0392b; } .plot .fleet.other path { opacity: .7; }
+.brief .battle { border-left: 3px solid var(--good); padding-left: .5rem; margin: .3rem 0; } .brief .battle.warn { border-left-color: var(--warn); } .brief .odds { color: var(--brass2); font-weight: 600; }
+.fcard { margin: .5rem 0; } details.inline { display: inline-block; margin: .1rem .25rem; } details.inline > summary { font-size: .78rem; cursor: pointer; color: var(--ink2); }
+@media (max-width: 1300px) { .keep-grid, .chancery-grid, .deck-grid { grid-template-columns: minmax(0, 1fr) minmax(300px, 1fr); } .keep-grid .dash-side, .chancery-grid .dash-side, .deck-grid .dash-side { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .8rem; } }
+.dash .navy-row, .dash .wealth-row { display: grid; grid-template-columns: 16px minmax(0, 1fr) minmax(80px, 160px) 44px; align-items: center; gap: .45rem; padding: .18rem 0; border-bottom: 1px dotted var(--line); font-size: .84rem; }
+.dash .navy-row .bar, .dash .wealth-row .bar { display: block; height: 8px; background: rgba(255,255,255,.06); border-radius: 2px; overflow: hidden; } .dash .navy-row .bar i, .dash .wealth-row .bar i { display: block; height: 100%; }
+.dash .navy-row b, .dash .wealth-row b { text-align: right; font-variant-numeric: tabular-nums; } .dash .navy-row.mine span, .dash .wealth-row.mine span { color: var(--brass2); }

@@ -1,5 +1,7 @@
+@inject IJSRuntime JS
 @* A cameo portrait (docs/ART_DIRECTION.md §3): drawn by js/portrait.js from the character's id, sex, age and house colour, stable
-   everywhere the person appears. The <img> is filled after render by praetoriaBust.paint(). *@
+   everywhere the person appears. The <img> is filled after render by praetoriaBust.paint(), which this component calls for itself
+   so any screen may place a portrait without a paint hook of its own. *@
 <span class="portrait @(Alive ? "" : "dead") @(Age >= 60 ? "elder" : "")" style="--ring:@Accent; width:@(Size)px; height:@(Size)px" title="@Name">
     <img data-bust="@Spec(Id, Sex, Age, Accent, Alive)" alt="@Name" width="@Size" height="@Size" />
 </span>
@@ -14,4 +16,5 @@
     [Parameter] public int Size { get; set; } = 48;
     public static string Spec(string id, string sex, int age, string accent, bool alive = true) =>
         System.Text.Json.JsonSerializer.Serialize(new { id, sex = sex.Length > 0 ? sex : (Math.Abs(id.GetHashCode()) % 2 == 0 ? "male" : "female"), age, accent, alive });
+    protected override async Task OnAfterRenderAsync(bool first) { try { await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { } }
 }
