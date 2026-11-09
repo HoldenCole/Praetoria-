@@ -1,94 +1,85 @@
 @inject GameClient G
-@inject IJSRuntime JS
-@implements IAsyncDisposable
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
-    _cohort = w.LivingCharacters().Where(x => x.Id != pid && Math.Abs(x.Age - p.Age) <= 4 && x.Age >= 14 && x.Age <= 26).OrderBy(x => w.GetRelationship(x.Id, pid)?.Disposition ?? 0).ThenBy(x => x.Id, StringComparer.Ordinal).Take(10).ToList();
+    var cohort = w.LivingCharacters().Where(x => x.Id != pid && Math.Abs(x.Age - p.Age) <= 4 && x.Age >= 14 && x.Age <= 26).OrderByDescending(x => x.Skills.Values.Sum()).ThenBy(x => x.Id, StringComparer.Ordinal).Take(12).ToList();
     var instructor = w.LivingCharacters().Where(x => x.Id != pid && x.CareerTrack == "military" && x.Age >= 40).OrderByDescending(x => x.CareerRank).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
     int standing = w.Counter("standing");
-    var record = w.History.Where(h => h.EventId != null && c.Events.FirstOrDefault(e => e.Id == h.EventId) is { } ev && IsAcademy(ev.Id)).Reverse().Take(10).ToList();
+    var record = w.History.Where(h => h.EventId != null && c.Events.FirstOrDefault(e => e.Id == h.EventId) is { } ev && IsAcademy(ev.Id)).Reverse().Take(12).ToList();
     var marks = p.Flags.Where(f => !f.StartsWith("background:") && !f.StartsWith("honor:")).OrderBy(f => f, StringComparer.Ordinal).ToList();
-    _pending = BuildOptions(w, p, house, instructor);
+    int mySum = p.Skills.Values.Sum(); int place = 1 + cohort.Count(k => k.Skills.Values.Sum() > mySum);
+    var fc = _focus != null ? w.Char(_focus) : null;
 }
-<div class="office academy" style="--accent:@house.AccentColor">
-    <div class="office-stage">
-        <div class="gl-host" @ref="_host"></div>
-        <div class="stage-foot">
-            <div class="stage-title"><Icon Name="military" Size="16" /> <b>The Academy of the Reach</b> <span class="muted">cadet @p.Name, @p.Age · cohort of @_cohort.Count · standing @standing</span></div>
-            <span class="muted small">click a cadet in the ranks</span>
+<div class="dash academy" style="--accent:@house.AccentColor">
+    <header class="dash-head">
+        <div class="dh-title"><Icon Name="military" Size="18" /> <b>The Academy of the Reach</b> <span class="muted">cadet @p.Name, @p.Age · @(c.Careers.ById(p.CareerTrack)?.Name ?? p.CareerTrack) · @(c.Careers.RankName(p.CareerTrack, p.CareerRank) ?? "")</span></div>
+        <div class="dh-stats">
+            <div class="stat @(standing < 0 ? "warn" : "")"><span>Standing</span><b>@(standing >= 0 ? "+" : "")@standing</b></div>
+            <div class="stat"><span>Place in the cohort</span><b>@place <i class="muted">of @(cohort.Count + 1) by skill</i></b></div>
+            <div class="stat @(p.Stress >= 70 ? "warn" : "")"><span>Stress</span><b>@p.Stress</b></div>
+            <div class="stat"><span>Instructor</span><b>@(instructor?.Name ?? "none")</b></div>
+            <div class="stat"><span>Feuds</span><b>@cohort.Count(k => k.Flags.Contains("feud"))</b></div>
         </div>
-        @if (_focus != null && w.Char(_focus) is { } fc)
-        {
-            var fh = w.House(fc.HouseId)!; var rel = w.GetRelationship(fc.Id, pid); int d = rel?.Disposition ?? 0; var cn = m.Connections.FirstOrDefault(x => x.Id == fc.Id);
-            <div class="stage-card">
-                <Portrait Id="@fc.Id" Name="@fc.Name" Sex="@fc.Sex" Age="@fc.Age" Accent="@fh.AccentColor" Size="64" />
-                <div class="sc-body">
-                    <div class="sc-name">@fc.Name <span class="muted">@(c.Careers.RankName(fc.CareerTrack, fc.CareerRank) ?? "") of @fh.Name · @fc.Age</span></div>
-                    <div class="muted small"><span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d toward you</span>@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "") @foreach (var f in fc.Flags.Where(f => !f.StartsWith("background:")).Take(4)) { <span class="pill small">@f.Replace('_', ' ')</span> }</div>
-                    <div class="muted small">@string.Join(" · ", fc.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value).Take(3).Select(k => $"{k.Key} {k.Value}")) · @string.Join(", ", fc.NatureTraits)</div>
-                    @if (cn != null) { <div class="sc-actions">@foreach (var o in cn.Actions) { <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(Conn(o.Id, cn.Id))">@o.Label</button> }</div> }
-                </div>
-                <button class="win-close" @onclick="() => _focus = null">✕</button>
-            </div>
-        }
-    </div>
-
-    <aside class="office-side">
+    </header>
+    <div class="dash-grid academy-grid">
         <section class="panel">
-            <h3><Icon Name="honor" Size="13" /> Your record</h3>
-            <div class="kv"><span>Standing in the cohort</span><b>@standing<span class="bar"><i style="width:@Math.Min(100, Math.Max(0, 50 + standing * 10))%"></i></span></b></div>
-            <div class="kv"><span>Track</span><b>@(c.Careers.ById(p.CareerTrack)?.Name ?? p.CareerTrack) · @(c.Careers.RankName(p.CareerTrack, p.CareerRank) ?? "")</b></div>
-            <div class="kv"><span>Stress</span><b class="@(p.Stress >= 70 ? "warn" : "")">@p.Stress</b></div>
-            @if (marks.Count > 0) { <div class="kv"><span>Marks</span><b>@string.Join(" · ", marks.Select(f => f.Replace('_', ' ')))</b></div> }
-            <div class="muted small">Standing rises when you win the trials and falls when you are humbled; it decides who petitions you and who sneers.</div>
+            <h3><Icon Name="you" Size="13" /> The cohort <span class="muted">cadets of your year, by skill · click one</span></h3>
+            <table class="standings">
+                <thead><tr><th>Cadet</th><th>House</th><th>Skill</th><th>Best at</th><th>Toward you</th><th>Marks</th></tr></thead>
+                <tbody>
+                @foreach (var k in cohort.Prepend(p).OrderByDescending(x => x.Skills.Values.Sum()).ThenBy(x => x.Id, StringComparer.Ordinal))
+                {
+                    var kh = w.House(k.HouseId)!; var rel = w.GetRelationship(k.Id, pid); int d = rel?.Disposition ?? 0; int sum = k.Skills.Values.Sum(); int maxSum = Math.Max(1, cohort.Prepend(p).Max(x => x.Skills.Values.Sum()));
+                    <tr class="@(k.Id == pid ? "mine" : "") @(k.Id == _focus ? "here" : "")" @onclick="() => _focus = k.Id">
+                        <td class="hn"><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Accent="@kh.AccentColor" Size="22" /> <b>@k.Name</b> <span class="muted small">@k.Age</span></td>
+                        <td class="muted small"><Sigil HouseId="@kh.Id" Accent="@kh.AccentColor" Size="12" /> @kh.Name</td>
+                        <td><span class="mbar"><i style="width:@(100 * sum / maxSum)%; background:@kh.AccentColor"></i></span>@sum</td>
+                        <td class="muted small">@string.Join(", ", k.Skills.Where(s => s.Value > 0).OrderByDescending(s => s.Value).Take(2).Select(s => $"{s.Key} {s.Value}"))</td>
+                        <td>@if (k.Id != pid) { <span class="pill @(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span> }</td>
+                        <td>@foreach (var f in k.Flags.Where(f => f is "feud" or "humiliated" or "wounded" or "framed" or "owes_you" or "reconciled" or "marked_for_death" or "sabotaged")) { <span class="pill small warn">@f.Replace('_', ' ')</span> }</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            @if (cohort.Count == 0) { <div class="muted">No cadets of your year.</div> }
         </section>
-        <section class="panel">
-            <h3><Icon Name="you" Size="13" /> The cohort</h3>
-            @foreach (var k in _cohort)
+        <aside class="dash-side">
+            @if (fc != null)
             {
-                var kh = w.House(k.HouseId)!; var rel = w.GetRelationship(k.Id, pid); int d = rel?.Disposition ?? 0;
-                <div class="person" @onclick="() => _focus = k.Id" style="cursor:pointer">
-                    <Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Accent="@kh.AccentColor" Size="30" />
-                    <span><b>@k.Name</b> <span class="muted">@kh.Name</span></span>
-                    <span class="pill @(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span>
-                    @foreach (var f in k.Flags.Where(f => f is "feud" or "humiliated" or "wounded" or "framed" or "owes_you" or "reconciled")) { <span class="pill small warn">@f.Replace('_', ' ')</span> }
-                </div>
+                var fh = w.House(fc.HouseId)!; var rel = w.GetRelationship(fc.Id, pid); int d = rel?.Disposition ?? 0; var cn = m.Connections.FirstOrDefault(x => x.Id == fc.Id);
+                <section class="panel">
+                    <div class="seat-card">
+                        <Portrait Id="@fc.Id" Name="@fc.Name" Sex="@fc.Sex" Age="@fc.Age" Accent="@fh.AccentColor" Size="56" />
+                        <div class="sc-body">
+                            <div class="sc-name">@fc.Name <span class="muted">@(c.Careers.RankName(fc.CareerTrack, fc.CareerRank) ?? "") of @fh.Name · @fc.Age</span></div>
+                            @if (fc.Id != pid) { <div class="muted small"><span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d toward you</span>@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</div> }
+                            <div class="muted small">@string.Join(" · ", fc.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value).Take(4).Select(k => $"{k.Key} {k.Value}"))@(fc.NatureTraits.Count > 0 ? " · " + string.Join(", ", fc.NatureTraits) : "")</div>
+                            @if (cn != null) { <div class="sc-actions">@foreach (var o in cn.Actions) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(Conn(o.Id, cn.Id))">@o.Label</button> }</div> }
+                        </div>
+                        <button class="win-close" @onclick="() => _focus = null">✕</button>
+                    </div>
+                </section>
             }
-            @if (_cohort.Count == 0) { <div class="muted">No cadets of your year.</div> }
-        </section>
-        <section class="panel">
-            <h3><Icon Name="chronicle" Size="13" /> The year so far</h3>
-            @if (record.Count == 0) { <div class="muted">The first morning has not yet come.</div> }
-            @foreach (var h in record) { <div class="line"><span class="muted">T@(h.Turn)</span> @h.Text</div> }
-        </section>
-    </aside>
+            <section class="panel">
+                <h3><Icon Name="honor" Size="13" /> Your record</h3>
+                <div class="gauge" title="standing in the cohort, −5 to +5"><span>Standing</span><i><b style="width:@Math.Min(100, Math.Max(0, 50 + standing * 10))%" class="@(standing < 0 ? "low" : "")"></b><u style="left:50%"></u></i><em>@(standing >= 0 ? "+" : "")@standing</em></div>
+                <div class="gauge" title="stress"><span>Stress</span><i><b style="width:@p.Stress%" class="@(p.Stress >= 70 ? "low" : "")"></b></i><em>@p.Stress</em></div>
+                @foreach (var sk in p.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value)) { <div class="gauge"><span>@sk.Key</span><i><b style="width:@(Math.Min(100, sk.Value * 20))%" class="high"></b></i><em>@sk.Value</em></div> }
+                @if (marks.Count > 0) { <div class="chips">@foreach (var f in marks) { <span class="pill small">@f.Replace('_', ' ')</span> }</div> }
+                <div class="muted small">Standing rises when you win the trials and falls when you are humbled; it decides who petitions you and who sneers.</div>
+                @if (instructor != null) { <div class="person" @onclick="() => _focus = instructor.Id"><Portrait Id="@instructor.Id" Name="@instructor.Name" Sex="@instructor.Sex" Age="@instructor.Age" Accent="@(w.House(instructor.HouseId)?.AccentColor ?? "#888")" Size="26" /><span><b>@instructor.Name</b> <span class="muted">instructor · @(c.Careers.RankName(instructor.CareerTrack, instructor.CareerRank) ?? "") of @(w.House(instructor.HouseId)?.Name)</span></span></div> }
+            </section>
+            <section class="panel">
+                <h3><Icon Name="chronicle" Size="13" /> The year so far</h3>
+                @if (record.Count == 0) { <div class="muted">The first morning has not yet come.</div> }
+                @foreach (var h in record) { <div class="line small"><span class="muted">T@(h.Turn)</span> @h.Text</div> }
+            </section>
+        </aside>
+    </div>
 </div>
 
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
-    private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N"); private DotNetObjectReference<AcademyScreen>? _self; private bool _created; private string _pending = "", _sent = "";
-    private List<Character> _cohort = new(); private string? _focus;
-    private static bool IsAcademy(string id) => id is "first_formation" or "barracks_slight" or "the_reckoning" or "the_petitioner" or "the_humiliated_returns" or "the_wounded_mercy" or "the_frame_unravels" || id.Contains("drill") || id.Contains("trial") || id.Contains("oath") || id.Contains("sabotage") || id.Contains("instructor") || id.Contains("blooding") || id.Contains("mentor") || id.Contains("letter_home") || id.Contains("night_watch") || id.Contains("marked_man") || id.Contains("proctor");
-
-    protected override async Task OnAfterRenderAsync(bool first)
-    {
-        if (first) { _self = DotNetObjectReference.Create(this); try { if (await JS.InvokeAsync<bool>("praetoria.ready", "praetoriaSets")) { await JS.InvokeVoidAsync("praetoriaSets.create", "academy", _id, _host, _self); _created = true; } } catch { } }
-        if (_created && _pending != _sent) { _sent = _pending; try { await JS.InvokeVoidAsync("praetoriaSets.build", _id, _pending); } catch { } }
-        try { await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }
-    }
-    [JSInvokable] public void OnPlate(string key) { _focus = key; StateHasChanged(); }
-
-    private string BuildOptions(World w, Character p, House house, Character? instructor)
-    {
-        object Plate(Character ch, string? key) => new { key, name = ch.Name, accent = w.House(ch.HouseId)?.AccentColor ?? "#888", bust = new { id = ch.Id, sex = ch.Sex.Length > 0 ? ch.Sex : "male", age = ch.Age, accent = w.House(ch.HouseId)?.AccentColor ?? "#888", alive = ch.Alive } };
-        var seat = w.HoldingsOf(house.Id).FirstOrDefault(h => h.IsPlanet); var sys = seat != null ? w.Galaxy?.System(seat.SystemId) : null;
-        return System.Text.Json.JsonSerializer.Serialize(new
-        {
-            accent = house.AccentColor, planetClass = "gas", seed = "academy",
-            houses = _cohort.Select(k => k.HouseId).Append(house.Id).Distinct().Take(8).Select(id => new { id, accent = w.House(id)?.AccentColor ?? "#888" }).ToList(),
-            player = Plate(p, null), cadets = _cohort.Select(k => Plate(k, k.Id)).ToList(), instructor = instructor != null ? Plate(instructor, instructor.Id) : null
-        });
-    }
+    private string? _focus;
+    private static bool IsAcademy(string id) => id is "first_formation" or "barracks_slight" or "the_reckoning" or "the_petitioner" or "the_humiliated_returns" or "the_wounded_mercy" or "the_frame_unravels" or "the_oath" or "the_blooding" or "the_instructors_eye" or "mess_hall" or "the_deciding_trial" or "the_sabotage" or "the_proctors_offer" or "the_letter_home" or "the_marked_man" or "night_watch_lapse" || id.Contains("drill") || id.Contains("trial");
     private ICommand Conn(string optionId, string targetId) { var pid = G.World!.ProtagonistId; var c = G.Content!; return optionId.StartsWith("marry:") ? new ProposeMarriageCommand(pid, optionId["marry:".Length..], targetId, c.Titles) : new AssassinateCommand(pid, targetId, c.Friction); }
-    public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaSets.destroy", _id); } catch { } _self?.Dispose(); }
 }

@@ -515,3 +515,34 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .dash .navy-row, .dash .wealth-row { display: grid; grid-template-columns: 16px minmax(0, 1fr) minmax(80px, 160px) 44px; align-items: center; gap: .45rem; padding: .18rem 0; border-bottom: 1px dotted var(--line); font-size: .84rem; }
 .dash .navy-row .bar, .dash .wealth-row .bar { display: block; height: 8px; background: rgba(255,255,255,.06); border-radius: 2px; overflow: hidden; } .dash .navy-row .bar i, .dash .wealth-row .bar i { display: block; height: 100%; }
 .dash .navy-row b, .dash .wealth-row b { text-align: right; font-variant-numeric: tabular-nums; } .dash .navy-row.mine span, .dash .wealth-row.mine span { color: var(--brass2); }
+/* gallery (Houses), worlds, academy: standings tables */
+.gallery-grid { grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr); } .worlds-grid { grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); } .academy-grid { grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); }
+.standings { width: 100%; border-collapse: collapse; font-size: .84rem; } .standings th { text-align: left; font-family: var(--display); font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: .25rem .4rem; border-bottom: 1px solid var(--line2); }
+.standings td { padding: .3rem .4rem; border-bottom: 1px dotted var(--line); vertical-align: middle; } .standings tbody tr { cursor: pointer; } .standings tbody tr:hover { background: rgba(201,162,74,.05); }
+.standings tr.mine td { color: var(--brass2); } .standings tr.here td { background: rgba(201,162,74,.08); } .standings tr.hostile td.hn b { color: var(--warn); }
+.standings .hn { white-space: nowrap; } .standings .hn b { margin-left: .2rem; } .standings .hn .tier { margin-left: .3rem; }
+.mbar { display: inline-block; width: 56px; height: 7px; background: rgba(255,255,255,.07); border-radius: 2px; margin-right: .35rem; vertical-align: middle; overflow: hidden; } .mbar i { display: block; height: 100%; }
+.region-head { display: flex; align-items: baseline; gap: .6rem; margin-top: .6rem; } .region-head h4 { margin: 0; color: var(--accent); }
+.region-row { padding: .35rem 0; border-bottom: 1px dotted var(--line); cursor: pointer; } .region-row b { color: var(--accent); }
+/* lineage (Dynasty) */
+.lineage-grid { grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr); }
+.tree { width: 100%; height: auto; display: block; background: radial-gradient(ellipse at 50% 0%, rgba(201,162,74,.06), transparent 60%); border-radius: 4px; }
+.tree .link { fill: none; stroke: #4e4230; stroke-width: 1.5; } .tree .wed { stroke: #8a6c2a; stroke-width: 1; stroke-dasharray: 3 3; }
+.tree .tn { cursor: pointer; } .tree .tn .ring { fill: none; stroke: rgba(0,0,0,.6); stroke-width: 2; } .tree .tn.me .ring { stroke: #f1d78e; stroke-width: 3; } .tree .tn.heir .ring { stroke: #6fbf8a; stroke-width: 3; } .tree .tn.focus .ring { stroke: #fff; stroke-width: 3; }
+.tree .tn.dead circle:first-child { opacity: .35; } .tree .tn.dead .nm { fill: #7d8699; }
+.tree .ini { fill: #fff; font-family: var(--display); font-size: 15px; font-weight: 600; text-anchor: middle; } .tree .nm { fill: #e8e2d3; font-size: 12px; text-anchor: middle; font-family: var(--serif); } .tree .sub { fill: #7d8699; font-size: 10px; text-anchor: middle; }
+/* sheet (You) */
+.sheet-grid { grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr) 280px; }
+.sheet-top { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 1rem; align-items: start; } @media (max-width: 1100px) { .sheet-top { grid-template-columns: 1fr; } }
+.radar { width: 100%; max-width: 300px; height: auto; } .radar .grid { fill: none; stroke: rgba(255,255,255,.08); } .radar .axis { stroke: rgba(255,255,255,.12); } .radar .ax { fill: #b7b1a3; font-size: 10px; text-anchor: middle; }
+.radar .shape { fill: rgba(201,162,74,.25); stroke: #e6c77a; stroke-width: 2; } .radar .pt { fill: #f1d78e; }
+.tie { display: grid; grid-template-columns: 26px minmax(0, 1fr) 110px 40px; gap: .45rem; align-items: center; padding: .22rem 0; border-bottom: 1px dotted var(--line); font-size: .84rem; } .tie .tn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dbar { position: relative; height: 7px; background: rgba(255,255,255,.07); border-radius: 3px; } .dbar .zero { position: absolute; left: 50%; top: -2px; width: 1px; height: 11px; background: rgba(255,255,255,.35); } .dbar .fill { position: absolute; top: 0; height: 100%; border-radius: 3px; } .dbar .fill.pos { background: var(--good); } .dbar .fill.neg { background: var(--warn); }
+.tie b { text-align: right; }
+/* archive (Chronicle) */
+.archive-grid { grid-template-columns: minmax(0, 1fr); }
+.timeline { width: 100%; height: auto; display: block; background: #080b12; border: 1px solid var(--line); border-radius: 4px; }
+.timeline .base { stroke: #3a4866; } .timeline .vol { fill: rgba(255,255,255,.02); stroke: rgba(255,255,255,.08); cursor: pointer; } .timeline .vol.here { fill: rgba(201,162,74,.08); stroke: var(--brass3); } .timeline .vol:hover { fill: rgba(201,162,74,.06); }
+.timeline .tick { fill: #55617a; } .timeline .tick.notable { fill: #c9a24a; } .timeline .tick.war { fill: #d8705a; } .timeline .gen { fill: #f1d78e; font-size: 12px; text-anchor: middle; } .timeline .tl { fill: #7d8699; font-size: 10px; } .timeline .tl.end { text-anchor: end; }
+.entries { columns: 2 420px; column-gap: 1.2rem; margin-top: .5rem; } .turn-block { break-inside: avoid; margin-bottom: .6rem; } .turn-block h4 { margin: .2rem 0; }
+.dash-head .portrait { vertical-align: middle; }

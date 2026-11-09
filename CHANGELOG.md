@@ -16,7 +16,13 @@
   beyond your gift aside. The **Command Deck** is a war plot (every system and lane, fronts in red, your supply in
   gold, the campaign's object ringed, your fleets and the enemy's as reported), the navies as bars, fleet cards with
   readiness, loyalty and supply gauges and every control, the battle brief, the campaign, the wars with their score
-  tallies, and the dispatches. Portraits now paint themselves wherever they appear.
+  tallies, and the dispatches. The **Houses** are a sortable standings table with bars for worlds, hulls and seats
+  and the focused house's card; the **Line** (Dynasty) is a family tree by generation with the wed beside and the
+  succession, bonds and remembered aside; **You** is a skills radar, the career ladder, traits, and bonds as centred
+  disposition bars; the **Worlds** are a board by region with loyalty and prosperity bars, riches and deposits, and a
+  regions panel; the **Chronicle** is a timeline strip of every turn with volumes to open and the run's counters in
+  the header; the **Academy** is the cohort by skill with your standing against the centre line. Portraits now paint
+  themselves wherever they appear.
 
 ### Added
 - **Military depth** (docs/MILITARY.md; the owner's ask for roles, promotions, campaigns, decisions in combat, weapons,

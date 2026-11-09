@@ -1,60 +1,67 @@
 @inject GameClient G
-@inject IJSRuntime JS
-@implements IAsyncDisposable
 @{
     var w = G.World!; var house = w.House(w.Protagonist!.HouseId)!;
     var volumes = Volumes(w);
     if (_volume == null || !volumes.Any(v => v.key == _volume)) _volume = volumes.LastOrDefault().key;
     var vol = volumes.FirstOrDefault(v => v.key == _volume);
-    _pending = BuildOptions(w, house, volumes);
     var turns = w.History.Where(h => vol.key != null && h.Turn >= vol.from && h.Turn <= vol.to).GroupBy(h => h.Turn).OrderByDescending(g => g.Key).ToList();
+    var ticks = w.History.GroupBy(h => h.Turn).ToDictionary(g => g.Key, g => (notable: g.Any(h => h.EventId != null || Notable(h.Text)), war: g.Any(h => Martial(h.Text)), gen: g.Any(h => h.Text.Contains("succeeds")), n: g.Count()));
+    int last = Math.Max(1, w.Turn); int maxN = Math.Max(1, ticks.Values.Select(t => t.n).DefaultIfEmpty(1).Max());
+    string F(double v) => v.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+    double TX(int t) => 20 + (t - 1) * 960.0 / Math.Max(1, last);
 }
-<div class="office archive" style="--accent:@house.AccentColor">
-    <div class="office-stage">
-        <div class="gl-host" @ref="_host"></div>
-        <div class="stage-foot">
-            <div class="stage-title"><Icon Name="chronicle" Size="16" /> <b>The Archive of @house.Name</b> <span class="muted">@w.History.Count entries over @w.Turn turns · wars @w.Counter(FleetSystem.WarsDeclaredCounter) · battles @w.Counter(FleetSystem.BattlesCounter) · births @w.Counter("dynasty_births") · generation @(w.Counter("generation") + 1)</span></div>
-            <span class="muted small">the chronicle on the far wall · a volume per ten turns on the table · click one to open it</span>
+<div class="dash archive" style="--accent:@house.AccentColor">
+    <header class="dash-head">
+        <div class="dh-title"><Icon Name="chronicle" Size="18" /> <b>The Chronicle of @house.Name</b> <span class="muted">@w.History.Count entries over @w.Turn turns</span></div>
+        <div class="dh-stats">
+            <div class="stat"><span>Wars declared</span><b>@w.Counter(FleetSystem.WarsDeclaredCounter)</b></div>
+            <div class="stat"><span>Battles</span><b>@w.Counter(FleetSystem.BattlesCounter) <i class="muted">won @w.Counter(FleetSystem.BattlesWonCounter)</i></b></div>
+            <div class="stat"><span>Motions carried</span><b>@w.Counter("motions_passed")</b></div>
+            <div class="stat"><span>Acts and petitions</span><b>@w.Counter("acts_passed") <i class="muted">· @w.Counter("petitions_heard") heard</i></b></div>
+            <div class="stat"><span>Laws enacted</span><b>@w.Counter("laws_enacted")</b></div>
+            <div class="stat"><span>Houses fallen</span><b>@w.Counter("houses_fallen")</b></div>
+            <div class="stat"><span>Seats passed</span><b>@w.Successions.Count</b></div>
         </div>
-    </div>
-
-    <aside class="office-side">
+    </header>
+    <div class="dash-grid archive-grid">
         <section class="panel">
-            <h3><Icon Name="chronicle" Size="13" /> The volumes</h3>
+            <h3><Icon Name="chronicle" Size="13" /> The timeline <span class="muted">a bar a turn · tall for a full turn · brass for the notable · red for war · ★ a seat passing · click a volume</span></h3>
+            <svg class="timeline" viewBox="0 0 1000 110" role="img" aria-label="the timeline">
+                <line x1="20" y1="80" x2="980" y2="80" class="base" />
+                @foreach (var v in volumes) { <rect x="@F(TX(v.from) - 2)" y="8" width="@F(Math.Max(4, TX(Math.Min(last, v.to) + 1) - TX(v.from)))" height="90" class="vol @(v.key == _volume ? "here" : "")" @onclick="() => _volume = v.key"><title>@v.label</title></rect> }
+                @for (int t = 1; t <= last; t++)
+                {
+                    if (!ticks.TryGetValue(t, out var tk)) { continue; }
+                    double h = 8 + 60.0 * tk.n / maxN;
+                    <rect x="@F(TX(t) - 1.5)" y="@F(80 - h)" width="3" height="@F(h)" class="tick @(tk.war ? "war" : tk.notable ? "notable" : "")"><title>Turn @t · @tk.n entr@(tk.n == 1 ? "y" : "ies")</title></rect>
+                    @if (tk.gen) { @((MarkupString)$"<text x=\"{F(TX(t))}\" y=\"14\" class=\"gen\">★</text>") }
+                }
+                @((MarkupString)$"<text x=\"20\" y=\"100\" class=\"tl\">turn 1</text><text x=\"980\" y=\"100\" class=\"tl end\">turn {last}</text>")
+            </svg>
             <div class="vols">@foreach (var v in volumes) { <button class="rung @(v.key == _volume ? "here" : "")" @onclick="() => _volume = v.key">@v.label</button> }</div>
-            <label class="inline"><input type="checkbox" @bind="_onlyNotable" /> only the notable</label>
-            <div class="vols">@foreach (var k in new[] { "all", "war", "dynasty", "coin", "realm", "politics" }) { <button class="rung @(_kind == k ? "here" : "")" @onclick="() => _kind = k">@k</button> }</div>
+            <div class="row small"><label class="inline"><input type="checkbox" @bind="_onlyNotable" /> only the notable</label>
+                <span class="vols">@foreach (var k in new[] { "all", "war", "dynasty", "coin", "realm", "politics" }) { <button class="rung @(_kind == k ? "here" : "")" @onclick="() => _kind = k">@k</button> }</span></div>
+            <div class="entries">
+                @foreach (var g in turns)
+                {
+                    var lines = g.Where(h => (!_onlyNotable || h.EventId != null || Notable(h.Text)) && Kind(h.Text)).ToList();
+                    if (lines.Count == 0) continue;
+                    <div class="turn-block"><h4>Turn @g.Key</h4>@foreach (var h in lines) { <div class="line @(h.EventId != null ? "event" : "")">@h.Text</div> }</div>
+                }
+                @if (turns.Count == 0) { <div class="muted">Nothing is written in this volume yet.</div> }
+            </div>
         </section>
-        @foreach (var g in turns)
-        {
-            var lines = g.Where(h => (!_onlyNotable || h.EventId != null || Notable(h.Text)) && Kind(h.Text)).ToList();
-            if (lines.Count == 0) continue;
-            <section class="panel turn-block">
-                <h3>Turn @g.Key</h3>
-                @foreach (var h in lines) { <div class="line @(h.EventId != null ? "event" : "")">@h.Text</div> }
-            </section>
-        }
-        @if (turns.Count == 0) { <section class="panel"><div class="muted">Nothing is written in this volume yet.</div></section> }
-    </aside>
+    </div>
 </div>
 
 @code {
-    private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N"); private DotNetObjectReference<ChronicleScreen>? _self; private bool _created; private string _pending = "", _sent = ""; private string? _volume; private bool _onlyNotable;
-
-    protected override async Task OnAfterRenderAsync(bool first)
-    {
-        if (first) { _self = DotNetObjectReference.Create(this); try { if (await JS.InvokeAsync<bool>("praetoria.ready", "praetoriaSets")) { await JS.InvokeVoidAsync("praetoriaSets.create", "archive", _id, _host, _self); _created = true; } } catch { } }
-        if (_created && _pending != _sent) { _sent = _pending; try { await JS.InvokeVoidAsync("praetoriaSets.build", _id, _pending); } catch { } }
-    }
-    [JSInvokable] public void OnPlate(string key) { _volume = key; StateHasChanged(); }
-
+    private string? _volume; private bool _onlyNotable; private string _kind = "all";
     private static bool Notable(string t) =>
         t.Contains("war", StringComparison.OrdinalIgnoreCase) || t.Contains("dies") || t.Contains("born") || t.Contains("wed") || t.Contains("takes ") ||
         t.Contains("destroyed") || t.Contains("Crisis") || t.Contains("throne", StringComparison.OrdinalIgnoreCase) || t.Contains("succeeds") || t.Contains("desert");
-    private string _kind = "all";
     private bool Kind(string t) => _kind switch
     {
-        "war" => Martial(t) || t.Contains("declares") || t.Contains("peace") || t.Contains("Raiders") || t.Contains("raiders"),
+        "war" => Martial(t) || t.Contains("declares") || t.Contains("peace") || t.Contains("Raiders") || t.Contains("raiders") || t.Contains("campaign"),
         "dynasty" => t.Contains("born") || t.Contains("dies") || t.Contains("wed") || t.Contains("comes of age") || t.Contains("succeeds") || t.Contains("banner"),
         "coin" => t.Contains("credits") || t.Contains("founds") || t.Contains("stakes") || t.Contains("borrows") || t.Contains("sells") || t.Contains("buys") || t.Contains("tithe"),
         "realm" => t.Contains("rises") || t.Contains("breaks from") || t.Contains("Free March") || t.Contains("capital") || t.Contains("Crisis") || t.Contains("throne", StringComparison.OrdinalIgnoreCase) || t.Contains("governor") || t.Contains("rolls") || t.Contains("enters the service") || t.Contains("in fief") || t.Contains("Senate") || t.Contains("bench") || t.Contains("Bloc") || t.Contains("Benches") || t.Contains("Party") || t.Contains(" sets "),
@@ -62,19 +69,10 @@
         _ => true
     };
     private static bool Martial(string t) => t.Contains("war", StringComparison.OrdinalIgnoreCase) || t.Contains("battle", StringComparison.OrdinalIgnoreCase) || t.Contains("destroyed") || t.Contains("siege", StringComparison.OrdinalIgnoreCase);
-
-    // a volume per ten turns, the current one always present even when empty
     private static List<(string key, string label, int from, int to)> Volumes(World w)
     {
         var list = new List<(string, string, int, int)>(); int last = Math.Max(1, w.Turn);
         for (int from = 1; from <= last; from += 10) { int to = from + 9; list.Add(($"v{from}", $"Turns {from}–{to}", from, to)); }
         return list;
     }
-    private string BuildOptions(World w, House house, List<(string key, string label, int from, int to)> volumes)
-    {
-        var vols = volumes.Select(v => new { v.key, v.label, accent = v.key == _volume ? house.AccentColor : "#4a3222", lines = w.History.Where(h => h.Turn >= v.from && h.Turn <= v.to && (h.EventId != null || Notable(h.Text))).Take(16).Select(h => $"T{h.Turn} {h.Text}").ToList() }).ToList();
-        var ticks = w.History.GroupBy(h => h.Turn).Select(g => new { turn = g.Key, notable = g.Any(h => h.EventId != null || Notable(h.Text)), war = g.Any(h => Martial(h.Text)), gen = g.Any(h => h.Text.Contains("succeeds")) ? 1 : 0 }).ToList();
-        return System.Text.Json.JsonSerializer.Serialize(new { accent = house.AccentColor, turn = w.Turn, open = _volume, volumes = vols, timeline = ticks });
-    }
-    public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaSets.destroy", _id); } catch { } _self?.Dispose(); }
 }

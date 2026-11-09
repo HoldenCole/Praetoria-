@@ -83,3 +83,26 @@ the rail order (`RoleTheme.Priority`), the desk's advisor order, the briefing ki
 the Office set's dressing (`opts.role` in office.js: signal lamp, hull and chart tube; ledgers, balance and abacus;
 gavel, codex and robe stand) and the landing screen after the seat passes. The era's gold overrides the register's
 variables under the Imperium, so a proclamation still transforms the whole look.
+
+## Sets and dashboards (2026-11-09)
+
+The owner's direction: the Office and the Galaxy map keep their lit sets; every other screen is an information
+surface — a dashboard with its own graphic, dense, unique, and useful. The register still applies (era and role), the
+palette and type do not change, but the three-dimensional stage is gone from those screens.
+
+| screen | the graphic | what it answers |
+|---|---|---|
+| Senate | a hemicycle of every seat, coloured by house, grouped by bench, rimmed by its lean on the watched resolution | who sits where, how the vote falls, whom to whip |
+| House | a signed bar chart of the ledger, resource tiles with the forecast, world cards with gauges | where the coin comes from, what each world is doing |
+| Chancery | an estates board with regard bars, bands and the target tick; a law grid with the option in force | who is angry, what would warm them, what each law costs |
+| Command Deck | the war plot — systems, lanes, fronts, supply, the campaign's object, fleets as reported — and navy bars | where the war is, whether the fleet can fight there |
+| Houses | a sortable standings table with bars for worlds, hulls and seats | who outranks whom and by how much |
+| Line | the family tree by generation with the wed beside | who follows, who is lost |
+| You | a skills radar, the career ladder, bonds as centred disposition bars | what the character can do and who feels what |
+| Worlds | a world board by region with loyalty and prosperity bars, riches and deposits | where the land is and what it bears |
+| Chronicle | a timeline strip of every turn, brass for the notable, red for war, a star for a seat passing | the shape of the run |
+| Academy | the cohort by skill, your standing against the centre line | where the cadet stands |
+
+Shared classes: `.dash`, `.dash-head` (title and stat strip), `.dash-grid` (per-screen columns), `.dash-side`,
+`.standings`, `.gauge`, `.mbar`, `.seat-card`. SVG graphics are drawn in the component from the projection; no JS set
+is created for these screens, and portraits paint themselves.

@@ -707,3 +707,17 @@ screen.
 1. **The Republic**: parties from benches, the consulship, the cursus honorum, generals' sway and the Caesar
    (docs/REPUBLIC.md). 2. **Foreign nations off-map**: expeditions as campaigns (docs/FOREIGN_NATIONS.md). 3. **Plots
    with steps.** 4. **The ledger runs rich.** 5. **A dynasty tree.** 6. **Audio.**
+
+## 23. Dashboards — 2026-11-09
+
+The owner's direction after the military depth: the Office and the map are good; the other screens, each a lit set
+with a side panel, do not help or inform. They are now dashboards (docs/ART_DIRECTION.md, *Sets and dashboards*):
+the Senate as a chamber view in the Stellaris-galactic-community and Lawgivers mould, the House as a ledger, the
+Chancery as an estates board, the Command Deck as a war plot, the Houses as a standings table, the Line as a family
+tree (the dynasty tree from the gap list, done), You as a skills radar and sheet, the Worlds as a board, the Chronicle
+as a timeline, the Academy as a cohort table. Every control the old screens had is kept; the sets' JS classes remain
+in `sets.js` for the Office's neighbours but no screen but the Office and the map creates one.
+
+### Still open, ranked
+1. **The Republic** (parties, consuls, generals' sway, the Caesar). 2. **Foreign nations off-map.** 3. **Plots with
+steps.** 4. **The ledger runs rich.** 5. **Audio.** 6. The Galaxy map could carry the war plot's supply shading.

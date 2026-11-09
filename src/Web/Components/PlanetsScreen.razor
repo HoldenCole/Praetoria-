@@ -1,80 +1,89 @@
 @inject GameClient G
 @inject IJSRuntime JS
-@implements IAsyncDisposable
 @{
     var w = G.World!; var c = G.Content!; var house = w.House(w.Protagonist!.HouseId)!;
     var nodes = GalaxyProjection.Nodes(w).ToDictionary(n => n.SystemId); var regions = GalaxyProjection.Regions(w);
-    _pending = BuildOptions(w, house, regions, nodes);
     var fn = _focus != null && nodes.TryGetValue(_focus, out var f0) ? f0 : null;
+    int myWorlds = nodes.Values.Count(n => n.IsPlayerTerritory && n.PlanetHoldingId != null), restless = nodes.Values.Count(n => n.Population > 0 && n.Unrest >= 50), unclaimed = nodes.Values.Count(n => n.OwnerHouseId == null);
+    var shown = _region == null ? regions : regions.Where(r => r.Id == _region).ToList();
 }
-<div class="office orrery" style="--accent:@house.AccentColor">
-    <div class="office-stage">
-        <div class="gl-host" @ref="_host"></div>
-        <div class="stage-foot">
-            <div class="stage-title"><Icon Name="worlds" Size="16" /> <b>The Orrery of @w.Galaxy!.Name</b> <span class="muted">@regions.Count regions · @nodes.Count worlds · @w.Holdings.Values.Count(h => !h.IsPlanet) stations</span></div>
-            <span class="muted small">each arm a region, each globe a world · click one</span>
+<div class="dash worlds" style="--accent:@house.AccentColor">
+    <header class="dash-head">
+        <div class="dh-title"><Icon Name="worlds" Size="18" /> <b>The Worlds of @w.Galaxy!.Name</b> <span class="muted">@regions.Count regions · @nodes.Count systems · @w.Holdings.Values.Count(h => !h.IsPlanet) stations</span></div>
+        <div class="dh-stats">
+            <div class="stat"><span>Yours</span><b>@myWorlds</b></div>
+            <div class="stat"><span>Unclaimed</span><b>@unclaimed</b></div>
+            <div class="stat @(restless > 3 ? "warn" : "")"><span>Restless worlds</span><b>@restless</b></div>
+            <div class="stat"><span>Free marches</span><b>@regions.Count(r => r.FreeMarch)</b></div>
+            <div class="stat"><span>Deposits</span><b>@nodes.Values.Count(n => n.Deposits is { Count: > 0 })</b></div>
         </div>
-        @if (fn != null)
-        {
-            var planet = fn.PlanetHoldingId != null ? w.Holding(fn.PlanetHoldingId) : null; var owner = fn.OwnerHouseId != null ? w.House(fn.OwnerHouseId) : null; var region = regions.FirstOrDefault(r => r.Id == fn.RegionId);
-            var stations = w.Holdings.Values.Where(h => h.SystemId == fn.SystemId && !h.IsPlanet).ToList(); var sys = w.Galaxy.System(fn.SystemId);
-            <div class="stage-card">
-                <img class="sprite big" data-planet="@fn.PlanetClass|@fn.SystemId|64" alt="" />
-                <div class="sc-body">
-                    <div class="sc-name">@fn.Name <span class="muted">@fn.PlanetClass world@(region != null ? $" · {region.Name}" : "") · @fn.Culture culture</span></div>
-                    <div class="muted small">@(owner != null ? $"held by {owner.Name}" : "unclaimed")@(fn.GovernorName != null ? $" · governor {fn.GovernorName}" : "")@(planet != null ? $" · {c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization} · pop {fn.Population} · loyalty {100 - fn.Unrest}" : "")@(stations.Count > 0 ? $" · {string.Join(", ", stations.Select(s => $"{s.Name} ({w.House(s.OwnerId)?.Name})"))}" : "")@(fn.Contested ? " · contested" : "")@(fn.Capital ? " · the capital" : "")@(fn.Rebellion > 0 ? $" · IN REVOLT ({fn.Rebellion})" : "")@(planet != null ? $" · prosperity {fn.Prosperity}" : "")@(fn.Belt > 0 ? $" · belt {new string('●', fn.Belt)} ({fn.Claims}/{fn.Belt} claims)" : "")@(fn.Ventures > 0 ? $" · {fn.Ventures} venture(s)" : "")</div>
-                    @if (sys != null && sys.Description.Length > 0) { <div class="muted small">@sys.Description</div> }
-                    <div class="sc-actions"><button class="opt inline" @onclick="() => OnFocus.InvokeAsync(fn.SystemId)">Open on the galaxy map</button></div>
-                </div>
-                <button class="win-close" @onclick="() => _focus = null">✕</button>
-            </div>
-        }
-    </div>
-
-    <aside class="office-side">
-        @foreach (var r in regions)
-        {
-            <section class="panel region-block" style="--accent:@r.AccentColor">
-                <div class="region-head"><h3>@r.Name <span class="ring @r.Ring">@r.Ring</span></h3><span class="muted">@r.Culture · @(r.DominantHouseName != null ? $"{r.DominantHouseName} dominates" : "no house dominates")@(r.FreeMarch ? " · FREE MARCH" : "") · loyalty @(100 - r.Unrest) · ⚜ @r.Allegiance · <span class="@(r.Lawlessness >= 60 ? "warn" : "")">☠ @r.Lawlessness</span>@(r.Rebellions > 0 ? $" · {r.Rebellions} rising" : "")@(w.Fleets.Values.Any(f => f.OwnerId == PirateSystem.HouseId && r.SystemIds.Contains(f.SystemId)) ? " · ☠ raiders" : "")</span></div>
-                @foreach (var id in r.SystemIds)
-                {
-                    var n = nodes[id]; var owner = n.OwnerHouseId != null ? w.House(n.OwnerHouseId) : null;
-                    <div class="world-line @(n.IsPlayerTerritory ? "mine" : "") @(id == _focus ? "here" : "")" @onclick="() => _focus = id">
-                        <img class="sprite" data-planet="@n.PlanetClass|@n.SystemId|28" alt="" />
-                        <span><b>@n.Name</b> <span class="muted">@n.PlanetClass@(n.GovernorName != null ? $" · {n.GovernorName}" : "")</span></span>
-                        <span class="holder">@if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="14" /> }<span class="muted">@(owner?.Name ?? "—")</span></span>
-                        @if (n.Population > 0) { <span class="pill @(n.Unrest >= 50 ? "warn" : "")">@(100 - n.Unrest)</span> }
-                        @if (n.Stations > 0) { <span class="pill small">@n.Stations st</span> }
-                        @if (n.Belt > 0) { <span class="pill small" title="belt richness @n.Belt">@(new string('●', n.Belt))</span> }
-                        @if (n.Deposits is { Count: > 0 }) { foreach (var d in n.Deposits) { <span class="pill small dep" title="@Resource.Label(d.Key) deposit, richness @d.Value">@(d.Key == "helium3" ? "³He" : d.Key == "rare_earths" ? "RE" : "Iso") @d.Value</span> } }
-                        @if (n.Ventures > 0) { <span class="pill small" title="ventures">@n.Ventures v</span> }
+    </header>
+    <div class="dash-grid worlds-grid">
+        <section class="panel">
+            <h3><Icon Name="worlds" Size="13" /> The world board <span class="muted">click a world</span></h3>
+            <div class="vols"><button class="rung @(_region == null ? "here" : "")" @onclick="() => _region = null">all regions</button>@foreach (var r in regions) { <button class="rung @(_region == r.Id ? "here" : "")" style="--accent:@r.AccentColor" @onclick="() => _region = r.Id">@r.Name</button> }</div>
+            @foreach (var r in shown)
+            {
+                <div class="region-head" style="--accent:@r.AccentColor"><h4>@r.Name <span class="ring @r.Ring">@r.Ring</span></h4><span class="muted small">@r.Culture · @(r.DominantHouseName != null ? $"{r.DominantHouseName} dominates" : "no house dominates")@(r.FreeMarch ? " · FREE MARCH" : "") · unrest @r.Unrest</span></div>
+                <table class="standings worlds-tbl">
+                    <thead><tr><th>World</th><th>Class</th><th>Holder</th><th>Governor</th><th>Loyalty</th><th>Prosperity</th><th>Pop</th><th>Riches</th></tr></thead>
+                    <tbody>
+                    @foreach (var id in r.SystemIds)
+                    {
+                        var n = nodes[id]; var owner = n.OwnerHouseId != null ? w.House(n.OwnerHouseId) : null;
+                        <tr class="@(n.IsPlayerTerritory ? "mine" : "") @(id == _focus ? "here" : "")" @onclick="() => _focus = id">
+                            <td class="hn"><img class="sprite" data-planet="@n.PlanetClass|@n.SystemId|20" alt="" /> <b>@n.Name</b>@if (n.Capital) { <span class="tier small opulent">capital</span> }@if (n.Chokepoint) { <span class="pill small" title="chokepoint">⋈</span> }</td>
+                            <td class="muted">@n.PlanetClass</td>
+                            <td>@if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="13" /> <span>@owner.Name</span> } else { <span class="muted">—</span> }</td>
+                            <td class="muted small">@(n.GovernorName ?? "")</td>
+                            <td>@if (n.Population > 0) { <span class="mbar"><i style="width:@(100 - n.Unrest)%; background:@(n.Unrest >= 50 ? "var(--warn)" : "var(--good)")"></i></span>@(100 - n.Unrest) }</td>
+                            <td>@if (n.PlanetHoldingId != null) { <span class="mbar"><i style="width:@n.Prosperity%; background:var(--brass)"></i></span>@n.Prosperity }</td>
+                            <td class="muted">@(n.Population > 0 ? n.Population.ToString() : "")</td>
+                            <td class="small">@if (n.Stations > 0) { <span class="pill small">@n.Stations st</span> }@if (n.Belt > 0) { <span class="pill small" title="belt richness @n.Belt">@(new string('●', n.Belt))</span> }@if (n.Deposits is { Count: > 0 }) { foreach (var d in n.Deposits) { <span class="pill small dep" title="@Resource.Label(d.Key) deposit, richness @d.Value">@(d.Key == "helium3" ? "³He" : d.Key == "rare_earths" ? "RE" : "Iso") @d.Value</span> } }@if (n.Ventures > 0) { <span class="pill small" title="ventures">@n.Ventures v</span> }</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </section>
+        <aside class="dash-side">
+            @if (fn != null)
+            {
+                var planet = fn.PlanetHoldingId != null ? w.Holding(fn.PlanetHoldingId) : null; var owner = fn.OwnerHouseId != null ? w.House(fn.OwnerHouseId) : null; var region = regions.FirstOrDefault(r => r.Id == fn.RegionId);
+                var stations = w.Holdings.Values.Where(h => h.SystemId == fn.SystemId && !h.IsPlanet).ToList(); var sys = w.Galaxy.System(fn.SystemId);
+                var fleets = GalaxyProjection.Fleets(w).Where(f => f.SystemId == fn.SystemId).ToList();
+                <section class="panel">
+                    <div class="seat-card">
+                        <img class="sprite big" data-planet="@fn.PlanetClass|@fn.SystemId|64" alt="" />
+                        <div class="sc-body">
+                            <div class="sc-name">@fn.Name <span class="muted">@fn.PlanetClass world@(region != null ? $" · {region.Name}" : "") · @fn.Culture culture</span></div>
+                            <div class="muted small">@(owner != null ? $"held by {owner.Name}" : "unclaimed")@(fn.GovernorName != null ? $" · governor {fn.GovernorName}" : "")@(planet != null ? $" · {c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization}" : "")@(fn.Population > 0 ? $" · pop {fn.Population} · loyalty {100 - fn.Unrest}" : "")@(fn.Rebellion > 0 ? $" · rebellion {fn.Rebellion}" : "")</div>
+                            @if (planet != null) { <div class="muted small">Built: @(planet.Buildings.Count == 0 ? "nothing" : string.Join(", ", planet.Buildings.Select(b => c.Holdings.Building(b)?.Name ?? b)))</div> }
+                            @if (stations.Count > 0) { <div class="muted small">Stations: @string.Join(", ", stations.Select(s => s.Name))</div> }
+                            @if (fn.Deposits is { Count: > 0 }) { <div class="muted small">Deposits: @string.Join(", ", fn.Deposits.Select(d => $"{Resource.Label(d.Key)} ({d.Value})"))</div> }
+                            @if (fleets.Count > 0) { <div class="muted small">In the sky: @string.Join(", ", fleets.Select(f => $"{f.Name} ({f.OwnerHouseName}, {f.Strength})"))</div> }
+                            @if (sys != null && sys.Description.Length > 0) { <div class="muted small">@sys.Description</div> }
+                            <div class="sc-actions"><button class="opt inline tiny" @onclick="() => OnFocus.InvokeAsync(fn.SystemId)">Open on the galaxy map</button></div>
+                        </div>
+                        <button class="win-close" @onclick="() => _focus = null">✕</button>
                     </div>
+                </section>
+            }
+            <section class="panel">
+                <h3><Icon Name="galaxy" Size="13" /> The regions</h3>
+                @foreach (var r in regions)
+                {
+                    int mineHere = r.SystemIds.Count(id => nodes[id].IsPlayerTerritory);
+                    <div class="region-row" style="--accent:@r.AccentColor" @onclick="() => _region = r.Id"><b>@r.Name</b> <span class="ring @r.Ring">@r.Ring</span><div class="muted small">@r.SystemIds.Count systems · @(r.DominantHouseName ?? "no one") dominates@(mineHere > 0 ? $" · {mineHere} yours" : "")@(r.FreeMarch ? " · free march" : "")</div>
+                        <div class="gauge" title="regional unrest"><span>Unrest</span><i><b style="width:@r.Unrest%" class="@(r.Unrest >= 50 ? "low" : "")"></b></i><em>@r.Unrest</em></div></div>
                 }
             </section>
-        }
-    </aside>
+        </aside>
+    </div>
 </div>
 
 @code {
     [Parameter] public EventCallback<string> OnFocus { get; set; }
-    private ElementReference _host; private readonly string _id = Guid.NewGuid().ToString("N"); private DotNetObjectReference<PlanetsScreen>? _self; private bool _created; private string _pending = "", _sent = ""; private string? _focus;
-
-    protected override async Task OnAfterRenderAsync(bool first)
-    {
-        if (first) { _self = DotNetObjectReference.Create(this); try { if (await JS.InvokeAsync<bool>("praetoria.ready", "praetoriaSets")) { await JS.InvokeVoidAsync("praetoriaSets.create", "orrery", _id, _host, _self); _created = true; } } catch { } }
-        if (_created && _pending != _sent) { _sent = _pending; try { await JS.InvokeVoidAsync("praetoriaSets.build", _id, _pending); } catch { } }
-        try { await JS.InvokeVoidAsync("praetoriaFx.paint"); } catch { }
-    }
-    [JSInvokable] public void OnPlate(string key) { _focus = key; StateHasChanged(); }
-
-    private string BuildOptions(World w, House house, IReadOnlyList<MapRegion> regions, Dictionary<string, MapNode> nodes)
-    {
-        var list = regions.Select(r => new
-        {
-            id = r.Id, name = r.Name + " · " + r.Ring, accent = r.AccentColor, unrest = r.Unrest,
-            worlds = r.SystemIds.Select(id => nodes[id]).Select(n => new { id = n.SystemId, name = n.Name, planetClass = n.PlanetClass, accent = n.OwnerHouseId == null ? "#4a5468" : n.AccentColor, mine = n.IsPlayerTerritory, stations = n.Stations, unrest = n.Unrest, belt = n.Belt }).ToList()
-        }).ToList();
-        return System.Text.Json.JsonSerializer.Serialize(new { accent = house.AccentColor, regions = list });
-    }
-    public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaSets.destroy", _id); } catch { } _self?.Dispose(); }
+    private string? _focus, _region;
+    protected override async Task OnAfterRenderAsync(bool first) { try { await JS.InvokeVoidAsync("praetoriaFx.paint"); } catch { } }
 }
