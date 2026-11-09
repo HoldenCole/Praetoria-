@@ -12,10 +12,52 @@ namespace Praetoria.Core.Systems;
 /// whip on the leader is half a whip on the bench. The player joins (two influence, if the leader does not dislike them), leaves (the
 /// leader takes it ill), or founds a bench (two influence, two houses with the affinity). Flags: <c>in_faction</c>, <c>faction_leader</c>,
 /// <c>faction_formed</c>, <c>faction_joined</c>, <c>faction_dissolved</c>, <c>broke_the_whip</c>, <c>faction_against_me</c>; counters
-/// <c>factions</c>, <c>factions_formed</c>, <c>faction:&lt;house&gt;</c> (nothing; membership is on the faction).
+/// <c>factions</c>, <c>factions_formed</c>. Since the Republic (docs/REPUBLIC.md) the benches are <b>parties</b>: four seeded from content at the world's
+/// creation, every house seated with the one its laws fit, rivals crossing the floor every tenth turn when their laws drift; benches no longer form of
+/// themselves — the player founds the fifth.
 /// </summary>
 public static class FactionSystem
 {
+    /// <summary>The laws, for reading a house's positions against a party's (set by TurnController).</summary>
+    public static Data.PolicyCatalog Policies { get; set; } = Data.PolicyCatalog.Empty;
+    public const int SwitchEvery = 10, SwitchMargin = 2;
+
+    /// <summary>Seat every house with the party its laws best fit (docs/REPUBLIC.md): the four parties of content, each with at least two members.</summary>
+    public static void Seed(World w, Data.PartyCatalog parties, Func<string, int> weight)
+    {
+        if (parties.IsEmpty || w.Factions.Count > 0) return;
+        foreach (var d in parties.Defs)
+            w.Factions.Add(new Faction { Id = d.Id, Name = d.Name, PartyId = d.Id, Accent = d.Accent, Description = d.Description, Estates = d.Estates.ToList(), Laws = d.Laws.ToDictionary(k => k.Key, k => k.Value), Platform = d.Motions.ToDictionary(k => k.Key, k => k.Value), FormedTurn = w.Turn });
+        var houses = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        foreach (var h in houses) Best(w, h.Id)!.Members.Add(h.Id);
+        // no party sits empty: a thin party takes the best-fitting house from the fullest
+        foreach (var f in w.Factions.Where(f => f.Members.Count < 2).ToList())
+            while (f.Members.Count < 2)
+            {
+                var from = w.Factions.Where(x => x != f && x.Members.Count > 2).OrderByDescending(x => x.Members.Count).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault(); if (from == null) break;
+                var mover = from.Members.Where(m => m != w.Protagonist?.HouseId).OrderByDescending(m => Fit(w, m, f)).ThenBy(m => m, StringComparer.Ordinal).FirstOrDefault(); if (mover == null) break;
+                from.Members.Remove(mover); f.Members.Add(mover);
+            }
+        foreach (var f in w.Factions) f.LeaderHouseId = f.Members.OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault() ?? "";
+        w.WorldCounters["factions"] = w.Factions.Count;
+    }
+
+    /// <summary>How well a house fits a party: two for every law where the house holds the party's position (one where it holds the scope but not
+    /// the position counts nothing), one for every courted estate the house's regard runs warm with, a deterministic hair to break ties.</summary>
+    public static int Fit(World w, string houseId, Faction f)
+    {
+        int score = 0;
+        foreach (var (law, opt) in f.Laws)
+        {
+            var def = Policies.Law(law); if (def == null) continue;
+            if (def.Scope == "senate") continue;   // the Senate's laws belong to no house
+            if (PolicySystem.OptionId(w, Policies, houseId, law) == opt) score += 2;
+        }
+        foreach (var e in f.Estates) if (PolicySystem.Approval(w, houseId, e) >= 10) score += 1;
+        uint hash = 2166136261; foreach (var ch in houseId + "|" + f.Id) hash = (hash ^ ch) * 16777619;
+        return score * 4 + (int)(hash % 4);
+    }
+    public static Faction? Best(World w, string houseId) => w.Factions.Where(f => f.PartyId.Length > 0).OrderByDescending(f => Fit(w, houseId, f)).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
     public const int FormThreshold = 3, LeaveBelow = 1, AffinityMin = -6, AffinityMax = 12, Discipline = 2, JoinInfluence = 2, FoundInfluence = 2, BreakWhipAffinity = 2, BreakWhipDisposition = 5;
     public static readonly string[] TurnFlags = { "faction_formed", "faction_joined", "faction_dissolved", "broke_the_whip" };
 
@@ -48,41 +90,30 @@ public static class FactionSystem
     public static void Tick(World w, Func<string, int> weight)
     {
         var mine = w.Protagonist?.HouseId;   // turn flags are cleared by SenateSystem.Tick before motions resolve
-        // 1. the benches hold or break
+        // 1. the parties hold: a dead or fallen leader is replaced by the weightiest member; a party the player founded breaks under two members
         foreach (var f in w.Factions.ToList())
         {
             f.Members.RemoveAll(h => !w.Houses.ContainsKey(h));
-            if (!w.Houses.ContainsKey(f.LeaderHouseId) || !f.Members.Contains(f.LeaderHouseId))
+            if (f.Members.Count > 0 && (!w.Houses.ContainsKey(f.LeaderHouseId) || !f.Members.Contains(f.LeaderHouseId)))
             {
                 var next = f.Members.OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault();
                 if (next != null) { f.LeaderHouseId = next; w.Log($"{w.House(next)?.Name} takes the lead of {f.Name}."); }
             }
-            foreach (var h in f.Members.Where(h => h != f.LeaderHouseId && Affinity(w, h, f.LeaderHouseId) < LeaveBelow).ToList())
-            {
-                f.Members.Remove(h); w.Log($"{w.House(h)?.Name} breaks with {f.Name}.");
-                if (h == mine) w.WorldFlags.Add("faction_dissolved");
-            }
-            if (f.Members.Count < 2)
+            if (f.PartyId.Length == 0 && f.Members.Count < 2)
             {
                 w.Factions.Remove(f); w.Log($"{f.Name} is no more; its last benches sit apart.");
                 if (f.Members.Contains(mine ?? "")) w.WorldFlags.Add("faction_dissolved");
             }
         }
-        // 2. the benches grow: a house with the affinity joins a leader, one a bench a turn (the player chooses for themselves)
-        foreach (var f in w.Factions.OrderBy(f => f.Id, StringComparer.Ordinal))
+        // 2. a house with no party takes its seat with the one its laws fit (the player chooses for themselves), one a turn
+        var free = w.Houses.Values.Where(h => h.Id != mine && h.Id != PirateSystem.HouseId && Of(w, h.Id) == null).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+        if (free != null && Best(w, free.Id) is { } fit) { fit.Members.Add(free.Id); w.Log($"{free.Name} takes its seat with {fit.Name}."); }
+        // 3. every tenth turn one house whose laws have drifted crosses the floor to the party that fits them better
+        if (w.Turn > 0 && w.Turn % SwitchEvery == 0)
         {
-            var joiner = w.Houses.Values.Where(h => h.Id != mine && h.Id != PirateSystem.HouseId && Of(w, h.Id) == null && Affinity(w, h.Id, f.LeaderHouseId) >= FormThreshold)
-                .OrderByDescending(h => Affinity(w, h.Id, f.LeaderHouseId)).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
-            if (joiner != null) { f.Members.Add(joiner.Id); w.Log($"{joiner.Name} takes its seat with {f.Name}."); }
-        }
-        // 3. a new bench forms around the weightiest unaligned house with two friends
-        var free = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && Of(w, h.Id) == null).OrderByDescending(h => weight(h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
-        foreach (var leader in free.Where(h => h.Id != mine))
-        {
-            var friends = free.Where(h => h.Id != leader.Id && h.Id != mine && Affinity(w, h.Id, leader.Id) >= FormThreshold).Take(4).Select(h => h.Id).ToList();
-            if (friends.Count < 2) continue;
-            Form(w, leader.Id, friends, mine);
-            break;
+            var mover = w.Houses.Values.Where(h => h.Id != mine && h.Id != PirateSystem.HouseId && Of(w, h.Id) is { PartyId.Length: > 0 } cur && Best(w, h.Id) is { } best && best != cur && Fit(w, h.Id, best) >= Fit(w, h.Id, cur) + SwitchMargin * 4 && cur.Members.Count > 2)
+                .OrderByDescending(h => Fit(w, h.Id, Best(w, h.Id)!) - Fit(w, h.Id, Of(w, h.Id)!)).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (mover != null) { var cur = Of(w, mover.Id)!; var best = Best(w, mover.Id)!; cur.Members.Remove(mover.Id); best.Members.Add(mover.Id); w.Log($"{mover.Name} crosses the floor from {cur.Name} to {best.Name}."); if (cur.LeaderHouseId == mover.Id) cur.LeaderHouseId = cur.Members.OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault() ?? ""; }
         }
         // 4. flags
         foreach (var fl in new[] { "in_faction", "faction_leader", "faction_against_me" }) w.WorldFlags.Remove(fl);
@@ -98,8 +129,10 @@ public static class FactionSystem
     public static Faction Form(World w, string leaderId, IEnumerable<string> members, string? mine)
     {
         int n = w.Counter("factions_formed") + 1; w.WorldCounters["factions_formed"] = n;
-        var f = new Faction { Id = $"faction_{n}", LeaderHouseId = leaderId, FormedTurn = w.Turn, Accent = Presentation.Palette.Party(n - 1) };
+        var f = new Faction { Id = $"faction_{n}", LeaderHouseId = leaderId, FormedTurn = w.Turn, Accent = Presentation.Palette.Party(4 + n - 1) };
         f.Members.Add(leaderId); foreach (var m in members) if (!f.Members.Contains(m)) f.Members.Add(m);
+        foreach (var law in Policies.Laws.Where(l => !l.Reach && PolicySystem.HoldsScope(w, leaderId, l.Scope))) { var o = PolicySystem.OptionId(w, Policies, leaderId, law.Id); if (o != law.DefaultOption.Id) f.Laws[law.Id] = o; }   // the founder's own law is the platform
+        foreach (var old in w.Factions.Where(x => x.Members.Contains(leaderId) || members.Any(x.Members.Contains)).ToList()) { old.Members.Remove(leaderId); foreach (var m in members) old.Members.Remove(m); }   // they leave their old benches
         f.Name = NameFor(w, f);
         w.Factions.Add(f);
         if (f.Members.Contains(mine ?? "")) w.WorldFlags.Add("faction_formed");

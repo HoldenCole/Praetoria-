@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Changed
+- **Four parties, not a crowd of benches** (the owner's direction; docs/REPUBLIC.md stage 1): the Optimates, the
+  Populares, the Sword and the Factors ship in content with a colour, the estates they court, positions on the laws
+  and stances on the kinds of motion. Every house is seated by its laws at the world's creation, each party with at
+  least two members; a house with no party takes the best-fitting seat; every tenth turn one rival whose laws have
+  drifted crosses the floor. Benches no longer form of themselves — the player founds the fifth, in silver, on their
+  own law. Members lean with the party line on motions and Acts. The Senate shows the parties' colours, courted estates
+  and platforms.
 - **The palette**: one bright, well-separated set for every house (red, blue, yellow, green, silver, then orange,
   violet, cyan, magenta and the rest), assigned at creation and at a house's birth; regions take soft-bright tints of
   their own rather than the dominant house's colour; parties take a colour as they form; planet classes are brighter and

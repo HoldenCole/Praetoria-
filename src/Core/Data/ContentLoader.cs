@@ -49,8 +49,8 @@ public static class ContentLoader
         var recovery = CrisisLoader.LoadRecovery(contentRoot);
         var businesses = BusinessLoader.LoadFromDirectory(contentRoot);
 
-        var motions = MotionCatalog.LoadFromDirectory(contentRoot); var offices = OfficeCatalog.LoadFromDirectory(contentRoot); var policies = PolicyCatalog.LoadFromDirectory(contentRoot);
-        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers, traits, backgrounds, fleets, shipClasses, honors, friction, names, greatCrisis, recovery, businesses, motions, offices, policies);
+        var motions = MotionCatalog.LoadFromDirectory(contentRoot); var offices = OfficeCatalog.LoadFromDirectory(contentRoot); var policies = PolicyCatalog.LoadFromDirectory(contentRoot); var parties = PartyCatalog.LoadFromDirectory(contentRoot);
+        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers, traits, backgrounds, fleets, shipClasses, honors, friction, names, greatCrisis, recovery, businesses, motions, offices, policies, parties);
     }
 
     private static IEnumerable<string> EnumerateJson(string dir) =>

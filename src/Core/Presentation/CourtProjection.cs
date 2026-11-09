@@ -34,7 +34,8 @@ public sealed record CapitalCard(string SystemName, string? HolderId, string? Ho
 /// <summary>One house's stance on a motion: declared or predicted, with its weight and whether the player may still whip it.</summary>
 public sealed record StanceLine(string HouseId, string HouseName, string Accent, int Weight, int Stance, bool Declared, string? LobbyRefusal, string? BribeRefusal, string? Faction = null, bool FactionLeader = false);
 /// <summary>A Senate faction: its name, leader, benches, platform and record, and what the player may do about it.</summary>
-public sealed record FactionCard(string Id, string Name, string LeaderHouseId, string LeaderName, string LeaderAccent, IReadOnlyList<(string Id, string Name, string Accent)> Members, int Weight, bool Mine, bool Lead, string Platform, int Record, int Since, string? JoinRefusal);
+public sealed record FactionCard(string Id, string Name, string LeaderHouseId, string LeaderName, string LeaderAccent, IReadOnlyList<(string Id, string Name, string Accent)> Members, int Weight, bool Mine, bool Lead, string Platform, int Record, int Since, string? JoinRefusal,
+    string Description = "", string Courts = "", string LawPlatform = "", bool Party = false);
 /// <summary>A motion on the docket or in the history.</summary>
 public sealed record MotionCard(string Id, string KindId, string KindName, string ProposerName, string ProposerAccent, string? TargetName, string Text, int ProposedTurn, bool Open, bool Passed,
     int ForWeight, int AgainstWeight, int MyStance, bool Mine, bool AgainstMe, IReadOnlyList<StanceLine> Stances, bool Petition = false);
@@ -433,7 +434,8 @@ public static class CourtProjection
             string platform = string.Join(" · ", f.Platform.Where(kv => kv.Value != 0).OrderByDescending(kv => Math.Abs(kv.Value)).Take(3).Select(kv => $"{(kv.Value > 0 ? "for" : "against")} {senate.Motions.Def(kv.Key)?.Name.ToLowerInvariant() ?? kv.Key}"));
             return new FactionCard(f.Id, f.Name, f.LeaderHouseId, lh?.Name ?? f.LeaderHouseId, f.Accent.Length > 0 ? f.Accent : lh?.AccentColor ?? "#888",
                 f.Members.Select(h => (Id: h, Name: w.House(h)?.Name ?? h, Accent: w.House(h)?.AccentColor ?? "#888")).ToList(), f.Members.Sum(h => senate.Weight(w, h)),
-                f.Members.Contains(house.Id), f.LeaderHouseId == house.Id, platform, f.Record, f.FormedTurn, new JoinFactionCommand(p.Id, f.Id).Refusal(ctx));
+                f.Members.Contains(house.Id), f.LeaderHouseId == house.Id, platform, f.Record, f.FormedTurn, new JoinFactionCommand(p.Id, f.Id).Refusal(ctx),
+                f.Description, string.Join(", ", f.Estates.Select(e => senate.Policies.Estate(e)?.Name ?? e)), string.Join(" · ", f.Laws.Select(kv => $"{senate.Policies.Law(kv.Key)?.Name.ToLowerInvariant() ?? kv.Key}: {senate.Policies.Law(kv.Key)?.Option(kv.Value)?.Name.ToLowerInvariant() ?? kv.Value}")), f.PartyId.Length > 0);
         }).ToList();
         return new SenateCard(docket, history, proposals, senate.Weight(w, house.Id), total, senate.MayPropose(w, house.Id), SenateSystem.Embargoed(w, house.Id), Math.Max(0, w.Counter("embargo:" + house.Id) - w.Turn), offices,
             factions, new FoundFactionCommand(p.Id).Refusal(ctx), new LeaveFactionCommand(p.Id).Refusal(ctx), FoundFactionCommand.Followers(w, house.Id).Count);

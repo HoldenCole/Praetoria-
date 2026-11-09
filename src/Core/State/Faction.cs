@@ -19,4 +19,11 @@ public sealed class Faction
     public int Record { get; set; }
     /// <summary>The party's colour on the benches (Presentation.Palette.Parties), taken as it forms.</summary>
     public string Accent { get; set; } = "";
+    /// <summary>The content party this bench is (content/senate/parties.json), or "" for one the player founded.</summary>
+    public string PartyId { get; set; } = "";
+    public string Description { get; set; } = "";
+    /// <summary>The estates the party courts.</summary>
+    public List<string> Estates { get; set; } = new();
+    /// <summary>The party's positions on the laws: law id → option id. Members lean for Acts that match and against those that undo one.</summary>
+    public Dictionary<string, string> Laws { get; set; } = new();
 }

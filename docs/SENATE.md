@@ -107,7 +107,14 @@ Flags: `holds_office:<id>`, `office_granted`, `office_lost`, `treason`, `office_
 Five events in `content/events/offices.json`, among them *The Admiral's Temptation* — the design's classic arc: the fleet
 is the state's, the guns are in your hand.
 
-## The benches: persistent factions
+## The benches: the parties of the Republic
+
+Since the Republic pass (docs/REPUBLIC.md) the benches are four **parties** seeded from `content/senate/parties.json`
+rather than blocs that form from voting records: every house is seated by its laws at the world's creation, rivals
+cross the floor every tenth turn when their laws drift, and the player founds the fifth. The affinity, discipline and
+whip mechanics below still apply within a party.
+
+## The benches: persistent factions (the mechanics beneath the parties)
 
 Every decided motion leaves an **affinity** between each pair of houses that declared: +1 for voting together, −1 for
 voting apart (counter `affinity:<a>|<b>`, clamped −6..12). When a house outside any bench has affinity three or more with

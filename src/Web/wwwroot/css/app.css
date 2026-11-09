@@ -546,3 +546,4 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .timeline .tick { fill: #55617a; } .timeline .tick.notable { fill: #c9a24a; } .timeline .tick.war { fill: #d8705a; } .timeline .gen { fill: #f1d78e; font-size: 12px; text-anchor: middle; } .timeline .tl { fill: #7d8699; font-size: 10px; } .timeline .tl.end { text-anchor: end; }
 .entries { columns: 2 420px; column-gap: 1.2rem; margin-top: .5rem; } .turn-block { break-inside: avoid; margin-bottom: .6rem; } .turn-block h4 { margin: .2rem 0; }
 .dash-head .portrait { vertical-align: middle; }
+.bench { border-left-color: var(--party, var(--line2)) !important; } .party-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: .3rem; vertical-align: middle; border: 1px solid rgba(0,0,0,.5); }

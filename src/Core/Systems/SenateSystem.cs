@@ -66,6 +66,7 @@ public sealed class SenateSystem
         int lean = RawLean(w, m, houseId);
         // bloc discipline (FactionSystem): a member leans toward its leader's stance on anything that does not target it; a whip on the leader is half a whip on the bench
         var f = FactionSystem.Of(w, houseId);
+        if (f != null && m.TargetId != houseId && _motions.Def(m.Kind) is { } pd) lean += Math.Sign(f.Platform.GetValueOrDefault(pd.Interest));   // the party's stance on the kind
         if (f != null && f.LeaderHouseId != houseId && m.TargetId != houseId && m.ProposerHouseId != houseId)
         {
             int ls = FactionSystem.LeaderStance(w, m, f, id => RawLean(w, m, id));
@@ -150,6 +151,7 @@ public sealed class SenateSystem
             score += delta * mult;
         }
         int lean = Math.Clamp(score / 10, -3, 3);
+        if (FactionSystem.Of(w, h.Id) is { } party && party.Laws.TryGetValue(law.Id, out var pos)) { if (pos == next.Id) lean += 2; else if (pos == cur.Id) lean -= 2; }   // the party line on the law
         if (PetitionEstate(m) is { } pe && PolicySystem.Approval(w, h.Id, pe) <= PolicySystem.Hostile) lean += 1;   // the petitioners are at this house's own gate
         var fx = next.Effects; var cfx = cur.Effects;
         int Fx(string k) => fx.GetValueOrDefault(k) - cfx.GetValueOrDefault(k);

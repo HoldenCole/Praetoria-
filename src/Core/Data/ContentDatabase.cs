@@ -29,6 +29,8 @@ public sealed class ContentDatabase
     public OfficeCatalog Offices { get; }
     /// <summary>Laws and estates (content/politics).</summary>
     public PolicyCatalog Policies { get; }
+    /// <summary>The parties of the Republic (content/senate/parties.json; docs/REPUBLIC.md).</summary>
+    public PartyCatalog Parties { get; }
 
     /// <summary>The crisis definitions (GDD §16). Empty for scenarios with no crisis layer.</summary>
     public IReadOnlyList<CrisisDef> Crises { get; }
@@ -91,8 +93,10 @@ public sealed class ContentDatabase
         BusinessCatalog? businesses = null,
         MotionCatalog? motions = null,
         OfficeCatalog? offices = null,
-        PolicyCatalog? policies = null)
+        PolicyCatalog? policies = null,
+        PartyCatalog? parties = null)
     {
+        Parties = parties ?? PartyCatalog.Empty;
         Businesses = businesses ?? BusinessCatalog.Empty;
         Motions = motions ?? MotionCatalog.Empty;
         Offices = offices ?? OfficeCatalog.Empty;

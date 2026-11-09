@@ -197,13 +197,14 @@
             @if (sen != null && (sen.Factions is { Count: > 0 } || sen.FoundRefusal == null || sen.Followers > 0))
             {
                 <section class="panel">
-                    <h3><Icon Name="houses" Size="13" /> The benches</h3>
+                    <h3><Icon Name="houses" Size="13" /> The parties <span class="muted">four of the Republic, and any you found</span></h3>
                     @foreach (var fa in sen.Factions ?? Array.Empty<FactionCard>())
                     {
-                        <div class="bench @(fa.Mine ? "mine" : "")" title="@(fa.Platform.Length > 0 ? fa.Platform : "no record yet")">
-                            <div class="of-head"><b>@fa.Name</b> <span class="muted small">weight @fa.Weight · led by <span style="color:@fa.LeaderAccent">@fa.LeaderName</span>@(fa.Record != 0 ? $" · record {(fa.Record > 0 ? "+" : "")}{fa.Record}" : "")</span></div>
+                        <div class="bench @(fa.Mine ? "mine" : "")" style="--party:@fa.LeaderAccent" title="@(fa.Description.Length > 0 ? fa.Description : fa.Platform.Length > 0 ? fa.Platform : "no record yet")">
+                            <div class="of-head"><i class="party-dot" style="background:@fa.LeaderAccent"></i><b>@fa.Name</b> <span class="muted small">weight @fa.Weight · led by <span style="color:@fa.LeaderAccent">@fa.LeaderName</span>@(fa.Record != 0 ? $" · record {(fa.Record > 0 ? "+" : "")}{fa.Record}" : "")</span></div>
                             <div class="bench-members">@foreach (var mb in fa.Members) { <span class="member" title="@mb.Name"><Sigil HouseId="@mb.Id" Accent="@mb.Accent" Size="13" /></span> }
                                 @if (fa.Platform.Length > 0) { <span class="muted small"> · @fa.Platform</span> }</div>
+                            @if (fa.Courts.Length > 0 || fa.LawPlatform.Length > 0) { <div class="muted small">@(fa.Courts.Length > 0 ? $"courts {fa.Courts}" : "")@(fa.Courts.Length > 0 && fa.LawPlatform.Length > 0 ? " · " : "")@fa.LawPlatform</div> }
                             @if (!fa.Mine) { <button class="opt inline tiny" disabled="@(fa.JoinRefusal != null)" title="@(fa.JoinRefusal ?? $"{FactionSystem.JoinInfluence} influence: take a seat with them")" @onclick="() => G.Execute(new JoinFactionCommand(pid, fa.Id))">take a seat</button> }
                             else if (sen.LeaveRefusal == null) { <button class="opt inline tiny" title="Leave the bench; the leader takes it ill" @onclick="() => G.Execute(new LeaveFactionCommand(pid))">leave</button> }
                         </div>

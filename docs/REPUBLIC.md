@@ -15,9 +15,18 @@ rather than the state, who can be voted a triumph or march on the capital.
   general's *sway* is his valour, his fleets' loyalty to him, and the officers' regard — the raw material of a Caesar.
 
 ## Design, staged
-1. **Parties.** Benches gain a party name and colour, a platform of two or three law positions and one motion preference,
-   and *seats* (weight). Houses drift between parties by affinity (already tracked) and by law opinions. The player can
-   found, lead or leave a party; the Senate screen shows the parties as blocs on the benches.
+1. **Parties — done (2026-11-09).** Four parties ship in `content/senate/parties.json` — the Optimates (blue; the
+   old blood and the magistrates; the assizes, protected markets, iron law, closed court), the Populares (red; the
+   commons and the frontier; no common levy, lenient tithe and justice, the open ballot, homesteads), the Sword
+   (yellow; the officers; the common levy, conscription, the aggressive doctrine, martial law), the Factors (green; the
+   merchants; open lanes, free trade, guild rights, no tolls). At the world's creation every house is seated with the
+   party its laws fit best (`FactionSystem.Seed`; two points per matching law position, one per courted estate it
+   runs warm with), each party with at least two members, the weightiest member leading. A house with no party takes
+   the best-fitting seat; every tenth turn one rival whose laws have drifted crosses the floor. Benches no longer form
+   of themselves: the player founds the fifth (silver), whose platform is the founder's own law. Members lean with the
+   party's stance on each kind of motion and ±2 on an Act that matches or undoes the party line; discipline toward the
+   leader stands as before. The Senate screen groups the hemicycle by party and shows each party's colour, courted
+   estates and law platform.
 2. **The consulship.** Every ten turns the Senate elects **two consuls** from houses of standing (title rank ≥ 2 or a
    head who is Praetor / Commander or better), each party moving its candidate; the two highest weights take the chairs.
    A consul holds the *chair's* laws jointly (replacing the capital-holder as chair of the Reach's laws), commands the
