@@ -131,3 +131,12 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   player-only system is generalised to rivals, key its state by house from the start and keep the player's old keys as
   the content-facing alias; the estates moved to `estate:<house>:<id>` in one line because the player's `estate:<id>`
   stayed where the events read it.
+
+## Reachability: never-fired events
+
+`praetoria qa` prints two complementary sections. *Events that never fired* lists events no run selected; *Flags
+content reads that no run ever raised* lists the `worldFlag` triggers the engine never set at any BeginTurn of any run
+(flags are sampled every turn, so one-turn flags count). An event in the first list whose flag is **not** in the second
+was reachable and merely unlucky; one whose flag **is** in the second needs either a scripted test
+(`tests/EventReachabilityTests.cs` builds the trigger state by hand and asserts eligibility) or a look at the system
+that should raise the flag. Add a row to the reachability table whenever you add an event gated on a rare flag.

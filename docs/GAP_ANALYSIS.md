@@ -633,3 +633,31 @@ Method: a read-through of the Senate, Acts and petition paths for edge cases; 35
 ### Still open, ranked
 1. **Content volume** (154 events); the estate events still want a scripted check. 2. **Plots with steps.** 3. **The
 ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**
+
+## 20. Content volume and the reachability check — 2026-11-09
+
+Method: 388 tests (38 new, the reachability table among them) · both validators (180 events) · `praetoria qa --seeds 6`
+(36 runs, 0 failures, 152 of 180 events reached; 21 of the 26 new situations fired without help).
+
+### Done this pass (GAP §19 item 1)
+- **The scripted check.** The soak now samples world flags at every BeginTurn and prints the flags content reads that
+  no run ever raised. Against that list, every one of the twenty-two never-fired events was built by hand in
+  `tests/EventReachabilityTests.cs` (flags raised, roles seeded) and is eligible. Verdict: no dead triggers; the
+  silence is rarity — the levy motion mostly fails (the poor vote it down), the player is seldom commissioned, a bench
+  seldom forms around a house that votes at random, cessions need a peace with terms.
+- **Twenty-six situations** on flags the engine raised but nothing read: the Senate's refusals, the embargo, the
+  Speaker's gavel, the bench leader's table, four loyal-estate situations, seven that make your own laws bite, the
+  siege bell, the raid, the lost province, the free march, two for the strategic three, the empty hall, three
+  ambients. The game now has 180 events.
+
+### Numbers worth watching
+- Events reached per 36-run soak rose from 136 of 154 to 152 of 180. The never-fired list grew in absolute terms
+  (22 → 28) only because the new loyal-estate and chair-only situations are rare for a random player; each has a
+  reachability row.
+- The levy motion carries rarely enough that *The Levy Falls Due* has never fired in a soak. If the chair's coffers
+  should matter more, give the levy a point of lean among the comfortable houses; it is a tuning knob, not a defect.
+
+### Still open, ranked
+1. **Plots with steps.** 2. **The ledger runs rich** (mean 310–350). 3. **Role theming.** 4. **A dynasty tree.**
+5. **Spatial trade.** 6. **Audio.** 7. **Content volume** continues: the next batch should be scripted chains, not
+single situations.

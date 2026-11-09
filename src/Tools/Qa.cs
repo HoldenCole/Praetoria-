@@ -47,6 +47,7 @@ internal static class Qa
                 {
                     var (worldA, histA) = Soak(contentRoot, content, sid, (ulong)seed, turns, o, fired, taken, tokens, oddities, label);
                     foreach (var f in worldA.WorldFlags) flagsSeen.Add(f);
+                    flagsSeen.UnionWith(FlagsEveryTurn);
                     if (worldA.IsDynastyDead) deaths.Add($"{label} (turn {worldA.Turn})");
 
                     // Determinism: the same seed and the same player decisions must reproduce the chronicle byte for byte.
@@ -83,6 +84,11 @@ internal static class Qa
 
         var engineFlags = flagsSeen.Where(f => !ContentMentions(contentRoot, f)).OrderBy(f => f, StringComparer.Ordinal).ToList();
         Section("World flags set by the engine that no content reads", engineFlags);
+        // the inverse: flags the events' conditions read that no run ever raised — an event gated on one can never fire
+        var readFlags = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var f in Directory.EnumerateFiles(Path.Combine(contentRoot, "events"), "*.json"))
+            foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(File.ReadAllText(f), @"""type"":\s*""worldFlag"",\s*""flag"":\s*""([^""]+)""")) readFlags.Add(m.Groups[1].Value);
+        Section("Flags content reads that no run ever raised", readFlags.Where(f => !flagsSeen.Contains(f) && !flagsSeen.Any(x => x.StartsWith(f + ":"))).OrderBy(f => f, StringComparer.Ordinal));
 
         Section("FAILURES", failures);
         Console.WriteLine(failures.Count == 0 && tokens.Count == 0 ? "\n=== QA PASSED ===" : $"\n=== QA FAILED — {failures.Count} failure(s), {tokens.Count} token issue(s) ===");
@@ -161,6 +167,8 @@ internal static class Qa
 
     /// <summary>One soak run. The player picks a random affordable choice (or skips one in five) from a decision stream seeded
     /// off the world seed, so a replay repeats the same decisions.</summary>
+    /// <summary>Every world flag seen at any BeginTurn of any recording run (the replay does not record).</summary>
+    private static readonly HashSet<string> FlagsEveryTurn = new(StringComparer.Ordinal);
     private static (World world, string chronicle) Soak(string contentRoot, ContentDatabase content, string sid, ulong seed, int turns, Options o,
         Dictionary<string, int>? fired, Dictionary<string, int>? taken, HashSet<string>? tokens, List<string>? oddities, string label)
     {
@@ -181,6 +189,7 @@ internal static class Qa
         Dictionary<string, int>? fired, Dictionary<string, int>? taken, HashSet<string>? tokens, string label)
     {
         var briefing = tc.BeginTurn();
+        if (fired != null) foreach (var f in world.WorldFlags) FlagsEveryTurn.Add(f);   // the flags as the events see them, every turn — one-turn flags included
         foreach (var item in briefing)
         {
             if (fired != null) fired[item.Fired.Def.Id] = fired.GetValueOrDefault(item.Fired.Def.Id) + 1;

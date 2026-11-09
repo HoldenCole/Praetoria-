@@ -3,6 +3,17 @@
 ## [Unreleased]
 
 ### Added
+- **Twenty-six new situations** (`content/events/situations.json`), hooked to flags the engine already raised but no
+  event read: the Senate's refusals (your motion thrown out, an Act that falls), the embargo, the Speaker's gavel, the
+  bench leader's table, the loyal estates (the commons' feast, the officers' toast, the merchants' gift, the old blood's
+  invitation), your own laws biting (the press gang, the runaway bondsmen, the barred door, the open hall, the ballot
+  box, the iron law, the marque captains), the siege bell, after the raid, the lost province, the free march, the
+  isotope broker, the helium glut, the empty hall of a fallen house, and three ambients of a long life (the portrait,
+  the comet, the old retainer). 180 events.
+- **A scripted reachability check** (`tests/EventReachabilityTests.cs`): every event the randomised soak never reached
+  is built by hand — flags raised, roles seeded — and must be eligible. All twenty-two are; their silence in the soak
+  is rarity, not a dead trigger. The soak itself now samples world flags every turn and names the flags content reads
+  that no run ever raised, so a dead trigger shows up as a flag rather than a missing event.
 - **QoL, politics**: the docket says outright whether a motion *carries* or *fails* as the benches lean; the outliner
   and the Chancellor warn when a motion is decided this session and your vote is undeclared, and when an Act is before
   the chamber; each estate card in the Chancery names the one law change in your gift that would warm it most, with its
