@@ -45,8 +45,10 @@ public sealed class LawDef
 public sealed class PolicyCatalog
 {
     private readonly Dictionary<string, LawDef> _laws; private readonly Dictionary<string, EstateDef> _estates;
-    public PolicyCatalog(IEnumerable<LawDef> laws, IEnumerable<EstateDef> estates) { Laws = laws.ToList(); Estates = estates.ToList(); _laws = Laws.ToDictionary(l => l.Id); _estates = Estates.ToDictionary(e => e.Id); }
+    public PolicyCatalog(IEnumerable<LawDef> laws, IEnumerable<EstateDef> estates, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? cultures = null) { Laws = laws.ToList(); Estates = estates.ToList(); _laws = Laws.ToDictionary(l => l.Id); _estates = Estates.ToDictionary(e => e.Id); Cultures = cultures ?? new Dictionary<string, IReadOnlyDictionary<string, string>>(); }
     public static PolicyCatalog Empty { get; } = new(Array.Empty<LawDef>(), Array.Empty<EstateDef>());
+    /// <summary>Culture → law → the option that culture starts with (content/politics/cultures.json).</summary>
+    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Cultures { get; }
     public IReadOnlyList<LawDef> Laws { get; }
     public IReadOnlyList<EstateDef> Estates { get; }
     public LawDef? Law(string id) => _laws.TryGetValue(id, out var l) ? l : null;
@@ -64,13 +66,15 @@ public sealed class PolicyCatalog
     {
         var dir = Path.Combine(contentRoot, "politics"); if (!Directory.Exists(dir)) return Empty;
         var opts = new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true };
-        var laws = new List<LawDef>(); var estates = new List<EstateDef>();
+        var laws = new List<LawDef>(); var estates = new List<EstateDef>(); var cultures = new Dictionary<string, IReadOnlyDictionary<string, string>>();
         foreach (var file in Directory.EnumerateFiles(dir, "*.json").OrderBy(p => p, StringComparer.Ordinal))
         {
             using var doc = JsonDocument.Parse(File.ReadAllText(file), opts); var root = doc.RootElement;
             if (root.TryGetProperty("estates", out var es) && es.ValueKind == JsonValueKind.Array)
                 foreach (var el in es.EnumerateArray())
                     estates.Add(new EstateDef { Id = ConditionParser.Str(el, "id"), Name = ConditionParser.Str(el, "name"), Description = ConditionParser.OptStr(el, "description", ""), Loyal = Ints(el, "loyal"), Hostile = Ints(el, "hostile") });
+            if (root.TryGetProperty("cultures", out var cs) && cs.ValueKind == JsonValueKind.Object)
+                foreach (var cp in cs.EnumerateObject()) if (cp.Value.ValueKind == JsonValueKind.Object) cultures[cp.Name] = cp.Value.EnumerateObject().Where(x => x.Value.ValueKind == JsonValueKind.String).ToDictionary(x => x.Name, x => x.Value.GetString()!);
             if (root.TryGetProperty("laws", out var ls) && ls.ValueKind == JsonValueKind.Array)
                 foreach (var el in ls.EnumerateArray())
                 {
@@ -86,6 +90,6 @@ public sealed class PolicyCatalog
                     });
                 }
         }
-        return new PolicyCatalog(laws, estates);
+        return new PolicyCatalog(laws, estates, cultures);
     }
 }

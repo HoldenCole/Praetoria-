@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **Rival laws by culture and estates for every house**: each house begins with its culture's laws (the imperial
+  core's closed court and iron law, the rim's lenient courts and open lanes, the spirean harsh tithe and bonded
+  labour…), every house has its own six estates with the same loyal and hostile effects, and rival stewards legislate
+  — relaxing what a hostile estate hates, tightening the tithe when poor, conscripting at war, declaring martial law
+  over lawless regions, raising the chair's tolls. The Houses cards show a rival's law and its estates' moods; *The
+  Exiles* brings a harsher house's commons to your port.
 - **Laws and estates** (GDD §6.1 legislation; docs/POLITICS.md): seventeen laws in seven categories, each with a scope —
   the position you must hold to set it: a head of house, the holder of a world, the dominant house of a region, the
   chair, an office, the throne, the leader of a bench — and three options whose effects the economy, the regions, the

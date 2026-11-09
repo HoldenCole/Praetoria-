@@ -46,8 +46,23 @@ turn it drifts three points toward what the laws say (the sum of each option's o
 house holds the scope for) plus what events have cultivated (`estate_offset:<id>`, decaying one a turn). Past +30 an
 estate is **loyal** and its loyal effects join the house's modifiers; under −30 it is **hostile** and its hostile effects
 do. A harsh tithe, bonded labour and conscription together put the Commons at −70 and cost two unrest a turn on every
-world; a standing guard doubled pleases the Officers and costs a quarter more upkeep. Rival houses hold their defaults
-and have no estates of their own — the GDD's abstraction of rivals holds.
+world; a standing guard doubled pleases the Officers and costs a quarter more upkeep.
+
+## Rivals
+
+Every house begins with its **culture's laws** (`content/politics/cultures.json`): the imperial core keeps a closed court,
+a closed franchise, iron law and a doubled guard; the concourse trades free with guild rights and an open hall; the
+vergeborn and palefolk of the rim keep lenient courts, open lanes and homesteads; the spirean tithe harshly and bond
+their labour; the marchers live under martial law and conscription. The player's house starts with its culture's laws
+too. Every house has its own **estates** (counter `estate:<house>:<id>`), drifting toward its laws the same way, with
+the same loyal and hostile effects — so a rival with a harsh tithe and bonded labour has hostile Commons and two more
+unrest a turn on every world, and its risings are its own doing. Rival **stewards legislate** (`NpcAi.Legislate`): about
+one house in eight a turn relaxes whatever a hostile estate hates most, eases the law that drives unrest hardest when a
+world of its is restless, tightens the tithe when the coffers are empty and
+loosens it when they are full, conscripts and doubles the guard at war and stands down at peace, declares martial law
+over a lawless region it dominates, raises the Reach's tolls when it holds the chair and is poor, and sets an aggressive
+doctrine when it holds the Admiralty at war. The Houses cards show a rival's laws off the customary and its loyal or
+hostile estates. Counter `rivals_with_hostile_commons`; *The Exiles* brings a harsher house's commons to your port.
 
 Flags: `estate_loyal:<id>`, `estate_hostile:<id>`, `law:<law>:<option>`; counters `estate:<id>`, `estate_offset:<id>`,
 `laws_enacted`. Six events in `content/events/politics.json`: *The Commons March*, *The Merchants' Delegation*, *The

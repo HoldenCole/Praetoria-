@@ -91,8 +91,9 @@ public sealed class TurnController
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
         _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
         _senate = new SenateSystem(content.Motions, content.Titles, _fleets, content.Offices) { Policies = content.Policies };
+        if (world.Turn == 0 && world.Laws.Count == 0) PolicySystem.ApplyCultures(world, content.Policies);   // every house begins with its culture's laws (GDD §19)
         _fleets.Policies = content.Policies; _regions.Policies = content.Policies; if (_economy != null) _economy.Policies = content.Policies;
-        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles };
+        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies };
         _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);
         _greatCrisis = new GreatCrisisSystem(content.GreatCrisis, _fleets);

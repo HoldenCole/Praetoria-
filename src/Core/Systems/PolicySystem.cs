@@ -18,6 +18,26 @@ public static class PolicySystem
 {
     public const int Loyal = 30, Hostile = -30, DriftStep = 3, OffsetDecay = 1;
 
+    /// <summary>The counter that holds an estate's approval of a house: the player's are <c>estate:&lt;id&gt;</c> (content reads them), a rival's <c>estate:&lt;house&gt;:&lt;id&gt;</c>.</summary>
+    public static string ApprovalKey(World w, string houseId, string estateId) => houseId == w.Protagonist?.HouseId ? "estate:" + estateId : $"estate:{houseId}:{estateId}";
+    public static int Approval(World w, string houseId, string estateId) => w.Counter(ApprovalKey(w, houseId, estateId));
+
+    /// <summary>Every house begins with its culture's laws (content/politics/cultures.json), the player's too; a law the culture does not name stays at its default.</summary>
+    public static void ApplyCultures(World w, PolicyCatalog cat)
+    {
+        if (cat.IsEmpty) return;
+        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId))
+        {
+            if (!cat.Cultures.TryGetValue(h.Culture, out var set)) continue;
+            foreach (var (lawId, optionId) in set)
+            {
+                var law = cat.Law(lawId); if (law?.Option(optionId) == null) continue;
+                if (!w.Laws.TryGetValue(h.Id, out var mine)) w.Laws[h.Id] = mine = new Dictionary<string, string>();
+                if (!mine.ContainsKey(lawId)) { mine[lawId] = optionId; if (law.TaxPolicy) h.TaxPolicy = optionId; }
+            }
+        }
+    }
+
     public static string OptionId(World w, PolicyCatalog cat, string houseId, string lawId)
     {
         var law = cat.Law(lawId); if (law == null) return "";
@@ -64,10 +84,10 @@ public static class PolicySystem
             if (law.Scope == "region" && regionId == null && key != "lawlessness_drift" && key != "allegiance_drift") { /* region laws fall on the region's worlds; callers pass the region */ }
             sum += Option(w, cat, houseId, law.Id)?.Effects.GetValueOrDefault(key) ?? 0;
         }
-        if (houseId == w.Protagonist?.HouseId)
+        if (houseId != PirateSystem.HouseId)   // the estates' regard, for every house
             foreach (var e in cat.Estates)
             {
-                int a = w.Counter("estate:" + e.Id);
+                int a = Approval(w, houseId, e.Id);
                 if (a >= Loyal) sum += e.Loyal.GetValueOrDefault(key); else if (a <= Hostile) sum += e.Hostile.GetValueOrDefault(key);
             }
         return sum;
@@ -105,6 +125,14 @@ public static class PolicySystem
     {
         if (cat.IsEmpty) return;
         var mine = w.Protagonist?.HouseId; if (mine == null) return; var house = w.House(mine); if (house == null) return;
+        // every house's estates drift toward what its laws say (rivals have no offsets: events speak only to the player)
+        foreach (var h in w.Houses.Values.Where(h => h.Id != mine && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
+            foreach (var e in cat.Estates)
+            {
+                string key = ApprovalKey(w, h.Id, e.Id); int a = w.Counter(key); int diff = Math.Clamp(LawOpinion(w, cat, h.Id, e.Id), -100, 100) - a;
+                if (diff != 0) w.WorldCounters[key] = Math.Clamp(a + Math.Sign(diff) * Math.Min(DriftStep, Math.Abs(diff)), -100, 100);
+            }
+        w.WorldCounters["rivals_with_hostile_commons"] = w.Houses.Values.Count(h => h.Id != mine && h.Id != PirateSystem.HouseId && Approval(w, h.Id, "commons") <= Hostile);
         // keep the tithe in step with the law for every house that chose one
         foreach (var (hid, set) in w.Laws) foreach (var law in cat.Laws.Where(l => l.TaxPolicy)) if (set.TryGetValue(law.Id, out var o) && w.House(hid) is { } hh) hh.TaxPolicy = o;
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("estate_loyal:") || f.StartsWith("estate_hostile:") || f.StartsWith("law:")).ToList()) w.WorldFlags.Remove(f);

@@ -90,3 +90,47 @@ public class PolicyTests
         Assert.Equal(1, PolicySystem.Modifier(back, Cat, "vega", "credits_per_world"));                     // the magistrates, loyal
     }
 }
+
+/// <summary>Rivals in the politics: laws by culture at the start, estates for every house, stewards who legislate.</summary>
+public class RivalPolicyTests
+{
+    private static readonly ContentDatabase Content = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir());
+
+    [Fact]
+    public void EveryHouse_BeginsWithItsCulturesLaws_AndTheTitheFollows()
+    {
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_fallen_house"), 1); var tc = new TurnController(w, Content);
+        Assert.True(Content.Policies.Cultures.Count >= 8);
+        var imperial = w.Houses.Values.First(h => h.Culture == "imperial");
+        Assert.Equal("closed_court", PolicySystem.OptionId(w, Content.Policies, imperial.Id, "court_etiquette"));
+        var pale = w.Houses.Values.FirstOrDefault(h => h.Culture == "palefolk"); if (pale != null) { Assert.Equal("lenient", PolicySystem.OptionId(w, Content.Policies, pale.Id, "tithe")); Assert.Equal("lenient", pale.TaxPolicy); }
+        Assert.True(w.Laws.Count >= 10);
+        var back = SaveSystem.Deserialize(SaveSystem.Serialize(w)); var tc2 = new TurnController(back, Content);   // a reload does not reapply over chosen laws
+        Assert.Equal(w.Laws.Count, back.Laws.Count);
+    }
+
+    [Fact]
+    public void RivalEstates_Drift_AndAHarshRival_HasRestlessWorlds()
+    {
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_fallen_house"), 1); var tc = new TurnController(w, Content);
+        var spirean = w.Houses.Values.FirstOrDefault(h => h.Culture == "spirean") ?? w.Houses.Values.First(h => h.Id != w.Protagonist!.HouseId && h.Id != "pirates");
+        PolicySystem.Enact(w, Content.Policies, spirean.Id, "tithe", "harsh"); PolicySystem.Enact(w, Content.Policies, spirean.Id, "labour", "bonded");
+        for (int i = 0; i < 12; i++) { w.Turn++; PolicySystem.Tick(w, Content.Policies); }
+        Assert.True(PolicySystem.Approval(w, spirean.Id, "commons") <= PolicySystem.Hostile, $"commons {PolicySystem.Approval(w, spirean.Id, "commons")}");
+        Assert.Equal(2 + 2, PolicySystem.Modifier(w, Content.Policies, spirean.Id, "unrest_drift"));   // bonded labour and the commons' hostility, for a rival too
+        Assert.True(w.Counter("rivals_with_hostile_commons") >= 1);
+        Assert.NotEqual(PolicySystem.ApprovalKey(w, spirean.Id, "commons"), PolicySystem.ApprovalKey(w, w.Protagonist!.HouseId, "commons"));
+    }
+
+    [Fact]
+    public void AStewardLegislates_WhenTheCommonsTurn_OrTheWarComes()
+    {
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_fallen_house"), 3); var tc = new TurnController(w, Content);
+        var rival = w.Houses.Values.First(h => h.Id != w.Protagonist!.HouseId && h.Id != "pirates" && w.HoldingsOf(h.Id).Any(x => x.IsPlanet) && Economy.HeadOf(w, h) != null);
+        PolicySystem.Enact(w, Content.Policies, rival.Id, "tithe", "harsh"); w.WorldCounters[PolicySystem.ApprovalKey(w, rival.Id, "commons")] = -60; w.WorldCounters[$"law_cd:{rival.Id}:tithe"] = 0;
+        bool relaxed = false;
+        for (int t = 0; t < 24 && !relaxed; t++) { foreach (var i in tc.BeginTurn()) { var c = tc.Offer(i).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(i, c.Choice.Id); } tc.EndTurn(); relaxed = PolicySystem.OptionId(w, Content.Policies, rival.Id, "tithe") != "harsh"; }
+        Assert.True(relaxed, "the steward never relaxed a tithe its commons hated");
+        Assert.Contains(w.History, h => h.Text.Contains(" sets "));
+    }
+}

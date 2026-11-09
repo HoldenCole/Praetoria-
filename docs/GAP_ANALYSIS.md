@@ -501,3 +501,36 @@ dynasty tree.** 8. **Spatial trade.** 9. **Audio.**
 ### Where the next forty come from
 Rival laws by culture · the estates in the Senate (a bench's platform read by the estates) · fifty situations · plots
 with steps · a credit sink · role theming · the dynasty tree.
+
+## 15. Reassessment — 2026-11-09, after rival laws and estates
+
+Method: 337 tests · both validators (149 events) · `praetoria qa --seeds 3` (18 runs, 0 failures, 114/149 events) ·
+`simulate --seeds 4` · the probe, extended to laws enacted, houses off the customary law, and rival estates · a fifteen-turn
+browser drive through every screen (0 console errors).
+
+### Done this pass (GAP §14 item 1)
+- **Laws by culture**: every house begins with its culture's laws (ten cultures in `content/politics/cultures.json`), so
+  the Reach is not one chancery copied thirty times. **Estates for every house** with the same loyal and hostile
+  effects: a rival with a harsh tithe and bonded labour has hostile Commons and two more unrest a turn, and its risings
+  are its own doing. **Stewards legislate**: 49–66 laws a run change hands among the rivals — relaxing what a hostile
+  estate hates, easing the law that drives unrest when a world is restless, tightening the tithe when poor, conscripting
+  at war, martial law over lawless regions, the chair's tolls when poor, an aggressive doctrine at war.
+- The Houses cards show a rival's laws off the customary and its estates' moods; *The Exiles* brings a harsher house's
+  commons to your port.
+
+### Numbers worth watching
+- Rebellions per sixty turns rose from 4–6 to 8–13 and secessions with them: the harsh cultures (spirean, forgeborn,
+  marcher) now earn their restless worlds. Stewards ease laws when a world passes fifty unrest, but only one law a turn
+  and one house in eight; if the rim empties of houses too fast, soften the cultural defaults before touching the
+  steward.
+- Battles rose to 5–8 a run (conscription and the doubled guard at war); thrones 12 of 24.
+
+### Still open, ranked
+1. **Content volume** (149 events); the three estate events that never surfaced for the random player want a scripted
+   check. 2. **Plots with steps.** 3. **The ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty
+tree.** 6. **Spatial trade.** 7. **Audio.** 8. **The estates in the Senate**: a bench's platform read by the estates,
+and motions that change a law for the whole Reach.
+
+### Where the next forty come from
+Scripted chain playthroughs · fifty situations · plots with steps · a credit sink · role theming · the dynasty tree ·
+Reach-wide laws by motion.

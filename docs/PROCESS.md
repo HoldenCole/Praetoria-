@@ -127,3 +127,7 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   support and dislike them, Democracy-4 style. Done as laws by position and six estates (POLITICS.md). Lesson: one
   generic modifier table read by every system beats bespoke hooks per law; seventeen laws cost one pass through the
   economy, the regions, the fleet and the Senate, and the eighteenth will cost a line of JSON.
+- 2026-11-08 — Owner: "go ahead with rival laws by culture and estates." Done (POLITICS.md "Rivals"). Lesson: when a
+  player-only system is generalised to rivals, key its state by house from the start and keep the player's old keys as
+  the content-facing alias; the estates moved to `estate:<house>:<id>` in one line because the player's `estate:<id>`
+  stayed where the events read it.

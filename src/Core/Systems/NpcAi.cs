@@ -22,6 +22,8 @@ public sealed class NpcAi
     /// <summary>Catalogs the fleet AI consults (optional; without them NPCs raise the default class, unled).</summary>
     public ShipClassCatalog? ShipClasses { get; init; }
     public Progression.TitleCatalog? Titles { get; init; }
+    /// <summary>Laws and estates: rival stewards legislate when their estates turn, their coffers empty or their wars begin.</summary>
+    public PolicyCatalog? Policies { get; init; }
     private BusinessCatalog _ventures = BusinessCatalog.Empty;
 
     public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
@@ -291,6 +293,46 @@ public sealed class NpcAi
     /// rival fortunes grow steadily and reproducibly.</summary>
     private int _fuelHullsPerUnit = 3; private HoldingCatalog? _catalog;
 
+    /// <summary>Rival stewards legislate (GDD §3 abstracted rivals; POLITICS.md): about one house in eight a turn, by a hash, looks at its
+    /// position and changes one law — relaxes whatever its hostile Commons hate most, tightens the tithe when the coffers are empty,
+    /// conscripts and doubles the guard at war, declares martial law over a lawless region it dominates, raises the Reach's tolls when
+    /// it holds the chair and is poor. One change a turn a house; the law's cooldown keeps it from flapping.</summary>
+    private void Legislate(House house, Character steward, CommandExecutor executor, CommandContext ctx)
+    {
+        var cat = Policies; if (cat == null || cat.IsEmpty) return; var world = ctx.World;
+        uint hash = 2166136261; foreach (var ch in house.Id + ":law:" + world.Turn) hash = (hash ^ ch) * 16777619;
+        if (hash % 8 != 0) return;
+        bool Try(string law, string option) => cat.Law(law)?.Option(option) != null && PolicySystem.OptionId(world, cat, house.Id, law) != option && executor.TryExecute(new EnactLawCommand(steward.Id, law, option, cat), ctx);
+        // 1. a hostile estate: relax the law of ours it hates most (house and world laws only — the cheap ones)
+        foreach (var e in cat.Estates.Where(e => PolicySystem.Approval(world, house.Id, e.Id) <= PolicySystem.Hostile).OrderBy(e => PolicySystem.Approval(world, house.Id, e.Id)))
+        {
+            var worst = cat.Laws.Where(l => (l.Scope == "house" || l.Scope == "world") && PolicySystem.HoldsScope(world, house.Id, l.Scope))
+                .Select(l => (l, o: PolicySystem.Option(world, cat, house.Id, l.Id)!)).Where(x => x.o.Opinions.GetValueOrDefault(e.Id) < 0).OrderBy(x => x.o.Opinions.GetValueOrDefault(e.Id)).FirstOrDefault();
+            if (worst.l == null) continue;
+            var better = worst.l.Options.OrderByDescending(o => o.Opinions.GetValueOrDefault(e.Id)).First();
+            if (Try(worst.l.Id, better.Id)) return;
+        }
+        // 2. restless worlds: ease the law of ours that drives unrest hardest (a steward reads the squares before the ledger)
+        if (world.HoldingsOf(house.Id).Any(h => h.IsPlanet && h.Unrest >= 50))
+        {
+            var driver = cat.Laws.Where(l => (l.Scope == "house" || l.Scope == "world") && PolicySystem.HoldsScope(world, house.Id, l.Scope))
+                .Select(l => (l, o: PolicySystem.Option(world, cat, house.Id, l.Id)!)).Where(x => x.o.Effects.GetValueOrDefault("unrest_drift") > 0).OrderByDescending(x => x.o.Effects.GetValueOrDefault("unrest_drift")).FirstOrDefault();
+            if (driver.l != null) { var calmer = driver.l.Options.OrderBy(o => o.Effects.GetValueOrDefault("unrest_drift")).ThenByDescending(o => o.Default).First(); if (Try(driver.l.Id, calmer.Id)) return; }
+        }
+        // 3. the position
+        bool atWar = world.Wars.Any(x => x.Involves(house.Id));
+        if (house.Treasury.Credits < 0 && Try("tithe", "harsh")) return;
+        if (house.Treasury.Credits > 120 && PolicySystem.OptionId(world, cat, house.Id, "tithe") == "harsh" && Try("tithe", "normal")) return;
+        if (atWar && Try("levies", "conscription")) return;
+        if (atWar && Try("household_guard", "doubled")) return;
+        if (!atWar && PolicySystem.OptionId(world, cat, house.Id, "levies") == "conscription" && Try("levies", "household")) return;
+        var lawless = PolicySystem.RegionsDominated(world, house.Id).FirstOrDefault(r => RegionSystem.StateOf(world, r).Lawlessness >= 60);
+        if (lawless != null && Try("march_law", "martial_law")) return;
+        if (lawless == null && PolicySystem.OptionId(world, cat, house.Id, "march_law") == "martial_law" && PolicySystem.RegionsDominated(world, house.Id).All(r => RegionSystem.StateOf(world, r).Lawlessness < 30) && Try("march_law", "patrols")) return;
+        if (PolicySystem.HoldsScope(world, house.Id, "chair") && house.Treasury.Credits < 40 && Try("reach_tolls", "heavy")) return;
+        if (PolicySystem.HoldsScope(world, house.Id, "office:admiral") && atWar && Try("fleet_doctrine", "aggressive")) return;
+    }
+
     /// <summary>Fuel before finery (GDD §17): every rival house with a navy and dry or low tanks buys helium-3 on the open market before it
     /// spends a pool point on anything else — three turns' worth when the coin is comfortable, one turn's worth when it is not.</summary>
     private void Refuel(List<Character> npcs, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
@@ -312,6 +354,7 @@ public sealed class NpcAi
     {
         var world = ctx.World; var f = _ventures.Finance; var galaxy = world.Galaxy; var eco = new Economy(catalog, _ventures);
         var fc = eco.Forecast(world, house.Id); int net = fc.Credits, mpNet = fc.Manpower;   // a venture that eats men (a free company) is only worth it while the worlds breed more than it eats
+        Legislate(house, steward, executor, ctx);
         // deep in the red with a venture to sell: sell the one that pays least before anything else (a loan on a sinking ledger is a spiral)
         if (house.Treasury.Credits < -10)
         {
