@@ -39,7 +39,12 @@ public sealed record FactionCard(string Id, string Name, string LeaderHouseId, s
 public sealed record MotionCard(string Id, string KindId, string KindName, string ProposerName, string ProposerAccent, string? TargetName, string Text, int ProposedTurn, bool Open, bool Passed,
     int ForWeight, int AgainstWeight, int MyStance, bool Mine, bool AgainstMe, IReadOnlyList<StanceLine> Stances);
 /// <summary>A motion the player could move, with its targets.</summary>
-public sealed record MotionProposal(string KindId, string KindName, string Description, int Influence, string TargetType, IReadOnlyList<(string Id, string Name)> Targets, string? Refusal, bool NeedsOffice = false, IReadOnlyList<(string Id, string Name)>? Offices = null);
+public sealed record MotionProposal(string KindId, string KindName, string Description, int Influence, string TargetType, IReadOnlyList<(string Id, string Name)> Targets, string? Refusal, bool NeedsOffice = false, IReadOnlyList<(string Id, string Name)>? Offices = null,
+    bool NeedsLaw = false, IReadOnlyList<ActLawChoice>? Laws = null);
+/// <summary>A Senate-scoped law an Act may set: its options (the one in force marked), each with its refusal were it moved now.</summary>
+public sealed record ActLawChoice(string Id, string Name, string Description, string InForce, IReadOnlyList<(string Id, string Name, string Effects, string? Refusal)> Options);
+/// <summary>A law of the whole Reach as it stands: who set it and to what.</summary>
+public sealed record ReachLawLine(string Id, string Name, string Category, string OptionName, string Effects, string SetBy, bool Act, bool Mine, int CooldownLeft);
 /// <summary>An office of the Reach: who holds it, what it confers, and whether the player has a candidate for it.</summary>
 public sealed record OfficeCard(string Id, string Name, string Description, string? HolderHouseId, string? HolderHouse, string? HolderName, string? HolderAccent, int Since, bool Mine, string? MyCandidate, int Hulls, string Track, int MinRank);
 /// <summary>The Senate as a place of action (GDD §6.1): the docket, the history, what the player may move, and their weight in the chamber.</summary>
@@ -53,7 +58,7 @@ public sealed record LawCard(string Id, string Name, string Category, string Des
 /// <summary>An estate's regard for the house: approval, where the laws would take it, and what its mood does.</summary>
 public sealed record EstateCard(string Id, string Name, string Description, int Approval, int Target, string Mood, string Effects, string LawsSay);
 /// <summary>The chancery: laws by category and the six estates.</summary>
-public sealed record ChanceryCard(IReadOnlyList<LawCard> Laws, IReadOnlyList<EstateCard> Estates, int InfluencePool);
+public sealed record ChanceryCard(IReadOnlyList<LawCard> Laws, IReadOnlyList<EstateCard> Estates, int InfluencePool, IReadOnlyList<ReachLawLine>? Reach = null);
 /// <summary>One house on the wealth table.</summary>
 public sealed record WealthLine(string HouseId, string Name, string Accent, int Wealth, string Tier, bool Mine);
 /// <summary>The house ledger (GDD §17): every per-turn line, the net, wealth and its rank, the loan.</summary>
@@ -387,8 +392,19 @@ public static class CourtProjection
             var probe = new ProposeMotionCommand(p.Id, d.Id, targets.Count > 0 ? targets[0].Id : "", senate, firstOffice).Refusal(ctx);
             if (probe != null && targets.Count > 1 && (probe == "not against yourself" || probe == "already before the Senate" || probe.StartsWith("no one of") || probe.EndsWith("holds it already"))) probe = new ProposeMotionCommand(p.Id, d.Id, targets[1].Id, senate, firstOffice).Refusal(ctx);
             int cost = new ProposeMotionCommand(p.Id, d.Id, "", senate).Cost(w, house.Id, d);
-            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : "").Replace("{office}", "an office"), cost, d.Target, targets, probe, d.Office,
-                d.Office ? senate.Offices.Defs.Select(o => (Id: o.Id, Name: o.Name)).ToList() : null);
+            List<ActLawChoice>? laws = null;
+            if (d.Law)
+            {
+                laws = senate.Policies.Laws.Where(l => l.Scope == "senate").OrderBy(l => l.Category, StringComparer.Ordinal).ThenBy(l => l.Name, StringComparer.Ordinal).Select(l =>
+                {
+                    string inForce = (PolicySystem.ReachOption(w, senate.Policies, l) ?? l.DefaultOption).Id;
+                    return new ActLawChoice(l.Id, l.Name, l.Description, inForce, l.Options.Select(o => (o.Id, o.Name, Effects(o.Effects), new ProposeMotionCommand(p.Id, d.Id, "", senate, lawId: l.Id, optionId: o.Id).Refusal(ctx))).ToList());
+                }).ToList();
+                var firstOpen = laws.SelectMany(l => l.Options).FirstOrDefault(o => o.Refusal == null); probe = firstOpen.Refusal ?? laws.SelectMany(l => l.Options).Select(o => o.Refusal).FirstOrDefault(r => r != "already the law of the Reach") ?? probe;
+                if (laws.SelectMany(l => l.Options).Any(o => o.Refusal == null)) probe = null;
+            }
+            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : "").Replace("{office}", "an office").Replace("{law}", "a law of the Reach").Replace("{option}", "so set"), cost, d.Target, targets, probe, d.Office,
+                d.Office ? senate.Offices.Defs.Select(o => (Id: o.Id, Name: o.Name)).ToList() : null, d.Law, laws);
         }).ToList();
         int total = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).Sum(h => senate.Weight(w, h.Id));
         var offices = senate.Offices.Defs.Select(o =>
@@ -424,7 +440,7 @@ public static class CourtProjection
         if (cat.IsEmpty) return null;
         var laws = cat.Laws.Select(l =>
         {
-            string inForce = PolicySystem.OptionId(w, cat, house.Id, l.Id);
+            string inForce = l.Reach ? (PolicySystem.ReachOption(w, cat, l) ?? l.DefaultOption).Id : PolicySystem.OptionId(w, cat, house.Id, l.Id);
             var options = l.Options.Select(o => new LawOptionCard(o.Id, o.Name, o.Id == inForce, Effects(o.Effects),
                 o.Opinions.OrderByDescending(kv => Math.Abs(kv.Value)).Select(kv => (kv.Key, cat.Estate(kv.Key)?.Name ?? kv.Key, kv.Value)).ToList(),
                 new EnactLawCommand(p.Id, l.Id, o.Id, cat).Refusal(ctx))).ToList();
@@ -435,10 +451,20 @@ public static class CourtProjection
             int a = w.Counter("estate:" + e.Id); int target = Math.Clamp(PolicySystem.LawOpinion(w, cat, house.Id, e.Id) + w.Counter("estate_offset:" + e.Id), -100, 100);
             string mood = a >= PolicySystem.Loyal ? "loyal" : a <= PolicySystem.Hostile ? "hostile" : a >= 10 ? "warm" : a <= -10 ? "cool" : "indifferent";
             string fx = a >= PolicySystem.Loyal ? Effects(e.Loyal) : a <= PolicySystem.Hostile ? Effects(e.Hostile) : $"loyal would give {Effects(e.Loyal)}; hostile would cost {Effects(e.Hostile)}";
-            var says = cat.Laws.Where(l => PolicySystem.HoldsScope(w, house.Id, l.Scope)).Select(l => (l, o: PolicySystem.Option(w, cat, house.Id, l.Id))).Where(x => x.o != null && x.o.Opinions.GetValueOrDefault(e.Id) != 0)
+            var says = cat.Laws.Where(l => !l.Reach && PolicySystem.HoldsScope(w, house.Id, l.Scope)).Select(l => (l, o: PolicySystem.Option(w, cat, house.Id, l.Id))).Where(x => x.o != null && x.o.Opinions.GetValueOrDefault(e.Id) != 0)
                 .Select(x => $"{x.o!.Name.ToLowerInvariant()} {(x.o.Opinions[e.Id] > 0 ? "+" : "")}{x.o.Opinions[e.Id]}").ToList();
-            return new EstateCard(e.Id, e.Name, e.Description, a, target, mood, fx, says.Count == 0 ? "no law of yours moves them" : string.Join(" · ", says));
+            says.AddRange(cat.Laws.Where(l => l.Reach).Select(l => (l, o: PolicySystem.ReachOption(w, cat, l))).Where(x => x.o != null && x.o.Opinions.GetValueOrDefault(e.Id) != 0)
+                .Select(x => $"the Reach's {x.o!.Name.ToLowerInvariant()} {(x.o.Opinions[e.Id] > 0 ? "+" : "")}{x.o.Opinions[e.Id]}"));
+            return new EstateCard(e.Id, e.Name, e.Description, a, target, mood, fx, says.Count == 0 ? "no law moves them" : string.Join(" · ", says));
         }).ToList();
-        return new ChanceryCard(laws, estates, w.PoolsFor(p.Id).Influence);
+        var reach = cat.Laws.Where(l => l.Reach).OrderBy(l => l.Category, StringComparer.Ordinal).ThenBy(l => l.Name, StringComparer.Ordinal).Select(l =>
+        {
+            var o = PolicySystem.ReachOption(w, cat, l); bool act = l.Scope == "senate";
+            string? holder = l.Scope == "chair" ? RegionSystem.CapitalHolder(w)?.Id : l.Scope == "emperor" ? ThroneSystem.Emperor(w)?.Id : l.Scope.StartsWith("office:") ? OfficeSystem.HolderHouse(w, l.Scope["office:".Length..]) : null;
+            string setBy = act ? (w.Laws.TryGetValue(PolicySystem.SenateHolder, out var set) && set.ContainsKey(l.Id) ? "by an Act of the Senate" : "the custom, no Act yet carried")
+                : holder == null ? $"no one holds {PolicySystem.ScopeName(l.Scope)}" : holder == house.Id ? "set by you, as " + PolicySystem.ScopeName(l.Scope) : $"set by {w.House(holder)?.Name ?? holder}, as {PolicySystem.ScopeName(l.Scope)}";
+            return new ReachLawLine(l.Id, l.Name, l.Category, (o ?? l.DefaultOption).Name, Effects((o ?? l.DefaultOption).Effects), setBy, act, holder == house.Id, act ? Math.Max(0, w.Counter($"law_cd:{PolicySystem.SenateHolder}:{l.Id}") - w.Turn) : 0);
+        }).ToList();
+        return new ChanceryCard(laws, estates, w.PoolsFor(p.Id).Influence, reach);
     }
 }

@@ -16,8 +16,10 @@ Every law has a **scope**: the position you must hold to set it. The effects fal
 | office:admiral · office:treasurer · office:speaker | the office's holder | the holder's fleets · the Reach's exchanges · every other house's motions |
 | emperor | the throne | the whole Reach |
 | bench | the leader of a Senate faction | the leader's votes |
+| senate | no house — only an **Act of the Senate** carried by motion (docs/SENATE.md) | the whole Reach |
 
-`content/politics/laws.json` ships seventeen laws in seven categories — the tithe, the levies, the court, the household
+`content/politics/laws.json` ships twenty laws in seven categories — three of them the Senate's own (the Common Law, the Trade
+Charter, the Levy of the Reach), set only by an Act carried in the chamber. The other seventeen are — the tithe, the levies, the court, the household
 guard; tariffs, labour, justice, the franchise; march law and settlement; the tolls of the Reach and letters of marque;
 fleet doctrine, the exchanges, standing orders; the imperial edict; the bench's platform. Each has three options with a
 **default** every house holds until it chooses otherwise; changing one costs the law's influence (`EnactLawCommand`) and

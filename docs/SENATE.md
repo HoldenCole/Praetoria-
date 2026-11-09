@@ -18,6 +18,26 @@ docket. A motion moved in turn T is voted at the end of turn T+1, so there is al
 | The Peace of the Reach | a house at war | white peace in all its wars |
 | Commission | a house and an office | the house's best-qualified member takes the office; the previous holder is relieved; target legitimacy +2 |
 | Embargo | a house | the exchanges close to it for eight turns: no open market, venture credits halved |
+| Act of the Senate | a law of the Senate and an option | the law is so set for the whole Reach (see *Acts* below) |
+
+## Acts: the law of the Reach by motion
+
+Three laws in `content/politics/laws.json` carry scope `senate` and `reach: true` — the Common Law (local courts, the
+custom, the Reach's assizes), the Trade Charter (protected markets, the custom, open lanes) and the Levy of the Reach (no
+common levy, the custom, the Reach's levy). No house holds that scope; the only way to set one is an **Act** — motion kind
+`act` (`law: true`), three influence, naming the law and the option. When it carries, `PolicySystem.Enact` writes it under
+the pseudo-house `senate`, every house's `ReachModifier` and estates read it, and the Senate's cooldown (ten turns) keeps
+the chamber from hearing that law again at once. Refusals: not a Senate law, the option already in force, the Senate
+settled it lately, the law already on the docket.
+
+Rivals lean on an Act by their **estates** (`SenateSystem.ActLean`): the option's opinions against the option in force,
+doubled where it pleases an estate hostile to the house or galls one loyal to it, a tenth of the sum clamped to ±3; then
+by situation — a house at war wants the common levy, a house with lawless worlds wants the assizes, a house with a navy
+wants cheaper fuel, a house of three worlds likes a market it can tax, a house with a restless world fears anything that
+adds unrest. Rival proposers move the Act that most pleases an estate hostile to them (`WantedAct`), after relief and
+before censure. Flags: `act_open`, `act_passed`, `act_passed:<law>`, `act_failed`; counter `acts_passed`. The Chancery's
+"law of the Reach" drawer shows every reach-wide law, who set it and how long before the chamber will hear it again. In
+sixty-turn simulations two or three Acts carry a run.
 
 ## Weight and the benches
 

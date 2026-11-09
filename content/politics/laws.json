@@ -119,6 +119,27 @@
         { "id": "loose", "name": "A loose bench", "default": true },
         { "id": "reform", "name": "A reform platform", "effects": { "senate_weight": 1 }, "opinions": { "commons": 10, "old_blood": -10 } },
         { "id": "tradition", "name": "A platform of tradition", "effects": { "senate_weight": 1 }, "opinions": { "old_blood": 10, "commons": -10 } }
+      ] },
+    { "id": "common_law", "name": "The Common Law", "category": "Justice", "scope": "senate", "reach": true, "cost": 3, "cooldown": 10,
+      "description": "Whose courts sit on the lanes of the Reach. Local courts please the houses and the frontier; the Reach's assizes calm the lanes and gall every lord who liked his own gallows.",
+      "options": [
+        { "id": "local_courts", "name": "Local courts", "effects": { "lawlessness_drift": 1 }, "opinions": { "frontier": 10, "old_blood": 10, "magistrates": -10 } },
+        { "id": "customary", "name": "The customary law", "default": true },
+        { "id": "assizes", "name": "The Reach's assizes", "effects": { "lawlessness_drift": -1, "unrest_drift": -1 }, "opinions": { "magistrates": 15, "commons": 5, "frontier": -10, "old_blood": -10 } }
+      ] },
+    { "id": "trade_charter", "name": "The Trade Charter", "category": "Trade", "scope": "senate", "reach": true, "cost": 3, "cooldown": 10,
+      "description": "The terms of trade across the Reach. Protected markets raise every price and please the lords who tax them; open lanes drop them and please every factor.",
+      "options": [
+        { "id": "protected", "name": "Protected markets", "effects": { "market_price_pct": 10, "tolls_bonus": 1 }, "opinions": { "merchants": -15, "magistrates": 5, "old_blood": 5 } },
+        { "id": "customary", "name": "The customary charter", "default": true },
+        { "id": "open_lanes", "name": "Open lanes", "effects": { "market_price_pct": -10, "venture_yield_pct": 10 }, "opinions": { "merchants": 20, "frontier": 5, "magistrates": -5 } }
+      ] },
+    { "id": "levy_of_the_reach", "name": "The Levy of the Reach", "category": "Military", "scope": "senate", "reach": true, "cost": 3, "cooldown": 10,
+      "description": "Whether the Reach raises crews in common. The Reach's levy fills every yard and empties every village.",
+      "options": [
+        { "id": "no_common_levy", "name": "No common levy", "effects": { "manpower_per_world": -1 }, "opinions": { "commons": 10, "officers": -10 } },
+        { "id": "customary", "name": "The customary levy", "default": true },
+        { "id": "common_levy", "name": "The Reach's levy", "effects": { "manpower_per_world": 1, "unrest_drift": 1 }, "opinions": { "officers": 15, "commons": -15 } }
       ] }
-  ]
+]
 }

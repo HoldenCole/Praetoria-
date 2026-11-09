@@ -3,7 +3,7 @@
 @implements IAsyncDisposable
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var house = w.House(p.HouseId)!; var ch = m.Chancery;
-    var held = ch?.Laws.Where(l => l.Held).ToList() ?? new List<LawCard>(); var notHeld = ch?.Laws.Where(l => !l.Held).ToList() ?? new List<LawCard>();
+    var held = ch?.Laws.Where(l => l.Held).ToList() ?? new List<LawCard>(); var notHeld = ch?.Laws.Where(l => !l.Held && l.Scope != "senate").ToList() ?? new List<LawCard>();
     var positions = new List<string> { "head of " + house.Name };
     if (PolicySystem.HoldsScope(w, house.Id, "world")) positions.Add($"holder of {w.HoldingsOf(house.Id).Count(h => h.IsPlanet)} world(s)");
     var dom = PolicySystem.RegionsDominated(w, house.Id).Select(r => w.Galaxy?.Regions.FirstOrDefault(x => x.Id == r)?.Name ?? r).ToList(); if (dom.Count > 0) positions.Add("dominant in " + string.Join(", ", dom));
@@ -60,6 +60,16 @@
                             }
                         </div>
                     }
+                }
+                @if (ch.Reach is { Count: > 0 } reach)
+                {
+                    <details class="not-held reach-law"><summary>The law of the Reach · @reach.Count · binds every house</summary>
+                        @foreach (var r in reach)
+                        {
+                            <div class="small reach-line @(r.Act ? "act" : "")"><b>@r.Name</b> — <span class="@(r.Mine ? "pos" : "")">@r.OptionName.ToLowerInvariant()</span> <span class="muted">· @r.Effects · @r.SetBy@(r.Act && r.CooldownLeft > 0 ? $" · settled, {r.CooldownLeft} turn(s) before the chamber will hear it again" : "")</span></div>
+                        }
+                        <div class="muted small">A law of the Senate changes only by an Act carried in the chamber — move one from the Senate screen, under "Move a motion".</div>
+                    </details>
                 }
                 @if (notHeld.Count > 0)
                 {

@@ -12,12 +12,14 @@ namespace Praetoria.Core.Systems;
 /// always one turn to whip. Passing lifts the proposer's standing in the Senate sphere (counter <c>senate_standing:&lt;house&gt;</c>, read
 /// by <see cref="SphereSystem"/>); failing costs it. Flags for the player: <c>motion_open</c>, <c>motion_against_me</c>, <c>censured</c>,
 /// <c>recognised</c>, <c>levied</c>, <c>embargoed</c>, <c>motion_passed_mine</c>, <c>motion_failed_mine</c>; counters
-/// <c>motions_passed</c>, <c>motions_passed:&lt;house&gt;</c>, <c>embargo:&lt;house&gt;</c> (the turn it lifts).
+/// <c>motions_passed</c>, <c>motions_passed:&lt;house&gt;</c>, <c>embargo:&lt;house&gt;</c> (the turn it lifts). An <b>Act</b> (kind with
+/// <c>law: true</c>) sets a Senate-scoped law for the whole Reach (PolicySystem, holder <c>senate</c>): flags <c>act_open</c>, <c>act_passed</c>,
+/// <c>act_passed:&lt;law&gt;</c>, <c>act_failed</c>; counter <c>acts_passed</c>.
 /// </summary>
 public sealed class SenateSystem
 {
     public const int DocketSize = 2, HistoryKept = 12, LobbyWeight = 2, BribeWeight = 3, BribeCredits = 5, ProposerLawRank = 3, ProposerTitleRank = 2, RepeatTurns = 10;
-    public static readonly string[] TurnFlags = { "censured", "recognised", "levied", "motion_passed_mine", "motion_failed_mine" };
+    public static readonly string[] TurnFlags = { "censured", "recognised", "levied", "motion_passed_mine", "motion_failed_mine", "act_passed", "act_failed" };
 
     private readonly MotionCatalog _motions; private readonly TitleCatalog _titles; private readonly FleetSystem? _fleets; private readonly OfficeCatalog _offices;
     public SenateSystem(MotionCatalog motions, TitleCatalog titles, FleetSystem? fleets = null, OfficeCatalog? offices = null) { _motions = motions; _titles = titles; _fleets = fleets; _offices = offices ?? OfficeCatalog.Empty; }
@@ -106,6 +108,9 @@ public sealed class SenateSystem
                     if (RegionSystem.CapitalHolder(w)?.Id == houseId && toTarget >= 0) lean += 1;         // the chair likes a safe pair of hands
                 }
                 break;
+            case "act":
+                lean += ActLean(w, h, m);
+                break;
             case "peace":
                 if (houseId == m.TargetId) lean += 3;
                 else if (w.AtWar(houseId, m.TargetId)) { var war = w.Wars.FirstOrDefault(x => x.Between(houseId, m.TargetId)); lean += war != null && war.Lead(houseId) < 0 ? 1 : -3; }
@@ -115,6 +120,32 @@ public sealed class SenateSystem
         uint hash = 2166136261; foreach (var ch in m.Id + ":" + houseId) hash = (hash ^ ch) * 16777619;
         lean += (int)(hash % 3) - 1;
         lean += m.Lobby.GetValueOrDefault(houseId);
+        return lean;
+    }
+
+    /// <summary>How a house leans on an Act by its estates and its situation: pleasing an estate that is hostile to it counts double, galling a
+    /// loyal one counts double against; a house at war wants the Reach's levy, a house with lawless worlds wants the assizes, a house that buys
+    /// fuel wants open lanes, a house of many worlds likes a protected market it can tax. Zero when the option is already the law.</summary>
+    public int ActLean(World w, House h, Motion m)
+    {
+        var law = Policies.Law(m.LawId); var next = law?.Option(m.LawOption); if (law == null || next == null) return 0;
+        var cur = PolicySystem.ReachOption(w, Policies, law) ?? law.DefaultOption; if (cur.Id == next.Id) return 0;
+        int score = 0;
+        foreach (var e in Policies.Estates)
+        {
+            int delta = next.Opinions.GetValueOrDefault(e.Id) - cur.Opinions.GetValueOrDefault(e.Id); if (delta == 0) continue;
+            int a = PolicySystem.Approval(w, h.Id, e.Id);
+            int mult = (delta > 0 && a <= PolicySystem.Hostile) || (delta < 0 && a >= PolicySystem.Loyal) ? 2 : 1;
+            score += delta * mult;
+        }
+        int lean = Math.Clamp(score / 10, -3, 3);
+        var fx = next.Effects; var cfx = cur.Effects;
+        int Fx(string k) => fx.GetValueOrDefault(k) - cfx.GetValueOrDefault(k);
+        if (Fx("manpower_per_world") > 0 && w.Wars.Any(x => x.Involves(h.Id))) lean += 2;
+        if (Fx("lawlessness_drift") < 0 && w.Galaxy is { } g && w.HoldingsOf(h.Id).Any(x => x.IsPlanet && g.System(x.SystemId)?.RegionId is { } r && RegionSystem.StateOf(w, r).Lawlessness >= 40)) lean += 2;
+        if (Fx("market_price_pct") < 0 && w.Fleets.Values.Any(f => f.OwnerId == h.Id && !f.Office && f.Strength > 0)) lean += 1;
+        if (Fx("market_price_pct") > 0 && w.HoldingsOf(h.Id).Count(x => x.IsPlanet) >= 3) lean += 1;
+        if (Fx("unrest_drift") > 0 && w.HoldingsOf(h.Id).Any(x => x.IsPlanet && x.Unrest >= 50)) lean -= 2;
         return lean;
     }
 
@@ -132,7 +163,8 @@ public sealed class SenateSystem
     {
         var def = _motions.Def(m.Kind); if (def == null) return m.Kind;
         string target = def.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name ?? m.TargetId : def.Target == "house" ? w.House(m.TargetId)?.Name ?? m.TargetId : "";
-        return def.Description.Replace("{proposer}", w.House(m.ProposerHouseId)?.Name ?? m.ProposerHouseId).Replace("{target}", target).Replace("{office}", _offices.Def(m.OfficeId)?.Name ?? m.OfficeId);
+        return def.Description.Replace("{proposer}", w.House(m.ProposerHouseId)?.Name ?? m.ProposerHouseId).Replace("{target}", target).Replace("{office}", _offices.Def(m.OfficeId)?.Name ?? m.OfficeId)
+            .Replace("{law}", Policies.Law(m.LawId)?.Name.ToLowerInvariant() ?? m.LawId).Replace("{option}", Policies.Law(m.LawId)?.Option(m.LawOption)?.Name.ToLowerInvariant() ?? m.LawOption);
     }
 
     public void Tick(World w)
@@ -177,6 +209,7 @@ public sealed class SenateSystem
         else
         {
             if (m.ProposerHouseId == mine) w.WorldFlags.Add("motion_failed_mine");
+            if (def.Law) w.WorldFlags.Add("act_failed");
             w.Log($"The Senate throws it out, {a} to {f}: {text}");
         }
     }
@@ -217,6 +250,12 @@ public sealed class SenateSystem
             var who = OfficeSystem.Candidate(w, office, target.Id);
             if (who != null) OfficeSystem.Grant(w, office, target.Id, who);
             else w.Log($"The commission to {target.Name} lapses: no one of the house has the rank for the {office.Name}.");
+        }
+        if (def.Law && Policies.Law(m.LawId) is { } law && law.Option(m.LawOption) is { } opt)
+        {
+            PolicySystem.Enact(w, Policies, PolicySystem.SenateHolder, law.Id, opt.Id);
+            w.WorldFlags.Add("act_passed"); w.WorldFlags.Add("act_passed:" + law.Id); w.WorldCounters["acts_passed"] = w.Counter("acts_passed") + 1;
+            w.Log($"An Act of the Senate: {law.Name.ToLowerInvariant()} is now {opt.Name.ToLowerInvariant()} throughout the Reach.");
         }
         if (def.EmbargoTurns > 0 && target != null)
         {
@@ -260,6 +299,7 @@ public sealed class SenateSystem
                 var lawless = w.HoldingsOf(h.Id).Where(x => x.IsPlanet).Select(x => g.System(x.SystemId)?.RegionId ?? "").Where(r => r.Length > 0 && RegionSystem.StateOf(w, r).Lawlessness >= 50).OrderBy(r => r, StringComparer.Ordinal).FirstOrDefault();
                 if (lawless != null && h.Treasury.Credits >= 20 && !Stale(w, h.Id, "relief", lawless)) { Add(w, h.Id, "relief", lawless); return; }
             }
+            if (_motions.Def("act") != null && WantedAct(w, h) is { } act && !Stale(w, h.Id, "act", act.law.Id + ":" + act.option.Id)) { Add(w, h.Id, "act", "", lawId: act.law.Id, lawOption: act.option.Id); return; }
             var rival = w.Houses.Values.Where(r => r.Id != h.Id && r.Id != PirateSystem.HouseId && Economy.HeadOf(w, r) is { } rh && (w.GetRelationship(head.Id, rh.Id)?.Disposition ?? 0) <= -30)
                 .OrderBy(r => w.GetRelationship(head.Id, Economy.HeadOf(w, r)!.Id)!.Disposition).ThenBy(r => r.Id, StringComparer.Ordinal).FirstOrDefault();
             if (rival != null)
@@ -270,14 +310,32 @@ public sealed class SenateSystem
         }
     }
 
+    /// <summary>An Act a house would move: the Senate-scoped law and option that most pleases an estate hostile to it (or best serves its
+    /// situation, by <see cref="ActLean"/>), not already the law, not already on the docket, not on the Senate's cooldown. Null when none would.</summary>
+    public (LawDef law, LawOptionDef option)? WantedAct(World w, House h)
+    {
+        (LawDef law, LawOptionDef option)? best = null; int bestLean = 1;   // it must want it more than a shrug
+        foreach (var law in Policies.Laws.Where(l => l.Scope == "senate").OrderBy(l => l.Id, StringComparer.Ordinal))
+        {
+            if (PolicySystem.OnCooldown(w, PolicySystem.SenateHolder, law.Id) || w.Motions.Any(m => m.Open && m.LawId == law.Id)) continue;
+            var cur = PolicySystem.ReachOption(w, Policies, law) ?? law.DefaultOption;
+            foreach (var o in law.Options.Where(o => o.Id != cur.Id).OrderBy(o => o.Id, StringComparer.Ordinal))
+            {
+                int lean = ActLean(w, h, new Motion { Id = "probe", Kind = "act", LawId = law.Id, LawOption = o.Id });
+                if (lean > bestLean) { bestLean = lean; best = (law, o); }
+            }
+        }
+        return best;
+    }
+
     /// <summary>The chamber tires of the same motion: the same house may not move the same kind against the same target for <see cref="RepeatTurns"/> turns.</summary>
     public static bool Stale(World w, string proposerHouseId, string kind, string targetId) => w.Counter($"motion_cd:{proposerHouseId}:{kind}:{targetId}") > w.Turn;
 
-    public Motion Add(World w, string proposerHouseId, string kind, string targetId, string officeId = "")
+    public Motion Add(World w, string proposerHouseId, string kind, string targetId, string officeId = "", string lawId = "", string lawOption = "")
     {
         int n = w.Counter("motions_proposed") + 1; w.WorldCounters["motions_proposed"] = n;
-        w.WorldCounters[$"motion_cd:{proposerHouseId}:{kind}:{(officeId.Length > 0 ? targetId + ":" + officeId : targetId)}"] = w.Turn + RepeatTurns;
-        var m = new Motion { Id = $"motion_{n}", Kind = kind, ProposerHouseId = proposerHouseId, TargetId = targetId, OfficeId = officeId, ProposedTurn = w.Turn };
+        w.WorldCounters[$"motion_cd:{proposerHouseId}:{kind}:{(lawId.Length > 0 ? lawId + ":" + lawOption : officeId.Length > 0 ? targetId + ":" + officeId : targetId)}"] = w.Turn + RepeatTurns;
+        var m = new Motion { Id = $"motion_{n}", Kind = kind, ProposerHouseId = proposerHouseId, TargetId = targetId, OfficeId = officeId, LawId = lawId, LawOption = lawOption, ProposedTurn = w.Turn };
         w.Motions.Add(m);
         w.Log($"Before the Senate: {Describe(w, m)} The vote is next session.");
         return m;
@@ -285,10 +343,11 @@ public sealed class SenateSystem
 
     private void WriteFlags(World w, string? mine)
     {
-        foreach (var f in new[] { "motion_open", "motion_against_me", "embargoed" }) w.WorldFlags.Remove(f);
+        foreach (var f in new[] { "motion_open", "motion_against_me", "embargoed", "act_open" }) w.WorldFlags.Remove(f);
         if (mine == null) return;
         var open = Docket(w).ToList();
         if (open.Count > 0) w.WorldFlags.Add("motion_open");
+        if (open.Any(m => _motions.Def(m.Kind)?.Law == true)) w.WorldFlags.Add("act_open");
         if (open.Any(m => m.TargetId == mine && _motions.Def(m.Kind) is { } d && d.Target == "house" && (d.LegitimacyTarget < 0 || d.EmbargoTurns > 0))) w.WorldFlags.Add("motion_against_me");
         if (Embargoed(w, mine)) w.WorldFlags.Add("embargoed");
     }

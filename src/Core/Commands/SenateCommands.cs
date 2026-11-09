@@ -8,10 +8,11 @@ namespace Praetoria.Core.Commands;
 /// a house; the docket holds two. The vote is at the end of the next turn.</summary>
 public sealed class ProposeMotionCommand : ICommand
 {
-    private readonly string _kind, _targetId, _officeId; private readonly SenateSystem _senate;
-    public ProposeMotionCommand(string actorId, string kind, string targetId, SenateSystem senate, string officeId = "") { ActorId = actorId; _kind = kind; _targetId = targetId; _senate = senate; _officeId = officeId; }
+    private readonly string _kind, _targetId, _officeId, _lawId, _optionId; private readonly SenateSystem _senate;
+    public ProposeMotionCommand(string actorId, string kind, string targetId, SenateSystem senate, string officeId = "", string lawId = "", string optionId = "")
+    { ActorId = actorId; _kind = kind; _targetId = targetId; _senate = senate; _officeId = officeId; _lawId = lawId; _optionId = optionId; }
     public string ActorId { get; }
-    public string Describe() => $"move {_kind}{(_targetId.Length > 0 ? " on " + _targetId : "")}{(_officeId.Length > 0 ? " for the " + _officeId : "")} before the Senate";
+    public string Describe() => $"move {_kind}{(_targetId.Length > 0 ? " on " + _targetId : "")}{(_officeId.Length > 0 ? " for the " + _officeId : "")}{(_lawId.Length > 0 ? $" that {_lawId} be {_optionId}" : "")} before the Senate";
 
     public string? Refusal(CommandContext ctx)
     {
@@ -21,7 +22,15 @@ public sealed class ProposeMotionCommand : ICommand
         if (!_senate.MayPropose(w, house.Id)) return "the Senate hears a baron, or a Magistrate";
         if (w.Motions.Any(m => m.Open && m.ProposerHouseId == house.Id)) return "you already have a motion before the Senate";
         if (SenateSystem.Docket(w).Count() >= SenateSystem.DocketSize) return "the docket is full this session";
-        if (SenateSystem.Stale(w, house.Id, _kind, def.Target == "none" ? "" : def.Office ? _targetId + ":" + _officeId : _targetId)) return "the chamber heard that from you lately";
+        if (SenateSystem.Stale(w, house.Id, _kind, def.Law ? _lawId + ":" + _optionId : def.Target == "none" ? "" : def.Office ? _targetId + ":" + _officeId : _targetId)) return "the chamber heard that from you lately";
+        if (def.Law)
+        {
+            var law = _senate.Policies.Law(_lawId); if (law == null || law.Scope != "senate") return "name a law of the Senate";
+            var opt = law.Option(_optionId); if (opt == null) return "name one of its options";
+            if ((PolicySystem.ReachOption(w, _senate.Policies, law) ?? law.DefaultOption).Id == opt.Id) return "already the law of the Reach";
+            if (PolicySystem.OnCooldown(w, PolicySystem.SenateHolder, law.Id)) return $"the Senate settled that lately — {w.Counter($"law_cd:{PolicySystem.SenateHolder}:{law.Id}") - w.Turn} turn(s) more";
+            if (w.Motions.Any(m => m.Open && m.LawId == law.Id)) return "that law is already before the Senate";
+        }
         if (def.Office)
         {
             var office = _senate.Offices.Def(_officeId); if (office == null) return "name an office";
@@ -49,7 +58,7 @@ public sealed class ProposeMotionCommand : ICommand
     {
         var w = ctx.World; var actor = w.Char(ActorId)!; var def = _senate.Motions.Def(_kind)!;
         ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = Cost(w, actor.HouseId, def) });
-        var m = _senate.Add(w, actor.HouseId, _kind, def.Target == "none" ? "" : _targetId, def.Office ? _officeId : "");
+        var m = _senate.Add(w, actor.HouseId, _kind, def.Target == "none" ? "" : _targetId, def.Office ? _officeId : "", def.Law ? _lawId : "", def.Law ? _optionId : "");
         m.Votes[actor.HouseId] = 1;
     }
 }

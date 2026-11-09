@@ -66,8 +66,11 @@ public static class PolicySystem
         if (scope.StartsWith("office:")) return OfficeSystem.Holds(w, houseId, scope["office:".Length..]);
         return false;
     }
+    /// <summary>The pseudo-house that holds the Senate's laws: Acts carried by motion (SenateSystem).</summary>
+    public const string SenateHolder = "senate";
     public static string ScopeName(string scope) => scope switch
     {
+        "senate" => "the Senate, by an Act carried",
         "house" => "the head of a house", "world" => "the holder of a world", "region" => "the dominant house of a region", "chair" => "the chair",
         "emperor" => "the Emperor", "bench" => "the leader of a bench", _ when scope.StartsWith("office:") => "the " + scope["office:".Length..].Replace('_', ' '), _ => scope
     };
@@ -99,7 +102,7 @@ public static class PolicySystem
         if (cat.IsEmpty) return 0; int sum = 0;
         foreach (var law in cat.Laws.Where(l => l.Reach))
         {
-            string? holder = law.Scope == "chair" ? RegionSystem.CapitalHolder(w)?.Id : law.Scope == "emperor" ? ThroneSystem.Emperor(w)?.Id : law.Scope.StartsWith("office:") ? OfficeSystem.HolderHouse(w, law.Scope["office:".Length..]) : null;
+            string? holder = law.Scope == "chair" ? RegionSystem.CapitalHolder(w)?.Id : law.Scope == "emperor" ? ThroneSystem.Emperor(w)?.Id : law.Scope.StartsWith("office:") ? OfficeSystem.HolderHouse(w, law.Scope["office:".Length..]) : law.Scope == "senate" ? SenateHolder : null;
             if (holder != null) sum += Option(w, cat, holder, law.Id)?.Effects.GetValueOrDefault(key) ?? 0;
         }
         return sum;
@@ -107,7 +110,26 @@ public static class PolicySystem
 
     /// <summary>What the player's laws say about an estate: the sum of the options' opinions, where the house holds the scope.</summary>
     public static int LawOpinion(World w, PolicyCatalog cat, string houseId, string estateId) =>
-        cat.Laws.Where(l => HoldsScope(w, houseId, l.Scope)).Sum(l => Option(w, cat, houseId, l.Id)?.Opinions.GetValueOrDefault(estateId) ?? 0);
+        cat.Laws.Where(l => !l.Reach && HoldsScope(w, houseId, l.Scope)).Sum(l => Option(w, cat, houseId, l.Id)?.Opinions.GetValueOrDefault(estateId) ?? 0)
+        + ReachOpinion(w, cat, estateId);   // the Reach's law weighs on every house's estates
+
+    /// <summary>What the laws of the whole Reach — the chair's, the throne's, the offices', the Senate's Acts — say about an estate, for every house alike.</summary>
+    public static int ReachOpinion(World w, PolicyCatalog cat, string estateId)
+    {
+        int sum = 0;
+        foreach (var law in cat.Laws.Where(l => l.Reach))
+        {
+            string? holder = law.Scope == "chair" ? RegionSystem.CapitalHolder(w)?.Id : law.Scope == "emperor" ? ThroneSystem.Emperor(w)?.Id : law.Scope.StartsWith("office:") ? OfficeSystem.HolderHouse(w, law.Scope["office:".Length..]) : law.Scope == "senate" ? SenateHolder : null;
+            if (holder != null) sum += Option(w, cat, holder, law.Id)?.Opinions.GetValueOrDefault(estateId) ?? 0;
+        }
+        return sum;
+    }
+    /// <summary>The option of a Reach-wide law in force, whoever holds its scope — null when no one does.</summary>
+    public static LawOptionDef? ReachOption(World w, PolicyCatalog cat, LawDef law)
+    {
+        string? holder = law.Scope == "chair" ? RegionSystem.CapitalHolder(w)?.Id : law.Scope == "emperor" ? ThroneSystem.Emperor(w)?.Id : law.Scope.StartsWith("office:") ? OfficeSystem.HolderHouse(w, law.Scope["office:".Length..]) : law.Scope == "senate" ? SenateHolder : null;
+        return holder != null ? Option(w, cat, holder, law.Id) : null;
+    }
 
     public static void Enact(World w, PolicyCatalog cat, string houseId, string lawId, string optionId)
     {
@@ -146,7 +168,7 @@ public static class PolicySystem
             w.WorldCounters["estate:" + e.Id] = a;
             if (a >= Loyal) w.WorldFlags.Add("estate_loyal:" + e.Id); else if (a <= Hostile) w.WorldFlags.Add("estate_hostile:" + e.Id);
         }
-        foreach (var law in cat.Laws) w.WorldFlags.Add($"law:{law.Id}:{OptionId(w, cat, mine, law.Id)}");
+        foreach (var law in cat.Laws) w.WorldFlags.Add($"law:{law.Id}:{(law.Reach ? (ReachOption(w, cat, law) ?? law.DefaultOption).Id : OptionId(w, cat, mine, law.Id))}");   // a Reach-wide law reads as the Reach has it
         if (w.Turn > 0 && w.Turn % 5 == 0)
         {
             int legit = Modifier(w, cat, mine, "legitimacy_per_5") + ReachModifier(w, cat, "legitimacy_per_5");

@@ -15,6 +15,9 @@ public sealed class Motion
     public string TargetId { get; set; } = "";
     /// <summary>For a Commission: the office named.</summary>
     public string OfficeId { get; set; } = "";
+    /// <summary>For an Act of the Senate: the law and the option moved.</summary>
+    public string LawId { get; set; } = "";
+    public string LawOption { get; set; } = "";
     public int ProposedTurn { get; set; }
     /// <summary>Declared votes: house id → +1 for, −1 against, 0 abstain. Rival houses declare at the vote; the player may declare early.</summary>
     public Dictionary<string, int> Votes { get; set; } = new();

@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **Acts of the Senate** (GAP §15 item 8; docs/SENATE.md): a motion kind that sets a law for the whole Reach. Three
+  Senate-scoped laws — the Common Law, the Trade Charter, the Levy of the Reach — can be set by no house, only by an Act
+  carried in the chamber. Rivals lean by their estates (pleasing a hostile estate counts double) and by situation (war
+  wants the common levy, lawless worlds want the assizes, navies want open lanes); rival proposers move the Act that
+  most pleases an estate hostile to them. The Senate's propose drawer gains a law-and-option picker, the Chancery a
+  "law of the Reach" drawer that names who set each reach-wide law and the Senate's cooldown; two events (*An Act Before
+  the Senate*, *The Act Carries*). The estates of every house now also read the Reach's laws.
 - **Rival laws by culture and estates for every house**: each house begins with its culture's laws (the imperial
   core's closed court and iron law, the rim's lenient courts and open lanes, the spirean harsh tithe and bonded
   labour…), every house has its own six estates with the same loyal and hostile effects, and rival stewards legislate

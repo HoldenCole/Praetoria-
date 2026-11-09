@@ -19,6 +19,8 @@
     { "id": "commission", "name": "Commission", "target": "house", "interest": "commission", "proposeInfluence": 3, "targetSelfAllowed": true, "office": true,
       "description": "{proposer} moves that the Senate commission {target} to the office of {office}.",
       "legitimacyTarget": 2 },
+    { "id": "act", "name": "Act of the Senate", "target": "none", "interest": "act", "proposeInfluence": 3, "law": true,
+      "description": "{proposer} moves an Act of the Senate: that {law} be {option} throughout the Reach." },
     { "id": "embargo", "name": "Embargo", "target": "house", "interest": "embargo", "proposeInfluence": 3,
       "description": "{proposer} moves that the Senate close the exchanges of the Reach to {target} for eight years.",
       "embargoTurns": 8 }

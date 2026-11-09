@@ -413,3 +413,8 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .lo-name { font-weight: 600; } .lo-fx { min-height: 1.2em; margin: .15rem 0; } .lo-op { display: flex; flex-wrap: wrap; gap: .2rem; } .opin { font-size: .68rem; padding: 0 .3rem; border-radius: 3px; border: 1px solid var(--line); } .opin.pos { color: var(--good); } .opin.neg { color: var(--warn); }
 .not-held { margin-top: .5rem; }
 @media (max-width: 1100px) { .law-options { grid-template-columns: 1fr; } }
+
+/* the law of the Reach (Chancery) */
+.reach-line { padding: 3px 0; border-bottom: 1px dotted rgba(255,255,255,.06); }
+.reach-line.act b { color: var(--accent); }
+.reach-line .pos { color: #9fd79f; }

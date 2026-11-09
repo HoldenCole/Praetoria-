@@ -258,6 +258,12 @@ internal static class Qa
         {
             string target = def.Target == "house" && others.Count > 0 ? others[decisions.NextInt(0, others.Count)].Id : def.Target == "region" && g != null && g.Regions.Count > 0 ? g.Regions[decisions.NextInt(0, g.Regions.Count)].Id : "";
             if (def.Target == "house" && def.TargetSelfAllowed && decisions.NextInt(0, 2) == 0) target = house.Id;
+            if (def.Law)
+            {
+                var senateLaws = content.Policies.Laws.Where(l => l.Scope == "senate").OrderBy(l => l.Id, StringComparer.Ordinal).ToList();
+                if (senateLaws.Count > 0) { var l = senateLaws[decisions.NextInt(0, senateLaws.Count)]; cands.Add(new ProposeMotionCommand(p.Id, def.Id, "", tc.Senate, lawId: l.Id, optionId: l.Options[decisions.NextInt(0, l.Options.Count)].Id)); }
+                continue;
+            }
             cands.Add(new ProposeMotionCommand(p.Id, def.Id, target, tc.Senate));
         }
         foreach (var f in w.Factions) cands.Add(new JoinFactionCommand(p.Id, f.Id));

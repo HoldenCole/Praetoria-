@@ -534,3 +534,32 @@ and motions that change a law for the whole Reach.
 ### Where the next forty come from
 Scripted chain playthroughs · fifty situations · plots with steps · a credit sink · role theming · the dynasty tree ·
 Reach-wide laws by motion.
+
+## 16. Reassessment — 2026-11-09, after Acts of the Senate
+
+Method: 343 tests · both validators (151 events) · `praetoria qa --seeds 6` (36 runs, 0 failures; the randomised player
+moved 288 motions, Acts among them, and all three Senate laws changed hands) · the probe, extended to Acts passed and the
+law of the Reach at T60 · a six-turn browser drive that moved an Act from the picker, saw it carry, and read it in the
+Chancery (0 console errors).
+
+### Done this pass (GAP §15 item 8)
+- **Acts of the Senate**: three laws of scope `senate` — the Common Law, the Trade Charter, the Levy of the Reach — set
+  only by motion. Rivals lean by their estates and their situation; rival proposers move what their hostile estates want.
+  Two or three Acts carry a sixty-turn run; the common levy and open lanes carry most often, the assizes when the lanes
+  are lawless. The estates of every house now also weigh the Reach's laws, so a chair's heavy tolls or a Senate's open
+  lanes move thirty chanceries at once.
+
+### Numbers worth watching
+- The Senate's cooldown is ten turns; with three laws and two or three Acts a run, the docket is not crowded by them.
+  If content adds more Senate laws, watch for Acts crowding out censures and commissions (docket size two).
+- The common levy adds a point of unrest a world across the Reach when it carries; with the harsh cultures already at
+  8–13 rebellions a run, a run where it carries early could tip the rim. Not yet seen in 36 soaks.
+
+### Still open, ranked
+1. **Content volume** (151 events); the estate events still want a scripted check. 2. **Plots with steps.** 3. **The
+ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**
+8. **The estates as voters**: an estate with enough regard across many houses could petition the Senate itself.
+
+### Where the next forty come from
+Scripted chain playthroughs · fifty situations · plots with steps · a credit sink · role theming · the dynasty tree ·
+the estates' petitions.
