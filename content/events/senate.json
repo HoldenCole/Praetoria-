@@ -1,5 +1,5 @@
 {
-  "//": "THE SENATE AS A PLACE OF ACTION (GDD §6.1; GAP §10 item 2). These read SenateSystem's flags: motion_against_me (a censure or embargo of yours is on the docket), censured / recognised / levied / embargoed (a motion that touched you carried), motion_passed_mine / motion_failed_mine (your own motion was decided), act_open / act_passed (an Act of the Senate — a law for the whole Reach — is on the docket, or has carried). They make the chamber personal: a whip at your door with coin, a censure to answer, a levy to pay or refuse.",
+  "//": "THE SENATE AS A PLACE OF ACTION (GDD §6.1; GAP §10 item 2). These read SenateSystem's flags: motion_against_me (a censure or embargo of yours is on the docket), censured / recognised / levied / embargoed (a motion that touched you carried), motion_passed_mine / motion_failed_mine (your own motion was decided), act_open / act_passed (an Act of the Senate — a law for the whole Reach — is on the docket, or has carried), petition_open / petition_carried / petition_refused (an estate hostile across the Reach has brought its own Act, and the chamber's answer). They make the chamber personal: a whip at your door with coin, a censure to answer, a levy to pay or refuse.",
   "events": [
     {
       "id": "the_whip", "tier": "situation", "weight": 9, "repeatable": true,
@@ -81,6 +81,41 @@
             { "type": "log", "text": "{self.name} had the Act read in every square of the house's worlds, seal first. The magistrates approved of a lord who read the law aloud." } ] },
         { "id": "drag_your_feet", "effects": [ { "type": "adjustCounter", "key": "estate_offset:old_blood", "delta": 5 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -1 },
             { "type": "log", "text": "{self.name} received the Act and filed it where Acts go. The old blood noticed, and liked it; the clerk noticed too." } ] }
+      ]
+    },
+    {
+      "id": "the_petitioners", "tier": "situation", "weight": 10, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "petition_open" }, { "type": "turn", "op": "gte", "value": 2 } ],
+      "choices": [
+        { "id": "receive_them", "effects": [ { "type": "adjustCounter", "key": "unrest", "delta": -2 }, { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
+            { "type": "log", "text": "{self.name} received the petitioners' delegation in the hall and heard them out. Whatever the Senate does, the house's own squares were quieter for it." } ] },
+        { "id": "send_them_away", "effects": [ { "type": "adjustCounter", "key": "estate_offset:old_blood", "delta": 5 }, { "type": "adjustCounter", "key": "unrest", "delta": 2 },
+            { "type": "log", "text": "{self.name} sent the delegation away unseen. The old blood approved; the squares did not." } ] },
+        { "id": "pay_their_lodging", "cost": { "treasury": 1 }, "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -4 }, { "type": "adjustCounter", "key": "senate_influence", "delta": 1 }, { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} paid the petitioners' lodging at the capital for the session. The chamber noticed whose coin kept them fed; so did the estate." } ] }
+      ]
+    },
+    {
+      "id": "the_petition_heard", "tier": "situation", "weight": 9, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "petition_carried" } ],
+      "choices": [
+        { "id": "proclaim_the_answer", "cost": { "influence": 1 }, "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }, { "type": "adjustCounter", "key": "unrest", "delta": -2 },
+            { "type": "log", "text": "{self.name} had the Senate's answer read in every square with the house's seal beside it, as if the house had moved it. Some believed that." } ] },
+        { "id": "say_nothing", "effects": [ { "type": "adjustCounter", "key": "estate_offset:old_blood", "delta": 3 },
+            { "type": "log", "text": "The Senate heard the petition; {self.name} let the clerks announce it and said nothing. The old blood took the silence as a sign of sense." } ] }
+      ]
+    },
+    {
+      "id": "the_petition_refused", "tier": "setpiece", "weight": 12, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "petition_refused" } ],
+      "choices": [
+        { "id": "hold_the_squares", "cost": { "treasury": 1 }, "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -4 }, { "type": "adjustCounter", "key": "unrest", "delta": -4 },
+            { "type": "log", "text": "The Senate turned the petition away and {self.name} put the guard in the squares before the news did. Four credits of overtime; no fires." } ] },
+        { "id": "blame_the_senate", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 } ],
+          "effects": [ { "type": "adjustCounter", "key": "unrest", "delta": -2 }, { "type": "adjustCounter", "key": "senate_influence", "delta": -1 }, { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
+            { "type": "log", "text": "{self.name} stood on the steps and blamed the Senate by name for the petition's refusal. The crowd went home; the chamber did not forget the speech." } ] },
+        { "id": "let_it_burn", "effects": [ { "type": "adjustCounter", "key": "unrest", "delta": 3 }, { "type": "adjustCounter", "key": "estate_offset:old_blood", "delta": 5 },
+            { "type": "log", "text": "{self.name} let the squares have their night. The old blood called it firmness. The watch called it a long shift." } ] }
       ]
     },
     {

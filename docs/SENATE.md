@@ -19,6 +19,7 @@ docket. A motion moved in turn T is voted at the end of turn T+1, so there is al
 | Commission | a house and an office | the house's best-qualified member takes the office; the previous holder is relieved; target legitimacy +2 |
 | Embargo | a house | the exchanges close to it for eight turns: no open market, venture credits halved |
 | Act of the Senate | a law of the Senate and an option | the law is so set for the whole Reach (see *Acts* below) |
+| Petition of an Estate | brought by an estate, never a house | an Act the estate wants; heard, its regard rises everywhere; refused, it falls and its worlds stir (see *Petitions*) |
 
 ## Acts: the law of the Reach by motion
 
@@ -38,6 +39,19 @@ adds unrest. Rival proposers move the Act that most pleases an estate hostile to
 before censure. Flags: `act_open`, `act_passed`, `act_passed:<law>`, `act_failed`; counter `acts_passed`. The Chancery's
 "law of the Reach" drawer shows every reach-wide law, who set it and how long before the chamber will hear it again. In
 sixty-turn simulations two or three Acts carry a run.
+
+## Petitions: the estates at the Senate's door
+
+An estate hostile (regard −30 or worse) in three houses or an eighth of them, whichever is more, brings its own Act
+(`SenateSystem.Petition`, run each turn before the rivals propose): the Senate law and option that would most please it
+against what is in force (`WantedBy`), as motion kind `petition` with proposer `estate:<id>`, at no cost, one petition on
+the docket at a time, and not again from that estate for twelve turns. It is voted like any Act; every house at whose
+gate the estate stands leans a point further for it. **Heard**, the law moves and the estate's regard rises ten in every
+house (the player's through `estate_offset:<id>`). **Refused**, its regard falls six everywhere and every world of every
+house it already distrusts gains three unrest. No standing accrues to an estate. Flags `petition_open`,
+`petition_open:<estate>`, `petition_carried`, `petition_refused` and the per-estate forms; counters `petitions_heard`,
+`petitions_refused`. Three events: *The Petitioners*, *The Petition Heard*, *The Petition Refused*. One to three petitions
+a sixty-turn run, mostly the Commons' and the old blood's.
 
 ## Weight and the benches
 

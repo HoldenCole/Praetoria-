@@ -418,3 +418,4 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .reach-line { padding: 3px 0; border-bottom: 1px dotted rgba(255,255,255,.06); }
 .reach-line.act b { color: var(--accent); }
 .reach-line .pos { color: #9fd79f; }
+.estate .petition { color: #c9a24a; margin-top: 2px; }

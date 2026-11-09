@@ -50,6 +50,11 @@ estate is **loyal** and its loyal effects join the house's modifiers; under −3
 do. A harsh tithe, bonded labour and conscription together put the Commons at −70 and cost two unrest a turn on every
 world; a standing guard doubled pleases the Officers and costs a quarter more upkeep.
 
+The estates are not only moved: an estate hostile across enough of the Reach **petitions the Senate** for the Act it
+wants (docs/SENATE.md, *Petitions*), and the chamber's answer is felt in every house — heard, its regard rises everywhere;
+refused, it falls and its worlds stir. The Chancery's estate cards show a petition in progress, and warn when an estate is
+hostile in enough houses that one is near.
+
 ## Rivals
 
 Every house begins with its **culture's laws** (`content/politics/cultures.json`): the imperial core keeps a closed court,

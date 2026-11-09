@@ -563,3 +563,29 @@ ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty tree.**
 ### Where the next forty come from
 Scripted chain playthroughs · fifty situations · plots with steps · a credit sink · role theming · the dynasty tree ·
 the estates' petitions.
+
+## 17. Reassessment — 2026-11-09, after the estates' petitions
+
+Method: 348 tests · both validators (154 events) · `praetoria qa --seeds 6` (36 runs, 0 failures; petitions carried and
+refused for the Commons and the old blood) · the probe, extended to petitions brought, heard and refused and each
+estate's hostile-house count at T60 · a twelve-turn browser drive that drove the Commons hostile, saw their petition on
+the docket, the alert in the outliner and the line on the Chancery's estate card (0 console errors).
+
+### Done this pass (GAP §16 item 8)
+- **Petitions**: the estates are now actors in the chamber, not only an audience. An estate hostile across an eighth of
+  the Reach brings the Act it wants; the chamber's answer moves its regard in every house at once and, refused, stirs
+  the worlds of every house it distrusts. One to three a run.
+
+### Numbers worth watching
+- The threshold began at a quarter of the houses and never fired in thirty-four-house runs because the stewards relax
+  what their hostile estates hate within a few turns; an eighth fires one to three times a run. If content adds estates
+  or harsher cultures, re-check the probe's hostile-in-N line before touching the threshold.
+- A refused petition adds three unrest to the worlds of every house the estate distrusts; in runs already at 8–13
+  rebellions this is a nudge, not a tip. Watch it if the Commons' petitions start failing often.
+
+### Still open, ranked
+1. **Content volume** (154 events); the estate events still want a scripted check. 2. **Plots with steps.** 3. **The
+ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**
+
+### Where the next forty come from
+Scripted chain playthroughs · fifty situations · plots with steps · a credit sink · role theming · the dynasty tree.

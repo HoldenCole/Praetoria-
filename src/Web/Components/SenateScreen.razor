@@ -91,7 +91,7 @@
                 {
                     int total = Math.Max(1, mo.ForWeight + mo.AgainstWeight);
                     <div class="motion @(mo.AgainstMe ? "against" : mo.Mine ? "mine" : "")">
-                        <div class="mo-head"><b>@mo.KindName</b> <span class="muted small">moved by <span style="color:@mo.ProposerAccent">@mo.ProposerName</span> · vote @(mo.ProposedTurn < w.Turn ? "at the end of this turn" : "next session")</span></div>
+                        <div class="mo-head"><b>@mo.KindName</b> <span class="muted small">@(mo.Petition ? "the petition of" : "moved by") <span style="color:@mo.ProposerAccent">@mo.ProposerName</span> · vote @(mo.ProposedTurn < w.Turn ? "at the end of this turn" : "next session")</span></div>
                         <div class="mo-text">@mo.Text</div>
                         <div class="whip"><span class="for" style="width:@(100 * mo.ForWeight / total)%"></span><span class="against" style="width:@(100 * mo.AgainstWeight / total)%"></span></div>
                         <div class="muted small">for @mo.ForWeight · against @mo.AgainstWeight — as the benches lean now; the vote is by weight and ties fail</div>

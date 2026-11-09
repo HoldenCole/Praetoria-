@@ -14,12 +14,23 @@ namespace Praetoria.Core.Systems;
 /// <c>recognised</c>, <c>levied</c>, <c>embargoed</c>, <c>motion_passed_mine</c>, <c>motion_failed_mine</c>; counters
 /// <c>motions_passed</c>, <c>motions_passed:&lt;house&gt;</c>, <c>embargo:&lt;house&gt;</c> (the turn it lifts). An <b>Act</b> (kind with
 /// <c>law: true</c>) sets a Senate-scoped law for the whole Reach (PolicySystem, holder <c>senate</c>): flags <c>act_open</c>, <c>act_passed</c>,
-/// <c>act_passed:&lt;law&gt;</c>, <c>act_failed</c>; counter <c>acts_passed</c>.
+/// <c>act_passed:&lt;law&gt;</c>, <c>act_failed</c>; counter <c>acts_passed</c>. A <b>petition</b> is an Act brought by an estate (proposer
+/// <c>estate:&lt;id&gt;</c>): flags <c>petition_open</c>, <c>petition_open:&lt;estate&gt;</c>, <c>petition_carried</c>, <c>petition_refused</c> (and
+/// per estate); counters <c>petitions_heard</c>, <c>petitions_refused</c>, <c>petition_cd:&lt;estate&gt;</c>.
 /// </summary>
 public sealed class SenateSystem
 {
     public const int DocketSize = 2, HistoryKept = 12, LobbyWeight = 2, BribeWeight = 3, BribeCredits = 5, ProposerLawRank = 3, ProposerTitleRank = 2, RepeatTurns = 10;
-    public static readonly string[] TurnFlags = { "censured", "recognised", "levied", "motion_passed_mine", "motion_failed_mine", "act_passed", "act_failed" };
+    /// <summary>Petitions: an estate hostile in <see cref="PetitionMinHouses"/> houses or an eighth of them (whichever is more) brings its own
+    /// Act; heard, its regard rises <see cref="PetitionSwing"/> in every house; refused, it falls <see cref="PetitionSpurn"/> and its worlds
+    /// stir; the estate will not come again for <see cref="PetitionCooldown"/> turns.</summary>
+    public const int PetitionMinHouses = 3, PetitionSwing = 10, PetitionSpurn = 6, PetitionUnrest = 3, PetitionCooldown = 12;
+    public const string EstatePrefix = "estate:", EstateAccent = "#c9a24a";
+    public static readonly string[] TurnFlags = { "censured", "recognised", "levied", "motion_passed_mine", "motion_failed_mine", "act_passed", "act_failed", "petition_carried", "petition_refused" };
+    public static bool IsPetition(Motion m) => m.ProposerHouseId.StartsWith(EstatePrefix);
+    public static string? PetitionEstate(Motion m) => IsPetition(m) ? m.ProposerHouseId[EstatePrefix.Length..] : null;
+    /// <summary>Who brings the motion: a house's name, or an estate's for a petition.</summary>
+    public string ProposerName(World w, Motion m) => PetitionEstate(m) is { } e ? Policies.Estate(e)?.Name ?? e : w.House(m.ProposerHouseId)?.Name ?? m.ProposerHouseId;
 
     private readonly MotionCatalog _motions; private readonly TitleCatalog _titles; private readonly FleetSystem? _fleets; private readonly OfficeCatalog _offices;
     public SenateSystem(MotionCatalog motions, TitleCatalog titles, FleetSystem? fleets = null, OfficeCatalog? offices = null) { _motions = motions; _titles = titles; _fleets = fleets; _offices = offices ?? OfficeCatalog.Empty; }
@@ -139,6 +150,7 @@ public sealed class SenateSystem
             score += delta * mult;
         }
         int lean = Math.Clamp(score / 10, -3, 3);
+        if (PetitionEstate(m) is { } pe && PolicySystem.Approval(w, h.Id, pe) <= PolicySystem.Hostile) lean += 1;   // the petitioners are at this house's own gate
         var fx = next.Effects; var cfx = cur.Effects;
         int Fx(string k) => fx.GetValueOrDefault(k) - cfx.GetValueOrDefault(k);
         if (Fx("manpower_per_world") > 0 && w.Wars.Any(x => x.Involves(h.Id))) lean += 2;
@@ -163,7 +175,7 @@ public sealed class SenateSystem
     {
         var def = _motions.Def(m.Kind); if (def == null) return m.Kind;
         string target = def.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name ?? m.TargetId : def.Target == "house" ? w.House(m.TargetId)?.Name ?? m.TargetId : "";
-        return def.Description.Replace("{proposer}", w.House(m.ProposerHouseId)?.Name ?? m.ProposerHouseId).Replace("{target}", target).Replace("{office}", _offices.Def(m.OfficeId)?.Name ?? m.OfficeId)
+        return def.Description.Replace("{proposer}", ProposerName(w, m)).Replace("{target}", target).Replace("{office}", _offices.Def(m.OfficeId)?.Name ?? m.OfficeId)
             .Replace("{law}", Policies.Law(m.LawId)?.Name.ToLowerInvariant() ?? m.LawId).Replace("{option}", Policies.Law(m.LawId)?.Option(m.LawOption)?.Name.ToLowerInvariant() ?? m.LawOption);
     }
 
@@ -176,6 +188,7 @@ public sealed class SenateSystem
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn).ToList()) Resolve(w, m, mine);
         OfficeSystem.Tick(w, _offices);
         FactionSystem.Tick(w, id => Weight(w, id));
+        Petition(w);
         Propose(w, mine);
         // prune history
         var resolved = w.Motions.Where(m => m.Resolved).OrderByDescending(m => m.ResolvedTurn).ThenBy(m => m.Id, StringComparer.Ordinal).Skip(HistoryKept).ToList();
@@ -195,8 +208,8 @@ public sealed class SenateSystem
             if (expected != 0 && m.Votes[mine] == -expected) FactionSystem.BreakWhip(w, mine, bench);
         }
         FactionSystem.RecordVotes(w, m, m.Kind);
-        string standingKey = "senate_standing:" + m.ProposerHouseId;
-        w.WorldCounters[standingKey] = Math.Max(0, w.Counter(standingKey) + (m.Passed ? 1 : -1));
+        if (!IsPetition(m)) { string standingKey = "senate_standing:" + m.ProposerHouseId; w.WorldCounters[standingKey] = Math.Max(0, w.Counter(standingKey) + (m.Passed ? 1 : -1)); }
+        if (PetitionEstate(m) is { } estate) Answer(w, m, estate, mine);
         string text = Describe(w, m);
         if (m.Passed)
         {
@@ -212,6 +225,57 @@ public sealed class SenateSystem
             if (def.Law) w.WorldFlags.Add("act_failed");
             w.Log($"The Senate throws it out, {a} to {f}: {text}");
         }
+    }
+
+    /// <summary>The chamber's answer to a petition, felt in every house: heard, the estate's regard rises everywhere; turned away, it falls, and
+    /// the worlds of every house it already distrusts stir.</summary>
+    private static void Answer(World w, Motion m, string estate, string? mine)
+    {
+        var name = estate;
+        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            bool hostile = PolicySystem.Approval(w, h.Id, estate) <= PolicySystem.Hostile;
+            if (h.Id == mine) { string off = "estate_offset:" + estate; w.WorldCounters[off] = Math.Clamp(w.Counter(off) + (m.Passed ? PetitionSwing : -PetitionSpurn), -100, 100); }
+            else { string key = PolicySystem.ApprovalKey(w, h.Id, estate); w.WorldCounters[key] = Math.Clamp(w.Counter(key) + (m.Passed ? PetitionSwing : -PetitionSpurn), -100, 100); }
+            if (!m.Passed && hostile) foreach (var x in w.HoldingsOf(h.Id).Where(x => x.IsPlanet)) x.Unrest = Math.Clamp(x.Unrest + PetitionUnrest, 0, 100);
+        }
+        w.WorldFlags.Add(m.Passed ? "petition_carried" : "petition_refused"); w.WorldFlags.Add((m.Passed ? "petition_carried:" : "petition_refused:") + estate);
+        w.WorldCounters[m.Passed ? "petitions_heard" : "petitions_refused"] = w.Counter(m.Passed ? "petitions_heard" : "petitions_refused") + 1;
+    }
+
+    /// <summary>An estate hostile across the Reach brings its own Act (GAP §16 item 8): hostile in <see cref="PetitionMinHouses"/> houses or a
+    /// eighth of them, with a Senate law whose option would please it, no petition already on the docket, and not lately heard.</summary>
+    public void Petition(World w)
+    {
+        if (_motions.Def("petition") == null || Policies.IsEmpty || Docket(w).Count() >= DocketSize || w.Motions.Any(m => m.Open && IsPetition(m))) return;
+        var houses = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).ToList(); int need = Math.Max(PetitionMinHouses, houses.Count / 8);
+        foreach (var e in Policies.Estates.OrderByDescending(e => houses.Count(h => PolicySystem.Approval(w, h.Id, e.Id) <= PolicySystem.Hostile)).ThenBy(e => e.Id, StringComparer.Ordinal))
+        {
+            int hostile = houses.Count(h => PolicySystem.Approval(w, h.Id, e.Id) <= PolicySystem.Hostile);
+            if (hostile < need || w.Counter("petition_cd:" + e.Id) > w.Turn) continue;
+            var want = WantedBy(w, e.Id); if (want == null) continue;
+            w.WorldCounters["petition_cd:" + e.Id] = w.Turn + PetitionCooldown;
+            var m = Add(w, EstatePrefix + e.Id, "petition", "", lawId: want.Value.law.Id, lawOption: want.Value.option.Id);
+            w.Log($"{e.Name} are hostile in {hostile} houses of the Reach, and have come to the Senate's door.");
+            return;
+        }
+    }
+
+    /// <summary>The Senate law and option that would most please an estate against what is in force — null when none would.</summary>
+    public (LawDef law, LawOptionDef option)? WantedBy(World w, string estateId)
+    {
+        (LawDef law, LawOptionDef option)? best = null; int bestDelta = 0;
+        foreach (var law in Policies.Laws.Where(l => l.Scope == "senate").OrderBy(l => l.Id, StringComparer.Ordinal))
+        {
+            if (PolicySystem.OnCooldown(w, PolicySystem.SenateHolder, law.Id) || w.Motions.Any(m => m.Open && m.LawId == law.Id)) continue;
+            var cur = PolicySystem.ReachOption(w, Policies, law) ?? law.DefaultOption;
+            foreach (var o in law.Options.Where(o => o.Id != cur.Id).OrderBy(o => o.Id, StringComparer.Ordinal))
+            {
+                int delta = o.Opinions.GetValueOrDefault(estateId) - cur.Opinions.GetValueOrDefault(estateId);
+                if (delta > bestDelta) { bestDelta = delta; best = (law, o); }
+            }
+        }
+        return best;
     }
 
     private void Apply(World w, Motion m, MotionDef def, string? mine)
@@ -343,11 +407,12 @@ public sealed class SenateSystem
 
     private void WriteFlags(World w, string? mine)
     {
-        foreach (var f in new[] { "motion_open", "motion_against_me", "embargoed", "act_open" }) w.WorldFlags.Remove(f);
+        foreach (var f in w.WorldFlags.Where(f => f is "motion_open" or "motion_against_me" or "embargoed" or "act_open" or "petition_open" || f.StartsWith("petition_open:")).ToList()) w.WorldFlags.Remove(f);
         if (mine == null) return;
         var open = Docket(w).ToList();
         if (open.Count > 0) w.WorldFlags.Add("motion_open");
         if (open.Any(m => _motions.Def(m.Kind)?.Law == true)) w.WorldFlags.Add("act_open");
+        foreach (var e in open.Select(PetitionEstate).Where(e => e != null)) { w.WorldFlags.Add("petition_open"); w.WorldFlags.Add("petition_open:" + e); }
         if (open.Any(m => m.TargetId == mine && _motions.Def(m.Kind) is { } d && d.Target == "house" && (d.LegitimacyTarget < 0 || d.EmbargoTurns > 0))) w.WorldFlags.Add("motion_against_me");
         if (Embargoed(w, mine)) w.WorldFlags.Add("embargoed");
     }

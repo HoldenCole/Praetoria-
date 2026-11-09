@@ -12,7 +12,10 @@
     if (w.HasFlag("raided")) alerts.Add(("warn", "Your shipping was plundered", "galaxy"));
     if (w.HasFlag("fuel_short")) alerts.Add(("warn", "The tanks are dry — the fleet cannot sail", "military"));
     if (w.HasFlag("motion_against_me")) alerts.Add(("warn", "A motion against your house is before the Senate", "senate"));
+    else if (w.HasFlag("petition_open")) alerts.Add(("info", "An estate petitions the Senate — its regard in every house rides on the vote", "senate"));
     else if (w.HasFlag("motion_open")) alerts.Add(("info", "A motion is before the Senate — your vote has weight", "senate"));
+    if (w.HasFlag("petition_refused")) alerts.Add(("warn", "The Senate turned a petition away — the estate's worlds stir", "laws"));
+    if (w.HasFlag("petition_carried")) alerts.Add(("good", "The Senate heard a petition — the estate's regard rises", "laws"));
     if (w.HasFlag("embargoed")) alerts.Add(("warn", "The Senate's embargo closes the exchanges to you", "senate"));
     if (w.HasFlag("office_granted")) alerts.Add(("good", "The Senate has commissioned you to an office", "senate"));
     if (w.HasFlag("office_lost")) alerts.Add(("warn", w.HasFlag("treason") ? "Stripped of office for treason" : "Relieved of office by the Senate", "senate"));

@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **The estates' petitions** (GAP §16 item 8): an estate hostile in three houses or an eighth of the Reach brings its
+  own Act before the Senate for the law it wants. Heard, its regard rises in every house; refused, it falls and the
+  worlds of every house it distrusts stir. Petitions show on the docket under the estate's name, on the Chancery's
+  estate cards, in the outliner and the Chancellor's report; three events (*The Petitioners*, *The Petition Heard*,
+  *The Petition Refused*).
 - **Acts of the Senate** (GAP §15 item 8; docs/SENATE.md): a motion kind that sets a law for the whole Reach. Three
   Senate-scoped laws — the Common Law, the Trade Charter, the Levy of the Reach — can be set by no house, only by an Act
   carried in the chamber. Rivals lean by their estates (pleasing a hostile estate counts double) and by situation (war

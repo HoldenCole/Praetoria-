@@ -19,6 +19,7 @@ public sealed class ProposeMotionCommand : ICommand
         var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
         if (actor?.Alive != true || house == null) return "no house";
         var def = _senate.Motions.Def(_kind); if (def == null) return "no such motion";
+        if (_kind == "petition") return "only an estate brings a petition";
         if (!_senate.MayPropose(w, house.Id)) return "the Senate hears a baron, or a Magistrate";
         if (w.Motions.Any(m => m.Open && m.ProposerHouseId == house.Id)) return "you already have a motion before the Senate";
         if (SenateSystem.Docket(w).Count() >= SenateSystem.DocketSize) return "the docket is full this session";

@@ -37,7 +37,7 @@ public sealed record StanceLine(string HouseId, string HouseName, string Accent,
 public sealed record FactionCard(string Id, string Name, string LeaderHouseId, string LeaderName, string LeaderAccent, IReadOnlyList<(string Id, string Name, string Accent)> Members, int Weight, bool Mine, bool Lead, string Platform, int Record, int Since, string? JoinRefusal);
 /// <summary>A motion on the docket or in the history.</summary>
 public sealed record MotionCard(string Id, string KindId, string KindName, string ProposerName, string ProposerAccent, string? TargetName, string Text, int ProposedTurn, bool Open, bool Passed,
-    int ForWeight, int AgainstWeight, int MyStance, bool Mine, bool AgainstMe, IReadOnlyList<StanceLine> Stances);
+    int ForWeight, int AgainstWeight, int MyStance, bool Mine, bool AgainstMe, IReadOnlyList<StanceLine> Stances, bool Petition = false);
 /// <summary>A motion the player could move, with its targets.</summary>
 public sealed record MotionProposal(string KindId, string KindName, string Description, int Influence, string TargetType, IReadOnlyList<(string Id, string Name)> Targets, string? Refusal, bool NeedsOffice = false, IReadOnlyList<(string Id, string Name)>? Offices = null,
     bool NeedsLaw = false, IReadOnlyList<ActLawChoice>? Laws = null);
@@ -56,7 +56,7 @@ public sealed record LawOptionCard(string Id, string Name, bool InForce, string 
 /// <summary>A law: its scope (held or not), its options, its cooldown.</summary>
 public sealed record LawCard(string Id, string Name, string Category, string Description, string Scope, string ScopeName, bool Held, int Cost, int CooldownLeft, IReadOnlyList<LawOptionCard> Options);
 /// <summary>An estate's regard for the house: approval, where the laws would take it, and what its mood does.</summary>
-public sealed record EstateCard(string Id, string Name, string Description, int Approval, int Target, string Mood, string Effects, string LawsSay);
+public sealed record EstateCard(string Id, string Name, string Description, int Approval, int Target, string Mood, string Effects, string LawsSay, string? Petition = null, int HostileIn = 0);
 /// <summary>The chancery: laws by category and the six estates.</summary>
 public sealed record ChanceryCard(IReadOnlyList<LawCard> Laws, IReadOnlyList<EstateCard> Estates, int InfluencePool, IReadOnlyList<ReachLawLine>? Reach = null);
 /// <summary>One house on the wealth table.</summary>
@@ -377,14 +377,14 @@ public static class CourtProjection
                     FactionSystem.Of(w, h.Id)?.Name, FactionSystem.Leads(w, h.Id)));
             var (f, a) = m.Open ? senate.Tally(w, m) : (m.ForWeight, m.AgainstWeight);
             bool againstMe = m.TargetId == house.Id && def != null && (def.LegitimacyTarget < 0 || def.EmbargoTurns > 0);
-            return new MotionCard(m.Id, m.Kind, def?.Name ?? m.Kind, proposer?.Name ?? m.ProposerHouseId, proposer?.AccentColor ?? "#888", targetName, senate.Describe(w, m), m.ProposedTurn, m.Open, m.Passed,
-                f, a, m.Votes.GetValueOrDefault(house.Id), m.ProposerHouseId == house.Id, againstMe, stances);
+            return new MotionCard(m.Id, m.Kind, def?.Name ?? m.Kind, senate.ProposerName(w, m), SenateSystem.IsPetition(m) ? SenateSystem.EstateAccent : proposer?.AccentColor ?? "#888", targetName, senate.Describe(w, m), m.ProposedTurn, m.Open, m.Passed,
+                f, a, m.Votes.GetValueOrDefault(house.Id), m.ProposerHouseId == house.Id, againstMe, stances, SenateSystem.IsPetition(m));
         }
         var docket = SenateSystem.Docket(w).Select(Card).ToList();
         var history = w.Motions.Where(m => m.Resolved).OrderByDescending(m => m.ResolvedTurn).ThenBy(m => m.Id, StringComparer.Ordinal).Take(8).Select(Card).ToList();
         var houses = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Name, StringComparer.Ordinal).Select(h => (Id: h.Id, Name: h.Name)).ToList();
         var regions = w.Galaxy?.Regions.OrderBy(r => r.Name, StringComparer.Ordinal).Select(r => (Id: r.Id, Name: r.Name)).ToList() ?? new List<(string Id, string Name)>();
-        var proposals = senate.Motions.Defs.Select(d =>
+        var proposals = senate.Motions.Defs.Where(d => d.Id != "petition").Select(d =>
         {
             List<(string Id, string Name)> targets = d.Target == "house" ? houses.Where(x => (x.Id != house.Id || d.TargetSelfAllowed) && (!d.TargetMustBeAtWar || w.Wars.Any(x2 => x2.Involves(x.Id)))).ToList() : d.Target == "region" ? regions : new List<(string Id, string Name)>();
             if (d.Office) targets = targets.Where(x => senate.Offices.Defs.Any(o => OfficeSystem.Candidate(w, o, x.Id) != null)).ToList();   // only houses with someone of the rank
@@ -455,7 +455,10 @@ public static class CourtProjection
                 .Select(x => $"{x.o!.Name.ToLowerInvariant()} {(x.o.Opinions[e.Id] > 0 ? "+" : "")}{x.o.Opinions[e.Id]}").ToList();
             says.AddRange(cat.Laws.Where(l => l.Reach).Select(l => (l, o: PolicySystem.ReachOption(w, cat, l))).Where(x => x.o != null && x.o.Opinions.GetValueOrDefault(e.Id) != 0)
                 .Select(x => $"the Reach's {x.o!.Name.ToLowerInvariant()} {(x.o.Opinions[e.Id] > 0 ? "+" : "")}{x.o.Opinions[e.Id]}"));
-            return new EstateCard(e.Id, e.Name, e.Description, a, target, mood, fx, says.Count == 0 ? "no law moves them" : string.Join(" · ", says));
+            var pet = w.Motions.FirstOrDefault(m => m.Open && SenateSystem.PetitionEstate(m) == e.Id);
+            string? petition = pet != null ? $"petitioning the Senate: that {cat.Law(pet.LawId)?.Name.ToLowerInvariant()} be {cat.Law(pet.LawId)?.Option(pet.LawOption)?.Name.ToLowerInvariant()}" : null;
+            int hostileIn = w.Houses.Values.Count(h => h.Id != PirateSystem.HouseId && PolicySystem.Approval(w, h.Id, e.Id) <= PolicySystem.Hostile);
+            return new EstateCard(e.Id, e.Name, e.Description, a, target, mood, fx, says.Count == 0 ? "no law moves them" : string.Join(" · ", says), petition, hostileIn);
         }).ToList();
         var reach = cat.Laws.Where(l => l.Reach).OrderBy(l => l.Category, StringComparer.Ordinal).ThenBy(l => l.Name, StringComparer.Ordinal).Select(l =>
         {
