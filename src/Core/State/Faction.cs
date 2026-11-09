@@ -17,4 +17,6 @@ public sealed class Faction
     public Dictionary<string, int> Platform { get; set; } = new();
     /// <summary>Motions carried that the leader moved; failed ones subtract. The bench's record.</summary>
     public int Record { get; set; }
+    /// <summary>The party's colour on the benches (Presentation.Palette.Parties), taken as it forms.</summary>
+    public string Accent { get; set; } = "";
 }

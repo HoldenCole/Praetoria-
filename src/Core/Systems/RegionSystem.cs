@@ -127,7 +127,7 @@ public sealed class RegionSystem
             if (hash % RevoltOdds != 0) continue;
             var sys = g.System(h.SystemId); string surname = gov.Name.Contains(' ') ? gov.Name[(gov.Name.IndexOf(' ') + 1)..] : gov.Name;
             var id = $"house_{gov.Id}"; if (w.Houses.ContainsKey(id)) continue;
-            var nh = new House { Id = id, Name = $"House {surname} of {sys?.Name.Replace("The ", "") ?? h.Name}", AccentColor = $"#{(hash & 0x7F) + 0x50:X2}{((hash >> 8) & 0x7F) + 0x50:X2}{((hash >> 16) & 0x7F) + 0x50:X2}", Title = "knight", Legitimacy = 15, Culture = h.Culture.Length > 0 ? h.Culture : house.Culture, Bloc = FreeholdsBloc, Treasury = new Resources { Credits = 8, Materials = 4, Manpower = Math.Max(2, h.Population / 10) } };
+            var nh = new House { Id = id, Name = $"House {surname} of {sys?.Name.Replace("The ", "") ?? h.Name}", AccentColor = Presentation.Palette.NextHouseColor(w, id), Title = "knight", Legitimacy = 15, Culture = h.Culture.Length > 0 ? h.Culture : house.Culture, Bloc = FreeholdsBloc, Treasury = new Resources { Credits = 8, Materials = 4, Manpower = Math.Max(2, h.Population / 10) } };
             w.Houses[id] = nh; house.Members.Remove(gov.Id); gov.HouseId = id; nh.Members.Add(gov.Id);
             h.FormerOwnerId = house.Id; h.OwnerId = id; h.Unrest = Math.Max(0, h.Unrest - 10);
             w.Fleets[$"militia_{id}"] = new Fleet { Id = $"militia_{id}", Name = $"{sys?.Name.Replace("The ", "") ?? h.Name} Guard", OwnerId = id, SystemId = h.SystemId, Strength = 1, AdmiralId = gov.Id, Readiness = 80 };
@@ -170,7 +170,7 @@ public sealed class RegionSystem
         string culture = h.Culture.Length > 0 ? h.Culture : g.CultureOf(h.SystemId);
         var id = $"free_{sys.Id}"; int n = 1; while (w.Houses.ContainsKey(id)) id = $"free_{sys.Id}_{++n}";
         uint hash = 2166136261; foreach (var ch in id + w.Turn) hash = (hash ^ ch) * 16777619;
-        var house = new House { Id = id, Name = $"The Free {sys.Name.Replace("The ", "")}", AccentColor = $"#{(hash & 0x7F) + 0x60:X2}{((hash >> 8) & 0x7F) + 0x40:X2}{((hash >> 16) & 0x7F) + 0x30:X2}", Title = "knight", Legitimacy = 12, Culture = culture, Bloc = FreeholdsBloc, Treasury = new Resources { Credits = 6, Materials = 4, Manpower = Math.Max(2, h.Population / 10) } };
+        var house = new House { Id = id, Name = $"The Free {sys.Name.Replace("The ", "")}", AccentColor = Presentation.Palette.NextHouseColor(w, id), Title = "knight", Legitimacy = 12, Culture = culture, Bloc = FreeholdsBloc, Treasury = new Resources { Credits = 6, Materials = 4, Manpower = Math.Max(2, h.Population / 10) } };
         w.Houses[id] = house;
         Character leader; var governor = h.GovernorId.Length > 0 ? w.Char(h.GovernorId) : null;
         if (governor is { Alive: true } && governor.HouseId != h.OwnerId && governor.Id != w.ProtagonistId) { leader = governor; w.House(leader.HouseId)?.Members.Remove(leader.Id); leader.HouseId = id; }

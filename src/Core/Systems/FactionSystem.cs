@@ -98,7 +98,7 @@ public static class FactionSystem
     public static Faction Form(World w, string leaderId, IEnumerable<string> members, string? mine)
     {
         int n = w.Counter("factions_formed") + 1; w.WorldCounters["factions_formed"] = n;
-        var f = new Faction { Id = $"faction_{n}", LeaderHouseId = leaderId, FormedTurn = w.Turn };
+        var f = new Faction { Id = $"faction_{n}", LeaderHouseId = leaderId, FormedTurn = w.Turn, Accent = Presentation.Palette.Party(n - 1) };
         f.Members.Add(leaderId); foreach (var m in members) if (!f.Members.Contains(m)) f.Members.Add(m);
         f.Name = NameFor(w, f);
         w.Factions.Add(f);

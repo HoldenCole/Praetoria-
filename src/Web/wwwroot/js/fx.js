@@ -17,16 +17,17 @@
     }
     return function fbm(x, y, oct) { let s = 0, amp = .5, f = 1, norm = 0; for (let i = 0; i < oct; i++) { s += amp * n2(x * f, y * f); norm += amp; amp *= .5; f *= 2.03; } return s / norm; };
   }
-  const palettes = {
-    terran: { sea: [20, 70, 140], land: [60, 130, 70], hi: [150, 170, 110], cloud: .55, atm: [120, 190, 255] },
-    ocean: { sea: [10, 60, 150], land: [40, 110, 160], hi: [200, 220, 240], cloud: .5, atm: [140, 200, 255] },
-    arid: { sea: [150, 100, 50], land: [200, 150, 80], hi: [230, 200, 140], cloud: .15, atm: [230, 190, 140] },
-    forge: { sea: [60, 20, 15], land: [140, 50, 30], hi: [255, 120, 60], cloud: .3, atm: [255, 140, 80], glow: true },
-    frozen: { sea: [150, 180, 210], land: [220, 235, 245], hi: [255, 255, 255], cloud: .4, atm: [200, 230, 255] },
-    gas: { sea: [160, 110, 60], land: [220, 180, 120], hi: [245, 225, 190], cloud: 0, atm: [240, 210, 160], bands: true },
-    belt: { sea: [70, 65, 60], land: [120, 110, 100], hi: [170, 160, 150], cloud: 0, atm: [0, 0, 0], belt: true },
-    barren: { sea: [80, 75, 70], land: [120, 110, 100], hi: [160, 150, 140], cloud: 0, atm: [120, 110, 100] }
+  const palettes = {   // bright and distinct by class (docs/ART_DIRECTION.md, the palette): green-blue, blue, gold, red, white, tan-striped, slate, silver
+    terran: { sea: [30, 110, 220], land: [50, 200, 110], hi: [190, 240, 170], cloud: .5, atm: [140, 210, 255] },
+    ocean: { sea: [20, 90, 230], land: [60, 170, 240], hi: [220, 240, 255], cloud: .45, atm: [150, 210, 255] },
+    arid: { sea: [200, 120, 40], land: [255, 180, 60], hi: [255, 230, 150], cloud: .12, atm: [255, 210, 140] },
+    forge: { sea: [120, 20, 20], land: [230, 60, 40], hi: [255, 150, 70], cloud: .25, atm: [255, 120, 80], glow: true },
+    frozen: { sea: [170, 210, 240], land: [235, 245, 255], hi: [255, 255, 255], cloud: .35, atm: [210, 235, 255] },
+    gas: { sea: [210, 140, 70], land: [250, 210, 140], hi: [255, 240, 210], cloud: 0, atm: [255, 220, 170], bands: true },
+    belt: { sea: [110, 105, 100], land: [170, 160, 150], hi: [220, 210, 200], cloud: 0, atm: [0, 0, 0], belt: true },
+    barren: { sea: [150, 155, 165], land: [200, 208, 220], hi: [240, 244, 250], cloud: 0, atm: [200, 208, 220] }
   };
+
   const cache = {};
   function planet(cls, seedStr, size) {
     const key = cls + '|' + seedStr + '|' + size; if (cache[key]) return cache[key];

@@ -18,8 +18,8 @@ public static class Svg
     /// <summary>Colours for a planet class: surface and glow.</summary>
     public static (string fill, string glow) Planet(string cls) => cls switch
     {
-        "arid" => ("#c98f4a", "#e0b070"), "ocean" => ("#2f6fb5", "#6fb0ff"), "forge" => ("#b5452a", "#ff8a5a"),
-        "frozen" => ("#a9c9e6", "#e6f4ff"), "gas" => ("#c9a06a", "#f0d0a0"), "belt" => ("#8a7f70", "#c9bca8"),
-        "barren" => ("#6f6a66", "#a9a39c"), _ => ("#3f9a6a", "#8ad9a8")
+        "arid" => ("#FFB03B", "#FFE08A"), "ocean" => ("#2F7BFF", "#8CC8FF"), "forge" => ("#FF4D2E", "#FFA07A"),
+        "frozen" => ("#CFE9FF", "#FFFFFF"), "gas" => ("#F2C27B", "#FFE6B0"), "belt" => ("#B8AFA0", "#E0D8C8"),
+        "barren" => ("#C9D1DC", "#F0F4F8"), _ => ("#3DDC84", "#B2FFD6")
     };
 }

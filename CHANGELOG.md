@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Changed
+- **The palette**: one bright, well-separated set for every house (red, blue, yellow, green, silver, then orange,
+  violet, cyan, magenta and the rest), assigned at creation and at a house's birth; regions take soft-bright tints of
+  their own rather than the dominant house's colour; parties take a colour as they form; planet classes are brighter and
+  more distinct in the dots, the sprites and the Office window.
 - **Dashboards** (the owner's direction: the Office and the map keep their sets; every other screen is an information
   surface, each with its own graphic). The **Senate** is a chamber view in the Stellaris-galactic-community and
   Lawgivers mould: a header strip (seats, standing, bench, threat, pressure), a hemicycle of every seat coloured by

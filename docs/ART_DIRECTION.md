@@ -106,3 +106,19 @@ palette and type do not change, but the three-dimensional stage is gone from tho
 Shared classes: `.dash`, `.dash-head` (title and stat strip), `.dash-grid` (per-screen columns), `.dash-side`,
 `.standings`, `.gauge`, `.mbar`, `.seat-card`. SVG graphics are drawn in the component from the projection; no JS set
 is created for these screens, and portraits paint themselves.
+
+## The palette (2026-11-09)
+
+The owner's direction: the colours of parties, regions and planets must be bright enough to read and different enough
+not to be confused — red, blue, yellow, green and silver first. `Presentation.Palette` holds the one palette:
+
+- **Houses**: twenty-four bright colours ordered so consecutive picks differ in hue (red, blue, yellow, green, silver,
+  orange, violet, cyan, magenta, lime, gold, teal, coral, cobalt, ivory, lilac, chartreuse, amber, aqua, hot pink,
+  firebrick, dodger, canary, jade). Assigned at world creation, the protagonist's house first and the rest by id, so a
+  scenario's hand-picked accents are replaced; a house born in play takes the first colour no living house wears.
+  Raiders keep their dark red.
+- **Regions**: twelve soft-bright tints by position in the galaxy file, mixed with the ring tint on the map; no longer
+  the dominant house's colour, so a region reads as a place rather than as whoever holds most of it.
+- **Parties**: the benches take the first ten house colours in the order they form (`Faction.Accent`).
+- **Planet classes**: terran green over blue sea, ocean blue, arid gold, forge red, frozen white, gas tan-striped,
+  belt slate, barren silver — the same colours in the SVG dots, the sprites and the Office's window planet.

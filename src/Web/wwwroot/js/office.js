@@ -48,7 +48,7 @@ export function sigilCanvas(houseId, accent) {
 }
 function hashSigned(s) { let h = 17; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) | 0; return h; }
 
-export const PLANET = { terran: [0x3f8f62, 0x8ad9ff], ocean: [0x2f6fb5, 0x8ac8ff], arid: [0xc98f4a, 0xffd9a0], forge: [0xa5452a, 0xff9060], frozen: [0xb9d4ea, 0xe6f4ff], gas: [0xc9a06a, 0xffe0b0], belt: [0x7a6f60, 0x555555], barren: [0x6f6a66, 0x999999] };
+export const PLANET = { terran: [0x3ddc84, 0xb2ffd6], ocean: [0x2f7bff, 0x8cc8ff], arid: [0xffb03b, 0xffe08a], forge: [0xff4d2e, 0xffa07a], frozen: [0xcfe9ff, 0xffffff], gas: [0xf2c27b, 0xffe6b0], belt: [0xb8afa0, 0xe0d8c8], barren: [0xc9d1dc, 0xf0f4f8] };
 const WALLS = { stone: { color: 0x3a4152, rough: .85, metal: .05 }, brass: { color: 0x5a4a28, rough: .35, metal: .8 }, marble: { color: 0x9a9fab, rough: .25, metal: .05 }, wood: { color: 0x4a2e1c, rough: .6, metal: .02 } };
 const FLOORS = { slate: { color: 0x2a3142, rough: .3, metal: .7 }, carpet: { color: 0x4a1f24, rough: .95, metal: 0 }, marble: { color: 0x6a6f7a, rough: .15, metal: .2 }, wood: { color: 0x3a2416, rough: .5, metal: .05 } };
 const DESKS = { oak: { color: 0x4d3221, rough: .55, metal: .05 }, steel: { color: 0x3a4150, rough: .3, metal: .9 }, marble: { color: 0x7a7f8a, rough: .2, metal: .1 } };

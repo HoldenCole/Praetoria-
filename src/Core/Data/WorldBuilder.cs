@@ -84,6 +84,7 @@ public static class WorldBuilder
         if (world.Protagonist == null)
             throw new ContentException($"Scenario protagonist '{scenario.ProtagonistId}' is not among its characters.");
 
+        Presentation.Palette.AssignHouses(world);   // one bright palette for every house (docs/ART_DIRECTION.md)
         return world;
     }
 

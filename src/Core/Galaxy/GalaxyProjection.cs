@@ -93,7 +93,7 @@ public static class GalaxyProjection
             var house = dominant != null ? world.House(dominant) : null;
             var populated = mine.Where(n => n.Population > 0).ToList();
             list.Add(new MapRegion(r.Id, r.Name, r.Culture, r.Description, systems.Select(s => s.Id).ToList(),
-                systems.Average(s => s.X), systems.Average(s => s.Y), dominant, house?.Name, house?.AccentColor ?? UnclaimedAccent,
+                systems.Average(s => s.X), systems.Average(s => s.Y), dominant, house?.Name, Presentation.Palette.Region(world.Galaxy!.Regions.IndexOf(r)),
                 mine.Count(n => n.PlanetHoldingId != null), populated.Count == 0 ? 0 : (int)populated.Average(n => n.Unrest),
                 r.Ring, world.Regions.TryGetValue(r.Id, out var rs) ? rs.Allegiance : Math.Clamp(50 + world.Galaxy.RulesFor(r.Ring).Allegiance, 0, 100),
                 rs?.Lawlessness ?? world.Galaxy.RulesFor(r.Ring).LawlessnessStart, mine.Count(n => n.Rebellion > 0), house?.Bloc == Systems.RegionSystem.FreeholdsBloc));

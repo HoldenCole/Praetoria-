@@ -57,7 +57,7 @@
                 @foreach (var f in benches)
                 {
                     int wt = f.Members.Sum(x => senate.Weight(w, x)); var lh = w.House(f.LeaderHouseId);
-                    <span class="lg @(f.Members.Contains(house.Id) ? "mine" : "")" title="led by @(lh?.Name ?? f.LeaderHouseId) · @string.Join(", ", f.Members.Select(x => w.House(x)?.Name ?? x))"><i style="background:@(lh?.AccentColor ?? "#888")"></i>@f.Name <b>@wt</b></span>
+                    <span class="lg @(f.Members.Contains(house.Id) ? "mine" : "")" title="led by @(lh?.Name ?? f.LeaderHouseId) · @string.Join(", ", f.Members.Select(x => w.House(x)?.Name ?? x))"><i style="background:@(f.Accent.Length > 0 ? f.Accent : lh?.AccentColor ?? "#888")"></i>@f.Name <b>@wt</b></span>
                 }
                 <span class="lg"><i class="none"></i>unaffiliated <b>@ordered.Where(x => x.bench == null).Sum(x => x.weight)</b></span>
                 @if (watched != null) { <span class="lg key"><i class="for"></i>for <i class="against"></i>against <i class="abstain"></i>abstains</span> }
