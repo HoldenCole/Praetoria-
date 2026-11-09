@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **Graphics: the Chancery and the chamber read their politics.** The Chancery's walls now hang six estate tapestries,
+  each woven in its mood's colour with a glyph and a regard bar at the hem, lit by a lamp that burns steady for a loyal
+  estate and gutters for a hostile one; a brass bell swings beside an estate that is petitioning. The desk carries a
+  sealed scroll for every law set off the custom and a bound Act when the Senate has carried one. In the Senate, a
+  petitioning estate's delegation stands in the gap of the colonnade under its own standard, gold-lit; petition cards on
+  the docket carry a gold edge.
 - **The estates' petitions** (GAP §16 item 8): an estate hostile in three houses or an eighth of the Reach brings its
   own Act before the Senate for the law it wants. Heard, its regard rises in every house; refused, it falls and the
   worlds of every house it distrusts stir. Petitions show on the docket under the estate's name, on the Chancery's

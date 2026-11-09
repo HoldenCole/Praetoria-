@@ -589,3 +589,28 @@ ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty tree.**
 
 ### Where the next forty come from
 Scripted chain playthroughs · fifty situations · plots with steps · a credit sink · role theming · the dynasty tree.
+
+## 18. QA and graphics pass — 2026-11-09
+
+Method: 348 tests · both validators (154 events) · `praetoria qa --seeds 10` (60 runs, 0 failures, 136/154 events) ·
+`simulate --seeds 6` (no dynasty ended; wars 30–36, battles 6–8, thrones 17 of 36) · the full browser sweep on every
+scenario (eleven screens, the Chancery now among them, save and reload; 0 console errors, no suspicious text) · CI green
+on both branches, Pages redeployed.
+
+### Graphics this pass
+- **The Chancery reads its politics**: six estate tapestries on the walls, each woven in its mood's colour with a glyph
+  and a regard bar, lit by a lamp that burns steady for a loyal estate and gutters for a hostile one; a brass bell swings
+  beside an estate that is petitioning. The desk carries a sealed scroll for every law set off the custom and a bound
+  Act once the Senate has carried one.
+- **The chamber shows a petition**: the estate's delegation stands at the chamber's edge under its own standard, gold-lit;
+  petition cards on the docket carry a gold edge.
+
+### Numbers worth watching
+- The headless sweep takes ten to twenty-five seconds a screenshot under software GL; that is the test rig, not the
+  game, but it caps a sweep at about six turns per scenario in one sitting.
+- Thrones taken rose to 17 of 36 runs in simulate; still within the 40–50% band seen since the offices, but the
+  Imperium ending should not become the default. Watch it against the next tuning pass.
+
+### Still open, ranked
+1. **Content volume** (154 events); the estate events still want a scripted check. 2. **Plots with steps.** 3. **The
+ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**

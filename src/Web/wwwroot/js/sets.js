@@ -91,6 +91,18 @@ export class Senate extends Set {
     for (let tier = 0; tier < 3; tier++) { const r = 5.2 + tier * 2.3; const segs = 14; for (let k = 0; k < segs; k++) { const a = Math.PI * 0.1 + (k + .5) / segs * (Math.PI * 0.8); const x = Math.cos(a) * r, z = C.z - Math.sin(a) * r; const seat = new THREE.Mesh(new THREE.BoxGeometry(2 * Math.PI * r * 0.8 / segs * .92, .5, 1.1), benchMat); seat.position.set(x, .6 + tier * .55, z); seat.lookAt(0, .6 + tier * .55, C.z); seat.castShadow = true; seat.receiveShadow = true; R.add(seat); const back = new THREE.Mesh(new THREE.BoxGeometry(2 * Math.PI * r * 0.8 / segs * .92, .7, .15), benchMat); back.position.set(x * (r + .5) / r, 1.15 + tier * .55, C.z - (C.z - z) * (r + .5) / r); back.lookAt(0, 1.15 + tier * .55, C.z); R.add(back); } const step = new THREE.Mesh(new THREE.RingGeometry(r - 1.0, r + 1.3, 96, 1, Math.PI * 1.05, Math.PI * 0.9), stone); step.rotation.x = -Math.PI / 2; step.position.set(0, .2 + tier * .55, C.z); R.add(step); }
     // the speaker at the podium, the heads of the great houses on the benches
     if (opts.player) this.plate(opts.player, 0, 2.95, -4.3, 1.05, null);
+    // a petition on the docket: the estate's delegation stands in the gap of the colonnade behind the dais, under its own standard
+    if (opts.petition) {
+      const P = opts.petition; const px = -7.4, pz = -13.2; const cloth = new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: .9 });
+      const n = 9; for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + (i % 2) * .3; const r = .9 + (i % 3) * .55; const x = px + Math.cos(a) * r * .9, z = pz + Math.sin(a) * r * 1.1; const h = 1.5 + ((i * 7) % 5) * .08;
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(.22, h - .5, 4, 8), cloth); body.position.set(x, h / 2, z); body.castShadow = true; R.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(.16, 10, 8), new THREE.MeshStandardMaterial({ color: 0xc9a98a, roughness: .8 })); head.position.set(x, h + .1, z); R.add(head);
+        this.animated.push(t => { body.position.y = h / 2 + Math.sin(t * 1.4 + i) * .012; head.position.y = h + .1 + Math.sin(t * 1.4 + i) * .012; }); }
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(.04, .04, 4.6, 8), BRIGHT_BRASS()); pole.position.set(px, 2.3, pz - .4); R.add(pole);
+      const std = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2.2, 6, 10), new THREE.MeshStandardMaterial({ map: texture(estateCanvas(P.name || '', P.hostile ? '#b8403a' : '#8a7a4a', P.approval || 0, P.glyph || 0)), roughness: .9, side: THREE.DoubleSide })); std.position.set(px, 3.6, pz - .4); std.rotation.y = Math.PI / 7; std.userData.banner = true; R.add(std);
+      const gl = new THREE.PointLight(0xc9a24a, 14, 10, 2); gl.position.set(px + .8, 3.4, pz + 1.6); R.add(gl); this.animated.push(t => { gl.intensity = 8 + Math.sin(t * 3) * 1.5; });
+      const plaque = new THREE.Mesh(new THREE.PlaneGeometry(2.6, .5), new THREE.MeshBasicMaterial({ map: texture(plaqueCanvas(P.name ? P.name + ' · petition' : 'petition')), transparent: true })); plaque.position.set(px + .6, 1.0, pz + 2.4); plaque.lookAt(this.camera.position.x, 1.0, this.camera.position.z); R.add(plaque);
+    }
     (opts.members || []).forEach((m, i) => { const tier = Math.min(2, Math.floor(i / 5)); const slot = i % 5; const a = Math.PI * 0.2 + (slot / 4) * (Math.PI * 0.6); const r = 5.2 + tier * 2.3; const x = Math.cos(a) * r, z = C.z - Math.sin(a) * r + .2; this.plate(m, x, 1.95 + tier * .55, z, .85, m.key, new THREE.Vector3(0, 1.9, C.z)); });
     this.animated.push(t => { R.traverse(o => { if (o.userData.banner) { const pos = o.geometry.attributes.position; for (let i = 0; i < pos.count; i++) { const y = pos.getY(i); pos.setZ(i, Math.sin(t * 1.3 + y * 2.2 + o.position.x) * .04 * (1 - (y + 1.6) / 3.2)); } pos.needsUpdate = true; } }); });
     // haze
@@ -274,6 +286,25 @@ export class Keep extends Set {
     for (let i = 0; i < 4; i++) { const cl = new THREE.Mesh(new THREE.SphereGeometry(.08, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffe2b0 })); cl.position.set(0, 1.45, -3 - i * 3); R.add(cl); const l = new THREE.PointLight(0xffd79a, 5, 7, 2); l.position.set(0, 1.9, -3 - i * 3); R.add(l); }
     if (opts.player) this.plate(opts.player, 0, 2.2, -D + 8.2, 1.15, null);
     (opts.household || []).forEach((m, i) => { const sx = i % 2 ? 1 : -1; const z = -2.6 - Math.floor(i / 2) * 2.4; this.plate(m, sx * 2.2, 1.8, z, .85, m.key, new THREE.Vector3(sx * -1.5, 1.7, z + 9)); });
+    // the Chancery: the estates hang on the walls as tapestries whose colour is their mood, lit by a lamp that burns steady for the loyal and gutters for the hostile
+    (opts.estates || []).forEach((e, i) => {
+      const sx = i % 2 ? 1 : -1; const z = -8.5 - Math.floor(i / 2) * 4.6; const x = sx * (W / 2 - .3);
+      const mood = e.approval >= 30 ? 'loyal' : e.approval <= -30 ? 'hostile' : e.approval >= 10 ? 'warm' : e.approval <= -10 ? 'cool' : 'flat';
+      const col = { loyal: '#d8b45a', warm: '#a8905a', flat: '#6a6d78', cool: '#6a5a7a', hostile: '#b8403a' }[mood];
+      const tap = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 3.8, 6, 14), new THREE.MeshStandardMaterial({ map: texture(estateCanvas(e.name || '', col, e.approval || 0, e.glyph || i)), emissive: new THREE.Color(col), emissiveIntensity: .35, roughness: .92, side: THREE.DoubleSide }));
+      tap.position.set(x - sx * .02, 4.6, z); tap.rotation.y = -sx * Math.PI / 2; tap.userData.banner = true; R.add(tap);
+      const rod = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, 2.4, 8), BRIGHT_BRASS()); rod.position.set(x - sx * .1, 6.6, z); rod.rotation.x = Math.PI / 2; R.add(rod);
+      const lamp = new THREE.PointLight(new THREE.Color(col), mood === 'hostile' ? 6 : 4.5, 6.5, 2); lamp.position.set(x - sx * 1.4, 5.0, z); R.add(lamp);
+      if (mood === 'hostile') this.animated.push(t => { lamp.intensity = 3 + Math.sin(t * 7 + i) * 1.2 + Math.sin(t * 13.7 + i * 3) * .6; });
+      else if (mood === 'loyal') this.animated.push(t => { lamp.intensity = 3.4 + Math.sin(t * 1.5 + i) * .2; });
+      if (e.petition) { const bell = new THREE.Mesh(new THREE.ConeGeometry(.22, .34, 12, 1, true), BRIGHT_BRASS()); bell.position.set(x - sx * .5, 2.3, z); R.add(bell); const bl = new THREE.PointLight(0xc9a24a, 4, 4, 2); bl.position.set(x - sx * .7, 2.4, z); R.add(bl); this.animated.push(t => { bell.rotation.z = Math.sin(t * 4) * .25 * sx; bl.intensity = 3 + Math.sin(t * 4) * 2; }); }
+      const plaque = new THREE.Mesh(new THREE.PlaneGeometry(1.7, .34), new THREE.MeshBasicMaterial({ map: texture(plaqueCanvas(e.name || '')), transparent: true })); plaque.position.set(x - sx * .3, 2.5, z); plaque.rotation.y = -sx * Math.PI / 2; R.add(plaque);
+    });
+    // the laws at the desk: a sealed scroll for every law set off the custom, the seal in the house's colour
+    const scrolls = Math.min(12, opts.scrolls || 0);
+    for (let i = 0; i < scrolls; i++) { const z = -3.2 - (i % 6) * 1.5, x = (i < 6 ? -.55 : .55) + ((i * 7) % 3 - 1) * .12; const sc = new THREE.Mesh(new THREE.CylinderGeometry(.09, .09, .7, 10), new THREE.MeshStandardMaterial({ color: 0xe8dcc0, roughness: .8 })); sc.rotation.z = Math.PI / 2; sc.rotation.y = ((i * 13) % 7 - 3) * .12; sc.position.set(x, 1.27, z); sc.castShadow = true; R.add(sc);
+      const seal = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .03, 10), new THREE.MeshStandardMaterial({ color: accent, roughness: .4, metalness: .2, emissive: accent, emissiveIntensity: .25 })); seal.position.set(x, 1.37, z); R.add(seal); }
+    if (opts.acts > 0) { const act = new THREE.Mesh(new THREE.BoxGeometry(.9, .06, .62), new THREE.MeshStandardMaterial({ color: 0x2a2416, roughness: .5 })); act.position.set(0, 1.23, -12.2); R.add(act); const actSeal = new THREE.Mesh(new THREE.CylinderGeometry(.12, .12, .04, 12), new THREE.MeshStandardMaterial({ color: 0xc9a24a, metalness: .8, roughness: .3, emissive: 0x6b5a35, emissiveIntensity: .4 })); actSeal.position.set(.25, 1.28, -12.1); R.add(actSeal); }
     const sun = new THREE.DirectionalLight(0xbfd0ff, 1.4); sun.position.set(-10, 12, -4); sun.castShadow = true; sun.shadow.camera.left = -12; sun.shadow.camera.right = 12; sun.shadow.camera.top = 12; sun.shadow.camera.bottom = -12; sun.shadow.mapSize.set(1024, 1024); R.add(sun);
     R.add(new THREE.HemisphereLight(0x3a4a7a, 0x3a3028, 1.1));
     this.animated.push(t => { R.traverse(o => { if (o.userData.banner) { const pos = o.geometry.attributes.position; for (let i = 0; i < pos.count; i++) { const y = pos.getY(i); pos.setZ(i, Math.sin(t * 1.1 + y * 1.2) * .06 * (1 - (y + 3.5) / 7)); } pos.needsUpdate = true; } }); });
@@ -281,6 +312,27 @@ export class Keep extends Set {
   }
 }
 
+
+// an estate's tapestry: a field in its mood's colour, a woven border, a glyph, and a regard bar at the hem
+function estateCanvas(name, col, approval, glyph) {
+  const c = document.createElement('canvas'); c.width = 128; c.height = 256; const ctx = c.getContext('2d');
+  ctx.fillStyle = col; ctx.fillRect(0, 0, 128, 256);
+  const g = ctx.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, 'rgba(0,0,0,.25)'); g.addColorStop(.5, 'rgba(255,255,255,.08)'); g.addColorStop(1, 'rgba(0,0,0,.45)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 128, 256);
+  for (let y = 0; y < 256; y += 4) { ctx.fillStyle = y % 8 ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.04)'; ctx.fillRect(0, y, 128, 2); }
+  ctx.strokeStyle = 'rgba(230,199,122,.8)'; ctx.lineWidth = 3; ctx.strokeRect(8, 8, 112, 240); ctx.lineWidth = 1; ctx.strokeRect(14, 14, 100, 228);
+  ctx.save(); ctx.translate(64, 104); ctx.strokeStyle = '#f1e2b4'; ctx.fillStyle = 'rgba(241,226,180,.9)'; ctx.lineWidth = 4;
+  const k = (typeof glyph === 'number' ? glyph : (String(glyph).charCodeAt(0) || 0)) % 6;
+  if (k === 0) { for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(-24 + i * 12, 10 - Math.abs(i - 2) * 6, 4, 0, 7); ctx.fill(); } }                       // the commons: heads in a row
+  else if (k === 1) { ctx.beginPath(); ctx.moveTo(-26, 16); ctx.lineTo(0, -26); ctx.lineTo(26, 16); ctx.closePath(); ctx.stroke(); ctx.beginPath(); ctx.arc(0, 2, 7, 0, 7); ctx.fill(); }   // the merchants: scales
+  else if (k === 2) { ctx.beginPath(); ctx.moveTo(-20, 20); ctx.lineTo(20, -20); ctx.moveTo(-20, -20); ctx.lineTo(20, 20); ctx.stroke(); }                   // the officers: crossed blades
+  else if (k === 3) { ctx.beginPath(); ctx.moveTo(0, -28); ctx.lineTo(24, -10); ctx.lineTo(18, 22); ctx.lineTo(-18, 22); ctx.lineTo(-24, -10); ctx.closePath(); ctx.stroke(); }   // the old blood: a shield
+  else if (k === 4) { ctx.beginPath(); ctx.rect(-22, -18, 44, 36); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-14, -6); ctx.lineTo(14, -6); ctx.moveTo(-14, 6); ctx.lineTo(14, 6); ctx.stroke(); }   // the magistrates: a tablet
+  else { ctx.beginPath(); ctx.moveTo(-26, 18); ctx.lineTo(-8, -14); ctx.lineTo(4, 4); ctx.lineTo(14, -10); ctx.lineTo(26, 18); ctx.closePath(); ctx.stroke(); }   // the frontier: hills
+  ctx.restore();
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(20, 200, 88, 8); const a = Math.max(-100, Math.min(100, approval || 0)); ctx.fillStyle = a >= 0 ? '#9fd79f' : '#e07a6a'; if (a >= 0) ctx.fillRect(64, 200, a * .44, 8); else ctx.fillRect(64 + a * .44, 200, -a * .44, 8); ctx.fillStyle = '#f1e2b4'; ctx.fillRect(63, 198, 2, 12);
+  ctx.fillStyle = '#f1e2b4'; ctx.font = '600 12px Cinzel, serif'; ctx.textAlign = 'center'; ctx.fillText((name || '').replace(/^The /, '').toUpperCase().slice(0, 14), 64, 228);
+  return c;
+}
 
 // ---------------- the hall of banners (Houses) ----------------
 export class Gallery extends Set {

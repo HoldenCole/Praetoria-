@@ -380,7 +380,7 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .legend .sw.dep { background: none; color: #9fc8ee; font-size: 8px; width: auto; padding: 0 2px; } .fuel { margin: .3rem 0 .5rem; } .fuel.warn { color: var(--warn); }
 
 /* the docket */
-.motion { border: 1px solid var(--line); border-radius: 4px; padding: .5rem .6rem; margin: .45rem 0; background: rgba(5,7,12,.45); } .motion.against { border-color: var(--warn); } .motion.mine { border-color: var(--brass3); }
+.motion { border: 1px solid var(--line); border-radius: 4px; padding: .5rem .6rem; margin: .45rem 0; background: rgba(5,7,12,.45); } .motion.against { border-color: var(--warn); } .motion.mine { border-color: var(--brass3); } .motion.petition { border-left: 3px solid #c9a24a; background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(5,7,12,.45) 40%); }
 .mo-head { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; } .mo-text { margin: .25rem 0 .4rem; }
 .whip { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: rgba(255,255,255,.08); } .whip .for { background: var(--good); } .whip .against { background: var(--warn); }
 .bench-row { display: flex; align-items: center; gap: .35rem; padding: .15rem 0; border-bottom: 1px dashed rgba(255,255,255,.06); font-size: .82rem; } .bench-row .bn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .bench-row .stance { min-width: 3.6rem; font-size: .78rem; text-align: right; } .bench-row .stance.for { color: var(--good); } .bench-row .stance.against { color: var(--warn); }

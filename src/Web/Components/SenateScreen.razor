@@ -90,7 +90,7 @@
                 @foreach (var mo in sen.Docket)
                 {
                     int total = Math.Max(1, mo.ForWeight + mo.AgainstWeight);
-                    <div class="motion @(mo.AgainstMe ? "against" : mo.Mine ? "mine" : "")">
+                    <div class="motion @(mo.AgainstMe ? "against" : mo.Mine ? "mine" : mo.Petition ? "petition" : "")">
                         <div class="mo-head"><b>@mo.KindName</b> <span class="muted small">@(mo.Petition ? "the petition of" : "moved by") <span style="color:@mo.ProposerAccent">@mo.ProposerName</span> · vote @(mo.ProposedTurn < w.Turn ? "at the end of this turn" : "next session")</span></div>
                         <div class="mo-text">@mo.Text</div>
                         <div class="whip"><span class="for" style="width:@(100 * mo.ForWeight / total)%"></span><span class="against" style="width:@(100 * mo.AgainstWeight / total)%"></span></div>
@@ -233,8 +233,16 @@
         {
             accent = house.AccentColor, imperium = w.Era == "imperium",
             houses = ranked.Take(14).Select(h => new { id = h.Id, accent = h.AccentColor }).ToList(),
-            player = Plate(p, null), members = _members.Select(x => Plate(x.head!, x.head!.Id)).ToList()
+            player = Plate(p, null), members = _members.Select(x => Plate(x.head!, x.head!.Id)).ToList(),
+            petition = Petitioning(w)
         });
+    }
+    /// <summary>The estate whose petition stands on the docket, for the chamber's delegation.</summary>
+    private object? Petitioning(World w)
+    {
+        var m = w.Motions.FirstOrDefault(x => x.Open && SenateSystem.IsPetition(x)); if (m == null) return null;
+        var id = SenateSystem.PetitionEstate(m)!; var estates = G.Content!.Policies.Estates; int i = estates.ToList().FindIndex(e => e.Id == id);
+        return new { name = estates.FirstOrDefault(e => e.Id == id)?.Name ?? id, approval = PolicySystem.Approval(w, w.Protagonist!.HouseId, id), hostile = PolicySystem.Approval(w, w.Protagonist!.HouseId, id) <= PolicySystem.Hostile, glyph = Math.Max(0, i) };
     }
     private ICommand PathCommand(string id) { var pid = G.World!.ProtagonistId; var prog = G.Turn!.Progression!; return id switch { "seize" => new SeizeTitleCommand(pid, prog), "petition" => new PetitionTitleCommand(pid, prog), _ => new ClaimTitleCommand(pid, prog) }; }
     private void Damper(DamperOption d) { var crises = G.Turn!.Crises!; var def = crises.Def(d.CrisisId)!; G.Execute(new ApplyDamperCommand(G.World!.ProtagonistId, crises, def, def.Dampers.First(x => x.Id == d.DamperId))); }

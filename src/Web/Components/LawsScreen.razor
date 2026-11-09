@@ -101,7 +101,10 @@
     {
         accent = house.AccentColor, imperium = w.Era == "imperium",
         worlds = w.HoldingsOf(house.Id).Where(h => h.IsPlanet).Take(4).Select(h => new { id = h.Id, name = h.Name, cls = w.Galaxy?.System(h.SystemId)?.PlanetClass ?? "terran" }).ToList(),
-        household = Array.Empty<object>(), banner = true
+        household = Array.Empty<object>(), banner = true,
+        estates = Model.Chancery?.Estates.Select((e, i) => new { name = e.Name, approval = e.Approval, petition = e.Petition != null, glyph = i }).ToList(),
+        scrolls = w.Laws.TryGetValue(house.Id, out var set) ? set.Count(kv => G.Content!.Policies.Law(kv.Key) is { } ld && ld.DefaultOption.Id != kv.Value) : 0,
+        acts = w.Counter("acts_passed")
     });
     public async ValueTask DisposeAsync() { try { await JS.InvokeVoidAsync("praetoriaSets.dispose", _id); } catch { } _self?.Dispose(); }
 }
