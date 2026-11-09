@@ -105,7 +105,7 @@
         object Plate(Character ch) => new { name = ch.Name, accent = w.House(ch.HouseId)?.AccentColor ?? "#888", bust = new { id = ch.Id, sex = ch.Sex.Length > 0 ? ch.Sex : "male", age = ch.Age, accent = w.House(ch.HouseId)?.AccentColor ?? "#888", alive = ch.Alive } };
         return System.Text.Json.JsonSerializer.Serialize(new
         {
-            accent = house.AccentColor, houseId = house.Id, seed = seat?.SystemId ?? house.Id, planetClass = viewClass, planetUrl = (string?)null,
+            accent = house.AccentColor, houseId = house.Id, seed = seat?.SystemId ?? house.Id, role = RoleTheme.Of(w), planetClass = viewClass, planetUrl = (string?)null,
             wall = Cos("wall", "stone"), floor = Cos("floor", "slate"), window = Cos("window", "arched"), desk = Cos("desk", "oak"), decor = Cos("decor", "chart"), honors,
             player = Plate(p), visitors = _visitors.Select(v => v.ch != null ? Plate(v.ch) : (object)new { name = "A courier", accent = "#c9a24a" }).ToList(), chart
         });

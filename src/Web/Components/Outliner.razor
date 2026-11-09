@@ -58,7 +58,7 @@
     </section>
     <section class="ol-block">
         <h4><Icon Name="claim" Size="13" /> Council</h4>
-        @foreach (var a in m.Advisors) { <div class="ol-adv @(a.Warning ? "warn" : "")" title="@a.Line"><b>@a.Seat</b> <span class="muted">@(a.AdvisorName ?? "vacant")</span><div class="line">@a.Line</div></div> }
+        @foreach (var a in m.Advisors.OrderBy(a => { var o = RoleTheme.AdvisorOrder(RoleTheme.Of(w)); int i = o.ToList().IndexOf(a.Seat); return i < 0 ? 9 : i; })) { <div class="ol-adv @(a.Warning ? "warn" : "")" title="@a.Line"><b>@a.Seat</b> <span class="muted">@(a.AdvisorName ?? "vacant")</span><div class="line">@a.Line</div></div> }
     </section>
     <section class="ol-block">
         <h4><Icon Name="fleet" Size="13" /> Fleets <span class="count">@m.Fleets.Count</span></h4>

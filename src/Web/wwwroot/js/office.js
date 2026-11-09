@@ -71,7 +71,7 @@ export class Office {
   }
 
   build(opts) {
-    this.opts = opts; this.plates = [];
+    this.opts = opts; this.plates = []; this.signal = null;
     while (this.root.children.length) { const o = this.root.children[0]; this.root.remove(o); o.traverse?.(c => { c.geometry?.dispose?.(); c.material?.dispose?.(); }); }
     const accent = new THREE.Color(opts.accent || '#c9a24a'); const wall = WALLS[opts.wall] || WALLS.stone, floor = FLOORS[opts.floor] || FLOORS.slate, desk = DESKS[opts.desk] || DESKS.oak;
     const R = this.root;
@@ -151,6 +151,39 @@ export class Office {
     for (const [x, z] of [[-2.3, -1.9], [2.3, -1.9], [-2.3, -.55], [2.3, -.55]]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(.18, 1.0, .18), legMat); leg.position.set(x, .5, z); leg.castShadow = true; R.add(leg); }
     const trim = new THREE.Mesh(new THREE.BoxGeometry(5.3, .04, 1.9), frameMat); trim.position.set(0, 1.18, -1.2); R.add(trim);
     const pad = new THREE.Mesh(new THREE.BoxGeometry(1.4, .02, .9), new THREE.MeshStandardMaterial({ color: 0x1a1612, roughness: .95 })); pad.position.set(-.3, 1.19, -1.1); R.add(pad);
+    // the role register (GDD Art Direction): the same desk, dressed for the job
+    const brassM = new THREE.MeshStandardMaterial({ color: 0xc9a24a, metalness: .9, roughness: .3 });
+    if (opts.role === 'military') {
+      // a signal lamp that blinks, a model hull on a stand, a chart tube
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(.05, .07, .5, 10), brassM); post.position.set(-1.9, 1.44, -1.5); R.add(post);
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(.11, 12, 10), new THREE.MeshBasicMaterial({ color: 0x7fd0ff })); bulb.position.set(-1.9, 1.75, -1.5); R.add(bulb);
+      const sig = new THREE.PointLight(0x7fd0ff, 2.5, 3.5, 2); sig.position.set(-1.9, 1.8, -1.5); R.add(sig); this.signal = t => { const on = Math.sin(t * 2.2) > .3; sig.intensity = on ? 3 : .4; bulb.material.color.setHex(on ? 0x9fe0ff : 0x2a4a60); };
+      const stand = new THREE.Mesh(new THREE.BoxGeometry(.5, .05, .16), brassM); stand.position.set(1.1, 1.22, -1.6); R.add(stand);
+      const hull = new THREE.Mesh(new THREE.CapsuleGeometry(.07, .6, 4, 8), new THREE.MeshStandardMaterial({ color: 0x8a94a6, metalness: .7, roughness: .35 })); hull.rotation.z = Math.PI / 2; hull.position.set(1.1, 1.36, -1.6); R.add(hull);
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(.05, .2, .12), hull.material); fin.position.set(1.4, 1.42, -1.6); R.add(fin);
+      const tube = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, .9, 10), new THREE.MeshStandardMaterial({ color: 0x3a2e1c, roughness: .7 })); tube.rotation.z = Math.PI / 2; tube.rotation.y = .4; tube.position.set(.9, 1.25, -.75); R.add(tube);
+    } else if (opts.role === 'stewardship') {
+      // a stack of ledgers, a brass balance, an abacus of beads
+      const inks = [0x5a2a22, 0x2a3a5a, 0x3a4a2a];
+      for (let i = 0; i < 3; i++) { const book = new THREE.Mesh(new THREE.BoxGeometry(.62 - i * .04, .09, .42), new THREE.MeshStandardMaterial({ color: inks[i], roughness: .85 })); book.position.set(-1.8 + i * .02, 1.235 + i * .09, -1.45); book.rotation.y = (i - 1) * .12; R.add(book); }
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(.14, .18, .04, 12), brassM); base.position.set(1.3, 1.21, -1.5); R.add(base);
+      const pillar = new THREE.Mesh(new THREE.CylinderGeometry(.02, .02, .5, 8), brassM); pillar.position.set(1.3, 1.46, -1.5); R.add(pillar);
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(.7, .02, .02), brassM); beam.position.set(1.3, 1.7, -1.5); beam.rotation.z = .06; R.add(beam);
+      for (const sx of [-1, 1]) { const pan = new THREE.Mesh(new THREE.CylinderGeometry(.11, .09, .02, 12), brassM); pan.position.set(1.3 + sx * .33, 1.5 - sx * .02, -1.5); R.add(pan); const wire = new THREE.Mesh(new THREE.CylinderGeometry(.004, .004, .2, 4), brassM); wire.position.set(1.3 + sx * .33, 1.6 - sx * .02, -1.5); R.add(wire); }
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(.5, .3, .03), new THREE.MeshStandardMaterial({ color: 0x3a2e1c, roughness: .7 })); frame.position.set(.6, 1.34, -1.7); frame.rotation.x = -.5; R.add(frame);
+      for (let r = 0; r < 4; r++) for (let k = 0; k < 6; k++) { const bead = new THREE.Mesh(new THREE.SphereGeometry(.018, 6, 5), new THREE.MeshStandardMaterial({ color: k % 2 ? 0xc9a24a : 0x2a2622, roughness: .5 })); bead.position.set(.4 + k * .075 + (r % 2) * .02, 1.25 + r * .065, -1.72 + r * .03); R.add(bead); }
+    } else if (opts.role === 'law') {
+      // a gavel on its block, a codex with a ribbon, a robe stand beside the desk
+      const block = new THREE.Mesh(new THREE.CylinderGeometry(.16, .18, .05, 14), new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: .6 })); block.position.set(1.4, 1.215, -1.5); R.add(block);
+      const head = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .26, 12), new THREE.MeshStandardMaterial({ color: 0x3a2416, roughness: .6 })); head.rotation.z = Math.PI / 2; head.position.set(1.1, 1.28, -1.3); R.add(head);
+      const handle = new THREE.Mesh(new THREE.CylinderGeometry(.02, .025, .4, 8), head.material); handle.rotation.x = Math.PI / 2; handle.position.set(1.1, 1.28, -1.05); R.add(handle);
+      const codex = new THREE.Mesh(new THREE.BoxGeometry(.5, .12, .36), new THREE.MeshStandardMaterial({ color: 0x1e1a2e, roughness: .8 })); codex.position.set(-1.8, 1.25, -1.45); R.add(codex);
+      const clasp = new THREE.Mesh(new THREE.BoxGeometry(.06, .13, .1), brassM); clasp.position.set(-1.56, 1.25, -1.45); R.add(clasp);
+      const ribbon = new THREE.Mesh(new THREE.BoxGeometry(.04, .005, .5), new THREE.MeshStandardMaterial({ color: accent, roughness: .7 })); ribbon.position.set(-1.75, 1.315, -1.4); R.add(ribbon);
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(.04, .06, 2.2, 10), new THREE.MeshStandardMaterial({ color: 0x3a2e1c, roughness: .7 })); pole.position.set(3.6, 1.1, -2.6); R.add(pole);
+      const robe = new THREE.Mesh(new THREE.ConeGeometry(.42, 1.7, 16, 1, true), new THREE.MeshStandardMaterial({ color: 0x1e1a2e, roughness: .9, side: THREE.DoubleSide })); robe.position.set(3.6, 1.3, -2.6); R.add(robe);
+      const collar = new THREE.Mesh(new THREE.TorusGeometry(.14, .03, 8, 20), brassM); collar.rotation.x = Math.PI / 2; collar.position.set(3.6, 2.16, -2.6); R.add(collar);
+    }
     const lamp = new THREE.Mesh(new THREE.ConeGeometry(.22, .25, 16, 1, true), new THREE.MeshStandardMaterial({ color: 0x6b5a35, metalness: .8, roughness: .3, side: THREE.DoubleSide })); lamp.position.set(2.0, 1.75, -1.4); R.add(lamp);
     const lampL = new THREE.PointLight(0xffd79a, 3, 4, 2); lampL.position.set(2.0, 1.6, -1.4); R.add(lampL);
     const lampB = new THREE.Mesh(new THREE.SphereGeometry(.06, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffe8b0 })); lampB.position.set(2.0, 1.62, -1.4); R.add(lampB);
@@ -217,6 +250,7 @@ export class Office {
     const t = this.clock.getElapsedTime();
     this.camera.position.x += ((this.parallax.x * .4) - this.camera.position.x) * .04; this.camera.position.y += ((3.1 + this.parallax.y * .15) - this.camera.position.y) * .04; this.camera.lookAt(0, 2.2, -4);
     if (this.holo) this.holo.rotation.y = t * .12;
+    if (this.signal) this.signal(t);
     if (this.planet) this.planet.rotation.y = t * .02;
     if (this.hull) { this.hull.position.x = -8 + ((t * .25) % 16); }
     const hovered = this.pick();

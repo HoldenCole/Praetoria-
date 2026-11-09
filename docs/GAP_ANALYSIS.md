@@ -661,3 +661,22 @@ Method: 388 tests (38 new, the reachability table among them) · both validators
 1. **Plots with steps.** 2. **The ledger runs rich** (mean 310–350). 3. **Role theming.** 4. **A dynasty tree.**
 5. **Spatial trade.** 6. **Audio.** 7. **Content volume** continues: the next batch should be scripted chains, not
 single situations.
+
+## 21. Role theming — 2026-11-09
+
+Method: 390 tests (two new on the register) · a browser drive through all six scenarios recording the register, the
+rail order, the advisor order and the briefing kicker (military ×4, law ×2; 0 console errors) · the full-screen sweep on
+a law scenario · the stewardship register verified by test and stylesheet, since no shipped scenario starts on that
+track.
+
+### Done this pass (GAP §20 item 3)
+- The GDD's "by character's job" register, in full: chrome, emphasis, set dressing, briefing voice and landing screen
+  by career track, shifting at succession. docs/ART_DIRECTION.md, *The role register*.
+
+### Numbers worth watching
+- No shipped scenario starts a steward; the register is reachable only by succession to an heir on that track or by
+  the creation screen. A steward-led scenario would show the ledger register from turn one.
+
+### Still open, ranked
+1. **Plots with steps.** 2. **The ledger runs rich** (mean 310–350). 3. **A dynasty tree.** 4. **Spatial trade.**
+5. **Audio.** 6. **Content as scripted chains.**

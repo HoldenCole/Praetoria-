@@ -420,3 +420,32 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .reach-line .pos { color: #9fd79f; }
 .estate .petition { color: #c9a24a; margin-top: 2px; }
 .motion b.pos { color: var(--good); } .motion b.neg { color: var(--warn); }
+
+/* ---- the role register (GDD Art Direction, "by character's job"): same screens, chrome by career track; the era's gold still wins under the Imperium ---- */
+.win-head .kicker { color: var(--muted); letter-spacing: .14em; font-size: .66rem; }
+/* military: functional — a technical sans for titles, squared console frames, steel instead of brass, a signal strip on the rail */
+.gs-shell[data-role="military"]:not([data-era="imperium"]) { --brass: #9fb4c9; --brass2: #cfe0f2; --brass3: #4e6279; --line: #223246; --line2: #35506b; }
+.gs-shell[data-role="military"] h3, .gs-shell[data-role="military"] .rail-btn .rl, .gs-shell[data-role="military"] .win-head .tier, .gs-shell[data-role="military"] .ol-h { font-family: var(--sans); font-weight: 600; letter-spacing: .2em; }
+.gs-shell[data-role="military"] h2 { font-family: var(--sans); font-weight: 500; letter-spacing: .04em; }
+.gs-shell[data-role="military"] .panel, .gs-shell[data-role="military"] .card, .gs-shell[data-role="military"] .win, .gs-shell[data-role="military"] .motion, .gs-shell[data-role="military"] .report { border-radius: 0; }
+.gs-shell[data-role="military"] .panel::before { content: ""; position: absolute; left: 6px; top: 6px; width: 10px; height: 10px; border-left: 1px solid var(--brass3); border-top: 1px solid var(--brass3); pointer-events: none; }
+.gs-shell[data-role="military"] .panel::after { content: ""; position: absolute; right: 6px; bottom: 6px; width: 10px; height: 10px; border-right: 1px solid var(--brass3); border-bottom: 1px solid var(--brass3); pointer-events: none; }
+.gs-shell[data-role="military"] .rail { box-shadow: inset -3px 0 0 rgba(159,180,201,.12); }
+.gs-shell[data-role="military"] .win-head .kicker { color: var(--brass); }
+.gs-shell[data-role="military"] .stage-title b { font-family: var(--sans); letter-spacing: .06em; text-transform: uppercase; font-size: .9em; }
+/* stewardship: administrative — ruled panels like a ledger page, a warmer parchment tint, solid rules under every figure */
+.gs-shell[data-role="stewardship"]:not([data-era="imperium"]) { --panel: rgba(24, 21, 16, .84); --panel-solid: #181510; --panel2: #221d16; --line: #3a3124; --line2: #4e4230; --brass: #c9a24a; --brass2: #e6c77a; --brass3: #8a6c2a; }
+.gs-shell[data-role="stewardship"] .panel, .gs-shell[data-role="stewardship"] .card { background-image: repeating-linear-gradient(180deg, transparent 0 23px, rgba(230,199,122,.045) 23px 24px), var(--noise); }
+.gs-shell[data-role="stewardship"] .kv { border-bottom-style: solid; border-bottom-color: rgba(230,199,122,.14); } .gs-shell[data-role="stewardship"] .kv b { font-variant-numeric: tabular-nums; }
+.gs-shell[data-role="stewardship"] h3::after { background: linear-gradient(90deg, var(--brass3), var(--brass3)); opacity: .6; }
+.gs-shell[data-role="stewardship"] .win-head .kicker { color: var(--tre); }
+.gs-shell[data-role="stewardship"] .rail { box-shadow: inset -3px 0 0 rgba(224,180,87,.14); }
+/* law: ceremonial — engraved double frames, a brighter warm brass, ornaments on the headers, a halo on the decision window */
+.gs-shell[data-role="law"]:not([data-era="imperium"]) { --brass: #d6ad52; --brass2: #f1d78e; --brass3: #9a7a30; --line: #2d2a3c; --line2: #44405a; }
+.gs-shell[data-role="law"] .panel, .gs-shell[data-role="law"] .card { outline: 1px solid rgba(214,173,82,.18); outline-offset: -5px; }
+.gs-shell[data-role="law"] h3::before { content: "✦"; color: var(--brass3); font-size: .7em; }
+.gs-shell[data-role="law"] h2 { letter-spacing: .06em; }
+.gs-shell[data-role="law"] .win { box-shadow: 0 0 0 1px rgba(214,173,82,.25), 0 0 60px rgba(214,173,82,.12), 0 30px 80px rgba(0,0,0,.6); }
+.gs-shell[data-role="law"] .rail { box-shadow: inset -3px 0 0 rgba(214,173,82,.14); }
+.gs-shell[data-role="law"] .win-head .kicker { color: var(--brass2); }
+.gs-shell[data-role="law"] .end-turn { letter-spacing: .12em; }

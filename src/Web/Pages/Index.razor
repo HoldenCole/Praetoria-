@@ -1,4 +1,5 @@
 @page "/"
+@using Praetoria.Core.Presentation
 @inject GameClient G
 @inject IJSRuntime JS
 @implements IDisposable
@@ -23,10 +24,10 @@ else if (G.Turn == null)
 else
 {
     var m = G.Court();
-    <div class="gs-shell" style="--accent:@m.HouseAccent" @ref="_shell" data-nebula data-era="@m.Era">
+    <div class="gs-shell" style="--accent:@m.HouseAccent" @ref="_shell" data-nebula data-era="@m.Era" data-role="@RoleTheme.Of(G.World!)">
         <TopBar OnSave="SaveLocal" OnExport="Download" OnQuit="Abandon" OnPrimer="() => _primer = true" SavedFlash="@_savedFlash" />
         <nav class="rail">
-            @foreach (var (id, glyph, label) in Screens)
+            @foreach (var (id, glyph, label) in Rail())
             {
                 if (id == "academy" && !(G.World!.Protagonist!.Age <= 22)) continue;
                 <button class="rail-btn @(_screen == id ? "active" : "")" title="@label" @onclick="() => Go(id)" disabled="@(id == "galaxy" && G.World!.Galaxy == null)">
@@ -80,7 +81,7 @@ else
         }
         @if (_succession != null)
         {
-            <SuccessionInterstitial Record="_succession" OnClose="() => _succession = null" />
+            <SuccessionInterstitial Record="_succession" OnClose="CloseSuccession" />
         }
         @if (_primer)
         {
@@ -96,6 +97,8 @@ else
         ("laws", "", "Laws"), ("military", "", "Military"), ("dynasty", "", "Dynasty"), ("houses", "", "Houses"), ("chronicle", "", "Chronicle")
     };
     private string _screen = "office";
+    /// <summary>The rail in the role register's order (GDD Art Direction): the Office, then the career's screens, then the rest.</summary>
+    private IEnumerable<(string id, string glyph, string label)> Rail() => G.World == null ? Screens : RoleTheme.OrderScreens(RoleTheme.Of(G.World), Screens, s => s.id);
     private bool _screenChosen;
     private bool _hasAutosave, _epilogueDismissed, _savedFlash;
     private BriefingCard? _openReport;
@@ -119,7 +122,7 @@ else
         if (G.Turn == null) return;
         if (key == "Escape") { _openReport = null; _succession = null; }
         else if (key == "Enter" && _openReport == null && _succession == null) await EndTurn();
-        else if (key.Length == 1 && char.IsDigit(key[0])) { int i = key[0] - '1'; if (i >= 0 && i < Screens.Length) _screen = Screens[i].id; }
+        else if (key.Length == 1 && char.IsDigit(key[0])) { int i = key[0] - '1'; var rail = Rail().ToList(); if (i >= 0 && i < rail.Count) _screen = rail[i].id; }
         else return;
         StateHasChanged();
     }
@@ -145,6 +148,8 @@ else
     }
 
     private void Go(string id) => _screen = id;
+    /// <summary>The seat has passed: the heir lands on their register's home screen, so the change of life is seen at once.</summary>
+    private void CloseSuccession() { _succession = null; if (G.World != null) _screen = RoleTheme.Home(RoleTheme.Of(G.World)); }
 
     /// <summary>The primer opens once, on the first turn of a new run, unless this browser has seen it (GAP §10 item 1).</summary>
     private async Task CheckPrimer()

@@ -6,7 +6,7 @@
 <div class="win-backdrop" @onclick="OnClose">
     <div class="win event @b.Tier.ToLowerInvariant()" @onclick:stopPropagation="true">
         <div class="win-head">
-            <span class="tier"><span class="glyph">@(b.Setpiece ? "✦" : b.Tier == "AMBIENT" ? "·" : "◆")</span> @b.Tier</span>
+            <span class="tier"><span class="glyph">@(b.Setpiece ? "✦" : b.Tier == "AMBIENT" ? "·" : "◆")</span> @b.Tier <span class="kicker">· @RoleTheme.Kicker(RoleTheme.Of(w))</span></span>
             <h2>@b.Title</h2>
             <button class="win-close" @onclick="OnClose" title="Set aside (you can return to it from the outliner this turn)">✕</button>
         </div>

@@ -3,6 +3,17 @@
 ## [Unreleased]
 
 ### Added
+- **Role theming** (GDD Art Direction, "by character's job"): the shell carries a `data-role` register beside the era's,
+  from the protagonist's career track. The **military** register is functional — a technical sans for titles, squared
+  console frames with corner ticks, steel in place of brass, the Military and Galaxy screens first on the rail, the
+  Admiral first at the desk, every briefing card headed DISPATCH, a blinking signal lamp, a model hull and a chart tube
+  on the desk. The **stewardship** register is administrative — ruled ledger panels on a parchment tint, solid rules
+  under every figure, the House and Worlds first, the Steward first, cards headed LEDGER, ledgers, a brass balance and
+  an abacus on the desk. The **law** register is ceremonial — engraved double frames, ornaments on every header, a
+  brighter brass, a halo on the decision window, the Senate and the Chancery first, the Chancellor first, cards headed
+  THE COURT, a gavel, a codex and a robe stand. The register changes at succession: the seat-passing card says what the
+  heir's game will look like, and the heir lands on their register's home screen. Under the Imperium the era's gold
+  still wins.
 - **Twenty-six new situations** (`content/events/situations.json`), hooked to flags the engine already raised but no
   event read: the Senate's refusals (your motion thrown out, an Act that falls), the embargo, the Speaker's gavel, the
   bench leader's table, the loyal estates (the commons' feast, the officers' toast, the merchants' gift, the old blood's

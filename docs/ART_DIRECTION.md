@@ -72,3 +72,14 @@ Reference pass against Star Dynasties and Stellaris galaxy screens (Steam store 
   system's territory, borders are crisp polygons in the holder's colour, fills are dark tints, a contested or special
   area gets a diagonal hatch. No bubbles around systems. The border carries the information; the fill is a hint.
 - **Few things glow.** Suns, a selected system, a fleet in motion. Everything else sits back.
+
+## The role register
+
+The GDD's second reactive register (after the era): the same screens, chrome and emphasis by the protagonist's career
+track, changing at succession. `RoleTheme` (Core/Presentation) maps the track to a register id — `military`,
+`stewardship`, `law`, or `none` — and the shell carries it as `data-role` beside `data-era`. Everything else reads
+that: the stylesheet's three register blocks (variables, header faces, frame treatment, rail stripe, kicker colour),
+the rail order (`RoleTheme.Priority`), the desk's advisor order, the briefing kicker (DISPATCH · LEDGER · THE COURT),
+the Office set's dressing (`opts.role` in office.js: signal lamp, hull and chart tube; ledgers, balance and abacus;
+gavel, codex and robe stand) and the landing screen after the seat passes. The era's gold overrides the register's
+variables under the Imperium, so a proclamation still transforms the whole look.
