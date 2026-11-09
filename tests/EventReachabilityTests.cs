@@ -49,6 +49,23 @@ public class EventReachabilityTests
     [InlineData("the_iron_law_bites", "law:justice:iron_law")]
     public void AFlagEvent_IsEligible_WhenItsFlagIsUp(string eventId, string flag) => Eligible("the_fallen_house", eventId, (w, _) => w.WorldFlags.Add(flag));
 
+    // the military depth (docs/MILITARY.md)
+    [Theory]
+    [InlineData("the_line_holds", "battle_won")]
+    [InlineData("the_line_breaks", "battle_lost")]
+    [InlineData("the_achilles_name", "became_achilles")]
+    [InlineData("the_prize_crews", "hulls_captured")]
+    [InlineData("the_long_supply_line", "out_of_supply")]
+    [InlineData("the_restive_crews", "fleet_restive")]
+    [InlineData("the_mutiny", "fleet_mutinous")]
+    [InlineData("the_campaign_opens", "campaign_declared")]
+    [InlineData("the_campaign_ends", "campaign_over")]
+    public void AMilitaryFlagEvent_IsEligible_WhenItsFlagIsUp(string eventId, string flag) => Eligible("the_risen_officer", eventId, (w, _) => w.WorldFlags.Add(flag));
+    [Fact] public void TheMentionInDispatches() => Eligible("the_risen_officer", "the_mention_in_dispatches", (w, p) => { w.WorldFlags.Add("battle_won"); w.WorldFlags.Add("fought_at_the_front"); p.CareerTrack = "military"; });
+    [Fact] public void TheFrontOrTheFlag() => Eligible("the_risen_officer", "the_front_or_the_flag", (_, p) => { p.CareerTrack = "military"; p.CareerRank = 1; p.Flags.Remove("command:front"); p.Flags.Remove("command:flag"); });
+    [Fact] public void TheTorpedoRun() => Eligible("the_risen_officer", "the_torpedo_run", (w, p) => { w.WorldFlags.Add("at_war_any"); w.House(p.HouseId)!.Treasury.Isotopes = 2; });
+    [Fact] public void TheGeneralsSway() => Eligible("the_risen_officer", "the_generals_sway", (w, p) => { w.WorldFlags.Add("at_war_any"); p.Flags.Add("achilles"); });
+
     [Fact] public void TheRegentsHand() => Eligible("the_fallen_house", "the_regents_hand", (w, p) => { w.WorldFlags.Add(DynastySystem.RegencyFlag); Other(w, p).Flags.Add(DynastySystem.RegentFlag); });
     [Fact] public void TheOfficersGrievance() => Eligible("the_fallen_house", "the_officers_grievance", (w, p) => { w.WorldFlags.Add("estate_hostile:officers"); foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == p.HouseId)) f.Strength = 3; if (!w.Fleets.Values.Any(f => f.OwnerId == p.HouseId)) w.Fleets["t"] = new Fleet { Id = "t", Name = "Test", OwnerId = p.HouseId, Strength = 3 }; });
     [Fact] public void TheFrontierRidesIn() => Eligible("the_fallen_house", "the_frontier_rides_in", (w, _) => { w.WorldFlags.Add("estate_hostile:frontier"); w.WorldFlags.Add("ring:rim"); });

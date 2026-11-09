@@ -680,3 +680,30 @@ track.
 ### Still open, ranked
 1. **Plots with steps.** 2. **The ledger runs rich** (mean 310–350). 3. **A dynasty tree.** 4. **Spatial trade.**
 5. **Audio.** 6. **Content as scripted chains.**
+
+## 22. Military depth, stages 1–2 — 2026-11-09
+
+Method: 411 tests (eight on the engine, thirteen reachability rows) · both validators (193 events) · `qa --seeds 6`
+(36 runs, 0 failures; stances, loadouts, campaigns and command styles all given by the randomised player; the new flags
+all raised) · the probe, extended with a MILITARY line (battles 2–6 a run as before, campaigns 11–14, desertions 9–11
+hulls after softening the supply drain, mean loyalty 85–93, restive fleets 0–1) · a browser drive of the Military
+screen.
+
+### Done this pass (the owner's ask)
+- docs/MILITARY.md: tactics with a counter wheel, boarding prizes, the torpedo loadout on isotopes, the front and the
+  flag with valour and the Achilles name, the command cap by rank, supply lines with depots and desertion, campaigns,
+  crews' loyalty with refusal and mutiny; the Military screen's brief and controls; thirteen situations.
+- Two design notes recorded from the owner's direction: the Republic (parties, two consuls, generals' sway, the Caesar)
+  and foreign nations beyond the Reach (off-map expeditions first, the map expansion later).
+
+### Numbers worth watching
+- Prizes never fell to rivals in the probe (boarding needs a tactician with manpower and a battle with two losses);
+  no rival reached three victories at the front in sixty turns. Both are player-driven by design; watch that the
+  Achilles name is reachable in a military playthrough — the reachability row proves the event, not the path.
+- Supply desertion at 9–11 hulls a run across thirty houses is attrition, not a bleed. If rival fleets start dying in
+  enemy space, give the NPC a "fall back when short" rule before touching the drain.
+
+### Still open, ranked
+1. **The Republic**: parties from benches, the consulship, the cursus honorum, generals' sway and the Caesar
+   (docs/REPUBLIC.md). 2. **Foreign nations off-map**: expeditions as campaigns (docs/FOREIGN_NATIONS.md). 3. **Plots
+   with steps.** 4. **The ledger runs rich.** 5. **A dynasty tree.** 6. **Audio.**

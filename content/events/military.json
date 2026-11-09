@@ -1,0 +1,1048 @@
+{
+  "//": "THE MILITARY DEPTH (docs/MILITARY.md). These read FleetSystem's flags: battle_won / battle_lost / fought_at_the_front (the last battle), became_achilles, hulls_captured, out_of_supply, fleet_restive / fleet_mutinous, campaign_declared / campaign_over; and the commander's own flags command:front / command:flag / achilles.",
+  "events": [
+    {
+      "id": "the_front_or_the_flag",
+      "tier": "situation",
+      "weight": 9,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "track",
+          "role": "self",
+          "track": "military"
+        },
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 1
+        },
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "command:front",
+          "value": false
+        },
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "command:flag",
+          "value": false
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "the_front",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "command:front",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} chose the front: the flagship's bridge, where the crews can see their commander and the enemy can too."
+            }
+          ]
+        },
+        {
+          "id": "the_flag",
+          "requires": [
+            {
+              "type": "rank",
+              "role": "self",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "command:flag",
+              "value": true
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} chose the flag: the plot table, the dispatches, the whole fleet's battle rather than one ship's."
+            }
+          ]
+        },
+        {
+          "id": "leave_it_to_the_captains",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} left the line to the captains and kept to the staff work. The wardroom noticed; so did the staff."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_mention_in_dispatches",
+      "tier": "situation",
+      "weight": 11,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "battle_won"
+        },
+        {
+          "type": "worldFlag",
+          "flag": "fought_at_the_front"
+        },
+        {
+          "type": "track",
+          "role": "self",
+          "track": "military"
+        }
+      ],
+      "choices": [
+        {
+          "id": "accept_the_promotion",
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "self"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name}'s name went to the Admiralty in dispatches, and the Admiralty answered with a rank."
+            }
+          ]
+        },
+        {
+          "id": "share_the_credit",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the captains' names in the dispatch before their own. The wardroom will follow {self.name} anywhere now."
+            }
+          ]
+        },
+        {
+          "id": "ask_for_hulls_instead",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked the Admiralty for hulls, not honours. Six units of materials came; the honours will keep."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_line_holds",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "battle_won"
+        },
+        {
+          "type": "not",
+          "of": {
+            "type": "worldFlag",
+            "flag": "fought_at_the_front"
+          }
+        }
+      ],
+      "choices": [
+        {
+          "id": "pursue",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "war_score_bonus",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} ordered the pursuit. The enemy's stragglers paid for the day; the fleet came back tired."
+            }
+          ]
+        },
+        {
+          "id": "rescue_the_survivors",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stopped the fleet to pull survivors from the wrecks — the enemy's too. Two companies' worth of crews, and a wardroom that approves."
+            }
+          ]
+        },
+        {
+          "id": "hold_the_field",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} held the field and let the chronicles say so. A victory is what the record calls it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_line_breaks",
+      "tier": "setpiece",
+      "weight": 10,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "battle_lost"
+        }
+      ],
+      "choices": [
+        {
+          "id": "court_martial",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} convened a court-martial over the defeat. A captain was broken for it; the wardroom closed ranks."
+            }
+          ]
+        },
+        {
+          "id": "own_it",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the defeat as their own, in front of the fleet. Legitimacy bled; loyalty did not."
+            }
+          ]
+        },
+        {
+          "id": "rebuild_quietly",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "materials",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing about the defeat and put four units of materials into the yards. The fleet will be whole before the chronicle is."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_achilles_name",
+      "tier": "setpiece",
+      "weight": 14,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "became_achilles"
+        }
+      ],
+      "choices": [
+        {
+          "id": "wear_it",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wore the Achilles name like a cloak. The fleet loved it. The Senate began to count {self.house}'s hulls."
+            }
+          ]
+        },
+        {
+          "id": "refuse_it",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} refused the Achilles name in public and the old blood approved of the modesty. The fleet used the name anyway, quietly."
+            }
+          ]
+        },
+        {
+          "id": "turn_it_on_the_senate",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the Senate know exactly whose fleets loved whom. The chamber went very quiet."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_prize_crews",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "hulls_captured"
+        }
+      ],
+      "choices": [
+        {
+          "id": "keep_the_prizes",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the prizes under the house's colours. The enemy's hulls now fly {self.house}'s banner."
+            }
+          ]
+        },
+        {
+          "id": "sell_them",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sold the prizes to the yards. Eight credits, and a smaller fleet."
+            }
+          ]
+        },
+        {
+          "id": "return_them_for_ransom",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} ransomed the prizes and their crews back to the enemy. Five credits, and a courtesy the other side remembered."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_long_supply_line",
+      "tier": "situation",
+      "weight": 10,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "out_of_supply"
+        }
+      ],
+      "choices": [
+        {
+          "id": "buy_from_the_locals",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} bought stores from the local factors at the far end of the lane. Six credits; the fleet ate."
+            }
+          ]
+        },
+        {
+          "id": "forage",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the fleet forage on the worlds it sat over. It ate; they remembered."
+            }
+          ]
+        },
+        {
+          "id": "fall_back",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} ordered the fleet back toward supply. The wardroom called it prudence, in the tone that means retreat."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_restive_crews",
+      "tier": "situation",
+      "weight": 9,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "fleet_restive"
+        },
+        {
+          "type": "not",
+          "of": {
+            "type": "worldFlag",
+            "flag": "fleet_mutinous"
+          }
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_arrears",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the crews' arrears from the house's own coin. Six credits; the grumbling stopped."
+            }
+          ]
+        },
+        {
+          "id": "address_the_fleet",
+          "requires": [
+            {
+              "type": "skill",
+              "role": "self",
+              "skill": "leadership",
+              "op": "gte",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} addressed the fleet from the flagship's deck and promised what could be promised. It held, for now."
+            }
+          ]
+        },
+        {
+          "id": "hang_the_ringleaders",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} hanged three ringleaders from the yardarm. The crews fell silent. The silence was not loyalty."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_mutiny",
+      "tier": "setpiece",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "fleet_mutinous"
+        }
+      ],
+      "choices": [
+        {
+          "id": "go_aboard_yourself",
+          "requires": [
+            {
+              "type": "skill",
+              "role": "self",
+              "skill": "leadership",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went aboard the mutinous fleet alone and heard the crews out. It cost a night's sleep and bought back a fleet."
+            }
+          ]
+        },
+        {
+          "id": "send_the_guard",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the household guard aboard. The mutiny ended; so did two companies' worth of trust."
+            }
+          ]
+        },
+        {
+          "id": "let_them_go",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the mutineers take their hulls and go. The fleet shrank; the squares, oddly, approved of a lord who does not hang sailors."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_campaign_opens",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "campaign_declared"
+        }
+      ],
+      "choices": [
+        {
+          "id": "proclaim_it",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} proclaimed the campaign from the steps. The wardroom drank to it; the squares were quieter about it."
+            }
+          ]
+        },
+        {
+          "id": "requisition",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": 4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:merchants",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} requisitioned stores and crews for the campaign. The factors complained; the fleet sailed full."
+            }
+          ]
+        },
+        {
+          "id": "keep_it_quiet",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "war_score_bonus",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told no one the campaign's object. The enemy learned it from the first broadside."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_campaign_ends",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "campaign_over"
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_triumph",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the fleet a triumph through the capital of the house. Five credits of wine; a name that will outlast the war."
+            }
+          ]
+        },
+        {
+          "id": "stand_down",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood the fleet down and sent the crews home to the harvest. Quiet squares; a wardroom that wanted more."
+            }
+          ]
+        },
+        {
+          "id": "plan_the_next",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the next campaign on the plot table before the last was over. The Admiralty approved; the Senate noticed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_torpedo_run",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "at_war_any"
+        },
+        {
+          "type": "resource",
+          "resource": "isotopes",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "load_the_tubes",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "isotopes",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "war_score_bonus",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the fleet's tubes loaded with an isotope warhead each. The next broadside was the one the enemy remembered."
+            }
+          ]
+        },
+        {
+          "id": "hold_the_stock",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "treasury_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the isotopes in the vault. The Treasury approved of a lord who does not spend the irreplaceable."
+            }
+          ]
+        },
+        {
+          "id": "sell_to_the_enemys_enemy",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "isotopes",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 12
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sold two lots of isotopes to a house that hates the same enemy. Twelve credits; a question no one asked aloud."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_generals_sway",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "achilles",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "at_war_any"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "court_the_senate",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to the Senate as a soldier asking leave, not a conqueror asking tribute. The chamber unclenched a little."
+            }
+          ]
+        },
+        {
+          "id": "court_the_fleet",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spent the season with the fleet and let the Senate wonder. The wardroom would follow {self.name} anywhere; the chamber knows it."
+            }
+          ]
+        },
+        {
+          "id": "stay_above_it",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stayed above the talk of swords and chambers. The talk went on without {self.name}, which is not the same as stopping."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

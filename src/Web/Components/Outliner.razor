@@ -30,6 +30,19 @@
     if (w.HasFlag("governor_revolt")) alerts.Add(("warn", "A governor has declared a world for themselves", "houses"));
     if (w.HasFlag("freehold_of_ours")) alerts.Add(("info", "A world of yours is a free hold — buy it back or take it", "houses"));
     if (w.HasFlag("capital_taken")) alerts.Add(("good", "You hold the capital", "senate"));
+    // the military depth (docs/MILITARY.md): battles about to be joined, crews and supply, the campaign, the Achilles name
+    foreach (var sys in w.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving).Select(f => f.SystemId).Distinct().Where(sid => w.Fleets.Values.Any(e => !e.Moving && e.SystemId == sid && e.OwnerId != house.Id && w.AtWar(house.Id, e.OwnerId))).Take(2))
+    {
+        var enemy = w.Fleets.Values.First(e => !e.Moving && e.SystemId == sys && e.OwnerId != house.Id && w.AtWar(house.Id, e.OwnerId));
+        alerts.Add(("warn", $"Battle at {w.Galaxy?.System(sys)?.Name ?? sys} at the turn's end — {w.House(enemy.OwnerId)?.Name ?? "the enemy"} in the sky; set your stance", "military"));
+    }
+    if (w.HasFlag("fleet_mutinous")) alerts.Add(("warn", "A fleet has mutinied — hulls are deserting", "military"));
+    else if (w.HasFlag("fleet_restive")) alerts.Add(("warn", "A fleet's crews are restive and will not sail", "military"));
+    if (w.HasFlag("out_of_supply")) alerts.Add(("warn", "A fleet is out of supply — hulls will desert", "military"));
+    else if (w.HasFlag("supply_low")) alerts.Add(("info", "A fleet is running short of supply", "military"));
+    if (w.HasFlag("campaign_over")) alerts.Add(("info", "The campaign is over — the fleet is recalled", "military"));
+    if (w.HasFlag("became_achilles")) alerts.Add(("good", "The Reach speaks your name as it speaks of Achilles", "military"));
+    if (w.HasFlag("hulls_captured")) alerts.Add(("good", "Prize crews have taken enemy hulls", "military"));
     if (w.HasFlag("capital_lost")) alerts.Add(("warn", "The capital is lost", "senate"));
     if (w.HasFlag("rebellion")) alerts.Add(("warn", "A world of yours is in revolt", "house"));
     if (w.HasFlag("fief_granted")) alerts.Add(("good", "You have been granted a fief", "house"));

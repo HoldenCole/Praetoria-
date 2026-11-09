@@ -3,6 +3,24 @@
 ## [Unreleased]
 
 ### Added
+- **Military depth** (docs/MILITARY.md; the owner's ask for roles, promotions, campaigns, decisions in combat, weapons,
+  tactics, the front-line commander against the general against the Achilles figure, loyalties, supply lines).
+  **Tactics**: every fleet fights in a stance — line, press, skirmish or boarding — on a counter wheel (the line beats
+  the press beats the skirmish beats the line); boarding takes prize hulls for manpower; a torpedo loadout burns an
+  isotope a battle for a quarter more power. **Command**: a commander leads from the front (+10%, the crews' love, a
+  point of valour a victory, twice the risk; three victories make an Achilles) or from the flag (tactics lent to every
+  fleet, never lost with the line); a fleet larger than its commander's cap by rank fights at nine-tenths. **Supply**:
+  fleets drain beyond a lane of home (two with a Fleet Supply Depot), fight at four-fifths when short and lose hulls at
+  nought. **Campaigns** name an enemy world as the war's object for eight turns: fleets within two lanes fight harder and
+  count as supplied. **Loyalty**: the crews' regard for the house drifts with pay, fuel, supply, victories and the
+  officers' estate; restive crews will not sail, mutinous ones desert. Rival houses choose stances by the odds, load
+  torpedoes, declare campaigns and pick a command style by rank and age. The Military screen gains the battle brief
+  (odds and the stance edge for every sky an enemy shares), stance, loadout, loyalty, supply and command controls, and
+  the campaign panel; the outliner warns of battles, restive crews, short supply and a campaign's end. Thirteen events
+  (the front or the flag, mentioned in dispatches, the line holds, the line breaks, the Achilles name, the prize crews,
+  the long supply line, the restive crews, the mutiny, the campaign opens and ends, the torpedo run, the general's
+  sway). Design notes for the Republic's parties and consuls (docs/REPUBLIC.md) and for foreign nations off the map
+  (docs/FOREIGN_NATIONS.md).
 - **Role theming** (GDD Art Direction, "by character's job"): the shell carries a `data-role` register beside the era's,
   from the protagonist's career track. The **military** register is functional — a technical sans for titles, squared
   console frames with corner ticks, steel in place of brass, the Military and Galaxy screens first on the rail, the
