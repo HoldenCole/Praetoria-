@@ -57,6 +57,35 @@ public sealed class NpcAi
     /// <summary>Rival houses keep ships (GDD §3 abstracted realms): a house with a comfortable treasury lays
     /// down a hull at its seat; a hostile head (disposition &lt; −40 toward the protagonist) with a rested fleet
     /// sends it toward the protagonist's seat — the menace the map is for. One order per house per turn.</summary>
+    /// <summary>A rival house's tactics, deterministic: a fleet that outguns every enemy it could meet presses, one outgunned skirmishes, the rest
+    /// hold the line; a tactician with manpower to spare boards; torpedoes are loaded at home when the house holds two isotopes or more; a house
+    /// at war with no campaign names the nearest enemy world; a head on the military track leads from the front when young and from the flag when
+    /// a Commander or better.</summary>
+    private static void Posture(World world, House house, Character head, FleetRules rules, CommandExecutor executor, CommandContext ctx)
+    {
+        var enemies = world.EnemiesOf(house.Id).ToList();
+        int ours = FleetSystem.StrengthOf(world, house.Id), theirs = enemies.Count == 0 ? 0 : enemies.Max(e => FleetSystem.StrengthOf(world, e));
+        foreach (var f in world.Fleets.Values.Where(f => f.OwnerId == house.Id).OrderBy(f => f.Id, StringComparer.Ordinal))
+        {
+            string want = enemies.Count == 0 ? "line" : head.Skill("tactics") >= 3 && house.Treasury.Manpower >= 6 && ours >= theirs ? "boarding" : ours >= theirs * 3 / 2 ? "press" : ours * 3 / 2 < theirs ? "skirmish" : "line";
+            if (f.Stance != want) executor.TryExecute(new SetStanceCommand(head.Id, f.Id, want), ctx);
+            string load = house.Treasury.Isotopes >= 2 && enemies.Count > 0 ? "torpedoes" : f.Loadout == "torpedoes" && house.Treasury.Isotopes == 0 ? "guns" : f.Loadout;
+            if (load != f.Loadout) executor.TryExecute(new SetLoadoutCommand(head.Id, f.Id, load), ctx);
+        }
+        if (head.CareerTrack == "military")
+        {
+            string style = head.CareerRank >= 3 ? "flag" : head.Age < 40 ? "front" : "none";
+            if (SetCommandStyleCommand.StyleOf(head) != style) executor.TryExecute(new SetCommandStyleCommand(head.Id, head.Id, style), ctx);
+        }
+        if (enemies.Count > 0 && FleetSystem.CampaignTarget(world, house.Id) == null && world.Galaxy is { } g && ours >= 2)
+        {
+            var home = world.HoldingsOf(house.Id).Where(h => h.IsPlanet && h.SystemId.Length > 0).Select(h => h.SystemId).FirstOrDefault();
+            var target = enemies.SelectMany(e => world.HoldingsOf(e).Where(h => h.IsPlanet && h.SystemId.Length > 0).Select(h => h.SystemId)).Distinct()
+                .Select(sid => (sid, hops: home != null ? g.Hops(home, sid) : 99)).Where(x => x.hops > 0).OrderBy(x => x.hops).ThenBy(x => x.sid, StringComparer.Ordinal).FirstOrDefault();
+            if (target.sid != null) executor.TryExecute(new DeclareCampaignCommand(head.Id, target.sid, rules), ctx);
+        }
+    }
+
     private void Sail(List<Character> npcs, FleetRules rules, CommandExecutor executor, CommandContext ctx)
     {
         var world = ctx.World;
@@ -73,6 +102,9 @@ public sealed class NpcAi
 
             int disposition = player != null ? world.GetRelationship(head.Id, player.Id)?.Disposition ?? 0 : 0;
             bool atWar = playerHouse != null && world.AtWar(house.Id, playerHouse);
+
+            // the admiralty's choices (docs/MILITARY.md): a stance by the odds, torpedoes when the magazines allow, a campaign when at war
+            Posture(world, house, head, rules, executor, ctx);
 
             // a rising at home comes first (GDD §19 the rim): the nearest idle fleet sails to sit in orbit over the world in revolt
             var rising = world.HoldingsOf(house.Id).Where(h => h.InRebellion).OrderByDescending(h => h.Rebellion).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();

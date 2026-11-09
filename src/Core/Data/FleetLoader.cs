@@ -46,7 +46,19 @@ public static class FleetLoader
                     VeterancyBonus = Dbl(rules, "veterancyBonus", d.VeterancyBonus),
                     AdmiralDeathChance = Dbl(rules, "admiralDeathChance", d.AdmiralDeathChance),
                     WarWearinessTurns = ConditionParser.Int(rules, "warWearinessTurns", d.WarWearinessTurns),
-                    TributePerScore = ConditionParser.Int(rules, "tributePerScore", d.TributePerScore)
+                    TributePerScore = ConditionParser.Int(rules, "tributePerScore", d.TributePerScore),
+                    StanceEdge = Dbl(rules, "stanceEdge", d.StanceEdge), PressPower = Dbl(rules, "pressPower", d.PressPower), PressLosses = Dbl(rules, "pressLosses", d.PressLosses),
+                    SkirmishPower = Dbl(rules, "skirmishPower", d.SkirmishPower), SkirmishLosses = Dbl(rules, "skirmishLosses", d.SkirmishLosses),
+                    BoardingManpower = ConditionParser.Int(rules, "boardingManpower", d.BoardingManpower), BoardingCapturePer = ConditionParser.Int(rules, "boardingCapturePer", d.BoardingCapturePer),
+                    TorpedoBonus = Dbl(rules, "torpedoBonus", d.TorpedoBonus),
+                    FrontBonus = Dbl(rules, "frontBonus", d.FrontBonus), FrontDeathMult = Dbl(rules, "frontDeathMult", d.FrontDeathMult), AchillesValour = ConditionParser.Int(rules, "achillesValour", d.AchillesValour), AchillesBonus = Dbl(rules, "achillesBonus", d.AchillesBonus),
+                    FlagPerTactics = Dbl(rules, "flagPerTactics", d.FlagPerTactics), FlagMax = Dbl(rules, "flagMax", d.FlagMax),
+                    CommandCapBase = ConditionParser.Int(rules, "commandCapBase", d.CommandCapBase), CommandCapPerRank = ConditionParser.Int(rules, "commandCapPerRank", d.CommandCapPerRank), OverCapPenalty = Dbl(rules, "overCapPenalty", d.OverCapPenalty),
+                    SupplyRange = ConditionParser.Int(rules, "supplyRange", d.SupplyRange), DepotRange = ConditionParser.Int(rules, "depotRange", d.DepotRange), SupplyRecover = ConditionParser.Int(rules, "supplyRecover", d.SupplyRecover),
+                    SupplyDrain = ConditionParser.Int(rules, "supplyDrain", d.SupplyDrain), SupplyDrainNear = ConditionParser.Int(rules, "supplyDrainNear", d.SupplyDrainNear), SupplyLow = ConditionParser.Int(rules, "supplyLow", d.SupplyLow), SupplyLowPower = Dbl(rules, "supplyLowPower", d.SupplyLowPower),
+                    CampaignCost = ConditionParser.Int(rules, "campaignCost", d.CampaignCost), CampaignTurns = ConditionParser.Int(rules, "campaignTurns", d.CampaignTurns), CampaignRange = ConditionParser.Int(rules, "campaignRange", d.CampaignRange), CampaignBonus = Dbl(rules, "campaignBonus", d.CampaignBonus),
+                    LoyaltyStart = ConditionParser.Int(rules, "loyaltyStart", d.LoyaltyStart), LoyaltyRefuse = ConditionParser.Int(rules, "loyaltyRefuse", d.LoyaltyRefuse), LoyaltyMutiny = ConditionParser.Int(rules, "loyaltyMutiny", d.LoyaltyMutiny),
+                    LoyaltyWin = ConditionParser.Int(rules, "loyaltyWin", d.LoyaltyWin), LoyaltyLoss = ConditionParser.Int(rules, "loyaltyLoss", d.LoyaltyLoss), LoyaltyDrift = ConditionParser.Int(rules, "loyaltyDrift", d.LoyaltyDrift), LoyaltyUnpaid = ConditionParser.Int(rules, "loyaltyUnpaid", d.LoyaltyUnpaid)
                 };
             }
             catch (JsonException ex) { throw new ContentException($"Invalid JSON in '{file}': {ex.Message}", ex); }

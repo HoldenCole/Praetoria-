@@ -41,6 +41,37 @@
     "veterancyBonus": 0.05,
     "admiralDeathChance": 0.12,
     "warWearinessTurns": 6,
-    "tributePerScore": 3
+    "tributePerScore": 3,
+
+    // TACTICS (GDD §6 "decisions: battles"). A fleet fights in a stance: line (the default), press (the charge: more power,
+    // more losses), skirmish (harass and evade: less of both), boarding (the press, and a prize crew — captures hulls for
+    // manpower). The line beats the press, the press beats the skirmish, the skirmish beats the line; the side with the edge
+    // fights at ×(1 + stanceEdge). A fleet loaded with torpedoes fights at ×(1 + torpedoBonus) and burns one isotope a battle.
+    "stanceEdge": 0.15,
+    "pressPower": 1.15, "pressLosses": 1.3,
+    "skirmishPower": 0.9, "skirmishLosses": 0.6,
+    "boardingManpower": 2, "boardingCapturePer": 4,
+    "torpedoBonus": 0.25,
+
+    // COMMAND (GDD §13 "each rung = command of larger resources"; §5 the Achilles figure). A commander leads from the FRONT
+    // (+frontBonus to the fleet, death chance × frontDeathMult, a point of valour per victory; three make an Achilles, who
+    // fights at +achillesBonus and frightens the Reach) or from the FLAG (every fleet of the house +flagPerTactics per point
+    // of tactics, and never goes down with the line). A fleet larger than its commander's cap (commandCapBase + rank ×
+    // commandCapPerRank hulls) fights at ×overCapPenalty.
+    "frontBonus": 0.10, "frontDeathMult": 2.0, "achillesValour": 3, "achillesBonus": 0.15,
+    "flagPerTactics": 0.03, "flagMax": 0.15,
+    "commandCapBase": 2, "commandCapPerRank": 3, "overCapPenalty": 0.9,
+
+    // SUPPLY (GDD §17 "supply lines and resources"). A fleet within supplyRange lanes of a world of its house (or of a
+    // supply depot within depotRange) is in supply and recovers supplyRecover a turn; out of supply it loses supplyDrain
+    // (supplyDrainNear within two lanes of home). Under supplyLow it fights at ×supplyLowPower and loses readiness; at nought
+    // a hull deserts each turn. A CAMPAIGN (declareCampaign influence) names an enemy system: the house's fleets within
+    // campaignRange of it fight at ×(1 + campaignBonus) and count as supplied for campaignTurns.
+    "supplyRange": 1, "depotRange": 2, "supplyRecover": 25, "supplyDrain": 15, "supplyDrainNear": 8, "supplyLow": 40, "supplyLowPower": 0.8,
+    "campaignCost": 2, "campaignTurns": 8, "campaignRange": 2, "campaignBonus": 0.10,
+
+    // LOYALTY (GDD §6 "loyalty-vs-orders"). A fleet's loyalty to its house drifts with pay, fuel, victories and the officers'
+    // regard; under loyaltyRefuse the crews will not sail on orders, under loyaltyMutiny a hull deserts each turn.
+    "loyaltyStart": 70, "loyaltyRefuse": 30, "loyaltyMutiny": 15, "loyaltyWin": 8, "loyaltyLoss": 8, "loyaltyDrift": 2, "loyaltyUnpaid": 4
   }
 }

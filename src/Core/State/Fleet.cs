@@ -40,6 +40,15 @@ public sealed class Fleet
     /// <summary>0..100. Recovers while holding, erodes in transit; a worn fleet is a liability.</summary>
     public int Readiness { get; set; } = 100;
 
+    /// <summary>How it fights (docs/MILITARY.md): "line" (default), "press", "skirmish" or "boarding".</summary>
+    public string Stance { get; set; } = "line";
+    /// <summary>What it fights with: "guns" (default) or "torpedoes" (burns an isotope a battle for more power).</summary>
+    public string Loadout { get; set; } = "guns";
+    /// <summary>0..100 loyalty of the crews to the house: pay, fuel, victories and the officers' regard move it; low, they will not sail; lower, they desert.</summary>
+    public int Loyalty { get; set; } = 70;
+    /// <summary>0..100 supply: full within reach of a world or depot of the house, draining beyond; low, the fleet fights worse; nought, hulls desert.</summary>
+    public int Supply { get; set; } = 100;
+
     public string SystemId { get; set; } = "";
 
     /// <summary>Where it is going, or "" when holding. Arrival after <see cref="Eta"/> turns.</summary>
@@ -57,6 +66,15 @@ public sealed class Fleet
 public sealed class FleetIntel
 {
     public string FleetId { get; set; } = "";
+    /// <summary>How it fights (docs/MILITARY.md): "line" (default), "press", "skirmish" or "boarding".</summary>
+    public string Stance { get; set; } = "line";
+    /// <summary>What it fights with: "guns" (default) or "torpedoes" (burns an isotope a battle for more power).</summary>
+    public string Loadout { get; set; } = "guns";
+    /// <summary>0..100 loyalty of the crews to the house: pay, fuel, victories and the officers' regard move it; low, they will not sail; lower, they desert.</summary>
+    public int Loyalty { get; set; } = 70;
+    /// <summary>0..100 supply: full within reach of a world or depot of the house, draining beyond; low, the fleet fights worse; nought, hulls desert.</summary>
+    public int Supply { get; set; } = 100;
+
     public string SystemId { get; set; } = "";
     public int Strength { get; set; }
     public int Confidence { get; set; }

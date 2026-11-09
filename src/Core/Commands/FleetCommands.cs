@@ -31,7 +31,20 @@ public sealed class MoveFleetCommand : ICommand
         if (f.Moving || f.SystemId == _targetSystemId) return false;
         if (w.Galaxy.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId)) <= 0) return false;
         if (FleetSystem.Unfuelled(w, f.OwnerId)) return false;   // the tanks are dry (GDD §17 fuel)
+        if (f.Loyalty < _rules.LoyaltyRefuse) return false;      // the crews will not sail (docs/MILITARY.md loyalty)
         return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Treasury] = _rules.MovePoolCost });
+    }
+    /// <summary>Why the order would be refused, for the screens.</summary>
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true || w.Galaxy == null) return "no one to give the order";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        if (f.Moving) return "already under way"; if (f.SystemId == _targetSystemId) return "already there";
+        if (w.Galaxy.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId)) <= 0) return "no route";
+        if (FleetSystem.Unfuelled(w, f.OwnerId)) return "the tanks are dry";
+        if (f.Loyalty < _rules.LoyaltyRefuse) return "the crews will not sail — loyalty " + f.Loyalty;
+        return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Treasury] = _rules.MovePoolCost }) ? null : "needs a treasury action";
     }
 
     /// <summary>A chokepoint whose world is held by a house at war with the mover, with that house's fleet sitting there, cannot be
@@ -213,5 +226,113 @@ public sealed class MergeFleetsCommand : ICommand
         w.Fleets.Remove(a.Id); w.Intel.Remove(a.Id);
         FleetSystem.RefreshAdmiralFlags(w);
         w.Log($"{a.Name} is folded into {b.Name} ({b.Strength} hulls).");
+    }
+}
+
+
+/// <summary>Set how a fleet fights (docs/MILITARY.md tactics): line, press, skirmish or boarding. Free; a fleet under way keeps its stance until it arrives.</summary>
+public sealed class SetStanceCommand : ICommand
+{
+    private readonly string _fleetId, _stance;
+    public SetStanceCommand(string actorId, string fleetId, string stance) { ActorId = actorId; _fleetId = fleetId; _stance = stance; }
+    public string ActorId { get; }
+    public string Describe() => $"{_fleetId}: stance {_stance}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        if (!FleetSystem.Stances.Contains(_stance)) return "no such stance";
+        if (f.Stance == _stance) return "already so";
+        if (_stance == "boarding" && (w.House(f.OwnerId)?.Treasury.Manpower ?? 0) < 2) return "boarding wants prize crews — 2 manpower in hand";
+        return null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; var f = w.Fleets[_fleetId]; f.Stance = _stance; w.Log($"{f.Name} will fight in {(_stance == "line" ? "the line" : _stance == "press" ? "the press" : _stance == "skirmish" ? "skirmish order" : "boarding order")}."); }
+}
+
+/// <summary>Set what a fleet fights with: guns, or torpedoes that burn an isotope a battle for a quarter more power. Loading torpedoes is a
+/// refit at one of the house's own systems with an isotope in store; guns may be run out anywhere.</summary>
+public sealed class SetLoadoutCommand : ICommand
+{
+    private readonly string _fleetId, _loadout;
+    public SetLoadoutCommand(string actorId, string fleetId, string loadout) { ActorId = actorId; _fleetId = fleetId; _loadout = loadout; }
+    public string ActorId { get; }
+    public string Describe() => $"{_fleetId}: load {_loadout}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        if (!FleetSystem.Loadouts.Contains(_loadout)) return "no such loadout";
+        if (f.Loadout == _loadout) return "already so";
+        if (_loadout == "torpedoes")
+        {
+            if (f.Moving || !w.Holdings.Values.Any(h => h.OwnerId == actor.HouseId && h.SystemId == f.SystemId)) return "torpedoes are loaded at a world of your own";
+            if ((w.House(f.OwnerId)?.Treasury.Isotopes ?? 0) < 1) return "no isotopes in store";
+        }
+        return null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; var f = w.Fleets[_fleetId]; f.Loadout = _loadout; w.Log($"{f.Name} {(_loadout == "torpedoes" ? "loads torpedoes" : "runs out its guns")}."); }
+}
+
+/// <summary>Where a commander stands (docs/MILITARY.md command): at the FRONT — the fleet fights harder, the crews love it, the commander may
+/// die, and victories build valour toward the Achilles name — or at the FLAG, lending every fleet of the house a share of their tactics and
+/// never going down with the line. "none" is the default. Free; the actor sets their own style, or a kinsman's.</summary>
+public sealed class SetCommandStyleCommand : ICommand
+{
+    private readonly string _characterId, _style;
+    public SetCommandStyleCommand(string actorId, string characterId, string style) { ActorId = actorId; _characterId = characterId; _style = style; }
+    public string ActorId { get; }
+    public string Describe() => $"{_characterId}: command from the {_style}";
+    public static string StyleOf(Character c) => c.Flags.Contains(FleetSystem.FrontFlag) ? "front" : c.Flags.Contains(FleetSystem.FlagFlag) ? "flag" : "none";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var c = w.Char(_characterId);
+        if (actor?.Alive != true || c?.Alive != true || c.HouseId != actor.HouseId) return "not of your house";
+        if (_style is not ("front" or "flag" or "none")) return "front, flag, or none";
+        if (StyleOf(c) == _style) return "already so";
+        if (_style == "flag" && c.CareerTrack == "military" && c.CareerRank < 3) return "the flag is for a Commander or better";
+        return null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var c = w.Char(_characterId)!;
+        c.Flags.Remove(FleetSystem.FrontFlag); c.Flags.Remove(FleetSystem.FlagFlag);
+        if (_style == "front") c.Flags.Add(FleetSystem.FrontFlag); else if (_style == "flag") c.Flags.Add(FleetSystem.FlagFlag);
+        w.Log(_style == "front" ? $"{c.Name} will lead from the front." : _style == "flag" ? $"{c.Name} will command from the flag." : $"{c.Name} leaves the line to the captains.");
+    }
+}
+
+/// <summary>Declare a campaign (docs/MILITARY.md): name an enemy's system as the house's war aim for a season. Fleets within reach of it fight
+/// harder and count as supplied. Costs influence; one campaign at a time; the target's holder must be at war with you.</summary>
+public sealed class DeclareCampaignCommand : ICommand
+{
+    private readonly string _systemId; private readonly FleetRules _rules;
+    public DeclareCampaignCommand(string actorId, string systemId, FleetRules rules) { ActorId = actorId; _systemId = systemId; _rules = rules; }
+    public string ActorId { get; }
+    public string Describe() => $"campaign on {_systemId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true || w.Galaxy == null) return "no one to give the order";
+        if (w.Galaxy.System(_systemId) == null) return "no such system";
+        var holder = w.PlanetHolder(_systemId); if (holder == null) return "no one holds it";
+        if (holder == actor.HouseId) return "your own world";
+        if (!w.AtWar(actor.HouseId, holder)) return $"you are not at war with {w.House(holder)?.Name ?? holder}";
+        if (FleetSystem.CampaignTarget(w, actor.HouseId) != null) return "a campaign is already under way";
+        if (!w.Fleets.Values.Any(f => f.OwnerId == actor.HouseId && !f.Office)) return "no fleet to campaign with";
+        return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = _rules.CampaignCost }) ? null : $"needs {_rules.CampaignCost} influence";
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId)!;
+        ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = _rules.CampaignCost });
+        foreach (var f in w.WorldFlags.Where(f => f.StartsWith(FleetSystem.CampaignPrefix(actor.HouseId))).ToList()) w.WorldFlags.Remove(f);
+        w.WorldFlags.Add(FleetSystem.CampaignPrefix(actor.HouseId) + _systemId);
+        w.WorldCounters[FleetSystem.CampaignUntilKey(actor.HouseId)] = w.Turn + _rules.CampaignTurns;
+        w.WorldCounters["campaigns"] = w.Counter("campaigns") + 1;
+        if (actor.HouseId == w.Protagonist?.HouseId) w.WorldFlags.Add("campaign_declared");
+        w.Log($"{w.House(actor.HouseId)?.Name} declares a campaign: {w.Galaxy!.System(_systemId)?.Name ?? _systemId} is the war's object for {_rules.CampaignTurns} years.");
     }
 }

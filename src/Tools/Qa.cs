@@ -248,8 +248,12 @@ internal static class Qa
                 if (g.Capital.Length > 0) cands.Add(new MoveFleetCommand(p.Id, f.Id, g.Capital, content.Fleets));
                 if (members.Count > 0) cands.Add(new AssignAdmiralCommand(p.Id, f.Id, members[decisions.NextInt(0, members.Count)]));
                 cands.Add(new RefitFleetCommand(p.Id, f.Id));
+                cands.Add(new SetStanceCommand(p.Id, f.Id, FleetSystem.Stances[decisions.NextInt(0, FleetSystem.Stances.Length)]));
+                cands.Add(new SetLoadoutCommand(p.Id, f.Id, FleetSystem.Loadouts[decisions.NextInt(0, FleetSystem.Loadouts.Length)]));
             }
             if (fleets.Count >= 2) cands.Add(new MergeFleetsCommand(p.Id, fleets[0].Id, fleets[1].Id));
+            cands.Add(new SetCommandStyleCommand(p.Id, p.Id, new[] { "front", "flag", "none" }[decisions.NextInt(0, 3)]));
+            foreach (var e in w.EnemiesOf(house.Id).Take(2)) foreach (var h in w.HoldingsOf(e).Where(x => x.IsPlanet && x.SystemId.Length > 0).Take(1)) cands.Add(new DeclareCampaignCommand(p.Id, h.SystemId, content.Fleets));
             var own = worlds.Select(h => h.SystemId).ToHashSet();
             foreach (var def in bc.Defs.OrderBy(d => d.Id, StringComparer.Ordinal))
             {

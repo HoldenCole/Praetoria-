@@ -116,6 +116,9 @@
       "cost": { "credits": 6, "rare_earths": 2 }, "yield": { "influence": 1 }, "defense": 0.1 },
     { "id": "arsenal", "name": "Planetary Arsenal", "minTitleRank": 1,
       "cost": { "materials": 8, "isotopes": 2 }, "yield": { }, "defense": 0.3 },
+    // a supply depot keeps the house's fleets in supply two lanes out instead of one (docs/MILITARY.md)
+    { "id": "supply_depot", "name": "Fleet Supply Depot",
+      "cost": { "materials": 6, "credits": 4 }, "yield": { }, "upkeep": { "credits": 1 }, "defense": 0.1 },
     {
       "id": "deep_drill",
       "name": "Deep-Core Drill",

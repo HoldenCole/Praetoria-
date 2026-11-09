@@ -38,6 +38,24 @@ public sealed class FleetRules
     public int WarWearinessTurns { get; init; } = 6;
     public int TributePerScore { get; init; } = 3;
 
+    // ---- tactics (docs/MILITARY.md) ----
+    public double StanceEdge { get; init; } = 0.15;
+    public double PressPower { get; init; } = 1.15; public double PressLosses { get; init; } = 1.3;
+    public double SkirmishPower { get; init; } = 0.9; public double SkirmishLosses { get; init; } = 0.6;
+    public int BoardingManpower { get; init; } = 2; public int BoardingCapturePer { get; init; } = 4;
+    public double TorpedoBonus { get; init; } = 0.25;
+    // ---- command ----
+    public double FrontBonus { get; init; } = 0.10; public double FrontDeathMult { get; init; } = 2.0; public int AchillesValour { get; init; } = 3; public double AchillesBonus { get; init; } = 0.15;
+    public double FlagPerTactics { get; init; } = 0.03; public double FlagMax { get; init; } = 0.15;
+    public int CommandCapBase { get; init; } = 2; public int CommandCapPerRank { get; init; } = 3; public double OverCapPenalty { get; init; } = 0.9;
+    // ---- supply and campaigns ----
+    public int SupplyRange { get; init; } = 1; public int DepotRange { get; init; } = 2; public int SupplyRecover { get; init; } = 25; public int SupplyDrain { get; init; } = 15; public int SupplyDrainNear { get; init; } = 8;
+    public int SupplyLow { get; init; } = 40; public double SupplyLowPower { get; init; } = 0.8;
+    public int CampaignCost { get; init; } = 2; public int CampaignTurns { get; init; } = 8; public int CampaignRange { get; init; } = 2; public double CampaignBonus { get; init; } = 0.10;
+    // ---- loyalty ----
+    public int LoyaltyStart { get; init; } = 70; public int LoyaltyRefuse { get; init; } = 30; public int LoyaltyMutiny { get; init; } = 15;
+    public int LoyaltyWin { get; init; } = 8; public int LoyaltyLoss { get; init; } = 8; public int LoyaltyDrift { get; init; } = 2; public int LoyaltyUnpaid { get; init; } = 4;
+
     public static FleetRules Default { get; } = new();
 }
 
@@ -56,6 +74,16 @@ public sealed class FleetSystem
     public const string BattlesLostCounter = "battles_lost";
     public const string ConquestsCounter = "conquests";
     public const string BattleFoughtFlag = "battle_fought";
+    /// <summary>One-turn flags of the military depth (docs/MILITARY.md), cleared at the top of <see cref="Tick"/>.</summary>
+    public static readonly string[] DepthTurnFlags = { "battle_won", "battle_lost", "fought_at_the_front", "hulls_captured", "became_achilles", "fleet_deserts", "campaign_over" };
+    public const string FrontFlag = "command:front", FlagFlag = "command:flag", AchillesFlag = "achilles";
+    public static string ValourKey(string characterId) => "valour:" + characterId;
+    public static string CampaignUntilKey(string houseId) => "campaign_until:" + houseId;
+    public static string CampaignPrefix(string houseId) => $"campaign:{houseId}:";
+    /// <summary>The system a house's campaign names, or null.</summary>
+    public static string? CampaignTarget(World w, string houseId) => w.Counter(CampaignUntilKey(houseId)) > w.Turn ? w.WorldFlags.FirstOrDefault(f => f.StartsWith(CampaignPrefix(houseId)))?[CampaignPrefix(houseId).Length..] : null;
+    public static readonly string[] Stances = { "line", "press", "skirmish", "boarding" };
+    public static readonly string[] Loadouts = { "guns", "torpedoes" };
     public const string ConquestMadeFlag = "conquest_made";
     public const string HoldingLostFlag = "holding_lost";
     public const string UnderSiegeFlag = "under_siege";          // one of the player's holdings is blockaded
@@ -111,7 +139,10 @@ public sealed class FleetSystem
     {
         _world = w;
         LastBattles.Clear();
+        foreach (var f in DepthTurnFlags) w.WorldFlags.Remove(f);
         if (w.Galaxy == null) { UpdateIntel(w); return; }
+        Supply(w);
+        Campaigns(w);
 
         foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal))
         {
@@ -135,10 +166,118 @@ public sealed class FleetSystem
             Desert(w, house);
             Refuel(w, house);
         }
+        Loyalty(w);
 
         RefreshAdmiralFlags(w);
         WarWeariness(w);
         UpdateIntel(w);
+    }
+
+    // ---------------- supply, campaigns, loyalty (docs/MILITARY.md) ----------------
+
+    /// <summary>Is the system within the house's supply: a world of the house within <see cref="FleetRules.SupplyRange"/> lanes, a supply
+    /// depot within <see cref="FleetRules.DepotRange"/>, or the house's campaign target within its range.</summary>
+    public bool InSupply(World w, string houseId, string systemId)
+    {
+        var g = w.Galaxy; if (g == null) return true;
+        foreach (var h in w.HoldingsOf(houseId).Where(h => h.IsPlanet && h.SystemId.Length > 0))
+        {
+            int range = h.Buildings.Contains("supply_depot") ? _rules.DepotRange : _rules.SupplyRange;
+            if (h.SystemId == systemId || g.Hops(h.SystemId, systemId) is > 0 and var d && d <= range) return true;
+        }
+        var target = CampaignTarget(w, houseId);
+        if (target != null && (target == systemId || g.Hops(target, systemId) is > 0 and var cd && cd <= _rules.CampaignRange)) return true;
+        return false;
+    }
+    /// <summary>Within two lanes of a world of the house: out of supply, but near enough that the drain is gentler.</summary>
+    private static bool NearHome(World w, string houseId, string systemId) =>
+        w.Galaxy != null && w.HoldingsOf(houseId).Any(h => h.IsPlanet && h.SystemId.Length > 0 && (h.SystemId == systemId || w.Galaxy.Hops(h.SystemId, systemId) is > 0 and <= 2));
+
+    private void Supply(World w)
+    {
+        var mine = w.Protagonist?.HouseId;
+        foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal).ToList())
+        {
+            if (f.OwnerId == PirateSystem.HouseId) { f.Supply = 100; continue; }   // raiders live off the lanes
+            string at = f.Moving ? f.DestinationId : f.SystemId;
+            if (InSupply(w, f.OwnerId, at)) f.Supply = Math.Min(100, f.Supply + _rules.SupplyRecover);
+            else
+            {
+                bool starved = f.Supply == 0;   // a fleet that begins the turn with nothing loses a hull; the turn it runs dry it only goes hungry
+                f.Supply = Math.Max(0, f.Supply - (NearHome(w, f.OwnerId, at) ? _rules.SupplyDrainNear : _rules.SupplyDrain));
+                if (f.Supply < _rules.SupplyLow) f.Readiness = Math.Max(0, f.Readiness - 5);
+                if (starved && f.Strength > 1) { ShedHull(w, f); w.Log($"{f.Name}, out of supply at {w.Galaxy?.System(at)?.Name ?? at}, loses a hull to desertion."); if (f.OwnerId == mine) w.WorldFlags.Add("fleet_deserts"); }
+            }
+        }
+        foreach (var f in new[] { "out_of_supply", "supply_low" }) w.WorldFlags.Remove(f);
+        if (mine != null)
+        {
+            if (w.Fleets.Values.Any(f => f.OwnerId == mine && f.Supply == 0)) w.WorldFlags.Add("out_of_supply");
+            else if (w.Fleets.Values.Any(f => f.OwnerId == mine && f.Supply < _rules.SupplyLow)) w.WorldFlags.Add("supply_low");
+        }
+    }
+
+    private static void ShedHull(World w, Fleet f)
+    {
+        if (f.Ships.Count > 0) { var cls = f.Ships.Where(k => k.Value > 0).OrderByDescending(k => k.Value).ThenBy(k => k.Key, StringComparer.Ordinal).First().Key; f.Ships[cls] -= 1; if (f.Ships[cls] == 0) f.Ships.Remove(cls); f.Recount(); }
+        else f.Strength -= 1;
+    }
+
+    private void Campaigns(World w)
+    {
+        var mine = w.Protagonist?.HouseId;
+        foreach (var key in w.WorldCounters.Keys.Where(k => k.StartsWith("campaign_until:")).ToList())
+        {
+            if (w.WorldCounters[key] > w.Turn) continue;
+            string houseId = key["campaign_until:".Length..];
+            foreach (var f in w.WorldFlags.Where(f => f.StartsWith(CampaignPrefix(houseId))).ToList()) w.WorldFlags.Remove(f);
+            w.WorldCounters.Remove(key);
+            if (houseId == mine) w.WorldFlags.Add("campaign_over");
+            w.Log($"The campaign of {w.House(houseId)?.Name ?? houseId} is over; its fleets are recalled to their stations.");
+        }
+        foreach (var f in new[] { "campaign_open" }) w.WorldFlags.Remove(f);
+        if (mine != null && CampaignTarget(w, mine) != null) w.WorldFlags.Add("campaign_open");
+    }
+
+    /// <summary>Loyalty drifts with pay, fuel, supply and the officers' regard (PolicySystem); under the refusal line the crews will not sail
+    /// (MoveFleetCommand), under the mutiny line a hull deserts a turn.</summary>
+    private void Loyalty(World w)
+    {
+        var mine = w.Protagonist?.HouseId;
+        w.WorldFlags.Remove("fleet_mutinous"); w.WorldFlags.Remove("fleet_restive");
+        foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal).ToList())
+        {
+            if (f.OwnerId == PirateSystem.HouseId) continue;
+            var house = w.House(f.OwnerId); if (house == null) continue;
+            int d = _rules.LoyaltyDrift;
+            if (house.Treasury.Credits < 0) d -= _rules.LoyaltyUnpaid;
+            if (w.Counter(FuelShortKey(f.OwnerId)) > 0) d -= 2;
+            if (f.Supply < _rules.SupplyLow) d -= 2;
+            int officers = PolicySystem.Approval(w, f.OwnerId, "officers");
+            if (officers <= PolicySystem.Hostile) d -= 2; else if (officers >= PolicySystem.Loyal) d += 1;
+            if (f.AdmiralId.Length > 0 && w.Char(f.AdmiralId) is { Alive: true } adm && adm.Flags.Contains(FrontFlag)) d += 1;   // crews love a commander who shares the line
+            f.Loyalty = Math.Clamp(f.Loyalty + d, 0, 100);
+            if (f.Loyalty < _rules.LoyaltyMutiny && f.Strength > 1)
+            {
+                ShedHull(w, f); w.Log($"A hull of {f.Name} deserts: the crews have had enough of {house.Name}.");
+                if (f.OwnerId == mine) { w.WorldFlags.Add("fleet_deserts"); }
+            }
+            if (f.OwnerId == mine) { if (f.Loyalty < _rules.LoyaltyMutiny) w.WorldFlags.Add("fleet_mutinous"); else if (f.Loyalty < _rules.LoyaltyRefuse) w.WorldFlags.Add("fleet_restive"); }
+        }
+    }
+
+    /// <summary>The hulls a commander may lead without strain: the base plus the rank's allowance on the military track (any other track, the base alone).</summary>
+    public int CommandCap(Character? c) => c == null ? int.MaxValue : _rules.CommandCapBase + (c.CareerTrack == "military" ? c.CareerRank : 0) * _rules.CommandCapPerRank;
+
+    /// <summary>The dominant stance of a house's fleets in a system: the largest fleet's.</summary>
+    public static string StanceAt(World w, string houseId, string systemId) =>
+        w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault()?.Stance ?? "line";
+    /// <summary>Who has the edge: the line beats the press, the press beats the skirmish, the skirmish beats the line; boarding fights as the press.</summary>
+    public static int StanceEdgeOf(string a, string b)
+    {
+        string A = a == "boarding" ? "press" : a, B = b == "boarding" ? "press" : b;
+        if (A == B) return 0;
+        return (A, B) switch { ("line", "press") => 1, ("press", "skirmish") => 1, ("skirmish", "line") => 1, _ => -1 };
     }
 
     public const int FuelReadinessLoss = 15, LayUpTurns = 6;
@@ -433,20 +572,40 @@ public sealed class FleetSystem
         string attacker = owner == a ? b : a, defender = owner == a ? a : b;
         double pa = Power(w, attacker, systemId, defending: false);
         double pd = Power(w, defender, systemId, defending: owner == defender);
+        string sa = StanceAt(w, attacker, systemId), sd = StanceAt(w, defender, systemId); int edge = StanceEdgeOf(sa, sd);
+        if (edge > 0) pa *= 1 + _rules.StanceEdge; else if (edge < 0) pd *= 1 + _rules.StanceEdge;
+        foreach (var f in w.Fleets.Values.Where(f => !f.Moving && f.SystemId == systemId && (f.OwnerId == a || f.OwnerId == b) && f.Loadout == "torpedoes"))
+            if (w.House(f.OwnerId) is { } th && th.Treasury.Isotopes > 0) th.Treasury.Isotopes -= 1;   // the magazines are spent whatever the outcome
         double roll = rng.NextDouble();
         bool attackerWins = roll < pa / (pa + pd);
         string winner = attackerWins ? attacker : defender, loser = attackerWins ? defender : attacker;
         double pw = attackerWins ? pa : pd, pl = attackerWins ? pd : pa;
 
         int loserStrength = StrengthAt(w, loser, systemId), winnerStrength = StrengthAt(w, winner, systemId);
-        int loserLosses = Math.Min(loserStrength, Math.Max(1, (int)Math.Ceiling(loserStrength * _rules.LoserLossRatio)));
-        int winnerLosses = Math.Max(0, Math.Min(winnerStrength - 1, (int)Math.Floor(winnerStrength * _rules.WinnerLossRatio * Math.Min(1.0, pl / pw))));
+        string sWin = attackerWins ? sa : sd, sLose = attackerWins ? sd : sa;
+        double LossMult(string st) => st switch { "press" => _rules.PressLosses, "boarding" => _rules.PressLosses, "skirmish" => _rules.SkirmishLosses, _ => 1.0 };
+        int loserLosses = Math.Min(loserStrength, Math.Max(1, (int)Math.Ceiling(loserStrength * _rules.LoserLossRatio * LossMult(sLose))));
+        int winnerLosses = Math.Max(0, Math.Min(winnerStrength - 1, (int)Math.Floor(winnerStrength * _rules.WinnerLossRatio * Math.Min(1.0, pl / pw) * LossMult(sWin))));
 
         var loserAdmirals = Admirals(w, loser, systemId); var winnerAdmirals = Admirals(w, winner, systemId);
         ApplyLosses(w, loser, systemId, loserLosses, _rules.LoserReadinessCost);
         ApplyLosses(w, winner, systemId, winnerLosses, _rules.WinnerReadinessCost);
+        var player = w.Protagonist?.HouseId;
+        // boarding: the victor's prize crews take a hull for every few the loser shed, for manpower
+        if (sWin == "boarding" && w.House(winner) is { } wh && wh.Treasury.Manpower >= _rules.BoardingManpower && loserLosses >= 2)
+        {
+            int prizes = Math.Max(1, loserLosses / _rules.BoardingCapturePer); wh.Treasury.Manpower -= _rules.BoardingManpower;
+            var into = w.Fleets.Values.Where(f => f.OwnerId == winner && !f.Moving && f.SystemId == systemId).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (into != null) { if (into.Ships.Count == 0) into.Ships[_rules.DefaultClass] = into.Strength; into.Ships[_rules.DefaultClass] = into.Ships.GetValueOrDefault(_rules.DefaultClass) + prizes; into.Recount(); w.Log($"Prize crews of {into.Name} take {prizes} hull(s) of the enemy as their own."); if (winner == player) w.WorldFlags.Add("hulls_captured"); }
+        }
         foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == winner && !f.Moving && f.SystemId == systemId))
-            f.Veterancy = Math.Min(_rules.VeterancyMax, f.Veterancy + 1);
+        { f.Veterancy = Math.Min(_rules.VeterancyMax, f.Veterancy + 1); f.Loyalty = Math.Min(100, f.Loyalty + _rules.LoyaltyWin); }
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == loser && !f.Moving && f.SystemId == systemId)) f.Loyalty = Math.Max(0, f.Loyalty - _rules.LoyaltyLoss);
+        if (player != null && (winner == player || loser == player))
+        {
+            w.WorldFlags.Add(winner == player ? "battle_won" : "battle_lost");
+            if (winnerAdmirals.Concat(loserAdmirals).Any(c => c.Id == w.ProtagonistId && c.Flags.Contains(FrontFlag))) w.WorldFlags.Add("fought_at_the_front");
+        }
         AdmiralOutcomes(w, rng, winnerAdmirals, loserAdmirals);
         Retreat(w, loser, systemId);
 
@@ -470,10 +629,22 @@ public sealed class FleetSystem
             string skill = c.Skill("tactics") <= c.Skill("gunnery") ? "tactics" : "gunnery";
             c.Skills[skill] = c.Skill(skill) + 1;
             w.Log($"{c.Name} learns from the victory ({skill} {c.Skill(skill)}).");
+            if (c.Flags.Contains(FrontFlag))
+            {
+                int v = w.Counter(ValourKey(c.Id)) + 1; w.WorldCounters[ValourKey(c.Id)] = v;
+                if (v >= _rules.AchillesValour && !c.Flags.Contains(AchillesFlag))
+                {
+                    c.Flags.Add(AchillesFlag); w.Log($"{c.Name} has led from the front through {v} victories; the Reach begins to speak the name the way it speaks of Achilles.");
+                    if (c.Id == w.ProtagonistId) w.WorldFlags.Add("became_achilles");
+                    if (w.House(c.HouseId) is { } ah) ah.Legitimacy = Math.Min(100, ah.Legitimacy + 2);
+                }
+            }
         }
         foreach (var c in losers)
         {
-            if (rng.NextDouble() < _rules.AdmiralDeathChance)
+            if (c.Flags.Contains(FlagFlag)) { c.Stress = Math.Min(100, c.Stress + 6); continue; }   // the flag is not in the line
+            double death = _rules.AdmiralDeathChance * (c.Flags.Contains(FrontFlag) ? _rules.FrontDeathMult : 1.0);
+            if (rng.NextDouble() < death)
             {
                 w.Log($"{c.Name} goes down with the line.");
                 DynastySystem.Die(w, c.Id);
@@ -495,10 +666,36 @@ public sealed class FleetSystem
         {
             double hulls = 0;
             foreach (var (cls, n) in Composition(f)) hulls += n * (defending ? cls.Defense : cls.Attack);
-            p += hulls * (0.5 + f.Readiness / 200.0) * AdmiralFactor(w, f) * (1 + f.Veterancy * _rules.VeterancyBonus);
+            p += hulls * (0.5 + f.Readiness / 200.0) * AdmiralFactor(w, f) * (1 + f.Veterancy * _rules.VeterancyBonus) * DepthFactor(w, f);
         }
         if (defending) p *= 1 + _rules.DefenderBonus + Defense(w, systemId, houseId);
+        p *= 1 + FlagFactor(w, houseId);
+        if (CampaignTarget(w, houseId) is { } target && w.Galaxy != null && (target == systemId || w.Galaxy.Hops(target, systemId) is > 0 and var cd && cd <= _rules.CampaignRange)) p *= 1 + _rules.CampaignBonus;
         return p;
+    }
+
+    /// <summary>The military depth's per-fleet factor (docs/MILITARY.md): stance, torpedoes with isotopes in store, a commander at the front
+    /// (and an Achilles), a fleet over its commander's cap, short supply, restive crews.</summary>
+    public double DepthFactor(World w, Fleet f)
+    {
+        double k = f.Stance switch { "press" => _rules.PressPower, "boarding" => _rules.PressPower, "skirmish" => _rules.SkirmishPower, _ => 1.0 };
+        if (f.Loadout == "torpedoes" && (w.House(f.OwnerId)?.Treasury.Isotopes ?? 0) > 0) k *= 1 + _rules.TorpedoBonus;
+        var c = f.AdmiralId.Length > 0 ? w.Char(f.AdmiralId) : null;
+        if (c is { Alive: true })
+        {
+            if (c.Flags.Contains(FrontFlag)) k *= 1 + _rules.FrontBonus + (c.Flags.Contains(AchillesFlag) ? _rules.AchillesBonus : 0);
+            if (f.Strength > CommandCap(c)) k *= _rules.OverCapPenalty;
+        }
+        if (f.Supply < _rules.SupplyLow) k *= _rules.SupplyLowPower;
+        if (f.Loyalty < _rules.LoyaltyRefuse) k *= 0.9;
+        return k;
+    }
+
+    /// <summary>A commander who leads from the flag lends every fleet of the house a share of their tactics: the house's best such commander counts.</summary>
+    public double FlagFactor(World w, string houseId)
+    {
+        var best = w.Characters.Values.Where(c => c.Alive && c.HouseId == houseId && c.Flags.Contains(FlagFlag)).Select(c => c.Skill("tactics")).DefaultIfEmpty(-1).Max();
+        return best < 0 ? 0 : Math.Min(_rules.FlagMax, best * _rules.FlagPerTactics);
     }
 
     /// <summary>The admiral's skill (GDD §6): tactics 5%, gunnery 3%, leadership 2% per point; Tactician +10%, Strategist +5%;
