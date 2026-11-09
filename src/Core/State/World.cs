@@ -81,6 +81,10 @@ public sealed class World
     /// <summary>Laws in force, house id → law id → option id (GDD §6.1); a law not named is at its default.</summary>
     public Dictionary<string, Dictionary<string, string>> Laws { get; set; } = new();
 
+    /// <summary>The foreign nations beyond the Reach as they stand (docs/FOREIGN_NATIONS.md): strength, regard, wars and tribute. Off the map.</summary>
+    public List<Nation> Nations { get; set; } = new();
+    public Nation? Nation(string id) => Nations.FirstOrDefault(n => n.Id == id);
+
     /// <summary>Senate factions: benches that vote together (GDD §6.1).</summary>
     public List<Faction> Factions { get; set; } = new();
 

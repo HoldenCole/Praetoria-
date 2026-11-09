@@ -146,6 +146,7 @@ public sealed class FleetSystem
 
         foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal))
         {
+            if (f.IsAway) continue;   // off the map (docs/FOREIGN_NATIONS.md)
             if (f.Moving)
             {
                 f.Eta -= 1;
@@ -199,6 +200,7 @@ public sealed class FleetSystem
         foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal).ToList())
         {
             if (f.OwnerId == PirateSystem.HouseId) { f.Supply = 100; continue; }   // raiders live off the lanes
+            if (f.IsAway) continue;   // an expedition's supply is the NationSystem's to drain
             string at = f.Moving ? f.DestinationId : f.SystemId;
             if (InSupply(w, f.OwnerId, at)) f.Supply = Math.Min(100, f.Supply + _rules.SupplyRecover);
             else
@@ -217,7 +219,7 @@ public sealed class FleetSystem
         }
     }
 
-    private static void ShedHull(World w, Fleet f)
+    internal static void ShedHull(World w, Fleet f)
     {
         if (f.Ships.Count > 0) { var cls = f.Ships.Where(k => k.Value > 0).OrderByDescending(k => k.Value).ThenBy(k => k.Key, StringComparer.Ordinal).First().Key; f.Ships[cls] -= 1; if (f.Ships[cls] == 0) f.Ships.Remove(cls); f.Recount(); }
         else f.Strength -= 1;
@@ -430,7 +432,7 @@ public sealed class FleetSystem
         if (w.Galaxy == null || house == null) return set;
         foreach (var s in w.Holdings.Values.Where(h => h.OwnerId == house && h.SystemId != "").Select(h => h.SystemId).Distinct().ToList())
         { set.Add(s); foreach (var n in w.Galaxy.Neighbors(s)) set.Add(n); }
-        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house && !f.Moving)) { set.Add(f.SystemId); foreach (var n in w.Galaxy.Neighbors(f.SystemId)) set.Add(n); }
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house && !f.Moving && !f.IsAway)) { set.Add(f.SystemId); foreach (var n in w.Galaxy.Neighbors(f.SystemId)) set.Add(n); }
         return set;
     }
 
@@ -543,7 +545,7 @@ public sealed class FleetSystem
         if (w.Wars.Count == 0 || w.Galaxy == null) return;
         var player = w.Protagonist?.HouseId;
 
-        foreach (var systemId in w.Fleets.Values.Where(f => !f.Moving).Select(f => f.SystemId).Distinct().OrderBy(s => s, StringComparer.Ordinal).ToList())
+        foreach (var systemId in w.Fleets.Values.Where(f => !f.Moving && !f.IsAway).Select(f => f.SystemId).Distinct().OrderBy(s => s, StringComparer.Ordinal).ToList())
         {
             var houses = w.Fleets.Values.Where(f => !f.Moving && f.SystemId == systemId).Select(f => f.OwnerId).Distinct().OrderBy(h => h, StringComparer.Ordinal).ToList();
             for (int i = 0; i < houses.Count; i++)
@@ -622,7 +624,7 @@ public sealed class FleetSystem
 
     /// <summary>The victor's admiral learns (tactics, then gunnery); the loser's is wounded — or, on a seeded roll, killed
     /// (GDD §5 "losing a Fleet Admiral means the heir starts as a green cadet"; a dead protagonist triggers succession).</summary>
-    private void AdmiralOutcomes(World w, IRng rng, List<Character> winners, List<Character> losers)
+    internal void AdmiralOutcomes(World w, IRng rng, List<Character> winners, List<Character> losers)
     {
         foreach (var c in winners)
         {
@@ -662,16 +664,20 @@ public sealed class FleetSystem
     public double Power(World w, string houseId, string systemId, bool defending)
     {
         double p = 0;
-        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId))
-        {
-            double hulls = 0;
-            foreach (var (cls, n) in Composition(f)) hulls += n * (defending ? cls.Defense : cls.Attack);
-            p += hulls * (0.5 + f.Readiness / 200.0) * AdmiralFactor(w, f) * (1 + f.Veterancy * _rules.VeterancyBonus) * DepthFactor(w, f);
-        }
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId)) p += PowerOf(w, f, defending);
         if (defending) p *= 1 + _rules.DefenderBonus + Defense(w, systemId, houseId);
         p *= 1 + FlagFactor(w, houseId);
         if (CampaignTarget(w, houseId) is { } target && w.Galaxy != null && (target == systemId || w.Galaxy.Hops(target, systemId) is > 0 and var cd && cd <= _rules.CampaignRange)) p *= 1 + _rules.CampaignBonus;
         return p;
+    }
+
+    /// <summary>One fleet's power on its own: hulls × class stat × readiness × admiral × veterancy × the depth factor. The house-wide flag and
+    /// campaign factors are added by <see cref="Power"/>; expeditions (NationSystem) read this alone, with the flag factor.</summary>
+    public double PowerOf(World w, Fleet f, bool defending)
+    {
+        double hulls = 0;
+        foreach (var (cls, n) in Composition(f)) hulls += n * (defending ? cls.Defense : cls.Attack);
+        return hulls * (0.5 + f.Readiness / 200.0) * AdmiralFactor(w, f) * (1 + f.Veterancy * _rules.VeterancyBonus) * DepthFactor(w, f);
     }
 
     /// <summary>The military depth's per-fleet factor (docs/MILITARY.md): stance, torpedoes with isotopes in store, a commander at the front

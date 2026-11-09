@@ -62,6 +62,11 @@ sail** on orders (the move is refused); under 15 a hull **deserts** each turn. F
 `supply_low`, `fleet_restive`, `fleet_mutinous`, `campaign_declared`, `campaign_open`, `campaign_over`; counters
 `valour:<character>`, `campaigns`, `campaign_until:<house>`.
 
+## Beyond the Reach
+Expeditions against the foreign nations (docs/FOREIGN_NATIONS.md) fight with this same math: `FleetSystem.PowerOf` for
+the fleet, the house's flag factor, the nation's committed strength on the other side. Victories abroad count for
+valour and the Achilles like victories at home; a commander at the front risks the same doubled death.
+
 ## Still to come
 Stage 2: the Military screen's stance, loadout, style, supply and loyalty controls; the battle brief in the outliner;
 supply shading on the map; a dozen situations. Then the Republic's parties, consuls and generals (docs/REPUBLIC.md) and

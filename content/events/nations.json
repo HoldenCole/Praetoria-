@@ -1,0 +1,725 @@
+{
+  "//": "THE NATIONS BEYOND THE REACH (docs/FOREIGN_NATIONS.md): the Senate's war vote, the fleet's sailing, word of victory and defeat abroad, the broken expedition, the homecoming, the triumph, raids from beyond, the lost war, the tribute. Every one hangs on a one-turn flag the NationSystem raises.",
+  "events": [
+    {
+      "id": "the_war_beyond_the_reach",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "foreign_war_declared"
+        }
+      ],
+      "choices": [
+        {
+          "id": "raise_the_banner",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} rose in the chamber for the war beyond the Reach: the fleets would sail, and {self.house} would be seen to want it."
+            }
+          ]
+        },
+        {
+          "id": "count_the_cost",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:merchants",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked the chamber what the war would cost and who would pay. The exchanges took note; the officers did not forgive it."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the war vote pass without a word. Others would own it, for good or ill."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_fleet_sails_beyond",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "fleet_sailed_abroad"
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_the_crews_forward",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the crews a season's wage before they sailed beyond the Reach. Four credits, and a fleet that sang on the way out."
+            }
+          ]
+        },
+        {
+          "id": "a_word_to_the_admiral",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} saw the admiral off with a public word about glory and the Reach. The chamber heard of it before the fleet cleared the lanes."
+            }
+          ]
+        },
+        {
+          "id": "watch_them_go",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} watched the fleet go from the harbour gallery and said nothing. There would be time for words when it came home — or did not."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "word_of_a_victory_abroad",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "expedition_victory"
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_it_be_known",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the dispatch read in the chamber: a victory beyond the Reach under the colours of {self.house}. The benches stood for it."
+            }
+          ]
+        },
+        {
+          "id": "share_the_plunder",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent four credits of the plunder's promise to the squares at home. The commons drank the fleet's health and the house's."
+            }
+          ]
+        },
+        {
+          "id": "keep_it_close",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} read the dispatch alone and filed it. Victories abroad are followed by defeats; the house would not be seen to crow."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "word_of_a_defeat_abroad",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "expedition_defeat"
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_by_the_admiral",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood by the admiral in the chamber: the sea is wide and the enemy was at home. The officers remembered it; the benches thought it weak."
+            }
+          ]
+        },
+        {
+          "id": "relieve_the_admiral_in_words",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the chamber the defeat was a commander's failing, not the Reach's. The chamber liked it; the wardrooms did not."
+            }
+          ]
+        },
+        {
+          "id": "send_what_can_be_spared",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "materials",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent four materials' worth of stores after the beaten fleet, to patch what could be patched far from any yard."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_broken_expedition",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "expedition_lost"
+        }
+      ],
+      "choices": [
+        {
+          "id": "mourn_them",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went down to the harbour when the broken fleet was sighted and stood with the families. The squares saw it. The house slept badly for a season."
+            }
+          ]
+        },
+        {
+          "id": "blame_the_senate",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the chamber the fleet was sent too small and too far because the Senate would not pay. The officers agreed loudly; the chamber did not thank the house for it."
+            }
+          ]
+        },
+        {
+          "id": "rebuild_quietly",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put six credits toward new hulls before the broken fleet had made port, and said nothing about why."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_fleet_comes_home",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "expedition_returned"
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_parade",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the returning fleet a parade through the harbour town: five credits of bunting and wine, and a house the squares cheered for."
+            }
+          ]
+        },
+        {
+          "id": "pay_off_the_crews",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the crews off in full on the quay, six credits, before a single word was said about where they had been."
+            }
+          ]
+        },
+        {
+          "id": "back_to_stations",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} had the fleet back on station within the week. There would be another season."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_triumph",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "triumph"
+        }
+      ],
+      "choices": [
+        {
+          "id": "the_laurel",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the triumph as the Reach gives it: the laurel, the procession, the chamber on its feet. The house's name will be said with it for a generation."
+            }
+          ]
+        },
+        {
+          "id": "the_modest_general",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} declined the procession and gave the laurel to the fleet. The old families approved of the modesty; the wardrooms approved of the gesture."
+            }
+          ]
+        },
+        {
+          "id": "a_share_of_the_tribute",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked the chamber for a share of the tribute as the price of the triumph, and got eight credits and a reputation for asking."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raiders_from_beyond",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "raided_by_nation"
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_for_war",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:frontier",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood in the chamber with the raid's tally and called for war beyond the Reach. The frontier cheered; the benches shifted."
+            }
+          ]
+        },
+        {
+          "id": "arm_the_world",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "materials",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": -4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:frontier",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent arms and a garrison's pay to the raided world. Four materials, three credits, and a town that will fight next time."
+            }
+          ]
+        },
+        {
+          "id": "bear_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} counted the raid's cost and bore it. The rim remembers who came and who did not."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_war_abroad_is_lost",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "war_lost_abroad"
+        }
+      ],
+      "choices": [
+        {
+          "id": "blame_the_consuls",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} laid the lost war at the consuls' door in open chamber: too few hulls sent, too late. The chamber murmured assent; the officers heard themselves blamed too."
+            }
+          ]
+        },
+        {
+          "id": "call_for_the_fleet",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:merchants",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called for a real fleet of the Reach, paid for by the chamber, so the next war would not be lost. The officers stood; the exchanges did the sums."
+            }
+          ]
+        },
+        {
+          "id": "let_it_lie",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing of the lost war. Peace is peace, and the chair had paid for it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_tribute_comes_in",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_subdued"
+        },
+        {
+          "type": "not",
+          "of": {
+            "type": "worldFlag",
+            "flag": "triumph"
+          }
+        }
+      ],
+      "choices": [
+        {
+          "id": "move_to_share_it",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} moved that the tribute be shared beyond the chair's coffers. The squares liked the idea; the chair did not."
+            }
+          ]
+        },
+        {
+          "id": "move_to_build_with_it",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:merchants",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} moved that the tribute lay down hulls and lanes. The wardrooms and the exchanges, for once, agreed."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} let the chair keep its tribute and its gratitude."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

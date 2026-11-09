@@ -18,6 +18,7 @@ docket. A motion moved in turn T is voted at the end of turn T+1, so there is al
 | The Peace of the Reach | a house at war | white peace in all its wars |
 | Commission | a house and an office | the house's best-qualified member takes the office; the previous holder is relieved; target legitimacy +2 |
 | Embargo | a house | the exchanges close to it for eight turns: no open market, venture credits halved |
+| War Beyond the Reach | a nation | the Reach is at war with a nation off the map (docs/FOREIGN_NATIONS.md); houses may send expeditions; one war abroad at a time |
 | Act of the Senate | a law of the Senate and an option | the law is so set for the whole Reach (see *Acts* below) |
 | Petition of an Estate | brought by an estate, never a house | an Act the estate wants; heard, its regard rises everywhere; refused, it falls and its worlds stir (see *Petitions*) |
 

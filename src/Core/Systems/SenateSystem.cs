@@ -38,6 +38,8 @@ public sealed class SenateSystem
     public OfficeCatalog Offices => _offices;
     /// <summary>Laws and estates (PolicySystem): the franchise, the Speaker's orders, the old blood's regard.</summary>
     public PolicyCatalog Policies { get; set; } = PolicyCatalog.Empty;
+    /// <summary>The nations beyond the Reach (docs/FOREIGN_NATIONS.md): the targets of the war motion.</summary>
+    public NationCatalog Nations { get; set; } = NationCatalog.Empty;
 
     /// <summary>A house's vote weight: Senate influence (the chair's two are in it) + title rank + one if its head is a Praetor or better.</summary>
     public int Weight(World w, string houseId)
@@ -123,6 +125,9 @@ public sealed class SenateSystem
             case "act":
                 lean += ActLean(w, h, m);
                 break;
+            case "foreign_war":
+                lean += ForeignWarLean(w, h, m.TargetId);
+                break;
             case "peace":
                 if (houseId == m.TargetId) lean += 3;
                 else if (w.AtWar(houseId, m.TargetId)) { var war = w.Wars.FirstOrDefault(x => x.Between(houseId, m.TargetId)); lean += war != null && war.Lead(houseId) < 0 ? 1 : -3; }
@@ -132,6 +137,24 @@ public sealed class SenateSystem
         uint hash = 2166136261; foreach (var ch in m.Id + ":" + houseId) hash = (hash ^ ch) * 16777619;
         lean += (int)(hash % 3) - 1;
         lean += m.Lobby.GetValueOrDefault(houseId);
+        return lean;
+    }
+
+    /// <summary>How a house leans on a war beyond the Reach (docs/FOREIGN_NATIONS.md): the Sword party wants it, the Factors fear for their trade;
+    /// a house with fleets to send sees glory, a house at war at home sees none; a nation that raids is hated; one already paying tribute is left be.</summary>
+    public int ForeignWarLean(World w, House h, string nationId)
+    {
+        var n = w.Nation(nationId); var d = Nations.Def(nationId); if (n == null || d == null) return 0;
+        int lean = 0; var party = FactionSystem.Of(w, h.Id);
+        if (party?.PartyId == "sword") lean += 2; else if (party?.PartyId == "factors") lean -= 2;
+        int hulls = w.Fleets.Values.Where(f => f.OwnerId == h.Id && !f.Office).Sum(f => f.Strength);
+        if (hulls >= 3) lean += 1; else if (hulls == 0) lean -= 1;
+        if (w.Wars.Any(x => x.Involves(h.Id))) lean -= 2;
+        if (n.Disposition <= -30) lean += 1;
+        if (NationSystem.Raided(w, nationId, 8)) lean += 1;
+        if (d.Temper == "mercantile") lean -= 1;
+        if (n.Subdued(w.Turn) || NationSystem.AtWar(w) != null) lean -= 3;
+        if (Economy.HeadOf(w, h) is { } head && head.CareerTrack == "military" && head.CareerRank >= 2) lean += 1;
         return lean;
     }
 
@@ -176,7 +199,7 @@ public sealed class SenateSystem
     public string Describe(World w, Motion m)
     {
         var def = _motions.Def(m.Kind); if (def == null) return m.Kind;
-        string target = def.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name ?? m.TargetId : def.Target == "house" ? w.House(m.TargetId)?.Name ?? m.TargetId : "";
+        string target = def.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name ?? m.TargetId : def.Target == "house" ? w.House(m.TargetId)?.Name ?? m.TargetId : def.Target == "nation" ? Nations.Def(m.TargetId)?.Name ?? m.TargetId : "";
         return def.Description.Replace("{proposer}", ProposerName(w, m)).Replace("{target}", target).Replace("{office}", _offices.Def(m.OfficeId)?.Name ?? m.OfficeId)
             .Replace("{law}", Policies.Law(m.LawId)?.Name.ToLowerInvariant() ?? m.LawId).Replace("{option}", Policies.Law(m.LawId)?.Option(m.LawOption)?.Name.ToLowerInvariant() ?? m.LawOption);
     }
@@ -186,7 +209,7 @@ public sealed class SenateSystem
         if (_motions.IsEmpty) return;
         var mine = w.Protagonist?.HouseId;
         // last turn's news is cleared before this turn's is written — the offices' and the benches' too, since resolving a motion sets theirs
-        foreach (var f in TurnFlags.Concat(OfficeSystem.TurnFlags).Concat(FactionSystem.TurnFlags).Concat(ElectionSystem.TurnFlags)) w.WorldFlags.Remove(f);
+        foreach (var f in TurnFlags.Concat(OfficeSystem.TurnFlags).Concat(FactionSystem.TurnFlags).Concat(ElectionSystem.TurnFlags).Concat(NationSystem.SenateTurnFlags)) w.WorldFlags.Remove(f);
         ElectionSystem.RivalVetoes(w, _offices, this);   // the consuls strike what strikes at them, before the vote
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn).ToList()) Resolve(w, m, mine);
         OfficeSystem.Tick(w, _offices);
@@ -312,6 +335,7 @@ public sealed class SenateSystem
             rs.Lawlessness = Math.Clamp(rs.Lawlessness + def.LawlessnessRegion / scale, 0, 100); rs.Allegiance = Math.Clamp(rs.Allegiance + def.AllegianceRegion / scale, 0, 100);
             foreach (var h in w.Holdings.Values.Where(x => x.IsPlanet && w.Galaxy.System(x.SystemId)?.RegionId == m.TargetId)) h.Prosperity = Math.Clamp(h.Prosperity + def.ProsperityRegion / scale, 0, 100);
         }
+        if (def.Target == "nation") NationSystem.DeclareWar(w, Nations, m.TargetId, m.ProposerHouseId);
         if (def.Peace && target != null && _fleets != null)
             foreach (var enemy in w.EnemiesOf(target.Id).ToList()) _fleets.MakePeace(w, target.Id, enemy, terms: false);
         if (def.Office && target != null && _offices.Def(m.OfficeId) is { } office)
@@ -351,6 +375,7 @@ public sealed class SenateSystem
             var head = Economy.HeadOf(w, h); if (head == null) continue;
             var war = w.Wars.Where(x => x.Involves(h.Id)).OrderBy(x => x.Lead(h.Id)).FirstOrDefault();
             if (war != null && war.Lead(h.Id) <= -3 && _motions.Def("peace") != null && !Stale(w, h.Id, "peace", h.Id)) { Add(w, h.Id, "peace", h.Id); return; }
+            if (_motions.Def("foreign_war") != null && WantedWar(w, h) is { } nation && !Stale(w, h.Id, "foreign_war", nation)) { Add(w, h.Id, "foreign_war", nation); return; }
             if (_motions.Def("commission") != null)
                 foreach (var office in _offices.Defs.Where(o => !o.Elected).OrderBy(o => o.Id, StringComparer.Ordinal))
                 {
@@ -377,6 +402,19 @@ public sealed class SenateSystem
                 if (rival.Legitimacy > 20 && _motions.Def("censure") != null && !Stale(w, h.Id, "censure", rival.Id)) { Add(w, h.Id, "censure", rival.Id); return; }
             }
         }
+    }
+
+    /// <summary>A war a house would move (docs/FOREIGN_NATIONS.md): a Sword house, one whose head is a Commander or better, or one whose world was raided lately — while the Reach has hulls to send —
+    /// names the nation it most wants to fight — one that raided the rim lately or whose regard has sunk — when the Reach fights no other.</summary>
+    public string? WantedWar(World w, House h)
+    {
+        if (Nations.IsEmpty || NationSystem.AtWar(w) != null || w.Motions.Any(m => m.Open && m.Kind == "foreign_war")) return null;
+        var head = Economy.HeadOf(w, h); var party = FactionSystem.Of(w, h.Id); var raider = NationSystem.RaiderOf(w, h.Id, 8);
+        bool hawk = party?.PartyId == "sword" || (head != null && head.CareerTrack == "military" && head.CareerRank >= 2) || raider != null;
+        if (!hawk || w.Wars.Any(x => x.Involves(h.Id))) return null;
+        if (w.Fleets.Values.Where(f => f.OwnerId != PirateSystem.HouseId && !f.IsAway).Sum(f => f.Strength) < 6) return null;   // the Reach must have fleets to send, if not this house's own
+        return w.Nations.Where(n => !n.Subdued(w.Turn) && Nations.Def(n.Id) != null && (n.Disposition <= -30 || NationSystem.Raided(w, n.Id, 6)))
+            .OrderByDescending(n => n.Id == raider ? 2 : NationSystem.Raided(w, n.Id, 6) ? 1 : 0).ThenBy(n => n.Disposition).ThenBy(n => n.Id, StringComparer.Ordinal).FirstOrDefault()?.Id;
     }
 
     /// <summary>An Act a house would move: the Senate-scoped law and option that most pleases an estate hostile to it (or best serves its

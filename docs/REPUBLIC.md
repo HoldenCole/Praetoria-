@@ -50,6 +50,11 @@ rather than the state, who can be voted a triumph or march on the capital.
    the republic (the Imperium era, already in the game) with him on the throne; defeat ends the house. Rivals can do
    this too — the player may be the Senate's sword against a rival Caesar.
 
+## The wars abroad
+Stage 3 of the Republic in practice: the Senate makes war on a nation beyond the Reach by motion (`foreign_war`), the
+Sword for it and the Factors against; houses send fleets; the house whose fleets win most takes the triumph. See
+docs/FOREIGN_NATIONS.md. The general's sway from those triumphs is the Caesar's road (stage 5).
+
 ## Not yet
 Elections' content (hustings events), the parties' names per culture, and the map presence of foreign wars that make
 consular commands matter (docs/FOREIGN_NATIONS.md).

@@ -745,3 +745,22 @@ Method: 415 tests · both validators (197 events) · `qa --seeds 3` · the Senat
 ### Still open, ranked
 1. **Generals' sway and the Caesar** (docs/REPUBLIC.md 4–5). 2. **Foreign nations off-map** (expeditions as
 campaigns; the consuls' command). 3. **Plots with steps.** 4. **The ledger runs rich.** 5. **Audio.**
+
+## 25. Foreign nations, off-map — 2026-11-09
+
+**Done.** `NationSystem` + `content/nations/nations.json`: five nations (one strong neighbour, four lesser), the `foreign_war`
+motion, expeditions off the map with the real battle math, subdual/tribute/triumph, bought peace, exhaustion, rim raids,
+NPC hawks and expeditions; Military screen *Beyond the Reach* panel, fleet-card expedition controls, Senate picker, eleven
+alerts, ten events. 435 tests.
+
+**Measured** (probe, 60 turns, four scenarios): wars abroad 1–2 a run; expeditions 1–5; battles abroad 2–13; raids 12–17;
+one subdual (Concord, 84 credits of tribute) and one lost war (Vashti) across the four. Soak (all scenarios, 3 seeds, 60
+turns): every nation flag raised at least once; `SendExpedition` reached by the random player.
+
+**Watch**: raids land about one turn in four across the Reach with two aggressive nations — fine for drama, high if the
+rim has few worlds (the Academy fixture); the Concord at 26 hulls needs a coalition of houses over several seasons, as
+intended, but NPC houses rarely have the hulls — most sit at 0–2 (a pre-existing economy fact, GAP §18). The decaying
+Hollow Crown is at 4 hulls by turn 60: a cheap, rich target, which is its point.
+
+**Next**: the general's sway and the Caesar (docs/REPUBLIC.md 4–5) reading `expedition_wins`; the province/claim a
+conquest yields; the consuls' war prerogative; then the map expansion.

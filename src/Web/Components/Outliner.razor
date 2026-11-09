@@ -11,6 +11,18 @@
     if (w.HasFlag("pirates_near")) alerts.Add(("warn", "Raiders within a lane of your worlds", "galaxy"));
     if (w.HasFlag("raided")) alerts.Add(("warn", "Your shipping was plundered", "galaxy"));
     if (w.HasFlag("fuel_short")) alerts.Add(("warn", "The tanks are dry — the fleet cannot sail", "military"));
+    string NationName(string prefix) => w.WorldFlags.Where(f => f.StartsWith(prefix)).Select(f => G.Content!.Nations.Def(f[prefix.Length..])?.Name ?? f[prefix.Length..]).FirstOrDefault() ?? "a nation beyond the Reach";
+    if (w.HasFlag("foreign_war_declared")) alerts.Add(("warn", $"The Senate has made war on {NationName("foreign_war:")} — fleets may be sent", "military"));
+    else if (w.HasFlag("foreign_war")) alerts.Add(("info", $"The Reach is at war with {NationName("foreign_war:")}{(w.HasFlag("expedition_away") ? " — your fleet is in their space" : " — send a fleet, or let others win the triumph")}", "military"));
+    if (w.HasFlag("expedition_victory")) alerts.Add(("good", "Your fleet beat them in their own space", "military"));
+    if (w.HasFlag("expedition_defeat")) alerts.Add(("warn", "Your fleet was beaten beyond the Reach", "military"));
+    if (w.HasFlag("expedition_lost")) alerts.Add(("warn", "Your expedition is broken and limping home", "military"));
+    if (w.HasFlag("expedition_returned")) alerts.Add(("good", "Your fleet is home from beyond the Reach", "military"));
+    if (w.HasFlag("triumph")) alerts.Add(("good", $"The triumph is yours — {NationName("nation_subdued:")} pays tribute", "military"));
+    else if (w.HasFlag("nation_subdued")) alerts.Add(("good", $"{NationName("nation_subdued:")} sues for peace and pays tribute", "military"));
+    if (w.HasFlag("war_lost_abroad")) alerts.Add(("warn", "The war abroad is lost — the chair buys peace", "military"));
+    if (w.HasFlag("raided_by_nation")) alerts.Add(("warn", $"Raiders of {NationName("raided_by:")} fell on your world", "military"));
+    if (w.HasFlag("nation_freed")) alerts.Add(("info", "A tributary's treaty is done; its tribute stops", "military"));
     if (w.HasFlag("motion_against_me")) alerts.Add(("warn", "A motion against your house is before the Senate", "senate"));
     else if (w.HasFlag("petition_open")) alerts.Add(("info", "An estate petitions the Senate — its regard in every house rides on the vote", "senate"));
     else if (w.HasFlag("motion_open")) alerts.Add(("info", "A motion is before the Senate — your vote has weight", "senate"));

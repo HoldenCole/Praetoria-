@@ -61,6 +61,18 @@ public class EventReachabilityTests
     [InlineData("the_campaign_opens", "campaign_declared")]
     [InlineData("the_campaign_ends", "campaign_over")]
     public void AMilitaryFlagEvent_IsEligible_WhenItsFlagIsUp(string eventId, string flag) => Eligible("the_risen_officer", eventId, (w, _) => w.WorldFlags.Add(flag));
+    [Theory]
+    [InlineData("the_war_beyond_the_reach", "foreign_war_declared")]
+    [InlineData("the_fleet_sails_beyond", "fleet_sailed_abroad")]
+    [InlineData("word_of_a_victory_abroad", "expedition_victory")]
+    [InlineData("word_of_a_defeat_abroad", "expedition_defeat")]
+    [InlineData("the_broken_expedition", "expedition_lost")]
+    [InlineData("the_fleet_comes_home", "expedition_returned")]
+    [InlineData("the_triumph", "triumph")]
+    [InlineData("raiders_from_beyond", "raided_by_nation")]
+    [InlineData("the_war_abroad_is_lost", "war_lost_abroad")]
+    [InlineData("the_tribute_comes_in", "nation_subdued")]
+    public void ANationFlagEvent_IsEligible_WhenItsFlagIsUp(string eventId, string flag) => Eligible("the_risen_officer", eventId, (w, _) => w.WorldFlags.Add(flag));
     [Fact] public void TheMentionInDispatches() => Eligible("the_risen_officer", "the_mention_in_dispatches", (w, p) => { w.WorldFlags.Add("battle_won"); w.WorldFlags.Add("fought_at_the_front"); p.CareerTrack = "military"; });
     [Fact] public void TheFrontOrTheFlag() => Eligible("the_risen_officer", "the_front_or_the_flag", (_, p) => { p.CareerTrack = "military"; p.CareerRank = 1; p.Flags.Remove("command:front"); p.Flags.Remove("command:flag"); });
     [Fact] public void TheTorpedoRun() => Eligible("the_risen_officer", "the_torpedo_run", (w, p) => { w.WorldFlags.Add("at_war_any"); w.House(p.HouseId)!.Treasury.Isotopes = 2; });

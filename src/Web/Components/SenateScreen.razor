@@ -157,7 +157,7 @@
                             else
                             {
                                 <select class="sel" @onchange="e => SetTarget(pr.KindId, e)">
-                                    <option value="">— choose @(pr.TargetType == "house" ? "a house" : "a region") —</option>
+                                    <option value="">— choose @(pr.TargetType == "house" ? "a house" : pr.TargetType == "nation" ? "a nation beyond the Reach" : "a region") —</option>
                                     @foreach (var t in pr.Targets) { <option value="@t.Id">@t.Name</option> }
                                 </select>
                                 @if (pr.NeedsOffice && pr.Offices != null)

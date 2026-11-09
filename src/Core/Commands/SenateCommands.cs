@@ -49,6 +49,14 @@ public sealed class ProposeMotionCommand : ICommand
             if (w.Motions.Any(m => m.Open && m.Kind == _kind && m.TargetId == _targetId)) return "already before the Senate";
         }
         else if (def.Target == "region") { if (w.Galaxy?.Regions.Any(r => r.Id == _targetId) != true) return "no such region"; }
+        else if (def.Target == "nation")
+        {
+            var d = _senate.Nations.Def(_targetId); var n = w.Nation(_targetId); if (d == null || n == null) return "no such nation";
+            if (n.AtWar) return $"the Reach is already at war with {d.Name}";
+            if (n.Subdued(w.Turn)) return $"{d.Name} already pays tribute";
+            if (NationSystem.AtWar(w) is { } other) return $"the Reach fights one war abroad at a time ({_senate.Nations.Def(other.Id)?.Name ?? other.Id})";
+            if (w.Motions.Any(m => m.Open && m.Kind == _kind)) return "a war is already before the Senate";
+        }
         int cost = Cost(w, house.Id, def);
         return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = cost }) ? null : $"needs {cost} influence";
     }

@@ -24,7 +24,7 @@ public class SenateTests
     [Fact]
     public void TheCatalogLoads_AndWeightIsInfluencePlusTitle()
     {
-        Assert.Equal(9, Motions.Defs.Count); Assert.NotNull(Motions.Def("censure")); Assert.True(Motions.Def("act")!.Law); Assert.True(Motions.Def("petition")!.Law); Assert.True(Motions.Def("commission")!.Office); Assert.True(Motions.Def("peace")!.TargetMustBeAtWar);
+        Assert.Equal(10, Motions.Defs.Count); Assert.NotNull(Motions.Def("censure")); Assert.True(Motions.Def("act")!.Law); Assert.True(Motions.Def("petition")!.Law); Assert.True(Motions.Def("commission")!.Office); Assert.True(Motions.Def("peace")!.TargetMustBeAtWar);
         var (w, senate, _) = Chamber();
         Assert.Equal(4 + Titles.RankOf("duke"), senate.Weight(w, "aurelian"));       // influence + title
         Assert.Equal(Titles.RankOf("baron"), senate.Weight(w, "vega"));

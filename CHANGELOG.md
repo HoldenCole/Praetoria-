@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **Foreign nations, off the map** (docs/FOREIGN_NATIONS.md): five nations beyond the rim with strength, temper, wealth,
+  distance and regard. The Senate makes war on one by motion; houses send expeditions that leave the map, sail the
+  distance, fight a season of battles with the real fleet math against the nation's committed strength, and come home
+  with plunder, valour and fewer hulls. A war ends in subdual (twenty turns of tribute to the chair, a triumph for the
+  house that won it), in a bought peace, or in exhaustion. Aggressive nations raid the rim when their regard falls.
+  NPC hawks move the war and send fleets. Military screen panel, Senate picker, alerts, ten events, tests.
 - **The consulship** (docs/REPUBLIC.md stage 2): two elected offices, the Senior and Junior Consul, filled every ten
   turns by the parties' weight. Each party nominates its weightiest eligible member; the player may stand (two
   influence) as their party's nominee or alone; a house with no party votes for the nominee its head likes best; no one

@@ -549,3 +549,11 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .bench { border-left-color: var(--party, var(--line2)) !important; } .party-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: .3rem; vertical-align: middle; border: 1px solid rgba(0,0,0,.5); }
 .nominee { display: flex; align-items: center; gap: .35rem; padding: .18rem 0; border-bottom: 1px dotted var(--line); font-size: .84rem; } .nominee > span { flex: 1; min-width: 0; } .nominee .tally-n { font-variant-numeric: tabular-nums; }
 .opt.inline.veto { border-color: var(--warn); color: var(--warn); }
+
+/* ---- beyond the Reach (docs/FOREIGN_NATIONS.md) ---- */
+.abroad .nation { padding: 6px 8px; margin: 4px 0; border-left: 3px solid #C9D1DC; background: rgba(255,255,255,.03); border-radius: 0 4px 4px 0; }
+.abroad .nation.war { border-left-color: #E63946; background: rgba(230,57,70,.08); }
+.abroad .nation.tributary { border-left-color: #2EC27E; background: rgba(46,194,126,.07); }
+.abroad .nrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.abroad .nrow .mbar { flex: 1 1 80px; min-width: 60px; }
+.abroad .abroad-war { margin-bottom: 8px; }

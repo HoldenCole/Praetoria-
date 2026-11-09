@@ -74,12 +74,16 @@ public sealed record StandingCard(int Legitimacy, int Instability, IReadOnlyList
 public sealed record FleetLine(string Id, string Name, string Where, int Strength, int Readiness, bool Moving, string? Destination, int Eta, bool Office,
     string Composition, string? AdmiralName, int Veterancy, IReadOnlyList<Option> AdmiralOptions, IReadOnlyList<Option> MergeOptions, Option Refit,
     string Stance = "line", string Loadout = "guns", int Loyalty = 70, int Supply = 100, string? AdmiralId = null, string AdmiralStyle = "none", int Cap = 0,
-    IReadOnlyList<Option>? StanceOptions = null, IReadOnlyList<Option>? LoadoutOptions = null, IReadOnlyList<Option>? StyleOptions = null, int Valour = 0, bool Achilles = false);
+    IReadOnlyList<Option>? StanceOptions = null, IReadOnlyList<Option>? LoadoutOptions = null, IReadOnlyList<Option>? StyleOptions = null, int Valour = 0, bool Achilles = false,
+    string Away = "", string AwayName = "", string AwayPhase = "", int AwayTurns = 0, int Plunder = 0, int ExpeditionWins = 0, Option? Expedition = null, Option? Recall = null);
+/// <summary>A nation beyond the Reach as the Reach sees it (docs/FOREIGN_NATIONS.md): its strength and regard, the war if there is one, its tribute if it pays.</summary>
+public sealed record NationCard(string Id, string Name, string Temper, string Description, string Holds, int Strength, int FullStrength, int Disposition, bool AtWar, int WarSince, int ScoreReach, int ScoreNation,
+    int Threshold, int Tribute, int Wealth, int Distance, int SubduedUntil, int Wars, bool RaidedLately, int Expeditions, Option War);
 /// <summary>A battle about to be joined at the turn's end: our fleets share a system with an enemy's.</summary>
 public sealed record BattleBrief(string SystemId, string SystemName, string EnemyHouseId, string EnemyName, int OurHulls, int EnemyHulls, int Confidence, string OurStance, string TheirStance, int Edge, double OurPower, double TheirPower);
 /// <summary>The campaign of the house, and the enemy worlds it could name (docs/MILITARY.md).</summary>
 public sealed record CampaignCard(string? TargetId, string? TargetName, int TurnsLeft, IReadOnlyList<Option> Targets, int Cost);
-public sealed record MilitaryCard(IReadOnlyList<BattleBrief> Brief, CampaignCard Campaign, string MyStyle, IReadOnlyList<Option> MyStyleOptions, int MyValour, bool MyAchilles, int MyCap);
+public sealed record MilitaryCard(IReadOnlyList<BattleBrief> Brief, CampaignCard Campaign, string MyStyle, IReadOnlyList<Option> MyStyleOptions, int MyValour, bool MyAchilles, int MyCap, IReadOnlyList<NationCard>? Nations = null);
 /// <summary>A generic actionable option: an id the UI turns into a command, a label, and why it is disabled (null = available).</summary>
 public sealed record Option(string Id, string Label, string? Refusal);
 public sealed record ShipOption(string HoldingId, string ClassId, string Label, string? Refusal);
@@ -230,9 +234,9 @@ public static class CourtProjection
                 w.Counter("threat"), honors, house.SuccessionLaw, laws, house.TaxPolicy, taxes, exchange, throne);
         }
 
-        var fleetSys = tc.Fleets;
+        var fleetSys = tc.Fleets; var abroad = NationSystem.AtWar(w);
         var fleets = w.Fleets.Values.Where(f => f.OwnerId == house.Id).OrderBy(f => f.Id, StringComparer.Ordinal)
-            .Select(f => new FleetLine(f.Id, f.Name, w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId, f.Strength, f.Readiness, f.Moving,
+            .Select(f => new FleetLine(f.Id, f.Name, f.IsAway ? "beyond the Reach" : w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId, f.Strength, f.Readiness, f.Moving,
                 f.Moving ? w.Galaxy?.System(f.DestinationId)?.Name ?? f.DestinationId : null, f.Eta, f.Office,
                 fleetSys.Describe(f), f.AdmiralId.Length > 0 ? w.Char(f.AdmiralId)?.Name : null, f.Veterancy,
                 w.LivingCharacters().Where(c => c.HouseId == house.Id).OrderBy(c => c.Id, StringComparer.Ordinal)
@@ -245,7 +249,10 @@ public static class CourtProjection
                 Stance: f.Stance, Loadout: f.Loadout, Loyalty: f.Loyalty, Supply: f.Supply, AdmiralId: f.AdmiralId.Length > 0 ? f.AdmiralId : null,
                 AdmiralStyle: f.AdmiralId.Length > 0 && w.Char(f.AdmiralId) is { } adm ? SetCommandStyleCommand.StyleOf(adm) : "none", Cap: f.AdmiralId.Length > 0 ? fleetSys.CommandCap(w.Char(f.AdmiralId)) : 0,
                 StyleOptions: f.AdmiralId.Length > 0 ? new[] { "front", "flag", "none" }.Select(st => new Option(st, st, new SetCommandStyleCommand(p.Id, f.AdmiralId, st).Refusal(ctx))).ToList() : null,
-                Valour: f.AdmiralId.Length > 0 ? w.Counter(FleetSystem.ValourKey(f.AdmiralId)) : 0, Achilles: f.AdmiralId.Length > 0 && (w.Char(f.AdmiralId)?.Flags.Contains(FleetSystem.AchillesFlag) ?? false))).ToList();
+                Valour: f.AdmiralId.Length > 0 ? w.Counter(FleetSystem.ValourKey(f.AdmiralId)) : 0, Achilles: f.AdmiralId.Length > 0 && (w.Char(f.AdmiralId)?.Flags.Contains(FleetSystem.AchillesFlag) ?? false),
+                Away: f.Away, AwayName: f.IsAway ? content.Nations.Def(f.Away)?.Name ?? f.Away : "", AwayPhase: f.AwayPhase, AwayTurns: f.AwayTurns, Plunder: f.Plunder, ExpeditionWins: f.ExpeditionWins,
+                Expedition: abroad != null && !f.IsAway ? new Option(abroad.Id, $"Send against {content.Nations.Def(abroad.Id)?.Name ?? abroad.Id}", new SendExpeditionCommand(p.Id, f.Id, abroad.Id, content.Fleets, content.Nations).Refusal(ctx)) : null,
+                Recall: f.IsAway ? new Option(f.Id, "Recall", new RecallExpeditionCommand(p.Id, f.Id, content.Nations).Refusal(ctx)) : null)).ToList();
 
         var wars = new List<WarLine>();
         foreach (var enemy in w.EnemiesOf(house.Id))
@@ -368,7 +375,7 @@ public static class CourtProjection
             Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var pc = new ProcureCommand(p.Id, r, 3, content.Holdings, content.Businesses); int price = ProcureCommand.Price(w, r, content.Holdings, content.Businesses); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the open market  ({(price == int.MaxValue ? "—" : (price * 3).ToString())} credits · {Economy.Producers(w, r, content.Holdings, content.Businesses)} producer(s))", pc.Refusal(ctx)); }).ToList(),
             Economy.Deposits(w, house.Id).OrderBy(x => x, StringComparer.Ordinal).ToList(),
             BuildSenate(w, p, house, tc.Senate, ctx),
-            BuildChancery(w, p, house, content.Policies, ctx), Military: BuildMilitary(w, p, house, tc.Fleets, content.Fleets, ctx));
+            BuildChancery(w, p, house, content.Policies, ctx), Military: BuildMilitary(w, p, house, tc.Fleets, content.Fleets, ctx, content.Nations, tc.Senate));
     }
 
     private static string BondName(Relationship? rel) => rel?.Bond is { } b && b != BondType.None ? b.ToString().ToLowerInvariant() : "";
@@ -403,7 +410,8 @@ public static class CourtProjection
         var regions = w.Galaxy?.Regions.OrderBy(r => r.Name, StringComparer.Ordinal).Select(r => (Id: r.Id, Name: r.Name)).ToList() ?? new List<(string Id, string Name)>();
         var proposals = senate.Motions.Defs.Where(d => d.Id != "petition").Select(d =>
         {
-            List<(string Id, string Name)> targets = d.Target == "house" ? houses.Where(x => (x.Id != house.Id || d.TargetSelfAllowed) && (!d.TargetMustBeAtWar || w.Wars.Any(x2 => x2.Involves(x.Id)))).ToList() : d.Target == "region" ? regions : new List<(string Id, string Name)>();
+            List<(string Id, string Name)> targets = d.Target == "house" ? houses.Where(x => (x.Id != house.Id || d.TargetSelfAllowed) && (!d.TargetMustBeAtWar || w.Wars.Any(x2 => x2.Involves(x.Id)))).ToList() : d.Target == "region" ? regions
+                : d.Target == "nation" ? senate.Nations.Defs.Where(nd => w.Nation(nd.Id) is { } ns && !ns.AtWar && !ns.Subdued(w.Turn)).OrderBy(nd => nd.Name, StringComparer.Ordinal).Select(nd => (Id: nd.Id, Name: nd.Name)).ToList() : new List<(string Id, string Name)>();
             var commissionable = senate.Offices.Defs.Where(o => !o.Elected).ToList();
             if (d.Office) targets = targets.Where(x => commissionable.Any(o => OfficeSystem.Candidate(w, o, x.Id) != null)).ToList();   // only houses with someone of the rank
             string firstOffice = d.Office && commissionable.Count > 0 ? commissionable[0].Id : "";
@@ -422,7 +430,7 @@ public static class CourtProjection
                 var firstOpen = laws.SelectMany(l => l.Options).FirstOrDefault(o => o.Refusal == null); probe = firstOpen.Refusal ?? laws.SelectMany(l => l.Options).Select(o => o.Refusal).FirstOrDefault(r => r != "already the law of the Reach") ?? probe;
                 if (laws.SelectMany(l => l.Options).Any(o => o.Refusal == null)) probe = null;
             }
-            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : "").Replace("{office}", "an office").Replace("{law}", "a law of the Reach").Replace("{option}", "so set"), cost, d.Target, targets, probe, d.Office,
+            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : d.Target == "nation" ? "a nation beyond the Reach" : "").Replace("{office}", "an office").Replace("{law}", "a law of the Reach").Replace("{option}", "so set"), cost, d.Target, targets, probe, d.Office,
                 d.Office ? commissionable.Select(o => (Id: o.Id, Name: o.Name)).ToList() : null, d.Law, laws);
         }).ToList();
         int total = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).Sum(h => senate.Weight(w, h.Id));
@@ -455,8 +463,15 @@ public static class CourtProjection
     }
 
     /// <summary>Battles about to be joined, the campaign, and the protagonist's own command style (docs/MILITARY.md).</summary>
-    private static MilitaryCard BuildMilitary(World w, Character p, House house, FleetSystem fs, FleetRules rules, CommandContext ctx)
+    private static MilitaryCard BuildMilitary(World w, Character p, House house, FleetSystem fs, FleetRules rules, CommandContext ctx, NationCatalog nations, SenateSystem senate)
     {
+        var abroad = nations.Defs.Where(d => w.Nation(d.Id) != null).OrderByDescending(d => w.Nation(d.Id)!.AtWar).ThenByDescending(d => d.Strength).ThenBy(d => d.Name, StringComparer.Ordinal).Select(d =>
+        {
+            var n = w.Nation(d.Id)!;
+            return new NationCard(d.Id, d.Name, d.Temper, d.Description, d.Holds, n.Strength, d.Strength, n.Disposition, n.AtWar, n.WarSince, n.ScoreReach, n.ScoreNation, d.Threshold, d.Tribute, d.Wealth, d.Distance,
+                n.Subdued(w.Turn) ? n.SubduedUntil : 0, n.Wars, NationSystem.Raided(w, d.Id, 8), NationSystem.Expeditions(w, d.Id).Count(),
+                new Option(d.Id, "Move for war", senate.Motions.Def("foreign_war") == null ? "no such motion" : new ProposeMotionCommand(p.Id, "foreign_war", d.Id, senate).Refusal(ctx)));
+        }).ToList();
         var brief = new List<BattleBrief>();
         if (w.Galaxy != null)
             foreach (var sys in w.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving).Select(f => f.SystemId).Distinct().OrderBy(x => x, StringComparer.Ordinal))
@@ -473,7 +488,7 @@ public static class CourtProjection
             .Select(x => new Option(x.h.SystemId, $"{x.h.Name} ({w.House(x.e)?.Name ?? x.e})", new DeclareCampaignCommand(p.Id, x.h.SystemId, rules).Refusal(ctx))).ToList();
         var campaign = new CampaignCard(target, target != null ? w.Galaxy?.System(target)?.Name ?? target : null, target != null ? Math.Max(0, w.Counter(FleetSystem.CampaignUntilKey(house.Id)) - w.Turn) : 0, targets, rules.CampaignCost);
         var myStyle = new[] { "front", "flag", "none" }.Select(st => new Option(st, st, new SetCommandStyleCommand(p.Id, p.Id, st).Refusal(ctx))).ToList();
-        return new MilitaryCard(brief, campaign, SetCommandStyleCommand.StyleOf(p), myStyle, w.Counter(FleetSystem.ValourKey(p.Id)), p.Flags.Contains(FleetSystem.AchillesFlag), fs.CommandCap(p));
+        return new MilitaryCard(brief, campaign, SetCommandStyleCommand.StyleOf(p), myStyle, w.Counter(FleetSystem.ValourKey(p.Id)), p.Flags.Contains(FleetSystem.AchillesFlag), fs.CommandCap(p), abroad);
     }
 
     private static string Prose(string key) => key switch

@@ -31,6 +31,8 @@ public sealed class ContentDatabase
     public PolicyCatalog Policies { get; }
     /// <summary>The parties of the Republic (content/senate/parties.json; docs/REPUBLIC.md).</summary>
     public PartyCatalog Parties { get; }
+    /// <summary>The foreign nations beyond the Reach (content/nations/nations.json; docs/FOREIGN_NATIONS.md).</summary>
+    public NationCatalog Nations { get; }
 
     /// <summary>The crisis definitions (GDD §16). Empty for scenarios with no crisis layer.</summary>
     public IReadOnlyList<CrisisDef> Crises { get; }
@@ -94,9 +96,11 @@ public sealed class ContentDatabase
         MotionCatalog? motions = null,
         OfficeCatalog? offices = null,
         PolicyCatalog? policies = null,
-        PartyCatalog? parties = null)
+        PartyCatalog? parties = null,
+        NationCatalog? nations = null)
     {
         Parties = parties ?? PartyCatalog.Empty;
+        Nations = nations ?? NationCatalog.Empty;
         Businesses = businesses ?? BusinessCatalog.Empty;
         Motions = motions ?? MotionCatalog.Empty;
         Offices = offices ?? OfficeCatalog.Empty;

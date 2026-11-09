@@ -24,6 +24,8 @@ public sealed class NpcAi
     public Progression.TitleCatalog? Titles { get; init; }
     /// <summary>Laws and estates: rival stewards legislate when their estates turn, their coffers empty or their wars begin.</summary>
     public PolicyCatalog? Policies { get; init; }
+    /// <summary>The nations beyond the Reach: hawkish houses send an idle fleet against the one the Senate has named (docs/FOREIGN_NATIONS.md).</summary>
+    public NationCatalog? Nations { get; init; }
     private BusinessCatalog _ventures = BusinessCatalog.Empty;
 
     public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
@@ -61,9 +63,10 @@ public sealed class NpcAi
     /// hold the line; a tactician with manpower to spare boards; torpedoes are loaded at home when the house holds two isotopes or more; a house
     /// at war with no campaign names the nearest enemy world; a head on the military track leads from the front when young and from the flag when
     /// a Commander or better.</summary>
-    private static void Posture(World world, House house, Character head, FleetRules rules, CommandExecutor executor, CommandContext ctx)
+    private void Posture(World world, House house, Character head, FleetRules rules, CommandExecutor executor, CommandContext ctx)
     {
         var enemies = world.EnemiesOf(house.Id).ToList();
+        Expedition(world, house, head, rules, executor, ctx, enemies.Count);
         int ours = FleetSystem.StrengthOf(world, house.Id), theirs = enemies.Count == 0 ? 0 : enemies.Max(e => FleetSystem.StrengthOf(world, e));
         foreach (var f in world.Fleets.Values.Where(f => f.OwnerId == house.Id).OrderBy(f => f.Id, StringComparer.Ordinal))
         {
@@ -84,6 +87,22 @@ public sealed class NpcAi
                 .Select(sid => (sid, hops: home != null ? g.Hops(home, sid) : 99)).Where(x => x.hops > 0).OrderBy(x => x.hops).ThenBy(x => x.sid, StringComparer.Ordinal).FirstOrDefault();
             if (target.sid != null) executor.TryExecute(new DeclareCampaignCommand(head.Id, target.sid, rules), ctx);
         }
+    }
+
+    /// <summary>A house at peace at home, of the Sword or led by a Commander or better, with no fleet already abroad, sends its largest idle fleet of
+    /// three hulls or more against the nation the Reach is at war with — if it is whole, supplied and willing (the command refuses otherwise).</summary>
+    private void Expedition(World world, House house, Character head, FleetRules rules, CommandExecutor executor, CommandContext ctx, int enemiesAtHome)
+    {
+        if (Nations == null || Nations.IsEmpty || enemiesAtHome > 0 || NationSystem.AtWar(world) is not { } war) return;
+        if (world.Fleets.Values.Any(f => f.OwnerId == house.Id && f.IsAway)) return;
+        bool hawk = FactionSystem.Of(world, house.Id)?.PartyId == "sword" || (head.CareerTrack == "military" && head.CareerRank >= 2) || OfficeSystem.HeldBy(world, house.Id).Any(o => o.OfficeId is "consul_senior" or "consul_junior" or "admiral");
+        if (!hawk) return;
+        int least = Math.Max(3, (world.Nation(war.Id)?.Strength ?? 0) / 4);   // no house throws three hulls at a fleet of thirty
+        var fleet = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && !f.IsAway && f.Strength >= least && !world.HoldingsOf(house.Id).Any(h => h.InRebellion))
+            .OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+        if (fleet == null) return;
+        if (world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.IsAway).Sum(f => f.Strength) - fleet.Strength < 1 && world.HoldingsOf(house.Id).Count(h => h.IsPlanet) > 1) return;   // leave something at home
+        executor.TryExecute(new SendExpeditionCommand(head.Id, fleet.Id, war.Id, rules, Nations), ctx);
     }
 
     private void Sail(List<Character> npcs, FleetRules rules, CommandExecutor executor, CommandContext ctx)

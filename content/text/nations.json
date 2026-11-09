@@ -1,0 +1,104 @@
+{
+  "texts": [
+    {
+      "id": "the_war_beyond_the_reach",
+      "title": "War Beyond the Reach",
+      "body": "The Senate has voted war on a nation beyond the rim. The motion carried; the fleets may sail; the chamber is loud with houses deciding, after the fact, how they feel about it. {self.name} is asked, in the colonnade, where {self.house} stands.",
+      "choices": {
+        "raise_the_banner": "Rise for the war.",
+        "count_the_cost": "Ask who pays.",
+        "say_nothing": "Let others own it."
+      }
+    },
+    {
+      "id": "the_fleet_sails_beyond",
+      "title": "The Fleet Sails",
+      "body": "The fleet of {self.house} clears the last beacon and turns beyond the Reach. It will be years before it fights and more before word comes back. The crews are on deck; the harbour is on the gallery; the admiral is waiting to be seen off.",
+      "choices": {
+        "pay_the_crews_forward": "Pay the crews a season forward (4 credits).",
+        "a_word_to_the_admiral": "A public word about glory.",
+        "watch_them_go": "Watch them go, and say nothing."
+      }
+    },
+    {
+      "id": "word_of_a_victory_abroad",
+      "title": "Word of a Victory",
+      "body": "A dispatch, two years old by the time it reaches the Reach: the fleet of {self.house} met the enemy in their own space and beat them. Hulls lost, plunder taken, the tally turned a point. The chamber has not heard yet.",
+      "choices": {
+        "let_it_be_known": "Have it read in the chamber.",
+        "share_the_plunder": "Send a share of it to the squares (4 credits).",
+        "keep_it_close": "File it. Victories are followed by defeats."
+      }
+    },
+    {
+      "id": "word_of_a_defeat_abroad",
+      "title": "Word of a Defeat",
+      "body": "A dispatch, late and short: the fleet of {self.house} was beaten in the enemy's space. Hulls lost; the tally turned against the Reach; the admiral alive, or not — the dispatch is unclear. The chamber will ask.",
+      "choices": {
+        "stand_by_the_admiral": "Stand by the admiral.",
+        "relieve_the_admiral_in_words": "Call it a commander's failing.",
+        "send_what_can_be_spared": "Send stores after them (4 materials)."
+      }
+    },
+    {
+      "id": "the_broken_expedition",
+      "title": "The Broken Expedition",
+      "body": "What is left of the fleet of {self.house} has been sighted at the beacons: a hull, maybe two, limping for home from beyond the Reach. The families are at the harbour already. The Senate that sent it is not.",
+      "choices": {
+        "mourn_them": "Go down to the harbour and stand with the families.",
+        "blame_the_senate": "Tell the chamber it sent them too few, too far.",
+        "rebuild_quietly": "Lay down new hulls, and say nothing (6 credits)."
+      }
+    },
+    {
+      "id": "the_fleet_comes_home",
+      "title": "The Fleet Comes Home",
+      "body": "The fleet of {self.house} is home from beyond the Reach, with its plunder and its dead and its stories. The harbour town has turned out; the crews want paying; the admiral wants to be seen.",
+      "choices": {
+        "a_parade": "Give them a parade (5 credits).",
+        "pay_off_the_crews": "Pay the crews in full on the quay (6 credits).",
+        "back_to_stations": "Back on station within the week."
+      }
+    },
+    {
+      "id": "the_triumph",
+      "title": "The Triumph",
+      "body": "The nation has sued for peace and will pay the Reach tribute for twenty years, and the Senate has named {self.house} the house whose fleets won it. The Reach gives a triumph once in a generation: the laurel, the procession, the chamber on its feet. It is waiting on {self.name}.",
+      "choices": {
+        "the_laurel": "Take the laurel and the procession.",
+        "the_modest_general": "Decline the procession; give the laurel to the fleet.",
+        "a_share_of_the_tribute": "Ask the chamber for a share of the tribute."
+      }
+    },
+    {
+      "id": "raiders_from_beyond",
+      "title": "Raiders From Beyond",
+      "body": "They came out of the dark beyond the rim, took cargo and crews from a world of {self.house}, and were gone before any fleet could answer. The town is in uproar; the frontier wants to know what the Reach will do; the chamber has not yet heard.",
+      "choices": {
+        "call_for_war": "Stand in the chamber and call for war.",
+        "arm_the_world": "Arm the world and pay a garrison (4 materials, 3 credits).",
+        "bear_it": "Count the cost and bear it."
+      }
+    },
+    {
+      "id": "the_war_abroad_is_lost",
+      "title": "The War Abroad Is Lost",
+      "body": "The tally turned against the Reach and stayed there, and the chair has bought peace from a nation beyond the rim at thrice the tribute it hoped to take. The fleets are coming home. The chamber wants someone to blame.",
+      "choices": {
+        "blame_the_consuls": "Lay it at the consuls' door.",
+        "call_for_the_fleet": "Call for a real fleet of the Reach, paid by the chamber.",
+        "let_it_lie": "Peace is peace. Say nothing."
+      }
+    },
+    {
+      "id": "the_tribute_comes_in",
+      "title": "The Tribute Comes In",
+      "body": "A nation beyond the Reach has sued for peace and its first tribute has reached the chair's coffers, and not yours. The chamber is already arguing about whose war it was and whose credits these are.",
+      "choices": {
+        "move_to_share_it": "Move that the tribute be shared.",
+        "move_to_build_with_it": "Move that it lay down hulls and lanes.",
+        "say_nothing": "Let the chair keep it."
+      }
+    }
+  ]
+}

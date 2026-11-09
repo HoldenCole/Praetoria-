@@ -51,6 +51,21 @@ public sealed class Fleet
 
     public string SystemId { get; set; } = "";
 
+    /// <summary>The foreign nation this fleet has sailed against (docs/FOREIGN_NATIONS.md), or "" when it is in the Reach. An away fleet has no
+    /// <see cref="SystemId"/>: it is off the map, out of every battle and siege at home, and comes back to <see cref="HomeSystemId"/>.</summary>
+    public string Away { get; set; } = "";
+    /// <summary>"out" (sailing to the nation), "fighting" (in its space), "home" (sailing back).</summary>
+    public string AwayPhase { get; set; } = "";
+    /// <summary>Turns left in the current phase of the expedition.</summary>
+    public int AwayTurns { get; set; }
+    /// <summary>The system the expedition sailed from and returns to.</summary>
+    public string HomeSystemId { get; set; } = "";
+    /// <summary>Credits taken abroad, paid into the house treasury when the fleet comes home.</summary>
+    public int Plunder { get; set; }
+    /// <summary>Battles won on this expedition.</summary>
+    public int ExpeditionWins { get; set; }
+    public bool IsAway => Away.Length > 0;
+
     /// <summary>Where it is going, or "" when holding. Arrival after <see cref="Eta"/> turns.</summary>
     public string DestinationId { get; set; } = "";
     public int Eta { get; set; }

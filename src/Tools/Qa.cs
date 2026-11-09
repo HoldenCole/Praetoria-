@@ -225,7 +225,7 @@ internal static class Qa
         var cands = new List<ICommand>();
         string Ord(string a) => a;
         var worlds = w.HoldingsOf(house.Id).Where(h => h.IsPlanet).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
-        var fleets = w.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Office).OrderBy(f => f.Id, StringComparer.Ordinal).ToList();
+        var fleets = w.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Office && !f.IsAway).OrderBy(f => f.Id, StringComparer.Ordinal).ToList();
         var others = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
         var members = house.Members.Where(id => w.Char(id)?.Alive == true && id != p.Id).OrderBy(Ord, StringComparer.Ordinal).ToList();
 
@@ -254,6 +254,8 @@ internal static class Qa
             if (fleets.Count >= 2) cands.Add(new MergeFleetsCommand(p.Id, fleets[0].Id, fleets[1].Id));
             cands.Add(new SetCommandStyleCommand(p.Id, p.Id, new[] { "front", "flag", "none" }[decisions.NextInt(0, 3)]));
             foreach (var e in w.EnemiesOf(house.Id).Take(2)) foreach (var h in w.HoldingsOf(e).Where(x => x.IsPlanet && x.SystemId.Length > 0).Take(1)) cands.Add(new DeclareCampaignCommand(p.Id, h.SystemId, content.Fleets));
+            if (NationSystem.AtWar(w) is { } abroad) foreach (var f in fleets) { cands.Add(new SendExpeditionCommand(p.Id, f.Id, abroad.Id, content.Fleets, content.Nations)); cands.Add(new SendExpeditionCommand(p.Id, f.Id, abroad.Id, content.Fleets, content.Nations)); }
+            foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id && f.IsAway)) if (decisions.NextInt(0, 6) == 0) cands.Add(new RecallExpeditionCommand(p.Id, f.Id, content.Nations));
             var own = worlds.Select(h => h.SystemId).ToHashSet();
             foreach (var def in bc.Defs.OrderBy(d => d.Id, StringComparer.Ordinal))
             {
@@ -272,6 +274,7 @@ internal static class Qa
             if (def.Id == "petition") continue;   // only an estate brings one
             string target = def.Target == "house" && others.Count > 0 ? others[decisions.NextInt(0, others.Count)].Id : def.Target == "region" && g != null && g.Regions.Count > 0 ? g.Regions[decisions.NextInt(0, g.Regions.Count)].Id : "";
             if (def.Target == "house" && def.TargetSelfAllowed && decisions.NextInt(0, 2) == 0) target = house.Id;
+            if (def.Target == "nation") { var ns = content.Nations.Defs.ToList(); if (ns.Count == 0) continue; target = ns[decisions.NextInt(0, ns.Count)].Id; }
             if (def.Law)
             {
                 var senateLaws = content.Policies.Laws.Where(l => l.Scope == "senate").OrderBy(l => l.Id, StringComparer.Ordinal).ToList();

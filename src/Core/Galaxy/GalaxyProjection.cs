@@ -122,6 +122,7 @@ public static class GalaxyProjection
         var player = world.Protagonist?.HouseId;
         foreach (var f in world.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal))
         {
+            if (f.IsAway) continue;   // beyond the Reach (docs/FOREIGN_NATIONS.md): the Military screen tells of it
             var house = world.House(f.OwnerId);
             string accent = house?.AccentColor ?? UnclaimedAccent;
             if (f.OwnerId == player)

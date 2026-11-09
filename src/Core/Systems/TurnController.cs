@@ -40,7 +40,7 @@ public sealed class TurnController
     private readonly CrisisEngine? _crises;
     private readonly SphereSystem? _spheres;
     private readonly ProgressionSystem? _progression;
-    private readonly FleetSystem _fleets;
+    private readonly FleetSystem _fleets; private readonly NationSystem _nations;
     private readonly HonorSystem _honors;
     private readonly GreatCrisisSystem _greatCrisis;
     private readonly FamilySystem _family = new();
@@ -69,6 +69,7 @@ public sealed class TurnController
 
     /// <summary>The fleet layer (GDD §6/§19): transit, upkeep, incursions, intel. A no-op without a galaxy.</summary>
     public FleetSystem Fleets => _fleets;
+    public NationSystem Nations => _nations;
 
     /// <summary>Honorifics & Orders (GDD §13).</summary>
     public HonorSystem Honors => _honors;
@@ -90,12 +91,13 @@ public sealed class TurnController
         _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres, world.Difficulty, content.Offices);
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
         _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
-        _senate = new SenateSystem(content.Motions, content.Titles, _fleets, content.Offices) { Policies = content.Policies };
+        _senate = new SenateSystem(content.Motions, content.Titles, _fleets, content.Offices) { Policies = content.Policies, Nations = content.Nations };
+        _nations = new NationSystem(content.Nations, _fleets); if (world.Turn == 0) NationSystem.Seed(world, content.Nations);   // the nations beyond the Reach (docs/FOREIGN_NATIONS.md)
         if (world.Turn == 0 && world.Laws.Count == 0) PolicySystem.ApplyCultures(world, content.Policies);   // every house begins with its culture's laws (GDD §19)
         FactionSystem.Policies = content.Policies;
         if (world.Turn == 0 && world.Factions.Count == 0) FactionSystem.Seed(world, content.Parties, id => _senate.Weight(world, id));   // the four parties of the Republic (docs/REPUBLIC.md)
         _fleets.Policies = content.Policies; _regions.Policies = content.Policies; if (_economy != null) _economy.Policies = content.Policies;
-        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies };
+        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations };
         _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);
         _greatCrisis = new GreatCrisisSystem(content.GreatCrisis, _fleets);
@@ -121,6 +123,7 @@ public sealed class TurnController
         PirateSystem.AfterBattles(World, _fleets.LastBattles); PirateSystem.WriteFlags(World);
         _fleets.ResolveConquests(World);       // an unopposed fleet in enemy space takes its holdings
         _fleets.UpdateIntel(World);            // ...and the picture after the fighting
+        _nations.Tick(World);                  // beyond the Reach: raids, expeditions, the wars abroad (docs/FOREIGN_NATIONS.md) — RNG-free
         _spheres?.Recompute(World);  // power-balance projection + threat/coalition (GDD §7), also RNG-free
         _progression?.Apply(World);  // title soft-lock instability (GDD §13), also RNG-free
         _honors.Apply(World, _rng);  // investitures when a distinction's conditions first hold (GDD §13)
