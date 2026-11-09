@@ -133,3 +133,10 @@ your own bench breaks the whip — the same cost — and the bench may drift you
 `faction_formed`, `faction_joined`, `faction_dissolved`, `broke_the_whip`, `faction_against_me` (a bench's leader has a
 motion against you on the docket: the whole bench will follow); counter `factions`. Five events in
 `content/events/factions.json`, among them *Across the Aisle*.
+
+## The consulship
+
+Two elected offices (docs/REPUBLIC.md): every tenth turn the parties' weight elects a Senior and a Junior Consul from
+their nominees; the player stands with `StandForConsulCommand`. Consuls weigh more, are paid by the chair, move motions
+cheaper, and may veto one open motion a term (`VetoCommand`; rivals veto what strikes at them). Flags `election_near`,
+`election_held`, `consul_elected`, `consul_lost`, `vetoed_mine`; counters `elections`, `vetoes`, `consul_term:<house>`.

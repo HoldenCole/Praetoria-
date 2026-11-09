@@ -24,7 +24,7 @@ public static class OfficeSystem
 
     /// <summary>The best-qualified living member of a house for an office: the office's track, at least its rank; highest rank, then id. Null if none.</summary>
     public static Character? Candidate(World w, OfficeDef def, string houseId) =>
-        w.LivingCharacters().Where(c => c.HouseId == houseId && c.CareerTrack == def.Track && c.CareerRank >= def.MinRank)
+        w.LivingCharacters().Where(c => c.HouseId == houseId && (def.Track.Length == 0 || c.CareerTrack == def.Track) && c.CareerRank >= def.MinRank)
             .OrderByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
 
     /// <summary>The house the office fleets belong to when no Admiral holds them: the chair, else no one.</summary>

@@ -721,3 +721,27 @@ in `sets.js` for the Office's neighbours but no screen but the Office and the ma
 ### Still open, ranked
 1. **The Republic** (parties, consuls, generals' sway, the Caesar). 2. **Foreign nations off-map.** 3. **Plots with
 steps.** 4. **The ledger runs rich.** 5. **Audio.** 6. The Galaxy map could carry the war plot's supply shading.
+
+## 24. The Republic, stages 1–2 — 2026-11-09
+
+Method: 415 tests · both validators (197 events) · `qa --seeds 3` · the Senate dashboard driven past the first election.
+
+### Done this pass (the owner's direction)
+- **Four parties** (the Optimates, the Populares, the Sword, the Factors) seated by every house's laws at the world's
+  creation, with the option to found a fifth; benches no longer form of themselves. Members lean with the party line
+  on motions and Acts; rivals cross the floor every tenth turn when their laws drift.
+- **The consulship**: two elected offices filled every ten turns by the parties' weight; the player stands as their
+  party's nominee or alone; consuls weigh more, are paid, move motions cheaper and hold a veto a term; rival consuls
+  strike what strikes at them. Four events.
+
+### Numbers worth watching
+- The seats are skewed at the start of the shipped scenarios (the Optimates sixty of a hundred and sixteen in the
+  Circling Heir, the Sword four): most houses hold few laws off the custom, so fit scores tie and the hash breaks
+  them, and the imperial-culture houses all fall to the Optimates. If the chamber should start closer to even, seed
+  by culture as well as by laws, or give each party a culture it courts.
+- With elections every ten turns and no re-election, the same two or three heavy houses alternate the chairs. The
+  foreign wars (docs/FOREIGN_NATIONS.md) are what will make the consulship worth fighting over.
+
+### Still open, ranked
+1. **Generals' sway and the Caesar** (docs/REPUBLIC.md 4–5). 2. **Foreign nations off-map** (expeditions as
+campaigns; the consuls' command). 3. **Plots with steps.** 4. **The ledger runs rich.** 5. **Audio.**

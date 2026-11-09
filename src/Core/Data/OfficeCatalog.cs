@@ -24,6 +24,12 @@ public sealed class OfficeDef
     public int MotionDiscount { get; init; }
     /// <summary>The holder's house commands the office fleets (GDD §8).</summary>
     public bool CommandsFleets { get; init; }
+    /// <summary>Filled by election (docs/REPUBLIC.md), never by a Commission motion.</summary>
+    public bool Elected { get; init; }
+    /// <summary>The holder may strike one open motion from the docket a term.</summary>
+    public bool Veto { get; init; }
+    /// <summary>Turns a term lasts for an elected office.</summary>
+    public int TermTurns { get; init; } = 10;
 }
 
 public sealed class OfficeCatalog
@@ -48,7 +54,8 @@ public sealed class OfficeCatalog
                         Id = ConditionParser.Str(el, "id"), Name = ConditionParser.Str(el, "name"), Description = ConditionParser.OptStr(el, "description", ""),
                         Sphere = ConditionParser.OptStr(el, "sphere", ""), Track = ConditionParser.OptStr(el, "track", ""), MinRank = ConditionParser.Int(el, "minRank", 3),
                         SphereBonus = ConditionParser.Int(el, "sphereBonus", 2), Weight = ConditionParser.Int(el, "weight", 0), Stipend = ConditionParser.Int(el, "stipend", 0),
-                        MotionDiscount = ConditionParser.Int(el, "motionDiscount", 0), CommandsFleets = ConditionParser.Bool(el, "commandsFleets", false)
+                        MotionDiscount = ConditionParser.Int(el, "motionDiscount", 0), CommandsFleets = ConditionParser.Bool(el, "commandsFleets", false),
+                        Elected = ConditionParser.Bool(el, "elected", false), Veto = ConditionParser.Bool(el, "veto", false), TermTurns = ConditionParser.Int(el, "termTurns", 10)
                     });
         return new OfficeCatalog(defs);
     }

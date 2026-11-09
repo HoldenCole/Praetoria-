@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+- **The consulship** (docs/REPUBLIC.md stage 2): two elected offices, the Senior and Junior Consul, filled every ten
+  turns by the parties' weight. Each party nominates its weightiest eligible member; the player may stand (two
+  influence) as their party's nominee or alone; a house with no party votes for the nominee its head likes best; no one
+  is consul two terms running. Consuls weigh more, draw a stipend from the chair, move motions cheaper, and hold a veto
+  — one motion a term struck from the docket before the vote; rival consuls veto what strikes at their house, their
+  party's leader or their party's line. The Senate shows the consulship, the nominees and their tallies; four events.
+
 ### Changed
 - **Four parties, not a crowd of benches** (the owner's direction; docs/REPUBLIC.md stage 1): the Optimates, the
   Populares, the Sword and the Factors ship in content with a colour, the estates they court, positions on the laws

@@ -186,9 +186,12 @@ public sealed class SenateSystem
         if (_motions.IsEmpty) return;
         var mine = w.Protagonist?.HouseId;
         // last turn's news is cleared before this turn's is written — the offices' and the benches' too, since resolving a motion sets theirs
-        foreach (var f in TurnFlags.Concat(OfficeSystem.TurnFlags).Concat(FactionSystem.TurnFlags)) w.WorldFlags.Remove(f);
+        foreach (var f in TurnFlags.Concat(OfficeSystem.TurnFlags).Concat(FactionSystem.TurnFlags).Concat(ElectionSystem.TurnFlags)) w.WorldFlags.Remove(f);
+        ElectionSystem.RivalVetoes(w, _offices, this);   // the consuls strike what strikes at them, before the vote
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn).ToList()) Resolve(w, m, mine);
         OfficeSystem.Tick(w, _offices);
+        if (ElectionSystem.Due(w)) ElectionSystem.Hold(w, _offices, id => Weight(w, id));   // every tenth turn the consuls are elected (docs/REPUBLIC.md)
+        w.WorldFlags.Remove("election_near"); if (w.Era != "imperium" && ElectionSystem.NextIn(w) <= 2) w.WorldFlags.Add("election_near");
         FactionSystem.Tick(w, id => Weight(w, id));
         Petition(w);
         Propose(w, mine);
@@ -349,7 +352,7 @@ public sealed class SenateSystem
             var war = w.Wars.Where(x => x.Involves(h.Id)).OrderBy(x => x.Lead(h.Id)).FirstOrDefault();
             if (war != null && war.Lead(h.Id) <= -3 && _motions.Def("peace") != null && !Stale(w, h.Id, "peace", h.Id)) { Add(w, h.Id, "peace", h.Id); return; }
             if (_motions.Def("commission") != null)
-                foreach (var office in _offices.Defs.OrderBy(o => o.Id, StringComparer.Ordinal))
+                foreach (var office in _offices.Defs.Where(o => !o.Elected).OrderBy(o => o.Id, StringComparer.Ordinal))
                 {
                     var holder = OfficeSystem.HolderHouse(w, office.Id); if (holder == h.Id || OfficeSystem.Candidate(w, office, h.Id) == null) continue;
                     if (office.CommandsFleets && RegionSystem.CapitalHolder(w) is { } ch && ch.Id != h.Id && w.AtWar(h.Id, ch.Id)) continue;   // the chair will not arm its enemy

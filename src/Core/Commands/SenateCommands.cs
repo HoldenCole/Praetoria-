@@ -35,6 +35,7 @@ public sealed class ProposeMotionCommand : ICommand
         if (def.Office)
         {
             var office = _senate.Offices.Def(_officeId); if (office == null) return "name an office";
+            if (office.Elected) return "the consuls are elected, not commissioned";
             if (OfficeSystem.Holds(w, _targetId, office.Id)) return $"{w.House(_targetId)?.Name} holds it already";
             if (OfficeSystem.Candidate(w, office, _targetId) == null) return $"no one of {w.House(_targetId)?.Name} has the rank for the {office.Name}";
             if (office.CommandsFleets && RegionSystem.CapitalHolder(w) is { } chair && chair.Id != _targetId && w.AtWar(_targetId, chair.Id)) return "the chair will not arm a house at war with it";
@@ -188,5 +189,61 @@ public sealed class FoundFactionCommand : ICommand
         var w = ctx.World; var actor = w.Char(ActorId)!;
         ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = FactionSystem.FoundInfluence });
         FactionSystem.Form(w, actor.HouseId, Followers(w, actor.HouseId), actor.HouseId);
+    }
+}
+
+
+/// <summary>Stand for the consulship at the next election (docs/REPUBLIC.md): your party nominates you in place of its weightiest, or you run alone.
+/// Two influence; a qualified member of the house; not the consul of the last term.</summary>
+public sealed class StandForConsulCommand : ICommand
+{
+    private readonly OfficeCatalog _offices;
+    public StandForConsulCommand(string actorId, OfficeCatalog offices) { ActorId = actorId; _offices = offices; }
+    public string ActorId { get; }
+    public string Describe() => "stand for consul";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null) return "no house";
+        if (!ElectionSystem.ConsulOffices(_offices).Any()) return "there is no consulship in this age";
+        if (w.Era == "imperium") return "the Emperor holds every office";
+        if (w.HasFlag(ElectionSystem.StandFlag(house.Id))) return "you already stand";
+        if (ElectionSystem.IsConsul(w, _offices, house.Id)) return "you hold the consulship";
+        if (!ElectionSystem.Eligible(w, _offices, house.Id)) return OfficeSystem.Candidate(w, ElectionSystem.ConsulOffices(_offices).First(), house.Id) == null ? "no one of the house has the rank (2 on any track)" : "a consul may not stand again at the next election";
+        return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = ElectionSystem.StandInfluence }) ? null : $"needs {ElectionSystem.StandInfluence} influence";
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId)!;
+        ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = ElectionSystem.StandInfluence });
+        w.WorldFlags.Add(ElectionSystem.StandFlag(actor.HouseId));
+        w.Log($"{w.House(actor.HouseId)?.Name} declares for the consulship; the election is in {ElectionSystem.NextIn(w)} turn(s).");
+    }
+}
+
+/// <summary>A consul's veto: strike an open motion from the docket before it is voted. Once a term; never your own motion.</summary>
+public sealed class VetoCommand : ICommand
+{
+    private readonly string _motionId; private readonly OfficeCatalog _offices; private readonly SenateSystem _senate;
+    public VetoCommand(string actorId, string motionId, OfficeCatalog offices, SenateSystem senate) { ActorId = actorId; _motionId = motionId; _offices = offices; _senate = senate; }
+    public string ActorId { get; }
+    public string Describe() => $"veto {_motionId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null) return "no house";
+        if (!ElectionSystem.IsConsul(w, _offices, house.Id)) return "only a consul may veto";
+        var m = w.Motions.FirstOrDefault(x => x.Id == _motionId); if (m == null || !m.Open) return "no such motion before the Senate";
+        if (m.ProposerHouseId == house.Id) return "not your own motion";
+        if (!ElectionSystem.MayVeto(w, _offices, house.Id)) return "the veto is spent this term";
+        return null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId)!; var m = w.Motions.First(x => x.Id == _motionId);
+        ElectionSystem.Veto(w, _offices, actor.HouseId, m);
+        w.Log($"{w.House(actor.HouseId)?.Name}, as consul, vetoes: {_senate.Describe(w, m)}");
     }
 }

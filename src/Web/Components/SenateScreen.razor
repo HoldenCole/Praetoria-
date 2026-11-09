@@ -1,3 +1,4 @@
+@using Praetoria.Core.Systems
 @inject GameClient G
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
@@ -114,6 +115,7 @@
                         <div class="row small">
                             @foreach (var (stance, label) in new[] { (1, "Vote for"), (-1, "Vote against"), (0, "Abstain") })
                             { <button class="opt inline @(mo.MyStance == stance ? "here" : "")" @onclick="() => G.Execute(new VoteCommand(pid, mo.Id, stance))" @onclick:stopPropagation="true">@label</button> }
+                            @if (sen.Election is { AmConsul: true }) { <button class="opt inline veto" disabled="@(mo.VetoRefusal != null)" title="@(mo.VetoRefusal ?? "the consul's veto: struck from the docket, once a term")" @onclick="() => G.Execute(new VetoCommand(pid, mo.Id, c.Offices, G.Turn!.Senate))" @onclick:stopPropagation="true">Veto</button> }
                         </div>
                         <details @onclick:stopPropagation="true"><summary>The benches · whip them</summary>
                             @foreach (var st in mo.Stances.Take(16))
@@ -173,18 +175,37 @@
                 @if (sen.History.Count > 0)
                 {
                     <details><summary>Decided · last @sen.History.Count</summary>
-                        @foreach (var h in sen.History) { <div class="muted small hist"><b class="@(h.Passed ? "good" : "warn")">@(h.Passed ? "carried" : "thrown out")</b> @h.ForWeight–@h.AgainstWeight · turn @h.ProposedTurn · @h.Text</div> }
+                        @foreach (var h in sen.History) { <div class="muted small hist"><b class="@(h.Passed ? "good" : "warn")">@(h.Vetoed ? $"vetoed by {h.VetoedBy}" : h.Passed ? "carried" : "thrown out")</b> @(h.Vetoed ? "" : $"{h.ForWeight}–{h.AgainstWeight} · ")turn @h.ProposedTurn · @h.Text</div> }
                     </details>
                 }
             }
         </section>
 
         <aside class="dash-side">
+            @if (sen?.Election is { } el)
+            {
+                var consuls = sen.Offices?.Where(o => o.Elected).ToList() ?? new List<OfficeCard>();
+                <section class="panel consulship">
+                    <h3><Icon Name="throne" Size="13" /> The consulship <span class="muted">elected every @el.TermTurns turns · next in @el.NextIn</span></h3>
+                    @foreach (var o in consuls)
+                    {
+                        <div class="off-card @(o.Mine ? "mine" : "") @(o.HolderHouse == null ? "vacant" : "")" title="@o.Description">
+                            <div class="of-head"><b>@o.Name</b> <span class="muted small">weight +@(o.Id == "consul_senior" ? 4 : 3) · the veto</span></div>
+                            <div class="small">@if (o.HolderHouse != null) { <Sigil HouseId="@o.HolderHouseId" Accent="@o.HolderAccent" Size="12" /> <span>@o.HolderName of @o.HolderHouse</span> <span class="muted">since turn @o.Since</span> } else { <span class="muted">vacant until the election</span> }</div>
+                        </div>
+                    }
+                    <h4>The nominees as they stand</h4>
+                    @foreach (var n in el.Nominees) { <div class="nominee"><i class="party-dot" style="background:@n.PartyAccent"></i><Sigil HouseId="@n.HouseId" Accent="@n.Accent" Size="13" /> <span><b>@n.HouseName</b> <span class="muted small">for @n.Party</span></span><b class="tally-n">@n.Tally</b></div> }
+                    @if (el.Nominees.Count == 0) { <div class="muted small">No house of standing has a candidate yet.</div> }
+                    <button class="opt" disabled="@(el.StandRefusal != null)" title="@(el.StandRefusal ?? $"{ElectionSystem.StandInfluence} influence: your party nominates you, or you run alone")" @onclick="() => G.Execute(new StandForConsulCommand(pid, c.Offices))">@(el.Standing ? "You stand for consul" : el.AmConsul ? "You hold the consulship" : "Stand for consul")</button>
+                    @if (el.AmConsul) { <div class="muted small">@(el.CanVeto ? "Your veto is unspent this term: strike a motion from the docket above." : "Your veto is spent this term.")</div> }
+                </section>
+            }
             @if (sen?.Offices is { Count: > 0 })
             {
                 <section class="panel">
                     <h3><Icon Name="throne" Size="13" /> The offices of the Reach</h3>
-                    @foreach (var o in sen.Offices)
+                    @foreach (var o in sen.Offices.Where(o => !o.Elected))
                     {
                         <div class="off-card @(o.Mine ? "mine" : "") @(o.HolderHouse == null ? "vacant" : "")" title="@o.Description">
                             <div class="of-head"><b>@o.Name</b> <span class="muted small">@o.Track rank @o.MinRank+@(o.Hulls > 0 ? $" · {o.Hulls} office hull(s)" : "")</span></div>

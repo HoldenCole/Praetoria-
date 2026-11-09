@@ -26,7 +26,7 @@ public class OfficeTests
     [Fact]
     public void TheCatalogLoads_AndOnlyAHouseWithTheRank_MayBeCommissioned()
     {
-        Assert.Equal(3, Content.Offices.Defs.Count); Assert.True(Content.Offices.Def("admiral")!.CommandsFleets); Assert.Equal(3, Content.Offices.Def("speaker")!.Weight);
+        Assert.Equal(5, Content.Offices.Defs.Count); Assert.True(Content.Offices.Def("admiral")!.CommandsFleets); Assert.Equal(3, Content.Offices.Def("speaker")!.Weight);
         var (w, senate, _, ctx) = Chamber();
         Assert.Equal("self", OfficeSystem.Candidate(w, Content.Offices.Def("admiral")!, "vega")!.Id);
         Assert.StartsWith("no one of House Vega has the rank", new ProposeMotionCommand("self", "commission", "vega", senate, "treasurer").Refusal(ctx));

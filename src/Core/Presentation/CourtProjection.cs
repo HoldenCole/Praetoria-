@@ -38,7 +38,7 @@ public sealed record FactionCard(string Id, string Name, string LeaderHouseId, s
     string Description = "", string Courts = "", string LawPlatform = "", bool Party = false);
 /// <summary>A motion on the docket or in the history.</summary>
 public sealed record MotionCard(string Id, string KindId, string KindName, string ProposerName, string ProposerAccent, string? TargetName, string Text, int ProposedTurn, bool Open, bool Passed,
-    int ForWeight, int AgainstWeight, int MyStance, bool Mine, bool AgainstMe, IReadOnlyList<StanceLine> Stances, bool Petition = false);
+    int ForWeight, int AgainstWeight, int MyStance, bool Mine, bool AgainstMe, IReadOnlyList<StanceLine> Stances, bool Petition = false, string? VetoRefusal = null, bool Vetoed = false, string? VetoedBy = null);
 /// <summary>A motion the player could move, with its targets.</summary>
 public sealed record MotionProposal(string KindId, string KindName, string Description, int Influence, string TargetType, IReadOnlyList<(string Id, string Name)> Targets, string? Refusal, bool NeedsOffice = false, IReadOnlyList<(string Id, string Name)>? Offices = null,
     bool NeedsLaw = false, IReadOnlyList<ActLawChoice>? Laws = null);
@@ -47,10 +47,12 @@ public sealed record ActLawChoice(string Id, string Name, string Description, st
 /// <summary>A law of the whole Reach as it stands: who set it and to what.</summary>
 public sealed record ReachLawLine(string Id, string Name, string Category, string OptionName, string Effects, string SetBy, bool Act, bool Mine, int CooldownLeft);
 /// <summary>An office of the Reach: who holds it, what it confers, and whether the player has a candidate for it.</summary>
-public sealed record OfficeCard(string Id, string Name, string Description, string? HolderHouseId, string? HolderHouse, string? HolderName, string? HolderAccent, int Since, bool Mine, string? MyCandidate, int Hulls, string Track, int MinRank);
+public sealed record OfficeCard(string Id, string Name, string Description, string? HolderHouseId, string? HolderHouse, string? HolderName, string? HolderAccent, int Since, bool Mine, string? MyCandidate, int Hulls, string Track, int MinRank, bool Elected = false);
+/// <summary>The consulship (docs/REPUBLIC.md): the sitting consuls, the next election, the nominees as they stand and the player's candidacy.</summary>
+public sealed record ElectionCard(int NextIn, int TermTurns, IReadOnlyList<(string Party, string PartyAccent, string HouseId, string HouseName, string Accent, int Tally)> Nominees, bool Standing, string? StandRefusal, bool AmConsul, bool CanVeto);
 /// <summary>The Senate as a place of action (GDD §6.1): the docket, the history, what the player may move, and their weight in the chamber.</summary>
 public sealed record SenateCard(IReadOnlyList<MotionCard> Docket, IReadOnlyList<MotionCard> History, IReadOnlyList<MotionProposal> Proposals, int MyWeight, int TotalWeight, bool MayPropose, bool Embargoed, int EmbargoLifts, IReadOnlyList<OfficeCard>? Offices = null,
-    IReadOnlyList<FactionCard>? Factions = null, string? FoundRefusal = null, string? LeaveRefusal = null, int Followers = 0);
+    IReadOnlyList<FactionCard>? Factions = null, string? FoundRefusal = null, string? LeaveRefusal = null, int Followers = 0, ElectionCard? Election = null);
 
 /// <summary>One option of a law: in force or not, what it does, what the estates think of it, and why it cannot be chosen.</summary>
 public sealed record LawOptionCard(string Id, string Name, bool InForce, string Effects, IReadOnlyList<(string Estate, string Name, int Opinion)> Opinions, string? Refusal);
@@ -392,7 +394,8 @@ public static class CourtProjection
             var (f, a) = m.Open ? senate.Tally(w, m) : (m.ForWeight, m.AgainstWeight);
             bool againstMe = m.TargetId == house.Id && def != null && (def.LegitimacyTarget < 0 || def.EmbargoTurns > 0);
             return new MotionCard(m.Id, m.Kind, def?.Name ?? m.Kind, senate.ProposerName(w, m), SenateSystem.IsPetition(m) ? SenateSystem.EstateAccent : proposer?.AccentColor ?? "#888", targetName, senate.Describe(w, m), m.ProposedTurn, m.Open, m.Passed,
-                f, a, m.Votes.GetValueOrDefault(house.Id), m.ProposerHouseId == house.Id, againstMe, stances, SenateSystem.IsPetition(m));
+                f, a, m.Votes.GetValueOrDefault(house.Id), m.ProposerHouseId == house.Id, againstMe, stances, SenateSystem.IsPetition(m),
+                m.Open ? new VetoCommand(p.Id, m.Id, senate.Offices, senate).Refusal(ctx) : "decided", m.Vetoed, m.Vetoed ? w.House(m.VetoedBy)?.Name ?? m.VetoedBy : null);
         }
         var docket = SenateSystem.Docket(w).Select(Card).ToList();
         var history = w.Motions.Where(m => m.Resolved).OrderByDescending(m => m.ResolvedTurn).ThenBy(m => m.Id, StringComparer.Ordinal).Take(8).Select(Card).ToList();
@@ -401,8 +404,9 @@ public static class CourtProjection
         var proposals = senate.Motions.Defs.Where(d => d.Id != "petition").Select(d =>
         {
             List<(string Id, string Name)> targets = d.Target == "house" ? houses.Where(x => (x.Id != house.Id || d.TargetSelfAllowed) && (!d.TargetMustBeAtWar || w.Wars.Any(x2 => x2.Involves(x.Id)))).ToList() : d.Target == "region" ? regions : new List<(string Id, string Name)>();
-            if (d.Office) targets = targets.Where(x => senate.Offices.Defs.Any(o => OfficeSystem.Candidate(w, o, x.Id) != null)).ToList();   // only houses with someone of the rank
-            string firstOffice = d.Office && senate.Offices.Defs.Count > 0 ? senate.Offices.Defs[0].Id : "";
+            var commissionable = senate.Offices.Defs.Where(o => !o.Elected).ToList();
+            if (d.Office) targets = targets.Where(x => commissionable.Any(o => OfficeSystem.Candidate(w, o, x.Id) != null)).ToList();   // only houses with someone of the rank
+            string firstOffice = d.Office && commissionable.Count > 0 ? commissionable[0].Id : "";
             var probe = new ProposeMotionCommand(p.Id, d.Id, targets.Count > 0 ? targets[0].Id : "", senate, firstOffice).Refusal(ctx);
             if (probe != null && targets.Count > 1 && (probe == "not against yourself" || probe == "already before the Senate" || probe.StartsWith("no one of") || probe.EndsWith("holds it already"))) probe = new ProposeMotionCommand(p.Id, d.Id, targets[1].Id, senate, firstOffice).Refusal(ctx);
             int cost = new ProposeMotionCommand(p.Id, d.Id, "", senate).Cost(w, house.Id, d);
@@ -419,14 +423,14 @@ public static class CourtProjection
                 if (laws.SelectMany(l => l.Options).Any(o => o.Refusal == null)) probe = null;
             }
             return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : "").Replace("{office}", "an office").Replace("{law}", "a law of the Reach").Replace("{option}", "so set"), cost, d.Target, targets, probe, d.Office,
-                d.Office ? senate.Offices.Defs.Select(o => (Id: o.Id, Name: o.Name)).ToList() : null, d.Law, laws);
+                d.Office ? commissionable.Select(o => (Id: o.Id, Name: o.Name)).ToList() : null, d.Law, laws);
         }).ToList();
         int total = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).Sum(h => senate.Weight(w, h.Id));
         var offices = senate.Offices.Defs.Select(o =>
         {
             var h = OfficeSystem.Holding(w, o.Id); var hh = h != null ? w.House(h.HouseId) : null; var who = h != null ? w.Char(h.CharacterId) : null;
             int hulls = o.CommandsFleets ? w.Fleets.Values.Where(f => f.Office).Sum(f => f.Strength) : 0;
-            return new OfficeCard(o.Id, o.Name, o.Description, hh?.Id, hh?.Name, who?.Name, hh?.AccentColor, h?.SinceTurn ?? 0, hh?.Id == house.Id, OfficeSystem.Candidate(w, o, house.Id)?.Name, hulls, o.Track, o.MinRank);
+            return new OfficeCard(o.Id, o.Name, o.Description, hh?.Id, hh?.Name, who?.Name, hh?.AccentColor, h?.SinceTurn ?? 0, hh?.Id == house.Id, OfficeSystem.Candidate(w, o, house.Id)?.Name, hulls, o.Track, o.MinRank, o.Elected);
         }).ToList();
         var factions = w.Factions.OrderByDescending(f => f.Members.Sum(h => senate.Weight(w, h))).ThenBy(f => f.Id, StringComparer.Ordinal).Select(f =>
         {
@@ -437,8 +441,17 @@ public static class CourtProjection
                 f.Members.Contains(house.Id), f.LeaderHouseId == house.Id, platform, f.Record, f.FormedTurn, new JoinFactionCommand(p.Id, f.Id).Refusal(ctx),
                 f.Description, string.Join(", ", f.Estates.Select(e => senate.Policies.Estate(e)?.Name ?? e)), string.Join(" · ", f.Laws.Select(kv => $"{senate.Policies.Law(kv.Key)?.Name.ToLowerInvariant() ?? kv.Key}: {senate.Policies.Law(kv.Key)?.Option(kv.Value)?.Name.ToLowerInvariant() ?? kv.Value}")), f.PartyId.Length > 0);
         }).ToList();
+        ElectionCard? election = null;
+        if (ElectionSystem.ConsulOffices(senate.Offices).Any())
+        {
+            Func<string, int> wt = id => senate.Weight(w, id);
+            var noms = ElectionSystem.Nominees(w, senate.Offices, wt); var tally = ElectionSystem.Tally(w, senate.Offices, wt, noms);
+            election = new ElectionCard(ElectionSystem.NextIn(w), ElectionSystem.ConsulOffices(senate.Offices).First().TermTurns,
+                noms.Select(n => { var f = n.partyId != null ? w.Factions.FirstOrDefault(x => x.Id == n.partyId) : null; var nh = w.House(n.houseId); return (f?.Name ?? "independent", f?.Accent ?? "#C9D1DC", n.houseId, nh?.Name ?? n.houseId, nh?.AccentColor ?? "#888", tally.GetValueOrDefault(n.houseId)); }).OrderByDescending(x => x.Item6).ToList(),
+                w.HasFlag(ElectionSystem.StandFlag(house.Id)), new StandForConsulCommand(p.Id, senate.Offices).Refusal(ctx), ElectionSystem.IsConsul(w, senate.Offices, house.Id), ElectionSystem.MayVeto(w, senate.Offices, house.Id));
+        }
         return new SenateCard(docket, history, proposals, senate.Weight(w, house.Id), total, senate.MayPropose(w, house.Id), SenateSystem.Embargoed(w, house.Id), Math.Max(0, w.Counter("embargo:" + house.Id) - w.Turn), offices,
-            factions, new FoundFactionCommand(p.Id).Refusal(ctx), new LeaveFactionCommand(p.Id).Refusal(ctx), FoundFactionCommand.Followers(w, house.Id).Count);
+            factions, new FoundFactionCommand(p.Id).Refusal(ctx), new LeaveFactionCommand(p.Id).Refusal(ctx), FoundFactionCommand.Followers(w, house.Id).Count, election);
     }
 
     /// <summary>Battles about to be joined, the campaign, and the protagonist's own command style (docs/MILITARY.md).</summary>

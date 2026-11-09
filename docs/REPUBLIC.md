@@ -27,10 +27,18 @@ rather than the state, who can be voted a triumph or march on the capital.
    party's stance on each kind of motion and ±2 on an Act that matches or undoes the party line; discipline toward the
    leader stands as before. The Senate screen groups the hemicycle by party and shows each party's colour, courted
    estates and law platform.
-2. **The consulship.** Every ten turns the Senate elects **two consuls** from houses of standing (title rank ≥ 2 or a
-   head who is Praetor / Commander or better), each party moving its candidate; the two highest weights take the chairs.
-   A consul holds the *chair's* laws jointly (replacing the capital-holder as chair of the Reach's laws), commands the
-   state fleet for foreign wars, and may veto one motion a session. Consuls cannot stand again for ten turns.
+2. **The consulship — done (2026-11-09).** Two elected offices in `content/senate/offices.json` (`elected: true`):
+   the Senior Consul (weight +4, two credits a turn, a motion one influence cheaper, the veto) and the Junior Consul
+   (+3, one credit, the discount, the veto). Every tenth turn (`ElectionSystem.Hold`, not under the Imperium) each party
+   nominates its weightiest member with a qualified candidate (rank 2 on any track) who was not elected last time;
+   the player may **stand** (two influence) and runs as their party's nominee, or alone. Every house's weight goes to
+   its party's nominee; a house with no party votes for the nominee its head likes best. The two highest tallies take
+   the chairs; the old consuls' term ends. A consul may **veto** one open motion a term before the vote (never their
+   own); rival consuls veto a censure or embargo aimed at their house or their party's leader, and an Act that undoes
+   their party's line. The Senate screen carries the consulship panel (the chairs, the nominees as they stand with
+   their tallies, the Stand button) and veto buttons on the docket for a consul; four events (*The Hustings*, *The
+   Consulship*, *The Veto Falls*, *The Term Ends*). The chair's laws stay with the capital's holder for now; the
+   consuls' command of the state fleet waits for foreign wars (docs/FOREIGN_NATIONS.md).
 3. **The cursus honorum.** Offices gated by age and prior office (quaestor → aedile → praetor → consul in Roman terms;
    here Treasurer → Speaker/Admiral → Consul). Holding each feeds standing and the estates.
 4. **Generals' sway.** A commander's *imperium*: fleets of the house with loyalty above a threshold to a commander who

@@ -283,9 +283,11 @@ internal static class Qa
         foreach (var f in w.Factions) cands.Add(new JoinFactionCommand(p.Id, f.Id));
         foreach (var law in content.Policies.Laws) cands.Add(new EnactLawCommand(p.Id, law.Id, law.Options[decisions.NextInt(0, law.Options.Count)].Id, content.Policies));
         cands.Add(new LeaveFactionCommand(p.Id)); cands.Add(new FoundFactionCommand(p.Id));
+        cands.Add(new StandForConsulCommand(p.Id, content.Offices));
         foreach (var m in SenateSystem.Docket(w))
         {
             cands.Add(new VoteCommand(p.Id, m.Id, decisions.NextInt(0, 3) - 1));
+            if (decisions.NextInt(0, 3) == 0) cands.Add(new VetoCommand(p.Id, m.Id, content.Offices, tc.Senate));
             if (others.Count > 0) { var t = others[decisions.NextInt(0, others.Count)]; cands.Add(new LobbyCommand(p.Id, m.Id, t.Id, decisions.NextInt(0, 2) == 0 ? 1 : -1, bribe: decisions.NextInt(0, 3) == 0)); }
         }
         if (others.Count > 0 && decisions.NextInt(0, 4) == 0) cands.Add(new DeclareWarCommand(p.Id, others[decisions.NextInt(0, others.Count)].Id, content.Fleets));

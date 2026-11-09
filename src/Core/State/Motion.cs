@@ -19,6 +19,9 @@ public sealed class Motion
     public string LawId { get; set; } = "";
     public string LawOption { get; set; } = "";
     public int ProposedTurn { get; set; }
+    /// <summary>Struck from the docket by a consul's veto before the vote (ElectionSystem).</summary>
+    public bool Vetoed { get; set; }
+    public string VetoedBy { get; set; } = "";
     /// <summary>Declared votes: house id → +1 for, −1 against, 0 abstain. Rival houses declare at the vote; the player may declare early.</summary>
     public Dictionary<string, int> Votes { get; set; } = new();
     /// <summary>Lobbying pressure on a house: house id → signed weight added to its lean (positive toward passing).</summary>
