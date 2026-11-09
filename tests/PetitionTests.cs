@@ -86,3 +86,31 @@ public class PetitionTests
         var est = model.Chancery!.Estates.Single(e => e.Id == "merchants"); Assert.Equal("petitioning the Senate: that the trade charter be open lanes", est.Petition); Assert.Equal(3, est.HostileIn);
     }
 }
+
+public class QolTests
+{
+    private static World Rings(int unrest) { var m = typeof(RegionSystemTests).GetMethod("Rings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!; return (World)m.Invoke(null, new object[] { unrest })!; }
+    private static readonly ContentDatabase Content = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir());
+
+    [Fact]
+    public void AStruckHouse_TakesItsMotionsOffTheDocket()
+    {
+        var w = Rings(0); w.Turn = 5; var senate = new SenateSystem(MotionCatalog.LoadFromDirectory(ContentLocator.FindContentDir()), Content.Titles) { Policies = Content.Policies };
+        senate.Add(w, "corwin", "censure", "vega"); senate.Add(w, "aurelian", "recognition", "corwin");
+        Assert.Equal(2, SenateSystem.Docket(w).Count());
+        foreach (var id in w.House("corwin")!.Members.ToList()) w.Char(id)!.Alive = false; w.Holdings.Remove("corwin_world");   // no one left, nothing held
+        HouseSystem.Tick(w);
+        Assert.False(w.Houses.ContainsKey("corwin"));
+        Assert.Empty(SenateSystem.Docket(w));   // its own motion lapses, and the one against it has no target
+        Assert.Contains(w.History, h => h.Text.Contains("lapses"));
+    }
+
+    [Fact]
+    public void TheChancery_TellsYouWhatAnEstateWouldWarmTo()
+    {
+        var w = Rings(0); w.Turn = 5; PolicySystem.Enact(w, Content.Policies, "vega", "tithe", "harsh"); w.WorldCounters[$"law_cd:vega:tithe"] = 0;
+        var tc = new TurnController(w, Content); var model = CourtProjection.Build(tc, Content);
+        var commons = model.Chancery!.Estates.Single(e => e.Id == "commons");
+        Assert.NotNull(commons.Wants); Assert.StartsWith("the tithe → ", commons.Wants);
+    }
+}

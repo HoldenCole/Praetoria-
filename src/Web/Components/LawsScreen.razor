@@ -33,6 +33,7 @@
                         <div class="es-bar"><i class="zero"></i><i class="fill @(e.Approval >= 0 ? "pos" : "neg")" style="left:@(e.Approval >= 0 ? 50 : 50 + e.Approval / 2)%; width:@(Math.Abs(e.Approval) / 2)%"></i></div>
                         <div class="muted small">@e.Effects</div>
                         <div class="muted small">Your laws: @e.LawsSay</div>
+                        @if (e.Wants != null && e.Approval < PolicySystem.Loyal) { <div class="muted small">They would warm to: @e.Wants</div> }
                         @if (e.Petition != null) { <div class="small petition">⚖ @e.Petition</div> }
                         else if (e.HostileIn >= SenateSystem.PetitionMinHouses) { <div class="muted small">hostile in @e.HostileIn houses of the Reach — a petition is near</div> }
                     </div>

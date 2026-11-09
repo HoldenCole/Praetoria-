@@ -70,7 +70,7 @@ public class RegionSystemTests
         Assert.Equal(2, eco.Compute(w, "aurelian").Lines.Single(l => l.Kind == "world").Delta.Credits);
         RegionSystem.StateOf(w, "rim").Lawlessness = 100;
         Assert.Equal(1 * 100 / 200, eco.Compute(w, "vega").Lines.Single(l => l.Kind == "world").Delta.Credits);
-        Assert.Equal(RegionSystem.CapitalHolder(w)!.Id, "aurelian");
+        Assert.Equal("aurelian", RegionSystem.CapitalHolder(w)!.Id);
     }
 
     [Fact]

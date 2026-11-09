@@ -43,7 +43,7 @@ public class OfficeTests
         foreach (var h in w.Houses.Values) m.Votes[h.Id] = 1;
         w.Turn++; senate.Tick(w);
         Assert.True(m.Passed); Assert.True(OfficeSystem.Holds(w, "vega", "admiral")); Assert.Equal("self", OfficeSystem.Holding(w, "admiral")!.CharacterId);
-        Assert.Equal("vega", w.Fleets["reach_squadron"].OwnerId); Assert.True(w.Char("self")!.Flags.Contains("office:admiral")); Assert.True(w.HasFlag("holds_office:admiral"));
+        Assert.Equal("vega", w.Fleets["reach_squadron"].OwnerId); Assert.Contains("office:admiral", w.Char("self")!.Flags); Assert.True(w.HasFlag("holds_office:admiral"));
         Assert.Equal(42 + 2, w.House("vega")!.Legitimacy);                                                 // the commission's +2 and the grant's +2
         // the chair pays the squadron's upkeep; the state fuels it
         Assert.Equal("aurelian", FleetSystem.BilledTo(w.Fleets["reach_squadron"], "aurelian")); Assert.Equal("vega", FleetSystem.BilledTo(w.Fleets["vega_guard"], "aurelian"));

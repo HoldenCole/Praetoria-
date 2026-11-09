@@ -3,6 +3,17 @@
 ## [Unreleased]
 
 ### Added
+- **QoL, politics**: the docket says outright whether a motion *carries* or *fails* as the benches lean; the outliner
+  and the Chancellor warn when a motion is decided this session and your vote is undeclared, and when an Act is before
+  the chamber; each estate card in the Chancery names the one law change in your gift that would warm it most, with its
+  cost; the Act picker shows each option's estate opinions; the Chronicle gains a *politics* filter; the primer gains a
+  card on the laws and the estates.
+
+### Fixed
+- A house struck from the rolls took its open motions with it only in name: the docket now drops a dead house's own
+  motion (with a line) and any motion aimed at it.
+- The QA soak no longer tries to move a petition as the player (only an estate brings one).
+- The four xUnit analyzer warnings in the test suite.
 - **Graphics: the Chancery and the chamber read their politics.** The Chancery's walls now hang six estate tapestries,
   each woven in its mood's colour with a glyph and a regard bar at the hem, lit by a lamp that burns steady for a loyal
   estate and gutters for a hostile one; a brass bell swings beside an estate that is petitioning. The desk carries a

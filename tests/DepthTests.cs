@@ -175,7 +175,7 @@ public class DepthTests
         new FamilySystem().Tick(w);
         var engine = new EventEngine(content, WorldBuilder.RngFor(w));
         var defiant = engine.GatherEligible(w).FirstOrDefault(e => e.def.Id == "the_defiant_kin");
-        Assert.NotNull(defiant);
+        Assert.NotNull(defiant.def);   // a default tuple carries a null def
         Assert.Equal("bastien_castellan", defiant.binding.Resolve("kin"));
     }
 

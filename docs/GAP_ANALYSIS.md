@@ -614,3 +614,22 @@ on both branches, Pages redeployed.
 ### Still open, ranked
 1. **Content volume** (154 events); the estate events still want a scripted check. 2. **Plots with steps.** 3. **The
 ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**
+
+## 19. QoL and bug check — 2026-11-09
+
+Method: a read-through of the Senate, Acts and petition paths for edge cases; 350 tests (warning-free); both validators;
+`qa --seeds 4` (24 runs, 0 failures); a browser drive through every change (0 console errors).
+
+### Fixed
+- A struck house's motions now leave the docket (its own lapses with a line; one aimed at it has no target). Before,
+  a dead house's motion would be voted and its name shown as an id.
+- The QA player no longer attempts the petition kind.
+
+### QoL added
+- Docket verdict ("Carries / Fails as the benches lean"); undeclared-vote and Act-on-the-docket alerts in the outliner
+  and the Chancellor's report; "They would warm to" on every estate card; estate opinions in the Act picker; a
+  *politics* Chronicle filter; a primer card on the laws and the estates.
+
+### Still open, ranked
+1. **Content volume** (154 events); the estate events still want a scripted check. 2. **Plots with steps.** 3. **The
+ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**

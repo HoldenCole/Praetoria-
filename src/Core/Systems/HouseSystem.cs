@@ -63,6 +63,8 @@ public static class HouseSystem
     {
         w.Wars.RemoveAll(x => x.Involves(house.Id));
         foreach (var f in w.Factions) f.Members.Remove(house.Id);
+        if (w.Motions.RemoveAll(m => m.Open && m.ProposerHouseId == house.Id) > 0) w.Log($"The motion of {house.Name} lapses: there is no one left to speak to it.");   // a dead house's business leaves the docket
+        foreach (var m in w.Motions.Where(m => m.Open && m.TargetId == house.Id).ToList()) { w.Motions.Remove(m); }
         if (w.Offices.RemoveAll(o => o.HouseId == house.Id) > 0) { var back = OfficeSystem.FleetsDefaultOwner(w); foreach (var f in w.Fleets.Values.Where(f => f.Office && f.OwnerId == house.Id)) f.OwnerId = back ?? f.OwnerId; }
         foreach (var h in w.Holdings.Values.Where(h => h.FormerOwnerId == house.Id)) h.FormerOwnerId = "";
         foreach (var k in w.WorldCounters.Keys.Where(k => k.EndsWith(":" + house.Id)).ToList()) w.WorldCounters.Remove(k);

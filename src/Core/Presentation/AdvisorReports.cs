@@ -63,6 +63,7 @@ public static class AdvisorReports
             : p.Flags.Contains(DynastySystem.ParvenuFlag) ? "The old blood looks down on us still. Standing, not coin, will change that."
             : $"Our standing is sound at legitimacy {house.Legitimacy}. The chambers are quiet.";
         if (w.Motions.Any(m => m.Open && m.ProposerHouseId == house.Id)) chanLine += " Our own motion stands on the docket.";
+        else if (w.Motions.Any(x => x.Open && x.ProposedTurn < w.Turn && !x.Votes.ContainsKey(house.Id))) chanLine += " A motion is decided this session and our vote is not yet declared.";
         else if (w.HasFlag("petition_open")) chanLine += " An estate petitions the Senate; turned away, it will remember every house.";
         else if (w.HasFlag("motion_open") && !w.HasFlag("motion_against_me")) chanLine += " A motion is before the Senate; our vote has weight.";
         list.Add(new AdvisorReport("Chancellor", chancellor?.Name, chanLine, inst > 0 || pressure >= 3 || w.Crises.Count > 0 || w.HasFlag("motion_against_me") || w.HasFlag("embargoed")));

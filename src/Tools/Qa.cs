@@ -256,6 +256,7 @@ internal static class Qa
         cands.Add(new ProcureCommand(p.Id, Resource.Helium3, 2, content.Holdings, bc)); cands.Add(new ProcureCommand(p.Id, Resource.RareEarths, 1, content.Holdings, bc));
         foreach (var def in tc.Senate.Motions.Defs)
         {
+            if (def.Id == "petition") continue;   // only an estate brings one
             string target = def.Target == "house" && others.Count > 0 ? others[decisions.NextInt(0, others.Count)].Id : def.Target == "region" && g != null && g.Regions.Count > 0 ? g.Regions[decisions.NextInt(0, g.Regions.Count)].Id : "";
             if (def.Target == "house" && def.TargetSelfAllowed && decisions.NextInt(0, 2) == 0) target = house.Id;
             if (def.Law)

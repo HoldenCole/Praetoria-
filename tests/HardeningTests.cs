@@ -246,7 +246,7 @@ public class HardeningTests
 
         var loaded = SaveSystem.Deserialize(json);
         Assert.Equal(Digest(live), Digest(loaded));                // lossless
-        Assert.Equal(BondType.Marriage.ToString(), "Marriage");    // enum names (not ints) in the file
+        Assert.Equal("Marriage", BondType.Marriage.ToString());    // enum names (not ints) in the file
 
         Auto(new TurnController(loaded, content), 5);
         Assert.Equal(Digest(reference), Digest(loaded));           // resumed run == uninterrupted run

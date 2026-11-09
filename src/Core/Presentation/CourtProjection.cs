@@ -42,7 +42,7 @@ public sealed record MotionCard(string Id, string KindId, string KindName, strin
 public sealed record MotionProposal(string KindId, string KindName, string Description, int Influence, string TargetType, IReadOnlyList<(string Id, string Name)> Targets, string? Refusal, bool NeedsOffice = false, IReadOnlyList<(string Id, string Name)>? Offices = null,
     bool NeedsLaw = false, IReadOnlyList<ActLawChoice>? Laws = null);
 /// <summary>A Senate-scoped law an Act may set: its options (the one in force marked), each with its refusal were it moved now.</summary>
-public sealed record ActLawChoice(string Id, string Name, string Description, string InForce, IReadOnlyList<(string Id, string Name, string Effects, string? Refusal)> Options);
+public sealed record ActLawChoice(string Id, string Name, string Description, string InForce, IReadOnlyList<(string Id, string Name, string Effects, string? Refusal, string Opinions)> Options);
 /// <summary>A law of the whole Reach as it stands: who set it and to what.</summary>
 public sealed record ReachLawLine(string Id, string Name, string Category, string OptionName, string Effects, string SetBy, bool Act, bool Mine, int CooldownLeft);
 /// <summary>An office of the Reach: who holds it, what it confers, and whether the player has a candidate for it.</summary>
@@ -56,7 +56,7 @@ public sealed record LawOptionCard(string Id, string Name, bool InForce, string 
 /// <summary>A law: its scope (held or not), its options, its cooldown.</summary>
 public sealed record LawCard(string Id, string Name, string Category, string Description, string Scope, string ScopeName, bool Held, int Cost, int CooldownLeft, IReadOnlyList<LawOptionCard> Options);
 /// <summary>An estate's regard for the house: approval, where the laws would take it, and what its mood does.</summary>
-public sealed record EstateCard(string Id, string Name, string Description, int Approval, int Target, string Mood, string Effects, string LawsSay, string? Petition = null, int HostileIn = 0);
+public sealed record EstateCard(string Id, string Name, string Description, int Approval, int Target, string Mood, string Effects, string LawsSay, string? Petition = null, int HostileIn = 0, string? Wants = null);
 /// <summary>The chancery: laws by category and the six estates.</summary>
 public sealed record ChanceryCard(IReadOnlyList<LawCard> Laws, IReadOnlyList<EstateCard> Estates, int InfluencePool, IReadOnlyList<ReachLawLine>? Reach = null);
 /// <summary>One house on the wealth table.</summary>
@@ -398,7 +398,8 @@ public static class CourtProjection
                 laws = senate.Policies.Laws.Where(l => l.Scope == "senate").OrderBy(l => l.Category, StringComparer.Ordinal).ThenBy(l => l.Name, StringComparer.Ordinal).Select(l =>
                 {
                     string inForce = (PolicySystem.ReachOption(w, senate.Policies, l) ?? l.DefaultOption).Id;
-                    return new ActLawChoice(l.Id, l.Name, l.Description, inForce, l.Options.Select(o => (o.Id, o.Name, Effects(o.Effects), new ProposeMotionCommand(p.Id, d.Id, "", senate, lawId: l.Id, optionId: o.Id).Refusal(ctx))).ToList());
+                    return new ActLawChoice(l.Id, l.Name, l.Description, inForce, l.Options.Select(o => (o.Id, o.Name, Effects(o.Effects), new ProposeMotionCommand(p.Id, d.Id, "", senate, lawId: l.Id, optionId: o.Id).Refusal(ctx),
+                        string.Join(", ", o.Opinions.OrderByDescending(kv => Math.Abs(kv.Value)).Select(kv => $"{(senate.Policies.Estate(kv.Key)?.Name ?? kv.Key).Replace("The ", "")} {(kv.Value > 0 ? "+" : "")}{kv.Value}")))).ToList());
                 }).ToList();
                 var firstOpen = laws.SelectMany(l => l.Options).FirstOrDefault(o => o.Refusal == null); probe = firstOpen.Refusal ?? laws.SelectMany(l => l.Options).Select(o => o.Refusal).FirstOrDefault(r => r != "already the law of the Reach") ?? probe;
                 if (laws.SelectMany(l => l.Options).Any(o => o.Refusal == null)) probe = null;
@@ -458,7 +459,14 @@ public static class CourtProjection
             var pet = w.Motions.FirstOrDefault(m => m.Open && SenateSystem.PetitionEstate(m) == e.Id);
             string? petition = pet != null ? $"petitioning the Senate: that {cat.Law(pet.LawId)?.Name.ToLowerInvariant()} be {cat.Law(pet.LawId)?.Option(pet.LawOption)?.Name.ToLowerInvariant()}" : null;
             int hostileIn = w.Houses.Values.Count(h => h.Id != PirateSystem.HouseId && PolicySystem.Approval(w, h.Id, e.Id) <= PolicySystem.Hostile);
-            return new EstateCard(e.Id, e.Name, e.Description, a, target, mood, fx, says.Count == 0 ? "no law moves them" : string.Join(" · ", says), petition, hostileIn);
+            // what would warm them most: the single option, among the laws in the player's gift, that raises their opinion furthest over what is in force
+            string? wants = null; int bestGain = 0;
+            foreach (var l in cat.Laws.Where(l => !l.Reach && PolicySystem.HoldsScope(w, house.Id, l.Scope)))
+            {
+                var cur = PolicySystem.Option(w, cat, house.Id, l.Id); if (cur == null) continue;
+                foreach (var o in l.Options) { int gain = o.Opinions.GetValueOrDefault(e.Id) - cur.Opinions.GetValueOrDefault(e.Id); if (gain > bestGain) { bestGain = gain; wants = $"{l.Name.ToLowerInvariant()} → {o.Name.ToLowerInvariant()} (+{gain}, {l.Cost} influence{(PolicySystem.OnCooldown(w, house.Id, l.Id) ? ", on cooldown" : "")})"; } }
+            }
+            return new EstateCard(e.Id, e.Name, e.Description, a, target, mood, fx, says.Count == 0 ? "no law moves them" : string.Join(" · ", says), petition, hostileIn, wants);
         }).ToList();
         var reach = cat.Laws.Where(l => l.Reach).OrderBy(l => l.Category, StringComparer.Ordinal).ThenBy(l => l.Name, StringComparer.Ordinal).Select(l =>
         {

@@ -94,7 +94,7 @@
                         <div class="mo-head"><b>@mo.KindName</b> <span class="muted small">@(mo.Petition ? "the petition of" : "moved by") <span style="color:@mo.ProposerAccent">@mo.ProposerName</span> · vote @(mo.ProposedTurn < w.Turn ? "at the end of this turn" : "next session")</span></div>
                         <div class="mo-text">@mo.Text</div>
                         <div class="whip"><span class="for" style="width:@(100 * mo.ForWeight / total)%"></span><span class="against" style="width:@(100 * mo.AgainstWeight / total)%"></span></div>
-                        <div class="muted small">for @mo.ForWeight · against @mo.AgainstWeight — as the benches lean now; the vote is by weight and ties fail</div>
+                        <div class="small"><b class="@(mo.ForWeight > mo.AgainstWeight ? "pos" : "neg")">@(mo.ForWeight > mo.AgainstWeight ? "Carries" : mo.ForWeight == mo.AgainstWeight ? "Tied — fails" : "Fails") as the benches lean</b> <span class="muted">· for @mo.ForWeight · against @mo.AgainstWeight · by weight, ties fail</span></div>
                         <div class="row small">
                             @foreach (var (stance, label) in new[] { (1, "Vote for"), (-1, "Vote against"), (0, "Abstain") })
                             { <button class="opt inline @(mo.MyStance == stance && (stance != 0 || true) ? "here" : "")" @onclick="() => G.Execute(new VoteCommand(pid, mo.Id, stance))">@label</button> }
@@ -129,7 +129,7 @@
                                     <div class="muted small">@al.Description</div>
                                     <select class="sel" @onchange="e => SetOption(pr.KindId, e)">
                                         <option value="">— be set to —</option>
-                                        @foreach (var o in al.Options.Where(o => o.Id != al.InForce)) { <option value="@o.Id">@o.Name — @o.Effects</option> }
+                                        @foreach (var o in al.Options.Where(o => o.Id != al.InForce)) { <option value="@o.Id">@o.Name — @o.Effects@(o.Opinions.Length > 0 ? " · " + o.Opinions : "")</option> }
                                     </select>
                                 }
                                 <button class="opt inline" disabled="@(!CanMoveAct(pr))" title="@ActRefusal(pr)" @onclick="() => MoveAct(pr.KindId)">Move it</button>
@@ -209,7 +209,7 @@
     private void SetLaw(string kind, ChangeEventArgs e) { _law[kind] = e.Value?.ToString() ?? ""; _lawOpt.Remove(kind); }
     private void SetOption(string kind, ChangeEventArgs e) => _lawOpt[kind] = e.Value?.ToString() ?? "";
     private ActLawChoice? ActLaw(MotionProposal pr) => pr.Laws?.FirstOrDefault(l => l.Id == _law.GetValueOrDefault(pr.KindId));
-    private (string Id, string Name, string Effects, string? Refusal)? ActOption(MotionProposal pr) { var l = ActLaw(pr); var id = _lawOpt.GetValueOrDefault(pr.KindId); if (l == null || string.IsNullOrEmpty(id)) return null; var o = l.Options.FirstOrDefault(x => x.Id == id); return o.Id == null ? null : o; }
+    private (string Id, string Name, string Effects, string? Refusal, string Opinions)? ActOption(MotionProposal pr) { var l = ActLaw(pr); var id = _lawOpt.GetValueOrDefault(pr.KindId); if (l == null || string.IsNullOrEmpty(id)) return null; var o = l.Options.FirstOrDefault(x => x.Id == id); return o.Id == null ? null : o; }
     private string? ActRefusal(MotionProposal pr) => ActOption(pr)?.Refusal ?? (ActOption(pr) == null ? "choose a law and what it should be" : null);
     private bool CanMoveAct(MotionProposal pr) => ActOption(pr) is { Refusal: null };
     private void MoveAct(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, "", G.Turn!.Senate, lawId: _law.GetValueOrDefault(kind) ?? "", optionId: _lawOpt.GetValueOrDefault(kind) ?? ""));
