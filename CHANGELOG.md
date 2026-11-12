@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- **A plan for the economy and the Exchange** (docs/ECONOMY_MARKET.md): prices for every good driven by war, siege,
+  raids and scarcity; ventures as assets that change hands; building as projects with a prospectus; then companies,
+  shares, capital raises and takeovers. Design only: nothing in it is built, and it lists the decisions that are the
+  owner's.
 - **The Academy is a year apart from the world** (docs/ACADEMY.md). A run that begins there opens with four terms
   before turn one: the cadet is sixteen, the world does not turn, no world order is taken, and only the Academy's own
   events come. The cadet reads a subject a term, climbs an order of merit against eleven real sons and daughters of the

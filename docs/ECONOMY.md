@@ -164,3 +164,6 @@ Flags for content: `deposit:<res>` (a world or claim of yours sits on one), `str
 `fuel_short`; counters `deposits_held`, `procured`, `fuel_short:<house>`. Conditions: `wealth` (tier compare) and
 `deposit`. Six events ship in `content/events/resources.json` — *Dry Tanks*, *The Skimmer Barons*, *A Vein of Rare
 Earths*, *The Arms Broker* (rich, no isotopes: buy from a man with a false name), *The Fuel Contract*, *The Embargo*.
+
+## What comes next
+The plan for prices, ventures as assets, projects and a stock exchange is in docs/ECONOMY_MARKET.md. Nothing in it is built yet.
