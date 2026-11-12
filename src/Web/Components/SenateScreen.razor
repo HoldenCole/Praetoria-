@@ -28,7 +28,7 @@
 <div class="dash senate" style="--accent:@house.AccentColor">
     <header class="dash-head">
         <div class="dh-title"><Icon Name="houses" Size="18" /> <b>@(w.Era == "imperium" ? "The Imperial Senate" : "The Senate of the Reach")</b>
-            <span class="muted">@seatHouses.Count houses · @totalSeats seats · @benches.Count bench@(benches.Count == 1 ? "" : "es") · the throne @(s?.Throne.HoldsThrone == true ? "is yours" : s?.Throne.EmperorName != null ? $"is {s.Throne.EmperorName}'s" : "stands empty")</span></div>
+            <span class="muted">@seatHouses.Count houses · @totalSeats seats · @benches.Count bench@(benches.Count == 1 ? "" : "es") · @(s?.Throne.HoldsThrone == true ? "the throne is yours" : s?.Throne.EmperorName != null ? $"the throne is {s.Throne.EmperorName}'s" : w.IsImperium ? "the throne stands empty" : "a republic: no throne stands")</span></div>
         <div class="dh-stats">
             <div class="stat"><span>Your seats</span><b>@myWeight <i class="muted">of @totalSeats</i></b></div>
             <div class="stat"><span>Standing</span><b>@w.Counter("senate_standing:" + house.Id)</b></div>
@@ -71,8 +71,8 @@
                 <div class="seat-card">
                     @if (focusHead != null) { <Portrait Id="@focusHead.Id" Name="@focusHead.Name" Sex="@focusHead.Sex" Age="@focusHead.Age" Accent="@focusHouse.AccentColor" Size="56" /> }
                     <div class="sc-body">
-                        <div class="sc-name"><Sigil HouseId="@focusHouse.Id" Accent="@focusHouse.AccentColor" Size="14" /> @focusHouse.Name <span class="muted">@(c.Titles.ById(focusHouse.Title)?.Name ?? focusHouse.Title) · @senate.Weight(w, focusHouse.Id) seat(s)@(fb != null ? $" · {fb.Name}{(fb.LeaderHouseId == focusHouse.Id ? " (leads)" : "")}" : "")</span></div>
-                        <div class="muted small">@(focusHead != null ? $"{focusHead.Name}, {c.Careers.RankName(focusHead.CareerTrack, focusHead.CareerRank) ?? "head"}" : "no head") · legitimacy @focusHouse.Legitimacy · @string.Join(" · ", focusHouse.SphereInfluence.Where(k => k.Value > 0).Select(k => $"{k.Key} {k.Value}"))
+                        <div class="sc-name"><Sigil HouseId="@focusHouse.Id" Accent="@focusHouse.AccentColor" Size="14" /> @focusHouse.Name <span class="muted">@(c.Titles.NameOf(focusHouse.Title, G.World!.Era)) · @senate.Weight(w, focusHouse.Id) seat(s)@(fb != null ? $" · {fb.Name}{(fb.LeaderHouseId == focusHouse.Id ? " (leads)" : "")}" : "")</span></div>
+                        <div class="muted small">@(focusHead != null ? $"{focusHead.Name}, {c.Careers.RankName(focusHead.CareerTrack, focusHead.CareerRank, G.World!.Era) ?? "head"}" : "no head") · legitimacy @focusHouse.Legitimacy · @string.Join(" · ", focusHouse.SphereInfluence.Where(k => k.Value > 0).Select(k => $"{k.Key} {k.Value}"))
                             @if (focusHouse.Id != house.Id) { <span> · <span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">disposition @d</span>@(w.AtWar(house.Id, focusHouse.Id) ? " · AT WAR" : "")</span> }</div>
                         @if (watched != null && focusStance != null && focusHouse.Id != house.Id)
                         {
@@ -131,7 +131,7 @@
                         </details>
                     </div>
                 }
-                <details class="propose"><summary>Move a motion @(sen.MayPropose ? "" : "· a baron, or a Magistrate, may")</summary>
+                <details class="propose"><summary>Move a motion @(sen.MayPropose ? "" : "· a @(Praetoria.Core.Progression.Title.StyleOf(Praetoria.Core.Progression.Title.Baron, w.Era)), or a Magistrate, may")</summary>
                     @foreach (var pr in sen.Proposals)
                     {
                         <div class="proposal">
@@ -238,13 +238,13 @@
                 <section class="panel">
                     <h3><Icon Name="throne" Size="13" /> The ladder of titles</h3>
                     <div class="ladder">
-                        @foreach (var t in ladder) { int r = c.Titles.RankOf(t.Id); int mr = c.Titles.RankOf(house.Title); <span class="rung @(r == mr ? "here" : r < mr ? "past" : "")" title="@(t.LegitimacyRequirement > 0 ? $"needs legitimacy {t.LegitimacyRequirement}" : "")">@t.Name</span> }
+                        @foreach (var t in ladder) { int r = c.Titles.RankOf(t.Id); int mr = c.Titles.RankOf(house.Title); <span class="rung @(r == mr ? "here" : r < mr ? "past" : "")" title="@(t.LegitimacyRequirement > 0 ? $"needs legitimacy {t.LegitimacyRequirement}" : "")">@t.NameIn(G.World!.Era)</span> }
                     </div>
                     <div class="kv"><span>Legitimacy</span><b>@s.Legitimacy@(s.NextTitle != null ? $" / {s.NextRequirement} for {s.NextTitle}" : "")</b></div>
                     @if (s.Instability > 0) { <div class="kv warn"><span>Instability</span><b>@s.Instability</b></div> }
-                    @if (s.Claims.Count > 0) { <div class="kv"><span>Claims held</span><b>@string.Join(", ", s.Claims)</b></div> }
+                    @if (s.Claims.Count > 0) { <div class="kv"><span>Claims held</span><b>@string.Join(", ", s.Claims.Select(cl => c.Titles.NameOf(cl, w.Era)))</b></div> }
                     @if (s.NextTitle != null) { foreach (var path in s.Paths) { <button class="opt" disabled="@(!path.Available)" title="@path.Tooltip" @onclick="() => G.Execute(PathCommand(path.Id))">@path.Label</button> } }
-                    <details><summary>The throne @(s.Throne.HoldsThrone ? "· yours" : s.Throne.EmperorName != null ? $"· {s.Throne.EmperorName}" : "· empty")</summary>
+                    <details><summary>@(w.IsImperium ? "The throne" : "The end of the Republic") @(s.Throne.HoldsThrone ? "· yours" : s.Throne.EmperorName != null ? $"· {s.Throne.EmperorName}" : w.IsImperium ? "· empty" : "· no throne stands")</summary>
                         <button class="opt" disabled="@(s.Throne.ProclaimRefusal != null)" title="@s.Throne.ProclaimRefusal" @onclick="() => G.Execute(new ProclaimImperiumCommand(pid, c.Titles))">Proclaim the Imperium (3 influence, 2 agents)</button>
                         <button class="opt" disabled="@(s.Throne.SeizeRefusal != null)" title="@s.Throne.SeizeRefusal" @onclick="() => G.Execute(new SeizeThroneCommand(pid, c.Titles, c.Friction))">Seize the throne (2 treasury, 2 agents)</button>
                     </details>

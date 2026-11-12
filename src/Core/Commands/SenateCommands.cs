@@ -20,7 +20,7 @@ public sealed class ProposeMotionCommand : ICommand
         if (actor?.Alive != true || house == null) return "no house";
         var def = _senate.Motions.Def(_kind); if (def == null) return "no such motion";
         if (_kind == "petition") return "only an estate brings a petition";
-        if (!_senate.MayPropose(w, house.Id)) return "the Senate hears a baron, or a Magistrate";
+        if (!_senate.MayPropose(w, house.Id)) return $"the Senate hears a {Progression.Title.StyleOf(Progression.Title.Baron, w.Era)}, or a Magistrate";
         if (w.Motions.Any(m => m.Open && m.ProposerHouseId == house.Id)) return "you already have a motion before the Senate";
         if (SenateSystem.Docket(w).Count() >= SenateSystem.DocketSize) return "the docket is full this session";
         if (SenateSystem.Stale(w, house.Id, _kind, def.Law ? _lawId + ":" + _optionId : def.Target == "none" ? "" : def.Office ? _targetId + ":" + _officeId : _targetId)) return "the chamber heard that from you lately";

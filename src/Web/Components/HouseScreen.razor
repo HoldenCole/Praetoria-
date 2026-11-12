@@ -9,7 +9,7 @@
 <div class="dash keep" style="--accent:@m.HouseAccent">
     <header class="dash-head">
         <div class="dh-title"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="22" /> <b>@house.Name</b>
-            <span class="muted">@(c.Titles.ById(house.Title)?.Name ?? house.Title) · @house.Culture culture · @planets world(s)@(stations > 0 ? $" · {stations} station(s)" : "")@(claims > 0 ? $" · {claims} claim(s)" : "") · @pop pop · tithe @(m.Standing?.TaxPolicy ?? "customary")</span></div>
+            <span class="muted">@(c.Titles.NameOf(house.Title, G.World!.Era)) · @house.Culture culture · @planets world(s)@(stations > 0 ? $" · {stations} station(s)" : "")@(claims > 0 ? $" · {claims} claim(s)" : "") · @pop pop · tithe @(m.Standing?.TaxPolicy ?? "customary")</span></div>
         <div class="dh-stats">
             <div class="stat @(m.Treasury.Insolvent ? "warn" : "")"><span>Credits</span><b>@m.Treasury.Credits @if (fc != null && fc.Credits != 0) { <i class="@(fc.Credits > 0 ? "good" : "warn")">@(fc.Credits > 0 ? "+" : "")@fc.Credits</i> }</b></div>
             @if (lg != null) { <div class="stat"><span>Wealth</span><b>@lg.Wealth <i class="muted">@Ordinal(lg.Rank) of @lg.Houses · @lg.Tier</i></b></div> }
@@ -129,7 +129,7 @@
                     <div class="seat-card">
                         <Portrait Id="@focus.Id" Name="@focus.Name" Sex="@focus.Sex" Age="@focus.Age" Alive="@focus.Alive" Accent="@m.HouseAccent" Size="56" />
                         <div class="sc-body">
-                            <div class="sc-name">@focus.Name <span class="muted">@focus.Age@(focus.Sex.Length > 0 ? $" · {focus.Sex}" : "")@(c.Careers.RankName(focus.CareerTrack, focus.CareerRank) is { } rn ? $" · {rn}" : "")</span></div>
+                            <div class="sc-name">@focus.Name <span class="muted">@focus.Age@(focus.Sex.Length > 0 ? $" · {focus.Sex}" : "")@(c.Careers.RankName(focus.CareerTrack, focus.CareerRank, G.World!.Era) is { } rn ? $" · {rn}" : "")</span></div>
                             <div class="muted small">@(hl?.Married == true ? "wed · " : "")@(hl?.Hidden == true ? "fostered away · " : "")<span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d toward you</span>@(focus.NatureTraits.Count > 0 ? " · " + string.Join(", ", focus.NatureTraits.Concat(focus.AptitudeTraits)) : "")@(focus.Ambition.Length > 0 ? $" · wants: {focus.Ambition.Replace('_', ' ')}" : "")</div>
                             @if (hl != null && hl.Actions.Count > 0) { <div class="sc-actions">@foreach (var o in hl.Actions) { if (o.Id == "defiant") { <span class="pill warn">defiant</span> } else { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(Household(o.Id, hl.Id))">@o.Label</button> } } </div> }
                         </div>
@@ -162,7 +162,7 @@
                     <div class="kv"><span><Icon Name="threat" Size="12" /> Threat read in us</span><b class="@(s.Threat >= 60 ? "warn" : "")">@s.Threat</b></div>
                     @if (s.Instability > 0) { <div class="kv"><span>Title instability</span><b class="warn">@s.Instability</b></div> }
                     @if (s.Honors.Count > 0) { <div class="kv"><span><Icon Name="honor" Size="12" /> Honors</span><b>@string.Join(", ", s.Honors)</b></div> }
-                    @if (s.Claims.Count > 0) { <div class="kv"><span><Icon Name="claim" Size="12" /> Claims</span><b>@string.Join(", ", s.Claims)</b></div> }
+                    @if (s.Claims.Count > 0) { <div class="kv"><span><Icon Name="claim" Size="12" /> Claims</span><b>@string.Join(", ", s.Claims.Select(tid => c.Titles.NameOf(tid, G.World!.Era)))</b></div> }
                     <div class="muted small">Titles, the throne and the spheres are pursued in the Senate.</div>
                 </section>
             }

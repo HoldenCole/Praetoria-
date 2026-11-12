@@ -55,7 +55,7 @@
             },
             {
               "type": "log",
-              "text": "The crown's due came to {self.name} with interest, and {self.name} paid it in coin that had been meant for other things. {sovereign.name} of {sovereign.house} received it as the crown receives everything: as its right."
+              "text": "{era:The chair's due|The crown's due} came to {self.name} with interest, and {self.name} paid it in coin that had been meant for other things. {sovereign.name} of {sovereign.house} received it as {era:the chair|the crown} receives everything: as its right."
             }
           ]
         },
@@ -85,7 +85,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid the crown's due in the only coin a poor house has — a year of service at {sovereign.name}'s disposal, unglamorous and unrefusable. The debt is cleared. The year is gone. The standing it bought will outlast both."
+              "text": "{self.name} paid {era:the chair's due|the crown's due} in the only coin a poor house has — a year of service at {sovereign.name}'s disposal, unglamorous and unrefusable. The debt is cleared. The year is gone. The standing it bought will outlast both."
             }
           ]
         },
@@ -138,7 +138,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {sovereign.name} of {sovereign.house}, through intermediaries and then without them, that the debt would not be paid. The court went very quiet. A house that defies the crown has either grown very strong or made a very large mistake, and no one yet knows which {self.name} is."
+              "text": "{self.name} told {sovereign.name} of {sovereign.house}, through intermediaries and then without them, that the debt would not be paid. {era:The Senate|The court} went very quiet. A house that defies {era:the chair|the crown} has either grown very strong or made a very large mistake, and no one yet knows which {self.name} is."
             }
           ]
         }
@@ -435,7 +435,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} offered {rival.name} of {rival.house} what the broken coalition could not: a place. Yesterday's organiser-against-you became today's reluctant client. Mercy, at court, is just leverage with better manners."
+              "text": "{self.name} offered {rival.name} of {rival.house} what the broken coalition could not: a place. Yesterday's organiser-against-you became today's reluctant client. Mercy, {era:in the Senate|at court}, is just leverage with better manners."
             }
           ]
         },
@@ -769,7 +769,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} broke outward. A steward dismissed in front of the household, a petitioner answered with a blow, a week the court would talk about for a year. The pressure eased. The price was paid by everyone nearby."
+              "text": "{self.name} broke outward. A steward dismissed in front of the household, a petitioner answered with a blow, a week {era:the capital|the court} would talk about for a year. The pressure eased. The price was paid by everyone nearby."
             }
           ]
         },
@@ -794,7 +794,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} withdrew — from the court, the ledgers, the thousand demands — and let the house run itself for a season. It ran badly. {self.name} came back able to run it."
+              "text": "{self.name} withdrew — from {era:the Senate|the court}, the ledgers, the thousand demands — and let the house run itself for a season. It ran badly. {self.name} came back able to run it."
             }
           ]
         }

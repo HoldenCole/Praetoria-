@@ -495,7 +495,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} accepted the factors' gift. Six credits, and a question about whose lord {self.name} is."
+              "text": "{self.name} accepted the factors' gift. Six credits, and a question about whose {era:senator|lord} {self.name} is."
             }
           ]
         },
@@ -783,7 +783,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} heard the petitioners through a side door, closed court or no. The hall stayed closed; the matter was settled."
+              "text": "{self.name} heard the petitioners through a side door, closed doors or no. The hall stayed closed; the matter was settled."
             }
           ]
         },
@@ -802,7 +802,7 @@
             },
             {
               "type": "log",
-              "text": "The petitioners were turned from {self.house}'s closed court. The old blood approved of a door that stays shut."
+              "text": "The petitioners were turned from {self.house}'s closed doors. The old blood approved of a door that stays shut."
             }
           ]
         }
@@ -1182,7 +1182,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} posted a bounty on the raiders' heads. Four credits, and the navy noticed a lord who wants pirates dead."
+              "text": "{self.name} posted a bounty on the raiders' heads. Four credits, and the navy noticed a {era:senator|lord} who wants pirates dead."
             }
           ]
         },
@@ -1310,7 +1310,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took in the disaffected of the old lords' worlds under the free march's banner. Two companies; a name the old lords spit."
+              "text": "{self.name} took in the disaffected of the old {era:senators|lords}' worlds under the free march's banner. Two companies; a name the old {era:senators|lords} spit."
             }
           ]
         },
@@ -1327,7 +1327,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sent the free march's compliments to the chair and asked nothing. The court filed it under 'surprising'."
+              "text": "{self.name} sent the free march's compliments to the chair and asked nothing. {era:The Senate|The court} filed it under 'surprising'."
             }
           ]
         },
@@ -1478,7 +1478,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} kept the tanks full against a dry year. The admirals approve of a lord who thinks about fuel."
+              "text": "{self.name} kept the tanks full against a dry year. The admirals approve of a {era:senator|lord} who thinks about fuel."
             }
           ]
         },
@@ -1674,7 +1674,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} declined to read anything into the comet. The magistrates approved of a lord who does not read the sky."
+              "text": "{self.name} declined to read anything into the comet. The magistrates approved of a {era:senator|lord} who does not read the sky."
             }
           ]
         }

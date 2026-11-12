@@ -15,11 +15,11 @@ public class ProgressionTests
 {
     private static TitleCatalog Ladder() => new(new[]
     {
-        new TitleDef { Id = "landless", Name = "Landless", Rank = 0, LegitimacyRequirement = 0 },
-        new TitleDef { Id = "knight", Name = "Knight", Rank = 1, LegitimacyRequirement = 10 },
-        new TitleDef { Id = "baron", Name = "Baron", Rank = 2, LegitimacyRequirement = 25 },
-        new TitleDef { Id = "count", Name = "Count", Rank = 3, LegitimacyRequirement = 40 },
-        new TitleDef { Id = "duke", Name = "Duke", Rank = 4, LegitimacyRequirement = 60 }
+        new TitleDef { Id = "landless", ImperialName = "Landless", Rank = 0, LegitimacyRequirement = 0 },
+        new TitleDef { Id = "knight", ImperialName = "Knight", Rank = 1, LegitimacyRequirement = 10 },
+        new TitleDef { Id = "baron", ImperialName = "Baron", Rank = 2, LegitimacyRequirement = 25 },
+        new TitleDef { Id = "count", ImperialName = "Count", Rank = 3, LegitimacyRequirement = 40 },
+        new TitleDef { Id = "duke", ImperialName = "Duke", Rank = 4, LegitimacyRequirement = 60 }
     });
 
     private static World PWorld(string title = "baron", int legit = 28, int rank = 3)

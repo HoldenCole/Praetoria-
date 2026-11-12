@@ -140,7 +140,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} cut the household's own spending before the people's — sold the plate, dismissed the musicians, ate as the garrison ate. It raises little, and costs much in pride. But a lord who tightens their own belt first is remembered for it, in the only ledger that ever protects a house: the people's."
+              "text": "{self.name} cut the household's own spending before the people's — sold the plate, dismissed the musicians, ate as the garrison ate. It raises little, and costs much in pride. But a {era:senator|lord} who tightens their own belt first is remembered for it, in the only ledger that ever protects a house: the people's."
             }
           ]
         }
@@ -469,7 +469,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {steward.name} return the coin and resign with their name intact, sparing a desperate man the ruin a harder lord would have made of him. Mercy bought quietly is rarely seen and never advertised. But {steward.name} will tell one person the truth of it, and that person will tell another."
+              "text": "{self.name} let {steward.name} return the coin and resign with their name intact, sparing a desperate man the ruin a harder {era:senator|lord} would have made of him. Mercy bought quietly is rarely seen and never advertised. But {steward.name} will tell one person the truth of it, and that person will tell another."
             }
           ]
         },
@@ -543,7 +543,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} heard the delegation out and granted the relief — remitted tithes, grain from the house stores, the small mercies that cost a lord coin and buy a people's patience. It is expensive. It is also the difference between subjects who grumble and subjects who rise."
+              "text": "{self.name} heard the delegation out and granted the relief — remitted tithes, grain from the house stores, the small mercies that cost a {era:senator|lord} coin and buy a people's patience. It is expensive. It is also the difference between subjects who grumble and subjects who rise."
             }
           ]
         },
@@ -567,7 +567,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} answered the unrest with the garrison. Order returned to the streets by nightfall, swift and total and never forgiven. Fear is the cheapest tool a lord owns, and the one that compounds the steepest interest. The quiet now is the quiet before, not after."
+              "text": "{self.name} answered the unrest with the garrison. Order returned to the streets by nightfall, swift and total and never forgiven. Fear is the cheapest tool a {era:senator|lord} owns, and the one that compounds the steepest interest. The quiet now is the quiet before, not after."
             }
           ]
         },
@@ -917,7 +917,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took nothing, this season, from the world that had given so much. The steward thought it madness; the people thought it something rarer. A lord who can take and chooses not to is a lord people will follow past the point where fear would have failed."
+              "text": "{self.name} took nothing, this season, from the world that had given so much. The steward thought it madness; the people thought it something rarer. A {era:senator|lord} who can take and chooses not to is a {era:senator|lord} people will follow past the point where fear would have failed."
             }
           ]
         }

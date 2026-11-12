@@ -288,7 +288,7 @@ public class CareerLadderTests
         Assert.Equal(6, content.Careers.MaxRank("military"));        // Cadet … Grand Admiral
         Assert.Equal(4, content.Careers.MaxRank("stewardship"));
         Assert.Equal(4, content.Careers.MaxRank("law"));
-        Assert.Equal("Lieutenant", content.Careers.RankName("military", 2));
+        Assert.Equal("Lieutenant", content.Careers.RankName("military", 2, World.EraRepublic));
         Assert.Null(content.Careers.MaxRank("spymaster"));           // not a V1 track → uncapped
     }
 

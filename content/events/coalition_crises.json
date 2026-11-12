@@ -164,7 +164,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} drew another thread of the realm's money through {self.name}'s own hands — a fund administered, a debt held, a disbursement that now waits on {self.name}'s signature. {rival_house.name} of {rival_house.house} noticed, as the indebted always notice the one who holds the note. To control the treasury is to be feared by everyone who needs paying, which is everyone."
+              "text": "{self.name} drew another thread of the Reach's money through {self.name}'s own hands — a fund administered, a debt held, a disbursement that now waits on {self.name}'s signature. {rival_house.name} of {rival_house.house} noticed, as the indebted always notice the one who holds the note. To control the treasury is to be feared by everyone who needs paying, which is everyone."
             }
           ]
         },
@@ -463,7 +463,7 @@
             },
             {
               "type": "log",
-              "text": "{coalition_head.name} of {coalition_head.house} came at the head of the frightened — a bloc of houses who individually feared {self.name} and together believed they need not. {self.name} did not yield an inch. The coalition held, for now, and so did {self.name}, and the realm learned that the over-mighty house would have to be broken, not merely warned. The lines are drawn. The war, if it comes, will have a name on each side."
+              "text": "{coalition_head.name} of {coalition_head.house} came at the head of the frightened — a bloc of houses who individually feared {self.name} and together believed they need not. {self.name} did not yield an inch. The coalition held, for now, and so did {self.name}, and the Reach learned that the over-mighty house would have to be broken, not merely warned. The lines are drawn. The war, if it comes, will have a name on each side."
             }
           ]
         },
@@ -706,7 +706,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} stopped pretending the coalition could be talked down and met it as what it was: an enemy in all but the declaring. {self.name} struck first, hard, at {coalition_head.name} of {coalition_head.house} — and the realm understood that the over-mighty house had chosen to become mightier still rather than be diminished. There is no road back from this. There was never meant to be."
+              "text": "{self.name} stopped pretending the coalition could be talked down and met it as what it was: an enemy in all but the declaring. {self.name} struck first, hard, at {coalition_head.name} of {coalition_head.house} — and the Reach understood that the over-mighty house had chosen to become mightier still rather than be diminished. There is no road back from this. There was never meant to be."
             }
           ]
         }
@@ -931,7 +931,7 @@
             },
             {
               "type": "log",
-              "text": "{sovereign.name} of {sovereign.house}, who sits above even the coalitions, summoned {self.name} to answer a single unspoken question: is this great power mine, or its own? {self.name} knelt, and meant the words, and bound the house's strength to the throne's. Safety, bought with a loyalty that can never again be fully questioned — nor fully withdrawn. The mighty serve, or the mighty are unmade. {self.name} chose to serve."
+              "text": "{sovereign.name} of {sovereign.house}, who sits above even the coalitions, summoned {self.name} to answer a single unspoken question: is this great power mine, or its own? {self.name} {era:swore|knelt}, and meant the words, and bound the house's strength to {era:the Republic's|the throne's}. Safety, bought with a loyalty that can never again be fully questioned — nor fully withdrawn. The mighty serve, or the mighty are unmade. {self.name} chose to serve."
             }
           ]
         },
@@ -969,7 +969,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} gave {sovereign.name} of {sovereign.house} every courtesy and no oath. The meaning was not lost on either of them: {self.name}'s power now answers to {self.name} alone, and a strength that kneels to no crown is a strength a crown must eventually confront. {self.name} walked out of the audience the most powerful unsworn house in the realm, which is a magnificent and precarious thing to be, and rarely for long."
+              "text": "{self.name} gave {sovereign.name} of {sovereign.house} every courtesy and no oath. The meaning was not lost on either of them: {self.name}'s power now answers to {self.name} alone, and {era:a strength that answers to no Senate is a strength the Senate must eventually confront|a strength that kneels to no crown is a strength a crown must eventually confront}. {self.name} walked out of the audience the most powerful unsworn house in the Reach, which is a magnificent and precarious thing to be, and rarely for long."
             }
           ]
         }

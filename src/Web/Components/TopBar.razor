@@ -6,9 +6,9 @@
     var ledgerTip = G.Turn.Economy == null ? "" : string.Join("\n", G.Turn.Economy.Compute(w, house.Id, G.Turn.Fleets).Lines.Take(12).Select(l => l.Source + ": " + string.Join(", ", Resource.All.Where(k => l.Delta.Get(k) != 0).Select(k => (l.Delta.Get(k) > 0 ? "+" : "") + l.Delta.Get(k) + " " + k))));
 }
 <header class="topbar" style="--accent:@house.AccentColor">
-    <div class="tb-house" title="@house.Name · @(G.Content!.Titles.ById(house.Title)?.Name ?? house.Title)">
+    <div class="tb-house" title="@house.Name · @(G.Content!.Titles.NameOf(house.Title, G.World!.Era))">
         <Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="30" />
-        <div><div class="tb-name">@house.Name</div><div class="tb-sub">@(G.Content!.Titles.ById(house.Title)?.Name ?? house.Title) · legitimacy @house.Legitimacy</div></div>
+        <div><div class="tb-name">@house.Name</div><div class="tb-sub">@(G.Content!.Titles.NameOf(house.Title, G.World!.Era)) · legitimacy @house.Legitimacy</div></div>
     </div>
     <div class="tb-res" title="@ledgerTip">
         @Res("credits", t.Credits, fc?.Credits, "Credits — the one you run out of. Upkeep, hulls, bribes.")

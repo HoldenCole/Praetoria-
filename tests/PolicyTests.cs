@@ -101,7 +101,7 @@ public class RivalPolicyTests
     {
         var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_fallen_house"), 1); var tc = new TurnController(w, Content);
         Assert.True(Content.Policies.Cultures.Count >= 8);
-        var imperial = w.Houses.Values.First(h => h.Culture == "imperial");
+        var imperial = w.Houses.Values.First(h => h.Culture == "aurelian");
         Assert.Equal("closed_court", PolicySystem.OptionId(w, Content.Policies, imperial.Id, "court_etiquette"));
         var pale = w.Houses.Values.FirstOrDefault(h => h.Culture == "palefolk"); if (pale != null) { Assert.Equal("lenient", PolicySystem.OptionId(w, Content.Policies, pale.Id, "tithe")); Assert.Equal("lenient", pale.TaxPolicy); }
         Assert.True(w.Laws.Count >= 10);

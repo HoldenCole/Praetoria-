@@ -6,8 +6,9 @@ namespace Praetoria.Core.Events;
 /// <summary>
 /// Substitutes {role.field} tokens in authored prose against the live binding (BuildSpec §4
 /// "role-variable substitution"). This is what turns one authored line into many lived ones:
-/// {rival.name} becomes whoever the Binder chose. Supported fields: name, house, rank (the integer)
-/// and rankName (the ladder rung, e.g. "Lieutenant", when a career catalog is loaded). Unknown tokens
+/// {rival.name} becomes whoever the Binder chose. Supported fields: name, house, rank (the integer),
+/// rankName (the ladder rung, e.g. "Lieutenant", when a career catalog is loaded) and title (the house's
+/// rung by the era's name). {era:A|B} picks A in the Republic and B under the Imperium. Unknown tokens
 /// are left intact (and reported by the content validator) rather than crashing a run.
 /// </summary>
 public static class TextRenderer
@@ -40,6 +41,12 @@ public static class TextRenderer
 
     private static string Resolve(string token, EvalContext ctx, string original)
     {
+        // {era:what the Republic says|what the Imperium says} — one authored line, two registers (docs/TITLES.md)
+        if (token.StartsWith("era:", StringComparison.Ordinal))
+        {
+            var alt = token.Substring(4).Split('|', 2);
+            return alt.Length == 2 ? (ctx.World.IsImperium ? alt[1] : alt[0]) : original;
+        }
         var parts = token.Split('.', 2);
         if (parts.Length != 2) return original;
 
@@ -56,7 +63,9 @@ public static class TextRenderer
                 return ctx.World.Houses.TryGetValue(c.HouseId, out var h) ? h.Name : c.HouseId;
             case "rank": return c.CareerRank.ToString();
             case "rankName":
-                return ctx.Content?.Careers.RankName(c.CareerTrack, c.CareerRank) ?? c.CareerRank.ToString();
+                return ctx.Content?.Careers.RankName(c.CareerTrack, c.CareerRank, ctx.World.Era) ?? c.CareerRank.ToString();
+            case "title":      // the house's rung by the era's name: "Prefect" in the Republic, "Baron" under the Imperium
+                return ctx.World.Houses.TryGetValue(c.HouseId, out var th) ? ctx.Content?.Titles.NameOf(th.Title, ctx.World.Era) ?? th.Title : original;
             default: return original;
         }
     }

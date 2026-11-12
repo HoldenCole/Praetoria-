@@ -11,7 +11,7 @@
 }
 <div class="dash academy" style="--accent:@house.AccentColor">
     <header class="dash-head">
-        <div class="dh-title"><Icon Name="military" Size="18" /> <b>The Academy of the Reach</b> <span class="muted">cadet @p.Name, @p.Age · @(c.Careers.ById(p.CareerTrack)?.Name ?? p.CareerTrack) · @(c.Careers.RankName(p.CareerTrack, p.CareerRank) ?? "")</span></div>
+        <div class="dh-title"><Icon Name="military" Size="18" /> <b>The Academy of the Reach</b> <span class="muted">cadet @p.Name, @p.Age · @(c.Careers.ById(p.CareerTrack)?.NameIn(G.World!.Era) ?? p.CareerTrack) · @(c.Careers.RankName(p.CareerTrack, p.CareerRank, G.World!.Era) ?? "")</span></div>
         <div class="dh-stats">
             <div class="stat @(standing < 0 ? "warn" : "")"><span>Standing</span><b>@(standing >= 0 ? "+" : "")@standing</b></div>
             <div class="stat"><span>Place in the cohort</span><b>@place <i class="muted">of @(cohort.Count + 1) by skill</i></b></div>
@@ -50,7 +50,7 @@
                     <div class="seat-card">
                         <Portrait Id="@fc.Id" Name="@fc.Name" Sex="@fc.Sex" Age="@fc.Age" Accent="@fh.AccentColor" Size="56" />
                         <div class="sc-body">
-                            <div class="sc-name">@fc.Name <span class="muted">@(c.Careers.RankName(fc.CareerTrack, fc.CareerRank) ?? "") of @fh.Name · @fc.Age</span></div>
+                            <div class="sc-name">@fc.Name <span class="muted">@(c.Careers.RankName(fc.CareerTrack, fc.CareerRank, G.World!.Era) ?? "") of @fh.Name · @fc.Age</span></div>
                             @if (fc.Id != pid) { <div class="muted small"><span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d toward you</span>@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</div> }
                             <div class="muted small">@string.Join(" · ", fc.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value).Take(4).Select(k => $"{k.Key} {k.Value}"))@(fc.NatureTraits.Count > 0 ? " · " + string.Join(", ", fc.NatureTraits) : "")</div>
                             @if (cn != null) { <div class="sc-actions">@foreach (var o in cn.Actions) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(Conn(o.Id, cn.Id))">@o.Label</button> }</div> }
@@ -66,7 +66,7 @@
                 @foreach (var sk in p.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value)) { <div class="gauge"><span>@sk.Key</span><i><b style="width:@(Math.Min(100, sk.Value * 20))%" class="high"></b></i><em>@sk.Value</em></div> }
                 @if (marks.Count > 0) { <div class="chips">@foreach (var f in marks) { <span class="pill small">@f.Replace('_', ' ')</span> }</div> }
                 <div class="muted small">Standing rises when you win the trials and falls when you are humbled; it decides who petitions you and who sneers.</div>
-                @if (instructor != null) { <div class="person" @onclick="() => _focus = instructor.Id"><Portrait Id="@instructor.Id" Name="@instructor.Name" Sex="@instructor.Sex" Age="@instructor.Age" Accent="@(w.House(instructor.HouseId)?.AccentColor ?? "#888")" Size="26" /><span><b>@instructor.Name</b> <span class="muted">instructor · @(c.Careers.RankName(instructor.CareerTrack, instructor.CareerRank) ?? "") of @(w.House(instructor.HouseId)?.Name)</span></span></div> }
+                @if (instructor != null) { <div class="person" @onclick="() => _focus = instructor.Id"><Portrait Id="@instructor.Id" Name="@instructor.Name" Sex="@instructor.Sex" Age="@instructor.Age" Accent="@(w.House(instructor.HouseId)?.AccentColor ?? "#888")" Size="26" /><span><b>@instructor.Name</b> <span class="muted">instructor · @(c.Careers.RankName(instructor.CareerTrack, instructor.CareerRank, G.World!.Era) ?? "") of @(w.House(instructor.HouseId)?.Name)</span></span></div> }
             </section>
             <section class="panel">
                 <h3><Icon Name="chronicle" Size="13" /> The year so far</h3>

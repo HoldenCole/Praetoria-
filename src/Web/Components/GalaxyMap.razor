@@ -55,7 +55,7 @@
                     var spec = c.Holdings.Spec(planet.Specialization);
                     <div class="kv"><span>Held by</span><b>@(owner?.Name ?? "no one")</b></div>
                     <div class="kv"><span>Governor</span><b>@(gov?.Name ?? "—")</b></div>
-                    @if (gov != null) { <div class="gov-line"><Portrait Id="@gov.Id" Name="@gov.Name" Sex="@gov.Sex" Age="@gov.Age" Accent="@(owner?.AccentColor ?? "#888")" Size="44" /><span class="muted">@(c.Careers.RankName(gov.CareerTrack, gov.CareerRank) ?? "") · administration @gov.Skill("administration") · @gov.Age</span></div> }
+                    @if (gov != null) { <div class="gov-line"><Portrait Id="@gov.Id" Name="@gov.Name" Sex="@gov.Sex" Age="@gov.Age" Accent="@(owner?.AccentColor ?? "#888")" Size="44" /><span class="muted">@(c.Careers.RankName(gov.CareerTrack, gov.CareerRank, G.World!.Era) ?? "") · administration @gov.Skill("administration") · @gov.Age</span></div> }
                     <div class="kv"><span>Industry</span><b>@(spec?.Name ?? planet.Specialization)</b></div>
                     @if (planet.Population > 0) { <div class="kv"><span>Population</span><b>@planet.Population@(spec?.MaxPopulation > 0 ? $" / {spec.MaxPopulation}" : "")</b></div> }
                     <div class="kv"><span>Loyalty</span><b class="@(planet.Unrest >= 50 ? "warn" : "")">@(100 - planet.Unrest)<span class="bar"><i style="width:@(100 - planet.Unrest)%"></i></span></b></div>
@@ -93,7 +93,7 @@
                 <h3>Regions</h3>
                 @foreach (var ring in new[] { "core", "middle", "rim" })
                 {
-                    <div class="ring-head"><span class="ring @ring">@ring</span> <span class="muted small">@(ring == "core" ? "commerce and the court" : ring == "rim" ? "lawless, restless, breaking away" : "leaning either way")</span></div>
+                    <div class="ring-head"><span class="ring @ring">@ring</span> <span class="muted small">@(ring == "core" ? (w.IsImperium ? "commerce and the court" : "commerce and the Senate") : ring == "rim" ? "lawless, restless, breaking away" : "leaning either way")</span></div>
                     @foreach (var r in regions.Where(x => x.Ring == ring)) { <button class="ol-row region-row @(r.FreeMarch ? "free" : "")" @onclick="() => Focus(r.CX, r.CY)"><i class="sw" style="background:@r.AccentColor"></i> <b>@r.Name</b> <span class="muted">@(r.DominantHouseName ?? "contested")@(r.FreeMarch ? " · FREE MARCH" : "") · loyalty @(100 - r.Unrest)</span><span class="rstats"><span title="allegiance to the capital">⚜ @r.Allegiance</span> <span class="@(r.Lawlessness >= 60 ? "warn" : "")" title="lawlessness">☠ @r.Lawlessness</span>@(r.Rebellions > 0 ? $" ✦ {r.Rebellions} rising" : "")</span></button> }
                 }
             </section>

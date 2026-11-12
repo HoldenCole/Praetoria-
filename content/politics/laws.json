@@ -15,12 +15,12 @@
         { "id": "household", "name": "The household levy", "default": true },
         { "id": "conscription", "name": "Conscription", "effects": { "manpower_per_world": 2, "unrest_drift": 1 }, "opinions": { "commons": -20, "officers": 15 } }
       ] },
-    { "id": "court_etiquette", "name": "The Court", "category": "Court", "scope": "house", "cost": 1, "cooldown": 6,
-      "description": "How the house holds court. An open hall is loved below and sneered at above; a closed court is the reverse, and costs a credit a world in ceremony.",
+    { "id": "court_etiquette", "name": "The Hall", "category": "Order", "scope": "house", "cost": 1, "cooldown": 6,
+      "description": "How the house receives those who come to it. An open hall is loved below and sneered at above; closed doors are the reverse, and cost a credit a world in ceremony.",
       "options": [
         { "id": "open_hall", "name": "An open hall", "opinions": { "commons": 10, "old_blood": -10 } },
-        { "id": "customary", "name": "Customary court", "default": true },
-        { "id": "closed_court", "name": "A closed court", "effects": { "legitimacy_per_5": 1, "credits_per_world": -1 }, "opinions": { "old_blood": 20, "commons": -10, "magistrates": 5 } }
+        { "id": "customary", "name": "The customary hall", "default": true },
+        { "id": "closed_court", "name": "Closed doors", "effects": { "legitimacy_per_5": 1, "credits_per_world": -1 }, "opinions": { "old_blood": 20, "commons": -10, "magistrates": 5 } }
       ] },
     { "id": "household_guard", "name": "The Household Guard", "category": "Military", "scope": "house", "cost": 1, "cooldown": 6,
       "description": "A standing guard keeps the hulls ready and the officers content, and costs more each turn.",
@@ -50,7 +50,7 @@
         { "id": "customary", "name": "Customary justice", "default": true },
         { "id": "iron_law", "name": "Iron law", "effects": { "unrest_drift": -1, "prosperity_drift": -1, "lawlessness_drift": -2 }, "opinions": { "commons": -10, "magistrates": 15, "frontier": -15 } }
       ] },
-    { "id": "franchise", "name": "The Franchise", "category": "Court", "scope": "world", "cost": 2, "cooldown": 8,
+    { "id": "franchise", "name": "The Franchise", "category": "Order", "scope": "world", "cost": 2, "cooldown": 8,
       "description": "Who speaks for the house's worlds. An open ballot sends delegates to the Senate and horrifies the old blood.",
       "options": [
         { "id": "closed", "name": "The closed franchise", "effects": { "legitimacy_per_5": 1 }, "opinions": { "old_blood": 10, "commons": -10 } },
@@ -99,21 +99,21 @@
         { "id": "customary", "name": "Customary exchanges", "default": true },
         { "id": "guarded", "name": "Guarded exchanges", "effects": { "market_price_pct": 15 }, "opinions": { "merchants": -15, "magistrates": 5 } }
       ] },
-    { "id": "standing_orders", "name": "Standing Orders", "category": "Court", "scope": "office:speaker", "reach": true, "cost": 2, "cooldown": 8,
+    { "id": "standing_orders", "name": "Standing Orders", "category": "Order", "scope": "office:speaker", "reach": true, "cost": 2, "cooldown": 8,
       "description": "The Speaker's rules for the chamber. A tight docket makes every other house's motion cost one more.",
       "options": [
         { "id": "open_docket", "name": "An open docket", "effects": { "motion_cost": -1 }, "opinions": { "old_blood": -5, "commons": 5 } },
         { "id": "customary", "name": "Customary orders", "default": true },
         { "id": "tight", "name": "A tight docket", "effects": { "motion_cost": 1 }, "opinions": { "old_blood": 5, "magistrates": 5 } }
       ] },
-    { "id": "imperial_edict", "name": "The Imperial Edict", "category": "Court", "scope": "emperor", "reach": true, "cost": 3, "cooldown": 10,
+    { "id": "imperial_edict", "name": "The Imperial Edict", "category": "Order", "scope": "emperor", "reach": true, "cost": 3, "cooldown": 10,
       "description": "The throne's temper toward the houses. Clemency calms the Reach; proscriptions terrify it and steady the crown.",
       "options": [
         { "id": "clemency", "name": "Clemency", "effects": { "unrest_drift": -1 }, "opinions": { "commons": 10, "old_blood": 10 } },
         { "id": "customary", "name": "The customary peace", "default": true },
         { "id": "proscriptions", "name": "Proscriptions", "effects": { "unrest_drift": 1, "legitimacy_per_5": 2 }, "opinions": { "old_blood": -20, "commons": -15, "officers": 5 } }
       ] },
-    { "id": "bench_platform", "name": "The Bench's Platform", "category": "Court", "scope": "bench", "cost": 1, "cooldown": 6,
+    { "id": "bench_platform", "name": "The Bench's Platform", "category": "Order", "scope": "bench", "cost": 1, "cooldown": 6,
       "description": "What the bench you lead stands for. Binding the bench to a cause sharpens its votes and narrows who will sit with it.",
       "options": [
         { "id": "loose", "name": "A loose bench", "default": true },
@@ -121,14 +121,14 @@
         { "id": "tradition", "name": "A platform of tradition", "effects": { "senate_weight": 1 }, "opinions": { "old_blood": 10, "commons": -10 } }
       ] },
     { "id": "common_law", "name": "The Common Law", "category": "Justice", "scope": "senate", "reach": true, "cost": 3, "cooldown": 10,
-      "description": "Whose courts sit on the lanes of the Reach. Local courts please the houses and the frontier; the Reach's assizes calm the lanes and gall every lord who liked his own gallows.",
+      "description": "Whose courts sit on the lanes of the Reach. Local courts please the houses and the frontier; the Reach's assizes calm the lanes and gall every house that liked its own gallows.",
       "options": [
         { "id": "local_courts", "name": "Local courts", "effects": { "lawlessness_drift": 1 }, "opinions": { "frontier": 10, "old_blood": 10, "magistrates": -10 } },
         { "id": "customary", "name": "The customary law", "default": true },
         { "id": "assizes", "name": "The Reach's assizes", "effects": { "lawlessness_drift": -1, "unrest_drift": -1 }, "opinions": { "magistrates": 15, "commons": 5, "frontier": -10, "old_blood": -10 } }
       ] },
     { "id": "trade_charter", "name": "The Trade Charter", "category": "Trade", "scope": "senate", "reach": true, "cost": 3, "cooldown": 10,
-      "description": "The terms of trade across the Reach. Protected markets raise every price and please the lords who tax them; open lanes drop them and please every factor.",
+      "description": "The terms of trade across the Reach. Protected markets raise every price and please the houses that tax them; open lanes drop them and please every factor.",
       "options": [
         { "id": "protected", "name": "Protected markets", "effects": { "market_price_pct": 10, "tolls_bonus": 1 }, "opinions": { "merchants": -15, "magistrates": 5, "old_blood": 5 } },
         { "id": "customary", "name": "The customary charter", "default": true },

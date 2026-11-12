@@ -250,7 +250,7 @@ internal static class Commands
             w.Pools["heir"] = ActionPools.ForPlayer();
             return w;
         }
-        string Name(string id) => content.Titles.ById(id)?.Name ?? id;
+        string Name(string id) => content.Titles.NameOf(id, World.EraRepublic);
         void Line(World w) => Console.WriteLine($"     title {Name(w.House("house")!.Title)} · legitimacy " +
             $"{w.House("house")!.Legitimacy} · instability {w.Counter("title_instability")} · unrest {w.Counter("unrest")}");
 

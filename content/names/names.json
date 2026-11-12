@@ -7,7 +7,7 @@
       "male":   ["Aldous", "Cassian", "Darius", "Eamon", "Felix", "Gaius", "Hadrian", "Idris", "Julian", "Kael", "Lucan", "Marcus", "Nero", "Orrin", "Pell", "Quintus", "Rowan", "Severin", "Tiberius", "Ulric", "Varro", "Wendel"],
       "female": ["Adria", "Brisa", "Cassia", "Delia", "Elara", "Fenna", "Galla", "Helia", "Ione", "Junia", "Kessa", "Livia", "Mira", "Nessa", "Octavia", "Petra", "Quilla", "Rhea", "Sela", "Thessaly", "Una", "Vera"]
     },
-    "imperial": {
+    "aurelian": {
       "male":   ["Augustin", "Claudian", "Decimus", "Flavian", "Hadrian", "Lucius", "Maximian", "Octavian", "Priscus", "Septimus", "Valerian", "Vespasian"],
       "female": ["Aurelia", "Claudia", "Domitia", "Flavia", "Justina", "Lucilla", "Marcella", "Octavia", "Placidia", "Sabina", "Valeria", "Vibia"]
     }

@@ -16,7 +16,7 @@
       "body": "The Senate's levy has carried: three credits from every landed house to the chair, for the common defence. The chair's collector is polite and early.",
       "choices": { "pay_with_grace": "Pay, and be seen paying.", "pay_and_complain": "Pay, and speak for an hour about it.", "pass_it_on": "Pass it down to the worlds as a tithe." } },
     { "id": "an_act_before_the_senate", "title": "An Act Before the Senate",
-      "body": "The clerk reads it twice, as the forms require: an Act of the Senate, to bind every house in the Reach when it carries. {clerk.name} folds the paper and looks at the benches, and the benches look at their estates. Every lord in the chamber is doing the same sum {self.name} is.",
+      "body": "The clerk reads it twice, as the forms require: an Act of the Senate, to bind every house in the Reach when it carries. {clerk.name} folds the paper and looks at the benches, and the benches look at their estates. Every {era:senator|lord} in the chamber is doing the same sum {self.name} is.",
       "choices": { "sound_the_estates": "Spend the evening learning what the Act costs whom (1 influence).", "let_it_run": "Let it run. The Reach's law is the Reach's business." } },
     { "id": "the_act_carries", "title": "The Act Carries",
       "body": "An Act of the Senate has carried, and the law of the Reach has changed under {self.house}'s feet. The clerk's copy arrives for the house's worlds. How loudly it is read is {self.name}'s to decide.",

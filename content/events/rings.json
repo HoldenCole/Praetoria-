@@ -243,7 +243,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} held court in the marble halls of the capital, and every house that wanted something sent someone to want it in person."
+              "text": "{self.name} {era:held open audience|held court} in the marble halls of the capital, and every house that wanted something sent someone to want it in person."
             }
           ]
         },
@@ -262,7 +262,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} closed the court and kept the coin. The houses that came to be heard went home with opinions."
+              "text": "{self.name} {era:closed the doors|closed the court} and kept the coin. The houses that came to be heard went home with opinions."
             }
           ]
         }
@@ -301,7 +301,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} rode the frontier for a season and slept in halls that had never seen a lord. The rim does not forget who came."
+              "text": "{self.name} rode the frontier for a season and slept in halls that had never seen a {era:senator|lord}. The rim does not forget who came."
             }
           ]
         },
@@ -616,7 +616,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} opened the court to every house that would come, and most came. The capital had a master again, and the master had witnesses."
+              "text": "{self.name} {era:opened the capital|opened the court} to every house that would come, and most came. The capital had a master again, and the master had witnesses."
             }
           ]
         },
@@ -640,7 +640,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} put the household troops on every gate of the capital before the first envoy arrived. The envoys noticed the gates before they noticed the court."
+              "text": "{self.name} put the household troops on every gate of the capital before the first envoy arrived. The envoys noticed the gates before they noticed {era:the chamber|the court}."
             }
           ]
         },
@@ -1172,7 +1172,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} knelt for the fief in the great hall and rose a baron. The court remembered the grace; the house remembered the knee."
+              "text": "{self.name} {era:took the oath for the prefecture in the great hall and rose a Prefect|knelt for the fief in the great hall and rose a baron}. {era:The chair|The court} remembered the grace; the house remembered the knee."
             }
           ]
         },
@@ -1197,7 +1197,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} knelt for the fief and counted the court's guards while doing it."
+              "text": "{self.name} {era:took the oath for the prefecture and counted the chair's guards while doing it|knelt for the fief and counted the court's guards while doing it}."
             }
           ]
         }

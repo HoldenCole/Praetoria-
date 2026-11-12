@@ -148,7 +148,7 @@ public static class FactionSystem
         double avgRank = f.Members.Count == 0 ? 0 : f.Members.Average(h => Progression.Title.RankOf(w.House(h)?.Title ?? ""));
         string[] candidates =
         {
-            RegionSystem.CapitalHolder(w)?.Id == f.LeaderHouseId ? "The Court Party" : "",
+            RegionSystem.CapitalHolder(w)?.Id == f.LeaderHouseId ? (w.IsImperium ? "The Court Party" : "The Chair's Party") : "",
             rim * 2 >= f.Members.Count ? "The Rim Benches" : "",
             avgRank >= 3 ? "The Old Blood" : "",
             f.Platform.GetValueOrDefault("levy") < 0 ? "The Purse-Strings" : "",

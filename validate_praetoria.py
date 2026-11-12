@@ -107,7 +107,11 @@ def walk(conds,ctx,roles):
 def check_tokens(text,roles,ctx):
     for role,field in re.findall(r"\{(\w+)\.(\w+)\}",text):
         if role not in roles: errors.append(f"[{ctx}] token role '{role}' undeclared")
-        if field not in ("name","house","rank","rankName"): errors.append(f"[{ctx}] token bad field '{field}'")
+        if field not in ("name","house","rank","rankName","title"): errors.append(f"[{ctx}] token bad field '{field}'")
+    # {era:Republic wording|Imperium wording} — exactly two plain alternatives, no nested tokens (docs/TITLES.md)
+    for body in re.findall(r"\{era:([^}]*)\}",text):
+        if body.count("|")!=1 or "{" in body: errors.append(f"[{ctx}] malformed era token '{{era:{body}}}' (want {{era:A|B}}, no nesting)")
+    if re.search(r"\{era:[^}]*$",text): errors.append(f"[{ctx}] unclosed era token")
     for bare in re.findall(r"\{(\w+)\}",text):
         errors.append(f"[{ctx}] malformed token '{{{bare}}}' (missing .field)")
 

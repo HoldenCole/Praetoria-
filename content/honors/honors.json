@@ -5,7 +5,7 @@
   // read, and logs the investiture. A risen admiral may never be granted a Dukedom — but as a Knight of the Burning
   // Lance, no one questions the right to command.
   "honors": [
-    { "id": "burning_lance", "name": "Knight of the Burning Lance",
+    { "id": "burning_lance", "name": "Order of the Burning Lance",
       "description": "The highest martial honor: three victories under one's own command.",
       "when": [ { "type": "counter", "key": "battles_won", "op": "gte", "value": 3 } ],
       "effects": [ { "type": "adjustLegitimacy", "role": "self", "delta": 10 }, { "type": "adjustCounter", "key": "standing", "delta": 3 }, { "type": "adjustCounter", "key": "navy_influence", "delta": 2 } ] },
@@ -30,7 +30,7 @@
       "description": "Two houses bound to yours by marriage, and no war declared in your name.",
       "when": [ { "type": "counter", "key": "marriages", "op": "gte", "value": 2 }, { "type": "counter", "key": "wars_declared", "op": "eq", "value": 0 } ],
       "effects": [ { "type": "adjustLegitimacy", "role": "self", "delta": 8 }, { "type": "adjustCounter", "key": "goodwill", "delta": 2 } ] },
-    { "id": "lord_protector", "name": "Lord Protector",
+    { "id": "lord_protector", "name": "Protector of the Reach",
       "description": "Three worlds taken and held — the Reach fears you, and calls it respect.",
       "when": [ { "type": "counter", "key": "conquests", "op": "gte", "value": 3 } ],
       "effects": [ { "type": "adjustCounter", "key": "navy_influence", "delta": 3 }, { "type": "adjustCounter", "key": "standing", "delta": 3 }, { "type": "adjustCounter", "key": "seizures", "delta": 1 } ] }

@@ -143,7 +143,7 @@
       "accent": "#C9A227",
       "title": "duke",
       "legitimacy": 70,
-      "culture": "imperial",
+      "culture": "aurelian",
       "treasury": {
         "credits": 20,
         "materials": 11,
@@ -158,7 +158,7 @@
       "accent": "#6B4FA0",
       "title": "baron",
       "legitimacy": 25,
-      "culture": "imperial",
+      "culture": "aurelian",
       "treasury": {
         "credits": 12,
         "materials": 7,
@@ -173,7 +173,7 @@
       "accent": "#8E3B5B",
       "title": "count",
       "legitimacy": 48,
-      "culture": "imperial",
+      "culture": "aurelian",
       "treasury": {
         "credits": 16,
         "materials": 9,
@@ -218,7 +218,7 @@
       "accent": "#A0522D",
       "title": "knight",
       "legitimacy": 13,
-      "culture": "imperial",
+      "culture": "aurelian",
       "treasury": {
         "credits": 8,
         "materials": 5,
@@ -233,7 +233,7 @@
       "accent": "#9A2F2F",
       "title": "count",
       "legitimacy": 50,
-      "culture": "imperial",
+      "culture": "aurelian",
       "treasury": {
         "credits": 16,
         "materials": 9,
@@ -293,7 +293,7 @@
       "accent": "#8A8A5A",
       "title": "landless",
       "legitimacy": 8,
-      "culture": "imperial",
+      "culture": "aurelian",
       "treasury": {
         "credits": 4,
         "materials": 3,

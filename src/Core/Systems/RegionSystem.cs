@@ -92,7 +92,7 @@ public sealed class RegionSystem
                 else if (h.Unrest >= RebellionUnrest && state.Allegiance < RebellionAllegiance && !garrison && !w.Sieges.ContainsKey(h.Id) && h.Population > 0)
                 {
                     h.Rebellion = 1; w.WorldCounters["rebellions"] = w.Counter("rebellions") + 1;
-                    w.Log($"{h.Name} rises against {w.House(h.OwnerId)?.Name ?? "its lord"}: the tithe goes unpaid and the governor's writ stops at the palace gate.");
+                    w.Log($"{h.Name} rises against {w.House(h.OwnerId)?.Name ?? "its holder"}: the tithe goes unpaid and the governor's writ stops at the palace gate.");
                 }
             }
 
@@ -155,8 +155,8 @@ public sealed class RegionSystem
                 w.WorldCounters["capital_changes"] = w.Counter("capital_changes") + 1;
                 var mine = w.Protagonist?.HouseId;
                 if (nowId == mine) w.WorldFlags.Add("capital_taken"); if (lastId == mine) w.WorldFlags.Add("capital_lost");
-                w.Log(nowId != null ? $"{name} changes hands: {holder!.Name} holds the capital{(w.House(lastId) is { } old ? $", and {old.Name} the memory of it" : "")}. The court moves."
-                                    : $"{name} stands masterless; the court is dark.");
+                w.Log(nowId != null ? $"{name} changes hands: {holder!.Name} holds the capital{(w.House(lastId) is { } old ? $", and {old.Name} the memory of it" : "")}. {(w.IsImperium ? "The court moves." : "The chair moves.")}"
+                                    : $"{name} stands masterless; {(w.IsImperium ? "the court is dark" : "the chair stands empty")}.");
             }
         }
         if (holder != null && w.Turn > 0 && w.Turn % 3 == 0) holder.Legitimacy = Math.Min(100, holder.Legitimacy + 1);
@@ -193,7 +193,7 @@ public sealed class RegionSystem
             if (old.Id == w.Protagonist?.HouseId) w.WorldFlags.Add("lost_a_world_to_rebellion");
         }
         w.WorldCounters["secessions"] = w.Counter("secessions") + 1; w.WorldFlags.Add("secession:" + sys.Id);
-        w.Log($"{sys.Name} breaks from {old?.Name ?? "its lord"}. {leader.Name} is acclaimed in the square, and {house.Name} declare for no one.");
+        w.Log($"{sys.Name} breaks from {old?.Name ?? "its holder"}. {leader.Name} is acclaimed in the square, and {house.Name} declare for no one.");
     }
 
     public static void DeclareFreeMarch(World w, House house, Region region, House capital)
@@ -202,7 +202,7 @@ public sealed class RegionSystem
         var head = Economy.HeadOf(w, house); var crown = Economy.HeadOf(w, capital);
         if (head != null && crown != null) { w.Relationship(crown.Id, head.Id).Disposition = Math.Clamp(w.Relationship(crown.Id, head.Id).Disposition - 30, -100, 100); w.Relationship(head.Id, crown.Id).Disposition = Math.Clamp(w.Relationship(head.Id, crown.Id).Disposition - 20, -100, 100); }
         w.WorldCounters["free_marches"] = w.Counter("free_marches") + 1; w.WorldFlags.Add("free_march:" + region.Id);
-        w.Log($"{house.Name} declares {region.Name} a Free March and renounces the court at {w.Galaxy!.System(w.Galaxy.Capital)?.Name ?? "the capital"}. {capital.Name} does not take it well.");
+        w.Log($"{house.Name} declares {region.Name} a Free March and renounces {(w.IsImperium ? "the court" : "the Senate")} at {w.Galaxy!.System(w.Galaxy.Capital)?.Name ?? "the capital"}. {capital.Name} does not take it well.");
     }
 
     /// <summary>The player's decrees on a rising, set as flags by events: concede (ease the world, lose face) or purge (break it, be feared).</summary>

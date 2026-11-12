@@ -157,8 +157,8 @@
         var p = sc.Characters.FirstOrDefault(c => c.Id == sc.ProtagonistId);
         if (p == null) return "";
         var house = sc.Houses.FirstOrDefault(h => h.Id == p.HouseId);
-        var title = house != null ? G.Content!.Titles.ById(house.Title)?.Name ?? house.Title : "";
-        var rank = G.Content!.Careers.RankName(p.CareerTrack, p.CareerRank) ?? "";
+        var title = house != null ? G.Content!.Titles.NameOf(house.Title, sc.Era) : "";
+        var rank = G.Content!.Careers.RankName(p.CareerTrack, p.CareerRank, sc.Era) ?? "";
         return $"{p.Name}, {p.Age}, {rank} of {house?.Name ?? p.HouseId} ({title}). {sc.Holdings.Count} holdings, {sc.Fleets.Count} fleets in play.";
     }
 

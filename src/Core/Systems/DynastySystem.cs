@@ -105,7 +105,7 @@ public sealed class DynastySystem
             int period = head ? HeadPromotionYears : PromotionYears;
             if ((world.Turn + (int)(hash % (uint)period)) % period != 0) continue;
             c.CareerRank++;
-            if (head && c.CareerRank >= 3 && house != null && house.Id != world.Protagonist?.HouseId) world.Log($"{c.Name} of {house.Name} is made {Content?.Careers.RankName(c.CareerTrack, c.CareerRank) ?? $"rank {c.CareerRank}"}.");
+            if (head && c.CareerRank >= 3 && house != null && house.Id != world.Protagonist?.HouseId) world.Log($"{c.Name} of {house.Name} is made {Content?.Careers.RankName(c.CareerTrack, c.CareerRank, world.Era) ?? $"rank {c.CareerRank}"}.");
         }
     }
 

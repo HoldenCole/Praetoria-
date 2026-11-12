@@ -53,14 +53,14 @@
       "id": "greywater_reach",
       "name": "The Greywater Reach",
       "culture": "reach",
-      "description": "Old blood. The counts and dukes of the Reach proper, their forges, their feuds, their long memories.",
+      "description": "Old blood. The great houses of the Reach proper, their forges, their feuds, their long memories.",
       "ring": "middle"
     },
     {
       "id": "imperial_core",
       "name": "The Imperial Core",
-      "culture": "imperial",
-      "description": "Aurelia Prime and the worlds that orbit its favour. Where the throne stands, or where it will.",
+      "culture": "aurelian",
+      "description": "Aurelia Prime and the worlds that orbit its favour. Where the Senate sits, and where a throne would stand.",
       "ring": "core"
     },
     {
@@ -114,7 +114,7 @@
       "y": 1148,
       "region": "western_marches",
       "planet": "terran",
-      "description": "Grain terraces and a stubborn barony.",
+      "description": "Grain terraces and a stubborn household.",
       "bodies": [
         {
           "name": "Tessaly I",
@@ -278,7 +278,7 @@
       "y": 464,
       "region": "greywater_reach",
       "planet": "ocean",
-      "description": "Harbour-world of the old counts.",
+      "description": "Harbour-world of the old families.",
       "bodies": [
         {
           "name": "Greywater I",

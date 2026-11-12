@@ -27,7 +27,7 @@ public class RegionsAndMinorHousesTests
         foreach (var r in g.Regions) Assert.InRange(g.SystemsIn(r.Id).Count(), 3, 4);
         Assert.Equal(2, g.Regions.Count(r => r.Ring == "core")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "middle")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "rim"));
         Assert.All(g.Systems.Values, s => Assert.NotNull(g.Region(s.RegionId)));
-        Assert.Equal("imperial", g.CultureOf("castrum"));
+        Assert.Equal("aurelian", g.CultureOf("castrum"));
         Assert.Empty(g.Problems());
         foreach (var a in g.Systems.Keys) foreach (var b in g.Systems.Keys) Assert.True(g.Hops(a, b) >= 0, $"{a} cannot reach {b}");
     }

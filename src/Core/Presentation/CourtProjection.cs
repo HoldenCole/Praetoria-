@@ -126,8 +126,8 @@ public static class CourtProjection
 
         var character = new CharacterCard(
             p.Name, house.Name, house.AccentColor,
-            content.Titles.ById(house.Title)?.Name ?? house.Title,
-            content.Careers.RankName(p.CareerTrack, p.CareerRank) ?? $"rank {p.CareerRank}",
+            content.Titles.NameOf(house.Title, w.Era),
+            content.Careers.RankName(p.CareerTrack, p.CareerRank, w.Era) ?? $"rank {p.CareerRank}",
             content.Careers.ById(p.CareerTrack)?.Name ?? p.CareerTrack,
             p.Age, p.Alive,
             p.NatureTraits.OrderBy(t => t, StringComparer.Ordinal).ToList(),
@@ -217,7 +217,7 @@ public static class CourtProjection
             if (next != null)
             {
                 paths.Add(new PathOption("seize", "Seize it by force", "Military — ignores legitimacy; spikes the galaxy's fear", new SeizeTitleCommand(p.Id, prog).CanExecute(ctx)));
-                paths.Add(new PathOption("petition", "Petition the throne", "Merit — granted only what you're legitimate for; arrives clean", new PetitionTitleCommand(p.Id, prog).CanExecute(ctx)));
+                paths.Add(new PathOption("petition", w.IsImperium ? "Petition the throne" : "Petition the Senate", "Merit — granted only what you're legitimate for; arrives clean", new PetitionTitleCommand(p.Id, prog).CanExecute(ctx)));
                 paths.Add(new PathOption("claim", "Press a claim", "Intrigue — needs a claim; launders legitimacy, leaves a trail", new ClaimTitleCommand(p.Id, prog).CanExecute(ctx)));
             }
             var honors = new HonorSystem(content.Honors).Held(p).Select(h => h.Name).ToList();
@@ -229,7 +229,7 @@ public static class CourtProjection
             var throne = new ThroneCard(new ProclaimImperiumCommand(p.Id, content.Titles).Refusal(ctx), new SeizeThroneCommand(p.Id, content.Titles, content.Friction).Refusal(ctx),
                 house.Title == "emperor", emperor?.Name);
             standing = new StandingCard(house.Legitimacy, w.Counter("title_instability"),
-                house.Claims.OrderBy(c => c, StringComparer.Ordinal).ToList(), next?.Name, next?.LegitimacyRequirement ?? 0, paths,
+                house.Claims.OrderBy(c => c, StringComparer.Ordinal).ToList(), next?.NameIn(w.Era), next?.LegitimacyRequirement ?? 0, paths,
                 string.Join(" · ", house.SphereInfluence.OrderBy(k => k.Key, StringComparer.Ordinal).Select(k => $"{k.Key} {k.Value}")),
                 w.Counter("threat"), honors, house.SuccessionLaw, laws, house.TaxPolicy, taxes, exchange, throne);
         }
@@ -288,7 +288,7 @@ public static class CourtProjection
 
         var members = house.Members.Select(w.Char).Where(c => c != null && c!.Id != p.Id).Select(c => c!)
             .Select(c => { var rel = w.GetRelationship(c.Id, p.Id); return new MemberLine(c.Name,
-                c.Alive ? $"{content.Careers.RankName(c.CareerTrack, c.CareerRank) ?? $"rank {c.CareerRank}"}, {c.Age}" : "dead",
+                c.Alive ? $"{content.Careers.RankName(c.CareerTrack, c.CareerRank, w.Era) ?? $"rank {c.CareerRank}"}, {c.Age}" : "dead",
                 c.Alive, rel?.Disposition ?? 0, BondName(rel)); }).ToList();
 
         var suitor = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority && c.Sex != "" && !ProposeMarriageCommand.IsMarried(w, c.Id))
@@ -309,7 +309,7 @@ public static class CourtProjection
                     var kill = new AssassinateCommand(p.Id, c.Id, content.Friction);
                     actions.Add(new Option("assassinate", $"Arrange an accident  (2 agents · {AssassinateCommand.Odds(w, p, c):P0})", kill.CanExecute(ctx) ? null : "unreachable, or no agents"));
                 }
-                return new ConnectionLine(c.Id, c.Name, w.House(c.HouseId)?.Name ?? c.HouseId, content.Careers.RankName(c.CareerTrack, c.CareerRank) ?? (c.Age < DynastySystem.AgeOfMajority ? $"child, {c.Age}" : $"{c.Age}, untitled"), d, BondName(rel),
+                return new ConnectionLine(c.Id, c.Name, w.House(c.HouseId)?.Name ?? c.HouseId, content.Careers.RankName(c.CareerTrack, c.CareerRank, w.Era) ?? (c.Age < DynastySystem.AgeOfMajority ? $"child, {c.Age}" : $"{c.Age}, untitled"), d, BondName(rel),
                     c.Flags.Where(f => !f.StartsWith("background:")).OrderBy(f => f, StringComparer.Ordinal).ToList(), d < -20, actions);
             }).ToList();
 
@@ -320,7 +320,7 @@ public static class CourtProjection
                 if (c.Flags.Contains(FamilySystem.DefiantFlag)) acts.Add(new Option("defiant", $"{c.Name} is defiant — answer it in the briefing", "informational"));
                 if (c.Age < DynastySystem.AgeOfMajority)
                     acts.Add(c.Flags.Contains(DynastySystem.HiddenFlag)
-                        ? new Option("recall", $"Recall {c.Name} to court", new RecallCommand(p.Id, c.Id).CanExecute(ctx) ? null : "")
+                        ? new Option("recall", $"Recall {c.Name} {(w.IsImperium ? "to court" : "home")}", new RecallCommand(p.Id, c.Id).CanExecute(ctx) ? null : "")
                         : new Option("foster", $"Foster {c.Name} away, hidden  (1 agent)", new FosterCommand(p.Id, c.Id).CanExecute(ctx) ? null : "no agents"));
                 return new HouseholdLine(c.Id, c.Name, c.Age, c.Sex, c.Flags.Contains(DynastySystem.HiddenFlag), ProposeMarriageCommand.IsMarried(w, c.Id), acts);
             }).ToList();
@@ -371,7 +371,7 @@ public static class CourtProjection
             w.Holdings.Values.Where(h => h.FormerOwnerId == house.Id && w.House(h.OwnerId)?.Bloc == RegionSystem.FreeholdsBloc).OrderBy(h => h.Id, StringComparer.Ordinal)
                 .Select(h => new ReclaimOption(h.Id, h.Name, w.House(h.OwnerId)!.Name, ReclaimFreeholdCommand.Price(w, h, house.Id), new ReclaimFreeholdCommand(p.Id, h.Id).Refusal(ctx))).ToList(),
             w.Galaxy is { Capital.Length: > 0 } cg ? new CapitalCard(cg.System(cg.Capital)?.Name ?? cg.Capital, RegionSystem.CapitalHolder(w)?.Id, RegionSystem.CapitalHolder(w)?.Name, RegionSystem.CapitalHolder(w)?.Id == house.Id) : null,
-            new Option("petition_fief", $"Petition {PetitionFiefCommand.Grantor(w, house.Id)?.Name ?? "the court"} for a fief  (3 influence)", new PetitionFiefCommand(p.Id).Refusal(ctx)),
+            new Option("petition_fief", $"Petition {PetitionFiefCommand.Grantor(w, house.Id)?.Name ?? (w.IsImperium ? "the court" : "the chair")} for a {(w.IsImperium ? "fief" : "prefecture")}  (3 influence)", new PetitionFiefCommand(p.Id).Refusal(ctx)),
             Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var pc = new ProcureCommand(p.Id, r, 3, content.Holdings, content.Businesses); int price = ProcureCommand.Price(w, r, content.Holdings, content.Businesses); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the open market  ({(price == int.MaxValue ? "—" : (price * 3).ToString())} credits · {Economy.Producers(w, r, content.Holdings, content.Businesses)} producer(s))", pc.Refusal(ctx)); }).ToList(),
             Economy.Deposits(w, house.Id).OrderBy(x => x, StringComparer.Ordinal).ToList(),
             BuildSenate(w, p, house, tc.Senate, ctx),

@@ -13,6 +13,12 @@ public static class Title
     public const string Archduke = "archduke";
     public const string Emperor = "emperor";
 
+    /// <summary>The rung's plain style where no catalog is at hand (a command's log line): the Republic's civic names until a throne stands,
+    /// the noble ones after. Mirrors content/titles/titles.json; the catalog is the authority where one is loaded.</summary>
+    public static string StyleOf(string title, string era) => era == State.World.EraImperium
+        ? title switch { Knight => "Knight", Baron => "Baron", Count => "Count", Duke => "Duke", Archduke => "Archduke", Emperor => "Emperor", _ => "Landless" }
+        : title switch { Knight => "Warden", Baron => "Prefect", Count => "Legate", Duke => "Proconsul", Archduke => "First Citizen", Emperor => "Dictator", _ => "Citizen" };
+
     /// <summary>The fixed ladder's rank of a title id (landless 0 … emperor 6); unknown titles rank 0.</summary>
     public static int RankOf(string title) => title switch { Knight => 1, Baron => 2, Count => 3, Duke => 4, Archduke => 5, Emperor => 6, _ => 0 };
 }
@@ -25,7 +31,12 @@ public static class Title
 public sealed class TitleDef
 {
     public string Id { get; init; } = "";
-    public string Name { get; init; } = "";
+    /// <summary>What the rung is called under the Imperium, when noble titles exist: Baron, Count, Duke.</summary>
+    public string ImperialName { get; init; } = "";
+    /// <summary>What the same rung is called in the Republic, where there are no nobles: a civic or military style (Prefect, Legate, Proconsul).</summary>
+    public string RepublicName { get; init; } = "";
+    /// <summary>The rung's name in an era (docs/TITLES.md): the republic's civic style until a throne stands, the noble one after.</summary>
+    public string NameIn(string era) => era == State.World.EraImperium || RepublicName.Length == 0 ? ImperialName : RepublicName;
 
     /// <summary>Position on the ladder (Landless = 0 … Emperor = 6). Higher = greater.</summary>
     public int Rank { get; init; }
@@ -65,6 +76,9 @@ public sealed class TitleCatalog
             if (d.Rank == cur.Rank + 1) return d;
         return null;
     }
+
+    /// <summary>The display name of a title id in an era; the bare id when the catalog does not know it.</summary>
+    public string NameOf(string titleId, string era) => ById(titleId)?.NameIn(era) ?? titleId;
 
     /// <summary>Rank of a title id (or 0 if unknown).</summary>
     public int RankOf(string titleId) => ById(titleId)?.Rank ?? 0;

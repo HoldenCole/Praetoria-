@@ -20,7 +20,7 @@
     <header class="dash-head">
         <div class="dh-title"><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="34" /> <b>@p.Name</b> <span class="muted">@m.Character.RankName of @house.Name · @m.Character.TitleName · @p.Age years@(m.Character.Background != null ? $" · {m.Character.Background}" : "")</span></div>
         <div class="dh-stats">
-            <div class="stat"><span>Career</span><b>@(track?.RankName(p.CareerRank) ?? p.CareerRank.ToString()) <i class="muted">@(track?.Name ?? p.CareerTrack)</i></b></div>
+            <div class="stat"><span>Career</span><b>@(track?.RankName(p.CareerRank, G.World!.Era) ?? p.CareerRank.ToString()) <i class="muted">@(track?.NameIn(G.World!.Era) ?? p.CareerTrack)</i></b></div>
             <div class="stat @(p.Stress >= 70 ? "warn" : "")"><span>Stress</span><b>@p.Stress@(m.Character.Broken ? " · broken" : "")</b></div>
             <div class="stat"><span>Ambition</span><b>@(ambition?.Name ?? (p.Ambition.Length > 0 ? p.Ambition.Replace('_', ' ') : "none"))</b></div>
             <div class="stat"><span>Commands from</span><b>@(style == "front" ? "the front" : style == "flag" ? "the flag" : "the staff")@(valour > 0 ? $" · valour {valour}" : "")@(p.Flags.Contains(FleetSystem.AchillesFlag) ? " · ACHILLES" : "")</b></div>
@@ -42,8 +42,8 @@
                         @foreach (var t in m.Character.Nature) { <span class="trait nature" title="@TraitDesc(t)">@TraitName(t)</span> }
                         @foreach (var t in m.Character.Aptitude) { <span class="trait apt" title="@TraitDesc(t)">@TraitName(t)</span> }
                     </div>
-                    <h4>Career · @(track?.Name ?? p.CareerTrack)</h4>
-                    <div class="ladder">@for (int r = 0; r <= maxRank; r++) { <span class="rung @(r == p.CareerRank ? "here" : r < p.CareerRank ? "past" : "")">@(track?.RankName(r) ?? r.ToString())</span> }</div>
+                    <h4>Career · @(track?.NameIn(G.World!.Era) ?? p.CareerTrack)</h4>
+                    <div class="ladder">@for (int r = 0; r <= maxRank; r++) { <span class="rung @(r == p.CareerRank ? "here" : r < p.CareerRank ? "past" : "")">@(track?.RankName(r, G.World!.Era) ?? r.ToString())</span> }</div>
                     @if (ambition != null) { <div class="kv"><span><Icon Name="ambition" Size="12" /> Ambition</span><b>@ambition.Name</b></div><p class="muted small">@ambition.Description</p> }
                     <div class="gauge" title="stress"><span>Stress</span><i><b style="width:@p.Stress%" class="@(p.Stress >= 70 ? "low" : "")"></b></i><em>@p.Stress</em></div>
                     @if (honors.Count > 0) { <div class="kv"><span><Icon Name="honor" Size="12" /> Honors</span><b>@string.Join(", ", honors)</b></div> }
@@ -56,7 +56,7 @@
             <h3><Icon Name="marriage" Size="13" /> Blood and bonds</h3>
             @if (spouse != null) { <div class="person"><Portrait Id="@spouse.Id" Name="@spouse.Name" Sex="@spouse.Sex" Age="@spouse.Age" Alive="@spouse.Alive" Accent="@(w.House(spouse.HouseId)?.AccentColor ?? "#888")" Size="30" /><span><b>@spouse.Name</b> <span class="muted">your spouse · @(spouse.Alive ? spouse.Age.ToString() : "†")@(spouse.HouseId != house.Id ? $" · of {w.House(spouse.HouseId)?.Name}" : "")</span></span></div> }
             else { <div class="muted">Unwed.</div> }
-            @foreach (var k in children) { <div class="person"><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@house.AccentColor" Size="28" /><span><b>@k.Name</b> <span class="muted">@(k.Alive ? $"{k.Age}" : "†")@(c.Careers.RankName(k.CareerTrack, k.CareerRank) is { } rn ? $" · {rn}" : "")</span></span></div> }
+            @foreach (var k in children) { <div class="person"><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@house.AccentColor" Size="28" /><span><b>@k.Name</b> <span class="muted">@(k.Alive ? $"{k.Age}" : "†")@(c.Careers.RankName(k.CareerTrack, k.CareerRank, G.World!.Era) is { } rn ? $" · {rn}" : "")</span></span></div> }
             @if (children.Count == 0) { <div class="muted small">No children yet. The line is you.</div> }
             <h4>Those who matter <span class="muted">by the strength of their feeling</span></h4>
             @foreach (var t in ties)

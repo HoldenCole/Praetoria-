@@ -41,7 +41,7 @@
     {
       "id": "merchant_scion",
       "name": "Merchant Scion",
-      "description": "Your family bought its way into the nobility a generation ago and never stopped counting. The ledger is the only scripture you were raised on.",
+      "description": "Your family bought its way into the company of the great houses a generation ago and never stopped counting. The ledger is the only scripture you were raised on.",
       "legitimacy": -3,
       "treasury": {
         "credits": 10,

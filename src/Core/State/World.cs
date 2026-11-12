@@ -22,6 +22,10 @@ public sealed class World
     /// ends) or <see cref="ModeContinue"/> (a surviving sworn house takes up the banner and play goes on).</summary>
     public string Mode { get; set; } = ModeIronman;
 
+    public const string EraRepublic = "fractured_stars", EraImperium = "imperium";
+    /// <summary>True once a throne stands. Until then the Reach is a republic: no noble titles, only military and civic ones (docs/TITLES.md).</summary>
+    [JsonIgnore] public bool IsImperium => Era == EraImperium;
+
     public const string ModeIronman = "ironman";
     public const string ModeContinue = "continue";
 

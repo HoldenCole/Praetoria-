@@ -78,7 +78,7 @@
       "when": [ { "type": "worldFlag", "flag": "act_passed" } ],
       "choices": [
         { "id": "proclaim_it", "cost": { "influence": 1 }, "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }, { "type": "adjustCounter", "key": "estate_offset:magistrates", "delta": 5 },
-            { "type": "log", "text": "{self.name} had the Act read in every square of the house's worlds, seal first. The magistrates approved of a lord who read the law aloud." } ] },
+            { "type": "log", "text": "{self.name} had the Act read in every square of the house's worlds, seal first. The magistrates approved of a {era:senator|lord} who read the law aloud." } ] },
         { "id": "drag_your_feet", "effects": [ { "type": "adjustCounter", "key": "estate_offset:old_blood", "delta": 5 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -1 },
             { "type": "log", "text": "{self.name} received the Act and filed it where Acts go. The old blood noticed, and liked it; the clerk noticed too." } ] }
       ]

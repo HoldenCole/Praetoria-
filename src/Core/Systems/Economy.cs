@@ -147,7 +147,7 @@ public sealed class Economy
                 if (fees > 0) ledger.Add($"escort fees · {h.Name}", "escort", new Resources { Credits = fees });
             }
         // the court: whoever holds the capital keeps it, and it pays (GDD §19 "where the capital is")
-        if (world.Galaxy is { Capital.Length: > 0 } cg && world.PlanetHolder(cg.Capital) == houseId) ledger.Add($"the court at {cg.System(cg.Capital)?.Name ?? cg.Capital}", "court", new Resources { Credits = 2, Influence = 1 });
+        if (world.Galaxy is { Capital.Length: > 0 } cg && world.PlanetHolder(cg.Capital) == houseId) ledger.Add($"the {(world.IsImperium ? "court" : "capital")} at {cg.System(cg.Capital)?.Name ?? cg.Capital}", "court", new Resources { Credits = 2, Influence = 1 });
         // the loan
         if (house.Debt > 0) ledger.Add("loan instalment", "loan", new Resources { Credits = -Math.Min(_ventures.Finance.LoanInstalment, house.Debt) });
         int interest = world.Houses.Values.Count(h => h.Debt > 0 && h.LenderId == houseId && h.Id != houseId);

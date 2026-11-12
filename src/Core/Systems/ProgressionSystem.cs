@@ -57,7 +57,7 @@ public sealed class ProgressionSystem
         var next = _titles.Next(h.Title)!;
         h.Title = next.Id;                                       // legitimacy UNCHANGED → instability
         w.WorldCounters["seizures"] = w.Counter("seizures") + 1; // every seizure spikes rival fear (§7)
-        w.Log($"{c.Name} SEIZES the title of {next.Name} by force.");
+        w.Log($"{c.Name} SEIZES the {(w.IsImperium ? "title" : "rank")} of {next.NameIn(w.Era)} by force.");
     }
 
     public bool CanPetition(World w, string actorId)
@@ -75,7 +75,7 @@ public sealed class ProgressionSystem
         var next = _titles.Next(h.Title)!;
         h.Title = next.Id;
         h.Legitimacy += 5;                                       // arrives clean, with standing
-        w.Log($"{c.Name} is GRANTED the title of {next.Name}.");
+        w.Log($"{c.Name} is GRANTED the {(w.IsImperium ? "title" : "rank")} of {next.NameIn(w.Era)}.");
     }
 
     public bool CanClaimByBlood(World w, string actorId)
@@ -95,7 +95,7 @@ public sealed class ProgressionSystem
         h.Claims.Remove(next.Id);
         h.Legitimacy += 12;                                     // bloodline launders the claim
         w.WorldCounters["corruption"] = w.Counter("corruption") + 1;  // the scheme leaves a trail
-        w.Log($"{c.Name} presses a CLAIM to the title of {next.Name}.");
+        w.Log($"{c.Name} presses a CLAIM to the {(w.IsImperium ? "title" : "rank")} of {next.NameIn(w.Era)}.");
     }
 
     /// <summary>Per-turn soft-lock (GDD §13). For the protagonist house, surface title rank /

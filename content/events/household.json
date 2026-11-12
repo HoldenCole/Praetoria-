@@ -628,7 +628,7 @@
             },
             {
               "type": "log",
-              "text": "A steward confessed, and was hanged, and {self.name} attended the hanging with the correct expression. The court knew. The court also knew the matter was closed."
+              "text": "A steward confessed, and was hanged, and {self.name} attended the hanging with the correct expression. {era:The capital|The court} knew. {era:The capital|The court} also knew the matter was closed."
             }
           ]
         },
@@ -678,7 +678,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} owned the attempt before the household and said it would have been deserved. It was the kind of honesty that costs standing with the realm and buys it with the fleet."
+              "text": "{self.name} owned the attempt before the household and said it would have been deserved. It was the kind of honesty that costs standing with the Reach and buys it with the fleet."
             }
           ]
         }
@@ -1077,7 +1077,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {suitor.name} of {suitor.house} understand exactly how far beneath the house the suit had been. The court enjoyed it. {suitor.house} did not."
+              "text": "{self.name} let {suitor.name} of {suitor.house} understand exactly how far beneath the house the suit had been. {era:The capital|The court} enjoyed it. {suitor.house} did not."
             }
           ]
         }

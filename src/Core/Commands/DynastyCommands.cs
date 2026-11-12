@@ -25,7 +25,7 @@ public sealed class FosterCommand : ICommand
         ctx.PoolsOf(ActorId).Spend(CostMap);
         var c = ctx.World.Char(_childId)!;
         c.Flags.Add(DynastySystem.HiddenFlag);
-        ctx.World.Log($"{c.Name} is sent to be fostered far from court, under another name.");
+        ctx.World.Log($"{c.Name} is sent to be fostered far from the capital, under another name.");
     }
 }
 
@@ -45,7 +45,7 @@ public sealed class RecallCommand : ICommand
     {
         var c = ctx.World.Char(_childId)!;
         c.Flags.Remove(DynastySystem.HiddenFlag);
-        ctx.World.Log($"{c.Name} is recalled to court.");
+        ctx.World.Log($"{c.Name} is recalled home.");
     }
 }
 

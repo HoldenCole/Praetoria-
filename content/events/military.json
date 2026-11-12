@@ -716,7 +716,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let the mutineers take their hulls and go. The fleet shrank; the squares, oddly, approved of a lord who does not hang sailors."
+              "text": "{self.name} let the mutineers take their hulls and go. The fleet shrank; the squares, oddly, approved of a {era:senator|lord} who does not hang sailors."
             }
           ]
         }
@@ -929,7 +929,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} kept the isotopes in the vault. The Treasury approved of a lord who does not spend the irreplaceable."
+              "text": "{self.name} kept the isotopes in the vault. The Treasury approved of a {era:senator|lord} who does not spend the irreplaceable."
             }
           ]
         },

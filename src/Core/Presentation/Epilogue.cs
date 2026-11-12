@@ -17,14 +17,14 @@ public static class Epilogue
 
         int generations = w.Counter("generation") + 1;
         var heads = w.History.Where(h => h.Text.Contains("succeeds as head of")).Select(h => h.Text.Split(" succeeds")[0].Replace("yields the seat; ", "").Split(';').Last().Trim()).ToList();
-        string title = content.Titles.ById(house?.Title ?? "landless")?.Name ?? house?.Title ?? "landless";
+        string title = content.Titles.NameOf(house?.Title ?? "landless", w.Era);
         int peak = Math.Max(w.Counter("peak_title_rank"), content.Titles.RankOf(house?.Title ?? "landless"));
-        string peakName = content.Titles.ByRank.FirstOrDefault(t => t.Rank == peak)?.Name ?? title;
+        string peakName = content.Titles.ByRank.FirstOrDefault(t => t.Rank == peak)?.NameIn(w.Era) ?? title;
 
         lines.Add($"THE CHRONICLE OF {name.ToUpperInvariant()}");
         lines.Add("");
         lines.Add(generations == 1
-            ? $"For {w.Turn} years {name} was one life: {p?.Name ?? "its head"}, who began as {(content.Careers.RankName(p?.CareerTrack ?? "", 0) ?? "a youth")} and ended as {(p != null ? content.Careers.RankName(p.CareerTrack, p.CareerRank) ?? "" : "")}."
+            ? $"For {w.Turn} years {name} was one life: {p?.Name ?? "its head"}, who began as {(content.Careers.RankName(p?.CareerTrack ?? "", 0, w.Era) ?? "a youth")} and ended as {(p != null ? content.Careers.RankName(p.CareerTrack, p.CareerRank, w.Era) ?? "" : "")}."
             : $"Over {w.Turn} years and {generations} generations the seat of {name} passed {generations - 1} time{(generations == 2 ? "" : "s")}{(heads.Count > 0 ? ", to " + string.Join(", then to ", heads.Distinct()) : "")}.");
         lines.Add($"It rose as high as {peakName}{(peakName != title ? $" and ended as {title}" : "")}, with legitimacy {house?.Legitimacy ?? 0} in the eyes of the Reach.");
 
@@ -46,7 +46,7 @@ public static class Epilogue
         if (sb.Count > 0) lines.Add(Cap(string.Join("; ", sb)) + ".");
 
         var crises = w.History.Where(h => h.Text.StartsWith("Crisis '")).Count();
-        if (crises > 0) lines.Add($"The realm's weather was never still: {Plural(crises, "crisis")} broke over it.");
+        if (crises > 0) lines.Add($"The Reach's weather was never still: {Plural(crises, "crisis")} broke over it.");
 
         lines.Add("");
         if (w.HasFlag(ThroneSystem.SeizedFlag)) lines.Add($"In the end {name} took the throne itself, by force, and ruled a powder keg: Emperor in name, and in the Reach's memory a usurper until the generations forget.");

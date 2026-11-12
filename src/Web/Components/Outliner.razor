@@ -61,7 +61,7 @@
     if (w.HasFlag("hulls_captured")) alerts.Add(("good", "Prize crews have taken enemy hulls", "military"));
     if (w.HasFlag("capital_lost")) alerts.Add(("warn", "The capital is lost", "senate"));
     if (w.HasFlag("rebellion")) alerts.Add(("warn", "A world of yours is in revolt", "house"));
-    if (w.HasFlag("fief_granted")) alerts.Add(("good", "You have been granted a fief", "house"));
+    if (w.HasFlag("fief_granted")) alerts.Add(("good", w.IsImperium ? "You have been granted a fief" : "You have been entrusted with a world", "house"));
     foreach (var f in w.WorldFlags.Where(f => f.StartsWith("house_fell:"))) alerts.Add(("info", $"{f["house_fell:".Length..]} has passed out of the rolls", "houses"));
     if (m.GreatCrisis is { Stage: not null, Resolved: false } gc) alerts.Add(("info", $"{gc.Name}: {gc.Stage}", "houses"));
     if (!w.Characters.Values.Any(c => c.Alive && c.HouseId == house.Id && c.Id != w.ProtagonistId)) alerts.Add(("warn", "No heir — the line hangs by a thread", "dynasty"));

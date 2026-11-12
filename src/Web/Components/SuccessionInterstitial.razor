@@ -3,8 +3,8 @@
     var w = G.World!; var c = G.Content!; var r = Record; var heir = w.Char(r.HeirId); var old = r.DeceasedId.Length > 0 ? w.Char(r.DeceasedId) : null;
     var house = heir != null ? w.House(heir.HouseId) : null; string accent = house?.AccentColor ?? "#888";
     int worlds = house != null ? w.HoldingsOf(house.Id).Count(h => h.IsPlanet) : 0, hulls = house != null ? w.Fleets.Values.Where(f => f.OwnerId == house.Id).Sum(f => f.Strength) : 0;
-    string heirRank = heir != null ? c.Careers.RankName(heir.CareerTrack, heir.CareerRank) ?? "" : "";
-    string oldRank = old != null ? c.Careers.RankName(old.CareerTrack, old.CareerRank) ?? "" : "";
+    string heirRank = heir != null ? c.Careers.RankName(heir.CareerTrack, heir.CareerRank, G.World!.Era) ?? "" : "";
+    string oldRank = old != null ? c.Careers.RankName(old.CareerTrack, old.CareerRank, G.World!.Era) ?? "" : "";
     var lines = w.History.Where(h => h.Turn >= r.Turn - 1 && h.Turn <= r.Turn && (r.DeceasedName.Length > 0 && h.Text.Contains(r.DeceasedName) || h.Text.Contains("regent") || h.Text.Contains("succeeds"))).Select(h => h.Text).Distinct().Take(4).ToList();
     var regent = heir != null && heir.Age < DynastySystem.AgeOfMajority ? w.LivingCharacters().Where(x => x.HouseId == heir.HouseId && x.Id != heir.Id && x.Age >= DynastySystem.AgeOfMajority).OrderByDescending(x => x.Age).FirstOrDefault() : null;
 }
@@ -26,7 +26,7 @@
             }
         </div>
         <div class="succ-grid">
-            <div><span class="muted">What passes with the name</span><b>@(house != null ? c.Titles.ById(house.Title)?.Name ?? house.Title : "") · @worlds world(s) · @hulls hull(s) · @(house?.Treasury.Credits ?? 0) credits · legitimacy @(house?.Legitimacy ?? 0)</b></div>
+            <div><span class="muted">What passes with the name</span><b>@(house != null ? c.Titles.NameOf(house.Title, G.World!.Era) : "") · @worlds world(s) · @hulls hull(s) · @(house?.Treasury.Credits ?? 0) credits · legitimacy @(house?.Legitimacy ?? 0)</b></div>
             <div><span class="muted">What does not</span><b>@(oldRank.Length > 0 ? $"The {oldRank}'s career. " : "")The heir begins again@(heirRank.Length > 0 ? $" as {heirRank}" : "")@(heir?.CareerTrack is { Length: > 0 } t ? $" on the {t} track" : "").</b></div>
             @if (heir != null && (heir.NatureTraits.Count > 0 || heir.Ambition.Length > 0)) { <div><span class="muted">Who they are</span><b>@string.Join(" · ", heir.NatureTraits.Concat(heir.AptitudeTraits))@(heir.Ambition.Length > 0 ? $" · wants to {heir.Ambition.Replace('_', ' ')}" : "")</b></div> }
             <div><span class="muted">The register</span><b>@RoleTheme.Describe(heir?.CareerTrack ?? "")</b></div>

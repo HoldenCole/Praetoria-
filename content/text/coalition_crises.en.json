@@ -13,7 +13,7 @@
     {
       "id": "the_treasury_tightens",
       "title": "The Threads of Money",
-      "body": "A fund to administer, a debt to hold, a disbursement that now waits on your signature — the realm's money runs a little more through your hands this season. Control of coin is quieter than control of ships, and no less feared: {rival_house.name} of {rival_house.house}, like everyone who needs paying, watches the hand that holds the note. To own the treasury is to be needed by all and trusted by none.",
+      "body": "A fund to administer, a debt to hold, a disbursement that now waits on your signature — the Reach's money runs a little more through your hands this season. Control of coin is quieter than control of ships, and no less feared: {rival_house.name} of {rival_house.house}, like everyone who needs paying, watches the hand that holds the note. To own the treasury is to be needed by all and trusted by none.",
       "choices": {
         "tighten_grip": "Draw another thread through your hands. Be the one who signs.",
         "loosen_purse": "Let the coin flow easier than advantage demands. Velvet over iron."
@@ -71,11 +71,11 @@
     },
     {
       "id": "the_crowns_eye",
-      "title": "The Crown's Eye",
-      "body": "You have grown beyond the reach of coalitions — large enough that the only power left to question yours sits on the throne itself. {sovereign.name} of {sovereign.house} summons you, and the audience has one unspoken question beneath all its ceremony: is this great strength of yours the crown's, or its own? There is no neutral answer. The mighty serve, or the mighty are, in time, unmade.",
+      "title": "{era:The Chair's Eye|The Crown's Eye}",
+      "body": "You have grown beyond the reach of coalitions — large enough that the only power left to question yours {era:sits in the chair itself|sits on the throne itself}. {sovereign.name} of {sovereign.house} summons you, and the audience has one unspoken question beneath all its ceremony: is this great strength of yours {era:the Republic's|the crown's}, or its own? There is no neutral answer. The mighty serve, or the mighty are, in time, unmade.",
       "choices": {
-        "pledge_fealty": "Kneel and mean it. Bind your strength to the throne. Safety, at the price of a loyalty never again questioned.",
-        "remain_independent": "Every courtesy, no oath. Be the most powerful unsworn house in the realm — magnificent, precarious, rarely for long."
+        "pledge_fealty": "{era:Swear and mean it.|Kneel and mean it.} Bind your strength to {era:the Republic|the throne}. Safety, at the price of a loyalty never again questioned.",
+        "remain_independent": "Every courtesy, no oath. Be the most powerful unsworn house in the Reach — magnificent, precarious, rarely for long."
       }
     }
   ]

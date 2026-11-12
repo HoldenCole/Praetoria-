@@ -70,16 +70,16 @@
     {
       "id": "the_treasury_audit",
       "title": "The High Treasury",
-      "body": "You have risen to where the realm's true money lives, and found what everyone who reaches this room finds: that the treasury is less a vault than a quiet conspiracy of comfortable arrangements, each one defended by someone powerful. You can clean it, and make enemies of the worst sort — the kind you earn by doing the job well. Or you can learn what it is really for.",
+      "body": "You have risen to where the Reach's true money lives, and found what everyone who reaches this room finds: that the treasury is less a vault than a quiet conspiracy of comfortable arrangements, each one defended by someone powerful. You can clean it, and make enemies of the worst sort — the kind you earn by doing the job well. Or you can learn what it is really for.",
       "choices": {
         "reform_the_treasury": "Clean it. Make the enemies that competence earns.",
-        "consolidate_power": "Become the person without whom nothing in the realm gets paid."
+        "consolidate_power": "Become the person without whom nothing in the Reach gets paid."
       }
     },
     {
       "id": "first_case",
       "title": "The First Case",
-      "body": "The robe is new on your shoulders and the first case is already harder than they warned: {defendant.name} of {defendant.house} stands before you, and the law points one way while power, friendship, and your own future all murmur another. Every magistrate's reputation is built or broken in the early rulings, when the realm is still deciding what kind of judge you are.",
+      "body": "The robe is new on your shoulders and the first case is already harder than they warned: {defendant.name} of {defendant.house} stands before you, and the law points one way while power, friendship, and your own future all murmur another. Every magistrate's reputation is built or broken in the early rulings, when the Reach is still deciding what kind of judge you are.",
       "choices": {
         "rule_by_law": "Rule as the law demands, whatever power prefers. Build the slow reputation.",
         "rule_by_favor": "Find the verdict that serves you. Collect the debt judges learn to collect.",
@@ -90,9 +90,9 @@
     {
       "id": "the_great_trial",
       "title": "The Great Trial",
-      "body": "The case of your career so far: {accused.name} of {accused.house}, a power above your station, who walked in assuming that station was armor — and may be right, unless you prove otherwise before the whole court. Convict them and the realm learns your law reaches upward. Let them buy their way clear and you learn what your robe is really worth.",
+      "body": "The case of your career so far: {accused.name} of {accused.house}, a power above your station, who walked in assuming that station was armor — and may be right, unless you prove otherwise before the whole court. Convict them and the Reach learns your law reaches upward. Let them buy their way clear and you learn what your robe is really worth.",
       "choices": {
-        "convict_the_mighty": "Make the conviction stick. Show the realm your law reaches up.",
+        "convict_the_mighty": "Make the conviction stick. Show the Reach your law reaches up.",
         "accept_the_bribe": "Let them pay. Advance as a reliable friend to the powerful — and their hostage.",
         "prosecute_by_the_book": "Prosecute by the book. Narrow, careful, defensible — and still upward."
       }

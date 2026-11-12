@@ -32,17 +32,17 @@
     },
     {
       "id": "the_courts_favour",
-      "title": "The Court Convenes",
-      "body": "The capital is {self.house}'s, and the capital is where the Reach comes to be seen. Envoys, petitioners, cousins and creditors fill the marble halls, each with a request and a gift of carefully calculated size. To hold court costs coin and buys influence. To close the doors keeps the coin and buys something else.",
+      "title": "{era:The Chair Receives|The Court Convenes}",
+      "body": "The capital is {self.house}'s, and the capital is where the Reach comes to be seen. Envoys, petitioners, cousins and creditors fill the marble halls, each with a request and a gift of carefully calculated size. {era:To hold open audience|To hold court} costs coin and buys influence. To close the doors keeps the coin and buys something else.",
       "choices": {
-        "hold_court": "Hold court. Let them come and be heard.",
+        "hold_court": "{era:Hold open audience.|Hold court.} Let them come and be heard.",
         "close_the_doors": "Close the doors. Keep the coin."
       }
     },
     {
       "id": "the_rim_remembers",
       "title": "The Rim Remembers",
-      "body": "The house's seat is on the Rim, where the lanes end and the law thins. Out here a lord is a rumour unless they come in person, and a tithe is an insult unless it is collected by someone who has shared the hall's bread. The season is right for a ride along the frontier; the ledger says a steward would do.",
+      "body": "The house's seat is on the Rim, where the lanes end and the law thins. Out here a {era:senator|lord} is a rumour unless they come in person, and a tithe is an insult unless it is collected by someone who has shared the hall's bread. The season is right for a ride along the frontier; the ledger says a steward would do.",
       "choices": {
         "ride_out": "Ride the frontier yourself. Sleep in their halls.",
         "send_a_steward": "Send a steward with a ledger."
@@ -81,9 +81,9 @@
     {
       "id": "the_keys_of_the_capital",
       "title": "The Keys of the Capital",
-      "body": "The capital is {self.house}'s. The marble is older than the title, the counting-houses older than the marble, and every house in the Reach is already composing the letter it will send. What {self.name} does in the first week will be the first thing anyone says about the new master of the court.",
+      "body": "The capital is {self.house}'s. The marble is older than the title, the counting-houses older than the marble, and every house in the Reach is already composing the letter it will send. What {self.name} does in the first week will be the first thing anyone says about {era:the new holder of the chair|the new master of the court}.",
       "choices": {
-        "open_court": "Open the court to every house that will come.",
+        "open_court": "{era:Open the capital|Open the court} to every house that will come.",
         "garrison_it": "Put the household troops on every gate first.",
         "tax_it": "Levy the capital's tithe within the week."
       }
@@ -91,7 +91,7 @@
     {
       "id": "the_capital_falls",
       "title": "The Capital Falls",
-      "body": "The capital is lost. Whether by siege, by rising or by a treaty signed in a hurry, the court is someone else's now, and {self.house} is a house that used to hold it. There is a ship waiting, a treasury half-emptied, and a household watching {self.name} to learn how this is to be borne.",
+      "body": "The capital is lost. Whether by siege, by rising or by a treaty signed in a hurry, {era:the chair|the court} is someone else's now, and {self.house} is a house that used to hold it. There is a ship waiting, a treasury half-emptied, and a household watching {self.name} to learn how this is to be borne.",
       "choices": {
         "swear_to_return": "Swear, before the household, to see it again.",
         "salvage_the_treasury": "Empty what can be emptied before the gates close.",
@@ -150,17 +150,17 @@
     },
     {
       "id": "the_fief",
-      "title": "The Fief",
-      "body": "The court has granted {self.house} a world. It is the least of the court's worlds and the whole of yours, and the ceremony requires a knee. The hall is full; every house that ever called {self.house} landless is watching to see how the knee is bent.",
+      "title": "{era:The Prefecture|The Fief}",
+      "body": "{era:The chair|The court} has {era:given|granted} {self.house} a world. It is the least of {era:the chair's|the court's} worlds and the whole of yours, and the ceremony requires {era:an oath|a knee}. The hall is full; every house that ever called {self.house} landless is watching to see how the knee is bent.",
       "choices": {
-        "kneel_gladly": "Kneel gladly, and rise a baron.",
-        "kneel_and_plan": "Kneel, and count the court's guards while doing it."
+        "kneel_gladly": "{era:Swear gladly, and rise a Prefect.|Kneel gladly, and rise a baron.}",
+        "kneel_and_plan": "{era:Swear, and count the chair's guards while doing it.|Kneel, and count the court's guards while doing it.}"
       }
     },
     {
       "id": "the_terms_of_peace",
       "title": "The Terms of Peace",
-      "body": "The war is over and the terms are signed: a world has changed hands, and it is now {self.house}'s. Its people did not ask for a new banner. Its governor is still the old lord's man. Its customs house has already written to ask whose tithe it collects this season.",
+      "body": "The war is over and the terms are signed: a world has changed hands, and it is now {self.house}'s. Its people did not ask for a new banner. Its governor is still the old {era:senator|lord}'s man. Its customs house has already written to ask whose tithe it collects this season.",
       "choices": {
         "garrison_the_prize": "Put a garrison on it before the ink dries.",
         "leave_its_customs": "Leave it its customs and its governor, and tax it lightly."
@@ -169,7 +169,7 @@
     {
       "id": "the_ceded_world",
       "title": "The Ceded World",
-      "body": "The war is over and the terms are signed: a world of {self.house}'s has gone to the victor. The chancellor presents the instrument for a seal. The household is watching to see what kind of lord signs away a world.",
+      "body": "The war is over and the terms are signed: a world of {self.house}'s has gone to the victor. The chancellor presents the instrument for a seal. The household is watching to see what kind of {era:senator|lord} signs away a world.",
       "choices": {
         "swear_to_retake_it": "Sign, and swear in the same breath to unsign it.",
         "bear_it": "Sign, and say nothing."

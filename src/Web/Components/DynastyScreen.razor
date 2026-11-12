@@ -46,7 +46,7 @@
                     <div class="seat-card">
                         <Portrait Id="@fc.Id" Name="@fc.Name" Sex="@fc.Sex" Age="@fc.Age" Alive="@fc.Alive" Accent="@fh.AccentColor" Size="64" />
                         <div class="sc-body">
-                            <div class="sc-name">@fc.Name @(fc.Id == pid ? "✦" : "") <span class="muted">@(fc.Alive ? $"{fc.Age}" : "†")@(fc.Alive && c.Careers.RankName(fc.CareerTrack, fc.CareerRank) is { } rn ? $" · {rn}" : "")@(fh.Id != house.Id ? $" · of {fh.Name}" : "")</span></div>
+                            <div class="sc-name">@fc.Name @(fc.Id == pid ? "✦" : "") <span class="muted">@(fc.Alive ? $"{fc.Age}" : "†")@(fc.Alive && c.Careers.RankName(fc.CareerTrack, fc.CareerRank, G.World!.Era) is { } rn ? $" · {rn}" : "")@(fh.Id != house.Id ? $" · of {fh.Name}" : "")</span></div>
                             <div class="muted small">
                                 @if (mother != null || father != null) { <span>child of @string.Join(" and ", new[] { father?.Name, mother?.Name }.Where(x => x != null)) · </span> }
                                 @if (sp != null) { <span>⚭ @sp.Name@(sp.HouseId != fc.HouseId ? $" of {w.House(sp.HouseId)?.Name}" : "") · </span> }
@@ -73,7 +73,7 @@
                     <div class="person heir" @onclick="() => _focus = h.Id">
                         <span class="rank">@rank</span>
                         <Portrait Id="@h.Id" Name="@h.Name" Sex="@h.Sex" Age="@h.Age" Accent="@house.AccentColor" Size="28" />
-                        <span><b>@h.Name</b> <span class="muted">@h.Age · @(h.MotherId == pid || h.FatherId == pid ? "your child" : SharesParent(h, p) ? "your sibling" : "kin")@(h.CareerTrack.Length > 0 ? $" · {c.Careers.RankName(h.CareerTrack, h.CareerRank)}" : "")</span></span>
+                        <span><b>@h.Name</b> <span class="muted">@h.Age · @(h.MotherId == pid || h.FatherId == pid ? "your child" : SharesParent(h, p) ? "your sibling" : "kin")@(h.CareerTrack.Length > 0 ? $" · {c.Careers.RankName(h.CareerTrack, h.CareerRank, G.World!.Era)}" : "")</span></span>
                     </div>
                 }
                 <div class="muted small">By @house.SuccessionLaw.Replace('_', ' '). The law is set in the Senate.</div>
@@ -85,7 +85,7 @@
                     var rel = w.GetRelationship(k.Id, pid); int d = rel?.Disposition ?? 0;
                     <div class="person" @onclick="() => _focus = k.Id">
                         <Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Accent="@house.AccentColor" Size="28" />
-                        <span><b>@k.Name</b> <span class="muted">@(c.Careers.RankName(k.CareerTrack, k.CareerRank) ?? "") · @k.Age</span></span>
+                        <span><b>@k.Name</b> <span class="muted">@(c.Careers.RankName(k.CareerTrack, k.CareerRank, G.World!.Era) ?? "") · @k.Age</span></span>
                         <span class="pill @(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span>
                     </div>
                 }

@@ -34,7 +34,7 @@
     {
       "id": "the_skimming_steward",
       "title": "Two Sets of Books",
-      "body": "The discrepancy is small, then consistent, then unmistakable: {steward.name} of {steward.house}, who has kept your accounts faithfully for years, has been keeping a little of them too. The sums are not ruinous. The principle is. How a lord answers theft from within the house tells the whole house what kind of master they serve — and the answer, once given, is very hard to revise.",
+      "body": "The discrepancy is small, then consistent, then unmistakable: {steward.name} of {steward.house}, who has kept your accounts faithfully for years, has been keeping a little of them too. The sums are not ruinous. The principle is. How a {era:senator|lord} answers theft from within the house tells the whole house what kind of master they serve — and the answer, once given, is very hard to revise.",
       "choices": {
         "make_example": "Make it public and final. Honesty enforced by fear is still honesty.",
         "quiet_dismissal": "Let them return the coin and resign with their name. Mercy, unadvertised.",
@@ -86,7 +86,7 @@
       "choices": {
         "call_the_levy": "Call for volunteers. A fair-treated world answers with its sons.",
         "request_tribute": "Ask for tribute. They give freely — if you don't ask too often.",
-        "let_them_keep_it": "Take nothing this season. Be the lord who can take, and doesn't."
+        "let_them_keep_it": "Take nothing this season. Be the {era:senator|lord} who can take, and doesn't."
       }
     },
     {
@@ -122,7 +122,7 @@
     {
       "id": "the_inherited_debt",
       "title": "The Old Paper",
-      "body": "{claimant.name} of {claimant.house} comes bearing a debt older than you — paper your grandfather signed, an obligation sworn by a man now dust and never honored. The ink has faded. The claim has not. Nothing forces your hand here except the thing that has always bound noble houses to their own history: the name at the top of the page, which is also the name at the top of yours.",
+      "body": "{claimant.name} of {claimant.house} comes bearing a debt older than you — paper your grandfather signed, an obligation sworn by a man now dust and never honored. The ink has faded. The claim has not. Nothing forces your hand here except the thing that has always bound {era:great|noble} houses to their own history: the name at the top of the page, which is also the name at the top of yours.",
       "choices": {
         "honor_it": "Pay your grandfather's debt. A house that pays its dead's word keeps its own.",
         "dispute_it": "Argue it to dust in the courts. The debt voids; the enmity is freshly yours.",

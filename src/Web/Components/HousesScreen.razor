@@ -37,7 +37,7 @@
                     int worlds = w.HoldingsOf(h.Id).Count(x => x.IsPlanet), hulls = FleetSystem.StrengthOf(w, h.Id), seats = senate.Weight(w, h.Id); int disp = h.Id == mine.Id ? 0 : Disp(h); bool atWar = w.AtWar(mine.Id, h.Id); var bench = FactionSystem.Of(w, h.Id);
                     <tr class="@(h.Id == mine.Id ? "mine" : "") @(h.Id == _focus ? "here" : "") @(atWar ? "hostile" : "")" @onclick="() => _focus = h.Id">
                         <td class="hn"><Sigil HouseId="@h.Id" Accent="@h.AccentColor" Size="16" /> <b>@h.Name</b>@if (m.Capital?.HolderId == h.Id) { <span class="tier small opulent">capital</span> }@if (h.Bloc == RegionSystem.FreeholdsBloc) { <span class="tier small destitute">free hold</span> }@if (ThroneSystem.Emperor(w)?.Id == h.Id) { <span class="tier small opulent">throne</span> }</td>
-                        <td class="muted">@(c.Titles.ById(h.Title)?.Name ?? h.Title)</td>
+                        <td class="muted">@(c.Titles.NameOf(h.Title, G.World!.Era))</td>
                         <td><span class="mbar"><i style="width:@(100 * worlds / maxWorlds)%; background:@h.AccentColor"></i></span>@worlds</td>
                         <td><span class="mbar"><i style="width:@(100 * hulls / maxHulls)%; background:@h.AccentColor"></i></span>@hulls</td>
                         <td><span class="mbar"><i style="width:@(100 * seats / maxSeats)%; background:@h.AccentColor"></i></span>@seats</td>
@@ -59,7 +59,7 @@
             var offDefault = c.Policies.Laws.Where(l => PolicySystem.HoldsScope(w, fh.Id, l.Scope) && PolicySystem.OptionId(w, c.Policies, fh.Id, l.Id) != l.DefaultOption.Id).Select(l => c.Policies.Law(l.Id)!.Option(PolicySystem.OptionId(w, c.Policies, fh.Id, l.Id))?.Name.ToLowerInvariant()).Where(x => x != null).ToList();
             var moods = c.Policies.Estates.Select(e => (e, a: PolicySystem.Approval(w, fh.Id, e.Id))).Where(x => x.a <= PolicySystem.Hostile || x.a >= PolicySystem.Loyal).ToList();
             <section class="panel focus-house" style="--accent:@fh.AccentColor">
-                <div class="who-head"><Sigil HouseId="@fh.Id" Accent="@fh.AccentColor" Size="44" /><div><h2>@fh.Name</h2><div class="sub">@(c.Titles.ById(fh.Title)?.Name ?? fh.Title) · @fh.Culture culture@(fh.Bloc.Length > 0 ? $" · bloc {fh.Bloc}" : "")</div></div>
+                <div class="who-head"><Sigil HouseId="@fh.Id" Accent="@fh.AccentColor" Size="44" /><div><h2>@fh.Name</h2><div class="sub">@(c.Titles.NameOf(fh.Title, G.World!.Era)) · @fh.Culture culture@(fh.Bloc.Length > 0 ? $" · bloc {fh.Bloc}" : "")</div></div>
                     @if (fh.Id != mine.Id) { <span class="pill @(disp < -20 ? "warn" : disp > 20 ? "good" : "")">@(disp >= 0 ? "+" : "")@disp</span> }@if (atWar) { <span class="pill warn">AT WAR</span> }</div>
                 <div class="kv"><span>Legitimacy</span><b>@fh.Legitimacy</b></div>
                 <div class="kv"><span>Domain</span><b>@worlds.Count world(s) · @stations.Count station(s)</b></div>
@@ -78,7 +78,7 @@
                     conns.TryGetValue(ch.Id, out var cn); var rel = w.GetRelationship(ch.Id, pid); int d = rel?.Disposition ?? 0;
                     <div class="person">
                         <Portrait Id="@ch.Id" Name="@ch.Name" Sex="@ch.Sex" Age="@ch.Age" Accent="@fh.AccentColor" Size="30" />
-                        <span><b>@ch.Name</b> <span class="muted">@(c.Careers.RankName(ch.CareerTrack, ch.CareerRank) ?? "") · @ch.Age@(ch == head ? " · head" : "")@(ch.Flags.Contains(FleetSystem.AchillesFlag) ? " · Achilles" : "")</span>
+                        <span><b>@ch.Name</b> <span class="muted">@(c.Careers.RankName(ch.CareerTrack, ch.CareerRank, G.World!.Era) ?? "") · @ch.Age@(ch == head ? " · head" : "")@(ch.Flags.Contains(FleetSystem.AchillesFlag) ? " · Achilles" : "")</span>
                             @if (ch.Id != pid) { <span class="pill @(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span> }
                             @if (cn != null) { foreach (var f in cn.Flags.Take(3)) { <span class="pill small">@f.Replace('_', ' ')</span> } }
                         </span>
@@ -89,7 +89,7 @@
                 <h4>The domain</h4>
                 @foreach (var hd in worlds) { var sys = w.Galaxy?.System(hd.SystemId); <div class="line"><img class="sprite" data-planet="@(sys?.PlanetClass ?? "terran")|@hd.SystemId|24" alt="" /> <b>@hd.Name</b> <span class="muted">@(c.Holdings.Spec(hd.Specialization)?.Name ?? hd.Specialization) · @(sys?.Name) · loyalty @(100 - hd.Unrest)</span></div> }
                 @foreach (var hd in stations) { <div class="line muted"><Icon Name="station" Size="12" /> @hd.Name · station at @(w.Galaxy?.System(hd.SystemId)?.Name)</div> }
-                @if (worlds.Count == 0 && stations.Count == 0) { <div class="muted">Landless: a name, a few retainers, and ambitions.</div> }
+                @if (worlds.Count == 0 && stations.Count == 0) { <div class="muted">@(w.IsImperium ? "Landless: a name, a few retainers, and ambitions." : "No world to its name: a family, a few clients, and ambitions.")</div> }
                 @if (fh.Id != mine.Id)
                 {
                     var dw = new DeclareWarCommand(pid, fh.Id, c.Fleets);

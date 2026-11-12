@@ -38,7 +38,7 @@ public static class Renderer
     public static void RenderStatus(World world, Praetoria.Core.Data.ContentDatabase? content = null)
     {
         var p = world.Protagonist!;
-        string rank = content?.Careers.RankName(p.CareerTrack, p.CareerRank) is { } name
+        string rank = content?.Careers.RankName(p.CareerTrack, p.CareerRank, world.Era) is { } name
             ? $"{name} (rank {p.CareerRank})" : $"rank {p.CareerRank}";
         Console.WriteLine($"── Turn {world.Turn} ──  {p.Name} of {HouseName(world, p.HouseId)}  " +
                           $"· {rank} · stress {p.Stress}");

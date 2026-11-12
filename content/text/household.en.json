@@ -43,9 +43,9 @@
     {
       "id": "the_plot_exposed",
       "title": "The Plot, Exposed",
-      "body": "It was supposed to be an accident. It was not, and now the whole court knows whose purse the knife came from. Yours. There are three ways out of a room like this one.",
+      "body": "It was supposed to be an accident. It was not, and now {era:the whole capital|the whole court} knows whose purse the knife came from. Yours. There are three ways out of a room like this one.",
       "choices": {
-        "deny_everything": "Deny it until the denial becomes a fact the court agrees to believe.",
+        "deny_everything": "Deny it until the denial becomes a fact {era:the Senate|the court} agrees to believe.",
         "offer_a_scapegoat": "A steward confesses and hangs. The matter closes.",
         "own_it": "Own it before the household. Say it would have been deserved."
       }
@@ -77,7 +77,7 @@
       "choices": {
         "accept": "Accept. Bind the houses; let the heralds call it love.",
         "refuse_kindly": "Refuse, with every courtesy the forms allow.",
-        "refuse_coldly": "Refuse in a way the court will enjoy and their house will not forget."
+        "refuse_coldly": "Refuse in a way {era:the capital|the court} will enjoy and their house will not forget."
       }
     }
   ]

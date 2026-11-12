@@ -3,7 +3,7 @@
     {
       "id": "first_formation",
       "title": "The First Morning",
-      "body": "Dawn over the academy, and a thousand young nobles arranged into something the instructors will spend years breaking and remaking. The cohort stands in the cold, breath fogging, every house's pride packed into one shivering line. They are watching each other already. This is where the rivals and friends of a lifetime are made — and it has not yet been five minutes.",
+      "body": "Dawn over the academy, and a thousand young {era:cadets|nobles} arranged into something the instructors will spend years breaking and remaking. The cohort stands in the cold, breath fogging, every house's pride packed into one shivering line. They are watching each other already. This is where the rivals and friends of a lifetime are made — and it has not yet been five minutes.",
       "choices": {
         "stand_tall": "Stand the line without a flicker. Let them see nothing to exploit.",
         "measure_them": "Say nothing. Watch everyone. Learn who breaks first."
@@ -64,7 +64,7 @@
     {
       "id": "the_instructors_eye",
       "title": "The Instructor's Eye",
-      "body": "You have been noticed. {mentor.name} of {mentor.house} — who has forgotten more war than the cohort will ever learn — has begun to watch you the way a buyer watches a blade. In a place built to grind nobles into uniformity, being seen is the rarest currency there is. It is also a door that, once opened, is very hard to choose how far to walk through.",
+      "body": "You have been noticed. {mentor.name} of {mentor.house} — who has forgotten more war than the cohort will ever learn — has begun to watch you the way a buyer watches a blade. In a place built to grind {era:the children of great houses|nobles} into uniformity, being seen is the rarest currency there is. It is also a door that, once opened, is very hard to choose how far to walk through.",
       "choices": {
         "earn_it": "Meet the harder problems head-on. Earn the eye by deserving it.",
         "court_it": "Make the climb deliberate. Court the patronage — and the price.",
@@ -164,7 +164,7 @@
     {
       "id": "drills",
       "title": "The Drill Yard",
-      "body": "The yard again, the same forms, the same aching repetition the academy believes turns nobles into officers. It mostly does. The only variable the instructors leave you is how much of yourself you spend on it.",
+      "body": "The yard again, the same forms, the same aching repetition the academy believes turns {era:civilians|nobles} into officers. It mostly does. The only variable the instructors leave you is how much of yourself you spend on it.",
       "choices": {
         "push_hard": "Run it past where they call it. Make skill the hard way.",
         "pace_yourself": "Do it well and no more. Save something for the long war."

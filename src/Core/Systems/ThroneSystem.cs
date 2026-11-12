@@ -24,9 +24,9 @@ public static class ThroneSystem
         var h = w.House(houseId);
         if (h == null) return "no house";
         if (w.Era == "imperium" || Emperor(w) != null) return "a throne already stands — it must be seized";
-        if (titles.RankOf(h.Title) < titles.RankOf(Title.Archduke)) return "only an Archduke may proclaim";
+        if (titles.RankOf(h.Title) < titles.RankOf(Title.Archduke)) return $"only {(w.IsImperium ? "an Archduke" : "the First Citizen")} may proclaim";
         int bar = titles.ById(Title.Emperor)?.LegitimacyRequirement ?? 95;
-        if (h.Legitimacy < bar) return $"the realm will not accept it below legitimacy {bar}";
+        if (h.Legitimacy < bar) return $"the Reach will not accept it below legitimacy {bar}";
         return CapitalGate(w, houseId, byForce: false);
     }
 
@@ -51,7 +51,7 @@ public static class ThroneSystem
         var h = w.House(houseId);
         if (h == null) return "no house";
         if (h.Title == Title.Emperor) return "you already hold the throne";
-        if (titles.RankOf(h.Title) < titles.RankOf(Title.Duke)) return "a Duke at least must stand behind the fleet";
+        if (titles.RankOf(h.Title) < titles.RankOf(Title.Duke)) return $"a {Title.StyleOf(Title.Duke, w.Era)} at least must stand behind the fleet";
         int mine = FleetSystem.StrengthOf(w, houseId);
         int strongestRival = w.Houses.Values.Where(x => x.Id != houseId).Select(x => FleetSystem.StrengthOf(w, x.Id)).DefaultIfEmpty(0).Max();
         if (mine == 0 || mine < (int)Math.Ceiling(strongestRival * 1.25)) return "your fleet must outnumber every rival's by a quarter";

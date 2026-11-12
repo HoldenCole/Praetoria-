@@ -246,7 +246,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} married {bride.name} of {bride.house} for the oldest and least strategic reason, and let the claims and the politics fall where they would. The court thought it sentiment, or folly. Perhaps. But a marriage that is only a bond, and not a maneuver, is a rare strength in a world where everyone assumes the maneuver — and rarity, in the end, is its own power."
+              "text": "{self.name} married {bride.name} of {bride.house} for the oldest and least strategic reason, and let the claims and the politics fall where they would. {era:The capital|The court} thought it sentiment, or folly. Perhaps. But a marriage that is only a bond, and not a maneuver, is a rare strength in a world where everyone assumes the maneuver — and rarity, in the end, is its own power."
             }
           ]
         },
@@ -347,7 +347,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} pressed the claim through the courts and the councils, by every law and form the realm provided — slow, costly, and unanswerable. {holder.name} of {holder.house} yielded the county because the law left no room not to. A title taken cleanly is a title no one can later call stolen. {self.name} rose, and the rise was legitimate, and legitimacy is the only crown that does not slip."
+              "text": "{self.name} pressed the claim through the courts and the councils, by every law and form the Reach provided — slow, costly, and unanswerable. {holder.name} of {holder.house} yielded the county because the law left no room not to. A title taken cleanly is a title no one can later call stolen. {self.name} rose, and the rise was legitimate, and legitimacy is the only {era:laurel|crown} that does not slip."
             }
           ]
         },
@@ -400,7 +400,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not wait for the courts. The county changed hands the fast way, and {holder.name} of {holder.house} was left with a grievance and a long memory and nothing else. {self.name} holds the title now — held above the standing to keep it quiet, a crown sitting heavier than the head beneath it. The realm watches a house that takes what it wants, and recalculates its own fear."
+              "text": "{self.name} did not wait for the courts. The county changed hands the fast way, and {holder.name} of {holder.house} was left with a grievance and a long memory and nothing else. {self.name} holds the title now — held above the standing to keep it quiet, a {era:laurel|crown} sitting heavier than the head beneath it. The Reach watches a house that takes what it wants, and recalculates its own fear."
             }
           ]
         },
@@ -467,7 +467,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} pressed the claim the ordinary way — a petition, a reading of the old contracts, a transfer the realm accepted because it was tired of arguing. {holder.name} of {holder.house} lost a county and kept a grievance. Neither clean nor bloody; merely done."
+              "text": "{self.name} pressed the claim the ordinary way — a petition, a reading of the old contracts, a transfer the Reach accepted because it was tired of arguing. {holder.name} of {holder.house} lost a county and kept a grievance. Neither clean nor bloody; merely done."
             }
           ]
         }
@@ -509,7 +509,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} set about the unglamorous work of deserving the title already held — patronage spread, old families courted, the slow purchase of the realm's belief that {self.name}'s house belongs where it sits. Legitimacy cannot be seized; it can only be earned, or bought, or outlived. {self.name} chose to pay."
+              "text": "{self.name} set about the unglamorous work of deserving the title already held — patronage spread, old families courted, the slow purchase of the Reach's belief that {self.name}'s house belongs where it sits. Legitimacy cannot be seized; it can only be earned, or bought, or outlived. {self.name} chose to pay."
             }
           ]
         },
@@ -619,7 +619,7 @@
             },
             {
               "type": "log",
-              "text": "{claimant.name} of {claimant.house} produced a claim to {self.name}'s own seat — and {self.name} met it in the open, in law, before the realm, and won the right to the title twice over by surviving the challenge to it. A claim defeated in daylight is worth more than a claim never raised. {self.name}'s standing rose on the strength of having been doubted, and answered."
+              "text": "{claimant.name} of {claimant.house} produced a claim to {self.name}'s own seat — and {self.name} met it in the open, in law, before the Reach, and won the right to the title twice over by surviving the challenge to it. A claim defeated in daylight is worth more than a claim never raised. {self.name}'s standing rose on the strength of having been doubted, and answered."
             }
           ]
         },
@@ -751,7 +751,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did the hardest thing a powerful person can do: stepped down while still able to hold on. The duchy passed to {heir.name} of {heir.house} in {self.name}'s own lifetime, the succession secured against the chaos that follows lords who die in their seats. {self.name} kept a lesser title and a clear conscience. The house endures because its head knew when to become its past."
+              "text": "{self.name} did the hardest thing a powerful person can do: stepped down while still able to hold on. {era:The province|The duchy} passed to {heir.name} of {heir.house} in {self.name}'s own lifetime, the succession secured against the chaos that follows {era:senators|lords} who die in their seats. {self.name} kept a lesser title and a clear conscience. The house endures because its head knew when to become its past."
             }
           ]
         },
@@ -812,7 +812,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} would not loosen the grip. The title is {self.name}'s until {self.name}'s last breath, and {heir.name} of {heir.house} may wait, and age, and watch the inheritance recede. A lord who will not let go teaches the heir only one lesson — impatience — and trains, without meaning to, the very hunger that ends houses."
+              "text": "{self.name} would not loosen the grip. The title is {self.name}'s until {self.name}'s last breath, and {heir.name} of {heir.house} may wait, and age, and watch the inheritance recede. A {era:senator|lord} who will not let go teaches the heir only one lesson — impatience — and trains, without meaning to, the very hunger that ends houses."
             }
           ]
         }
@@ -911,7 +911,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} named no heir, and instead let the claimants — {claimant.name} of {claimant.house} among them — circle and scheme and check one another, the throne kept safe by the very rivalry for it. It is the oldest trick of aging power, and it works, and it works, and then one day it does not, and the house pays for every year of cleverness at once. {self.name} is betting on not being there for the reckoning."
+              "text": "{self.name} named no heir, and instead let the claimants — {claimant.name} of {claimant.house} among them — circle and scheme and check one another, {era:the seat|the throne} kept safe by the very rivalry for it. It is the oldest trick of aging power, and it works, and it works, and then one day it does not, and the house pays for every year of cleverness at once. {self.name} is betting on not being there for the reckoning."
             }
           ]
         },

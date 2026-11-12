@@ -3,7 +3,7 @@
     {
       "id": "the_petition",
       "title": "The Petition",
-      "body": "{petitioner.name} of {petitioner.house} comes before you — kin, of your own blood, and carrying the particular tension of family asking family for power. They seek your recognition of their claim to a county: a real title, real lands, a real step up that only you, as Duke, can grant. To raise them is to bind them and to arm them, both at once. Blood remembers what it is given. It remembers, longer, what it is refused.",
+      "body": "{petitioner.name} of {petitioner.house} comes before you — kin, of your own blood, and carrying the particular tension of family asking family for power. They seek your recognition of their claim to {era:a legateship|a county}: a real {era:rank|title}, real lands, a real step up that only you, as {era:Proconsul|Duke}, can grant. To raise them is to bind them and to arm them, both at once. Blood remembers what it is given. It remembers, longer, what it is refused.",
       "choices": {
         "recognize": "Recognize the claim. Buy a loyalty; create a rival. Eyes open.",
         "recognize_with_terms": "Grant it — bound with quiet conditions. A gift that is also a leash.",
@@ -23,7 +23,7 @@
     {
       "id": "press_the_claim",
       "title": "Press the Claim",
-      "body": "You hold a claim to a county that {holder.name} of {holder.house} currently sits in — a pressable right, dormant until you choose to wake it. This is the moment dynasties are made and unmade: the decision to reach for a title that law or blood says could be yours. How you take it matters as much as whether you do. A crown taken cleanly sits differently than one taken in the night.",
+      "body": "You hold a claim to a county that {holder.name} of {holder.house} currently sits in — a pressable right, dormant until you choose to wake it. This is the moment dynasties are made and unmade: the decision to reach for a title that law or blood says could be yours. How you take it matters as much as whether you do. A {era:laurel|crown} taken cleanly sits differently than one taken in the night.",
       "choices": {
         "claim_lawfully": "Press it through every law and form. Slow, costly, unanswerable — and legitimate.",
         "take_by_force": "Don't wait for the courts. Take the county; leave a grievance behind.",
@@ -34,7 +34,7 @@
     {
       "id": "the_instability_gap",
       "title": "Above Your Station",
-      "body": "The whispers have a theme: that your house wears a title it has not yet earned the right to. The seat outstrips the standing, and the realm can feel the gap — the soft, dangerous wrongness of a house reaching above itself. It will not quiet on its own. Legitimacy is the one thing in this world that cannot be seized, only earned, bought, or outlived.",
+      "body": "The whispers have a theme: that your house wears a title it has not yet earned the right to. The seat outstrips the standing, and the Reach can feel the gap — the soft, dangerous wrongness of a house reaching above itself. It will not quiet on its own. Legitimacy is the one thing in this world that cannot be seized, only earned, bought, or outlived.",
       "choices": {
         "buy_legitimacy": "Do the slow work of deserving the seat. Patronage, courtship, paid belief.",
         "rule_through_fear": "Answer the doubt with force enough that no one voices it. A debt that compounds.",
@@ -46,7 +46,7 @@
       "title": "The Rival Claim",
       "body": "{claimant.name} of {claimant.house} has produced a claim — to your seat, the one beneath you, the one you thought secure. The gap between your title and your standing has invited the challenge, the way an unhealed wound invites the knife. A claim raised must be answered, in law or in blood or in coin, before it gathers others to it.",
       "choices": {
-        "defend_in_law": "Meet it in the open, in law, before the realm. Win the title twice.",
+        "defend_in_law": "Meet it in the open, in law, before the Reach. Win the title twice.",
         "eliminate_claimant": "Remove the claimant. A claim needs someone alive to press it.",
         "buy_them_off": "Buy the claim away. Discover their principles' price — and teach the world you pay."
       }
@@ -54,9 +54,9 @@
     {
       "id": "the_abdication",
       "title": "The Handover",
-      "body": "You have climbed high, and the question that ends every great life is beginning to press: what happens to all of this when you are gone? {heir.name} of {heir.house}, your blood, waits in the natural order of things. The hardest power to wield is the power to give power away — to step down while still able to hold on, and secure the line against the chaos that swallows houses whose lords die in their seats.",
+      "body": "You have climbed high, and the question that ends every great life is beginning to press: what happens to all of this when you are gone? {heir.name} of {heir.house}, your blood, waits in the natural order of things. The hardest power to wield is the power to give power away — to step down while still able to hold on, and secure the line against the chaos that swallows houses whose {era:senators|lords} die in their seats.",
       "choices": {
-        "abdicate_to_heir": "Step down now. Pass the duchy in your lifetime; secure the succession.",
+        "abdicate_to_heir": "Step down now. Pass {era:the province|the duchy} in your lifetime; secure the succession.",
         "groom_then_yield": "Begin the long handover. Secure their claim, teach, don't yet let go.",
         "hold_until_death": "Loosen nothing. The title is yours until your last breath. Let them wait."
       }

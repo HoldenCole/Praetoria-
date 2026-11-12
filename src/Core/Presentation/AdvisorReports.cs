@@ -29,7 +29,7 @@ public static class AdvisorReports
         var steward = Seat("stewardship");
         var t = house.Treasury;
         int upkeepHint = w.HoldingsOf(house.Id).Count();
-        string stewardLine = upkeepHint == 0 ? $"We hold no land. The house lives on what it has banked — {t.Credits} credits — until a fief is won, granted or married into."
+        string stewardLine = upkeepHint == 0 ? $"We hold no land. The house lives on what it has banked — {t.Credits} credits — until a {(w.IsImperium ? "fief" : "world")} is won, granted or married into."
             : t.Credits < 0 ? $"We are insolvent — {t.Credits} credits. Unrest climbs on every populated world until the ledger turns."
             : t.Credits < 5 ? $"The coffers are thin ({t.Credits} credits). One bad season and we borrow."
             : w.Sieges.Values.Any(s => w.Holding(s.HoldingId)?.OwnerId == house.Id) ? "A world of ours is blockaded; its yield reaches us halved."
@@ -57,9 +57,9 @@ public static class AdvisorReports
         int inst = w.Counter("title_instability"), pressure = w.Counter("coalition_pressure");
         string chanLine = w.HasFlag("motion_against_me") ? "A motion against our house is on the Senate's docket; the vote is at the session's end. Whip the benches, or answer it from the floor."
             : w.HasFlag("embargoed") ? "The Senate's embargo closes the exchanges to us. Our factors sell at half and the open market will not deal."
-            : inst > 0 ? $"Our {content.Titles.ById(house.Title)?.Name ?? house.Title} outstrips our standing by {inst}; the vassals grumble and rivals take note."
+            : inst > 0 ? $"Our rank of {content.Titles.NameOf(house.Title, w.Era)} outstrips our standing by {inst}; {(w.IsImperium ? "the vassals grumble" : "our clients grumble")} and rivals take note."
             : pressure >= 3 ? "The houses are drawing together against us. Our rise frightens them."
-            : w.Crises.Count > 0 ? $"A crisis is upon the realm: {string.Join(", ", w.Crises.Keys.Select(k => content.Crises.FirstOrDefault(d => d.Id == k)?.Name ?? k))}. Dampers may be available."
+            : w.Crises.Count > 0 ? $"A crisis is upon the Reach: {string.Join(", ", w.Crises.Keys.Select(k => content.Crises.FirstOrDefault(d => d.Id == k)?.Name ?? k))}. Dampers may be available."
             : p.Flags.Contains(DynastySystem.ParvenuFlag) ? "The old blood looks down on us still. Standing, not coin, will change that."
             : $"Our standing is sound at legitimacy {house.Legitimacy}. The chambers are quiet.";
         if (w.Motions.Any(m => m.Open && m.ProposerHouseId == house.Id)) chanLine += " Our own motion stands on the docket.";

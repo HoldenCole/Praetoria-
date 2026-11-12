@@ -18,7 +18,7 @@ public sealed record ContentIssue(string Severity, string Where, string Message)
 public static class ContentValidator
 {
     private static readonly Regex TokenRx = new(@"\{([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\}", RegexOptions.Compiled);
-    private static readonly HashSet<string> KnownFields = new() { "name", "house", "rank", "rankName" };
+    private static readonly HashSet<string> KnownFields = new() { "name", "house", "rank", "rankName", "title" };
 
     public static IReadOnlyList<ContentIssue> Validate(ContentDatabase db)
     {

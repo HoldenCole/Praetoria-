@@ -2,12 +2,12 @@
   "texts": [
     {
       "id": "the_crowns_due",
-      "title": "The Crown's Due",
-      "body": "What you owed the crown has not been forgotten. {sovereign.name} of {sovereign.house} has sent for the debt with the full apparatus of state behind the request — not a threat, because the crown does not threaten; a reminder, which is worse. There are three ways a house pays what it owes a throne, and the one it chooses is remembered longer than the debt.",
+      "title": "{era:The Chair's Due|The Crown's Due}",
+      "body": "What you owed {era:the chair|the crown} has not been forgotten. {sovereign.name} of {sovereign.house} has sent for the debt with the full apparatus of state behind the request — not a threat, because {era:the chair|the crown} does not threaten; a reminder, which is worse. There are three ways a house pays what it owes {era:the Republic|a throne}, and the one it chooses is remembered longer than the debt.",
       "choices": {
         "pay_in_coin": "Pay in coin. It will hurt; it will be over.",
-        "pay_in_service": "Pay in service. A year at the crown's disposal — and standing afterward.",
-        "defy_the_crown": "Refuse. Let the court see what your house has become."
+        "pay_in_service": "Pay in service. A year at {era:the chair's|the crown's} disposal — and standing afterward.",
+        "defy_the_crown": "Refuse. Let {era:the Senate|the court} see what your house has become."
       }
     },
     {
@@ -33,7 +33,7 @@
     {
       "id": "the_coalitions_remnant",
       "title": "The Remnant",
-      "body": "The coalition that formed against you has broken, and {rival.name} of {rival.house}, who organised it, is left holding the pieces — fewer allies than last season, debts called in, a reputation for failure that the court can smell. A broken enemy is a decision waiting to be made.",
+      "body": "The coalition that formed against you has broken, and {rival.name} of {rival.house}, who organised it, is left holding the pieces — fewer allies than last season, debts called in, a reputation for failure that {era:the Senate|the court} can smell. A broken enemy is a decision waiting to be made.",
       "choices": {
         "finish_them": "Finish it. Peel away what is left and leave one bitter house.",
         "bring_them_in": "Offer {rival.name} a place. Yesterday's organiser, today's client.",
@@ -70,7 +70,7 @@
     {
       "id": "the_breaking_point",
       "title": "The Breaking Point",
-      "body": "It has been building for years — every choice made against your nature, every oath kept at a cost, every quarrel carried — and now something in you has given way. The household has noticed. The court will, soon. What you do with the break decides what kind of person stands up afterward.",
+      "body": "It has been building for years — every choice made against your nature, every oath kept at a cost, every quarrel carried — and now something in you has given way. The household has noticed. {era:The Senate|The court} will, soon. What you do with the break decides what kind of person stands up afterward.",
       "choices": {
         "gather_yourself": "Put yourself back together, privately. Stronger along the crack.",
         "lash_out": "Break outward. Let everyone nearby pay for the pressure.",

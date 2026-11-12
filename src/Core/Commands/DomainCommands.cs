@@ -177,14 +177,14 @@ public sealed class PetitionFiefCommand : ICommand
     private static readonly Dictionary<string, int> CostMap = new() { [Pool.Influence] = 3 };
     public PetitionFiefCommand(string actorId) { ActorId = actorId; }
     public string ActorId { get; }
-    public string Describe() => "petition the court for a fief";
+    public string Describe() => "petition for a world to hold";
 
     public string? Refusal(CommandContext ctx)
     {
         var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
         if (actor?.Alive != true || house == null) return "no house";
         if (w.HoldingsOf(house.Id).Any(h => h.IsPlanet)) return "you hold land already";
-        if (house.Legitimacy < 20) return "no court will hear a house of so little standing";
+        if (house.Legitimacy < 20) return w.IsImperium ? "no court will hear a house of so little standing" : "the Senate will not entrust a world to a house of so little standing";
         var court = Grantor(w, house.Id);
         if (court == null) return "no house has a world to spare";
         var crown = Systems.Economy.HeadOf(w, court);
@@ -215,6 +215,9 @@ public sealed class PetitionFiefCommand : ICommand
         var crown = Systems.Economy.HeadOf(w, court);
         if (crown != null) { w.Relationship(actor.Id, crown.Id).Disposition = Math.Clamp((w.GetRelationship(actor.Id, crown.Id)?.Disposition ?? 0) + 20, -100, 100); w.Relationship(crown.Id, actor.Id).Disposition = Math.Clamp((w.GetRelationship(crown.Id, actor.Id)?.Disposition ?? 0) + 10, -100, 100); }
         w.WorldCounters["fiefs_granted"] = w.Counter("fiefs_granted") + 1; if (house.Id == w.Protagonist?.HouseId) w.WorldFlags.Add("fief_granted");
-        w.Log($"{court.Name} grants {fief.Name} to {house.Name} in fief{(court.Id == Systems.RegionSystem.CapitalHolder(w)?.Id ? "" : ", as patron")}. {actor.Name} kneels for it, and rises a {house.Title}.");
+        string style = Progression.Title.StyleOf(house.Title, w.Era); bool patron = court.Id != Systems.RegionSystem.CapitalHolder(w)?.Id;
+        w.Log(w.IsImperium
+            ? $"{court.Name} grants {fief.Name} to {house.Name} in fief{(patron ? ", as patron" : "")}. {actor.Name} kneels for it, and rises a {style}."
+            : $"{court.Name} entrusts {fief.Name} to {house.Name} as a prefecture{(patron ? ", as patron" : "")}. {actor.Name} takes the oath for it, and rises a {style}.");
     }
 }

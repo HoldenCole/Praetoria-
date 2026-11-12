@@ -1,15 +1,20 @@
 {
-  // CAREER TRACKS + RANK LADDERS (GDD §13; docs/PRAETORIA_VOCAB.md §8e — LOCKED v1.0). The character's
+  // CAREER TRACKS + RANK LADDERS (GDD §13; docs/PRAETORIA_VOCAB.md §8e; docs/TITLES.md). The character's
   // ladder, reset each generation. Rank index i is named ranks[i]; the LAST rung is the ladder's top and
-  // CAPS the `advanceCareer` effect — a Grand Admiral cannot be promoted again. Events gate on the bare
-  // integer (`rank` condition) and on the track (`track` condition); prose can name the rung with
-  // {role.rankName}. DLC tracks (Intelligence, Church, Science) are new entries here, zero engine work.
+  // CAPS the `advanceCareer` effect — a Fleet Admiral cannot be promoted again. Events gate on the bare
+  // integer (`rank` condition) and on the track (`track` condition); prose names the rung with
+  // {role.rankName}, which follows the era. `ranks` is the Republic's ladder; `imperialRanks` renames the
+  // same rungs once a throne stands (same length or shorter; a missing rung keeps its republic name).
+  // DLC tracks (Intelligence, Church, Science) are new entries here, zero engine work.
   "tracks": [
-    { "id": "military",    "name": "the Navy",
-      "ranks": ["Cadet", "Ensign", "Lieutenant", "Commander", "Captain", "Admiral", "Grand Admiral"] },
-    { "id": "stewardship", "name": "the Administration",
-      "ranks": ["Clerk", "Administrator", "Governor", "Minister", "Imperial Treasurer"] },
-    { "id": "law",         "name": "the Courts",
-      "ranks": ["Aspirant", "Advocate", "Magistrate", "Praetor", "High Justice"] }
+    { "id": "military",    "name": "the Navy", "imperialName": "the Imperial Navy",
+      "ranks":         ["Cadet", "Ensign", "Lieutenant", "Commander", "Captain", "Admiral", "Fleet Admiral"],
+      "imperialRanks": ["Cadet", "Ensign", "Lieutenant", "Commander", "Captain", "Admiral", "Grand Admiral"] },
+    { "id": "stewardship", "name": "the Administration", "imperialName": "the Imperial Administration",
+      "ranks":         ["Clerk", "Administrator", "Governor", "Minister", "High Treasurer"],
+      "imperialRanks": ["Clerk", "Intendant", "Viceroy", "Minister", "Imperial Treasurer"] },
+    { "id": "law",         "name": "the Courts", "imperialName": "the Imperial Courts",
+      "ranks":         ["Aspirant", "Advocate", "Magistrate", "Praetor", "High Justice"],
+      "imperialRanks": ["Aspirant", "Advocate", "Magistrate", "Praetor", "Lord Justice"] }
   ]
 }

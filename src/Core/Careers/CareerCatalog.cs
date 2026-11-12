@@ -17,12 +17,19 @@ public sealed class CareerTrackDef
 {
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
+    /// <summary>The ladder as the Republic names it. Its length is the ladder's length in every era.</summary>
     public IReadOnlyList<string> Ranks { get; init; } = Array.Empty<string>();
+    /// <summary>The same rungs as the Imperium names them (docs/TITLES.md); a rung missing here keeps its republic name.</summary>
+    public IReadOnlyList<string> ImperialRanks { get; init; } = Array.Empty<string>();
+    /// <summary>The track's name under the Imperium ("the Imperial Navy"), or "" to keep <see cref="Name"/>.</summary>
+    public string ImperialName { get; init; } = "";
+    public string NameIn(string era) => era == State.World.EraImperium && ImperialName.Length > 0 ? ImperialName : Name;
 
     /// <summary>The highest rank index on this ladder (0 if the ladder is empty).</summary>
     public int MaxRank => Math.Max(0, Ranks.Count - 1);
 
-    public string? RankName(int rank) => rank >= 0 && rank < Ranks.Count ? Ranks[rank] : null;
+    public string? RankName(int rank, string era) =>
+        rank < 0 || rank >= Ranks.Count ? null : era == State.World.EraImperium && rank < ImperialRanks.Count && ImperialRanks[rank].Length > 0 ? ImperialRanks[rank] : Ranks[rank];
 }
 
 /// <summary>The loaded career ladders (BuildSpec §2 /content/careers). Empty ⇒ no ladder layer: ranks
@@ -48,5 +55,5 @@ public sealed class CareerCatalog
     public int? MaxRank(string track) => ById(track)?.MaxRank;
 
     /// <summary>"Lieutenant" for (military, 2); null if the track or rank is unknown.</summary>
-    public string? RankName(string track, int rank) => ById(track)?.RankName(rank);
+    public string? RankName(string track, int rank, string era) => ById(track)?.RankName(rank, era);
 }

@@ -3,7 +3,7 @@
     { "id": "dry_tanks", "title": "Dry Tanks",
       "body": "The admiral's report is one line long: the fleet has no helium-3. The ramscoops that fed it are someone else's, the exchange wants a broker's price, and every hull of {self.house} is riding at anchor with its guns cold while the lanes go on without it.",
       "choices": { "buy_dear": "Pay the broker's price. Eighteen credits for four tanks.", "strip_the_merchantmen": "Requisition the merchantmen's fuel. Two tanks, and a harbour's grudge.", "ride_at_anchor": "Let the fleet ride at anchor. Lanterns lit, guns cold." } },
-    { "id": "the_skimmer_barons", "title": "The Skimmer Barons",
+    { "id": "the_skimmer_barons", "title": "The Skimmer Magnates",
       "body": "A gas giant in a system of {self.house}'s has clouds worth skimming — helium-3, the fuel every navy in the Reach burns. A consortium has sent a factor with a draft contract and a case of wine; the house's own engineers have sent a plan and a bill. Whoever puts scoops in those clouds owns a thing the fleets cannot do without.",
       "choices": { "raise_skimmers": "Raise the house's own skimmers. Eight credits, four materials, the first six tanks.", "sell_the_concession": "Sell the concession. Fourteen credits down, their ramscoops in our clouds.", "leave_it": "Leave the clouds alone for now." } },
     { "id": "a_vein_of_rare_earths", "title": "A Vein of Rare Earths",

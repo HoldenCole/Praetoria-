@@ -733,7 +733,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} treated the governorship as the opportunity everyone privately knows it to be, and the province paid {self.name} as much as it paid the throne. A fortune made. A reckoning postponed. Every governor who has done this has believed they would be the one to leave before the bill arrived. Most were wrong."
+              "text": "{self.name} treated the governorship as the opportunity everyone privately knows it to be, and the province paid {self.name} as much as it paid {era:the treasury|the throne}. A fortune made. A reckoning postponed. Every governor who has done this has believed they would be the one to leave before the bill arrived. Most were wrong."
             }
           ]
         }
@@ -889,7 +889,7 @@
             },
             {
               "type": "log",
-              "text": "Raised to the high treasury, {self.name} did the thing every predecessor had found reasons not to: cleaned it. Powerful people lost comfortable arrangements. {self.name} made the kind of enemies one only makes by being good at the job — and left the realm's finances, for the first time in a generation, telling the truth."
+              "text": "Raised to the high treasury, {self.name} did the thing every predecessor had found reasons not to: cleaned it. Powerful people lost comfortable arrangements. {self.name} made the kind of enemies one only makes by being good at the job — and left the Reach's finances, for the first time in a generation, telling the truth."
             }
           ]
         },
@@ -921,7 +921,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the treasury and understood it for what it truly is: not a vault but a web, every disbursement a thread to someone who now depends on {self.name}'s goodwill. {self.name} did not steal. {self.name} did something more lasting — became the person without whom nothing in the realm gets paid."
+              "text": "{self.name} took the treasury and understood it for what it truly is: not a vault but a web, every disbursement a thread to someone who now depends on {self.name}'s goodwill. {self.name} did not steal. {self.name} did something more lasting — became the person without whom nothing in the Reach gets paid."
             }
           ]
         }
@@ -1170,7 +1170,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} prosecuted {accused.name} of {accused.house} — a power above {self.name}'s station, who had assumed station was armor — and made the conviction stick before the whole court. The realm learned that {self.name}'s law reaches upward. {accused.name} learned it too, and went to their punishment composing the long reply that the powerful always, eventually, compose."
+              "text": "{self.name} prosecuted {accused.name} of {accused.house} — a power above {self.name}'s station, who had assumed station was armor — and made the conviction stick before the whole court. The Reach learned that {self.name}'s law reaches upward. {accused.name} learned it too, and went to their punishment composing the long reply that the powerful always, eventually, compose."
             }
           ]
         },
@@ -1243,7 +1243,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} prosecuted {accused.name} of {accused.house} by the book — every form observed, every door for an appeal left open, the verdict narrow and defensible. The realm learned that {self.name}'s law reached upward, cautiously. {accused.name} learned {self.name}'s name."
+              "text": "{self.name} prosecuted {accused.name} of {accused.house} by the book — every form observed, every door for an appeal left open, the verdict narrow and defensible. The Reach learned that {self.name}'s law reached upward, cautiously. {accused.name} learned {self.name}'s name."
             }
           ]
         }
@@ -1486,7 +1486,7 @@
             },
             {
               "type": "log",
-              "text": "Offered a leap into a different track — a soldier courted for the senate, a steward for the fleet — {self.name} declined and went deeper into the mastery already begun. The realm is full of capable people spread thin across three ambitions. {self.name} chose to be undeniable at one. Depth is its own kind of power, and a rarer one."
+              "text": "Offered a leap into a different track — a soldier courted for the senate, a steward for the fleet — {self.name} declined and went deeper into the mastery already begun. The Reach is full of capable people spread thin across three ambitions. {self.name} chose to be undeniable at one. Depth is its own kind of power, and a rarer one."
             }
           ]
         },

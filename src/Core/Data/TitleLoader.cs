@@ -30,7 +30,8 @@ public static class TitleLoader
                         defs.Add(new TitleDef
                         {
                             Id = ConditionParser.Str(el, "id"),
-                            Name = ConditionParser.OptStr(el, "name", ConditionParser.Str(el, "id")),
+                            ImperialName = ConditionParser.OptStr(el, "name", ConditionParser.Str(el, "id")),
+                            RepublicName = ConditionParser.OptStr(el, "republicName", ""),
                             Rank = ConditionParser.Int(el, "rank", 0),
                             LegitimacyRequirement = ConditionParser.Int(el, "legitimacyRequirement", 0)
                         });

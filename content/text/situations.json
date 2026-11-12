@@ -52,11 +52,11 @@
     {
       "id": "the_commons_feast",
       "title": "The Commons' Feast",
-      "body": "The commons of {self.house}'s worlds are holding a feast in the house's honour and have sent up an invitation written in a careful hand. The old blood think the lord of a house does not eat in the square.",
+      "body": "The commons of {self.house}'s worlds are holding a feast in the house's honour and have sent up an invitation written in a careful hand. The old blood think the head of a house does not eat in the square.",
       "choices": {
         "attend": "Go down and eat what is put in front of you.",
         "send_wine": "Send wine (3 credits).",
-        "stay_home": "Stay home. A lord does not eat in the square."
+        "stay_home": "Stay home. A {era:senator|lord} does not eat in the square."
       }
     },
     {
@@ -111,10 +111,10 @@
     {
       "id": "the_barred_door",
       "title": "The Barred Door",
-      "body": "{self.house} keeps a closed court, and a deputation of townsfolk has been standing at the barred door since dawn with a grievance about water rights. The steward asks whether the law has a side door.",
+      "body": "{self.house} keeps closed doors, and a deputation of townsfolk has been standing at the barred door since dawn with a grievance about water rights. The steward asks whether the law has a side door.",
       "choices": {
         "hear_them_privately": "Hear them through the side door.",
-        "turn_them_away": "The court is closed. Turn them away."
+        "turn_them_away": "The doors are closed. Turn them away."
       }
     },
     {
@@ -188,7 +188,7 @@
     {
       "id": "the_free_march",
       "title": "The Free March",
-      "body": "{self.house} rides under the free march's banner — no lord above it and every lord against it. The disaffected of the old houses' worlds are drifting in. So are the old houses' letters.",
+      "body": "{self.house} rides under the free march's banner — no {era:senator|lord} above it and every {era:senator|lord} against it. The disaffected of the old houses' worlds are drifting in. So are the old houses' letters.",
       "choices": {
         "recruit_the_disaffected": "Take in the disaffected.",
         "court_the_court": "Send the chair compliments and ask nothing (1 influence).",

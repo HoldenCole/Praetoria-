@@ -1,7 +1,7 @@
 {
   "//": "LAWS BY CULTURE (GDD §19 'regions with their own cultures'). Every house starts with its culture's laws instead of the bare defaults, so the Reach is not one chancery copied thirty times: the imperial core keeps a closed court and a closed franchise, the rim's vergeborn and palefolk keep open lanes and lenient courts, the concourse trades free. The player's house starts with its culture's laws too, and may change them; rival stewards change theirs when their estates turn, their coffers empty or their wars begin (NpcAi.Legislate). A law not named here is at its default.",
   "cultures": {
-    "imperial":  { "court_etiquette": "closed_court", "franchise": "closed", "justice": "iron_law", "household_guard": "doubled" },
+    "aurelian":  { "court_etiquette": "closed_court", "franchise": "closed", "justice": "iron_law", "household_guard": "doubled" },
     "reach":     { "franchise": "customary" },
     "concourse": { "tariffs": "free_trade", "labour": "guild_rights", "court_etiquette": "open_hall" },
     "vergeborn": { "justice": "lenient", "march_law": "open_lanes", "settlement": "homesteads", "levies": "volunteers" },

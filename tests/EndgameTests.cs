@@ -23,9 +23,9 @@ public class EndgameTests
         var (content, w) = Fresh("academy_crucible");
         var ctx = new CommandContext(w, TestContent.Rng());
         var cmd = new ProclaimImperiumCommand(w.ProtagonistId, content.Titles);
-        Assert.Equal("only an Archduke may proclaim", cmd.Refusal(ctx));
+        Assert.Equal("only the First Citizen may proclaim", cmd.Refusal(ctx));
         w.House("vega")!.Title = "archduke";
-        Assert.StartsWith("the realm will not accept it", cmd.Refusal(ctx));
+        Assert.StartsWith("the Reach will not accept it", cmd.Refusal(ctx));
         w.House("vega")!.Legitimacy = 95;
         Assert.EndsWith("has not knelt", cmd.Refusal(ctx));                    // Aurelian holds the capital (GDD §19)
         var ours = w.Protagonist!; var theirs = Economy.HeadOf(w, w.House("aurelian")!)!;
