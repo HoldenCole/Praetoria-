@@ -18,7 +18,7 @@
     <header class="dash-head">
         <div class="dh-title"><Icon Name="houses" Size="18" /> <b>The Houses of @(w.Era == "imperium" ? "the Imperium" : "the Reach")</b> <span class="muted">@(houses.Count + 1) houses · @great hold worlds · @(houses.Count - great) hold stations or a name@(capLine)</span></div>
         <div class="dh-stats">
-            <div class="stat"><span>Your standing</span><b>@Ordinal(myRank) <i class="muted">of @(houses.Count + 1) by title</i></b></div>
+            <div class="stat"><span>Your standing</span><b>@Ordinal(myRank) <i class="muted">of @(houses.Count + 1) by @(w.IsImperium ? "title" : "rank")</i></b></div>
             <div class="stat @(wars > 0 ? "warn" : "")"><span>At war with you</span><b>@wars</b></div>
             <div class="stat"><span>Friends (+20)</span><b>@houses.Count(h => Disp(h) > 20)</b></div>
             <div class="stat @(houses.Count(h => Disp(h) < -20) > 3 ? "warn" : "")"><span>Enemies (−20)</span><b>@houses.Count(h => Disp(h) < -20)</b></div>
@@ -28,9 +28,9 @@
     <div class="dash-grid gallery-grid">
         <section class="panel">
             <h3><Icon Name="houses" Size="13" /> The standings <span class="muted">click a house</span></h3>
-            <div class="vols">@foreach (var k in new[] { "title", "worlds", "hulls", "seats", "wealth", "disposition" }) { <button class="rung @(_sort == k ? "here" : "")" @onclick="() => _sort = k">by @k</button> }</div>
+            <div class="vols">@foreach (var k in new[] { "title", "worlds", "hulls", "seats", "wealth", "disposition" }) { <button class="rung @(_sort == k ? "here" : "")" @onclick="() => _sort = k">by @(k == "title" && !w.IsImperium ? "rank" : k)</button> }</div>
             <table class="standings">
-                <thead><tr><th>House</th><th>Title</th><th>Worlds</th><th>Hulls</th><th>Seats</th><th>Wealth</th><th>Toward you</th><th>Bench</th></tr></thead>
+                <thead><tr><th>House</th><th>@(w.IsImperium ? "Title" : "Rank")</th><th>Worlds</th><th>Hulls</th><th>Seats</th><th>Wealth</th><th>Toward you</th><th>Bench</th></tr></thead>
                 <tbody>
                 @foreach (var h in houses.Prepend(mine))
                 {
@@ -67,7 +67,7 @@
                 <div class="kv"><span>Wealth</span><b>@fh.Wealth · <span class="tier @Wealth.TierFor(w, fh.Id)">@Wealth.TierFor(w, fh.Id)</span>@(fh.Debt > 0 ? " · in debt" : "")</b></div>
                 <div class="kv"><span>In the Senate</span><b>@senate.Weight(w, fh.Id) seat(s)@(FactionSystem.Of(w, fh.Id) is { } fb ? $" · {fb.Name}{(fb.LeaderHouseId == fh.Id ? " (leads)" : "")}" : "")@(w.Counter("motions_passed:" + fh.Id) > 0 ? $" · {w.Counter("motions_passed:" + fh.Id)} motion(s) carried" : "")@(SenateSystem.Embargoed(w, fh.Id) ? " · under embargo" : "")</b></div>
                 @if (offDefault.Count > 0 || moods.Count > 0) { <div class="kv"><span>Law</span><b>@(offDefault.Count > 0 ? string.Join(", ", offDefault) : "the customary law")@(moods.Count > 0 ? " · " + string.Join(", ", moods.Select(x => $"{x.e.Name.Replace("The ", "").ToLowerInvariant()} {(x.a >= PolicySystem.Loyal ? "loyal" : "hostile")}")) : "")</b></div> }
-                @if (m.Capital is { } cap && cap.HolderId == fh.Id) { <div class="kv"><span>The capital</span><b>holds @cap.SystemName — the court, the Senate's chair, and a target</b></div> }
+                @if (m.Capital is { } cap && cap.HolderId == fh.Id) { <div class="kv"><span>The capital</span><b>holds @cap.SystemName — @(w.IsImperium ? "the court" : "the capital"), the Senate's chair, and a target</b></div> }
                 @if (fh.Bloc == RegionSystem.FreeholdsBloc) { <div class="kv"><span>Standing</span><b class="warn">a free hold — sworn to no one</b></div> }
                 @if (m.Reclaims is { Count: > 0 } rcs) { foreach (var rc in rcs.Where(r => w.Holding(r.HoldingId)?.OwnerId == fh.Id)) { <button class="opt" disabled="@(rc.Refusal != null)" title="@rc.Refusal" @onclick="() => G.Execute(new ReclaimFreeholdCommand(pid, rc.HoldingId))">Buy back @rc.HoldingName (@rc.Price credits)</button> } }
                 @if (w.BusinessesOf(fh.Id).Any()) { <div class="kv"><span>Ventures</span><b>@string.Join(", ", w.BusinessesOf(fh.Id).Select(b => $"{c.Businesses.Def(b.Kind)?.Name ?? b.Kind} at {w.Galaxy?.System(b.SystemId)?.Name ?? b.SystemId} ({b.Level})"))</b></div> }

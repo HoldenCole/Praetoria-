@@ -57,7 +57,8 @@ public sealed class GameClient
             }
             Content = ContentLoader.LoadFromDirectory(ContentRoot);
             ScenarioIds = Directory.EnumerateFiles(Path.Combine(ContentRoot, "scenarios"), "*.json")
-                .Select(Path.GetFileNameWithoutExtension).Where(s => s != null).Select(s => s!).OrderBy(s => s, StringComparer.Ordinal).ToList();
+                .Select(Path.GetFileNameWithoutExtension).Where(s => s != null).Select(s => s!).Where(s => !ScenarioLoader.LoadFromContent(ContentRoot, s).Hidden)   // fixtures are for tests and tools
+                .OrderBy(s => s == "the_academy" ? "" : s, StringComparer.Ordinal).ToList();
         }
         catch (Exception ex) { LoadError = ex.Message; }
         Notify();
@@ -118,6 +119,8 @@ public sealed class GameClient
     public void Abandon() { Turn = null; Notify(); }
 
     public CourtModel Court() => CourtProjection.Build(Turn ?? throw new InvalidOperationException("No run."), Content!);
+    /// <summary>The Academy year as the screen shows it, or null in a run that never went there (docs/ACADEMY.md).</summary>
+    public AcademyModel? Academy() => Turn == null ? null : AcademyProjection.Build(Turn, Content!);
 
     /// <summary>A save is the world at the start of the current turn: choices made this turn are replayed by the player,
     /// not stored mid-phase, so a loaded game always opens on a fresh briefing.</summary>

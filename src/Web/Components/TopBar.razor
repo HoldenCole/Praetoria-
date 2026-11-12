@@ -28,7 +28,7 @@
         <span class="pool agt" title="Agents this turn"><Icon Name="agents_pool" Size="14" />@pools.Agents</span>
     </div>
     <div class="tb-right">
-        <div class="tb-era">@(w.Era == "imperium" ? "The Imperium" : "The Fractured Stars")</div>
+        <div class="tb-era">@(w.Era == "imperium" ? "The Imperium" : "The Republic")</div>
         <div class="tb-turn"><Icon Name="turn" Size="13" /> Turn @w.Turn · Gen @(w.Counter("generation") + 1)</div>
         <button class="btn ghost sm" title="Save to this browser (autosaves every turn)" @onclick="OnSave">@(SavedFlash ? "Saved ✓" : "Save")</button>
         <button class="btn ghost sm" title="Download the save as a file" @onclick="OnExport">Export</button>

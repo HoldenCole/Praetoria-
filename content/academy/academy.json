@@ -1,5 +1,5 @@
 {
-  "//": "THE ACADEMY (docs/ACADEMY.md; the owner's direction, 2026-11-11). A prologue apart from the world: the cadet enters at sixteen, reads a subject a term for a year of four terms, and graduates at seventeen into a service. Two registers, fixed by the era at entry. `republic`: a school — academics, friendly competition, a war game on the tactical table; nobody is hurt. `imperium`: the Institute — cadets sorted into Standards that take each other's banners; the strong command the weak and some do not come back. `subjects` name the skill a term's reading trains and the service it leads to. `lessons` are the tutorial: `brief` is the one line a returning player sees, `full` the paragraphs a first run is taught (`imperiumFull` replaces them under the Imperium).",
+  "//": "THE ACADEMY (docs/ACADEMY.md; the owner's direction, 2026-11-11). A prologue apart from the world: the cadet enters at sixteen, reads a subject a term for a year of four terms, and graduates at seventeen into a service. Two registers, fixed by the era at entry. `republic`: a school — academics, friendly competition, a war game on the tactical table; nobody is hurt. `imperium`: the Institute — cadets sorted into Standards that take each other's banners; the strong command the weak and some do not come back. `subjects` name the skill a term's reading trains and the service it leads to. `lessons` are the tutorial: `brief` is the one line a returning player sees, `full` the paragraphs a first run is taught (`imperiumFull`, `imperiumTitle` and `imperiumBrief` replace them under the Imperium).",
   "republic": {
     "name": "The Academy of the Reach",
     "cadet": "cadet",
@@ -105,6 +105,8 @@
       "term": 1,
       "title": "The Republic and its Senate",
       "brief": "Houses vote in the Senate by weight; four parties; two consuls elected every ten years, each with a veto.",
+      "imperiumTitle": "The Imperium and its Senate",
+      "imperiumBrief": "The Emperor holds every office; the Senate still votes by weight; the parties remain as habits of voting.",
       "full": [
         "The Reach is a republic of houses. Every house has a voice in the Senate and votes by weight: its influence in the chamber, its rank, and any office it holds. The house that holds the capital is called the chair, and its vote counts for two more.",
         "Business comes before the Senate as motions. A house of standing (a Prefect, or a head who is a Magistrate or better) may move one for a few points of influence: to censure a house or recognise it, to levy the Reach, to send relief to a lawless region, to impose peace, to commission an officer, to close the exchanges to a house, to pass an Act that changes the law everywhere, or to make war beyond the Reach. A motion sits on the docket for a year while houses are lobbied, and is voted at the end of the next.",
@@ -124,6 +126,8 @@
       "term": 1,
       "title": "Houses, rank and standing",
       "brief": "A house climbs a ladder of rank; legitimacy says how much rank it can carry; a person climbs a career.",
+      "imperiumTitle": "Houses, titles and standing",
+      "imperiumBrief": "A house climbs a ladder of noble titles; legitimacy says how much title it can carry; a person climbs a career.",
       "full": [
         "Two ladders matter, and they are different things. A house has a rank, which outlives everyone in it. A person has a career, which starts again with every generation.",
         "The Republic has no nobles. A house's rank says what the Republic trusts it with: a Citizen house holds no world, a Warden keeps a station, a Prefect a world, a Legate several, a Proconsul a province, and the First Citizen is the greatest house of all. A rank can be taken three ways: by force, by merit (petitioning the Senate), or by blood and marriage (pressing a claim).",
@@ -189,7 +193,7 @@
         "Beyond the rim are other nations. They are not on the map. The Ardent Concord is the one strong neighbour, with a fleet half the size of the Reach's. The Free Cities of Thessar are rich and would rather pay than fight. The Vashti Khanates raid for crews and cargo. The Outer Compact is small and far and fights hard at home. The Hollow Crown is an old empire in decay with full vaults.",
         "Aggressive nations raid the rim when their regard for the Reach falls. The Senate may make war on a nation by motion, one war at a time. Then any house may send a fleet as an expedition: it leaves the map, sails for years, fights a season in the nation's space, and comes home with plunder and fewer hulls.",
         "A war abroad ends one of three ways. If the Reach's tally clears the nation's by enough, the nation sues for peace and pays tribute to the chair for twenty years, and the house whose fleets won most takes the triumph. If the nation's tally clears the Reach's, the chair buys peace and is shamed. If nobody fights for twelve years, it gutters out.",
-        "Generals who win abroad come home with a name. Remember that when you read about the Republic's last years."
+        "Generals who win abroad come home with a name, and a name is a kind of power. Every state that has fallen to one man fell to a general first."
       ]
     },
     {

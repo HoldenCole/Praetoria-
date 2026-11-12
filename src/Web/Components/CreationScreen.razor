@@ -22,7 +22,7 @@
                     var sc = _scenarios[id];
                     <button class="scenario @(id == _scenario ? "selected" : "")" @onclick="() => Pick(id)">
                         <div class="sc-name">@Title(id)</div>
-                        <div class="sc-meta">@sc.Era.Replace('_', ' ') · @sc.Houses.Count houses · @sc.Characters.Count souls@(sc.Galaxy != null ? $" · {sc.Galaxy.Systems.Count} systems" : "")</div>
+                        <div class="sc-meta">@(sc.Academy ? (sc.Era == "imperium" ? "begins at the Institute · " : "begins at the Academy · the tutorial · ") : "")@(sc.Era == "imperium" ? "the Imperium" : "the Republic") · @sc.Houses.Count houses · @sc.Characters.Count souls@(sc.Galaxy != null ? $" · {sc.Galaxy.Systems.Count} systems" : "")</div>
                         <div class="sc-desc">@Describe(sc)</div>
                     </button>
                 }
@@ -140,7 +140,7 @@
     protected override void OnInitialized()
     {
         foreach (var id in G.ScenarioIds) _scenarios[id] = G.Scenario(id);
-        Pick(G.ScenarioIds.Contains("the_circling_heir") ? "the_circling_heir" : G.ScenarioIds.FirstOrDefault() ?? "");
+        Pick(G.ScenarioIds.Contains("the_academy") ? "the_academy" : G.ScenarioIds.FirstOrDefault() ?? "");   // the Academy is the game's opening and its tutorial
     }
 
     private void Pick(string id)
@@ -159,6 +159,7 @@
         var house = sc.Houses.FirstOrDefault(h => h.Id == p.HouseId);
         var title = house != null ? G.Content!.Titles.NameOf(house.Title, sc.Era) : "";
         var rank = G.Content!.Careers.RankName(p.CareerTrack, p.CareerRank, sc.Era) ?? "";
+        if (sc.Academy) return $"{p.Name}, sixteen, of {house?.Name ?? p.HouseId} ({title}), enters {G.Content!.Academy.Register(sc.Era == "imperium" ? "imperium" : "republic").Name}. A year of four terms apart from the world, then a commission and the first turn.";
         return $"{p.Name}, {p.Age}, {rank} of {house?.Name ?? p.HouseId} ({title}). {sc.Holdings.Count} holdings, {sc.Fleets.Count} fleets in play.";
     }
 

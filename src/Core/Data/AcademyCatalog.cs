@@ -8,7 +8,7 @@ public sealed record AcademySubject(string Id, string Name, string Skill, string
 public sealed record AcademyStandard(string Id, string Name, string Accent, string Motto);
 /// <summary>A lesson of the tutorial (docs/ACADEMY.md): the term it is taught in, a one-line brief, and the full paragraphs for a first run.
 /// <see cref="ImperiumFull"/> replaces <see cref="Full"/> under the Imperium when it is not empty.</summary>
-public sealed record AcademyLesson(string Id, int Term, string Title, string Brief, IReadOnlyList<string> Full, IReadOnlyList<string> ImperiumFull);
+public sealed record AcademyLesson(string Id, int Term, string Title, string Brief, IReadOnlyList<string> Full, IReadOnlyList<string> ImperiumFull, string ImperiumTitle = "", string ImperiumBrief = "");
 /// <summary>How one register names the school and its terms.</summary>
 public sealed record AcademyRegister(string Name, string CadetWord, IReadOnlyList<string> Terms, string Blurb);
 
@@ -43,7 +43,7 @@ public sealed class AcademyCatalog
             Republic = Reg(root, "republic", "The Academy"), Imperium = Reg(root, "imperium", "The Institute"),
             Subjects = Arr("subjects").Select(el => new AcademySubject(ConditionParser.Str(el, "id"), ConditionParser.Str(el, "name"), ConditionParser.Str(el, "skill"), ConditionParser.Str(el, "track"), ConditionParser.OptStr(el, "description", ""))).ToList(),
             Standards = Arr("standards").Select(el => new AcademyStandard(ConditionParser.Str(el, "id"), ConditionParser.Str(el, "name"), ConditionParser.OptStr(el, "accent", "#C9D1DC"), ConditionParser.OptStr(el, "motto", ""))).ToList(),
-            Lessons = Arr("lessons").Select(el => new AcademyLesson(ConditionParser.Str(el, "id"), ConditionParser.Int(el, "term", 1), ConditionParser.Str(el, "title"), ConditionParser.OptStr(el, "brief", ""), Strings(el, "full"), Strings(el, "imperiumFull"))).ToList()
+            Lessons = Arr("lessons").Select(el => new AcademyLesson(ConditionParser.Str(el, "id"), ConditionParser.Int(el, "term", 1), ConditionParser.Str(el, "title"), ConditionParser.OptStr(el, "brief", ""), Strings(el, "full"), Strings(el, "imperiumFull"), ConditionParser.OptStr(el, "imperiumTitle", ""), ConditionParser.OptStr(el, "imperiumBrief", ""))).ToList()
         };
     }
 }

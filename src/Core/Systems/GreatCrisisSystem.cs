@@ -149,7 +149,7 @@ public sealed class GreatCrisisSystem
             w.WorldFlags.Add("great_crisis:stalemate"); w.WorldCounters["stalemates"] = w.Counter("stalemates") + 1;
             if (Progression.Title.RankOf(victor.Title) < 4) victor.Title = Progression.Title.Duke;
             victor.Legitimacy += 10;
-            w.Log($"The War of the Reach ends in exhaustion. {victor.Name} holds the field but {(decisive ? $"no one of the winning side holds {w.Galaxy?.System(w.Galaxy.Capital)?.Name ?? "the capital"}" : "not decisively enough")}; no one is crowned, and the Fractured Stars go on.");
+            w.Log($"The War of the Reach ends in exhaustion. {victor.Name} holds the field but {(decisive ? $"no one of the winning side holds {w.Galaxy?.System(w.Galaxy.Capital)?.Name ?? "the capital"}" : "not decisively enough")}; no one is crowned, and the Republic goes on.");
         }
         else w.Log($"The War of the Reach ends. The {winning} bloc holds the field{(victor != null ? $"; {victor.Name} stands tallest" : "")}.");
         foreach (var h in w.Houses.Values) h.Bloc = "";

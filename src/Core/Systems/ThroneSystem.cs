@@ -98,7 +98,7 @@ public static class ThroneSystem
         w.WorldCounters["thrones_taken"] = w.Counter("thrones_taken") + 1;
         var who = byCharacterId != null ? w.Char(byCharacterId)?.Name : null;
         w.Log(seized
-            ? $"{who ?? h.Name} SEIZES THE THRONE. {(former != null ? former.Name + " is cast down. " : "")}{(flipped ? "The Fractured Stars end; the Imperium begins, in blood." : "The Imperium has a new master.")}"
+            ? $"{who ?? h.Name} SEIZES THE THRONE. {(former != null ? former.Name + " is cast down. " : "")}{(flipped ? "The Republic ends; the Imperium begins, in blood." : "The Imperium has a new master.")}"
             : $"{who ?? h.Name} PROCLAIMS THE IMPERIUM, and the houses of the Reach — some gladly, some not — kneel. An era ends.");
     }
 }

@@ -764,3 +764,24 @@ Hollow Crown is at 4 hulls by turn 60: a cheap, rich target, which is its point.
 
 **Next**: the general's sway and the Caesar (docs/REPUBLIC.md 4–5) reading `expedition_wins`; the province/claim a
 conquest yields; the consuls' war prerogative; then the map expansion.
+
+## 26. Titles by era and the Academy as a prologue — 2026-11-12
+
+**Owner's play notes acted on.** (1) The Academy must be separate from the main game: a year from sixteen, no
+interaction with the world, and the tutorial, with a full course for a first run and a briefing for a returning one.
+(2) No noble titles in the Republic. (3) The Republic's Academy is academics and friendly competition; the Imperium's
+is the Institute. (4) The economy and a stock market are to be planned before anything is built: docs/ECONOMY_MARKET.md.
+
+**Done.** docs/TITLES.md: two names a rung on the house ladder and the career ladders, every screen and log line by
+era, `{role.title}` and `{era:A|B}` in prose, about ninety event sentences reworded, a test that no Republic event names
+a noble rank. docs/ACADEMY.md: `AcademySystem`, the bus guard, the event filter, two registers, 17 Republic events, 4
+new Institute events and 18 re-gated ones, eight lessons, the Academy screen and shell, two new starts. 449 tests.
+
+**Measured.** Headless, naive first-choice play: Republic places of 3rd and 6th of 12 on two seeds; Institute 1st of 12
+and 1st of 10 with two dead on one seed and none on the other. Browser: both years played end to end, full and brief,
+no console errors; no rail or world screen during the year; turn one opens as Prefect (Republic) or Knight (Imperium).
+Soak, eight scenarios, six seeds: no exceptions; every Republic event fired; five Institute chain events did not.
+
+**Watch.** The Institute's events hand out standing more freely than the Republic's, so first place there is easy.
+The Academy fixture's world has only seven people of cadet age, so four or five of the cohort are enrolled by the
+muster. Heirs born in play do not go to the Academy. The four older starts still open with the short primer.

@@ -3,6 +3,18 @@
 ## [Unreleased]
 
 ### Added
+- **The Academy is a year apart from the world** (docs/ACADEMY.md). A run that begins there opens with four terms
+  before turn one: the cadet is sixteen, the world does not turn, no world order is taken, and only the Academy's own
+  events come. The cadet reads a subject a term, climbs an order of merit against eleven real sons and daughters of the
+  houses, and passes out at seventeen into the Navy, the Administration or the Courts. In the Republic it is a school
+  (lectures, a debating society, a regatta, a war game on the table, examinations) and nobody is hurt. Under the
+  Imperium it is the Institute: four Standards at war, and cadets who do not come back. It is also the tutorial: eight
+  lessons taught in full to a first-time player, or the short course with the state of the Reach, the houses that
+  matter and the cohort for a returning one. New starts *The Academy* and *The Institute*.
+- **Titles follow the era** (docs/TITLES.md). The Republic has no nobles: houses are Citizen, Warden, Prefect, Legate,
+  Proconsul, First Citizen; services top out at Fleet Admiral, High Treasurer, High Justice. Noble and imperial names
+  (Baron, Duke, Grand Admiral, Imperial Treasurer) appear only once a throne stands. Prose follows with `{role.title}`
+  and `{era:Republic wording|Imperium wording}`.
 - **Foreign nations, off the map** (docs/FOREIGN_NATIONS.md): five nations beyond the rim with strength, temper, wealth,
   distance and regard. The Senate makes war on one by motion; houses send expeditions that leave the map, sail the
   distance, fight a season of battles with the real fleet math against the nation's committed strength, and come home

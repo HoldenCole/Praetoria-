@@ -53,7 +53,7 @@ public static class Epilogue
         else if (w.HasFlag(ThroneSystem.ProclaimedFlag)) lines.Add($"In the end {name} proclaimed the Imperium and the houses knelt — some gladly, some not — and an age that had no name was given one.");
         else if (w.IsDynastyDead) lines.Add($"And then there was no one left to carry the name. {name} ends here, on the {Ordinal(w.Turn)} year. What it built passes to others; what it was, passes to this chronicle.");
         else if (w.HasFlag(DynastySystem.DynastyAdoptedFlag)) lines.Add($"The blood of the old house failed, and a sworn house took up its banner. The name goes on; the family does not.");
-        else lines.Add($"The story is not over. {name} stands in the {Ordinal(w.Turn)} year, {(w.Era == "imperium" ? "under the Imperium" : "among the fractured stars")}, and the next season will ask something of it.");
+        else lines.Add($"The story is not over. {name} stands in the {Ordinal(w.Turn)} year, {(w.Era == "imperium" ? "under the Imperium" : "in the Republic")}, and the next season will ask something of it.");
 
         return string.Join("\n", lines);
     }

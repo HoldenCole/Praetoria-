@@ -1,5 +1,7 @@
 @page "/"
 @using Praetoria.Core.Presentation
+@using Praetoria.Core.Systems
+@using Praetoria.Core.Commands
 @inject GameClient G
 @inject IJSRuntime JS
 @implements IDisposable
@@ -21,6 +23,37 @@ else if (G.Turn == null)
 {
     <CreationScreen HasAutosave="@_hasAutosave" OnContinue="ContinueAutosave" OnLoadJson="LoadFromJson" />
 }
+else if (G.World!.InAcademy && G.Academy() is { } am)
+{
+    @* The Academy year is apart from the world (docs/ACADEMY.md): one screen, no rail, no world to act on. *@
+    var m = G.Court();
+    <div class="gs-shell academy-shell" style="--accent:@m.HouseAccent" @ref="_shell" data-nebula data-era="@m.Era" data-register="@am.Register">
+        <main class="screen">
+            <AcademyScreen Academy="am" Court="m" OnOpenReport="OpenReport" OnEndTerm="EndTurn" OnSave="SaveLocal" OnQuit="Abandon" />
+        </main>
+        @if (_savedFlash) { <div class="endturn-dock"><span class="notice">Saved.</span></div> }
+        @if (_openReport != null && m.Briefing.FirstOrDefault(b => ReferenceEquals(b.Item, _openReport.Item)) is { } card)
+        {
+            <EventWindow Card="card" OnClose="() => _openReport = null" OnChoose="Choose" />
+        }
+        @if (am.Tutorial.Length == 0)
+        {
+            <div class="overlay">
+                <div class="epilogue wide">
+                    <div class="tier"><span class="glyph">✦</span> @(am.Register == "imperium" ? "UNDER THE IMPERIUM" : "IN THE REPUBLIC") · AGE SIXTEEN</div>
+                    <h2>@am.SchoolName</h2>
+                    <p class="epi-text">@am.Blurb</p>
+                    <p class="epi-text">@(_beenBefore ? "You have passed out of here before. The lectures can be the short course: the state of the Reach, the houses that matter, and who is in your year." : "If this is your first time in the Reach, the lectures will teach you how all of it works, a little each term: the Senate, the houses, the law, coin, fleets, and what lies beyond.")</p>
+                    <div class="row">
+                        <button class="btn @(_beenBefore ? "" : "primary")" @onclick='() => Teach("full")'>First time here: teach me everything</button>
+                        <button class="btn @(_beenBefore ? "primary" : "")" @onclick='() => Teach("brief")'>I know the Reach: just brief me</button>
+                    </div>
+                    <div class="muted small">You can change this at any time in the lecture hall.</div>
+                </div>
+            </div>
+        }
+    </div>
+}
 else
 {
     var m = G.Court();
@@ -29,7 +62,6 @@ else
         <nav class="rail">
             @foreach (var (id, glyph, label) in Rail())
             {
-                if (id == "academy" && !(G.World!.Protagonist!.Age <= 22)) continue;
                 <button class="rail-btn @(_screen == id ? "active" : "")" title="@label" @onclick="() => Go(id)" disabled="@(id == "galaxy" && G.World!.Galaxy == null)">
                     <Icon Name="@(id == "character" ? "you" : id == "planets" ? "worlds" : id == "senate" ? "influence" : id == "academy" ? "military" : id == "laws" ? "throne" : id)" Size="22" /><span class="rl">@label</span>
                 </button>
@@ -40,7 +72,6 @@ else
             {
                 case "character": <CharacterScreen Model="m" /> break;
                 case "senate": <SenateScreen Model="m" /> break;
-                case "academy": <AcademyScreen Model="m" /> break;
                 case "galaxy": <GalaxyMap @ref="_map" /> break;
                 case "planets": <PlanetsScreen OnFocus="FocusSystem" /> break;
                 case "house": <HouseScreen Model="m" /> break;
@@ -87,13 +118,27 @@ else
         {
             <Primer OnClose="ClosePrimer" />
         }
+        @if (_passingOut && G.Academy() is { Graduated: true } grad)
+        {
+            <div class="overlay">
+                <div class="epilogue wide">
+                    <div class="tier"><span class="glyph">✦</span> PASSING OUT · AGE SEVENTEEN</div>
+                    <h2>@AcademySystem.Ordinal(grad.Place) of @grad.Of</h2>
+                    <p class="epi-text">@G.World!.Protagonist!.Name passes out of @grad.SchoolName @(grad.Place == 1 ? "first of the year" : grad.Place <= Math.Max(1, grad.Of / 3) ? "with honours" : "in the body of the year") and is commissioned @grad.RankName in @grad.ServiceName.</p>
+                    @if (grad.Friends.Count > 0) { <p class="epi-text">Friends made: @string.Join(", ", grad.Friends).</p> }
+                    @if (grad.Rivals.Count > 0) { <p class="epi-text">And those who will remember you otherwise: @string.Join(", ", grad.Rivals).</p> }
+                    <p class="epi-text">The gates open. From here a turn is a year, the house is yours to run, and everything the lectures described is real.</p>
+                    <div class="row"><button class="btn primary" @onclick="() => _passingOut = false">To the desk</button></div>
+                </div>
+            </div>
+        }
     </div>
 }
 
 @code {
     private static readonly (string id, string glyph, string label)[] Screens =
     {
-        ("office", "", "Office"), ("character", "", "You"), ("academy", "", "Academy"), ("galaxy", "", "Galaxy"), ("planets", "", "Worlds"), ("senate", "", "Senate"), ("house", "", "House"),
+        ("office", "", "Office"), ("character", "", "You"), ("galaxy", "", "Galaxy"), ("planets", "", "Worlds"), ("senate", "", "Senate"), ("house", "", "House"),
         ("laws", "", "Laws"), ("military", "", "Military"), ("dynasty", "", "Dynasty"), ("houses", "", "Houses"), ("chronicle", "", "Chronicle")
     };
     private string _screen = "office";
@@ -101,6 +146,8 @@ else
     private IEnumerable<(string id, string glyph, string label)> Rail() => G.World == null ? Screens : RoleTheme.OrderScreens(RoleTheme.Of(G.World), Screens, s => s.id);
     private bool _screenChosen;
     private bool _hasAutosave, _epilogueDismissed, _savedFlash;
+    /// <summary>The Academy: this browser has graduated before (so the short course is offered first); the year just ended (so the passing-out card shows).</summary>
+    private bool _beenBefore, _passingOut, _wasInAcademy;
     private BriefingCard? _openReport;
     private SuccessionRecord? _succession; private bool _primer, _primerChecked;
     private string? _lastProtagonist;
@@ -122,7 +169,7 @@ else
         if (G.Turn == null) return;
         if (key == "Escape") { _openReport = null; _succession = null; }
         else if (key == "Enter" && _openReport == null && _succession == null) await EndTurn();
-        else if (key.Length == 1 && char.IsDigit(key[0])) { int i = key[0] - '1'; var rail = Rail().ToList(); if (i >= 0 && i < rail.Count) _screen = rail[i].id; }
+        else if (key.Length == 1 && char.IsDigit(key[0]) && G.World?.InAcademy != true) { int i = key[0] - '1'; var rail = Rail().ToList(); if (i >= 0 && i < rail.Count) _screen = rail[i].id; }
         else return;
         StateHasChanged();
     }
@@ -132,6 +179,7 @@ else
         G.Changed += OnChanged;
         await G.LoadAsync();
         try { _hasAutosave = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey)); } catch { }
+        try { _beenBefore = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.academy.graduated")); } catch { }
     }
 
     private void OnChanged()
@@ -148,13 +196,15 @@ else
     }
 
     private void Go(string id) => _screen = id;
+    private void Teach(string mode) => G.Execute(new SetTutorialCommand(G.World!.ProtagonistId, mode));
     /// <summary>The seat has passed: the heir lands on their register's home screen, so the change of life is seen at once.</summary>
     private void CloseSuccession() { _succession = null; if (G.World != null) _screen = RoleTheme.Home(RoleTheme.Of(G.World)); }
 
     /// <summary>The primer opens once, on the first turn of a new run, unless this browser has seen it (GAP §10 item 1).</summary>
     private async Task CheckPrimer()
     {
-        if (_primerChecked || G.World == null) return; _primerChecked = true;
+        if (_primerChecked || G.World == null || G.World.InAcademy) return; _primerChecked = true;
+        if (G.World.Academy is { Graduated: true }) return;   // the Academy was the tutorial
         if (G.World.Turn > 1) return;
         try { var seen = await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.primer.seen"); if (string.IsNullOrEmpty(seen)) { _primer = true; StateHasChanged(); } } catch { }
     }
@@ -166,10 +216,17 @@ else
     private async Task EndTurn()
     {
         _openReport = null;
+        bool cadet = G.World?.InAcademy == true; string tutorial = G.World?.Academy?.Tutorial ?? "";
         G.EndTurn();
+        if (cadet && G.World?.InAcademy == false)
+        {
+            // the year is over: the passing-out card, the Office, and this browser remembers it has been through the Academy
+            _passingOut = true; _beenBefore = true; _screen = "office"; _primerChecked = true;
+            try { await JS.InvokeVoidAsync("localStorage.setItem", "praetoria.academy.graduated", "1"); if (tutorial == "full") await JS.InvokeVoidAsync("localStorage.setItem", "praetoria.primer.seen", "1"); } catch { }
+        }
         _epilogueDismissed = false;
         var first = G.Court().Briefing.FirstOrDefault(b => !b.Resolved);
-        if (first != null && _screen == "office") _openReport = first;    // the first visitor steps forward
+        if (first != null && _screen == "office" && G.World?.InAcademy != true && !_passingOut) _openReport = first;    // the first visitor steps forward (not at the Academy: the term's page comes first)
         await Autosave();
     }
 
@@ -178,6 +235,6 @@ else
     private async Task Download() { try { await JS.InvokeVoidAsync("praetoria.download", $"praetoria-turn{G.World!.Turn}.json", G.SaveJson()); } catch { } }
     private async Task ContinueAutosave() { try { var json = await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey); if (!string.IsNullOrEmpty(json)) G.LoadJson(json); } catch { } }
     private void LoadFromJson(string json) { try { G.LoadJson(json); } catch { } }
-    private void Abandon() { _epilogueDismissed = false; _screen = "office"; _openReport = null; _succession = null; _lastProtagonist = null; G.Abandon(); }
+    private void Abandon() { _epilogueDismissed = false; _screen = "office"; _openReport = null; _succession = null; _lastProtagonist = null; _passingOut = false; _primerChecked = false; G.Abandon(); }
     public void Dispose() { G.Changed -= OnChanged; _self?.Dispose(); }
 }

@@ -557,3 +557,34 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .abroad .nrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .abroad .nrow .mbar { flex: 1 1 80px; min-width: 60px; }
 .abroad .abroad-war { margin-bottom: 8px; }
+
+/* ---- the Academy year (docs/ACADEMY.md): one screen, apart from the world ---- */
+.gs-shell.academy-shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+.gs-shell.academy-shell .screen { grid-column: 1; grid-row: 1; padding: .9rem 1.1rem; }
+.gs-shell.academy-shell[data-register="imperium"] { --brass: #d46a5a; --brass2: #f09a8a; --brass3: #7a3530; }
+.dash.academy .dash-grid.academy-grid { grid-template-columns: minmax(300px, 1fr) minmax(380px, 1.35fr) minmax(300px, .95fr); }
+@media (max-width: 1250px) { .dash.academy .dash-grid.academy-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); } .dash.academy .dash-side { grid-column: 1 / -1; } }
+@media (max-width: 820px) { .dash.academy .dash-grid.academy-grid { grid-template-columns: minmax(0, 1fr); } }
+.ac-tools { margin-left: auto; display: inline-flex; gap: .4rem; }
+.ac-report { display: grid; grid-template-columns: 1.4rem 1fr auto; align-items: center; gap: .5rem; width: 100%; text-align: left; padding: .55rem .7rem; margin: .3rem 0; background: rgba(5,7,12,.5); border: 1px solid var(--line2); border-left: 3px solid var(--brass); border-radius: 3px; }
+.ac-report:hover { border-color: var(--brass2); background: var(--panel2); } .ac-report.setpiece { border-left-color: var(--brass2); box-shadow: 0 0 14px rgba(201,162,74,.14); }
+.ac-report.done { opacity: .6; border-left-color: var(--good); } .ac-report .glyph { color: var(--brass2); }
+.ac-track { margin: .35rem 0 .55rem; } .ac-track > .muted { display: block; margin-bottom: .15rem; letter-spacing: .06em; text-transform: uppercase; font-size: .66rem; }
+.ac-subject { display: grid; grid-template-columns: 1fr auto auto; gap: .6rem; align-items: baseline; width: 100%; text-align: left; padding: .32rem .6rem; margin: .15rem 0; background: rgba(5,7,12,.4); border: 1px solid var(--line); border-radius: 3px; font-size: .86rem; }
+.ac-subject:hover { border-color: var(--brass); } .ac-subject.here { border-color: var(--brass2); background: #1d1a12; box-shadow: inset 3px 0 0 var(--brass2); }
+.ac-subject .ac-marks { font-size: .76rem; color: var(--ink2); white-space: nowrap; }
+.ac-services { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem; }
+.ac-service { display: flex; flex-direction: column; gap: .15rem; text-align: left; padding: .5rem .6rem; background: rgba(5,7,12,.4); border: 1px solid var(--line); border-radius: 3px; }
+.ac-service:hover { border-color: var(--brass); } .ac-service.here { border-color: var(--brass2); background: #1d1a12; }
+.ac-end { display: flex; align-items: center; gap: .8rem; margin-top: .9rem; padding-top: .7rem; border-top: 1px solid var(--line); } .ac-end .btn { position: relative; white-space: nowrap; }
+.ac-lesson { border: 1px solid var(--line); border-radius: 3px; margin: .3rem 0; background: rgba(5,7,12,.35); }
+.ac-lesson > summary { cursor: pointer; padding: .4rem .65rem; font-size: .9rem; } .ac-lesson[open] > summary { border-bottom: 1px solid var(--line); color: var(--brass2); }
+.ac-lesson p { font-family: var(--serif); font-size: 1rem; line-height: 1.5; color: var(--ink2); margin: .55rem .75rem; }
+.ac-lesson.brief > summary .muted { font-size: .8rem; }
+.ac-fact { display: grid; grid-template-columns: 8.5rem 1fr; gap: .6rem; padding: .3rem 0; border-top: 1px dotted var(--line); font-size: .86rem; }
+.ac-fact > span { color: var(--brass2); letter-spacing: .04em; } .ac-fact p { margin: 0; color: var(--ink2); line-height: 1.4; }
+.ac-houses td, .ac-houses th { font-size: .8rem; } .ac-merit td { padding: .22rem .3rem; } .ac-merit tr.gone { opacity: .45; } .ac-merit tr { cursor: pointer; }
+.ac-std { display: inline-block; width: .55rem; height: .55rem; border-radius: 50%; margin-left: .35rem; vertical-align: middle; box-shadow: 0 0 0 1px rgba(0,0,0,.5); }
+.navy-row.gone { opacity: .45; }
+.dash.academy .navy-row { grid-template-columns: 12px minmax(0, 1fr) minmax(60px, 120px) 30px; } .dash.academy .navy-row .bar { grid-column: auto; margin-top: 0; } .dash.academy .navy-row .ac-std { margin-left: 0; }
+.ac-merit .mbar { display: inline-block; width: 64px; vertical-align: middle; margin-right: .35rem; } .ac-merit td:nth-child(3) { white-space: nowrap; font-variant-numeric: tabular-nums; }
