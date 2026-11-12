@@ -67,6 +67,10 @@ public static class ConditionParser
                 return new DepositCondition(OptStr(el, "role", "self"), Str(el, "resource"), Bool(el, "present", true));
             case "era":
                 return new EraCondition(Str(el, "era"), Bool(el, "present", true));
+            case "academy":
+                return new AcademyCondition(OptStr(el, "register", ""), Int(el, "termGte", 1), Int(el, "termLte", 99));
+            case "cohort":
+                return new CohortCondition(Str(el, "role"), Bool(el, "present", true));
             case "track":
                 return new TrackCondition(OptStr(el, "role", "self"), Str(el, "track"), Bool(el, "present", true));
             case "age":

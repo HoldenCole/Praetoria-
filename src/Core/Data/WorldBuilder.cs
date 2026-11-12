@@ -85,6 +85,7 @@ public static class WorldBuilder
             throw new ContentException($"Scenario protagonist '{scenario.ProtagonistId}' is not among its characters.");
 
         Presentation.Palette.AssignHouses(world);   // one bright palette for every house (docs/ART_DIRECTION.md)
+        if (scenario.Academy) Systems.AcademySystem.Enter(world);   // the run opens with the Academy year (docs/ACADEMY.md)
         return world;
     }
 

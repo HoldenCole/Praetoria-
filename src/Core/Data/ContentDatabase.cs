@@ -33,6 +33,8 @@ public sealed class ContentDatabase
     public PartyCatalog Parties { get; }
     /// <summary>The foreign nations beyond the Reach (content/nations/nations.json; docs/FOREIGN_NATIONS.md).</summary>
     public NationCatalog Nations { get; }
+    /// <summary>The Academy: its registers, subjects, Standards and lessons (content/academy/academy.json; docs/ACADEMY.md).</summary>
+    public AcademyCatalog Academy { get; }
 
     /// <summary>The crisis definitions (GDD §16). Empty for scenarios with no crisis layer.</summary>
     public IReadOnlyList<CrisisDef> Crises { get; }
@@ -97,8 +99,10 @@ public sealed class ContentDatabase
         OfficeCatalog? offices = null,
         PolicyCatalog? policies = null,
         PartyCatalog? parties = null,
-        NationCatalog? nations = null)
+        NationCatalog? nations = null,
+        AcademyCatalog? academy = null)
     {
+        Academy = academy ?? AcademyCatalog.Empty;
         Parties = parties ?? PartyCatalog.Empty;
         Nations = nations ?? NationCatalog.Empty;
         Businesses = businesses ?? BusinessCatalog.Empty;

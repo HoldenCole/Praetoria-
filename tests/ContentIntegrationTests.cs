@@ -53,16 +53,16 @@ public class ContentIntegrationTests
             return null;
         }
 
-        // first_formation gates on early turns; fire it to open the barracks scene (which gates on
-        // first_formation having fired).
-        world.Turn = 1;
+        // The crucible is the Institute's year now (docs/ACADEMY.md): its events fire only while the cadet is there, under the Imperium's
+        // register, with roles bound from the cohort. first_formation gates on the first term; fire it to open the barracks scene.
+        world.Academy = new AcademyState { Active = true, Register = "imperium", Term = 1, Cohort = world.Characters.Keys.Where(id => id != world.ProtagonistId).ToList() };
         var ff = Find("first_formation");
         Assert.NotNull(ff);
         engine.Resolve(ff!, world, ff!.Def.Choices[0].Id);
 
         // Jump to when the reckoning's turn-gate (turn >= 4) is satisfied. It must STILL be
         // ineligible: no cadet carries the feud flag, so its "rival" role cannot bind.
-        world.Turn = 4;
+        world.Academy.Term = 2;
         Assert.Null(Find("the_reckoning"));
 
         // The slight is available (no turn-gate, a higher/equal-rank disliking rival exists).

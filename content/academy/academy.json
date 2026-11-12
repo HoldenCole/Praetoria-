@@ -1,0 +1,221 @@
+{
+  "//": "THE ACADEMY (docs/ACADEMY.md; the owner's direction, 2026-11-11). A prologue apart from the world: the cadet enters at sixteen, reads a subject a term for a year of four terms, and graduates at seventeen into a service. Two registers, fixed by the era at entry. `republic`: a school — academics, friendly competition, a war game on the tactical table; nobody is hurt. `imperium`: the Institute — cadets sorted into Standards that take each other's banners; the strong command the weak and some do not come back. `subjects` name the skill a term's reading trains and the service it leads to. `lessons` are the tutorial: `brief` is the one line a returning player sees, `full` the paragraphs a first run is taught (`imperiumFull` replaces them under the Imperium).",
+  "republic": {
+    "name": "The Academy of the Reach",
+    "cadet": "cadet",
+    "terms": [
+      "Matriculation Term",
+      "Winter Term",
+      "The War Game Term",
+      "Examination Term"
+    ],
+    "blurb": "A year of lectures, examinations and friendly rivalry among the sons and daughters of the Republic's houses. The world waits outside the gates: no Senate, no fleets, no ledgers until you pass out."
+  },
+  "imperium": {
+    "name": "The Institute",
+    "cadet": "cadet",
+    "terms": [
+      "The Sorting",
+      "The Standards",
+      "The Long Night",
+      "The Last Banner"
+    ],
+    "blurb": "A year of war in miniature. The Institute sorts its cadets under four Standards and lets them take each other's banners. Those who command here are remembered. Not everyone who enters leaves."
+  },
+  "subjects": [
+    {
+      "id": "tactics",
+      "name": "Fleet Tactics",
+      "skill": "tactics",
+      "track": "military",
+      "description": "The line, the press and the skirmish; how a fleet a third the size wins. Every point is five per cent of a fleet's power under your command."
+    },
+    {
+      "id": "gunnery",
+      "name": "Gunnery and Ordnance",
+      "skill": "gunnery",
+      "track": "military",
+      "description": "Batteries, torpedoes and what isotopes are for. Three per cent of a fleet's power a point."
+    },
+    {
+      "id": "leadership",
+      "name": "Command",
+      "skill": "leadership",
+      "track": "military",
+      "description": "Why crews follow, and when they stop. Two per cent a point, and the difference between a restive fleet and a loyal one."
+    },
+    {
+      "id": "economics",
+      "name": "Political Economy",
+      "skill": "economics",
+      "track": "stewardship",
+      "description": "Tithes, tariffs, ventures and the exchange: where a house's credits come from and where they go."
+    },
+    {
+      "id": "administration",
+      "name": "Administration",
+      "skill": "administration",
+      "track": "stewardship",
+      "description": "Governing a world so that it pays and does not rise: unrest, prosperity, the governor's writ."
+    },
+    {
+      "id": "law",
+      "name": "The Law of the Reach",
+      "skill": "law",
+      "track": "law",
+      "description": "Statute, custom and the Senate's Acts; what a magistrate may do and what a house may be made to do."
+    },
+    {
+      "id": "oratory",
+      "name": "Rhetoric",
+      "skill": "oratory",
+      "track": "law",
+      "description": "The speech that moves a bench. The Senate votes by weight, and weight can be talked round."
+    }
+  ],
+  "standards": [
+    {
+      "id": "eagle",
+      "name": "the Eagle Standard",
+      "accent": "#FFD60A",
+      "motto": "Seen first."
+    },
+    {
+      "id": "wolf",
+      "name": "the Wolf Standard",
+      "accent": "#C9D1DC",
+      "motto": "Together or not at all."
+    },
+    {
+      "id": "serpent",
+      "name": "the Serpent Standard",
+      "accent": "#2EC27E",
+      "motto": "Patience is a weapon."
+    },
+    {
+      "id": "bull",
+      "name": "the Bull Standard",
+      "accent": "#E63946",
+      "motto": "Through."
+    }
+  ],
+  "lessons": [
+    {
+      "id": "the_senate",
+      "term": 1,
+      "title": "The Republic and its Senate",
+      "brief": "Houses vote in the Senate by weight; four parties; two consuls elected every ten years, each with a veto.",
+      "full": [
+        "The Reach is a republic of houses. Every house has a voice in the Senate and votes by weight: its influence in the chamber, its rank, and any office it holds. The house that holds the capital is called the chair, and its vote counts for two more.",
+        "Business comes before the Senate as motions. A house of standing (a Prefect, or a head who is a Magistrate or better) may move one for a few points of influence: to censure a house or recognise it, to levy the Reach, to send relief to a lawless region, to impose peace, to commission an officer, to close the exchanges to a house, to pass an Act that changes the law everywhere, or to make war beyond the Reach. A motion sits on the docket for a year while houses are lobbied, and is voted at the end of the next.",
+        "Four parties sit in the chamber. The Optimates stand for the old order and the chair; the Populares for the squares and the frontier; the Sword for the fleets and their wars; the Factors for trade. Every house belongs to the one its own laws fit best, votes with it more often than not, and may cross the floor. You may found a party of your own.",
+        "Every tenth year the parties elect two consuls. A consul weighs more in every vote, draws a stipend, and may veto one motion a term: strike it from the docket before it is voted. No house is consul two terms running. Other offices are commissioned by motion: the Admiral of the Reach commands the state's fleet, the Treasurer its purse, the Speaker its order of business.",
+        "You will find all of this on the Senate screen: the chamber by seats, the docket with each motion's count, the parties, the consulship and its nominees."
+      ],
+      "imperiumFull": [
+        "The Reach is an Imperium. One house holds the throne and with it every office: the fleet, the purse and the order of business are the Emperor's, lent to whom the Emperor pleases. There are no consuls and no elections.",
+        "The Senate still sits and still votes by weight: a house's influence in the chamber, its title, the Emperor's favour. Motions still come before it: censure, recognition, a levy, relief for a lawless region, peace imposed on a war, an embargo, an Act that changes the law everywhere, war beyond the Reach. A motion sits on the docket for a year and is voted at the end of the next.",
+        "The parties remain as habits of voting: the Optimates for the throne and the old order, the Populares for the squares and the frontier, the Sword for the fleets, the Factors for trade. The Emperor's own law, the Imperial Edict, sets the throne's temper toward the houses: clemency or proscription.",
+        "You will find all of this on the Senate screen: the chamber by seats, the docket with each motion's count, the parties, and who holds the throne."
+      ]
+    },
+    {
+      "id": "houses_and_rank",
+      "term": 1,
+      "title": "Houses, rank and standing",
+      "brief": "A house climbs a ladder of rank; legitimacy says how much rank it can carry; a person climbs a career.",
+      "full": [
+        "Two ladders matter, and they are different things. A house has a rank, which outlives everyone in it. A person has a career, which starts again with every generation.",
+        "The Republic has no nobles. A house's rank says what the Republic trusts it with: a Citizen house holds no world, a Warden keeps a station, a Prefect a world, a Legate several, a Proconsul a province, and the First Citizen is the greatest house of all. A rank can be taken three ways: by force, by merit (petitioning the Senate), or by blood and marriage (pressing a claim).",
+        "Legitimacy is the measure of how much rank a house can carry. Each rung has a requirement. You may hold a rank above your legitimacy, but the gap breeds instability every year until your standing catches up. Merit raises legitimacy cleanly; force does not raise it at all.",
+        "A career is one of three services. The Navy runs from Cadet to Fleet Admiral, the Administration from Clerk to High Treasurer, the Courts from Aspirant to High Justice. Rank in a service opens doors: a Commander may lead from the flag, a Magistrate may move motions, and the hulls a commander can lead without strain grow with every rung.",
+        "A house that grows too strong is noticed. The other houses read your threat and, past a point, form a coalition against you. Rising is a matter of how fast you can climb without uniting everyone below."
+      ],
+      "imperiumFull": [
+        "Two ladders matter, and they are different things. A house has a title, which outlives everyone in it. A person has a career, which starts again with every generation.",
+        "Under the Imperium a house's title is noble: Knight, Baron, Count, Duke, Archduke, and the throne itself. A title can be taken three ways: by force, by merit (petitioning the throne), or by blood and marriage (pressing a claim).",
+        "Legitimacy is the measure of how much title a house can carry. Each rung has a requirement. You may hold a title above your legitimacy, but the gap breeds instability every year until your standing catches up. Merit raises legitimacy cleanly; force does not raise it at all.",
+        "A career is one of three services. The Imperial Navy runs from Cadet to Grand Admiral, the Imperial Administration from Clerk to Imperial Treasurer, the Imperial Courts from Aspirant to Lord Justice. Rank in a service opens doors: a Commander may lead from the flag, and the hulls a commander can lead without strain grow with every rung.",
+        "A house that grows too strong is noticed. The other houses read your threat and, past a point, form a coalition against you; past that, the throne itself asks whose strength yours is."
+      ]
+    },
+    {
+      "id": "estates_and_law",
+      "term": 2,
+      "title": "The estates and the law",
+      "brief": "Six estates judge the laws you set; a loyal estate pays, a hostile one costs, and one hostile everywhere petitions the Senate.",
+      "full": [
+        "A house does not rule alone. Six estates watch it: the Commons, the Old Blood, the Magistrates, the Officers, the Merchants and the Frontier. Each has an opinion of your house from zero to a hundred, and each wants different things.",
+        "What they judge is the law. Every law has a handful of options, one of which is in force. Some laws are your house's own: the tithe, justice, the franchise, how open your hall is. Others belong to a position: a law for a region you dominate, for the chair, for an office you hold. Changing a law costs influence and cannot be changed again for some years.",
+        "Each option pleases some estates and galls others, and has effects of its own: more credits and more unrest, more order and less prosperity. An estate that becomes loyal pays you a bonus; one that becomes hostile costs you, and its people make trouble on your worlds.",
+        "When an estate is hostile in an eighth of the houses of the Reach it stops asking houses and petitions the Senate for an Act. If the Senate carries it, the estate warms to every house; if the Senate turns it away, it sours in every house that already distrusted it, and their worlds stir.",
+        "The Laws screen shows the estates, what each wants, and every law in your gift."
+      ]
+    },
+    {
+      "id": "coin",
+      "term": 2,
+      "title": "Coin, worlds and the strategic three",
+      "brief": "Worlds and ventures feed the treasury; helium-3 fuels fleets, rare earths build heavy hulls, isotopes arm them.",
+      "full": [
+        "A house lives on four things: credits, materials, manpower and influence. They come from the worlds it holds and the ventures it owns, and they are spent on fleets, buildings, and the favours that move the Senate.",
+        "A world has a specialisation: farms feed manpower, forges make materials, trade hubs make credits, fortresses hold the line. Buildings add to it. Its people have unrest and prosperity, and a world pushed too hard rises against its holder. Each world has a governor, and who you trust with it matters.",
+        "Ventures are businesses: you found one on a world, yours or another's, for a price, and it pays a yield each year and a charter to whoever holds the world. Belts can be claimed. A house short of credits can borrow; a house that stays in debt stops being able to pay its crews.",
+        "Three strategic resources are scarce, because not every world has the deposit. Helium-3 is fuel: fleets burn it every year, and a house whose tanks run dry cannot sail. Rare earths build the heavy hulls. Isotopes arm torpedoes. What you lack you buy on the exchange, at a price that moves, unless the Senate has closed the exchange to you.",
+        "The House screen is the ledger: every line of income and cost, your worlds, your ventures, and what the exchange is asking."
+      ]
+    },
+    {
+      "id": "fleets",
+      "term": 3,
+      "title": "Fleets and how they fight",
+      "brief": "Hulls, readiness, an admiral, a stance, supply and loyalty decide a battle before it starts.",
+      "full": [
+        "A fleet is a number of hulls of one or more classes, under an admiral or without one. Its power in a battle is its hulls, weighed by their class, by readiness, by the admiral's skill, by veterancy, and by the choices below. The battle itself is a roll in proportion to the two sides' power.",
+        "Stance is the first choice. The line beats the press, the press beats the skirmish, the skirmish beats the line. The press hits harder and loses more; the skirmish hits softer and loses far less; boarding is a press that takes prizes if you have the manpower. Torpedoes add a quarter to a fleet's power and burn an isotope a battle.",
+        "Where you command from is the second. From the front, your own fleet fights a tenth harder, the crews love you, each victory is a point of valour, and you are twice as likely to die with the line. Three victories at the front and the Reach speaks your name the way it speaks of Achilles. From the flag (a Commander or better) every fleet of your house fights a little better and you are never lost with the line.",
+        "Supply is the third. A fleet is supplied within a lane of a world you hold, two with a depot. Beyond that its supply drains; low, it fights at four-fifths; at nothing, hulls desert. A campaign names an enemy world as the war's object for eight years: fleets near it are supplied and fight harder.",
+        "Loyalty is the last. Crews are paid in credits and fuel and victories. Under thirty they will not sail; under fifteen they desert a hull a year. A commander can lead only so many hulls without strain, and that number grows with rank.",
+        "Fleets move on the Galaxy map, a lane a year. Everything else is on the Military screen."
+      ]
+    },
+    {
+      "id": "beyond_the_reach",
+      "term": 3,
+      "title": "The rings, the raiders and the nations beyond",
+      "brief": "The rim is lawless and breaks away; five nations lie off the map, and the Senate makes war on them by vote.",
+      "full": [
+        "The Reach is three rings. The core is rich and loyal to the capital; the middle leans either way; the rim is poor, lawless and restless. Each region has a lawlessness and an allegiance. Where lawlessness is high, raiders gather on the lanes and plunder. Where allegiance is low and a world is pushed too hard, it rises, and a risen world may break away as a Free March.",
+        "Beyond the rim are other nations. They are not on the map. The Ardent Concord is the one strong neighbour, with a fleet half the size of the Reach's. The Free Cities of Thessar are rich and would rather pay than fight. The Vashti Khanates raid for crews and cargo. The Outer Compact is small and far and fights hard at home. The Hollow Crown is an old empire in decay with full vaults.",
+        "Aggressive nations raid the rim when their regard for the Reach falls. The Senate may make war on a nation by motion, one war at a time. Then any house may send a fleet as an expedition: it leaves the map, sails for years, fights a season in the nation's space, and comes home with plunder and fewer hulls.",
+        "A war abroad ends one of three ways. If the Reach's tally clears the nation's by enough, the nation sues for peace and pays tribute to the chair for twenty years, and the house whose fleets won most takes the triumph. If the nation's tally clears the Reach's, the chair buys peace and is shamed. If nobody fights for twelve years, it gutters out.",
+        "Generals who win abroad come home with a name. Remember that when you read about the Republic's last years."
+      ]
+    },
+    {
+      "id": "the_turn",
+      "term": 4,
+      "title": "A year in the chair",
+      "brief": "Each turn is a year: read the briefing, spend from three pools, end the turn.",
+      "full": [
+        "When you leave here, time moves a year at a turn. Each year opens in your Office with a briefing: your advisors bring reports, which are the cards on the desk. Some are news. Some are decisions, with choices that cost something. Reading is free. Acting is not. A report you do not answer is set aside when the year ends.",
+        "What acting costs comes from three pools. Influence pays for plots, favours and the Senate. Treasury actions pay for building, fleet orders and the exchange. Agents pay for schemes and training. Each refills a little every year and holds six at most. The strip at the top of the screen shows what is left.",
+        "Between the briefing and the end of the year you may do anything you can afford on any screen: move a motion, change a law, lay down a hull, order a fleet, found a venture, propose a marriage. Then you end the turn. The other houses act, the Senate votes, the estates weigh the laws, the year turns.",
+        "The panel on the right lists what needs you: unanswered reports, wars, sieges, motions against you, a vote you have not declared. The Chronicle keeps everything that has happened, by year.",
+        "A great clock runs behind all of it. The houses of the Reach are drifting toward a war for the whole of it, in stages. You will see the stages arrive. Be somewhere worth being when the last one does."
+      ]
+    },
+    {
+      "id": "the_dynasty",
+      "term": 4,
+      "title": "The house outlives you",
+      "brief": "You are one life in a dynasty; when you die you play the heir, who starts their career from the bottom.",
+      "full": [
+        "You are one life. The thing you are playing is the house: its rank, its worlds, its fleets, its name. When you die, you continue as your heir. The heir keeps everything the house holds and starts their own career from the first rung, as you are starting yours now.",
+        "So the house needs an heir. Marriage is an alliance and a bloodline at once: a spouse from a greater house brings claims, and children bring a future. Children grow, come of age at sixteen, and have wills of their own; kin with ambition and no prospects are a danger inside the walls. If the head of a house is under sixteen, a regent rules in their name.",
+        "The people you meet this year are real. They are the sons and daughters of the houses you will sit beside in the Senate for the rest of your life. A friend made here is a vote later. So is an enemy.",
+        "If the line ends, the run ends, unless you chose to continue: then a house sworn to yours takes up the banner and the story goes on under another name."
+      ]
+    }
+  ]
+}

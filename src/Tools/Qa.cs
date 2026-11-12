@@ -238,6 +238,11 @@ internal static class Qa
             cands.Add(new InvestCommand(p.Id, h.Id, bc));
             if (members.Count > 0) cands.Add(new AppointGovernorCommand(p.Id, h.Id, members[decisions.NextInt(0, members.Count)]));
         }
+        if (w.InAcademy)   // the Academy's own business; the bus refuses the rest, which the soak still offers to prove it
+        {
+            foreach (var s in content.Academy.Subjects) cands.Add(new ChooseStudyCommand(p.Id, s.Id, content.Academy));
+            foreach (var t in AcademySystem.Tracks) cands.Add(new ChooseServiceCommand(p.Id, t));
+        }
         foreach (var t in content.Holdings.TaxPolicies.OrderBy(t => t.Id, StringComparer.Ordinal)) cands.Add(new SetTaxPolicyCommand(p.Id, t.Id, content.Holdings));
         if (g != null)
         {

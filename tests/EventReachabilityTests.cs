@@ -15,6 +15,8 @@ public class EventReachabilityTests
         var root = ContentLocator.FindContentDir(); var content = ContentLoader.LoadFromDirectory(root);
         return (content, WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, scenario), seed));
     }
+    /// <summary>Put the world in the Institute's year (docs/ACADEMY.md): the old crucible's events fire only there, with every other character a cadet of the year.</summary>
+    private static void Institute(World w, int term) => w.Academy = new AcademyState { Active = true, Register = "imperium", Term = term, Cohort = w.Characters.Keys.Where(id => id != w.ProtagonistId).ToList() };
     private static Character Other(World w, Character self) => w.Characters.Values.Where(c => c.Alive && c.Id != self.Id && c.HouseId != self.HouseId).OrderBy(c => c.Id, StringComparer.Ordinal).First();
     private static void Eligible(string scenario, string eventId, Action<World, Character> setup)
     {
@@ -84,10 +86,10 @@ public class EventReachabilityTests
     [Fact] public void TheCoalitionHolds() => Eligible("the_fallen_house", "the_coalition_holds", (w, p) => Other(w, p).Flags.Add("coalition_leader"));
     [Fact] public void WhatTheSabotageTaught() => Eligible("the_fallen_house", "what_the_sabotage_taught", (_, p) => p.Flags.Add("sabotaged"));
     [Fact] public void TheBreakingPoint() => Eligible("the_fallen_house", "the_breaking_point", (_, p) => p.Flags.Add("broken"));
-    [Fact] public void TheHumiliatedReturns() => Eligible("academy_crucible", "the_humiliated_returns", (w, p) => { p.Age = 18; Other(w, p).Flags.Add("humiliated"); });
-    [Fact] public void TheMarkedMan() => Eligible("academy_crucible", "the_marked_man", (w, p) => { p.Age = 20; Other(w, p).Flags.Add("marked_for_death"); });
-    [Fact] public void TheFrameUnravels() => Eligible("academy_crucible", "the_frame_unravels", (w, p) => { p.Age = 20; Other(w, p).Flags.Add("framed"); });
-    [Fact] public void ThePetitioner() => Eligible("academy_crucible", "the_petitioner", (w, p) => { p.Age = 18; w.WorldCounters["standing"] = 2; p.CareerRank = 2; var o = Other(w, p); o.CareerRank = 0; o.Age = 17; });
+    [Fact] public void TheHumiliatedReturns() => Eligible("academy_crucible", "the_humiliated_returns", (w, p) => { Institute(w, 2); Other(w, p).Flags.Add("humiliated"); });
+    [Fact] public void TheMarkedMan() => Eligible("academy_crucible", "the_marked_man", (w, p) => { Institute(w, 3); Other(w, p).Flags.Add("marked_for_death"); });
+    [Fact] public void TheFrameUnravels() => Eligible("academy_crucible", "the_frame_unravels", (w, p) => { Institute(w, 3); Other(w, p).Flags.Add("framed"); });
+    [Fact] public void ThePetitioner() => Eligible("academy_crucible", "the_petitioner", (w, p) => { Institute(w, 2); w.WorldCounters["standing"] = 2; });
     [Fact] public void TheMinistersDilemma() => Eligible("the_fallen_house", "the_ministers_dilemma", (w, p) => { p.CareerTrack = "stewardship"; p.CareerRank = 2; p.Skills["economics"] = 2; var o = Other(w, p); o.CareerTrack = "stewardship"; o.CareerRank = 3; });
     [Fact] public void TheTreasuryAudit() => Eligible("the_fallen_house", "the_treasury_audit", (_, p) => { p.CareerTrack = "stewardship"; p.CareerRank = 3; p.Skills["economics"] = 3; });
     [Fact] public void TheEmptyHall() => Eligible("the_fallen_house", "the_empty_hall", (w, _) => w.WorldCounters["houses_fallen"] = 1);

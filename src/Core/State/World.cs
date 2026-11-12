@@ -85,6 +85,11 @@ public sealed class World
     /// <summary>Laws in force, house id → law id → option id (GDD §6.1); a law not named is at its default.</summary>
     public Dictionary<string, Dictionary<string, string>> Laws { get; set; } = new();
 
+    /// <summary>The Academy year, while the protagonist is a cadet and after (docs/ACADEMY.md); null in a run that began in the world.</summary>
+    public AcademyState? Academy { get; set; }
+    /// <summary>True while the cadet is at the Academy: the world does not turn and only the Academy's own business may be done.</summary>
+    [JsonIgnore] public bool InAcademy => Academy is { Active: true };
+
     /// <summary>The foreign nations beyond the Reach as they stand (docs/FOREIGN_NATIONS.md): strength, regard, wars and tribute. Off the map.</summary>
     public List<Nation> Nations { get; set; } = new();
     public Nation? Nation(string id) => Nations.FirstOrDefault(n => n.Id == id);

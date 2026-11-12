@@ -26,6 +26,7 @@ public static class ScenarioLoader
                 Id = ConditionParser.Str(root, "id"),
                 ProtagonistId = ConditionParser.Str(root, "protagonist"),
                 Era = ConditionParser.OptStr(root, "era", "fractured_stars"),
+                Academy = ConditionParser.Bool(root, "academy", false), Hidden = ConditionParser.Bool(root, "hidden", false),
                 Houses = ParseHouses(root),
                 Characters = ParseCharacters(root),
                 Relationships = ParseRelationships(root),
@@ -96,7 +97,7 @@ public static class ScenarioLoader
 
         return new Scenario
         {
-            Id = sc.Id, ProtagonistId = sc.ProtagonistId, Era = sc.Era, Galaxy = sc.Galaxy,
+            Id = sc.Id, ProtagonistId = sc.ProtagonistId, Era = sc.Era, Galaxy = sc.Galaxy, Academy = sc.Academy, Hidden = sc.Hidden,
             Houses = houses, Characters = chars, Relationships = rels, Holdings = holdings, Fleets = fleets, Businesses = businesses
         };
     }

@@ -1,0 +1,479 @@
+{
+  "//": "THE INSTITUTE'S STANDARDS (docs/ACADEMY.md, imperium register): the sorting, the banner raids, a captain's justice, the last banner. Counters: standard_captain (you lead your Standard), standard_edge (what your choices win it this term; spent at the term's end).",
+  "events": [
+    {
+      "id": "the_sorting",
+      "tier": "setpiece",
+      "weight": 40,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "rival"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 1,
+          "termLte": 1
+        }
+      ],
+      "choices": [
+        {
+          "id": "seize_the_standard",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standard_captain",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "log",
+              "text": "The Institute sorted the year under four Standards and left them to choose their own captains. {self.name} did not wait for a vote: {rival.name} of {rival.house} was on the floor before the proctors had left the yard, and the Standard had a captain."
+            }
+          ]
+        },
+        {
+          "id": "win_the_vote",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standard_captain",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "rival",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "The Institute sorted the year under four Standards and left them to choose their own captains. {self.name} spoke last and shortest, and carried the count over {rival.name} of {rival.house} by three hands."
+            }
+          ]
+        },
+        {
+          "id": "serve_the_strong",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standard_edge",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "The Institute sorted the year under four Standards. {self.name} looked at who would win the captaincy, and stood beside {rival.name} of {rival.house} before anyone else did."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_banner_raid",
+      "tier": "situation",
+      "weight": 6,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "enemy",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "enemy"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 2,
+          "termLte": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "storm_the_keep",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standard_edge",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "setCharFlag",
+              "role": "enemy",
+              "flag": "wounded",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "enemy",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took thirty cadets over the wall of the rival keep at the dark of the moon. {enemy.name} of {enemy.house} held the stair for longer than anyone should have, and was carried to the infirmary when it was over."
+            }
+          ]
+        },
+        {
+          "id": "take_it_by_guile",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standard_edge",
+              "delta": 2
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "intrigue",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spent a week learning when the rival keep changed its watch, and walked in through the kitchen door behind the bread. {enemy.name} of {enemy.house} woke to find the banner gone."
+            }
+          ]
+        },
+        {
+          "id": "offer_an_alliance",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standard_edge",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "enemy",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "enemy",
+              "delta": 20
+            },
+            {
+              "type": "log",
+              "text": "{self.name} came to the rival keep under a white cloth and offered {enemy.name} of {enemy.house} a bargain: your banner stays up if your spears march with mine. It held, for as long as it suited both."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_captains_justice",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "offender",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "offender"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 2,
+          "termLte": 4
+        },
+        {
+          "type": "counter",
+          "key": "standard_captain",
+          "op": "gte",
+          "value": 1
+        }
+      ],
+      "choices": [
+        {
+          "id": "the_lash",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "offender",
+              "to": "self",
+              "delta": -25
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{offender.name} of {offender.house} had been stealing from the Standard's rations. {self.name} had it settled with the lash before the whole keep. The stealing stopped. So did a certain amount of talk at the fires."
+            }
+          ]
+        },
+        {
+          "id": "share_the_blame",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "offender",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "offender",
+              "delta": 20
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standard_edge",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{offender.name} of {offender.house} had been stealing from the Standard's rations. {self.name} said the captain who lets cadets go hungry has stolen first, took half the punishment, and halved the captain's ration for a month."
+            }
+          ]
+        },
+        {
+          "id": "cast_them_out",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standard_edge",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "offender",
+              "to": "self",
+              "delta": -30
+            },
+            {
+              "type": "setCharFlag",
+              "role": "offender",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{offender.name} of {offender.house} had been stealing from the Standard's rations. {self.name} put them outside the gate in the snow. Another Standard took them in, and learned everything they knew."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_last_banner",
+      "tier": "setpiece",
+      "weight": 12,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "best",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "best"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 4,
+          "termLte": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "lead_the_assault",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standard_edge",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "best",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "The last keep, the last banner. {self.name} led the assault up the breach in person, with {best.name} of {best.house} waiting at the top of it. The proctors watched from the wall and wrote it all down."
+            }
+          ]
+        },
+        {
+          "id": "let_them_bleed",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standard_edge",
+              "delta": 2
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "intrigue",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the other Standards spend themselves on the last keep for three days, and came down on what was left on the fourth. {best.name} of {best.house} called it cowardice. The proctors called it something else."
+            }
+          ]
+        },
+        {
+          "id": "strike_a_bargain",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standard_edge",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "best",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "best",
+              "delta": 20
+            },
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "best",
+              "bond": "sworn",
+              "strength": 25
+            },
+            {
+              "type": "addBond",
+              "from": "best",
+              "to": "self",
+              "bond": "sworn",
+              "strength": 25
+            },
+            {
+              "type": "log",
+              "text": "Before the last assault {self.name} went alone to {best.name} of {best.house} and proposed that two Standards take the Institute together. Whatever the proctors made of it, the two of them left as something the Imperium would hear of again."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -7,15 +7,10 @@
       "repeatable": false,
       "when": [
         {
-          "type": "turn",
-          "op": "lte",
-          "value": 2
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 1,
+          "termLte": 1
         }
       ],
       "choices": [
@@ -60,10 +55,9 @@
           "name": "rival",
           "when": [
             {
-              "type": "rank",
+              "type": "cohort",
               "role": "rival",
-              "op": "gte",
-              "vsRole": "self"
+              "present": true
             },
             {
               "type": "relationship",
@@ -77,15 +71,15 @@
       ],
       "when": [
         {
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 1,
+          "termLte": 99
+        },
+        {
           "type": "eventFired",
           "event": "first_formation",
           "value": true
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
         }
       ],
       "choices": [
@@ -208,6 +202,11 @@
           "name": "rival",
           "when": [
             {
+              "type": "cohort",
+              "role": "rival",
+              "present": true
+            },
+            {
               "type": "charFlag",
               "role": "rival",
               "flag": "feud",
@@ -218,15 +217,10 @@
       ],
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 4
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 2,
+          "termLte": 99
         }
       ],
       "choices": [
@@ -380,25 +374,19 @@
           "name": "comrade",
           "when": [
             {
-              "type": "rank",
+              "type": "cohort",
               "role": "comrade",
-              "op": "lte",
-              "vsRole": "self"
+              "present": true
             }
           ]
         }
       ],
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 2
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 1,
+          "termLte": 99
         }
       ],
       "choices": [
@@ -484,6 +472,11 @@
           "name": "comrade",
           "when": [
             {
+              "type": "cohort",
+              "role": "comrade",
+              "present": true
+            },
+            {
               "type": "relationship",
               "from": "comrade",
               "to": "self",
@@ -502,15 +495,10 @@
       ],
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 3
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 2,
+          "termLte": 99
         }
       ],
       "choices": [
@@ -604,6 +592,11 @@
           "name": "comrade",
           "when": [
             {
+              "type": "cohort",
+              "role": "comrade",
+              "present": true
+            },
+            {
               "type": "charFlag",
               "role": "comrade",
               "flag": "covered_for",
@@ -614,15 +607,10 @@
       ],
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 5
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 3,
+          "termLte": 99
         }
       ],
       "choices": [
@@ -730,31 +718,31 @@
           "name": "mentor",
           "when": [
             {
-              "type": "rank",
+              "type": "cohort",
               "role": "mentor",
-              "op": "gt",
-              "vsRole": "self"
+              "present": false
+            },
+            {
+              "type": "age",
+              "role": "mentor",
+              "op": "gte",
+              "value": 30
             }
           ]
         }
       ],
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 3
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 2,
+          "termLte": 99
         },
         {
           "type": "counter",
           "key": "standing",
           "op": "gte",
           "value": 3
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
         }
       ],
       "choices": [
@@ -838,15 +826,10 @@
       "repeatable": true,
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 1
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 1,
+          "termLte": 99
         }
       ],
       "choices": [
@@ -896,26 +879,25 @@
           "name": "junior",
           "when": [
             {
-              "type": "rank",
+              "type": "cohort",
               "role": "junior",
-              "op": "lt",
-              "vsRole": "self"
+              "present": true
             }
           ]
         }
       ],
       "when": [
         {
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 1,
+          "termLte": 99
+        },
+        {
           "type": "counter",
           "key": "standing",
           "op": "gte",
           "value": 2
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
         }
       ],
       "choices": [
@@ -981,31 +963,25 @@
           "name": "best",
           "when": [
             {
-              "type": "rank",
+              "type": "cohort",
               "role": "best",
-              "op": "gte",
-              "vsRole": "self"
+              "present": true
             }
           ]
         }
       ],
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 6
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 3,
+          "termLte": 99
         },
         {
           "type": "counter",
           "key": "standing",
           "op": "gte",
           "value": 5
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
         }
       ],
       "choices": [
@@ -1126,6 +1102,11 @@
           "name": "rival",
           "when": [
             {
+              "type": "cohort",
+              "role": "rival",
+              "present": true
+            },
+            {
               "type": "charFlag",
               "role": "rival",
               "flag": "feud",
@@ -1136,20 +1117,15 @@
       ],
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 3
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 2,
+          "termLte": 99
         },
         {
           "type": "eventFired",
           "event": "the_reckoning",
           "value": false
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
         }
       ],
       "choices": [
@@ -1292,6 +1268,11 @@
           "name": "rival",
           "when": [
             {
+              "type": "cohort",
+              "role": "rival",
+              "present": true
+            },
+            {
               "type": "charFlag",
               "role": "rival",
               "flag": "humiliated",
@@ -1302,15 +1283,10 @@
       ],
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 4
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 2,
+          "termLte": 99
         }
       ],
       "choices": [
@@ -1414,6 +1390,11 @@
           "name": "rival",
           "when": [
             {
+              "type": "cohort",
+              "role": "rival",
+              "present": true
+            },
+            {
               "type": "charFlag",
               "role": "rival",
               "flag": "wounded",
@@ -1424,15 +1405,10 @@
       ],
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 5
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 3,
+          "termLte": 99
         }
       ],
       "choices": [
@@ -1532,25 +1508,25 @@
           "name": "proctor",
           "when": [
             {
-              "type": "rank",
+              "type": "cohort",
               "role": "proctor",
-              "op": "gt",
-              "vsRole": "self"
+              "present": false
+            },
+            {
+              "type": "age",
+              "role": "proctor",
+              "op": "gte",
+              "value": 30
             }
           ]
         }
       ],
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 4
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 2,
+          "termLte": 99
         }
       ],
       "choices": [
@@ -1659,21 +1635,16 @@
       "repeatable": false,
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 3
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 2,
+          "termLte": 99
         },
         {
           "type": "counter",
           "key": "standing",
           "op": "gte",
           "value": 3
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
         }
       ],
       "choices": [
@@ -1745,6 +1716,11 @@
           "name": "enemy",
           "when": [
             {
+              "type": "cohort",
+              "role": "enemy",
+              "present": true
+            },
+            {
               "type": "charFlag",
               "role": "enemy",
               "flag": "marked_for_death",
@@ -1755,15 +1731,10 @@
       ],
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 6
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 26
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 3,
+          "termLte": 99
         }
       ],
       "choices": [
@@ -1862,15 +1833,10 @@
       "repeatable": true,
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 1
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 22
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 1,
+          "termLte": 99
         }
       ],
       "choices": [
@@ -1920,6 +1886,11 @@
           "name": "rival",
           "when": [
             {
+              "type": "cohort",
+              "role": "rival",
+              "present": true
+            },
+            {
               "type": "charFlag",
               "role": "rival",
               "flag": "framed",
@@ -1930,15 +1901,10 @@
       ],
       "when": [
         {
-          "type": "turn",
-          "op": "gte",
-          "value": 5
-        },
-        {
-          "type": "age",
-          "role": "self",
-          "op": "lte",
-          "value": 26
+          "type": "academy",
+          "register": "imperium",
+          "termGte": 3,
+          "termLte": 99
         }
       ],
       "choices": [
@@ -2084,5 +2050,5 @@
       ]
     }
   ],
-  "//": "ACADEMY CRUCIBLE — the opening act (GDD §13). Every scene here is cadet life, so every event gates on the protagonist being young (age ≤ 22): a duke of sixty does not get caught asleep on watch. Flags coined: feud, humiliated, wounded, marked_for_death, reconciled, framed, sabotaged, covered_for, owes_you; world flag oath_sworn_academy; counter standing."
+  "//": "THE INSTITUTE — the Imperium's register (docs/ACADEMY.md). The old Academy Crucible: feuds, duels, sabotage, the marked man. Under the Imperium the Academy is a war in miniature and cadets are hurt in it. Every event carries an `academy` condition (register imperium); cadet roles (rival, comrade, junior, best, enemy) bind from the cohort, mentors and proctors from outside it. Flags coined: feud, humiliated, wounded, marked_for_death, reconciled, framed, sabotaged, covered_for, owes_you; world flag oath_sworn_academy; counter standing."
 }

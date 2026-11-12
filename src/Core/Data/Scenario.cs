@@ -12,6 +12,10 @@ public sealed class Scenario
     public string Id { get; init; } = "";
     public string ProtagonistId { get; init; } = "";
     public string Era { get; init; } = "fractured_stars";
+    /// <summary>The run opens with the Academy year (docs/ACADEMY.md): the protagonist is a cadet of sixteen and the world waits.</summary>
+    public bool Academy { get; init; }
+    /// <summary>A fixture for tests and tools, not offered on the title screen.</summary>
+    public bool Hidden { get; init; }
     public IReadOnlyList<House> Houses { get; init; } = Array.Empty<House>();
     public IReadOnlyList<Character> Characters { get; init; } = Array.Empty<Character>();
     public IReadOnlyList<Relationship> Relationships { get; init; } = Array.Empty<Relationship>();

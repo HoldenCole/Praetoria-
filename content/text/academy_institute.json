@@ -1,0 +1,44 @@
+{
+  "texts": [
+    {
+      "id": "the_sorting",
+      "title": "The Sorting",
+      "body": "The yard of the Institute, the first morning. The proctors read the names under four Standards — Eagle, Wolf, Serpent, Bull — hand each a keep in the valley and a banner to keep in it, and leave. There are no captains. There are no rules they mean to enforce. Whoever holds the last banner at the year's end has won the Institute, and the Imperium will know their name. {rival.name} of {rival.house} is already looking round your Standard to see who will follow.",
+      "choices": {
+        "seize_the_standard": "Put them on the floor before a vote can be called.",
+        "win_the_vote": "Call the vote, and win it (1 influence).",
+        "serve_the_strong": "Stand beside whoever will win, first."
+      }
+    },
+    {
+      "id": "the_banner_raid",
+      "title": "The Banner Raid",
+      "body": "A rival Standard's keep stands across the valley with its banner over the gate and {enemy.name} of {enemy.house} commanding the watch. Take the banner and its cadets are yours. The proctors will not interfere with how.",
+      "choices": {
+        "storm_the_keep": "Over the wall at the dark of the moon.",
+        "take_it_by_guile": "Learn the watch. Walk in behind the bread.",
+        "offer_an_alliance": "Go under a white cloth and offer a bargain."
+      }
+    },
+    {
+      "id": "the_captains_justice",
+      "title": "The Captain's Justice",
+      "body": "{offender.name} of {offender.house}, of your own Standard, has been stealing from the rations. The keep is hungry and knows who did it, and every cadet in it is waiting to see what kind of captain they have.",
+      "choices": {
+        "the_lash": "The lash, before the whole keep.",
+        "share_the_blame": "Take half the punishment yourself.",
+        "cast_them_out": "Outside the gate, in the snow."
+      }
+    },
+    {
+      "id": "the_last_banner",
+      "title": "The Last Banner",
+      "body": "One keep left that is not yours, and {best.name} of {best.house} inside it with everyone who would not kneel. The year ends in a week. The proctors have come down to the wall to watch.",
+      "choices": {
+        "lead_the_assault": "Lead the assault up the breach yourself.",
+        "let_them_bleed": "Let the others spend themselves first.",
+        "strike_a_bargain": "Go alone and offer to share it."
+      }
+    }
+  ]
+}

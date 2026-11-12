@@ -40,7 +40,7 @@ public sealed class TurnController
     private readonly CrisisEngine? _crises;
     private readonly SphereSystem? _spheres;
     private readonly ProgressionSystem? _progression;
-    private readonly FleetSystem _fleets; private readonly NationSystem _nations;
+    private readonly FleetSystem _fleets; private readonly NationSystem _nations; private readonly AcademySystem _academy;
     private readonly HonorSystem _honors;
     private readonly GreatCrisisSystem _greatCrisis;
     private readonly FamilySystem _family = new();
@@ -70,6 +70,7 @@ public sealed class TurnController
     /// <summary>The fleet layer (GDD §6/§19): transit, upkeep, incursions, intel. A no-op without a galaxy.</summary>
     public FleetSystem Fleets => _fleets;
     public NationSystem Nations => _nations;
+    public AcademySystem Academy => _academy;
 
     /// <summary>Honorifics & Orders (GDD §13).</summary>
     public HonorSystem Honors => _honors;
@@ -97,6 +98,7 @@ public sealed class TurnController
         FactionSystem.Policies = content.Policies;
         if (world.Turn == 0 && world.Factions.Count == 0) FactionSystem.Seed(world, content.Parties, id => _senate.Weight(world, id));   // the four parties of the Republic (docs/REPUBLIC.md)
         _fleets.Policies = content.Policies; _regions.Policies = content.Policies; if (_economy != null) _economy.Policies = content.Policies;
+        _academy = new AcademySystem(content.Academy, content.Names);
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations };
         _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);
@@ -113,6 +115,7 @@ public sealed class TurnController
     /// briefing. Leaves the controller in the Action phase, ready for player choices.</summary>
     public IReadOnlyList<BriefingItem> BeginTurn()
     {
+        if (World.InAcademy) return BeginTerm();
         World.Turn++;
         foreach (var pools in World.Pools.Values) pools.Regenerate();
         _economy?.Accrue(World);     // RNG-free, so determinism is preserved (GDD §17)
@@ -134,6 +137,20 @@ public sealed class TurnController
         foreach (var fired in Engine.SelectBriefing(World, _briefingBudget))
             _briefing.Add(new BriefingItem(fired));
 
+        Phase = TurnPhase.Action;
+        SyncRng();
+        return _briefing;
+    }
+
+    /// <summary>A term at the Academy opens in place of a turn (docs/ACADEMY.md): no world system runs and the year does not advance; the
+    /// briefing carries the Academy's own events only (the event engine admits no others while it is in session).</summary>
+    private IReadOnlyList<BriefingItem> BeginTerm()
+    {
+        _academy.BeginTerm(World);
+        Phase = TurnPhase.Briefing;
+        _briefing.Clear();
+        foreach (var fired in Engine.SelectBriefing(World, AcademySystem.EventsPerTerm))
+            _briefing.Add(new BriefingItem(fired));
         Phase = TurnPhase.Action;
         SyncRng();
         return _briefing;
@@ -171,6 +188,7 @@ public sealed class TurnController
     /// refilled here — that happens at the next BeginTurn, so a turn's spend is felt before relief.</summary>
     public void EndTurn()
     {
+        if (World.InAcademy) { Phase = TurnPhase.Resolve; _academy.EndTerm(World); SyncRng(); Phase = TurnPhase.Idle; return; }   // the term closes; the world has not moved
         Phase = TurnPhase.Resolve;
         _npcAi.Act(Executor, Context(), _crises, _economy == null ? null : _content.Holdings, _fleets.Rules, _content.Businesses);   // NPCs act, invest, sail, and may author a crisis
         _senate.Tick(World);          // the Senate votes last session's motions and hears new ones (GDD §6.1) — RNG-free

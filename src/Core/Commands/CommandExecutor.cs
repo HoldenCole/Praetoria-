@@ -16,6 +16,8 @@ public sealed class CommandExecutor
     /// <summary>Execute if legal. Returns false (and records nothing) if the command can't run.</summary>
     public bool TryExecute(ICommand command, CommandContext ctx)
     {
+        // the Academy is apart from the world (docs/ACADEMY.md): a cadet answers the Academy's events and does the Academy's business, nothing else
+        if (ctx.World.InAcademy && command is not (IAcademyCommand or ResolveChoiceCommand)) return false;
         if (!command.CanExecute(ctx)) return false;
         command.Execute(ctx);
         _log.Add($"T{ctx.World.Turn} {command.ActorId}: {command.Describe()}");

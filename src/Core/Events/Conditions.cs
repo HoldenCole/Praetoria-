@@ -353,6 +353,28 @@ public sealed class FleetStrengthCondition : ICondition
     }
 }
 
+/// <summary>The Academy year (docs/ACADEMY.md). True only while the cadet is at the Academy, in the register named (or either), within
+/// the terms given. Every Academy event carries one; while the Academy is in session no event without one is eligible.
+/// JSON: { "type": "academy", "register": "republic", "termGte": 2, "termLte": 3 }.</summary>
+public sealed class AcademyCondition : ICondition
+{
+    public string Register { get; }
+    public int TermGte { get; }
+    public int TermLte { get; }
+    public AcademyCondition(string register, int termGte, int termLte) { Register = register; TermGte = termGte; TermLte = termLte; }
+    public bool Evaluate(EvalContext ctx) =>
+        ctx.World.Academy is { Active: true } a && (Register.Length == 0 || Register == a.Register) && a.Term >= TermGte && a.Term <= TermLte;
+}
+
+/// <summary>Is the role's character one of the cadets of the protagonist's year? JSON: { "type": "cohort", "role": "friend" }.</summary>
+public sealed class CohortCondition : ICondition
+{
+    public string Role { get; }
+    public bool Present { get; }
+    public CohortCondition(string role, bool present) { Role = role; Present = present; }
+    public bool Evaluate(EvalContext ctx) => ctx.Actor(Role) is { } c && (ctx.World.Academy?.Cohort.Contains(c.Id) ?? false) == Present;
+}
+
 /// <summary>Which start the world is in (GDD §10): "fractured_stars" (no imperium yet) or "imperium".
 /// JSON: { "type": "era", "era": "imperium", "present": true }. Gates court-of-the-emperor content on the
 /// Imperium start and proclamation content on the fractured one.</summary>

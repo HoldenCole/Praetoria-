@@ -40,6 +40,8 @@ public sealed class EventEngine
         foreach (var def in _content.Events)
         {
             if (!def.Repeatable && world.HasFlag(EventFlags.Fired(def.Id))) continue;
+            // the Academy is apart from the world (docs/ACADEMY.md): in session, only its own events; out of it, none of them
+            if (world.InAcademy != def.Conditions.Any(c => c is AcademyCondition)) continue;
 
             var binding = Binder.TryBind(def, world, Rng);
             if (binding == null) continue;
