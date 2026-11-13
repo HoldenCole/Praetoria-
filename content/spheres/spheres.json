@@ -4,7 +4,7 @@
   // and the power-balance metagame are one system: rise as an admiral and your house's Navy share
   // spikes, which frightens rivals and feeds the coalition/threat math (§7 → §16).
   //
-  // V1 ships three; Church/Intelligence are later/DLC slots. STRAWMAN — confirm names + mappings.
+  // V1 ships three; Church/Intelligence are slots for later chapters. STRAWMAN — confirm names + mappings.
   "spheres": [
     { "id": "navy",     "name": "the Navy",     "careerTrack": "military" },
     { "id": "treasury", "name": "the Treasury", "careerTrack": "stewardship" },

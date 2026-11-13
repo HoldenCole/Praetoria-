@@ -6,7 +6,7 @@ namespace Praetoria.Core.Data;
 /// A holding specialization (GDD §17 — agri-world, forge-world, fortress, trade-hub, …). Data, not
 /// code: defines what a holding of this type yields each turn, what it costs to run, how many
 /// building slots it offers, and how fast its population grows. The engine provides the mechanism
-/// (accrual); data provides the instances (BuildSpec §2 "slots in V1, fillers in DLC").
+/// (accrual); data provides the instances (BuildSpec §2 "slots first, fillers later").
 /// </summary>
 public sealed class HoldingSpec
 {

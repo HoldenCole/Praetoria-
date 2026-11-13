@@ -4,6 +4,9 @@ As of 2026-11-13. This page is the summary: what is built, what is missing, what
 The dated log of every pass, with measurements, is `docs/GAP_ANALYSIS.md`. Each system has its own design doc, linked
 below. Update this page at the end of every cycle.
 
+This is a personal project. Nothing is for sale and there will be no paid DLC. What the design document once called
+the DLC slate is part of this one roadmap: the near work is in section 4 and the later chapters are in section 6.
+
 ## 1. Where the game is
 
 Praetoria is playable start to finish in the browser. The simulation is complete for a human-only game: you run a
@@ -89,7 +92,8 @@ Ranked within each group by how much they hurt play.
 
 ## 4. What comes next
 
-In order. Each line is about one cycle of work (build, test, soak, browser, docs).
+In order. Lines 1 to 10 are each about one cycle of work (build, test, soak, browser, docs). Lines 11 to 15 are the
+later chapters, each several cycles; section 6 says what each builds on.
 
 | # | Work | What it delivers |
 |---|---|---|
@@ -103,6 +107,11 @@ In order. Each line is about one cycle of work (build, test, soak, browser, docs
 | 8 | **Governments and the Imperium** | The owner's later item: how a throne governs, the court as a place, the orders under an Emperor. Needs its own plan first. |
 | 9 | **Nations on the map** | Territory, borders and fronts for the nations beyond the Reach. |
 | 10 | **Sound, balance, content** | Audio, a balance pass across sixty-year runs, and events for whatever the soak shows never fires. |
+| 11 | **Courts of Intrigue** | Later chapter. An intelligence sphere and a spymaster's career; plots and counter-plots as a profession. |
+| 12 | **The Frontier** | Later chapter. Colonising the unclaimed worlds, terraforming, deeper building trees, anomalies and archaeology as the source of exotics. |
+| 13 | **The Threat From Beyond** | Later chapter. Great crises that are not human: a swarm, a plague, an awakening, each moving on the map in its own way. |
+| 14 | **AI Ascendant** | Later chapter. Machine sentience as a crisis you placate, fight or prevent. |
+| 15 | **Wrath of the Stars** | Later chapter. The great megastructures and planet-killers. |
 
 ### Next up: a custom character
 
@@ -171,29 +180,33 @@ Planned only. Nothing in this section has been started.
 | The character sheet shows skills and bonds as lists. | A life line of what the person has done, skills as bars, each trait with what it does, the next rung of their career and what it needs, and what the Reach knows them for. |
 | Houses are a sigil and a colour. | A line of description per house drawn from its calling, age and record: "an old senatorial name, twice consul". |
 
-## 6. Ideas for future expansions
+## 6. Later chapters and ideas
 
-Ideas, not commitments. The first five are the long-standing plan in `GDD.md` section 12. The rest came out of the
-work so far and suit the Roman model.
+**Later chapters.** These five were the paid DLC slate in `GDD.md` sections 12 and 20. They are now simply later work
+on the same game, in the order of section 4. The engine was built with slots for them, so most of each is content.
 
-**From the design document**
-1. *The Threat From Beyond*: non-human great crises (a swarm, a plague, an awakening) with their own behaviour on the map.
-2. *AI Ascendant*: machine sentience as a crisis, and a career track around it.
-3. *Courts of Intrigue*: an intelligence sphere and a spymaster's career; deeper plots and secret societies.
-4. *The Frontier*: colonisation, terraforming, deeper building trees.
-5. *Wrath of the Stars*: planet-killers and the great megastructures.
+| Chapter | What it adds | What it builds on today | Do it after |
+|---|---|---|---|
+| *Courts of Intrigue* | An intelligence sphere and a spymaster's career. Deep plots, counter-intelligence, secret societies. Possibly a fourth order beside the Senate, Arms and Commerce. | Career tracks and spheres are data lists. Assassination, intel pictures, sway and patronage exist. | The custom character (1) and the state and commerce (4), so a new career has somewhere to matter. |
+| *The Frontier* | Colonisation and terraforming, new holding kinds, deeper building trees, anomalies and archaeology that yield exotics. | Projects already build over years. Two systems start unclaimed. Exotics are a good with a price and no source. | Economy follow-ups (6). |
+| *The Threat From Beyond* | Non-human great crises: a swarm that advances as a front, a plague that spreads along lanes, an awakening where someone dug. | The great-crisis framework runs one human archetype from a data file. | Nations on the map (9), which adds fronts and borders, and *The Frontier*, whose digs foreshadow it. |
+| *AI Ascendant* | Machine sentience as a crisis: placate, fight or prevent. A career around it. Your own systems turning. | The same crisis framework; fleet loyalty and defection. | *The Threat From Beyond*. |
+| *Wrath of the Stars* | The full megastructure catalogue, planet-killers, a higher ceiling on crisis intensity. | Megastructures exist as four-year projects gated by rank. | Last. It is the most content and the least system. |
 
-**Newer ideas**
+*Houses of Legend* (named great houses with their own mechanics and legacies) was the reserve. It fits best as part
+of the look and feel pass (5) and the custom character (1): a line of history for every house, and a house you design.
+
+**Newer ideas.** Not ordered and not promised. They came out of the work so far and suit the Roman model.
+
 1. *The Provinces*: governing a subdued nation. Extortion, tribute, and being prosecuted for it when you come home.
 2. *The Courts*: trials as play. Prosecution as a political weapon, advocates who make a name, exile as a verdict.
 3. *The Commons*: tribunes with a veto, the grain dole, riots in the capital, and politics by the crowd.
 4. *Veterans*: land for discharged crews, colonies founded by a general, and whose clients those colonists become.
 5. *Pacts*: a formal compact between two or three great houses to share the offices, and what happens when it breaks.
-6. *Priesthoods and omens*: colleges that can delay a vote or bless a war, as a fourth, softer road to standing.
+6. *Priesthoods and omens*: colleges that can delay a vote or bless a war, as another, softer road to standing.
 7. *Trade routes*: prices by region, convoys, insurance, and piracy as a business.
-8. *Houses of Legend*: named great houses with their own mechanics and legacies.
-9. *The saga as a book*: export a finished run as a readable chronicle.
-10. *Other galaxies*: a generated map, or an editor. The content is already data.
+8. *The saga as a book*: export a finished run as a readable chronicle.
+9. *Other galaxies*: a generated map, or an editor. The content is already data.
 
 ## 7. Keeping this page honest
 

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+- **No paid DLC.** Praetoria is a personal project. The five expansions once listed as a DLC slate are later chapters
+  on the one roadmap (docs/ROADMAP.md sections 4 and 6), each with what it builds on and what it should follow. The
+  README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
+
 ### Added
 - **A roadmap** (docs/ROADMAP.md): what is done, the known gaps, the next ten cycles in order (a custom character first), a planned look-and-feel
   pass for screens and characters (not started), and ideas for later expansions. The README's status sections now

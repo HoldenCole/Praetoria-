@@ -68,7 +68,7 @@ The individual's personal climb through an institution. Each heir starts a fresh
 - **Military:** cadet → officer → ship command → fleet command → Grand Admiral. Decisions: battles, deployments, loyalty-vs-orders.
 - **Stewardship / Economy:** administrator → governor → minister → Imperial Treasurer. Decisions: resource policy, corruption, megaprojects.
 - **Law / Politics:** clerk → magistrate → senator → consul. Decisions: legislation, trials, voting blocs, intrigue.
-- *[DLC tracks]:* Intelligence/Espionage, Church/Ideology, Science/Exploration.
+- *[Later tracks]:* Intelligence/Espionage, Church/Ideology, Science/Exploration.
 
 Your career track determines which advisor seat you can eventually occupy yourself, and which pillar you have *native authority* in. A military character is an outsider in politics and needs allies there.
 
@@ -143,7 +143,10 @@ Must be **replayable** — not a fixed Suzerain-style script. Design `[TBD — n
 
 ---
 
-## 12. DLC Roadmap (base game built to accept these)
+## 12. Later chapters (once the DLC roadmap; the core game is built to accept these)
+
+> Owner's decision, 2026-11-13: there will be no paid DLC. This is a personal game. Everything this document calls
+> DLC is a later chapter of the same game, ordered in `docs/ROADMAP.md`.
 
 - Planet building deepening.
 - AI sentience & uprising (placate / fight / prevent paths).
@@ -270,12 +273,12 @@ An attacker pursuing your bloodline pays: **agents + time** per attempt (attempt
 
 **Reframe:** "Crisis" is not one event — it's two layers:
 - **Crises (recurring threat system):** the constant drumbeat of trouble at every scale. Always *something* brewing. The galaxy's "weather."
-- **The Great Crisis (endgame existential arc):** the singular threat that reframes everything. **In V1 this is purely HUMAN** (a galaxy-spanning civil war / war for the throne — the LotGH Empire-vs-Alliance climax). The cosmic/non-human Great Crisis is **flagship DLC** (see §21). The *framework* is built in V1; cosmic content fills it later.
+- **The Great Crisis (endgame existential arc):** the singular threat that reframes everything. **In V1 this is purely HUMAN** (a galaxy-spanning civil war / war for the throne — the LotGH Empire-vs-Alliance climax). The cosmic/non-human Great Crisis is the **flagship later chapter** (see §21). The *framework* is built in V1; cosmic content fills it later.
 
 Crises are largely **an application of the event engine (§15)** — weighty event-chains with escalation logic.
 
 ### V1 = a Complete HUMAN Game (critical scoping)
-V1 ships the **full human-vs-human game** — civil wars, revolts, coups, usurpers, succession wars, Bloody Events — with **no cosmic Great Crisis.** V1's endgame is the **human apex**: proclaim/seize the Imperium, win the great human wars, become (and hold) the throne. This is a *complete, satisfying arc on its own.* The cosmic threat arrives as DLC that recontextualizes a game players already found whole ("you thought the throne was the endgame — now something worse is coming"). Per the strict "never sell back missing features" rule, **V1 must NOT feel like it's building toward an absent finale.**
+V1 ships the **full human-vs-human game** — civil wars, revolts, coups, usurpers, succession wars, Bloody Events — with **no cosmic Great Crisis.** V1's endgame is the **human apex**: proclaim/seize the Imperium, win the great human wars, become (and hold) the throne. This is a *complete, satisfying arc on its own.* The cosmic threat arrives in a later chapter that recontextualizes a game players already found whole ("you thought the throne was the endgame — now something worse is coming"). Per the strict "never sell back missing features" rule, **V1 must NOT feel like it's building toward an absent finale.**
 
 ### Crises as Gated, Buildable States (the core mechanism — NOT random events)
 A crisis (revolt, civil war, succession war, coup) has **preconditions ("gates")** that accumulate in world state — e.g. a civil war's gates: low imperial legitimacy + two houses with high military spheres + a contested succession.
@@ -303,19 +306,19 @@ Gate-engineering is *a* powerful lever, NOT the entire mid-game. The mid-game is
 | **House** | succession dispute, internal coup, family betrayal | your dynasty |
 | **Regional** | vassal revolt, peasant uprising, rival's war, bloody wedding | your holdings |
 | **Imperial** | civil war, throne usurper, Senate schism | the political order |
-| **Existential** | the human war for the throne (V1) / cosmic Great Crisis (DLC) | the galaxy / humanity |
+| **Existential** | the human war for the throne (V1) / cosmic Great Crisis (later chapter) | the galaxy / humanity |
 
 Tiers unlock via *time* + *your title/power* + gate-state. A landless cadet faces Personal/House crises; a Duke faces Imperial ones. **The bigger you get, the bigger the targets on your back.** Ties Crisis to the progression ladder (§13).
 
 ### The Great Crisis Framework (built in V1, seeded with human content)
 A reusable **archetype framework** (built V1, future-proof per the "all foundations in V1" rule):
 - **V1 archetype:** the **human galaxy-war** (great civil war / Empire-vs-Alliance for the throne) — runs on the same gate/cascade system.
-- **DLC archetypes** (§21): cosmic — **Swarm/Incursion** (advancing front), **Plague** (spreading nodes), **Awakening** (dormant sites erupt — payoff of §17 anomalies), **AI Uprising** (defection/conversion). Each has signature map behavior (§19).
+- **Later archetypes** (§21): cosmic — **Swarm/Incursion** (advancing front), **Plague** (spreading nodes), **Awakening** (dormant sites erupt — payoff of §17 anomalies), **AI Uprising** (defection/conversion). Each has signature map behavior (§19).
 - **Determination:** setup choice to **specify** an archetype OR **hidden/random** (revealed via mid-game foreshadowing — default for dread).
-- **Timing — soft clock + irreducible exogenous floor.** Agency *reduces* risk and *improves* readiness but never eliminates the threat; some triggers are **exogenous** (fire on the world's schedule). You can be *ready*, not make it *not come*. (Applies fully to DLC cosmic crises; the V1 human war is more player-/NPC-authored via gates.)
+- **Timing — soft clock + irreducible exogenous floor.** Agency *reduces* risk and *improves* readiness but never eliminates the threat; some triggers are **exogenous** (fire on the world's schedule). You can be *ready*, not make it *not come*. (Applies fully to the later chapters' cosmic crises; the V1 human war is more player-/NPC-authored via gates.)
 
 ### Intensity Setting (setup slider: off / low / standard / dominant)
-Scales how dominant the Great Crisis (human war in V1, cosmic in DLC) is in the late game. Preserves the dynasty-first fantasy: dial down for a pure court-intrigue power game, up for an all-consuming war/apocalypse. One slider, both audiences. (Third personalization axis with resource emphasis §17 and family autonomy §18.)
+Scales how dominant the Great Crisis (human war in the core game, cosmic in a later chapter) is in the late game. Preserves the dynasty-first fantasy: dial down for a pure court-intrigue power game, up for an all-consuming war/apocalypse. One slider, both audiences. (Third personalization axis with resource emphasis §17 and family autonomy §18.)
 
 ### Bloody Events (a dedicated set-piece class)
 Rare, devastating, structured like the Red Rising gala:
@@ -335,7 +338,7 @@ Rare, devastating, structured like the Red Rising gala:
 2. **Materials (alloys/build-stuff)** — *from:* forge-worlds, mining holdings. *Spent on:* buildings, ships, fortifications, megastructure stages. *Chain:* mining → forge-world → Materials → shipyard → fleet (the Domain→Military pipeline). Military houses need forge-worlds.
 3. **Manpower (population)** — *from:* agri-worlds/populated holdings (grows over time). *Spent on:* crewing fleets, garrisons, armies. **Has loyalty/unrest** — it's *people*. Overtax/lose-war/plague → unrest↑ → uprising & civil-war crises (§16) eligible. Both your strength and your most volatile liability.
 4. **Influence (political capital)** — *from:* titles, standing, honorifics, Senate seats, marriages. *Spent on:* Senate maneuvers, title claims, marriages, schemes. Currency of the climb (§13). Resource-rich/influence-poor (rich but unrespected) vs. the reverse (prestigious but broke) — the gap drives decisions.
-5. **Exotics (strategic spice)** — *from:* rare; specific systems + anomaly/archaeology finds (not buildable at will). *Spent on:* megastructures, elite/flagship fleets, **Crisis countermeasures**. Scarcity = casus belli; the Great Crisis disrupts/demands it. (DLC: new exotics per expansion.)
+5. **Exotics (strategic spice)** — *from:* rare; specific systems + anomaly/archaeology finds (not buildable at will). *Spent on:* megastructures, elite/flagship fleets, **Crisis countermeasures**. Scarcity = casus belli; the Great Crisis disrupts/demands it. (later chapters: new exotics per expansion.)
 
 Conversion-chain fun lives mainly in **Materials** (production pipeline) and the **Credits/Manpower/unrest** tension. Exotics are the gated late-game key. Influence is the political throughline. The **three treasuries (§8)** apply on top — each resource exists in *Imperial* (office) and *House* (yours); manage the gap.
 
@@ -358,8 +361,8 @@ Start = **one barony = one modest holding.** Climb the title ladder → gain hol
 - **Baseline (medium):** manage build slots, budgets/taxes, population; the **Steward advisor surfaces the big decisions** as reports/choices ("Energy dry in 3 turns; raise taxes / sell holding / take a rival's loan?"). Depth lives in *decisions*, not clicking.
 - **Optional depth:** a player who *wants* to fine-tune (deeply specialize a world, optimize a production chain) can dig in. Medium by default, depth available on demand.
 
-### Megastructures: Scaled Down + DLC
-Base game = a **few iconic ones** as rare, weighty, multi-stage, Exotic-hungry set-piece projects (a real achievement to finish) — NOT Stellaris's full catalog. Deeper catalog + "Apocalypse"-scale structures = DLC (§ DLC roadmap).
+### Megastructures: scaled down now, the catalogue later
+Base game = a **few iconic ones** as rare, weighty, multi-stage, Exotic-hungry set-piece projects (a real achievement to finish) — NOT Stellaris's full catalog. Deeper catalog + "Apocalypse"-scale structures = a later chapter (§12).
 
 ### Anomalies / Archaeology = the Crisis-Foreshadowing Engine
 Their **primary purpose is to seed Great-Crisis foreshadowing** (not "+5 research" filler). The dig that uncovers a dormant horror; the anomaly that's the first sign of the plague; the ancient warning about the swarm — **exploration is how the galaxy whispers the coming Crisis before it arrives.**
@@ -469,7 +472,7 @@ Each Great-Crisis archetype (§16) has a signature *visual behavior* on the map,
 - **Swarm/Incursion** → an **advancing front** from a galaxy edge; directional, you watch it march.
 - **Plague** → **spreading corruption across nodes**; jumps along trade/hyperlanes, infects non-contiguously, unpredictable bloom (not a clean front).
 - **Awakening** → **stirs from within**; dormant sites (seeded earlier by anomalies/archaeology §17) activate across the interior — threat erupts from the systems the player investigated mid-game. (Direct payoff: foreshadowing digs become eruption sites.)
-- **AI Uprising (DLC)** → **defection/conversion**; your own systems/fleets turn — threat from inside your territory.
+- **AI Uprising (later chapter)** → **defection/conversion**; your own systems/fleets turn — threat from inside your territory.
 
 Early game the Crisis is absent/rumored (anomaly markers only); late game it has full spatial presence.
 
@@ -477,24 +480,27 @@ Early game the Crisis is absent/rumored (anomaly markers only); late game it has
 
 ---
 
-## 20. Scope Split: V1 / Free Updates / Paid DLC
+## 20. Scope: the core game and the later chapters
 
-### Architectural Principle: "Slots in V1, Fillers in DLC"
-**Build the *skeleton* for everything in V1; ship only *some of the meat*.** Every extensible system is built as a *generalized mechanism* exposed to data in V1; DLC adds *instances* into slots that already exist — never cuts the game open to add new ones. This is the Paradox-longevity model and the whole reason V1 must contain "99% of UI and foundations."
-- **Career tracks** — V1 builds a track *system*; ships 3 (Military / Stewardship / Law). DLC adds tracks by data.
-- **Spheres** — power-balance (§7) holds N spheres; ships 3 (Navy / Treasury / Senate). DLC adds spheres.
-- **Crisis archetypes** — framework + archetype→map-behavior (§19) built V1; ships with the **human galaxy-war** archetype. DLC adds cosmic archetypes as content.
-- **Event engine** — already data-driven/mod-ready (§15), so *all* DLC narrative is just more data files. (Most DLC content = zero engine work.)
-- **Exotics, megastructures, building types, holding specializations, traits, house templates** — all data-driven lists in V1, extensible by DLC.
+> Owner's decision, 2026-11-13: nothing is sold. The split below is kept because it says what belongs in the core
+> game and what comes later; read "later chapter" wherever a price was once implied. Order: `docs/ROADMAP.md`.
+
+### Architectural Principle: "Slots first, fillers later"
+**Build the *skeleton* for everything in V1; ship only *some of the meat*.** Every extensible system is built as a *generalized mechanism* exposed to data in V1; a later chapter adds *instances* into slots that already exist — never cuts the game open to add new ones. This is the Paradox-longevity model and the whole reason V1 must contain "99% of UI and foundations."
+- **Career tracks** — V1 builds a track *system*; ships 3 (Military / Stewardship / Law). Later chapters add tracks by data.
+- **Spheres** — power-balance (§7) holds N spheres; ships 3 (Navy / Treasury / Senate). Later chapters add spheres.
+- **Crisis archetypes** — framework + archetype→map-behavior (§19) built V1; ships with the **human galaxy-war** archetype. Later chapters add cosmic archetypes as content.
+- **Event engine** — already data-driven/mod-ready (§15), so *all* later narrative is just more data files. (Most later content = zero engine work.)
+- **Exotics, megastructures, building types, holding specializations, traits, house templates** — all data-driven lists in V1, extensible later.
 
 ### V1 — A Complete HUMAN Game (richer human side; 3+3)
-Full human-vs-human game: 3 career tracks, 3 spheres, complete human-crisis suite (civil wars / revolts / coups / usurpers / succession wars / Bloody Events), the gate/cascade crisis system (§16), the Great-Crisis framework *seeded with the human galaxy-war*, both modes, full reactive UI, complete event engine, base economy & holdings, dynasty layer. **Endgame = proclaim/seize the Imperium and win/hold the throne.** A complete, satisfying arc with no DLC required.
-- **Intrigue safeguard:** intrigue-*as-playstyle* ships in V1 (the Intrigue rise-path §13, plots, marriages, Bloody Events) so the political game feels complete. Only the **dedicated Intelligence sphere + Spymaster career track** (deep counter-intel as a *profession*) is reserved for DLC. Intrigue itself is NOT sold back; the *specialized profession* is the deepening. (Keeps the strict "never sell back missing features" rule.)
+Full human-vs-human game: 3 career tracks, 3 spheres, complete human-crisis suite (civil wars / revolts / coups / usurpers / succession wars / Bloody Events), the gate/cascade crisis system (§16), the Great-Crisis framework *seeded with the human galaxy-war*, both modes, full reactive UI, complete event engine, base economy & holdings, dynasty layer. **Endgame = proclaim/seize the Imperium and win/hold the throne.** A complete, satisfying arc with no later chapters required.
+- **Intrigue safeguard:** intrigue-*as-playstyle* ships in V1 (the Intrigue rise-path §13, plots, marriages, Bloody Events) so the political game feels complete. Only the **dedicated Intelligence sphere + Spymaster career track** (deep counter-intel as a *profession*) is reserved for a later chapter. Intrigue itself is NOT held back; the *specialized profession* is the deepening. (Keeps the strict "never sell back missing features" rule.)
 
-### Free Updates (live-game goodwill)
-Balance, bug fixes, QoL/UI improvements — AND **ongoing free event/story content** (events are data §15, so free human-political event drops are core to keeping the base game alive between paid releases). Possibly one free track or archetype post-launch as good-faith signal.
+### Ongoing work on the core game
+Balance, bug fixes, QoL/UI improvements — AND **ongoing free event/story content** (events are data §15, so free human-political event drops keep the core game alive between chapters).
 
-### Paid DLC Slate (5) — each adds a NEW axis, never restores a missing one
+### The later chapters (5) — each adds a NEW axis, never restores a missing one
 1. **The Threat From Beyond** *(flagship)* — the entire cosmic layer: non-human Great-Crisis archetypes (Swarm / Plague / Awakening), the anomaly-foreshadowing payoff (§17), archetype map-behaviors (§19). Recontextualizes a game players already found complete. *Fills: Crisis-archetype slots, map-behavior slots. Zero new engine systems.*
 2. **AI Ascendant** — the AI-sentience Great Crisis (placate / fight / prevent paths) + a Synthetics/Inquisitor career track; "defection/conversion" map behavior. *Fills: archetype slot, career-track slot.*
 3. **Courts of Intrigue** — the **Intelligence/Espionage sphere + Spymaster career track**, deep plot/counter-intel mechanics, secret societies, more Bloody Event set-pieces. *Fills: sphere slot, career-track slot, event pool.*
@@ -510,11 +516,11 @@ Balance, bug fixes, QoL/UI improvements — AND **ongoing free event/story conte
 - [x] Progression ladder + three rise paths — *see §13*
 - [x] Dynasty death / succession / survival — *see §14*
 - [x] Event engine (systemic narrative core) — *see §15*
-- [x] Crisis system — gated/cascading, human V1 / cosmic DLC — *see §16*
+- [x] Crisis system — gated/cascading, human core / cosmic later — *see §16*
 - [x] Resources & holdings — *see §17*
 - [x] Dynasty layer (traits, bonds, ambitions, marriage, fostering) — *see §18*
 - [x] UI/UX & art direction — *Court + Galaxy, art direction, dynasty-view (§19)*
-- [x] Scope split: V1 / free / DLC — *see §20*
+- [x] Scope split: core game / later chapters — *see §20*
 - [x] **Claude Code build spec — see companion document `BuildSpec.md`**
 
-**DESIGN COMPLETE.** All systems specified, scoped (V1/free/DLC), and given a staged build order in the companion build spec.
+**DESIGN COMPLETE.** All systems specified, scoped (core game / later chapters), and given a staged build order in the companion build spec.

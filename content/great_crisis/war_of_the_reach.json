@@ -5,7 +5,7 @@
   // STAGES. Each stage sets a flag content reads, applies effects, and may trigger a map/political BEHAVIOUR the
   // engine implements: "blocs" sorts the houses into the hegemon's bloc and the alliance against it; "bloc_war"
   // declares war between the blocs; "resolution" ends the wars and, in the fractured stars, enthrones the strongest
-  // house of the winning bloc — the war births an Imperium. DLC archetypes (Swarm, Plague, Awakening) are new files
+  // house of the winning bloc — the war births an Imperium. Later archetypes (Swarm, Plague, Awakening) are new files
   // here with their own behaviours. The intensity setting is the player's knob (GDD §20 "crisis intensity").
   "greatCrisis": {
     "id": "war_of_the_reach",

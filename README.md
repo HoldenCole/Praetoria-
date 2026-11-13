@@ -47,7 +47,7 @@ and the [Build Spec](docs/BuildSpec.md) that turns it into a construction order.
 3. [How it's built](#how-its-built-architecture) — the architecture, for programmers
 4. [What's built](#whats-built-the-current-state) — the current state, system by system
 5. [What's not built](#whats-not-built-the-gaps) — the honest gap list
-6. [Where it's going](#where-its-going-roadmap--expansion-passes) — remaining milestones, then V1 → free updates → DLC
+6. [Where it's going](#where-its-going-roadmap--expansion-passes) — what comes next, and the later chapters
 7. [Try it](#try-it-quickstart) — run the headless game in two minutes
 8. [Repo map & reading order](#repo-map--where-to-read-next)
 9. [Contributing content](#contributing-content)
@@ -224,7 +224,7 @@ three orders of the Republic (`REPUBLIC`).
 | **War & combat** | §6, §13 | ✅ | Wars by command, event or a hostile NPC that outguns you. Fleets of warring houses that share a system **fight**: **ship classes** (corvette → battleship, as data) × readiness × **the admiral's skill** × veterancy, defenders boosted by fortress worlds and batteries, a seeded roll, losses screen-first, the loser falling back to port, a defeated admiral wounded or killed. **Sieges**: an unopposed fleet blockades (yield halved) and takes the holding when the clock runs out — the Military path's "take it". **War score** drives tribute and peace refusal; weariness grinds long wars; **titles follow the land**. An NPC's suit becomes *The Envoy* scene. |
 | **Dynasty depth** | §14, §18 | ✅ | Children named from house cultures who **come of age** with inherited traits, a track and an ambition; **succession laws**; **fostering** hides kin from events and knives; **assassination** with odds, trails and NPC heir-hunting in war; **marriage proposals** that forge claims; real **regents**; **resentment of the risen**. |
 | **Honors & friction** | §13, §18 | ✅ | Five Honorifics & Orders as data, invested when earned. Nature-trait **friction**: declaring war, conquering, plundering, suing for peace or buying a knife costs stress by nature, from a data table. |
-| **The Great Crisis** | §11, §16, M6 | ✅ | V1's human archetype as data: a clock driven by intensity and the galaxy's turmoil; stages that sort the houses into the hegemon's bloc and the alliance, declare the bloc war, and resolve it — ending the wars and, in the fractured stars, enthroning the strongest house of the winning bloc. The player picks a side in *The Blocs*. DLC archetypes are new files. |
+| **The Great Crisis** | §11, §16, M6 | ✅ | V1's human archetype as data: a clock driven by intensity and the galaxy's turmoil; stages that sort the houses into the hegemon's bloc and the alliance, declare the bloc war, and resolve it — ending the wars and, in the fractured stars, enthroning the strongest house of the winning bloc. The player picks a side in *The Blocs*. Later archetypes are new files. |
 | **Family autonomy & advisors** | §18, §3 | ✅ | Willful kin grow defiant, court your rivals, and may defect with a claim; passed-over siblings resent the heir; elders decline. Three advisor seats speak each turn, the Admiral from the house's intel picture, not the truth. |
 | **Strategy & endgame** | §17, §10, §13, M6 | ✅ | The **Exchange**, **tax policy**, territory **contiguity**, **megastructures** gated by title; the **difficulty** knob. **Proclaim or seize the Imperium**: the era flips, office fleets pass with the office, the deposed house is marked, the galaxy's fear peaks. The **saga epilogue** narrates the run. The Director keeps one set-piece per briefing, favours the protagonist's ambition, and stirs a lull. |
 | **Court UI (Godot)** | §6, §19, M3 | ◐ compiles, unrun | Creation screen → three-column Court (character card with portrait badge, pools, Steward with build and ship-laying buttons, Admiral, Chancellor with rise-path buttons · briefing feed with choice buttons · dynasty rail, connections, crisis clock with dampers, chronicle) with End Turn / Save / Load, and a **Galaxy view** (drawn map, territory by accent, fleet glyphs — chevron house / diamond office, rivals faded by confidence — click-to-inspect, movement orders). Serif for Court, sans for Galaxy; era-reactive palette. The Court renders a **Godot-free, unit-tested projection** (`CourtProjection`), so its logic is verified even though the window has not been opened yet. |
@@ -294,40 +294,23 @@ is `docs/GAP_ANALYSIS.md`. In short:
 section 6. The working method follows `docs/PROCESS.md`: forty things → QA → graphics → QA → ten QoL fixes → bug
 check → reassess, with `docs/GAP_ANALYSIS.md` §4 holding the ranked list the next forty are drawn from.
 
-### The expansion philosophy: "slots in V1, fillers in DLC" (GDD §20)
-Every extensible system is built as a *generalised mechanism exposed to data*. DLC adds **instances**
-into slots that already exist — it never cuts the game open to add a new system. You can see this in
-the code today: career tracks, spheres, crisis archetypes, holding types, buildings, titles and traits
-are all data lists the engine reads, so most future content is zero engine work.
+### One roadmap, nothing for sale
+Praetoria is a personal project. There is no paid DLC and no release plan to protect. The five expansions the design
+document once listed as DLC (*The Threat From Beyond*, *AI Ascendant*, *Courts of Intrigue*, *The Frontier*, *Wrath of
+the Stars*) are later chapters on the same roadmap: see [`docs/ROADMAP.md`](docs/ROADMAP.md) sections 4 and 6 for
+their order and what each builds on.
 
-### V1 — a complete *human* game
-Everything above: 3 career tracks, 3 spheres, the full human-crisis suite (revolts, coups, civil wars,
-usurpers, succession wars, Bloody Events), the gate/cascade system, the Great-Crisis framework seeded
-with the **human galaxy-war**, both modes, the reactive UI, the economy, the dynasty layer.
-**Endgame = proclaim or seize the Imperium and hold the throne.** A complete arc with no DLC required —
-V1 must never feel like it's building toward an absent finale.
+### Slots first, fillers later (GDD §20)
+Every extensible system is built as a *generalised mechanism exposed to data*. A later chapter adds **instances**
+into slots that already exist; it does not cut the game open to add a new system. You can see this in the code today:
+career tracks, spheres, crisis archetypes, holding types, buildings, titles and traits are all data lists the engine
+reads, so most future content is little or no engine work.
 
-### Free updates
-Balance, fixes, QoL — and **ongoing free event/story content**, because events are data and keeping
-the human-political game alive between paid releases is core to the model.
-
-### Paid DLC — five planned, each adds a *new axis*, never restores a missing one
-1. **The Threat From Beyond** *(flagship)* — the cosmic layer: non-human Great-Crisis archetypes
-   (**Swarm**: an advancing front · **Plague**: spreading across nodes · **Awakening**: dormant sites
-   erupting where you dug) with their signature map behaviours, and the anomaly/archaeology
-   foreshadowing payoff. Recontextualises a game players already found whole: *"you thought the throne
-   was the endgame — now something worse is coming."*
-2. **AI Ascendant** — the AI-sentience Great Crisis (placate / fight / prevent) + a Synthetics/
-   Inquisitor career track; "defection/conversion" map behaviour.
-3. **Courts of Intrigue** — the **Intelligence sphere + Spymaster track**: deep plot/counter-intel,
-   secret societies, more Bloody Events. (Intrigue *as a playstyle* ships in V1; only the specialised
-   profession is the deepening.)
-4. **The Frontier** — planet-building: deeper specialisation and building trees, terraforming/
-   colonisation, new holding types, more anomalies.
-5. **Wrath of the Stars** — planet-killers, the deep megastructure catalog, doomsday-scale content, a
-   higher Crisis-intensity ceiling, new Exotics.
-
-*(Reserve: "Houses of Legend" — legendary named houses, bespoke dynastic mechanics, legacy perks.)*
+### The core game: a complete *human* game
+Three career tracks, three spheres, the human crises (revolts, coups, civil wars, usurpers, succession wars, Bloody
+Events), the gate and cascade system, the Great-Crisis framework seeded with the **human galaxy-war**, the economy,
+the dynasty layer, the Republic. **Endgame = proclaim or seize the Imperium and hold the throne.** It is a whole arc
+on its own; the later chapters add new axes to it and do not fill holes in it.
 
 ### Three personalisation axes (tunable at setup)
 **Crisis intensity** (off → dominant: a pure court-intrigue game or an all-consuming war),

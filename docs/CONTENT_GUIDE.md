@@ -516,7 +516,7 @@ standing war, coalition pressure, fear). Each stage has `at` (clock tenths), `ef
 `bloc_war` (every hegemon house vs every alliance house), `climax`, `resolution` (wars end; the bloc with more hulls
 wins; in the fractured stars its strongest house takes the throne). The engine raises `great_crisis:<stage>`,
 `great_crisis:resolved`, `great_crisis:player_won` / `player_lost`; the `bloc` condition reads a house's side and the
-`joinBloc` effect changes the player's. A cosmic DLC archetype is a new file with new behaviours (a "front" that
+`joinBloc` effect changes the player's. A cosmic archetype from a later chapter is a new file with new behaviours (a "front" that
 advances from an edge system is the obvious next one).
 
 ### Knobs the engine exposes (GDD §20)
@@ -732,7 +732,7 @@ content would have nowhere to go:
 | **Megastructures** | GDD slot, no loader. | later |
 | **Fostering / hidden kin ("scatter the seed")** | No data shape. Marriage, claims, succession and `kill` *are* loadable. | later |
 | **Honorifics & Orders** | GDD §13 slot, no loader. | later |
-| **Exotics *sources* / anomalies / archaeology** | The Exotics resource exists; the anomaly→Crisis-foreshadowing system is DLC-era. | DLC |
+| **Exotics *sources* / anomalies / archaeology** | The Exotics resource exists; the anomaly→Crisis-foreshadowing system belongs to a later chapter (*The Frontier*). | later |
 | **Galaxy map / systems / hyperlanes** | `Holding.system` field is reserved but unused. | Milestone 3/4 UI |
 | **The Great Crisis / era flip / epilogue** | `World.Era` is readable (`era` condition) and the Imperium *start* ships; nothing *flips* the era mid-run yet, and there is no epilogue generator. | Milestone 6 |
 

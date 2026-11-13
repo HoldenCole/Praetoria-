@@ -19,7 +19,7 @@
 ## 1. Architectural Pillars (non-negotiable)
 
 1. **Simulation / Presentation split.** The entire game state and rules live in plain C# (a `Core` assembly) with NO dependency on Godot types. Godot is a *presentation + input* layer that reads from and sends commands to Core. Rationale: enables headless testing, the reactive UI (GDD §19), modding (GDD §20), and clean saves.
-2. **Data-driven content.** Events, traits, careers, spheres, holdings, crisis archetypes, exotics, megastructures — all defined in external data files (JSON), loaded at runtime. Code provides *mechanisms*; data provides *instances* (GDD §20 "slots in V1, fillers in DLC"). Modding falls out for free; do NOT build mod tooling in V1.
+2. **Data-driven content.** Events, traits, careers, spheres, holdings, crisis archetypes, exotics, megastructures — all defined in external data files (JSON), loaded at runtime. Code provides *mechanisms*; data provides *instances* (GDD §20 "slots first, fillers later"). Modding falls out for free; do NOT build mod tooling in V1.
 3. **Logic / Text separation.** Event *logic* (conditions, choices, effects) and event *text* (prose, dialogue) are separate, keyed by ID (GDD §15). Enables AI-assisted writing and localization without touching mechanics.
 4. **Turn-resolved, not real-time.** The world recomputes on turn-advance only (GDD §9). Cheap; deterministic; easy to test and save.
 5. **Deterministic core + seeded RNG.** All randomness flows through a single seeded RNG owned by Core. Same seed + same inputs = same outcome. Essential for save integrity, debugging, and reproducible tests.
@@ -105,7 +105,7 @@ All of the above must be **serializable** (save/load = serialize World). Saves a
 - **Two modes (GDD §4, §19):** Court (three-column: advisors+pools / briefing feed / dynasty+crisis-clock) and Galaxy (command-table map). Persistent top status bar with the mode toggle.
 - **Reactive theming (GDD §19):** a Theme service reads era (pre/post-Imperium) + character role + house accent color and skins the UI accordingly. Build a strong *base* theme first; layer era/role reactivity later (it's real added cost — stage it).
 - **Dynasty as contextual connections (GDD §19):** no dedicated mode; summary rail + summonable full-tree overlay; relationship graph queryable so connections surface in-context everywhere ("who do I know in the Senate / in House Corwin?").
-- **Galaxy map:** 2D node-and-lane, curated scale; territory shaded by house accent; fleets as markers (office vs house sigils); mixed visibility (territory visible, fleet/strength intel confidence-flagged); Great-Crisis map behavior per archetype (DLC archetypes add their own).
+- **Galaxy map:** 2D node-and-lane, curated scale; territory shaded by house accent; fleets as markers (office vs house sigils); mixed visibility (territory visible, fleet/strength intel confidence-flagged); Great-Crisis map behavior per archetype (archetypes from later chapters add their own).
 - **Typography:** ceremonial (serif/engraved) for Court; functional (technical sans) for Galaxy.
 
 ---
@@ -114,7 +114,7 @@ All of the above must be **serializable** (save/load = serialize World). Saves a
 
 - **Queryable relationship graph:** the bond graph must answer "connections of X in context Y" cheaply, to power contextual connection-surfacing (GDD §19) and binding.
 - **Command pattern:** all state mutation (player and AI) goes through `/Core/Commands` — gives undo/redo potential, replay, testability, and a single AI/player interface.
-- **Saves = serialize World** (incl. RNG state). Versioned for forward-compat with DLC.
+- **Saves = serialize World** (incl. RNG state). Versioned for forward-compat with later chapters.
 - **Content validation tool** (`/src/Tools`): lints data files (every event-logic id has matching text; referenced traits/roles exist; no dangling gate references). Run in CI.
 - **No hard-coded content in Core logic** — if it's an instance (a trait, an event, a sphere), it lives in `/content`.
 
@@ -151,7 +151,7 @@ The Great-Crisis framework seeded with the human galaxy-war; proclaiming/seizing
 Era × role × house reactive theming (§6); ceremonial/functional typography; portraits; audio; the free-content event pipeline; balance pass (respect variable-emphasis, GDD §17). Build out V1 event/content volume.
 - **Acceptance:** the diegetic reactive UI transforms on proclamation and by role; content volume sufficient for replayability.
 
-### Post-V1 — DLC (slots already exist)
+### After the core game — the later chapters (slots already exist; nothing is sold, see docs/ROADMAP.md)
 Fill the data slots per GDD §20: The Threat From Beyond (cosmic archetypes), AI Ascendant, Courts of Intrigue (Intelligence sphere + Spymaster track), The Frontier, Wrath of the Stars. Mostly content + data; minimal engine work.
 
 ---

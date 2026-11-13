@@ -5,7 +5,7 @@
   // integer (`rank` condition) and on the track (`track` condition); prose names the rung with
   // {role.rankName}, which follows the era. `ranks` is the Republic's ladder; `imperialRanks` renames the
   // same rungs once a throne stands (same length or shorter; a missing rung keeps its republic name).
-  // DLC tracks (Intelligence, Church, Science) are new entries here, zero engine work.
+  // Later tracks (Intelligence, Church, Science) are new entries here, zero engine work.
   "tracks": [
     { "id": "military",    "name": "the Navy", "imperialName": "the Imperial Navy",
       "ranks":         ["Cadet", "Ensign", "Lieutenant", "Commander", "Captain", "Admiral", "Fleet Admiral"],

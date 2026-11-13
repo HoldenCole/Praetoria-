@@ -1,7 +1,7 @@
 namespace Praetoria.Core.Spheres;
 
 /// <summary>Canonical sphere keys (GDD §7). The estates imperial power is divided among. V1 ships
-/// three; Church/Intelligence are later/DLC. Keyed strings (like <see cref="State.Resource"/>) used
+/// three; Church/Intelligence come in later chapters. Keyed strings (like <see cref="State.Resource"/>) used
 /// in <see cref="State.House.SphereInfluence"/> and in the data catalog's career mapping.</summary>
 public static class Sphere
 {

@@ -1,6 +1,6 @@
 namespace Praetoria.Core.Careers;
 
-/// <summary>Canonical career-track keys (GDD §13). V1 ships three; Intelligence/Church/Science are DLC slots.</summary>
+/// <summary>Canonical career-track keys (GDD §13). V1 ships three; Intelligence/Church/Science are slots for later chapters.</summary>
 public static class CareerTrack
 {
     public const string Military = "military";

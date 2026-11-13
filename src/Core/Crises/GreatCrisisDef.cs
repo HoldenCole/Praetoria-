@@ -14,7 +14,7 @@ public sealed class GreatCrisisStage
     public string Log { get; init; } = "";
 }
 
-/// <summary>A Great-Crisis archetype (GDD §11/§16, BuildSpec M6): V1 ships the human galaxy-war; DLC adds cosmic ones.</summary>
+/// <summary>A Great-Crisis archetype (GDD §11/§16, BuildSpec M6): the core game ships the human galaxy-war; later chapters add cosmic ones.</summary>
 public sealed class GreatCrisisDef
 {
     public string Id { get; init; } = "";
