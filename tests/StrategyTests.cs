@@ -95,6 +95,11 @@ public class StrategyTests
         Assert.False(ring.CanExecute(ctx));
         house.Title = "count";
         Assert.True(new CommandExecutor().TryExecute(ring, ctx));
+        // a megastructure is four years in the building (docs/ECONOMY_MARKET.md stage B): begun now, announced when it stands
+        var site = Assert.Single(w.Projects); Assert.Equal(4, site.TurnsTotal); Assert.False(w.HasFlag("megastructure_raised")); Assert.DoesNotContain("orbital_ring", w.Holding("thorne_fief")!.Buildings);
+        Assert.Equal("already being built", ring.Refusal(ctx));
+        for (int year = 0; year < 4; year++) { w.Turn++; ProjectSystem.Tick(w, content.Holdings, content.Businesses); }
+        Assert.Empty(w.Projects); Assert.Contains("orbital_ring", w.Holding("thorne_fief")!.Buildings);
         Assert.True(w.HasFlag("megastructure_raised"));
         Assert.Equal(1, w.Counter("megastructures"));
         Assert.True(content.Holdings.Building("orbital_ring")!.Megastructure);

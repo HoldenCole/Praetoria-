@@ -141,11 +141,14 @@ public class EconomyDepthTests
         var id = FoundBusinessCommand.IdFor("vega", "trading_company", "tessaly");
         Assert.True(exec.TryExecute(new ExpandBusinessCommand("self", id, v), Ctx(w)));
         Assert.Equal(2, w.Business(id)!.Level); Assert.Equal(40 - 12 - 10, w.House("vega")!.Treasury.Credits);
-        int price = SellBusinessCommand.Price(v.Def("trading_company")!, w.Business(id)!);
-        Assert.Equal((12 + 4 + 10) * 6 / 10, price);
-        Assert.True(exec.TryExecute(new SellBusinessCommand("self", id, v), Ctx(w)));
+        // sold on the open market at four-fifths of its value: six years of what it earns, half its book at least (docs/ECONOMY_MARKET.md stage B)
+        var eco = new Economy(cat, v); var vs = new VentureSystem(eco, v); var biz = w.Business(id)!;
+        int earnings = eco.VentureEarnings(w, biz); Assert.True(earnings >= 6);
+        Assert.Equal(Math.Max((12 + 4 + 10) / 2, earnings * 6), vs.Value(w, biz));
+        int price = vs.MarketPrice(w, biz); Assert.Equal(vs.Value(w, biz) * 80 / 100, price);
+        Assert.True(exec.TryExecute(new SellVentureCommand("self", id, "", vs), Ctx(w)));
         Assert.Null(w.Business(id)); Assert.Equal(18 + price, w.House("vega")!.Treasury.Credits);
-        Assert.Equal("no such venture", new SellBusinessCommand("corwin_head", "nothing", v).Refusal(Ctx(w)));
+        Assert.Equal("no such venture", new SellVentureCommand("corwin_head", "nothing", "", vs).Refusal(Ctx(w)));
     }
 
     [Fact]
@@ -190,7 +193,7 @@ public class EconomyDepthTests
         var w = Reach(credits: 30); var cat = Catalog(); var v = Ventures(); var eco = new Economy(cat, v);
         eco.Reckon(w);
         var vega = w.House("vega")!; var corwin = w.House("corwin")!;
-        Assert.Equal(30 + 10 * 2 / 3 + Wealth.PlanetValue + 10, vega.Wealth);          // credits, materials, a world at par
+        Assert.Equal(30 + (int)(10 * 1.5 * 2 / 3) + Wealth.PlanetValue + 10, vega.Wealth);          // credits, materials at two-thirds of the market's price, a world at par
         Assert.True(vega.Wealth > corwin.Wealth);
         Assert.Equal(1, w.Counter("wealth_rank")); Assert.True(w.HasFlag("richest:vega"));
         Assert.Equal("comfortable", Wealth.Tier(vega.Wealth));

@@ -22,9 +22,20 @@ public sealed record HoldingCard(string Id, string Name, string SpecName, string
     IReadOnlyList<ShipOption> Ships, bool Besieged, string Kind = "planet", string? GovernorName = null, IReadOnlyList<Option>? GovernorOptions = null, string Culture = "",
     int Prosperity = 50, int ProsperityTarget = 50, Option? Invest = null, int Belt = 0, int GovernorDisposition = 0, int GovernorAdministration = 0, bool GovernorAmbitious = false);
 /// <summary>A venture the house owns (GDD §17 businesses) and what can be done with it.</summary>
-public sealed record BusinessCard(string Id, string Name, string KindName, string? SystemName, int Level, int MaxLevel, string Yield, string? Charter, int Value, Option Expand, Option Sell);
+public sealed record BusinessCard(string Id, string Name, string KindName, string? SystemName, int Level, int MaxLevel, string Yield, string? Charter, int Value, Option Expand, Option Sell,
+    int Earnings = 0, int MarketPrice = 0, IReadOnlyList<VentureBid>? Bids = null, string? CompanyName = null, bool Enlarging = false);
+/// <summary>A house that would buy one of your ventures, and what it would pay.</summary>
+public sealed record VentureBid(string HouseId, string HouseName, string Accent, int Price, bool HoldsTheWorld);
+/// <summary>Something of yours under construction (docs/ECONOMY_MARKET.md stage B).</summary>
+public sealed record ProjectCard(string Id, string Name, string Kind, int TurnsLeft, int TurnsTotal, string Paid, string Remaining, string Next, bool Paused, bool Stalled, int RushCredits, string? RushRefusal, string Refund, string? CompanyName);
+/// <summary>Another house's venture you could buy, at its asking price, and what it would earn you.</summary>
+public sealed record ForSaleCard(string BusinessId, string Name, string KindName, string OwnerId, string OwnerName, string OwnerAccent, string? SystemName, int Level, int PerYear, int Ask, string? Refusal, string Payback, bool Distressed, bool OnYourWorld);
+/// <summary>A venture offered to you, until the year is out.</summary>
+public sealed record OfferCard(string Id, string BusinessName, string KindName, string FromName, string? SystemName, int Price, int PerYear, string Reason, string? Refusal);
+/// <summary>The house's assets beyond land: projects under way, ventures for sale in the Reach, offers on the table.</summary>
+public sealed record AssetsCard(IReadOnlyList<ProjectCard> Projects, IReadOnlyList<ForSaleCard> ForSale, IReadOnlyList<OfferCard> Offers);
 /// <summary>A venture the house could found: a kind in a system, with the reason it cannot (null = it can).</summary>
-public sealed record VentureOption(string DefId, string Name, string Description, string SystemId, string SystemName, string Cost, string? Refusal);
+public sealed record VentureOption(string DefId, string Name, string Description, string SystemId, string SystemName, string Cost, string? Refusal, int PerYear = 0, string Payback = "", int BuildTurns = 0, string First = "", string Sector = "");
 /// <summary>A belt the house could stake a claim in.</summary>
 public sealed record ClaimOption(string SystemId, string SystemName, int Belt, int Staked, string? Refusal);
 /// <summary>A world of the house's that broke away and may be bought back.</summary>
@@ -116,7 +127,7 @@ public sealed record CourtModel(int Turn, string Era, string Mode, int Generatio
     IReadOnlyList<HouseholdLine> Household, IReadOnlyList<SiegeLine> Sieges, string? EpilogueText,
     IReadOnlyList<AdvisorReport> Advisors, GreatCrisisCard? GreatCrisis,
     LedgerCard? Ledger = null, IReadOnlyList<BusinessCard>? Businesses = null, IReadOnlyList<VentureOption>? Ventures = null, IReadOnlyList<ClaimOption>? Claims = null,
-    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null, IReadOnlyList<Option>? Procure = null, IReadOnlyList<string>? Deposits = null, SenateCard? Senate = null, ChanceryCard? Chancery = null, MilitaryCard? Military = null, MarketCard? Market = null);
+    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null, IReadOnlyList<Option>? Procure = null, IReadOnlyList<string>? Deposits = null, SenateCard? Senate = null, ChanceryCard? Chancery = null, MilitaryCard? Military = null, MarketCard? Market = null, AssetsCard? Assets = null);
 
 public static class CourtProjection
 {
@@ -155,8 +166,12 @@ public static class CourtProjection
                 if (!b.FitsSpecialization(h.Specialization) || h.Buildings.Contains(b.Id)) continue;
                 if (b.RequiresDeposit != null && (w.Galaxy?.System(h.SystemId)?.Deposit(b.RequiresDeposit) ?? 0) == 0) continue;   // nothing here to work
                 var cmd = new BuildCommand(p.Id, h.Id, b.Id, content.Holdings, content.Titles);
-                builds.Add(new BuildOption(h.Id, b.Id, $"{(b.Megastructure ? "Raise" : "Build")} {b.Name}  ({Bundle(b.Cost)})",
-                    $"yield {Bundle(b.Yield)}" + (b.Upkeep.IsEmpty() ? "" : $" · upkeep {Bundle(b.Upkeep)}") + (b.MinTitleRank > 0 ? $" · needs title rank {b.MinTitleRank}" : ""), cmd.CanExecute(ctx)));
+                // the prospectus: what it would net a year at this year's prices, and how long until it has paid for itself
+                double perYear = Economy.WorthOf(w, b.Yield) * (b.RequiresDeposit != null ? Math.Max(1, w.Galaxy?.System(h.SystemId)?.Deposit(b.RequiresDeposit) ?? 1) : 1) - Economy.WorthOf(w, b.Upkeep); double cost = Economy.WorthOf(w, b.Cost);
+                string payback = perYear > 0.5 ? $"pays for itself in {Math.Ceiling(cost / perYear):0} year(s)" : "does not pay in coin";
+                string years = b.BuildTurns > 1 ? $" · {b.BuildTurns} years, {Bundle(ProjectSystem.Split(b.Cost, b.BuildTurns).First)} a year" : b.BuildTurns == 1 ? " · a year" : "";
+                builds.Add(new BuildOption(h.Id, b.Id, $"{(b.Megastructure ? "Raise" : "Build")} {b.Name}  ({Bundle(b.Cost)}{years})",
+                    $"yield {Bundle(b.Yield)}" + (b.Upkeep.IsEmpty() ? "" : $" · upkeep {Bundle(b.Upkeep)}") + $" · worth {perYear:0.#} credits a year now · {payback}" + (b.MinTitleRank > 0 ? $" · needs title rank {b.MinTitleRank}" : "") + (cmd.Refusal(ctx) is { } why ? $" · {why}" : ""), cmd.CanExecute(ctx)));
             }
             bool canRaise = new RaiseFleetCommand(p.Id, h.Id, content.Fleets, content.ShipClasses, null, content.Titles).CanExecute(ctx);
             var ships = new List<ShipOption>();
@@ -191,15 +206,20 @@ public static class CourtProjection
             ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Count, Wealth.TierFor(w, house.Id), house.Debt, lender, f.LoanPrincipal, f.LoanRepay, f.LoanInstalment,
                 new Option("loan", $"Borrow {f.LoanPrincipal} credits (owe {f.LoanRepay}, {f.LoanInstalment} a turn)", new TakeLoanCommand(p.Id, bc).Refusal(ctx)),
                 new Option("repay", $"Clear the debt ({house.Debt} credits)", new RepayLoanCommand(p.Id).Refusal(ctx)), table);
+            var vs = tc.Ventures;
             foreach (var b in w.BusinessesOf(house.Id))
             {
                 var def = bc.Def(b.Kind); if (def == null) continue;
-                var line = lg.Lines.FirstOrDefault(l => l.Source == b.Name && l.Kind == "venture");
-                var holder = w.PlanetHolder(b.SystemId);
-                businessCards.Add(new BusinessCard(b.Id, b.Name, def.Name, w.Galaxy?.System(b.SystemId)?.Name, b.Level, def.MaxLevel, line != null ? Bundle(line.Delta) : "—",
-                    holder != null && holder != house.Id && def.Charter > 0 ? $"{def.Charter * b.Level} credits a turn to {w.House(holder)?.Name}" : null, def.Value(b.Level),
-                    new Option("expand", b.Level >= def.MaxLevel ? "At its height" : $"Expand to level {b.Level + 1}  ({Bundle(def.ExpandCost)})", new ExpandBusinessCommand(p.Id, b.Id, bc).Refusal(ctx)),
-                    new Option("sell", $"Sell for {SellBusinessCommand.Price(def, b)} credits", new SellBusinessCommand(p.Id, b.Id, bc).Refusal(ctx))));
+                var delta = eco.VentureLine(w, b);
+                var holder = w.PlanetHolder(b.SystemId); int value = eco.VentureValue(w, b);
+                var bids = vs == null || b.CompanyId.Length > 0 ? new List<VentureBid>() : vs.Bidders(w, b).Take(3).Select(x => new VentureBid(x.house.Id, x.house.Name, x.house.AccentColor, x.bid, w.PlanetHolder(b.SystemId) == x.house.Id)).ToList();
+                bool enlarging = ProjectSystem.Underway(w, house.Id, Project.Expansion, b.Kind, b.Id);
+                string expandCost = def.BuildTurns > 1 ? $"{Bundle(def.ExpandCost)} over {def.BuildTurns} years" : Bundle(def.ExpandCost);
+                businessCards.Add(new BusinessCard(b.Id, b.Name, def.Name, w.Galaxy?.System(b.SystemId)?.Name, b.Level, def.MaxLevel, delta.IsEmpty() ? "—" : Bundle(delta),
+                    holder != null && holder != house.Id && def.Charter > 0 ? $"{def.Charter * b.Level} credits a turn to {w.House(holder)?.Name}" : null, value,
+                    new Option("expand", b.Level >= def.MaxLevel ? "At its height" : enlarging ? "Being enlarged" : $"Expand to level {b.Level + 1}  ({expandCost})", new ExpandBusinessCommand(p.Id, b.Id, bc).Refusal(ctx)),
+                    new Option("sell", $"Sell on the open market for {(vs != null ? vs.MarketPrice(w, b) : value)} credits", vs == null ? "no market for ventures" : new SellVentureCommand(p.Id, b.Id, "", vs).Refusal(ctx)),
+                    Earnings: eco.VentureEarnings(w, b), MarketPrice: vs != null ? vs.MarketPrice(w, b) : value, Bids: bids, CompanyName: b.CompanyId.Length > 0 ? w.Company(b.CompanyId)?.Name : null, Enlarging: enlarging));
             }
             if (w.Galaxy != null)
             {
@@ -208,7 +228,10 @@ public static class CourtProjection
                     foreach (var sys in w.Galaxy.Systems.Values.OrderBy(s => s.Id, StringComparer.Ordinal))
                     {
                         var refusal = new FoundBusinessCommand(p.Id, def.Id, sys.Id, bc, content.Holdings, content.Titles).Refusal(ctx);
-                        if (refusal == null || own.Contains(sys.Id)) ventureOptions.Add(new VentureOption(def.Id, def.Name, def.Description, sys.Id, sys.Name, Bundle(def.Cost), refusal));
+                        if (refusal != null && !own.Contains(sys.Id)) continue;
+                        var (perYear, payback) = vs != null ? vs.Prospectus(w, house.Id, def, sys.Id) : (0, double.PositiveInfinity);
+                        ventureOptions.Add(new VentureOption(def.Id, def.Name, def.Description, sys.Id, sys.Name, Bundle(def.Cost), refusal, perYear, double.IsInfinity(payback) ? "never, at these prices" : $"{Math.Ceiling(payback):0} year(s)",
+                            def.BuildTurns, Bundle(ProjectSystem.Split(def.Cost, def.BuildTurns).First), def.Sector));
                     }
                 foreach (var sys in w.Galaxy.Systems.Values.Where(s => s.Belt > 0).OrderBy(s => s.Id, StringComparer.Ordinal))
                     claimOptions.Add(new ClaimOption(sys.Id, sys.Name, sys.Belt, w.Holdings.Values.Count(h => h.IsClaim && h.SystemId == sys.Id), new StakeClaimCommand(p.Id, sys.Id, content.Holdings, bc).Refusal(ctx)));
@@ -381,7 +404,7 @@ public static class CourtProjection
             Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var bc = new BuyGoodCommand(p.Id, r, 3, content.Trade); var q = bc.Quote(w); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the market  ({(q.Credits > 0 ? q.Credits.ToString() : "—")} credits)", q.Refusal); }).ToList(),
             Economy.Deposits(w, house.Id).OrderBy(x => x, StringComparer.Ordinal).ToList(),
             BuildSenate(w, p, house, tc.Senate, ctx),
-            BuildChancery(w, p, house, content.Policies, ctx), Military: BuildMilitary(w, p, house, tc.Fleets, content.Fleets, ctx, content.Nations, tc.Senate), Market: BuildMarket(w, p, house, content, tc));
+            BuildChancery(w, p, house, content.Policies, ctx), Military: BuildMilitary(w, p, house, tc.Fleets, content.Fleets, ctx, content.Nations, tc.Senate), Market: BuildMarket(w, p, house, content, tc), Assets: BuildAssets(w, p, house, content, tc, ctx));
     }
 
     private static string BondName(Relationship? rel) => rel?.Bond is { } b && b != BondType.None ? b.ToString().ToLowerInvariant() : "";
@@ -469,6 +492,41 @@ public static class CourtProjection
     }
 
     /// <summary>Battles about to be joined, the campaign, and the protagonist's own command style (docs/MILITARY.md).</summary>
+    private static AssetsCard BuildAssets(World w, Character p, House house, ContentDatabase content, TurnController tc, CommandContext ctx)
+    {
+        var bc = content.Businesses; var vs = tc.Ventures;
+        var projects = w.ProjectsOf(house.Id).OrderBy(x => x.Id, StringComparer.Ordinal).Select(x =>
+        {
+            var rush = new RushProjectCommand(p.Id, x.Id);
+            return new ProjectCard(x.Id, x.Name, x.Kind, x.TurnsLeft, x.TurnsTotal, Bundle(x.Paid), Bundle(ProjectSystem.Remaining(x)), x.TurnsLeft > 1 ? Bundle(ProjectSystem.NextInstalment(x)) : "nothing more", x.Paused, x.Stalled,
+                ProjectSystem.RushPremium(w, x), rush.Refusal(ctx), Bundle(ProjectSystem.Refund(x)), x.CompanyId.Length > 0 ? w.Company(x.CompanyId)?.Name : null);
+        }).ToList();
+        var forSale = new List<ForSaleCard>(); var offers = new List<OfferCard>();
+        if (vs != null)
+        {
+            foreach (var b in w.Businesses.Values.Where(b => b.OwnerId != house.Id && b.CompanyId.Length == 0 && bc.Def(b.Kind) != null).OrderBy(b => b.Id, StringComparer.Ordinal))
+            {
+                var owner = w.House(b.OwnerId); if (owner == null) continue;
+                var (ask, refusal) = vs.Ask(w, b, house.Id);
+                // what it would earn YOU: charters and the world's holder differ by owner
+                var ghost = new Business { Id = b.Id, OwnerId = house.Id, Kind = b.Kind, SystemId = b.SystemId, Level = b.Level };
+                int perYear = (int)Math.Round(Economy.WorthOf(w, vs.Economy.VentureLine(w, ghost)));
+                bool distressed = owner.Treasury.Credits < 0 || owner.Debt > 0;
+                forSale.Add(new ForSaleCard(b.Id, b.Name, bc.Def(b.Kind)!.Name, owner.Id, owner.Name, owner.AccentColor, w.Galaxy?.System(b.SystemId)?.Name, b.Level, perYear, ask,
+                    refusal ?? (house.Treasury.Credits < ask ? $"needs {ask} credits" : null), ask > 0 && perYear > 0 ? $"{Math.Ceiling((double)ask / perYear):0} year(s)" : "never", distressed, w.PlanetHolder(b.SystemId) == house.Id));
+            }
+            forSale = forSale.OrderBy(x => x.Refusal != null && !x.Refusal.StartsWith("needs ") ? 1 : 0).ThenByDescending(x => x.Distressed).ThenBy(x => x.PerYear > 0 ? (double)x.Ask / x.PerYear : 999).ThenBy(x => x.BusinessId, StringComparer.Ordinal).Take(14).ToList();
+            foreach (var o in w.Offers.Where(o => o.ToHouseId == house.Id).OrderBy(o => o.Id, StringComparer.Ordinal))
+            {
+                var b = w.Business(o.BusinessId); if (b == null) continue;
+                var ghost = new Business { Id = b.Id, OwnerId = house.Id, Kind = b.Kind, SystemId = b.SystemId, Level = b.Level };
+                offers.Add(new OfferCard(o.Id, b.Name, bc.Def(b.Kind)?.Name ?? b.Kind, w.House(o.FromHouseId)?.Name ?? o.FromHouseId, w.Galaxy?.System(b.SystemId)?.Name, o.Price, (int)Math.Round(Economy.WorthOf(w, vs.Economy.VentureLine(w, ghost))), o.Reason,
+                    new AcceptVentureOfferCommand(p.Id, o.Id, vs).Refusal(ctx)));
+            }
+        }
+        return new AssetsCard(projects, forSale, offers);
+    }
+
     private static MarketCard? BuildMarket(World w, Character p, House house, ContentDatabase content, TurnController tc)
     {
         var t = content.Trade; if (t.Market.IsEmpty) return null;

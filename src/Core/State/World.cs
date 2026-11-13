@@ -85,6 +85,16 @@ public sealed class World
     /// <summary>Laws in force, house id → law id → option id (GDD §6.1); a law not named is at its default.</summary>
     public Dictionary<string, Dictionary<string, string>> Laws { get; set; } = new();
 
+    /// <summary>Everything under construction (docs/ECONOMY_MARKET.md stage B), in the order begun.</summary>
+    public List<Project> Projects { get; set; } = new();
+    /// <summary>Ventures offered for sale to a named house, until they lapse.</summary>
+    public List<VentureOffer> Offers { get; set; } = new();
+    public IEnumerable<Project> ProjectsOf(string houseId) => Projects.Where(p => p.OwnerId == houseId);
+    /// <summary>The companies on the Exchange (docs/ECONOMY_MARKET.md stage C) and the Reach's war bonds (stage D).</summary>
+    public List<Company> Companies { get; set; } = new();
+    public List<Bond> Bonds { get; set; } = new();
+    public Company? Company(string id) => Companies.FirstOrDefault(c => c.Id == id);
+
     /// <summary>The Reach's markets: commodity prices and the merchants' stocks (docs/ECONOMY_MARKET.md). Null until first reckoned.</summary>
     public MarketState? Market { get; set; }
 

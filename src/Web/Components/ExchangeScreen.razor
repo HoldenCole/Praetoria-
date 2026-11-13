@@ -21,6 +21,15 @@
         </div>
     </header>
 
+    <div class="ex-tabs">
+        @foreach (var (id, label, count) in Tabs(m)) { <button class="rung @(_tab == id ? "here" : "")" @onclick="() => _tab = id">@label@(count > 0 ? $" · {count}" : "")</button> }
+    </div>
+
+    @if (_tab == "ventures") { <ExchangeVentures Model="m" /> }
+    else if (_tab == "projects") { <ExchangeProjects Model="m" /> }
+    else if (_tab == "shares") { <ExchangeShares Model="m" /> }
+    else
+    {
     <div class="dash-grid exchange-grid">
         <section class="panel">
             <h3><Icon Name="materials" Size="13" /> Goods <span class="muted">credits a unit · the line is the last twelve years · the dash is the usual price</span></h3>
@@ -75,9 +84,18 @@
             </section>
         </aside>
     </div>
+    }
 </div>
 
 @code {
+    private string _tab = "goods";
+    private static IEnumerable<(string id, string label, int count)> Tabs(CourtModel m)
+    {
+        yield return ("goods", "Goods", 0);
+        yield return ("ventures", "Ventures", (m.Assets?.Offers.Count ?? 0));
+        yield return ("projects", "Projects", m.Assets?.Projects.Count ?? 0);
+        yield return ("shares", "Shares", 0);
+    }
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private readonly Dictionary<string, int> _qty = new();
     private int Qty(string good) => _qty.TryGetValue(good, out var q) ? q : 5;

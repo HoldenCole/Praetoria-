@@ -85,34 +85,13 @@
                 <h4>The wealth of the houses</h4>
                 @foreach (var wl in lg.Table.Take(8)) { <div class="wealth-row @(wl.Mine ? "mine" : "")"><Sigil HouseId="@wl.HouseId" Accent="@wl.Accent" Size="14" /> <span>@wl.Name</span><span class="bar"><i style="width:@(Math.Max(2, 100 * Math.Max(0, wl.Wealth) / Math.Max(1, lg.Table[0].Wealth)))%; background:@wl.Accent"></i></span><b>@wl.Wealth</b></div> }
             }
-            <h4>Ventures <span class="muted">@(m.Businesses?.Count ?? 0)</span></h4>
+            <h4>Ventures <span class="muted">@(m.Businesses?.Count ?? 0) · @(m.Assets?.Projects.Count ?? 0) site(s) under construction</span></h4>
             @if (m.Businesses is { Count: > 0 } bz)
             {
-                foreach (var b in bz)
-                {
-                    <details class="venture">
-                        <summary><b>@b.Name</b> <span class="muted">@b.KindName · level @b.Level/@b.MaxLevel@(b.SystemName != null ? $" · {b.SystemName}" : "")</span> <span class="pill">@b.Yield</span></summary>
-                        <div class="kv"><span>Book value</span><b>@b.Value</b></div>
-                        @if (b.Charter != null) { <div class="kv"><span>Charter</span><b>@b.Charter</b></div> }
-                        <button class="opt inline tiny" disabled="@(b.Expand.Refusal != null)" title="@b.Expand.Refusal" @onclick="() => G.Execute(new ExpandBusinessCommand(pid, b.Id, c.Businesses))">@b.Expand.Label</button>
-                        <button class="opt inline tiny" disabled="@(b.Sell.Refusal != null)" title="@b.Sell.Refusal" @onclick="() => G.Execute(new SellBusinessCommand(pid, b.Id, c.Businesses))">@b.Sell.Label</button>
-                    </details>
-                }
+                foreach (var b in bz) { <div class="line small"><b>@b.Name</b> <span class="muted">@b.KindName · level @b.Level/@b.MaxLevel@(b.SystemName != null ? $" · {b.SystemName}" : "")</span> <span class="pill small @(b.Earnings <= 0 ? "warn" : "good")">@(b.Earnings >= 0 ? "+" : "")@b.Earnings a year · worth @b.Value</span></div> }
             }
             else { <div class="muted small">The house owns no venture. Coin that is not land still counts.</div> }
-            @if (m.Ventures is { Count: > 0 } vo)
-            {
-                <details><summary>Found a venture</summary>
-                    @foreach (var grp in vo.GroupBy(v => v.DefId))
-                    {
-                        var first = grp.First();
-                        <details class="found"><summary><b>@first.Name</b> <span class="muted">@first.Cost</span></summary>
-                            <div class="muted small">@first.Description</div>
-                            @foreach (var v in grp) { <button class="opt" disabled="@(v.Refusal != null)" title="@v.Refusal" @onclick="() => G.Execute(new FoundBusinessCommand(pid, v.DefId, v.SystemId, c.Businesses, c.Holdings, c.Titles))">@v.SystemName@(v.Refusal != null ? $" — {v.Refusal}" : "")</button> }
-                        </details>
-                    }
-                </details>
-            }
+            <div class="row"><button class="opt inline tiny" @onclick="@(() => OnGo.InvokeAsync("exchange"))">Found, enlarge, buy and sell ventures: the Exchange ▸</button></div>
             @if (m.Claims is { Count: > 0 } cl)
             {
                 <details><summary>Stake a belt claim <span class="muted">@c.Businesses.Finance.ClaimCredits credits, @c.Businesses.Finance.ClaimMaterials materials</span></summary>

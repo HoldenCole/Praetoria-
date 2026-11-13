@@ -1,0 +1,46 @@
+@inject GameClient G
+@using Praetoria.Core.Presentation
+@{
+    var m = Model; var w = G.World!; var pid = w.ProtagonistId; var projects = m.Assets?.Projects ?? new List<ProjectCard>();
+}
+<div class="dash-grid exchange-grid">
+    <section class="panel">
+        <h3><Icon Name="build" Size="13" /> Under construction <span class="muted">@projects.Count site(s) · paid by the year · done when the last year is up</span></h3>
+        @if (projects.Count == 0) { <div class="muted">Nothing is being built. Buildings are begun on a holding (House), ventures on the Ventures tab.</div> }
+        @foreach (var p in projects)
+        {
+            int done = p.TurnsTotal - p.TurnsLeft;
+            <div class="vcard @(p.Stalled ? "distress" : "")">
+                <div class="vc-head"><b>@Cap(p.Name)</b> <span class="muted small">@(p.Kind == "building" ? "building" : p.Kind == "venture" ? "new venture" : "enlargement")@(p.CompanyName != null ? $" · paid by {p.CompanyName}" : "")</span>
+                    @if (p.Paused) { <span class="pill">paused</span> } else if (p.Stalled) { <span class="pill warn">stalled: the instalment was not met</span> } else { <span class="pill good">@p.TurnsLeft year(s) left</span> }</div>
+                <div class="gauge" title="years built"><span>Built</span><i><b style="width:@(100 * done / Math.Max(1, p.TurnsTotal))%" class="high"></b></i><em>@done/@p.TurnsTotal</em></div>
+                <div class="kv"><span>Paid</span><b>@p.Paid</b></div>
+                <div class="kv"><span>Still owed</span><b>@p.Remaining <i class="muted">· next year: @p.Next</i></b></div>
+                @if (p.CompanyName == null)
+                {
+                    <div class="row small">
+                        <button class="opt inline tiny" @onclick="() => G.Execute(new PauseProjectCommand(pid, p.Id))">@(p.Paused ? "Resume" : "Pause")</button>
+                        <button class="opt inline tiny" disabled="@(p.RushRefusal != null)" title="@(p.RushRefusal ?? "everything still owed now, and a quarter more: done next year")" @onclick="() => G.Execute(new RushProjectCommand(pid, p.Id))">Rush · @p.RushCredits credits over the cost</button>
+                        <button class="opt inline tiny" title="half of what was paid comes back" @onclick="() => G.Execute(new AbandonProjectCommand(pid, p.Id))">Abandon · get back @p.Refund</button>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+    <aside class="dash-side">
+        <section class="panel">
+            <h3><Icon Name="report" Size="13" /> How building works</h3>
+            <div class="ac-fact"><span>By the year</span><p>The cost is split evenly over the build time. The first share is paid on the day; the rest a year at a time.</p></div>
+            <div class="ac-fact"><span>Stalled</span><p>A year the share cannot be met, nothing is built. It resumes when the treasury can pay.</p></div>
+            <div class="ac-fact"><span>Paused</span><p>A paused site costs nothing and goes nowhere.</p></div>
+            <div class="ac-fact"><span>Rushed</span><p>Pay all that is owed and a quarter more in credits, and it is done next year.</p></div>
+            <div class="ac-fact"><span>Abandoned</span><p>Half of what was paid comes back.</p></div>
+            <div class="ac-fact"><span>How long</span><p>Most buildings a year; works on a deposit and the costly ones two; a megastructure four. Ventures one or two.</p></div>
+        </section>
+    </aside>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+}

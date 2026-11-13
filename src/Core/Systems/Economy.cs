@@ -106,25 +106,12 @@ public sealed class Economy
             ledger.Add(holding.Name, holding.IsClaim ? "claim" : holding.IsPlanet ? "world" : "station", d);
         }
 
-        // ventures: what they pay, less upkeep, less the charter owed to the world's holder
+        // ventures: what they pay, less upkeep, less the charter owed to the world's holder. A venture incorporated in a company pays
+        // the company, not the house (docs/ECONOMY_MARKET.md stage C): the house sees its dividends instead
         foreach (var b in world.BusinessesOf(houseId))
         {
-            var def = _ventures.Def(b.Kind); if (def == null) continue;
-            var d = new Resources(); var planet = world.Holdings.Values.Where(h => h.IsPlanet && h.SystemId == b.SystemId).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
-            bool troubled = planet != null && (world.Sieges.ContainsKey(planet.Id) || world.AtWar(houseId, planet.OwnerId));
-            foreach (var r in Resource.All)
-            {
-                int v = (def.RequiresDeposit == r ? def.Yield.Get(r) * Math.Max(1, world.Galaxy?.System(b.SystemId)?.Deposit(r) ?? 0) : def.Yield.Get(r)) * b.Level + def.FlatYield.Get(r) - def.Upkeep.Get(r) * b.Level;
-                if ((r == Resource.Credits || r == Resource.Materials) && v > 0 && planet != null) v = v * (50 + planet.Prosperity) / 100;
-                if (v > 0 && troubled) v /= 2;
-                d.Add(r, v);
-            }
-            if (SenateSystem.Embargoed(world, houseId) && d.Credits > 0) d.Credits /= 2;                      // the Senate's embargo: the factors cannot sell
-            int vyp = Law(world, houseId, "venture_yield_pct"); if (vyp != 0 && d.Credits > 0) d.Credits = d.Credits * (100 + vyp) / 100;   // tariffs and the merchants' regard
-            int vl = world.Galaxy?.System(b.SystemId) is { } vs && world.Regions.TryGetValue(vs.RegionId, out var vr) ? vr.Lawlessness : 0;
-            if (vl > 0) foreach (var r in new[] { Resource.Credits, Resource.Materials }) if (d.Get(r) > 0) d.Set(r, d.Get(r) * (200 - vl) / 200);
-            if (planet != null && planet.OwnerId != houseId && def.Charter > 0) d.Add(Resource.Credits, -(def.Charter + (world.Galaxy?.RulesFor(world.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0)) * b.Level);
-            ledger.Add(b.Name, "venture", d);
+            if (b.CompanyId.Length > 0 || _ventures.Def(b.Kind) == null) continue;
+            ledger.Add(b.Name, "venture", VentureLine(world, b));
         }
         // charters received from others' ventures on our worlds
         foreach (var b in world.Businesses.Values.Where(x => x.OwnerId != houseId).OrderBy(x => x.Id, StringComparer.Ordinal))
@@ -160,6 +147,61 @@ public sealed class Economy
             int fuel = fleets.FuelBill(world, houseId); if (fuel > 0) ledger.Add("fuel for the fleet", "fuel", new Resources { Helium3 = -fuel });
         }
         return ledger;
+    }
+
+    public const int ClusterPct = 10, ClusterCap = 3, EarningsMultiple = 6, SalvagePct = 50;
+
+    /// <summary>What a venture nets its owner this turn (GDD §17; docs/ECONOMY_MARKET.md stage B): its yield by level (richness-many where
+    /// it works a deposit), scaled by the world's prosperity, halved under siege or in the holder's war, cut by lawless lanes and an
+    /// embargo, moved by the tariff law; ten per cent more for each other kind of venture working the same system (three at most: a
+    /// forge beside a mine and a shipping line pays more than a forge alone); what it earns from wars, from peace and from spiking
+    /// prices; less upkeep and the charter owed to the world's holder.</summary>
+    public Resources VentureLine(World world, Business b)
+    {
+        var d = new Resources(); var def = _ventures.Def(b.Kind); if (def == null) return d; string houseId = b.OwnerId;
+        var planet = world.Holdings.Values.Where(h => h.IsPlanet && h.SystemId == b.SystemId).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+        bool troubled = planet != null && (world.Sieges.ContainsKey(planet.Id) || world.AtWar(houseId, planet.OwnerId));
+        int cluster = Math.Min(ClusterCap, world.Businesses.Values.Where(o => o.SystemId == b.SystemId && o.Id != b.Id && o.Kind != b.Kind).Select(o => o.Kind).Distinct().Count());
+        foreach (var r in Resource.All)
+        {
+            int v = (def.RequiresDeposit == r ? def.Yield.Get(r) * Math.Max(1, world.Galaxy?.System(b.SystemId)?.Deposit(r) ?? 0) : def.Yield.Get(r)) * b.Level + def.FlatYield.Get(r) - def.Upkeep.Get(r) * b.Level;
+            if ((r == Resource.Credits || r == Resource.Materials) && v > 0 && planet != null) v = v * (50 + planet.Prosperity) / 100;
+            if ((r == Resource.Credits || r == Resource.Materials) && v > 0 && cluster > 0) v = v * (100 + ClusterPct * cluster) / 100;
+            if (v > 0 && troubled) v /= 2;
+            d.Add(r, v);
+        }
+        // what the state of the Reach does to this kind of business
+        int wars = Math.Min(4, world.Wars.Count + (NationSystem.AtWar(world) != null ? 1 : 0));
+        if (def.WarCredits != 0 && wars > 0) d.Credits += def.WarCredits * wars * b.Level;
+        if (def.PeaceCredits != 0 && wars == 0) d.Credits += def.PeaceCredits * b.Level;
+        if (def.SpikeCredits != 0) d.Credits += def.SpikeCredits * b.Level * world.WorldFlags.Count(f => f.StartsWith("price_spike:"));
+        if (SenateSystem.Embargoed(world, houseId) && d.Credits > 0) d.Credits /= 2;                      // the Senate's embargo: the factors cannot sell
+        int vyp = Law(world, houseId, "venture_yield_pct"); if (vyp != 0 && d.Credits > 0) d.Credits = d.Credits * (100 + vyp) / 100;   // tariffs and the merchants' regard
+        int vl = world.Galaxy?.System(b.SystemId) is { } vs && world.Regions.TryGetValue(vs.RegionId, out var vr) ? vr.Lawlessness : 0;
+        if (vl > 0) foreach (var r in new[] { Resource.Credits, Resource.Materials }) if (d.Get(r) > 0) d.Set(r, d.Get(r) * (200 - vl) / 200);
+        if (planet != null && planet.OwnerId != houseId && def.Charter > 0) d.Add(Resource.Credits, -(def.Charter + (world.Galaxy?.RulesFor(world.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0)) * b.Level);
+        return d;
+    }
+
+    /// <summary>What a unit of a resource is worth in credits now: the market's price where the market trades it, a fixed weight where it does not.</summary>
+    public static double WorthOf(World world, string resource) => resource switch
+    {
+        Resource.Credits => 1,
+        Resource.Influence => 4,
+        _ => world.Market?.Good(resource)?.Price ?? resource switch { Resource.Materials => 1.5, Resource.Manpower => 2, Resource.Exotics => 7, Resource.Helium3 => 6, Resource.RareEarths => 9, Resource.Isotopes => 12, _ => 0 }
+    };
+    /// <summary>A bundle at this year's prices, in credits.</summary>
+    public static double WorthOf(World world, Resources bundle) { double sum = 0; foreach (var r in Resource.All) sum += bundle.Get(r) * WorthOf(world, r); return sum; }
+
+    /// <summary>A venture's earnings this year at this year's prices, in credits: every resource it nets, valued on the market.</summary>
+    public int VentureEarnings(World world, Business b) => (int)Math.Round(WorthOf(world, VentureLine(world, b)));
+
+    /// <summary>What a venture is worth (docs/ECONOMY_MARKET.md stage B): six years of its earnings at this year's prices, never less than
+    /// half its book value. A helium skimmer is worth more in a fuel shortage.</summary>
+    public int VentureValue(World world, Business b)
+    {
+        var def = _ventures.Def(b.Kind); if (def == null) return 0;
+        return Math.Max(def.Value(b.Level) * SalvagePct / 100, VentureEarnings(world, b) * EarningsMultiple);
     }
 
     /// <summary>The house head: the protagonist for the player's house, else its senior living member.</summary>
@@ -250,7 +292,7 @@ public sealed class Economy
     /// (<c>richest:&lt;house&gt;</c>, <c>wealth_rank</c>, <c>in_debt</c>, <c>business:&lt;kind&gt;</c>, <c>claim_holder</c>).</summary>
     public void Reckon(World world)
     {
-        foreach (var h in world.Houses.Values) h.Wealth = Wealth.Of(world, h, _catalog, _ventures);
+        foreach (var h in world.Houses.Values) h.Wealth = Wealth.Of(world, h, _catalog, _ventures, this);
         var ranked = Wealth.Ranked(world);
         foreach (var f in world.WorldFlags.Where(f => f.StartsWith("richest:") || f.StartsWith("business:") || f == "in_debt" || f == "claim_holder").ToList()) world.WorldFlags.Remove(f);
         if (ranked.Count > 0) world.WorldFlags.Add("richest:" + ranked[0].house.Id);

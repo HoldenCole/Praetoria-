@@ -598,3 +598,8 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .spark { display: block; }
 .ex-tabs { display: flex; gap: .35rem; margin-bottom: .6rem; flex-wrap: wrap; }
 .standings.goods td:nth-child(2) { white-space: nowrap; }
+.vcard { padding: .5rem .65rem; margin: .35rem 0; background: rgba(5,7,12,.4); border: 1px solid var(--line); border-left: 3px solid var(--brass3); border-radius: 3px; }
+.vcard.distress { border-left-color: var(--warn); } .vcard.offer { border-left-color: var(--good); }
+.vc-head { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .2rem; } .vc-head .pill { margin-left: auto; }
+.standings.ventures tbody tr { cursor: default; } .standings.ventures td { font-size: .8rem; }
+.ex-tabs .rung { color: var(--ink2); } .ex-tabs .rung.here { color: var(--brass2); }

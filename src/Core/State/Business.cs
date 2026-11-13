@@ -25,4 +25,11 @@ public sealed class Business
 
     /// <summary>Turn it was founded (0 for seeded ventures).</summary>
     public int Founded { get; set; }
+
+    /// <summary>The company it has been incorporated into (docs/ECONOMY_MARKET.md stage C), or "" while a house owns it outright.
+    /// A company's venture pays the company, not the house; <see cref="OwnerId"/> is then the house that controls the company.</summary>
+    public string CompanyId { get; set; } = "";
+
+    /// <summary>The turn until which an offer of it stands (0 = never offered): a steward waits for the answer, and does not offer the same house twice.</summary>
+    public int OfferedUntil { get; set; }
 }

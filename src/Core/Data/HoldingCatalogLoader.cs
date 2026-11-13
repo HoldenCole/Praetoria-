@@ -79,6 +79,8 @@ public static class HoldingCatalogLoader
         Defense = Dbl(el, "defense")
     };
 
+    private static int CostOf(JsonElement el) { var c = ParseResources(el, "cost"); return c.Credits + c.Materials; }
+
     private static BuildingDef ParseBuilding(JsonElement el) => new()
     {
         Id = ConditionParser.Str(el, "id"),
@@ -90,7 +92,10 @@ public static class HoldingCatalogLoader
         RequiresDeposit = ConditionParser.OptStrOrNull(el, "requiresDeposit"),
         Defense = Dbl(el, "defense"),
         MinTitleRank = ConditionParser.Int(el, "minTitleRank", 0),
-        Megastructure = ConditionParser.Bool(el, "megastructure", false)
+        Megastructure = ConditionParser.Bool(el, "megastructure", false),
+        // years to raise it (docs/ECONOMY_MARKET.md stage B). Where the content names none: a megastructure four, works on a deposit two,
+        // anything costing thirty or more in credits and materials two, the rest one
+        BuildTurns = ConditionParser.Int(el, "buildTurns", ConditionParser.Bool(el, "megastructure", false) ? 4 : ConditionParser.OptStrOrNull(el, "requiresDeposit") != null ? 2 : CostOf(el) >= 30 ? 2 : 1)
     };
 
     private static double Dbl(JsonElement el, string name) =>

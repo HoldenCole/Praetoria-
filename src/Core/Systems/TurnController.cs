@@ -40,7 +40,7 @@ public sealed class TurnController
     private readonly CrisisEngine? _crises;
     private readonly SphereSystem? _spheres;
     private readonly ProgressionSystem? _progression;
-    private readonly FleetSystem _fleets; private readonly NationSystem _nations; private readonly AcademySystem _academy; private readonly MarketSystem _market;
+    private readonly FleetSystem _fleets; private readonly NationSystem _nations; private readonly AcademySystem _academy; private readonly MarketSystem _market; private readonly VentureSystem? _ventures;
     private readonly HonorSystem _honors;
     private readonly GreatCrisisSystem _greatCrisis;
     private readonly FamilySystem _family = new();
@@ -72,6 +72,7 @@ public sealed class TurnController
     public NationSystem Nations => _nations;
     public AcademySystem Academy => _academy;
     public MarketSystem Market => _market;
+    public VentureSystem? Ventures => _ventures;
 
     /// <summary>Honorifics & Orders (GDD §13).</summary>
     public HonorSystem Honors => _honors;
@@ -100,8 +101,9 @@ public sealed class TurnController
         if (world.Turn == 0 && world.Factions.Count == 0) FactionSystem.Seed(world, content.Parties, id => _senate.Weight(world, id));   // the four parties of the Republic (docs/REPUBLIC.md)
         _fleets.Policies = content.Policies; _regions.Policies = content.Policies; if (_economy != null) _economy.Policies = content.Policies;
         _academy = new AcademySystem(content.Academy, content.Names);
+        _ventures = _economy != null ? new VentureSystem(_economy, content.Businesses) : null;   // ventures as assets: value, bids, asks, sales (stage B)
         _market = new MarketSystem(content.Trade, _economy, _fleets, content.Nations); _market.Seed(world);   // the Reach's exchanges open at base prices (docs/ECONOMY_MARKET.md)
-        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade };
+        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures };
         _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);
         _greatCrisis = new GreatCrisisSystem(content.GreatCrisis, _fleets);
@@ -121,6 +123,8 @@ public sealed class TurnController
         World.Turn++;
         foreach (var pools in World.Pools.Values) pools.Regenerate();
         _economy?.Accrue(World);     // RNG-free, so determinism is preserved (GDD §17)
+        ProjectSystem.Tick(World, _content.Holdings, _content.Businesses);   // a year passes on every building site (docs/ECONOMY_MARKET.md stage B)
+        _ventures?.Tick(World);      // last year's offers lapse
         _regions.Tick(World);        // the rings: lawlessness, allegiance, risings and secessions (GDD §19) — seeded only for a new leader's name
         _pirates.Tick(World);        // raiders gather where the lanes are lawless, roam and plunder (GAP §6) — RNG-free
         _fleets.Tick(World);         // fleets move, eat, arrive; the intel picture refreshes (GDD §19) — RNG-free

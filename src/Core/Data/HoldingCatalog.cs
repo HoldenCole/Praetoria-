@@ -70,6 +70,9 @@ public sealed class BuildingDef
     /// <summary>A megastructure: the §12/§17 "apocalypse-scale" slot. Presentation flags it; the engine treats it as a building.</summary>
     public bool Megastructure { get; init; }
 
+    /// <summary>Years to raise it (docs/ECONOMY_MARKET.md stage B): the cost is paid over them. 0 = at once.</summary>
+    public int BuildTurns { get; init; }
+
     public bool FitsSpecialization(string specialization) =>
         Requires == null || Requires == specialization;
 }

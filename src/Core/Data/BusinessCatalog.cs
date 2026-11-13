@@ -38,6 +38,17 @@ public sealed class BusinessDef
     public IReadOnlyList<string> PlanetClasses { get; init; } = Array.Empty<string>();
     public IReadOnlyList<string> Specializations { get; init; } = Array.Empty<string>();
 
+    /// <summary>Years to found one, and to raise it a level (docs/ECONOMY_MARKET.md stage B): the cost is paid over them. 0 = at once.</summary>
+    public int BuildTurns { get; init; }
+    /// <summary>What kind of business it is, for the Exchange's sector outlook: trade, extraction, arms, shipping, finance, services.</summary>
+    public string Sector { get; init; } = "trade";
+    /// <summary>Credits a level it earns (or loses) for every war in the Reach, four at most: an arsenal profits, an insurer bleeds.</summary>
+    public int WarCredits { get; init; }
+    /// <summary>Credits a level it earns in a year with no war at all.</summary>
+    public int PeaceCredits { get; init; }
+    /// <summary>Credits a level it earns for every good whose price is spiking: a warehouse sells into the shortage.</summary>
+    public int SpikeCredits { get; init; }
+
     /// <summary>What a venture of this kind at a level is worth on the books.</summary>
     public int Value(int level) => Cost.Credits + Cost.Materials + Cost.Influence * 4 + Cost.Manpower / 2 + Math.Max(0, level - 1) * (ExpandCost.Credits + ExpandCost.Materials);
 }
@@ -84,6 +95,8 @@ public static class BusinessLoader
                             Cost = HoldingCatalogLoader.ParseResources(el, "cost"), Yield = HoldingCatalogLoader.ParseResources(el, "yield"), FlatYield = HoldingCatalogLoader.ParseResources(el, "flat"),
                             Upkeep = HoldingCatalogLoader.ParseResources(el, "upkeep"), ExpandCost = HoldingCatalogLoader.ParseResources(el, "expandCost"),
                             MaxLevel = ConditionParser.Int(el, "maxLevel", 3), Charter = ConditionParser.Int(el, "charter", 0), Lender = ConditionParser.Bool(el, "lender", false),
+                            BuildTurns = ConditionParser.Int(el, "buildTurns", 0), Sector = ConditionParser.OptStr(el, "sector", "trade"),
+                            WarCredits = ConditionParser.Int(el, "warCredits", 0), PeaceCredits = ConditionParser.Int(el, "peaceCredits", 0), SpikeCredits = ConditionParser.Int(el, "spikeCredits", 0),
                             RequiresBelt = req.ValueKind == JsonValueKind.Object && ConditionParser.Bool(req, "belt", false),
                             RequiresPopulated = req.ValueKind == JsonValueKind.Object && ConditionParser.Bool(req, "populated", false),
                             RequiresOwnWorld = req.ValueKind == JsonValueKind.Object && ConditionParser.Bool(req, "ownWorld", false),

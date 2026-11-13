@@ -115,7 +115,7 @@ public class StrategicResourceTests
     {
         var w = Deposits(out var cat, out var ven);
         var h = w.House("vega")!; h.Treasury.Helium3 = 4; h.Treasury.RareEarths = 2; h.Treasury.Isotopes = 1;
-        int plain = Wealth.Of(w, h, cat, ven); h.Treasury.Isotopes = 0; Assert.Equal(5, plain - Wealth.Of(w, h, cat, ven));
+        int plain = Wealth.Of(w, h, cat, ven); h.Treasury.Isotopes = 0; Assert.Equal(8, plain - Wealth.Of(w, h, cat, ven));   // a unit of isotopes at two-thirds of the market's twelve
         var back = SaveSystem.Deserialize(SaveSystem.Serialize(w));
         Assert.Equal(4, back.House("vega")!.Treasury.Helium3); Assert.Equal(2, back.House("vega")!.Treasury.RareEarths);
         Assert.Equal(3, back.Galaxy!.System("tessaly")!.Deposit(Resource.Helium3));

@@ -1,0 +1,12 @@
+@inject GameClient G
+@using Praetoria.Core.Presentation
+<div class="dash-grid exchange-grid">
+    <section class="panel">
+        <h3><Icon Name="credits" Size="13" /> Shares</h3>
+        <div class="muted">No company is listed yet.</div>
+    </section>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
+}

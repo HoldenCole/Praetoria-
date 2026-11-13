@@ -82,6 +82,7 @@ public sealed class FoundBusinessCommand : ICommand
         var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null; var def = _ventures.Def(_defId); var sys = w.Galaxy?.System(_systemId);
         if (actor?.Alive != true || house == null || def == null || sys == null) return "no such venture";
         if (w.Businesses.ContainsKey(IdFor(house.Id, _defId, _systemId))) return "you already have one here";
+        if (ProjectSystem.Underway(w, house.Id, Project.Venture, _defId, _systemId)) return "already being founded here";
         var planet = w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId == _systemId).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
         if (def.RequiresBelt && sys.Belt <= 0) return "needs a belt";
         if (def.RequiresDeposit != null && sys.Deposit(def.RequiresDeposit) == 0) return $"needs a {Resource.Label(def.RequiresDeposit)} deposit";
@@ -92,17 +93,27 @@ public sealed class FoundBusinessCommand : ICommand
         if (def.Specializations.Count > 0 && (planet == null || !def.Specializations.Contains(planet.Specialization))) return $"needs {string.Join(" or ", def.Specializations.Select(s => _catalog.Spec(s)?.Name ?? s))}";
         if (def.MinTitleRank > 0 && (_titles?.RankOf(house.Title) ?? 0) < def.MinTitleRank) return "needs a greater title";
         if (planet != null && w.AtWar(house.Id, planet.OwnerId)) return "the world's holder is at war with you";
-        return house.Treasury.CanAfford(def.Cost) ? null : $"needs {Presentation.CourtProjection.Bundle(def.Cost)}";
+        var first = ProjectSystem.Split(def.Cost, def.BuildTurns).First;
+        return house.Treasury.CanAfford(first) ? null : $"needs {Presentation.CourtProjection.Bundle(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
     {
         var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!; var def = _ventures.Def(_defId)!; var sys = w.Galaxy!.System(_systemId)!;
-        house.Treasury.Spend(def.Cost); house.Treasury.ClampNonCredit();
-        var id = IdFor(house.Id, _defId, _systemId);
-        w.Businesses[id] = new Business { Id = id, Name = $"{house.Name.Replace("House ", "")} {def.Name} of {sys.Name}", OwnerId = house.Id, Kind = _defId, SystemId = _systemId, Level = 1, Founded = w.Turn };
+        if (def.BuildTurns <= 0) { house.Treasury.Spend(def.Cost); house.Treasury.ClampNonCredit(); Open(w, house, def, sys); return; }
+        ProjectSystem.Start(w, house.Id, Project.Venture, def.Id, sys.Id, $"a {def.Name.ToLowerInvariant()} at {sys.Name}", def.Cost, def.BuildTurns);
+    }
+
+    /// <summary>The venture opens its doors: it is on the books of the house from this turn.</summary>
+    public static Business Open(World w, House house, BusinessDef def, Galaxy.StarSystem sys)
+    {
+        var id = IdFor(house.Id, def.Id, sys.Id);
+        if (w.Businesses.TryGetValue(id, out var existing)) return existing;
+        var b = new Business { Id = id, Name = $"{house.Name.Replace("House ", "")} {def.Name} of {sys.Name}", OwnerId = house.Id, Kind = def.Id, SystemId = sys.Id, Level = 1, Founded = w.Turn };
+        w.Businesses[id] = b;
         w.WorldCounters["ventures_founded"] = w.Counter("ventures_founded") + 1;
         w.Log($"{house.Name} founds a {def.Name.ToLowerInvariant()} at {sys.Name}.");
+        return b;
     }
 }
 
@@ -119,36 +130,18 @@ public sealed class ExpandBusinessCommand : ICommand
         if (actor?.Alive != true || house == null || b == null || def == null) return "no such venture";
         if (b.OwnerId != house.Id) return "not yours";
         if (b.Level >= def.MaxLevel) return "at its height";
-        return house.Treasury.CanAfford(def.ExpandCost) ? null : $"needs {Presentation.CourtProjection.Bundle(def.ExpandCost)}";
+        if (ProjectSystem.Underway(w, house.Id, Project.Expansion, b.Kind, b.Id)) return "already being enlarged";
+        if (b.CompanyId.Length > 0)   // a company's venture is enlarged from the company's cash, by whoever directs it
+            return ProjectSystem.CanBegin(w, house.Id, def.ExpandCost, def.BuildTurns, b.CompanyId) ? null : $"the company needs {(int)Math.Ceiling(Economy.WorthOf(w, ProjectSystem.Split(def.ExpandCost, def.BuildTurns).First))} credits in hand";
+        var first = ProjectSystem.Split(def.ExpandCost, def.BuildTurns).First;
+        return house.Treasury.CanAfford(first) ? null : $"needs {Presentation.CourtProjection.Bundle(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
     {
         var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!; var b = w.Business(_id)!; var def = _ventures.Def(b.Kind)!;
-        house.Treasury.Spend(def.ExpandCost); house.Treasury.ClampNonCredit(); b.Level++;
-    }
-}
-
-/// <summary>Sell a venture for six-tenths of its book value in credits (GDD §17).</summary>
-public sealed class SellBusinessCommand : ICommand
-{
-    private readonly string _id; private readonly BusinessCatalog _ventures;
-    public SellBusinessCommand(string actorId, string businessId, BusinessCatalog ventures) { ActorId = actorId; _id = businessId; _ventures = ventures; }
-    public string ActorId { get; }
-    public string Describe() => $"sell {_id}";
-    public static int Price(BusinessDef def, Business b) => def.Value(b.Level) * 6 / 10;
-    public string? Refusal(CommandContext ctx)
-    {
-        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null; var b = w.Business(_id);
-        if (actor?.Alive != true || house == null || b == null || _ventures.Def(b.Kind) == null) return "no such venture";
-        return b.OwnerId == house.Id ? null : "not yours";
-    }
-    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
-    public void Execute(CommandContext ctx)
-    {
-        var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!; var b = w.Business(_id)!; var def = _ventures.Def(b.Kind)!;
-        house.Treasury.Credits += Price(def, b); w.Businesses.Remove(_id);
-        w.Log($"{house.Name} sells the {b.Name}.");
+        if (def.BuildTurns <= 0 && b.CompanyId.Length == 0) { house.Treasury.Spend(def.ExpandCost); house.Treasury.ClampNonCredit(); b.Level++; return; }
+        ProjectSystem.Start(w, house.Id, Project.Expansion, b.Kind, b.Id, $"the enlargement of the {b.Name}", def.ExpandCost, Math.Max(1, def.BuildTurns), b.CompanyId);
     }
 }
 

@@ -32,43 +32,46 @@ public sealed class BuildCommand : ICommand
     public string ActorId { get; }
     public string Describe() => $"build {_buildingId} at {_holdingId}";
 
-    public bool CanExecute(CommandContext ctx)
+    /// <summary>Why it cannot be built, or null. A building with a build time is begun, not bought: the purse need only meet the first
+    /// yearly instalment (docs/ECONOMY_MARKET.md stage B).</summary>
+    public string? Refusal(CommandContext ctx)
     {
-        var actor = ctx.World.Char(ActorId);
-        if (actor?.Alive != true) return false;
-
-        var holding = ctx.World.Holding(_holdingId);
-        if (holding == null || holding.OwnerId != actor.HouseId) return false;
-
-        var spec = _catalog.Spec(holding.Specialization);
-        var building = _catalog.Building(_buildingId);
-        if (spec == null || building == null) return false;
-
-        if (holding.Buildings.Count >= spec.Slots) return false;       // no free slot
-        if (holding.Buildings.Contains(_buildingId)) return false;     // no duplicates
-        if (!building.FitsSpecialization(holding.Specialization)) return false;
-        if (building.RequiresDeposit != null && (ctx.World.Galaxy?.System(holding.SystemId)?.Deposit(building.RequiresDeposit) ?? 0) == 0) return false;   // no deposit, nothing to work
-
-        var house = ctx.World.House(actor.HouseId);
-        if (house == null) return false;
-        if (building.MinTitleRank > 0 && (_titles?.RankOf(house.Title) ?? 0) < building.MinTitleRank) return false;   // megastructures want a seat
-        return house.Treasury.CanAfford(building.Cost);
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true) return "no one to give the order";
+        var holding = w.Holding(_holdingId);
+        if (holding == null || holding.OwnerId != actor.HouseId) return "not your holding";
+        var spec = _catalog.Spec(holding.Specialization); var building = _catalog.Building(_buildingId);
+        if (spec == null || building == null) return "no such building";
+        if (holding.Buildings.Count + Systems.ProjectSystem.SlotsUnderway(w, holding.Id) >= spec.Slots) return "no free slot";
+        if (holding.Buildings.Contains(_buildingId)) return "already built";
+        if (Systems.ProjectSystem.Underway(w, actor.HouseId, Project.Building, _buildingId, holding.Id)) return "already being built";
+        if (!building.FitsSpecialization(holding.Specialization)) return "does not suit this holding";
+        if (building.RequiresDeposit != null && (w.Galaxy?.System(holding.SystemId)?.Deposit(building.RequiresDeposit) ?? 0) == 0) return $"needs a {Resource.Label(building.RequiresDeposit)} deposit";
+        var house = w.House(actor.HouseId); if (house == null) return "no house";
+        if (building.MinTitleRank > 0 && (_titles?.RankOf(house.Title) ?? 0) < building.MinTitleRank) return "needs a greater rank";   // megastructures want a seat
+        var first = Systems.ProjectSystem.Split(building.Cost, building.BuildTurns).First;
+        return house.Treasury.CanAfford(first) ? null : $"needs {Presentation.CourtProjection.Bundle(first)}{(building.BuildTurns > 1 ? " to begin" : "")}";
     }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
 
     public void Execute(CommandContext ctx)
     {
-        var actor = ctx.World.Char(ActorId)!;
-        var house = ctx.World.House(actor.HouseId)!;
-        var holding = ctx.World.Holding(_holdingId)!;
-        var building = _catalog.Building(_buildingId)!;
+        var w = ctx.World; var actor = w.Char(ActorId)!; var house = w.House(actor.HouseId)!; var holding = w.Holding(_holdingId)!; var building = _catalog.Building(_buildingId)!;
+        if (building.BuildTurns <= 0) { house.Treasury.Spend(building.Cost); Raise(w, house, holding, building, actor.Id == w.ProtagonistId); return; }
+        Systems.ProjectSystem.Start(w, house.Id, Project.Building, building.Id, holding.Id, $"the {building.Name} at {holding.Name}", building.Cost, building.BuildTurns);
+        if (building.Megastructure) w.Log($"{house.Name} begins the {building.Name} over {holding.Name}: {building.BuildTurns} years in the building.");
+    }
 
-        house.Treasury.Spend(building.Cost);
-        holding.Buildings.Add(_buildingId);
+    /// <summary>The building stands: it is on the holding, and a megastructure is announced.</summary>
+    public static void Raise(World w, House house, Holding holding, Data.BuildingDef building, bool byPlayer)
+    {
+        if (holding.Buildings.Contains(building.Id)) return;
+        holding.Buildings.Add(building.Id);
         if (building.Megastructure)
         {
-            ctx.World.WorldCounters["megastructures"] = ctx.World.Counter("megastructures") + 1;
-            if (actor.Id == ctx.World.ProtagonistId) ctx.World.WorldFlags.Add("megastructure_raised");
-            ctx.World.Log($"{house.Name} raises the {building.Name} over {holding.Name} — a thing the whole Reach can see.");
+            w.WorldCounters["megastructures"] = w.Counter("megastructures") + 1;
+            if (byPlayer) w.WorldFlags.Add("megastructure_raised");
+            w.Log($"{house.Name} raises the {building.Name} over {holding.Name} — a thing the whole Reach can see.");
         }
     }
 }

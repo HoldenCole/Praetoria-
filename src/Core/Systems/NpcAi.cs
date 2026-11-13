@@ -28,6 +28,8 @@ public sealed class NpcAi
     public NationCatalog? Nations { get; init; }
     /// <summary>The commodity market: stewards sell what they hoard and buy what they lack at the Reach's prices (docs/ECONOMY_MARKET.md).</summary>
     public TradeRules Trade { get; init; } = TradeRules.Empty;
+    /// <summary>Ventures as assets: a steward in distress sells to the best bidder, not to the void (docs/ECONOMY_MARKET.md stage B).</summary>
+    public VentureSystem? VentureTrade { get; init; }
     private BusinessCatalog _ventures = BusinessCatalog.Empty;
 
     public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
@@ -412,7 +414,8 @@ public sealed class NpcAi
         if (house.Treasury.Credits < -10)
         {
             var worst = world.BusinessesOf(house.Id).Select(b => (b, pay: VentureNet(world, house, b))).OrderBy(x => x.pay).ThenBy(x => x.b.Id, StringComparer.Ordinal).FirstOrDefault();
-            if (worst.b != null && (worst.pay <= 0 || house.Treasury.Credits < -25)) executor.TryExecute(new SellBusinessCommand(steward.Id, worst.b.Id, _ventures), ctx);
+            if (worst.b != null && worst.b.CompanyId.Length == 0 && (worst.pay <= 0 || house.Treasury.Credits < -25) && world.Turn >= worst.b.OfferedUntil)   // not while an offer of it still stands: the house offered has had its year
+                executor.TryExecute(new SellVentureCommand(steward.Id, worst.b.Id, SellVentureCommand.Best, VentureTrade ?? new VentureSystem(eco, _ventures)), ctx);
         }
         // a loan is a bridge, not a floor: borrow only when the ledger is positive, so the instalments can be met
         if (house.Treasury.Credits < -5 && house.Debt == 0 && net > f.LoanInstalment) executor.TryExecute(new TakeLoanCommand(steward.Id, _ventures), ctx);   // the instalment must be payable out of income
@@ -424,6 +427,19 @@ public sealed class NpcAi
             int surplus = house.Treasury.Get(res) - keep; if (surplus < 3) continue;
             if (!MarketSystem.FairPrice(world, Trade.Market, res)) continue;   // a hoard is not sold into a glut: the steward waits for a price
             executor.TryExecute(new SellGoodCommand(steward.Id, res, Math.Min(6, surplus), Trade), ctx);
+        }
+        // a rich house buys what pays (docs/ECONOMY_MARKET.md stage B): about one year in ten, by a hash, the venture it most wants
+        // at its owner's asking price — what works its own world first, a distressed seller's before a comfortable one's
+        if (VentureTrade != null && house.Treasury.Credits >= 120)
+        {
+            uint bh = 2166136261; foreach (var ch in house.Id + ":buy:" + world.Turn) bh = (bh ^ ch) * 16777619;
+            if (bh % 10 == 0 && VentureTrade.Target(world, house.Id) is { } wanted) executor.TryExecute(new BuyVentureCommand(steward.Id, wanted.Id, VentureTrade), ctx);
+        }
+        // a poor house with two ventures or more sells the one that pays least to whoever will give most for it
+        if (VentureTrade != null && house.Treasury.Credits < 10 && house.Treasury.Credits >= -10 && world.BusinessesOf(house.Id).Count(b => b.CompanyId.Length == 0) >= 2)
+        {
+            var least = world.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0 && world.Turn >= b.OfferedUntil).OrderBy(b => VentureTrade.Earnings(world, b)).ThenBy(b => b.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (least != null && VentureTrade.Bidders(world, least).Count > 0) executor.TryExecute(new SellVentureCommand(steward.Id, least.Id, SellVentureCommand.Best, VentureTrade), ctx);
         }
         if (house.Treasury.Credits >= f.InvestCredits + 14)
         {

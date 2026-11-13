@@ -271,7 +271,14 @@ internal static class Qa
             foreach (var sys in g.Systems.Values.Where(s => s.Belt > 0).OrderBy(s => s.Id, StringComparer.Ordinal)) cands.Add(new StakeClaimCommand(p.Id, sys.Id, content.Holdings, bc));
             foreach (var h in w.Holdings.Values.Where(h => h.FormerOwnerId == house.Id).OrderBy(h => h.Id, StringComparer.Ordinal)) cands.Add(new ReclaimFreeholdCommand(p.Id, h.Id));
         }
-        foreach (var b in w.BusinessesOf(house.Id).OrderBy(b => b.Id, StringComparer.Ordinal)) { cands.Add(new ExpandBusinessCommand(p.Id, b.Id, bc)); if (decisions.NextInt(0, 6) == 0) cands.Add(new SellBusinessCommand(p.Id, b.Id, bc)); }
+        foreach (var b in w.BusinessesOf(house.Id).OrderBy(b => b.Id, StringComparer.Ordinal)) { cands.Add(new ExpandBusinessCommand(p.Id, b.Id, bc)); if (tc.Ventures != null && decisions.NextInt(0, 6) == 0) cands.Add(new SellVentureCommand(p.Id, b.Id, decisions.NextInt(0, 2) == 0 ? "" : SellVentureCommand.Best, tc.Ventures)); }
+        if (tc.Ventures != null)
+        {
+            var theirs = w.Businesses.Values.Where(b => b.OwnerId != house.Id).OrderBy(b => b.Id, StringComparer.Ordinal).ToList();
+            if (theirs.Count > 0) cands.Add(new BuyVentureCommand(p.Id, theirs[decisions.NextInt(0, theirs.Count)].Id, tc.Ventures));
+            foreach (var o in w.Offers.Where(o => o.ToHouseId == house.Id)) cands.Add(new AcceptVentureOfferCommand(p.Id, o.Id, tc.Ventures));
+        }
+        foreach (var pr in w.ProjectsOf(house.Id).OrderBy(x => x.Id, StringComparer.Ordinal)) { if (decisions.NextInt(0, 8) == 0) cands.Add(new PauseProjectCommand(p.Id, pr.Id)); if (decisions.NextInt(0, 8) == 0) cands.Add(new RushProjectCommand(p.Id, pr.Id)); if (decisions.NextInt(0, 12) == 0) cands.Add(new AbandonProjectCommand(p.Id, pr.Id)); }
         cands.Add(new TakeLoanCommand(p.Id, bc)); cands.Add(new RepayLoanCommand(p.Id)); cands.Add(new PetitionFiefCommand(p.Id));
         foreach (var gd in content.Market.Goods) { cands.Add(new BuyGoodCommand(p.Id, gd.Id, 1 + decisions.NextInt(0, 4), content.Trade)); cands.Add(new SellGoodCommand(p.Id, gd.Id, 1 + decisions.NextInt(0, 4), content.Trade)); }
         foreach (var def in tc.Senate.Motions.Defs)

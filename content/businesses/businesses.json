@@ -1,65 +1,90 @@
 {
   "//": "VENTURES (GDD §17 businesses, §19 'smaller houses that control smaller things'). A venture is a house's property that is not land: founded in a system for `cost`, it pays `yield` per level and `flat` whatever its level, costs `upkeep` per level, can be expanded to `maxLevel` for `expandCost` a step, and pays `charter` credits per level each turn to whoever holds the planet there when that is another house. `requires` says where it can be founded. A lender's bank holds other houses' loans and takes their interest.",
+  "//2": "STAGE B (docs/ECONOMY_MARKET.md): `buildTurns` is the years to found one or raise it a level, the cost paid over them; `sector` (trade, extraction, arms, shipping, finance, services) is what the Exchange reads its outlook from; `warCredits` a level for every war (four at most), `peaceCredits` a level in a year with none, `spikeCredits` a level for every good whose price is spiking. A venture also earns a tenth more for each OTHER kind of venture working its system (three at most).",
   "businesses": [
     {
-      "id": "skimmer_fleet", "name": "Skimmer Fleet",
+      "id": "skimmer_fleet", "name": "Skimmer Fleet", "buildTurns": 2, "sector": "extraction",
       "description": "Ramscoops in a giant's upper clouds, run on contract. Fuel for whoever holds the paper, and a charter to whoever holds the world.",
       "cost": { "credits": 12, "materials": 6 }, "yield": { "helium3": 1 }, "expandCost": { "credits": 10, "materials": 4 }, "maxLevel": 3, "charter": 1,
       "requires": { "deposit": "helium3" }
     },
     {
-      "id": "enrichment_concern", "name": "Enrichment Concern",
+      "id": "enrichment_concern", "name": "Enrichment Concern", "buildTurns": 2, "sector": "arms",
       "description": "Centrifuges behind a wall of guards. Weapons-grade isotopes do not reach the open market; they reach whoever owns this.",
       "cost": { "credits": 20, "materials": 10 }, "yield": { "isotopes": 1 }, "expandCost": { "credits": 16, "materials": 8 }, "maxLevel": 2, "charter": 2,
       "requires": { "deposit": "isotopes", "minTitleRank": 2 }
     },
     {
-      "id": "trading_company", "name": "Trading Company",
+      "id": "trading_company", "name": "Trading Company", "buildTurns": 1, "sector": "trade",
       "description": "Factors, warehouses and a seal on the customs house. The first thing a house with coin and no land buys.",
       "cost": { "credits": 12, "materials": 4 }, "yield": { "credits": 3 }, "expandCost": { "credits": 10, "materials": 3 }, "maxLevel": 3, "charter": 1,
       "requires": { "populated": true }
     },
     {
-      "id": "mining_concern", "name": "Mining Concern",
+      "id": "mining_concern", "name": "Mining Concern", "buildTurns": 1, "sector": "extraction",
       "description": "Tugs, crushers and a company of belt-rats on contract. Works a belt without owning a claim in it.",
       "cost": { "credits": 10, "materials": 6 }, "yield": { "materials": 3, "credits": 1 }, "expandCost": { "credits": 8, "materials": 4 }, "maxLevel": 3, "charter": 1,
       "requires": { "belt": true }
     },
     {
-      "id": "shipping_line", "name": "Shipping Line",
+      "id": "shipping_line", "name": "Shipping Line", "buildTurns": 2, "sector": "shipping",
       "description": "Hulls on the lanes under your colours. Where three lanes meet, everything pays to pass.",
       "cost": { "credits": 14, "materials": 6 }, "yield": { "credits": 2 }, "flat": { "influence": 1 }, "expandCost": { "credits": 12, "materials": 4 }, "maxLevel": 3, "charter": 2,
       "requires": { "minLanes": 3 }
     },
     {
-      "id": "merchant_bank", "name": "Merchant Bank",
+      "id": "merchant_bank", "name": "Merchant Bank", "buildTurns": 2, "sector": "finance",
       "description": "A counting-house with the house's seal on its door. Other houses' debts come here, and so does their interest.",
       "cost": { "credits": 24 }, "yield": { "credits": 2 }, "flat": { "influence": 1 }, "expandCost": { "credits": 16 }, "maxLevel": 3, "charter": 0, "lender": true,
       "requires": { "ownWorld": true, "minTitleRank": 2 }
     },
     {
-      "id": "salvage_guild", "name": "Salvage Guild",
+      "id": "salvage_guild", "name": "Salvage Guild", "buildTurns": 1, "sector": "extraction",
       "description": "Wreckers and scrap-smelters on a world nobody wanted. Now and then they bring up something stranger than steel.",
       "cost": { "credits": 8, "materials": 2 }, "yield": { "materials": 2 }, "flat": { "exotics": 1 }, "upkeep": { "credits": 1 }, "expandCost": { "credits": 8 }, "maxLevel": 2, "charter": 1,
       "requires": { "planetClasses": ["barren", "frozen", "belt"] }
     },
     {
-      "id": "spice_syndicate", "name": "Spice Syndicate",
+      "id": "spice_syndicate", "name": "Spice Syndicate", "buildTurns": 1, "sector": "trade",
       "description": "Licences, laboratories and a quiet arrangement with the archivists. Exotics by the gram, credits by the crate.",
       "cost": { "credits": 16, "materials": 2 }, "yield": { "credits": 2 }, "flat": { "exotics": 1 }, "expandCost": { "credits": 12 }, "maxLevel": 2, "charter": 2,
       "requires": { "specializations": ["research_station", "research_enclave"] }
     },
     {
-      "id": "mercenary_company", "name": "Free Company",
+      "id": "mercenary_company", "name": "Free Company", "buildTurns": 1, "sector": "arms", "warCredits": 1,
       "description": "Veterans under contract, paid by whoever is frightened this season. Costs you people; pays in coin.",
       "cost": { "credits": 10, "manpower": 6 }, "yield": { "credits": 3 }, "upkeep": { "manpower": 1 }, "expandCost": { "credits": 8, "manpower": 4 }, "maxLevel": 3, "charter": 0,
       "requires": { "populated": true }
     },
     {
-      "id": "academy_patronage", "name": "Academy Patronage",
+      "id": "academy_patronage", "name": "Academy Patronage", "buildTurns": 1, "sector": "services",
       "description": "Chairs endowed, cadets sponsored, names remembered. It earns nothing a steward can count and everything a chancellor can.",
       "cost": { "credits": 12, "influence": 1 }, "flat": { "influence": 1 }, "upkeep": { "credits": 1 }, "expandCost": { "credits": 10 }, "maxLevel": 2, "charter": 0,
       "requires": { "ownWorld": true, "populated": true }
+    },
+    {
+      "id": "commodity_warehouse", "name": "Commodity Warehouse", "buildTurns": 1, "sector": "trade", "spikeCredits": 2,
+      "description": "Sheds, scales and patience. It buys when the exchanges are full and sells into a shortage: two credits a level for every good that is spiking.",
+      "cost": { "credits": 14, "materials": 6 }, "yield": { "credits": 1 }, "expandCost": { "credits": 10, "materials": 4 }, "maxLevel": 2, "charter": 1,
+      "requires": { "populated": true }
+    },
+    {
+      "id": "arsenal_concern", "name": "Arsenal Concern", "buildTurns": 2, "sector": "arms", "warCredits": 2,
+      "description": "Shell-filling sheds and a proving ground. It pays a little in peace and two credits a level for every war in the Reach, four at most.",
+      "cost": { "credits": 18, "materials": 8 }, "yield": { "credits": 1 }, "expandCost": { "credits": 14, "materials": 6 }, "maxLevel": 2, "charter": 2,
+      "requires": { "populated": true, "minTitleRank": 1 }
+    },
+    {
+      "id": "shipyard_company", "name": "Shipyard Company", "buildTurns": 2, "sector": "shipping", "warCredits": 1,
+      "description": "Slips let by the keel to any house that will pay. Steady in peace; busier with every war.",
+      "cost": { "credits": 20, "materials": 10 }, "yield": { "credits": 2 }, "expandCost": { "credits": 14, "materials": 8 }, "maxLevel": 2, "charter": 2,
+      "requires": { "populated": true, "minLanes": 2 }
+    },
+    {
+      "id": "insurance_house", "name": "Insurance House", "buildTurns": 1, "sector": "finance", "peaceCredits": 3, "warCredits": -1,
+      "description": "It sells the lanes' safety by the voyage. Three credits a level in a year without a war; every war costs it one.",
+      "cost": { "credits": 18 }, "yield": { "credits": 1 }, "expandCost": { "credits": 12 }, "maxLevel": 2, "charter": 1,
+      "requires": { "populated": true }
     }
   ],
   "finance": {
