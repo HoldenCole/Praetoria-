@@ -140,3 +140,15 @@ content reads that no run ever raised* lists the `worldFlag` triggers the engine
 was reachable and merely unlucky; one whose flag **is** in the second needs either a scripted test
 (`tests/EventReachabilityTests.cs` builds the trigger state by hand and asserts eligibility) or a look at the system
 that should raise the flag. Add a row to the reachability table whenever you add an event gated on a rare flag.
+
+## Before every push: run what CI runs
+
+```bash
+./tools/ci.sh
+```
+
+It runs the steps of `.github/workflows/ci.yml` in order: the solution's build and tests, both content validators, the
+Godot layer's compile check, and the web client's publish. The last two are **not** in `Praetoria.sln`, so building
+and testing the solution alone does not prove a push is green. (2026-11-13: a signature changed in Core broke one
+line of the Godot layer, and every CI run failed for two days while all the tests passed locally.)
+

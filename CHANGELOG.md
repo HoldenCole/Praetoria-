@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+- **CI is green again.** The Godot layer's compile check had failed on every push since titles took an era: one call
+  in `src/Game/GameState.cs` still used the old signature. The tests and the published game were never affected.
+  `tools/ci.sh` now runs CI's exact steps locally.
+
 ### Changed
 - **Faster turns.** A house's laws are summed into one table per ledger instead of rescanning every region on each
   lookup; turn processing is about a third of what it was. The browser builds the projection once per action and

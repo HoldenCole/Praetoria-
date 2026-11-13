@@ -96,5 +96,5 @@ public sealed class GameState
     }
 
     public string RankName(Character c) =>
-        Content.Careers.RankName(c.CareerTrack, c.CareerRank) is { } n ? $"{n}" : $"rank {c.CareerRank}";
+        Content.Careers.RankName(c.CareerTrack, c.CareerRank, World?.Era ?? Praetoria.Core.State.World.EraRepublic) is { } n ? $"{n}" : $"rank {c.CareerRank}";
 }
