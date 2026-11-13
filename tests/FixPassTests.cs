@@ -139,4 +139,19 @@ public class FixPassTests
         var (tc, w) = Start("the_old_lion", 7); var back = SaveSystem.Deserialize(SaveSystem.Serialize(w));
         Assert.All(w.Houses.Values, x => Assert.Equal(x.Legitimacy, back.House(x.Id)!.Legitimacy));
     }
+
+    [Fact]
+    public void Other_houses_weddings_and_wars_are_not_counted_as_the_players_own()
+    {
+        // found 2026-11-13: a lieutenant of four turns' standing was named "Peacemaker of the Reach" for strangers' weddings
+        var (tc, w) = Start("the_new_man"); string mine = w.Protagonist!.HouseId;
+        for (int t = 0; t < 12; t++) { tc.BeginTurn(); tc.EndTurn(); }
+        int own = Marriages(w).Count(m => w.Char(m.Item1)!.HouseId == mine || w.Char(m.Item2)!.HouseId == mine);
+        Assert.True(w.Counter("marriages") <= own, $"{w.Counter("marriages")} counted, {own} of the house's own");
+        var others = w.Houses.Values.Where(h => h.Id != mine).OrderBy(h => h.Id, StringComparer.Ordinal).Take(2).ToList();
+        new FleetSystem(Content.Fleets).DeclareWar(w, others[0].Id, others[1].Id);
+        Assert.Equal(0, w.Counter(FleetSystem.WarsBegunCounter));
+        new FleetSystem(Content.Fleets).DeclareWar(w, mine, others[0].Id);
+        Assert.Equal(1, w.Counter(FleetSystem.WarsBegunCounter));
+    }
 }

@@ -109,7 +109,9 @@ public sealed class ProposeMarriageCommand : ICommand
         if (theirRank > ourRank) { ours.Claims.Add(theirs.Title); ours.Legitimacy += 5; }
         else if (ourRank > theirRank) { theirs.Claims.Add(ours.Title); theirs.Legitimacy += 5; }
         else { ours.Legitimacy += 2; theirs.Legitimacy += 2; }
-        w.WorldCounters["marriages"] = w.Counter("marriages") + 1;
+        // the counter is the player's own house's matches: an honour and the epilogue read it as "bound to yours"
+        string? mine = w.Protagonist?.HouseId;
+        if (ours.Id == mine || theirs.Id == mine) w.WorldCounters["marriages"] = w.Counter("marriages") + 1;
         w.Log($"{s.Name} of {ours.Name} weds {t.Name} of {theirs.Name}.");
     }
 }

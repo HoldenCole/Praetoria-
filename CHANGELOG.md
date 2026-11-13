@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Fixed
+- *Peacemaker of the Reach* was awarded for other houses' weddings: the marriages counter now counts only the player's
+  own house's matches, and the honour reads wars the house itself began (`wars_begun`), not every war in the Reach.
+- The workshop's "Load a file" control is the same size as the chips beside it.
 - A house's legitimacy could run past 100: it is now held to 0–100 where it is stored.
 - **CI is green again.** The Godot layer's compile check had failed on every push since titles took an era: one call
   in `src/Game/GameState.cs` still used the old signature. The tests and the published game were never affected.

@@ -472,7 +472,7 @@ hulls and falls back to its nearest port (or scatters), the winner sheds `winner
 was. An **unopposed fleet in enemy space takes its holdings** (conquest: +`conquestUnrest`, and `seizures`+1 when
 the player does it — the §7 fear machine). Peace: the player sues by command (an NPC refuses while its hulls exceed
 yours by `peaceRefusalRatio`); an NPC suing the player flags its head `suing_for_peace` and *The Envoy* asks you.
-**Engine-written, read-only:** `battles`, `battles_won`, `battles_lost`, `conquests`, `wars_declared` counters;
+**Engine-written, read-only:** `battles`, `battles_won`, `battles_lost`, `conquests`, `wars_declared` (every war in the Reach), `wars_begun` (the player's own house's) counters;
 `battle_fought`, `conquest_made`, `holding_lost` flags (content clears them — see *The Butcher's Bill*, *The
 Conquered World*, *The Lost World*); `at_war:<house>` flags; the `suing_for_peace` char flag.
 

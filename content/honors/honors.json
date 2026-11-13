@@ -28,7 +28,7 @@
     ,
     { "id": "peacemaker", "name": "Peacemaker of the Reach",
       "description": "Two houses bound to yours by marriage, and no war declared in your name.",
-      "when": [ { "type": "counter", "key": "marriages", "op": "gte", "value": 2 }, { "type": "counter", "key": "wars_declared", "op": "eq", "value": 0 } ],
+      "when": [ { "type": "counter", "key": "marriages", "op": "gte", "value": 2 }, { "type": "counter", "key": "wars_begun", "op": "eq", "value": 0 } ],
       "effects": [ { "type": "adjustLegitimacy", "role": "self", "delta": 8 }, { "type": "adjustCounter", "key": "goodwill", "delta": 2 } ] },
     { "id": "lord_protector", "name": "Protector of the Reach",
       "description": "Three worlds taken and held — the Reach fears you, and calls it respect.",

@@ -878,6 +878,10 @@ from the Academy, no errors.
 **Found on the way.** House legitimacy had no ceiling in nine places (the Colossus reached 103 in three turns). It is
 clamped in the property now.
 
+Playing the Officer preset then showed a lieutenant of four turns named *Peacemaker of the Reach*: the marriages
+counter was every house's weddings, and "no war declared in your name" read every war in the Reach. Both now count only
+the player's own house.
+
 **Gaps that remain.** Stations cannot be picked alone. Kin are a name, a sex and an age. The spouse is not from a named
 house. The face has five dials and one uniform. The budget's prices are a first guess and have not been tuned against
 how the written starts actually play (the written starts were not priced).

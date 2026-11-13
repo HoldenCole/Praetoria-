@@ -15,7 +15,7 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 510 |
+| Automated tests | 511 |
 | Events with text | 261 in 25 files |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |

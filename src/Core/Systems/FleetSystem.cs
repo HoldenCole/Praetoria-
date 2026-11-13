@@ -88,6 +88,8 @@ public sealed class FleetSystem
     public const string HoldingLostFlag = "holding_lost";
     public const string UnderSiegeFlag = "under_siege";          // one of the player's holdings is blockaded
     public const string WarsDeclaredCounter = "wars_declared";
+    /// <summary>Wars the player's own house began. <see cref="WarsDeclaredCounter"/> counts every war in the Reach.</summary>
+    public const string WarsBegunCounter = "wars_begun";
     public static string AtWarFlag(string houseId) => $"at_war:{houseId}";
     public const string SuingForPeaceFlag = "suing_for_peace";
     public const string AdmiralFlag = "admiral";                  // the character commands a fleet
@@ -461,6 +463,7 @@ public sealed class FleetSystem
         if (a == b || w.AtWar(a, b)) return;
         w.Wars.Add(new War { HouseA = a, HouseB = b, Since = w.Turn });
         w.WorldCounters[WarsDeclaredCounter] = w.Counter(WarsDeclaredCounter) + 1;
+        if (a == w.Protagonist?.HouseId) w.WorldCounters[WarsBegunCounter] = w.Counter(WarsBegunCounter) + 1;
         RefreshWarFlags(w);
         var who = byCharacterId != null ? w.Char(byCharacterId) : null;
         w.Log($"{(who?.Name ?? w.House(a)?.Name ?? a)} declares war on {w.House(b)?.Name ?? b}.");

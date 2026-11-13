@@ -661,4 +661,4 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .ws-line { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin: .2rem 0; } .ws-line input[type=number] { width: 4.2rem; }
 .ws-problems { border: 1px solid rgba(230,57,70,.5); background: rgba(230,57,70,.08); border-radius: 4px; padding: .5rem .7rem; font-size: .84rem; } .ws-problems b { display: block; margin-bottom: .2rem; color: #E63946; }
 @media (max-width: 700px) { .ws-top { flex-direction: column; } }
-.workshop .chip.file { text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: inherit; display: inline-flex; align-items: center; }
+.workshop .chip.file { text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: .85rem; cursor: pointer; display: inline-flex; align-items: center; }
