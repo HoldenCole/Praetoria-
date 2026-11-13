@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### Added
-- **A roadmap** (docs/ROADMAP.md): what is done, the known gaps, the next nine cycles in order, a planned look-and-feel
+- **A roadmap** (docs/ROADMAP.md): what is done, the known gaps, the next ten cycles in order (a custom character first), a planned look-and-feel
   pass for screens and characters (not started), and ideas for later expansions. The README's status sections now
   point to it.
 - **The three orders of the Republic** (docs/REPUBLIC.md). Every house now has a standing in the Senate, in Arms and

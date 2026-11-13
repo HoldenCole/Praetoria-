@@ -93,15 +93,55 @@ In order. Each line is about one cycle of work (build, test, soak, browser, docs
 
 | # | Work | What it delivers |
 |---|---|---|
-| 1 | **The Caesar road** | The Senate votes a triumph or a recall. Fleets that a commander has led to victory become loyal to him. A recalled general with loyal fleets may obey or cross the line: a civil war with the parties choosing sides. Victory ends the Republic. |
-| 2 | **The ladder of offices** | Lesser offices before the consulship, each with an age and a prior post. Holding each feeds standing in the Senate. |
-| 3 | **The state and commerce** | Tax-farming a region and contracts to supply the fleet, let by Senate motion. A patron calls in a client's vote on a real motion. Stewards use sway deliberately. |
-| 4 | **Look and feel pass** | Section 5 below. Planned, not started. |
-| 5 | **Economy follow-ups** | Hostile stakes by rival stewards, a bubble that bursts, companies that found ventures, a view of one company, the glut. |
-| 6 | **Starts and first hour** | The title screen grouped by road (born to a name, by arms, by commerce, the Academy). An early marriage for the New Man. The orders in the Academy's lessons. |
-| 7 | **Governments and the Imperium** | The owner's later item: how a throne governs, the court as a place, the orders under an Emperor. Needs its own plan first. |
-| 8 | **Nations on the map** | Territory, borders and fronts for the nations beyond the Reach. |
-| 9 | **Sound, balance, content** | Audio, a balance pass across sixty-year runs, and events for whatever the soak shows never fires. |
+| 1 | **A custom character** | Owner's priority (2026-11-13). Build your own person, house and family with every dial exposed, balanced or not. Plan below. |
+| 2 | **The Caesar road** | The Senate votes a triumph or a recall. Fleets that a commander has led to victory become loyal to him. A recalled general with loyal fleets may obey or cross the line: a civil war with the parties choosing sides. Victory ends the Republic. |
+| 3 | **The ladder of offices** | Lesser offices before the consulship, each with an age and a prior post. Holding each feeds standing in the Senate. |
+| 4 | **The state and commerce** | Tax-farming a region and contracts to supply the fleet, let by Senate motion. A patron calls in a client's vote on a real motion. Stewards use sway deliberately. |
+| 5 | **Look and feel pass** | Section 5 below. Planned, not started. |
+| 6 | **Economy follow-ups** | Hostile stakes by rival stewards, a bubble that bursts, companies that found ventures, a view of one company, the glut. |
+| 7 | **Starts and first hour** | The title screen grouped by road (born to a name, by arms, by commerce, the Academy). An early marriage for the New Man. The orders in the Academy's lessons. |
+| 8 | **Governments and the Imperium** | The owner's later item: how a throne governs, the court as a place, the orders under an Emperor. Needs its own plan first. |
+| 9 | **Nations on the map** | Territory, borders and fronts for the nations beyond the Reach. |
+| 10 | **Sound, balance, content** | Audio, a balance pass across sixty-year runs, and events for whatever the soak shows never fires. |
+
+### Next up: a custom character
+
+The owner wants this first: lots of toggles, real freedom, and the ability to make someone overpowered on purpose.
+
+**Today.** Creation offers a name, a sex, one background, up to two nature and two aptitude traits, a career track
+and an ambition, laid over one of the fixed starts. The house, the family and the numbers come from the start.
+
+**Two modes**
+
+| Mode | Rule |
+|---|---|
+| Standard | A points budget. Strengths are paid for with weaknesses, so the character is fair. |
+| Free | No limits. Any trait, any number, any rank, any treasury. The run is marked as custom in the save and the epilogue. |
+
+A **power rating** is shown as you build, in both modes, so an overpowered character is a choice you can see.
+
+**What can be set**
+
+| Part | Dials |
+|---|---|
+| The person | Name, sex, age. Every skill set directly. Any nature and aptitude traits. Career track and starting rank. Ambition. |
+| The face | Skin, hair, style, beard, age lines, scars; reroll and lock. Uses the portrait work in section 5. |
+| The house | Name, colour and sigil, culture, old or new name, rank, legitimacy, party, every resource in the treasury. |
+| What it holds | Worlds and stations (which, or none), hulls, ventures, a seat in the Senate, a patron or clients. |
+| The family | Spouse, children, siblings: how many, how old, who is heir. |
+| The world | Republic or Imperium. Start at the Academy or in the world. A friend and a rival among the great houses. |
+
+**Shortcuts**
+
+- Presets that fill every dial: the Heir, the Officer, the New Man, and one that is frankly overpowered.
+- Randomise everything, or one part.
+- Save a character to a small file and load it again.
+
+**Engine work.** `CreationOptions` grows to carry all of the above; `CharacterCreation` applies it and validates by
+mode; the world builder places custom holdings, fleets and family. Tests: any legal combination builds a valid world,
+and a soak of extreme characters (all skills at the top, an empty house, a child head) runs sixty years clean.
+
+**Not in this piece.** New traits, new backgrounds or new art. It exposes what the game already has.
 
 ## 5. Look and feel pass: the plan
 
