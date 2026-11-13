@@ -24,6 +24,8 @@ public sealed class MarketRules
     public int SharePct { get; init; } = 25;
     public double CoverYears { get; init; } = 3;
     public int RelaxPct { get; init; } = 20;
+    /// <summary>How fast stock above what the merchants like to hold leaves the Reach each year: the caravans carry a glut beyond the border.</summary>
+    public int ExcessRelaxPct { get; init; } = 20;
     public int ShortPct { get; init; } = 50;
     public int LongPct { get; init; } = 8;
     public int EasePct { get; init; } = 50;
@@ -59,7 +61,7 @@ public sealed class MarketCatalog
         if (root.TryGetProperty("rules", out var r) && r.ValueKind == JsonValueKind.Object)
             rules = new MarketRules
             {
-                SharePct = ConditionParser.Int(r, "sharePct", 25), CoverYears = D(r, "coverYears", 3), RelaxPct = ConditionParser.Int(r, "relaxPct", 20), ShortPct = ConditionParser.Int(r, "shortPct", 50),
+                SharePct = ConditionParser.Int(r, "sharePct", 25), CoverYears = D(r, "coverYears", 3), RelaxPct = ConditionParser.Int(r, "relaxPct", 20), ExcessRelaxPct = ConditionParser.Int(r, "excessRelaxPct", ConditionParser.Int(r, "relaxPct", 20)), ShortPct = ConditionParser.Int(r, "shortPct", 50),
                 LongPct = ConditionParser.Int(r, "longPct", 8), EasePct = ConditionParser.Int(r, "easePct", 50), SpreadPct = ConditionParser.Int(r, "spreadPct", 10), CaravanSpreadPct = ConditionParser.Int(r, "caravanSpreadPct", 30),
                 ImpactPct = ConditionParser.Int(r, "impactPct", 100), DepthPct = ConditionParser.Int(r, "depthPct", 100), DeficitPct = ConditionParser.Int(r, "deficitPct", 100), FloorPct = ConditionParser.Int(r, "floorPct", 50),
                 CapPct = ConditionParser.Int(r, "capPct", 300), HistoryKept = ConditionParser.Int(r, "historyKept", 12), SpikePct = ConditionParser.Int(r, "spikePct", 150), SlumpPct = ConditionParser.Int(r, "slumpPct", 70)

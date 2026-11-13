@@ -8,6 +8,10 @@ using Praetoria.Tools;
 //   play      [--seed N] [--turns N] [--auto] [--scenario id] [--save f] [--load f]   interactive (or auto) playthrough
 //   demo      [--seed N]                                         scripted run that proves the cascade
 //   validate                                                     lint the content set (CI gate)
+//   qa        [--scenario id|all] [--seeds N] [--turns N]        soak with a randomised player: invariants, save/load, coverage
+//   perf      [--scenario id|all] [--turns N]                    where a turn's milliseconds go
+//   survive   [--scenario id|all] [--seeds N]                    how often a passive player's line ends, and when it weds
+//   balance   [--scenario id|all] [--seeds N]                    prices, production, the Exchange and the orders after sixty years
 // The whole simulation runs here without Godot — the Milestone-1 rule.
 
 var (command, opts) = ParseArgs(args);
@@ -32,6 +36,9 @@ try
         "epilogue" => Commands.EpilogueOf(opts),
         "simulate" => Commands.Simulate(opts),
         "qa"       => Qa.Run(opts),
+        "perf"     => Probes.PerfRun(opts),
+        "survive"  => Probes.Survive(opts),
+        "balance"  => Probes.Balance(opts),
         _ => Unknown(command)
     };
 }

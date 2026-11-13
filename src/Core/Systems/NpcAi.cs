@@ -281,6 +281,10 @@ public sealed class NpcAi
             var suitor = npcs.Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority && c.Sex != "" && !ProposeMarriageCommand.IsMarried(world, c.Id))
                              .OrderBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
             if (suitor == null) continue;
+            // a house does not marry off everyone it has in the first spring: it looks for a match about one year in three, so
+            // there is still someone unwed in the Reach when the player (or a house that was slow) comes looking
+            uint mh = 2166136261; foreach (var ch in house.Id + ":match:" + world.Turn) mh = (mh ^ ch) * 16777619;
+            if (mh % 3 != 0) continue;
             int Score(Character c)
             {
                 var woman = c.Sex == "female" ? c : suitor;

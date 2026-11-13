@@ -39,6 +39,16 @@
         </div>
     </header>
 
+    <div class="ex-tabs">
+        <button class="rung @(_view == "chamber" ? "here" : "")" @onclick='() => _view = "chamber"'>The chamber</button>
+        <button class="rung @(_view == "standing" ? "here" : "")" @onclick='() => _view = "standing"'>Your standing · the three orders</button>
+    </div>
+    @if (_view == "standing")
+    {
+        <div class="dash-grid standing-grid"><OrdersPanel /></div>
+    }
+    else
+    {
     <div class="dash-grid senate-grid">
         <section class="panel chamber">
             <h3><Icon Name="influence" Size="13" /> The chamber <span class="muted">@(watched != null ? $"seats coloured by their lean on: {watched.KindName}" : "seats by house and bench · click a seat")</span></h3>
@@ -182,7 +192,6 @@
         </section>
 
         <aside class="dash-side">
-            <OrdersPanel />
             @if (sen?.Election is { } el)
             {
                 var consuls = sen.Offices?.Where(o => o.Elected).ToList() ?? new List<OfficeCard>();
@@ -270,9 +279,11 @@
             }
         </aside>
     </div>
+    }
 </div>
 
 @code {
+    private string _view = "chamber";
     private static string NoSeatLine(World w) => w.IsImperium ? "· only a house of rank, or a Magistrate, may" : "· the house has no seat: land of rank, a Magistrate at its head, a name great in arms, or enrolment by the census";
     private void Canvass(string nomineeId) { var names = G.Court().Senate?.Election?.Nominees.Select(x => x.HouseId).ToList() ?? new List<string>(); G.Execute(new CanvassCommand(G.World!.ProtagonistId, nomineeId, G.Turn!.Orders, _ => names)); }
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;

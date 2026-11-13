@@ -3,7 +3,7 @@
     {
       "id": "the_patrons_match",
       "tier": "situation",
-      "weight": 9,
+      "weight": 30,
       "repeatable": false,
       "roles": [
         {
@@ -39,7 +39,7 @@
               "type": "age",
               "role": "match",
               "op": "gte",
-              "value": 18
+              "value": 16
             },
             {
               "type": "age",
@@ -173,7 +173,7 @@
     {
       "id": "a_match_is_proposed",
       "tier": "situation",
-      "weight": 4,
+      "weight": 8,
       "repeatable": true,
       "roles": [
         {
@@ -209,7 +209,7 @@
               "type": "age",
               "role": "match",
               "op": "gte",
-              "value": 18
+              "value": 16
             },
             {
               "type": "age",
@@ -237,6 +237,12 @@
           "type": "turn",
           "op": "gte",
           "value": 4
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "lte",
+          "value": 55
         }
       ],
       "choices": [

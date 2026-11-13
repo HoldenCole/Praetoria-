@@ -136,7 +136,7 @@ public sealed class MarketSystem
             double target = TargetStock(d, rules, g);
             // only the ABNORMAL part of the year's surplus or shortfall reaches the stock: the Reach's usual surplus is already where it usually goes
             g.Stock = Math.Max(0, g.Stock + rules.SharePct / 100.0 * ((supply - demand) - (prevSupplyLong - prevDemandLong)));
-            g.Stock += (target - g.Stock) * rules.RelaxPct / 100.0;
+            g.Stock += (target - g.Stock) * (g.Stock > target ? rules.ExcessRelaxPct : rules.RelaxPct) / 100.0;   // a shortage refills slowly; a glut is carried beyond the Reach quickly
             double depth = Math.Clamp(1 + rules.DepthPct / 100.0 * (1 - g.Stock / Math.Max(1, target)), 0.75, 1.75);
             double factor = (1 + d.Sensitivity * (pressure - 1)) * (1 + rules.DeficitPct / 100.0 * g.Deficit) * depth;
             double targetPrice = d.Base * Math.Clamp(factor, rules.FloorPct / 100.0, rules.CapPct / 100.0);
