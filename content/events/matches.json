@@ -1,0 +1,351 @@
+{
+  "events": [
+    {
+      "id": "the_patrons_match",
+      "tier": "situation",
+      "weight": 9,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "match",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "match",
+              "bond": "marriage",
+              "present": false
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "match",
+              "bond": "blood",
+              "present": false
+            },
+            {
+              "type": "sex",
+              "role": "match",
+              "op": "neq",
+              "vsRole": "self"
+            },
+            {
+              "type": "charFlag",
+              "role": "match",
+              "flag": "wed",
+              "value": false
+            },
+            {
+              "type": "age",
+              "role": "match",
+              "op": "gte",
+              "value": 18
+            },
+            {
+              "type": "age",
+              "role": "match",
+              "op": "lte",
+              "value": 32
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "is_client"
+        },
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "wed",
+          "value": false
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "accept_the_match",
+          "effects": [
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "match",
+              "bond": "marriage",
+              "strength": 60
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "wed",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "match",
+              "flag": "wed",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "match",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} married {match.name} of {match.house}, a match the patron had arranged over a single dinner. The house has a future now, and the patron has one more reason to expect its vote."
+            }
+          ]
+        },
+        {
+          "id": "ask_to_meet_first",
+          "effects": [
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "match",
+              "bond": "marriage",
+              "strength": 70
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "wed",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "match",
+              "flag": "wed",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "match",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked to meet {match.name} of {match.house} before anything was signed. It cost the patron's patience a little. They married in the spring, and it was noticed that they seemed glad of it."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "decline_with_thanks",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "match",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked the patron and declined. A house with one life in it is a house with no future; the patron said so, and was not wrong."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_match_is_proposed",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "match",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "match",
+              "bond": "marriage",
+              "present": false
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "match",
+              "bond": "blood",
+              "present": false
+            },
+            {
+              "type": "sex",
+              "role": "match",
+              "op": "neq",
+              "vsRole": "self"
+            },
+            {
+              "type": "charFlag",
+              "role": "match",
+              "flag": "wed",
+              "value": false
+            },
+            {
+              "type": "age",
+              "role": "match",
+              "op": "gte",
+              "value": 18
+            },
+            {
+              "type": "age",
+              "role": "match",
+              "op": "lte",
+              "value": 34
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "wed",
+          "value": false
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "gte",
+          "value": 20
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "marry",
+          "effects": [
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "match",
+              "bond": "marriage",
+              "strength": 60
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "wed",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "match",
+              "flag": "wed",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "match",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "{self.name} married {match.name} of {match.house}. The contract ran to nine pages. The wedding was shorter and better attended."
+            }
+          ]
+        },
+        {
+          "id": "marry_for_affection",
+          "effects": [
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "match",
+              "bond": "marriage",
+              "strength": 75
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "wed",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "match",
+              "flag": "wed",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "match",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "log",
+              "text": "{self.name} married {match.name} of {match.house} because they wished to, which the two families agreed to overlook."
+            }
+          ],
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Loyal",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Honorable",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Just",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "not_yet",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} let the proposal lie. The go-between said there would be others, in the tone of someone who was not sure."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

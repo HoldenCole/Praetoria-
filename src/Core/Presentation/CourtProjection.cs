@@ -1,3 +1,4 @@
+using Praetoria.Core.Diagnostics;
 using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.Events;
@@ -149,6 +150,13 @@ public static class CourtProjection
 
     public static CourtModel Build(TurnController tc, ContentDatabase content)
     {
+        // nothing changes while a projection is built, so pure questions are answered once (ReadCache)
+        bool opened = !ReadCache.Active; if (opened) ReadCache.Open();
+        try { return BuildNow(tc, content); } finally { if (opened) ReadCache.Close(); }
+    }
+    private static CourtModel BuildNow(TurnController tc, ContentDatabase content)
+    {
+        using var perf_ = Perf.Time("proj:Build");
         var w = tc.World;
         var p = w.Protagonist ?? throw new InvalidOperationException("No protagonist.");
         var house = w.House(p.HouseId) ?? throw new InvalidOperationException($"House '{p.HouseId}' missing.");
@@ -431,6 +439,7 @@ public static class CourtProjection
     /// <summary>The docket and the history with every house's stance, and the motions the player could move with their legal targets.</summary>
     private static SenateCard BuildSenate(World w, Character p, House house, SenateSystem senate, CommandContext ctx)
     {
+        using var perf_ = Perf.Time("proj:BuildSenate");
         MotionCard Card(Motion m)
         {
             var def = senate.Motions.Def(m.Kind); var proposer = w.House(m.ProposerHouseId);
@@ -507,6 +516,7 @@ public static class CourtProjection
     /// <summary>Battles about to be joined, the campaign, and the protagonist's own command style (docs/MILITARY.md).</summary>
     private static AssetsCard BuildAssets(World w, Character p, House house, ContentDatabase content, TurnController tc, CommandContext ctx)
     {
+        using var perf_ = Perf.Time("proj:BuildAssets");
         var bc = content.Businesses; var vs = tc.Ventures;
         var projects = w.ProjectsOf(house.Id).OrderBy(x => x.Id, StringComparer.Ordinal).Select(x =>
         {
@@ -542,6 +552,7 @@ public static class CourtProjection
 
     private static ExchangeCard? BuildExchange(World w, Character p, House house, ContentDatabase content, TurnController tc)
     {
+        using var perf_ = Perf.Time("proj:BuildExchange");
         var cs = tc.Companies; if (cs == null || !cs.Open || w.Market == null) return null; var m = w.Market; var r = cs.Rules;
         var lines = new List<CompanyLine>();
         foreach (var co in w.Companies.OrderByDescending(c => c.HeldBy(house.Id) > 0 || c.ControllerId == house.Id ? 1 : 0).ThenByDescending(c => CompanySystem.Cap(c)).ThenBy(c => c.Id, StringComparer.Ordinal))
@@ -570,6 +581,7 @@ public static class CourtProjection
 
     private static MarketCard? BuildMarket(World w, Character p, House house, ContentDatabase content, TurnController tc)
     {
+        using var perf_ = Perf.Time("proj:BuildMarket");
         var t = content.Trade; if (t.Market.IsEmpty) return null;
         var m = MarketSystem.Of(w, t.Market); var net = tc.Economy?.Forecast(w, house.Id, tc.Fleets);
         var goods = t.Market.Goods.Select(d =>
@@ -586,6 +598,7 @@ public static class CourtProjection
 
     private static MilitaryCard BuildMilitary(World w, Character p, House house, FleetSystem fs, FleetRules rules, CommandContext ctx, NationCatalog nations, SenateSystem senate)
     {
+        using var perf_ = Perf.Time("proj:BuildMilitary");
         var abroad = nations.Defs.Where(d => w.Nation(d.Id) != null).OrderByDescending(d => w.Nation(d.Id)!.AtWar).ThenByDescending(d => d.Strength).ThenBy(d => d.Name, StringComparer.Ordinal).Select(d =>
         {
             var n = w.Nation(d.Id)!;
@@ -624,6 +637,7 @@ public static class CourtProjection
     /// <summary>Laws by category with every option's refusal, and the estates with their drift and mood (PolicySystem).</summary>
     private static ChanceryCard? BuildChancery(World w, Character p, House house, PolicyCatalog cat, CommandContext ctx)
     {
+        using var perf_ = Perf.Time("proj:BuildChancery");
         if (cat.IsEmpty) return null;
         var laws = cat.Laws.Select(l =>
         {

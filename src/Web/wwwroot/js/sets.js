@@ -12,6 +12,7 @@ import { render as cameo } from './portrait.js';
 const BRASS = () => new THREE.MeshStandardMaterial({ color: 0x6b5a35, metalness: .85, roughness: .35 });
 const BRIGHT_BRASS = () => new THREE.MeshStandardMaterial({ color: 0xc9a24a, metalness: .9, roughness: .3 });
 
+let rememberedLowPower = 0;   // how far the last set had to simplify itself on this machine
 class Set {
   constructor(container, dotnet, cam) {
     this.container = container; this.dotnet = dotnet; this.disposed = false; this.plates = []; this.animated = [];
@@ -31,6 +32,7 @@ class Set {
     el.addEventListener('click', () => { const g = this.pick(); if (g && g.userData.key != null) this.dotnet?.invokeMethodAsync('OnPlate', String(g.userData.key)); });
     this.resizeObserver = new ResizeObserver(() => this.resize()); this.resizeObserver.observe(container);
     this.clock = new THREE.Clock(); this.loop = this.loop.bind(this); requestAnimationFrame(this.loop);
+    for (let i = 0; i < rememberedLowPower; i++) this.degrade();   // a machine that struggled with the last room starts this one plain
   }
   clear() { this.plates = []; this.animated = []; while (this.root.children.length) { const o = this.root.children[0]; this.root.remove(o); o.traverse?.(c => { c.geometry?.dispose?.(); c.material?.dispose?.(); }); } }
   plate(p, x, y, z, size, key, faceTo) {
@@ -47,13 +49,23 @@ class Set {
   pick() { this.raycaster.setFromCamera(this.mouse, this.camera); const hits = this.raycaster.intersectObjects(this.plates, true); if (!hits.length) return null; let o = hits[0].object; while (o && o.userData.key == null) o = o.parent; return o; }
   resize() { const w = this.container.clientWidth, h = this.container.clientHeight; if (!w || !h) return; this.renderer.setSize(w, h); this.composer.setSize(w, h); this.camera.aspect = w / h; this.camera.updateProjectionMatrix(); }
   loop() {
-    if (this.disposed) return; setTimeout(() => requestAnimationFrame(this.loop), 66); if (document.hidden) return;
+    if (this.disposed) return; setTimeout(() => requestAnimationFrame(this.loop), this.lowPower >= 3 ? 400 : 66); if (document.hidden) { this.lastFrame = 0; return; }
+    // a machine that cannot keep up (no graphics card, an old phone) gets a plainer room rather than a frozen page: first no bloom
+    // and one pixel a pixel, then no shadows, then a slow tick
+    const now = performance.now();
+    if (this.lastFrame) { this.gap = (this.gap || 80) * .7 + (now - this.lastFrame) * .3; this.frames = (this.frames || 0) + 1; if (this.frames > 6 && this.gap > 220 && (this.lowPower || 0) < 3) this.degrade(); }
+    this.lastFrame = now;
     const t = this.clock.getElapsedTime(); const c = this.camBase;
     this.camera.position.x += ((c.pos[0] + this.parallax.x * .4) - this.camera.position.x) * .04; this.camera.position.y += ((c.pos[1] + this.parallax.y * .15) - this.camera.position.y) * .04; this.camera.lookAt(...c.look);
     const hovered = this.pick();
     for (const g of this.plates) { const target = g === hovered ? g.userData.baseY + .12 : g.userData.baseY + Math.sin(t * 1.2 + g.position.x) * .015; g.position.y += (target - g.position.y) * .1; }
     for (const a of this.animated) a(t);
-    this.composer.render();
+    if (this.lowPower >= 1) this.renderer.render(this.scene, this.camera); else this.composer.render();
+  }
+  degrade() {
+    this.lowPower = (this.lowPower || 0) + 1; this.frames = 0; this.gap = 80; rememberedLowPower = Math.max(rememberedLowPower, this.lowPower);
+    if (this.lowPower === 1) { this.renderer.setPixelRatio(1); this.resize(); }
+    if (this.lowPower === 2) { this.renderer.shadowMap.enabled = false; this.scene.traverse(o => { if (o.isLight) o.castShadow = false; if (o.material) o.material.needsUpdate = true; }); }
   }
   dispose() { this.disposed = true; this.resizeObserver.disconnect(); this.renderer.dispose(); this.renderer.domElement.remove(); }
 }

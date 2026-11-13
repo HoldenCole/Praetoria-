@@ -1,3 +1,4 @@
+using Praetoria.Core.Diagnostics;
 using Praetoria.Core.Data;
 using Praetoria.Core.State;
 
@@ -49,10 +50,9 @@ public static class PolicySystem
     public static string? Dominant(World w, string regionId)
     {
         var g = w.Galaxy; if (g == null) return null;
-        return w.Holdings.Values.Where(h => h.IsPlanet && g.System(h.SystemId)?.RegionId == regionId).GroupBy(h => h.OwnerId)
-            .OrderByDescending(x => x.Count()).ThenBy(x => x.Key, StringComparer.Ordinal).Select(x => x.Key).FirstOrDefault();
+        return DominantByRegion(w).GetValueOrDefault(regionId);
     }
-    public static IEnumerable<string> RegionsDominated(World w, string houseId) => w.Galaxy?.Regions.Where(r => Dominant(w, r.Id) == houseId).Select(r => r.Id) ?? Enumerable.Empty<string>();
+    public static IEnumerable<string> RegionsDominated(World w, string houseId) { var by = DominantByRegion(w); return w.Galaxy?.Regions.Where(r => by.GetValueOrDefault(r.Id) == houseId).Select(r => r.Id) ?? Enumerable.Empty<string>(); }
 
     /// <summary>Does the house hold the position a scope names?</summary>
     public static bool HoldsScope(World w, string houseId, string scope)
@@ -77,23 +77,67 @@ public static class PolicySystem
 
     /// <summary>A house's own modifier: its non-reach laws in force where it holds the scope, plus the estates' effects if it is the player's house.
     /// <paramref name="regionId"/> limits region-scope laws to a region the house dominates.</summary>
-    public static int Modifier(World w, PolicyCatalog cat, string houseId, string key, string? regionId = null)
+    public static int Modifier(World w, PolicyCatalog cat, string houseId, string key, string? regionId = null) => cat.IsEmpty ? 0 : For(w, cat, houseId).Get(key, regionId);
+
+    /// <summary>Everything a house's own laws and the estates' regard do, summed once: ask it for as many keys as you like. A ledger
+    /// asks dozens of times, and working out who dominates which region each time was most of the cost of a turn.</summary>
+    public sealed class HouseLaw
     {
-        if (cat.IsEmpty) return 0; int sum = 0;
+        internal readonly Dictionary<string, int> Base = new(); internal readonly Dictionary<string, int> Region = new(); internal HashSet<string>? Dominated;
+        public static HouseLaw None { get; } = new();
+        public int Get(string key, string? regionId = null) =>
+            Base.GetValueOrDefault(key) + (Region.Count > 0 && (regionId == null || Dominated!.Contains(regionId)) ? Region.GetValueOrDefault(key) : 0);
+    }
+
+    /// <summary>The region each house dominates, in one pass over the holdings: most worlds there, ties by id.</summary>
+    public static Dictionary<string, string> DominantByRegion(World w) => ReadCache.Active ? ReadCache.Get("dominant", () => DominantNow(w)) : DominantNow(w);
+    private static Dictionary<string, string> DominantNow(World w)
+    {
+        var map = new Dictionary<string, string>(); var g = w.Galaxy; if (g == null) return map;
+        var counts = new Dictionary<string, Dictionary<string, int>>();
+        foreach (var h in w.Holdings.Values)
+        {
+            if (!h.IsPlanet) continue; var rid = g.System(h.SystemId)?.RegionId; if (rid == null) continue;
+            if (!counts.TryGetValue(rid, out var by)) counts[rid] = by = new Dictionary<string, int>();
+            by[h.OwnerId] = by.GetValueOrDefault(h.OwnerId) + 1;
+        }
+        foreach (var (rid, by) in counts)
+        {
+            string? best = null; int n = -1;
+            foreach (var (owner, c) in by) if (c > n || (c == n && string.CompareOrdinal(owner, best) < 0)) { best = owner; n = c; }
+            if (best != null) map[rid] = best;
+        }
+        return map;
+    }
+
+    public static HouseLaw For(World w, PolicyCatalog cat, string houseId) => ReadCache.Active ? ReadCache.Get("law:" + houseId, () => ForNow(w, cat, houseId)) : ForNow(w, cat, houseId);
+    private static HouseLaw ForNow(World w, PolicyCatalog cat, string houseId)
+    {
+        if (cat.IsEmpty) return HouseLaw.None; var t = new HouseLaw();
+        var scopes = new Dictionary<string, bool>();
         foreach (var law in cat.Laws)
         {
-            if (law.Reach || !HoldsScope(w, houseId, law.Scope)) continue;
-            if (law.Scope == "region" && regionId != null && Dominant(w, regionId) != houseId) continue;
-            if (law.Scope == "region" && regionId == null && key != "lawlessness_drift" && key != "allegiance_drift") { /* region laws fall on the region's worlds; callers pass the region */ }
-            sum += Option(w, cat, houseId, law.Id)?.Effects.GetValueOrDefault(key) ?? 0;
+            if (law.Reach) continue;
+            if (law.Scope == "region")
+            {
+                t.Dominated ??= DominantByRegion(w).Where(kv => kv.Value == houseId).Select(kv => kv.Key).ToHashSet();
+                if (t.Dominated.Count == 0) continue;
+                var ro = Option(w, cat, houseId, law.Id); if (ro != null) foreach (var (k, v) in ro.Effects) t.Region[k] = t.Region.GetValueOrDefault(k) + v;
+                continue;
+            }
+            if (!scopes.TryGetValue(law.Scope, out var holds)) scopes[law.Scope] = holds = HoldsScope(w, houseId, law.Scope);
+            if (!holds) continue;
+            var o = Option(w, cat, houseId, law.Id); if (o != null) foreach (var (k, v) in o.Effects) t.Base[k] = t.Base.GetValueOrDefault(k) + v;
         }
         if (houseId != PirateSystem.HouseId)   // the estates' regard, for every house
             foreach (var e in cat.Estates)
             {
                 int a = Approval(w, houseId, e.Id);
-                if (a >= Loyal) sum += e.Loyal.GetValueOrDefault(key); else if (a <= Hostile) sum += e.Hostile.GetValueOrDefault(key);
+                if (a >= Loyal) foreach (var (k, v) in e.Loyal) t.Base[k] = t.Base.GetValueOrDefault(k) + v;
+                else if (a <= Hostile) foreach (var (k, v) in e.Hostile) t.Base[k] = t.Base.GetValueOrDefault(k) + v;
             }
-        return sum;
+        t.Dominated ??= new HashSet<string>();
+        return t;
     }
 
     /// <summary>Reach-wide laws in force: each held by whoever holds its scope.</summary>

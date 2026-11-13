@@ -153,7 +153,12 @@ public sealed class World
     public Business? Business(string id) => Businesses.TryGetValue(id, out var b) ? b : null;
     public IEnumerable<Business> BusinessesOf(string houseId) => Businesses.Values.Where(b => b.OwnerId == houseId).OrderBy(b => b.Id, StringComparer.Ordinal);
     /// <summary>The house holding the planet in a system, or null when no one does.</summary>
-    public string? PlanetHolder(string systemId) => Holdings.Values.Where(h => h.IsPlanet && h.SystemId == systemId).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault()?.OwnerId;
+    public string? PlanetHolder(string systemId)
+    {
+        Holding? best = null;   // the first by id, without sorting: this is asked thousands of times a turn
+        foreach (var h in Holdings.Values) if (h.IsPlanet && h.SystemId == systemId && (best == null || string.CompareOrdinal(h.Id, best.Id) < 0)) best = h;
+        return best?.OwnerId;
+    }
 
     /// <summary>The house treasury for a character's house, or null if either is missing.</summary>
     public Resources? TreasuryOf(string characterId)

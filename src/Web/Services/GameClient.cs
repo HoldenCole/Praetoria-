@@ -1,3 +1,4 @@
+using Praetoria.Core.Diagnostics;
 using System.Net.Http.Json;
 using Praetoria.Core.Commands;
 using Praetoria.Core.Creation;
@@ -70,6 +71,7 @@ public sealed class GameClient
     public void Start(string scenarioId, ulong seed, CreationOptions creation, string mode, double difficulty, string intensity, double autonomy)
     {
         var content = Content ?? throw new InvalidOperationException("Content not loaded.");
+        Changing();
         var world = WorldBuilder.FromScenario(Scenario(scenarioId), seed);
         world.Mode = mode; world.Difficulty = difficulty; world.CrisisIntensity = intensity; world.FamilyAutonomy = autonomy;
         if (!creation.IsEmpty) CharacterCreation.Apply(world, content, creation);
@@ -79,7 +81,7 @@ public sealed class GameClient
         _idleSnapshot = SaveSystem.Serialize(world);
         Turn.BeginTurn();
         LastNotice = null;
-        Notify();
+        Settled(); Notify();
     }
 
     /// <summary>The world as it stood between turns (phase Idle), which is what a save is (BuildSpec §1.5). Taken after
@@ -90,37 +92,57 @@ public sealed class GameClient
     public void EndTurn()
     {
         if (Turn == null || World == null) return;
-        Turn.EndTurn();
+        Changing();
+        using (Perf.Time("client:resolve the year")) Turn.EndTurn();
         Turn.SyncRng();
-        _idleSnapshot = SaveSystem.Serialize(World);
-        if (!World.IsDynastyDead) Turn.BeginTurn();
+        using (Perf.Time("client:serialise the save")) _idleSnapshot = SaveSystem.Serialize(World);
+        if (!World.IsDynastyDead) using (Perf.Time("client:open the next year")) Turn.BeginTurn();
         LastNotice = null;
-        Notify();
+        Settled(); Notify();
     }
 
     public bool Resolve(BriefingItem item, string choiceId)
     {
         if (Turn == null) return false;
+        Changing();
         bool ok = Turn.Resolve(item, choiceId);
-        Notify();
+        Settled(); Notify();
         return ok;
     }
 
     public bool Execute(ICommand command)
     {
         if (Turn == null || World == null) return false;
+        Changing();
         bool ok = Turn.Executor.TryExecute(command, new CommandContext(World, WorldBuilder.RngFor(World)));
         Turn.SyncRng();
         LastNotice = ok ? null : $"Could not: {command.Describe()}.";
-        Notify();
+        Settled(); Notify();
         return ok;
     }
 
-    public void Abandon() { Turn = null; Notify(); }
+    public void Abandon() { Changing(); Turn = null; Notify(); }
 
-    public CourtModel Court() => CourtProjection.Build(Turn ?? throw new InvalidOperationException("No run."), Content!);
+    // Between one action and the next the world does not change, so the projection is built once and pure questions the screens
+    // ask (Senate weights, law tables) are memoised (ReadCache). Every method here that changes the world calls Changing() first
+    // and Settled() after; nothing else in the client may change it.
+    private CourtModel? _court; private AcademyModel? _academy; private bool _academyBuilt;
+    private void Changing() { ReadCache.Close(); _court = null; _academy = null; _academyBuilt = false; }
+    private void Settled() { _court = null; _academy = null; _academyBuilt = false; if (Turn != null) ReadCache.Open(); }
+
+    public CourtModel Court()
+    {
+        if (_court != null) return _court;
+        using (Perf.Time("client:build the projection")) _court = CourtProjection.Build(Turn ?? throw new InvalidOperationException("No run."), Content!);
+        return _court;
+    }
     /// <summary>The Academy year as the screen shows it, or null in a run that never went there (docs/ACADEMY.md).</summary>
-    public AcademyModel? Academy() => Turn == null ? null : AcademyProjection.Build(Turn, Content!);
+    public AcademyModel? Academy()
+    {
+        if (Turn == null) return null;
+        if (!_academyBuilt) { _academy = AcademyProjection.Build(Turn, Content!); _academyBuilt = true; }
+        return _academy;
+    }
 
     /// <summary>A save is the world at the start of the current turn: choices made this turn are replayed by the player,
     /// not stored mid-phase, so a loaded game always opens on a fresh briefing.</summary>
@@ -135,11 +157,12 @@ public sealed class GameClient
     /// <summary>Load a save. The loaded world is between turns (phase Idle), so open a briefing on it.</summary>
     public void LoadJson(string json)
     {
+        Changing();
         var world = SaveSystem.Deserialize(json);
         _idleSnapshot = json;
         Turn = new TurnController(world, Content!);
         ScenarioId = "(saved game)"; Seed = world.RngState;
         if (!world.IsDynastyDead) Turn.BeginTurn();
-        Notify();
+        Settled(); Notify();
     }
 }

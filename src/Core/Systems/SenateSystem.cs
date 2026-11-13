@@ -1,3 +1,4 @@
+using Praetoria.Core.Diagnostics;
 using Praetoria.Core.Data;
 using Praetoria.Core.Progression;
 using Praetoria.Core.State;
@@ -44,7 +45,8 @@ public sealed class SenateSystem
     public NationCatalog Nations { get; set; } = NationCatalog.Empty;
 
     /// <summary>A house's vote weight: Senate influence (the chair's two are in it) + title rank + one if its head is a Praetor or better.</summary>
-    public int Weight(World w, string houseId)
+    public int Weight(World w, string houseId) => ReadCache.Active ? ReadCache.Get("weight:" + houseId, () => WeightNow(w, houseId)) : WeightNow(w, houseId);
+    private int WeightNow(World w, string houseId)
     {
         var h = w.House(houseId); if (h == null || houseId == PirateSystem.HouseId) return 0;
         int weight = h.SphereInfluence.GetValueOrDefault("senate") + _titles.RankOf(h.Title);
@@ -69,7 +71,8 @@ public sealed class SenateSystem
     public static IEnumerable<Motion> Docket(World w) => w.Motions.Where(m => m.Open).OrderBy(m => m.ProposedTurn).ThenBy(m => m.Id, StringComparer.Ordinal);
 
     /// <summary>How a rival house leans on a motion before lobbying: positive for, negative against, zero abstain. Deterministic.</summary>
-    public int Lean(World w, Motion m, string houseId)
+    public int Lean(World w, Motion m, string houseId) => ReadCache.Active ? ReadCache.Get("lean:" + m.Id + ":" + houseId, () => LeanNow(w, m, houseId)) : LeanNow(w, m, houseId);
+    private int LeanNow(World w, Motion m, string houseId)
     {
         int lean = RawLean(w, m, houseId);
         // bloc discipline (FactionSystem): a member leans toward its leader's stance on anything that does not target it; a whip on the leader is half a whip on the bench

@@ -45,7 +45,10 @@ public sealed class Economy
     public Economy(HoldingCatalog catalog, BusinessCatalog? ventures = null, PolicyCatalog? policies = null) { _catalog = catalog; _ventures = ventures ?? BusinessCatalog.Empty; Policies = policies ?? PolicyCatalog.Empty; }
     /// <summary>Laws and estates (PolicySystem); empty when the content has none.</summary>
     public PolicyCatalog Policies { get; set; }
-    private int Law(World w, string houseId, string key, string? regionId = null) => PolicySystem.Modifier(w, Policies, houseId, key, regionId);
+    // one table of the house's laws for the length of a ledger: a ledger asks for dozens of keys
+    private PolicySystem.HouseLaw? _law; private string _lawHouse = "";
+    private int Law(World w, string houseId, string key, string? regionId = null) =>
+        _law != null && _lawHouse == houseId ? _law.Get(key, regionId) : PolicySystem.Modifier(w, Policies, houseId, key, regionId);
     private int ReachLaw(World w, string key) => PolicySystem.ReachModifier(w, Policies, key);
     public BusinessCatalog Ventures => _ventures;
 
@@ -59,6 +62,7 @@ public sealed class Economy
     {
         var ledger = new Ledger();
         var house = world.House(houseId); if (house == null) return ledger;
+        _law = Policies.IsEmpty ? null : PolicySystem.For(world, Policies, houseId); _lawHouse = houseId;
         var tax = _catalog.Tax(house.TaxPolicy);
         var head = HeadOf(world, house);
 
@@ -163,6 +167,7 @@ public sealed class Economy
             foreach (var f in world.Fleets.Values.Where(f => FleetSystem.BilledTo(f, chairId) == houseId).OrderBy(f => f.Id, StringComparer.Ordinal)) { var up = fleets.Upkeep(f); var d = new Resources(); foreach (var r in Resource.All) d.Add(r, -up.Get(r)); ledger.Add(f.Office ? f.Name + " (office)" : f.Name, "fleet", d); }
             int fuel = fleets.FuelBill(world, houseId); if (fuel > 0) ledger.Add("fuel for the fleet", "fuel", new Resources { Helium3 = -fuel });
         }
+        _law = null;
         return ledger;
     }
 

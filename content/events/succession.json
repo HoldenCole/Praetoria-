@@ -157,6 +157,18 @@
               "role": "bride",
               "op": "gte",
               "vsRole": "self"
+            },
+            {
+              "type": "age",
+              "role": "bride",
+              "op": "gte",
+              "value": 18
+            },
+            {
+              "type": "age",
+              "role": "bride",
+              "op": "lte",
+              "value": 36
             }
           ]
         }

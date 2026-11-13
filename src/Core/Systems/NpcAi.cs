@@ -289,9 +289,17 @@ public sealed class NpcAi
                 int disp = world.GetRelationship(c.Id, suitor.Id)?.Disposition ?? 0;
                 return heirs + closeness + disp;
             }
+            // a match must make sense as a marriage: no more than twenty years between them, and a woman past bearing does not
+            // court a man with no child (a house that needs heirs is not served by it, and a steward knows that)
+            bool Fit(Character c)
+            {
+                var woman = c.Sex == "female" ? c : suitor; var man = c.Sex == "female" ? suitor : c;
+                if (Math.Abs(c.Age - suitor.Age) > 20) return false;
+                return woman.Age <= DynastySystem.FertileMax || world.Characters.Values.Any(k => k.Alive && k.FatherId == man.Id);
+            }
             var match = world.LivingCharacters()
                 .Where(c => c.HouseId != house.Id && c.Sex != "" && c.Sex != suitor.Sex && c.Age >= DynastySystem.AgeOfMajority && !ProposeMarriageCommand.IsMarried(world, c.Id)
-                            && !c.Flags.Contains(ProposeMarriageCommand.SuitorFlag))
+                            && !c.Flags.Contains(ProposeMarriageCommand.SuitorFlag) && Fit(c))
                 .OrderByDescending(Score).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
             if (match != null) executor.TryExecute(new ProposeMarriageCommand(head.Id, suitor.Id, match.Id, Titles), ctx);
         }

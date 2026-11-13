@@ -2,6 +2,7 @@
 @using Praetoria.Core.Presentation
 @using Praetoria.Core.Systems
 @using Praetoria.Core.Commands
+@inject NavigationManager Nav
 @inject GameClient G
 @inject IJSRuntime JS
 @implements IDisposable
@@ -158,6 +159,7 @@ else
 
     protected override async Task OnAfterRenderAsync(bool first)
     {
+        if (_perfRender != 0) { Console.WriteLine($"PERF render after the turn: {System.Diagnostics.Stopwatch.GetElapsedTime(_perfRender).TotalMilliseconds:F0} ms"); _perfRender = 0; }
         if (G.Turn != null) await CheckPrimer();
         if (first) { _self = DotNetObjectReference.Create(this); try { await JS.InvokeVoidAsync("praetoria.keys", _self); } catch { } }
         try { await JS.InvokeVoidAsync("praetoriaFx.paint"); await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }
@@ -178,6 +180,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         G.Changed += OnChanged;
+        Praetoria.Core.Diagnostics.Perf.Enabled = Nav.Uri.Contains("perf");
         await G.LoadAsync();
         try { _hasAutosave = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey)); } catch { }
         try { _beenBefore = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.academy.graduated")); } catch { }
@@ -216,6 +219,7 @@ else
 
     private async Task EndTurn()
     {
+        long perfStart = System.Diagnostics.Stopwatch.GetTimestamp();
         _openReport = null;
         bool cadet = G.World?.InAcademy == true; string tutorial = G.World?.Academy?.Tutorial ?? "";
         G.EndTurn();
@@ -228,10 +232,26 @@ else
         _epilogueDismissed = false;
         var first = G.Court().Briefing.FirstOrDefault(b => !b.Resolved);
         if (first != null && _screen == "office" && G.World?.InAcademy != true && !_passingOut) _openReport = first;    // the first visitor steps forward (not at the Academy: the term's page comes first)
-        await Autosave();
+        using (Praetoria.Core.Diagnostics.Perf.Time("client:autosave to the browser")) await Autosave();
+        if (Praetoria.Core.Diagnostics.Perf.Enabled)
+        {
+            // ?perf in the address: where the year's seconds went, in the console (rendering is whatever is left after this line)
+            Console.WriteLine($"PERF turn {G.World?.Turn}: handler {System.Diagnostics.Stopwatch.GetElapsedTime(perfStart).TotalMilliseconds:F0} ms · " + string.Join(" · ", Praetoria.Core.Diagnostics.Perf.Report().Take(14).Select(x => $"{x.name} {x.ms:F0}")));
+            Praetoria.Core.Diagnostics.Perf.Reset(); _perfRender = System.Diagnostics.Stopwatch.GetTimestamp();
+        }
     }
+    private long _perfRender;
 
-    private async Task Autosave() { try { await JS.InvokeVoidAsync("praetoria.save", GameClient.AutosaveKey, G.SaveJson()); _hasAutosave = true; } catch { } }
+    private async Task Autosave()
+    {
+        try
+        {
+            string json = G.SaveJson(); long t = System.Diagnostics.Stopwatch.GetTimestamp();
+            await JS.InvokeVoidAsync("praetoria.save", GameClient.AutosaveKey, json); _hasAutosave = true;
+            if (Praetoria.Core.Diagnostics.Perf.Enabled) Console.WriteLine($"PERF save call returned after {System.Diagnostics.Stopwatch.GetElapsedTime(t).TotalMilliseconds:F0} ms ({json.Length} chars)");
+        }
+        catch { }
+    }
     private async Task SaveLocal() { await Autosave(); _savedFlash = true; StateHasChanged(); await Task.Delay(1500); _savedFlash = false; }
     private async Task Download() { try { await JS.InvokeVoidAsync("praetoria.download", $"praetoria-turn{G.World!.Turn}.json", G.SaveJson()); } catch { } }
     private async Task ContinueAutosave() { try { var json = await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey); if (!string.IsNullOrEmpty(json)) G.LoadJson(json); } catch { } }
