@@ -23,6 +23,7 @@
     if (w.HasFlag("war_lost_abroad")) alerts.Add(("warn", "The war abroad is lost — the chair buys peace", "military"));
     if (w.HasFlag("raided_by_nation")) alerts.Add(("warn", $"Raiders of {NationName("raided_by:")} fell on your world", "military"));
     if (w.HasFlag("nation_freed")) alerts.Add(("info", "A tributary's treaty is done; its tribute stops", "military"));
+    foreach (var f in w.WorldFlags.Where(f => f.StartsWith("price_spike:")).Take(2)) { var gd = G.Content!.Market.Good(f["price_spike:".Length..]); var gs = w.Market?.Good(gd?.Id ?? ""); if (gd != null && gs != null) alerts.Add(("info", $"{gd.Name} dear on the Exchange: {gs.Cause}", "exchange")); }
     if (w.HasFlag("motion_against_me")) alerts.Add(("warn", "A motion against your house is before the Senate", "senate"));
     else if (w.HasFlag("petition_open")) alerts.Add(("info", "An estate petitions the Senate — its regard in every house rides on the vote", "senate"));
     else if (w.HasFlag("motion_open")) alerts.Add(("info", "A motion is before the Senate — your vote has weight", "senate"));

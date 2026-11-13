@@ -59,10 +59,11 @@
                 @foreach (var (name, val, d) in new[] { ("credits", m.Treasury.Credits, fc?.Credits), ("materials", m.Treasury.Materials, fc?.Materials), ("manpower", m.Treasury.Manpower, fc?.Manpower), ("influence", m.Treasury.Influence, fc?.Influence), ("exotics", m.Treasury.Exotics, fc?.Exotics), ("helium3", m.Treasury.Helium3, fc?.Helium3), ("rare_earths", m.Treasury.RareEarths, fc?.RareEarths), ("isotopes", m.Treasury.Isotopes, fc?.Isotopes) })
                 { <div class="res-cell @(Resource.IsStrategic(name) ? "strat" : "")"><span class="muted"><Icon Name="@name" Size="12" /> @Resource.Label(name)</span><b>@val</b>@if (d != null && d != 0) { <small class="@(d > 0 ? "up" : "down")">@(d > 0 ? "+" : "")@d /turn</small> }</div> }
             </div>
-            @if (w.HasFlag("fuel_short")) { <div class="flag">The tanks are dry: readiness slides fifteen a turn and no fleet of yours may sail until helium-3 is found — a skimmer, the exchange, or the open market.</div> }
+            @if (w.HasFlag("fuel_short")) { <div class="flag">The tanks are dry: readiness slides fifteen a turn and no fleet of yours may sail until helium-3 is found — a skimmer, or the Exchange.</div> }
             @if (m.Treasury.Insolvent) { <div class="flag">Insolvent: unrest climbs on every populated world and unpaid crews will desert.</div> }
             <div class="muted small deposits">Deposits under your worlds and claims: @(m.Deposits is { Count: > 0 } ? string.Join(" · ", m.Deposits.Select(Resource.Label)) : "none — what you need, you buy")</div>
-            @if (m.Procure != null) { <div class="row">@foreach (var o in m.Procure) { var res = o.Id["procure_".Length..]; <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new ProcureCommand(pid, res, 3, c.Holdings, c.Businesses))">@o.Label</button> } </div> }
+            <div class="row">@if (m.Procure != null) { foreach (var o in m.Procure) { var res = o.Id["procure_".Length..]; <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new BuyGoodCommand(pid, res, 3, c.Trade))">@o.Label</button> } }
+                <button class="opt inline tiny" @onclick="@(() => OnGo.InvokeAsync("exchange"))">Every good, bought and sold: the Exchange ▸</button></div>
             @if (lg != null)
             {
                 <h4>Where the coin comes from, and goes</h4>
@@ -155,9 +156,6 @@
                 <section class="panel">
                     <h3><Icon Name="legitimacy" Size="13" /> Decrees</h3>
                     <div class="muted small">Tithe: @s.TaxPolicy — set in the Chancery (Laws), with the rest of the house's law.</div>
-                    <details><summary>The exchange @(ExchangeCommand.HasExchange(w, house.Id, c.Holdings) ? "" : "· no market: the caravaneers take half")</summary>
-                        @foreach (var o in s.ExchangeOptions) { var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))">@o.Label</button> }
-                    </details>
                     <details><summary>Succession: @s.SuccessionLaw</summary>@foreach (var o in s.LawOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new SetSuccessionLawCommand(pid, o.Id))">@o.Label</button> }</details>
                     <div class="kv"><span><Icon Name="threat" Size="12" /> Threat read in us</span><b class="@(s.Threat >= 60 ? "warn" : "")">@s.Threat</b></div>
                     @if (s.Instability > 0) { <div class="kv"><span>Title instability</span><b class="warn">@s.Instability</b></div> }
@@ -172,6 +170,7 @@
 
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
+    [Parameter] public EventCallback<string> OnGo { get; set; }
     private string? _focus;
     private static string GovClass(HoldingCard h) => h.GovernorDisposition <= -30 ? "hostile" : h.GovernorDisposition < 10 ? "cool" : "loyal";
     private static string GovText(HoldingCard h) => h.GovernorDisposition <= -30 ? (h.GovernorAmbitious ? "hostile · ambitious" : "hostile") : h.GovernorDisposition < 10 ? "cool" : "loyal";

@@ -85,6 +85,9 @@ public sealed class World
     /// <summary>Laws in force, house id → law id → option id (GDD §6.1); a law not named is at its default.</summary>
     public Dictionary<string, Dictionary<string, string>> Laws { get; set; } = new();
 
+    /// <summary>The Reach's markets: commodity prices and the merchants' stocks (docs/ECONOMY_MARKET.md). Null until first reckoned.</summary>
+    public MarketState? Market { get; set; }
+
     /// <summary>The Academy year, while the protagonist is a cadet and after (docs/ACADEMY.md); null in a run that began in the world.</summary>
     public AcademyState? Academy { get; set; }
     /// <summary>True while the cadet is at the Academy: the world does not turn and only the Academy's own business may be done.</summary>

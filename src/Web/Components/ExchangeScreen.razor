@@ -1,0 +1,98 @@
+@inject GameClient G
+@using Praetoria.Core.Presentation
+@{
+    var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var house = w.House(w.Protagonist!.HouseId)!; var t = c.Trade;
+    var mk = m.Market;
+    var mover = mk?.Goods.OrderByDescending(g => Math.Abs(g.ChangePct)).FirstOrDefault();
+    int wars = w.Wars.Count;
+}
+<div class="dash exchange" style="--accent:@m.HouseAccent">
+    <header class="dash-head">
+        <div class="dh-title"><Icon Name="trade_hub" Size="18" /> <b>The Exchange</b>
+            <span class="muted">the Reach's markets · prices follow what the houses make, burn and fight over</span></div>
+        <div class="dh-stats">
+            <div class="stat @(m.Treasury.Insolvent ? "warn" : "")"><span>Credits</span><b>@m.Treasury.Credits</b></div>
+            @if (mk != null)
+            {
+                <div class="stat @(mk.Embargoed ? "warn" : "")"><span>Your terms</span><b>@(mk.Embargoed ? "embargoed" : mk.OwnMarket ? $"own market · {mk.SpreadPct}% spread" : $"the caravaneers · {mk.SpreadPct}% spread")</b></div>
+                @if (mover != null && mover.ChangePct != 0) { <div class="stat @(mover.ChangePct > 0 ? "warn" : "")"><span>Biggest mover</span><b>@mover.Name @(mover.ChangePct > 0 ? "+" : "")@mover.ChangePct% <i class="muted">in five years</i></b></div> }
+            }
+            <div class="stat @(wars > 0 ? "warn" : "")"><span>Wars in the Reach</span><b>@wars</b></div>
+        </div>
+    </header>
+
+    <div class="dash-grid exchange-grid">
+        <section class="panel">
+            <h3><Icon Name="materials" Size="13" /> Goods <span class="muted">credits a unit · the line is the last twelve years · the dash is the usual price</span></h3>
+            @if (mk == null) { <div class="muted">No market in this age.</div> }
+            else
+            {
+                @if (mk.Embargoed) { <div class="flag">The Senate's embargo closes the exchanges to your house. Nothing may be bought or sold until it lifts.</div> }
+                else if (!mk.OwnMarket) { <div class="muted small">You have no market of your own and do not hold the capital: the caravaneers carry your orders at a @mk.SpreadPct% spread. A market, a free port or a patronage office narrows it to @c.Market.Rules.SpreadPct%.</div> }
+                <table class="standings goods">
+                    <thead><tr><th>Good</th><th>Price</th><th>Twelve years</th><th>Five years</th><th>In stock</th><th>You hold</th><th>Order</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var g in mk.Goods)
+                    {
+                        int qty = Qty(g.Id);
+                        var buy = MarketSystem.QuoteBuy(w, t, house.Id, g.Id, qty); var sell = MarketSystem.QuoteSell(w, t, house.Id, g.Id, qty);
+                        <tr class="@(g.Price >= g.Base * 1.5 ? "spike" : g.Price <= g.Base * 0.7 ? "slump" : "")">
+                            <td class="hn"><Icon Name="@(Icons.Paths.ContainsKey(g.Id) ? g.Id : "materials")" Size="14" /> <b>@g.Name</b>@if (g.Deficit >= 15) { <span class="pill small warn" title="the Reach needs more than it brings up and is shipped">short @g.Deficit%</span> }</td>
+                            <td><b>@F2(g.Price)</b> <span class="muted small">buy @F2(g.BuyUnit) · sell @F2(g.SellUnit)</span></td>
+                            <td>@((MarkupString)Spark(g))</td>
+                            <td><span class="@(g.ChangePct >= 10 ? "warn" : g.ChangePct <= -10 ? "good" : "muted")">@(g.ChangePct > 0 ? "+" : "")@g.ChangePct%</span></td>
+                            <td>@g.Stock</td>
+                            <td>@g.Held @if (g.NetPerTurn != 0) { <small class="@(g.NetPerTurn > 0 ? "up" : "down")">@(g.NetPerTurn > 0 ? "+" : "")@g.NetPerTurn</small> }</td>
+                            <td class="order">
+                                <input type="number" min="1" max="999" value="@qty" @onchange="e => SetQty(g.Id, e)" />
+                                @if (g.CanBuy) { <button class="opt inline tiny" disabled="@(buy.Refusal != null)" title="@(buy.Refusal ?? $"{F2(buy.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new BuyGoodCommand(pid, g.Id, qty, t))">Buy · @(buy.Credits > 0 ? buy.Credits.ToString() : "—")</button> }
+                                @if (g.CanSell) { <button class="opt inline tiny" disabled="@(sell.Refusal != null)" title="@(sell.Refusal ?? $"{F2(sell.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new SellGoodCommand(pid, g.Id, qty, t))">Sell · @(sell.Refusal == null ? sell.Credits.ToString() : "—")</button> }
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr class="cause"><td colspan="8"><span class="muted small">@Cap(g.Cause)@(g.BuyRefusal != null ? " · " + g.BuyRefusal : "")</span></td></tr>
+                    }
+                    </tbody>
+                </table>
+                <div class="muted small">An order moves the price against itself by its share of the merchants' stock, so a large one costs more a unit than the quote and leaves next year's price higher. Splitting it does not help.</div>
+            }
+        </section>
+
+        <aside class="dash-side">
+            <section class="panel">
+                <h3><Icon Name="report" Size="13" /> What moves a price</h3>
+                <div class="ac-fact"><span>War</span><p>Every war lifts demand for fuel, isotopes, rare earths, crews and materials: yards and magazines buying ahead.</p></div>
+                <div class="ac-fact"><span>Siege and revolt</span><p>A blockaded world sends half; a world in revolt sends nothing. If it made much of a good, the price shows it.</p></div>
+                <div class="ac-fact"><span>Raiders</span><p>Lawless lanes lose a share of everything that travels them.</p></div>
+                <div class="ac-fact"><span>The nations</span><p>Nations at peace ship goods in. War with one closes its ports; a tributary ships double.</p></div>
+                <div class="ac-fact"><span>The law</span><p>The Trade Charter taxes or frees every purchase. The Arms Market decides whether isotopes may be bought at all.</p></div>
+                <div class="ac-fact"><span>You</span><p>Buy a tenth of the stock and the market notices. Buy half and everyone pays for it next year.</p></div>
+            </section>
+            <section class="panel">
+                <h3><Icon Name="influence" Size="13" /> Favours for coin</h3>
+                <div class="muted small">Influence is not a good and has no market. It is bought and sold in private, at a fixed and poor rate.</div>
+                @if (m.Standing is { } s) { foreach (var o in s.ExchangeOptions) { var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))">@o.Label</button> } }
+            </section>
+        </aside>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
+    private readonly Dictionary<string, int> _qty = new();
+    private int Qty(string good) => _qty.TryGetValue(good, out var q) ? q : 5;
+    private void SetQty(string good, ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out var q)) _qty[good] = Math.Clamp(q, 1, 999); }
+    private static string F2(double v) => v.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+    private static string F1(double v) => v.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    /// <summary>A twelve-year price line against the usual price: 120 by 26, the dash at base.</summary>
+    private static string Spark(GoodLine g)
+    {
+        var h = g.History; if (h.Count == 0) return "";
+        double lo = Math.Min(h.Min(), g.Base) * 0.9, hi = Math.Max(h.Max(), g.Base) * 1.1; if (hi - lo < 0.01) hi = lo + 0.01;
+        double Y(double v) => 24 - (v - lo) / (hi - lo) * 22; double X(int i) => h.Count == 1 ? 118 : 2 + i * 116.0 / (h.Count - 1);
+        string pts = string.Join(" ", h.Select((v, i) => $"{F1(X(i))},{F1(Y(v))}"));
+        string colour = g.Price >= g.Base * 1.5 ? "#E63946" : g.Price <= g.Base * 0.7 ? "#2EC27E" : "#C9D1DC";
+        return $"<svg class=\"spark\" viewBox=\"0 0 120 26\" width=\"120\" height=\"26\" role=\"img\" aria-label=\"price history\"><line x1=\"0\" x2=\"120\" y1=\"{F1(Y(g.Base))}\" y2=\"{F1(Y(g.Base))}\" stroke=\"#5b6577\" stroke-dasharray=\"3 3\" stroke-width=\"1\"/><polyline points=\"{pts}\" fill=\"none\" stroke=\"{colour}\" stroke-width=\"1.8\" stroke-linejoin=\"round\"/><circle cx=\"{F1(X(h.Count - 1))}\" cy=\"{F1(Y(h[^1]))}\" r=\"2.4\" fill=\"{colour}\"/></svg>";
+    }
+}

@@ -40,7 +40,7 @@ public sealed class TurnController
     private readonly CrisisEngine? _crises;
     private readonly SphereSystem? _spheres;
     private readonly ProgressionSystem? _progression;
-    private readonly FleetSystem _fleets; private readonly NationSystem _nations; private readonly AcademySystem _academy;
+    private readonly FleetSystem _fleets; private readonly NationSystem _nations; private readonly AcademySystem _academy; private readonly MarketSystem _market;
     private readonly HonorSystem _honors;
     private readonly GreatCrisisSystem _greatCrisis;
     private readonly FamilySystem _family = new();
@@ -71,6 +71,7 @@ public sealed class TurnController
     public FleetSystem Fleets => _fleets;
     public NationSystem Nations => _nations;
     public AcademySystem Academy => _academy;
+    public MarketSystem Market => _market;
 
     /// <summary>Honorifics & Orders (GDD §13).</summary>
     public HonorSystem Honors => _honors;
@@ -99,7 +100,8 @@ public sealed class TurnController
         if (world.Turn == 0 && world.Factions.Count == 0) FactionSystem.Seed(world, content.Parties, id => _senate.Weight(world, id));   // the four parties of the Republic (docs/REPUBLIC.md)
         _fleets.Policies = content.Policies; _regions.Policies = content.Policies; if (_economy != null) _economy.Policies = content.Policies;
         _academy = new AcademySystem(content.Academy, content.Names);
-        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations };
+        _market = new MarketSystem(content.Trade, _economy, _fleets, content.Nations); _market.Seed(world);   // the Reach's exchanges open at base prices (docs/ECONOMY_MARKET.md)
+        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade };
         _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);
         _greatCrisis = new GreatCrisisSystem(content.GreatCrisis, _fleets);
@@ -127,6 +129,7 @@ public sealed class TurnController
         _fleets.ResolveConquests(World);       // an unopposed fleet in enemy space takes its holdings
         _fleets.UpdateIntel(World);            // ...and the picture after the fighting
         _nations.Tick(World);                  // beyond the Reach: raids, expeditions, the wars abroad (docs/FOREIGN_NATIONS.md) — RNG-free
+        _market.Tick(World); MarketSystem.Sweep(World);   // the year's prices, from what the houses produced and consumed (docs/ECONOMY_MARKET.md) — RNG-free
         _spheres?.Recompute(World);  // power-balance projection + threat/coalition (GDD §7), also RNG-free
         _progression?.Apply(World);  // title soft-lock instability (GDD §13), also RNG-free
         _honors.Apply(World, _rng);  // investitures when a distinction's conditions first hold (GDD §13)

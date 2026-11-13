@@ -83,6 +83,12 @@ public sealed record NationCard(string Id, string Name, string Temper, string De
 public sealed record BattleBrief(string SystemId, string SystemName, string EnemyHouseId, string EnemyName, int OurHulls, int EnemyHulls, int Confidence, string OurStance, string TheirStance, int Edge, double OurPower, double TheirPower);
 /// <summary>The campaign of the house, and the enemy worlds it could name (docs/MILITARY.md).</summary>
 public sealed record CampaignCard(string? TargetId, string? TargetName, int TurnsLeft, IReadOnlyList<Option> Targets, int Cost);
+/// <summary>A good on the Reach's market as the house sees it (docs/ECONOMY_MARKET.md): the price, what this house would pay and get for
+/// one unit, the merchants' stock, the last years' prices, why it moved, and what the house holds and makes of it.</summary>
+public sealed record GoodLine(string Id, string Name, double Price, double Base, double BuyUnit, double SellUnit, int Stock, int ChangePct, IReadOnlyList<double> History, string Cause,
+    int Held, int NetPerTurn, bool CanBuy, bool CanSell, string? BuyRefusal, string? SellRefusal, int Deficit);
+/// <summary>The markets panel: every good, whether the house trades at the narrow spread, and whether an embargo closes them.</summary>
+public sealed record MarketCard(IReadOnlyList<GoodLine> Goods, bool OwnMarket, bool Embargoed, int SpreadPct);
 public sealed record MilitaryCard(IReadOnlyList<BattleBrief> Brief, CampaignCard Campaign, string MyStyle, IReadOnlyList<Option> MyStyleOptions, int MyValour, bool MyAchilles, int MyCap, IReadOnlyList<NationCard>? Nations = null);
 /// <summary>A generic actionable option: an id the UI turns into a command, a label, and why it is disabled (null = available).</summary>
 public sealed record Option(string Id, string Label, string? Refusal);
@@ -110,7 +116,7 @@ public sealed record CourtModel(int Turn, string Era, string Mode, int Generatio
     IReadOnlyList<HouseholdLine> Household, IReadOnlyList<SiegeLine> Sieges, string? EpilogueText,
     IReadOnlyList<AdvisorReport> Advisors, GreatCrisisCard? GreatCrisis,
     LedgerCard? Ledger = null, IReadOnlyList<BusinessCard>? Businesses = null, IReadOnlyList<VentureOption>? Ventures = null, IReadOnlyList<ClaimOption>? Claims = null,
-    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null, IReadOnlyList<Option>? Procure = null, IReadOnlyList<string>? Deposits = null, SenateCard? Senate = null, ChanceryCard? Chancery = null, MilitaryCard? Military = null);
+    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null, IReadOnlyList<Option>? Procure = null, IReadOnlyList<string>? Deposits = null, SenateCard? Senate = null, ChanceryCard? Chancery = null, MilitaryCard? Military = null, MarketCard? Market = null);
 
 public static class CourtProjection
 {
@@ -372,10 +378,10 @@ public static class CourtProjection
                 .Select(h => new ReclaimOption(h.Id, h.Name, w.House(h.OwnerId)!.Name, ReclaimFreeholdCommand.Price(w, h, house.Id), new ReclaimFreeholdCommand(p.Id, h.Id).Refusal(ctx))).ToList(),
             w.Galaxy is { Capital.Length: > 0 } cg ? new CapitalCard(cg.System(cg.Capital)?.Name ?? cg.Capital, RegionSystem.CapitalHolder(w)?.Id, RegionSystem.CapitalHolder(w)?.Name, RegionSystem.CapitalHolder(w)?.Id == house.Id) : null,
             new Option("petition_fief", $"Petition {PetitionFiefCommand.Grantor(w, house.Id)?.Name ?? (w.IsImperium ? "the court" : "the chair")} for a {(w.IsImperium ? "fief" : "prefecture")}  (3 influence)", new PetitionFiefCommand(p.Id).Refusal(ctx)),
-            Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var pc = new ProcureCommand(p.Id, r, 3, content.Holdings, content.Businesses); int price = ProcureCommand.Price(w, r, content.Holdings, content.Businesses); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the open market  ({(price == int.MaxValue ? "—" : (price * 3).ToString())} credits · {Economy.Producers(w, r, content.Holdings, content.Businesses)} producer(s))", pc.Refusal(ctx)); }).ToList(),
+            Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var bc = new BuyGoodCommand(p.Id, r, 3, content.Trade); var q = bc.Quote(w); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the market  ({(q.Credits > 0 ? q.Credits.ToString() : "—")} credits)", q.Refusal); }).ToList(),
             Economy.Deposits(w, house.Id).OrderBy(x => x, StringComparer.Ordinal).ToList(),
             BuildSenate(w, p, house, tc.Senate, ctx),
-            BuildChancery(w, p, house, content.Policies, ctx), Military: BuildMilitary(w, p, house, tc.Fleets, content.Fleets, ctx, content.Nations, tc.Senate));
+            BuildChancery(w, p, house, content.Policies, ctx), Military: BuildMilitary(w, p, house, tc.Fleets, content.Fleets, ctx, content.Nations, tc.Senate), Market: BuildMarket(w, p, house, content, tc));
     }
 
     private static string BondName(Relationship? rel) => rel?.Bond is { } b && b != BondType.None ? b.ToString().ToLowerInvariant() : "";
@@ -463,6 +469,22 @@ public static class CourtProjection
     }
 
     /// <summary>Battles about to be joined, the campaign, and the protagonist's own command style (docs/MILITARY.md).</summary>
+    private static MarketCard? BuildMarket(World w, Character p, House house, ContentDatabase content, TurnController tc)
+    {
+        var t = content.Trade; if (t.Market.IsEmpty) return null;
+        var m = MarketSystem.Of(w, t.Market); var net = tc.Economy?.Forecast(w, house.Id, tc.Fleets);
+        var goods = t.Market.Goods.Select(d =>
+        {
+            var g = m.Goods[d.Id]; var buy = MarketSystem.QuoteBuy(w, t, house.Id, d.Id, 1); var sell = MarketSystem.QuoteSell(w, t, house.Id, d.Id, 1);
+            double then = g.History.Count > 5 ? g.History[^6] : g.History.Count > 0 ? g.History[0] : g.Price;
+            return new GoodLine(d.Id, d.Name, g.Price, d.Base, MarketSystem.BuyPrice(w, t, house.Id, d.Id), MarketSystem.SellPrice(w, t, house.Id, d.Id), (int)Math.Floor(g.Stock),
+                then <= 0 ? 0 : (int)Math.Round((g.Price - then) / then * 100), g.History.ToList(), g.Cause, house.Treasury.Get(d.Id), net?.Get(d.Id) ?? 0, d.Buy, d.Sell,
+                buy.Refusal != null && !buy.Refusal.StartsWith("needs ") ? buy.Refusal : null, sell.Refusal != null && !sell.Refusal.StartsWith("you hold only") ? sell.Refusal : null, (int)Math.Round(g.Deficit * 100));
+        }).ToList();
+        bool own = MarketSystem.HasMarket(w, house.Id, t.Holdings);
+        return new MarketCard(goods, own, SenateSystem.Embargoed(w, house.Id), own ? t.Market.Rules.SpreadPct : t.Market.Rules.CaravanSpreadPct);
+    }
+
     private static MilitaryCard BuildMilitary(World w, Character p, House house, FleetSystem fs, FleetRules rules, CommandContext ctx, NationCatalog nations, SenateSystem senate)
     {
         var abroad = nations.Defs.Where(d => w.Nation(d.Id) != null).OrderByDescending(d => w.Nation(d.Id)!.AtWar).ThenByDescending(d => d.Strength).ThenBy(d => d.Name, StringComparer.Ordinal).Select(d =>

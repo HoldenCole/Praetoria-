@@ -1,23 +1,14 @@
 {
-  // THE EXCHANGE (GDD §17 conversion chains). A house with a market-type holding can convert resources at these
+  // FAVOURS FOR COIN (GDD §17 conversion chains). Goods are bought and sold on the commodity market now (content/market/goods.json;
+  // docs/ECONOMY_MARKET.md); what is left here is the one thing no market prices: influence. A house with a market-type holding can convert resources at these
   // rates through the Exchange command: `give` units of the first resource buy `get` units of the second. Rates are
   // deliberately lossy and asymmetric (variable emphasis): coin buys materials dearly; influence is the hardest to
   // acquire and the easiest to spend. `requiresBuilding` lists buildings any of which open the exchange.
   "exchange": {
     "requiresBuilding": ["market", "free_port", "patronage_office"],
     "rates": [
-      { "give": "credits",   "get": "materials", "giveAmount": 3, "getAmount": 2 },
-      { "give": "materials", "get": "credits",   "giveAmount": 3, "getAmount": 2 },
-      { "give": "credits",   "get": "manpower",  "giveAmount": 4, "getAmount": 2 },
-      { "give": "exotics",   "get": "credits",   "giveAmount": 1, "getAmount": 6 },
       { "give": "credits",   "get": "influence", "giveAmount": 6, "getAmount": 1 },
-      { "give": "influence", "get": "credits",   "giveAmount": 1, "getAmount": 4 },
-      // the strategic three: fuel and rare earths trade at the exchange; weapons-grade isotopes can be sold but never bought here
-      { "give": "credits",   "get": "helium3",     "giveAmount": 5, "getAmount": 1 },
-      { "give": "helium3",   "get": "credits",     "giveAmount": 1, "getAmount": 2 },
-      { "give": "credits",   "get": "rare_earths", "giveAmount": 8, "getAmount": 1 },
-      { "give": "rare_earths", "get": "credits",   "giveAmount": 1, "getAmount": 3 },
-      { "give": "isotopes",  "get": "credits",     "giveAmount": 1, "getAmount": 6 }
+      { "give": "influence", "get": "credits",   "giveAmount": 1, "getAmount": 4 }
     ]
   },
 

@@ -273,7 +273,7 @@ internal static class Qa
         }
         foreach (var b in w.BusinessesOf(house.Id).OrderBy(b => b.Id, StringComparer.Ordinal)) { cands.Add(new ExpandBusinessCommand(p.Id, b.Id, bc)); if (decisions.NextInt(0, 6) == 0) cands.Add(new SellBusinessCommand(p.Id, b.Id, bc)); }
         cands.Add(new TakeLoanCommand(p.Id, bc)); cands.Add(new RepayLoanCommand(p.Id)); cands.Add(new PetitionFiefCommand(p.Id));
-        cands.Add(new ProcureCommand(p.Id, Resource.Helium3, 2, content.Holdings, bc)); cands.Add(new ProcureCommand(p.Id, Resource.RareEarths, 1, content.Holdings, bc));
+        foreach (var gd in content.Market.Goods) { cands.Add(new BuyGoodCommand(p.Id, gd.Id, 1 + decisions.NextInt(0, 4), content.Trade)); cands.Add(new SellGoodCommand(p.Id, gd.Id, 1 + decisions.NextInt(0, 4), content.Trade)); }
         foreach (var def in tc.Senate.Motions.Defs)
         {
             if (def.Id == "petition") continue;   // only an estate brings one

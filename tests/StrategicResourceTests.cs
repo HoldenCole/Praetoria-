@@ -80,18 +80,17 @@ public class StrategicResourceTests
     }
 
     [Fact]
-    public void TheOpenMarket_SellsFuelAndRareEarths_AtAScarcityPrice_AndNeverIsotopes()
+    public void TheMarket_SellsFuelAndRareEarths_AndNeverIsotopes_WithoutALicence()
     {
-        var w = Deposits(out var cat, out var ven); var ctx = new CommandContext(w, TestContent.Rng()); var ex = new CommandExecutor();
-        var buy = new ProcureCommand("self", Resource.Helium3, 2, cat, ven);
-        Assert.Equal("no one in the Reach brings helium-3 up", buy.Refusal(ctx));
-        w.Holdings["corwin_world"]!.Buildings.Add("skimmers"); w.Galaxy!.System("mid1")!.Deposits[Resource.Helium3] = 1;   // Corwin skims
-        Assert.Equal(ProcureCommand.Helium3Price + 3 * ProcureCommand.ScarcityStep, ProcureCommand.Price(w, Resource.Helium3, cat, ven));   // one producer of four: scarce
+        var w = Deposits(out _, out _); var ctx = new CommandContext(w, TestContent.Rng()); var ex = new CommandExecutor();
+        var trade = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir()).Trade;
+        var buy = new BuyGoodCommand("self", Resource.Helium3, 2, trade);
         w.House("vega")!.Treasury.Credits = 5; Assert.StartsWith("needs", buy.Refusal(ctx));
-        w.House("vega")!.Treasury.Credits = 40; Assert.True(ex.TryExecute(buy, ctx));
-        Assert.Equal(2, w.House("vega")!.Treasury.Helium3); Assert.Equal(40 - 2 * (6 + 6), w.House("vega")!.Treasury.Credits); Assert.Equal(2, w.Counter("procured"));
-        Assert.Equal("weapons-grade isotopes are not sold on any open market", new ProcureCommand("self", Resource.Isotopes, 1, cat, ven).Refusal(ctx));
-        Assert.Equal("not a thing the exchanges deal in", new ProcureCommand("self", Resource.Credits, 1, cat, ven).Refusal(ctx));
+        w.House("vega")!.Treasury.Credits = 40; int cost = buy.Cost(w); Assert.InRange(cost, 12, 20);   // two units near the base of six, the caravaneers' spread on top
+        Assert.True(ex.TryExecute(buy, ctx));
+        Assert.Equal(2, w.House("vega")!.Treasury.Helium3); Assert.Equal(40 - cost, w.House("vega")!.Treasury.Credits); Assert.Equal(2, w.Counter("procured"));
+        Assert.Equal("weapons-grade isotopes are not sold on any open market", new BuyGoodCommand("self", Resource.Isotopes, 1, trade).Refusal(ctx));
+        Assert.Equal("not a thing the exchanges deal in", new BuyGoodCommand("self", Resource.Credits, 1, trade).Refusal(ctx));
     }
 
     [Fact]
@@ -136,7 +135,7 @@ public class StrategicResourceTests
         Assert.NotNull(content.Holdings.Building("helium_skimmers")); Assert.Equal(Resource.Helium3, content.Holdings.Building("helium_skimmers")!.RequiresDeposit);
         Assert.Equal(Resource.Isotopes, content.Businesses.Def("enrichment_concern")!.RequiresDeposit);
         Assert.Equal(3, content.Fleets.FuelHullsPerUnit);
-        Assert.Contains(content.Holdings.Rates, r => r.Give == Resource.Credits && r.Get == Resource.Helium3); Assert.DoesNotContain(content.Holdings.Rates, r => r.Get == Resource.Isotopes);
+        Assert.NotNull(content.Market.Good(Resource.Helium3)); Assert.Equal("isotope_market", content.Market.Good(Resource.Isotopes)!.License);   // fuel is traded freely; isotopes only under the Senate's licence
         Assert.All(w.Houses.Values.Where(h => w.Fleets.Values.Where(f => f.OwnerId == h.Id).Sum(f => f.Strength) >= 2), h => Assert.True(h.Treasury.Helium3 >= 14));   // tanks start part full
     }
 }

@@ -80,7 +80,7 @@ public class SenateTests
         var e = senate.Add(w, "aurelian", "embargo", "vega"); foreach (var h in w.Houses.Values) e.Votes[h.Id] = 1;
         w.Turn++; senate.Tick(w);
         Assert.True(SenateSystem.Embargoed(w, "vega")); Assert.True(w.HasFlag("embargoed"));
-        Assert.Equal("the Senate's embargo closes the exchanges to you", new ProcureCommand("self", Resource.Helium3, 1, TestContent.EconomyCatalog(), BusinessCatalog.Empty).Refusal(ctx));
+        Assert.Equal("the Senate's embargo closes the exchanges to you", new BuyGoodCommand("self", Resource.Helium3, 1, ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir()).Trade).Refusal(ctx));
         w.Turn += 9; senate.Tick(w); Assert.False(SenateSystem.Embargoed(w, "vega"));
     }
 

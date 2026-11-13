@@ -19,6 +19,8 @@ public sealed class NationDef
     public int Disposition { get; init; }
     public int Tribute { get; init; } = 4;
     public int Threshold { get; init; } = 6;
+    /// <summary>What the nation ships into the Reach's markets a turn while at peace and not hostile (good id → units); twice as much while subdued.</summary>
+    public IReadOnlyDictionary<string, int> Exports { get; init; } = new Dictionary<string, int>();
 }
 
 public sealed class NationCatalog
@@ -43,7 +45,8 @@ public sealed class NationCatalog
                         Id = ConditionParser.Str(el, "id"), Name = ConditionParser.Str(el, "name"), Culture = ConditionParser.OptStr(el, "culture", ""), Temper = ConditionParser.OptStr(el, "temper", "defensive"),
                         Description = ConditionParser.OptStr(el, "description", ""), Holds = ConditionParser.OptStr(el, "holds", ""),
                         Strength = ConditionParser.Int(el, "strength", 10), Regen = ConditionParser.Int(el, "regen", 1), Wealth = ConditionParser.Int(el, "wealth", 5), Distance = ConditionParser.Int(el, "distance", 2),
-                        Disposition = ConditionParser.Int(el, "disposition", 0), Tribute = ConditionParser.Int(el, "tribute", 4), Threshold = ConditionParser.Int(el, "threshold", 6)
+                        Disposition = ConditionParser.Int(el, "disposition", 0), Tribute = ConditionParser.Int(el, "tribute", 4), Threshold = ConditionParser.Int(el, "threshold", 6),
+                        Exports = el.TryGetProperty("exports", out var ex) && ex.ValueKind == JsonValueKind.Object ? ex.EnumerateObject().Where(p => p.Value.ValueKind == JsonValueKind.Number).ToDictionary(p => p.Name, p => p.Value.GetInt32()) : new Dictionary<string, int>()
                     });
         return new NationCatalog(defs);
     }

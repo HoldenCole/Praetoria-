@@ -1,0 +1,12 @@
+{
+  "//": "THE COMMODITY MARKET (docs/ECONOMY_MARKET.md stage A). One Reach-wide price a good, recomputed every turn from what the houses actually produced and consumed. `rules`: sharePct of production reaches the exchanges; the merchants hold coverYears of it in stock and drift relaxPct of the way back to that each year; short and long averages of demand and supply (shortPct, longPct of each year's reading) make the price react to CHANGE from the norm, so peace sits at base and a shock spikes and fades; easePct of the gap to the target price is closed a year; spreadPct between buy and sell at a market of your own or the capital, caravanSpreadPct otherwise; an order moves the price against itself by impactPct of its share of the stock; prices live between floorPct and capPct of base. `goods`: base credits a unit; sensitivity multiplies the pressure; warPct is the extra demand each war adds (four wars at most); minDemand damps the noise of a thin good; minStock is the least the merchants keep; buy/sell say which way a house may trade; `license` names a law effect of the Reach that must be in force to BUY (isotopes).",
+  "rules": { "sharePct": 25, "coverYears": 3, "relaxPct": 20, "shortPct": 50, "longPct": 8, "easePct": 50, "spreadPct": 10, "caravanSpreadPct": 30, "impactPct": 100, "depthPct": 100, "deficitPct": 100, "floorPct": 50, "capPct": 300, "historyKept": 12, "spikePct": 150, "slumpPct": 70 },
+  "goods": [
+    { "id": "materials",   "name": "Materials",    "base": 1.5, "sensitivity": 2.0, "warPct": 8,  "minDemand": 12, "minStock": 30, "buy": true,  "sell": true },
+    { "id": "manpower",    "name": "Hired crews",  "base": 2.0, "sensitivity": 2.0, "warPct": 10, "minDemand": 10, "minStock": 20, "buy": true,  "sell": false },
+    { "id": "exotics",     "name": "Exotics",      "base": 7.0, "sensitivity": 1.5, "warPct": 3,  "minDemand": 3,  "minStock": 4,  "buy": true,  "sell": true },
+    { "id": "helium3",     "name": "Helium-3",     "base": 6.0, "sensitivity": 2.5, "warPct": 12, "minDemand": 8,  "minStock": 18, "buy": true,  "sell": true },
+    { "id": "rare_earths", "name": "Rare earths",  "base": 9.0, "sensitivity": 2.5, "warPct": 10, "minDemand": 4,  "minStock": 8,  "buy": true,  "sell": true },
+    { "id": "isotopes",    "name": "Isotopes",     "base": 12.0, "sensitivity": 2.5, "warPct": 15, "minDemand": 3, "minStock": 4,  "buy": true,  "sell": true, "license": "isotope_market" }
+  ]
+}

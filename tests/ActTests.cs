@@ -27,7 +27,7 @@ public class ActTests
     public void TheSenateLaws_LoadAsReach_AndTheCustomIsInForceUntilAnActCarries()
     {
         var laws = Content.Policies.Laws.Where(l => l.Scope == "senate").ToList();
-        Assert.Equal(3, laws.Count); Assert.All(laws, l => Assert.True(l.Reach));
+        Assert.Equal(5, laws.Count); Assert.All(laws, l => Assert.True(l.Reach));   // the common law, the trade charter, the levy, the arms market, the exchange levy
         var (w, _, _) = Chamber();
         Assert.Equal("customary", PolicySystem.ReachOption(w, Content.Policies, Content.Policies.Law("common_law")!)!.Id);
         Assert.Equal(0, PolicySystem.ReachModifier(w, Content.Policies, "lawlessness_drift"));
@@ -115,7 +115,7 @@ public class ActTests
         Assert.Equal("the custom, no Act yet carried", reach.Single(r => r.Id == "common_law").SetBy);
         var commons = model.Chancery.Estates.Single(e => e.Id == "commons"); Assert.Contains("the Reach's the reach's levy -15", commons.LawsSay);
         var act = model.Senate!.Proposals.Single(p => p.KindId == "act");
-        Assert.True(act.NeedsLaw); Assert.Equal(3, act.Laws!.Count);
+        Assert.True(act.NeedsLaw); Assert.Equal(5, act.Laws!.Count);
         var charter = act.Laws.Single(l => l.Id == "levy_of_the_reach"); Assert.Equal("common_levy", charter.InForce);
         Assert.Equal("already the law of the Reach", charter.Options.Single(o => o.Id == "common_levy").Refusal);
         Assert.StartsWith("the Senate settled that lately", charter.Options.Single(o => o.Id == "customary").Refusal);

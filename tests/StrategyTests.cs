@@ -19,21 +19,21 @@ public class StrategyTests
     public void Exchange_LoadsRates_AndNeedsAMarket()
     {
         var (content, w) = Fresh();                                    // Serval's Highmarch has a market
-        Assert.Equal(11, content.Holdings.Rates.Count);   // five classic, five strategic (isotopes sell only)
-        var rate = content.Holdings.Rates.First(r => r.Give == "credits" && r.Get == "materials");
+        Assert.Equal(2, content.Holdings.Rates.Count);   // favours for coin, both ways: goods are on the market now (docs/ECONOMY_MARKET.md)
+        var rate = content.Holdings.Rates.First(r => r.Give == "credits" && r.Get == "influence");
         var ctx = new CommandContext(w, TestContent.Rng());
         var house = w.House("serval")!;
-        int credits = house.Treasury.Credits, materials = house.Treasury.Materials;
+        int credits = house.Treasury.Credits, influence = house.Treasury.Influence;
         Assert.True(new CommandExecutor().TryExecute(new ExchangeCommand(w.ProtagonistId, rate, content.Holdings, times: 2), ctx));
-        Assert.Equal(credits - 6, house.Treasury.Credits);
-        Assert.Equal(materials + 4, house.Treasury.Materials);
+        Assert.Equal(credits - 12, house.Treasury.Credits);
+        Assert.Equal(influence + 2, house.Treasury.Influence);
 
         var (_, w2) = Fresh("the_risen_officer");                     // Vane: a bare fortress billet, no market
         var vane = w2.House(w2.Protagonist!.HouseId)!;                 // ...so the caravaneers take half (GDD §17: never locked out)
         Assert.False(ExchangeCommand.HasExchange(w2, vane.Id, content.Holdings));
         Assert.Equal(1, ExchangeCommand.Received(w2, vane.Id, rate, content.Holdings, 1));
-        Assert.Equal(4, ExchangeCommand.Received(w, "serval", rate, content.Holdings, 2));
-        Assert.Equal(vane.Treasury.Credits >= 3, new ExchangeCommand(w2.ProtagonistId, rate, content.Holdings).CanExecute(new CommandContext(w2, TestContent.Rng())));
+        Assert.Equal(2, ExchangeCommand.Received(w, "serval", rate, content.Holdings, 2));
+        Assert.Equal(vane.Treasury.Credits >= 6, new ExchangeCommand(w2.ProtagonistId, rate, content.Holdings).CanExecute(new CommandContext(w2, TestContent.Rng())));
     }
 
     [Fact]

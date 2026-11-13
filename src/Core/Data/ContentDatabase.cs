@@ -35,6 +35,10 @@ public sealed class ContentDatabase
     public NationCatalog Nations { get; }
     /// <summary>The Academy: its registers, subjects, Standards and lessons (content/academy/academy.json; docs/ACADEMY.md).</summary>
     public AcademyCatalog Academy { get; }
+    /// <summary>The commodity market's goods and rules (content/market/goods.json; docs/ECONOMY_MARKET.md).</summary>
+    public MarketCatalog Market { get; }
+    /// <summary>Everything a trade needs to be priced: the market, the holdings catalog, the laws.</summary>
+    public TradeRules Trade { get; }
 
     /// <summary>The crisis definitions (GDD §16). Empty for scenarios with no crisis layer.</summary>
     public IReadOnlyList<CrisisDef> Crises { get; }
@@ -100,15 +104,18 @@ public sealed class ContentDatabase
         PolicyCatalog? policies = null,
         PartyCatalog? parties = null,
         NationCatalog? nations = null,
-        AcademyCatalog? academy = null)
+        AcademyCatalog? academy = null,
+        MarketCatalog? market = null)
     {
         Academy = academy ?? AcademyCatalog.Empty;
+        Market = market ?? MarketCatalog.Empty;
         Parties = parties ?? PartyCatalog.Empty;
         Nations = nations ?? NationCatalog.Empty;
         Businesses = businesses ?? BusinessCatalog.Empty;
         Motions = motions ?? MotionCatalog.Empty;
         Offices = offices ?? OfficeCatalog.Empty;
         Policies = policies ?? PolicyCatalog.Empty;
+        Trade = new TradeRules(Market, holdings ?? HoldingCatalog.Empty, Policies);
         Events = events;
         Texts = texts;
         Holdings = holdings ?? HoldingCatalog.Empty;

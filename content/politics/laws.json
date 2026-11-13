@@ -134,6 +134,19 @@
         { "id": "customary", "name": "The customary charter", "default": true },
         { "id": "open_lanes", "name": "Open lanes", "effects": { "market_price_pct": -10, "venture_yield_pct": 10 }, "opinions": { "merchants": 20, "frontier": 5, "magistrates": -5 } }
       ] },
+    { "id": "arms_market", "name": "The Arms Market", "category": "Trade", "scope": "senate", "reach": true, "cost": 3, "cooldown": 10,
+      "description": "Whether weapons-grade isotopes may be bought on the Reach's exchanges (docs/ECONOMY_MARKET.md). Closed, they come only from a deposit; licensed, any house with the credits arms its torpedoes, and the magistrates count the warheads.",
+      "options": [
+        { "id": "closed", "name": "Closed", "default": true },
+        { "id": "licensed", "name": "A licensed market", "effects": { "isotope_market": 1 }, "opinions": { "officers": 10, "merchants": 10, "magistrates": -10, "commons": -5 } }
+      ] },
+    { "id": "exchange_levy", "name": "The Exchange Levy", "category": "Trade", "scope": "senate", "reach": true, "cost": 3, "cooldown": 10,
+      "description": "A levy on every share bought or sold on the Exchange, paid to the chair. It cools a hot market, pleases the squares and galls every factor.",
+      "options": [
+        { "id": "none", "name": "No levy", "default": true },
+        { "id": "light", "name": "A light levy", "effects": { "exchange_levy_pct": 5 }, "opinions": { "merchants": -10, "commons": 5 } },
+        { "id": "heavy", "name": "A heavy levy", "effects": { "exchange_levy_pct": 15 }, "opinions": { "merchants": -25, "commons": 10, "magistrates": 5 } }
+      ] },
     { "id": "levy_of_the_reach", "name": "The Levy of the Reach", "category": "Military", "scope": "senate", "reach": true, "cost": 3, "cooldown": 10,
       "description": "Whether the Reach raises crews in common. The Reach's levy fills every yard and empties every village.",
       "options": [

@@ -26,6 +26,8 @@ public sealed class NpcAi
     public PolicyCatalog? Policies { get; init; }
     /// <summary>The nations beyond the Reach: hawkish houses send an idle fleet against the one the Senate has named (docs/FOREIGN_NATIONS.md).</summary>
     public NationCatalog? Nations { get; init; }
+    /// <summary>The commodity market: stewards sell what they hoard and buy what they lack at the Reach's prices (docs/ECONOMY_MARKET.md).</summary>
+    public TradeRules Trade { get; init; } = TradeRules.Empty;
     private BusinessCatalog _ventures = BusinessCatalog.Empty;
 
     public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
@@ -236,8 +238,8 @@ public sealed class NpcAi
                 var cls = classes.Resolve(cid);
                 if (cls.Cost.RareEarths > 0 && house.Treasury.RareEarths < cls.Cost.RareEarths * 2 && Resource.All.Where(r => r != Resource.RareEarths).All(r => house.Treasury.Get(r) >= cls.Cost.Get(r) * 2))
                 {   // the hull wants rare earths the house has not got: buy them if the coin is comfortably there
-                    var buy = new ProcureCommand(head.Id, Resource.RareEarths, cls.Cost.RareEarths * 2 - house.Treasury.RareEarths, _catalog ?? new HoldingCatalog(Array.Empty<HoldingSpec>(), Array.Empty<BuildingDef>()), _ventures);
-                    if (house.Treasury.Credits >= buy.Cost(world) + cls.Cost.Credits * 2) executor.TryExecute(buy, ctx);
+                    var buy = new BuyGoodCommand(head.Id, Resource.RareEarths, cls.Cost.RareEarths * 2 - house.Treasury.RareEarths, Trade);
+                    if (buy.Refusal(ctx) == null && house.Treasury.Credits >= buy.Cost(world) + cls.Cost.Credits * 2) executor.TryExecute(buy, ctx);
                 }
                 bool comfortable = Resource.All.All(r => house.Treasury.Get(r) >= cls.Cost.Get(r) * 2);
                 if (!comfortable) continue;
@@ -306,10 +308,10 @@ public sealed class NpcAi
             // exotics on the exchange, and tightens the tithe; a solvent one with a restless world eases it again.
             if (house.Treasury.Credits < 0)
             {
-                var sellExotics = catalog.Rates.FirstOrDefault(r => r.Give == Resource.Exotics && r.Get == Resource.Credits);
-                var sellMaterials = catalog.Rates.FirstOrDefault(r => r.Give == Resource.Materials && r.Get == Resource.Credits);
-                if (sellExotics != null && house.Treasury.Exotics >= sellExotics.GiveAmount) executor.TryExecute(new ExchangeCommand(steward.Id, sellExotics, catalog), ctx);
-                else if (sellMaterials != null && house.Treasury.Materials >= sellMaterials.GiveAmount + 2) executor.TryExecute(new ExchangeCommand(steward.Id, sellMaterials, catalog, times: Math.Clamp((house.Treasury.Materials - 2) / sellMaterials.GiveAmount, 1, 4)), ctx);   // sell what can be spared, as much as four lots
+                // exotics first (dearest), then materials beyond a small reserve, then any strategic stock beyond a year's need
+                if (house.Treasury.Exotics >= 1) executor.TryExecute(new SellGoodCommand(steward.Id, Resource.Exotics, Math.Min(3, house.Treasury.Exotics), Trade), ctx);
+                else if (house.Treasury.Materials >= 5) executor.TryExecute(new SellGoodCommand(steward.Id, Resource.Materials, Math.Clamp(house.Treasury.Materials - 2, 1, 12), Trade), ctx);
+                else if (house.Treasury.RareEarths >= 2) executor.TryExecute(new SellGoodCommand(steward.Id, Resource.RareEarths, house.Treasury.RareEarths / 2, Trade), ctx);
                 if (catalog.Tax("harsh") != null && !world.HoldingsOf(house.Id).Any(h => h.Unrest >= 60)) executor.TryExecute(new SetTaxPolicyCommand(steward.Id, "harsh", catalog), ctx);
             }
             else if (house.TaxPolicy == "harsh" && house.Treasury.Credits > 10 && catalog.Tax("normal") != null) executor.TryExecute(new SetTaxPolicyCommand(steward.Id, "normal", catalog), ctx);
@@ -318,8 +320,8 @@ public sealed class NpcAi
             // a rich house with a market buys the materials it lacks (GDD §17 conversion chains)
             if (house.Treasury.Materials < 6 && house.Treasury.Credits > 20)
             {
-                var rate = catalog.Rates.FirstOrDefault(r => r.Give == Resource.Credits && r.Get == Resource.Materials);
-                if (rate != null) executor.TryExecute(new ExchangeCommand(steward.Id, rate, catalog, times: 2), ctx);
+                var buy = new BuyGoodCommand(steward.Id, Resource.Materials, 4, Trade);
+                if (buy.Refusal(ctx) == null && buy.Cost(world) <= 12) executor.TryExecute(buy, ctx);   // not at any price: a spike is waited out
             }
             // and a very rich great house raises a megastructure (its holdings' build loop below prefers them when affordable)
 
@@ -396,9 +398,9 @@ public sealed class NpcAi
             int need = Math.Max(1, FleetSystem.FuelBillFor(world, house.Id, _fuelHullsPerUnit));   // a house without a navy still wants a tank in hand before it lays down a keel
             if (house.Treasury.Helium3 >= need * 2) continue;
             var head = Economy.HeadOf(world, house); if (head == null) continue;
-            var buy = new ProcureCommand(head.Id, Resource.Helium3, need * 3, catalog, _ventures);
-            if (house.Treasury.Credits >= buy.Cost(world) + 4) { executor.TryExecute(buy, ctx); continue; }
-            var one = new ProcureCommand(head.Id, Resource.Helium3, need, catalog, _ventures); if (house.Treasury.Credits >= one.Cost(world)) executor.TryExecute(one, ctx);
+            var buy = new BuyGoodCommand(head.Id, Resource.Helium3, need * 3, Trade);
+            if (buy.Refusal(ctx) == null && house.Treasury.Credits >= buy.Cost(world) + 4) { executor.TryExecute(buy, ctx); continue; }
+            var one = new BuyGoodCommand(head.Id, Resource.Helium3, need, Trade); if (one.Refusal(ctx) == null) executor.TryExecute(one, ctx);
         }
     }
     private void Venture(House house, Character steward, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
@@ -416,12 +418,12 @@ public sealed class NpcAi
         if (house.Treasury.Credits < -5 && house.Debt == 0 && net > f.LoanInstalment) executor.TryExecute(new TakeLoanCommand(steward.Id, _ventures), ctx);   // the instalment must be payable out of income
         if (house.Debt > 0 && house.Treasury.Credits >= house.Debt + 15) executor.TryExecute(new RepayLoanCommand(steward.Id), ctx);
         int fuelNeed = FleetSystem.FuelBillFor(world, house.Id, _fuelHullsPerUnit);
-        // a hoard is coin standing idle: sell helium-3 beyond six turns of burn (plus ten), and rare earths beyond a dozen, at the exchange
-        foreach (var (res, keep) in new[] { (Resource.Helium3, fuelNeed * 6 + 10), (Resource.RareEarths, 12) })
+        // a hoard is coin standing idle: sell helium-3 beyond six turns of burn (plus ten), rare earths beyond a dozen, materials beyond sixty, on the market
+        foreach (var (res, keep) in new[] { (Resource.Helium3, fuelNeed * 6 + 10), (Resource.RareEarths, 12), (Resource.Materials, 60), (Resource.Exotics, 6) })
         {
             int surplus = house.Treasury.Get(res) - keep; if (surplus < 3) continue;
-            var rate = catalog.Rates.FirstOrDefault(r => r.Give == res && r.Get == Resource.Credits);
-            if (rate != null) executor.TryExecute(new ExchangeCommand(steward.Id, rate, catalog, times: Math.Min(6, surplus / Math.Max(1, rate.GiveAmount))), ctx);
+            if (!MarketSystem.FairPrice(world, Trade.Market, res)) continue;   // a hoard is not sold into a glut: the steward waits for a price
+            executor.TryExecute(new SellGoodCommand(steward.Id, res, Math.Min(6, surplus), Trade), ctx);
         }
         if (house.Treasury.Credits >= f.InvestCredits + 14)
         {
