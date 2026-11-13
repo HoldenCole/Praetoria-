@@ -20,6 +20,11 @@
                 <div class="kv"><span>Worth</span><b>@b.Value <i class="muted">six years of what it earns now, half its book at least</i></b></div>
                 <div class="row small">
                     <button class="opt inline tiny" disabled="@(b.Expand.Refusal != null)" title="@b.Expand.Refusal" @onclick="() => G.Execute(new ExpandBusinessCommand(pid, b.Id, c.Businesses))">@b.Expand.Label</button>
+                    @if (b.CompanyName == null && G.Turn!.Companies is { Open: true } cx)
+                    {
+                        var listing = cx.IncorporateRefusal(w, w.Protagonist!.HouseId, w.Businesses.GetValueOrDefault(b.Id), string.Empty);
+                        <button class="opt inline tiny" disabled="@(listing != null)" title="@(listing ?? "list it on the Exchange as a company: a hundred shares, all yours")" @onclick="() => G.Execute(new IncorporateCommand(pid, b.Id, string.Empty, cx))">Incorporate</button>
+                    }
                     @if (vs != null && b.CompanyName == null)
                     {
                         <button class="opt inline tiny" disabled="@(b.Sell.Refusal != null)" title="@(b.Sell.Refusal ?? "four-fifths of its worth; the caravaneers break it up")" @onclick="() => G.Execute(new SellVentureCommand(pid, b.Id, string.Empty, vs))">@b.Sell.Label</button>

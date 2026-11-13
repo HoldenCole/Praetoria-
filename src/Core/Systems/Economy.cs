@@ -113,6 +113,14 @@ public sealed class Economy
             if (b.CompanyId.Length > 0 || _ventures.Def(b.Kind) == null) continue;
             ledger.Add(b.Name, "venture", VentureLine(world, b));
         }
+        // dividends: what each company declared last year, by the shares held now; and the yearly coupon on the Reach's war bonds
+        foreach (var co in world.Companies.OrderBy(c => c.Id, StringComparer.Ordinal))
+        {
+            int held = co.HeldBy(houseId); if (held <= 0 || co.LastDividend <= 0 || co.Shares <= 0) continue;
+            int due = co.LastDividend * held / co.Shares; if (due > 0) ledger.Add($"dividend · {co.Name}", "dividend", new Resources { Credits = due });
+        }
+        int coupons = world.Bonds.Where(b => b.HolderId == houseId).Sum(b => b.Face * b.YieldPct / 100);
+        if (coupons > 0) ledger.Add("interest on war bonds", "interest", new Resources { Credits = coupons });
         // charters received from others' ventures on our worlds
         foreach (var b in world.Businesses.Values.Where(x => x.OwnerId != houseId).OrderBy(x => x.Id, StringComparer.Ordinal))
         {

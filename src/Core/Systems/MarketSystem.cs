@@ -56,6 +56,12 @@ public sealed class MarketSystem
                     int v = line.Delta.Get(g.Id); if (v == 0) continue;
                     var s = sums[g.Id]; sums[g.Id] = v > 0 ? (s.produced + v, s.needed) : (s.produced, s.needed - v);
                 }
+        // a company's ventures pay the company, which sells what they bring up: it is still the Reach's production
+        foreach (var b in w.Businesses.Values.Where(b => b.CompanyId.Length > 0).OrderBy(b => b.Id, StringComparer.Ordinal))
+        {
+            var line = _economy.VentureLine(w, b);
+            foreach (var g in _trade.Market.Goods) { int v = line.Get(g.Id); if (v > 0) { var s = sums[g.Id]; sums[g.Id] = (s.produced + v, s.needed); } }
+        }
         return sums;
     }
 

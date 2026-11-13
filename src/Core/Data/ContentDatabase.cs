@@ -37,6 +37,8 @@ public sealed class ContentDatabase
     public AcademyCatalog Academy { get; }
     /// <summary>The commodity market's goods and rules (content/market/goods.json; docs/ECONOMY_MARKET.md).</summary>
     public MarketCatalog Market { get; }
+    /// <summary>The Exchange: share-price rules, sectors, chartered companies (docs/ECONOMY_MARKET.md stage C).</summary>
+    public ExchangeCatalog Exchange { get; }
     /// <summary>Everything a trade needs to be priced: the market, the holdings catalog, the laws.</summary>
     public TradeRules Trade { get; }
 
@@ -105,10 +107,12 @@ public sealed class ContentDatabase
         PartyCatalog? parties = null,
         NationCatalog? nations = null,
         AcademyCatalog? academy = null,
-        MarketCatalog? market = null)
+        MarketCatalog? market = null,
+        ExchangeCatalog? exchange = null)
     {
         Academy = academy ?? AcademyCatalog.Empty;
         Market = market ?? MarketCatalog.Empty;
+        Exchange = exchange ?? ExchangeCatalog.Empty;
         Parties = parties ?? PartyCatalog.Empty;
         Nations = nations ?? NationCatalog.Empty;
         Businesses = businesses ?? BusinessCatalog.Empty;

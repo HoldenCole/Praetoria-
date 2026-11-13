@@ -30,6 +30,8 @@ public sealed class NpcAi
     public TradeRules Trade { get; init; } = TradeRules.Empty;
     /// <summary>Ventures as assets: a steward in distress sells to the best bidder, not to the void (docs/ECONOMY_MARKET.md stage B).</summary>
     public VentureSystem? VentureTrade { get; init; }
+    /// <summary>The Exchange, when the age has one: stewards incorporate, float, invest and sell paper by temperament (docs/ECONOMY_MARKET.md stage C).</summary>
+    public CompanySystem? Exchange { get; init; }
     private BusinessCatalog _ventures = BusinessCatalog.Empty;
 
     public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
@@ -405,6 +407,57 @@ public sealed class NpcAi
             var one = new BuyGoodCommand(head.Id, Resource.Helium3, need, Trade); if (one.Refusal(ctx) == null) executor.TryExecute(one, ctx);
         }
     }
+    /// <summary>A steward on the Exchange (docs/ECONOMY_MARKET.md stage C). A house in the red sells paper, which is what a crash is. A
+    /// director spends the company's cash on enlarging what it owns, floats shares when the cash is short, and buys back toward a
+    /// majority when its hold is thin. A house with two ventures lists one, the Factors soonest. A house with coin to spare buys what
+    /// is cheap against what it earns: the Factors every third year, the Sword never; a house that hates the player prefers the
+    /// player's company.</summary>
+    private void Invest(House house, Character steward, CommandExecutor executor, CommandContext ctx)
+    {
+        var cs = Exchange; if (cs == null || !cs.Open) return; var world = ctx.World; var r = cs.Rules;
+        uint h = 2166136261; foreach (var ch in house.Id + ":paper:" + world.Turn) h = (h ^ ch) * 16777619;
+        string party = FactionSystem.Of(world, house.Id)?.PartyId ?? ""; var mine = world.Protagonist?.HouseId;
+        if (house.Treasury.Credits < 0)
+        {
+            var held = world.Companies.Where(c => c.HeldBy(house.Id) > 0).OrderByDescending(c => CompanySystem.Value(c, house.Id)).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (held != null) executor.TryExecute(new SellSharesCommand(steward.Id, held.Id, Math.Min(held.HeldBy(house.Id), Math.Max(5, held.Shares * 15 / 100)), cs), ctx);
+            return;
+        }
+        foreach (var co in CompanySystem.ControlledBy(world, house.Id).Where(c => !c.Chartered).ToList())
+        {
+            bool grew = false, wants = false;
+            foreach (var b in CompanySystem.VenturesOf(world, co).ToList())
+            {
+                var def = _ventures.Def(b.Kind); if (def == null || b.Level >= def.MaxLevel || ProjectSystem.Underway(world, house.Id, Project.Expansion, b.Kind, b.Id)) continue;
+                wants = true; if (executor.TryExecute(new ExpandBusinessCommand(steward.Id, b.Id, _ventures), ctx)) { grew = true; break; }
+            }
+            // short of cash for what it wants to build: sell new shares, while that leaves the house its majority
+            if (wants && !grew && h % 3 == 0) { int n = Math.Max(1, co.Shares * 15 / 100); if (co.HeldBy(house.Id) * 100 / (co.Shares + n) >= 55) executor.TryExecute(new BoardCommand(steward.Id, co.Id, BoardCommand.Float, n, cs), ctx); }
+            // nothing left to build and coin piling up: it is paid out
+            if (!wants && co.Cash > 30 && !world.Projects.Any(p => p.CompanyId == co.Id)) executor.TryExecute(new BoardCommand(steward.Id, co.Id, BoardCommand.Special, 0, cs), ctx);
+            // a thin hold is shored up from the float
+            if (co.HeldBy(house.Id) * 100 / Math.Max(1, co.Shares) < 55 && house.Treasury.Credits >= 80 && co.HeldBy(Company.Public) > 0)
+                executor.TryExecute(new BuySharesCommand(steward.Id, co.Id, Math.Min(co.HeldBy(Company.Public), Math.Max(1, co.Shares * 5 / 100)), cs), ctx);
+        }
+        if (!CompanySystem.ControlledBy(world, house.Id).Any() && h % (party == "factors" ? 4u : 9u) == 1)
+        {
+            var loose = world.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0 && _ventures.Def(b.Kind) != null).ToList();
+            var best = loose.Count >= 2 ? loose.OrderByDescending(b => VentureTrade?.Earnings(world, b) ?? 0).ThenBy(b => b.Id, StringComparer.Ordinal).First() : null;
+            if (best != null && (VentureTrade?.Earnings(world, best) ?? 0) > 0) executor.TryExecute(new IncorporateCommand(steward.Id, best.Id, "", cs), ctx);
+        }
+        // a share that has run a quarter past what it earns is sold down: a third of the holding, never a director's own majority
+        foreach (var co in world.Companies.Where(c => c.HeldBy(house.Id) >= 3 && c.ControllerId != house.Id).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
+            if (co.Price > cs.Fundamental(world, co) * 1.25 && h % 2 == 0) { executor.TryExecute(new SellSharesCommand(steward.Id, co.Id, Math.Max(1, co.HeldBy(house.Id) / 3), cs), ctx); break; }
+        uint every = party == "factors" ? 3u : party == "sword" ? 0u : 6u;
+        if (every == 0 || house.Treasury.Credits < 140 || h % every != 0) return;
+        bool hostile = mine != null && Economy.HeadOf(world, house) is { } head && world.Protagonist is { } pc && (world.GetRelationship(head.Id, pc.Id)?.Disposition ?? 0) <= -30;
+        var pick = world.Companies.Where(c => c.HeldBy(Company.Public) * 10 >= c.Shares && c.Price > 0.2 && (c.ControllerId.Length == 0 || !world.AtWar(house.Id, c.ControllerId)))
+            .OrderByDescending(c => (hostile && c.ControllerId == mine ? 2 : 0) + cs.Fundamental(world, c) / c.Price).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+        if (pick == null || (cs.Fundamental(world, pick) < pick.Price * 0.9 && !(hostile && pick.ControllerId == mine))) return;   // nothing is cheap: the coin stays home
+        int budget = (house.Treasury.Credits - 100) / 2; int n2 = Math.Min(Math.Min(pick.HeldBy(Company.Public), pick.Shares * 8 / 100), (int)(budget / Math.Max(0.2, pick.Price)));
+        if (n2 >= 1) executor.TryExecute(new BuySharesCommand(steward.Id, pick.Id, n2, cs), ctx);
+    }
+
     private void Venture(House house, Character steward, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
     {
         var world = ctx.World; var f = _ventures.Finance; var galaxy = world.Galaxy; var eco = new Economy(catalog, _ventures);
@@ -441,6 +494,7 @@ public sealed class NpcAi
             var least = world.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0 && world.Turn >= b.OfferedUntil).OrderBy(b => VentureTrade.Earnings(world, b)).ThenBy(b => b.Id, StringComparer.Ordinal).FirstOrDefault();
             if (least != null && VentureTrade.Bidders(world, least).Count > 0) executor.TryExecute(new SellVentureCommand(steward.Id, least.Id, SellVentureCommand.Best, VentureTrade), ctx);
         }
+        Invest(house, steward, executor, ctx);
         if (house.Treasury.Credits >= f.InvestCredits + 14)
         {
             var slack = world.HoldingsOf(house.Id).Where(h => h.IsPlanet && h.Prosperity < 45).OrderBy(h => h.Prosperity).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();

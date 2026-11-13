@@ -281,6 +281,16 @@ internal static class Qa
         foreach (var pr in w.ProjectsOf(house.Id).OrderBy(x => x.Id, StringComparer.Ordinal)) { if (decisions.NextInt(0, 8) == 0) cands.Add(new PauseProjectCommand(p.Id, pr.Id)); if (decisions.NextInt(0, 8) == 0) cands.Add(new RushProjectCommand(p.Id, pr.Id)); if (decisions.NextInt(0, 12) == 0) cands.Add(new AbandonProjectCommand(p.Id, pr.Id)); }
         cands.Add(new TakeLoanCommand(p.Id, bc)); cands.Add(new RepayLoanCommand(p.Id)); cands.Add(new PetitionFiefCommand(p.Id));
         foreach (var gd in content.Market.Goods) { cands.Add(new BuyGoodCommand(p.Id, gd.Id, 1 + decisions.NextInt(0, 4), content.Trade)); cands.Add(new SellGoodCommand(p.Id, gd.Id, 1 + decisions.NextInt(0, 4), content.Trade)); }
+        if (tc.Companies is { Open: true } cx)   // the Exchange: list, trade, and sit on the board
+        {
+            foreach (var b in w.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0).OrderBy(b => b.Id, StringComparer.Ordinal)) if (decisions.NextInt(0, 5) == 0) cands.Add(new IncorporateCommand(p.Id, b.Id, CompanySystem.ControlledBy(w, house.Id).FirstOrDefault()?.Id ?? "", cx));
+            foreach (var co in w.Companies.OrderBy(c => c.Id, StringComparer.Ordinal))
+            {
+                if (decisions.NextInt(0, 4) == 0) cands.Add(new BuySharesCommand(p.Id, co.Id, 1 + decisions.NextInt(0, 12), cx));
+                if (co.HeldBy(house.Id) > 0 && decisions.NextInt(0, 4) == 0) cands.Add(new SellSharesCommand(p.Id, co.Id, 1 + decisions.NextInt(0, 12), cx));
+                if (co.ControllerId == house.Id) { cands.Add(new BoardCommand(p.Id, co.Id, BoardCommand.Float, 5 + decisions.NextInt(0, 15), cx)); cands.Add(new BoardCommand(p.Id, co.Id, BoardCommand.Buyback, 1 + decisions.NextInt(0, 6), cx)); cands.Add(new BoardCommand(p.Id, co.Id, BoardCommand.Payout, 25 * decisions.NextInt(0, 5), cx)); cands.Add(new BoardCommand(p.Id, co.Id, BoardCommand.Special, 0, cx)); cands.Add(new BoardCommand(p.Id, co.Id, BoardCommand.Private, 0, cx)); }
+            }
+        }
         foreach (var def in tc.Senate.Motions.Defs)
         {
             if (def.Id == "petition") continue;   // only an estate brings one

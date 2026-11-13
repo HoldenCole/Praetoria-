@@ -38,6 +38,12 @@ public sealed class Company
     /// <summary>A chartered company's own yearly income before the world moves it.</summary>
     public int CharterIncome { get; set; }
     public int Founded { get; set; }
+    /// <summary>The turn it last floated new shares (-1 = never): one float a year.</summary>
+    public int LastFloat { get; set; } = -1;
+    /// <summary>The content id of its charter, for a great company of the Reach.</summary>
+    public string CharterId { get; set; } = "";
+    /// <summary>Under the Imperium: the house the throne has granted this company's monopoly to, which takes a rent off the top; "" for none.</summary>
+    public string MonopolyOf { get; set; } = "";
     /// <summary>The founder's one refusal of a takeover has been spent.</summary>
     public bool GoldenShareUsed { get; set; }
     /// <summary>Shares each house has bought this turn, for the yearly cap.</summary>

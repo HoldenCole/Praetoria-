@@ -40,4 +40,19 @@ public sealed class MarketState
     /// <summary>The turn the markets were last reckoned.</summary>
     public int LastTick { get; set; } = -1;
     public GoodState? Good(string id) => Goods.TryGetValue(id, out var g) ? g : null;
+
+    // ---- the Exchange (stage C): one number for how the Reach's money feels, and an index of every listed share
+    /// <summary>Confidence in the Reach as a whole, about 0.6..1.25: down with war and crisis and debt, up with years of peace.</summary>
+    public double Confidence { get; set; } = 1;
+    /// <summary>All listed shares together, 100 when the Exchange opened.</summary>
+    public double Index { get; set; } = 100;
+    public List<double> IndexHistory { get; set; } = new();
+    /// <summary>Years in a row with no war in the Reach or abroad.</summary>
+    public int PeaceYears { get; set; }
+    /// <summary>What moved the market this year, in the world's terms.</summary>
+    public List<string> Movers { get; set; } = new();
+    /// <summary>The turn the Treasurer last steadied the market from the Reach's purse (-1 = never).</summary>
+    public int SteadiedTurn { get; set; } = -1;
+    /// <summary>The turn the Exchange was last reckoned.</summary>
+    public int LastExchangeTick { get; set; } = -1;
 }

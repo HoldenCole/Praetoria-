@@ -99,6 +99,19 @@ public sealed record CampaignCard(string? TargetId, string? TargetName, int Turn
 public sealed record GoodLine(string Id, string Name, double Price, double Base, double BuyUnit, double SellUnit, int Stock, int ChangePct, IReadOnlyList<double> History, string Cause,
     int Held, int NetPerTurn, bool CanBuy, bool CanSell, string? BuyRefusal, string? SellRefusal, int Deficit);
 /// <summary>The markets panel: every good, whether the house trades at the narrow spread, and whether an embargo closes them.</summary>
+/// <summary>A house's public stake in a company: a tenth or more.</summary>
+public sealed record StakeLine(string HouseId, string HouseName, string Accent, int Pct);
+/// <summary>One listed company as the Exchange shows it (docs/ECONOMY_MARKET.md stage C).</summary>
+public sealed record CompanyLine(string Id, string Name, string Sector, string SectorName, double Price, int ChangePct, IReadOnlyList<double> History, int Earnings, int Dividend, int YieldPct,
+    int Shares, int Float, int Held, int HeldValue, int Cash, int PayoutPct, string ControllerId, string ControllerName, string ControllerAccent, bool Directed, bool Founded, bool Chartered,
+    string Cause, IReadOnlyList<StakeLine> Stakes, IReadOnlyList<string> Ventures, string Description, bool GoldenShare, int OutlookPct, int CapValue, string MonopolyName);
+/// <summary>The Exchange: the index, confidence, what moved the market, every listed company, and the house's paper.</summary>
+public sealed record ExchangeCard(double Index, IReadOnlyList<double> IndexHistory, int IndexChangePct, int ConfidencePct, IReadOnlyList<string> Movers, IReadOnlyList<CompanyLine> Companies,
+    int PaperValue, int DividendsDue, int LevyPct, IReadOnlyList<BondLine> Bonds, BondOffer? BondOffer, string? SteadyRefusal, bool CanSteady);
+/// <summary>A war bond the house holds (stage D).</summary>
+public sealed record BondLine(string Id, string NationName, int Face, int YieldPct, int Bought);
+/// <summary>The bond the Reach is selling this year, if it is at war abroad.</summary>
+public sealed record BondOffer(string NationId, string NationName, int Face, int YieldPct, int Held, int Cap, string? Refusal);
 public sealed record MarketCard(IReadOnlyList<GoodLine> Goods, bool OwnMarket, bool Embargoed, int SpreadPct);
 public sealed record MilitaryCard(IReadOnlyList<BattleBrief> Brief, CampaignCard Campaign, string MyStyle, IReadOnlyList<Option> MyStyleOptions, int MyValour, bool MyAchilles, int MyCap, IReadOnlyList<NationCard>? Nations = null);
 /// <summary>A generic actionable option: an id the UI turns into a command, a label, and why it is disabled (null = available).</summary>
@@ -127,7 +140,7 @@ public sealed record CourtModel(int Turn, string Era, string Mode, int Generatio
     IReadOnlyList<HouseholdLine> Household, IReadOnlyList<SiegeLine> Sieges, string? EpilogueText,
     IReadOnlyList<AdvisorReport> Advisors, GreatCrisisCard? GreatCrisis,
     LedgerCard? Ledger = null, IReadOnlyList<BusinessCard>? Businesses = null, IReadOnlyList<VentureOption>? Ventures = null, IReadOnlyList<ClaimOption>? Claims = null,
-    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null, IReadOnlyList<Option>? Procure = null, IReadOnlyList<string>? Deposits = null, SenateCard? Senate = null, ChanceryCard? Chancery = null, MilitaryCard? Military = null, MarketCard? Market = null, AssetsCard? Assets = null);
+    IReadOnlyList<ReclaimOption>? Reclaims = null, CapitalCard? Capital = null, Option? Petition = null, IReadOnlyList<Option>? Procure = null, IReadOnlyList<string>? Deposits = null, SenateCard? Senate = null, ChanceryCard? Chancery = null, MilitaryCard? Military = null, MarketCard? Market = null, AssetsCard? Assets = null, ExchangeCard? Exchange = null);
 
 public static class CourtProjection
 {
@@ -404,7 +417,7 @@ public static class CourtProjection
             Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var bc = new BuyGoodCommand(p.Id, r, 3, content.Trade); var q = bc.Quote(w); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the market  ({(q.Credits > 0 ? q.Credits.ToString() : "—")} credits)", q.Refusal); }).ToList(),
             Economy.Deposits(w, house.Id).OrderBy(x => x, StringComparer.Ordinal).ToList(),
             BuildSenate(w, p, house, tc.Senate, ctx),
-            BuildChancery(w, p, house, content.Policies, ctx), Military: BuildMilitary(w, p, house, tc.Fleets, content.Fleets, ctx, content.Nations, tc.Senate), Market: BuildMarket(w, p, house, content, tc), Assets: BuildAssets(w, p, house, content, tc, ctx));
+            BuildChancery(w, p, house, content.Policies, ctx), Military: BuildMilitary(w, p, house, tc.Fleets, content.Fleets, ctx, content.Nations, tc.Senate), Market: BuildMarket(w, p, house, content, tc), Assets: BuildAssets(w, p, house, content, tc, ctx), Exchange: BuildExchange(w, p, house, content, tc));
     }
 
     private static string BondName(Relationship? rel) => rel?.Bond is { } b && b != BondType.None ? b.ToString().ToLowerInvariant() : "";
@@ -525,6 +538,31 @@ public static class CourtProjection
             }
         }
         return new AssetsCard(projects, forSale, offers);
+    }
+
+    private static ExchangeCard? BuildExchange(World w, Character p, House house, ContentDatabase content, TurnController tc)
+    {
+        var cs = tc.Companies; if (cs == null || !cs.Open || w.Market == null) return null; var m = w.Market; var r = cs.Rules;
+        var lines = new List<CompanyLine>();
+        foreach (var co in w.Companies.OrderByDescending(c => c.HeldBy(house.Id) > 0 || c.ControllerId == house.Id ? 1 : 0).ThenByDescending(c => CompanySystem.Cap(c)).ThenBy(c => c.Id, StringComparer.Ordinal))
+        {
+            var ctl = w.House(co.ControllerId); var h = co.History; int back = Math.Min(5, h.Count - 1);
+            int change = back > 0 && h[^(back + 1)] > 0 ? (int)Math.Round((co.Price / h[^(back + 1)] - 1) * 100) : 0;
+            var stakes = co.Holders.Where(kv => kv.Key != Company.Public && kv.Value * 100 >= co.Shares * r.PublicStakePct && w.House(kv.Key) != null).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal)
+                .Select(kv => new StakeLine(kv.Key, w.House(kv.Key)!.Name, w.House(kv.Key)!.AccentColor, kv.Value * 100 / co.Shares)).ToList();
+            var def = content.Exchange.Charter(co.CharterId); int cap = CompanySystem.Cap(co);
+            lines.Add(new CompanyLine(co.Id, co.Name, co.Sector, content.Exchange.Sector(co.Sector)?.Name ?? co.Sector, co.Price, change, h.ToList(), co.LastEarnings, co.LastDividend,
+                cap > 0 ? (int)Math.Round(co.LastDividend * 100.0 / cap) : 0, co.Shares, co.HeldBy(Company.Public), co.HeldBy(house.Id), CompanySystem.Value(co, house.Id), co.Cash, co.PayoutPct,
+                co.ControllerId, ctl?.Name ?? (co.Chartered ? (w.IsImperium ? "the throne's board" : "the Senate's board") : "its board"), ctl?.AccentColor ?? "#9aa4b5", co.ControllerId == house.Id && !co.Chartered,
+                co.FounderId == house.Id, co.Chartered, co.Cause, stakes, CompanySystem.VenturesOf(w, co).Select(b => b.Name).ToList(), def?.Description ?? "",
+                !co.Chartered && !co.GoldenShareUsed && co.FounderId.Length > 0 && co.ControllerId == co.FounderId, (int)Math.Round((cs.Outlook(w, co.Sector) - 1) * 100), cap,
+                co.MonopolyOf.Length > 0 ? w.House(co.MonopolyOf)?.Name ?? "" : ""));
+        }
+        int due = w.Companies.Sum(co => co.Shares > 0 ? co.LastDividend * co.HeldBy(house.Id) / co.Shares : 0);
+        var ih = m.IndexHistory; int ib = Math.Min(5, ih.Count - 1); int ichg = ib > 0 && ih[^(ib + 1)] > 0 ? (int)Math.Round((m.Index / ih[^(ib + 1)] - 1) * 100) : 0;
+        int levy = content.Policies.IsEmpty ? 0 : Math.Max(0, PolicySystem.ReachModifier(w, content.Policies, "exchange_levy_pct"));
+        return new ExchangeCard(m.Index, ih.ToList(), ichg, (int)Math.Round(m.Confidence * 100), m.Movers.ToList(), lines, CompanySystem.PaperOf(w, house.Id), due, levy,
+            new List<BondLine>(), null, null, false);
     }
 
     private static MarketCard? BuildMarket(World w, Character p, House house, ContentDatabase content, TurnController tc)

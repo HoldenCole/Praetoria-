@@ -31,7 +31,7 @@ public static class Wealth
     }
 
     /// <summary>What a house's paper is worth: its shares at the Exchange's price and its bonds at face (docs/ECONOMY_MARKET.md stage C).</summary>
-    public static int PaperOf(World w, string houseId) => 0;
+    public static int PaperOf(World w, string houseId) => CompanySystem.PaperOf(w, houseId) + w.Bonds.Where(b => b.HolderId == houseId).Sum(b => b.Face);
 
     /// <summary>Every house by wealth, richest first; ties by id.</summary>
     public static IReadOnlyList<(House house, int wealth)> Ranked(World w) =>

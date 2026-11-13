@@ -603,3 +603,10 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .vc-head { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .2rem; } .vc-head .pill { margin-left: auto; }
 .standings.ventures tbody tr { cursor: default; } .standings.ventures td { font-size: .8rem; }
 .ex-tabs .rung { color: var(--ink2); } .ex-tabs .rung.here { color: var(--brass2); }
+
+.ex-index { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; margin: 4px 0 10px; }
+.ex-index .stat b i { font-style: normal; font-weight: 400; font-size: 11px; }
+.standings.shares tr.mine td.hn b { color: var(--brass2); }
+.standings.shares td.order input, .vcard .row input[type=number] { width: 52px; }
+.standings.shares td { white-space: nowrap; } .standings.shares td.hn, .standings.shares tr.cause td { white-space: normal; } .standings.shares td.hn { min-width: 11rem; }
+.exchange-grid > .panel { overflow-x: auto; }

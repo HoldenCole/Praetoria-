@@ -40,7 +40,7 @@ public sealed class TurnController
     private readonly CrisisEngine? _crises;
     private readonly SphereSystem? _spheres;
     private readonly ProgressionSystem? _progression;
-    private readonly FleetSystem _fleets; private readonly NationSystem _nations; private readonly AcademySystem _academy; private readonly MarketSystem _market; private readonly VentureSystem? _ventures;
+    private readonly FleetSystem _fleets; private readonly NationSystem _nations; private readonly AcademySystem _academy; private readonly MarketSystem _market; private readonly VentureSystem? _ventures; private readonly CompanySystem? _companies;
     private readonly HonorSystem _honors;
     private readonly GreatCrisisSystem _greatCrisis;
     private readonly FamilySystem _family = new();
@@ -73,6 +73,8 @@ public sealed class TurnController
     public AcademySystem Academy => _academy;
     public MarketSystem Market => _market;
     public VentureSystem? Ventures => _ventures;
+    /// <summary>The Exchange: companies, shares, the yearly share prices (docs/ECONOMY_MARKET.md stage C).</summary>
+    public CompanySystem? Companies => _companies;
 
     /// <summary>Honorifics & Orders (GDD §13).</summary>
     public HonorSystem Honors => _honors;
@@ -103,7 +105,9 @@ public sealed class TurnController
         _academy = new AcademySystem(content.Academy, content.Names);
         _ventures = _economy != null ? new VentureSystem(_economy, content.Businesses) : null;   // ventures as assets: value, bids, asks, sales (stage B)
         _market = new MarketSystem(content.Trade, _economy, _fleets, content.Nations); _market.Seed(world);   // the Reach's exchanges open at base prices (docs/ECONOMY_MARKET.md)
-        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures };
+        _companies = _economy != null && !content.Exchange.IsEmpty ? new CompanySystem(_economy, content.Businesses, content.Exchange, content.Trade) { Nations = content.Nations } : null;   // the Exchange (stage C)
+        if (_companies != null && !world.InAcademy) _companies.Seed(world);
+        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures, Exchange = _companies };
         _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);
         _greatCrisis = new GreatCrisisSystem(content.GreatCrisis, _fleets);
@@ -134,6 +138,7 @@ public sealed class TurnController
         _fleets.UpdateIntel(World);            // ...and the picture after the fighting
         _nations.Tick(World);                  // beyond the Reach: raids, expeditions, the wars abroad (docs/FOREIGN_NATIONS.md) — RNG-free
         _market.Tick(World); MarketSystem.Sweep(World);   // the year's prices, from what the houses produced and consumed (docs/ECONOMY_MARKET.md) — RNG-free
+        _companies?.Tick(World);   // then the Exchange: earnings at those prices, dividends declared, the year's share prices
         _spheres?.Recompute(World);  // power-balance projection + threat/coalition (GDD §7), also RNG-free
         _progression?.Apply(World);  // title soft-lock instability (GDD §13), also RNG-free
         _honors.Apply(World, _rng);  // investitures when a distinction's conditions first hold (GDD §13)
