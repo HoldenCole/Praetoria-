@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- **A roadmap** (docs/ROADMAP.md): what is done, the known gaps, the next nine cycles in order, a planned look-and-feel
+  pass for screens and characters (not started), and ideas for later expansions. The README's status sections now
+  point to it.
 - **The three orders of the Republic** (docs/REPUBLIC.md). Every house now has a standing in the Senate, in Arms and
   in Commerce, measured each year from its rank and offices, its hulls and victories, its wealth, ventures and paper.
   A family is known for one (its calling); a few are great in two. Standing is leverage: a great general or banker

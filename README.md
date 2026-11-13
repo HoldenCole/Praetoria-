@@ -193,8 +193,16 @@ ambitions and ranks are in [`docs/PRAETORIA_VOCAB.md`](docs/PRAETORIA_VOCAB.md).
 
 ## What's built (the current state)
 
-**In one sentence:** the complete headless simulation — every core system of the human game, wired
-together, deterministic, soaked for 40-turn playthroughs, with an authored content set — and no UI.
+**In one sentence:** a complete human-only game, playable start to finish in the browser: deterministic, saved and
+loaded, soaked for sixty-year runs across every start.
+
+**The current summary is [`docs/ROADMAP.md`](docs/ROADMAP.md)**: what is done, the known gaps, what comes next, and
+ideas for later. The table below is the original systems list and is kept for its spec references. Built since it was
+written, each with its own doc: the browser client (`WEB_CLIENT`), regions, rings and raiders (`GALAXY`), strategic
+resources (`ECONOMY`), the Senate, offices, parties and the consulship (`SENATE`, `REPUBLIC`), laws and estates
+(`POLITICS`), military depth (`MILITARY`), nations beyond the Reach (`FOREIGN_NATIONS`), titles by era (`TITLES`), the
+Academy as a prologue and tutorial (`ACADEMY`), prices, ventures, companies and shares (`ECONOMY_MARKET`), and the
+three orders of the Republic (`REPUBLIC`).
 
 | System | Spec | Status | What it does today |
 |---|---|---|---|
@@ -237,10 +245,10 @@ together, deterministic, soaked for 40-turn playthroughs, with an authored conte
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 243 automated tests, including a 40-turn whole-stack soak that asserts end-to-end
-determinism, succession landing, crises de-escalating, and no absurd state, and a save/load round-trip
-that must reproduce an uninterrupted run; both validators clean and both run in CI; all five scenarios
-auto-play 40 turns crash-free across five seeds.
+**Verification:** 493 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
+round-trip that must reproduce an uninterrupted run; both content validators clean; every start auto-plays sixty turns
+across several seeds with a randomised player. The content counts in the table above are from the first release; the
+current ones (257 events, 9 scenarios, 31 systems) are in `docs/ROADMAP.md`.
 
 Per-milestone detail, with the acceptance proof for each: [`MILESTONE_1`](docs/MILESTONE_1_NOTES.md)
 (engine) · [`MILESTONE_2`](docs/MILESTONE_2_NOTES.md) (turn loop) · [`MILESTONE_4`](docs/MILESTONE_4_NOTES.md)
@@ -255,36 +263,16 @@ Per-milestone detail, with the acceptance proof for each: [`MILESTONE_1`](docs/M
 Being honest about this is the point of the section. Nothing here is hidden behind a feature flag —
 if it's listed, it does not exist yet.
 
-### Not started
-| Gap | Spec | Why it matters / notes |
-|---|---|---|
-| **Desktop shell** — the Godot layer | §19 | The browser client is the playable build. The Godot layer compiles against the same Core but has never been run in an editor, and Godot's .NET build cannot target the web; it waits for a session with Godot 4.3 and a display, or a decision to retire it. |
-| **A way back for a landless house** | §6, §14 | A house stripped of every holding has no path back today: no mercenary service, no fief by petition or marriage, no peace terms that return a world. Seen in browser QA (the Fallen House and the Imperial Court both ended landless by turn 21). |
-| **Succession interstitial & tutorial** | §19 | The web client shows an epilogue on dynasty death or a throne, but the seat passing to an heir happens silently between turns; there is no first-turn guidance beyond the title screen's one line. |
-| **Military depth still thin** | §6 | One roll per battle (no rounds, no retreat-before-contact); no hull repair or refit; sieges don't starve (yield halves, population doesn't fall). |
-| **Bloody Events** | §16 | The gala/wedding/tournament set-piece class (safe gathering → sudden violence → arms a larger crisis). The *mechanism* now exists (`kill` + crisis gates), so this is authorable content, not engine work. |
-| **Reactive UI, polish, content depth** — Milestone 7 | §19 | Era × role × house theming, ceremonial/functional typography, portraits, audio, the free-content pipeline, the balance pass. |
-| **Anomalies/archaeology & Exotics sources** | §17 | The Exotics resource exists; the exploration system that produces it (and foreshadows the Crisis) is DLC-era design and not built. |
+The current, ranked list of gaps is **[`docs/ROADMAP.md`](docs/ROADMAP.md) section 3**, and the dated log behind it
+is `docs/GAP_ANALYSIS.md`. In short:
 
-### Built but shallow (works; known to need depth or tuning)
-- **Succession law** is primogeniture-by-age among blood children, then eldest house member. No
-  regency for child rulers, no matrilineal/elective law, no contested successions as a system.
-- **Births** are patrilineal only, and need a mother and a father. Two scenarios start married; the
-  other three depend on the match event firing for a first generation.
-- **Stress is a thin loop**: a flat yearly bleed-off and a single break-point. No per-trait stress
-  (nature traits don't yet charge stress automatically when a choice runs against them — content does it).
-- **Regency is a flag**, not a regent: a child head is marked, but no character is bound as regent.
-- **Sphere influence** derives only from careers; titles, marriages and standing don't yet feed it.
-- **Threat formula**: a house that's the *sole* holder of a sphere reads as maximally threatening even
-  at trivial absolute influence (defensible — "you own the whole Navy" — but coarse).
-- **Imperial `legitimacy` counter** (distinct from house legitimacy) is unbounded-negative with no
-  recovery except the civil war ending; flagged for a balance pass.
-- **Crises recur by design** (a realm can revolt twice); a one-time crisis sets `"once": true`. None of
-  the shipped five do yet.
-- **NPC AI** is a small set of trait-driven verbs — enough to prove the shared-command architecture,
-  not a strategic opponent.
-- **Continue mode** adopts the strongest sworn ally's house; there is no vassal/cadet-house model yet to
-  choose from, and the adopted house keeps its own title and standing.
+- **The Republic**: no triumph, recall or march on the capital (the Caesar); no ladder of offices; the state gives
+  commerce no contracts.
+- **The economy**: rival houses do not take each other over; some goods are in permanent glut.
+- **The Imperium**: government under a throne is simple next to the Republic.
+- **The world**: nations beyond the Reach are off the map; anomalies and archaeology are not built.
+- **Presentation**: no sound; portraits all wear one uniform; the character sheet is thin; phone layout unchecked.
+- **Housekeeping**: browser checks are run by hand; the Godot desktop shell compiles and has never been run.
 
 ---
 
@@ -300,9 +288,10 @@ if it's listed, it does not exist yet.
 | ✅ | **4 — Economy, Holdings & Galaxy** | economy ✅ · succession ✅ · save/load ✅ · galaxy map ✅ (SVG, click-to-move, intel, sieges, blocs) · fleets, war & combat ✅ | play from a barony, move fleets, advance through a succession |
 | ✅ | **5 — Spheres, Progression & Crises** | crises ✅ · spheres ✅ · progression ✅ · Bloody Events ✅ (*The Marked Man*, *The Wedding Feast*, the purge) | engineer/defuse a crisis via gates; a damper arrests a cascade; an NPC triggers one |
 | ✅ | **6 — The Human Endgame** | ironman/continue · Imperium start + `era` gating · proclaim/seize the throne + era flip · saga epilogue · the Great-Crisis framework with the galaxy-war archetype | a full run from Baron to a throne-endgame, won or lost. **V1-complete on systems** (headless). |
-| ◐ | **7 — Reactive UI, Polish, Content Depth** | house accents ✅ · procedural portraits & sigils ✅ · **era theming ⬜ · audio ⬜ · content volume ⬜ · balance ⬜** | the UI transforms on proclamation; enough content for replayability |
+| ◐ | **7 — Reactive UI, Polish, Content Depth** | house accents ✅ · procedural portraits & sigils ✅ · era and role theming ✅ · dashboards ✅ · **audio ⬜ · look-and-feel pass ⬜ (planned in ROADMAP §5) · balance ⬜** | the UI transforms on proclamation; enough content for replayability |
 
-The recommended order from here follows `docs/PROCESS.md`: forty things → QA → graphics → QA → ten QoL fixes → bug
+**What comes next, in order, is [`docs/ROADMAP.md`](docs/ROADMAP.md) section 4**; ideas for later expansions are in its
+section 6. The working method follows `docs/PROCESS.md`: forty things → QA → graphics → QA → ten QoL fixes → bug
 check → reassess, with `docs/GAP_ANALYSIS.md` §4 holding the ranked list the next forty are drawn from.
 
 ### The expansion philosophy: "slots in V1, fillers in DLC" (GDD §20)
