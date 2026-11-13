@@ -154,6 +154,12 @@ the only real constraint on sequence. Each line is roughly one cycle of work (bu
 |---|---|---|
 | **Politics under a throne** | The owner's Imperium expansion. How an Emperor governs and how everyone else gets what they want from him: the court as a place, favour, a council, offices by appointment, the succession as a contest, the Senate that remains, the guard. Sketch below. Needs its own plan before building. | The Caesar road is how most runs arrive here. The three orders need a meaning under a throne. Marriage (the imperial match). |
 
+**Breaking away**
+
+| Work | What it delivers | Ties to |
+|---|---|---|
+| **Secession** | A region, or only your own worlds in it, leaves the Republic or the Imperium and becomes a state of its own with you at its head, as the Rim left the Society in *Red Rising*. It can be planned across generations or done in a decade by a house strong enough. You must be able to stand alone first: an economy that feeds itself or has something the rest cannot do without, and a fleet of your own. Then, almost always, a civil war for it. Sketch below. Needs its own plan; several cycles. | The economy (what a domain makes and needs; a monopoly as leverage). Military depth (supply, loyalty). The Caesar road (a civil war with sides). Nations on the map (a second state with a border). Politics under a throne (how an Emperor answers). Marriage and patronage (binding the region's houses). |
+
 **The economy**
 
 | Work | What it delivers | Ties to |
@@ -225,6 +231,43 @@ Short on purpose. Each needs a proper plan before it is built. "Today" is what t
 - The succession is the great contest: a named heir, an adopted one, the guard's candidate, a general on the frontier.
 - The three orders mean something different: the Senate becomes the court, Arms can make an Emperor, Commerce funds the throne and is squeezed by it.
 - A bad Emperor can be endured, managed, or removed, and each has a price.
+
+**Secession: breaking away from the Republic or the Imperium**
+- *Today*: the Reach has ten regions of three or four systems, and each house's worlds sit in one or two of them. Wars
+  are between houses. Nothing can leave the state, and the only other powers are the nations beyond the map.
+- *The aim*: you take a region out of the state and rule it. It works under either government.
+- **Standing alone comes first.** A panel shows, for the domain you propose to take out, whether it could live by itself:
+  - *Economy*: what the domain makes of each good against what it uses. A shortfall must be bought, so the domain needs
+    something to sell.
+  - *Leverage*: a good the rest of the Reach cannot do without and gets mostly from you. A monopoly on helium-3 is the
+    clear case: you can trade it for everything you lack, and the centre's fleets go short of fuel while they fight you.
+    With that and a strong fleet, winning the war is nearly all that is left to do.
+  - *Arms*: hulls, yards and depots inside the domain, and whether those fleets answer to you or to the state.
+  - *Unity*: where the region's other houses stand, and whether its people think of themselves as apart.
+- **Long or short.** Yards, ventures, marriages into the neighbouring houses and a regional identity all build slowly,
+  so a founder can prepare what a grandchild declares. A house that is already rich and armed can go much sooner. How
+  long it takes is decided by how ready you are, not by a timer.
+- **How much to take.** Two choices, and the second is deliberately the harder war:
+  - *The whole region.* Say it has six worlds and you hold two. The houses holding the other four must be brought with
+    you: persuaded, married into, made clients, paid, or frightened. Each ends up with you, neutral, or loyal to the
+    centre and the first enemy. If it works the new state is large and you are its ruler.
+  - *Only your own worlds.* Nobody to persuade, but a small base, loyal neighbours on every side and a far harder war.
+- **Pushing the region.** A head who is strong in a region can work on it for years before any declaration: favours
+  and loans, clients, grievances kept alive (taxes, an Act that hurt the region, a war the centre lost), local laws.
+- **The declaration and the answer.** The centre may bargain (autonomy, a charter, lower taxes: a middle outcome that
+  some will take), embargo, or fight. In the Republic the Senate votes it and the parties split, so friends in the
+  chamber can delay or weaken the answer. Under a throne the Emperor's temper and strength decide; a weak one may let
+  you go.
+- **The war of independence.** A civil war with sides: the state's fleets and the loyal houses against your league. It
+  is won by holding your worlds long enough, by decisive battles, or by wearing the centre down (war weariness, the
+  embargo, unrest at home). A nation beyond the Reach may recognise and help you, at a price.
+- **Afterwards.** Win, and there is a new state with a border, a form of government you choose, and the rest of the
+  game to play as its ruler: trade or not with the old state, and the risk it comes back. Lose, and it is attainder,
+  seized worlds, exile or life as someone's client, with the region garrisoned. A draw is autonomy.
+- **Others can do it too.** A strong regional house may try to leave a state you lead.
+- *Sizing*: a readiness panel; the league and persuasion; the declaration and the centre's answer; the war; the new
+  state. Five pieces, most of them a cycle each. It leans on a civil war with sides (the Caesar road) and on a second
+  state on the map (nations on the map), so those two are best built first.
 
 ## 5. Look and feel pass: the plan
 
