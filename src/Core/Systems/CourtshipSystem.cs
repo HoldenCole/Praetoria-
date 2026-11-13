@@ -434,8 +434,9 @@ public static class CourtshipSystem
     private static void AddRival(World w, Courtship c, Character rival)
     {
         var s = w.Char(c.SuitorId); var t = w.Char(c.TargetId);
-        c.RivalId = rival.Id;
-        c.RivalStanding = Math.Clamp(22 + ((w.House(rival.HouseId)?.Legitimacy ?? 0) - (w.House(s?.HouseId ?? "")?.Legitimacy ?? 0)) / 3 + (int)(Hash(c.Id + rival.Id) % 10), 10, 50);
+        c.RivalId = rival.Id; c.RivalSince = w.Turn;
+        // a rival begins well short of the family's yes and takes some years to reach it: time enough to answer them
+        c.RivalStanding = Math.Clamp(15 + ((w.House(rival.HouseId)?.Legitimacy ?? 0) - (w.House(s?.HouseId ?? "")?.Legitimacy ?? 0)) / 4 + (int)(Hash(c.Id + rival.Id) % 8), 10, 35);
         w.Log($"{rival.Name} of {w.House(rival.HouseId)?.Name} is also seeking {t?.Name}'s hand.");
     }
 
@@ -518,7 +519,7 @@ public static class CourtshipSystem
                 }
                 else
                 {
-                    c.RivalStanding = Math.Min(100, c.RivalStanding + 7 + (int)(Hash(c.Id + ":press:" + w.Turn) % 6));
+                    if (c.RivalSince < w.Turn) c.RivalStanding = Math.Min(100, c.RivalStanding + 5 + (int)(Hash(c.Id + ":press:" + w.Turn) % 5));
                     if (c.RivalStanding >= RivalWinsAt && c.RivalStanding > Standing(w, c))
                     {
                         w.Log($"{t.Name} of {w.House(t.HouseId)?.Name} is to marry {r.Name}. {s.Name}'s suit is at an end.");

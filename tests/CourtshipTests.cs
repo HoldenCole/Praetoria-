@@ -93,6 +93,7 @@ public class CourtshipTests
         var (tc, w, me) = Start(); var t = Match(w, me); var c = Court(w, me, t); c.Favour = 20; c.Consent = 20;
         var rival = w.LivingCharacters().Where(x => x.HouseId != me.HouseId && x.HouseId != t.HouseId && x.Age >= 16 && CourtshipSystem.Bar(w, x, t) == null).OrderBy(x => x.Id, StringComparer.Ordinal).First();
         Assert.True(CourtshipSystem.Intercept(w, rival, t)); Assert.Equal(rival.Id, c.RivalId); Assert.Null(DynastySystem.Spouse(w, t));
+        Assert.InRange(c.RivalStanding, 10, 35);   // short of the family's yes: there are years to answer a rival
         Assert.True(CourtshipSystem.ActRefusal(w, c, CourtshipSystem.ActRival) == null);
         int before = c.RivalStanding; CourtshipSystem.Act(w, c, CourtshipSystem.ActRival); Assert.True(c.RivalStanding < before);
         c.RivalStanding = 70; int stress = me.Stress;

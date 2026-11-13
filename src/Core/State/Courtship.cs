@@ -23,6 +23,8 @@ public sealed class Courtship
     public string RivalId { get; set; } = "";
     /// <summary>0..100: how far the rival's suit has got. At <c>RivalWinsAt</c>, and ahead of yours, the rival is accepted.</summary>
     public int RivalStanding { get; set; }
+    /// <summary>The turn the rival appeared. Their suit does not advance in that same year.</summary>
+    public int RivalSince { get; set; } = -1;
     /// <summary>The turn something was last done for this courtship. One act a year.</summary>
     public int ActedTurn { get; set; } = -1;
     /// <summary>The turn the match was last put to the family and refused. They answer once a year.</summary>

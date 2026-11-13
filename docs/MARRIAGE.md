@@ -42,7 +42,8 @@ takes 10 off; below 15 the person will not have it at all. At favour 75 they wou
 ## Rivals
 
 Another suitor may press for the same hand. A steward's proposal to someone you are courting becomes a rival suit
-instead of a wedding, and one can appear by chance. The rival's suit grows every year. At 60, and ahead of yours (the
+instead of a wedding, and one can appear by chance. The rival starts between 10 and 35 and gains 5 to 9 a year, so
+there are usually three or four years to answer them. At 60, and ahead of yours (the
 average of favour and the family), the family accepts it: they marry, your suit ends, and it is felt.
 
 ## The contract
