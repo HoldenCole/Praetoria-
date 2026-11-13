@@ -47,9 +47,9 @@ Counters: `standing`, `standard_captain`, `standard_edge`, `institute_dead`, `ac
 `academy_graduated`, `standard_fallen`, `won_the_institute`; character flags `first_of_the_year`, `graduated_with_honours`.
 
 ## The tutorial
-`content/academy/academy.json` carries eight lessons, two a term: the Senate; houses, rank and standing; the estates
+`content/academy/academy.json` carries nine lessons, two a term and three in the last: the Senate; houses, rank and standing; the estates
 and the law; coin, worlds and the strategic three; fleets and how they fight; the rings, the raiders and the nations
-beyond; a year in the chair; the house outlives you. Each has a one-line `brief` and `full` paragraphs; the first two
+beyond; a year in the chair; coin, goods and paper (the Exchange); the house outlives you. Each has a one-line `brief` and `full` paragraphs; the first two
 have Imperium versions.
 
 When the year opens the player is asked once: *First time here: teach me everything* or *I know the Reach: just brief

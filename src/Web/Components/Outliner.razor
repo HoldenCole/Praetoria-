@@ -24,6 +24,12 @@
     if (w.HasFlag("raided_by_nation")) alerts.Add(("warn", $"Raiders of {NationName("raided_by:")} fell on your world", "military"));
     if (w.HasFlag("nation_freed")) alerts.Add(("info", "A tributary's treaty is done; its tribute stops", "military"));
     foreach (var f in w.WorldFlags.Where(f => f.StartsWith("price_spike:")).Take(2)) { var gd = G.Content!.Market.Good(f["price_spike:".Length..]); var gs = w.Market?.Good(gd?.Id ?? ""); if (gd != null && gs != null) alerts.Add(("info", $"{gd.Name} dear on the Exchange: {gs.Cause}", "exchange")); }
+    if (w.HasFlag("market_crash")) alerts.Add(("warn", "The Exchange has fallen a tenth in a year", "exchange"));
+    if (w.HasFlag("takeover_of_mine")) alerts.Add(("warn", "Another house has taken control of a company you directed", "exchange"));
+    if (w.HasFlag("stake_in_mine")) alerts.Add(("info", "A rival holds a tenth or more of a company you direct", "exchange"));
+    if (w.HasFlag("dividend_cut")) alerts.Add(("info", "A company you hold has passed its dividend", "exchange"));
+    if (w.HasFlag("bonds_offered")) alerts.Add(("info", "The Reach is selling war bonds", "exchange"));
+    if (w.HasFlag("shares_seized_mine")) alerts.Add(("warn", "The throne has declared your shares forfeit", "exchange"));
     if (w.HasFlag("venture_offered")) alerts.Add(("info", "A venture is offered to you — the offer stands for the year", "exchange"));
     if (w.HasFlag("project_stalled")) alerts.Add(("warn", "A building site has stalled: the year's instalment was not met", "exchange"));
     if (w.HasFlag("project_done")) alerts.Add(("good", "A project of yours is finished", "exchange"));

@@ -785,3 +785,32 @@ Soak, eight scenarios, six seeds: no exceptions; every Republic event fired; fiv
 **Watch.** The Institute's events hand out standing more freely than the Republic's, so first place there is easy.
 The Academy fixture's world has only seven people of cadet age, so four or five of the cohort are enrolled by the
 muster. Heirs born in play do not go to the Academy. The four older starts still open with the short primer.
+
+## 27. The economy expansion — 2026-11-13
+
+Owner: "Finish the economy expansion." The plan (docs/ECONOMY_MARKET.md) had four stages and eight decisions marked as
+the owner's. All four stages were built and the decisions taken as the plan suggested; each is a number or a line in
+content.
+
+**Built.** A: a commodity market (`MarketSystem`, six goods, prices from supply, demand, war, siege, raids, imports and
+order size). B: ventures as assets (`VentureSystem`: value, bids, asks, first refusal) and building as projects
+(`ProjectSystem`: years, instalments, pause, rush, abandon). C: companies and shares (`CompanySystem`: incorporate,
+float, trade, dividend, control, founder's refusal; stewards invest by party). D: chartered companies, war bonds, two
+Senate motions, the Treasurer's steadying, the Imperium's monopolies and seizures, thirteen events, a ninth lesson.
+One screen, the Exchange, with four tabs.
+
+**Measured** (eight scenarios × sixty years, no player): goods the Reach is short of (helium-3) swing between half and
+double their usual price in most years; overproduced goods sit at 0.6 to 0.8 of it. 240 to 390 projects begun a run.
+Twelve house companies listed every run, 400 to 750 shares traded, index 56 to 230, nought to two crashes, one to four
+booms. The richest house holds 8 to 13 per cent of all wealth, so paper has not let one house run away. 482 tests.
+
+**Gaps that remain.**
+1. Rival houses do not take each other over. The cap of a fifth a year and their own defence make it rare. A hostile
+   steward that builds a stake over several years would make the Exchange more dangerous.
+2. Materials, rare earths and exotics are in glut. Either the houses should consume more or produce less.
+3. Foreign paper, share gifts as bribes, regional prices and direct house-to-house share sales were left out.
+4. A company can enlarge its ventures from its own cash but cannot found a new one; the house must found it and fold
+   it in.
+5. The Exchange has no chart of a single company larger than the twelve-year line in the table.
+6. No event yet reads `market_boom` into a bubble that bursts; a boom is only reported.
+

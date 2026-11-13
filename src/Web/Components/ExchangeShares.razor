@@ -78,6 +78,48 @@ else
             @if (ex.Movers.Count == 0) { <div class="muted">A quiet year.</div> }
             @foreach (var line in ex.Movers) { <div class="line small">@line</div> }
         </section>
+        @if (ex.BondOffer != null || ex.Bonds.Count > 0)
+        {
+            <section class="panel">
+                <h3><Icon Name="credits" Size="13" /> War bonds <span class="muted">lent to the chair for the war abroad</span></h3>
+                @if (ex.BondOffer is { } bo)
+                {
+                    <div class="muted small">The Reach borrows for the war with @bo.NationName: @bo.Face credits a bond at @bo.YieldPct% a year, repaid when the war ends (a tenth over if the nation is subdued, fifteen in the hundred short if not). You hold @bo.Held of @bo.Cap.</div>
+                    <button class="opt" disabled="@(bo.Refusal != null)" title="@bo.Refusal" @onclick="() => G.Execute(new BuyBondCommand(pid, cs))">Buy a bond · @bo.Face credits</button>
+                }
+                @foreach (var b in ex.Bonds) { <div class="line small"><b>@b.Face</b> at @b.YieldPct% <span class="muted">· the war with @b.NationName · bought in year @b.Bought</span></div> }
+            </section>
+        }
+        @if (ex.IsTreasurer)
+        {
+            <section class="panel">
+                <h3><Icon Name="influence" Size="13" /> The Treasurer's hand</h3>
+                <div class="muted small">Once a term the Treasurer may open the Reach's purse under a falling market: the chair pays @cs.Rules.SteadyCost credits, companies in the red are made whole, and confidence is held up for two years.</div>
+                <button class="opt" disabled="@(ex.SteadyRefusal != null)" title="@ex.SteadyRefusal" @onclick="() => G.Execute(new SteadyMarketCommand(pid, cs))">Steady the market</button>
+            </section>
+        }
+        @if (ex.IsEmperor)
+        {
+            var houses = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != "pirates").OrderBy(h => h.Name, StringComparer.Ordinal).ToList();
+            var grantee = houses.FirstOrDefault(h => h.Id == _grantee) ?? houses.FirstOrDefault();
+            <section class="panel">
+                <h3><Icon Name="houses" Size="13" /> The throne's hand</h3>
+                <div class="muted small">A great company's monopoly may be granted to a house: it directs the company and takes a fifth of what it earns. With the Imperial Edict at proscriptions, a house's shares may be declared forfeit to the crown.</div>
+                <select @onchange="e => _grantee = e.Value?.ToString() ?? string.Empty">
+                    @foreach (var h in houses) { <option value="@h.Id" selected="@(grantee?.Id == h.Id)">@h.Name</option> }
+                </select>
+                @if (grantee != null)
+                {
+                    @foreach (var c in ex.Companies.Where(c => c.Chartered))
+                    {
+                        var gr = cs.GrantRefusal(w, house.Id, w.Company(c.Id), grantee.Id);
+                        <button class="opt inline tiny" disabled="@(gr != null)" title="@gr" @onclick="() => G.Execute(new ThroneExchangeCommand(pid, ThroneExchangeCommand.GrantAct, c.Id, grantee.Id, cs, G.Content!.Policies))">Grant @c.Name</button>
+                    }
+                    var sz = cs.SeizeRefusal(w, house.Id, grantee.Id, G.Content!.Policies);
+                    <button class="opt inline tiny" disabled="@(sz != null)" title="@sz" @onclick="() => G.Execute(new ThroneExchangeCommand(pid, ThroneExchangeCommand.SeizeAct, string.Empty, grantee.Id, cs, G.Content!.Policies))">Declare its shares forfeit</button>
+                }
+            </section>
+        }
         <section class="panel">
             <h3><Icon Name="trade_hub" Size="13" /> List a venture <span class="muted">@cs.Rules.IncorporateInfluence influence for the charter</span></h3>
             @if (loose.Count == 0) { <div class="muted small">The house owns no venture outright. Found or buy one on the Ventures tab.</div> }
@@ -106,6 +148,7 @@ else
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private static readonly int[] Payouts = { 0, 25, 50, 75, 100 };
+    private string _grantee = string.Empty;
     private readonly Dictionary<string, int> _qty = new();
     private int Qty(string key) => _qty.TryGetValue(key, out var q) ? q : 5;
     private void SetQty(string key, ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out var q)) _qty[key] = Math.Clamp(q, 1, 999); }

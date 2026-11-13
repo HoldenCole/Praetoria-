@@ -107,6 +107,7 @@ public sealed class TurnController
         _market = new MarketSystem(content.Trade, _economy, _fleets, content.Nations); _market.Seed(world);   // the Reach's exchanges open at base prices (docs/ECONOMY_MARKET.md)
         _companies = _economy != null && !content.Exchange.IsEmpty ? new CompanySystem(_economy, content.Businesses, content.Exchange, content.Trade) { Nations = content.Nations } : null;   // the Exchange (stage C)
         if (_companies != null && !world.InAcademy) _companies.Seed(world);
+        _senate.Exchange = _companies; if (_companies != null) _companies.Offices = content.Offices;
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures, Exchange = _companies };
         _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);

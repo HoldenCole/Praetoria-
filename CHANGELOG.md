@@ -3,16 +3,28 @@
 ## [Unreleased]
 
 ### Added
-- **A plan for the economy and the Exchange** (docs/ECONOMY_MARKET.md): prices for every good driven by war, siege,
+- **The economy expansion, all four stages** (docs/ECONOMY_MARKET.md §10). A new **Exchange** screen with four tabs.
+  *Goods*: six goods with a price that follows what the houses make, burn and fight over; buy and sell both ways; a
+  large order moves the price against itself. *Ventures*: a venture is worth six years of its earnings, houses bid for
+  yours and ask a price for theirs, and the holder of the world has first refusal; four new kinds (warehouse, arsenal,
+  shipyard, insurance). *Projects*: buildings and ventures take one to four years and are paid by the year; pause,
+  rush or abandon. *Shares*: incorporate a venture as a company, float shares to raise capital, buy and sell any
+  listed company, set the dividend, and take control with more than half; a founder may refuse a takeover once. Share
+  prices are read each year from earnings at market prices, the sector's outlook (war lifts arms and sinks the banks),
+  confidence in the Reach, and flow. Three great companies are chartered from the start. The Reach sells war bonds for
+  a war abroad. The Senate may tax share trades, break a company up or rescue the Exchange; the Treasurer may steady a
+  falling market once a term; under the Imperium the throne grants monopolies and, with proscriptions, seizes shares.
+  Thirteen events on the market's own flags, and a ninth Academy lesson.
+- **The plan for the economy and the Exchange** (docs/ECONOMY_MARKET.md): prices for every good driven by war, siege,
   raids and scarcity; ventures as assets that change hands; building as projects with a prospectus; then companies,
-  shares, capital raises and takeovers. Design only: nothing in it is built, and it lists the decisions that are the
+  shares, capital raises and takeovers. Written before any of it was built; it lists the decisions that were the
   owner's.
 - **The Academy is a year apart from the world** (docs/ACADEMY.md). A run that begins there opens with four terms
   before turn one: the cadet is sixteen, the world does not turn, no world order is taken, and only the Academy's own
   events come. The cadet reads a subject a term, climbs an order of merit against eleven real sons and daughters of the
   houses, and passes out at seventeen into the Navy, the Administration or the Courts. In the Republic it is a school
   (lectures, a debating society, a regatta, a war game on the table, examinations) and nobody is hurt. Under the
-  Imperium it is the Institute: four Standards at war, and cadets who do not come back. It is also the tutorial: eight
+  Imperium it is the Institute: four Standards at war, and cadets who do not come back. It is also the tutorial: nine
   lessons taught in full to a first-time player, or the short course with the state of the Reach, the houses that
   matter and the cohort for a returning one. New starts *The Academy* and *The Institute*.
 - **Titles follow the era** (docs/TITLES.md). The Republic has no nobles: houses are Citizen, Warden, Prefect, Legate,

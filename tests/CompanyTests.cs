@@ -162,4 +162,102 @@ public class CompanyTests
         Assert.InRange(w.Market!.Index, 20, 600); Assert.InRange(w.Market.Confidence, 0.59, 1.26);
         Assert.All(w.Companies, c => { Assert.Equal(c.Shares, c.Holders.Values.Sum()); Assert.True(c.Price > 0); });
     }
+
+    // ---------------------------------------------------------------- stage D: the Reach's hand
+
+    private static Nation AtWarAbroad(World w) { var n = w.Nations.OrderBy(x => x.Id, StringComparer.Ordinal).First(); n.AtWar = true; n.WarSince = w.Turn; return n; }
+
+    [Fact]
+    public void A_war_bond_lends_to_the_chair_pays_a_coupon_and_is_repaid_when_the_war_ends()
+    {
+        var (tc, w, _, mine) = Start(); var cs = tc.Companies!; var chair = RegionSystem.CapitalHolder(w)!;
+        if (chair.Id == mine.Id) { Assert.NotNull(cs.BondRefusal(w, mine.Id)); return; }
+        Assert.NotNull(cs.BondRefusal(w, mine.Id));   // no war abroad, no bonds
+        var n = AtWarAbroad(w); mine.Treasury.Credits = 200; chair.Treasury.Credits = 100;
+        Assert.True(Do(w, new BuyBondCommand(w.ProtagonistId, cs)));
+        Assert.Equal(200 - cs.Rules.BondFace, mine.Treasury.Credits); Assert.Equal(100 + cs.Rules.BondFace, chair.Treasury.Credits);
+        var bond = Assert.Single(w.Bonds); Assert.Equal(cs.Rules.BondYieldPct, bond.YieldPct);
+        n.ScoreNation = n.ScoreReach + 2; Assert.True(cs.BondYield(w) > bond.YieldPct);   // a war going badly costs the Reach more to borrow
+        int coupon = bond.Face * bond.YieldPct / 100;
+        Assert.Contains(tc.Economy!.Compute(w, mine.Id, tc.Fleets).Lines, l => l.Source == "interest on war bonds" && l.Delta.Credits == coupon);
+        Assert.Contains(tc.Economy.Compute(w, chair.Id, tc.Fleets).Lines, l => l.Delta.Credits == -coupon);
+        Assert.True(Wealth.PaperOf(w, mine.Id) >= bond.Face);
+        n.AtWar = false; n.SubduedUntil = w.Turn + 10; int before = mine.Treasury.Credits;
+        cs.Tick(w);
+        Assert.Empty(w.Bonds); Assert.Equal(before + bond.Face * 110 / 100, mine.Treasury.Credits); Assert.Contains(CompanySystem.BondsRepaidFlag, w.WorldFlags);
+    }
+
+    [Fact]
+    public void A_house_may_hold_only_so_many_bonds_of_one_war_and_a_default_shakes_confidence()
+    {
+        var (tc, w, _, mine) = Start(); var cs = tc.Companies!; var chair = RegionSystem.CapitalHolder(w)!; if (chair.Id == mine.Id) return;
+        var n = AtWarAbroad(w); mine.Treasury.Credits = 1000;
+        for (int i = 0; i < cs.Rules.BondCap; i++) Assert.True(Do(w, new BuyBondCommand(w.ProtagonistId, cs)));
+        Assert.False(Do(w, new BuyBondCommand(w.ProtagonistId, cs)));
+        n.AtWar = false; chair.Treasury.Credits = 10; double conf = w.Market!.Confidence;
+        cs.Tick(w);
+        Assert.Empty(w.Bonds); Assert.Contains(CompanySystem.BondDefaultFlag, w.WorldFlags); Assert.True(w.Market.Confidence < conf + 0.05);
+    }
+
+    [Fact]
+    public void Only_the_treasurer_steadies_a_falling_market_and_only_once_a_term()
+    {
+        var (tc, w, _, mine) = Start(); var cs = tc.Companies!; var chair = RegionSystem.CapitalHolder(w)!; chair.Treasury.Credits = 500;
+        w.Market!.Confidence = 0.8;
+        Assert.NotNull(cs.SteadyRefusal(w, mine.Id));
+        w.Offices.RemoveAll(o => o.OfficeId == "treasurer"); w.Offices.Add(new OfficeHolding { OfficeId = "treasurer", HouseId = mine.Id, CharacterId = w.ProtagonistId, SinceTurn = w.Turn });
+        Assert.Null(cs.SteadyRefusal(w, mine.Id));
+        var broke = w.Companies.First(); broke.Cash = -12; int purse = chair.Treasury.Credits;
+        Assert.True(Do(w, new SteadyMarketCommand(w.ProtagonistId, cs)));
+        Assert.Equal(0, broke.Cash); Assert.Equal(purse - cs.Rules.SteadyCost - 12, chair.Treasury.Credits); Assert.True(w.Market.Confidence > 0.8);
+        Assert.Contains(CompanySystem.SteadiedFlag, w.WorldFlags);
+        Assert.Contains("once a term", cs.SteadyRefusal(w, mine.Id));
+        Assert.Contains(cs.ConfidenceTarget(w).why, x => x.Contains("Treasurer"));
+    }
+
+    [Fact]
+    public void The_senate_may_break_up_a_company_or_stand_behind_the_exchange()
+    {
+        var (tc, w, content, mine) = Start(); var cs = tc.Companies!; Assert.NotNull(content.Motions.Def("breakup")); Assert.NotNull(content.Motions.Def("rescue"));
+        Assert.True(content.Motions.Def("breakup")!.Breakup); Assert.True(content.Motions.Def("rescue")!.Rescue);
+        var b = Venture(w, content, mine); mine.Treasury.Influence = 9; Do(w, new IncorporateCommand(w.ProtagonistId, b.Id, "", cs));
+        var co = w.Companies.Single(c => !c.Chartered); int credits = mine.Treasury.Credits;
+        cs.Liquidate(w, co, "the Senate has broken it up");
+        Assert.Empty(w.Companies.Where(c => !c.Chartered)); Assert.False(w.Businesses.ContainsKey(b.Id)); Assert.True(mine.Treasury.Credits > credits);   // its holder is paid what the sale fetched
+        var chair = RegionSystem.CapitalHolder(w)!; int purse = chair.Treasury.Credits;
+        cs.Rescue(w, "the Senate votes the Reach's purse behind the Exchange");
+        Assert.Equal(purse - cs.Rules.SteadyCost, chair.Treasury.Credits); Assert.Equal(w.Turn, w.Market!.SteadiedTurn);
+    }
+
+    [Fact]
+    public void Under_the_imperium_the_throne_grants_monopolies_and_seizes_shares_and_the_republic_does_neither()
+    {
+        var (tc, w, content, mine) = Start(); var cs = tc.Companies!; var great = w.Companies.First(c => c.Chartered);
+        var other = w.Houses.Values.Where(h => h.Id != mine.Id && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).First();
+        Assert.Contains("Republic", cs.GrantRefusal(w, mine.Id, great, other.Id)); Assert.Contains("Republic", cs.SeizeRefusal(w, mine.Id, other.Id, content.Policies));
+        w.Era = World.EraImperium; foreach (var h in w.Houses.Values.Where(h => h.Title == Praetoria.Core.Progression.Title.Emperor)) h.Title = "duke"; mine.Title = Praetoria.Core.Progression.Title.Emperor;
+        Assert.Null(cs.GrantRefusal(w, mine.Id, great, other.Id));
+        Assert.True(Do(w, new ThroneExchangeCommand(w.ProtagonistId, ThroneExchangeCommand.GrantAct, great.Id, other.Id, cs, content.Policies)));
+        Assert.Equal(other.Id, great.MonopolyOf); Assert.Equal(other.Id, great.ControllerId);
+        other.Treasury.Credits = 5000; Assert.True(cs.Buy(w, other.Id, great, 20)); great.BoughtThisTurn.Clear(); Assert.True(cs.Buy(w, other.Id, great, 20));   // past the quarter: the grant lifts the charter's limit
+        int rentBefore = other.Treasury.Credits; cs.Tick(w); Assert.True(other.Treasury.Credits > rentBefore);   // its rent off the top
+        Assert.Contains("proscriptions", cs.SeizeRefusal(w, mine.Id, other.Id, content.Policies));
+        PolicySystem.Enact(w, content.Policies, mine.Id, "imperial_edict", "proscriptions");
+        Assert.True(Do(w, new ThroneExchangeCommand(w.ProtagonistId, ThroneExchangeCommand.SeizeAct, "", other.Id, cs, content.Policies)));
+        Assert.Equal(0, great.HeldBy(other.Id)); Assert.Equal(40, great.HeldBy(mine.Id)); Assert.Equal("", great.MonopolyOf);
+        Assert.NotNull(cs.SeizeRefusal(w, mine.Id, other.Id, content.Policies));
+    }
+
+    [Fact]
+    public void Every_exchange_flag_has_an_event_with_text_and_the_academy_teaches_the_market()
+    {
+        var flags = new[] { CompanySystem.CrashFlag, CompanySystem.BoomFlag, CompanySystem.DividendCutFlag, CompanySystem.TakenFromMeFlag, CompanySystem.TakenByMeFlag, CompanySystem.StakeFlag, CompanySystem.FailedFlag,
+            CompanySystem.FloatedFlag, CompanySystem.GoldenFlag, CompanySystem.BondsOfferedFlag, CompanySystem.BondsRepaidFlag, CompanySystem.SeizedMineFlag, CompanySystem.SteadiedFlag };
+        foreach (var f in flags)
+        {
+            var e = Content.Events.FirstOrDefault(x => x.Conditions.OfType<Praetoria.Core.Events.WorldFlagCondition>().Any(c => c.Flag == f));
+            Assert.True(e != null, $"no event for {f}"); Assert.True(Content.Texts.ContainsKey(e!.Id), $"no text for {e.Id}");
+        }
+        Assert.Equal(9, Content.Academy.Lessons.Count); Assert.Contains(Content.Academy.Lessons, l => l.Id == "the_exchange");
+    }
 }

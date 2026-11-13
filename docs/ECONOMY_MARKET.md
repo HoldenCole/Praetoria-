@@ -1,9 +1,10 @@
 # The economy and the Exchange: a plan
 
-Status: **plan only. Nothing here is built.** Owner's direction (2026-11-11): the economic framework needs fleshing
-out (buying and selling businesses and resources, starting new things, building things), and later a galactic stock
-market where you can found companies and put in capital, one that reacts to what is actually happening in the world:
-war and resource scarcity. Plan it and think it through before implementing.
+Status: **all four stages are built** (2026-11-13). The plan below is kept as written; section 10 at the end says
+what shipped, where it lives, which of the owner's decisions were taken as suggested, and what was left out. Owner's
+direction (2026-11-11): the economic framework needs fleshing out (buying and selling businesses and resources,
+starting new things, building things), and later a galactic stock market where you can found companies and put in
+capital, one that reacts to what is actually happening in the world: war and resource scarcity.
 
 This document says what exists, what is thin, what to build in what order, how prices would be computed, and which
 decisions are the owner's. Each stage is playable on its own and each later stage reads numbers the earlier one made.
@@ -202,3 +203,58 @@ Each stage is roughly the size of the military depth work. A and B are worth hav
    then gives a small edge in reading the market.
 8. **Republic and Imperium**: I suggest the Republic has a free Exchange with a Senate that can tax and charter, and
    the Imperium has monopolies by grant and seizure by edict. Same engine, different law.
+
+## 10. What was built (2026-11-13)
+
+The owner asked for the expansion to be finished, so the eight decisions in section 9 were taken as suggested. Each can
+be changed in content without touching the engine.
+
+| Stage | What shipped | Where |
+|---|---|---|
+| A. Prices | Six goods with a price each year from supply, demand, war, siege, raids, imports and the size of orders. Buy and sell both ways. Isotopes need the Arms Market Act. Stewards trade. | `MarketSystem`, `content/market/goods.json`, Exchange → Goods |
+| B. Ventures and projects | A venture is worth six years of its earnings. Houses bid, ask and refuse by rule; the world's holder has first refusal. Buildings and ventures take years and are paid by the year (pause, rush, abandon). Four new venture kinds. | `VentureSystem`, `ProjectSystem`, Exchange → Ventures, Projects |
+| C. Companies and shares | Incorporate a venture as a company of a hundred shares. Float new shares for capital, buy and sell on the float, set the dividend, buy back, pay out cash, wind up. More than half directs. A founder refuses a takeover once. Stewards list, float, invest and sell by party. | `CompanySystem`, `content/market/exchange.json`, Exchange → Shares |
+| D. The wider market | Three chartered great companies. War bonds for a war abroad. Senate motions to break up a company and to rescue the Exchange. The Treasurer steadies a falling market once a term. Under the Imperium the throne grants monopolies and, with proscriptions, seizes shares. Thirteen events. A ninth Academy lesson. | `CompanySystem`, `content/senate/motions.json`, `content/events/exchange.json` |
+
+**The share price**, each year, for every company:
+
+- `fundamental` = (earnings at this year's goods prices × 8 × the sector's outlook × confidence + cash) ÷ shares,
+  never less than two-fifths of book value a share.
+- `outlook` per sector, from `exchange.json`: per cent for each war, for lawless lanes, for scarce goods. Arms +12 a
+  war; finance −10; trade −8; shipping −6; extraction +5 and +25 for scarcity.
+- `confidence` eases toward a target: −5 for each war between houses, −6 for a war abroad, −5 for each stage of the
+  great crisis, down with the share of houses in debt, +2 for each year of peace up to 12, +10 for two years after the
+  Reach's purse is opened. It is held between 60 and 125.
+- `flow`: this year's net buying or selling as a share of the company, at 60 per cent; it halves each year.
+- The price moves seven-tenths of the way to `fundamental × (1 + flow)` with a hash wobble of three per cent.
+- The index is chained from the total value of every listed share. A fall of a tenth in a year raises `market_crash`.
+
+**Rules a player will meet**
+
+- An order costs more a share the larger it is, and no house may buy more than a fifth of a company in a year.
+- Shares are bought from the float. A founder who holds everything is not for sale until they float or sell.
+- Dividends are declared from the year's earnings and paid the next year through the ledger, to whoever holds then.
+- A chartered company lets no house hold more than a quarter, unless the throne has granted its monopoly.
+- The Exchange Levy Act taxes every share trade and pays the chair.
+- A company whose cash falls below −30 is wound up: its ventures are broken up and its holders paid what is left.
+- A bond costs 20 credits, pays 6 per cent a year (more when the war goes badly), and is repaid when the war ends:
+  110 per cent if the nation was subdued, 85 if not. The chair pays the coupons and the principal. If the chair cannot
+  pay, the bonds default and confidence falls.
+
+**Measured** (eight scenarios, sixty years, no player): twelve house companies listed in every run, 400 to 750 shares
+traded, the index between 56 and 230, nought to two crashes and one to four booms, and the richest house holding 8 to
+13 per cent of all wealth.
+
+**Left out, on purpose**
+
+- Foreign paper (a nation's banks listed on the Exchange). It needs more of the nations than is modelled.
+- A gift of shares as a bribe with a paper trail.
+- Per-region prices and trade routes. One price for the Reach stands.
+- Buying shares directly from a named house. Everything goes through the float.
+- Small stakes as intelligence. Every holding of a tenth or more is public; smaller ones are simply not shown.
+
+**Known thin spots**
+
+- Rival houses almost never complete a takeover of each other; a player can. They defend their own majority well.
+- Goods the Reach overproduces (materials, rare earths, exotics) sit below their usual price most years.
+- A player's company keeps its cash until told otherwise; a steward's pays it out when it has nothing to build.

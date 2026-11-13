@@ -210,6 +210,18 @@
       ]
     },
     {
+      "id": "the_exchange",
+      "term": 4,
+      "title": "Coin, goods and paper",
+      "brief": "Goods have prices that follow war and scarcity; ventures can be bought, sold and listed as companies; shares pay dividends and more than half of them directs a company.",
+      "full": [
+        "Everything a house makes or burns has a price on the Exchange, and the price moves. War lifts fuel, isotopes and rare earths, because yards and magazines buy ahead. A blockaded world sends half of what it made. A large order moves the price against the house that places it, so buy before you need to.",
+        "A venture is a business the house owns that is not land: a trading company, a mine, a shipping line. It takes a year or two to build and is paid for by the year. It is worth about six years of what it earns, and it can be sold: to the open market, to a house that bids for it, or to the holder of the world it works, who may match any price.",
+        "A venture can be listed as a company: a hundred shares, all yours to begin with. Float new shares and the coin goes into the company to build with; your part of it shrinks. A company pays its holders a dividend each year. Whoever holds more than half the shares directs it, whoever founded it. A founder may refuse a takeover once.",
+        "A share is priced on what the company earns, how its trade looks in this year's Reach, and how confident the Reach is. War is good for the arms houses and bad for the banks. When houses in debt must sell, prices fall for everyone: that is a crash. In a Republic the Senate may tax every trade, break a company up, or open the Reach's purse under a falling market. Under an Emperor the throne grants a great company's monopoly to a house it favours, and under proscriptions declares a house's shares forfeit."
+      ]
+    },
+    {
       "id": "the_dynasty",
       "term": 4,
       "title": "The house outlives you",

@@ -107,7 +107,7 @@ public sealed record CompanyLine(string Id, string Name, string Sector, string S
     string Cause, IReadOnlyList<StakeLine> Stakes, IReadOnlyList<string> Ventures, string Description, bool GoldenShare, int OutlookPct, int CapValue, string MonopolyName);
 /// <summary>The Exchange: the index, confidence, what moved the market, every listed company, and the house's paper.</summary>
 public sealed record ExchangeCard(double Index, IReadOnlyList<double> IndexHistory, int IndexChangePct, int ConfidencePct, IReadOnlyList<string> Movers, IReadOnlyList<CompanyLine> Companies,
-    int PaperValue, int DividendsDue, int LevyPct, IReadOnlyList<BondLine> Bonds, BondOffer? BondOffer, string? SteadyRefusal, bool CanSteady);
+    int PaperValue, int DividendsDue, int LevyPct, IReadOnlyList<BondLine> Bonds, BondOffer? BondOffer, string? SteadyRefusal, bool IsTreasurer, bool IsEmperor = false, bool Proscribing = false);
 /// <summary>A war bond the house holds (stage D).</summary>
 public sealed record BondLine(string Id, string NationName, int Face, int YieldPct, int Bought);
 /// <summary>The bond the Reach is selling this year, if it is at war abroad.</summary>
@@ -561,8 +561,11 @@ public static class CourtProjection
         int due = w.Companies.Sum(co => co.Shares > 0 ? co.LastDividend * co.HeldBy(house.Id) / co.Shares : 0);
         var ih = m.IndexHistory; int ib = Math.Min(5, ih.Count - 1); int ichg = ib > 0 && ih[^(ib + 1)] > 0 ? (int)Math.Round((m.Index / ih[^(ib + 1)] - 1) * 100) : 0;
         int levy = content.Policies.IsEmpty ? 0 : Math.Max(0, PolicySystem.ReachModifier(w, content.Policies, "exchange_levy_pct"));
+        var bonds = w.Bonds.Where(b => b.HolderId == house.Id).OrderBy(b => b.Id, StringComparer.Ordinal).Select(b => new BondLine(b.Id, content.Nations.Def(b.NationId)?.Name ?? b.NationId, b.Face, b.YieldPct, b.Bought)).ToList();
+        BondOffer? offer = NationSystem.AtWar(w) is { } war ? new BondOffer(war.Id, content.Nations.Def(war.Id)?.Name ?? war.Id, r.BondFace, cs.BondYield(w), w.Bonds.Count(b => b.HolderId == house.Id && b.NationId == war.Id), r.BondCap, cs.BondRefusal(w, house.Id)) : null;
+        bool treasurer = OfficeSystem.Holds(w, house.Id, CompanySystem.TreasurerOffice), emperor = w.IsImperium && ThroneSystem.Emperor(w)?.Id == house.Id;
         return new ExchangeCard(m.Index, ih.ToList(), ichg, (int)Math.Round(m.Confidence * 100), m.Movers.ToList(), lines, CompanySystem.PaperOf(w, house.Id), due, levy,
-            new List<BondLine>(), null, null, false);
+            bonds, offer, treasurer ? cs.SteadyRefusal(w, house.Id) : null, treasurer, emperor, emperor && PolicySystem.Option(w, content.Policies, house.Id, "imperial_edict")?.Id == "proscriptions");
     }
 
     private static MarketCard? BuildMarket(World w, Character p, House house, ContentDatabase content, TurnController tc)

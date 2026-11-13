@@ -88,3 +88,45 @@ public sealed class BoardCommand : ICommand
         }
     }
 }
+
+/// <summary>Lend to the Reach for its war abroad (docs/ECONOMY_MARKET.md stage D): a bond at face, a coupon a year, repaid when the war ends.</summary>
+public sealed class BuyBondCommand : ICommand
+{
+    private readonly CompanySystem _cs;
+    public BuyBondCommand(string actorId, CompanySystem cs) { ActorId = actorId; _cs = cs; }
+    public string ActorId { get; }
+    public string Describe() => "buy a war bond";
+    public string? Refusal(CommandContext ctx) => ctx.World.Char(ActorId) is { Alive: true } a ? _cs.BondRefusal(ctx.World, a.HouseId) : "no house";
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { _cs.BuyBond(ctx.World, ctx.World.Char(ActorId)!.HouseId); }
+}
+
+/// <summary>The Treasurer opens the Reach's purse under a falling market, once a term.</summary>
+public sealed class SteadyMarketCommand : ICommand
+{
+    private readonly CompanySystem _cs;
+    public SteadyMarketCommand(string actorId, CompanySystem cs) { ActorId = actorId; _cs = cs; }
+    public string ActorId { get; }
+    public string Describe() => "steady the market";
+    public string? Refusal(CommandContext ctx) => ctx.World.Char(ActorId) is { Alive: true } a ? _cs.SteadyRefusal(ctx.World, a.HouseId) : "no house";
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; _cs.Rescue(w, $"the Treasurer, {w.House(w.Char(ActorId)!.HouseId)?.Name}, opens the Reach's purse under the market"); }
+}
+
+/// <summary>The throne's hand on the Exchange, under the Imperium: grant a great company's monopoly to a house, or (the Edict standing
+/// at proscriptions) declare a house's shares forfeit.</summary>
+public sealed class ThroneExchangeCommand : ICommand
+{
+    public const string GrantAct = "grant", SeizeAct = "seize";
+    private readonly string _act, _companyId, _houseId; private readonly CompanySystem _cs; private readonly Data.PolicyCatalog _policies;
+    public ThroneExchangeCommand(string actorId, string act, string companyId, string houseId, CompanySystem cs, Data.PolicyCatalog policies) { ActorId = actorId; _act = act; _companyId = companyId; _houseId = houseId; _cs = cs; _policies = policies; }
+    public string ActorId { get; }
+    public string Describe() => $"{_act} {_companyId} {_houseId}".Trim();
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; if (w.Char(ActorId) is not { Alive: true } a) return "no house";
+        return _act == GrantAct ? _cs.GrantRefusal(w, a.HouseId, w.Company(_companyId), _houseId) : _act == SeizeAct ? _cs.SeizeRefusal(w, a.HouseId, _houseId, _policies) : "no such order";
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { if (_act == GrantAct) _cs.Grant(ctx.World, ctx.World.Company(_companyId)!, _houseId); else _cs.Seize(ctx.World, _houseId); }
+}

@@ -284,6 +284,8 @@ internal static class Qa
         if (tc.Companies is { Open: true } cx)   // the Exchange: list, trade, and sit on the board
         {
             foreach (var b in w.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0).OrderBy(b => b.Id, StringComparer.Ordinal)) if (decisions.NextInt(0, 5) == 0) cands.Add(new IncorporateCommand(p.Id, b.Id, CompanySystem.ControlledBy(w, house.Id).FirstOrDefault()?.Id ?? "", cx));
+            cands.Add(new BuyBondCommand(p.Id, cx)); cands.Add(new SteadyMarketCommand(p.Id, cx));
+            if (w.IsImperium && w.Companies.FirstOrDefault(c => c.Chartered) is { } great && w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).Skip(decisions.NextInt(0, 5)).FirstOrDefault() is { } other) { cands.Add(new ThroneExchangeCommand(p.Id, ThroneExchangeCommand.GrantAct, great.Id, other.Id, cx, content.Policies)); cands.Add(new ThroneExchangeCommand(p.Id, ThroneExchangeCommand.SeizeAct, "", other.Id, cx, content.Policies)); }
             foreach (var co in w.Companies.OrderBy(c => c.Id, StringComparer.Ordinal))
             {
                 if (decisions.NextInt(0, 4) == 0) cands.Add(new BuySharesCommand(p.Id, co.Id, 1 + decisions.NextInt(0, 12), cx));

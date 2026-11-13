@@ -23,8 +23,8 @@ public sealed class CompanySystem
     public const string CrashFlag = "market_crash", BoomFlag = "market_boom", DividendCutFlag = "dividend_cut", StakeFlag = "stake_in_mine", FailedFlag = "company_failed",
         TakenFromMeFlag = "takeover_of_mine", TakenByMeFlag = "company_taken", FloatedFlag = "company_floated", GoldenFlag = "golden_share_used", ListedCounter = "companies_listed",
         SharesTradedCounter = "shares_traded", TakeoversCounter = "takeovers";
-    private static readonly string[] TickFlags = { CrashFlag, BoomFlag, DividendCutFlag, StakeFlag, FailedFlag };
-    private static readonly string[] DeedFlags = { TakenFromMeFlag, TakenByMeFlag, FloatedFlag, GoldenFlag };
+    private static readonly string[] TickFlags = { CrashFlag, BoomFlag, DividendCutFlag, StakeFlag, FailedFlag, BondsRepaidFlag, BondDefaultFlag, BondsOfferedFlag, "company_broken_up" };
+    private static readonly string[] DeedFlags = { TakenFromMeFlag, TakenByMeFlag, FloatedFlag, GoldenFlag, SteadiedFlag, MonopolyFlag, SeizedFlag, SeizedMineFlag };
 
     private readonly Economy _economy; private readonly BusinessCatalog _ventures; private readonly ExchangeCatalog _exchange; private readonly TradeRules _trade;
     public CompanySystem(Economy economy, BusinessCatalog ventures, ExchangeCatalog exchange, TradeRules trade) { _economy = economy; _ventures = ventures; _exchange = exchange; _trade = trade; }
@@ -34,6 +34,9 @@ public sealed class CompanySystem
     public bool Open => !_exchange.IsEmpty;
     /// <summary>The nations beyond the Reach, for naming a war in the cause line.</summary>
     public NationCatalog? Nations { get; init; }
+    public OfficeCatalog? Offices { get; set; }
+    public const string TreasurerOffice = "treasurer", SteadiedFlag = "market_steadied", BondsRepaidFlag = "bonds_repaid", BondDefaultFlag = "bond_default", BondsOfferedFlag = "bonds_offered", MonopolyFlag = "monopoly_granted", SeizedFlag = "shares_seized", SeizedMineFlag = "shares_seized_mine", BondsSoldCounter = "bonds_sold";
+    public const int SteadyTerm = 10, SeizeEvery = 5;
 
     private static MarketState Market(World w) => w.Market ??= new MarketState();
     private static uint Hash(string key) { uint h = 2166136261; foreach (var ch in key) h = (h ^ ch) * 16777619; return h; }
@@ -349,6 +352,123 @@ public sealed class CompanySystem
         w.Log($"{co.Name} is wound up: {why}.{(pot > 0 ? $" Its holders share {pot} credits." : " Its holders get nothing.")}");
     }
 
+    // ---------------------------------------------------------------- the Reach's hand (stage D)
+
+    /// <summary>The Reach's purse stands behind the Exchange: the chair pays, every company in the red is made whole, and confidence is held up for two years.</summary>
+    public void Rescue(World w, string how)
+    {
+        var m = Market(w); var chair = RegionSystem.CapitalHolder(w); int cost = Rules.SteadyCost;
+        foreach (var co in w.Companies.Where(c => c.Cash < 0).OrderBy(c => c.Id, StringComparer.Ordinal)) { cost += -co.Cash; co.Cash = 0; }
+        if (chair != null) chair.Treasury.Credits -= cost;
+        m.SteadiedTurn = w.Turn; m.Confidence = Math.Min(Rules.ConfidenceCapPct / 100.0, m.Confidence + Rules.SteadyPct / 200.0);
+        Mark(w, SteadiedFlag);
+        w.Log($"{char.ToUpperInvariant(how[0])}{how[1..]}: {cost} credits from {(chair != null ? chair.Name : "the Reach")}. Confidence steadies at {m.Confidence * 100:0}.");
+    }
+
+    public string? SteadyRefusal(World w, string houseId)
+    {
+        var m = Market(w);
+        if (Offices == null || Offices.Def(TreasurerOffice) == null || !OfficeSystem.Holds(w, houseId, TreasurerOffice)) return "only the Treasurer may open the Reach's purse";
+        if (m.SteadiedTurn >= 0 && w.Turn - m.SteadiedTurn < SteadyTerm) return $"the purse was opened {w.Turn - m.SteadiedTurn} year(s) ago: once a term";
+        bool falling = m.Confidence < 0.95 || (m.IndexHistory.Count >= 2 && m.Index < m.IndexHistory[^2] * 0.97) || w.WorldFlags.Contains(CrashFlag);
+        if (!falling) return "the market is not falling";
+        var chair = RegionSystem.CapitalHolder(w);
+        return chair == null || chair.Treasury.Credits < Rules.SteadyCost ? $"the Reach's purse does not hold {Rules.SteadyCost} credits" : null;
+    }
+
+    // ---- war bonds: credits lent to the chair for a war beyond the Reach, a coupon a year, repaid when it ends
+
+    public int BondYield(World w)
+    {
+        var n = NationSystem.AtWar(w); if (n == null) return Rules.BondYieldPct;
+        return Rules.BondYieldPct + Rules.BondWarYieldPct * Math.Clamp(n.ScoreNation - n.ScoreReach, 0, 3);   // the worse the war goes, the more the Reach must pay to borrow
+    }
+    public string? BondRefusal(World w, string houseId)
+    {
+        var house = w.House(houseId); var n = NationSystem.AtWar(w); var chair = RegionSystem.CapitalHolder(w);
+        if (house == null || !Open) return "no bonds are sold";
+        if (n == null) return "the Reach is not at war beyond its borders";
+        if (chair == null) return "no house holds the chair to borrow";
+        if (chair.Id == houseId) return "the chair does not lend to itself";
+        if (w.Bonds.Count(b => b.HolderId == houseId && b.NationId == n.Id) >= Rules.BondCap) return $"no house may hold more than {Rules.BondCap} bonds of one war";
+        return house.Treasury.Credits >= Rules.BondFace ? null : $"needs {Rules.BondFace} credits";
+    }
+    public void BuyBond(World w, string houseId)
+    {
+        var house = w.House(houseId)!; var n = NationSystem.AtWar(w)!; var chair = RegionSystem.CapitalHolder(w)!; int k = w.Counter(BondsSoldCounter) + 1; w.WorldCounters[BondsSoldCounter] = k;
+        house.Treasury.Credits -= Rules.BondFace; chair.Treasury.Credits += Rules.BondFace;
+        w.Bonds.Add(new Bond { Id = $"bond_{k}", HolderId = houseId, NationId = n.Id, Face = Rules.BondFace, YieldPct = BondYield(w), Bought = w.Turn });
+        w.Log($"{house.Name} lends {Rules.BondFace} credits to the Reach for the war with {Nations?.Def(n.Id)?.Name ?? "the nation"} at {BondYield(w)}% a year.");
+    }
+
+    /// <summary>A war abroad that has ended is settled: its bonds are repaid from the chair's purse, with a tenth over if the nation was
+    /// subdued and at a discount if not. What the purse cannot pay is defaulted on, and the Exchange remembers.</summary>
+    private void SettleBonds(World w)
+    {
+        var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w); bool defaulted = false;
+        foreach (var gone in w.Bonds.Where(b => w.House(b.HolderId) == null).ToList()) w.Bonds.Remove(gone);
+        foreach (var b in w.Bonds.OrderBy(b => b.Id, StringComparer.Ordinal).ToList())
+        {
+            var n = w.Nations.FirstOrDefault(x => x.Id == b.NationId); if (n is { AtWar: true }) continue;
+            int due = n != null && n.SubduedUntil > w.Turn ? b.Face * 110 / 100 : b.Face * 85 / 100;
+            int paid = chair == null ? 0 : Math.Min(due, Math.Max(0, chair.Treasury.Credits));
+            if (chair != null) chair.Treasury.Credits -= paid;
+            w.House(b.HolderId)!.Treasury.Credits += paid; w.Bonds.Remove(b);
+            if (paid < due) defaulted = true;
+            if (b.HolderId == mine) w.WorldFlags.Add(BondsRepaidFlag);
+        }
+        if (defaulted) { w.WorldFlags.Add(BondDefaultFlag); var m = Market(w); m.Confidence = Math.Max(Rules.ConfidenceFloorPct / 100.0, m.Confidence - 0.06); w.Log("The Reach cannot repay its war bonds in full. The Exchange takes note."); }
+        if (NationSystem.AtWar(w) != null && mine != null && BondRefusal(w, mine) == null) w.WorldFlags.Add(BondsOfferedFlag);
+    }
+
+    // ---- the Imperium: monopolies by grant, seizure by edict
+
+    public string? GrantRefusal(World w, string houseId, Company? co, string granteeId)
+    {
+        if (!w.IsImperium) return "the Republic grants no monopolies";
+        if (ThroneSystem.Emperor(w)?.Id != houseId) return "only the throne grants a monopoly";
+        if (co == null || !co.Chartered) return "only a chartered company may be granted";
+        if (w.House(granteeId) == null || granteeId == PirateSystem.HouseId) return "no such house";
+        return co.MonopolyOf == granteeId ? "it holds the grant already" : null;
+    }
+    /// <summary>The throne grants a great company's monopoly to a house: it directs the company, takes a rent off the top of its
+    /// earnings and may hold it past the quarter. The house it is taken from does not forget.</summary>
+    public void Grant(World w, Company co, string granteeId)
+    {
+        var emperor = ThroneSystem.Emperor(w); var eh = emperor != null ? Economy.HeadOf(w, emperor) : null; var was = w.House(co.MonopolyOf); var now = w.House(granteeId)!;
+        if (eh != null && was != null && Economy.HeadOf(w, was) is { } wh && wh.Id != eh.Id) Sour(w, wh.Id, eh.Id, -20);
+        if (eh != null && Economy.HeadOf(w, now) is { } nh && nh.Id != eh.Id) Sour(w, nh.Id, eh.Id, 20);
+        co.MonopolyOf = granteeId; co.ControllerId = granteeId;
+        if (granteeId == w.Protagonist?.HouseId || was?.Id == w.Protagonist?.HouseId) Mark(w, MonopolyFlag);
+        w.Log($"The throne grants the monopoly of {co.Name} to {now.Name}{(was != null ? $", taking it from {was.Name}" : "")}.");
+    }
+
+    public string? SeizeRefusal(World w, string houseId, string targetId, PolicyCatalog policies)
+    {
+        if (!w.IsImperium) return "the Republic seizes no one's shares";
+        var emperor = ThroneSystem.Emperor(w); if (emperor?.Id != houseId) return "only the throne proscribes";
+        if (PolicySystem.Option(w, policies, houseId, "imperial_edict")?.Id != "proscriptions") return "the Imperial Edict must stand at proscriptions";
+        if (targetId == houseId || w.House(targetId) == null) return "no such house";
+        if (PaperOf(w, targetId) <= 0) return "it holds no shares";
+        int last = w.Counter("seized_turn"); return w.WorldCounters.ContainsKey("seized_turn") && w.Turn - last < SeizeEvery ? "the last proscription is too fresh" : null;
+    }
+    /// <summary>A proscription: every share the house holds passes to the throne. The Exchange does not like it.</summary>
+    public void Seize(World w, string targetId)
+    {
+        var emperor = ThroneSystem.Emperor(w)!; var target = w.House(targetId)!; int taken = 0;
+        foreach (var co in w.Companies.OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
+        {
+            int n = co.HeldBy(targetId); if (n <= 0) continue;
+            co.Holders.Remove(targetId); co.Holders[emperor.Id] = co.HeldBy(emperor.Id) + n; taken += (int)Math.Round(n * co.Price);
+            if (co.MonopolyOf == targetId) { co.MonopolyOf = ""; co.ControllerId = ""; }
+            Recontrol(w, co);
+        }
+        var eh = Economy.HeadOf(w, emperor); var th = Economy.HeadOf(w, target); if (eh != null && th != null) Sour(w, th.Id, eh.Id, -40);
+        var m = Market(w); m.Confidence = Math.Max(Rules.ConfidenceFloorPct / 100.0, m.Confidence - 0.05); w.WorldCounters["seized_turn"] = w.Turn;
+        Mark(w, targetId == w.Protagonist?.HouseId ? SeizedMineFlag : SeizedFlag);
+        w.Log($"By edict of the throne, the shares of {target.Name} are forfeit: paper worth {taken} credits passes to {emperor.Name}.");
+    }
+
     // ---------------------------------------------------------------- the yearly reckoning
 
     /// <summary>The great companies of the Reach are listed when the Exchange opens: every share on the float.</summary>
@@ -411,6 +531,7 @@ public sealed class CompanySystem
             // a rival with a tenth of a company you direct is public knowledge
             if (mine != null && co.ControllerId == mine && co.Holders.Any(kv => kv.Key != mine && kv.Key != Company.Public && kv.Value * 100 >= co.Shares * r.PublicStakePct)) w.WorldFlags.Add(StakeFlag);
         }
+        SettleBonds(w);
         double indexWas = m.Index;
         if (capBefore > 0) m.Index = Math.Max(1, m.Index * capAfter / capBefore);
         m.IndexHistory.Add(m.Index); while (m.IndexHistory.Count > r.HistoryKept) m.IndexHistory.RemoveAt(0);

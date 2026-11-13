@@ -26,6 +26,10 @@ public sealed class MotionDef
     public int ReliefCost { get; init; }
     public bool Peace { get; init; }
     public int EmbargoTurns { get; init; }
+    /// <summary>The largest company the target directs is wound up (docs/ECONOMY_MARKET.md stage D).</summary>
+    public bool Breakup { get; init; }
+    /// <summary>The Reach's purse stands behind the Exchange.</summary>
+    public bool Rescue { get; init; }
     /// <summary>The motion names an office (content/senate/offices.json) as well as a house.</summary>
     public bool Office { get; init; }
     /// <summary>The motion is an Act: it sets a Senate-scoped law (content/politics/laws.json, scope "senate") for the whole Reach.</summary>
@@ -61,7 +65,7 @@ public sealed class MotionCatalog
                     LegitimacyTarget = ConditionParser.Int(el, "legitimacyTarget", 0), LegitimacyProposer = ConditionParser.Int(el, "legitimacyProposer", 0),
                     LevyCredits = ConditionParser.Int(el, "levyCredits", 0), LawlessnessRegion = ConditionParser.Int(el, "lawlessnessRegion", 0),
                     AllegianceRegion = ConditionParser.Int(el, "allegianceRegion", 0), ProsperityRegion = ConditionParser.Int(el, "prosperityRegion", 0),
-                    ReliefCost = ConditionParser.Int(el, "reliefCost", 0), Peace = ConditionParser.Bool(el, "peace", false), EmbargoTurns = ConditionParser.Int(el, "embargoTurns", 0), Office = ConditionParser.Bool(el, "office", false), Law = ConditionParser.Bool(el, "law", false)
+                    ReliefCost = ConditionParser.Int(el, "reliefCost", 0), Peace = ConditionParser.Bool(el, "peace", false), EmbargoTurns = ConditionParser.Int(el, "embargoTurns", 0), Breakup = ConditionParser.Bool(el, "breakup", false), Rescue = ConditionParser.Bool(el, "rescue", false), Office = ConditionParser.Bool(el, "office", false), Law = ConditionParser.Bool(el, "law", false)
                 });
             }
         }

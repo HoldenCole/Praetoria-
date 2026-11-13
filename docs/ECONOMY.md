@@ -166,4 +166,4 @@ Flags for content: `deposit:<res>` (a world or claim of yours sits on one), `str
 Earths*, *The Arms Broker* (rich, no isotopes: buy from a man with a false name), *The Fuel Contract*, *The Embargo*.
 
 ## What comes next
-The plan for prices, ventures as assets, projects and a stock exchange is in docs/ECONOMY_MARKET.md. Nothing in it is built yet.
+Prices, ventures as assets, projects, companies, shares, war bonds and the Senate's and throne's hand on the Exchange are built: see docs/ECONOMY_MARKET.md, section 10, for what shipped and the formulas.

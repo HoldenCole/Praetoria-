@@ -417,6 +417,21 @@ public sealed class NpcAi
         var cs = Exchange; if (cs == null || !cs.Open) return; var world = ctx.World; var r = cs.Rules;
         uint h = 2166136261; foreach (var ch in house.Id + ":paper:" + world.Turn) h = (h ^ ch) * 16777619;
         string party = FactionSystem.Of(world, house.Id)?.PartyId ?? ""; var mine = world.Protagonist?.HouseId;
+        // the throne's hand, under the Imperium: a monopoly to the house it likes best, and (the Edict at proscriptions) a hated house's paper forfeit
+        if (world.IsImperium && ThroneSystem.Emperor(world)?.Id == house.Id && Economy.HeadOf(world, house) is { } throne)
+        {
+            int Regard(House o) => Economy.HeadOf(world, o) is { } oh ? world.GetRelationship(throne.Id, oh.Id)?.Disposition ?? 0 : 0;
+            var others = world.Houses.Values.Where(o => o.Id != house.Id && o.Id != PirateSystem.HouseId).OrderByDescending(Regard).ThenBy(o => o.Id, StringComparer.Ordinal).ToList();
+            var free = world.Companies.Where(c => c.Chartered && c.MonopolyOf.Length == 0).OrderBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (free != null && h % 7 == 3 && others.FirstOrDefault(o => Regard(o) >= 20 && world.Companies.All(c => c.MonopolyOf != o.Id)) is { } favourite)
+                executor.TryExecute(new ThroneExchangeCommand(steward.Id, ThroneExchangeCommand.GrantAct, free.Id, favourite.Id, cs, Policies ?? PolicyCatalog.Empty), ctx);
+            if (h % 5 == 2 && others.LastOrDefault(o => Regard(o) <= -40 && CompanySystem.PaperOf(world, o.Id) > 0) is { } hated)
+                executor.TryExecute(new ThroneExchangeCommand(steward.Id, ThroneExchangeCommand.SeizeAct, "", hated.Id, cs, Policies ?? PolicyCatalog.Empty), ctx);
+        }
+        // the Treasurer of the Reach opens the purse under a falling market
+        if (cs.SteadyRefusal(world, house.Id) == null && world.WorldFlags.Contains(CompanySystem.CrashFlag)) executor.TryExecute(new SteadyMarketCommand(steward.Id, cs), ctx);
+        // a house with coin lends to the Reach for its war abroad: the Factors and the Optimates for the coupon, the Sword for the war
+        if (NationSystem.AtWar(world) != null && house.Treasury.Credits >= 150 && h % (party == "populares" ? 6u : 3u) == 1 && cs.BondRefusal(world, house.Id) == null) executor.TryExecute(new BuyBondCommand(steward.Id, cs), ctx);
         if (house.Treasury.Credits < 0)
         {
             var held = world.Companies.Where(c => c.HeldBy(house.Id) > 0).OrderByDescending(c => CompanySystem.Value(c, house.Id)).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();

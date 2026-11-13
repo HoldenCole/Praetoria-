@@ -25,6 +25,10 @@
       "description": "{proposer} petition the Senate: that {law} be {option} throughout the Reach. If the chamber turns them away, every house they already distrust will feel it." },
     { "id": "foreign_war", "name": "War Beyond the Reach", "target": "nation", "interest": "foreign_war", "proposeInfluence": 3,
       "description": "{proposer} moves that the Reach make war upon {target}, and that every house with a fleet send it." },
+    { "id": "breakup", "name": "Breaking of a Company", "target": "house", "interest": "breakup", "proposeInfluence": 3, "breakup": true,
+      "description": "{proposer} moves that the Senate break up the greatest company {target} directs: its ventures sold off, its holders paid what the sale fetches." },
+    { "id": "rescue", "name": "Rescue of the Exchange", "target": "none", "interest": "rescue", "proposeInfluence": 3, "rescue": true,
+      "description": "{proposer} moves that the Reach's purse stand behind the Exchange: the chair pays, every company in the red is made whole, and confidence is held up for two years." },
     { "id": "embargo", "name": "Embargo", "target": "house", "interest": "embargo", "proposeInfluence": 3,
       "description": "{proposer} moves that the Senate close the exchanges of the Reach to {target} for eight years.",
       "embargoTurns": 8 }

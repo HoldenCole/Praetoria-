@@ -20,6 +20,8 @@ namespace Praetoria.Core.Systems;
 /// </summary>
 public sealed class SenateSystem
 {
+    /// <summary>The Exchange, when the age has one: the Senate may break a company up or stand behind the market (docs/ECONOMY_MARKET.md stage D).</summary>
+    public CompanySystem? Exchange { get; set; }
     public const int DocketSize = 2, HistoryKept = 12, LobbyWeight = 2, BribeWeight = 3, BribeCredits = 5, ProposerLawRank = 3, ProposerTitleRank = 2, RepeatTurns = 10;
     /// <summary>Petitions: an estate hostile in <see cref="PetitionMinHouses"/> houses or an eighth of them (whichever is more) brings its own
     /// Act; heard, its regard rises <see cref="PetitionSwing"/> in every house; refused, it falls <see cref="PetitionSpurn"/> and its worlds
@@ -121,6 +123,18 @@ public sealed class SenateSystem
                     lean += toTarget >= 10 ? 1 : toTarget <= -20 ? -2 : 0;
                     if (RegionSystem.CapitalHolder(w)?.Id == houseId && toTarget >= 0) lean += 1;         // the chair likes a safe pair of hands
                 }
+                break;
+            case "breakup":
+                if (houseId == m.TargetId) lean -= 4;
+                else if (targetHouse != null && CompanySystem.ControlledBy(w, targetHouse.Id).Any(c => c.HeldBy(houseId) > 0)) lean -= 2;   // its other holders would be paid out at a loss
+                else if (targetHouse != null && (toTarget <= -20 || w.AtWar(houseId, m.TargetId))) lean += 2;
+                else if (targetHouse != null && toTarget >= 30) lean -= 2;
+                lean += FactionSystem.Of(w, houseId)?.PartyId switch { "factors" => -1, "populares" => 1, _ => 0 };
+                break;
+            case "rescue":
+                if (CompanySystem.PaperOf(w, houseId) >= 30) lean += 2;
+                if (RegionSystem.CapitalHolder(w)?.Id == houseId) lean -= 2;                               // it is the chair's purse that opens
+                lean += FactionSystem.Of(w, houseId)?.PartyId switch { "factors" => 2, "populares" => -1, _ => 0 };
                 break;
             case "act":
                 lean += ActLean(w, h, m);
@@ -355,6 +369,12 @@ public sealed class SenateSystem
             w.WorldCounters["embargo:" + target.Id] = w.Turn + def.EmbargoTurns;
             if (target.Id == mine) w.WorldFlags.Add("embargoed");
         }
+        if (def.Breakup && target != null && Exchange != null && CompanySystem.ControlledBy(w, target.Id).Where(c => !c.Chartered).OrderByDescending(CompanySystem.Cap).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault() is { } broken)
+        {
+            if (target.Id == mine) w.WorldFlags.Add("company_broken_up");
+            Exchange.Liquidate(w, broken, "the Senate has broken it up");
+        }
+        if (def.Rescue && Exchange != null) Exchange.Rescue(w, "the Senate votes the Reach's purse behind the Exchange");
     }
 
     /// <summary>Is the house shut out of the exchanges by a Senate embargo this turn?</summary>
@@ -387,6 +407,7 @@ public sealed class SenateSystem
                 }
             var title = _titles.ById(h.Title);
             if (title != null && title.LegitimacyRequirement > h.Legitimacy && _motions.Def("recognition") != null && !Stale(w, h.Id, "recognition", h.Id)) { Add(w, h.Id, "recognition", h.Id); return; }
+            if (Exchange != null && w.WorldFlags.Contains(CompanySystem.CrashFlag) && CompanySystem.PaperOf(w, h.Id) >= 40 && _motions.Def("rescue") != null && !Stale(w, h.Id, "rescue", "")) { Add(w, h.Id, "rescue", ""); return; }
             if (RegionSystem.CapitalHolder(w)?.Id == h.Id && h.Treasury.Credits < 40 && _motions.Def("levy") != null && !Stale(w, h.Id, "levy", "")) { Add(w, h.Id, "levy", ""); return; }
             if (g != null && _motions.Def("relief") != null)
             {

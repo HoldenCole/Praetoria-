@@ -121,6 +121,11 @@ public sealed class Economy
         }
         int coupons = world.Bonds.Where(b => b.HolderId == houseId).Sum(b => b.Face * b.YieldPct / 100);
         if (coupons > 0) ledger.Add("interest on war bonds", "interest", new Resources { Credits = coupons });
+        if (world.Bonds.Count > 0 && RegionSystem.CapitalHolder(world)?.Id == houseId)
+        {
+            int owed = world.Bonds.Where(b => b.HolderId != houseId).Sum(b => b.Face * b.YieldPct / 100);
+            if (owed > 0) ledger.Add("coupons on the Reach's war bonds", "loan", new Resources { Credits = -owed });
+        }
         // charters received from others' ventures on our worlds
         foreach (var b in world.Businesses.Values.Where(x => x.OwnerId != houseId).OrderBy(x => x.Id, StringComparer.Ordinal))
         {
