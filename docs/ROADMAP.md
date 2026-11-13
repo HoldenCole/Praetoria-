@@ -74,6 +74,13 @@ Ranked within each group by how much they hurt play.
 2. Anomalies, archaeology and a source of exotics are designed but not built.
 3. In a 27-run soak, 191 of 257 events fired. Some of the other 66 may be unreachable or only very rare.
 
+**The person and the family**
+1. Marriage is one command and a handful of events. There is no courtship, no affection, no rival suitor, no contract.
+2. Skills change only when an event says so, or in the Academy year. Nobody studies, trains or is taught.
+3. A house has one purse. A person owns nothing; kin have no allowance, dowry or inheritance of their own.
+4. Only houses can be patrons. A person cannot take a protégé, be a ward, or be adopted, and a house of one has no way
+   to join a larger one.
+
 **Starts**
 1. *The New Man* is fragile: two young family members and no heir. The line often ends early.
 2. *The Old Lion* has not been driven through in the browser by the test scripts. They stall on it.
@@ -92,26 +99,57 @@ Ranked within each group by how much they hurt play.
 
 ## 4. What comes next
 
-In order. Lines 1 to 10 are each about one cycle of work (build, test, soak, browser, docs). Lines 11 to 15 are the
-later chapters, each several cycles; section 6 says what each builds on.
+One thing is fixed: **a custom character is next** (the owner's priority; plan below). Everything else is grouped by
+theme and is **not in order**, within a group or between them. The last column says what each piece leans on, which is
+the only real constraint on sequence. Each line is roughly one cycle of work (build, test, soak, browser, docs).
 
-| # | Work | What it delivers |
+**The person and the family**
+
+| Work | What it delivers | Ties to |
 |---|---|---|
-| 1 | **A custom character** | Owner's priority (2026-11-13). Build your own person, house and family with every dial exposed, balanced or not. Plan below. |
-| 2 | **The Caesar road** | The Senate votes a triumph or a recall. Fleets that a commander has led to victory become loyal to him. A recalled general with loyal fleets may obey or cross the line: a civil war with the parties choosing sides. Victory ends the Republic. |
-| 3 | **The ladder of offices** | Lesser offices before the consulship, each with an age and a prior post. Holding each feeds standing in the Senate. |
-| 4 | **The state and commerce** | Tax-farming a region and contracts to supply the fleet, let by Senate motion. A patron calls in a client's vote on a real motion. Stewards use sway deliberately. |
-| 5 | **Look and feel pass** | Section 5 below. Planned, not started. |
-| 6 | **Economy follow-ups** | Hostile stakes by rival stewards, a bubble that bursts, companies that found ventures, a view of one company, the glut. |
-| 7 | **Starts and first hour** | The title screen grouped by road (born to a name, by arms, by commerce, the Academy). An early marriage for the New Man. The orders in the Academy's lessons. |
-| 8 | **Governments and the Imperium** | The owner's later item: how a throne governs, the court as a place, the orders under an Emperor. Needs its own plan first. |
-| 9 | **Nations on the map** | Territory, borders and fronts for the nations beyond the Reach. |
-| 10 | **Sound, balance, content** | Audio, a balance pass across sixty-year runs, and events for whatever the soak shows never fires. |
-| 11 | **Courts of Intrigue** | Later chapter. An intelligence sphere and a spymaster's career; plots and counter-plots as a profession. |
-| 12 | **The Frontier** | Later chapter. Colonising the unclaimed worlds, terraforming, deeper building trees, anomalies and archaeology as the source of exotics. |
-| 13 | **The Threat From Beyond** | Later chapter. Great crises that are not human: a swarm, a plague, an awakening, each moving on the map in its own way. |
-| 14 | **AI Ascendant** | Later chapter. Machine sentience as a crisis you placate, fight or prevent. |
-| 15 | **Wrath of the Stars** | Later chapter. The great megastructures and planet-killers. |
+| **A custom character** (next) | Build your own person, house and family with every dial exposed, balanced or not. | Everything else in this group adds dials to it. |
+| **Love, courting and marriage** | Courtship as something you do over years: meeting, favour, rival suitors, a match for love or for advantage, the contract and the dowry, and what the marriage is like afterwards. Sketch below. | Personal wealth (dowries). Education (a spouse's skills count). Fixes the fragile *New Man* start. |
+| **Education, skills and getting better** | Children are raised: a tutor, a focus, a household to be sent to. Adults improve by doing, by study and by being taught, and decline with age. Sketch below. | The Academy (a year of this already exists). The ladder of offices. Under the wing (a mentor teaches). |
+| **Personal wealth, house wealth and the dynasty's assets** | A person's own purse beside the house's. Allowances, dowries, wills, heirlooms, and an estate that is divided or kept whole when the head dies. Sketch below. | The economy (shares and ventures can be held personally). Succession laws. Marriage. |
+| **Under the wing** | A person, not only a house, can have a patron: a mentor, a guardian for a ward, adoption as an heir. A house of one can be taken into a greater household. Sketch below. | Patrons and clients (built for houses). Education. The custom character's "alone" start. |
+| **A life of one's own** | Health and wounds, a personal reputation apart from the house's, friendships and rivalries that last decades, retirement, a funeral and what is said at it. | The look and feel pass (the character sheet). Glory in Arms is a first piece of this. |
+
+**The Republic**
+
+| Work | What it delivers | Ties to |
+|---|---|---|
+| **The Caesar road** | The Senate votes a triumph or a recall. Fleets a commander has led to victory become loyal to him. A recalled general with loyal fleets may obey or cross the line: a civil war with the parties choosing sides. Victory ends the Republic. | Arms as an order; fleet loyalty; leads straight into the Imperium work. |
+| **The ladder of offices** | Lesser offices before the consulship, each with an age and a prior post. Holding each feeds standing in the Senate. | Education (what a post demands of its holder). |
+| **The state and commerce** | Tax-farming a region and contracts to supply the fleet, let by Senate motion. A patron calls in a client's vote on a real motion. Stewards use sway deliberately. | The Exchange; patrons and clients; under the wing. |
+
+**The Imperium**
+
+| Work | What it delivers | Ties to |
+|---|---|---|
+| **Politics under a throne** | The owner's Imperium expansion. How an Emperor governs and how everyone else gets what they want from him: the court as a place, favour, a council, offices by appointment, the succession as a contest, the Senate that remains, the guard. Sketch below. Needs its own plan before building. | The Caesar road is how most runs arrive here. The three orders need a meaning under a throne. Marriage (the imperial match). |
+
+**The economy**
+
+| Work | What it delivers | Ties to |
+|---|---|---|
+| **Economy follow-ups** | Hostile stakes by rival stewards, a bubble that bursts, companies that found ventures, a view of one company, the glut. | Personal wealth (who owns the shares). |
+
+**The world**
+
+| Work | What it delivers | Ties to |
+|---|---|---|
+| **Nations on the map** | Territory, borders and fronts for the nations beyond the Reach. | Needed before *The Threat From Beyond* (section 6). |
+| **Sound, balance, content** | Audio, a balance pass across sixty-year runs, and events for whatever the soak shows never fires. | Best done after the person-and-family group, which will add many events. |
+
+**Presentation and the first hour**
+
+| Work | What it delivers | Ties to |
+|---|---|---|
+| **Look and feel pass** | Section 5. Planned, not started. | The custom character (the face editor). A life of one's own (the character sheet). |
+| **Starts and first hour** | The title screen grouped by road (born to a name, by arms, by commerce, the Academy). The orders, courtship and education in the Academy's lessons. | Marriage (an early match for the New Man). |
+
+**Later chapters** (section 6): *Courts of Intrigue*, *The Frontier*, *The Threat From Beyond*, *AI Ascendant*, *Wrath
+of the Stars*. Each is several cycles.
 
 ### Next up: a custom character
 
@@ -152,6 +190,55 @@ and a soak of extreme characters (all skills at the top, an empty house, a child
 
 **Not in this piece.** New traits, new backgrounds or new art. It exposes what the game already has.
 
+### Sketches for the newer pieces
+
+Short on purpose. Each needs a proper plan before it is built. "Today" is what the game has now.
+
+**Love, courting and marriage**
+- *Today*: one command proposes a marriage; a few events arrange a match; a marriage forges a claim and allows children.
+- A courtship runs over years: you meet (at the Academy, at court, through a patron), win or lose favour, and may have a rival.
+- Two kinds of match, and most are a mix: for love (affection, less stress, a loyal spouse) and for advantage (a claim, an alliance, a dowry, a patron's daughter).
+- The families negotiate: dowry, whose name the children take, what happens to the estate.
+- Afterwards the marriage is a relationship that moves: warmth, estrangement, infidelity, divorce where the law allows it, widowhood and remarriage.
+- A spouse is a person with skills, a career and opinions, who can run the house while you are away.
+- Children can be betrothed young, and a betrothal can be broken at a price.
+
+**Education, skills and getting better**
+- *Today*: a child comes of age at sixteen with inherited traits, a track and starting skills; skills move only by events and the Academy year.
+- Each child has an upbringing you choose: a focus (arms, law, the counting-house), a tutor of some quality, or a place in another house's household.
+- What a child becomes depends on that, on their parents and on what happens to them. Not every child takes to what they are taught.
+- Adults improve by doing: commanding raises tactics, sitting as a magistrate raises law, running ventures raises economics. Slowly, with a ceiling set by aptitude.
+- Adults can also study or be taught by someone better, which costs time or coin.
+- Skills fade in old age. Some traits can be earned or lost in adult life.
+- The Academy year becomes one case of this, and other kin can be sent there.
+
+**Personal wealth, house wealth and the dynasty's assets**
+- *Today*: one treasury per house. People own nothing. The heir receives everything.
+- Each adult has a purse of their own; the house has its treasury; the head controls both the house's and their own.
+- Kin receive an allowance, and ask for more. A generous head is loved; a mean one is plotted against.
+- Assets can be held by a person: shares, a venture, a villa, an heirloom. What a person holds is theirs to sell, give or leave.
+- A will says who gets what. The succession law says who gets the house. They need not agree, and that is a quarrel.
+- Dowries and bequests move wealth between houses. Debts are inherited too.
+- An entailed estate cannot be sold or split; the rest can. A house can be rich in land and poor in coin.
+
+**Under the wing**
+- *Today*: a house may be the client of a richer house. In the Academy events there is a mentor. Kin can be fostered away for safety. Nothing ties one person to another as patron and protégé.
+- A person can take a protégé or seek a mentor: someone senior in their own service who teaches them, speaks for them at promotions, and expects loyalty.
+- A ward: an orphan or a hostage raised in your household, or you in theirs.
+- Adoption as the Romans did it: a head with no fit heir adopts a grown, able person, who takes the name. A talented nobody can be adopted into a great house.
+- A house of one (the lone officer, the new man with no kin) can be taken into a greater household as a junior branch, keeping its name, until it can stand alone.
+- All of these can go wrong: a mentor who falls, a protégé who outgrows you, an adopted heir the blood kin resent.
+
+**Politics under a throne**
+- *Today*: an Emperor exists; the Imperial Edict is a law only he sets; office fleets follow the office; he grants monopolies and, under proscriptions, seizes shares. Next to the Republic there is little to do.
+- The court is a place: who has the Emperor's ear this year, and what it costs to be heard.
+- Favour replaces the vote. Offices, commands, governorships and monopolies are appointments, won by favour, service, kinship or fear.
+- A council of a few great officers, each with real powers, and rivals for each seat.
+- The Senate remains: without the last word, but it can confirm, obstruct, and matter in a succession.
+- The succession is the great contest: a named heir, an adopted one, the guard's candidate, a general on the frontier.
+- The three orders mean something different: the Senate becomes the court, Arms can make an Emperor, Commerce funds the throne and is squeezed by it.
+- A bad Emperor can be endured, managed, or removed, and each has a price.
+
 ## 5. Look and feel pass: the plan
 
 Planned only. Nothing in this section has been started.
@@ -183,18 +270,18 @@ Planned only. Nothing in this section has been started.
 ## 6. Later chapters and ideas
 
 **Later chapters.** These five were the paid DLC slate in `GDD.md` sections 12 and 20. They are now simply later work
-on the same game, in the order of section 4. The engine was built with slots for them, so most of each is content.
+on the same game, suggested in this order. The engine was built with slots for them, so most of each is content.
 
 | Chapter | What it adds | What it builds on today | Do it after |
 |---|---|---|---|
-| *Courts of Intrigue* | An intelligence sphere and a spymaster's career. Deep plots, counter-intelligence, secret societies. Possibly a fourth order beside the Senate, Arms and Commerce. | Career tracks and spheres are data lists. Assassination, intel pictures, sway and patronage exist. | The custom character (1) and the state and commerce (4), so a new career has somewhere to matter. |
-| *The Frontier* | Colonisation and terraforming, new holding kinds, deeper building trees, anomalies and archaeology that yield exotics. | Projects already build over years. Two systems start unclaimed. Exotics are a good with a price and no source. | Economy follow-ups (6). |
-| *The Threat From Beyond* | Non-human great crises: a swarm that advances as a front, a plague that spreads along lanes, an awakening where someone dug. | The great-crisis framework runs one human archetype from a data file. | Nations on the map (9), which adds fronts and borders, and *The Frontier*, whose digs foreshadow it. |
+| *Courts of Intrigue* | An intelligence sphere and a spymaster's career. Deep plots, counter-intelligence, secret societies. Possibly a fourth order beside the Senate, Arms and Commerce. | Career tracks and spheres are data lists. Assassination, intel pictures, sway and patronage exist. | A custom character and the state and commerce, so a new career has somewhere to matter. |
+| *The Frontier* | Colonisation and terraforming, new holding kinds, deeper building trees, anomalies and archaeology that yield exotics. | Projects already build over years. Two systems start unclaimed. Exotics are a good with a price and no source. | Economy follow-ups. |
+| *The Threat From Beyond* | Non-human great crises: a swarm that advances as a front, a plague that spreads along lanes, an awakening where someone dug. | The great-crisis framework runs one human archetype from a data file. | Nations on the map, which adds fronts and borders, and *The Frontier*, whose digs foreshadow it. |
 | *AI Ascendant* | Machine sentience as a crisis: placate, fight or prevent. A career around it. Your own systems turning. | The same crisis framework; fleet loyalty and defection. | *The Threat From Beyond*. |
 | *Wrath of the Stars* | The full megastructure catalogue, planet-killers, a higher ceiling on crisis intensity. | Megastructures exist as four-year projects gated by rank. | Last. It is the most content and the least system. |
 
 *Houses of Legend* (named great houses with their own mechanics and legacies) was the reserve. It fits best as part
-of the look and feel pass (5) and the custom character (1): a line of history for every house, and a house you design.
+of the look and feel pass and the custom character: a line of history for every house, and a house you design.
 
 **Newer ideas.** Not ordered and not promised. They came out of the work so far and suit the Roman model.
 

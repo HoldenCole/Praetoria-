@@ -8,6 +8,10 @@
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **Roadmap: the person and the family.** Five pieces added and tied in: love, courting and marriage; education and
+  improving skills; personal wealth beside house wealth and the dynasty's assets; being taken under a person's or a
+  family's wing (mentors, wards, adoption); and politics under a throne. "What comes next" is now grouped by theme
+  with what each piece leans on, not numbered, with a custom character the one fixed next step.
 - **A roadmap** (docs/ROADMAP.md): what is done, the known gaps, the next ten cycles in order (a custom character first), a planned look-and-feel
   pass for screens and characters (not started), and ideas for later expansions. The README's status sections now
   point to it.

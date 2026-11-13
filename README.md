@@ -290,7 +290,7 @@ is `docs/GAP_ANALYSIS.md`. In short:
 | ✅ | **6 — The Human Endgame** | ironman/continue · Imperium start + `era` gating · proclaim/seize the throne + era flip · saga epilogue · the Great-Crisis framework with the galaxy-war archetype | a full run from Baron to a throne-endgame, won or lost. **V1-complete on systems** (headless). |
 | ◐ | **7 — Reactive UI, Polish, Content Depth** | house accents ✅ · procedural portraits & sigils ✅ · era and role theming ✅ · dashboards ✅ · **audio ⬜ · look-and-feel pass ⬜ (planned in ROADMAP §5) · balance ⬜** | the UI transforms on proclamation; enough content for replayability |
 
-**What comes next, in order, is [`docs/ROADMAP.md`](docs/ROADMAP.md) section 4**; ideas for later expansions are in its
+**What comes next is [`docs/ROADMAP.md`](docs/ROADMAP.md) section 4**, grouped by theme (a custom character first); ideas for later expansions are in its
 section 6. The working method follows `docs/PROCESS.md`: forty things → QA → graphics → QA → ten QoL fixes → bug
 check → reassess, with `docs/GAP_ANALYSIS.md` §4 holding the ranked list the next forty are drawn from.
 
