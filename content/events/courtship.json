@@ -1,0 +1,1217 @@
+{
+  "//": "COURTSHIP AND MARRIAGE (docs/MARRIAGE.md). Reads the flags CourtshipSystem raises each year: courting, courtship_rival, marriage_cold, marriage_warm, married; the deeds just_wed, jilted, eloped, widowed_now; and the character flags courted and rival_suitor. The courtship and marriage effects move a suit or a marriage.",
+  "events": [
+    {
+      "id": "an_introduction",
+      "tier": "situation",
+      "weight": 10,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "match",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "match",
+              "bond": "marriage",
+              "present": false
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "match",
+              "bond": "blood",
+              "present": false
+            },
+            {
+              "type": "sex",
+              "role": "match",
+              "op": "neq",
+              "vsRole": "self"
+            },
+            {
+              "type": "charFlag",
+              "role": "match",
+              "flag": "wed",
+              "value": false
+            },
+            {
+              "type": "age",
+              "role": "match",
+              "op": "gte",
+              "value": 16
+            },
+            {
+              "type": "age",
+              "role": "match",
+              "op": "lte",
+              "value": 34
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "wed",
+          "value": false
+        },
+        {
+          "type": "worldFlag",
+          "flag": "courting",
+          "value": false
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "gte",
+          "value": 16
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_a_call",
+          "effects": [
+            {
+              "type": "beginCourtship",
+              "target": "match",
+              "favour": 12
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called on {match.name} of {match.house} the week after they were introduced, and was asked to call again."
+            }
+          ]
+        },
+        {
+          "id": "ask_about_them_first",
+          "effects": [
+            {
+              "type": "beginCourtship",
+              "target": "match",
+              "favour": 4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked a few people about {match.name} of {match.house} before doing anything, and liked what came back."
+            }
+          ]
+        },
+        {
+          "id": "think_no_more_of_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} was introduced to {match.name} of {match.house} and thought no more of it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_rival_for_the_hand",
+      "tier": "situation",
+      "weight": 16,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "beloved",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "beloved",
+              "flag": "courted",
+              "value": true
+            }
+          ]
+        },
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "rival",
+              "flag": "rival_suitor",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "courtship_rival",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "outshine_them",
+          "requires": [
+            {
+              "type": "skill",
+              "role": "self",
+              "skill": "charisma",
+              "op": "gte",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "courtship",
+              "role": "beloved",
+              "favour": 10,
+              "consent": 0,
+              "rival": -8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} was simply better company than {rival.name}, and made sure {beloved.name} had the chance to notice."
+            }
+          ]
+        },
+        {
+          "id": "meet_them_openly",
+          "effects": [
+            {
+              "type": "courtship",
+              "role": "beloved",
+              "favour": 3,
+              "consent": 3,
+              "rival": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sought out {rival.name} of {rival.house} and said plainly that they both wanted the same thing and one of them would be disappointed. {rival.name} respected it. So did {beloved.name}'s family when they heard."
+            }
+          ]
+        },
+        {
+          "id": "a_quiet_word_in_the_right_ear",
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "courtship",
+              "role": "beloved",
+              "favour": 0,
+              "consent": 0,
+              "rival": -15
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "log",
+              "text": "Certain things about {rival.name} of {rival.house} reached {beloved.name}'s family by a route that could not be followed back. {rival.name} guessed all the same."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing_and_wait",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing about {rival.name} and waited to see what {beloved.name} would do. Waiting was not restful."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "what_are_your_prospects",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "beloved",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "beloved",
+              "flag": "courted",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "courting",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "show_them_the_books",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 40
+            }
+          ],
+          "effects": [
+            {
+              "type": "courtship",
+              "role": "beloved",
+              "favour": 0,
+              "consent": 10,
+              "rival": 0
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {beloved.name}'s family see what the house was worth. The figures spoke well enough."
+            }
+          ]
+        },
+        {
+          "id": "speak_of_what_the_house_will_be",
+          "requires": [
+            {
+              "type": "skill",
+              "role": "self",
+              "skill": "oratory",
+              "op": "gte",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "courtship",
+              "role": "beloved",
+              "favour": 3,
+              "consent": 8,
+              "rival": 0
+            },
+            {
+              "type": "log",
+              "text": "{self.name} talked about what the house would be in twenty years, and was believed more than the facts yet justified."
+            }
+          ]
+        },
+        {
+          "id": "name_your_patron",
+          "requires": [
+            {
+              "type": "worldFlag",
+              "flag": "is_client",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "courtship",
+              "role": "beloved",
+              "favour": 0,
+              "consent": 9,
+              "rival": 0
+            },
+            {
+              "type": "log",
+              "text": "{self.name} mentioned, as if in passing, whose protection the house enjoyed. {beloved.name}'s family took the point."
+            }
+          ]
+        },
+        {
+          "id": "tell_them_the_truth",
+          "effects": [
+            {
+              "type": "courtship",
+              "role": "beloved",
+              "favour": 6,
+              "consent": -3,
+              "rival": 0
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {beloved.name}'s family exactly how things stood with the house, the good and the bad. They were not impressed. {beloved.name} was."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_letter_unanswered",
+      "tier": "situation",
+      "weight": 10,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "beloved",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "beloved",
+              "flag": "courted",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "courting",
+          "value": true
+        },
+        {
+          "type": "counter",
+          "key": "courtship_standing",
+          "op": "lte",
+          "value": 40
+        },
+        {
+          "type": "counter",
+          "key": "courtship_standing",
+          "op": "gte",
+          "value": 1
+        }
+      ],
+      "choices": [
+        {
+          "id": "write_again",
+          "effects": [
+            {
+              "type": "courtship",
+              "role": "beloved",
+              "favour": 5,
+              "consent": 0,
+              "rival": 0
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote to {beloved.name} again. The second letter was answered, briefly."
+            }
+          ]
+        },
+        {
+          "id": "go_in_person",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "courtship",
+              "role": "beloved",
+              "favour": 9,
+              "consent": 0,
+              "rival": 0
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went in person. {beloved.name} had not been offended, only busy, and was pleased to be thought worth the journey."
+            }
+          ]
+        },
+        {
+          "id": "let_it_lie",
+          "effects": [
+            {
+              "type": "courtship",
+              "role": "beloved",
+              "favour": -4,
+              "consent": 0,
+              "rival": 0
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the silence stand. So did {beloved.name}."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_wedding_day",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "just_wed",
+          "value": true
+        },
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "wed",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_feast_the_city_will_remember",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 25
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -25
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {spouse.name} were married before every house that mattered, and fed them for three days. It was talked about for a year."
+            }
+          ]
+        },
+        {
+          "id": "the_two_families_at_one_table",
+          "effects": [
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {spouse.name} were married with the two families at one table and nobody else. Both remembered it fondly."
+            }
+          ]
+        },
+        {
+          "id": "sign_and_be_done",
+          "effects": [
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {spouse.name} signed the contract before witnesses and were back at work by the afternoon. {spouse.name} noticed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jilted",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "jilted",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "wish_them_well",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a gift to the wedding and was seen to mean it. People thought the better of the house."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing_to_anyone",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing about it to anyone, then or afterwards."
+            }
+          ]
+        },
+        {
+          "id": "there_are_others",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} remarked that there were other families in the Reach, and went back to work."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_cold_house",
+      "tier": "situation",
+      "weight": 14,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "marriage_cold",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "mend_it",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} cleared a month and spent it at home. It was awkward for a week and better after that."
+            }
+          ]
+        },
+        {
+          "id": "separate_lives",
+          "effects": [
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -5
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {spouse.name} came to an understanding: separate rooms, separate friends, one name. It was easier, and it was not a marriage."
+            }
+          ]
+        },
+        {
+          "id": "take_comfort_elsewhere",
+          "effects": [
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -4
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -10
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "unfaithful",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} found company elsewhere. For a while it was a great relief."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_affair_is_known",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "unfaithful",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "married",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "confess_it",
+          "effects": [
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -15
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "unfaithful",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {spouse.name} all of it. It was the worst evening of the marriage, and afterwards there was at least nothing left to find out."
+            }
+          ]
+        },
+        {
+          "id": "deny_everything",
+          "requires": [
+            {
+              "type": "skill",
+              "role": "self",
+              "skill": "intrigue",
+              "op": "gte",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -4
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "unfaithful",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} denied it so well that {spouse.name} apologised for asking. {self.name} did not feel better for it."
+            }
+          ]
+        },
+        {
+          "id": "end_it_and_say_so",
+          "effects": [
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "unfaithful",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} ended it and said so. {spouse.name} took a long time to answer, and the answer was not forgiveness, but it was not the end either."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_marriage_of_two_minds",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "marriage_warm",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "ask_what_they_think",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "diplomacy",
+              "delta": 1
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had got into the habit of talking the day over with {spouse.name}, and found the day went better for it."
+            }
+          ]
+        },
+        {
+          "id": "share_the_weight",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -12
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {spouse.name} what the year had really been like. Saying it aloud took half the weight off."
+            }
+          ]
+        },
+        {
+          "id": "go_away_together",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 10
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -10
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {spouse.name} went away for a month and told nobody where."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_elopement_is_answered",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "eloped",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "send_a_settlement",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 30
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -30
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {spouse.house} what a dowry would have cost them, unasked. It did not buy forgiveness. It bought the beginning of a conversation."
+            }
+          ]
+        },
+        {
+          "id": "ask_their_pardon",
+          "requires": [
+            {
+              "type": "skill",
+              "role": "self",
+              "skill": "diplomacy",
+              "op": "gte",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to {spouse.house} and asked pardon for the manner of it, though not for the marriage. It was more than they had expected."
+            }
+          ]
+        },
+        {
+          "id": "stand_on_it",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} answered that the thing was done and both parties to it were content, and that was the end of the letter."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_in_laws_ask_a_favour",
+      "tier": "situation",
+      "weight": 9,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "married",
+          "value": true
+        },
+        {
+          "type": "bond",
+          "from": "self",
+          "to": "spouse",
+          "bond": "marriage",
+          "present": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "lend_it",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 15
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -15
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "spouse",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} lent {spouse.house} what they asked and did not mention when it might come back. {spouse.name} was grateful and said so."
+            }
+          ]
+        },
+        {
+          "id": "lend_it_on_terms",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 15
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -15
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} lent {spouse.house} the money on terms, properly drawn. It was fair. {spouse.name} thought it was a little cold."
+            }
+          ]
+        },
+        {
+          "id": "refuse",
+          "effects": [
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {spouse.house} the house could not spare it. {spouse.name} did not argue, and did not forget."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "widowed",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "widowed_now",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "keep_the_year_of_mourning",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the full year of mourning and was seen to. It was not only for show."
+            }
+          ]
+        },
+        {
+          "id": "bury_it_in_work",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} was at work the week after the funeral and did not stop. People called it strength."
+            }
+          ]
+        },
+        {
+          "id": "think_of_the_house",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} grieved, and within the season began to think about who would carry the name. A house cannot wait on grief."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -15,8 +15,8 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 511 |
-| Events with text | 261 in 25 files |
+| Automated tests | 525 |
+| Events with text | 273 in 26 files |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
@@ -40,6 +40,7 @@ deterministic and saves and loads.
 | Laws and estates | 22 laws by position, six estates with opinions, Reach-wide Acts | `POLITICS` |
 | The three orders | Standing in the Senate, Arms and Commerce; callings; old and new names; sway; patrons and clients; a seat by the census; canvassing | `REPUBLIC` |
 | The economy | Prices that follow war and scarcity; ventures bought and sold; building over years; companies, shares, dividends, takeovers; war bonds; the Senate's and throne's hand on the market | `ECONOMY_MARKET` |
+| Love, courting and marriage | Courtship over years (the person's favour and the family's consent), rivals, a bargained contract, promises between children, suits for your kin, and a marriage with a warmth that moves | `MARRIAGE` |
 | A character of your own | Every dial on the person, the face, the house, its holdings and its family; a fair budget or none; presets, dice, a saved file | `CHARACTER` |
 | The Academy | A year apart from the world at sixteen; a school in the Republic, the Institute under the Imperium; the tutorial in full or in brief | `ACADEMY` |
 | Crises and endgame | Revolts, civil war, coalition war, the Great Crisis, proclaiming or seizing the Imperium, the epilogue | `MILESTONE_5_NOTES` |
@@ -80,8 +81,8 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
    can raise, so none is dead; they need a player who gets into those situations (a triumph, a takeover, a revolt).
 
 **The person and the family**
-1. Marriage is a proposal, a suit and three match events. There is no courtship, no affection that moves, no rival
-   suitor, no contract.
+1. Courtship is built (docs/MARRIAGE.md), for the player's house only: stewards still marry by proposal, a spouse does
+   nothing once married, and there are no children outside marriage.
 2. Whose name a child carries is decided by a fixed rule (the head of a house keeps the seat's children; otherwise the
    greater house; otherwise the father's). It is never negotiated: no marriage contract says whose the children are.
 3. Skills change only when an event says so, or in the Academy year. Nobody studies, trains or is taught.
@@ -134,8 +135,60 @@ the only real constraint on sequence. Each line is roughly one cycle of work (bu
 
 | Work | What it delivers | Ties to |
 |---|---|---|
-| **Love, courting and marriage** | Courtship as something you do over years: meeting, favour, rival suitors, a match for love or for advantage, the contract and the dowry, and what the marriage is like afterwards. Sketch below. | Personal wealth (dowries). Education (a spouse's skills count). Fixes the fragile *New Man* start. |
+| **Marriage, the rest** | Built: docs/MARRIAGE.md. Left: stewards who court, a spouse who counsels and runs the house in your absence, children outside marriage, a spouse's household. | Personal wealth (dowries in land and shares). Education (a spouse's skills count). |
 | **Education, skills and getting better** | Children are raised: a tutor, a focus, a household to be sent to. Adults improve by doing, by study and by being taught, and decline with age. Sketch below. | The Academy (a year of this already exists). The ladder of offices. Under the wing (a mentor teaches). |
+| **Personal wealth, house wealth and the dynasty's assets** | A person's own purse beside the house's. Allowances, dowries, wills, heirlooms, and an estate that is divided or kept whole when the head dies. Sketch below. | The economy (shares and ventures can be held personally). Succession laws. Marriage. |
+| **Under the wing** | A person, not only a house, can have a patron: a mentor, a guardian for a ward, adoption as an heir. A house of one can be taken into a greater household. Sketch below. | Patrons and clients (built for houses). Education. The custom character's "alone" start. |
+| **A life of one's own** | Health and wounds, a personal reputation apart from the house's, friendships and rivalries that last decades, retirement, a funeral and what is said at it. | The look and feel pass (the character sheet). Glory in Arms is a first piece of this. |
+
+**The Republic**
+
+| Work | What it delivers | Ties to |
+|---|---|---|
+| **The Caesar road** | The Senate votes a triumph or a recall. Fleets a commander has led to victory become loyal to him. A recalled general with loyal fleets may obey or cross the line: a civil war with the parties choosing sides. Victory ends the Republic. | Arms as an order; fleet loyalty; leads straight into the Imperium work. |
+| **The ladder of offices** | Lesser offices before the consulship, each with an age and a prior post. Holding each feeds standing in the Senate. | Education (what a post demands of its holder). |
+| **The state and commerce** | Tax-farming a region and contracts to supply the fleet, let by Senate motion. A patron calls in a client's vote on a real motion. Stewards use sway deliberately. | The Exchange; patrons and clients; under the wing. |
+
+**The Imperium**
+
+| Work | What it delivers | Ties to |
+|---|---|---|
+| **Politics under a throne** | The owner's Imperium expansion. How an Emperor governs and how everyone else gets what they want from him: the court as a place, favour, a council, offices by appointment, the succession as a contest, the Senate that remains, the guard. Sketch below. Needs its own plan before building. | The Caesar road is how most runs arrive here. The three orders need a meaning under a throne. Marriage (the imperial match). |
+
+**Breaking away**
+
+| Work | What it delivers | Ties to |
+|---|---|---|
+| **Secession** | A region, or only your own worlds in it, leaves the Republic or the Imperium and becomes a state of its own with you at its head, as the Rim left the Society in *Red Rising*. It can be planned across generations or done in a decade by a house strong enough. You must be able to stand alone first: an economy that feeds itself or has something the rest cannot do without, and a fleet of your own. Then, almost always, a civil war for it. Sketch below. Needs its own plan; several cycles. | The economy (what a domain makes and needs; a monopoly as leverage). Military depth (supply, loyalty). The Caesar road (a civil war with sides). Nations on the map (a second state with a border). Politics under a throne (how an Emperor answers). Marriage and patronage (binding the region's houses). |
+
+**The economy**
+
+| Work | What it delivers | Ties to |
+|---|---|---|
+| **Economy follow-ups** | Hostile stakes by rival stewards, a bubble that bursts, companies that found ventures, a view of one company, the glut. | Personal wealth (who owns the shares). |
+
+**The world**
+
+| Work | What it delivers | Ties to |
+|---|---|---|
+| **Nations on the map** | Territory, borders and fronts for the nations beyond the Reach. | Needed before *The Threat From Beyond* (section 6). |
+| **Sound, balance, content** | Audio, a balance pass across sixty-year runs, and events for whatever the soak shows never fires. | Best done after the person-and-family group, which will add many events. |
+
+**Presentation and the first hour**
+
+| Work | What it delivers | Ties to |
+|---|---|---|
+| **Look and feel pass** | Section 5. Planned, not started. | The custom character (the face editor). A life of one's own (the character sheet). |
+| **Starts and first hour** | The title screen grouped by road (born to a name, by arms, by commerce, the Academy). The orders, courtship and education in the Academy's lessons. | Marriage (an early match for the New Man). |
+
+**Later chapters** (section 6): *Courts of Intrigue*, *The Frontier*, *The Threat From Beyond*, *AI Ascendant*, *Wrath
+of the Stars*. Each is several cycles.
+
+### Sketches for the newer pieces
+
+Short on purpose. Each needs a proper plan before it is built. "Today" is what the game has now.
+
+**Education, skills and getting better** | Children are raised: a tutor, a focus, a household to be sent to. Adults improve by doing, by study and by being taught, and decline with age. Sketch below. | The Academy (a year of this already exists). The ladder of offices. Under the wing (a mentor teaches). |
 | **Personal wealth, house wealth and the dynasty's assets** | A person's own purse beside the house's. Allowances, dowries, wills, heirlooms, and an estate that is divided or kept whole when the head dies. Sketch below. | The economy (shares and ventures can be held personally). Succession laws. Marriage. |
 | **Under the wing** | A person, not only a house, can have a patron: a mentor, a guardian for a ward, adoption as an heir. A house of one can be taken into a greater household. Sketch below. | Patrons and clients (built for houses). Education. The custom character's "alone" start. |
 | **A life of one's own** | Health and wounds, a personal reputation apart from the house's, friendships and rivalries that last decades, retirement, a funeral and what is said at it. | The look and feel pass (the character sheet). Glory in Arms is a first piece of this. |

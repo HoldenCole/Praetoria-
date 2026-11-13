@@ -12,6 +12,8 @@
   `tools/ci.sh` now runs CI's exact steps locally.
 
 ### Changed
+- Another house can no longer marry one of your kin without asking: its proposal becomes a suit the head answers.
+- A steward's proposal to someone you are courting becomes a rival suit, not a wedding.
 - **Faster turns.** A house's laws are summed into one table per ledger instead of rescanning every region on each
   lookup; turn processing is about a third of what it was. The browser builds the projection once per action and
   memoises pure questions (Senate weight, law tables, who leans how) until the next one. `?perf` in the address prints
@@ -25,6 +27,17 @@
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **Love, courting and marriage** (docs/MARRIAGE.md), on the Dynasty screen. A courtship is won over years from the
+  person (favour) and from their family (consent), one act a year: time together, a gift, the case put to the family,
+  word against a rival. Rivals press the same suit and can win it. The contract is bargained when the match is proposed:
+  the dowry, and whose name the children carry. Children of six and over can be promised and wed at sixteen. A suit
+  another house brings for one of your kin waits for your answer. At high favour a couple can marry without leave.
+- **Marriages have a warmth** that moves with the years. Warm ones bear more children and ease the head; cold ones bear
+  fewer; the coldest live apart and bear none. The head can tend their own marriage, or divorce. A widow or widower is
+  free to marry again.
+- Twelve events for courtship and marriage; three event effects (`courtship`, `marriage`, `beginCourtship`); alerts for
+  a suit to answer, a rival ahead and a suit waiting on the year's attention.
+- `tools/browser/courtship.js` plays a suit to its end in a headless browser. The soak's random player now courts.
 - **A character of your own** (docs/CHARACTER.md), the first card on the title screen. Six tabs set the person (age,
   service, rank, ambition, natures, aptitudes, thirteen skills), the face (skin, hair, cut, beard, a scar), the house
   (name, old or new, rank, legitimacy, culture, party, colour, the whole treasury, a seat, a patron), what it holds

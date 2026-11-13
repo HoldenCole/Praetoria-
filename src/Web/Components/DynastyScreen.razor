@@ -21,6 +21,7 @@
         </div>
     </header>
     <div class="dash-grid lineage-grid">
+        <div class="dash-col">
         <section class="panel">
             <h3><Icon Name="dynasty" Size="13" /> The family tree <span class="muted">a row a generation · the eldest leftmost · click a name</span></h3>
             <svg class="tree" viewBox="0 0 1000 @(Math.Max(240, tree.rows * 120 + 40))" role="img" aria-label="the family tree">
@@ -37,6 +38,8 @@
             </svg>
             <div class="chamber-legend"><span class="lg"><i style="background:@house.AccentColor"></i>@house.Name</span><span class="lg"><i class="none"></i>wed in from another house</span><span class="lg">✦ you · ★ heir · † remembered</span></div>
         </section>
+        <CourtshipPanel />
+        </div>
         <aside class="dash-side">
             @if (fc != null)
             {

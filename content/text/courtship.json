@@ -1,0 +1,126 @@
+{
+  "texts": [
+    {
+      "id": "an_introduction",
+      "title": "An Introduction",
+      "body": "At a dinner {self.name} is seated beside {match.name} of {match.house}, which may or may not have been arranged by the hostess. The conversation is better than the dinner. Nothing has been said and nothing need be, but {self.name} is unmarried, and it is the kind of evening a courtship can start from.",
+      "choices": {
+        "pay_a_call": "Call on them this week.",
+        "ask_about_them_first": "Ask about them first.",
+        "think_no_more_of_it": "Think no more of it."
+      }
+    },
+    {
+      "id": "a_rival_for_the_hand",
+      "title": "A Rival For The Hand",
+      "body": "{rival.name} of {rival.house} has begun calling on {beloved.name}. The family receives them both with the same courtesy, which tells {self.name} nothing. {rival.name} has a name and prospects, and no reason to step aside.",
+      "choices": {
+        "outshine_them": "Be better company than they are.",
+        "meet_them_openly": "Speak to the rival openly.",
+        "a_quiet_word_in_the_right_ear": "A quiet word in the right ear.",
+        "say_nothing_and_wait": "Say nothing and wait."
+      }
+    },
+    {
+      "id": "what_are_your_prospects",
+      "title": "What Are Your Prospects?",
+      "body": "The head of {beloved.house} asks {self.name} to stay behind after dinner. The question is put kindly and is not kind: what, exactly, does {self.name} have to offer {beloved.name}? A family does not hand over one of its own on the strength of a pleasant manner.",
+      "choices": {
+        "show_them_the_books": "Show them the books.",
+        "speak_of_what_the_house_will_be": "Speak of what the house will be.",
+        "name_your_patron": "Name your patron.",
+        "tell_them_the_truth": "Tell them the truth."
+      }
+    },
+    {
+      "id": "a_letter_unanswered",
+      "title": "A Letter Unanswered",
+      "body": "It is three weeks since {self.name} wrote to {beloved.name} and nothing has come back. It may mean nothing. Letters go astray, families read them first, people are away. It may mean something.",
+      "choices": {
+        "write_again": "Write again.",
+        "go_in_person": "Go in person.",
+        "let_it_lie": "Let it lie."
+      }
+    },
+    {
+      "id": "the_wedding_day",
+      "title": "The Wedding",
+      "body": "The contract is agreed and {spouse.name} of {spouse.house} is to be {self.name}'s. What remains is how it is done. A wedding is the one day a house shows everyone what it thinks of itself, and of the person it is marrying.",
+      "choices": {
+        "a_feast_the_city_will_remember": "A feast the city will remember.",
+        "the_two_families_at_one_table": "The two families at one table.",
+        "sign_and_be_done": "Sign and be done."
+      }
+    },
+    {
+      "id": "jilted",
+      "title": "Chosen Against",
+      "body": "It is settled, and not in {self.name}'s favour. The family chose the other suit. There will be a wedding, and {self.name} will be expected to know about it and not to mind.",
+      "choices": {
+        "wish_them_well": "Wish them well, and mean it.",
+        "say_nothing_to_anyone": "Say nothing to anyone.",
+        "there_are_others": "There are others."
+      }
+    },
+    {
+      "id": "a_cold_house",
+      "title": "A Cold House",
+      "body": "{self.name} and {spouse.name} have dined together four times this month and spoken of the household accounts on each of them. Nobody has done anything wrong. The house is simply cold, and a cold house does not warm by being left alone.",
+      "choices": {
+        "mend_it": "Clear a month and mend it.",
+        "separate_lives": "Agree to separate lives.",
+        "take_comfort_elsewhere": "Take comfort elsewhere."
+      }
+    },
+    {
+      "id": "the_affair_is_known",
+      "title": "The Affair Is Known",
+      "body": "{spouse.name} knows. It was a servant, or a letter, or simply the look of the thing; it does not matter which. {spouse.name} has asked {self.name} one question, quietly, and is waiting for the answer.",
+      "choices": {
+        "confess_it": "Confess it.",
+        "deny_everything": "Deny everything.",
+        "end_it_and_say_so": "End it, and say so."
+      }
+    },
+    {
+      "id": "a_marriage_of_two_minds",
+      "title": "A Marriage Of Two Minds",
+      "body": "It is noticed, by people who notice such things, that {self.name} and {spouse.name} are happy. They finish each other's arguments. {spouse.name} knows what {self.name} is going to decide before {self.name} does, and is usually right about whether it is wise.",
+      "choices": {
+        "ask_what_they_think": "Make a habit of asking what they think.",
+        "share_the_weight": "Share the weight of the year.",
+        "go_away_together": "Go away together for a month."
+      }
+    },
+    {
+      "id": "the_elopement_is_answered",
+      "title": "The Family Writes",
+      "body": "A letter comes from {spouse.house}, in the hand of its head and not of a secretary. It is short. They were not asked; they would have said no; their kin has been taken out of their house like a parcel. They want to know what {self.name} proposes to do about it.",
+      "choices": {
+        "send_a_settlement": "Send what a dowry would have cost them.",
+        "ask_their_pardon": "Go and ask their pardon.",
+        "stand_on_it": "Stand on it."
+      }
+    },
+    {
+      "id": "the_in_laws_ask_a_favour",
+      "title": "The In-Laws Ask A Favour",
+      "body": "{spouse.name}'s family is short this season and has asked, through {spouse.name}, whether {self.name}'s house could see its way to a loan. Fifteen credits. They are family now, as {spouse.name} does not quite say.",
+      "choices": {
+        "lend_it": "Lend it, and say nothing of when.",
+        "lend_it_on_terms": "Lend it, on proper terms.",
+        "refuse": "Refuse."
+      }
+    },
+    {
+      "id": "widowed",
+      "title": "Widowed",
+      "body": "The house is quiet in a way it has not been before. The marriage is over because one of the two people in it is dead, and {self.name} is the one left to decide what the household does now.",
+      "choices": {
+        "keep_the_year_of_mourning": "Keep the year of mourning.",
+        "bury_it_in_work": "Bury it in work.",
+        "think_of_the_house": "Think of the house."
+      }
+    }
+  ]
+}

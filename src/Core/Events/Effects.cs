@@ -312,3 +312,55 @@ public sealed class LogEffect : IEffect
     public void Apply(EvalContext ctx) =>
         ctx.World.Log(TextRenderer.Substitute(Text, ctx));
 }
+
+/// <summary>Move a courtship of the protagonist's house (docs/MARRIAGE.md): the one for the person bound to <c>role</c>, or every
+/// suit the protagonist is pressing. JSON: { "type": "courtship", "role": "beloved", "favour": 8, "consent": 0, "rival": -10 }.</summary>
+public sealed class CourtshipEffect : IEffect
+{
+    public string Role { get; }
+    public int Favour { get; }
+    public int Consent { get; }
+    public int Rival { get; }
+    public CourtshipEffect(string role, int favour, int consent, int rival) { Role = role; Favour = favour; Consent = consent; Rival = rival; }
+    public void Apply(EvalContext ctx)
+    {
+        var w = ctx.World; string? target = Role.Length > 0 ? ctx.Actor(Role)?.Id : null;
+        foreach (var c in w.Courtships.Where(c => !c.Incoming && !c.Betrothed && (target != null ? c.TargetId == target : c.SuitorId == w.ProtagonistId)))
+        {
+            if (!Systems.CourtshipSystem.IsChildMatch(w, c)) c.Favour = Math.Clamp(c.Favour + Favour, 0, 100);
+            c.Consent = Math.Clamp(c.Consent + Consent, 0, 100);
+            if (c.RivalId.Length > 0) c.RivalStanding = Math.Clamp(c.RivalStanding + Rival, 0, 100);
+        }
+    }
+}
+
+/// <summary>Warm or cool the marriage of the character bound to <c>role</c> (default "self").
+/// JSON: { "type": "marriage", "role": "self", "warmth": -10 }.</summary>
+public sealed class MarriageEffect : IEffect
+{
+    public string Role { get; }
+    public int Warmth { get; }
+    public MarriageEffect(string role, int warmth) { Role = role; Warmth = warmth; }
+    public void Apply(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role); var m = c == null ? null : ctx.World.MarriageOf(c.Id); if (m == null) return;
+        m.Warmth = Math.Clamp(m.Warmth + Warmth, 0, 100);
+    }
+}
+
+/// <summary>Begin a courtship between the characters bound to <c>suitor</c> (default "self") and <c>target</c>, if nothing bars
+/// it, with a head start in the courted person's favour. JSON: { "type": "beginCourtship", "target": "match", "favour": 12 }.</summary>
+public sealed class BeginCourtshipEffect : IEffect
+{
+    public string Suitor { get; }
+    public string Target { get; }
+    public int Favour { get; }
+    public BeginCourtshipEffect(string suitor, string target, int favour) { Suitor = suitor; Target = target; Favour = favour; }
+    public void Apply(EvalContext ctx)
+    {
+        var w = ctx.World; var s = ctx.Actor(Suitor); var t = ctx.Actor(Target); if (s == null || t == null) return;
+        var head = w.House(s.HouseId) is { } h ? Systems.Economy.HeadOf(w, h) : null;
+        if (Systems.CourtshipSystem.BeginRefusal(w, head, s, t) == null) Systems.CourtshipSystem.Begin(w, s, t, Favour);
+    }
+}
+

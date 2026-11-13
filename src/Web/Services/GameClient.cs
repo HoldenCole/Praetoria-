@@ -137,6 +137,9 @@ public sealed class GameClient
         return ok;
     }
 
+    /// <summary>A context for asking a command whether it would be refused. Not for executing.</summary>
+    public CommandContext Ctx => new(World!, WorldBuilder.RngFor(World!));
+
     public bool Execute(ICommand command)
     {
         if (Turn == null || World == null) return false;

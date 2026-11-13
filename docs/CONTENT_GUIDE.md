@@ -227,6 +227,9 @@ Used in a choice's `effects` array. Applied in order when the choice is taken.
 | `makePeace` | `role` | self's house and the role's house make peace |
 | `joinBloc` | `bloc: hegemon\|alliance` | move self's house into a Great-Crisis bloc |
 | `adjustLegitimacy` | `role`(default `self`), `delta` | change the house's legitimacy/standing (clamped ≥0, GDD §13) |
+| `courtship` | `role`(optional), `favour`, `consent`, `rival` | move a suit of the protagonist's house: the one for the person bound to `role`, or every suit the protagonist presses (docs/MARRIAGE.md) |
+| `marriage` | `role`(default `self`), `warmth` | warm or cool that character's marriage |
+| `beginCourtship` | `suitor`(default `self`), `target`, `favour` | begin a courtship if nothing bars it, with a head start in favour |
 | `setTitle` | `role`(default `self`), `title` | set the house's title outright — grant / usurp / abdicate (GDD §13) |
 | `kill` | `role` | kill a character — assassination / duel / Bloody Event; if it's the protagonist, succession fires (GDD §14) |
 | `log` | `text` | write a chronicle line (supports `{role.field}` tokens) |

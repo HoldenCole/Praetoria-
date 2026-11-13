@@ -662,3 +662,18 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .ws-problems { border: 1px solid rgba(230,57,70,.5); background: rgba(230,57,70,.08); border-radius: 4px; padding: .5rem .7rem; font-size: .84rem; } .ws-problems b { display: block; margin-bottom: .2rem; color: #E63946; }
 @media (max-width: 700px) { .ws-top { flex-direction: column; } }
 .workshop .chip.file { text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: .85rem; cursor: pointer; display: inline-flex; align-items: center; }
+
+/* ---- courtship and marriage (docs/MARRIAGE.md) ---- */
+.dash-col { display: flex; flex-direction: column; gap: .8rem; min-width: 0; }
+.panel.courtship .suit { border-top: 1px solid var(--line); padding: .55rem 0 .5rem; }
+.panel.courtship .suit.incoming { border-left: 2px solid var(--brass2); padding-left: .6rem; }
+.suit-who { display: flex; align-items: center; gap: .45rem; font-size: .9rem; } .suit-who > div { min-width: 0; line-height: 1.3; }
+.suit-acts { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem; margin: .25rem 0 .1rem; }
+.suit .gauge { grid-template-columns: 9.5rem 1fr 34px; } .suit .gauge span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.suit .gauge.rival i b { background: var(--warn); }
+.suit .terms { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem .3rem; margin: .2rem 0; font-size: .78rem; } .suit .terms > span { color: var(--muted); margin-right: .1rem; } .suit .terms > i { flex-basis: 100%; height: 0; }
+.suit b.good { color: var(--good); } .suit b.bad, .suit .small.bad { color: var(--warn); }
+.suit-head { margin-bottom: .2rem; }
+table.prospects td, table.prospects th { padding: .18rem .4rem; font-size: .82rem; } table.prospects td.num { text-align: right; font-variant-numeric: tabular-nums; } table.prospects td.good { color: var(--good); } table.prospects td.bad { color: var(--warn); }
+@media (max-width: 700px) { .suit .gauge { grid-template-columns: 6.5rem 1fr 30px; } table.prospects th:nth-child(3), table.prospects td:nth-child(3) { display: none; } }
+

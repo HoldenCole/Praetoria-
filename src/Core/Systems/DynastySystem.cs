@@ -245,7 +245,7 @@ public sealed class DynastySystem
             var father = Spouse(world, mother);
             if (father == null || father.Sex != "male") continue;   // births need a mother and a father
             if (world.Characters.Values.Any(k => k.MotherId == mother.Id && k.Age < 2)) continue;   // a year between children
-            if (rng.NextDouble() < BirthChance)
+            if (rng.NextDouble() < BirthChance * CourtshipSystem.Fertility(world, mother, father))   // a warm marriage bears more, a cold one fewer, an estranged one none
                 Bear(world, mother, father, rng);
         }
     }
@@ -301,6 +301,7 @@ public sealed class DynastySystem
         var houseFather = world.House(father.HouseId); var houseMother = world.House(mother.HouseId);
         bool motherKeeps = mother.Id == world.ProtagonistId
             || (father.Id != world.ProtagonistId && houseMother != null && houseFather != null && Content != null && Content.Titles.RankOf(houseMother.Title) > Content.Titles.RankOf(houseFather.Title));
+        if (CourtshipSystem.ContractNameHouse(world, mother, father) is { } agreed) motherKeeps = agreed == mother.HouseId;   // what the marriage contract said
         var lineParent = motherKeeps ? mother : father;
         var house = world.House(lineParent.HouseId);
         if (lineParent.HouseId == world.Protagonist?.HouseId) world.WorldCounters["dynasty_births"] = world.Counter("dynasty_births") + 1;   // the saga's own count

@@ -22,6 +22,7 @@ Playwright with Chromium must be installed where you run the script. `PRAETORIA_
 | `node play.js turns "The Old Lion" 6 perf` | Seconds each End Turn takes, and with `perf` where they went. |
 | `node play.js exchange "The Circling Heir" 8` | The four Exchange tabs render and an order goes through on each. |
 | `node play.js phone "The Fallen House" 2` | The main screens at 390 pixels wide, and what runs past the edge. |
+| `node courtship.js "The New Man" 8` | Courtship on the Dynasty screen: begins a suit, presses it each year, proposes when the family would agree. |
 | `node workshop.js "The Heir" 3` | The character workshop: every tab, preset and mode, then a saga begun from it. Add `academy` to begin at the Academy. |
 
 ## Reading the numbers

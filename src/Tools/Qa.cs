@@ -291,6 +291,25 @@ internal static class Qa
                 if (decisions.NextInt(0, 16) == 0) cands.Add(new CanvassCommand(p.Id, o.Id, os, x => ElectionSystem.Nominees(x, content.Offices, id => tc.Senate.Weight(x, id)).Select(n => n.houseId)));
             }
         }
+        {   // courtship and marriage: begin suits, press them, settle them, answer the suits of others, tend and end marriages
+            string[] acts = { CourtshipSystem.ActTime, CourtshipSystem.ActGift, CourtshipSystem.ActFamily, CourtshipSystem.ActRival }; string[] dowries = { CourtshipSystem.None, CourtshipSystem.Customary, CourtshipSystem.Rich };
+            foreach (var k in w.LivingCharacters().Where(k => k.HouseId == house.Id && k.Age >= CourtshipSystem.BetrothalAge && DynastySystem.Spouse(w, k) == null).OrderBy(k => k.Id, StringComparer.Ordinal).Take(3))
+            {
+                if (decisions.NextInt(0, 3) != 0) continue; var pr = CourtshipSystem.Prospects(w, k);
+                if (pr.Count > 0) cands.Add(new CourtCommand(p.Id, k.Id, pr[decisions.NextInt(0, Math.Min(pr.Count, 8))].person.Id));
+            }
+            foreach (var su in w.Courtships.OrderBy(x => x.Id, StringComparer.Ordinal).ToList())
+            {
+                string kids = decisions.NextInt(0, 3) switch { 0 => house.Id, 1 => "", _ => w.Char(su.Incoming ? su.SuitorId : su.TargetId)?.HouseId ?? "" };
+                cands.Add(new SettleSuitCommand(p.Id, su.Id, SettleSuitCommand.Propose, dowries[decisions.NextInt(0, 3)], kids));
+                if (su.Incoming) { if (decisions.NextInt(0, 3) == 0) cands.Add(new SettleSuitCommand(p.Id, su.Id, SettleSuitCommand.Refuse)); continue; }
+                cands.Add(new WooCommand(p.Id, su.Id, acts[decisions.NextInt(0, acts.Length)])); cands.Add(new SettleSuitCommand(p.Id, su.Id, SettleSuitCommand.Elope));
+                if (decisions.NextInt(0, 10) == 0) cands.Add(new SettleSuitCommand(p.Id, su.Id, SettleSuitCommand.BreakOff));
+            }
+            cands.Add(new MarriageCommand(p.Id, p.Id, MarriageCommand.Tend));
+            if (decisions.NextInt(0, 25) == 0) foreach (var mm in w.Marriages.Where(mm => w.Char(mm.A)?.HouseId == house.Id || w.Char(mm.B)?.HouseId == house.Id).OrderBy(mm => mm.A, StringComparer.Ordinal).Take(1))
+                cands.Add(new MarriageCommand(p.Id, w.Char(mm.A)?.HouseId == house.Id ? mm.A : mm.B, MarriageCommand.Divorce));
+        }
         if (tc.Companies is { Open: true } cx)   // the Exchange: list, trade, and sit on the board
         {
             foreach (var b in w.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0).OrderBy(b => b.Id, StringComparer.Ordinal)) if (decisions.NextInt(0, 5) == 0) cands.Add(new IncorporateCommand(p.Id, b.Id, CompanySystem.ControlledBy(w, house.Id).FirstOrDefault()?.Id ?? "", cx));

@@ -77,6 +77,7 @@ public sealed class ProposeMarriageCommand : ICommand
         if (s.Age < DynastySystem.AgeOfMajority || t.Age < DynastySystem.AgeOfMajority) return "too young";
         if (s.Sex == "" || t.Sex == "" || s.Sex == t.Sex) return "no heirs could come of it";
         if (IsMarried(w, s.Id) || IsMarried(w, t.Id)) return "already wed";
+        if (s.HouseId == w.Protagonist?.HouseId && (CourtshipSystem.Promised(w, s.Id) || CourtshipSystem.Promised(w, t.Id))) return "already promised";
         if (w.AtWar(s.HouseId, t.HouseId)) return "not while your houses are at war";
         if (t.Flags.Contains(DynastySystem.HiddenFlag)) return "they cannot be found";
         if (t.Id == w.ProtagonistId) return s.Flags.Contains(SuitorFlag) ? "your suit is already before them" : null;   // the player decides
@@ -98,21 +99,9 @@ public sealed class ProposeMarriageCommand : ICommand
             w.Log($"{s.Name} of {w.House(s.HouseId)?.Name} seeks {t.Name}'s hand.");
             return;
         }
-        foreach (var (a, b) in new[] { (s.Id, t.Id), (t.Id, s.Id) })
-        {
-            var rel = w.Relationship(a, b); rel.Bond = BondType.Marriage; rel.BondStrength = 60;
-            rel.Disposition = Math.Clamp(rel.Disposition + 20, -100, 100);
-        }
-        s.Flags.Add("wed"); t.Flags.Add("wed");
-        var ours = w.House(s.HouseId)!; var theirs = w.House(t.HouseId)!;
-        int ourRank = _titles?.RankOf(ours.Title) ?? 0, theirRank = _titles?.RankOf(theirs.Title) ?? 0;
-        if (theirRank > ourRank) { ours.Claims.Add(theirs.Title); ours.Legitimacy += 5; }
-        else if (ourRank > theirRank) { theirs.Claims.Add(ours.Title); theirs.Legitimacy += 5; }
-        else { ours.Legitimacy += 2; theirs.Legitimacy += 2; }
-        // the counter is the player's own house's matches: an honour and the epilogue read it as "bound to yours"
-        string? mine = w.Protagonist?.HouseId;
-        if (ours.Id == mine || theirs.Id == mine) w.WorldCounters["marriages"] = w.Counter("marriages") + 1;
-        w.Log($"{s.Name} of {ours.Name} weds {t.Name} of {theirs.Name}.");
+        // a proposal that touches the player's house or one of its suits is not settled in a season (docs/MARRIAGE.md)
+        if (CourtshipSystem.Intercept(w, s, t)) return;
+        CourtshipSystem.Wed(w, s, t, CourtshipSystem.Arranged);
     }
 }
 

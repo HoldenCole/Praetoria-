@@ -1,0 +1,30 @@
+@using Praetoria.Core.Systems
+@* The marriage contract: what passes with the bride, and whose name the children carry. *@
+@{
+    var s = W.Char(Suit.SuitorId)!; var t = W.Char(Suit.TargetId)!; var ours = Suit.Incoming ? t : s; var theirs = Suit.Incoming ? s : t;
+    var bride = ours.Sex == "female" ? ours : theirs; bool weReceive = bride.Id == theirs.Id; int due = CourtshipSystem.CustomaryDowry(W, bride.HouseId);
+    string custom = CourtshipSystem.DefaultNameHouse(W, ours, theirs);
+}
+<div class="terms">
+    <span title="@(weReceive ? "Credits that come to your house with the bride. Ask for less and they agree more readily." : "Credits your house sends with the bride. Offer more and they agree more readily.")">@(weReceive ? "Dowry asked" : "Dowry offered")</span>
+    @foreach (var d in Levels)
+    {
+        string lv = d; int amt = CourtshipSystem.DowryAmount(W, bride.HouseId, d);
+        <button class="opt inline tiny @(Dowry == d ? "here" : "")" @onclick="() => OnChange.InvokeAsync((lv, Kids))">@(d == CourtshipSystem.None ? "none" : $"{d} · {amt}")</button>
+    }
+    <i></i>
+    <span title="By custom the head of a house keeps the seat's children, otherwise the greater house does, otherwise the father's. The contract can say otherwise, at a price.">Children's name</span>
+    <button class="opt inline tiny @(Kids.Length == 0 ? "here" : "")" @onclick="() => OnChange.InvokeAsync((Dowry, string.Empty))">by custom (@Short(W.House(custom)?.Name))</button>
+    <button class="opt inline tiny @(Kids == ours.HouseId ? "here" : "")" @onclick="() => OnChange.InvokeAsync((Dowry, ours.HouseId))">yours</button>
+    <button class="opt inline tiny @(Kids == theirs.HouseId ? "here" : "")" @onclick="() => OnChange.InvokeAsync((Dowry, theirs.HouseId))">theirs</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public World W { get; set; } = default!;
+    [Parameter, EditorRequired] public Courtship Suit { get; set; } = default!;
+    [Parameter] public string Dowry { get; set; } = CourtshipSystem.Customary;
+    [Parameter] public string Kids { get; set; } = "";
+    [Parameter] public EventCallback<(string dowry, string kids)> OnChange { get; set; }
+    private static readonly string[] Levels = { CourtshipSystem.None, CourtshipSystem.Customary, CourtshipSystem.Rich };
+    private static string Short(string? name) => (name ?? "").Replace("House ", "");
+}

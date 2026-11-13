@@ -114,6 +114,9 @@ public sealed class TurnController
         _senate.Exchange = _companies; if (_companies != null) _companies.Offices = content.Offices;
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures, Exchange = _companies, Orders = _orders, HoldingCatalogForFounding = content.Holdings };
         _dynasty = new DynastySystem { Content = content };
+        // Every marriage the world opens with gets its record, without fanfare. Once only: a save resumed mid-year must not
+        // quietly record a wedding the year's own reckoning would have announced.
+        if (world.Counter(CourtshipSystem.OpenedCounter) == 0) { CourtshipSystem.Sync(world, announce: false); world.WorldCounters[CourtshipSystem.OpenedCounter] = 1; }
         _honors = new HonorSystem(content.Honors);
         _greatCrisis = new GreatCrisisSystem(content.GreatCrisis, _fleets);
         _briefingBudget = briefingBudget;
@@ -223,6 +226,7 @@ public sealed class TurnController
             _crises.Recover(World);       // and with no crisis active, the realm's wounds close (data rules)
         }
 
+        using (Perf.Time("end:courtship")) { CourtshipSystem.Tick(World); }   // suits advance, rivals press, marriages warm or cool (docs/MARRIAGE.md) — RNG-free
         using (Perf.Time("end:dynasty")) { _dynasty.Tick(World, _rng); }   // age, deaths→succession, births (GDD §14). RNG only where life turns.
         using (Perf.Time("end:family")) { _family.Tick(World); }          // kin with wills of their own (GDD §18) — RNG-free
         using (Perf.Time("end:houses")) { HouseSystem.Tick(World); }      // names that have lost everything pass out of the rolls (GDD §13) — RNG-free

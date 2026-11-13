@@ -886,3 +886,24 @@ the player's own house.
 house. The face has five dials and one uniform. The budget's prices are a first guess and have not been tuned against
 how the written starts actually play (the written starts were not priced).
 
+## 31. Love, courting and marriage — 2026-11-13
+
+Built as docs/MARRIAGE.md describes: `Courtship` and `Marriage` on the world, `CourtshipSystem`, four commands, three
+event effects, a panel on the Dynasty screen, twelve events.
+
+**Measured.** 525 tests. The 60-turn soak on eleven starts and three seeds passes with a random player who now courts:
+lines ended in 2 of 33 runs, against 7 of 33 before the player could court. In the browser, on *The New Man*: a suit
+pressed only with time together reached favour 67 in three years and the family agreed (38 + 15); a second run that
+never spoke to the family (28) lost to a rival in year six with favour at 100.
+
+**Found on the way.**
+- Opening a saved world recorded marriages quietly, so a save taken mid-year lost the wedding's announcement. Found by
+  the soak as a save/load difference; the opening record is now made once per world.
+- Another house could marry the player's kin without the head being asked. It is a suit to answer now.
+- The match list put a woman of 45 first for a house with no heir. Matches likely to bear are listed first and the
+  others are marked.
+
+**Gaps that remain.** Stewards do not court or divorce. A spouse does nothing. No children outside marriage. Dowries
+are credits only. The affair and the elopement's letter were not seen to fire in the soak. The numbers (thresholds,
+the rival's pace, warmth's effect on births) are first guesses, checked only for not breaking a line.
+

@@ -354,7 +354,7 @@ public static class CourtProjection
                     if (suitor != null)
                     {
                         var pm = new ProposeMarriageCommand(p.Id, suitor.Id, c.Id, content.Titles);
-                        actions.Add(new Option("marry:" + suitor.Id, $"Propose {suitor.Name} ⚭ {c.Name}  (2 influence)", pm.Refusal(ctx)));
+                        actions.Add(new Option("marry:" + suitor.Id, $"Propose {suitor.Name} ⚭ {c.Name} by treaty  (2 influence)", pm.Refusal(ctx)));
                     }
                     var kill = new AssassinateCommand(p.Id, c.Id, content.Friction);
                     actions.Add(new Option("assassinate", $"Arrange an accident  (2 agents · {AssassinateCommand.Odds(w, p, c):P0})", kill.CanExecute(ctx) ? null : "unreachable, or no agents"));
