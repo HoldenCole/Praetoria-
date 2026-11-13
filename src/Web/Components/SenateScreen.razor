@@ -120,6 +120,8 @@
                     <div class="motion @(mo.AgainstMe ? "against" : mo.Mine ? "mine" : mo.Petition ? "petition" : "") @(watched?.Id == mo.Id ? "watched" : "")" @onclick="() => _watch = mo.Id">
                         <div class="mo-head"><b>@mo.KindName</b> <span class="muted small">@(mo.Petition ? "the petition of" : "moved by") <span style="color:@mo.ProposerAccent">@mo.ProposerName</span> · vote @(mo.ProposedTurn < w.Turn ? "at the end of this turn" : "next session")</span></div>
                         <div class="mo-text">@mo.Text</div>
+                        @{ var motionNow = w.Motions.FirstOrDefault(x => x.Id == mo.Id); int patronWish = motionNow != null ? senate.PatronWish(w, motionNow, house.Id) : 0; }
+                        @if (patronWish != 0) { <div class="small warn">Your patron, @(w.House(house.PatronId)?.Name), wants this @(patronWish > 0 ? "carried" : "thrown out"). How you vote will be noticed.</div> }
                         <div class="tally"><span class="for" style="width:@(100 * mo.ForWeight / total)%"></span><span class="against" style="width:@(100 * mo.AgainstWeight / total)%"></span></div>
                         <div class="small tally-line"><b class="@(mo.ForWeight > mo.AgainstWeight ? "good" : "warn")">@(mo.ForWeight > mo.AgainstWeight ? "Carries" : mo.ForWeight == mo.AgainstWeight ? "Tied — fails" : "Fails") as the benches lean</b> <span class="muted">· for @mo.ForWeight · against @mo.AgainstWeight</span></div>
                         <div class="row small">

@@ -72,7 +72,9 @@ public sealed class StakeClaimCommand : ICommand
 public sealed class FoundBusinessCommand : ICommand
 {
     private readonly string _defId, _systemId; private readonly BusinessCatalog _ventures; private readonly HoldingCatalog _catalog; private readonly Progression.TitleCatalog? _titles;
-    public FoundBusinessCommand(string actorId, string defId, string systemId, BusinessCatalog ventures, HoldingCatalog catalog, Progression.TitleCatalog? titles = null) { ActorId = actorId; _defId = defId; _systemId = systemId; _ventures = ventures; _catalog = catalog; _titles = titles; }
+    private readonly string _companyId;
+    /// <param name="companyId">A company the house directs, to found the venture from the company's cash and into its hands; "" for the house's own.</param>
+    public FoundBusinessCommand(string actorId, string defId, string systemId, BusinessCatalog ventures, HoldingCatalog catalog, Progression.TitleCatalog? titles = null, string companyId = "") { ActorId = actorId; _defId = defId; _systemId = systemId; _ventures = ventures; _catalog = catalog; _titles = titles; _companyId = companyId ?? ""; }
     public string ActorId { get; }
     public string Describe() => $"found {_defId} in {_systemId}";
     public static string IdFor(string houseId, string defId, string systemId) => $"biz_{houseId}_{defId}_{systemId}";
@@ -94,12 +96,20 @@ public sealed class FoundBusinessCommand : ICommand
         if (def.MinTitleRank > 0 && (_titles?.RankOf(house.Title) ?? 0) < def.MinTitleRank) return "needs a greater title";
         if (planet != null && w.AtWar(house.Id, planet.OwnerId)) return "the world's holder is at war with you";
         var first = ProjectSystem.Split(def.Cost, def.BuildTurns).First;
+        if (_companyId.Length > 0)
+        {
+            var co = w.Company(_companyId); if (co == null || co.Chartered) return "no such company";
+            if (co.ControllerId != house.Id) return "you do not direct that company";
+            int need = (int)Math.Ceiling(Economy.WorthOf(w, first));
+            return co.Cash >= need ? null : $"the company needs {need} credits in hand (it has {co.Cash})";
+        }
         return house.Treasury.CanAfford(first) ? null : $"needs {Presentation.CourtProjection.Bundle(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
     {
         var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!; var def = _ventures.Def(_defId)!; var sys = w.Galaxy!.System(_systemId)!;
+        if (_companyId.Length > 0) { ProjectSystem.Start(w, house.Id, Project.Venture, def.Id, sys.Id, $"a {def.Name.ToLowerInvariant()} at {sys.Name}", def.Cost, Math.Max(1, def.BuildTurns), _companyId); return; }
         if (def.BuildTurns <= 0) { house.Treasury.Spend(def.Cost); house.Treasury.ClampNonCredit(); Open(w, house, def, sys); return; }
         ProjectSystem.Start(w, house.Id, Project.Venture, def.Id, sys.Id, $"a {def.Name.ToLowerInvariant()} at {sys.Name}", def.Cost, def.BuildTurns);
     }

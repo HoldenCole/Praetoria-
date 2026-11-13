@@ -29,7 +29,9 @@ public sealed class SenateSystem
     /// stir; the estate will not come again for <see cref="PetitionCooldown"/> turns.</summary>
     public const int PetitionMinHouses = 3, PetitionSwing = 10, PetitionSpurn = 6, PetitionUnrest = 3, PetitionCooldown = 12;
     public const string EstatePrefix = "estate:", EstateAccent = "#c9a24a";
-    public static readonly string[] TurnFlags = { "censured", "recognised", "levied", "motion_passed_mine", "motion_failed_mine", "act_passed", "act_failed", "petition_carried", "petition_refused" };
+    public static readonly string[] TurnFlags = { "censured", "recognised", "levied", "motion_passed_mine", "motion_failed_mine", "act_passed", "act_failed", "petition_carried", "petition_refused", DefiedPatronFlag, ObligedPatronFlag };
+    public const string DefiedPatronFlag = "defied_patron", ObligedPatronFlag = "obliged_patron";
+    public const int DefyRegard = -15, ObligeRegard = 5;
     public static bool IsPetition(Motion m) => m.ProposerHouseId.StartsWith(EstatePrefix);
     public static string? PetitionEstate(Motion m) => IsPetition(m) ? m.ProposerHouseId[EstatePrefix.Length..] : null;
     /// <summary>Who brings the motion: a house's name, or an estate's for a petition.</summary>
@@ -260,9 +262,27 @@ public sealed class SenateSystem
         WriteFlags(w, mine);
     }
 
+    /// <summary>What a house's patron wants of a motion: +1 carried, -1 thrown out, 0 no stake. The patron has a stake when it moved
+    /// the motion or is its target.</summary>
+    public int PatronWish(World w, Motion m, string houseId)
+    {
+        var h = w.House(houseId); if (h == null || h.PatronId.Length == 0) return 0; var def = _motions.Def(m.Kind); if (def == null) return 0;
+        if (m.TargetId == h.PatronId && def.Target == "house") return def.Interest is "censure" or "embargo" or "breakup" ? -1 : 1;
+        return m.ProposerHouseId == h.PatronId ? 1 : 0;
+    }
+
     private void Resolve(World w, Motion m, string? mine)
     {
         var def = _motions.Def(m.Kind); if (def == null) { m.Resolved = true; return; }
+        // a patron notices how a client votes on what touches the patron (docs/REPUBLIC.md stage 3): a vote the client cast, not one left to drift
+        if (mine != null && m.Votes.TryGetValue(mine, out int cast) && cast != 0 && PatronWish(w, m, mine) is var wish && wish != 0 && w.House(mine) is { } client && w.House(client.PatronId) is { } patron
+            && Economy.HeadOf(w, patron) is { } ph && Economy.HeadOf(w, client) is { } chd)
+        {
+            var rel = w.Relationship(ph.Id, chd.Id); bool with = cast == wish;
+            rel.Disposition = Math.Clamp(rel.Disposition + (with ? ObligeRegard : DefyRegard), -100, 100);
+            w.WorldFlags.Add(with ? ObligedPatronFlag : DefiedPatronFlag);
+            w.Log(with ? $"{client.Name} votes as {patron.Name} wished. It is noted." : $"{client.Name} votes against the wishes of its patron, {patron.Name}. It is noted.");
+        }
         foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId)) if (!m.Votes.ContainsKey(h.Id)) m.Votes[h.Id] = Math.Sign(Lean(w, m, h.Id));   // the rivals declare
         var (f, a) = Tally(w, m);
         m.ForWeight = f; m.AgainstWeight = a; m.Passed = f > a; m.Resolved = true; m.ResolvedTurn = w.Turn;
@@ -425,6 +445,9 @@ public sealed class SenateSystem
                     if (office.CommandsFleets && RegionSystem.CapitalHolder(w) is { } ch && ch.Id != h.Id && w.AtWar(h.Id, ch.Id)) continue;   // the chair will not arm its enemy
                     var holderHead = holder != null && w.House(holder) is { } hh ? Economy.HeadOf(w, hh) : null;
                     bool wants = holder == null || (holderHead != null && (w.GetRelationship(head.Id, holderHead.Id)?.Disposition ?? 0) <= -20) || w.AtWar(h.Id, holder);
+                    // a house that many others depend on reaches for the post its order fits, whoever holds it: that is what the sway is for
+                    string fits = office.Track == "military" ? OrderSystem.Arms : office.Track == "stewardship" ? OrderSystem.Commerce : OrderSystem.Senate;
+                    if (!wants && !w.IsImperium && OrderSystem.Tier(h, fits) >= 1 && OrderSystem.Swayed(w, h).Sum(x => x.lean) >= 6) wants = true;
                     if (wants && !Stale(w, h.Id, "commission", h.Id + ":" + office.Id)) { Add(w, h.Id, "commission", h.Id, office.Id); return; }
                 }
             var title = _titles.ById(h.Title);

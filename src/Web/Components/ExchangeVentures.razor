@@ -51,6 +51,14 @@
         }
 
         <h4>Found a venture <span class="muted">what it would earn at this year's prices, and how long until it has paid for itself</span></h4>
+        @{ var boards = w.Companies.Where(x => !x.Chartered && x.ControllerId == w.Protagonist!.HouseId).OrderBy(x => x.Id, StringComparer.Ordinal).ToList(); if (boards.All(x => x.Id != _payFrom)) _payFrom = string.Empty; }
+        @if (boards.Count > 0)
+        {
+            <div class="row small"><span class="muted">Paid for by</span>
+                <button class="opt inline tiny @(_payFrom.Length == 0 ? "here" : "")" @onclick="() => _payFrom = string.Empty">the house</button>
+                @foreach (var bd in boards) { var bid = bd.Id; <button class="opt inline tiny @(_payFrom == bid ? "here" : "")" title="from the company's own cash; the venture is the company's" @onclick="() => _payFrom = bid">@bd.Name · @bd.Cash in hand</button> }
+            </div>
+        }
         @if (open.Count == 0) { <div class="muted small">Nothing can be founded with what the house holds and where it stands.</div> }
         <table class="standings ventures">
             <thead><tr><th>Venture</th><th>Where</th><th>Cost</th><th>Built in</th><th>Earns</th><th>Pays back</th><th></th></tr></thead>
@@ -64,7 +72,7 @@
                     <td class="small">@(v.BuildTurns <= 0 ? "at once" : v.BuildTurns == 1 ? "a year" : $"{v.BuildTurns} years")</td>
                     <td><span class="@(v.PerYear > 0 ? "good" : "warn")">@(v.PerYear >= 0 ? "+" : "")@v.PerYear</span></td>
                     <td class="small">@v.Payback</td>
-                    <td><button class="opt inline tiny" @onclick="() => G.Execute(new FoundBusinessCommand(pid, v.DefId, v.SystemId, c.Businesses, c.Holdings, c.Titles))">Found</button></td>
+                    <td>@{ var foundCmd = new FoundBusinessCommand(pid, v.DefId, v.SystemId, c.Businesses, c.Holdings, c.Titles, _payFrom); var foundNo = _payFrom.Length > 0 ? foundCmd.Refusal(new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0))) : null; }<button class="opt inline tiny" disabled="@(foundNo != null)" title="@foundNo" @onclick="() => G.Execute(foundCmd)">Found</button></td>
                 </tr>
             }
             </tbody>
@@ -97,5 +105,6 @@
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private bool _all;
+    private string _payFrom = string.Empty;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 }

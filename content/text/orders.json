@@ -147,6 +147,25 @@
         "answer_with_figures": "Answer with their own mortgage.",
         "marry_into_one": "Be seen at the tables of old families with debts."
       }
+    },
+    {
+      "id": "the_patron_noticed",
+      "title": "The Patron Noticed",
+      "body": "The Senate has voted on a matter that touched the house's patron, and {self.name} voted the other way. A patron does not count votes; a patron's steward does, and reports. The house's standing with its protector is lower this morning than it was yesterday.",
+      "choices": {
+        "explain_yourself": "Call on the patron and explain.",
+        "stand_by_it": "Stand by the vote.",
+        "send_a_gift": "Send a gift and no note."
+      }
+    },
+    {
+      "id": "the_patron_is_pleased",
+      "title": "As the Patron Wished",
+      "body": "The Senate has voted on a matter that touched the house's patron, and {self.name} voted as a client should. It has been noticed, in the way such things are: without a word.",
+      "choices": {
+        "say_nothing": "Say nothing.",
+        "mention_a_need": "Mention a need of the house's own."
+      }
     }
   ]
 }

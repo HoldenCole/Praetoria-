@@ -15,8 +15,8 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 493 |
-| Events with text | 257 in 24 files |
+| Automated tests | 500 |
+| Events with text | 261 in 25 files |
 | Starts | 8 on the title screen, 1 hidden test fixture |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
@@ -46,7 +46,7 @@ deterministic and saves and loads.
 
 ## 3. Known gaps
 
-Ranked within each group by how much they hurt play.
+Ranked within each group by how much they hurt play. The list of what the 2026-11-13 fix pass closed is at the end.
 
 **The Republic**
 1. The road by arms stops at "heard in the Senate". There is no triumph or recall voted by the Senate, no army loyal
@@ -54,16 +54,19 @@ Ranked within each group by how much they hurt play.
    of the Republic's story.
 2. No ladder of offices. Any qualified house may stand for consul without having held a lesser post.
 3. Commerce gets nothing from the state: no tax-farming, no contracts to supply the fleet.
-4. Being a client asks little. One recurring event; the patron never calls in a vote on a real motion.
-5. Stewards never use sway on purpose. It tilts votes that were moved for other reasons.
-6. Callings lean to commerce: about 15 of 33 houses, against about 8 of arms.
+4. A patron notices how a client votes, but never asks for anything else: no loan to a third house, no marriage, no
+   standing for an office in the patron's interest.
+5. Callings lean to commerce: about 16 of 32 houses, against about 8 of arms.
 
 **The economy**
-1. Rival houses do not take each other over on the Exchange. A player can.
-2. Materials, rare earths and exotics are in glut and sit below their usual price most years.
-3. A company can enlarge its ventures but cannot found one.
-4. A boom is reported but never becomes a bubble that bursts.
-5. Left out on purpose: foreign paper, share gifts as bribes, per-region prices, buying shares from a named house.
+1. **Materials have nowhere to go.** After sixty years the Reach makes about 280 materials a year and uses 30 to 100;
+   rare earths 22 against 0 to 2; exotics 10 against 0. Prices sit at two-thirds of usual because of it, and it is why
+   mean credits reach 800. The price formula is not the problem; the economy needs sinks (upkeep on what is built,
+   worlds that consume, more to spend strategic goods on).
+2. Rival houses now add to a stake when a director holds less than half, but stewards defend their majority so well
+   that it rarely happens. No takeover between rivals in the measured runs.
+3. A boom is reported but never becomes a bubble that bursts.
+4. Left out on purpose: foreign paper, share gifts as bribes, per-region prices, buying shares from a named house.
 
 **The Imperium**
 1. Government under a throne is simple next to the Republic. The orders are measured there but do little.
@@ -72,30 +75,49 @@ Ranked within each group by how much they hurt play.
 **The world**
 1. Nations are off the map: numbers and expeditions, no territory.
 2. Anomalies, archaeology and a source of exotics are designed but not built.
-3. In a 27-run soak, 191 of 257 events fired. Some of the other 66 may be unreachable or only very rare.
+3. About 60 of 261 events never fire under the random test player. Checked: every flag they wait for is one the engine
+   can raise, so none is dead; they need a player who gets into those situations (a triumph, a takeover, a revolt).
 
 **The person and the family**
-1. Marriage is one command and a handful of events. There is no courtship, no affection, no rival suitor, no contract.
-2. Skills change only when an event says so, or in the Academy year. Nobody studies, trains or is taught.
-3. A house has one purse. A person owns nothing; kin have no allowance, dowry or inheritance of their own.
-4. Only houses can be patrons. A person cannot take a protégé, be a ward, or be adopted, and a house of one has no way
+1. Marriage is a proposal, a suit and three match events. There is no courtship, no affection that moves, no rival
+   suitor, no contract.
+2. A child takes the father's house. A daughter of the house who marries out takes her children with her.
+3. Skills change only when an event says so, or in the Academy year. Nobody studies, trains or is taught.
+4. A house has one purse. A person owns nothing; kin have no allowance, dowry or inheritance of their own.
+5. Only houses can be patrons. A person cannot take a protégé, be a ward, or be adopted, and a house of one has no way
    to join a larger one.
 
 **Starts**
-1. *The New Man* is fragile: two young family members and no heir. The line often ends early.
-2. *The Old Lion* has not been driven through in the browser by the test scripts. They stall on it.
+1. *The Institute* is lethal by design: the line ends in about 1 to 3 of 10 unattended runs. Every other start is 0 or 1.
 
 **Presentation**
 1. No sound.
 2. Portraits all wear the same uniform, whatever the person's service, rank or era.
 3. The character sheet is thin next to the house and Senate screens.
-4. The orders panel is cramped in the Senate's side column.
-5. The Exchange is dense: no view of one company, small tab labels.
-6. Layout has not been checked at phone width.
+4. The Exchange is dense: no view of one company.
+5. The Office is a 3D room that a machine with no graphics card draws at about one frame a second. It now drops its
+   bloom, then its shadows, then its frame rate when it cannot keep up, which is not enough on such a machine. A flat
+   fallback for the room would be.
+6. The phone layout works (one column, a swipeable rail) but was laid out by rule, not designed.
 
 **Housekeeping**
-1. The browser checks and the balance probes are run by hand from scripts that are not in the repository.
-2. The Godot desktop shell compiles and has never been run. Keep it or retire it.
+1. The Godot desktop shell compiles and has never been run. Keep it or retire it.
+2. The browser checks are in the repository but are not run by CI.
+
+**Closed by the 2026-11-13 fix pass**
+
+| Was | Now |
+|---|---|
+| "The Old Lion stalls in the browser" | It never did. The test browser has no graphics card and the 3D Office starved the page of frames. A turn takes about half a second. |
+| Turn processing | A third of what it was: a house's laws are summed once into a table. The browser builds each screen's data once per action. `?perf` in the address prints where a turn's time goes. |
+| *The New Man*'s line ended in 12 of 12 unattended runs | 0 of 10. Rival houses no longer court across twenty years or past child-bearing, and no longer marry everyone off in the first spring. A patron offers a client an early match; an unwed head is offered one every so often. |
+| The orders panel was cramped | It has its own tab on the Senate screen. |
+| Phone width unchecked | Checked and given a layout. |
+| Checks lived in scratch scripts | `tools/browser/play.js`, and `perf`, `survive`, `balance` commands in the tools. |
+| Being a client asked nothing | The docket shows what your patron wants of a motion, and the patron's regard moves with how you vote on it. |
+| Stewards never used sway | A house many others depend on now moves for the office its order fits. |
+| A company could not found a venture | It can, from its own cash, by the player or a steward. |
+| A save/load mismatch, raw code on the Senate screen, a misplaced validator check | Fixed (with the three orders). |
 
 ## 4. What comes next
 

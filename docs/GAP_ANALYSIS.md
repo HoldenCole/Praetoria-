@@ -838,3 +838,29 @@ raw code expression showing in the Senate's "Move a motion" line; a misplaced ch
 6. *The New Man* is fragile under random play (two young members, no heir). It wants a marriage offered early.
 7. Callings lean to commerce (about 15 of 33). Arms could count more, or wars be more frequent.
 
+## 29. Fix pass — 2026-11-13
+
+Owner: "start working through the list, most glaring gaps and fixes first."
+
+**What was found by measuring**
+1. *Turn time.* The Old Lion "stalled" in the test browser. Native profiling (`praetoria perf`) showed one lookup,
+   `PolicySystem.Modifier`, at 81 µs a call and hundreds of calls a turn: it re-derived who dominates every region
+   each time. One table per house brought a turn from about 127 ms to 48 ms and a projection from 62 ms to 11 ms.
+   In-browser timing (`?perf`) then showed the game's own work was already under half a second; the seconds were the
+   3D Office under software rendering, at 1.3 frames a second against 60 on flat screens. So the stall was the test
+   machine, and the speed-up is real but was not the cause.
+2. *The New Man.* `praetoria survive`: the line ended in 12 of 12 unattended runs. The head either married his
+   54-year-old patron or nobody; the sister married out in year two and her children went with her. Three causes:
+   stewards proposed to the best-liked person regardless of age; an older match event had no age range; and every
+   house married off every adult in the first two years, so nobody of an age was left. Fixed: 0 of 10.
+3. *Events that never fire.* 58 to 66 of 261 under a random player. Every flag they read can be raised. No dead wiring.
+4. *The glut.* `praetoria balance`: materials made 277 to 293 a year against 27 to 97 used. Tuning how fast merchants
+   shed stock moved the average price from 0.66 to 0.70 of usual, so it was reverted. It is a missing-sink problem.
+
+**Also done**: the orders on their own Senate tab; a phone layout; a patron who notices a client's vote; stewards who
+use sway to reach for an office; companies that found ventures; rivals that add to a stake; checks and probes moved
+into the repository. 500 tests.
+
+**Not done, and why**: sinks for materials (an economy change that touches every start, wants its own pass); a flat
+fallback for the Office (a look-and-feel item); takeovers between rivals remain rare.
+

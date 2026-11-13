@@ -112,7 +112,7 @@ public sealed class TurnController
         if (_companies != null && !world.InAcademy) _companies.Seed(world);
         _orders = new OrderSystem(_economy, _fleets, content.Titles, content.Offices, content.Market); if (!world.InAcademy && world.Houses.Values.All(h => h.Orders.Count == 0)) _orders.Tick(world);
         _senate.Exchange = _companies; if (_companies != null) _companies.Offices = content.Offices;
-        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures, Exchange = _companies, Orders = _orders };
+        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures, Exchange = _companies, Orders = _orders, HoldingCatalogForFounding = content.Holdings };
         _dynasty = new DynastySystem { Content = content };
         _honors = new HonorSystem(content.Honors);
         _greatCrisis = new GreatCrisisSystem(content.GreatCrisis, _fleets);

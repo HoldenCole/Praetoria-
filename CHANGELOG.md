@@ -3,11 +3,28 @@
 ## [Unreleased]
 
 ### Changed
+- **Faster turns.** A house's laws are summed into one table per ledger instead of rescanning every region on each
+  lookup; turn processing is about a third of what it was. The browser builds the projection once per action and
+  memoises pure questions (Senate weight, law tables, who leans how) until the next one. `?perf` in the address prints
+  where each turn's time went. The 3D Office simplifies itself on a machine that cannot keep up.
+- **Marriages make sense.** Rival houses look for a match about one year in three, not all at once; they do not court
+  across twenty years, nor a woman past bearing for a man with no child. The older match event has an age range.
+- **A phone layout**: one column, a rail you swipe, wide tables that scroll inside their panels.
+- **The Senate screen** has two tabs: the chamber, and your standing in the three orders.
 - **No paid DLC.** Praetoria is a personal project. The five expansions once listed as a DLC slate are later chapters
   on the one roadmap (docs/ROADMAP.md sections 4 and 6), each with what it builds on and what it should follow. The
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **A patron who notices.** The docket says what your patron wants of a motion that touches them; voting with or
+  against it moves the patron's regard, with an event either way.
+- **Matches for the unwed**: *The Patron's Match* for a client with no heir, and *A Match Is Proposed* for any unwed
+  head. *The New Man* now founds a line in every unattended run.
+- **Companies found ventures** from their own cash. Stewards of companies do the same, and a house with a tenth of a
+  company whose director holds less than half keeps buying. A house many others depend on moves for the office its
+  order fits.
+- **Checks in the repository**: `tools/browser/play.js` (screens, turn times, the Exchange, phone width) and the tools'
+  `perf`, `survive` and `balance` commands.
 - **Roadmap: the person and the family.** Five pieces added and tied in: love, courting and marriage; education and
   improving skills; personal wealth beside house wealth and the dynasty's assets; being taken under a person's or a
   family's wing (mentors, wards, adoption); and politics under a throne. "What comes next" is now grouped by theme

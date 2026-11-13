@@ -832,6 +832,118 @@
           ]
         }
       ]
+    },
+    {
+      "id": "the_patron_noticed",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "defied_patron"
+        }
+      ],
+      "choices": [
+        {
+          "id": "explain_yourself",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called on the patron the morning after the vote and explained it. The patron listened to all of it and said the next vote would be explanation enough."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "stand_by_it",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} voted against the patron's wishes and did not pretend otherwise. The chamber noted a client with a mind. So did the patron."
+            }
+          ]
+        },
+        {
+          "id": "send_a_gift",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the patron a gift and no note. It was accepted, which is not the same as forgiven."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_patron_is_pleased",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "obliged_patron"
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} voted as the patron wished. Nothing was said. A credit's worth of goodwill was entered on a ledger nobody keeps on paper."
+            }
+          ]
+        },
+        {
+          "id": "mention_a_need",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} voted as the patron wished, and mentioned in passing a matter of the house's own that would come before the chamber soon."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

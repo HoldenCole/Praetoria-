@@ -34,6 +34,8 @@ public sealed class NpcAi
     public CompanySystem? Exchange { get; init; }
     /// <summary>The three orders: stewards buy a seat, take clients and canvass (docs/REPUBLIC.md stage 3).</summary>
     public OrderSystem? Orders { get; init; }
+    /// <summary>The holdings catalog, for a company's steward founding a venture (set by the turn controller).</summary>
+    public HoldingCatalog? HoldingCatalogForFounding { get; init; }
     private BusinessCatalog _ventures = BusinessCatalog.Empty;
 
     public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
@@ -484,6 +486,14 @@ public sealed class NpcAi
             }
             // short of cash for what it wants to build: sell new shares, while that leaves the house its majority
             if (wants && !grew && h % 3 == 0) { int n = Math.Max(1, co.Shares * 15 / 100); if (co.HeldBy(house.Id) * 100 / (co.Shares + n) >= 55) executor.TryExecute(new BoardCommand(steward.Id, co.Id, BoardCommand.Float, n, cs), ctx); }
+            // nothing left to enlarge and coin in hand: the company founds another venture of its own trade where it can, about one year in three
+            if (!wants && co.Cash >= 40 && h % 3 == 1 && world.Galaxy != null && !world.Projects.Any(p => p.CompanyId == co.Id))
+            {
+                var founding = _ventures.Defs.Where(d => d.Sector == co.Sector).OrderBy(d => d.Id, StringComparer.Ordinal)
+                    .SelectMany(d => world.HoldingsOf(house.Id).Select(x => x.SystemId).Where(x => x.Length > 0).Distinct().OrderBy(x => x, StringComparer.Ordinal).Select(sys => (d, sys)))
+                    .Select(x => new FoundBusinessCommand(steward.Id, x.d.Id, x.sys, _ventures, HoldingCatalogForFounding ?? HoldingCatalog.Empty, Titles, co.Id)).FirstOrDefault(c => c.Refusal(ctx) == null);
+                if (founding != null && executor.TryExecute(founding, ctx)) continue;
+            }
             // nothing left to build and coin piling up: it is paid out
             if (!wants && co.Cash > 30 && !world.Projects.Any(p => p.CompanyId == co.Id)) executor.TryExecute(new BoardCommand(steward.Id, co.Id, BoardCommand.Special, 0, cs), ctx);
             // a thin hold is shored up from the float
@@ -495,6 +505,19 @@ public sealed class NpcAi
             var loose = world.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0 && _ventures.Def(b.Kind) != null).ToList();
             var best = loose.Count >= 2 ? loose.OrderByDescending(b => VentureTrade?.Earnings(world, b) ?? 0).ThenBy(b => b.Id, StringComparer.Ordinal).First() : null;
             if (best != null && (VentureTrade?.Earnings(world, best) ?? 0) > 0) executor.TryExecute(new IncorporateCommand(steward.Id, best.Id, "", cs), ctx);
+        }
+        // a stake becomes a siege: a house that already holds a tenth of a company another directs with less than half, and has the
+        // coin, buys toward control year after year (the cap is a fifth a year, so the director has time to answer)
+        if (house.Treasury.Credits >= 150 && party != "sword")
+        {
+            var prey = world.Companies.Where(c => !c.Chartered && c.ControllerId != house.Id && c.HeldBy(house.Id) * 10 >= c.Shares && c.HeldBy(c.ControllerId) * 2 < c.Shares && c.HeldBy(Company.Public) > 0
+                                                  && !world.AtWar(house.Id, c.ControllerId))
+                .OrderByDescending(c => c.HeldBy(house.Id) * 100 / Math.Max(1, c.Shares)).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (prey != null)
+            {
+                int want = Math.Min(prey.HeldBy(Company.Public), Math.Max(1, prey.Shares * 8 / 100));
+                if (executor.TryExecute(new BuySharesCommand(steward.Id, prey.Id, want, cs), ctx)) return;
+            }
         }
         // a share that has run a quarter past what it earns is sold down: a third of the holding, never a director's own majority
         foreach (var co in world.Companies.Where(c => c.HeldBy(house.Id) >= 3 && c.ControllerId != house.Id).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
