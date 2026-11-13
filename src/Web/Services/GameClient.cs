@@ -84,6 +84,33 @@ public sealed class GameClient
         Settled(); Notify();
     }
 
+    /// <summary>The blank world a character of the player's own making is laid over (docs/CHARACTER.md): for the workshop's lists of
+    /// houses, worlds and systems. Built once per era.</summary>
+    private readonly Dictionary<bool, World> _blank = new();
+    public World BlankWorld(bool imperium)
+    {
+        if (!_blank.TryGetValue(imperium, out var w)) _blank[imperium] = w = WorldBuilder.FromScenario(Scenario(imperium ? CharacterWorkshop.ImperiumBase : CharacterWorkshop.RepublicBase), 1);
+        return w;
+    }
+
+    /// <summary>Start a run with a character of the player's own making.</summary>
+    public void StartCustom(CustomCharacter spec, ulong seed, string mode, double difficulty, string intensity, double autonomy)
+    {
+        var content = Content ?? throw new InvalidOperationException("Content not loaded.");
+        Changing();
+        var world = WorldBuilder.FromScenario(Scenario(CharacterWorkshop.BaseFor(spec)), seed);
+        world.Mode = mode; world.Difficulty = difficulty; world.CrisisIntensity = intensity; world.FamilyAutonomy = autonomy;
+        CharacterWorkshop.Apply(world, content, spec);
+        ScenarioId = "a character of your own"; Seed = seed;
+        Turn = new TurnController(world, content);
+        CharacterWorkshop.Finish(Turn, spec);
+        Turn.SyncRng();
+        _idleSnapshot = SaveSystem.Serialize(world);
+        Turn.BeginTurn();
+        LastNotice = null;
+        Settled(); Notify();
+    }
+
     /// <summary>The world as it stood between turns (phase Idle), which is what a save is (BuildSpec §1.5). Taken after
     /// every Resolve phase and on Start, so a reload re-opens the current turn's briefing rather than skipping a turn.</summary>
     private string? _idleSnapshot;

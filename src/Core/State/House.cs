@@ -36,7 +36,8 @@ public sealed class House
 
     /// <summary>The dynasty's legitimacy/standing (GDD §13). Birth sets the baseline; holding a title
     /// above its legitimacy requirement is the soft-lock — possible, but it breeds instability.</summary>
-    public int Legitimacy { get; set; }
+    public int Legitimacy { get => _legitimacy; set => _legitimacy = Math.Clamp(value, 0, 100); }   // held to 0..100 here, so no system that adds to it can run it past the top
+    private int _legitimacy;
 
     /// <summary>Title ids this house holds a claim to (GDD §13 Intrigue path — marriage/inheritance).
     /// A claim is the key the Intrigue path needs to convert influence into a title.</summary>

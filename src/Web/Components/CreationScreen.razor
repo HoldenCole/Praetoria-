@@ -1,4 +1,5 @@
 @inject GameClient G
+@using Praetoria.Core.Creation
 
 <div class="title-screen">
     <section class="hero">
@@ -17,10 +18,15 @@
         <div class="col">
             <h2>The scenario</h2>
             <div class="scenario-list">
+                <button class="scenario custom @(_custom ? "selected" : "")" @onclick="PickCustom">
+                    <div class="sc-name">A Character Of Your Own</div>
+                    <div class="sc-meta">any age, either era · every dial · a fair budget, or none</div>
+                    <div class="sc-desc">Make the person, the face, the house, what it holds and the family. Standard keeps it fair; Free lets you make anyone at all.</div>
+                </button>
                 @foreach (var id in G.ScenarioIds)
                 {
                     var sc = _scenarios[id];
-                    <button class="scenario @(id == _scenario ? "selected" : "")" @onclick="() => Pick(id)">
+                    <button class="scenario @(!_custom && id == _scenario ? "selected" : "")" @onclick="() => Pick(id)">
                         <div class="sc-name">@Title(id)</div>
                         <div class="sc-meta">@(sc.Academy ? (sc.Era == "imperium" ? "begins at the Institute · " : "begins at the Academy · the tutorial · ") : "")@(sc.Era == "imperium" ? "the Imperium" : "the Republic") · @sc.Houses.Count houses · @sc.Characters.Count souls@(sc.Galaxy != null ? $" · {sc.Galaxy.Systems.Count} systems" : "")</div>
                         <div class="sc-desc">@Describe(sc)</div>
@@ -63,6 +69,17 @@
             </div>
         </div>
 
+        @if (_custom)
+        {
+        <div class="col wide">
+            <h2>A character of your own</h2>
+            <Workshop Spec="_spec" SpecChanged="s => _spec = s" />
+            @if (_error != null) { <p class="error">@_error</p> }
+            <button class="btn primary big begin" disabled="@(CharacterWorkshop.Problems(_spec, G.Content!, G.BlankWorld(_spec.Imperium)).Count > 0)" @onclick="Begin">Begin the saga ▸</button>
+        </div>
+        }
+        else
+        {
         <div class="col">
             <h2>The character</h2>
             <p class="hint">Leave anything blank to play the scenario's protagonist as written.</p>
@@ -115,6 +132,7 @@
             @if (_error != null) { <p class="error">@_error</p> }
             <button class="btn primary big begin" @onclick="Begin">Begin the saga ▸</button>
         </div>
+        }
     </section>
 
     <footer class="title-foot">
@@ -136,6 +154,8 @@
     private string _name = "", _sex = "", _track = "", _ambition = "", _background = "";
     private readonly List<string> _nature = new(), _aptitude = new();
     private string? _error;
+    private bool _custom; private CustomCharacter _spec = new();
+    private void PickCustom() { _custom = true; _error = null; if (_spec.Name.Length == 0 && _spec.Skills.Count == 0) _spec = CharacterWorkshop.Presets(G.Content!)[0].spec.Clone(); }
 
     protected override void OnInitialized()
     {
@@ -145,6 +165,7 @@
 
     private void Pick(string id)
     {
+        _custom = false;
         _scenario = id;
         var sc = _scenarios[id];
         _protagonistName = sc.Characters.FirstOrDefault(c => c.Id == sc.ProtagonistId)?.Name ?? "";
@@ -195,6 +216,16 @@
     private void Begin()
     {
         _error = null;
+        if (_custom)
+        {
+            try
+            {
+                G.StartCustom(_spec, (ulong)Math.Max(1, _seed), _mode, double.Parse(_difficulty, System.Globalization.CultureInfo.InvariantCulture), _intensity,
+                    double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture));
+            }
+            catch (Exception ex) { _error = ex.Message; }
+            return;
+        }
         var creation = new CreationOptions
         {
             Name = string.IsNullOrWhiteSpace(_name) ? null : _name,

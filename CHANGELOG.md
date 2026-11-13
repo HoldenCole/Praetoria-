@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Fixed
+- A house's legitimacy could run past 100: it is now held to 0–100 where it is stored.
 - **CI is green again.** The Godot layer's compile check had failed on every push since titles took an era: one call
   in `src/Game/GameState.cs` still used the old signature. The tests and the published game were never affected.
   `tools/ci.sh` now runs CI's exact steps locally.
@@ -21,6 +22,12 @@
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **A character of your own** (docs/CHARACTER.md), the first card on the title screen. Six tabs set the person (age,
+  service, rank, ambition, natures, aptitudes, thirteen skills), the face (skin, hair, cut, beard, a scar), the house
+  (name, old or new, rank, legitimacy, culture, party, colour, the whole treasury, a seat, a patron), what it holds
+  (worlds, hulls, ventures), the family (spouse, children, siblings) and the world (Republic or Imperium, in the world
+  or at the Academy, a friend and a rival). **Standard** keeps to a 60-point budget; **Free** has no budget and marks
+  the run as custom. A power rating shows either way. Four presets, a throw of the dice, and save and load as a file.
 - **A patron who notices.** The docket says what your patron wants of a motion that touches them; voting with or
   against it moves the patron's regard, with an event either way.
 - **Matches for the unwed**: *The Patron's Match* for a client with no heir, and *A Match Is Proposed* for any unwed

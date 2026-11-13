@@ -639,3 +639,26 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
   .win { width: calc(100vw - 1rem); max-height: 92vh; overflow: auto; }
   .endturn-dock { right: .5rem; bottom: .5rem; }
 }
+
+/* the workshop: a character of the player's own making */
+.creation .col.wide { flex: 2 1 0; min-width: 0; }
+.scenario.custom { border-style: dashed; } .scenario.custom .sc-name { color: var(--brass2); }
+.workshop { display: flex; flex-direction: column; gap: .6rem; }
+.ws-top { display: flex; gap: .9rem; align-items: flex-start; }
+.ws-summary { display: flex; flex-direction: column; gap: .35rem; min-width: 0; flex: 1; }
+.ws-name { font-family: var(--display); font-size: 1.15rem; letter-spacing: .04em; } .ws-name .muted { font-family: var(--sans); font-size: .78rem; letter-spacing: 0; margin-left: .4rem; }
+.ws-modes, .ws-row { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+.ws-power { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; font-size: .9rem; }
+.ws-power.formidable b, .ws-power.overpowered b { color: #FFBE0B; } .ws-power.absurd b { color: #E63946; } .ws-power.able b, .ws-power.modest b { color: #2EC27E; }
+.ws-bar { display: inline-block; width: 9rem; height: .45rem; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; } .ws-bar i { display: block; height: 100%; background: #2EC27E; } .ws-bar i.over { background: #E63946; }
+.ws-skills { display: grid; grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr)); gap: .25rem .8rem; }
+.ws-skill { display: flex; align-items: center; gap: .3rem; } .ws-skill span { flex: 1; text-transform: capitalize; font-size: .85rem; } .ws-skill b { width: 1.4rem; text-align: center; }
+.chip.tiny { padding: .05rem .45rem; font-size: .74rem; min-width: 1.6rem; } .chip.file { cursor: pointer; } .chip.file input { display: none; }
+.swatch { width: 1.7rem; height: 1.7rem; border-radius: 4px; border: 2px solid transparent; cursor: pointer; padding: 0; } .swatch.on { border-color: #fff; box-shadow: 0 0 0 1px var(--brass2); }
+.ws-goods { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .3rem .7rem; } .ws-goods label, .ws-wide { display: flex; flex-direction: column; font-size: .78rem; color: var(--muted); gap: .15rem; }
+.ws-goods input, .ws-line input, .ws-line select, .ws-wide select { background: rgba(5,7,12,.6); border: 1px solid var(--line2); color: var(--ink); border-radius: 3px; padding: .2rem .35rem; font-size: .85rem; }
+.ws-worlds { display: flex; flex-wrap: wrap; gap: .3rem; max-height: 14rem; overflow-y: auto; } .chip.world { text-align: left; } .chip.world:disabled { opacity: .35; }
+.ws-line { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin: .2rem 0; } .ws-line input[type=number] { width: 4.2rem; }
+.ws-problems { border: 1px solid rgba(230,57,70,.5); background: rgba(230,57,70,.08); border-radius: 4px; padding: .5rem .7rem; font-size: .84rem; } .ws-problems b { display: block; margin-bottom: .2rem; color: #E63946; }
+@media (max-width: 700px) { .ws-top { flex-direction: column; } }
+.workshop .chip.file { text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: inherit; display: inline-flex; align-items: center; }

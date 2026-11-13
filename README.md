@@ -245,7 +245,7 @@ three orders of the Republic (`REPUBLIC`).
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 500 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
+**Verification:** 510 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
 round-trip that must reproduce an uninterrupted run; both content validators clean; every start auto-plays sixty turns
 across several seeds with a randomised player. The content counts in the table above are from the first release; the
 current ones (261 events, 9 scenarios, 31 systems) are in `docs/ROADMAP.md`.

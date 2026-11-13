@@ -16,7 +16,8 @@ const SKINS = [[241, 213, 191], [230, 194, 163], [212, 168, 131], [192, 140, 103
 const HAIRS = [[26, 21, 18], [46, 33, 24], [74, 47, 28], [107, 74, 42], [138, 106, 58], [176, 138, 74], [210, 176, 106], [58, 58, 63], [122, 42, 30]];
 
 export function render(spec) {
-  const key = JSON.stringify([spec.id, spec.sex, Math.floor((spec.age || 30) / 5), spec.accent, spec.alive !== false, spec.size || SIZE]);
+  const look = spec.look || {};   // a face by choice (docs/CHARACTER.md): any feature given here overrides the dice of the id
+  const key = JSON.stringify([spec.id, spec.sex, Math.floor((spec.age || 30) / 5), spec.accent, spec.alive !== false, spec.size || SIZE, look.skin, look.hair, look.style, look.beard, look.scar]);
   if (cache.has(key)) return cache.get(key);
   const size = spec.size || SIZE; const c = document.createElement('canvas'); c.width = c.height = size; const ctx = c.getContext('2d');
   const s = size / 256; ctx.scale(s, s);
@@ -31,12 +32,15 @@ export function render(spec) {
   const halo = ctx.createRadialGradient(150, 110, 10, 150, 110, 120); halo.addColorStop(0, rgba(accent, 0.28)); halo.addColorStop(1, rgba(accent, 0)); ctx.fillStyle = halo; ctx.fillRect(0, 0, 256, 256);
 
   // ---- parameters ----
-  const skin = SKINS[Math.floor(r() * SKINS.length)];
-  let hair = HAIRS[Math.floor(r() * HAIRS.length)];
+  const skinRoll = Math.floor(r() * SKINS.length), hairRoll = Math.floor(r() * HAIRS.length);   // the dice are always thrown, so one chosen feature does not reshuffle the rest
+  const skin = SKINS[look.skin >= 0 ? look.skin % SKINS.length : skinRoll];
+  let hair = HAIRS[look.hair >= 0 ? look.hair % HAIRS.length : hairRoll];
   const grey = age >= 62 ? 1 : age >= 46 ? Math.min(1, (age - 46) / 18) : 0; if (grey > 0) hair = [mix(hair[0], 214, grey), mix(hair[1], 210, grey), mix(hair[2], 202, grey)];
   const forehead = 0.9 + r() * 0.25, browRidge = female ? 1 + r() * 3 : 3 + r() * 5, noseLen = (female ? 11 : 13) + r() * 7, noseTip = 2 + r() * 3, noseUp = r() * 5 - 2;
   const lipFull = female ? 5 + r() * 3 : 3 + r() * 3, chin = female ? 10 + r() * 6 : 13 + r() * 8, jaw = female ? 0.86 + r() * 0.08 : 0.92 + r() * 0.12, neck = female ? 26 : 32;
-  const style = female ? 4 + Math.floor(r() * 2) : (r() < 0.8 ? Math.floor(r() * 4) : 4); const bald = !female && age > 48 && r() < 0.3; const beard = !female && r() < 0.5 && !bald ? Math.floor(1 + r() * 2) : (!female && bald && r() < 0.5 ? 2 : 0);
+  let style = female ? 4 + Math.floor(r() * 2) : (r() < 0.8 ? Math.floor(r() * 4) : 4); let bald = !female && age > 48 && r() < 0.3; let beard = !female && r() < 0.5 && !bald ? Math.floor(1 + r() * 2) : (!female && bald && r() < 0.5 ? 2 : 0);
+  if (look.style >= 0) { style = female ? 4 + look.style % 2 : look.style % 5; bald = false; }
+  if (look.beard === 0) beard = 0; else if (look.beard === 1 && !female && beard === 0) beard = 1;
   const recede = !female && age > 40 ? Math.min(14, (age - 40) * 0.5) : 0;
 
   // ---- the profile path (facing left; light from upper-left) ----
@@ -133,6 +137,8 @@ export function render(spec) {
     // bald: a sheen on the crown
     ctx.save(); face(); ctx.clip(); const sh = ctx.createRadialGradient(X - 20, top + 30, 2, X - 20, top + 30, 40); sh.addColorStop(0, 'rgba(255,245,225,.35)'); sh.addColorStop(1, 'rgba(255,245,225,0)'); ctx.fillStyle = sh; ctx.fillRect(0, 0, 256, 256); ctx.restore();
   }
+  // a scar across the cheek, for a face that has earned one
+  if (look.scar) { ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(120,40,34,.85)'; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(X - 34, top + 96); ctx.lineTo(X - 12, top + 132); ctx.stroke(); ctx.strokeStyle = 'rgba(255,220,205,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X - 33, top + 97); ctx.lineTo(X - 11, top + 133); ctx.stroke(); ctx.restore(); }
   // ---- plate frame: brass bevel + corner marks ----
   ctx.strokeStyle = 'rgba(201,162,74,.9)'; ctx.lineWidth = 3; ctx.strokeRect(3, 3, 250, 250);
   ctx.strokeStyle = 'rgba(230,199,122,.35)'; ctx.lineWidth = 1; ctx.strokeRect(8, 8, 240, 240);

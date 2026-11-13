@@ -864,3 +864,21 @@ into the repository. 500 tests.
 **Not done, and why**: sinks for materials (an economy change that touches every start, wants its own pass); a flat
 fallback for the Office (a look-and-feel item); takeovers between rivals remain rare.
 
+## 30. A character of your own — 2026-11-13
+
+Owner: "Ability to make a custom character with lots of toggles, freedom, lots of things to customize, ability to make
+OP." Built as docs/CHARACTER.md describes: `CustomCharacter` (the file), `CharacterWorkshop` (price, rules by mode,
+build), two hidden blank starts, a six-tab workshop on the title screen, a chosen face read by every portrait.
+
+**Measured.** The three standard presets cost 26, 32 and 39 of 60 points; the Colossus 867 ("absurd"). Twenty-five
+dice characters in each mode are all legal. Four extreme characters play thirty years clean. The soak passes on all
+eleven scenario files. 510 tests. In the browser: every tab, preset and mode, a saga begun from each of two presets and
+from the Academy, no errors.
+
+**Found on the way.** House legitimacy had no ceiling in nine places (the Colossus reached 103 in three turns). It is
+clamped in the property now.
+
+**Gaps that remain.** Stations cannot be picked alone. Kin are a name, a sex and an age. The spouse is not from a named
+house. The face has five dials and one uniform. The budget's prices are a first guess and have not been tuned against
+how the written starts actually play (the written starts were not priced).
+

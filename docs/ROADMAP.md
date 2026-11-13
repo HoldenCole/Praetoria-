@@ -15,9 +15,9 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 500 |
+| Automated tests | 510 |
 | Events with text | 261 in 25 files |
-| Starts | 8 on the title screen, 1 hidden test fixture |
+| Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
 | Senate motions / offices | 12 / 5 |
@@ -40,6 +40,7 @@ deterministic and saves and loads.
 | Laws and estates | 22 laws by position, six estates with opinions, Reach-wide Acts | `POLITICS` |
 | The three orders | Standing in the Senate, Arms and Commerce; callings; old and new names; sway; patrons and clients; a seat by the census; canvassing | `REPUBLIC` |
 | The economy | Prices that follow war and scarcity; ventures bought and sold; building over years; companies, shares, dividends, takeovers; war bonds; the Senate's and throne's hand on the market | `ECONOMY_MARKET` |
+| A character of your own | Every dial on the person, the face, the house, its holdings and its family; a fair budget or none; presets, dice, a saved file | `CHARACTER` |
 | The Academy | A year apart from the world at sixteen; a school in the Republic, the Institute under the Imperium; the tutorial in full or in brief | `ACADEMY` |
 | Crises and endgame | Revolts, civil war, coalition war, the Great Crisis, proclaiming or seizing the Imperium, the epilogue | `MILESTONE_5_NOTES` |
 | Browser client | Twelve screens including the galaxy map, procedural portraits and sigils, role and era theming, primer, saves | `WEB_CLIENT`, `ART_DIRECTION` |
@@ -81,7 +82,8 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
 **The person and the family**
 1. Marriage is a proposal, a suit and three match events. There is no courtship, no affection that moves, no rival
    suitor, no contract.
-2. A child takes the father's house. A daughter of the house who marries out takes her children with her.
+2. Whose name a child carries is decided by a fixed rule (the head of a house keeps the seat's children; otherwise the
+   greater house; otherwise the father's). It is never negotiated: no marriage contract says whose the children are.
 3. Skills change only when an event says so, or in the Academy year. Nobody studies, trains or is taught.
 4. A house has one purse. A person owns nothing; kin have no allowance, dowry or inheritance of their own.
 5. Only houses can be patrons. A person cannot take a protégé, be a ward, or be adopted, and a house of one has no way
@@ -104,6 +106,9 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
 1. The Godot desktop shell compiles and has never been run. Keep it or retire it.
 2. The browser checks are in the repository but are not run by CI.
 
+**Found while building the custom character**: a house's legitimacy could pass 100 (several systems added to it
+without a ceiling). It is now held to 0–100 where it is stored.
+
 **Closed by the 2026-11-13 fix pass**
 
 | Was | Now |
@@ -121,15 +126,14 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
 
 ## 4. What comes next
 
-One thing is fixed: **a custom character is next** (the owner's priority; plan below). Everything else is grouped by
-theme and is **not in order**, within a group or between them. The last column says what each piece leans on, which is
+The custom character the owner asked for first is **built** (docs/CHARACTER.md). Everything below is grouped by theme
+and is **not in order**, within a group or between them. The last column says what each piece leans on, which is
 the only real constraint on sequence. Each line is roughly one cycle of work (build, test, soak, browser, docs).
 
 **The person and the family**
 
 | Work | What it delivers | Ties to |
 |---|---|---|
-| **A custom character** (next) | Build your own person, house and family with every dial exposed, balanced or not. | Everything else in this group adds dials to it. |
 | **Love, courting and marriage** | Courtship as something you do over years: meeting, favour, rival suitors, a match for love or for advantage, the contract and the dowry, and what the marriage is like afterwards. Sketch below. | Personal wealth (dowries). Education (a spouse's skills count). Fixes the fragile *New Man* start. |
 | **Education, skills and getting better** | Children are raised: a tutor, a focus, a household to be sent to. Adults improve by doing, by study and by being taught, and decline with age. Sketch below. | The Academy (a year of this already exists). The ladder of offices. Under the wing (a mentor teaches). |
 | **Personal wealth, house wealth and the dynasty's assets** | A person's own purse beside the house's. Allowances, dowries, wills, heirlooms, and an estate that is divided or kept whole when the head dies. Sketch below. | The economy (shares and ventures can be held personally). Succession laws. Marriage. |
@@ -172,45 +176,6 @@ the only real constraint on sequence. Each line is roughly one cycle of work (bu
 
 **Later chapters** (section 6): *Courts of Intrigue*, *The Frontier*, *The Threat From Beyond*, *AI Ascendant*, *Wrath
 of the Stars*. Each is several cycles.
-
-### Next up: a custom character
-
-The owner wants this first: lots of toggles, real freedom, and the ability to make someone overpowered on purpose.
-
-**Today.** Creation offers a name, a sex, one background, up to two nature and two aptitude traits, a career track
-and an ambition, laid over one of the fixed starts. The house, the family and the numbers come from the start.
-
-**Two modes**
-
-| Mode | Rule |
-|---|---|
-| Standard | A points budget. Strengths are paid for with weaknesses, so the character is fair. |
-| Free | No limits. Any trait, any number, any rank, any treasury. The run is marked as custom in the save and the epilogue. |
-
-A **power rating** is shown as you build, in both modes, so an overpowered character is a choice you can see.
-
-**What can be set**
-
-| Part | Dials |
-|---|---|
-| The person | Name, sex, age. Every skill set directly. Any nature and aptitude traits. Career track and starting rank. Ambition. |
-| The face | Skin, hair, style, beard, age lines, scars; reroll and lock. Uses the portrait work in section 5. |
-| The house | Name, colour and sigil, culture, old or new name, rank, legitimacy, party, every resource in the treasury. |
-| What it holds | Worlds and stations (which, or none), hulls, ventures, a seat in the Senate, a patron or clients. |
-| The family | Spouse, children, siblings: how many, how old, who is heir. |
-| The world | Republic or Imperium. Start at the Academy or in the world. A friend and a rival among the great houses. |
-
-**Shortcuts**
-
-- Presets that fill every dial: the Heir, the Officer, the New Man, and one that is frankly overpowered.
-- Randomise everything, or one part.
-- Save a character to a small file and load it again.
-
-**Engine work.** `CreationOptions` grows to carry all of the above; `CharacterCreation` applies it and validates by
-mode; the world builder places custom holdings, fleets and family. Tests: any legal combination builds a valid world,
-and a soak of extreme characters (all skills at the top, an empty house, a child head) runs sixty years clean.
-
-**Not in this piece.** New traits, new backgrounds or new art. It exposes what the game already has.
 
 ### Sketches for the newer pieces
 

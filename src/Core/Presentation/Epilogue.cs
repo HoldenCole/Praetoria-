@@ -23,6 +23,11 @@ public static class Epilogue
 
         lines.Add($"THE CHRONICLE OF {name.ToUpperInvariant()}");
         lines.Add("");
+        // a founder of the player's own making is named as such, and one made without limits is named as that too (docs/CHARACTER.md)
+        if (w.HasFlag(Creation.CharacterWorkshop.CustomFlag))
+            lines.Add(w.HasFlag(Creation.CharacterWorkshop.FreeFlag)
+                ? $"Its founder was made by the player's own hand, without limits: {Creation.CharacterWorkshop.Rating(w.Counter(Creation.CharacterWorkshop.PowerCounter))} at {w.Counter(Creation.CharacterWorkshop.PowerCounter)} points. Read what follows in that light."
+                : $"Its founder was made by the player's own hand within the standard budget ({w.Counter(Creation.CharacterWorkshop.PowerCounter)} points).");
         lines.Add(generations == 1
             ? $"For {w.Turn} years {name} was one life: {p?.Name ?? "its head"}, who began as {(content.Careers.RankName(p?.CareerTrack ?? "", 0, w.Era) ?? "a youth")} and ended as {(p != null ? content.Careers.RankName(p.CareerTrack, p.CareerRank, w.Era) ?? "" : "")}."
             : $"Over {w.Turn} years and {generations} generations the seat of {name} passed {generations - 1} time{(generations == 2 ? "" : "s")}{(heads.Count > 0 ? ", to " + string.Join(", then to ", heads.Distinct()) : "")}.");

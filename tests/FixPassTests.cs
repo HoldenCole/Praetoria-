@@ -131,4 +131,12 @@ public class FixPassTests
         for (int t = 0; t < 6 && co.ControllerId == mine.Id; t++) { tc.BeginTurn(); raider.Treasury.Credits = Math.Max(raider.Treasury.Credits, 5000); tc.EndTurn(); }
         Assert.True(co.HeldBy(raider.Id) > held, "the raider did not add to its stake");
     }
+
+    [Fact]
+    public void Legitimacy_is_held_between_nothing_and_a_hundred_whoever_adds_to_it()
+    {
+        var h = new House { Legitimacy = 98 }; h.Legitimacy += 12; Assert.Equal(100, h.Legitimacy); h.Legitimacy -= 250; Assert.Equal(0, h.Legitimacy);
+        var (tc, w) = Start("the_old_lion", 7); var back = SaveSystem.Deserialize(SaveSystem.Serialize(w));
+        Assert.All(w.Houses.Values, x => Assert.Equal(x.Legitimacy, back.House(x.Id)!.Legitimacy));
+    }
 }
