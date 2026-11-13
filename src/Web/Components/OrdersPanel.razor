@@ -1,0 +1,40 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@{
+    var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var house = w.House(w.Protagonist!.HouseId)!; var os = G.Turn!.Orders; var senate = G.Turn!.Senate;
+    var door = senate.Door(w, house); var swayed = OrderSystem.Swayed(w, house); var clients = OrderSystem.ClientsOf(w, house.Id).ToList(); var patron = w.House(house.PatronId);
+    int great = OrderSystem.All.Count(o => OrderSystem.Tier(house, o) >= 2);
+    var enroll = os.EnrollRefusal(w, house, door != null);
+}
+<section class="panel orders">
+    <h3><Icon Name="houses" Size="13" /> The three orders <span class="muted">@(house.Calling.Length > 0 ? OrderSystem.CallingName(house.Calling) : "a house of no order yet")@(house.Origin == "new" ? " · a new name" : house.Origin == "old" ? " · an old name" : "")@(great >= 3 ? " · great in all three" : great == 2 ? " · great in two" : "")</span></h3>
+    @foreach (var o in OrderSystem.All)
+    {
+        var (score, parts) = os.Measure(w, house, o); int tier = OrderSystem.Tier(score); int next = OrderSystem.NextAt(score);
+        int rank = 1 + w.Houses.Values.Count(h => h.Id != PirateSystem.HouseId && h.Id != house.Id && h.Order(o) > score);
+        <div class="order-row @(house.Calling == o ? "calling" : "")">
+            <div class="gauge" title="@string.Join(" · ", parts.Select(p => $"{p.what} +{p.points}"))"><span>@Cap(OrderSystem.Name(o))</span><i><b style="width:@score%" class="@(tier >= 2 ? "high" : tier == 1 ? "" : "low")"></b></i><em>@score</em></div>
+            <div class="muted small"><b class="@(tier >= 2 ? "good" : "")">@OrderSystem.TierName(tier)</b> · @Ordinal(rank) among the houses@(next > 0 ? $" · {OrderSystem.TierName(tier + 1)} at {next}" : "")@(parts.Count > 0 ? " · " + string.Join(", ", parts.Take(3).Select(p => $"{p.what} +{p.points}")) : " · nothing yet")</div>
+        </div>
+    }
+    <div class="ac-fact"><span>Your seat</span><p>@(door switch { "land" => "By land: the rank the house holds.", "the bench" => "By the bench: its head is a magistrate.", "the purse" => "By the purse: enrolled by the census.", "the sword" => "By the sword: a house great in arms is heard.", _ => "None. The house votes, but may not move a motion or stand for office." })</p></div>
+    @if (door == null && !w.IsImperium) { <button class="opt" disabled="@(enroll != null)" title="@(enroll ?? "the fee goes to the chair; the house may move motions and stand for office from then on")" @onclick="() => G.Execute(new EnrollCommand(pid, os, c.Titles))">Enrol by the census · @OrderSystem.CensusFee credits</button> }
+    <div class="ac-fact"><span>In the chamber</span><p>Standing adds @OrderSystem.WeightOf(w, house) seat(s) to the house's voice: one for each step in Arms and in Commerce, and one for every two clients.</p></div>
+    <div class="ac-fact"><span>Sway</span><p>@(swayed.Count == 0 ? "No house leans your way because it depends on you. Debtors, clients, holders of your companies' shares and fleets that burn fuel you corner all do." : $"{swayed.Count} house(s) lean your way on what you move, on a post for you, and against what is aimed at you: " + string.Join("; ", swayed.Take(6).Select(x => $"{x.house.Name} (+{x.lean}: {string.Join(", ", x.why)})")) + (swayed.Count > 6 ? "; and more" : "") + ".")</p></div>
+    @if (house.Corners.Count > 0) { <div class="ac-fact"><span>Cornered</span><p>The house brings up a quarter or more of the Reach's @string.Join(" and ", house.Corners.Select(g => Resource.Label(g))).</p></div> }
+    @if (!w.IsImperium)
+    {
+        <div class="ac-fact"><span>Patronage</span><p>
+            @if (patron != null) { <text>The house is the client of <b>@patron.Name</b>: a credit a year, its backing in the chamber, and your vote expected at the election. </text> }
+            else if (clients.Count > 0) { <text>The house keeps @clients.Count of @OrderSystem.ClientCap(house) client(s): @string.Join(", ", clients.Select(x => x.Name)). They vote for you at an election and lean your way in the chamber. </text> }
+            else { <text>No patron and no clients. Take a needy house as a client, or seek a greater house's protection, on the Houses screen. The house could keep @OrderSystem.ClientCap(house). </text> }
+        </p></div>
+        @if (patron != null) { <button class="opt inline tiny" title="its head will not forgive it quickly" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Leave, string.Empty, os))">Leave @patron.Name's protection</button> }
+        @foreach (var cl in clients) { var cid = cl.Id; <button class="opt inline tiny" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Release, cid, os))">Turn @cl.Name away</button> }
+    }
+</section>
+
+@code {
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private static string Ordinal(int n) => n + (n % 100 is 11 or 12 or 13 ? "th" : (n % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" });
+}

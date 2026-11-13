@@ -60,4 +60,21 @@ public sealed class House
 
     /// <summary>Per-sphere influence (GDD §7). Empty until Milestone 5; present so saves are forward-compatible.</summary>
     public Dictionary<string, int> SphereInfluence { get; set; } = new();
+
+    // ---- the three orders of the Republic (docs/REPUBLIC.md stage 3): the Senate, Arms, Commerce
+    /// <summary>Standing in each order, 0..100, reckoned each year from what the house actually holds and has done.</summary>
+    public Dictionary<string, int> Orders { get; set; } = new();
+    /// <summary>The order the house is strongest in: what the family is known for. Slow to change.</summary>
+    public string Calling { get; set; } = "";
+    /// <summary>"old" for a family that was great when the world began, "new" for one that was not.</summary>
+    public string Origin { get; set; } = "";
+    /// <summary>The house whose client this one is, or "".</summary>
+    public string PatronId { get; set; } = "";
+    /// <summary>Enrolled in the Senate by the census: a seat bought with the purse, not held by land or the bench.</summary>
+    public bool Enrolled { get; set; }
+    /// <summary>Victories that are still talked about: battles won, triumphs. Fades slowly.</summary>
+    public int Glory { get; set; }
+    /// <summary>Strategic goods of which the house brings up a quarter or more of the Reach's production.</summary>
+    public List<string> Corners { get; set; } = new();
+    public int Order(string order) => Orders.TryGetValue(order, out var v) ? v : 0;
 }

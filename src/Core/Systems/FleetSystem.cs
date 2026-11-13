@@ -228,7 +228,7 @@ public sealed class FleetSystem
     private void Campaigns(World w)
     {
         var mine = w.Protagonist?.HouseId;
-        foreach (var key in w.WorldCounters.Keys.Where(k => k.StartsWith("campaign_until:")).ToList())
+        foreach (var key in w.WorldCounters.Keys.Where(k => k.StartsWith("campaign_until:")).OrderBy(k => k, StringComparer.Ordinal).ToList())   // by name: a dictionary that has had removals does not enumerate as a reloaded one does
         {
             if (w.WorldCounters[key] > w.Turn) continue;
             string houseId = key["campaign_until:".Length..];
@@ -556,6 +556,7 @@ public sealed class FleetSystem
                     var report = Battle(w, rng, systemId, a, b);
                     LastBattles.Add(report);
                     w.WorldCounters[BattlesCounter] = w.Counter(BattlesCounter) + 1;
+                    if (w.House(report.Winner) is { } victor && victor.Id != PirateSystem.HouseId) victor.Glory = Math.Min(12, victor.Glory + 1);   // a victory is talked about (docs/REPUBLIC.md stage 3)
                     var scored = w.Wars.FirstOrDefault(x => x.Between(a, b)); if (scored != null) { scored.AddScore(report.Winner, 2); scored.LastBattleTurn = w.Turn; }   // raiders have no war to score
                     if (player != null && (a == player || b == player))
                     {

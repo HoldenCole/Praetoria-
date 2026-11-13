@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+- **The three orders of the Republic** (docs/REPUBLIC.md). Every house now has a standing in the Senate, in Arms and
+  in Commerce, measured each year from its rank and offices, its hulls and victories, its wealth, ventures and paper.
+  A family is known for one (its calling); a few are great in two. Standing is leverage: a great general or banker
+  carries extra seats; a house may sit in the Senate by land, the bench, the sword, or the purse (enrolment by the
+  census for 60 credits); and houses lean toward whoever they depend on (patron, creditor, the house whose fuel their
+  fleets burn, the director of a company they hold). Patrons take clients by paying their debts; clients vote for
+  their patron at an election. Coin may be spent on the voters in any nominee's name. A new name in a consul's chair is
+  marked. New start *The New Man*: no land, no seat, one trading company and a patron. Sixteen events. The Senate
+  screen has an orders panel; the Houses screen shows every house's three standings and offers patronage.
 - **The economy expansion, all four stages** (docs/ECONOMY_MARKET.md §10). A new **Exchange** screen with four tabs.
   *Goods*: six goods with a price that follows what the houses make, burn and fight over; buy and sell both ways; a
   large order moves the price against itself. *Ventures*: a venture is worth six years of its earnings, houses bid for

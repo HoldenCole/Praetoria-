@@ -6,7 +6,7 @@
     var conns = m.Connections.ToDictionary(x => x.Id);
     var housesAll = w.Houses.Values.Where(h => h.Id != mine.Id && h.Id != PirateSystem.HouseId);
     int Disp(House h) { var ms = w.LivingCharacters().Where(x => x.HouseId == h.Id).ToList(); return ms.Count == 0 ? 0 : (int)ms.Average(x => w.GetRelationship(x.Id, pid)?.Disposition ?? 0); }
-    var houses = (_sort switch { "wealth" => housesAll.OrderByDescending(h => h.Wealth), "disposition" => housesAll.OrderByDescending(Disp), "hulls" => housesAll.OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)), "seats" => housesAll.OrderByDescending(h => senate.Weight(w, h.Id)), "worlds" => housesAll.OrderByDescending(h => w.HoldingsOf(h.Id).Count(x => x.IsPlanet)), _ => housesAll.OrderByDescending(h => c.Titles.RankOf(h.Title)).ThenByDescending(h => h.Legitimacy) }).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
+    var houses = (_sort switch { "wealth" => housesAll.OrderByDescending(h => h.Wealth), "senate" => housesAll.OrderByDescending(h => h.Order(OrderSystem.Senate)), "arms" => housesAll.OrderByDescending(h => h.Order(OrderSystem.Arms)), "commerce" => housesAll.OrderByDescending(h => h.Order(OrderSystem.Commerce)), "disposition" => housesAll.OrderByDescending(Disp), "hulls" => housesAll.OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)), "seats" => housesAll.OrderByDescending(h => senate.Weight(w, h.Id)), "worlds" => housesAll.OrderByDescending(h => w.HoldingsOf(h.Id).Count(x => x.IsPlanet)), _ => housesAll.OrderByDescending(h => c.Titles.RankOf(h.Title)).ThenByDescending(h => h.Legitimacy) }).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
     _focus ??= houses.FirstOrDefault()?.Id;
     int great = houses.Count(h => w.HoldingsOf(h.Id).Any(x => x.IsPlanet)), wars = houses.Count(h => w.AtWar(mine.Id, h.Id));
     var fh = _focus != null ? w.House(_focus) : null;
@@ -28,9 +28,9 @@
     <div class="dash-grid gallery-grid">
         <section class="panel">
             <h3><Icon Name="houses" Size="13" /> The standings <span class="muted">click a house</span></h3>
-            <div class="vols">@foreach (var k in new[] { "title", "worlds", "hulls", "seats", "wealth", "disposition" }) { <button class="rung @(_sort == k ? "here" : "")" @onclick="() => _sort = k">by @(k == "title" && !w.IsImperium ? "rank" : k)</button> }</div>
+            <div class="vols">@foreach (var k in new[] { "title", "worlds", "hulls", "seats", "wealth", "senate", "arms", "commerce", "disposition" }) { <button class="rung @(_sort == k ? "here" : "")" @onclick="() => _sort = k">by @(k == "title" && !w.IsImperium ? "rank" : k)</button> }</div>
             <table class="standings">
-                <thead><tr><th>House</th><th>@(w.IsImperium ? "Title" : "Rank")</th><th>Worlds</th><th>Hulls</th><th>Seats</th><th>Wealth</th><th>Toward you</th><th>Bench</th></tr></thead>
+                <thead><tr><th>House</th><th>@(w.IsImperium ? "Title" : "Rank")</th><th>Worlds</th><th>Hulls</th><th>Seats</th><th>Wealth</th><th title="standing in the Senate, in Arms and in Commerce">Orders</th><th>Toward you</th><th>Bench</th></tr></thead>
                 <tbody>
                 @foreach (var h in houses.Prepend(mine))
                 {
@@ -42,6 +42,7 @@
                         <td><span class="mbar"><i style="width:@(100 * hulls / maxHulls)%; background:@h.AccentColor"></i></span>@hulls</td>
                         <td><span class="mbar"><i style="width:@(100 * seats / maxSeats)%; background:@h.AccentColor"></i></span>@seats</td>
                         <td><span class="tier small @Wealth.TierFor(w, h.Id)" title="wealth @h.Wealth">@Wealth.TierFor(w, h.Id)</span></td>
+                        <td class="ord" title="@OrderSystem.CallingName(h.Calling): the Senate @h.Order(OrderSystem.Senate), Arms @h.Order(OrderSystem.Arms), Commerce @h.Order(OrderSystem.Commerce)">@foreach (var o in OrderSystem.All) { <span class="ordpip t@(OrderSystem.Tier(h, o)) @(h.Calling == o ? "calling" : "")">@(o == OrderSystem.Senate ? "S" : o == OrderSystem.Arms ? "A" : "C")</span> }</td>
                         <td>@if (h.Id != mine.Id) { <span class="pill @(atWar ? "warn" : disp < -20 ? "warn" : disp > 20 ? "good" : "")">@(atWar ? "⚔ " : "")@(disp >= 0 ? "+" : "")@disp</span> } else { <span class="muted">—</span> }</td>
                         <td class="muted small">@(bench?.Name ?? "")</td>
                     </tr>
@@ -61,6 +62,21 @@
             <section class="panel focus-house" style="--accent:@fh.AccentColor">
                 <div class="who-head"><Sigil HouseId="@fh.Id" Accent="@fh.AccentColor" Size="44" /><div><h2>@fh.Name</h2><div class="sub">@(c.Titles.NameOf(fh.Title, G.World!.Era)) · @fh.Culture culture@(fh.Bloc.Length > 0 ? $" · bloc {fh.Bloc}" : "")</div></div>
                     @if (fh.Id != mine.Id) { <span class="pill @(disp < -20 ? "warn" : disp > 20 ? "good" : "")">@(disp >= 0 ? "+" : "")@disp</span> }@if (atWar) { <span class="pill warn">AT WAR</span> }</div>
+                <div class="kv"><span>Known as</span><b>@OrderSystem.CallingName(fh.Calling)@(fh.Origin == "new" ? " · a new name" : " · an old name") · @string.Join(" · ", OrderSystem.All.Select(o => $"{OrderSystem.Name(o)} {fh.Order(o)} ({OrderSystem.TierName(OrderSystem.Tier(fh, o))})"))</b></div>
+                @if (fh.PatronId.Length > 0 || OrderSystem.ClientsOf(w, fh.Id).Any() || fh.Corners.Count > 0) { <div class="kv"><span>Ties</span><b>@(fh.PatronId.Length > 0 ? $"client of {w.House(fh.PatronId)?.Name}" : "")@(OrderSystem.ClientsOf(w, fh.Id).Any() ? $"patron of {string.Join(", ", OrderSystem.ClientsOf(w, fh.Id).Select(x => x.Name))}" : "")@(fh.Corners.Count > 0 ? $" · corners {string.Join(", ", fh.Corners.Select(g => Resource.Label(g)))}" : "")</b></div> }
+                @if (fh.Id != mine.Id && !w.IsImperium)
+                {
+                    var os = G.Turn!.Orders; var fid = fh.Id; var sw = OrderSystem.Sway(w, fh, mine); var back = OrderSystem.Sway(w, mine, fh);
+                    @if (sw.lean > 0) { <div class="kv"><span>Leans your way</span><b class="good">+@sw.lean · @string.Join(", ", sw.why)</b></div> }
+                    @if (back.lean > 0) { <div class="kv"><span>You depend on it</span><b>@string.Join(", ", back.why)</b></div> }
+                    var take = os.TakeClientRefusal(w, mine, fh); var seek = os.SeekPatronRefusal(w, mine, fh);
+                    <div class="row small">
+                        @if (fh.PatronId == mine.Id) { <button class="opt inline tiny" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Release, fid, os))">Turn the client away</button> }
+                        else { <button class="opt inline tiny" disabled="@(take != null)" title="@(take ?? "pay its debts and a gift: it votes for you at an election and leans your way in the chamber; a credit a year to keep")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Take, fid, os))">Take as a client · @OrderSystem.ClientCost(fh)</button> }
+                        @if (mine.PatronId == fh.Id) { <button class="opt inline tiny" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Leave, string.Empty, os))">Leave its protection</button> }
+                        else { <button class="opt inline tiny" disabled="@(seek != null)" title="@(seek ?? "a credit a year from it, its backing and its clients' in the chamber; your vote is expected at the election")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Seek, fid, os))">Seek it as a patron</button> }
+                    </div>
+                }
                 <div class="kv"><span>Legitimacy</span><b>@fh.Legitimacy</b></div>
                 <div class="kv"><span>Domain</span><b>@worlds.Count world(s) · @stations.Count station(s)</b></div>
                 <div class="kv"><span>Navy</span><b>@FleetSystem.StrengthOf(w, fh.Id) hull(s)@(FleetSystem.CampaignTarget(w, fh.Id) is { } ct ? $" · campaigning on {w.Galaxy?.System(ct)?.Name ?? ct}" : "")</b></div>

@@ -133,6 +133,7 @@ public static class ScenarioLoader
                     Claims = new HashSet<string>(StrList(h, "claims")),
                     Culture = ConditionParser.OptStr(h, "culture", "reach"),
                     SuccessionLaw = ConditionParser.OptStr(h, "successionLaw", "primogeniture"),
+                    PatronId = ConditionParser.OptStr(h, "patron", ""), Origin = ConditionParser.OptStr(h, "origin", ""), Enrolled = ConditionParser.Bool(h, "enrolled", false),
                     Treasury = HoldingCatalogLoader.ParseResources(h, "treasury")
                 });
         return list;

@@ -47,6 +47,7 @@ public static class ElectionSystem
         {
             var party = FactionSystem.Of(w, h.Id); string? vote = null;
             if (nominees.Any(n => n.houseId == h.Id)) vote = h.Id;
+            else if (h.PatronId.Length > 0 && nominees.Any(n => n.houseId == h.PatronId)) vote = h.PatronId;   // a client votes for the patron, whatever the party says
             else if (party != null) vote = nominees.FirstOrDefault(n => n.partyId == party.Id).houseId;
             if (vote == null && nominees.Count > 0)
             {
@@ -55,6 +56,7 @@ public static class ElectionSystem
             }
             if (vote != null) tally[vote] = tally.GetValueOrDefault(vote) + weight(h.Id);
         }
+        foreach (var n in nominees) tally[n.houseId] = tally.GetValueOrDefault(n.houseId) + w.Counter(OrderSystem.CanvassKey(n.houseId));   // coin spent on the voters in the nominee's name
         return tally;
     }
 
@@ -73,6 +75,7 @@ public static class ElectionSystem
             if (winners[i].Key == mine) { w.WorldFlags.Add("consul_elected"); w.WorldFlags.Remove("consul_lost"); }
         }
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("stands_for_consul:")).ToList()) w.WorldFlags.Remove(f);
+        OrderSystem.SweepCanvass(w);
         w.WorldCounters["elections"] = w.Counter("elections") + 1; w.WorldFlags.Add("election_held");
         w.Log($"The Senate elects its consuls: {string.Join(", ", winners.Select((kv, i) => $"{w.House(kv.Key)?.Name ?? kv.Key} ({kv.Value}) as {consuls[Math.Min(i, consuls.Count - 1)].Name}"))}.{(nominees.Count > winners.Count ? " Also standing: " + string.Join(", ", tally.Where(kv => winners.All(x => x.Key != kv.Key)).OrderByDescending(kv => kv.Value).Select(kv => $"{w.House(kv.Key)?.Name ?? kv.Key} ({kv.Value})")) + "." : "")}");
     }

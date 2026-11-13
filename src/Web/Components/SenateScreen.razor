@@ -131,7 +131,7 @@
                         </details>
                     </div>
                 }
-                <details class="propose"><summary>Move a motion @(sen.MayPropose ? "" : "· a @(Praetoria.Core.Progression.Title.StyleOf(Praetoria.Core.Progression.Title.Baron, w.Era)), or a Magistrate, may")</summary>
+                <details class="propose"><summary>Move a motion @(sen.MayPropose ? "" : NoSeatLine(w))</summary>
                     @foreach (var pr in sen.Proposals)
                     {
                         <div class="proposal">
@@ -182,6 +182,7 @@
         </section>
 
         <aside class="dash-side">
+            <OrdersPanel />
             @if (sen?.Election is { } el)
             {
                 var consuls = sen.Offices?.Where(o => o.Elected).ToList() ?? new List<OfficeCard>();
@@ -195,7 +196,7 @@
                         </div>
                     }
                     <h4>The nominees as they stand</h4>
-                    @foreach (var n in el.Nominees) { <div class="nominee"><i class="party-dot" style="background:@n.PartyAccent"></i><Sigil HouseId="@n.HouseId" Accent="@n.Accent" Size="13" /> <span><b>@n.HouseName</b> <span class="muted small">for @n.Party</span></span><b class="tally-n">@n.Tally</b></div> }
+                    @foreach (var n in el.Nominees) { <div class="nominee"><i class="party-dot" style="background:@n.PartyAccent"></i><Sigil HouseId="@n.HouseId" Accent="@n.Accent" Size="13" /> <span><b>@n.HouseName</b> <span class="muted small">for @n.Party</span></span><b class="tally-n">@n.Tally</b>@{ var nid = n.HouseId; var canvassNo = G.Turn!.Orders.CanvassRefusal(w, house, nid, el.Nominees.Select(x => x.HouseId)); }<button class="opt inline tiny" disabled="@(canvassNo != null)" title="@(canvassNo ?? "largesse in the candidate's name: one more vote's weight at the election")" @onclick="() => Canvass(nid)">Canvass · @OrderSystem.CanvassCredits</button></div> }
                     @if (el.Nominees.Count == 0) { <div class="muted small">No house of standing has a candidate yet.</div> }
                     <button class="opt" disabled="@(el.StandRefusal != null)" title="@(el.StandRefusal ?? $"{ElectionSystem.StandInfluence} influence: your party nominates you, or you run alone")" @onclick="() => G.Execute(new StandForConsulCommand(pid, c.Offices))">@(el.Standing ? "You stand for consul" : el.AmConsul ? "You hold the consulship" : "Stand for consul")</button>
                     @if (el.AmConsul) { <div class="muted small">@(el.CanVeto ? "Your veto is unspent this term: strike a motion from the docket above." : "Your veto is spent this term.")</div> }
@@ -272,6 +273,8 @@
 </div>
 
 @code {
+    private static string NoSeatLine(World w) => w.IsImperium ? "· only a house of rank, or a Magistrate, may" : "· the house has no seat: land of rank, a Magistrate at its head, a name great in arms, or enrolment by the census";
+    private void Canvass(string nomineeId) { var names = G.Court().Senate?.Election?.Nominees.Select(x => x.HouseId).ToList() ?? new List<string>(); G.Execute(new CanvassCommand(G.World!.ProtagonistId, nomineeId, G.Turn!.Orders, _ => names)); }
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string? _focus, _watch; private readonly Dictionary<string, string> _target = new();
     private readonly Dictionary<string, string> _office = new();

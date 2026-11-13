@@ -1,0 +1,152 @@
+{
+  "texts": [
+    {
+      "id": "a_seat_by_the_purse",
+      "title": "A Seat by the Purse",
+      "body": "The census has enrolled the house. It holds no land that carries a seat and its head is no magistrate, but it paid the fee and its books were found sufficient. {self.name} may now move motions and stand for office. The roll does not record how a seat was come by. The chamber remembers.",
+      "choices": {
+        "take_the_seat_quietly": "Take the seat and say nothing.",
+        "give_a_dinner_for_it": "Mark it with a dinner."
+      }
+    },
+    {
+      "id": "the_doorkeeper",
+      "title": "The Doorkeeper",
+      "body": "The house has no seat in the Senate. It votes from the gallery when the chamber divides, and that is all. There are four doors in: land of sufficient rank, a head who sits as a magistrate, a name great in arms, or enrolment by the census for a house of account in commerce that can pay the fee.",
+      "choices": {
+        "wait_outside": "Wait outside.",
+        "ask_the_price": "Ask the census clerk the price.",
+        "ask_a_seated_friend": "Ask a seated house to speak for you."
+      }
+    },
+    {
+      "id": "a_client_at_the_door",
+      "title": "A Client at the Door",
+      "body": "The house has paid another's debts and taken it as a client. Its head will call at first light with the others, will vote for the house at an election whatever his party says, and will lean the house's way when the chamber divides. He costs a credit a year to keep, and he expects to be kept.",
+      "choices": {
+        "receive_him_well": "Receive him in the hall.",
+        "set_out_what_is_owed": "Set out plainly what each owes the other."
+      }
+    },
+    {
+      "id": "under_protection",
+      "title": "Under Protection",
+      "body": "The house has put itself under a greater one's protection. The patron and the patron's other clients will lean the house's way in the chamber, and there is a credit a year in it. In return the house's vote is the patron's at an election, and the patron will ask for things.",
+      "choices": {
+        "be_a_good_client": "Call at first light with the others.",
+        "keep_your_own_counsel": "Take the protection and keep your own ledger."
+      }
+    },
+    {
+      "id": "the_patrons_request",
+      "title": "The Patron Asks",
+      "body": "A message from the patron, courteously put. There is a small matter in which the house could be of use.",
+      "choices": {
+        "oblige": "Oblige.",
+        "plead_poverty": "Plead an empty purse.",
+        "ask_something_back": "Do it, and name something wanted in return."
+      }
+    },
+    {
+      "id": "a_client_asks",
+      "title": "A Client Asks",
+      "body": "One of the house's clients is at the door with a difficulty: a suit he cannot fund, a creditor he cannot face. He does not say that he votes as the house wishes. He does not need to.",
+      "choices": {
+        "help_him": "Pay for it.",
+        "send_him_to_the_steward": "Send him to the steward.",
+        "make_an_example_of_generosity": "Settle it in the open forum."
+      }
+    },
+    {
+      "id": "a_client_goes",
+      "title": "A Client Goes",
+      "body": "A house that was the client of {self.name} is a client no longer. It has grown richer than its patron could stay ahead of, or the house's own purse ran too low to keep it.",
+      "choices": {
+        "let_him_go": "Let the tie lapse.",
+        "remind_him": "Remind him, before witnesses, who paid his debts."
+      }
+    },
+    {
+      "id": "without_a_patron",
+      "title": "Without a Patron",
+      "body": "The house's patron is its patron no longer: fallen, at war with it, or simply outgrown. The backing in the chamber goes with the tie, and so does the obligation.",
+      "choices": {
+        "stand_alone": "Stand alone.",
+        "look_for_another": "Start calling on the great houses again."
+      }
+    },
+    {
+      "id": "a_name_in_arms",
+      "title": "A Name in Arms",
+      "body": "The house is now counted great in arms: by its hulls, its officers and the victories still talked about. A house like that is heard in the Senate whatever its rank, and the chamber thinks of it first when a command falls vacant.",
+      "choices": {
+        "let_the_fleet_speak": "Let the fleet speak.",
+        "claim_the_hearing": "Let it be known the house expects to be heard."
+      }
+    },
+    {
+      "id": "a_name_in_commerce",
+      "title": "A Name in Commerce",
+      "body": "The house is now counted great in commerce: by its wealth, its ventures and its paper. Its voice in the Senate is larger for it, and every house that owes it or holds its shares leans its way when the chamber divides.",
+      "choices": {
+        "stay_in_the_counting_house": "Go on as before.",
+        "lend_where_it_matters": "Lend to houses with seats and no coin."
+      }
+    },
+    {
+      "id": "a_name_in_the_senate",
+      "title": "A Name in the Senate",
+      "body": "The house is now counted great in the Senate: by its rank, its offices and its standing in the chamber. That is the oldest of the three orders, and the one the other two are always trying to buy or frighten.",
+      "choices": {
+        "wear_it_lightly": "Rise seldom.",
+        "gather_the_benches": "Hold a morning of your own."
+      }
+    },
+    {
+      "id": "two_orders",
+      "title": "Great in Two Orders",
+      "body": "Most families are known for one thing: the law, the fleet or the counting-house. The house is now great in two. The capital has noticed, and is deciding whether to be impressed or afraid.",
+      "choices": {
+        "say_nothing": "Say nothing.",
+        "reassure_the_chamber": "Reassure the chamber."
+      }
+    },
+    {
+      "id": "three_orders",
+      "title": "Great in All Three",
+      "body": "The house is great in the Senate, in arms and in commerce at once. A party, a fleet and a bank under one name: the Republic was built so that no house should hold all three, and has no law against it.",
+      "choices": {
+        "deny_any_ambition": "Deny any ambition, in the forum.",
+        "let_them_wonder": "Let them wonder."
+      }
+    },
+    {
+      "id": "first_of_the_name",
+      "title": "The First of the Name",
+      "body": "{self.name} sits in a consul's chair, and no one of the name has sat there before. The old families have a phrase for such a man. They are using it more quietly than they did.",
+      "choices": {
+        "thank_the_voters": "Thank the voters, by name.",
+        "remember_the_sneers": "Look along the front bench."
+      }
+    },
+    {
+      "id": "the_corner",
+      "title": "A Quarter of the Reach's Supply",
+      "body": "A quarter or more of what the Reach brings up of a strategic good now comes from the house's own works. Every fleet that burns it or arms from it depends on the house a little, and their owners know it when the chamber divides.",
+      "choices": {
+        "sell_to_all_comers": "Sell to all comers at the market's price.",
+        "remember_who_asks": "Keep a list of who depends on it."
+      }
+    },
+    {
+      "id": "the_old_names",
+      "title": "The Old Names",
+      "body": "The house is a new name. Nobody's grandfather sat with it in the chamber. The old families are perfectly civil about this, and it comes up at every dinner.",
+      "choices": {
+        "endure_it": "Pass the salt.",
+        "answer_with_figures": "Answer with their own mortgage.",
+        "marry_into_one": "Be seen at the tables of old families with debts."
+      }
+    }
+  ]
+}

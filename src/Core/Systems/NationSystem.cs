@@ -243,7 +243,7 @@ public sealed class NationSystem
             var top = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderByDescending(h => w.Counter(WinsKey(h.Id, n.Id))).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault(h => w.Counter(WinsKey(h.Id, n.Id)) > 0);
             if (top != null)
             {
-                top.Legitimacy = Math.Min(100, top.Legitimacy + LegitimacyTriumph); top.SphereInfluence["senate"] = top.SphereInfluence.GetValueOrDefault("senate") + InfluenceTriumph;
+top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legitimacy + LegitimacyTriumph); top.SphereInfluence["senate"] = top.SphereInfluence.GetValueOrDefault("senate") + InfluenceTriumph;
                 if (top.Id == mine) w.WorldFlags.Add("triumph");
                 w.Log($"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years. The triumph is {top.Name}'s, whose fleets won it.");
             }

@@ -113,6 +113,10 @@ public sealed class Economy
             if (b.CompanyId.Length > 0 || _ventures.Def(b.Kind) == null) continue;
             ledger.Add(b.Name, "venture", VentureLine(world, b));
         }
+        // patronage (docs/REPUBLIC.md stage 3): a patron keeps its clients, a credit a year each
+        int kept = world.Houses.Values.Count(o => o.PatronId == houseId);
+        if (kept > 0) ledger.Add($"{kept} client(s) kept", "clients", new Resources { Credits = -kept * OrderSystem.ClientStipend });
+        if (house.PatronId.Length > 0 && world.House(house.PatronId) is { } patron) ledger.Add($"the bounty of {patron.Name}", "clients", new Resources { Credits = OrderSystem.ClientStipend });
         // dividends: what each company declared last year, by the shares held now; and the yearly coupon on the Reach's war bonds
         foreach (var co in world.Companies.OrderBy(c => c.Id, StringComparer.Ordinal))
         {

@@ -32,6 +32,8 @@ public sealed class NpcAi
     public VentureSystem? VentureTrade { get; init; }
     /// <summary>The Exchange, when the age has one: stewards incorporate, float, invest and sell paper by temperament (docs/ECONOMY_MARKET.md stage C).</summary>
     public CompanySystem? Exchange { get; init; }
+    /// <summary>The three orders: stewards buy a seat, take clients and canvass (docs/REPUBLIC.md stage 3).</summary>
+    public OrderSystem? Orders { get; init; }
     private BusinessCatalog _ventures = BusinessCatalog.Empty;
 
     public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
@@ -407,6 +409,28 @@ public sealed class NpcAi
             var one = new BuyGoodCommand(head.Id, Resource.Helium3, need, Trade); if (one.Refusal(ctx) == null) executor.TryExecute(one, ctx);
         }
     }
+    /// <summary>The purse in politics (docs/REPUBLIC.md stage 3). A house of commerce with no seat buys one from the census. A rich house
+    /// takes a needy house of its own party as a client, about one year in six. In the year before an election a rich house of the
+    /// Factors spends on the voters in its party's nominee's name.</summary>
+    private void Patronage(House house, Character steward, CommandExecutor executor, CommandContext ctx)
+    {
+        var os = Orders; if (os == null) return; var world = ctx.World; if (world.IsImperium) return;
+        uint h = 2166136261; foreach (var ch in house.Id + ":patron:" + world.Turn) h = (h ^ ch) * 16777619;
+        if (house.Treasury.Credits >= OrderSystem.CensusFee + 40) executor.TryExecute(new EnrollCommand(steward.Id, os, Titles), ctx);
+        if (house.PatronId.Length == 0 && house.Treasury.Credits >= 80 && h % 6 == 2 && Wealth.TierIndex(Wealth.TierFor(world, house.Id)) >= 3)
+        {
+            var party = FactionSystem.Of(world, house.Id); var mine = world.Protagonist?.HouseId;
+            var pick = world.Houses.Values.Where(c => c.Id != mine && c.Id != house.Id && os.TakeClientRefusal(world, house, c) == null && (party == null || party.Members.Contains(c.Id)))
+                .OrderBy(c => OrderSystem.ClientCost(c)).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (pick != null) executor.TryExecute(new ClientCommand(steward.Id, ClientCommand.Take, pick.Id, os), ctx);
+        }
+        if (world.Turn % ElectionSystem.Every == ElectionSystem.Every - 1 && house.Treasury.Credits >= 120 && FactionSystem.Of(world, house.Id) is { PartyId: "factors" } f)
+        {
+            var nominee = f.Members.Contains(house.Id) && house.Order(OrderSystem.Commerce) >= OrderSystem.GreatAt ? house.Id : f.LeaderHouseId;
+            if (nominee.Length > 0) executor.TryExecute(new CanvassCommand(steward.Id, nominee, os, _ => true), ctx);
+        }
+    }
+
     /// <summary>A steward on the Exchange (docs/ECONOMY_MARKET.md stage C). A house in the red sells paper, which is what a crash is. A
     /// director spends the company's cash on enlarging what it owns, floats shares when the cash is short, and buys back toward a
     /// majority when its hold is thin. A house with two ventures lists one, the Factors soonest. A house with coin to spare buys what
@@ -510,6 +534,7 @@ public sealed class NpcAi
             if (least != null && VentureTrade.Bidders(world, least).Count > 0) executor.TryExecute(new SellVentureCommand(steward.Id, least.Id, SellVentureCommand.Best, VentureTrade), ctx);
         }
         Invest(house, steward, executor, ctx);
+        Patronage(house, steward, executor, ctx);
         if (house.Treasury.Credits >= f.InvestCredits + 14)
         {
             var slack = world.HoldingsOf(house.Id).Where(h => h.IsPlanet && h.Prosperity < 45).OrderBy(h => h.Prosperity).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();

@@ -50,16 +50,20 @@ public sealed class SenateSystem
         int weight = h.SphereInfluence.GetValueOrDefault("senate") + _titles.RankOf(h.Title);
         var head = Economy.HeadOf(w, h); if (head is { CareerTrack: "law" } && head.CareerRank >= ProposerLawRank) weight += 1;
         weight += OfficeSystem.HeldBy(w, houseId).Sum(o => _offices.Def(o.OfficeId)?.Weight ?? 0);   // the Speaker's gavel
+        weight += OrderSystem.WeightOf(w, h);                                                         // a great general, a great banker, a house with clients (docs/REPUBLIC.md stage 3)
         weight += PolicySystem.Modifier(w, Policies, houseId, "senate_weight");                       // the franchise, the bench's platform, the old blood's regard
         return Math.Max(1, weight);
     }
+
+    /// <summary>The door by which a house sits in the Senate (docs/REPUBLIC.md stage 3): land (a Prefect or better), the bench (a head who
+    /// is a Magistrate or better), the purse (enrolled by the census) or the sword (great in Arms). None: it votes, but may not move.</summary>
+    public string? Door(World w, House h) => OrderSystem.Door(w, h, _titles, ProposerTitleRank, ProposerLawRank);
 
     /// <summary>May this house move a motion at all: a baron or better, or a head who is a Magistrate or better.</summary>
     public bool MayPropose(World w, string houseId)
     {
         var h = w.House(houseId); if (h == null) return false;
-        if (_titles.RankOf(h.Title) >= ProposerTitleRank) return true;
-        var head = Economy.HeadOf(w, h); return head is { CareerTrack: "law" } && head.CareerRank >= ProposerLawRank;
+        return Door(w, h) != null;
     }
 
     public static IEnumerable<Motion> Docket(World w) => w.Motions.Where(m => m.Open).OrderBy(m => m.ProposedTurn).ThenBy(m => m.Id, StringComparer.Ordinal);
@@ -88,7 +92,17 @@ public sealed class SenateSystem
         var targetHouse = def.Target == "house" ? w.House(m.TargetId) : null; var targetHead = targetHouse != null ? Economy.HeadOf(w, targetHouse) : null;
         int Disp(Character? from, Character? to) => from != null && to != null ? w.GetRelationship(from.Id, to.Id)?.Disposition ?? 0 : 0;
         int toProposer = Disp(head, proposerHead), toTarget = Disp(head, targetHead);
+        var proposerHouseForSway = w.House(m.ProposerHouseId);
         int lean = toProposer >= 20 ? 1 : toProposer <= -20 ? -1 : 0;
+        // sway (docs/REPUBLIC.md stage 3): a house leans with whoever it depends on — its patron, its creditor, the house whose fuel
+        // its fleets burn — for what that house wants, and against what is aimed at it
+        if (proposerHouseForSway != null && proposerHouseForSway.Id != houseId) lean += Math.Min(2, OrderSystem.Sway(w, h, proposerHouseForSway).lean);
+        if (targetHouse != null && targetHouse.Id != houseId)
+        {
+            int sway = OrderSystem.Sway(w, h, targetHouse).lean;
+            if (def.Interest is "commission" or "recognition" or "peace") lean += sway;
+            else if (def.Interest is "censure" or "embargo" or "breakup") lean -= sway;
+        }
         switch (def.Interest)
         {
             case "censure":
@@ -121,6 +135,11 @@ public sealed class SenateSystem
                     else if (holderHouse != null && Disp(head, holderHead) >= 30) lean -= 2;             // the holder's friends
                     if (_offices.Def(m.OfficeId) is { } od && OfficeSystem.Candidate(w, od, houseId) is { } ownC && targetHouse != null && (OfficeSystem.Candidate(w, od, targetHouse.Id)?.CareerRank ?? 0) < ownC.CareerRank) lean -= 2;   // a house with a better candidate is jealous
                     lean += toTarget >= 10 ? 1 : toTarget <= -20 ? -2 : 0;
+                    if (targetHouse != null && _offices.Def(m.OfficeId) is { } post)   // the chamber prefers a house of the order the post belongs to
+                    {
+                        string order = post.Track == "military" ? OrderSystem.Arms : post.Track == "stewardship" ? OrderSystem.Commerce : OrderSystem.Senate;
+                        int tier = OrderSystem.Tier(targetHouse, order); lean += tier >= 2 ? 1 : tier == 0 && order != OrderSystem.Senate ? -1 : 0;
+                    }
                     if (RegionSystem.CapitalHolder(w)?.Id == houseId && toTarget >= 0) lean += 1;         // the chair likes a safe pair of hands
                 }
                 break;

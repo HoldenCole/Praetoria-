@@ -610,3 +610,9 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .standings.shares td.order input, .vcard .row input[type=number] { width: 52px; }
 .standings.shares td { white-space: nowrap; } .standings.shares td.hn, .standings.shares tr.cause td { white-space: normal; } .standings.shares td.hn { min-width: 11rem; }
 .exchange-grid > .panel { overflow-x: auto; }
+
+.orders .order-row { margin: .35rem 0 .5rem; } .orders .order-row.calling .gauge span { color: var(--brass2); }
+.ordpip { display: inline-block; width: 1.15rem; text-align: center; font-size: .66rem; font-family: var(--display); border-radius: 3px; margin-right: 2px; border: 1px solid var(--line); color: var(--muted); }
+.ordpip.t1 { color: var(--ink2); border-color: var(--line2); } .ordpip.t2 { color: #0b0e14; background: #C9D1DC; border-color: #C9D1DC; } .ordpip.t3 { color: #0b0e14; background: var(--brass2); border-color: var(--brass2); }
+.ordpip.calling { box-shadow: 0 0 0 1px var(--brass2); }
+.standings td.ord { white-space: nowrap; }

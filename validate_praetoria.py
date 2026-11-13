@@ -312,11 +312,17 @@ def validate_scenarios(sc,allspecs):
                     if h.get("system") and h["system"] not in galaxies[gid]: errors.append(f"[{sid}] holding {h['id']} in unknown system '{h['system']}'")
                 for f in d.get("fleets",[]):
                     if f.get("system") not in galaxies[gid]: errors.append(f"[{sid}] fleet {f.get('id')} in unknown system '{f.get('system')}'")
+                    if f.get("owner") not in {h["id"] for h in d.get("houses",[])}: errors.append(f"[{sid}] fleet {f.get('id')} has unknown owner '{f.get('owner')}'")
                 for b in d.get("businesses",[]):
                     if b.get("system") not in galaxies[gid]: errors.append(f"[{sid}] venture {b.get('id')} in unknown system '{b.get('system')}'")
                     if b.get("owner") not in {h["id"] for h in d.get("houses",[])}: errors.append(f"[{sid}] venture {b.get('id')} owned by unknown house '{b.get('owner')}'")
-                    if f.get("owner") not in {h["id"] for h in d.get("houses",[])}: errors.append(f"[{sid}] fleet {f.get('id')} has unknown owner '{f.get('owner')}'")
         chars={c["id"] for c in d.get("characters",[])}
+        # a scenario laid over a galaxy also has that galaxy's standing houses and their people (the baseline the loader merges in)
+        if gid and not BUNDLE:
+            try:
+                base=json.load(open(os.path.join("content","galaxy",gid+"_houses.json")))
+                chars |= {c["id"] for c in base.get("characters",[])}
+            except Exception: pass
         houses={h["id"] for h in d.get("houses",[])}
         for h in d.get("holdings",[]):
             if h.get("kind","planet") not in HOLDING_KINDS: errors.append(f"[{sid}] holding {h['id']} unknown kind '{h.get('kind')}'")

@@ -814,3 +814,27 @@ booms. The richest house holds 8 to 13 per cent of all wealth, so paper has not 
 5. The Exchange has no chart of a single company larger than the twelve-year line in the table.
 6. No event yet reads `market_boom` into a bubble that bursts; a boom is only reported.
 
+## 28. The Republic's three orders — 2026-11-13
+
+Owner: model the Republic on the Roman one: the Senate, the military and commerce as three classes; a family good at
+one, sometimes powerful in several; a Crassus who rises from nothing by money and connection; a Caesar who rises from
+a good family by arms; leverage from controlling a resource or a strategic position. Imperium later.
+
+**Built.** `OrderSystem`: three standings per house from real holdings, a calling, old and new names, glory, cornered
+goods. Leverage: extra weight in the chamber, four doors to a seat (land, bench, sword, purse), sway over the votes of
+dependants, patrons and clients, canvassing. A new start, *The New Man*. Sixteen events. Senate and Houses screens.
+493 tests.
+
+**Fixed on the way.** A save/load mismatch in the order campaigns ended (a dictionary enumerated after removals); a
+raw code expression showing in the Senate's "Move a motion" line; a misplaced check in the content validator.
+
+**Gaps that remain.**
+1. The road by arms ends at "heard in the Senate". The Senate cannot yet vote a triumph or a recall, a general has no
+   army of his own, and nobody can march on the capital. That is the Caesar.
+2. No cursus honorum: any qualified house may stand for consul without having held a lesser office.
+3. Commerce has no career ladder of its own and the Senate hands it no contracts (tax-farming, supply of the fleet).
+4. The player as a client is asked for little: one recurring event. A patron should call in votes on real motions.
+5. Stewards never use sway on purpose; it only tilts votes that were already moved.
+6. *The New Man* is fragile under random play (two young members, no heir). It wants a marriage offered early.
+7. Callings lean to commerce (about 15 of 33). Arms could count more, or wars be more frequent.
+
