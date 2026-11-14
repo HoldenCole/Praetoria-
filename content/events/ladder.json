@@ -1,0 +1,389 @@
+{
+  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected.",
+  "events": [
+    {
+      "id": "the_canvass",
+      "tier": "situation",
+      "weight": 26,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "standing_for_office",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "shake_every_hand",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went from door to door for a month, learned four hundred names and was civil to all of them. It is how these things are won."
+            }
+          ]
+        },
+        {
+          "id": "let_the_record_speak",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood on what had already been done and declined to ask anyone for anything. Some admired it. Others had wanted to be asked."
+            }
+          ]
+        },
+        {
+          "id": "spend_a_little",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} saw to it that the right people had a reason to remember the name. Nothing that could be called a bribe. Everyone called it one."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_count_goes_your_way",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "ladder_elected",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "thank_those_who_carried_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked the houses that had carried the vote, one by one and in person. They will expect to be remembered when it is their turn."
+            }
+          ]
+        },
+        {
+          "id": "begin_the_work_at_once",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} was at the office's desk the morning after the count, before the clerks. It set the tone for the term."
+            }
+          ]
+        },
+        {
+          "id": "mark_it_with_the_family",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the news home first. The house had not had a magistrate's dinner in some time."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_count_goes_against_you",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "ladder_lost",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "congratulate_the_winner",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} congratulated the winner in the open chamber, and was seen to. It will be remembered at the next count."
+            }
+          ]
+        },
+        {
+          "id": "learn_who_did_not_vote",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went through the tally house by house and found out exactly who had promised and not delivered. It is useful to know."
+            }
+          ]
+        },
+        {
+          "id": "say_you_never_wanted_it",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be understood that the office had not been wanted very much. Nobody believed it, and it was not a good look."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "one_of_yours_is_elected",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "newly_elected",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_elected",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "be_seen_to_be_proud",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} walked {kin.name} to the first day of the office through the open street. The house's name was said more than once."
+            }
+          ]
+        },
+        {
+          "id": "remind_them_whose_name_they_carry",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} reminded {kin.name}, kindly, that a magistrate of this house is still of this house. {kin.name} had hoped to be allowed a week of being simply a magistrate."
+            }
+          ]
+        },
+        {
+          "id": "leave_it_theirs",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a note and stayed away. It was {kin.name}'s day."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_aediles_games",
+      "tier": "situation",
+      "weight": 34,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "is_aedile",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "something_the_city_has_not_seen",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 10
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -10
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} brought in something from beyond the Reach that nobody in the city had seen before. It cost a great deal and was worth it."
+            }
+          ]
+        },
+        {
+          "id": "the_old_shows_done_well",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the city what it has always had, and saw that it was done properly. People went home content."
+            }
+          ]
+        },
+        {
+          "id": "spend_it_on_the_drains",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the season's money into the water and the roads. The city grumbled at having no show. The engineers have not stopped talking about it."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

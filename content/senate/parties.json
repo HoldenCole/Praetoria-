@@ -1,0 +1,25 @@
+{
+  "//": "THE PARTIES OF THE REPUBLIC (docs/REPUBLIC.md; the owner's direction: four to start, with the option to found your own). Every house is seated with the party whose law positions its own laws best match at the world's creation, and rival houses drift between parties every ten turns as their laws and estates move. A party courts estates, holds positions on the laws of the Reach and of the houses, and stands for or against kinds of motion; its members lean that way, and the player who leads it holds the bench's platform law. The fifth colour of the palette (silver) is kept for a party the player founds.",
+  "parties": [
+    { "id": "optimates", "name": "The Optimates", "accent": "#3A86FF",
+      "description": "The party of the old order: the chair, the courts and the great houses. Order in the lanes, rank in the chamber, the customary law kept and the upstart kept down.",
+      "estates": ["old_blood", "magistrates"],
+      "laws": { "common_law": "assizes", "trade_charter": "protected", "justice": "iron_law", "court_etiquette": "closed_court", "franchise": "closed", "imperial_edict": "proscriptions" },
+      "motions": { "recognition": 1, "censure": 1, "relief": -1, "levy": 1, "peace": 0 } },
+    { "id": "populares", "name": "The Populares", "accent": "#E63946",
+      "description": "The party of the squares and the frontier: a lenient tithe, open courts, land for the landless, and no common levy that empties the villages for the admirals' wars.",
+      "estates": ["commons", "frontier"],
+      "laws": { "levy_of_the_reach": "no_common_levy", "exchange_levy": "light", "tithe": "lenient", "justice": "lenient", "franchise": "open_ballot", "settlement": "homesteads", "court_etiquette": "open_hall", "labour": "guild_rights" },
+      "motions": { "relief": 1, "levy": -1, "censure": -1, "peace": 1, "embargo": -1 } },
+    { "id": "sword", "name": "The Sword", "accent": "#FFD60A",
+      "description": "The admirals' party: the Reach's levy, conscription, the aggressive doctrine, and commissions for men who have seen battle. Peace is what you get when the enemy is beaten.",
+      "estates": ["officers"],
+      "laws": { "levy_of_the_reach": "common_levy", "arms_market": "licensed", "levies": "conscription", "fleet_doctrine": "aggressive", "march_law": "martial_law", "household_guard": "doubled" },
+      "motions": { "levy": 1, "commission": 1, "peace": -1, "embargo": 1, "relief": 0 } },
+    { "id": "factors", "name": "The Factors", "accent": "#2EC27E",
+      "description": "The counting-houses' party: open lanes, free trade, guild rights, no tolls, and an exchange that never closes. War is bad for business; so is a hungry world.",
+      "estates": ["merchants"],
+      "laws": { "trade_charter": "open_lanes", "exchange_levy": "none", "tariffs": "free_trade", "labour": "guild_rights", "exchange_rates": "open", "reach_tolls": "none", "letters_of_marque": "forbidden" },
+      "motions": { "embargo": -1, "relief": 1, "levy": -1, "peace": 1, "commission": 0 } }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  // NATURE-TRAIT FRICTION (GDD §18 "acting against your nature costs stress"). When the protagonist's house does
+  // one of these acts through a command or the engine, the protagonist takes stress per nature trait listed.
+  // Negative values are relief (a Cruel conqueror enjoys it). Acts the engine recognises: declare_war, battle_won,
+  // battle_lost, conquest, holding_lost, sue_for_peace, refuse_peace, plunder, assassination.
+  "friction": {
+    "declare_war":   { "Honorable": 8, "Just": 6, "Loyal": 2, "Cruel": -2 },
+    "battle_lost":   { "Proud": 8, "Arrogant": 10, "Ambitious": 4 },
+    "battle_won":    { "Just": 2, "Cruel": -3 },
+    "conquest":      { "Just": 6, "Honorable": 4, "Ruthless": -2 },
+    "holding_lost":  { "Proud": 10, "Vengeful": 6 },
+    "sue_for_peace": { "Proud": 6, "Vengeful": 8, "Arrogant": 6 },
+    "refuse_peace":  { "Just": 4, "Honorable": 2 },
+    "plunder":       { "Just": 10, "Honorable": 8, "Greedy": -2 },
+    "assassination": { "Honorable": 12, "Just": 10, "Loyal": 4, "Ruthless": -3 }
+  }
+}

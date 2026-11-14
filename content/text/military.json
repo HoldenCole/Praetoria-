@@ -1,0 +1,134 @@
+{
+  "texts": [
+    {
+      "id": "the_front_or_the_flag",
+      "title": "The Front or the Flag",
+      "body": "{self.name}'s first command asks a question every officer answers once: where will you stand when the shooting starts? On the flagship's bridge, where the crews can see you — or at the plot table, where you can see the battle.",
+      "choices": {
+        "the_front": "Lead from the front.",
+        "the_flag": "Command from the flag. Needs the rank of Commander.",
+        "leave_it_to_the_captains": "Leave the line to the captains."
+      }
+    },
+    {
+      "id": "the_mention_in_dispatches",
+      "title": "Mentioned in Dispatches",
+      "body": "{self.house}'s fleet has won with {self.name} on the bridge, and the dispatch is being written. A dispatch is a small thing that decides careers. {self.name} is asked what it should say.",
+      "choices": {
+        "accept_the_promotion": "Let the dispatch speak for you. A promotion.",
+        "share_the_credit": "Put the captains' names before your own.",
+        "ask_for_hulls_instead": "Ask the Admiralty for hulls, not honours."
+      }
+    },
+    {
+      "id": "the_line_holds",
+      "title": "The Line Holds",
+      "body": "{self.house}'s fleet has won a battle. The enemy is falling back, the wrecks are still venting, and the signal lamp is asking for orders.",
+      "choices": {
+        "pursue": "Pursue. Make them pay for the day.",
+        "rescue_the_survivors": "Stop and pull survivors from the wrecks.",
+        "hold_the_field": "Hold the field. Let the record say victory."
+      }
+    },
+    {
+      "id": "the_line_breaks",
+      "title": "The Line Breaks",
+      "body": "{self.house}'s fleet has lost a battle. The survivors are limping home, the chronicle is sharpening its pen, and the wardroom is waiting to see whose fault it was.",
+      "choices": {
+        "court_martial": "Convene a court-martial.",
+        "own_it": "Take the defeat as your own, before the fleet.",
+        "rebuild_quietly": "Say nothing; rebuild (4 materials)."
+      }
+    },
+    {
+      "id": "the_achilles_name",
+      "title": "The Achilles Name",
+      "body": "Three victories with {self.name} on the bridge, and the Reach has started to say the name the way it says Achilles. The crews chant it. The Senate's clerks write it down. Names like that are not given back.",
+      "choices": {
+        "wear_it": "Wear it.",
+        "refuse_it": "Refuse it in public.",
+        "turn_it_on_the_senate": "Let the Senate know whose fleets love whom (1 influence)."
+      }
+    },
+    {
+      "id": "the_prize_crews",
+      "title": "The Prize Crews",
+      "body": "The boarding parties have done their work and enemy hulls ride under {self.house}'s guard, crews under hatches. The prize-master wants to know what they are for.",
+      "choices": {
+        "keep_the_prizes": "Keep them under the house's colours.",
+        "sell_them": "Sell them to the yards (8 credits).",
+        "return_them_for_ransom": "Ransom hulls and crews back (5 credits)."
+      }
+    },
+    {
+      "id": "the_long_supply_line",
+      "title": "The Long Supply Line",
+      "body": "A fleet of {self.house}'s has outrun its supply. The quartermaster's signal is brief: no stores, no spares, crews on half rations. The lane home is long.",
+      "choices": {
+        "buy_from_the_locals": "Buy stores from the local factors (6 credits).",
+        "forage": "Let the fleet forage.",
+        "fall_back": "Order the fleet back toward supply."
+      }
+    },
+    {
+      "id": "the_restive_crews",
+      "title": "The Restive Crews",
+      "body": "The crews of a fleet of {self.house}'s are muttering. Pay is late, or the tanks are dry, or the officers' estate has been telling them whose fault it is. The captains report that orders are being obeyed slowly.",
+      "choices": {
+        "pay_arrears": "Pay the arrears from the house's coin (6 credits).",
+        "address_the_fleet": "Address the fleet. Leadership.",
+        "hang_the_ringleaders": "Hang the ringleaders."
+      }
+    },
+    {
+      "id": "the_mutiny",
+      "title": "The Mutiny",
+      "body": "A fleet of {self.house}'s has mutinied: the crews hold the ships, the officers hold the bridge, and neither will fire on the other yet. Hulls are slipping away in the night.",
+      "choices": {
+        "go_aboard_yourself": "Go aboard alone and hear them out. Leadership.",
+        "send_the_guard": "Send the household guard aboard.",
+        "let_them_go": "Let the mutineers take their hulls and go."
+      }
+    },
+    {
+      "id": "the_campaign_opens",
+      "title": "The Campaign Opens",
+      "body": "{self.house} has named the war's object and the fleet knows where it is going. A campaign is a promise the house makes to its own sailors; the steward wants to know how loudly to make it.",
+      "choices": {
+        "proclaim_it": "Proclaim the campaign from the steps.",
+        "requisition": "Requisition stores and crews.",
+        "keep_it_quiet": "Tell no one the object until the first broadside."
+      }
+    },
+    {
+      "id": "the_campaign_ends",
+      "title": "The Campaign Ends",
+      "body": "The season's campaign is over: the fleet is recalled to its stations and the object either taken or not. The crews want a triumph. The squares want the crews home.",
+      "choices": {
+        "a_triumph": "Give the fleet a triumph (5 credits).",
+        "stand_down": "Stand the fleet down.",
+        "plan_the_next": "Have the next campaign on the plot table."
+      }
+    },
+    {
+      "id": "the_torpedo_run",
+      "title": "The Torpedo Run",
+      "body": "{self.house} is at war and has isotopes in the vault. The gunnery officer has a proposal involving warheads; the steward has a proposal involving the vault staying shut.",
+      "choices": {
+        "load_the_tubes": "Load the tubes (1 isotope).",
+        "hold_the_stock": "Keep the isotopes in the vault.",
+        "sell_to_the_enemys_enemy": "Sell two lots to the enemy's enemy."
+      }
+    },
+    {
+      "id": "the_generals_sway",
+      "title": "The General's Sway",
+      "body": "The fleet loves {self.name}; the Senate knows the fleet loves {self.name}; and there is a war on. Men have become more than consuls with less. Both the wardroom and the chamber are watching which way {self.name} leans.",
+      "choices": {
+        "court_the_senate": "Go to the Senate as a soldier asking leave (1 influence).",
+        "court_the_fleet": "Spend the season with the fleet.",
+        "stay_above_it": "Stay above it."
+      }
+    }
+  ]
+}

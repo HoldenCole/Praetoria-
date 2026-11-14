@@ -1,0 +1,64 @@
+{
+  "texts": [
+    {
+      "id": "a_child_with_nowhere_to_go",
+      "title": "A Child With Nowhere To Go",
+      "body": "{child.name} of {child.house} is the kind of child houses talk about in lowered voices: a family that cannot keep them, or will not, and no one stepping forward. A steward mentions it to {self.name} in passing, in the tone of someone mentioning the weather, and waits.",
+      "choices": {
+        "take_the_child_in": "Take the child into your house.",
+        "find_them_a_place": "Find them a place, and pay for it.",
+        "it_is_not_your_affair": "It is not your affair."
+      }
+    },
+    {
+      "id": "the_ward_comes_of_age",
+      "title": "The Ward Comes Of Age",
+      "body": "{ward.name} is sixteen, and free to go home to {ward.house}. {ward.name} has come to {self.name}'s study to say, a little stiffly, that they would rather stay, if there is a place for them here. They have clearly rehearsed it.",
+      "choices": {
+        "you_are_family": "\"You are family. There was never a question.\"",
+        "give_them_a_start": "Settle a sum on them to begin with.",
+        "say_little": "Say it is sensible of them."
+      }
+    },
+    {
+      "id": "the_accounts_do_not_add_up",
+      "title": "The Accounts Do Not Add Up",
+      "body": "It is not much. A few credits a year, for some years, in a column that {steward.name} keeps and nobody else reads. {self.name} has read it now. {steward.name} was given the house's purse on trust, and has been treating a little of it as their own.",
+      "choices": {
+        "dismiss_them": "Dismiss them from the work.",
+        "make_them_repay_it": "Make them repay it, and keep them.",
+        "look_away": "Look away."
+      }
+    },
+    {
+      "id": "a_place_at_the_table",
+      "title": "A Place At The Table",
+      "body": "There is a formal dinner, and a seating plan, and the steward has brought it to {self.name} with one name circled. {member.name} is of the household but not of the blood. Where {member.name} sits tonight will tell the whole house what {member.name} is.",
+      "choices": {
+        "at_the_family_table": "With the family.",
+        "below_the_family": "With the household, below the family.",
+        "let_them_choose": "Let them choose."
+      }
+    },
+    {
+      "id": "the_protege_is_noticed",
+      "title": "The Protégé Is Noticed",
+      "body": "People have begun to mention {protege.name} to {self.name} without being asked. A piece of work well done, a good answer in a hard room. They say it as a compliment to {self.name}, who brought {protege.name} on, and they watch to see how it is taken.",
+      "choices": {
+        "say_so_in_public": "Say in public how far they will go.",
+        "push_them_harder": "Push them harder.",
+        "say_nothing": "Say nothing."
+      }
+    },
+    {
+      "id": "the_wing_withdrawn",
+      "title": "The Wing Withdrawn",
+      "body": "For some years there was someone senior who answered {self.name}'s questions, spoke for {self.name} in rooms {self.name} was not in, and expected nothing but to be listened to. That is over now.",
+      "choices": {
+        "stand_alone": "Stand alone.",
+        "honour_what_was_taught": "Honour what was taught.",
+        "find_another": "Look for another."
+      }
+    }
+  ]
+}

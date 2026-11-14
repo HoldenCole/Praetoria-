@@ -1,0 +1,42 @@
+{
+  "//": "A blank start for a character of the player's own making (docs/CHARACTER.md). Hidden: the title screen offers it as 'A character of your own', not as a scenario.",
+  "id": "custom_republic",
+  "hidden": true,
+  "protagonist": "custom_self",
+  "era": "fractured_stars",
+  "galaxy": "the_reach",
+  "houses": [
+    {
+      "id": "custom",
+      "name": "Varro",
+      "accent": "#E63946",
+      "treasury": {
+        "credits": 20,
+        "materials": 6,
+        "manpower": 4,
+        "influence": 1,
+        "exotics": 0
+      },
+      "title": "landless",
+      "legitimacy": 10
+    }
+  ],
+  "characters": [
+    {
+      "id": "custom_self",
+      "name": "Lucan Varro",
+      "house": "custom",
+      "age": 24,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 1,
+      "nature": [],
+      "aptitude": [],
+      "skills": {},
+      "ambition": "earn_a_command"
+    }
+  ],
+  "relationships": [],
+  "holdings": [],
+  "fleets": []
+}

@@ -1,0 +1,173 @@
+{
+  "texts": [
+    {
+      "id": "matriculation",
+      "title": "Matriculation",
+      "body": "The gates of the Academy of the Reach, the first morning of the year. Behind you, the shuttle from home. Ahead, a year of lectures, examinations and the company of every house's sons and daughters. Nothing that happens outside these walls can reach you until you pass out, and nothing you do in here will be forgotten by the people you do it beside. You are {self.name} of {self.house}, sixteen, and nobody yet.",
+      "choices": {
+        "find_the_library": "Find the library first.",
+        "introduce_yourself": "Go down the line and learn every name.",
+        "walk_the_square": "Walk the drill square alone before the bell."
+      }
+    },
+    {
+      "id": "the_first_lecture",
+      "title": "The First Lecture",
+      "body": "The great lecture hall, banked seats, a lecturer who has given this one forty times. The history of the Republic in fifty minutes: how the houses came to share a Senate, and what they agreed never to let one house become.",
+      "choices": {
+        "take_notes": "Take it down, all of it.",
+        "argue_the_point": "Put up a hand and argue.",
+        "sit_at_the_back": "Sit at the back and watch the room."
+      }
+    },
+    {
+      "id": "the_study_circle",
+      "title": "The Study Circle",
+      "body": "{friend.name} of {friend.house} is getting up a study circle: three nights a week, the law papers and the tactical problems, anyone who will do the reading. You are asked.",
+      "choices": {
+        "join_it": "Join it.",
+        "lead_it": "Join it, and end up running it.",
+        "decline_kindly": "Thank them, and keep your own timetable."
+      }
+    },
+    {
+      "id": "the_house_question",
+      "title": "What Does Your House Stand For?",
+      "body": "Across the mess table, {other.name} of {other.house} asks it straight out: what does {self.house} stand for, in the Senate? At home nobody asks, because everyone knows. Here it is a fair question, and the table has gone quiet to hear the answer.",
+      "choices": {
+        "answer_plainly": "Say it plainly.",
+        "make_a_joke_of_it": "Make a joke of it.",
+        "ask_them_first": "Ask what theirs stands for, and listen."
+      }
+    },
+    {
+      "id": "the_fencing_salle",
+      "title": "The Fencing Salle",
+      "body": "A friendly bout in the salle, buttons on the points, first to five. {rival.name} of {rival.house} is across the piste and half the year is along the wall pretending to stretch.",
+      "choices": {
+        "win_gracefully": "Fence to win, and offer a hand after.",
+        "lose_gracefully": "Fence fair; if they are better, say so.",
+        "demand_a_rematch": "If you lose, ask for another at once."
+      }
+    },
+    {
+      "id": "the_debating_society",
+      "title": "The Debating Society",
+      "body": "The society's motion this week: that the franchise of the Reach be widened. {rival.name} of {rival.house} is down to speak, and the secretary wants a second speaker from the floor. Nothing rides on it but the vote in the room, which is exactly why everyone cares.",
+      "choices": {
+        "speak_for_the_motion": "Speak for the motion.",
+        "speak_against_it": "Speak against it.",
+        "second_your_rival": "Rise to second your rival."
+      }
+    },
+    {
+      "id": "the_regatta",
+      "title": "The Regatta",
+      "body": "The year's pinnace race, round the outer marker and home. Your boat and {rival.name}'s are level at the turn, and there is room to cut inside if you want it badly enough.",
+      "choices": {
+        "race_to_win": "Cut inside. It is within the rules.",
+        "race_fair_and_wide": "Give them room.",
+        "cheer_from_the_bank": "You are not rowing this year. Watch from the gallery."
+      }
+    },
+    {
+      "id": "the_prank",
+      "title": "The Chapel Roof",
+      "body": "A plan is going round the dormitory: every stick of furniture in {target.name}'s study, moved onto the chapel roof overnight and arranged exactly as it was. Nobody would be hurt. {target.name} of {target.house} would be furious. They need one more pair of hands for the desk.",
+      "choices": {
+        "join_in": "Carry the desk.",
+        "talk_them_out_of_it": "Talk them out of it.",
+        "own_up_for_everyone": "Let it happen, and take the blame alone when the proctor asks."
+      }
+    },
+    {
+      "id": "the_tutors_hour",
+      "title": "The Tutor's Hour",
+      "body": "The senior tutor stops you in the cloister. Your work has been noticed, and there is an hour a week going spare for a cadet who would use it. Which subject is up to you.",
+      "choices": {
+        "extra_tactics": "The tactical table.",
+        "extra_law": "The Senate's Acts.",
+        "extra_economy": "The exchange.",
+        "thank_them_and_decline": "Thank them, and keep the hour."
+      }
+    },
+    {
+      "id": "the_visiting_senator",
+      "title": "The Visiting Senator",
+      "body": "{senator.name} of {senator.house} has come to address the year: one of the people who actually run the Reach, in the flesh, taking questions. The proctors have allowed ten minutes.",
+      "choices": {
+        "ask_about_the_fleets": "Ask about the fleets.",
+        "ask_about_the_law": "Ask about the law.",
+        "listen_and_remember": "Say nothing. Remember everything."
+      }
+    },
+    {
+      "id": "the_war_game",
+      "title": "The War Game",
+      "body": "The great table in the tactical hall: two fleets of brass counters, a field of lanes and chokepoints, umpires with rulers, and the whole year in the gallery. Your side against {rival.name}'s. The only things that can be lost here are marks and pride, and the year will remember who lost which.",
+      "choices": {
+        "command_the_van": "Take the van and press where their line bends.",
+        "hold_the_reserve": "Ask for the reserve and wait.",
+        "accept_the_umpires_ruling": "Play it straight, whatever the umpires rule."
+      }
+    },
+    {
+      "id": "the_borrowed_notes",
+      "title": "The Borrowed Notes",
+      "body": "A week before the papers, {friend.name} of {friend.house} is at your door, a term behind on the law reading and asking for your notes.",
+      "choices": {
+        "lend_them": "Hand them over.",
+        "study_together": "Come at eight. Bring coffee.",
+        "refuse": "No. They are yours, and so is the week."
+      }
+    },
+    {
+      "id": "the_examinations",
+      "title": "The Examinations",
+      "body": "Three papers in three days, in the great hall, under the clock. Everything the year has taught, and the order of merit turns on it.",
+      "choices": {
+        "pour_everything_in": "Do not sleep until it is over.",
+        "steady_across_all_three": "The same even pace for all three.",
+        "sleep_and_trust_the_year": "Close the books at ten. It is in there or it is not."
+      }
+    },
+    {
+      "id": "the_rivals_hand",
+      "title": "The Rival's Hand",
+      "body": "The last evening. {rival.name} of {rival.house}, who has spent the year trying to beat you at everything and whom you have spent the year trying to beat, is crossing the hall toward you.",
+      "choices": {
+        "take_it": "Take the hand.",
+        "a_nod_will_do": "A nod will do.",
+        "not_yet": "Ask me in ten years."
+      }
+    },
+    {
+      "id": "passing_out_eve",
+      "title": "The Night Before",
+      "body": "Tomorrow the year passes out and the world begins. Tonight there is nothing left to revise.",
+      "choices": {
+        "stand_with_friends": "Up on the chapel roof with the others.",
+        "write_home": "Write home.",
+        "walk_the_square_once_more": "Walk the square once more."
+      }
+    },
+    {
+      "id": "the_library_late",
+      "title": "The Library, Late",
+      "body": "The lamps are low and the librarian is looking at the clock.",
+      "choices": {
+        "read_ahead": "One more chapter.",
+        "close_the_book": "Close the book."
+      }
+    },
+    {
+      "id": "the_mess_table",
+      "title": "The Mess Table",
+      "body": "Supper, and {friend.name} of {friend.house} across the table with a story about home.",
+      "choices": {
+        "trade_stories": "Trade one of your own.",
+        "listen": "Let them talk."
+      }
+    }
+  ]
+}

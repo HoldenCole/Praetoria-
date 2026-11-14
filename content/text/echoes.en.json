@@ -1,0 +1,170 @@
+{
+  "texts": [
+    {
+      "id": "the_crowns_due",
+      "title": "{era:The Chair's Due|The Crown's Due}",
+      "body": "What you owed {era:the chair|the crown} has not been forgotten. {sovereign.name} of {sovereign.house} has sent for the debt with the full apparatus of state behind the request — not a threat, because {era:the chair|the crown} does not threaten; a reminder, which is worse. There are three ways a house pays what it owes {era:the Republic|a throne}, and the one it chooses is remembered longer than the debt.",
+      "choices": {
+        "pay_in_coin": "Pay in coin. It will hurt; it will be over.",
+        "pay_in_service": "Pay in service. A year at {era:the chair's|the crown's} disposal — and standing afterward.",
+        "defy_the_crown": "Refuse. Let {era:the Senate|the court} see what your house has become."
+      }
+    },
+    {
+      "id": "the_anomaly_stirs",
+      "title": "The Thing From the Rock",
+      "body": "You had nearly forgotten it: the find from the worthless seam, logged and locked and set aside. A steward's report brings it back — readings that have changed, a seal that is warmer than it should be, a technician who will not go into the vault alone any more. Whatever the markets called exotic, it is not inert. It is waiting, and it would like to be understood.",
+      "choices": {
+        "study_it": "Give it the attention it has been waiting for. Learn what it is.",
+        "sell_it": "Sell it to someone who asks no questions. Let it be their problem.",
+        "seal_it": "Three locks and a false label. Forget it, deliberately."
+      }
+    },
+    {
+      "id": "the_oath_remembered",
+      "title": "The Old Words",
+      "body": "Years ago, in the small hours at the academy, you and {comrade.name} of {comrade.house} swore the old words to each other. Now the oath has come due — one of you needs the other, at a cost, in a world that has made you both more careful than you were. Blood you are given. This you chose. The question is whether the choosing still holds.",
+      "choices": {
+        "call_on_them": "Call on the oath. Ask for what you need, and be answered.",
+        "stand_for_them": "Keep the oath for {comrade.name}'s sake, publicly and at cost.",
+        "let_it_lapse": "Let the words pass unkept. You were children when you said them."
+      }
+    },
+    {
+      "id": "the_coalitions_remnant",
+      "title": "The Remnant",
+      "body": "The coalition that formed against you has broken, and {rival.name} of {rival.house}, who organised it, is left holding the pieces — fewer allies than last season, debts called in, a reputation for failure that {era:the Senate|the court} can smell. A broken enemy is a decision waiting to be made.",
+      "choices": {
+        "finish_them": "Finish it. Peel away what is left and leave one bitter house.",
+        "bring_them_in": "Offer {rival.name} a place. Yesterday's organiser, today's client.",
+        "let_them_scatter": "Let the remnants drift. You have made your point."
+      }
+    },
+    {
+      "id": "the_old_wound_healed",
+      "title": "What the Quarrel Became",
+      "body": "There was a time when {friend.name} of {friend.house} would have seen you ruined and called it justice. That time passed — you saw to it that it passed — and what is left between you is something neither of you has named. Correct. Cordial. Careful. It could stay that. It could become more.",
+      "choices": {
+        "deepen_it": "Name it. Make the old enemy a sworn friend.",
+        "keep_it_civil": "Leave it as it is. Not every mended thing needs to be more."
+      }
+    },
+    {
+      "id": "what_the_sabotage_taught",
+      "title": "The Spoiled Kit, Remembered",
+      "body": "It comes back at odd moments — the cut straps, the vanished orders, the inspection you failed for something you did not do. The academy is years behind you, and the lesson is still deciding what shape to take in you.",
+      "choices": {
+        "trust_no_one": "Watch every locker, every ledger, every back. Learn it thoroughly.",
+        "let_it_go": "Set it down. It made you harder; that was enough."
+      }
+    },
+    {
+      "id": "the_household",
+      "title": "The Household",
+      "body": "The great game pauses, briefly, at your own door. {spouse.name} is there — has been there, through all of it — and the evening is, for once, unclaimed.",
+      "choices": {
+        "tend_it": "Spend the evening on the marriage and nothing else.",
+        "neglect_it": "Work through it. Again. The house needs the hours."
+      }
+    },
+    {
+      "id": "the_breaking_point",
+      "title": "The Breaking Point",
+      "body": "It has been building for years — every choice made against your nature, every oath kept at a cost, every quarrel carried — and now something in you has given way. The household has noticed. {era:The Senate|The court} will, soon. What you do with the break decides what kind of person stands up afterward.",
+      "choices": {
+        "gather_yourself": "Put yourself back together, privately. Stronger along the crack.",
+        "lash_out": "Break outward. Let everyone nearby pay for the pressure.",
+        "withdraw": "Withdraw for a season. Let the house run itself, badly, and come back whole."
+      }
+    },
+    {
+      "id": "the_unfamiliar_sails",
+      "title": "Unfamiliar Sails",
+      "body": "They are in your sky. Not a raid — nothing so honest — but a fleet flying {intruder.house}'s colours, holding station over your own worlds as if the lanes belonged to it, close enough that the harbour towns can read the names on the hulls. {intruder.name} has sent no word. The absence of a message is the message. A house answers its own sky or it does not; the galaxy will remember which.",
+      "choices": {
+        "muster": "Crew every hull, man every battery, burn the harbour lights all night. Let them count.",
+        "protest": "Protest to every court that will listen. Make it cost them in reputation.",
+        "let_them_pass": "Do nothing. They will leave, and you will have lost nothing but face."
+      }
+    },
+    {
+      "id": "the_review_of_the_fleet",
+      "title": "The Review",
+      "body": "The house's ships lie at anchor — more than one now, enough to be called a fleet without irony. A fleet is a promise the house makes to its enemies and its friends alike, and promises want inspecting.",
+      "choices": {
+        "inspect_it": "Walk the decks yourself. Ask the questions a name is not supposed to ask.",
+        "parade_it": "Parade it past the capital in review order. Let the houses count."
+      }
+    },
+    {
+      "id": "the_butchers_bill",
+      "title": "The Butcher's Bill",
+      "body": "The reports come in the way they always do: first the outcome, then the numbers, then — later, when the signals officers have found the courage — the names. Hulls are rebuilt. Crews are not. Whatever happened out there under your colours, the house must now decide what a battle costs it beyond the ledger.",
+      "choices": {
+        "honor_the_dead": "Read the names aloud. Pay the families from the house's own purse.",
+        "press_the_advantage": "No pause. Refit, resupply, press on before the wreckage cools.",
+        "count_the_cost": "Sit with the reports until you understand exactly what happened, and why."
+      }
+    },
+    {
+      "id": "the_conquered_world",
+      "title": "The Conquered World",
+      "body": "The sky is yours, and so, by the only law that applies when the fleets have spoken, is the world beneath it. Its councils are waiting to learn what kind of conqueror has come. There are three answers, and the galaxy is listening for which one you give.",
+      "choices": {
+        "garrison_and_govern": "Garrison it, keep order, leave the old laws where they do no harm. Hold it by consent.",
+        "plunder_it": "Let the fleet have it for a season. The treasury needs it more than the world does.",
+        "proclaim_the_conquest": "Proclaim it from their own council steps, fleet overhead. Let the galaxy count."
+      }
+    },
+    {
+      "id": "the_lost_world",
+      "title": "The Lost World",
+      "body": "A world that bore your name does not any more. {enemy.name} of {enemy.house} holds its sky, and the courier who brought the news would not meet your eye. The household is watching to see what a house does when it is made smaller by force — and so, from a careful distance, is everyone else.",
+      "choices": {
+        "swear_to_retake_it": "Swear before the household that it will be yours again. Make it a feud.",
+        "sue_for_terms": "Send for terms. End the war, keep what remains, bleed standing instead of blood.",
+        "absorb_the_loss": "Say nothing. Go on smaller. Let the towns draw their own conclusions."
+      }
+    },
+    {
+      "id": "the_envoy_of_peace",
+      "title": "The Envoy",
+      "body": "{envoy.name} of {envoy.house} comes under a white banner, which costs a house more than any battle. They are asking for the war to end. Behind the courtesy is arithmetic — hulls lost, worlds taken, a treasury bleeding — and behind the arithmetic a question only you can answer: what was this war for, and do you have it yet?",
+      "choices": {
+        "accept_peace": "Accept. End it. Let both sides light their lamps.",
+        "demand_tribute": "Name a price. Peace, yes — paid for.",
+        "refuse_terms": "Send them back with nothing. The war is not finished."
+      }
+    },
+    {
+      "id": "the_great_work",
+      "title": "The Great Work",
+      "body": "It is finished — a thing of a scale the Reach reserves for its oldest houses, hanging in your sky where everyone can see it. {envious.name} of {envious.house} has already seen it. A megastructure is not a building. It is a statement, and the galaxy is now deciding what you meant by it.",
+      "choices": {
+        "dedicate_it": "Dedicate it before every house that can be made to attend.",
+        "open_it_to_all": "Open it to the Reach. Let the towns talk for a generation.",
+        "keep_it_quiet": "No ceremony. Let them find it on their own, and frighten fewer."
+      }
+    },
+    {
+      "id": "the_proclamation",
+      "title": "The Proclamation",
+      "body": "It is done. The houses of the Reach have knelt — some gladly, some because the alternative was in orbit — and you hold the throne that did not exist a season ago, or that someone else held. {grandee.name} of {grandee.house} opposed you, and is waiting to learn what that costs. The first act of a reign is the one the chronicles remember.",
+      "choices": {
+        "clemency": "Clemency. Let {grandee.name} keep lands, title and head. A throne that can afford mercy will last.",
+        "purge": "A list of names, and {grandee.name}'s on it. Let the Reach learn at once what this throne is.",
+        "convene_the_senate": "Convene a Senate. Give the houses a chamber to lose their arguments in lawfully."
+      }
+    },
+    {
+      "id": "the_wedding_feast",
+      "title": "The Wedding Feast",
+      "body": "A feast in your hall to mark the marriage, with every house of consequence at the tables — {enemy.name} of {enemy.house} among them, by the oldest law, which says a feast is sacred and a guest is safe. {kin.name} is seated at your right hand. The toast is about to be raised, and someone in this hall has decided tonight is the night the old law breaks.",
+      "choices": {
+        "spring_the_trap": "The doors are yours. Close them. End the feud with the toast.",
+        "survive_the_ambush": "Live through what is coming. Bury who must be buried. Begin to plan.",
+        "make_peace_at_the_table": "Raise a cup to the quarrel's end, before the whole hall, and wait to see if it is raised back."
+      }
+    }
+  ]
+}

@@ -1,0 +1,2033 @@
+{
+  "//": "ECHOES — consequences for earlier choices whose flags had no reader. Consumes: debt_to_crown (the_crowns_due), anomaly_hoarded/anomaly_studied (the_anomaly_stirs), oath_sworn_academy (the_oath_remembered), coalition_broken (the_coalitions_remnant), reconciled (the_old_wound_healed), sabotaged (what_the_sabotage_taught), wed (the_household), and the engine-written `broken` stress flag (the_breaking_point). Every event here clears the flag it reads so chains end cleanly. FLEETS: the_unfamiliar_sails (an incursion into your space — reads the engine `incursions` counter) and the_review_of_the_fleet (gates on fleetStrength). WAR: the_butchers_bill (reads engine flag battle_fought and clears it), the_conquered_world (reads conquest_made), the_lost_world (reads holding_lost). the_envoy_of_peace: an enemy head flagged suing_for_peace (engine) asks for terms. the_great_work (reads megastructure_raised). ENDGAME: the_proclamation (reads imperium_proclaimed / throne_seized). BLOODY EVENT: the_wedding_feast (a gala that turns to slaughter — uses kill).",
+  "events": [
+    {
+      "id": "the_crowns_due",
+      "tier": "setpiece",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "sovereign",
+          "when": [
+            {
+              "type": "rank",
+              "role": "sovereign",
+              "op": "gt",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "debt_to_crown",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_in_coin",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "debt_to_crown",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sovereign",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{era:The chair's due|The crown's due} came to {self.name} with interest, and {self.name} paid it in coin that had been meant for other things. {sovereign.name} of {sovereign.house} received it as {era:the chair|the crown} receives everything: as its right."
+            }
+          ]
+        },
+        {
+          "id": "pay_in_service",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "debt_to_crown",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid {era:the chair's due|the crown's due} in the only coin a poor house has — a year of service at {sovereign.name}'s disposal, unglamorous and unrefusable. The debt is cleared. The year is gone. The standing it bought will outlast both."
+            }
+          ]
+        },
+        {
+          "id": "defy_the_crown",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "debt_to_crown",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "sovereign",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sovereign",
+              "to": "self",
+              "delta": -40
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {sovereign.name} of {sovereign.house}, through intermediaries and then without them, that the debt would not be paid. {era:The Senate|The court} went very quiet. A house that defies {era:the chair|the crown} has either grown very strong or made a very large mistake, and no one yet knows which {self.name} is."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_anomaly_stirs",
+      "tier": "setpiece",
+      "weight": 2,
+      "repeatable": false,
+      "roles": [],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "anomaly_hoarded",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "anomaly_studied",
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "study_it",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Brilliant",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "exotics",
+              "delta": 3
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "engineering",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went back to the thing from the worthless rock and gave it the attention it had been waiting for. It yielded. It yielded more than it should have — the kind of result that makes a careful mind wonder what else has been waiting, and where."
+            }
+          ]
+        },
+        {
+          "id": "sell_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "adjustResource",
+              "resource": "exotics",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sold the thing from the rock to someone who asked no questions and paid as if they knew the answers. The treasury is heavier. Somewhere, the thing is being studied by hands {self.name} will never see."
+            }
+          ]
+        },
+        {
+          "id": "seal_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the thing sealed, logged, and forgotten under three locks and a false label. A prudent steward's decision. {self.name} slept badly anyway, and could not have said why."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_oath_remembered",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "comrade",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "comrade",
+              "bond": "sworn",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "oath_sworn_academy",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 8
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_on_them",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called on the old academy oath, and {comrade.name} of {comrade.house} answered it without being asked twice. Blood you are given; this was chosen, and it held."
+            }
+          ]
+        },
+        {
+          "id": "stand_for_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{comrade.name} needed the oath more than {self.name} did this year, and {self.name} stood for them at a cost — publicly, expensively, the way oaths are meant to be kept. The cohort that watched the swearing has long since scattered. The ones who hear of this will understand what it was."
+            }
+          ]
+        },
+        {
+          "id": "let_it_lapse",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "log",
+              "text": "The old words came due and {self.name} let them pass unkept. {comrade.name} of {comrade.house} said nothing, which is how such things are said."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_coalitions_remnant",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "rival",
+              "flag": "coalition_broken",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "finish_them",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "coalition_broken",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -25
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not let {rival.name} of {rival.house} recover from the coalition's collapse. Allies were peeled away, debts were called, and what had been a faction became one bitter house with a long memory."
+            }
+          ]
+        },
+        {
+          "id": "bring_them_in",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "coalition_broken",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} offered {rival.name} of {rival.house} what the broken coalition could not: a place. Yesterday's organiser-against-you became today's reluctant client. Mercy, {era:in the Senate|at court}, is just leverage with better manners."
+            }
+          ]
+        },
+        {
+          "id": "let_them_scatter",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "coalition_broken",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the remnants of the coalition drift apart on their own. {rival.name} of {rival.house} went home to count what the fear had cost. It would be a while before anyone proposed another."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_old_wound_healed",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "friend",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "friend",
+              "flag": "reconciled",
+              "value": true
+            },
+            {
+              "type": "relationship",
+              "from": "friend",
+              "to": "self",
+              "op": "gte",
+              "value": 10
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "deepen_it",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "friend",
+              "flag": "reconciled",
+              "value": false
+            },
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "friend",
+              "bond": "sworn",
+              "strength": 40
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "friend",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "What had been a quarrel between {self.name} and {friend.name} of {friend.house} became, by slow degrees and one honest evening, something the old academy would have recognised as an oath. Enemies make the best allies; they already know where you are weak."
+            }
+          ]
+        },
+        {
+          "id": "keep_it_civil",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "friend",
+              "flag": "reconciled",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {friend.name} of {friend.house} remained what the reconciliation had made them: correct, cordial, and careful. Not every mended thing needs to become more."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "what_the_sabotage_taught",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": false,
+      "roles": [],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "sabotaged",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "trust_no_one",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "sabotaged",
+              "value": false
+            },
+            {
+              "type": "addTrait",
+              "role": "self",
+              "trait": "Paranoid",
+              "kind": "aptitude"
+            },
+            {
+              "type": "log",
+              "text": "{self.name} never again left a locker, a ledger, or a back unwatched. The spoiled kit at the academy had taught a lesson, and {self.name} had learned it thoroughly — perhaps too thoroughly."
+            }
+          ]
+        },
+        {
+          "id": "let_it_go",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "sabotaged",
+              "value": false
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} set the old sabotage down at last. It had made {self.name} harder, and that was enough; it did not need to make {self.name} smaller too."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_household",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "wed",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "tend_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "spouse",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "An evening with {spouse.name} and no one else. The great game went on without {self.name} for a few hours, and the house was, briefly, only a house."
+            }
+          ]
+        },
+        {
+          "id": "neglect_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "spouse",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} worked through the evening again. {spouse.name} did not remark on it, which {self.name} chose to read as understanding."
+            }
+          ]
+        }
+      ],
+      "ambitions": [
+        "win_a_great_love"
+      ]
+    },
+    {
+      "id": "the_breaking_point",
+      "tier": "setpiece",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "broken",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "gather_yourself",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "broken",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -20
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "Something in {self.name} gave way, and then — slowly, privately, with no one permitted to see — was put back. Not the same shape as before. Stronger along the crack."
+            }
+          ]
+        },
+        {
+          "id": "lash_out",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Cruel",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "broken",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} broke outward. A steward dismissed in front of the household, a petitioner answered with a blow, a week {era:the capital|the court} would talk about for a year. The pressure eased. The price was paid by everyone nearby."
+            }
+          ]
+        },
+        {
+          "id": "withdraw",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "broken",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -30
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} withdrew — from {era:the Senate|the court}, the ledgers, the thousand demands — and let the house run itself for a season. It ran badly. {self.name} came back able to run it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_unfamiliar_sails",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "intruder",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "intruder",
+              "to": "self",
+              "op": "lte",
+              "value": -20
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "counter",
+          "key": "incursions",
+          "op": "gte",
+          "value": 1
+        },
+        {
+          "type": "worldFlag",
+          "flag": "sails_answered",
+          "value": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "muster",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "sails_answered",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "Unfamiliar sails in {self.name}'s own sky, and {self.name} answered them the old way: every hull crewed, every battery manned, the harbour lights burning all night so that {intruder.name} of {intruder.house} could count them. Nothing was fired. Everything was said."
+            }
+          ]
+        },
+        {
+          "id": "protest",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "intruder",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "sails_answered",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a formal protest to every court that would receive one. The sails stayed. The protest was noted, which is what protests are for."
+            }
+          ]
+        },
+        {
+          "id": "let_them_pass",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "sails_answered",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the foreign sails hang over the harbour unanswered. The towns talked. A house that does not answer its own sky is a house the sky begins to doubt."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_review_of_the_fleet",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "fleetStrength",
+          "role": "self",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "inspect_it",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "gunnery",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} walked the decks of the house's ships and asked the questions a crew does not expect from a name. The answers were uneven. {self.name} wrote them down."
+            }
+          ]
+        },
+        {
+          "id": "parade_it",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paraded the house fleet past the capital in review order, every hull polished and every flaw hidden. The watching houses counted. That was the point."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_butchers_bill",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "battle_fought",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "honor_the_dead",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "battle_fought",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} read the names of the dead aloud, every one, and paid the families from the house's own purse. The fleet noticed. So did the towns that crew it."
+            }
+          ]
+        },
+        {
+          "id": "press_the_advantage",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ambitious",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "battle_fought",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not stop for the dead. Orders went out before the wreckage had cooled: refit, resupply, press on. Victory or defeat, the war would not be allowed to pause for grief."
+            }
+          ]
+        },
+        {
+          "id": "count_the_cost",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "battle_fought",
+              "value": false
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sat with the battle reports until the shape of the thing was clear — what had worked, what had been luck, what would not be allowed to happen twice."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_conquered_world",
+      "tier": "setpiece",
+      "weight": 5,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "conquest_made",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "garrison_and_govern",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "conquest_made",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the conquered world the slow way: a garrison that kept order and paid for its bread, courts that sat, the old laws left standing where they did no harm. A world taken by force can still be held by consent, if the consent is bought honestly."
+            }
+          ]
+        },
+        {
+          "id": "plunder_it",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Cruel",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Greedy",
+                  "kind": "aptitude",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "conquest_made",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 10
+            },
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the fleet have the conquered world for a season. The treasury swelled. The world would remember the house's name for a hundred years, and not kindly."
+            }
+          ]
+        },
+        {
+          "id": "proclaim_the_conquest",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Proud",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "conquest_made",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "seizures",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} proclaimed the conquest from the steps of the taken world's own council hall, with the fleet overhead for emphasis. The galaxy heard. The galaxy took note of exactly how large the house had decided to be."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_lost_world",
+      "tier": "setpiece",
+      "weight": 5,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "enemy",
+          "when": [
+            {
+              "type": "atWar",
+              "role": "enemy",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "holding_lost",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "swear_to_retake_it",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Vengeful",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "holding_lost",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "enemy",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} swore, before the household and the gods the household still kept, that the lost world would be the house's again. {enemy.name} of {enemy.house} would learn what the oath cost."
+            }
+          ]
+        },
+        {
+          "id": "sue_for_terms",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "holding_lost",
+              "value": false
+            },
+            {
+              "type": "makePeace",
+              "role": "enemy"
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent to {enemy.name} of {enemy.house} for terms. The world stayed lost; the war ended; the household ate. Standing bled for it, but standing can be rebuilt, and the dead cannot."
+            }
+          ]
+        },
+        {
+          "id": "absorb_the_loss",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "holding_lost",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing in public about the lost world, and the house went on smaller. The towns that remained drew their own conclusions about a house that could not keep what it held."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_envoy_of_peace",
+      "tier": "setpiece",
+      "weight": 6,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "envoy",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "envoy",
+              "flag": "suing_for_peace",
+              "value": true
+            },
+            {
+              "type": "atWar",
+              "role": "envoy",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "accept_peace",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "envoy",
+              "flag": "suing_for_peace",
+              "value": false
+            },
+            {
+              "type": "makePeace",
+              "role": "envoy"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} received {envoy.name} of {envoy.house} and gave the only answer that ends a war: yes. The fleets stood down. The towns on both sides lit lamps that night, and did not ask who had won."
+            }
+          ]
+        },
+        {
+          "id": "demand_tribute",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Greedy",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "envoy",
+              "flag": "suing_for_peace",
+              "value": false
+            },
+            {
+              "type": "makePeace",
+              "role": "envoy"
+            },
+            {
+              "type": "adjustResource",
+              "role": "envoy",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} named a price for peace and {envoy.name} of {envoy.house} paid it, which is what losing means. The war ended with the treasury heavier and a grievance filed carefully away."
+            }
+          ]
+        },
+        {
+          "id": "refuse_terms",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "envoy",
+              "flag": "suing_for_peace",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {envoy.name} back to {envoy.house} with nothing. The war went on. Whatever {self.name} wanted from it, it was not yet in hand."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_great_work",
+      "tier": "setpiece",
+      "weight": 5,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "envious",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "envious",
+              "to": "self",
+              "op": "lte",
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "megastructure_raised",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "dedicate_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "megastructure_raised",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envious",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} dedicated the great work before every house that could be made to attend. {envious.name} of {envious.house} applauded with the rest and did the arithmetic of what it had cost, and what it meant."
+            }
+          ]
+        },
+        {
+          "id": "open_it_to_all",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "megastructure_raised",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envious",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} opened the great work to the Reach — toll-free lanes, light for every world in reach of it. The treasury groaned. The towns did not stop talking about it for a generation."
+            }
+          ]
+        },
+        {
+          "id": "keep_it_quiet",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Paranoid",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "megastructure_raised",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "coalition_pressure",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} raised the great work without ceremony and let the Reach discover it on its own, which took longer and frightened fewer people."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_proclamation",
+      "tier": "setpiece",
+      "weight": 10,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "grandee",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "grandee",
+              "to": "self",
+              "op": "lte",
+              "value": -10
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "imperium_proclaimed",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "throne_seized",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "clemency",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "imperium_proclaimed",
+              "value": false
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "throne_seized",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": 25
+            },
+            {
+              "type": "adjustCounter",
+              "key": "coalition_pressure",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "The first act of the new reign was clemency: {grandee.name} of {grandee.house}, who had opposed it, kept lands, title, and head. The Reach exhaled. A throne that can afford mercy looks, to those beneath it, like a throne that will last."
+            }
+          ]
+        },
+        {
+          "id": "purge",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Cruel",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "cost": {
+            "agents": 2
+          },
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "imperium_proclaimed",
+              "value": false
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "throne_seized",
+              "value": false
+            },
+            {
+              "type": "kill",
+              "role": "grandee"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "seizures",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The first act of the new reign was a list of names, and {grandee.name} of {grandee.house} was on it. The Reach learned at once what kind of throne this would be. So did the houses that had knelt gladly, and began to wonder."
+            }
+          ]
+        },
+        {
+          "id": "convene_the_senate",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Orator",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Diplomat",
+                  "kind": "aptitude",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "cost": {
+            "influence": 2
+          },
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "imperium_proclaimed",
+              "value": false
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "throne_seized",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "The first act of the new reign was to convene a Senate and give the houses — {grandee.name}'s among them — a chamber in which to lose their arguments lawfully. Power shared is power that lasts; power shared is also power that argues back."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_wedding_feast",
+      "tier": "setpiece",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "enemy",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "enemy",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "relationship",
+              "from": "enemy",
+              "to": "self",
+              "op": "lte",
+              "value": -30
+            }
+          ]
+        },
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "wed",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 8
+        }
+      ],
+      "choices": [
+        {
+          "id": "spring_the_trap",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "cost": {
+            "agents": 2
+          },
+          "effects": [
+            {
+              "type": "kill",
+              "role": "enemy"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "seizures",
+              "delta": 1
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "realm_unstable",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "The feast was {self.name}'s, and so were the doors. When they closed, {enemy.name} of {enemy.house} understood, too late, what the invitation had meant. The Reach would call it the Red Feast for a hundred years, and would never again accept {self.name}'s hospitality without counting the exits."
+            }
+          ]
+        },
+        {
+          "id": "survive_the_ambush",
+          "effects": [
+            {
+              "type": "kill",
+              "role": "kin"
+            },
+            {
+              "type": "setCharFlag",
+              "role": "enemy",
+              "flag": "marked_for_death",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "enemy",
+              "delta": -50
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 15
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "realm_unstable",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "The blades came out at the toast, and they were not {self.name}'s. {enemy.name} of {enemy.house} had planned the feast more carefully than the host. {self.name} lived. {kin.name} did not. There is a kind of grief that is only the first draft of a plan."
+            }
+          ]
+        },
+        {
+          "id": "make_peace_at_the_table",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Diplomat",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Just",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "cost": {
+            "influence": 2
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "enemy",
+              "flag": "feud",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "enemy",
+              "flag": "reconciled",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "enemy",
+              "to": "self",
+              "delta": 40
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "Everyone at the feast knew why {enemy.name} of {enemy.house} had been invited, and everyone watched the toast. {self.name} raised a cup to the quarrel's end, and {enemy.name}, after a long moment the whole hall held its breath through, raised one back."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

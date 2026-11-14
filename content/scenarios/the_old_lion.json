@@ -1,0 +1,457 @@
+{
+  "//": "SCENARIO 6 — THE OLD LION (GDD §5/§14: the dynasty outlives the man). You are Duke Aurel Castellan, sixty-eight, with a married heir, two grandchildren, a brother who thinks the seat should have been his, and a court of rivals waiting for the funeral. Succession, regency, family autonomy and the title ladder all fire in the first generation. era fractured_stars; galaxy the_reach.",
+  "id": "the_old_lion",
+  "protagonist": "aurel_castellan",
+  "era": "fractured_stars",
+  "galaxy": "the_reach",
+  "houses": [
+    {
+      "id": "castellan",
+      "name": "House Castellan",
+      "accent": "#8A6B1F",
+      "title": "duke",
+      "legitimacy": 58,
+      "culture": "reach",
+      "successionLaw": "primogeniture",
+      "treasury": {
+        "credits": 24,
+        "materials": 14,
+        "manpower": 12,
+        "influence": 9,
+        "exotics": 2
+      },
+      "//": "A Dukedom held two points below its bar — comfortable until the old man dies and the standing is re-read."
+    },
+    {
+      "id": "oriel",
+      "name": "House Oriel",
+      "accent": "#1F6B7A",
+      "title": "count",
+      "legitimacy": 55,
+      "treasury": {
+        "credits": 16,
+        "materials": 10,
+        "manpower": 8,
+        "influence": 7,
+        "exotics": 1
+      },
+      "//": "The neighbour that has waited thirty years for Castellan to stumble."
+    },
+    {
+      "id": "marrow",
+      "name": "House Marrow",
+      "accent": "#4B3A6B",
+      "title": "baron",
+      "legitimacy": 30,
+      "treasury": {
+        "credits": 9,
+        "materials": 7,
+        "manpower": 6,
+        "influence": 3,
+        "exotics": 0
+      },
+      "//": "A client house, sworn to the Lion, tempted by Oriel."
+    }
+  ],
+  "characters": [
+    {
+      "id": "aurel_castellan",
+      "name": "Aurel Castellan",
+      "house": "castellan",
+      "age": 68,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 5,
+      "nature": [
+        "Proud",
+        "Honorable"
+      ],
+      "aptitude": [
+        "Strategist"
+      ],
+      "skills": {
+        "tactics": 4,
+        "leadership": 4,
+        "discipline": 3,
+        "charisma": 3
+      },
+      "ambition": "restore_house_fortunes",
+      "flags": [
+        "wed"
+      ],
+      "//": "The Old Lion. An Admiral past his prime, two years from the mortality curve's steep part. Every turn is borrowed."
+    },
+    {
+      "id": "helene_castellan",
+      "name": "Helene Castellan",
+      "house": "castellan",
+      "age": 61,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 3,
+      "nature": [
+        "Just"
+      ],
+      "aptitude": [
+        "Diplomat"
+      ],
+      "skills": {
+        "law": 3,
+        "diplomacy": 4,
+        "charisma": 3
+      },
+      "ambition": "win_a_great_love",
+      "flags": [
+        "wed"
+      ],
+      "//": "The Duchess; the court's real diplomat. Would be regent if the heir fell."
+    },
+    {
+      "id": "corvin_castellan",
+      "name": "Corvin Castellan",
+      "house": "castellan",
+      "age": 36,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 3,
+      "nature": [
+        "Ambitious",
+        "Proud"
+      ],
+      "aptitude": [
+        "Tactician"
+      ],
+      "skills": {
+        "tactics": 3,
+        "gunnery": 2,
+        "discipline": 2,
+        "charisma": 2
+      },
+      "ambition": "command_a_fleet",
+      "father": "aurel_castellan",
+      "mother": "helene_castellan",
+      "flags": [
+        "wed"
+      ],
+      "//": "The heir: able, impatient, and already commanding the house fleet."
+    },
+    {
+      "id": "ysolde_castellan",
+      "name": "Ysolde Castellan",
+      "house": "castellan",
+      "age": 33,
+      "sex": "female",
+      "careerTrack": "stewardship",
+      "careerRank": 2,
+      "nature": [
+        "Loyal"
+      ],
+      "aptitude": [
+        "Administrator"
+      ],
+      "skills": {
+        "administration": 3,
+        "economics": 2,
+        "charisma": 2
+      },
+      "ambition": "restore_house_fortunes",
+      "flags": [
+        "wed"
+      ],
+      "//": "Corvin's wife, married in from Marrow — the client house's thread into the Lion's household."
+    },
+    {
+      "id": "tam_castellan",
+      "name": "Tamsin Castellan",
+      "house": "castellan",
+      "age": 9,
+      "sex": "female",
+      "careerTrack": "military",
+      "careerRank": 0,
+      "nature": [],
+      "aptitude": [],
+      "skills": {},
+      "ambition": "",
+      "father": "corvin_castellan",
+      "mother": "ysolde_castellan",
+      "//": "The elder grandchild. Comes of age in seven turns — if the house still stands."
+    },
+    {
+      "id": "pell_castellan",
+      "name": "Pell Castellan",
+      "house": "castellan",
+      "age": 6,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 0,
+      "nature": [],
+      "aptitude": [],
+      "skills": {},
+      "ambition": "",
+      "father": "corvin_castellan",
+      "mother": "ysolde_castellan"
+    },
+    {
+      "id": "bastien_castellan",
+      "name": "Bastien Castellan",
+      "house": "castellan",
+      "age": 64,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 3,
+      "nature": [
+        "Ambitious",
+        "Vengeful"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {
+        "intrigue": 4,
+        "law": 2,
+        "oratory": 3,
+        "charisma": 2
+      },
+      "ambition": "seize_the_throne",
+      "//": "The Lion's younger brother, passed over sixty years ago and never done counting. Family autonomy's first test."
+    },
+    {
+      "id": "maren_oriel",
+      "name": "Maren Oriel",
+      "house": "oriel",
+      "age": 45,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 3,
+      "nature": [
+        "Ambitious",
+        "Cruel"
+      ],
+      "aptitude": [
+        "Schemer",
+        "Orator"
+      ],
+      "skills": {
+        "intrigue": 3,
+        "oratory": 3,
+        "law": 2,
+        "charisma": 3
+      },
+      "ambition": "outshine_all_rivals",
+      "//": "The Countess who has waited thirty years."
+    },
+    {
+      "id": "dace_marrow",
+      "name": "Dace Marrow",
+      "house": "marrow",
+      "age": 40,
+      "sex": "male",
+      "careerTrack": "military",
+      "careerRank": 2,
+      "nature": [
+        "Loyal"
+      ],
+      "aptitude": [
+        "Quartermaster"
+      ],
+      "skills": {
+        "logistics": 3,
+        "tactics": 2,
+        "discipline": 2,
+        "charisma": 1
+      },
+      "ambition": "earn_a_command",
+      "//": "Sworn to the Lion; Ysolde's brother."
+    }
+  ],
+  "relationships": [
+    {
+      "from": "aurel_castellan",
+      "to": "helene_castellan",
+      "disposition": 70,
+      "bond": "marriage",
+      "strength": 90
+    },
+    {
+      "from": "helene_castellan",
+      "to": "aurel_castellan",
+      "disposition": 70,
+      "bond": "marriage",
+      "strength": 90
+    },
+    {
+      "from": "corvin_castellan",
+      "to": "ysolde_castellan",
+      "disposition": 55,
+      "bond": "marriage",
+      "strength": 70
+    },
+    {
+      "from": "ysolde_castellan",
+      "to": "corvin_castellan",
+      "disposition": 60,
+      "bond": "marriage",
+      "strength": 70
+    },
+    {
+      "from": "aurel_castellan",
+      "to": "corvin_castellan",
+      "disposition": 40,
+      "bond": "blood",
+      "strength": 80
+    },
+    {
+      "from": "corvin_castellan",
+      "to": "aurel_castellan",
+      "disposition": 15,
+      "bond": "blood",
+      "strength": 80,
+      "//": "The heir respects the father and is tired of waiting."
+    },
+    {
+      "from": "aurel_castellan",
+      "to": "bastien_castellan",
+      "disposition": 10,
+      "bond": "blood",
+      "strength": 50
+    },
+    {
+      "from": "bastien_castellan",
+      "to": "aurel_castellan",
+      "disposition": -35,
+      "bond": "blood",
+      "strength": 50,
+      "//": "Sixty years of counting. Defiant from turn one."
+    },
+    {
+      "from": "bastien_castellan",
+      "to": "maren_oriel",
+      "disposition": 20,
+      "bond": "none",
+      "strength": 0
+    },
+    {
+      "from": "maren_oriel",
+      "to": "aurel_castellan",
+      "disposition": -40,
+      "bond": "none",
+      "strength": 0
+    },
+    {
+      "from": "aurel_castellan",
+      "to": "maren_oriel",
+      "disposition": -20,
+      "bond": "none",
+      "strength": 0
+    },
+    {
+      "from": "dace_marrow",
+      "to": "aurel_castellan",
+      "disposition": 45,
+      "bond": "sworn",
+      "strength": 70
+    },
+    {
+      "from": "aurel_castellan",
+      "to": "dace_marrow",
+      "disposition": 30,
+      "bond": "sworn",
+      "strength": 70
+    },
+    {
+      "from": "dace_marrow",
+      "to": "ysolde_castellan",
+      "disposition": 50,
+      "bond": "blood",
+      "strength": 70
+    },
+    {
+      "from": "ysolde_castellan",
+      "to": "dace_marrow",
+      "disposition": 50,
+      "bond": "blood",
+      "strength": 70
+    }
+  ],
+  "holdings": [
+    {
+      "id": "castellan_seat",
+      "owner": "castellan",
+      "name": "Castellan Keep",
+      "specialization": "forge_world",
+      "system": "anvils_rest",
+      "population": 30,
+      "unrest": 0,
+      "buildings": [
+        "power_plant",
+        "mine"
+      ]
+    },
+    {
+      "id": "castellan_march",
+      "owner": "castellan",
+      "name": "The Lion's March",
+      "specialization": "agri_world",
+      "system": "greywater",
+      "population": 40,
+      "unrest": 5,
+      "buildings": [
+        "farm_complex"
+      ]
+    },
+    {
+      "id": "oriel_seat",
+      "owner": "oriel",
+      "name": "Oriel's Rest",
+      "specialization": "trade_hub",
+      "system": "cinder_gate",
+      "population": 35,
+      "unrest": 0,
+      "buildings": [
+        "market"
+      ]
+    },
+    {
+      "id": "marrow_hold",
+      "owner": "marrow",
+      "name": "Marrow Hold",
+      "specialization": "fortress",
+      "system": "drydock_nine",
+      "population": 4,
+      "unrest": 0,
+      "buildings": []
+    }
+  ],
+  "fleets": [
+    {
+      "id": "fleet_castellan",
+      "name": "The Lion's Fleet",
+      "owner": "castellan",
+      "system": "anvils_rest",
+      "strength": 4,
+      "ships": {
+        "frigate": 2,
+        "cruiser": 2
+      },
+      "admiral": "corvin_castellan"
+    },
+    {
+      "id": "fleet_oriel",
+      "name": "The Oriel Line",
+      "owner": "oriel",
+      "system": "cinder_gate",
+      "strength": 3,
+      "ships": {
+        "frigate": 3
+      },
+      "admiral": "maren_oriel"
+    },
+    {
+      "id": "fleet_marrow",
+      "name": "Marrow Picket",
+      "owner": "marrow",
+      "system": "drydock_nine",
+      "strength": 1
+    }
+  ]
+}

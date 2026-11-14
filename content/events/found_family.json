@@ -1,0 +1,546 @@
+{
+  "//": "FOUND FAMILY AND DUTIES (docs/HOUSEHOLD.md). Reads the flags HouseholdSystem raises: found_family, has_ward, has_protege (each year); ward_stayed, steward_skims, mentor_lost (deeds); and the character flags taken_in, ward_of_age, protege, skimming. The takeIn effect brings someone into the house.",
+  "events": [
+    {
+      "id": "a_child_with_nowhere_to_go",
+      "tier": "situation",
+      "weight": 6,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "child",
+          "when": [
+            {
+              "type": "age",
+              "role": "child",
+              "op": "gte",
+              "value": 6
+            },
+            {
+              "type": "age",
+              "role": "child",
+              "op": "lte",
+              "value": 13
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "child",
+              "bond": "blood",
+              "present": false
+            },
+            {
+              "type": "charFlag",
+              "role": "child",
+              "flag": "taken_in",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "type": "worldFlag",
+          "flag": "has_ward",
+          "value": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_the_child_in",
+          "effects": [
+            {
+              "type": "takeIn",
+              "role": "child",
+              "as": "ward"
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took {child.name} into the house. Nobody had asked {self.name} to, which was rather the point."
+            }
+          ]
+        },
+        {
+          "id": "find_them_a_place",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} found {child.name} a place with a decent family and paid the first year. It was noticed, and well thought of."
+            }
+          ]
+        },
+        {
+          "id": "it_is_not_your_affair",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that {child.house} must look after its own. It was true. It did not feel like enough."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_ward_comes_of_age",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "ward",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "ward",
+              "flag": "ward_of_age",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "ward_stayed",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "you_are_family",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "ward",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {ward.name} that there had never been a question of it: this was {ward.name}'s house. {ward.name} did not trust themselves to answer."
+            }
+          ]
+        },
+        {
+          "id": "give_them_a_start",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 8
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "ward",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} settled a sum on {ward.name} to begin a life with. It was the practical way of saying the same thing."
+            }
+          ]
+        },
+        {
+          "id": "say_little",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "ward",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} nodded and said it was sensible of {ward.name} to stay. {ward.name} had hoped for more than sensible."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_accounts_do_not_add_up",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "steward",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "steward",
+              "flag": "skimming",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "steward_skims",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "dismiss_them",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "steward",
+              "flag": "skimming",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "steward",
+              "to": "self",
+              "delta": -60
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had {steward.name} out of the counting-room within the hour and recovered what could be recovered. The work is {self.name}'s again."
+            }
+          ]
+        },
+        {
+          "id": "make_them_repay_it",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "steward",
+              "flag": "skimming",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 9
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "steward",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the ledger in front of {steward.name} and named a sum and a date. It was paid. Neither of them mentioned it again."
+            }
+          ]
+        },
+        {
+          "id": "look_away",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "steward",
+              "flag": "skimming",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "steward",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} closed the ledger. {steward.name} was good at the work, and everyone takes something."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_place_at_the_table",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "member",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "member",
+              "flag": "taken_in",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "member",
+              "op": "gte",
+              "value": 16
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "found_family",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "at_the_family_table",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "member",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sat {member.name} with the family, between a cousin and an aunt, and that was that. One or two old names thought it irregular."
+            }
+          ]
+        },
+        {
+          "id": "below_the_family",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "member",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had {member.name} seated with the household, below the family. It was correct. {member.name} understood exactly what it meant."
+            }
+          ]
+        },
+        {
+          "id": "let_them_choose",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "member",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {member.name} to sit where they liked. {member.name} chose a place near the door, the first night, and nearer the family every night after."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_protege_is_noticed",
+      "tier": "situation",
+      "weight": 9,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "protege",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "protege",
+              "flag": "protege",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "has_protege",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_so_in_public",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "protege",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said in company that {protege.name} would go further than {self.name} had. It cost a little to say. {protege.name} heard of it within the day."
+            }
+          ]
+        },
+        {
+          "id": "push_them_harder",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "protege",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "protege",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {protege.name} that being noticed was not the same as being good, and doubled the work. {protege.name} resented it and was better for it."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} said nothing. {protege.name} did not need telling, and praise is a habit that is hard to stop."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_wing_withdrawn",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "mentor_lost",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_alone",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had been somebody's pupil. From now on {self.name} would be judged as their own."
+            }
+          ]
+        },
+        {
+          "id": "honour_what_was_taught",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spoke well, in public, of what they had been taught and who had taught it. It was the right thing and it was also true."
+            }
+          ]
+        },
+        {
+          "id": "find_another",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} began, discreetly, to look at who else in the service was worth learning from."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

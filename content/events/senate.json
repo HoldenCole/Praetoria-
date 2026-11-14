@@ -1,0 +1,132 @@
+{
+  "//": "THE SENATE AS A PLACE OF ACTION (GDD §6.1; GAP §10 item 2). These read SenateSystem's flags: motion_against_me (a censure or embargo of yours is on the docket), censured / recognised / levied / embargoed (a motion that touched you carried), motion_passed_mine / motion_failed_mine (your own motion was decided), act_open / act_passed (an Act of the Senate — a law for the whole Reach — is on the docket, or has carried), petition_open / petition_carried / petition_refused (an estate hostile across the Reach has brought its own Act, and the chamber's answer). They make the chamber personal: a whip at your door with coin, a censure to answer, a levy to pay or refuse.",
+  "events": [
+    {
+      "id": "the_whip", "tier": "situation", "weight": 9, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "motion_open" }, { "type": "turn", "op": "gte", "value": 2 } ],
+      "roles": [ { "name": "whip", "when": [ { "type": "rank", "role": "whip", "op": "gte", "value": 2 } ] } ],
+      "choices": [
+        { "id": "take_the_coin", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 6 }, { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": 8 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -1 },
+            { "type": "log", "text": "{self.name} took {whip.name}'s purse and promised a vote. Six credits, a friend in the chamber, and a story the benches will tell." } ] },
+        { "id": "name_your_price", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 } ],
+          "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 2 }, { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": 3 },
+            { "type": "log", "text": "{self.name} wanted no coin from {whip.name} — a favour, to be named later. The whip agreed; whips always do." } ] },
+        { "id": "show_them_the_door", "effects": [ { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": -10 }, { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} showed {whip.name} the door with the purse still in their hand. The vote stays the house's own." } ] }
+      ]
+    },
+    {
+      "id": "a_censure_on_the_docket", "tier": "setpiece", "weight": 12, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "motion_against_me" } ],
+      "choices": [
+        { "id": "answer_in_the_chamber", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 } ],
+          "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 2 }, { "type": "adjustResource", "resource": "influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} answered the motion from the floor, and the chamber went quiet to hear it. Whatever the vote, the Reach heard the house speak." } ] },
+        { "id": "call_in_favours", "cost": { "influence": 2 }, "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": -1 },
+            { "type": "log", "text": "{self.name} spent the night calling in favours. Three houses that owed the house something remembered it before the vote." } ] },
+        { "id": "let_them_talk", "effects": [ { "type": "log", "text": "{self.name} let the motion stand unanswered. Contempt is also an argument." } ] }
+      ]
+    },
+    {
+      "id": "censured", "tier": "setpiece", "weight": 12, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "censured" } ],
+      "choices": [
+        { "id": "bow_to_it", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 2 }, { "type": "adjustCounter", "key": "stress", "delta": 5 },
+            { "type": "log", "text": "{self.name} bowed to the Senate's censure and said the words. The chamber likes a house that knows how to lose." } ] },
+        { "id": "defy_it", "requires": [ { "type": "trait", "role": "self", "trait": "Proud", "kind": "nature", "present": true } ],
+          "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": -2 }, { "type": "adjustResource", "resource": "influence", "delta": 2 }, { "type": "adjustCounter", "key": "threat", "delta": 2 },
+            { "type": "log", "text": "{self.name} tore the censure in half on the floor of the Senate. Half the chamber was appalled. The other half took notes." } ] },
+        { "id": "remember_who_voted", "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": -1 }, { "type": "setWorldFlag", "flag": "grudge_list", "value": true },
+            { "type": "log", "text": "{self.name} said nothing, and wrote down every house that voted for it." } ] }
+      ]
+    },
+    {
+      "id": "recognised_by_the_senate", "tier": "situation", "weight": 10, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "recognised" } ],
+      "choices": [
+        { "id": "a_feast", "cost": { "treasury": 1 }, "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -6 }, { "type": "adjustCounter", "key": "goodwill", "delta": 2 },
+            { "type": "log", "text": "{self.name} gave a feast for the houses that voted the recognition. Six credits, and a Senate that remembers the wine." } ] },
+        { "id": "bank_it", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} accepted the recognition with a nod and went back to work. Standing is a thing you spend later." } ] }
+      ]
+    },
+    {
+      "id": "the_levy_falls_due", "tier": "situation", "weight": 10, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "levied" } ],
+      "choices": [
+        { "id": "pay_with_grace", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} paid the Senate's levy and let the chair see it paid. A good subject, this season." } ] },
+        { "id": "pay_and_complain", "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 1 }, { "type": "adjustCounter", "key": "goodwill", "delta": -1 },
+            { "type": "log", "text": "{self.name} paid, and spoke for an hour about the paying. The chamber remembered the speech longer than the coin." } ] },
+        { "id": "pass_it_on", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 3 }, { "type": "adjustCounter", "key": "unrest", "delta": 3 },
+            { "type": "log", "text": "{self.name} passed the levy down to the worlds as a tithe. The coin came back; the loyalty did not." } ] }
+      ]
+    },
+    {
+      "id": "an_act_before_the_senate", "tier": "situation", "weight": 9, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "act_open" }, { "type": "turn", "op": "gte", "value": 2 } ],
+      "roles": [ { "name": "clerk", "when": [ { "type": "rank", "role": "clerk", "op": "gte", "value": 1 } ] } ],
+      "choices": [
+        { "id": "sound_the_estates", "cost": { "influence": 1 }, "effects": [ { "type": "adjustCounter", "key": "senate_influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} spent the evening with the estates' men, asking what the Act would cost whom. By the vote {self.name} knew the chamber better than the clerk did." } ] },
+        { "id": "let_it_run", "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
+            { "type": "log", "text": "{self.name} let the Act run its course. A house that leaves the Reach's law to the Reach is thought steady, if not ambitious." } ] }
+      ]
+    },
+    {
+      "id": "the_act_carries", "tier": "situation", "weight": 10, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "act_passed" } ],
+      "choices": [
+        { "id": "proclaim_it", "cost": { "influence": 1 }, "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }, { "type": "adjustCounter", "key": "estate_offset:magistrates", "delta": 5 },
+            { "type": "log", "text": "{self.name} had the Act read in every square of the house's worlds, seal first. The magistrates approved of a {era:senator|lord} who read the law aloud." } ] },
+        { "id": "drag_your_feet", "effects": [ { "type": "adjustCounter", "key": "estate_offset:old_blood", "delta": 5 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -1 },
+            { "type": "log", "text": "{self.name} received the Act and filed it where Acts go. The old blood noticed, and liked it; the clerk noticed too." } ] }
+      ]
+    },
+    {
+      "id": "the_petitioners", "tier": "situation", "weight": 10, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "petition_open" }, { "type": "turn", "op": "gte", "value": 2 } ],
+      "choices": [
+        { "id": "receive_them", "effects": [ { "type": "adjustCounter", "key": "unrest", "delta": -2 }, { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
+            { "type": "log", "text": "{self.name} received the petitioners' delegation in the hall and heard them out. Whatever the Senate does, the house's own squares were quieter for it." } ] },
+        { "id": "send_them_away", "effects": [ { "type": "adjustCounter", "key": "estate_offset:old_blood", "delta": 5 }, { "type": "adjustCounter", "key": "unrest", "delta": 2 },
+            { "type": "log", "text": "{self.name} sent the delegation away unseen. The old blood approved; the squares did not." } ] },
+        { "id": "pay_their_lodging", "cost": { "treasury": 1 }, "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -4 }, { "type": "adjustCounter", "key": "senate_influence", "delta": 1 }, { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} paid the petitioners' lodging at the capital for the session. The chamber noticed whose coin kept them fed; so did the estate." } ] }
+      ]
+    },
+    {
+      "id": "the_petition_heard", "tier": "situation", "weight": 9, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "petition_carried" } ],
+      "choices": [
+        { "id": "proclaim_the_answer", "cost": { "influence": 1 }, "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }, { "type": "adjustCounter", "key": "unrest", "delta": -2 },
+            { "type": "log", "text": "{self.name} had the Senate's answer read in every square with the house's seal beside it, as if the house had moved it. Some believed that." } ] },
+        { "id": "say_nothing", "effects": [ { "type": "adjustCounter", "key": "estate_offset:old_blood", "delta": 3 },
+            { "type": "log", "text": "The Senate heard the petition; {self.name} let the clerks announce it and said nothing. The old blood took the silence as a sign of sense." } ] }
+      ]
+    },
+    {
+      "id": "the_petition_refused", "tier": "setpiece", "weight": 12, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "petition_refused" } ],
+      "choices": [
+        { "id": "hold_the_squares", "cost": { "treasury": 1 }, "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -4 }, { "type": "adjustCounter", "key": "unrest", "delta": -4 },
+            { "type": "log", "text": "The Senate turned the petition away and {self.name} put the guard in the squares before the news did. Four credits of overtime; no fires." } ] },
+        { "id": "blame_the_senate", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 } ],
+          "effects": [ { "type": "adjustCounter", "key": "unrest", "delta": -2 }, { "type": "adjustCounter", "key": "senate_influence", "delta": -1 }, { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
+            { "type": "log", "text": "{self.name} stood on the steps and blamed the Senate by name for the petition's refusal. The crowd went home; the chamber did not forget the speech." } ] },
+        { "id": "let_it_burn", "effects": [ { "type": "adjustCounter", "key": "unrest", "delta": 3 }, { "type": "adjustCounter", "key": "estate_offset:old_blood", "delta": 5 },
+            { "type": "log", "text": "{self.name} let the squares have their night. The old blood called it firmness. The watch called it a long shift." } ] }
+      ]
+    },
+    {
+      "id": "the_motion_carried", "tier": "situation", "weight": 8, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "motion_passed_mine" } ],
+      "choices": [
+        { "id": "press_the_advantage", "cost": { "influence": 1 }, "effects": [ { "type": "adjustCounter", "key": "senate_influence", "delta": 1 },
+            { "type": "log", "text": "{self.name}'s motion carried, and {self.name} spent the evening making sure every house knew whose it had been." } ] },
+        { "id": "be_gracious", "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
+            { "type": "log", "text": "{self.name}'s motion carried. {self.name} thanked the houses that opposed it for the quality of their opposition." } ] }
+      ]
+    }
+  ]
+}

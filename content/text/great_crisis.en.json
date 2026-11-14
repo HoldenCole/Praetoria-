@@ -1,0 +1,44 @@
+{
+  "texts": [
+    {
+      "id": "the_rumblings",
+      "title": "Rumblings",
+      "body": "{informant.name} of {informant.house} says it quietly, over the second cup: the great houses are refitting. No orders, no declaration, no reason anyone will admit to — only yards working nights and old alliances being read again in the light. Something is shifting under the Reach. It has not decided what it is yet.",
+      "choices": {
+        "refit_quietly": "Refit, quietly. Tell no one why.",
+        "sound_the_alarm": "Say it aloud in the chambers. Ask why the Reach is arming.",
+        "ignore_it": "The Reach has always settled. Believe it will again."
+      }
+    },
+    {
+      "id": "the_blocs_form",
+      "title": "The Blocs",
+      "body": "There are two Reaches now. {hegemon.name} of {hegemon.house} stands over one — the order, the power, the fleets that mean to impose a shape on the galaxy — and the other has drawn together against it out of fear, principle, or arithmetic. Every house must be in one. No house may be in neither. Yours has been counted already; the question is whether the count is right.",
+      "choices": {
+        "stand_with_the_hegemon": "Stand with {hegemon.name}. Order, power, the winning side as it appears today.",
+        "stand_with_the_alliance": "Stand against. Weaker, and right, and the houses that would not kneel.",
+        "sell_your_sword": "Let both believe you can be bought. Be paid by both for the belief."
+      }
+    },
+    {
+      "id": "the_war_of_the_reach",
+      "title": "The War of the Reach",
+      "body": "Every lane is a front. The squabbles of a generation have become one war, and it will not end until one bloc is broken. Your yards, your barracks, your treasury, your house's name — the war will take whatever you give it, and something of what you don't.",
+      "choices": {
+        "muster_everything": "Empty the yards and the barracks. Spend everything here.",
+        "guard_the_home_lanes": "Keep the fleet in the home lanes. Be there afterward.",
+        "profiteer": "Sell to whoever pays. Both will."
+      }
+    },
+    {
+      "id": "the_reckoning_of_the_reach",
+      "title": "After the War",
+      "body": "The fleets that remain have stood down. The Reach is counting its dead and learning whose it is now. Your house is still standing — which, after a war like that, is already a kind of answer. The first season of peace will say what kind of house came through it.",
+      "choices": {
+        "claim_your_share": "Your bloc held the field. Take a victor's share.",
+        "bind_the_wounds": "Whoever won, the towns lost. Rebuild first.",
+        "nurse_the_grudge": "The war was lost. Lay down hulls the week the peace is signed."
+      }
+    }
+  ]
+}

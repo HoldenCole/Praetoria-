@@ -1,0 +1,1183 @@
+{
+  "//": "THE REACH — the curated star map every shipped scenario is played on (GDD §19). Nine regions in three rings — the Core (commerce, the capital, order), the Middle (leaning whichever way it is pushed) and the Rim (lawless, restless, where houses break away) — of three or four systems each. Territory is DERIVED from the planet holding in each system; `baseline` names the minor-houses file merged into every scenario here so few worlds are empty — and the ones that are, on the Rim, are where the trouble starts. `capital` is the system whose holder keeps the court. `rings` tunes how each ring behaves. Positions are map units (~1280×780), laid out as rings.",
+  "id": "the_reach",
+  "name": "The Reach",
+  "baseline": "the_reach_houses",
+  "capital": "aurelia_prime",
+  "rings": {
+    "//": "prosperity: added to every holding's prosperity target. unrestDrift: added to populated worlds' unrest each turn. lawlessnessDrift/Start: raiders on the lanes (taxes ledgers, feeds risings). allegiance: where the region's loyalty to the capital settles (offset from 50). tradeBonus: credits per peopled world. charterBonus: extra charter per venture level to the world's holder.",
+    "core": {
+      "prosperity": 10,
+      "unrestDrift": -1,
+      "lawlessnessDrift": -2,
+      "lawlessnessStart": 5,
+      "allegiance": 30,
+      "tradeBonus": 1,
+      "charterBonus": 1
+    },
+    "middle": {
+      "prosperity": 0,
+      "unrestDrift": 0,
+      "lawlessnessDrift": 0,
+      "lawlessnessStart": 20,
+      "allegiance": 0,
+      "tradeBonus": 0,
+      "charterBonus": 0
+    },
+    "rim": {
+      "prosperity": -10,
+      "unrestDrift": 1,
+      "lawlessnessDrift": 1,
+      "lawlessnessStart": 40,
+      "allegiance": -20,
+      "tradeBonus": 0,
+      "charterBonus": 0
+    }
+  },
+  "regions": [
+    {
+      "id": "western_marches",
+      "name": "The Western Marches",
+      "culture": "marcher",
+      "description": "Frontier worlds at the edge of the lanes: hard soil, harder people, and houses that remember when no one ruled them.",
+      "ring": "rim"
+    },
+    {
+      "id": "drake_lanes",
+      "name": "The Drake Lanes",
+      "culture": "lanefolk",
+      "description": "The trade spine of the Reach. Everything that moves, moves through here, and everyone who moves it wants a cut.",
+      "ring": "middle"
+    },
+    {
+      "id": "greywater_reach",
+      "name": "The Greywater Reach",
+      "culture": "reach",
+      "description": "Old blood. The great houses of the Reach proper, their forges, their feuds, their long memories.",
+      "ring": "middle"
+    },
+    {
+      "id": "imperial_core",
+      "name": "The Imperial Core",
+      "culture": "aurelian",
+      "description": "Aurelia Prime and the worlds that orbit its favour. Where the Senate sits, and where a throne would stand.",
+      "ring": "core"
+    },
+    {
+      "id": "southern_spire",
+      "name": "The Southern Spire",
+      "culture": "spirean",
+      "description": "Scholars, archivists and the belt-miners who feed them. Quiet, clever, and never as neutral as it claims.",
+      "ring": "middle"
+    },
+    {
+      "id": "valmont_anvils",
+      "name": "The Valmont Anvils",
+      "culture": "forgeborn",
+      "description": "Industry without apology. Hull-yards, refineries and kilns under a sky the colour of slag.",
+      "ring": "rim"
+    },
+    {
+      "id": "golden_concourse",
+      "name": "The Golden Concourse",
+      "culture": "concourse",
+      "ring": "core",
+      "description": "The money-worlds of the Core. Banks older than titles, prices set by breakfast, and a bourse that has outlasted three thrones."
+    },
+    {
+      "id": "lantern_shoals",
+      "name": "The Lantern Shoals",
+      "culture": "shoalfolk",
+      "ring": "middle",
+      "description": "Lighthouse-worlds on the long lane south. Loyal when the Core is strong, forgetful when it is not."
+    },
+    {
+      "id": "ashen_verge",
+      "name": "The Ashen Verge",
+      "culture": "vergeborn",
+      "ring": "rim",
+      "description": "Ash plains, smugglers' harbours and a prison-world turned pirate haven. The law arrives here by fleet or not at all."
+    },
+    {
+      "id": "pale_reaches",
+      "name": "The Pale Reaches",
+      "culture": "palefolk",
+      "ring": "rim",
+      "description": "Hard winters at the end of the lanes. Knightly houses that answer to no count, and the richest, loneliest belt in the Reach."
+    }
+  ],
+  "systems": [
+    {
+      "id": "tessaly", "deposits": { "helium3": 1 },
+      "name": "Tessaly",
+      "x": 546,
+      "y": 1148,
+      "region": "western_marches",
+      "planet": "terran",
+      "description": "Grain terraces and a stubborn household.",
+      "bodies": [
+        {
+          "name": "Tessaly I",
+          "class": "forge",
+          "size": 2
+        },
+        {
+          "name": "Tessaly",
+          "class": "terran",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Tessaly III",
+          "class": "gas",
+          "size": 3
+        }
+      ]
+    },
+    {
+      "id": "anvil",
+      "name": "The Anvil",
+      "belt": 1,
+      "x": 288,
+      "y": 998,
+      "region": "western_marches",
+      "planet": "forge",
+      "description": "Foundries older than the houses that run them.",
+      "bodies": [
+        {
+          "name": "Anvil I",
+          "class": "arid",
+          "size": 1
+        },
+        {
+          "name": "The Anvil",
+          "class": "forge",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Anvil III",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "the_veil",
+      "name": "The Veil",
+      "x": 391,
+      "y": 789,
+      "region": "western_marches",
+      "planet": "frozen",
+      "description": "A cold frontier relay; the last light before the dark.",
+      "bodies": [
+        {
+          "name": "Veil I",
+          "class": "forge",
+          "size": 2
+        },
+        {
+          "name": "The Veil",
+          "class": "frozen",
+          "size": 3,
+          "primary": true
+        }
+      ]
+    },
+    {
+      "id": "drake_crossing", "deposits": { "helium3": 2 },
+      "name": "Drake Crossing",
+      "x": 799,
+      "y": 933,
+      "region": "drake_lanes",
+      "planet": "ocean",
+      "description": "The customs world of the Reach. Every lane pays here.",
+      "bodies": [
+        {
+          "name": "Drake Crossing I",
+          "class": "arid",
+          "size": 1
+        },
+        {
+          "name": "Drake Crossing",
+          "class": "ocean",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Drake Crossing III",
+          "class": "gas",
+          "size": 3
+        },
+        {
+          "name": "Drake Crossing IV",
+          "class": "gas",
+          "size": 3
+        }
+      ]
+    },
+    {
+      "id": "sato_holdfast",
+      "name": "Sato Holdfast",
+      "belt": 1,
+      "x": 630,
+      "y": 820,
+      "region": "drake_lanes",
+      "planet": "barren",
+      "description": "A fortress on a rock, held by a knightly house for six generations.",
+      "bodies": [
+        {
+          "name": "Sato Holdfast I",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "Sato Holdfast",
+          "class": "barren",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Sato Holdfast Belt",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "highmarch",
+      "name": "Highmarch",
+      "x": 799,
+      "y": 707,
+      "region": "drake_lanes",
+      "planet": "terran",
+      "description": "Rich agri-terraces and a market that never sleeps.",
+      "bodies": [
+        {
+          "name": "Highmarch I",
+          "class": "forge",
+          "size": 2
+        },
+        {
+          "name": "Highmarch",
+          "class": "terran",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Highmarch III",
+          "class": "frozen",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "greywater",
+      "name": "Greywater",
+      "x": 1227,
+      "y": 464,
+      "region": "greywater_reach",
+      "planet": "ocean",
+      "description": "Harbour-world of the old families.",
+      "bodies": [
+        {
+          "name": "Greywater I",
+          "class": "arid",
+          "size": 1
+        },
+        {
+          "name": "Greywater",
+          "class": "ocean",
+          "size": 3,
+          "primary": true
+        }
+      ]
+    },
+    {
+      "id": "anvils_rest", "deposits": { "helium3": 2 },
+      "name": "Anvil's Rest",
+      "x": 1424,
+      "y": 369,
+      "region": "greywater_reach",
+      "planet": "forge",
+      "description": "The great forge of the Reach, and the ducal seat beside it.",
+      "bodies": [
+        {
+          "name": "Anvil's Rest I",
+          "class": "arid",
+          "size": 1
+        },
+        {
+          "name": "Anvil's Rest",
+          "class": "forge",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Anvil's Rest III",
+          "class": "gas",
+          "size": 3
+        },
+        {
+          "name": "Anvil's Rest IV",
+          "class": "ocean",
+          "size": 2
+        },
+        {
+          "name": "Anvil's Rest V",
+          "class": "gas",
+          "size": 3
+        }
+      ]
+    },
+    {
+      "id": "cinder_gate", "deposits": { "rare_earths": 2 },
+      "name": "Cinder Gate",
+      "belt": 2,
+      "x": 1591,
+      "y": 483,
+      "region": "greywater_reach",
+      "planet": "arid",
+      "description": "Bastion-world guarding the lane to the Core.",
+      "bodies": [
+        {
+          "name": "Cinder Gate I",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "Cinder Gate",
+          "class": "arid",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Cinder Gate III",
+          "class": "frozen",
+          "size": 1
+        },
+        {
+          "name": "Cinder Gate IV",
+          "class": "gas",
+          "size": 3
+        },
+        {
+          "name": "Cinder Gate V",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "aurelia_prime",
+      "name": "Aurelia Prime",
+      "x": 1499,
+      "y": 740,
+      "region": "imperial_core",
+      "planet": "terran",
+      "description": "The jewel. Marble, senates, and the shadow of a throne.",
+      "bodies": [
+        {
+          "name": "Aurelia Prime I",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "Aurelia Prime",
+          "class": "terran",
+          "size": 3,
+          "primary": true
+        }
+      ]
+    },
+    {
+      "id": "drydock_nine", "deposits": { "helium3": 2 },
+      "name": "Drydock Nine",
+      "belt": 1,
+      "x": 1659,
+      "y": 734,
+      "region": "imperial_core",
+      "planet": "gas",
+      "description": "Orbital yards strung around a gas giant.",
+      "bodies": [
+        {
+          "name": "Drydock Nine I",
+          "class": "forge",
+          "size": 2
+        },
+        {
+          "name": "Drydock Nine",
+          "class": "gas",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Drydock Nine III",
+          "class": "frozen",
+          "size": 1
+        },
+        {
+          "name": "Drydock Nine IV",
+          "class": "gas",
+          "size": 3
+        },
+        {
+          "name": "Drydock Nine V",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "castrum", "deposits": { "isotopes": 1 },
+      "name": "Castrum",
+      "x": 1549,
+      "y": 806,
+      "region": "imperial_core",
+      "planet": "barren",
+      "description": "The garrison world of the Core; its legions answer to whoever holds the Prime.",
+      "bodies": [
+        {
+          "name": "Castrum I",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "Castrum",
+          "class": "barren",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Castrum III",
+          "class": "frozen",
+          "size": 1
+        },
+        {
+          "name": "Castrum IV",
+          "class": "ocean",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "the_spire", "deposits": { "helium3": 3 },
+      "name": "The Spire",
+      "x": 1907,
+      "y": 957,
+      "region": "southern_spire",
+      "planet": "arid",
+      "description": "The Academy's archive-world; tall, dry and proud.",
+      "bodies": [
+        {
+          "name": "Spire I",
+          "class": "arid",
+          "size": 1
+        },
+        {
+          "name": "The Spire",
+          "class": "arid",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Spire III",
+          "class": "gas",
+          "size": 3
+        },
+        {
+          "name": "Spire IV",
+          "class": "gas",
+          "size": 3
+        }
+      ]
+    },
+    {
+      "id": "lesser_marrow",
+      "name": "Lesser Marrow",
+      "belt": 2,
+      "x": 1919,
+      "y": 1111,
+      "region": "southern_spire",
+      "planet": "terran",
+      "description": "A modest colony with ambitions.",
+      "bodies": [
+        {
+          "name": "Lesser Marrow I",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "Lesser Marrow",
+          "class": "terran",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Lesser Marrow III",
+          "class": "gas",
+          "size": 3
+        },
+        {
+          "name": "Lesser Marrow IV",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "ember_shoal", "deposits": { "rare_earths": 3 },
+      "name": "Ember Shoal",
+      "belt": 3,
+      "x": 1673,
+      "y": 1130,
+      "region": "southern_spire",
+      "planet": "belt",
+      "description": "A mining belt lit by its own slag-fires.",
+      "bodies": [
+        {
+          "name": "Ember Shoal I",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "Ember Shoal",
+          "class": "belt",
+          "size": 3,
+          "primary": true
+        }
+      ]
+    },
+    {
+      "id": "valmont_anvils", "deposits": { "isotopes": 2 },
+      "name": "The Valmont Anvils",
+      "x": 2321,
+      "y": 736,
+      "region": "valmont_anvils",
+      "planet": "forge",
+      "description": "Valmont's forges; the hulls of half the Reach were laid here.",
+      "bodies": [
+        {
+          "name": "Valmont Anvils I",
+          "class": "arid",
+          "size": 1
+        },
+        {
+          "name": "The Valmont Anvils",
+          "class": "forge",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Valmont Anvils III",
+          "class": "frozen",
+          "size": 1
+        },
+        {
+          "name": "Valmont Anvils IV",
+          "class": "frozen",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "ironhold", "deposits": { "rare_earths": 2 },
+      "name": "Ironhold",
+      "belt": 1,
+      "x": 2453,
+      "y": 940,
+      "region": "valmont_anvils",
+      "planet": "barren",
+      "description": "Deep mines and the people who do not come up.",
+      "bodies": [
+        {
+          "name": "Ironhold I",
+          "class": "arid",
+          "size": 1
+        },
+        {
+          "name": "Ironhold",
+          "class": "barren",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Ironhold Belt",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "the_kilns", "deposits": { "rare_earths": 1 },
+      "name": "The Kilns",
+      "belt": 2,
+      "x": 2216,
+      "y": 1102,
+      "region": "valmont_anvils",
+      "planet": "arid",
+      "description": "Refineries and kilns; smoke you can see from orbit.",
+      "bodies": [
+        {
+          "name": "Kilns I",
+          "class": "forge",
+          "size": 2
+        },
+        {
+          "name": "The Kilns",
+          "class": "arid",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Kilns III",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "lucent", "deposits": { "helium3": 1 },
+      "name": "Lucent",
+      "x": 1174,
+      "y": 796,
+      "region": "golden_concourse",
+      "planet": "terran",
+      "description": "The money-world of the Core: a thousand banks and a sky of courier lights.",
+      "bodies": [
+        {
+          "name": "Lucent I",
+          "class": "forge",
+          "size": 2
+        },
+        {
+          "name": "Lucent",
+          "class": "terran",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Lucent III",
+          "class": "gas",
+          "size": 3
+        },
+        {
+          "name": "Lucent IV",
+          "class": "gas",
+          "size": 3
+        }
+      ]
+    },
+    {
+      "id": "meridian_exchange",
+      "name": "Meridian Exchange",
+      "x": 1074,
+      "y": 718,
+      "region": "golden_concourse",
+      "planet": "ocean",
+      "description": "Where the Reach's prices are set, and where they are argued about.",
+      "bodies": [
+        {
+          "name": "Meridian Exchange I",
+          "class": "arid",
+          "size": 1
+        },
+        {
+          "name": "Meridian Exchange",
+          "class": "ocean",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Meridian Exchange III",
+          "class": "gas",
+          "size": 3
+        }
+      ]
+    },
+    {
+      "id": "pallas_reach", "deposits": { "helium3": 3 },
+      "name": "Pallas Reach",
+      "x": 1233,
+      "y": 732,
+      "region": "golden_concourse",
+      "planet": "gas",
+      "description": "Gas-skimmers and a bourse that trades in fuel futures.",
+      "belt": 1,
+      "bodies": [
+        {
+          "name": "Pallas Reach I",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "Pallas Reach",
+          "class": "gas",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Pallas Reach III",
+          "class": "gas",
+          "size": 3
+        },
+        {
+          "name": "Pallas Reach IV",
+          "class": "gas",
+          "size": 3
+        },
+        {
+          "name": "Pallas Reach V",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "lanternfall",
+      "name": "Lanternfall",
+      "x": 1188,
+      "y": 1170,
+      "region": "lantern_shoals",
+      "planet": "ocean",
+      "description": "A lighthouse-world on the long lane south; every ship that passes owes it a lamp.",
+      "bodies": [
+        {
+          "name": "Lanternfall I",
+          "class": "forge",
+          "size": 2
+        },
+        {
+          "name": "Lanternfall",
+          "class": "ocean",
+          "size": 3,
+          "primary": true
+        }
+      ]
+    },
+    {
+      "id": "saltmere",
+      "name": "Saltmere",
+      "x": 941,
+      "y": 1191,
+      "region": "lantern_shoals",
+      "planet": "terran",
+      "description": "Salt-farms, wide skies, and a people who have never much cared who ruled the Core.",
+      "bodies": [
+        {
+          "name": "Saltmere I",
+          "class": "forge",
+          "size": 2
+        },
+        {
+          "name": "Saltmere",
+          "class": "terran",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Saltmere III",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "Saltmere IV",
+          "class": "gas",
+          "size": 3
+        },
+        {
+          "name": "Saltmere V",
+          "class": "frozen",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "harrow_deep", "deposits": { "helium3": 1 },
+      "name": "Harrow Deep",
+      "x": 889,
+      "y": 1040,
+      "region": "lantern_shoals",
+      "planet": "barren",
+      "description": "A deep-belt mining world where the lanes thin and the law thins with them.",
+      "belt": 2,
+      "bodies": [
+        {
+          "name": "Harrow Deep I",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "Harrow Deep",
+          "class": "barren",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Harrow Deep III",
+          "class": "gas",
+          "size": 3
+        },
+        {
+          "name": "Harrow Deep IV",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "cinderfall",
+      "name": "Cinderfall",
+      "x": 1394,
+      "y": 1421,
+      "region": "ashen_verge",
+      "planet": "arid",
+      "description": "Ash plains under a red sun; the houses here are young and hungry.",
+      "belt": 2,
+      "bodies": [
+        {
+          "name": "Cinderfall I",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "Cinderfall",
+          "class": "arid",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Cinderfall Belt",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "last_harbour", "deposits": { "helium3": 1 },
+      "name": "Last Harbour",
+      "x": 1117,
+      "y": 1491,
+      "region": "ashen_verge",
+      "planet": "ocean",
+      "description": "The last safe water before the Verge proper. Smugglers call it home.",
+      "bodies": [
+        {
+          "name": "Last Harbour I",
+          "class": "forge",
+          "size": 2
+        },
+        {
+          "name": "Last Harbour",
+          "class": "ocean",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Last Harbour III",
+          "class": "gas",
+          "size": 3
+        }
+      ]
+    },
+    {
+      "id": "the_gallows", "deposits": { "isotopes": 1 },
+      "name": "The Gallows",
+      "x": 915,
+      "y": 1354,
+      "region": "ashen_verge",
+      "planet": "barren",
+      "description": "A prison-world once, a pirate haven now. No house has held it in living memory.",
+      "bodies": [
+        {
+          "name": "Gallows I",
+          "class": "arid",
+          "size": 1
+        },
+        {
+          "name": "The Gallows",
+          "class": "barren",
+          "size": 3,
+          "primary": true
+        }
+      ]
+    },
+    {
+      "id": "hollow_reach", "deposits": { "rare_earths": 1 },
+      "name": "Hollow Reach",
+      "x": 617,
+      "y": 1331,
+      "region": "ashen_verge",
+      "planet": "frozen",
+      "description": "Ice and a listening post that stopped listening a generation ago.",
+      "belt": 1,
+      "bodies": [
+        {
+          "name": "Hollow Reach I",
+          "class": "forge",
+          "size": 2
+        },
+        {
+          "name": "Hollow Reach",
+          "class": "frozen",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Hollow Reach Belt",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "wintermoor", "deposits": { "isotopes": 2 },
+      "name": "Wintermoor",
+      "x": 2081,
+      "y": 1222,
+      "region": "pale_reaches",
+      "planet": "frozen",
+      "description": "Hard winters, hard people, and a knightly house that answers to no count.",
+      "bodies": [
+        {
+          "name": "Wintermoor I",
+          "class": "forge",
+          "size": 2
+        },
+        {
+          "name": "Wintermoor",
+          "class": "frozen",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Wintermoor III",
+          "class": "frozen",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "brackwater",
+      "name": "Brackwater",
+      "x": 1915,
+      "y": 1416,
+      "region": "pale_reaches",
+      "planet": "ocean",
+      "description": "Fishing fleets, fog, and a grudge against every tithe ever levied.",
+      "bodies": [
+        {
+          "name": "Brackwater I",
+          "class": "forge",
+          "size": 2
+        },
+        {
+          "name": "Brackwater",
+          "class": "ocean",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Brackwater III",
+          "class": "frozen",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "sorrow", "deposits": { "rare_earths": 2 },
+      "name": "Sorrow",
+      "x": 1562,
+      "y": 1408,
+      "region": "pale_reaches",
+      "planet": "barren",
+      "description": "Named by the first survey and never renamed. The richest belt in the Reach, and the loneliest.",
+      "belt": 3,
+      "bodies": [
+        {
+          "name": "Sorrow I",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "Sorrow",
+          "class": "barren",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Sorrow III",
+          "class": "frozen",
+          "size": 1
+        },
+        {
+          "name": "Sorrow IV",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    }
+  ],
+  "lanes": [
+    [
+      "aurelia_prime",
+      "drydock_nine"
+    ],
+    [
+      "aurelia_prime",
+      "castrum"
+    ],
+    [
+      "drydock_nine",
+      "castrum"
+    ],
+    [
+      "aurelia_prime",
+      "lucent"
+    ],
+    [
+      "lucent",
+      "meridian_exchange"
+    ],
+    [
+      "meridian_exchange",
+      "pallas_reach"
+    ],
+    [
+      "pallas_reach",
+      "drydock_nine"
+    ],
+    [
+      "cinder_gate",
+      "drydock_nine"
+    ],
+    [
+      "pallas_reach",
+      "the_spire"
+    ],
+    [
+      "castrum",
+      "valmont_anvils"
+    ],
+    [
+      "greywater",
+      "anvils_rest"
+    ],
+    [
+      "greywater",
+      "cinder_gate"
+    ],
+    [
+      "anvils_rest",
+      "cinder_gate"
+    ],
+    [
+      "drake_crossing",
+      "highmarch"
+    ],
+    [
+      "drake_crossing",
+      "sato_holdfast"
+    ],
+    [
+      "highmarch",
+      "the_spire"
+    ],
+    [
+      "highmarch",
+      "lanternfall"
+    ],
+    [
+      "the_spire",
+      "lesser_marrow"
+    ],
+    [
+      "lesser_marrow",
+      "ember_shoal"
+    ],
+    [
+      "lanternfall",
+      "saltmere"
+    ],
+    [
+      "saltmere",
+      "harrow_deep"
+    ],
+    [
+      "harrow_deep",
+      "ember_shoal"
+    ],
+    [
+      "tessaly",
+      "anvil"
+    ],
+    [
+      "tessaly",
+      "the_veil"
+    ],
+    [
+      "anvil",
+      "greywater"
+    ],
+    [
+      "tessaly",
+      "sato_holdfast"
+    ],
+    [
+      "the_veil",
+      "saltmere"
+    ],
+    [
+      "valmont_anvils",
+      "ironhold"
+    ],
+    [
+      "valmont_anvils",
+      "the_kilns"
+    ],
+    [
+      "ironhold",
+      "the_kilns"
+    ],
+    [
+      "the_kilns",
+      "lesser_marrow"
+    ],
+    [
+      "cinderfall",
+      "last_harbour"
+    ],
+    [
+      "last_harbour",
+      "the_gallows"
+    ],
+    [
+      "the_gallows",
+      "hollow_reach"
+    ],
+    [
+      "hollow_reach",
+      "the_veil"
+    ],
+    [
+      "cinderfall",
+      "lanternfall"
+    ],
+    [
+      "wintermoor",
+      "brackwater"
+    ],
+    [
+      "brackwater",
+      "sorrow"
+    ],
+    [
+      "sorrow",
+      "ember_shoal"
+    ],
+    [
+      "wintermoor",
+      "the_kilns"
+    ]
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "texts": [
+    {
+      "id": "the_canvass",
+      "title": "The Canvass",
+      "body": "{self.name}'s name is down for the election, and now it must be carried round: to the houses, to the benches, to the men who are owed and the men who owe. A candidate who does not ask is assumed not to want it.",
+      "choices": {
+        "shake_every_hand": "Go to every door.",
+        "let_the_record_speak": "Let the record speak.",
+        "spend_a_little": "Spend a little where it will be remembered."
+      }
+    },
+    {
+      "id": "the_count_goes_your_way",
+      "title": "The Count Goes Your Way",
+      "body": "The tellers have finished. {self.name} is elected, and for five years will hold an office of the Reach in {self.name}'s own name and not the house's. It is one rung. There are others above it, and people already asking which {self.name} will want next.",
+      "choices": {
+        "thank_those_who_carried_it": "Thank those who carried it.",
+        "begin_the_work_at_once": "Begin the work at once.",
+        "mark_it_with_the_family": "Mark it with the family."
+      }
+    },
+    {
+      "id": "the_count_goes_against_you",
+      "title": "The Count Goes Against You",
+      "body": "The tellers have finished, and it is not {self.name}. The houses were asked and chose someone else. There will be another election in five years, and {self.name} will be five years older at it.",
+      "choices": {
+        "congratulate_the_winner": "Congratulate the winner.",
+        "learn_who_did_not_vote": "Learn who did not vote as they promised.",
+        "say_you_never_wanted_it": "Say you never much wanted it."
+      }
+    },
+    {
+      "id": "one_of_yours_is_elected",
+      "title": "One Of Yours Is Elected",
+      "body": "{kin.name} stood, on {kin.name}'s own decision, and the houses have chosen {kin.name}. For five years one of {self.name}'s own will sit as a magistrate of the Reach. {kin.name} did the asking, and {kin.name} won it.",
+      "choices": {
+        "be_seen_to_be_proud": "Be seen to be proud.",
+        "remind_them_whose_name_they_carry": "Remind them whose name they carry.",
+        "leave_it_theirs": "Leave it theirs."
+      }
+    },
+    {
+      "id": "the_aediles_games",
+      "title": "The Aedile's Games",
+      "body": "The city expects games of its aediles, and remembers for a generation which were good. {self.name} has the office, the season is coming, and the contractors are waiting to hear what kind of games these are to be.",
+      "choices": {
+        "something_the_city_has_not_seen": "Something the city has not seen.",
+        "the_old_shows_done_well": "The old shows, done well.",
+        "spend_it_on_the_drains": "Spend it on the drains instead."
+      }
+    }
+  ]
+}

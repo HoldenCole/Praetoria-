@@ -1,0 +1,850 @@
+{
+  "//": "THE CAESAR ROAD (docs/CAESAR.md). Reads recalled, kin_recalled, kin_general_loved (each year); triumph_voted, kin_triumph, triumph_refused, crossed_the_line, caesar_marches, republic_saved, republic_fell, caesar_crowned, caesar_broken (deeds); and the character flags new_triumphator, recalled_general, loved_by_the_fleet. What is decided (to come home, to cross, to declare) is decided on the Military screen, not here.",
+  "events": [
+    {
+      "id": "the_senates_triumph",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "triumph_voted",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "ride_as_one_who_served",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} rode through the capital in a plain coat and said the victory was the Reach's. The benches liked it. The crews, marching behind, would have liked a little more."
+            }
+          ]
+        },
+        {
+          "id": "give_the_city_a_day",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 8
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the city a day it will describe to its grandchildren: the captured standards, the prize hulls in low orbit, wine in the squares. Some of the Senate counted the cost, and some counted the crowd."
+            }
+          ]
+        },
+        {
+          "id": "share_it_with_the_crews",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the crews march in front and rode behind them. No general had done it before. Every deck in the fleet heard of it within the month."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_kinsmans_triumph",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "new_triumphator",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_triumph",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "walk_behind_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} walked in {kin.name}'s procession with the rest of the house, a few steps behind. {kin.name} saw it, and will not forget who came."
+            }
+          ]
+        },
+        {
+          "id": "remind_the_city_whose_house",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the house's colours carried ahead of {kin.name}'s standards. The city was reminded whose name the general bears. So was the general."
+            }
+          ]
+        },
+        {
+          "id": "let_them_have_the_day",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} watched from a window and let the day be {kin.name}'s alone. It was harder than it sounds."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_triumph_refused",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "triumph_refused",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "swallow_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said the Senate was the judge of such things and went back to the fleet. The benches noted the restraint. The crews noted the insult."
+            }
+          ]
+        },
+        {
+          "id": "learn_who_voted",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the division list copied out and read it twice. The names on it are worth knowing."
+            }
+          ]
+        },
+        {
+          "id": "tell_the_crews_plainly",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the assembled crews what the Senate thought their victories were worth. Nothing was said that could be quoted in a charge. It did not need to be."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_recall",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "recalled",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "read_it_to_the_officers",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the order read aloud in the wardroom and watched the faces. Nobody spoke for a long time. Then somebody asked what the general meant to do."
+            }
+          ]
+        },
+        {
+          "id": "write_to_friends_in_the_capital",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote to everyone in the capital who might still be a friend, asking what was meant by it. The answers that came said less than the ones that did not."
+            }
+          ]
+        },
+        {
+          "id": "keep_it_in_a_drawer",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the Senate's order in a drawer and went on with the day's work. It did not stay out of mind for an hour."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_kinsman_recalled",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "recalled_general",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_recalled",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "counsel_obedience",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} that the house keeps the law, and that a command laid down can be taken up again. {kin.name} heard it as it was meant, and did not thank {self.name} for it."
+            }
+          ]
+        },
+        {
+          "id": "say_the_house_is_behind_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} that whatever was decided, the house would not leave its general to face the Senate alone. It was a promise, and both of them knew what it might cost."
+            }
+          ]
+        },
+        {
+          "id": "say_it_is_theirs_to_weigh",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} it was {kin.name}'s command and {kin.name}'s name, and listened to what {kin.name} thought of doing."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_line_is_crossed",
+      "tier": "situation",
+      "weight": 60,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "crossed_the_line",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "speak_to_the_crews",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spoke to the crews before the fleet moved: what had been done for the Reach, what the Reach had done in return, and where they were going. They cheered. A few did not, and were let go ashore."
+            }
+          ]
+        },
+        {
+          "id": "write_to_the_senate_once_more",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the Senate one more letter, offering to lay everything down if the chamber would do the same. It was not expected to be accepted. It was written to be read afterwards."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing_and_sail",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the order and nothing else. The silence was reported in the capital as the most frightening thing about it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_general_marches",
+      "tier": "situation",
+      "weight": 60,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "caesar_marches",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_the_house_together",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called in everyone of the house who could be reached and heard what each of them thought. They did not agree. It was still better to know."
+            }
+          ]
+        },
+        {
+          "id": "put_the_fleets_in_order",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the fleets provisioned and the crews paid up to date, whatever was decided. A house that is ready has more choices."
+            }
+          ]
+        },
+        {
+          "id": "go_on_as_before",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went on with the season's business as though the lanes were quiet. Everyone else in the capital was doing the same, and nobody was fooled."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_republic_saved",
+      "tier": "situation",
+      "weight": 60,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "republic_saved",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_the_thanks",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood in the chamber and was thanked by name. It is in the record."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_it_is_worth",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the Senate know that gratitude can be shown in more ways than a vote of thanks. Something was found. A few thought less of {self.house} for asking."
+            }
+          ]
+        },
+        {
+          "id": "go_home_quietly",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} left the capital before the speeches and went home. The war had been against people {self.name} had dined with."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_republic_falls",
+      "tier": "situation",
+      "weight": 60,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "republic_fell",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "kneel_among_the_first",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} was among the first of the houses to kneel to the new throne. It was noticed by the one sitting on it, and by everyone else."
+            }
+          ]
+        },
+        {
+          "id": "kneel_when_it_cannot_be_helped",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} came to the capital when the summons could no longer be ignored, and knelt, and said the words. No more was offered than was required."
+            }
+          ]
+        },
+        {
+          "id": "stay_on_your_own_worlds",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stayed at home and sent a letter. The throne has a long list of things to attend to. The letter is on it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_throne_is_yours",
+      "tier": "situation",
+      "weight": 80,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "caesar_crowned",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "clemency",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} forgave everyone who had stood against the march and gave several of them their commands back. It was the one thing nobody had expected, and it disarmed more of them than the fleet had."
+            }
+          ]
+        },
+        {
+          "id": "settle_accounts",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 10
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had lists drawn up. The estates of the houses that had carried the Senate's war paid for the war. Nobody mistook it for justice."
+            }
+          ]
+        },
+        {
+          "id": "say_the_republic_is_restored",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} announced that the Republic had been restored, kept every office in being, and held all of them. The chamber voted its thanks. Everyone understood."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_march_fails",
+      "tier": "situation",
+      "weight": 80,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "caesar_broken",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "bow_to_the_senate",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to the chamber and said what had to be said. The house keeps its worlds. It will be a long time before it keeps its head up."
+            }
+          ]
+        },
+        {
+          "id": "keep_the_grudge",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the fine and said nothing, and wrote down every name. The house has a long memory and now it has something to remember."
+            }
+          ]
+        },
+        {
+          "id": "sell_what_can_be_spared",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sold what could be spared to keep the fleets crewed. The buyers knew how badly the money was needed, and paid accordingly."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_crews_are_theirs",
+      "tier": "situation",
+      "weight": 14,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "loved_by_the_fleet",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_general_loved",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "be_glad_of_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} that a commander the crews will follow is worth three who must give orders twice. {kin.name} had wondered how it would be taken."
+            }
+          ]
+        },
+        {
+          "id": "keep_an_eye_on_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had a quiet word with two of {kin.name}'s captains about how things stood aboard. It is the house's fleet. It is as well to remember that someone should."
+            }
+          ]
+        },
+        {
+          "id": "give_them_more_to_do",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave {kin.name} a freer hand with the fleet. {kin.name} was pleased. So, when they heard, were the crews."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1087 @@
+{
+  "//": "THE HOUSEHOLD — scenes for the dynasty layer's engine-written flags (GDD §14/§18): regent (the adult ruling for a child head), came_of_age (a child turns sixteen — content clears), parvenu (the old blood sneers at a risen house), knife_turned (an attempt on your blood was traced), plot_exposed (your own plot was traced). All clear the flag they read. the_defiant_kin reads the engine `defiant` char flag (family autonomy); the_kin_who_left reads kin_defected. the_suit reads the engine `suitor` char flag (someone seeks the protagonist's hand).",
+  "events": [
+    {
+      "id": "the_regents_hand",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "regent",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "regent",
+              "flag": "regent",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "regency",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "defer_to_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "regent",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustSkill",
+              "role": "regent",
+              "skill": "administration",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The regent, {regent.name}, spoke for the house this season, and the house let them. A child who learns to be advised well will one day be advised badly and know the difference."
+            }
+          ]
+        },
+        {
+          "id": "assert_yourself",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ambitious",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "regent",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "The young head of the house overruled {regent.name} in front of the household — once, on a small thing, so that everyone would know it could be done."
+            }
+          ]
+        },
+        {
+          "id": "learn_at_their_elbow",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "administration",
+              "delta": 1
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "charisma",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "regent",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sat at {regent.name}'s elbow through every audience and every ledger, saying nothing, missing nothing."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_coming_of_age",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "heir",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "heir",
+              "flag": "came_of_age",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "heir",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "send_to_the_academy",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "heir",
+              "flag": "came_of_age",
+              "value": false
+            },
+            {
+              "type": "adjustSkill",
+              "role": "heir",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustSkill",
+              "role": "heir",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{heir.name} came of age and {self.name} sent them to the Academy, as the house's heirs have always gone — to be broken and remade among the children of rivals."
+            }
+          ]
+        },
+        {
+          "id": "keep_them_close",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "heir",
+              "flag": "came_of_age",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "heir",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustSkill",
+              "role": "heir",
+              "skill": "administration",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{heir.name} came of age and stayed at {self.name}'s side, learning the house from the inside. Safer. Narrower."
+            }
+          ]
+        },
+        {
+          "id": "grant_them_a_command",
+          "requires": [
+            {
+              "type": "fleetStrength",
+              "role": "self",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "heir",
+              "flag": "came_of_age",
+              "value": false
+            },
+            {
+              "type": "advanceCareer",
+              "role": "heir"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "heir",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{heir.name} came of age and {self.name} gave them a ship. The household called it early. {heir.name} did not."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_old_blood_sneers",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "grandee",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "grandee",
+              "to": "self",
+              "op": "lte",
+              "value": -10
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "parvenu",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "outwork_them",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{grandee.name} of {grandee.house} let a remark fall about {self.name}'s grandparents. {self.name} let it lie and worked, which the old blood never learns to answer."
+            }
+          ]
+        },
+        {
+          "id": "answer_the_slight",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Vengeful",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "grandee",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{grandee.name} of {grandee.house} sneered at the upjumped house, and {self.name} answered in the only register the old blood respects. A feud, then. So be it."
+            }
+          ]
+        },
+        {
+          "id": "buy_a_welcome",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} found the thing {grandee.name} of {grandee.house} wanted and gave it, and was, for a season, almost welcome."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_knife_turned",
+      "tier": "setpiece",
+      "weight": 6,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "plotter",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "plotter",
+              "flag": "feud",
+              "value": true
+            },
+            {
+              "type": "relationship",
+              "from": "plotter",
+              "to": "self",
+              "op": "lte",
+              "value": -30
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "knife_turned",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "scatter_the_seed",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "knife_turned",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "Someone had reached for {self.name}'s blood and missed. {self.name} sent the children away that week — to cousins, to fosterage, to names that were not the house's — and slept no better for it."
+            }
+          ]
+        },
+        {
+          "id": "demand_satisfaction",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Honorable",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "knife_turned",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "plotter",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "plotter",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} named {plotter.name} of {plotter.house} before every court that would listen, and the courts, for once, listened. The attempt had failed; the shame did not."
+            }
+          ]
+        },
+        {
+          "id": "return_the_knife",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Vengeful",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "knife_turned",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "plotter",
+              "flag": "marked_for_death",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing in public about the attempt. In private, {self.name} began to arrange {plotter.name}'s."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_plot_exposed",
+      "tier": "setpiece",
+      "weight": 6,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "plot_exposed",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "deny_everything",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "plot_exposed",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} denied it, and went on denying it, and the denial became the kind of fact a court agrees to pretend to believe. The cost was paid in sleep."
+            }
+          ]
+        },
+        {
+          "id": "offer_a_scapegoat",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Schemer",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "plot_exposed",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "A steward confessed, and was hanged, and {self.name} attended the hanging with the correct expression. {era:The capital|The court} knew. {era:The capital|The court} also knew the matter was closed."
+            }
+          ]
+        },
+        {
+          "id": "own_it",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Honorable",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "plot_exposed",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} owned the attempt before the household and said it would have been deserved. It was the kind of honesty that costs standing with the Reach and buys it with the fleet."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_defiant_kin",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "defiant",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "indulge_them",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 25
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "defiant",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{kin.name} wanted more than the house had given, and {self.name} gave some of it — a command, a seat, a say. The sulk ended. The appetite did not."
+            }
+          ]
+        },
+        {
+          "id": "discipline_them",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Cruel",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "defiant",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "kin",
+              "delta": 10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} reminded {kin.name}, before the household, who was head of it. The defiance went quiet. Quiet is not the same as gone."
+            }
+          ]
+        },
+        {
+          "id": "send_them_away",
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "defiant",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "hidden",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} found {kin.name} a post at the far end of the Reach, with honours and no power, and the household breathed out."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_kin_who_left",
+      "tier": "setpiece",
+      "weight": 6,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "traitor",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "traitor",
+              "flag": "defected",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_defected",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "disown_them",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "kin_defected",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} struck {traitor.name}'s name from the rolls of the house. The claim they carried away did not care."
+            }
+          ]
+        },
+        {
+          "id": "buy_them_back",
+          "cost": {
+            "influence": 2
+          },
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "kin_defected",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "traitor",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent to {traitor.name} with gold and a pardon. Blood that leaves can be bought back; it cannot be trusted again."
+            }
+          ]
+        },
+        {
+          "id": "end_the_matter",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Ruthless",
+              "kind": "nature",
+              "present": true
+            }
+          ],
+          "cost": {
+            "agents": 1
+          },
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "kin_defected",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "traitor",
+              "flag": "marked_for_death",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing of {traitor.name} in public, and began, in private, to make the problem smaller."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_suit",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "suitor",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "suitor",
+              "flag": "suitor",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "suitor",
+              "bond": "marriage",
+              "present": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "wed",
+          "value": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "accept",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "suitor",
+              "flag": "suitor",
+              "value": false
+            },
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "suitor",
+              "bond": "marriage",
+              "strength": 60
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "wed",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "suitor",
+              "flag": "wed",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "suitor",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "marriages",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} accepted {suitor.name} of {suitor.house}, and the two houses were bound. The heralds called it love. The ledgers called it strategy. Both were a little right."
+            }
+          ]
+        },
+        {
+          "id": "refuse_kindly",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "suitor",
+              "flag": "suitor",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "suitor",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} refused {suitor.name} of {suitor.house} with every courtesy the forms allow. Courtesy is remembered. So is the refusal."
+            }
+          ]
+        },
+        {
+          "id": "refuse_coldly",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Arrogant",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "suitor",
+              "flag": "suitor",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "suitor",
+              "to": "self",
+              "delta": -30
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {suitor.name} of {suitor.house} understand exactly how far beneath the house the suit had been. {era:The capital|The court} enjoyed it. {suitor.house} did not."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,588 @@
+{
+  "events": [
+    {
+      "id": "exchange_crash",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "market_crash"
+        }
+      ],
+      "choices": [
+        {
+          "id": "hold_your_nerve",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Exchange fell a tenth in a year and {self.name} sold nothing. The house's factors were told to stop bringing the prices in with breakfast."
+            }
+          ]
+        },
+        {
+          "id": "stand_before_the_floor",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went down to the floor of the Exchange in person and was seen to buy. It cost a favour to arrange the crowd, and the crowd remembered who had not run."
+            }
+          ]
+        },
+        {
+          "id": "buy_what_others_sell",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -10
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "While houses in the red sold whatever they held, {self.name} sent a factor with a full purse and no instructions but one: buy from whoever needs to sell, and be gracious about it."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exchange_boom",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "market_boom"
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "log",
+              "text": "Every price on the board rose and every factor in the Reach took the credit. {self.name} let them."
+            }
+          ]
+        },
+        {
+          "id": "warn_the_house",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the household what a rising board is: this year's hopes priced as if they were next year's earnings. Nobody thanked {self.name} for it."
+            }
+          ]
+        },
+        {
+          "id": "give_a_dinner",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave a dinner for the houses that had done well out of the year. A rising market makes generous guests."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dividend_passed",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "dividend_cut"
+        }
+      ],
+      "choices": [
+        {
+          "id": "accept_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A company the house holds paid nothing this year. Its board sent a letter. {self.name} read it twice and filed it."
+            }
+          ]
+        },
+        {
+          "id": "write_to_the_board",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote to the board as a holder and asked, in the plainest words the house's lawyers would allow, where the year's earnings had gone."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_board_changes_hands",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "takeover_of_mine"
+        }
+      ],
+      "choices": [
+        {
+          "id": "concede_with_grace",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "Another house now held more than half of a company {self.name} had directed. {self.name} sent the new board the keys and a civil note. The shares the house still held would go on paying."
+            }
+          ]
+        },
+        {
+          "id": "call_it_theft",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called it theft in the {era:Senate|court}, where everyone knew it was a purchase. The house that bought it did not trouble to answer."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_company_taken",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "company_taken"
+        }
+      ],
+      "choices": [
+        {
+          "id": "keep_its_people",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the chair of a company another house had founded, kept its clerks and its captains, and changed nothing but who signed the dividend."
+            }
+          ]
+        },
+        {
+          "id": "put_in_your_own",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the house's own people on the board within the month. The founder's kin were thanked for their service and shown the door."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_stake_in_your_company",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "stake_in_mine"
+        }
+      ],
+      "choices": [
+        {
+          "id": "watch_them",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A rival house now holds a tenth or more of a company {self.name} directs. It is on the public register. {self.name} had the register read aloud each quarter after that."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_they_want",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked the rival's factor to dinner and asked what the house wanted with so many shares. The answer was 'the dividend'. Nobody at the table believed it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_company_fails",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "company_failed"
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_the_loss",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A company the house held shares in was wound up, its ventures broken and sold. {self.name} wrote the paper off and said nothing more about it."
+            }
+          ]
+        },
+        {
+          "id": "look_after_its_people",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "When the company failed, {self.name} found places for the clerks and captains who had worked it. It cost a little. It was talked about for a long time."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_rival_lists",
+      "tier": "situation",
+      "weight": 2,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "company_floated"
+        }
+      ],
+      "choices": [
+        {
+          "id": "note_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "Another house has sold shares in one of its ventures on the Exchange. {self.name} had the prospectus brought up and read the part about who keeps the majority."
+            }
+          ]
+        },
+        {
+          "id": "send_a_factor",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a factor to the first day of trading to see who bought, and how much. Who holds a rival's paper is worth knowing before it matters."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_founders_share",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "golden_share_used"
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_it_stand",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A founder's share was invoked and a board turned an order away. It can be done once. Both houses now know exactly where the other stands."
+            }
+          ]
+        },
+        {
+          "id": "remember_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the refusal entered in the house's own books, with the date. A founder's share is spent only once, and the Exchange is patient."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "war_bonds_offered",
+      "tier": "situation",
+      "weight": 2,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "bonds_offered"
+        }
+      ],
+      "choices": [
+        {
+          "id": "consider_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Reach is selling bonds for its war beyond the border. The coupon is good. It is good because the war might be lost."
+            }
+          ]
+        },
+        {
+          "id": "urge_the_houses",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spoke for the loan in the {era:Senate|court}: a house that will not lend to the Reach's war has no business voting for it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bonds_repaid",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "bonds_repaid"
+        }
+      ],
+      "choices": [
+        {
+          "id": "bank_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The war beyond the Reach is over and its bonds are settled. {self.name} had the sum counted and entered."
+            }
+          ]
+        },
+        {
+          "id": "lend_it_again",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known that what the Reach had repaid the house would lend again when asked. The chair made a note of it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shares_forfeit",
+      "tier": "situation",
+      "weight": 6,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "shares_seized_mine"
+        }
+      ],
+      "choices": [
+        {
+          "id": "bow_to_the_edict",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "By edict of the throne every share the house held was declared forfeit. {self.name} bowed to it. There was nothing else to bow to."
+            }
+          ]
+        },
+        {
+          "id": "protest_at_court",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} protested at court, in person, with the register in hand. The shares were not returned. The protest was remembered by every house that still held paper."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "purse_opened",
+      "tier": "situation",
+      "weight": 2,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "market_steadied"
+        }
+      ],
+      "choices": [
+        {
+          "id": "approve",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Reach's purse was opened under the Exchange and the fall stopped. {self.name} approved, as a holder of paper would."
+            }
+          ]
+        },
+        {
+          "id": "ask_who_pays",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked in the {era:Senate|court} whose credits had held the market up, and for whose shares. It was the chair's purse and everyone's shares, which was the point of the question."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

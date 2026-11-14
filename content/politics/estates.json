@@ -1,0 +1,17 @@
+{
+  "//": "THE ESTATES (GDD §6.1 factions; Democracy-4-style interest groups). Each estate holds an approval of the player's house, −100..100, drifting toward what the house's laws say about it (sum of each enacted option's opinion of the estate) plus whatever events have cultivated (counter estate_offset:<id>, which decays). Past +30 an estate is LOYAL and its loyal effects apply to the house; under −30 it is HOSTILE and its hostile effects apply. Effects are modifier keys PolicySystem adds to the house's laws: credits_per_world, materials_per_world, manpower_per_world, unrest_drift, prosperity_drift, pop_growth, lawlessness_drift, allegiance_drift, venture_yield_pct, charter_pct, market_price_pct, fleet_upkeep_pct, readiness, senate_weight, legitimacy_per_5, motion_cost, tolls_bonus.",
+  "estates": [
+    { "id": "commons", "name": "The Commons", "description": "The people of your worlds: farmers, dockhands, the crews. They want bread, fair courts and sons who come home.",
+      "loyal": { "unrest_drift": -1, "pop_growth": 1 }, "hostile": { "unrest_drift": 2 } },
+    { "id": "merchants", "name": "The Merchants", "description": "Factors, shipping lines, the counting-houses. They want open lanes, low tariffs and a market that does not ask questions.",
+      "loyal": { "venture_yield_pct": 15 }, "hostile": { "venture_yield_pct": -25, "market_price_pct": 25 } },
+    { "id": "officers", "name": "The Officers", "description": "The captains and the crews of your hulls. They want a standing guard, a doctrine with teeth, and pay that arrives.",
+      "loyal": { "readiness": 5 }, "hostile": { "readiness": -5, "fleet_upkeep_pct": 25 } },
+    { "id": "old_blood", "name": "The Old Blood", "description": "The titled houses and their clients. They want ceremony kept, the ballot closed, and the upjumped kept in their place.",
+      "loyal": { "senate_weight": 2, "legitimacy_per_5": 1 }, "hostile": { "senate_weight": -1, "legitimacy_per_5": -1 } },
+    { "id": "magistrates", "name": "The Magistrates", "description": "The clerks, the courts, the collectors. They want iron law, orderly tithes and a chancery that respects procedure.",
+      "loyal": { "credits_per_world": 1, "prosperity_drift": 2 }, "hostile": { "prosperity_drift": -3 } },
+    { "id": "frontier", "name": "The Frontier", "description": "Belt-rats, free companies, the homesteaders of the rim. They want open lanes, open land and no patrols asking for papers.",
+      "loyal": { "lawlessness_drift": -2 }, "hostile": { "lawlessness_drift": 2 } }
+  ]
+}

@@ -1,0 +1,1732 @@
+{
+  "//": "SITUATIONS OF THE NEWER SYSTEMS (GAP §19 item 1, content volume). These hook flags the engine raised in soaks that no event read: the Senate's refusals (motion_failed_mine, act_failed), the embargo, the Speaker's gavel and the bench leader's table, the loyal estates, the player's own laws (law:<law>:<option>), the siege bell, the raid, the lost province, the free march, the strategic three, the fallen houses, and three ambients of a long life.",
+  "events": [
+    {
+      "id": "the_motion_thrown_out",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "motion_failed_mine"
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_it_well",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name}'s motion was thrown out and {self.name} thanked the chamber for its attention. The benches found the grace suspicious and liked it anyway."
+            }
+          ]
+        },
+        {
+          "id": "note_who_voted",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name}'s motion fell, and {self.name} wrote down every name that fell it. The list is in the desk. The desk is known."
+            }
+          ]
+        },
+        {
+          "id": "buy_the_house_a_round",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} lost the vote and stood the chamber a round afterward. Three credits; the next count will be closer."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_act_falls",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "act_failed"
+        }
+      ],
+      "choices": [
+        {
+          "id": "console_the_estates",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:merchants",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "An Act fell in the Senate and {self.name} spent the evening telling the estates it would come again. Some believed it."
+            }
+          ]
+        },
+        {
+          "id": "let_it_lie",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "An Act fell in the Senate. {self.name} said nothing, which the old blood took as agreement."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_closed_exchanges",
+      "tier": "situation",
+      "weight": 9,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "embargoed"
+        }
+      ],
+      "choices": [
+        {
+          "id": "smuggle",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "Under embargo, {self.name} ran goods through a cousin's name and a rim port. Five credits, a reputation, and a harbour-master who knows."
+            }
+          ]
+        },
+        {
+          "id": "petition_the_senate",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to the Senate's door under embargo and asked, politely, how long. The chamber liked the manners more than the question."
+            }
+          ]
+        },
+        {
+          "id": "ride_it_out",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} rode out the embargo on stores and pride. The warehouses emptied; the pride held."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_speakers_gavel",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "holds_office:speaker"
+        }
+      ],
+      "choices": [
+        {
+          "id": "order_of_the_day",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} set the order of the day as Speaker, and the chamber spent its morning on {self.house}'s business."
+            }
+          ]
+        },
+        {
+          "id": "favour_a_friend",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let a friend's motion jump the docket. The friend was grateful; the clerk was not."
+            }
+          ]
+        },
+        {
+          "id": "fair_dealing",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} ran the docket in the order it came. The benches noticed, which is rarer than it should be."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_leaders_table",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "faction_leader"
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_dinner",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} fed the bench at the house's table. Four credits; the bench votes better fed."
+            }
+          ]
+        },
+        {
+          "id": "the_whip",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} reminded the bench, one house at a time, who leads it. They remembered."
+            }
+          ]
+        },
+        {
+          "id": "let_them_talk",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the bench argue itself out and took the sense of the room. Slower; sturdier."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_commons_feast",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "estate_loyal:commons"
+        }
+      ],
+      "choices": [
+        {
+          "id": "attend",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went down to the commons' feast and ate what was put in front of them. The squares were quiet for a season."
+            }
+          ]
+        },
+        {
+          "id": "send_wine",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent wine to the commons' feast. Three credits; the toasts were to {self.house}."
+            }
+          ]
+        },
+        {
+          "id": "stay_home",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not go down to the feast. The old blood approved; the commons noticed the empty chair."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_officers_toast",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "estate_loyal:officers"
+        }
+      ],
+      "choices": [
+        {
+          "id": "raise_the_cup",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} drank the officers' toast standing. The wardroom talks of it still."
+            }
+          ]
+        },
+        {
+          "id": "promise_hulls",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} promised the wardroom new hulls and put five credits down to prove it."
+            }
+          ]
+        },
+        {
+          "id": "decline",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent regrets to the wardroom. The officers drank the toast anyway, and shorter."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_merchants_gift",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "estate_loyal:merchants"
+        }
+      ],
+      "choices": [
+        {
+          "id": "accept",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} accepted the factors' gift. Six credits, and a question about whose {era:senator|lord} {self.name} is."
+            }
+          ]
+        },
+        {
+          "id": "refuse",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:merchants",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the factors' purse back unopened. The counting-houses were hurt; the squares approved."
+            }
+          ]
+        },
+        {
+          "id": "accept_and_declare",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "treasury_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the gift and had it entered in the public ledger. Six credits, honestly come by, and the Treasury took note of a house that keeps books."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_old_bloods_invitation",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "estate_loyal:old_blood"
+        }
+      ],
+      "choices": [
+        {
+          "id": "attend",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} dined with the old blood and heard who was whose cousin. The commons heard where {self.name} dined."
+            }
+          ]
+        },
+        {
+          "id": "decline",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} declined the old blood's table. The squares liked it; the salons did not."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_press_gang",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "law:levies:conscription"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_the_gang_work",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "The press gang worked {self.house}'s ports under the conscription law. Three companies raised; three towns that bar their doors at dusk."
+            }
+          ]
+        },
+        {
+          "id": "exempt_the_harvest",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} exempted the harvest hands from the levy. The fields were brought in; the muster was thin."
+            }
+          ]
+        },
+        {
+          "id": "pay_bounties",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid bounties instead of sending the gang. Four credits; two companies who came willingly."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_runaway",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "law:labour:bonded"
+        }
+      ],
+      "choices": [
+        {
+          "id": "hunt_them",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent riders after the runaway bondsmen. They were brought back; the villages watched them come."
+            }
+          ]
+        },
+        {
+          "id": "let_them_go",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the runaways go. The quarry fell behind; the squares said nothing, loudly."
+            }
+          ]
+        },
+        {
+          "id": "free_them_publicly",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:merchants",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} freed the runaways in the square and said why. The commons cheered; the factors counted what the bonds had cost."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_barred_door",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "law:court_etiquette:closed_court"
+        }
+      ],
+      "choices": [
+        {
+          "id": "hear_them_privately",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} heard the petitioners through a side door, closed doors or no. The hall stayed closed; the matter was settled."
+            }
+          ]
+        },
+        {
+          "id": "turn_them_away",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The petitioners were turned from {self.house}'s closed doors. The old blood approved of a door that stays shut."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_open_hall",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "law:court_etiquette:open_hall"
+        }
+      ],
+      "choices": [
+        {
+          "id": "the_long_queue",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sat the open hall until the last petitioner. A long day; a loyal queue."
+            }
+          ]
+        },
+        {
+          "id": "cut_it_short",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} closed the open hall at noon. The queue that was left went home with its grievances."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_ballot_box",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "law:franchise:open_ballot"
+        }
+      ],
+      "choices": [
+        {
+          "id": "certify_the_result",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} certified the ballot as it fell, and the losing side grumbled in the way of losing sides. The count held."
+            }
+          ]
+        },
+        {
+          "id": "lean_on_the_count",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:magistrates",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} leaned on the count and the right name came out of the box. The magistrates wrote a memorandum they did not send."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_iron_law_bites",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "law:justice:iron_law"
+        }
+      ],
+      "choices": [
+        {
+          "id": "hang_them",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:magistrates",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The iron law took its course and three were hanged for a granary. The squares were quiet and did not forgive."
+            }
+          ]
+        },
+        {
+          "id": "commute",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:magistrates",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} commuted the sentence. The magistrates spoke of consistency; the mothers spoke of {self.name}."
+            }
+          ]
+        },
+        {
+          "id": "review_the_case",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} reopened the case and found the granary half the size the charge said. A lesser sentence, and a reputation for reading the file."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_marque_captains",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "law:letters_of_marque:sanctioned"
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_your_cut",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The marque captains paid {self.house} its share of a season's prizes. Six credits, and a flag that is only arguably a pirate's."
+            }
+          ]
+        },
+        {
+          "id": "hang_the_worst",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:merchants",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} hanged the worst of the marque captains for taking a friendly hull. The rest of them learned to read their letters."
+            }
+          ]
+        },
+        {
+          "id": "look_away",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:merchants",
+              "delta": -3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} looked away from what the marque captains took. Three credits; the factors stopped looking at {self.name}."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_siege_bell",
+      "tier": "situation",
+      "weight": 10,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "under_siege"
+        }
+      ],
+      "choices": [
+        {
+          "id": "sally",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "war_score_bonus",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} ordered a sally from the besieged walls. It cost three companies and bought the town its courage back."
+            }
+          ]
+        },
+        {
+          "id": "hoard_the_grain",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the granaries under guard for the siege. The walls will hold longer than the goodwill."
+            }
+          ]
+        },
+        {
+          "id": "appeal_to_the_chair",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent word to the chair of the siege, in the Senate's hearing. Nothing came but a motion; the motion was something."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "after_the_raid",
+      "tier": "situation",
+      "weight": 9,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "raided"
+        }
+      ],
+      "choices": [
+        {
+          "id": "rebuild",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid to rebuild what the raiders burned. Five credits, and a harbour that believes the house will come when called."
+            }
+          ]
+        },
+        {
+          "id": "post_a_bounty",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} posted a bounty on the raiders' heads. Four credits, and the navy noticed a {era:senator|lord} who wants pirates dead."
+            }
+          ]
+        },
+        {
+          "id": "let_it_lie",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the raid lie. The harbour rebuilt itself, slowly, and remembered who did not help."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_lost_province",
+      "tier": "setpiece",
+      "weight": 10,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "lost_a_world_to_rebellion"
+        }
+      ],
+      "choices": [
+        {
+          "id": "vow_reconquest",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "vow_reconquest",
+              "value": true
+            },
+            {
+              "type": "adjustCounter",
+              "key": "war_score_bonus",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} swore before the household that the lost world would come back to {self.house}. The household believed it, which is a start."
+            }
+          ]
+        },
+        {
+          "id": "let_them_go",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the lost world go. The other worlds, watching, decided the house could be reasoned with."
+            }
+          ]
+        },
+        {
+          "id": "blame_the_governor",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} laid the loss at the governor's door, publicly and in detail. The house's name came out clean; the household took note of how."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_free_march",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "free_march"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "recruit_the_disaffected",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took in the disaffected of the old {era:senators|lords}' worlds under the free march's banner. Two companies; a name the old {era:senators|lords} spit."
+            }
+          ]
+        },
+        {
+          "id": "court_the_court",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the free march's compliments to the chair and asked nothing. {era:The Senate|The court} filed it under 'surprising'."
+            }
+          ]
+        },
+        {
+          "id": "hold_the_lanes",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the free march's hulls on the lanes and kept them clear. The rim noticed who was keeping order now."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_isotope_broker",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "resource",
+          "resource": "isotopes",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "sell",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "isotopes",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 14
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sold two lots of isotopes to a broker who did not say where they were going. Fourteen credits, and a question not asked."
+            }
+          ]
+        },
+        {
+          "id": "refuse",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the isotopes for the fleet's magazines and sent the broker away. The navy noticed."
+            }
+          ]
+        },
+        {
+          "id": "sell_to_the_chair",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "isotopes",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sold the isotopes to the chair's arsenal at the chair's price. Eight credits, and a note in the Senate's good books."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_helium_glut",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "resource",
+          "resource": "helium3",
+          "op": "gte",
+          "value": 8
+        }
+      ],
+      "choices": [
+        {
+          "id": "sell_cheap",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "helium3",
+              "delta": -4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sold four tanks of helium-3 into a glutted market. Six credits; the tanks would have waited."
+            }
+          ]
+        },
+        {
+          "id": "stockpile",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "navy_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the tanks full against a dry year. The admirals approve of a {era:senator|lord} who thinks about fuel."
+            }
+          ]
+        },
+        {
+          "id": "gift_the_fleet",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "helium3",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave three tanks to the fleet outright. The wardroom drank to it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_empty_hall",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "counter",
+          "key": "houses_fallen",
+          "op": "gte",
+          "value": 1
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_them_in",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": 3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took in the retainers of a fallen house. Three companies who know what falling costs, and two credits of bread."
+            }
+          ]
+        },
+        {
+          "id": "take_the_archive",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} bought the fallen house's archive from its last clerk. Letters, debts, and who owed whom."
+            }
+          ]
+        },
+        {
+          "id": "turn_them_away",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} turned the fallen house's retainers from the gate. The old blood approved of a house that does not take in strays."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_portrait",
+      "tier": "ambient",
+      "weight": 4,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 8
+        }
+      ],
+      "choices": [
+        {
+          "id": "sit_for_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sat for the portrait. Four credits, and a face on the wall that will outlast the sitter."
+            }
+          ]
+        },
+        {
+          "id": "refuse",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} refused the portrait and spent the afternoon doing nothing, which was better."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_comet",
+      "tier": "ambient",
+      "weight": 4,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 15
+        }
+      ],
+      "choices": [
+        {
+          "id": "proclaim_an_omen",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} proclaimed the comet a sign of {self.house}'s favour. The squares, wanting a sign, took it."
+            }
+          ]
+        },
+        {
+          "id": "ignore_it",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:magistrates",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} declined to read anything into the comet. The magistrates approved of a {era:senator|lord} who does not read the sky."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_old_retainer",
+      "tier": "ambient",
+      "weight": 4,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 12
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_pension",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} pensioned the old retainer with a cottage and three credits a year. The household saw it done."
+            }
+          ]
+        },
+        {
+          "id": "a_last_task",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the old retainer one last task: a letter to an old friend at the capital. It was delivered."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

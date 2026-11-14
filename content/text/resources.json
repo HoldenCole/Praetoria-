@@ -1,0 +1,22 @@
+{
+  "texts": [
+    { "id": "dry_tanks", "title": "Dry Tanks",
+      "body": "The admiral's report is one line long: the fleet has no helium-3. The ramscoops that fed it are someone else's, the exchange wants a broker's price, and every hull of {self.house} is riding at anchor with its guns cold while the lanes go on without it.",
+      "choices": { "buy_dear": "Pay the broker's price. Eighteen credits for four tanks.", "strip_the_merchantmen": "Requisition the merchantmen's fuel. Two tanks, and a harbour's grudge.", "ride_at_anchor": "Let the fleet ride at anchor. Lanterns lit, guns cold." } },
+    { "id": "the_skimmer_barons", "title": "The Skimmer Magnates",
+      "body": "A gas giant in a system of {self.house}'s has clouds worth skimming — helium-3, the fuel every navy in the Reach burns. A consortium has sent a factor with a draft contract and a case of wine; the house's own engineers have sent a plan and a bill. Whoever puts scoops in those clouds owns a thing the fleets cannot do without.",
+      "choices": { "raise_skimmers": "Raise the house's own skimmers. Eight credits, four materials, the first six tanks.", "sell_the_concession": "Sell the concession. Fourteen credits down, their ramscoops in our clouds.", "leave_it": "Leave the clouds alone for now." } },
+    { "id": "a_vein_of_rare_earths", "title": "A Vein of Rare Earths",
+      "body": "The claim-crews report that the belt {self.house} staked is richer than its ore: the rock carries rare earths, the stuff of drives and sensors, worth five of anything else that comes up. A refinery off-world will buy it raw; a chemist in the port will build the house a separator for ten credits and a share.",
+      "choices": { "refine_it": "Build the separator. Ten credits; three crates of rare earths, and a trade.", "sell_raw": "Sell the ore raw. Nine credits, and someone else's sensors." } },
+    { "id": "the_arms_broker", "title": "The Arms Broker",
+      "body": "A man with a false name and a real cargo manifest asks for an hour of {self.name}'s time. He has weapons-grade isotopes — two cases, enough to arm a battleship or a bastion — and he has heard that {self.house} is rich enough to want them and poor enough in deposits to have none. The Senate forbids the trade. The Senate is a long way away.",
+      "choices": { "buy_two": "Buy both cases. Twenty-four credits, and a whisper in the Senate.", "report_him": "Turn him over to the inspectors. The name that would not buy.", "send_him_away": "Send him away unanswered." } },
+    { "id": "the_fuel_contract", "title": "The Fuel Contract",
+      "body": "{buyer.name} of {buyer.house} writes with the courtesy of someone whose fleet is nearly dry: would {self.house} sell four tanks of helium-3, at a fair price, between houses at peace? The house's tanks are full. Fuel is the one thing a navy cannot bluff.",
+      "choices": { "sell_four": "Sell four tanks at a fair price. Sixteen credits and a kind word.", "sell_dear": "Name a price that makes them wince. Twenty-four credits.", "refuse": "Keep the fuel. Let them buy elsewhere." } },
+    { "id": "the_embargo", "title": "The Embargo",
+      "body": "{self.house} holds weapons-grade isotopes and is at war. The admiral wants them for the magazines. The chancellor wants an embargo declared, loudly, so the Senate sees who can afford to withhold them. A factor in a neutral port wants to sell them to anyone at all, quietly, for eighteen credits.",
+      "choices": { "arm_the_fleet": "Break open the stores for the fleet. Two isotopes; the next broadside.", "embargo_them": "Declare an embargo. Influence in the Senate.", "sell_to_both": "Sell to both sides through the factor. Eighteen credits and a stain." } }
+  ]
+}

@@ -1,0 +1,311 @@
+{
+  "//": "SCENARIO 4 — THE IMPERIAL COURT (GDD §10 'The Imperium' start). A galactic empire already stands; you are a minor knight's heir inside it, climbing an existing hierarchy under an Emperor's eye. era 'imperium' gates the court-of-the-emperor events (content/events/imperial_court.json). The protagonist starts MARRIED (wed flags + marriage bonds) so the dynasty layer is live from turn 1. House Aurelian holds the throne (title emperor); House Valmont is the great house that despises the upjumped knight.",
+  "id": "the_imperial_court",
+  "protagonist": "cassian_thorne",
+  "era": "imperium",
+  "galaxy": "the_reach",
+  "houses": [
+    {
+      "id": "thorne",
+      "name": "House Thorne",
+      "accent": "#4A6B3A",
+      "title": "knight",
+      "legitimacy": 14,
+      "treasury": {
+        "credits": 7,
+        "materials": 4,
+        "manpower": 3,
+        "influence": 4,
+        "exotics": 0
+      },
+      "//": "A knightly house holding one fief at the Emperor's sufferance. Legitimate for its rung (Knight needs 10) but nothing above it — every climb must be granted, bought, or married."
+    },
+    {
+      "id": "aurelian",
+      "name": "House Aurelian",
+      "accent": "#B8860B",
+      "title": "emperor",
+      "legitimacy": 95,
+      "treasury": {
+        "credits": 40,
+        "materials": 20,
+        "manpower": 25,
+        "influence": 20,
+        "exotics": 3
+      },
+      "//": "The Imperial house. The throne, and the favor that flows from it, is the one currency that matters here."
+    },
+    {
+      "id": "valmont",
+      "name": "House Valmont",
+      "accent": "#6B1F3A",
+      "title": "duke",
+      "legitimacy": 70,
+      "treasury": {
+        "credits": 22,
+        "materials": 14,
+        "manpower": 9,
+        "influence": 10,
+        "exotics": 1
+      },
+      "//": "The great house of the court: a Dukedom, a forge-world, and open contempt for knights who climb."
+    }
+  ],
+  "characters": [
+    {
+      "id": "cassian_thorne",
+      "name": "Cassian Thorne",
+      "house": "thorne",
+      "age": 27,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 1,
+      "nature": [
+        "Ambitious",
+        "Honorable"
+      ],
+      "aptitude": [
+        "Orator"
+      ],
+      "skills": {
+        "law": 2,
+        "oratory": 2,
+        "charisma": 2,
+        "intrigue": 1
+      },
+      "ambition": "master_the_senate",
+      "flags": [
+        "wed"
+      ],
+      "//": "An advocate at the Imperial court — the Merit path incarnate: climb by serving brilliantly, be ennobled. Honorable so the clean options are open; Ambitious so the dirty ones tempt."
+    },
+    {
+      "id": "elara_thorne",
+      "name": "Elara Thorne",
+      "house": "thorne",
+      "age": 24,
+      "sex": "female",
+      "careerTrack": "stewardship",
+      "careerRank": 0,
+      "nature": [
+        "Loyal"
+      ],
+      "aptitude": [
+        "Administrator"
+      ],
+      "skills": {
+        "administration": 2,
+        "economics": 1,
+        "charisma": 1
+      },
+      "ambition": "restore_house_fortunes",
+      "flags": [
+        "wed"
+      ],
+      "//": "His wife and his steward. The marriage makes heirs possible from turn 1; her ledger keeps the fief solvent."
+    },
+    {
+      "id": "octavian_aurelian",
+      "name": "Octavian Aurelian",
+      "house": "aurelian",
+      "age": 63,
+      "sex": "male",
+      "careerTrack": "law",
+      "careerRank": 4,
+      "nature": [
+        "Proud",
+        "Just"
+      ],
+      "aptitude": [
+        "Strategist"
+      ],
+      "skills": {
+        "law": 3,
+        "charisma": 3,
+        "tactics": 2,
+        "oratory": 2
+      },
+      "ambition": "master_the_senate",
+      "//": "The Emperor: old, just, proud, and at mortality age — his death is the succession that will reshape the court. Binds to sovereign roles (title emperor, outranks everyone)."
+    },
+    {
+      "id": "livia_aurelian",
+      "name": "Livia Aurelian",
+      "house": "aurelian",
+      "age": 26,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 2,
+      "nature": [
+        "Proud",
+        "Ambitious"
+      ],
+      "aptitude": [
+        "Schemer"
+      ],
+      "skills": {
+        "intrigue": 3,
+        "oratory": 2,
+        "charisma": 2
+      },
+      "ambition": "seize_the_throne",
+      "father": "octavian_aurelian",
+      "//": "The heir who will not wait. Outranks Cassian; could be patron or nemesis."
+    },
+    {
+      "id": "marius_valmont",
+      "name": "Marius Valmont",
+      "house": "valmont",
+      "age": 47,
+      "sex": "male",
+      "careerTrack": "stewardship",
+      "careerRank": 3,
+      "nature": [
+        "Cruel"
+      ],
+      "aptitude": [
+        "Greedy",
+        "Administrator"
+      ],
+      "skills": {
+        "economics": 3,
+        "administration": 3,
+        "charisma": 1
+      },
+      "ambition": "amass_a_fortune",
+      "//": "The Imperial Minister — a Duke's power and a miser's soul. The contempt-for-the-risen antagonist; binds to superior/rival_minister/collector roles."
+    }
+  ],
+  "relationships": [
+    {
+      "from": "cassian_thorne",
+      "to": "elara_thorne",
+      "disposition": 60,
+      "bond": "marriage",
+      "strength": 70
+    },
+    {
+      "from": "elara_thorne",
+      "to": "cassian_thorne",
+      "disposition": 65,
+      "bond": "marriage",
+      "strength": 70
+    },
+    {
+      "from": "cassian_thorne",
+      "to": "octavian_aurelian",
+      "disposition": 25,
+      "bond": "none",
+      "strength": 0,
+      "//": "A loyal subject, hoping to be noticed."
+    },
+    {
+      "from": "octavian_aurelian",
+      "to": "cassian_thorne",
+      "disposition": 10,
+      "bond": "none",
+      "strength": 0,
+      "//": "The Emperor has heard the name. Barely."
+    },
+    {
+      "from": "marius_valmont",
+      "to": "cassian_thorne",
+      "disposition": -25,
+      "bond": "none",
+      "strength": 0,
+      "//": "A knight's whelp with a lawyer's tongue. Contempt."
+    },
+    {
+      "from": "cassian_thorne",
+      "to": "marius_valmont",
+      "disposition": -15,
+      "bond": "none",
+      "strength": 0
+    },
+    {
+      "from": "livia_aurelian",
+      "to": "cassian_thorne",
+      "disposition": 0,
+      "bond": "none",
+      "strength": 0,
+      "//": "Open: a useful tool, or an obstacle."
+    },
+    {
+      "from": "cassian_thorne",
+      "to": "livia_aurelian",
+      "disposition": 10,
+      "bond": "none",
+      "strength": 0
+    },
+    {
+      "from": "livia_aurelian",
+      "to": "octavian_aurelian",
+      "disposition": 20,
+      "bond": "blood",
+      "strength": 60
+    },
+    {
+      "from": "octavian_aurelian",
+      "to": "livia_aurelian",
+      "disposition": 45,
+      "bond": "blood",
+      "strength": 60
+    }
+  ],
+  "holdings": [
+    {
+      "id": "thorne_fief",
+      "owner": "thorne",
+      "name": "Lesser Marrow",
+      "specialization": "agri_world",
+      "system": "lesser_marrow",
+      "population": 15,
+      "unrest": 0,
+      "buildings": [],
+      "//": "One fief, held at pleasure. Feeds the household and little else."
+    },
+    {
+      "id": "aurelian_capital",
+      "owner": "aurelian",
+      "name": "Aurelia Prime",
+      "specialization": "trade_hub",
+      "system": "aurelia_prime",
+      "population": 50,
+      "unrest": 0,
+      "buildings": [
+        "market"
+      ],
+      "//": "The throne-world. Abstracted (GDD §3): one holding stands in for an empire."
+    },
+    {
+      "id": "valmont_forge",
+      "owner": "valmont",
+      "name": "The Valmont Anvils",
+      "specialization": "forge_world",
+      "system": "valmont_anvils",
+      "population": 25,
+      "unrest": 0,
+      "buildings": [
+        "power_plant"
+      ]
+    }
+  ],
+  "fleets": [
+    {
+      "id": "fleet_imperial_home",
+      "name": "The Imperial Home Fleet",
+      "owner": "aurelian",
+      "system": "aurelia_prime",
+      "strength": 6,
+      "office": true,
+      "//": "An OFFICE fleet (GDD §8): the Emperor commands it by the throne, not by blood."
+    },
+    {
+      "id": "fleet_valmont",
+      "name": "The Valmont Line",
+      "owner": "valmont",
+      "system": "valmont_anvils",
+      "strength": 2
+    }
+  ]
+}
