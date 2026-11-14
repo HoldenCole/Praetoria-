@@ -86,7 +86,7 @@ public static class LifeSystem
     private static int Weight(string kind) => kind switch
     {
         "head" => 10, "victory" => 8, "office" => 8, "fulfilled" => 6, "mastery" => 5, "adopted" => 5, "love" => 5, "wound" => 4, "venture" => 4, "retired" => 4,
-        "rank" => 3, "wed" => 3, "took_in" => 3, "child" => 2, "friend" => 2, _ => 1
+        "rank" => 3, "wed" => 3, "took_in" => 3, "child" => 2, "friend" => 2, "failure" => -3, _ => 1
     };
 
     /// <summary>Write something into the record of a life, if it is one of the lives that are kept.</summary>

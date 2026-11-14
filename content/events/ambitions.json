@@ -1,5 +1,5 @@
 {
-  "//": "AMBITIONS (docs/AMBITIONS.md). Reads kin_fulfilled, kin_thwarted, kin_founded_a_venture and heir_named (deeds), and the character flags has_what_they_wanted, thwarted and founded_a_venture.",
+  "//": "AMBITIONS (docs/AMBITIONS.md). Reads kin_fulfilled, kin_thwarted, kin_founded_a_venture and heir_named (deeds), and the character flags has_what_they_wanted, thwarted and founded_a_venture. Quarrels and failures: kin_quarrel and kin_failed (deeds); the character flags quarrel_first, quarrel_second and has_failed.",
   "events": [
     {
       "id": "what_they_wanted",
@@ -307,6 +307,242 @@
             {
               "type": "log",
               "text": "{self.name} saw to it that whoever was passed over had something to show for a lifetime of expecting. It did not buy contentment. It bought civility."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "two_of_yours_want_one_thing",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "first",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "first",
+              "flag": "quarrel_first",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "first",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        },
+        {
+          "name": "second",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "second",
+              "flag": "quarrel_second",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "second",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_quarrel",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_behind_the_first",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "first",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "second",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be seen that {first.name} had the head of the house behind them. {second.name} saw it as clearly as anyone."
+            }
+          ]
+        },
+        {
+          "id": "stand_behind_the_second",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "second",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "first",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be seen that {second.name} had the head of the house behind them. {first.name} saw it as clearly as anyone."
+            }
+          ]
+        },
+        {
+          "id": "tell_them_both_it_stops",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "first",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "second",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "first",
+              "to": "second",
+              "delta": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "second",
+              "to": "first",
+              "delta": 8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had them both in and said that the house would have one quarrel fewer by morning. They resented it together, which was something."
+            }
+          ]
+        },
+        {
+          "id": "keep_out_of_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing to either. They are grown, and what they want is their own affair. The table stayed quiet a while longer."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "one_of_yours_fails",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "has_failed",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_failed",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "go_and_sit_with_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went and sat with {kin.name} for an evening and did not once say what should have been done differently. {kin.name} will not forget that."
+            }
+          ]
+        },
+        {
+          "id": "say_what_went_wrong",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustStress",
+              "role": "kin",
+              "delta": 3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} where it had been lost and why. It was accurate. It was also the last thing {kin.name} wanted to hear that week."
+            }
+          ]
+        },
+        {
+          "id": "leave_them_to_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} left {kin.name} alone with it. Some people mend better that way. Some do not, and it is hard to tell which from the outside."
             }
           ]
         }

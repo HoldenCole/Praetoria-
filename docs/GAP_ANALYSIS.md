@@ -1248,3 +1248,13 @@ What is left is the lowest ranks (J3).
 With this every rank from Judge, Governor and Commander up, every elected office, every office of the Reach and the
 Senate seat has yearly work. The worklist's next items are in the family (A1, A3, W2, W4, E2, H1).
 
+### 43d. Quarrels and failures
+
+A1 and A3 from the worklist, both in the ambition system. Two of the house after one prize quarrel until it is
+settled; a relative's lost election or lost battle is written into their life and counts against what they want, and
+three end the hope. Both events fired in the soak without help, which is rare for events since courtship.
+
+636 tests, 344 events. Soak passes at four seeds; survival unchanged.
+
+Left (A5): ventures never fail, so that failure cannot be marked; a quarrel does not divide the house.
+

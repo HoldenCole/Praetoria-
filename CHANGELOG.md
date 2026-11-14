@@ -27,6 +27,10 @@
 - **A desk and a posting.** A Governor, Minister or High Treasurer of your house has the year's returns across their
   desk (assess fairly, press the collection, or keep a share and risk being broken a grade). A Commander or above with
   no fleet has a year ashore (drill the crews, patrol the home lanes, or sit on a board of inquiry). One event.
+- **Two relatives who want one prize quarrel over it**: the same office, the same fleet, or the house itself. You may
+  stand behind one, tell them both it stops, or keep out of it.
+- **A relative's failure is marked.** An election lost or a battle lost in command is written into their life, costs
+  their renown and counts against what they want. Three, and they give the hope up. Two events.
 - **Send your physicians to a relative** who is ill or ailing, from your own purse (the life panel).
 - **Old friends and old enemies count.** A friend of eight years leans your way in the Senate and stands by your house
   when something is aimed at it, and is likelier to take your side in a civil war. An old enemy does the opposite.
@@ -40,7 +44,7 @@
 - **A victory teaches its commander only what they have it in them to learn.** It used to add a step whatever the
   skill's ceiling. Measured: a rival general of the first rank is rarer than before (docs/CAESAR.md, docs/GAPS.md C9).
 - The gap register (docs/GAPS.md) has a worklist at its top, a section for forms of government as the owner set them
-  out, and a section for positions with nothing to do. 59 open, 20 closed.
+  out, and a section for positions with nothing to do. 58 open, 22 closed.
 
 ### Fixed
 - **A save could drift from an unbroken run** when a magistrate's relief, a senator's speech for a region or an

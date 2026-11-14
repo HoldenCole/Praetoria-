@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-14 (seventh pass: the desk and the posting; J2 closed).
+Last updated 2026-11-14 (eighth pass: quarrels and marked failures; A1 and A3 closed).
 
 ## The worklist: small gaps to fill now
 
@@ -17,13 +17,13 @@ position (magistrate, justice, senator) must have something to do. Worked from t
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | A1, A3 | Relatives quarrel over the same prize; a relative's failure is marked | next |
-| 2 | W2, W4, E2, H1 | Dowries from a purse; a gift to a relative; ask a relative to study; kin find mentors | next |
-| 3 | B4, B9, B10 | Joining a state that exists; a second great war; raising the pressure as well as lowering it | next |
-| 4 | L7 | Public trust in the magistrates moves elections and the estates, not only the troubles of the Reach | next |
-| 5 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune | next |
+| 1 | W2, W4, E2, H1 | Dowries from a purse; a gift to a relative; ask a relative to study; kin find mentors | next |
+| 2 | B4, B9, B10 | Joining a state that exists; a second great war; raising the pressure as well as lowering it | next |
+| 3 | L7 | Public trust in the magistrates moves elections and the estates, not only the troubles of the Reach | next |
+| 4 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune | next |
+| 5 | J3 | The lowest ranks: an Advocate pleads before a bench, a Lieutenant and a Clerk have a year's work | next |
 
-Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2 (see the bottom table).
+Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3 (see the bottom table).
 
 ## The same gap in many places
 
@@ -105,9 +105,8 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| A1 | Two relatives who want the same thing do not quarrel over it. | S | |
+| A5 | A venture never fails, so a founder's failure is never marked; and a quarrel is between two people only: the house does not divide behind them, and the loser holds nothing against the winner afterwards. | S | |
 | A2 | Restoring the house from an allowance is too slow to matter. | S | |
-| A3 | A relative's failure (a venture, a command) is not marked. | S | |
 | A4 | An ambition is set by the dice at sixteen, not by an upbringing. | S | E3 |
 | W1 | A purse holds credits only: no shares, ventures or worlds held personally. | M | |
 | W2 | Dowries come from the treasury, not a purse. | S | |
@@ -157,3 +156,5 @@ look-and-feel pass is planned and not begun, there is no sound.
 | S1 | A senator who moved nothing had no business in a year. | 2026-11-14 | The head spends the year's attention: read the accounts (and perhaps follow stolen money to a magistrate), speak for the region, or work the bench. Three years of nothing is remarked on. One upright senator of another house audits each year too. L8 is what is left. |
 | O1 | The consuls, the Treasurer and the Speaker decided nothing. | 2026-11-14 | Each carries a charge a year: a consul calls the magistrates to account, sends the fleet onto the lanes or serves the bench; the Treasurer balances the books, forgives a region its levy or lets the contracts to their own house; the Speaker keeps the order fair, brings their own business forward or gives an enemy no day. Other houses' officers decide by nature, and what they do to the player's house brings an event. O2 is what is left. |
 | J2 | The navy's and the administration's ranks had no desk. | 2026-11-14 | A Governor or above has the year's returns to assess, press or skim; a Commander or above without a fleet has a year ashore to drill the crews, patrol the home lanes or sit on a board. J3 (the lowest ranks) is what is left. |
+| A1 | Two relatives who wanted the same thing did not quarrel. | 2026-11-14 | Two after the same office, fleet or inheritance think less of each other every year it lasts; the head may stand behind one, stop it, or keep out. It ends when the prize is settled. A5 is what is left. |
+| A3 | A relative's failure was not marked. | 2026-11-14 | An election lost and a battle lost in command are written into the life as failures, cost renown and nerve, and count against the ambition; three and the relative gives it up. Ventures do not fail yet (A5). |

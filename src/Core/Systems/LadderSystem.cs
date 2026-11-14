@@ -152,11 +152,12 @@ public static partial class LadderSystem
             { var owed = w.Relationship(c.Id, p!.Id); owed.Disposition = Math.Clamp(owed.Disposition + 6, -100, 100); }   // one who was spoken for and won knows what they owe
             foreach (var c in candidates.Where(c => c.HouseId == mine && !winners.Contains(c)))
             {
-                if (c.Id == p!.Id) { Mark(w, LostFlag); c.Stress += 5; }
+                AmbitionSystem.Setback(w, c, $"Stood for {rung.Name.ToLowerInvariant()} and was not chosen.");   // written into their life; it costs them, and counts against what they want
+                if (c.Id == p!.Id) Mark(w, LostFlag);
                 else if ((w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id)?.Backing ?? 0) == 0 && w.Candidacies.Any(cd => cd.CharacterId == c.Id))
                 {
                     // they stood, the head said nothing for them, and they lost: it is the head they blame
-                    var r = w.Relationship(c.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition - BlameRegard, -100, 100); c.Stress += 5;
+                    var r = w.Relationship(c.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition - BlameRegard, -100, 100);
                     c.Flags.Add(BlamesChar); Mark(w, BlamedFlag);
                     w.Log($"{c.Name} stood alone and lost, and says so: {p.Name} did not speak one word for them.");
                 }

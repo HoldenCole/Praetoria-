@@ -652,7 +652,7 @@ public sealed class FleetSystem
         }
         foreach (var c in losers)
         {
-            if (c.Flags.Contains(FlagFlag)) { c.Stress = Math.Min(100, c.Stress + 6); continue; }   // the flag is not in the line
+            if (c.Flags.Contains(FlagFlag)) { c.Stress = Math.Min(100, c.Stress + 6); AmbitionSystem.Setback(w, c, "Lost a battle in command of a fleet."); continue; }   // the flag is not in the line
             double death = _rules.AdmiralDeathChance * (c.Flags.Contains(FrontFlag) ? _rules.FrontDeathMult : 1.0);
             if (rng.NextDouble() < death)
             {
@@ -662,6 +662,7 @@ public sealed class FleetSystem
             else
             {
                 LifeSystem.Wound(w, c, "when the line broke");   // it costs their health, and it shows (docs/LIFE.md)
+                AmbitionSystem.Setback(w, c, "Lost a battle in command of a fleet.");
                 c.Stress = Math.Min(100, c.Stress + 10);
             }
         }

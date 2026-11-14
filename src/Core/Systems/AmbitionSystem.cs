@@ -24,7 +24,28 @@ public sealed class AmbitionSystem
     // deeds
     public const string FulfilledFlag = "kin_fulfilled", ThwartedFlag = "kin_thwarted", FoundedFlag = "kin_founded_a_venture", HeirNamedFlag = "heir_named", RefusedFlag = "kin_refused";
     public const string FulfilledChar = "has_what_they_wanted", ThwartedChar = "thwarted", FounderChar = "founded_a_venture", AskingChar = "asking_the_head";
-    private static readonly string[] DeedFlags = { FulfilledFlag, ThwartedFlag, FoundedFlag, HeirNamedFlag, RefusedFlag };
+    public const string FailedFlag = "kin_failed", FailedChar = "has_failed", QuarrelFlag = "kin_quarrel", QuarrelFirst = "quarrel_first", QuarrelSecond = "quarrel_second", GaveUpFlag = "kin_gave_up";
+    public const int GiveUpAfter = 3, QuarrelRegard = 3;
+    private static readonly string[] DeedFlags = { FulfilledFlag, ThwartedFlag, FoundedFlag, HeirNamedFlag, RefusedFlag, FailedFlag, QuarrelFlag, GaveUpFlag };
+
+    /// <summary>A failure of their own (an election lost, a battle lost in command) is written into their life, costs them, and counts
+    /// against what they want. Three, and they give the thing up. Only the lives that are kept: the player's house.</summary>
+    public static void Setback(World w, Character c, string what)
+    {
+        var p = w.Protagonist; if (p == null || !c.Alive || c.HouseId != p.HouseId) return;
+        LifeSystem.Note(w, c, "failure", what); c.Stress = Math.Min(100, c.Stress + 5);
+        if (c.Pursuit is { Fulfilled: false } u) u.Setbacks++;
+        if (c.Id != p.Id) { c.Flags.Add(FailedChar); Mark(w, FailedFlag); }
+    }
+
+    /// <summary>What a relative is trying for that somebody else could be trying for too: a rung, a fleet, the house itself.</summary>
+    public static string Prize(World w, Character c, Character? heir)
+    {
+        if (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id) is { } cd) return "the office of " + cd.RungId;
+        if (c.Pursuit is { Fulfilled: false, Request: Command } u && w.Fleets.TryGetValue(u.RequestArg, out var f)) return "the command of " + f.Name;
+        if (c.Pursuit is { Fulfilled: false, Goal: "seize_the_throne" } || (heir?.Id == c.Id && c.Pursuit is { Goal: "seize_the_throne" })) return "the house";
+        return "";
+    }
 
     private readonly BusinessCatalog _ventures; private readonly HoldingCatalog _holdings; private readonly TitleCatalog? _titles; private readonly CareerCatalog _careers;
     public AmbitionSystem(BusinessCatalog ventures, HoldingCatalog holdings, TitleCatalog? titles, CareerCatalog careers) { _ventures = ventures; _holdings = holdings; _titles = titles; _careers = careers; }
@@ -186,6 +207,7 @@ public sealed class AmbitionSystem
         foreach (var c in w.Characters.Values)
         {
             if (!w.HasFlag(FulfilledFlag)) c.Flags.Remove(FulfilledChar); if (!w.HasFlag(ThwartedFlag)) c.Flags.Remove(ThwartedChar); if (!w.HasFlag(FoundedFlag)) c.Flags.Remove(FounderChar);
+            if (!w.HasFlag(FailedFlag)) c.Flags.Remove(FailedChar); if (!w.HasFlag(QuarrelFlag)) { c.Flags.Remove(QuarrelFirst); c.Flags.Remove(QuarrelSecond); }
         }
         // a named heir who is gone is named no longer
         if (house.NamedHeirId.Length > 0 && (w.Char(house.NamedHeirId) is not { Alive: true } nh || nh.HouseId != house.Id || nh.Id == p.Id)) house.NamedHeirId = "";
@@ -200,6 +222,15 @@ public sealed class AmbitionSystem
             if (c.Ambition.Length == 0) { c.Pursuit = null; continue; }
             var u = c.Pursuit;
             if (u == null || u.Goal != c.Ambition) c.Pursuit = u = new Pursuit { Goal = c.Ambition, Since = w.Turn };
+            if (!u.Fulfilled && u.Setbacks >= GiveUpAfter)
+            {
+                // three times they tried and failed: they give it up and turn to something else
+                string[] other = { "amass_a_fortune", "restore_house_fortunes", "outshine_all_rivals", "master_the_senate", "win_a_great_love" };
+                string was = u.Goal; c.Ambition = other.First(n => n != was); c.Pursuit = new Pursuit { Goal = c.Ambition, Since = w.Turn, Note = "Gave the old hope up, and has taken another." };
+                LifeSystem.Note(w, c, "failure", $"Gave up on what they had wanted: {Wants(was)}."); if (u.Helped == 0) Regard(w, c, p, -4, floor: -50); Mark(w, GaveUpFlag);
+                w.Log($"{c.Name} has failed {GiveUpAfter} times at what they wanted ({Wants(was)}) and gives it up.");
+                continue;
+            }
             if (u.Fulfilled)
             {
                 // having had it, in time they want something else
@@ -299,6 +330,23 @@ public sealed class AmbitionSystem
             }
             if (u.Request.Length > 0) w.WorldFlags.Add(AskingFlag);
         }
+        // Two of the house who want the same prize quarrel over it (docs/AMBITIONS.md). The head may take a side, or not.
+        var pairs = members.Where(m => m.Pursuit != null).Select(m => (m, prize: Prize(w, m, heir))).Where(x => x.prize.Length > 0).GroupBy(x => x.prize).Where(g => g.Count() >= 2).OrderBy(g => g.Key, StringComparer.Ordinal)
+            .Select(g => (prize: g.Key, two: g.Select(x => x.m).OrderByDescending(Standing).ThenBy(m => m.Id, StringComparer.Ordinal).Take(2).ToList())).ToList();
+        var quarrelling = pairs.SelectMany(x => x.two.Select(m => m.Id)).ToHashSet();
+        foreach (var m in members.Where(m => m.Pursuit is { RivalId.Length: > 0 } && !quarrelling.Contains(m.Id))) m.Pursuit!.RivalId = "";   // the prize is settled, or one of them wants it no longer
+        foreach (var (prize, two) in pairs)
+        {
+            var a = two[0]; var b = two[1]; bool fresh = a.Pursuit!.RivalId != b.Id || b.Pursuit!.RivalId != a.Id;
+            a.Pursuit.RivalId = b.Id; b.Pursuit!.RivalId = a.Id; Regard(w, a, b, -QuarrelRegard, floor: -60); Regard(w, b, a, -QuarrelRegard, floor: -60);
+            a.Pursuit.Note = (a.Pursuit.Note + $" Quarrels with {b.Name} over {prize}.").Trim(); b.Pursuit.Note = (b.Pursuit.Note + $" Quarrels with {a.Name} over {prize}.").Trim();
+            if (fresh && !w.HasFlag(QuarrelFlag))
+            {
+                a.Flags.Add(QuarrelFirst); b.Flags.Add(QuarrelSecond); Mark(w, QuarrelFlag);
+                w.Log($"{a.Name} and {b.Name} both want {prize}, and the house has begun to take sides.");
+            }
+        }
+        foreach (var m in members.Where(m => m.Pursuit is { Fulfilled: false, Setbacks: > 0 })) m.Pursuit!.Note = (m.Pursuit.Note + $" Has failed at it {(m.Pursuit.Setbacks == 1 ? "once" : m.Pursuit.Setbacks + " times")}.").Trim();
         // a founder who wanted a fortune takes a share of what their venture earns
         foreach (var b in w.BusinessesOf(house.Id).Where(b => b.FounderId.Length > 0))
         {

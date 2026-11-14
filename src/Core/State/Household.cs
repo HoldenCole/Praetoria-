@@ -66,6 +66,10 @@ public sealed class Pursuit
     public string RequestArg { get; set; } = "";
     public int RequestSince { get; set; } = -1;
     public int LastAsked { get; set; } = -99;
+    /// <summary>Times they have tried for it and failed: an election lost, a battle lost in command.</summary>
+    public int Setbacks { get; set; }
+    /// <summary>The relative who wants the same prize, while the two quarrel over it.</summary>
+    public string RivalId { get; set; } = "";
     /// <summary>Times the head helped, and times the head refused or did not answer.</summary>
     public int Helped { get; set; }
     public int Refused { get; set; }

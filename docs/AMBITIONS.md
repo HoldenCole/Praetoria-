@@ -74,6 +74,21 @@ events fired in it. In the browser on *The Old Lion*, touching nothing but the f
 pursuits by the second year; one asked to be named heir in the third and was; another put a credit or two of her own
 into the house in each of four years.
 
+## Quarrels and failures
+
+**Two who want one thing.** When two of the house are after the same prize (standing for the same office, asking for
+the same fleet, or one wanting the house that the other stands to inherit), they quarrel. Each thinks 3 the less of
+the other every year it lasts, down to −60, and the ambitions panel says who quarrels with whom over what. The first
+year, there is an event: stand behind one (they think +10 of you, the other −10), tell them both it stops (both −3
+toward you, +8 toward each other), or keep out of it. The quarrel ends when the prize is settled or one of them wants
+it no longer.
+
+**A failure is marked.** A relative who stands for an office and is not chosen, or loses a battle in command, has it
+written into their life as a failure. It costs their renown (−3), their nerves (stress +5), and counts against what
+they want. There is an event the first time the head hears of it. **Three failures and they give the hope up** and
+turn to something else; if the head never once helped, they think 4 the less of the head for it. The head's own
+failures are written down the same way.
+
 ## Not in this piece
 
 - **Only your house.** Nobody in any other house pursues an ambition this way.
