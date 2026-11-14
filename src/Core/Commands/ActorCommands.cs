@@ -6,7 +6,8 @@ namespace Praetoria.Core.Commands;
 // These are the Academy-era verbs; the galaxy-scale command set grows in later milestones, but the
 // shape is fixed here: cost-gated, deterministic, routed through the executor.
 
-/// <summary>Drill to sharpen a skill. Cost: 1 agent (attention). Effect: +1 to the named skill.</summary>
+/// <summary>A season of hard study. Cost: 1 agent (attention). Effect: learning toward the next step of the named skill
+/// (docs/EDUCATION.md); nothing past the person's ceiling in it.</summary>
 public sealed class TrainCommand : ICommand
 {
     private static readonly Dictionary<string, int> CostMap = new() { [Pool.Agents] = 1 };
@@ -18,13 +19,13 @@ public sealed class TrainCommand : ICommand
     public string Describe() => $"train {_skill}";
 
     public bool CanExecute(CommandContext ctx) =>
-        Alive(ctx, ActorId) && ctx.PoolsOf(ActorId).CanAfford(CostMap);
+        Alive(ctx, ActorId) && ctx.PoolsOf(ActorId).CanAfford(CostMap) && ctx.World.Char(ActorId) is { } who && who.Skill(_skill) < Systems.EducationSystem.Ceiling(who, _skill);
 
     public void Execute(CommandContext ctx)
     {
         ctx.PoolsOf(ActorId).Spend(CostMap);
         var c = ctx.World.Char(ActorId)!;
-        c.Skills[_skill] = c.Skill(_skill) + 1;
+        Systems.EducationSystem.Gain(ctx.World, c, _skill, Systems.EducationSystem.TrainPoints);
     }
 
     private static bool Alive(CommandContext ctx, string id) => ctx.World.Char(id)?.Alive == true;

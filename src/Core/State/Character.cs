@@ -41,6 +41,16 @@ public sealed class Character
     /// </summary>
     public HashSet<string> Flags { get; set; } = new();
 
+    // ---- education (docs/EDUCATION.md)
+    /// <summary>Learning banked toward the next step in each skill.</summary>
+    public Dictionary<string, int> Learning { get; set; } = new();
+    /// <summary>The skill this person has set themselves to study. Their own choice; the player chooses only their own.</summary>
+    public string Study { get; set; } = "";
+    /// <summary>For a child: the course the head has set (arms, forum, counting), or empty to follow their own bent.</summary>
+    public string Upbringing { get; set; } = "";
+    /// <summary>A paid teacher: 0 none, 1 a good one, 2 the best.</summary>
+    public int Tutor { get; set; }
+
     // ---- found family (docs/HOUSEHOLD.md): people taken into a house they were not born to
     /// <summary>The house this person was born to, when they now live in another. Empty for someone in the house of their birth.</summary>
     public string BornHouseId { get; set; } = "";

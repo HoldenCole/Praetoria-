@@ -1,0 +1,59 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var p = w.Protagonist!; var pid = p.Id;
+    var rows = EducationSystem.All.Select(s => (skill: s, level: p.Skill(s), top: EducationSystem.Ceiling(p, s), have: p.Learning.GetValueOrDefault(s)))
+        .OrderByDescending(r => r.level).ThenByDescending(r => r.top).ThenBy(r => r.skill, StringComparer.Ordinal).ToList();
+    var practice = EducationSystem.Practice(w, p); var mentor = p.MentorId.Length > 0 ? w.Char(p.MentorId) : null;
+    var hard = p.Study.Length > 0 ? new TrainCommand(pid, p.Study) : null; bool canHard = hard != null && hard.CanExecute(G.Ctx);
+    string Pct(double v) => v.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+}
+<section class="panel learning">
+    <h3><Icon Name="claim" Size="13" /> Learning <span class="muted">what you are and could be</span></h3>
+    <div class="muted small">Each bar runs to ten. The mark is as far as you can go in that skill: it is set by what you are, and an aptitude moves it. Every step costs more than the last.</div>
+    <div class="learn-rows">
+        @foreach (var r in rows)
+        {
+            double fill = (r.level + (r.level < r.top ? Math.Min(0.95, r.have / (double)EducationSystem.Need(r.level)) : 0)) * 10;
+            <div class="learn-row @(p.Study == r.skill ? "studied" : "")" title="@($"{r.skill}: {r.level}, {EducationSystem.LevelName(r.level)}. Can reach {r.top}." + (r.level < r.top ? $" {r.have} of {EducationSystem.Need(r.level)} toward the next step." : " As far as you can go."))">
+                <span>@r.skill</span>
+                <i><b style="width:@Pct(r.level * 10)%"></b><s style="left:@Pct(r.level * 10)%; width:@Pct(Math.Max(0, fill - r.level * 10))%"></s><u style="left:@(r.top * 10)%"></u></i>
+                <em>@r.level<small> / @r.top</small></em>
+            </div>
+        }
+    </div>
+
+    <div class="ac-fact"><span>This year</span><p>
+        @if (practice.Count == 0 && p.Study.Length == 0 && mentor == null) { <text>Nothing is feeding any skill. Choose something to study.</text> }
+        @foreach (var x in practice) { <text><b>@x.skill</b> +@x.points from @x.why. </text> }
+        @if (p.Study.Length > 0) { <text><b>@p.Study</b> +@(EducationSystem.StudyPoints + EducationSystem.TutorPoints(p.Tutor)) from study@(p.Tutor > 0 ? " with a tutor" : ""). </text> }
+        @if (mentor != null) { <text>@mentor.Name teaches you a step every third year. </text> }
+    </p></div>
+
+    <div class="ac-fact"><span>You study</span><p>
+        @foreach (var r in rows.Where(r => r.level < r.top).OrderBy(r => r.skill, StringComparer.Ordinal))
+        {
+            string s = r.skill;
+            <button class="opt inline tiny @(p.Study == s ? "here" : "")" title="@($"{r.level} now, can reach {r.top}")" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Study, pid, s))">@s</button>
+        }
+        @if (p.Study.Length > 0) { <button class="opt inline tiny" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Study, pid, string.Empty))">nothing</button> }
+    </p></div>
+    <div class="suit-acts">
+        @if (hard != null) { <button class="opt inline" disabled="@(!canHard)" title="a season given to nothing else: +@EducationSystem.TrainPoints toward the next step" @onclick="() => G.Execute(new TrainCommand(pid, p.Study))">Study @p.Study hard · 1 agent</button> }
+        <span class="muted small">A teacher of your own</span>
+        @foreach (int t in Tutors)
+        {
+            int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, pid, lv.ToString()).Refusal(G.Ctx);
+            <button class="opt inline tiny @(p.Tutor == t ? "here" : "")" disabled="@(no != null)" title="@(no ?? (t == 0 ? "no teacher" : $"+{EducationSystem.TutorPoints(t)} a year to what you study"))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, pid, lv.ToString()))">@TutorLabel(t)</button>
+        }
+    </div>
+</section>
+
+@code {
+    private static readonly int[] Tutors = { 0, 1, 2 };
+    private static string TutorLabel(int t) => t == 0 ? "none" : t == 1 ? $"good · {EducationSystem.GoodTutorCredits} a year" : $"the best · {EducationSystem.BestTutorCredits} a year";
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

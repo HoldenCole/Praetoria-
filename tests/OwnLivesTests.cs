@@ -111,12 +111,12 @@ public class OwnLivesTests
         var (tc, w, me) = Start("the_old_lion"); var house = w.House(me.HouseId)!;
         var fleet = w.Fleets.Values.Where(f => f.OwnerId == house.Id).OrderBy(f => f.Id, StringComparer.Ordinal).First();
         foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id)) f.AdmiralId = f.Id == fleet.Id ? "" : me.Id + "_x";
-        var officer = Kin(w, me, "officer_kin", "male"); officer.CareerTrack = "military"; officer.Skills["tactics"] = 4;
+        var officer = Kin(w, me, "officer_kin", "male"); officer.CareerTrack = "military"; officer.Skills["tactics"] = 9; officer.Skills["gunnery"] = 9;
         tc.EndTurn(); Assert.Equal("", fleet.AdmiralId);   // the head has a year to choose
         tc.BeginTurn(); tc.EndTurn(); Assert.Equal(officer.Id, fleet.AdmiralId); Assert.Contains(w.History, h => h.Text.Contains("has taken command of"));
 
         var (tc2, w2, me2) = Start("the_old_lion"); w2.FamilyAutonomy = 0; var fleet2 = w2.Fleets[fleet.Id]; fleet2.AdmiralId = "";
-        var officer2 = Kin(w2, me2, "officer_kin", "male"); officer2.CareerTrack = "military"; officer2.Skills["tactics"] = 4;
+        var officer2 = Kin(w2, me2, "officer_kin", "male"); officer2.CareerTrack = "military"; officer2.Skills["tactics"] = 9;
         tc2.EndTurn(); tc2.BeginTurn(); tc2.EndTurn(); Assert.Equal("", fleet2.AdmiralId);   // a deferential family waits to be told
     }
 }

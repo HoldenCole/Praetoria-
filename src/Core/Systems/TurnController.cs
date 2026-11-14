@@ -229,6 +229,7 @@ public sealed class TurnController
             _crises.Recover(World);       // and with no crisis active, the realm's wounds close (data rules)
         }
 
+        using (Perf.Time("end:education")) { EducationSystem.Tick(World); }   // everyone learns by what they do and what they study; children are brought up (docs/EDUCATION.md) — RNG-free
         using (Perf.Time("end:courtship")) { CourtshipSystem.Tick(World); }   // suits advance, rivals press, marriages warm or cool (docs/MARRIAGE.md) — RNG-free
         using (Perf.Time("end:dynasty")) { _dynasty.Tick(World, _rng); }   // age, deaths→succession, births (GDD §14). RNG only where life turns.
         using (Perf.Time("end:family")) { _family.Tick(World); }          // kin with wills of their own (GDD §18) — RNG-free

@@ -1,0 +1,60 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!;
+    var young = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age < EducationSystem.Adult).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+    var grown = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age >= EducationSystem.Adult).OrderByDescending(c => c.Skills.Values.DefaultIfEmpty(0).Max()).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+    int bill = w.LivingCharacters().Where(c => c.HouseId == house.Id).Sum(c => EducationSystem.TutorCost(c.Tutor));
+    string Best(Character x) => x.Skills.Count(kv => kv.Value > 0) == 0 ? "nothing yet" : string.Join(", ", x.Skills.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(4).Select(kv => $"{kv.Key} {kv.Value}"));
+}
+<section class="panel education">
+    <h3><Icon Name="dynasty" Size="13" /> Upbringing and learning <span class="muted">@young.Count(c => c.Age >= EducationSystem.SchoolAge) at their lessons@(bill > 0 ? $" · teachers cost {bill} a year" : "")</span></h3>
+    <div class="muted small">Nobody has to be managed. A child is brought up toward what they show a bent for, and a grown person studies what they choose. You can set a child a different course, and pay for a teacher for anyone.</div>
+
+    @foreach (var c in young)
+    {
+        string cid = c.Id;
+        if (c.Age < EducationSystem.SchoolAge) { <div class="suit"><b>@c.Name</b> <span class="muted">@c.Age · too young for lessons. They begin at @EducationSystem.SchoolAge.</span></div> continue; }
+        string bent = EducationSystem.BentGroup(c); var lesson = EducationSystem.Lesson(w, c);
+        <div class="suit">
+            <div class="suit-who">
+                <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="34" />
+                <div><b>@c.Name</b> <span class="muted">@c.Age · shows a bent for @EducationSystem.GroupName(bent)@(c.Flags.Contains(HouseholdSystem.Ward) ? " · your ward" : "")</span>
+                    <div class="muted small">Has learned: @Best(c). This year: @lesson.skill, +@lesson.points.</div>
+                    @if (lesson.against) { <div class="small bad">Set against their bent: they learn a third as fast, and hold it against you a little more each year.</div> }
+                    @if (c.Flags.Contains(EducationSystem.ProdigyChar)) { <div class="small good">Far ahead of their years.</div> }</div>
+            </div>
+            <div class="suit-acts"><span class="muted small">Course</span>
+                <button class="opt inline tiny @(c.Upbringing.Length == 0 ? "here" : "")" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Upbringing, cid, string.Empty))">their own bent</button>
+                @foreach (var g in EducationSystem.Groups) { string grp = g; <button class="opt inline tiny @(c.Upbringing == g ? "here" : "")" title="@(g == bent ? "their bent" : "against their bent")" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Upbringing, cid, grp))">@EducationSystem.GroupName(g)</button> }
+                <span class="muted small">Tutor</span>
+                @foreach (int t in Tutors) { int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()).Refusal(G.Ctx); <button class="opt inline tiny @(c.Tutor == t ? "here" : "")" disabled="@(no != null)" title="@no" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()))">@TutorLabel(t)</button> }
+            </div>
+        </div>
+    }
+    @if (young.Count == 0) { <div class="muted small">There are no children in the house.</div> }
+
+    @if (grown.Count > 0) { <div class="hh-head"><b>The grown</b> <span class="muted small">What they study is their own choice. A teacher is yours to pay for.</span></div> }
+    @foreach (var c in grown.Take(_all ? 40 : 6))
+    {
+        string cid = c.Id; var practice = EducationSystem.Practice(w, c);
+        <div class="suit">
+            <b>@c.Name</b> <span class="muted">@c.Age · @Best(c)</span>
+            <div class="muted small">@(c.Study.Length > 0 ? $"Studying {c.Study} ({c.Skill(c.Study)}, can reach {EducationSystem.Ceiling(c, c.Study)})" : "Has not settled on a study")@(practice.Count > 0 ? " · learning " + string.Join(", ", practice.Select(x => x.skill).Distinct()) + " by their work" : "")</div>
+            <div class="suit-acts"><span class="muted small">Teacher</span>
+                @foreach (int t in Tutors) { int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()).Refusal(G.Ctx); <button class="opt inline tiny @(c.Tutor == t ? "here" : "")" disabled="@(no != null)" title="@no" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()))">@TutorLabel(t)</button> }
+            </div>
+        </div>
+    }
+    @if (grown.Count > 6) { <button class="opt inline tiny" @onclick="() => _all = !_all">@(_all ? "Show fewer" : $"Show all {grown.Count}")</button> }
+</section>
+
+@code {
+    private bool _all;
+    private static readonly int[] Tutors = { 0, 1, 2 };
+    private static string TutorLabel(int t) => t == 0 ? "none" : t == 1 ? $"good · {EducationSystem.GoodTutorCredits}" : $"the best · {EducationSystem.BestTutorCredits}";
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

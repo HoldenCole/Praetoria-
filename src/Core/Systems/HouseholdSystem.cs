@@ -185,9 +185,9 @@ public sealed class HouseholdSystem
     private static void Teach(World w, Character pupil, Character mentor)
     {
         if (w.Turn <= pupil.JoinedTurn || (w.Turn - pupil.JoinedTurn) % MentorEvery != 0) return;
-        var best = mentor.Skills.Where(kv => kv.Value > pupil.Skill(kv.Key)).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).FirstOrDefault();
-        if (best.Key == null) return;
-        pupil.Skills[best.Key] = pupil.Skill(best.Key) + 1; Regard(w, pupil, mentor, 3);
+        var best = mentor.Skills.Where(kv => kv.Value > pupil.Skill(kv.Key) && pupil.Skill(kv.Key) < EducationSystem.Ceiling(pupil, kv.Key)).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).FirstOrDefault();
+        if (best.Key == null || !EducationSystem.Step(w, pupil, best.Key)) return;
+        Regard(w, pupil, mentor, 3);
         if (pupil.Id == w.ProtagonistId) Mark(w, MentorTaughtFlag);
         w.Log($"{pupil.Name} has learned something of {best.Key} from {mentor.Name}.");
     }

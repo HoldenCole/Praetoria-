@@ -14,7 +14,7 @@
     int valour = w.Counter(FleetSystem.ValourKey(p.Id)); string style = SetCommandStyleCommand.StyleOf(p);
     string F(double v) => v.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
     (double x, double y) Pt(int i, double r) { double a = -Math.PI / 2 + i * 2 * Math.PI / axes.Count; return (150 + r * Math.Cos(a), 150 + r * Math.Sin(a)); }
-    string poly = string.Join(" ", axes.Select((k, i) => { var (x, y) = Pt(i, 20 + 100 * Math.Min(5, p.Skill(k)) / 5.0); return $"{F(x)},{F(y)}"; }));
+    string poly = string.Join(" ", axes.Select((k, i) => { var (x, y) = Pt(i, 20 + 100 * Math.Min(10, p.Skill(k)) / 10.0); return $"{F(x)},{F(y)}"; }));
 }
 <div class="dash sheet" style="--accent:@house.AccentColor">
     <header class="dash-head">
@@ -35,7 +35,7 @@
                     @foreach (var r in new[] { 40, 60, 80, 100, 120 }) { <circle cx="150" cy="150" r="@r" class="grid" /> }
                     @foreach (var (k, i) in axes.Select((k, i) => (k, i))) { var (x, y) = Pt(i, 120); var (lx, ly) = Pt(i, 138); <line x1="150" y1="150" x2="@F(x)" y2="@F(y)" class="axis" />@((MarkupString)$"<text x=\"{F(lx)}\" y=\"{F(ly)}\" class=\"ax\">{System.Net.WebUtility.HtmlEncode(k)} {p.Skill(k)}</text>") }
                     <polygon points="@poly" class="shape" />
-                    @foreach (var (k, i) in axes.Select((k, i) => (k, i))) { var (x, y) = Pt(i, 20 + 100 * Math.Min(5, p.Skill(k)) / 5.0); <circle cx="@F(x)" cy="@F(y)" r="3.5" class="pt" /> }
+                    @foreach (var (k, i) in axes.Select((k, i) => (k, i))) { var (x, y) = Pt(i, 20 + 100 * Math.Min(10, p.Skill(k)) / 10.0); <circle cx="@F(x)" cy="@F(y)" r="3.5" class="pt" /> }
                 </svg>
                 <div class="sheet-facts">
                     <div class="traits">
@@ -48,10 +48,11 @@
                     <div class="gauge" title="stress"><span>Stress</span><i><b style="width:@p.Stress%" class="@(p.Stress >= 70 ? "low" : "")"></b></i><em>@p.Stress</em></div>
                     @if (honors.Count > 0) { <div class="kv"><span><Icon Name="honor" Size="12" /> Honors</span><b>@string.Join(", ", honors)</b></div> }
                     @if (flags.Count > 0) { <div class="chips">@foreach (var f in flags) { <span class="pill small">@f.Replace('_', ' ')</span> }</div> }
-                    @if (skills.Count == 0) { <div class="muted small">Untrained. Skills grow from events, battles and the Academy.</div> }
+                    @if (skills.Count == 0) { <div class="muted small">Untrained. Skills grow from what you do, what you study and who teaches you.</div> }
                 </div>
             </div>
         </section>
+        <LearningPanel />
         <section class="panel">
             <h3><Icon Name="marriage" Size="13" /> Blood and bonds</h3>
             @if (spouse != null) { <div class="person"><Portrait Id="@spouse.Id" Name="@spouse.Name" Sex="@spouse.Sex" Age="@spouse.Age" Alive="@spouse.Alive" Accent="@(w.House(spouse.HouseId)?.AccentColor ?? "#888")" Size="30" /><span><b>@spouse.Name</b> <span class="muted">your spouse · @(spouse.Alive ? spouse.Age.ToString() : "†")@(spouse.HouseId != house.Id ? $" · of {w.House(spouse.HouseId)?.Name}" : "")</span></span></div> }

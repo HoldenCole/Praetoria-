@@ -102,9 +102,8 @@ the fourth year someone else came asking for a place unprompted.
 
 - **Panels did not redraw after End Turn.** The orders, courtship and household panels take no parameters, so they kept
   showing last year's figures until something in them was clicked. They now listen for the world changing.
-- **Everyone else trains a skill every year with no ceiling.** Characters other than the player's already improve by
-  themselves, one step a year, without limit: a steward of skill 3 was at 7 four years later. It makes "competent
-  members of the house" too easy to come by. Not changed here; it belongs to the education work.
+- **Everyone else trained a skill every year with no ceiling** (fixed since, in docs/EDUCATION.md). A steward of skill 3 was at 7 four years later,
+  which made "competent members of the house" too easy to come by.
 
 ## Not in this piece
 

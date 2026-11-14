@@ -14,6 +14,9 @@
   `tools/ci.sh` now runs CI's exact steps locally.
 
 ### Changed
+- Nobody climbs a skill a step a year any more. Other characters used to drill their best skill every year without
+  limit; training now adds learning toward the next step and stops at the person's ceiling.
+- The skill chart on the character sheet runs to ten, not five.
 - **You play one person, not a house** (docs/PROCESS.md). Kin now court for themselves: they choose whom, the suit
   advances without the head, and when it is serious they ask your blessing. You can bless it, forbid it (the loyal obey;
   the wilful may marry anyway), or help with the family. A match you arrange for a kinsman shows their own wish first,
@@ -35,6 +38,12 @@
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **Education and skills** (docs/EDUCATION.md). Every person has a ceiling in every skill, set by what they are. Skills
+  are learned in points, each step costing more: from their service, a command, a governorship, an office or a duty;
+  from what they choose to study; from a paid teacher; from a mentor. Children from six are brought up toward their
+  bent without being managed; the head may set another course (learned slowly, and resented) or pay a tutor. A skill
+  taken to 7 reveals its aptitude. A Learning panel on the character sheet and an Upbringing panel on the Dynasty
+  screen; three events; `tools/browser/education.js`.
 - **The household** (docs/HOUSEHOLD.md), on the House screen. **Found family:** take a child in as a ward or a grown
   person as a protégé or companion. They keep their own names, live as members of the house, and stand in the line only
   after the blood. A head can adopt one as an heir. People also come to the door and ask. **A mentor** for your own

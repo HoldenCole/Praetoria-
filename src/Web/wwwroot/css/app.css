@@ -688,3 +688,15 @@ table.prospects button { white-space: nowrap; } table.prospects td, table.prospe
 .panel.household .suit.incoming { border-left: 2px solid var(--brass2); padding-left: .6rem; }
 .panel.household .small.bad { color: var(--warn); }
 
+/* ---- education and skills (docs/EDUCATION.md) ---- */
+.learn-rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .22rem 1.2rem; margin: .45rem 0 .5rem; }
+.learn-row { display: grid; grid-template-columns: 6.6rem 1fr 3rem; align-items: center; gap: .4rem; font-size: .76rem; }
+.learn-row span { color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-size: .64rem; white-space: nowrap; } .learn-row.studied span { color: var(--brass2); }
+.learn-row i { position: relative; display: block; height: 8px; background: rgba(255,255,255,.08); border-radius: 3px; }
+.learn-row i b { position: absolute; left: 0; top: 0; height: 100%; background: var(--brass); border-radius: 3px 0 0 3px; }
+.learn-row i s { position: absolute; top: 0; height: 100%; background: var(--brass2); opacity: .45; text-decoration: none; }
+.learn-row i u { position: absolute; top: -3px; width: 2px; height: 14px; background: var(--ink); opacity: .8; }
+.learn-row em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); } .learn-row em small { color: var(--muted); }
+.panel.education .suit { border-top: 1px dotted var(--line); padding: .4rem 0 .3rem; } .panel.education .small.bad { color: var(--warn); } .panel.education .small.good { color: var(--good); }
+.panel.education .hh-head { border-top: 1px solid var(--line); margin-top: .5rem; padding-top: .45rem; }
+

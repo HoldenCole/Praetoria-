@@ -1,0 +1,260 @@
+{
+  "//": "EDUCATION AND SKILLS (docs/EDUCATION.md). Reads child_resists_lessons (each year), child_prodigy and mastery_gained (deeds), and the character flags resists_lessons and prodigy. setUpbringing changes a child's course.",
+  "events": [
+    {
+      "id": "not_made_for_it",
+      "tier": "situation",
+      "weight": 14,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "child",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "child",
+              "flag": "resists_lessons",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "child_resists_lessons",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_them_follow_their_bent",
+          "effects": [
+            {
+              "type": "setUpbringing",
+              "role": "child",
+              "course": ""
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {child.name} put the books away and go where {child.name}'s own head was already going. The tutor was relieved. So was {child.name}."
+            }
+          ]
+        },
+        {
+          "id": "they_will_learn_it",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "child",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that a child does not choose their lessons, and {child.name} went back to them. {child.name} learned something. It was not quite what was on the page."
+            }
+          ]
+        },
+        {
+          "id": "find_a_better_teacher",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} dismissed the tutor and found one who could make the subject live. It helped a little. A bent is a bent."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "far_ahead_of_their_years",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "child",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "child",
+              "flag": "prodigy",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "child_prodigy",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_them_be_a_child",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the tutor to ease off. {child.name} had the rest of a life to be remarkable in."
+            }
+          ]
+        },
+        {
+          "id": "give_them_the_best",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 8
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent for the best teacher money could bring to the house. {child.name} did not disappoint."
+            }
+          ]
+        },
+        {
+          "id": "let_it_be_known",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known what {child.name} could do, and had {child.name} do it for guests. The house's name was spoken of. {child.name} began to hate dinners."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_work_of_years",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "mastery_gained",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "pass_it_on",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} began to teach what they had learned to whoever of the house would sit still for it. Knowing a thing and being known to know it are different kinds of wealth."
+            }
+          ]
+        },
+        {
+          "id": "keep_at_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} noted the step and went back to work. There was a great deal further to go."
+            }
+          ]
+        },
+        {
+          "id": "allow_yourself_the_evening",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the work down for one evening, which was not a habit, and enjoyed it more than expected."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

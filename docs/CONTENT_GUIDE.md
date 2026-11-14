@@ -231,6 +231,7 @@ Used in a choice's `effects` array. Applied in order when the choice is taken.
 | `marriage` | `role`(default `self`), `warmth` | warm or cool that character's marriage |
 | `beginCourtship` | `suitor`(default `self`), `target`, `favour` | begin a courtship if nothing bars it, with a head start in favour |
 | `takeIn` | `role`, `as`(ward, protege, companion) | bring that character into the protagonist's household (docs/HOUSEHOLD.md); a child always comes as a ward |
+| `setUpbringing` | `role`, `course`(arms, forum, counting, or empty) | set the course a child of the house is brought up on (docs/EDUCATION.md) |
 | `setTitle` | `role`(default `self`), `title` | set the house's title outright — grant / usurp / abdicate (GDD §13) |
 | `kill` | `role` | kill a character — assassination / duel / Bloody Event; if it's the protagonist, succession fires (GDD §14) |
 | `log` | `text` | write a chronicle line (supports `{role.field}` tokens) |

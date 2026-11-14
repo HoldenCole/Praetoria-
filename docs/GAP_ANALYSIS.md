@@ -954,3 +954,22 @@ but it has not been explained either.
 are not hostages. Keeping people costs nothing. The duties are routine only. Three of the six events were not seen to
 fire in the soak.
 
+## 34. Education and skills — 2026-11-14
+
+Built as docs/EDUCATION.md describes. It replaces the uncapped yearly training found in §33.
+
+**Measured.** 548 tests, seven of them for this. In ten years of play no character other than the player's now gains
+more than three steps in their best skill, or passes 6 from a lower start (they used to gain ten). The soak passes on
+eleven starts and three seeds. The survival probe: lines ended in 3 of 80 runs, against 4 of 80 before. In the soak the
+count moved between 2 and 6 of 33 across the runs made while building this, as its random player's choices shifted; the
+final run was 2 of 33. That swing is the random player (who adopts, sends home and divorces at random), not the game. In the browser a child with a bent for arms reached tactics 2 and leadership 1 in six years; one set against her
+bent reached one step.
+
+**Found on the way.** The first version spread a child's lessons over five skills, and five years of lessons showed
+nothing at all. Lessons now concentrate on the one or two skills the child is best made for.
+
+**Gaps that remain.** The Academy is still only the player's. A relative cannot be asked to study or to teach. An
+upbringing forms no nature. Learning does not slow with age. A battle's step for its commander ignores the ceiling. And
+nothing here has been tuned: slower skills must change battles, offices and the Exchange over sixty years, and that has
+only been checked for not breaking.
+

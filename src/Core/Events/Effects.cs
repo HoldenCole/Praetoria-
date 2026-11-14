@@ -379,3 +379,17 @@ public sealed class TakeInEffect : IEffect
     }
 }
 
+/// <summary>Set the course a child of the house is brought up on (docs/EDUCATION.md): arms, forum, counting, or empty to let
+/// them follow their own bent. JSON: { "type": "setUpbringing", "role": "child", "course": "" }.</summary>
+public sealed class SetUpbringingEffect : IEffect
+{
+    public string Role { get; }
+    public string Course { get; }
+    public SetUpbringingEffect(string role, string course) { Role = role; Course = course; }
+    public void Apply(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role); if (c == null || c.Age >= Systems.EducationSystem.Adult) return;
+        if (Course.Length == 0 || Systems.EducationSystem.Groups.Contains(Course)) c.Upbringing = Course;
+    }
+}
+

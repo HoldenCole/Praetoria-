@@ -82,3 +82,42 @@ public sealed class DelegateCommand : ICommand
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx) { var w = ctx.World; HouseholdSystem.Assign(w, w.Char(ActorId)!, _role, _holderId.Length == 0 ? null : w.Char(_holderId), _reserve); }
 }
+
+/// <summary>Education (docs/EDUCATION.md). <see cref="Study"/>: what you yourself study (your own choice only).
+/// <see cref="Upbringing"/>: the course set for a child of the house, or empty to let them follow their bent.
+/// <see cref="Tutor"/>: a paid teacher for yourself or anyone of the house (0 none, 1 good, 2 the best).</summary>
+public sealed class EducationCommand : ICommand
+{
+    public const string Study = "study", Upbringing = "upbringing", Tutor = "tutor";
+    private readonly string _what, _personId, _value;
+    public EducationCommand(string actorId, string what, string personId, string value) { ActorId = actorId; _what = what; _personId = personId; _value = value; }
+    public string ActorId { get; }
+    public string Describe() => $"{_what} {_personId} → {_value}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId); var who = w.Char(_personId);
+        if (head?.Alive != true || who?.Alive != true || who.HouseId != head.HouseId) return "not of your house";
+        switch (_what)
+        {
+            case Study:
+                if (who.Id != head.Id) return "what they study is their own affair";
+                if (_value.Length == 0) return null;
+                if (!EducationSystem.All.Contains(_value)) return "no such study";
+                return who.Skill(_value) < EducationSystem.Ceiling(who, _value) ? null : "you have gone as far in it as you can";
+            case Upbringing:
+                if (who.Age >= EducationSystem.Adult) return "they are grown, and choose for themselves";
+                return _value.Length == 0 || EducationSystem.Groups.Contains(_value) ? null : "no such course";
+            case Tutor:
+                if (!int.TryParse(_value, out int level) || level is < 0 or > 2) return "no such tutor";
+                if (who.Age < EducationSystem.SchoolAge) return "too young for lessons";
+                return level == 0 || (w.TreasuryOf(head.Id)?.Credits ?? 0) >= EducationSystem.TutorCost(level) ? null : "the house cannot pay for it";
+            default: return "no such thing";
+        }
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var who = ctx.World.Char(_personId)!;
+        if (_what == Study) who.Study = _value; else if (_what == Upbringing) who.Upbringing = _value; else who.Tutor = int.Parse(_value);
+    }
+}

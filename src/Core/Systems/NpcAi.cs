@@ -682,10 +682,7 @@ public sealed class NpcAi
             return new SeekAllyCommand(npc.Id, target.Id);
         }
 
-        // Otherwise, drill the skill they're already strongest in.
-        var skill = npc.Skills.Count > 0
-            ? npc.Skills.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).First().Key
-            : "discipline";
-        return new TrainCommand(npc.Id, skill);
+        // Otherwise nothing: what they study, and what they learn by their work, is the year's own reckoning now (docs/EDUCATION.md).
+        return null;
     }
 }

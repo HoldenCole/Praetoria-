@@ -133,9 +133,13 @@ public sealed class DynastySystem
             var tracks = Content is { Careers.IsEmpty: false } ? Content.Careers.Defs.Select(t => t.Id).ToList() : new List<string> { "military", "stewardship", "law" };
             var parentTracks = parents.Select(p => p.CareerTrack).Where(t => tracks.Contains(t)).Distinct().ToList();
             c.CareerTrack = parentTracks.Count == 1 ? parentTracks[0] : tracks[rng.NextInt(0, tracks.Count)];
+            // what they were brought up to counts for more than what their parents did (docs/EDUCATION.md)
+            if (c.Skills.Count > 0 && c.Skills.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).First() is { Value: >= 2 } best
+                && EducationSystem.TrackFor(EducationSystem.GroupOf(best.Key)) is var raised && tracks.Contains(raised)) c.CareerTrack = raised;
             c.CareerRank = 0;
-            foreach (var skill in TrackSkills(c.CareerTrack)) c.Skills[skill] = 1;
-            c.Skills["charisma"] = 1;
+            foreach (var skill in TrackSkills(c.CareerTrack)) c.Skills[skill] = Math.Max(c.Skill(skill), 1);
+            c.Skills["charisma"] = Math.Max(c.Skill("charisma"), 1);
+            c.Upbringing = ""; c.Tutor = 0;
         }
         if (string.IsNullOrEmpty(c.Ambition) && Content is { Traits.Ambitions.Count: > 0 })
             c.Ambition = Content.Traits.Ambitions[rng.NextInt(0, Content.Traits.Ambitions.Count)].Id;

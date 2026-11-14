@@ -310,6 +310,14 @@ internal static class Qa
             if (decisions.NextInt(0, 25) == 0) foreach (var mm in w.Marriages.Where(mm => w.Char(mm.A)?.HouseId == house.Id || w.Char(mm.B)?.HouseId == house.Id).OrderBy(mm => mm.A, StringComparer.Ordinal).Take(1))
                 cands.Add(new MarriageCommand(p.Id, w.Char(mm.A)?.HouseId == house.Id ? mm.A : mm.B, MarriageCommand.Divorce));
         }
+        {   // education: what the head studies, the children's courses, tutors
+            if (decisions.NextInt(0, 4) == 0) cands.Add(new EducationCommand(p.Id, EducationCommand.Study, p.Id, EducationSystem.All[decisions.NextInt(0, EducationSystem.All.Length)]));
+            foreach (var k in w.LivingCharacters().Where(k => k.HouseId == house.Id).OrderBy(k => k.Id, StringComparer.Ordinal))
+            {
+                if (k.Age < EducationSystem.Adult && decisions.NextInt(0, 5) == 0) cands.Add(new EducationCommand(p.Id, EducationCommand.Upbringing, k.Id, decisions.NextInt(0, 4) == 0 ? "" : EducationSystem.Groups[decisions.NextInt(0, 3)]));
+                if (decisions.NextInt(0, 8) == 0) cands.Add(new EducationCommand(p.Id, EducationCommand.Tutor, k.Id, decisions.NextInt(0, 3).ToString()));
+            }
+        }
         {   // the household: take people in, adopt, send home, seek a mentor, hand duties on and take them back
             string[] kinds = { HouseholdSystem.Ward, HouseholdSystem.Protege, HouseholdSystem.Companion };
             foreach (var pe in house.Petitions.ToList()) { cands.Add(new HouseholdCommand(p.Id, HouseholdCommand.TakeIn, pe.PersonId, pe.As)); if (decisions.NextInt(0, 3) == 0) cands.Add(new HouseholdCommand(p.Id, HouseholdCommand.Decline, pe.PersonId)); }
