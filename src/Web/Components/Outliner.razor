@@ -82,6 +82,8 @@
     foreach (var su in w.Courtships.Where(x => !x.Incoming && x.Own && x.SuitorId != w.ProtagonistId && x.AskingSince >= 0 && !x.Forbidden)) alerts.Add(("info", $"{w.Char(su.SuitorId)?.Name} asks your leave to marry {w.Char(su.TargetId)?.Name}", "dynasty"));
     if (w.HasFlag(Praetoria.Core.Systems.EducationSystem.ResistsFlag)) alerts.Add(("info", "A child of the house is set against their bent", "dynasty"));
     foreach (var ask in Praetoria.Core.Systems.AmbitionSystem.Members(w, house).Where(x => x.Pursuit is { Request.Length: > 0 })) alerts.Add(("info", $"{ask.Name} {Praetoria.Core.Systems.AmbitionSystem.RequestSays(w, ask)}", "dynasty"));
+    if (Praetoria.Core.Systems.LadderSystem.Active(w, G.Content!.Offices) && Praetoria.Core.Systems.LadderSystem.NextIn(w, G.Content.Offices) <= 2 && w.Protagonist is { } cand && !w.Candidacies.Any(x => x.CharacterId == cand.Id) && Praetoria.Core.Systems.LadderSystem.Next(w, G.Content.Offices, cand) is { } nextRung)
+        alerts.Add(("info", $"You could stand for {nextRung.Name.ToLowerInvariant()}: the election is in {Praetoria.Core.Systems.LadderSystem.NextIn(w, G.Content.Offices)} year(s)", "senate"));
     if (w.Protagonist is { } self && self.Health < Praetoria.Core.Systems.LifeSystem.Sound) alerts.Add(("warn", self.Health < Praetoria.Core.Systems.LifeSystem.Frail ? "Your health is failing" : "You are ailing", "you"));
     if (w.Protagonist is { } sick && sick.Flags.Contains(Praetoria.Core.Systems.LifeSystem.IllChar)) alerts.Add(("warn", "You are ill", "you"));
     if (w.HasFlag(Praetoria.Core.Systems.WealthSystem.DebtFlag)) alerts.Add(("warn", "One of the house is in debt", "house"));

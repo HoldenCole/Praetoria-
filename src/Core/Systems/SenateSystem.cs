@@ -7,7 +7,7 @@ namespace Praetoria.Core.Systems;
 
 /// <summary>
 /// The Senate as a place of action (GDD §6.1, §7; GAP §10 item 2). Houses move motions (<see cref="Motion"/>); every house votes by
-/// <b>weight</b> — its Senate-sphere influence, its title rank, the chair's two, a Praetor's one — and rival houses lean by interest:
+/// <b>weight</b> — its Senate-sphere influence, its title rank, the chair's two, a Justice's one — and rival houses lean by interest:
 /// a target votes against its own censure and its friends with it, the poor vote down a levy, a region's lords vote for its relief,
 /// a losing belligerent begs for peace. Lobbying moves a lean. A motion proposed in turn T is voted at the end of turn T+1, so there is
 /// always one turn to whip. Passing lifts the proposer's standing in the Senate sphere (counter <c>senate_standing:&lt;house&gt;</c>, read
@@ -46,7 +46,7 @@ public sealed class SenateSystem
     /// <summary>The nations beyond the Reach (docs/FOREIGN_NATIONS.md): the targets of the war motion.</summary>
     public NationCatalog Nations { get; set; } = NationCatalog.Empty;
 
-    /// <summary>A house's vote weight: Senate influence (the chair's two are in it) + title rank + one if its head is a Praetor or better.</summary>
+    /// <summary>A house's vote weight: Senate influence (the chair's two are in it) + title rank + one if its head is a Justice or better.</summary>
     public int Weight(World w, string houseId) => ReadCache.Active ? ReadCache.Get("weight:" + houseId, () => WeightNow(w, houseId)) : WeightNow(w, houseId);
     private int WeightNow(World w, string houseId)
     {
@@ -60,10 +60,10 @@ public sealed class SenateSystem
     }
 
     /// <summary>The door by which a house sits in the Senate (docs/REPUBLIC.md stage 3): land (a Prefect or better), the bench (a head who
-    /// is a Magistrate or better), the purse (enrolled by the census) or the sword (great in Arms). None: it votes, but may not move.</summary>
+    /// is a Judge or better), the purse (enrolled by the census) or the sword (great in Arms). None: it votes, but may not move.</summary>
     public string? Door(World w, House h) => OrderSystem.Door(w, h, _titles, ProposerTitleRank, ProposerLawRank);
 
-    /// <summary>May this house move a motion at all: a baron or better, or a head who is a Magistrate or better.</summary>
+    /// <summary>May this house move a motion at all: a baron or better, or a head who is a Judge or better.</summary>
     public bool MayPropose(World w, string houseId)
     {
         var h = w.House(houseId); if (h == null) return false;
@@ -251,6 +251,7 @@ public sealed class SenateSystem
         ElectionSystem.RivalVetoes(w, _offices, this);   // the consuls strike what strikes at them, before the vote
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn).ToList()) Resolve(w, m, mine);
         OfficeSystem.Tick(w, _offices);
+        if (LadderSystem.Due(w, _offices)) LadderSystem.Hold(w, _offices, id => Weight(w, id));   // every fifth year the magistrates below the consulship (docs/LADDER.md), before the consuls
         if (ElectionSystem.Due(w)) ElectionSystem.Hold(w, _offices, id => Weight(w, id));   // every tenth turn the consuls are elected (docs/REPUBLIC.md)
         w.WorldFlags.Remove("election_near"); if (w.Era != "imperium" && ElectionSystem.NextIn(w) <= 2) w.WorldFlags.Add("election_near");
         FactionSystem.Tick(w, id => Weight(w, id));

@@ -317,7 +317,7 @@ public class CareerLadderTests
         w.Char("self")!.CareerRank = 3;
 
         var withCatalog = new EvalContext(w, new Binding("self"), TestContent.Rng(), content);
-        Assert.Equal("Praetor (3)", TextRenderer.Substitute("{self.rankName} ({self.rank})", withCatalog));
+        Assert.Equal("Justice (3)", TextRenderer.Substitute("{self.rankName} ({self.rank})", withCatalog));
 
         var bare = new EvalContext(w, new Binding("self"), TestContent.Rng());
         Assert.Equal("3", TextRenderer.Substitute("{self.rankName}", bare));

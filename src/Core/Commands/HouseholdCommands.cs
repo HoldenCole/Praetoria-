@@ -222,3 +222,43 @@ public sealed class LifeCommand : ICommand
         else LifeSystem.Retire(w, me);
     }
 }
+
+/// <summary>The ladder of offices (docs/LADDER.md). <see cref="Stand"/>: put your own name down for a rung at the next election
+/// (2 influence). <see cref="Withdraw"/> it. <see cref="Back"/>: put your weight behind yourself or someone of the house who is
+/// standing (2 influence, twice at most). <see cref="Games"/>: as aedile, give games out of your own purse.</summary>
+public sealed class LadderCommand : ICommand
+{
+    public const string Stand = "stand", Withdraw = "withdraw", Back = "back", Games = "games", Dissuade = "dissuade";
+    private readonly string _what, _personId, _rungId; private readonly Data.OfficeCatalog _offices;
+    public LadderCommand(string actorId, string what, string personId, string rungId, Data.OfficeCatalog offices) { ActorId = actorId; _what = what; _personId = personId; _rungId = rungId; _offices = offices; }
+    public string ActorId { get; }
+    public string Describe() => $"{_what} {_personId} {_rungId}".Trim();
+    private static IReadOnlyDictionary<string, int> Cost(string what) => what is Stand or Back ? new Dictionary<string, int> { [Pool.Influence] = what == Stand ? LadderSystem.StandInfluence : LadderSystem.BackInfluence } : new Dictionary<string, int>();
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId); var who = w.Char(_personId);
+        string? no = _what switch
+        {
+            Stand => LadderSystem.StandRefusal(w, _offices, head, who, _rungId),
+            Withdraw => who != null && who.Id == ActorId && w.Candidacies.Any(c => c.CharacterId == who.Id) ? null : "you are not standing",
+            Back => LadderSystem.BackRefusal(w, head, who),
+            Dissuade => LadderSystem.DissuadeRefusal(w, _offices, head, who),
+            Games => who?.Id == ActorId ? LadderSystem.GamesRefusal(w, _offices, who) : "their games are their own to give",
+            _ => "no such thing"
+        };
+        return no ?? (ctx.PoolsOf(ActorId).CanAfford(Cost(_what)) ? null : "no influence");
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId)!; var who = w.Char(_personId)!; ctx.PoolsOf(ActorId).Spend(Cost(_what));
+        switch (_what)
+        {
+            case Stand: LadderSystem.Stand(w, _offices, who, _rungId); break;
+            case Withdraw: w.Candidacies.RemoveAll(c => c.CharacterId == who.Id); w.Log($"{who.Name} withdraws their name."); break;
+            case Back: LadderSystem.Back(w, head, who); break;
+            case Dissuade: LadderSystem.Dissuade(w, _offices, head, who); break;
+            case Games: LadderSystem.Games(w, _offices, who); break;
+        }
+    }
+}

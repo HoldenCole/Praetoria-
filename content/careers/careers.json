@@ -14,7 +14,7 @@
       "ranks":         ["Clerk", "Administrator", "Governor", "Minister", "High Treasurer"],
       "imperialRanks": ["Clerk", "Intendant", "Viceroy", "Minister", "Imperial Treasurer"] },
     { "id": "law",         "name": "the Courts", "imperialName": "the Imperial Courts",
-      "ranks":         ["Aspirant", "Advocate", "Magistrate", "Praetor", "High Justice"],
-      "imperialRanks": ["Aspirant", "Advocate", "Magistrate", "Praetor", "Lord Justice"] }
+      "ranks":         ["Aspirant", "Advocate", "Judge", "Justice", "High Justice"],
+      "imperialRanks": ["Aspirant", "Advocate", "Judge", "Justice", "Lord Justice"] }
   ]
 }

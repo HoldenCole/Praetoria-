@@ -91,6 +91,10 @@ public sealed class World
     public List<VentureOffer> Offers { get; set; } = new();
     public IEnumerable<Project> ProjectsOf(string houseId) => Projects.Where(p => p.OwnerId == houseId);
     /// <summary>The companies on the Exchange (docs/ECONOMY_MARKET.md stage C) and the Reach's war bonds (stage D).</summary>
+    /// <summary>Who sits on each rung of the ladder of offices now (docs/LADDER.md). Several may hold the same rung.</summary>
+    public List<OfficeHolding> Magistrates { get; set; } = new();
+    /// <summary>Who of the player's house has said they will stand at the next election, and for what.</summary>
+    public List<Candidacy> Candidacies { get; set; } = new();
     /// <summary>What was said over the dead of the player's house, most recent last (docs/LIFE.md).</summary>
     public List<Funeral> Funerals { get; set; } = new();
     /// <summary>Venture id → the member of the house who began it, kept from the founding until the venture stands (docs/AMBITIONS.md).</summary>

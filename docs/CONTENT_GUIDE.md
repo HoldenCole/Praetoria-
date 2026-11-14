@@ -689,7 +689,7 @@ Now **data**: `/content/careers/careers.json` (§4e) names each rung and caps `a
 `careerTrack` ∈ `military, stewardship, law`; the locked ladders:
 - **Military:** 0 Cadet → 1 Ensign → 2 Lieutenant → 3 Commander → 4 Captain → 5 Admiral → 6 Grand Admiral
 - **Stewardship:** 0 Clerk → 1 Administrator → 2 Governor → 3 Minister → 4 Imperial Treasurer
-- **Law/Intrigue:** 0 Aspirant → 1 Advocate → 2 Magistrate → 3 Praetor → 4 High Justice
+- **Law/Intrigue:** 0 Aspirant → 1 Advocate → 2 Judge → 3 Justice → 4 High Justice
 → *Give me: final track list + the rung name for each rank index (so the UI/log can name them).*
 
 ---

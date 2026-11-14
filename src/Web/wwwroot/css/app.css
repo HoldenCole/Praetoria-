@@ -678,6 +678,7 @@ table.prospects button { white-space: nowrap; } table.prospects td, table.prospe
 @media (max-width: 700px) { .suit .gauge { grid-template-columns: 6.5rem 1fr 30px; } table.prospects th:nth-child(3), table.prospects td:nth-child(3) { display: none; } }
 
 /* ---- the household: found family and delegated duties (docs/HOUSEHOLD.md) ---- */
+.panel.cursus { margin-top: .8rem; max-width: 980px; } .rung-row { border-top: 1px dotted var(--line); padding: .45rem 0 .35rem; line-height: 1.4; }
 .panel.life { grid-column: span 2; } @media (max-width: 1000px) { .panel.life { grid-column: auto; } }
 .panel.life .hh-head { border-top: 1px solid var(--line); margin-top: .5rem; padding-top: .45rem; } .panel.life b.bad { color: var(--warn); }
 .deed { font-size: .84rem; padding: .12rem 0; color: var(--ink2); } .deed span { display: inline-block; min-width: 3.4rem; color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }

@@ -85,7 +85,7 @@ increments. **These ladders are now locked; the career events' `rank` thresholds
 
 **Military:** 0 Cadet → 1 Ensign → 2 Lieutenant → 3 Commander → 4 Captain → 5 Admiral → 6 Grand Admiral
 **Stewardship:** 0 Clerk → 1 Administrator → 2 Governor → 3 Minister → 4 Imperial Treasurer
-**Law/Intrigue:** 0 Aspirant → 1 Advocate → 2 Magistrate → 3 Praetor → 4 High Justice
+**Law/Intrigue:** 0 Aspirant → 1 Advocate → 2 Judge → 3 Justice → 4 High Justice
 
 > **Rank-threshold note for engineers:** career events gate on literal integers (e.g. `the_admirals_shadow`
 > binds an `admiral` role at `rank gte 5`; `first_command` needs `self rank gte 1`). These match the ladders

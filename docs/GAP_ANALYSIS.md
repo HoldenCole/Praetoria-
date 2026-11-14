@@ -1025,3 +1025,28 @@ a most of 58 until the first year turned. Health is set to what each person's ye
 **Gaps that remain.** Only the player's house has records, renown, names and funerals. There is no ill fame. Old friends
 do not act. There are no duels. Two of the seven events were not seen in the soak. Nothing is tuned.
 
+
+## 38. The ladder of offices — 2026-11-14
+
+Built as docs/LADDER.md describes: quaestor, aedile and praetor below the consulship, held by people, filled by election
+every fifth year, and a consul must now be forty and have been praetor.
+
+**Measured.** 582 tests, ten of them for this; one runs the Republic for sixty years and asserts consuls are still found
+and at least four magistrates sit after every election. The soak passes on eleven starts and three seeds with the random
+player standing, backing, dissuading and giving games; between three and seven lines of 33 ended across four runs as the
+random player's choices changed (seven is the most seen so far). The survival probe is unchanged at 1 of 80. All five new events fired. In the browser The Risen
+Officer stood in the first year and was elected quaestor at 30.
+
+**Found on the way.**
+- The bench was empty for the first five years of every saga. The seats are now filled when a world opens, from people
+  of other houses who had already climbed.
+- The law career already had ranks called Magistrate and Praetor, so "is made Praetor" and "elected praetor" appeared in
+  the same chronicle meaning different things. The career ranks are now Judge and Justice.
+- Someone who had been praetor could stand for aedile. Nobody now stands below the highest rung they have held.
+- With each person standing only for their highest rung, an aedile's seat often went unfilled. A house may now put up
+  someone who stood higher and lost.
+- The roadmap's section 4 had been repeated four times over by earlier edits. The copies are gone, and the two sketches
+  that have since been built are replaced by a pointer to their documents.
+
+**Gaps that remain.** A magistrate has nothing to do in office. Other houses' candidates are picked by a rule and do
+not canvass. There is no bribery, prosecution, censorship or tribunate. The numbers are first guesses.

@@ -1311,7 +1311,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the praetor's robe on the strength of a record no one could gainsay, and {patron.name} of {patron.house}, who had expected to be thanked for the elevation, found {self.name} owed them nothing but courtesy. A clean ascent. The first power-holder in {self.name}'s life who cannot call in a debt for it — which is its own kind of wealth."
+              "text": "{self.name} took the justice's robe on the strength of a record no one could gainsay, and {patron.name} of {patron.house}, who had expected to be thanked for the elevation, found {self.name} owed them nothing but courtesy. A clean ascent. The first power-holder in {self.name}'s life who cannot call in a debt for it — which is its own kind of wealth."
             }
           ]
         },

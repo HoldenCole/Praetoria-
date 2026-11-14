@@ -30,7 +30,8 @@ rather than the state, who can be voted a triumph or march on the capital.
 2. **The consulship — done (2026-11-09).** Two elected offices in `content/senate/offices.json` (`elected: true`):
    the Senior Consul (weight +4, two credits a turn, a motion one influence cheaper, the veto) and the Junior Consul
    (+3, one credit, the discount, the veto). Every tenth turn (`ElectionSystem.Hold`, not under the Imperium) each party
-   nominates its weightiest member with a qualified candidate (rank 2 on any track) who was not elected last time;
+   nominates its weightiest member with a qualified candidate (rank 2 on any track, and since 2026-11-14 forty years
+   old and a former praetor: docs/LADDER.md) who was not elected last time;
    the player may **stand** (two influence) and runs as their party's nominee, or alone. Every house's weight goes to
    its party's nominee; a house with no party votes for the nominee its head likes best. The two highest tallies take
    the chairs; the old consuls' term ends. A consul may **veto** one open motion a term before the vote (never their
@@ -79,7 +80,7 @@ years. A house that brings up a quarter of the Reach's production of a strategic
 - **Weight in the chamber.** One seat for each step in Arms and in Commerce, and one for every two clients. A great
   general or banker is heard whatever their rank.
 - **Four doors to a seat.** A house may move motions and stand for office by **land** (Prefect or better), **the
-  bench** (a head who is a Magistrate), **the sword** (great in Arms) or **the purse**: a house notable in Commerce
+  bench** (a head who is a Judge), **the sword** (great in Arms) or **the purse**: a house notable in Commerce
   pays the census 60 credits and is enrolled. Every house still votes.
 - **Sway.** A house leans toward whoever it depends on: +3 its patron, +2 its client, +2 its creditor, +1 a fellow
   client, +1 the house whose helium-3 its fleets burn, +1 the director of a company it holds a tenth of; four at

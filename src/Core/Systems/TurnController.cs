@@ -113,6 +113,7 @@ public sealed class TurnController
         _market = new MarketSystem(content.Trade, _economy, _fleets, content.Nations); _market.Seed(world);   // the Reach's exchanges open at base prices (docs/ECONOMY_MARKET.md)
         _companies = _economy != null && !content.Exchange.IsEmpty ? new CompanySystem(_economy, content.Businesses, content.Exchange, content.Trade) { Nations = content.Nations } : null;   // the Exchange (stage C)
         if (_companies != null && !world.InAcademy) _companies.Seed(world);
+        LadderSystem.Seed(world); LadderSystem.Open(world, content.Offices);   // the bench is not empty when a saga opens (docs/LADDER.md); before the orders are first measured
         _orders = new OrderSystem(_economy, _fleets, content.Titles, content.Offices, content.Market); if (!world.InAcademy && world.Houses.Values.All(h => h.Orders.Count == 0)) _orders.Tick(world);
         _senate.Exchange = _companies; if (_companies != null) _companies.Offices = content.Offices;
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures, Exchange = _companies, Orders = _orders, HoldingCatalogForFounding = content.Holdings };
@@ -235,6 +236,7 @@ public sealed class TurnController
             _crises.Recover(World);       // and with no crisis active, the realm's wounds close (data rules)
         }
 
+        using (Perf.Time("end:ladder")) { LadderSystem.Tick(World, _content.Offices); }   // seats lapse, magistrates are paid, the house's people put their names down (docs/LADDER.md) — RNG-free
         using (Perf.Time("end:life")) { LifeSystem.Tick(World, _content); }   // health, the record of each life, ties that have lasted (docs/LIFE.md) — RNG-free
         using (Perf.Time("end:wealth")) { WealthSystem.Tick(World); }   // allowances are paid, and people do as they like with their own money (docs/WEALTH.md) — RNG-free
         using (Perf.Time("end:education")) { EducationSystem.Tick(World); }   // everyone learns by what they do and what they study; children are brought up (docs/EDUCATION.md) — RNG-free

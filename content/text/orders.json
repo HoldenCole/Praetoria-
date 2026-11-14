@@ -3,7 +3,7 @@
     {
       "id": "a_seat_by_the_purse",
       "title": "A Seat by the Purse",
-      "body": "The census has enrolled the house. It holds no land that carries a seat and its head is no magistrate, but it paid the fee and its books were found sufficient. {self.name} may now move motions and stand for office. The roll does not record how a seat was come by. The chamber remembers.",
+      "body": "The census has enrolled the house. It holds no land that carries a seat and its head is no judge, but it paid the fee and its books were found sufficient. {self.name} may now move motions and stand for office. The roll does not record how a seat was come by. The chamber remembers.",
       "choices": {
         "take_the_seat_quietly": "Take the seat and say nothing.",
         "give_a_dinner_for_it": "Mark it with a dinner."
@@ -12,7 +12,7 @@
     {
       "id": "the_doorkeeper",
       "title": "The Doorkeeper",
-      "body": "The house has no seat in the Senate. It votes from the gallery when the chamber divides, and that is all. There are four doors in: land of sufficient rank, a head who sits as a magistrate, a name great in arms, or enrolment by the census for a house of account in commerce that can pay the fee.",
+      "body": "The house has no seat in the Senate. It votes from the gallery when the chamber divides, and that is all. There are four doors in: land of sufficient rank, a head who sits as a judge, a name great in arms, or enrolment by the census for a house of account in commerce that can pay the fee.",
       "choices": {
         "wait_outside": "Wait outside.",
         "ask_the_price": "Ask the census clerk the price.",

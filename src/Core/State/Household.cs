@@ -109,3 +109,12 @@ public sealed class Funeral
     public string Epithet { get; set; } = "";
     public List<string> Lines { get; set; } = new();
 }
+
+/// <summary>Someone of the player's house who will stand at the next election of the ladder (docs/LADDER.md).</summary>
+public sealed class Candidacy
+{
+    public string RungId { get; set; } = "";
+    public string CharacterId { get; set; } = "";
+    /// <summary>What the head has put behind them: votes added at the count.</summary>
+    public int Backing { get; set; }
+}

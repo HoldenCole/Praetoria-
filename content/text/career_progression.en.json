@@ -99,8 +99,8 @@
     },
     {
       "id": "the_praetors_robe",
-      "title": "The Praetor's Robe",
-      "body": "The praetorship is within reach, and {patron.name} of {patron.house} stands ready to place the robe on your shoulders — for they have backed your rise, and a backed rise is rarely a free one. You can take it clean, on a record that needs no patron, or take it faster on the strength of a debt you will be paying for years.",
+      "title": "The Justice's Robe",
+      "body": "A justice's seat is within reach, and {patron.name} of {patron.house} stands ready to place the robe on your shoulders — for they have backed your rise, and a backed rise is rarely a free one. You can take it clean, on a record that needs no patron, or take it faster on the strength of a debt you will be paying for years.",
       "choices": {
         "take_robe_clean": "Take it on your record alone. Owe this one no debt.",
         "take_robe_owed": "Rise faster on the patronage. Answer for it later, at their convenience."

@@ -1,0 +1,71 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var offices = c.Offices;
+    bool active = LadderSystem.Active(w, offices); int next = LadderSystem.NextIn(w, offices);
+    var mySeat = LadderSystem.Seat(w, pid); var myStand = w.Candidacies.FirstOrDefault(x => x.CharacterId == pid);
+    var consul = ElectionSystem.ConsulOffices(offices).FirstOrDefault();
+    var consulMan = consul != null ? OfficeSystem.Candidate(w, consul, house.Id) : null;
+    string Held(Character x) => x.Cursus.Count == 0 ? "nothing yet" : string.Join(", then ", x.Cursus.Select(id => offices.Rung(id)?.Name.ToLowerInvariant() ?? id));
+}
+<section class="panel cursus">
+    <h3><Icon Name="senate" Size="13" /> The ladder of offices <span class="muted">@(active ? $"the next election in {next} year(s)" : "there are no elections under a throne")</span></h3>
+    @if (!active) { <div class="muted small">Under the Imperium offices are the throne's to give. The ladder belongs to the Republic.</div> }
+    else
+    {
+        <div class="muted small">Each rung is held by a person, for five years, and filled by election. The houses vote with their weight in the chamber; a candidate's own speaking, standing and record count besides. You have been: <b>@Held(p)</b>.</div>
+        @foreach (var rung in offices.Rungs)
+        {
+            string rid = rung.Id; var holders = LadderSystem.Holders(w, rung.Id); var ours = w.Candidacies.Where(x => x.RungId == rung.Id).ToList();
+            var stand = new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices).Refusal(G.Ctx);
+            <div class="rung-row">
+                <div><b>@rung.Name</b> <span class="muted small">@rung.Seats seat(s) · from @rung.MinAge@(rung.Requires.Length > 0 ? $" · must have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant()}" : "")@(rung.Stipend > 0 ? $" · pays {rung.Stipend} a year" : "")</span></div>
+                <div class="muted small">@rung.Description</div>
+                <div class="small">Sitting: @(holders.Count == 0 ? "nobody" : string.Join("; ", holders.Select(h => { var x = w.Char(h.CharacterId); return x == null ? "" : x.HouseId == house.Id ? $"{x.Name} (yours)" : $"{x.Name} of {w.House(x.HouseId)?.Name}"; })))</div>
+                @foreach (var cd in ours)
+                {
+                    var x = w.Char(cd.CharacterId); if (x == null) continue; string xid = x.Id; var back = new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices).Refusal(G.Ctx);
+                    <div class="suit-acts">
+                        <span class="small"><b>@(x.Id == pid ? "You are" : x.Name + " is") standing</b>@(cd.Backing > 0 ? $", with {cd.Backing} votes of your weight behind {(x.Id == pid ? "you" : "them")}" : "")@(x.Id == pid ? "" : ", of their own accord").</span>
+                        <button class="opt inline tiny" disabled="@(back != null)" title="@(back ?? $"{LadderSystem.BackVotes} more votes at the count")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices))">@(x.Id == pid ? "Call in what is owed" : "Speak for them") · @LadderSystem.BackInfluence influence</button>
+                        @if (x.Id == pid) { <button class="opt inline tiny" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Withdraw, pid, string.Empty, offices))">Withdraw</button> }
+                        else
+                        {
+                            var down = new LadderCommand(pid, LadderCommand.Dissuade, xid, string.Empty, offices).Refusal(G.Ctx);
+                            <button class="opt inline tiny" disabled="@(down != null)" title="@(down ?? AskDown)" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Dissuade, xid, string.Empty, offices))">Ask them to stand down</button>
+                        }
+                    </div>
+                }
+                @if (myStand == null)
+                {
+                    <div class="suit-acts">
+                        <button class="opt inline tiny" disabled="@(stand != null)" title="@(stand ?? "your name goes down for the next election")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices))">Stand for @rung.Name.ToLowerInvariant() · @LadderSystem.StandInfluence influence</button>
+                        @if (stand != null) { <span class="muted small">@Cap(You(stand)).</span> }
+                    </div>
+                }
+                @if (mySeat?.OfficeId == rung.Id && rung.Games > 0)
+                {
+                    var games = new LadderCommand(pid, LadderCommand.Games, pid, string.Empty, offices).Refusal(G.Ctx);
+                    <div class="suit-acts"><button class="opt inline" disabled="@(games != null)" title="@(games ?? "the house gains standing, and it is written into your life")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Games, pid, string.Empty, offices))">Give games · @rung.Games credits of your own</button></div>
+                }
+            </div>
+        }
+        @if (consul != null)
+        {
+            <div class="rung-row">
+                <div><b>Consul</b> <span class="muted small">2 seats · from @consul.MinAge · must have been @(offices.Rung(consul.Requires)?.Name.ToLowerInvariant() ?? "praetor") · elected every tenth year</span></div>
+                <div class="small">@(consulMan != null ? $"{(consulMan.Id == pid ? "You are" : consulMan.Name + " is")} of an age and a record to stand for the house." : "Nobody of the house is yet forty and has been praetor. The house cannot stand for consul.")</div>
+            </div>
+        }
+    }
+</section>
+
+@code {
+    private const string AskDown = "It is their name. The loyal will take it down; the wilful will not, and either will think less of you.";
+    private static string You(string s) => s.Replace("they have", "you have").Replace("they must", "you must");
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

@@ -1,0 +1,12 @@
+{
+  "//": "THE LADDER OF OFFICES (docs/LADDER.md). The magistracies below the consulship. Each is held by a PERSON, for a term, and is filled by election every fifth year. A rung asks an age and, above the first, a rung already held. The consulship itself (offices.json) asks forty years and a praetorship.",
+  "every": 5,
+  "rungs": [
+    { "id": "quaestor", "name": "Quaestor", "seats": 4, "minAge": 25, "minRank": 1, "requires": "", "stipend": 1, "learn": "economics", "standing": 3,
+      "description": "The first rung: the accounts of the Reach. Four are elected. It asks twenty-five years and a place in any service." },
+    { "id": "aedile", "name": "Aedile", "seats": 2, "minAge": 30, "minRank": 1, "requires": "quaestor", "stipend": 1, "learn": "administration", "standing": 5, "games": 12,
+      "description": "The city's works and its games. Two are elected, from those who have been quaestor. An aedile who gives games is remembered for it." },
+    { "id": "praetor", "name": "Praetor", "seats": 2, "minAge": 34, "minRank": 1, "requires": "quaestor", "stipend": 2, "learn": "law", "standing": 8,
+      "description": "The courts. Two are elected, from those who have been quaestor. Nobody stands for consul who has not sat here." }
+  ]
+}

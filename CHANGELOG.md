@@ -14,6 +14,8 @@
   `tools/ci.sh` now runs CI's exact steps locally.
 
 ### Changed
+- The law career's ranks **Magistrate** and **Praetor** are now **Judge** and **Justice**, so that "praetor" means
+  one thing: the elected office.
 - A wound in battle now costs health, is written into the person's record and leaves a scar on their portrait.
 - Someone under fifty can now die, if their health is very low.
 - Nobody climbs a skill a step a year any more. Other characters used to drill their best skill every year without
@@ -40,6 +42,14 @@
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **The ladder of offices** (docs/LADDER.md), on the Senate screen. Three elected offices below the consulship:
+  **quaestor** (four, from 25), **aedile** (two, from 30) and **praetor** (two, from 34), each held by a person for
+  five years. A **consul must be forty and have been praetor.** The houses vote with their weight and a candidate's
+  own speaking, standing and record count besides. The head stands for themselves and may call in what is owed;
+  **relatives decide for themselves whether to stand**, and the head may speak for them or ask them to stand down
+  (the loyal do, the wilful do not). An aedile gives games out of their own purse. Office pays, teaches its skill and
+  adds to the house's standing in the Senate. A saga opens with the seats filled. Five events,
+  `tools/browser/ladder.js`.
 - **A life of one's own** (docs/LIFE.md). **Health** for everyone: age lowers what it can be, wounds, illness and
   strain lower it, rest and physicians restore it, and it bears on how long a person lives. **A record** of what each
   person of the house did, from which come their renown and, for some, a name. **Old friends and old enemies**, whose

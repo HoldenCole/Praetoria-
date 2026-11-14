@@ -29,7 +29,7 @@ mirrors the content for log lines written where no catalog is at hand; a test ke
 |---|---|---|
 | military, *the Navy* / *the Imperial Navy* | Cadet, Ensign, Lieutenant, Commander, Captain, Admiral, **Fleet Admiral** | …, **Grand Admiral** |
 | stewardship, *the Administration* / *the Imperial Administration* | Clerk, **Administrator**, **Governor**, Minister, **High Treasurer** | Clerk, **Intendant**, **Viceroy**, Minister, **Imperial Treasurer** |
-| law, *the Courts* / *the Imperial Courts* | Aspirant, Advocate, Magistrate, Praetor, **High Justice** | …, **Lord Justice** |
+| law, *the Courts* / *the Imperial Courts* | Aspirant, Advocate, Judge, Justice, **High Justice** | …, **Lord Justice** |
 
 `ranks` is the Republic's ladder and fixes its length; `imperialRanks` renames rungs (same length or shorter).
 `CareerTrackDef.RankName(rank, era)`, `CareerCatalog.RankName(track, rank, era)`, `CareerTrackDef.NameIn(era)`.

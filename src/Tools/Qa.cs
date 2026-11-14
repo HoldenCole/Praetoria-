@@ -310,6 +310,13 @@ internal static class Qa
             if (decisions.NextInt(0, 25) == 0) foreach (var mm in w.Marriages.Where(mm => w.Char(mm.A)?.HouseId == house.Id || w.Char(mm.B)?.HouseId == house.Id).OrderBy(mm => mm.A, StringComparer.Ordinal).Take(1))
                 cands.Add(new MarriageCommand(p.Id, w.Char(mm.A)?.HouseId == house.Id ? mm.A : mm.B, MarriageCommand.Divorce));
         }
+        {   // the ladder: stand, call in what is owed, speak for one of the house, give games
+            foreach (var rung in content.Offices.Rungs) if (decisions.NextInt(0, 2) == 0) cands.Add(new LadderCommand(p.Id, LadderCommand.Stand, p.Id, rung.Id, content.Offices));
+            foreach (var cd in w.Candidacies.ToList()) if (decisions.NextInt(0, 2) == 0) cands.Add(new LadderCommand(p.Id, LadderCommand.Back, cd.CharacterId, "", content.Offices));
+            if (decisions.NextInt(0, 12) == 0) cands.Add(new LadderCommand(p.Id, LadderCommand.Withdraw, p.Id, "", content.Offices));
+            foreach (var cd in w.Candidacies.ToList()) if (decisions.NextInt(0, 6) == 0) cands.Add(new LadderCommand(p.Id, LadderCommand.Dissuade, cd.CharacterId, "", content.Offices));
+            cands.Add(new LadderCommand(p.Id, LadderCommand.Games, p.Id, "", content.Offices));
+        }
         {   // a life: rest, the physicians, and laying the house down
             if (decisions.NextInt(0, 4) == 0) cands.Add(new LifeCommand(p.Id, LifeCommand.Rest));
             if (decisions.NextInt(0, 4) == 0) cands.Add(new LifeCommand(p.Id, LifeCommand.Physicians));

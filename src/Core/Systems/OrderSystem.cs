@@ -69,6 +69,7 @@ public sealed class OrderSystem
                 Add("influence in the chamber", Math.Min(12, h.SphereInfluence.GetValueOrDefault("senate") * 2));
                 Add("offices held", Math.Min(18, held.Where(d => d.Track.Length == 0 || d.Elected).Sum(d => 4 + d.Weight * 2)));
                 if (w.Factions.Any(f => f.LeaderHouseId == h.Id)) Add("leads a party", 5);
+                Add("magistracies its people have held", LadderSystem.SenateStanding(w, _offices, h));
                 Add("a name at the bar", Best("law") * 2);
                 if (h.Origin == "old") Add("an old name", 6);
                 Add("clients", Math.Min(6, ClientsOf(w, h.Id).Count() * 2));

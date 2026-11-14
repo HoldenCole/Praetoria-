@@ -24,6 +24,9 @@ public class ConsulTests
         w.Char("self")!.CareerTrack = "law"; w.Char("self")!.CareerRank = 2;
         var senate = new SenateSystem(Content.Motions, Content.Titles, null, Content.Offices) { Policies = Content.Policies };
         FactionSystem.Policies = Content.Policies; FactionSystem.Seed(w, Content.Parties, id => senate.Weight(w, id));
+        // the ladder (docs/LADDER.md): a consul is forty and has been praetor, as the people of this chamber are and have
+        foreach (var c in w.Characters.Values.Where(c => c.CareerRank >= 2)) c.Age = Math.Max(c.Age, 40);
+        LadderSystem.Seed(w);
         return (w, senate, new CommandContext(w, TestContent.Rng()));
     }
 

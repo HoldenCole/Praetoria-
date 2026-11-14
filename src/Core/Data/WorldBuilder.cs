@@ -86,6 +86,7 @@ public static class WorldBuilder
 
         Presentation.Palette.AssignHouses(world);   // one bright palette for every house (docs/ART_DIRECTION.md)
         if (scenario.Academy) Systems.AcademySystem.Enter(world);   // the run opens with the Academy year (docs/ACADEMY.md)
+        Systems.LadderSystem.Seed(world);   // those of an age and rank to have climbed some of the ladder have climbed it (docs/LADDER.md)
         return world;
     }
 

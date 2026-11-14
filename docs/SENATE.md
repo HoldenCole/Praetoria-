@@ -5,7 +5,7 @@ do (GAP §10 item 2). Now houses move **motions**, every house **votes by weight
 
 ## Motions
 
-`content/senate/motions.json` holds the kinds. A house of standing — a baron or better, or a head who is a Magistrate or
+`content/senate/motions.json` holds the kinds. A house of standing — a baron or better, or a head who is a Judge or
 better on the law track — moves one for its influence cost (`ProposeMotionCommand`). One open motion a house, two on the
 docket. A motion moved in turn T is voted at the end of turn T+1, so there is always one session to whip.
 
@@ -57,7 +57,7 @@ a sixty-turn run, mostly the Commons' and the old blood's.
 ## Weight and the benches
 
 A house's vote weighs its Senate-sphere influence (the chair's two are in it), plus its title rank, plus one if its head
-is a Praetor or better. Ties fail. Rival houses lean by interest (`SenateSystem.Lean`): a target votes against its own
+is a Justice or better. Ties fail. Rival houses lean by interest (`SenateSystem.Lean`): a target votes against its own
 censure and its friends with it, a house at war with the target votes for; the poor vote down a levy and the chair
 votes for it; a region's lords vote for its relief, and the rim is sympathetic; a losing belligerent begs for peace and
 the bystanders like it; disposition toward the proposer tilts everything a point; a deterministic jitter breaks the
@@ -95,7 +95,7 @@ each granted by a **Commission** motion to a house whose member holds the rank o
 |---|---|---|
 | Admiral of the Reach | military · Lieutenant | command of the **office fleets** (`Fleet.Office`): they sail under the holder's colours and fight its wars, the chair pays their upkeep and the state's bunkers fuel them; +3 Navy influence |
 | Treasurer of the Reach | stewardship · Governor | three credits a turn from the chair's coffers; +3 Treasury influence |
-| Speaker of the Senate | law · Magistrate | three more votes of weight, motions cost one influence less; +2 Senate influence |
+| Speaker of the Senate | law · Judge | three more votes of weight, motions cost one influence less; +2 Senate influence |
 
 An office is the state's, not the house's. It is lost when the Senate commissions another (the holder's friends vote
 against, a house with its own candidate is jealous, the chair likes a safe pair of hands), when the holder dies without

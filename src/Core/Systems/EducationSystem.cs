@@ -135,6 +135,7 @@ public static class EducationSystem
         if (w.Fleets.Values.Any(f => f.AdmiralId == c.Id)) list.Add(("tactics", PostPoints, "commanding a fleet"));
         if (w.Holdings.Values.Any(h => h.GovernorId == c.Id && h.OwnerId == c.HouseId)) list.Add(("administration", PostPoints, "governing a world"));
         if (w.Offices.Any(o => o.CharacterId == c.Id)) list.Add(("oratory", PostPoints, "holding office"));
+        if (LadderSystem.Seat(w, c.Id) is { } seat) list.Add((seat.OfficeId == LadderSystem.Praetor ? "law" : seat.OfficeId == LadderSystem.Aedile ? "administration" : "economics", PostPoints, "a magistracy"));
         if (house != null)
         {
             if (house.Duties.Any(d => d.HolderId == c.Id && d.Role == HouseholdSystem.Steward)) list.Add(("economics", PostPoints, "the steward's work"));
@@ -178,6 +179,7 @@ public static class EducationSystem
         var admirals = w.Fleets.Values.Select(f => f.AdmiralId).Where(a => a.Length > 0).ToHashSet();
         var governors = w.Holdings.Values.Select(h => h.GovernorId).Where(g => g.Length > 0).ToHashSet();
         var officers = w.Offices.Select(o => o.CharacterId).ToHashSet();
+        var magistrates = w.Magistrates.GroupBy(m => m.CharacterId).ToDictionary(g => g.Key, g => g.First().OfficeId);
         var heads = w.Houses.Values.Select(h => Economy.HeadOf(w, h)?.Id ?? "").Where(id => id.Length > 0).ToHashSet();
 
         foreach (var c in w.LivingCharacters().Where(c => c.Age >= SchoolAge).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
@@ -201,6 +203,7 @@ public static class EducationSystem
             if (admirals.Contains(c.Id)) Gain(w, c, "tactics", PostPoints);
             if (governors.Contains(c.Id)) Gain(w, c, "administration", PostPoints);
             if (officers.Contains(c.Id)) Gain(w, c, "oratory", PostPoints);
+            if (magistrates.TryGetValue(c.Id, out var rungId)) Gain(w, c, rungId == LadderSystem.Praetor ? "law" : rungId == LadderSystem.Aedile ? "administration" : "economics", PostPoints);
             if (heads.Contains(c.Id)) Gain(w, c, "diplomacy", 1);
             if (mine != null && c.HouseId == mine.Id)
                 foreach (var d in mine.Duties.Where(d => d.HolderId == c.Id)) Gain(w, c, d.Role == HouseholdSystem.Steward ? "economics" : "logistics", PostPoints);

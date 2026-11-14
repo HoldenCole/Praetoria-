@@ -7,9 +7,9 @@
       "description": "The keys to the court's coffers: three credits a turn from the chair, and the Treasury sphere leans the holder's way." },
     { "id": "speaker", "name": "Speaker of the Senate", "sphere": "senate", "track": "law", "minRank": 2, "sphereBonus": 2, "weight": 3, "motionDiscount": 1,
       "description": "The gavel: three more votes of weight, and motions cost the Speaker's house one influence less." },
-    { "id": "consul_senior", "name": "Senior Consul", "sphere": "senate", "track": "", "minRank": 2, "sphereBonus": 3, "weight": 4, "stipend": 2, "motionDiscount": 1, "elected": true, "veto": true, "termTurns": 10,
+    { "id": "consul_senior", "name": "Senior Consul", "sphere": "senate", "track": "", "minRank": 2, "sphereBonus": 3, "weight": 4, "stipend": 2, "motionDiscount": 1, "elected": true, "minAge": 40, "requires": "praetor", "veto": true, "termTurns": 10,
       "description": "The first of the two consuls (docs/REPUBLIC.md): elected every ten turns by the parties' weight, never two terms running. Four votes of weight, two credits a turn from the chair, one influence off every motion, and the veto — one motion a term struck from the docket before it is voted." },
-    { "id": "consul_junior", "name": "Junior Consul", "sphere": "senate", "track": "", "minRank": 2, "sphereBonus": 2, "weight": 3, "stipend": 1, "motionDiscount": 1, "elected": true, "veto": true, "termTurns": 10,
+    { "id": "consul_junior", "name": "Junior Consul", "sphere": "senate", "track": "", "minRank": 2, "sphereBonus": 2, "weight": 3, "stipend": 1, "motionDiscount": 1, "elected": true, "minAge": 40, "requires": "praetor", "veto": true, "termTurns": 10,
       "description": "The second of the two consuls: the runner-up at the election. Three votes of weight, a credit a turn, one influence off every motion, and the veto." }
   ]
 }

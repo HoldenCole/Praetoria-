@@ -249,8 +249,11 @@ public sealed class AmbitionSystem
                 case "master_the_senate":
                 {
                     bool office = w.Offices.Any(o => o.CharacterId == c.Id);
-                    u.Progress = office ? 100 : Math.Min(95, c.CareerRank * 14 + c.Skill("oratory") * 5);
-                    u.Note = office ? "Holds an office of state." : "Works at their service and their speaking.";
+                    // the ladder counts for most of it: a praetor has been heard (docs/LADDER.md)
+                    int climbed = (c.Cursus.Contains(LadderSystem.Quaestor) ? 25 : 0) + (c.Cursus.Contains(LadderSystem.Aedile) ? 15 : 0) + (c.Cursus.Contains(LadderSystem.Praetor) ? 45 : 0);
+                    u.Progress = office ? 100 : Math.Min(100, c.CareerRank * 8 + c.Skill("oratory") * 4 + climbed);
+                    var sits = LadderSystem.Seat(w, c.Id); var stands = w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id);
+                    u.Note = office ? "Holds an office of state." : sits != null ? $"Sits as {sits.OfficeId}." : stands != null ? $"Is standing for {stands.RungId}." : "Works at their service and their speaking.";
                     if (!office && mayAsk && canRise) Ask(w, c, Word, "");
                     break;
                 }

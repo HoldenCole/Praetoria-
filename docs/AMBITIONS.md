@@ -77,8 +77,8 @@ into the house in each of four years.
 ## Not in this piece
 
 - **Only your house.** Nobody in any other house pursues an ambition this way.
-- **Standing for office is not theirs to do.** One who wants to be heard rises in their service and asks for a word; they
-  do not put themselves forward for an office of state. The Senate's offices still go to heads of houses.
+- ~~Standing for office is not theirs to do.~~ Closed by the ladder of offices (docs/LADDER.md): one who wants to rise
+  and be heard, or to be first, now puts their own name down for quaestor, aedile or praetor.
 - **Ambitions do not conflict much.** Two who both want the same command do not quarrel over it; only the one who wants
   to be first of the house has a rival.
 - **Restoring the house from an allowance is slow.** On the customary allowance it is a credit or two a year, so 34
