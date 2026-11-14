@@ -1,0 +1,538 @@
+{
+  "//": "BREAKING AWAY (docs/BREAKAWAY.md). Reads war_of_independence, may_refuse_the_throne (each year); declared_independence, let_go_by_the_reach, independence_won, independence_lost, a_state_breaks_away, the_reach_is_partitioned (deeds). What is decided is decided on the Senate screen's standing view.",
+  "events": [
+    {
+      "id": "the_declaration",
+      "tier": "situation",
+      "weight": 70,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "declared_independence",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "read_it_in_every_square",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the declaration read aloud on every world that had gone with the house, on the same day. By evening there was no pretending it had not happened."
+            }
+          ]
+        },
+        {
+          "id": "send_it_to_the_capital_first",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the declaration to the capital before it was read at home, so that nobody there could say they had not been told to their faces."
+            }
+          ]
+        },
+        {
+          "id": "say_as_little_as_possible",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the fact speak. The tithe stopped going to the capital, and the capital's writ stopped at the border. Nothing else was announced."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "they_let_you_go",
+      "tier": "situation",
+      "weight": 70,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "let_go_by_the_reach",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_it_as_a_gift",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the Reach's silence for what it was and did not ask it to be explained. A state that begins without a war has been given something most states never get."
+            }
+          ]
+        },
+        {
+          "id": "press_for_a_treaty",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent envoys to the capital to have it in writing. They came back with less than was asked and more than was expected."
+            }
+          ]
+        },
+        {
+          "id": "arm_anyway",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the fleets in order all the same. A government that is too tired to fight this year will not always be too tired."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_war_of_independence",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "war_of_independence",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "hold_what_you_have",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the order that mattered: nothing is to be risked that cannot be replaced. The Reach must come here and win. The state only has to still be standing."
+            }
+          ]
+        },
+        {
+          "id": "carry_it_to_them",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the fleets out to find the Reach's before they arrived. If the war can be won it will be won in their space, not over these worlds."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_they_would_take",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known through a third house that terms might be discussed. The capital answered that there was nothing to discuss with a province. It was still an answer."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "independence_is_won",
+      "tier": "situation",
+      "weight": 80,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "independence_won",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "be_generous_in_it",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the Reach's prisoners home without ransom and proposed open lanes. The treaty was the easier for it."
+            }
+          ]
+        },
+        {
+          "id": "hold_them_to_every_line",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave nothing that was not in the treaty and took everything that was. The Reach signed. It will remember how."
+            }
+          ]
+        },
+        {
+          "id": "go_home_to_what_was_fought_for",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} left the envoys to finish it and went home. There is a state to run now, which is a different thing from a war to win."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_state_falls",
+      "tier": "situation",
+      "weight": 80,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "independence_lost",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "answer_for_it_yourself",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to the capital in person and answered for it. The houses that had followed were treated the more lightly for that."
+            }
+          ]
+        },
+        {
+          "id": "blame_the_times",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be said that the house had only done what the times forced on it. A few believed it. The fine was the same."
+            }
+          ]
+        },
+        {
+          "id": "keep_the_flag",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the state's colours folded and put away, not burned. They are in a chest in the house. They are not forgotten."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "you_need_not_kneel",
+      "tier": "situation",
+      "weight": 60,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "may_refuse_the_throne",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_you_will_think_on_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the new throne a courteous letter that promised nothing, and began counting the worlds and the houses that could be relied on."
+            }
+          ]
+        },
+        {
+          "id": "kneel_and_have_done",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to the capital and knelt with the rest. The house keeps its worlds. It was not what it had fought for."
+            }
+          ]
+        },
+        {
+          "id": "sound_out_the_region",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent quiet word to every house of the region, asking nothing yet. Most of the answers were careful. Careful is not no."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_state_breaks_away",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "a_state_breaks_away",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_it_cannot_stand",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the chamber that a Reach which lets one region go will be asked for the next. It was the popular thing to say in the capital."
+            }
+          ]
+        },
+        {
+          "id": "say_let_them_go",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said, where it would be heard, that people who do not want to be governed from the capital are expensive to govern. Some of the rim houses took note of who had said it."
+            }
+          ]
+        },
+        {
+          "id": "send_them_a_private_word",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a private message of no particular content to the new state's ruler. It is as well to be on speaking terms with a neighbour, whatever comes of it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_partition",
+      "tier": "situation",
+      "weight": 60,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "the_reach_is_partitioned",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_it_a_peace",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called it a peace and meant it. A smaller Reach that is not at war is better than the one there was last year."
+            }
+          ]
+        },
+        {
+          "id": "call_it_a_wound",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said in the chamber that the Reach had been cut and would not heal crooked. It was applauded. Nobody proposed doing anything."
+            }
+          ]
+        },
+        {
+          "id": "mark_the_new_border",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the house's lanes toward the new border watched. Borders that are a year old are where things happen."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -120,7 +120,8 @@ The head of a house may march its general on the capital when all of these hold:
 - the house does not itself hold the capital;
 - **four hulls** or more would follow the general before the house;
 - the general's sway is **40** or more;
-- the Senate has given a **cause** in the last five years: a recall, a triumph refused, or a censure.
+- the Senate has given a **cause** in the last five years: a recall, a triumph refused, or a censure. Having crushed
+  all resistance in the War of the Reach (docs/BREAKAWAY.md) also counts: the Reach is in the house's hands.
 
 Then:
 

@@ -219,6 +219,7 @@ three orders of the Republic (`REPUBLIC`).
 | **Personal wealth** | §14, §17 | ✅ | A purse for every grown member of the house, the allowance, debts, heirlooms, a will, and the estate kept whole or shared out. See `docs/WEALTH.md`. |
 | **Ambitions** | §18 | ✅ | The people of the house pursue what they want by themselves and ask the head for help now and then; a named heir. See `docs/AMBITIONS.md`. |
 | **A life of one's own** | §14, §18 | ✅ | Health and wounds, a record of deeds, renown and a name, old friends and enemies, retirement, funerals. See `docs/LIFE.md`. |
+| **Breaking away** | §10, §19 | ✅ (first stage) | A house that controls a region founds its own state; the Reach lets it go or fights a war of independence; the great war ends by crushing, partition or exhaustion. See `docs/BREAKAWAY.md`. |
 | **The Caesar road** | §6, §10 | ✅ | Crews that follow their commander, a general's sway, triumph and recall by Senate vote, crossing the line, a civil war with sides, the Republic ended or the general broken. See `docs/CAESAR.md`. |
 | **The ladder of offices** | §6.1 | ✅ | Quaestor, aedile and praetor below the consulship, held by people and filled by election; a consul must have been praetor; relatives stand for themselves. See `docs/LADDER.md`. |
 | **Stress** | §18 | ✅ (thin) | Stress bleeds off slowly each year; at the ceiling the character *breaks* (a `broken` flag + `breakdowns` counter) and the authored *Breaking Point* set-piece decides what stands up afterward. |
@@ -253,7 +254,7 @@ three orders of the Republic (`REPUBLIC`).
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 594 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
+**Verification:** 602 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
 round-trip that must reproduce an uninterrupted run; both content validators clean; every start auto-plays sixty turns
 across several seeds with a randomised player. The content counts in the table above are from the first release; the
 current ones (261 events, 9 scenarios, 31 systems) are in `docs/ROADMAP.md`.

@@ -168,7 +168,7 @@ internal static class Qa
     }
 
     private static readonly IRng NoRng = new SplitMix64Rng(0);
-    private static readonly string[] CaesarKeys = { "triumphs_voted", "recalls_voted", "civil_wars", "republics_ended", "caesars_broken" };
+    private static readonly string[] CaesarKeys = { "triumphs_voted", "recalls_voted", "civil_wars", "republics_ended", "caesars_broken", "polities_founded", "polities_recognised", "polities_dissolved" };
 
     /// <summary>One soak run. The player picks a random affordable choice (or skips one in five) from a decision stream seeded
     /// off the world seed, so a replay repeats the same decisions.</summary>
@@ -314,6 +314,10 @@ internal static class Qa
             cands.Add(new MarriageCommand(p.Id, p.Id, MarriageCommand.Tend));
             if (decisions.NextInt(0, 25) == 0) foreach (var mm in w.Marriages.Where(mm => w.Char(mm.A)?.HouseId == house.Id || w.Char(mm.B)?.HouseId == house.Id).OrderBy(mm => mm.A, StringComparer.Ordinal).Take(1))
                 cands.Add(new MarriageCommand(p.Id, w.Char(mm.A)?.HouseId == house.Id ? mm.A : mm.B, MarriageCommand.Divorce));
+        }
+        {   // breaking away: declare a region independent, rarely; in the great war, ask for a partition
+            if (decisions.NextInt(0, 12) == 0) foreach (var rg in PolitySystem.RegionsOf(w, house).Take(2)) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Declare, rg.Id, PolitySystem.Forms[decisions.NextInt(0, PolitySystem.Forms.Length)], tc.Polities));
+            if (decisions.NextInt(0, 6) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.SeekPartition, "", "", tc.Polities));
         }
         {   // the Caesar road: answer a recall, cross the line, declare in another's war, pay the crews
             if (decisions.NextInt(0, 2) == 0) cands.Add(new CaesarCommand(p.Id, CaesarCommand.Obey, "", tc.Caesar));

@@ -15,8 +15,8 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 594 |
-| Events with text | 319 in 33 files |
+| Automated tests | 602 |
+| Events with text | 327 in 34 files |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
@@ -42,6 +42,7 @@ deterministic and saves and loads.
 | The economy | Prices that follow war and scarcity; ventures bought and sold; building over years; companies, shares, dividends, takeovers; war bonds; the Senate's and throne's hand on the market | `ECONOMY_MARKET` |
 | A life of one's own | Health and wounds, a record of what each person did, renown and a name, old friends and enemies, retirement, funerals | `LIFE` |
 | The ladder of offices | Quaestor, aedile and praetor below the consulship, held by people and filled by election every fifth year; a consul must be forty and have been praetor; relatives stand for themselves | `LADDER` |
+| Breaking away (first stage) | A house that controls a region founds a state of its own (republic, dictatorship or kingdom); a weary Reach lets it go, another fights a war of independence with no fixed end; houses that fought a new throne need not kneel. The great war lasts ten years at least and ends by crushing, partition or exhaustion | `BREAKAWAY` |
 | The Caesar road | Crews that follow the commander who wins with them; a general's sway; triumph and recall voted by the Senate; crossing the line, a civil war in which the houses declare, and the Republic ended or the general broken. Another house's general marches only through three gates (first rank, loved, the times); the great war no longer makes an emperor | `CAESAR` |
 | Ambitions | The people of the house go after what they want by themselves, ask the head for help now and then, and succeed or are thwarted; a named heir | `AMBITIONS` |
 | Personal wealth | A purse for every grown member of the house, the allowance, what they do with their own money, debts, heirlooms, the will, and the estate kept whole or shared out | `WEALTH` |
@@ -168,7 +169,8 @@ the only real constraint on sequence. Each line is roughly one cycle of work (bu
 
 | Work | What it delivers | Ties to |
 |---|---|---|
-| **Secession** | A region, or only your own worlds in it, leaves the Republic or the Imperium and becomes a state of its own with you at its head, as the Rim left the Society in *Red Rising*. It can be planned across generations or done in a decade by a house strong enough. You must be able to stand alone first: an economy that feeds itself or has something the rest cannot do without, and a fleet of your own. Then, almost always, a civil war for it. Sketch below. Needs its own plan; several cycles. | The economy (what a domain makes and needs; a monopoly as leverage). Military depth (supply, loyalty). The Caesar road (a civil war with sides). Nations on the map (a second state with a border). Politics under a throne (how an Emperor answers). Marriage and patronage (binding the region's houses). |
+| **Breaking away, the rest** | Built, first stage: docs/BREAKAWAY.md (a house that controls a region founds a state; the Reach lets it go or fights; a war of independence with no fixed end; refusing a new throne; the great war ends by crushing, partition or exhaustion after ten years at least). Left: how each form of state is governed; a state on the map and as a neighbour (treaties, reconquest, rejoining); more than one region; standing alone as a test (an economy that feeds itself, a monopoly the Reach needs); working on a region's houses to bring them over; a multi-generation plan. The sketch below still stands for those. | Nations on the map. The economy (what a domain makes and uses). Politics under a throne (a new Caesar's own temper). |
+| **What sets off the great war** | Today a clock starts it. The owner wants its triggers looked at again: it should come out of what is happening in the Reach, not out of the calendar. | The times (docs/CAESAR.md) already measure what is wrong with the Republic. |
 
 **The economy**
 
@@ -200,8 +202,9 @@ Short on purpose. Each needs a proper plan before it is built. "Today" is what t
 The sketches for love and marriage and for education have been built: see docs/MARRIAGE.md and docs/EDUCATION.md.
 
 **Secession: breaking away from the Republic or the Imperium**
-- *Today*: the Reach has ten regions of three or four systems, and each house's worlds sit in one or two of them. Wars
-  are between houses. Nothing can leave the state, and the only other powers are the nations beyond the map.
+- *Built so far* (docs/BREAKAWAY.md): a house that controls a region can take it out as a republic, a dictatorship or a
+  kingdom; the Reach lets it go or fights a war of independence; a state can also come out of the great war by partition.
+  What follows is the fuller plan, most of which is still to build.
 - *The aim*: you take a region out of the state and rule it. It works under either government.
 - **Standing alone comes first.** A panel shows, for the domain you propose to take out, whether it could live by itself:
   - *Economy*: what the domain makes of each good against what it uses. A shortfall must be bought, so the domain needs

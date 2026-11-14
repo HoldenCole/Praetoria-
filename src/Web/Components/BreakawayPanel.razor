@@ -1,0 +1,90 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var ps = G.Turn!.Polities; var gc = G.Turn.GreatCrisis;
+    var own = PolitySystem.Of(w, house.Id); var others = w.Polities.Where(x => x != own).OrderBy(x => x.Since).ToList();
+    var regions = own == null ? PolitySystem.RegionsOf(w, house) : new();
+    bool greatWar = CaesarSystem.GreatWar(w); int warYears = GreatCrisisSystem.WarYears(w); string? ending = greatWar ? gc.Ending(w) : null;
+    string warLine = !greatWar ? "" : "The War of the Reach is in its " + Ordinal(warYears + 1) + " year. It will not end before the " + Ordinal(GreatCrisisSystem.MinWarYears) + ", and then only when one side is crushed, a side that cannot win takes a region out of the Reach, or both are spent. Holding the capital is winning, not having won. "
+        + (warYears < GreatCrisisSystem.MinWarYears ? "" : ending == null ? "As things stand it goes on." : "As things stand it would end " + EndingSays(ending) + ".");
+    string? noPartition = greatWar && own == null ? new SecessionCommand(pid, SecessionCommand.SeekPartition, "", "", ps).Refusal(G.Ctx) : "not now";
+    string ownLine = "", ownWar = "";
+    if (own != null)
+    {
+        var ruler = w.House(own.HeadHouseId); var head = ruler != null ? Economy.HeadOf(w, ruler) : null; bool rule = own.HeadHouseId == house.Id;
+        ownLine = (rule ? "You are " + PolitySystem.RulerStyle(own.Form, head) + " of " : "Your house is of ") + own.Name + ", " + PolitySystem.FormName(own.Form) + ", since year " + own.Since + ". "
+            + (rule ? "" : (head?.Name ?? ruler?.Name) + " is its " + PolitySystem.RulerStyle(own.Form, head) + ". ")
+            + "Its houses: " + string.Join(", ", own.Members.Select(id => id == house.Id ? "yours" : w.House(id)?.Name ?? id)) + ". It has no seat in the Senate and answers to nobody.";
+        if (own.Recognised == 0)
+        {
+            int will = PolitySystem.Will(w, own), share = PolitySystem.Share(w, own), lead = PolitySystem.Standing(w, own), years = w.Turn - own.WarSince;
+            ownWar = "The Reach has not accepted it. " + string.Join(", ", own.Foes.Select(id => w.House(id)?.Name ?? id)) + " are at war to bring it back, " + years + " year(s) now. "
+                + "Its houses hold " + share + "% of the region (lose it below " + PolitySystem.LostShare + "% and the state is finished). The war stands at " + (lead > 0 ? "+" : "") + lead + ". "
+                + (will <= 0 ? "The Reach has no will left for it" : "The Reach's will for it is " + will + ", and falls by one every " + PolitySystem.TemperFallsEvery + " years")
+                + ": hold more than half the region for " + PolitySystem.WinYears + " years and outlast or beat them, and they make peace.";
+        }
+    }
+}
+<section class="panel breakaway">
+    <h3><Icon Name="galaxy" Size="13" /> Breaking away</h3>
+    @if (own != null)
+    {
+        <div class="small">@ownLine</div>
+        @if (ownWar.Length > 0) { <div class="caesar-recall"><b>A war of independence.</b> <div class="muted small">@ownWar</div></div> }
+        else { <div class="muted small">The Reach named it in a treaty in year @own.Recognised. How it is governed is yours to settle; that part of the game is still to come.</div> }
+    }
+    else
+    {
+        <div class="muted small">A house that controls a region may take it out of @(w.IsImperium ? "the Imperium" : "the Republic") and found a state of its own: a republic, a republic under one hand, or a kingdom. It must hold a quarter of the region's worlds itself, and three in five with the houses there that would follow it. Whether the Reach fights for it depends on its temper. You may also declare with what you have and fight for as long as you can.</div>
+        @if (greatWar) { <div class="caesar-recall"><b>The great war.</b> <div class="muted small">@warLine</div>
+            <div class="suit-acts"><button class="opt inline" disabled="@(noPartition != null)" title="@(noPartition ?? PartitionTip)" @onclick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.SeekPartition, string.Empty, string.Empty, ps))">Let it be known you would take a region as the price of peace</button></div></div> }
+        @if (regions.Count == 0) { <div class="muted small">The house holds no world.</div> }
+        @foreach (var r in regions.Take(4))
+        {
+            string rid = r.Id; var (mine, with, total, backers) = PolitySystem.Control(w, house, r.Id); var (temper, why) = ps.Temper(w, house, r.Id);
+            string? no = new SecessionCommand(pid, SecessionCommand.Declare, rid, _form, ps).Refusal(G.Ctx);
+            string holdLine = "You hold " + mine + " of its " + total + " worlds" + (backers.Count > 0 ? "; with " + string.Join(", ", backers.Select(b => b.Name)) + ", " + with : "; nobody else there would follow you") + ".";
+            string temperLine = (temper <= 0 ? "The Reach would let it go" : "The Reach would fight for it (will " + temper + ")") + (why.Count > 0 ? ": " + string.Join("; ", why) + "." : ".");
+            <div class="rung-row">
+                <div><b>@r.Name</b> <span class="muted small">@r.Ring</span></div>
+                <div class="small">@holdLine</div>
+                <div class="muted small">@temperLine</div>
+                <div class="suit-acts">
+                    @if (_confirm == rid) { <button class="opt inline veto" @onclick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Declare, rid, _form, ps)); }">Yes: declare @PolitySystem.NameFor(_form, r.Name)</button> <button class="opt inline" @onclick="() => _confirm = string.Empty">No</button> }
+                    else { <button class="opt inline" disabled="@(no != null)" title="@(no ?? DeclareTip)" @onclick="() => _confirm = rid">Declare independence</button> }
+                    @if (no != null) { <span class="muted small">@Cap(no).</span> }
+                </div>
+            </div>
+        }
+        @if (regions.Count > 0)
+        {
+            <div class="suit-acts">
+                <span class="muted small">As:</span>
+                @foreach (var f in PolitySystem.Forms) { string form = f; <button class="opt inline tiny @(_form == form ? Chosen : string.Empty)" @onclick="() => _form = form">@Cap(PolitySystem.FormName(form))</button> }
+            </div>
+        }
+    }
+    @if (others.Count > 0)
+    {
+        <div class="hh-head"><b>States that have left the Reach</b></div>
+        @foreach (var o in others)
+        {
+            string line = Cap(o.Name) + ", " + PolitySystem.FormName(o.Form) + " under " + (w.House(o.HeadHouseId)?.Name ?? o.HeadHouseId) + ", since year " + o.Since + (o.Recognised > 0 ? "" : ", still fighting for it") + ".";
+            <div class="small">@line</div>
+        }
+    }
+</section>
+
+@code {
+    private string _form = PolitySystem.Republic, _confirm = "";
+    private const string Chosen = "on";
+    private const string DeclareTip = "The house leaves the Senate, its offices and its party, and takes the region and the houses that would follow. If the Reach will fight, it is war until it tires, is beaten, or takes the region back.";
+    private const string PartitionTip = "If your side cannot win the great war but holds a region, the peace will leave it to you as a state of your own. Without this the war goes on and your house stays in the Reach.";
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private static string Ordinal(int n) => n + (n % 100 is >= 11 and <= 13 ? "th" : (n % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" });
+    private static string EndingSays(string e) => e switch { GreatCrisisSystem.Crushed => "with one side crushed", GreatCrisisSystem.PartitionEnd => "in a partition", GreatCrisisSystem.Exhaustion => "in exhaustion", _ => "with the capital held" };
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

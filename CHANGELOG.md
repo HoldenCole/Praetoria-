@@ -16,6 +16,12 @@
   `tools/ci.sh` now runs CI's exact steps locally.
 
 ### Changed
+- **How the great war ends.** It now lasts **ten years at the least**, whatever its clock says. **Holding the
+  capital is winning, not having won:** the other side fights on. After the tenth year it ends when one side is
+  **crushed** (a tenth of the victor's hulls or less, and the victor holds the capital), by **partition** (a losing
+  side that holds a region keeps it as a state of its own), or by **exhaustion** (sixteen years, or both sides at half
+  the hulls they began with). The player's house is never taken out of the Reach for it: you ask for a partition, or
+  you fight on.
 - **The Republic stands unless the player ends it** (docs/PROCESS.md, the owner's rule of 2026-11-14).
   - **The War of the Reach no longer makes an emperor.** It used to end the Republic in about two games of three,
     around year 28 to 40. It is still fought and won; the victor gains legitimacy, glory and rank; the Senate still
@@ -55,6 +61,14 @@
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **Breaking away** (docs/BREAKAWAY.md), on the Senate screen under Your standing. A house that holds a quarter of
+  a region's worlds, and three in five with the houses there that would follow it, may take the region out of the
+  Reach as **a republic, a republic under one hand, or a kingdom**. Whether the Reach fights depends on its
+  **temper**: one that has just fought a great war, faces a strong breakaway, or would have to reach the rim lets it
+  go. Otherwise it is a **war of independence with no fixed end**: the state is recognised when it has held the
+  region and outlasted or beaten the Reach, and brought back if it loses the region or the field. You may declare with
+  one ship and fight for as long as you can. A house that fought a general who then took the throne **need not
+  kneel**. Eight events, `tools/browser/breakaway.js`.
 - **The Caesar road** (docs/CAESAR.md), on the Military screen. Crews come to follow the commander who wins with them
   (**devotion**, beside loyalty to the house), and a commander's victories, crews, triumphs and rank make up his
   **sway**. The Senate may vote a general a **triumph** after three victories, or **recall** one with sway. A recalled

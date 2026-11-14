@@ -23,6 +23,49 @@ public sealed class GreatCrisisSystem
     private readonly GreatCrisisDef? _def;
     private readonly FleetSystem _fleets;
     public GreatCrisisSystem(GreatCrisisDef? def, FleetSystem fleets) { _def = def; _fleets = fleets; }
+    /// <summary>Breakaway states (docs/BREAKAWAY.md): a side that cannot win but holds a region may keep it at the peace.</summary>
+    public PolitySystem? Polities { get; set; }
+    /// <summary>The war lasts ten years at the least, turns on its last battles no sooner than the sixth, and is forced to a peace at twenty.</summary>
+    public const int MinWarYears = 10, ClimaxYears = 6, ExhaustionYears = 16, MaxWarYears = 20;
+    public const string BeganKey = "great_war_began", StartHullsKey = "great_war_hulls", PartitionWishFlag = "seek_partition";
+    public const string Crushed = "crushed", Held = "held", PartitionEnd = "partition", Exhaustion = "exhaustion";
+    public static int WarYears(World w) => w.WorldCounters.TryGetValue(BeganKey, out int t) ? w.Turn - t : 0;
+    private static int Hulls(World w, string bloc) => w.Houses.Values.Where(h => h.Bloc == bloc).Sum(h => FleetSystem.StrengthOf(w, h.Id));
+    private static bool HoldsCapital(World w, string bloc)
+    {
+        if (w.Galaxy is not { Capital.Length: > 0 } g) return true;
+        if (w.PlanetHolder(g.Capital) is { } holder && w.House(holder)?.Bloc == bloc) return true;
+        return w.Fleets.Values.Any(f => !f.Moving && f.SystemId == g.Capital && f.Strength >= 2 && w.House(f.OwnerId)?.Bloc == bloc);
+    }
+    /// <summary>A region the losing side could keep: not the capital's, three in five of its worlds held by houses of that side. With the
+    /// house of that side that holds most of it.</summary>
+    private (string regionId, House leader)? Refuge(World w, string bloc)
+    {
+        if (w.Galaxy == null || Polities == null) return null; string capitalRegion = w.Galaxy.System(w.Galaxy.Capital)?.RegionId ?? "";
+        foreach (var r in w.Galaxy.Regions.Where(r => r.Id != capitalRegion && PolitySystem.OfRegion(w, r.Id) == null).OrderBy(r => r.Id, StringComparer.Ordinal))
+        {
+            var worlds = w.Holdings.Values.Where(h => h.IsPlanet && w.Galaxy.System(h.SystemId)?.RegionId == r.Id).ToList(); if (worlds.Count == 0) continue;
+            var theirs = worlds.Where(h => w.House(h.OwnerId)?.Bloc == bloc).ToList();
+            if (theirs.Count * 100 < PolitySystem.ControlShare * worlds.Count) continue;
+            var leader = theirs.GroupBy(h => h.OwnerId).OrderByDescending(x => x.Count()).ThenBy(x => x.Key, StringComparer.Ordinal).Select(x => w.House(x.Key)).First()!;
+            // the player's own house is not taken out of the Reach for them: they ask for it, or it does not happen
+            if (leader.Id == w.Protagonist?.HouseId && !w.HasFlag(PartitionWishFlag)) continue;
+            return (r.Id, leader);
+        }
+        return null;
+    }
+
+    /// <summary>How the war would end if it ended now, or null if it goes on. Holding the capital is winning, not having won: the
+    /// other side fights on from where it stands until it is crushed, takes a region out of the Reach, or both are spent.</summary>
+    public string? Ending(World w)
+    {
+        int h = Hulls(w, HegemonBloc), a = Hulls(w, AllianceBloc); string winning = h >= a ? HegemonBloc : AllianceBloc, losing = h >= a ? AllianceBloc : HegemonBloc;
+        int win = Math.Max(h, a), lose = Math.Min(h, a), years = WarYears(w);
+        if (win > 0 && lose * 10 <= win && HoldsCapital(w, winning)) return Crushed;   // all resistance: a tenth of the victor's hulls or less is not a fleet
+        if (win * 4 >= lose * 5 && Refuge(w, losing) != null) return PartitionEnd;
+        if (years >= ExhaustionYears || (w.Counter(StartHullsKey) > 0 && (h + a) * 2 <= w.Counter(StartHullsKey))) return Exhaustion;
+        return years >= MaxWarYears ? Exhaustion : null;
+    }
     public GreatCrisisDef? Def => _def;
     public bool IsEmpty => _def == null || _def.Stages.Count == 0;
 
@@ -48,6 +91,10 @@ public sealed class GreatCrisisSystem
         int stage = w.WorldCounters.TryGetValue(StageCounter, out var s) ? s : -1;
         while (stage + 1 < _def.Stages.Count && w.Counter(ClockCounter) >= _def.Stages[stage + 1].At)
         {
+            // the war is not over because the clock says so: it runs ten years at the least, and then until something ends it
+            string next = _def.Stages[stage + 1].Behavior;
+            if (next == "climax" && w.WorldCounters.ContainsKey(BeganKey) && WarYears(w) < ClimaxYears) break;
+            if (next == "resolution" && w.WorldCounters.ContainsKey(BeganKey) && (WarYears(w) < MinWarYears || Ending(w) == null)) break;
             stage++;
             w.WorldCounters[StageCounter] = stage;
             Enter(w, rng, _def.Stages[stage]);
@@ -74,7 +121,7 @@ public sealed class GreatCrisisSystem
     /// sides through the <c>joinBloc</c> effect.</summary>
     public void FormBlocs(World w)
     {
-        var houses = w.Houses.Values.OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var houses = w.Houses.Values.Where(h => PolitySystem.InReach(w, h.Id)).OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
         if (houses.Count < 2) return;
         var hegemon = houses[0];
         var hegemonHead = w.LivingCharacters().Where(c => c.HouseId == hegemon.Id).OrderBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
@@ -99,6 +146,7 @@ public sealed class GreatCrisisSystem
         var a = w.Houses.Values.Where(h => h.Bloc == HegemonBloc).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
         var b = w.Houses.Values.Where(h => h.Bloc == AllianceBloc).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
         if (a.Count == 0 || b.Count == 0) return;
+        w.WorldCounters[BeganKey] = w.Turn; w.WorldCounters[StartHullsKey] = Hulls(w, HegemonBloc) + Hulls(w, AllianceBloc);
         var hegemon = a.OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).First();
         foreach (var y in b) _fleets.DeclareWar(w, hegemon.Id, y.Id);
         var others = a.Where(h => h.Id != hegemon.Id).ToList();
@@ -116,47 +164,52 @@ public sealed class GreatCrisisSystem
     /// legitimacy, glory and rank, and the Republic is shaken for years; nobody is enthroned.</summary>
     public void Resolve(World w)
     {
-        int hegemonHulls = w.Houses.Values.Where(h => h.Bloc == HegemonBloc).Sum(h => FleetSystem.StrengthOf(w, h.Id));
-        int allianceHulls = w.Houses.Values.Where(h => h.Bloc == AllianceBloc).Sum(h => FleetSystem.StrengthOf(w, h.Id));
-        string winning = hegemonHulls >= allianceHulls ? HegemonBloc : AllianceBloc;
+        int hegemonHulls = Hulls(w, HegemonBloc), allianceHulls = Hulls(w, AllianceBloc);
+        string winning = hegemonHulls >= allianceHulls ? HegemonBloc : AllianceBloc, losing = winning == HegemonBloc ? AllianceBloc : HegemonBloc;
+        int winHulls = Math.Max(hegemonHulls, allianceHulls), loseHulls = Math.Min(hegemonHulls, allianceHulls);
+        bool decisive = winHulls > 0 && winHulls >= (int)Math.Ceiling(loseHulls * 1.25), capital = HoldsCapital(w, winning);
+        string ending = Ending(w) ?? (decisive && capital ? Held : Exhaustion);
+        var refuge = ending == PartitionEnd ? Refuge(w, losing) : null; var losers = w.Houses.Values.Where(h => h.Bloc == losing).ToList();
         foreach (var war in w.Wars.ToList()) _fleets.MakePeace(w, war.HouseA, war.HouseB, terms: false);   // the great peace is one settlement, not forty cessions
         var victor = w.Houses.Values.Where(h => h.Bloc == winning).OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
-        w.WorldFlags.Add(ResolvedFlag);
-        w.WorldFlags.Add($"great_crisis:won:{winning}");
-        var player = w.Protagonist?.HouseId;
+        // the first house of the winning side is the one that sits in the capital, if one does
+        if (victor != null && w.Galaxy is { Capital.Length: > 0 } cap && w.PlanetHolder(cap.Capital) is { } ch && w.House(ch) is { } holder && holder.Bloc == winning) victor = holder;
+        w.WorldFlags.Add(ResolvedFlag); w.WorldFlags.Add($"great_crisis:won:{winning}"); w.WorldFlags.Add("great_crisis:ended:" + ending);
+        var player = w.Protagonist?.HouseId; int years = WarYears(w);
         if (player != null) w.WorldFlags.Add(w.House(player)?.Bloc == winning ? "great_crisis:player_won" : "great_crisis:player_lost");
-        // a throne is taken, not awarded: the field must be won decisively (hulls at five to four) and the victor's bloc must hold
-        // the capital, or the victor's fleet its orbit (GDD §19) — otherwise the war ends in exhaustion and no one is crowned
-        int winHulls = winning == HegemonBloc ? hegemonHulls : allianceHulls, loseHulls = winning == HegemonBloc ? allianceHulls : hegemonHulls;
-        bool decisive = winHulls > 0 && winHulls >= (int)Math.Ceiling(loseHulls * 1.25);
-        // the throne stands in the capital: it goes to the winning bloc's house that holds the capital's world, or to the victor
-        // whose fleet holds its orbit — never to a strongest house that was somewhere else when the war ended
-        House? crowned = null;
-        if (victor != null && w.Galaxy is { Capital.Length: > 0 } cap)
-        {
-            var holder = w.PlanetHolder(cap.Capital) is { } ch ? w.House(ch) : null;
-            if (holder != null && holder.Bloc == winning) crowned = holder;
-            else if (w.Fleets.Values.Any(f => f.OwnerId == victor.Id && !f.Moving && f.SystemId == cap.Capital && f.Strength >= 2)) crowned = victor;
-        }
-        else crowned = victor;
         w.WorldCounters[CaesarSystem.GreatWarEndedKey] = w.Turn;   // the Republic is shaken by it for years (docs/CAESAR.md, the times)
-        // The owner's rule (docs/PROCESS.md, 2026-11-14): the Republic stands unless the player ends it. The War of the Reach is won
-        // and lost, but it does not hand anyone a throne. A house that wants one must take it: by the Caesar's road, or by force.
-        if (crowned != null && w.Era != "imperium" && crowned.Title != Progression.Title.Emperor && decisive)
+        // The owner's rule (docs/PROCESS.md): the Republic stands unless the player ends it. Nobody is handed a throne. A house that has
+        // crushed all resistance holds the Reach, and what it does with it is its own to decide: by the Caesar's road, or by force.
+        void Raise(House h, int legitimacy, int glory)
         {
-            crowned.Legitimacy = Math.Min(100, crowned.Legitimacy + 10); crowned.Glory = Math.Min(12, crowned.Glory + 4);
-            if (Progression.Title.RankOf(crowned.Title) < 4) crowned.Title = Progression.Title.Duke;
-            w.WorldFlags.Add("great_crisis:victor"); if (crowned.Id == player) w.WorldFlags.Add("great_crisis:player_holds_the_reach");
-            w.Log($"The War of the Reach ends with {crowned.Name} holding the field and the capital. The Senate still sits. Whether it goes on sitting is now a question people ask aloud.");
+            h.Legitimacy = Math.Min(100, h.Legitimacy + legitimacy); h.Glory = Math.Min(12, h.Glory + glory);
+            if (Progression.Title.RankOf(h.Title) < 4) h.Title = Progression.Title.Duke;
         }
-        else if (victor != null && w.Era != "imperium")
+        string after = years > 0 ? $" after {years} years" : "";
+        if (victor == null) w.Log($"The War of the Reach ends{after}. Nobody is left to say who won it.");
+        else if (ending == Crushed)
         {
-            w.WorldFlags.Add("great_crisis:stalemate"); w.WorldCounters["stalemates"] = w.Counter("stalemates") + 1;
-            if (Progression.Title.RankOf(victor.Title) < 4) victor.Title = Progression.Title.Duke;
-            victor.Legitimacy += 10;
-            w.Log($"The War of the Reach ends in exhaustion. {victor.Name} holds the field but {(decisive ? $"no one of the winning side holds {w.Galaxy?.System(w.Galaxy.Capital)?.Name ?? "the capital"}" : "not decisively enough")}; no one is crowned, and the Republic goes on.");
+            Raise(victor, 15, 5); w.WorldFlags.Add("great_crisis:victor"); w.WorldFlags.Add("great_crisis:crushed"); w.WorldCounters[CaesarSystem.ReachWonKey(victor.Id)] = w.Turn;
+            if (victor.Id == player) w.WorldFlags.Add("great_crisis:player_holds_the_reach");
+            w.Log($"The War of the Reach ends{after}. All resistance is crushed: {victor.Name} holds the capital and there is no fleet left that would dispute it. The Senate still sits, because {victor.Name} lets it.");
         }
-        else w.Log($"The War of the Reach ends. The {winning} bloc holds the field{(victor != null ? $"; {victor.Name} stands tallest" : "")}.");
+        else if (ending == PartitionEnd && refuge is { } r && Polities != null)
+        {
+            Raise(victor, 10, 4); w.WorldFlags.Add("great_crisis:victor"); w.WorldFlags.Add("great_crisis:partition");
+            w.Log($"The War of the Reach ends{after}. {victor.Name} holds the field, and cannot reach what is left of the other side.");
+            Polities.Partition(w, r.leader, r.regionId, losers);
+        }
+        else if (ending == Held)
+        {
+            Raise(victor, 10, 4); w.WorldFlags.Add("great_crisis:victor"); if (victor.Id == player) w.WorldFlags.Add("great_crisis:player_holds_the_reach");
+            w.Log($"The War of the Reach ends with {victor.Name} holding the field and the capital. The Senate still sits. Whether it goes on sitting is now a question people ask aloud.");
+        }
+        else
+        {
+            w.WorldFlags.Add("great_crisis:stalemate"); w.WorldCounters["stalemates"] = w.Counter("stalemates") + 1; Raise(victor, 10, 0);
+            w.Log($"The War of the Reach ends in exhaustion{after}. {victor.Name} holds the field but {(decisive ? "not the capital" : "not decisively enough")}; the fleets go home and nobody calls it a victory.");
+        }
+        w.WorldFlags.Remove(PartitionWishFlag);
         foreach (var h in w.Houses.Values) h.Bloc = "";
     }
 }

@@ -84,6 +84,8 @@
     foreach (var ask in Praetoria.Core.Systems.AmbitionSystem.Members(w, house).Where(x => x.Pursuit is { Request.Length: > 0 })) alerts.Add(("info", $"{ask.Name} {Praetoria.Core.Systems.AmbitionSystem.RequestSays(w, ask)}", "dynasty"));
     if (Praetoria.Core.Systems.LadderSystem.Active(w, G.Content!.Offices) && Praetoria.Core.Systems.LadderSystem.NextIn(w, G.Content.Offices) <= 2 && w.Protagonist is { } cand && !w.Candidacies.Any(x => x.CharacterId == cand.Id) && Praetoria.Core.Systems.LadderSystem.Next(w, G.Content.Offices, cand) is { } nextRung)
         alerts.Add(("info", $"You could stand for {nextRung.Name.ToLowerInvariant()}: the election is in {Praetoria.Core.Systems.LadderSystem.NextIn(w, G.Content.Offices)} year(s)", "senate"));
+    if (w.HasFlag(Praetoria.Core.Systems.PolitySystem.WarFlag)) alerts.Add(("warn", "Your state is at war for its independence: hold the region", "senate"));
+    else if (w.HasFlag(Praetoria.Core.Systems.PolitySystem.RefuseFlag)) alerts.Add(("warn", "You fought the one who now holds the throne, and you hold a region: you need not kneel", "senate"));
     if (w.Recalls.FirstOrDefault(r => r.HouseId == w.Protagonist?.HouseId) is { } recall)
         alerts.Add(("warn", $"The Senate has ordered {(recall.CharacterId == w.ProtagonistId ? "you" : w.Char(recall.CharacterId)?.Name)} home by year {recall.Deadline}: answer it", "military"));
     if (w.CivilWar is { } civil && w.Protagonist is { } cme)

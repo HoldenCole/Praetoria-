@@ -193,3 +193,22 @@ it, or, rarely, because a rival did and nobody stopped them.**
 
 Tests to apply to any new route to a throne: "does this fire without the player wanting it?" and "if a rival does it,
 can the player stand in the way?"
+
+## If it happened in history, the player should be able to do it
+
+Set by the owner on 2026-11-14.
+
+**The game should offer more ways through than one. If you can imagine a course of action and it is something that has
+really happened, there should be a way to try it.**
+
+- A house can refuse a new master and take its region out. It can do that with the government's leave, or against it,
+  or with nothing but its own fleet and the will to go on fighting.
+- A war does not end because one place fell. The capital is where the winner usually sits, and the other side can
+  fight on from wherever it still holds.
+- A state can be smaller than the one it left, and a different kind: a republic, a republic under one hand, a kingdom.
+- Outcomes depend on the temper of those involved as well as their strength. A government that has just fought a great
+  war may let a province go that it would have burned for ten years earlier.
+
+When designing anything with an ending, list the endings history offers and build as many as the system can carry.
+Prefer a condition the player can work toward over a clock, and prefer "you may try, and here is what stands against
+you" over "you may not".

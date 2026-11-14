@@ -1101,3 +1101,30 @@ one in 31, never both at once. 594 tests; the soak passes and no Republic fell i
 **Gaps that remain.** A rival Caesar was not seen at all in 60 runs, which is rarer than "once in ten" if the owner
 wants it met now and then; the knobs are named in docs/CAESAR.md. The player cannot make or mend the times. Of the
 fifteen events only *The Republic Falters* fired in the soak; the rest are proved by a scripted test.
+
+## 41. Breaking away, and how the great war ends — 2026-11-14
+
+The owner's direction, built as a first stage (docs/BREAKAWAY.md), with the principle written into docs/PROCESS.md:
+if it happened in history, the player should be able to do it.
+
+**What changed.**
+- States that have left the Reach are a thing in the world: a region, its houses, a form, a ruling house. A house in
+  one has left the Senate and the Reach's wars.
+- A house that controls a region may take it out. The Reach's temper decides whether it fights. A war of independence
+  has no fixed end.
+- Houses that fought a general who took the throne need not kneel.
+- The great war lasts ten years at least. The capital is winning, not won. It ends crushed, by partition or by
+  exhaustion.
+
+**Measured.** 602 tests. The soak passes; seven states were founded in it, six recognised, one brought back. Over 36 passive Republic runs the
+great war lasted 10 to 16 years and ended crushed in 16, exhausted in 16, partitioned in 4; the Republic stood in all.
+
+**Found on the way.** The first rule for "crushed" (a third of the victor's hulls) ended 29 wars of 36 at exactly the
+tenth year, which made the minimum the whole story. It is now a tenth. The Old Lion's house can declare in its first
+year because it opens holding two of three worlds of its region: allowed on purpose ("you can also just try"), and it
+is then at war with the four strongest houses in the Reach.
+
+**Gaps that remain.** The three forms of state differ only in name. A state is not drawn on the map and is not a
+neighbour (no treaties, reconquest or rejoining). Standing alone is not tested (no economy, no monopoly). You cannot
+work on a region's houses to bring them over. Other houses break away only by partition or to refuse a throne. What
+sets off the great war is unchanged. Five of the eight events did not fire in the soak and are proved by a test.

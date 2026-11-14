@@ -520,7 +520,8 @@ standing war, coalition pressure, fear). Each stage has `at` (clock tenths), `ef
 `behavior` the engine implements: `blocs` (sort houses by disposition toward the hegemon — the strongest house),
 `bloc_war` (every hegemon house vs every alliance house), `climax`, `resolution` (wars end; the bloc with more hulls
 wins and its strongest house gains legitimacy and rank, but no throne: the Republic stands unless the player ends
-it, docs/PROCESS.md; `great_crisis:victor` marks a decisive win). The engine raises `great_crisis:<stage>`,
+it, docs/PROCESS.md; the war lasts ten years at least and ends crushed, in a partition or in exhaustion, docs/BREAKAWAY.md;
+`great_crisis:ended:<how>` says which). The engine raises `great_crisis:<stage>`,
 `great_crisis:resolved`, `great_crisis:player_won` / `player_lost`; the `bloc` condition reads a house's side and the
 `joinBloc` effect changes the player's. A cosmic archetype from a later chapter is a new file with new behaviours (a "front" that
 advances from an edge system is the obvious next one).

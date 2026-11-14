@@ -298,3 +298,32 @@ public sealed class CaesarCommand : ICommand
         }
     }
 }
+
+/// <summary>Breaking away (docs/BREAKAWAY.md): the head of a house that controls a region takes it out of the Reach as a state of its
+/// own, or (in the great war) lets it be known that a partition would be accepted.</summary>
+public sealed class SecessionCommand : ICommand
+{
+    public const string Declare = "declare", SeekPartition = "seek_partition";
+    private readonly string _what, _regionId, _form; private readonly PolitySystem _polities;
+    public SecessionCommand(string actorId, string what, string regionId, string form, PolitySystem polities) { ActorId = actorId; _what = what; _regionId = regionId; _form = form; _polities = polities; }
+    public string ActorId { get; }
+    public string Describe() => $"{_what} {_regionId} {_form}".Trim();
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId); var house = head != null ? w.House(head.HouseId) : null;
+        if (head?.Alive != true || house == null || head.Id != w.ProtagonistId) return "no house";
+        return _what switch
+        {
+            Declare => _polities.DeclareRefusal(w, house, _regionId, _form),
+            SeekPartition => !CaesarSystem.GreatWar(w) ? "the Reach is not in its great war" : w.HasFlag(GreatCrisisSystem.PartitionWishFlag) ? "it is already known" : !PolitySystem.InReach(w, house.Id) ? "the house has left the Reach" : null,
+            _ => "no such thing"
+        };
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!;
+        if (_what == Declare) _polities.Declare(w, house, _regionId, _form);
+        else { w.WorldFlags.Add(GreatCrisisSystem.PartitionWishFlag); w.Log($"{house.Name} lets it be known that it would take a region of its own as the price of peace."); }
+    }
+}

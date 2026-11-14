@@ -16,6 +16,9 @@ public sealed class House
 
     public List<string> Members { get; set; } = new();
 
+    /// <summary>The breakaway state this house belongs to (docs/BREAKAWAY.md), or "" while it is of the Reach.</summary>
+    public string PolityId { get; set; } = "";
+
     /// <summary>Great-Crisis bloc (GDD §16): "hegemon", "alliance", or "" outside the war of the Reach.</summary>
     public string Bloc { get; set; } = "";
 

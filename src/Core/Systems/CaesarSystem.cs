@@ -39,6 +39,7 @@ public sealed class CaesarSystem
     public static string VictoryKey(string characterId) => "victories:" + characterId;
     public static string RefusedKey(string houseId) => "triumph_refused:" + houseId;
     public static string CensuredKey(string houseId) => "censured_at:" + houseId;
+    public static string ReachWonKey(string houseId) => "reach_won:" + houseId;
     public static string BarredKey(string characterId) => "no_command:" + characterId;
     public static string EnemyKey(string houseId) => "enemy_of_the_reach:" + houseId;
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
@@ -162,6 +163,7 @@ public sealed class CaesarSystem
     public string? TriumphRefusal(World w, House? target)
     {
         if (target == null || !Real(target)) return "no such house";
+        if (!PolitySystem.InReach(w, target.Id)) return $"{target.Name} is not of the Reach";
         if (w.IsImperium) return "under a throne honours are the throne's to give";
         if (w.CivilWar != null || GreatWar(w)) return "not while the Reach is at war with itself";
         var g = GeneralOf(w, target); if (g == null) return $"nobody of {target.Name} commands a fleet";
@@ -212,6 +214,7 @@ public sealed class CaesarSystem
     public string? RecallRefusal(World w, House? target)
     {
         if (target == null || !Real(target)) return "no such house";
+        if (!PolitySystem.InReach(w, target.Id)) return $"{target.Name} is not of the Reach";
         if (w.IsImperium) return "under a throne a general is dismissed, not recalled";
         if (w.CivilWar != null || GreatWar(w)) return "not while the Reach is at war with itself";
         var g = GeneralOf(w, target); if (g == null) return $"nobody of {target.Name} commands a fleet";
@@ -271,11 +274,13 @@ public sealed class CaesarSystem
     public static string? Grievance(World w, House house) =>
         w.Recalls.Any(r => r.HouseId == house.Id) ? "the Senate has recalled its general"
         : Within(w, RefusedKey(house.Id), GrievanceYears) ? "the Senate refused its general a triumph"
-        : Within(w, CensuredKey(house.Id), GrievanceYears) ? "the Senate censured the house" : null;
+        : Within(w, CensuredKey(house.Id), GrievanceYears) ? "the Senate censured the house"
+        : Within(w, ReachWonKey(house.Id), GrievanceYears) ? "the War of the Reach left the Reach in the house's hands" : null;
 
     public string? CrossRefusal(World w, House? house)
     {
         if (house == null || !Real(house)) return "no such house";
+        if (!PolitySystem.InReach(w, house.Id)) return "the house has left the Reach, and its capital is no longer the house's to march on";
         if (w.IsImperium) return "there is a throne already, and a throne is seized, not marched on";
         if (w.CivilWar != null || GreatWar(w)) return "the Reach is already at war with itself";
         if (w.Galaxy is not { Capital.Length: > 0 }) return "there is no capital to march on";
@@ -325,7 +330,7 @@ public sealed class CaesarSystem
             else f.Loyalty = Math.Max(0, f.Loyalty - 15);
         }
         w.Log($"{g.Name} of {house.Name} CROSSES THE LINE. {cause} The fleets that are {g.Name}'s turn toward {w.Galaxy?.System(w.Galaxy.Capital)?.Name ?? "the capital"}.");
-        foreach (var h in w.Houses.Values.Where(h => Real(h) && h.Id != house.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var h in w.Houses.Values.Where(h => Real(h) && h.Id != house.Id && PolitySystem.InReach(w, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             if (h.Id == mine) { if (chair?.Id == mine) cw.Declared[h.Id] = Senate; continue; }   // the player says for themselves, unless the throne stands on their world
             int s = SideScore(w, h, house, g);
@@ -404,6 +409,8 @@ public sealed class CaesarSystem
     {
         var house = w.House(cw.HouseId)!; var g = w.Char(cw.GeneralId); var mine = w.Protagonist?.HouseId; var ghead = Economy.HeadOf(w, house);
         Peace(w, cw); w.CivilWar = null; w.Recalls.Clear(); foreach (var c in w.Characters.Values) c.Flags.Remove(RecalledChar);
+        w.WorldCounters[PolitySystem.CivilWarEndedKey] = w.Turn;
+        foreach (var (id, side) in cw.Declared) if (side == Senate) w.WorldCounters[PolitySystem.OpposedKey(id)] = w.Turn;   // they need not kneel (docs/BREAKAWAY.md)
         ThroneSystem.Enthrone(w, house.Id, seized: true, byCharacterId: g?.Id);
         w.WorldFlags.Add(RepublicFallenFlag); w.WorldCounters["republics_ended"] = w.Counter("republics_ended") + 1;
         if (g != null) { g.Flags.Remove(CaesarChar); g.Flags.Add("first_emperor"); LifeSystem.Note(w, g, "throne", "Marched on the capital and ended the Republic."); }
@@ -426,7 +433,7 @@ public sealed class CaesarSystem
     public void Lose(World w, CivilWar cw, string why)
     {
         var house = w.House(cw.HouseId); var g = w.Char(cw.GeneralId); var mine = w.Protagonist?.HouseId; var sword = w.House(cw.SwordHouseId);
-        Peace(w, cw); w.CivilWar = null; w.WorldCounters["caesars_broken"] = w.Counter("caesars_broken") + 1;
+        Peace(w, cw); w.CivilWar = null; w.WorldCounters["caesars_broken"] = w.Counter("caesars_broken") + 1; w.WorldCounters[PolitySystem.CivilWarEndedKey] = w.Turn;
         w.Log($"The march on the capital is over: {why}. The Republic stands.");
         if (house != null)
         {
@@ -538,7 +545,7 @@ public sealed class CaesarSystem
     {
         var g = GeneralOf(w, house); var a = new List<House>(); var b = new List<House>(); if (g == null) return (a, b);
         var chair = RegionSystem.CapitalHolder(w);
-        foreach (var h in w.Houses.Values.Where(h => Real(h) && h.Id != house.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var h in w.Houses.Values.Where(h => Real(h) && h.Id != house.Id && PolitySystem.InReach(w, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             int s = SideScore(w, h, house, g);
             if (chair?.Id == h.Id || s <= -1) b.Add(h); else if (s >= 2) a.Add(h);

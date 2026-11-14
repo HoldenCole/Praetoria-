@@ -87,7 +87,7 @@ internal static class Probes
         var (content, scenarios) = Load(o); int seeds = Math.Max(1, Math.Min(o.Seeds, 10));
         foreach (var sid in scenarios)
         {
-            int triumphs = 0, recalls = 0, tMoved = 0, rMoved = 0, wars = 0, ended = 0, broken = 0, maxSway = 0, maxLaurels = 0, maxDevoted = 0, battles = 0, sawFirst = 0, sawLoved = 0, sawGreat = 0, sawTroubled = 0, sawReady = 0, sawWilling = 0, troubledYears = 0, years = 0; var throne = new List<string>();
+            int triumphs = 0, recalls = 0, tMoved = 0, rMoved = 0, wars = 0, ended = 0, broken = 0, maxSway = 0, maxLaurels = 0, maxDevoted = 0, battles = 0, sawFirst = 0, sawLoved = 0, sawGreat = 0, sawTroubled = 0, sawReady = 0, sawWilling = 0, troubledYears = 0, years = 0; var throne = new List<string>(); var greatWars = new List<string>(); int founded = 0, recognised = 0, dissolved = 0;
             for (ulong seed = 1; seed <= (ulong)seeds; seed++)
             {
                 var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), sid), seed); var tc = new TurnController(w, content);
@@ -108,11 +108,16 @@ internal static class Probes
                 if (Environment.GetEnvironmentVariable("CAESAR_DEBUG") != null)
                     foreach (var e in w.History.Where(e => e.Text.Contains("CROSSES") || e.Text.Contains("houses declare") || e.Text.Contains("march on the capital") || e.Text.Contains("SEIZES") || e.Text.Contains("lay down the command") || e.Text.Contains("lays down the command") || e.Text.Contains("rides in triumph") || e.Text.Contains("will not vote")))
                         Console.WriteLine($"   seed {seed} y{e.Turn}: {(e.Text.Length > 230 ? e.Text[..230] : e.Text)}");
+                if (w.HasFlag(GreatCrisisSystem.ResolvedFlag) && w.WorldCounters.TryGetValue(GreatCrisisSystem.BeganKey, out int began))
+                    greatWars.Add($"{w.Counter(CaesarSystem.GreatWarEndedKey) - began}y {w.WorldFlags.FirstOrDefault(f => f.StartsWith("great_crisis:ended:"))?["great_crisis:ended:".Length..]}");
+                else if (w.WorldCounters.ContainsKey(GreatCrisisSystem.BeganKey)) greatWars.Add($"{GreatCrisisSystem.WarYears(w)}y unfinished");
+                founded += w.Counter("polities_founded"); recognised += w.Counter("polities_recognised"); dissolved += w.Counter("polities_dissolved");
                 if (first) sawFirst++; if (loved) sawLoved++; if (great) sawGreat++; if (troubled) sawTroubled++; if (ready) sawReady++; if (willing) sawWilling++;
                 if (w.IsImperium) throne.Add($"y{w.History.FirstOrDefault(e => e.Text.Contains("THE THRONE") || e.Text.Contains("PROCLAIMS"))?.Turn}{(w.Counter("republics_ended") > 0 ? " by the road" : w.HasFlag(GreatCrisisSystem.ResolvedFlag) ? " by the great war" : "")}");
                 triumphs += w.Counter("triumphs_voted"); recalls += w.Counter("recalls_voted"); tMoved += w.Counter("triumphs_moved"); rMoved += w.Counter("recalls_moved"); wars += w.Counter("civil_wars"); ended += w.Counter("republics_ended"); broken += w.Counter("caesars_broken");
             }
             Console.WriteLine($"== {sid}: battles {battles} · most victories to one name {maxLaurels} · most devoted hulls {maxDevoted} · most sway {maxSway} · triumphs {triumphs} of {tMoved} moved · recalls {recalls} of {rMoved} moved · civil wars {wars} · the Republic fell {ended} · generals broken {broken} · a throne by: {(throne.Count == 0 ? "never" : string.Join(", ", throne))} (of {seeds} runs)");
+            Console.WriteLine($"   the great war, how long and how it ended: {(greatWars.Count == 0 ? "never fought" : string.Join(", ", greatWars))} · states that broke away {founded}, recognised {recognised}, brought back {dissolved}");
             Console.WriteLine($"   gates, in how many of {seeds} runs another house's general: was of the first rank {sawFirst} · was loved {sawLoved} · was both {sawGreat} · passed all three {sawReady} · and would march {sawWilling} · the Republic was troubled in {sawTroubled} runs, {(years == 0 ? 0 : 100 * troubledYears / years)}% of its years");
         }
         return 0;

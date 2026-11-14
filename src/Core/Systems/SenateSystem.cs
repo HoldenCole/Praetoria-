@@ -53,6 +53,7 @@ public sealed class SenateSystem
     private int WeightNow(World w, string houseId)
     {
         var h = w.House(houseId); if (h == null || houseId == PirateSystem.HouseId) return 0;
+        if (!PolitySystem.InReach(w, houseId)) return 0;   // a house that has left the Reach has left its Senate (docs/BREAKAWAY.md)
         int weight = h.SphereInfluence.GetValueOrDefault("senate") + _titles.RankOf(h.Title);
         var head = Economy.HeadOf(w, h); if (head is { CareerTrack: "law" } && head.CareerRank >= ProposerLawRank) weight += 1;
         weight += OfficeSystem.HeldBy(w, houseId).Sum(o => _offices.Def(o.OfficeId)?.Weight ?? 0);   // the Speaker's gavel
@@ -68,7 +69,7 @@ public sealed class SenateSystem
     /// <summary>May this house move a motion at all: a baron or better, or a head who is a Judge or better.</summary>
     public bool MayPropose(World w, string houseId)
     {
-        var h = w.House(houseId); if (h == null) return false;
+        var h = w.House(houseId); if (h == null || !PolitySystem.InReach(w, houseId)) return false;
         return Door(w, h) != null;
     }
 
@@ -495,7 +496,7 @@ public sealed class SenateSystem
     private bool Generals(World w, string? mine)
     {
         if (Caesar == null || w.IsImperium || w.CivilWar != null) return false;
-        bool Can(House h) => h.Id != mine && h.Id != PirateSystem.HouseId && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null;
+        bool Can(House h) => h.Id != mine && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null;
         if (_motions.Def("triumph") != null && !w.Motions.Any(m => m.Open && m.Kind == "triumph"))
         {
             var earned = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && Caesar.TriumphRefusal(w, h) == null).OrderByDescending(h => CaesarSystem.Laurels(w, CaesarSystem.GeneralOf(w, h)!)).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();

@@ -73,6 +73,7 @@ public static class LadderSystem
     {
         if (c?.Alive != true || rung == null) return "no such office";
         if (!Active(w, offices)) return "there are no elections under a throne";
+        if (!PolitySystem.InReach(w, c.HouseId)) return "the house has left the Reach";
         if (c.Age < rung.MinAge) return $"not before {rung.MinAge}";
         if (c.CareerRank < rung.MinRank || c.CareerTrack.Length == 0) return "they must first have a place in a service";
         if (rung.Requires.Length > 0 && !c.Cursus.Contains(rung.Requires)) return $"they must first have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant() ?? rung.Requires}";
