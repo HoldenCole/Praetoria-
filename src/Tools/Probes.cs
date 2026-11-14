@@ -109,8 +109,9 @@ internal static class Probes
                     foreach (var e in w.History.Where(e => e.Text.Contains("CROSSES") || e.Text.Contains("houses declare") || e.Text.Contains("march on the capital") || e.Text.Contains("SEIZES") || e.Text.Contains("lay down the command") || e.Text.Contains("lays down the command") || e.Text.Contains("rides in triumph") || e.Text.Contains("will not vote")))
                         Console.WriteLine($"   seed {seed} y{e.Turn}: {(e.Text.Length > 230 ? e.Text[..230] : e.Text)}");
                 if (w.HasFlag(GreatCrisisSystem.ResolvedFlag) && w.WorldCounters.TryGetValue(GreatCrisisSystem.BeganKey, out int began))
-                    greatWars.Add($"{w.Counter(CaesarSystem.GreatWarEndedKey) - began}y {w.WorldFlags.FirstOrDefault(f => f.StartsWith("great_crisis:ended:"))?["great_crisis:ended:".Length..]}");
+                    greatWars.Add($"from y{began} {w.Counter(CaesarSystem.GreatWarEndedKey) - began}y {w.WorldFlags.FirstOrDefault(f => f.StartsWith("great_crisis:ended:"))?["great_crisis:ended:".Length..]}");
                 else if (w.WorldCounters.ContainsKey(GreatCrisisSystem.BeganKey)) greatWars.Add($"{GreatCrisisSystem.WarYears(w)}y unfinished");
+                else greatWars.Add($"none ({tc.GreatCrisis.Nearness(w)}%{(w.Counter(GreatCrisisSystem.EasedCounter) > 0 ? ", stood down " + w.Counter(GreatCrisisSystem.EasedCounter) + "x" : "")})");
                 founded += w.Counter("polities_founded"); recognised += w.Counter("polities_recognised"); dissolved += w.Counter("polities_dissolved");
                 if (first) sawFirst++; if (loved) sawLoved++; if (great) sawGreat++; if (troubled) sawTroubled++; if (ready) sawReady++; if (willing) sawWilling++;
                 if (w.IsImperium) throne.Add($"y{w.History.FirstOrDefault(e => e.Text.Contains("THE THRONE") || e.Text.Contains("PROCLAIMS"))?.Turn}{(w.Counter("republics_ended") > 0 ? " by the road" : w.HasFlag(GreatCrisisSystem.ResolvedFlag) ? " by the great war" : "")}");

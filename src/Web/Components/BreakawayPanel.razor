@@ -9,6 +9,10 @@
     string warLine = !greatWar ? "" : "The War of the Reach is in its " + Ordinal(warYears + 1) + " year. It will not end before the " + Ordinal(GreatCrisisSystem.MinWarYears) + ", and then only when one side is crushed, a side that cannot win takes a region out of the Reach, or both are spent. Holding the capital is winning, not having won. "
         + (warYears < GreatCrisisSystem.MinWarYears ? "" : ending == null ? "As things stand it goes on." : "As things stand it would end " + EndingSays(ending) + ".");
     string? noPartition = greatWar && own == null ? new SecessionCommand(pid, SecessionCommand.SeekPartition, "", "", ps).Refusal(G.Ctx) : "not now";
+    var pressure = GreatCrisisSystem.Pressure(w); int near = gc.Nearness(w); bool warOver = w.HasFlag(GreatCrisisSystem.ResolvedFlag);
+    string peace = warOver ? "The War of the Reach has been fought. " : greatWar ? "" : near == 0 && pressure.Count == 0 ? "The Reach is at peace with itself, and nothing is pushing it toward a great war. "
+        : (near < 15 ? "The Reach is quiet" : near < 50 ? "The Reach is uneasy" : "The houses are counting each other's fleets") + " (" + near + " in a hundred of the way to a great war). "
+          + (pressure.Count == 0 ? "Nothing is pushing it that way this year, and it is easing." : "What is pushing it: " + string.Join("; ", pressure.Select(x => x.what)) + ". Put those right and it recedes.");
     string ownLine = "", ownWar = "";
     if (own != null)
     {
@@ -28,6 +32,7 @@
 }
 <section class="panel breakaway">
     <h3><Icon Name="galaxy" Size="13" /> Breaking away</h3>
+    @if (peace.Length > 0) { <div class="ac-fact"><span>The peace of the Reach</span><p>@peace</p></div> }
     @if (own != null)
     {
         <div class="small">@ownLine</div>
@@ -45,11 +50,25 @@
             string rid = r.Id; var (mine, with, total, backers) = PolitySystem.Control(w, house, r.Id); var (temper, why) = ps.Temper(w, house, r.Id);
             string? no = new SecessionCommand(pid, SecessionCommand.Declare, rid, _form, ps).Refusal(G.Ctx);
             string holdLine = "You hold " + mine + " of its " + total + " worlds" + (backers.Count > 0 ? "; with " + string.Join(", ", backers.Select(b => b.Name)) + ", " + with : "; nobody else there would follow you") + ".";
+            var alone = ps.StandAlone(w, house, r.Id);
+            var here = PolitySystem.Neighbours(w, house).Where(h => w.Holdings.Values.Any(x => x.IsPlanet && x.OwnerId == h.Id && w.Galaxy!.System(x.SystemId)?.RegionId == rid)).ToList();
             string temperLine = (temper <= 0 ? "The Reach would let it go" : "The Reach would fight for it (will " + temper + ")") + (why.Count > 0 ? ": " + string.Join("; ", why) + "." : ".");
             <div class="rung-row">
                 <div><b>@r.Name</b> <span class="muted small">@r.Ring</span></div>
                 <div class="small">@holdLine</div>
                 <div class="muted small">@temperLine</div>
+                @foreach (var t in alone.tests) { <div class="gate-row"><span class="pill small @(t.ok ? GoodPill : string.Empty)">@(t.ok ? Yes : No)</span> <b>@t.name</b> <span class="muted small">@t.says</span></div> }
+                @foreach (var h in here)
+                {
+                    string hid = h.Id; bool joins = PolitySystem.Joins(w, h, house); int regard = PolitySystem.Regard(w, h, house);
+                    string? noWord = new WorkHouseCommand(pid, hid, PolitySystem.Word, ps).Refusal(G.Ctx); string? noGift = new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps).Refusal(G.Ctx);
+                    string hLine = h.Name + (joins ? " would follow you" : " would not follow you") + " (regard " + regard + " of " + PolitySystem.JoinRegard + ").";
+                    <div class="suit-acts">
+                        <span class="small">@hLine</span>
+                        <button class="opt inline tiny" disabled="@(noWord != null)" title="@(noWord ?? WordTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Word, ps))">A quiet word · @PolitySystem.WordInfluence influence</button>
+                        <button class="opt inline tiny" disabled="@(noGift != null)" title="@(noGift ?? GiftTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps))">A gift · @PolitySystem.GiftCredits credits</button>
+                    </div>
+                }
                 <div class="suit-acts">
                     @if (_confirm == rid) { <button class="opt inline veto" @onclick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Declare, rid, _form, ps)); }">Yes: declare @PolitySystem.NameFor(_form, r.Name)</button> <button class="opt inline" @onclick="() => _confirm = string.Empty">No</button> }
                     else { <button class="opt inline" disabled="@(no != null)" title="@(no ?? DeclareTip)" @onclick="() => _confirm = rid">Declare independence</button> }
@@ -78,7 +97,9 @@
 
 @code {
     private string _form = PolitySystem.Republic, _confirm = "";
-    private const string Chosen = "on";
+    private const string Chosen = "on", GoodPill = "good", Yes = "yes", No = "no";
+    private const string WordTip = "Their regard for you rises. At 25 they give their word to go with the region. A house that is the capital's creature and no friend of yours will report it.";
+    private const string GiftTip = "Their regard for you rises more than a word buys, and more still if they are poor. The same risk.";
     private const string DeclareTip = "The house leaves the Senate, its offices and its party, and takes the region and the houses that would follow. If the Reach will fight, it is war until it tires, is beaten, or takes the region back.";
     private const string PartitionTip = "If your side cannot win the great war but holds a region, the peace will leave it to you as a state of your own. Without this the war goes on and your house stays in the Reach.";
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];

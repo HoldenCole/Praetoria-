@@ -79,6 +79,26 @@
         "call_it_a_wound": "Call it a wound.",
         "mark_the_new_border": "Mark the new border."
       }
+    },
+    {
+      "id": "they_told_the_capital",
+      "title": "They Told The Capital",
+      "body": "The house that was sounded out heard everything politely, agreed with nothing, and wrote to the capital the same night. Nothing was said that could be charged. But the capital now knows that {self.house} has been talking to its neighbours about how they are governed, and it has a long memory for that kind of talk.",
+      "choices": {
+        "say_it_was_idle_talk": "Say it was idle talk.",
+        "say_nothing_at_all": "Say nothing at all.",
+        "pay_the_visit_back": "Pay the visit back."
+      }
+    },
+    {
+      "id": "a_house_gives_its_word",
+      "title": "A House Gives Its Word",
+      "body": "It took patience, and a certain amount of tact, and it has worked. One of the houses of the region has given its word: if {self.house} takes the region out of the Reach, they go too, worlds and all. Nothing has been declared and nothing may ever be. But the region is that much nearer to being one thing than several.",
+      "choices": {
+        "promise_them_a_voice": "Promise them a voice in it.",
+        "promise_them_nothing_yet": "Promise them nothing yet.",
+        "ask_who_else_might_listen": "Ask who else might listen."
+      }
     }
   ]
 }

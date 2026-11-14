@@ -1,5 +1,5 @@
 {
-  "//": "BREAKING AWAY (docs/BREAKAWAY.md). Reads war_of_independence, may_refuse_the_throne (each year); declared_independence, let_go_by_the_reach, independence_won, independence_lost, a_state_breaks_away, the_reach_is_partitioned (deeds). What is decided is decided on the Senate screen's standing view.",
+  "//": "BREAKING AWAY (docs/BREAKAWAY.md). Reads war_of_independence, may_refuse_the_throne (each year); declared_independence, let_go_by_the_reach, independence_won, independence_lost, a_state_breaks_away, the_reach_is_partitioned, sedition_reported, house_won_over (deeds). What is decided is decided on the Senate screen's standing view.",
   "events": [
     {
       "id": "the_declaration",
@@ -529,6 +529,133 @@
             {
               "type": "log",
               "text": "{self.name} had the house's lanes toward the new border watched. Borders that are a year old are where things happen."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "they_told_the_capital",
+      "tier": "situation",
+      "weight": 55,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "sedition_reported",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_it_was_idle_talk",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known that the conversation had been about tithes and nothing else. The capital chose to accept that, and kept the report."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing_at_all",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} neither explained nor denied. Silence is a kind of answer, and the capital took it for one."
+            }
+          ]
+        },
+        {
+          "id": "pay_the_visit_back",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called on the house that had carried the tale, with great courtesy, and stayed just long enough for them to wonder what was known about them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_house_gives_its_word",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "house_won_over",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "promise_them_a_voice",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} promised that if the region ever went its own way, those who went with it would have a voice in how it was run. It was written down, at their request."
+            }
+          ]
+        },
+        {
+          "id": "promise_them_nothing_yet",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked them and promised nothing. A word given freely is worth more than one that was bought, and can be reminded of it."
+            }
+          ]
+        },
+        {
+          "id": "ask_who_else_might_listen",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked them, since they knew the region, who else was tired of the capital. They had been waiting to be asked."
             }
           ]
         }

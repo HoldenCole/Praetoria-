@@ -20,6 +20,10 @@ public sealed class Polity
     public List<string> Foes { get; set; } = new();
     /// <summary>How willing the Reach was to fight when it broke away. It falls as the war drags on.</summary>
     public int Temper { get; set; }
+    /// <summary>It has something the Reach cannot do without (docs/BREAKAWAY.md, standing alone): the Reach's will runs out faster.</summary>
+    public bool Leverage { get; set; }
+    /// <summary>It brings up no fuel of its own: while it is at war for its independence the Reach's exchanges are closed to it.</summary>
+    public bool Starved { get; set; }
     /// <summary>How it came to be: "declared", "let_go", "partition" (out of the great war), "refused" (would not kneel to a new throne).</summary>
     public string Origin { get; set; } = "declared";
 }

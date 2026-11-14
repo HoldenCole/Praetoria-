@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Fixed
+- **A saved game could drift from an unbroken one.** Loading a save noted the crews' commanders a second time, which
+  put a commander appointed in the year of the save one point of devotion ahead. It is now done once, at the start of
+  the first year in the Reach. The soak caught it; a test holds it.
 - When a house other than the player's took the throne, the Reach's resentment was recorded against the player. It
   is now recorded against the head of the house that took it.
 - The orders, courtship and household panels kept showing last year's figures after End Turn until something in them
@@ -16,6 +19,10 @@
   `tools/ci.sh` now runs CI's exact steps locally.
 
 ### Changed
+- **What sets off the great war.** It no longer comes by the calendar. Its clock is moved only by what is wrong with
+  the Reach (lawless regions, a capital that is not respected, a war abroad going badly, wars between houses, one
+  house overshadowing the rest, a general's march, a region breaking away) and **runs back when nothing is**. Camps
+  that had formed stand down. A well-kept Reach may never have a great war. The panel shows how near it is and why.
 - **How the great war ends.** It now lasts **ten years at the least**, whatever its clock says. **Holding the
   capital is winning, not having won:** the other side fights on. After the tenth year it ends when one side is
   **crushed** (a tenth of the victor's hulls or less, and the victor holds the capital), by **partition** (a losing
@@ -61,6 +68,14 @@
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **A gap register** (docs/GAPS.md, `tools/gaps.sh`) and the rule for keeping it (docs/PROCESS.md): every thin thing
+  in one list with its size, added in the same commit that makes it; close before you open.
+- **Could it stand alone?** (docs/BREAKAWAY.md). A region that would break away is asked three things, and the
+  answers move the Reach's temper: fuel of its own (without it the Reach closes its exchanges while the state fights),
+  a treasury that pays its way, and something the Reach cannot do without (half its helium-3, rare earths or
+  isotopes; with that the Reach's will runs out faster).
+- **Working on the region's houses.** A quiet word or a gift raises a neighbouring house's regard; at 25 it gives its
+  word to go with the region. A house that is the capital's creature reports the approach.
 - **Breaking away** (docs/BREAKAWAY.md), on the Senate screen under Your standing. A house that holds a quarter of
   a region's worlds, and three in five with the houses there that would follow it, may take the region out of the
   Reach as **a republic, a republic under one hand, or a kingdom**. Whether the Reach fights depends on its

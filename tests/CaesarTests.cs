@@ -44,6 +44,17 @@ public class CaesarTests
     }
 
     [Fact]
+    public void Opening_a_saved_world_does_not_write_the_crews_down_again()
+    {
+        var (tc, w, me, mine, _) = Start(); var other = w.LivingCharacters().First(c => c.HouseId == mine.Id && c.Id != me.Id && c.Age >= 18);
+        var f = Legion(w, mine, other); f.DevotedTo = ""; f.Devotion = 0;        // appointed this year: the crews have not taken to them yet
+        var loaded = SaveSystem.Deserialize(SaveSystem.Serialize(w)); var tc2 = new TurnController(loaded, Content);
+        Assert.Equal("", loaded.Fleets[f.Id].DevotedTo); Assert.Equal(0, loaded.Fleets[f.Id].Devotion);
+        tc.EndTurn(); tc.BeginTurn(); tc2.EndTurn(); tc2.BeginTurn();                 // a year passes in both
+        Assert.Equal(f.Devotion, loaded.Fleets[f.Id].Devotion); Assert.Equal(f.DevotedTo, loaded.Fleets[f.Id].DevotedTo);
+    }
+
+    [Fact]
     public void A_triumph_asks_three_victories_and_the_senate_may_refuse_it()
     {
         var (tc, w, me, mine, ctx) = Start(); Legion(w, mine, me);

@@ -315,6 +315,9 @@ internal static class Qa
             if (decisions.NextInt(0, 25) == 0) foreach (var mm in w.Marriages.Where(mm => w.Char(mm.A)?.HouseId == house.Id || w.Char(mm.B)?.HouseId == house.Id).OrderBy(mm => mm.A, StringComparer.Ordinal).Take(1))
                 cands.Add(new MarriageCommand(p.Id, w.Char(mm.A)?.HouseId == house.Id ? mm.A : mm.B, MarriageCommand.Divorce));
         }
+        {   // working on the houses of the region: a word or a gift, now and then
+            if (decisions.NextInt(0, 3) == 0) foreach (var nb in PolitySystem.Neighbours(w, house).Take(3)) cands.Add(new WorkHouseCommand(p.Id, nb.Id, decisions.NextInt(0, 2) == 0 ? PolitySystem.Word : PolitySystem.Gift, tc.Polities));
+        }
         {   // breaking away: declare a region independent, rarely; in the great war, ask for a partition
             if (decisions.NextInt(0, 12) == 0) foreach (var rg in PolitySystem.RegionsOf(w, house).Take(2)) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Declare, rg.Id, PolitySystem.Forms[decisions.NextInt(0, PolitySystem.Forms.Length)], tc.Polities));
             if (decisions.NextInt(0, 6) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.SeekPartition, "", "", tc.Polities));

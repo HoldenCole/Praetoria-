@@ -17,19 +17,24 @@ public sealed class PolitySystem
 {
     public const string Republic = "republic", Dictatorship = "dictatorship", Kingdom = "kingdom";
     public static readonly string[] Forms = { Republic, Dictatorship, Kingdom };
-    public const int OwnShare = 25, ControlShare = 60, HoldShare = 50, LostShare = 25, WearyYears = 8, WinYears = 3, WinLead = 6, LoseLead = -8, TemperFallsEvery = 3, RefuseYears = 3;
+    public const int OwnShare = 25, ControlShare = 60, HoldShare = 50, LostShare = 25, WearyYears = 8, WinYears = 3, WinLead = 6, LoseLead = -8, TemperFallsEvery = 3, LeverageFallsEvery = 2, RefuseYears = 3,
+        JoinRegard = 25, WordInfluence = 2, WordRegard = 8, GiftCredits = 12, GiftRegard = 12, PledgeYears = 10, LoyalRegard = 30;
+    public const string Word = "word", Gift = "gift", ReportedFlag = "sedition_reported", WonOverFlag = "house_won_over";
+    public static string PledgeKey(string houseId, string leaderId) => $"pledged:{houseId}:{leaderId}";
+    private static string WorkedKey(string houseId, string leaderId) => $"worked:{houseId}:{leaderId}";
     // true each year while it holds
     public const string IndependentFlag = "independent", WarFlag = "war_of_independence", PossibleFlag = "breakaway_possible", RefuseFlag = "may_refuse_the_throne";
     // true for a year after the deed
     public const string DeclaredFlag = "declared_independence", LetGoFlag = "let_go_by_the_reach", WonFlag = "independence_won", LostFlag = "independence_lost",
         OtherBreaksFlag = "a_state_breaks_away", PartitionFlag = "the_reach_is_partitioned";
     private static readonly string[] YearFlags = { IndependentFlag, WarFlag, PossibleFlag, RefuseFlag };
-    private static readonly string[] DeedFlags = { DeclaredFlag, LetGoFlag, WonFlag, LostFlag, OtherBreaksFlag, PartitionFlag };
+    private static readonly string[] DeedFlags = { DeclaredFlag, LetGoFlag, WonFlag, LostFlag, OtherBreaksFlag, PartitionFlag, ReportedFlag, WonOverFlag };
     public const string CivilWarEndedKey = "civil_war_ended";
     public static string OpposedKey(string houseId) => "opposed_the_throne:" + houseId;
 
-    private readonly FleetSystem _fleets; private readonly OfficeCatalog _offices;
-    public PolitySystem(FleetSystem fleets, OfficeCatalog offices) { _fleets = fleets; _offices = offices; }
+    private readonly FleetSystem _fleets; private readonly OfficeCatalog _offices; private readonly Economy? _economy; private readonly HoldingCatalog? _holdings; private readonly BusinessCatalog? _ventures;
+    public PolitySystem(FleetSystem fleets, OfficeCatalog offices, Economy? economy = null, HoldingCatalog? holdings = null, BusinessCatalog? ventures = null)
+    { _fleets = fleets; _offices = offices; _economy = economy; _holdings = holdings; _ventures = ventures; }
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static bool Within(World w, string key, int years) => w.WorldCounters.TryGetValue(key, out int t) && w.Turn - t <= years;
@@ -59,9 +64,110 @@ public sealed class PolitySystem
     {
         if (h.Id == leader.Id || !Real(h) || !InReach(w, h.Id) || RegionSystem.CapitalHolder(w)?.Id == h.Id) return false;
         if (h.PatronId == leader.Id) return true;
-        var a = Economy.HeadOf(w, h); var b = Economy.HeadOf(w, leader);
-        if (a != null && b != null && (w.GetRelationship(a.Id, b.Id)?.Disposition ?? 0) >= 25) return true;
+        int regard = Regard(w, h, leader);
+        if (regard >= JoinRegard) return true;
+        if (regard >= 0 && w.WorldCounters.TryGetValue(PledgeKey(h.Id, leader.Id), out int pledged) && w.Turn - pledged <= PledgeYears) return true;   // it gave its word
         return OrderSystem.Sway(w, h, leader).lean >= 2;
+    }
+
+    /// <summary>What the head of one house thinks of the head of another.</summary>
+    public static int Regard(World w, House of, House toward)
+    {
+        var a = Systems.Economy.HeadOf(w, of); var b = Systems.Economy.HeadOf(w, toward);
+        return a != null && b != null ? w.GetRelationship(a.Id, b.Id)?.Disposition ?? 0 : 0;
+    }
+
+    // ---------------- working on a region's houses ----------------
+
+    /// <summary>The other houses that hold a world in a region this house holds a world in: the ones it might bring over.</summary>
+    public static List<House> Neighbours(World w, House house) =>
+        RegionsOf(w, house).SelectMany(r => Worlds(w, r.Id)).Select(h => h.OwnerId).Distinct().Where(id => id != house.Id).Select(id => w.House(id)).Where(h => h != null && Real(h) && InReach(w, h.Id)).Select(h => h!).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+
+    public string? WorkRefusal(World w, House? house, House? target, string how)
+    {
+        if (house == null || target == null || !Real(target) || house.Id == target.Id) return "no such house";
+        if (how != Word && how != Gift) return "a word or a gift";
+        if (!InReach(w, house.Id)) return "the house has already left the Reach";
+        if (!InReach(w, target.Id)) return $"{target.Name} has already left the Reach";
+        if (!Neighbours(w, house).Any(h => h.Id == target.Id)) return $"{target.Name} holds no world in a region of yours";
+        if (RegionSystem.CapitalHolder(w)?.Id == target.Id) return $"{target.Name} holds the capital, and will never leave it";
+        if (w.Counter(WorkedKey(target.Id, house.Id)) == w.Turn + 1) return "you have approached them this year";
+        return how == Gift && house.Treasury.Credits < GiftCredits ? $"a gift takes {GiftCredits} credits" : null;
+    }
+
+    /// <summary>The head sounds out a house of the region: a word, or a gift. One that thinks well enough of the house afterwards gives
+    /// its word to go with it. One that is the capital's creature tells the capital. True if it was won over.</summary>
+    public bool Work(World w, House house, House target, string how)
+    {
+        w.WorldCounters[WorkedKey(target.Id, house.Id)] = w.Turn + 1; var chair = RegionSystem.CapitalHolder(w);
+        if (how == Gift) house.Treasury.Credits -= GiftCredits;
+        var mine = w.Protagonist?.HouseId; var th = Systems.Economy.HeadOf(w, target); var hh = Systems.Economy.HeadOf(w, house);
+        // a house that is the capital's creature and has no love for this one reports the approach
+        if (chair != null && Regard(w, target, chair) >= LoyalRegard && Regard(w, target, house) < 10)
+        {
+            if (Systems.Economy.HeadOf(w, chair) is { } ch && hh != null) { var r = w.Relationship(ch.Id, hh.Id); r.Disposition = Math.Clamp(r.Disposition - 15, -100, 100); }
+            house.Legitimacy = Math.Clamp(house.Legitimacy - 2, 0, 100);
+            if (house.Id == mine) Mark(w, ReportedFlag);
+            w.Log($"{target.Name} hears {house.Name} out, and sends an account of the conversation to {chair.Name} the same night.");
+            return false;
+        }
+        if (th != null && hh != null)
+        {
+            int gain = how == Gift ? GiftRegard + (target.Treasury.Credits < 20 ? 4 : 0) : WordRegard;
+            var r = w.Relationship(th.Id, hh.Id); r.Disposition = Math.Clamp(r.Disposition + gain, -100, 100);
+        }
+        bool won = Regard(w, target, house) >= JoinRegard && !w.WorldCounters.ContainsKey(PledgeKey(target.Id, house.Id));
+        if (Regard(w, target, house) >= JoinRegard) w.WorldCounters[PledgeKey(target.Id, house.Id)] = w.Turn;
+        if (won && house.Id == mine) Mark(w, WonOverFlag);
+        w.Log(won ? $"{target.Name} gives {house.Name} its word: if the region goes its own way, it goes too."
+                  : how == Gift ? $"{house.Name} sends {target.Name} a gift that asks for nothing. {target.Name} thinks the better of it." : $"{house.Name} has a quiet word with {target.Name} about how things are governed from the capital.");
+        return won;
+    }
+
+    // ---------------- standing alone ----------------
+
+    private HashSet<string> ProducersOf(World w, string resource)
+    {
+        var set = new HashSet<string>(); var g = w.Galaxy; if (g == null || _holdings == null || _ventures == null) return set;
+        foreach (var h in w.Holdings.Values)
+        {
+            if (g.System(h.SystemId)?.Deposit(resource) is not > 0) continue;
+            if (resource == Resource.RareEarths && h.IsClaim) set.Add(h.OwnerId);
+            if (h.Buildings.Any(b => _holdings.Building(b)?.RequiresDeposit == resource)) set.Add(h.OwnerId);
+        }
+        foreach (var b in w.Businesses.Values) if (_ventures.Def(b.Kind)?.RequiresDeposit == resource && g.System(b.SystemId)?.Deposit(resource) is > 0) set.Add(b.OwnerId);
+        set.RemoveWhere(id => id == PirateSystem.HouseId || !InReach(w, id));
+        return set;
+    }
+
+    /// <summary>Could the houses that would go stand by themselves? Three questions, each with its answer, and what the answers do to the
+    /// Reach's temper: fuel of its own; a treasury that pays its way; and something the Reach cannot do without.</summary>
+    public (List<(string name, bool ok, string says)> tests, int temper, bool leverage, bool starved) StandAlone(World w, House house, string regionId)
+    {
+        var tests = new List<(string, bool, string)>(); var (_, _, _, backers) = Control(w, house, regionId);
+        var gone = backers.Select(b => b.Id).Append(house.Id).ToHashSet(); int temper = 0; bool leverage = false;
+        var fuel = ProducersOf(w, Resource.Helium3); int ourFuel = fuel.Count(gone.Contains);
+        bool hasFuel = ourFuel > 0 || _holdings == null;
+        tests.Add(("Fuel of its own", hasFuel, hasFuel ? "its houses bring up their own helium-3" : "none of its houses brings up helium-3: at war the Reach closes its exchanges and the fleets ride at anchor"));
+        if (!hasFuel) temper += 1;
+        bool pays = true; string paysSays = "its houses pay their way";
+        if (_economy != null)
+        {
+            int net = gone.Sum(id => _economy.Forecast(w, id, _fleets).Credits), held = gone.Sum(id => w.House(id)?.Treasury.Credits ?? 0);
+            pays = net >= 0 && held >= 0; paysSays = pays ? $"its houses take in {net} credits a year more than they spend" : net < 0 ? $"its houses spend {-net} credits a year more than they take in" : "its houses are in debt";
+        }
+        tests.Add(("A treasury that pays its way", pays, paysSays)); if (!pays) temper += 1;
+        var held2 = new List<string>(); bool other = false;
+        foreach (var res in Resource.Strategic)
+        {
+            var p = res == Resource.Helium3 ? fuel : ProducersOf(w, res); int ours = p.Count(gone.Contains);
+            if (ours == 0 || ours * 2 < p.Count) continue;
+            leverage = true;
+            if (res == Resource.Helium3) { held2.Add("helium-3"); temper -= 2; }       // the Reach's fleets burn it
+            else { held2.Add(res == Resource.RareEarths ? "rare earths" : "isotopes"); if (!other) { temper -= 1; other = true; } }
+        }
+        tests.Add(("Something the Reach cannot do without", leverage, leverage ? $"half or more of the Reach's {string.Join(" and ", held2)} comes from its houses" : "nothing the Reach could not get elsewhere"));
+        return (tests, temper, leverage, !hasFuel);
     }
 
     /// <summary>The region's worlds: how many are the house's own, how many with those who would follow, of how many; and who would follow.</summary>
@@ -95,6 +201,10 @@ public sealed class PolitySystem
         if (ring == Ring.Rim) { t -= 1; why.Add("the rim is a long way to send a fleet"); }
         else if (ring == Ring.Core) { t += 1; why.Add("the core is too near the capital to let go"); }
         if (w.IsImperium) { t += 1; why.Add("a throne does not let provinces go"); }
+        var alone = StandAlone(w, house, regionId); t += alone.temper;
+        if (alone.leverage) why.Add("the Reach cannot do without what the region makes");
+        if (alone.starved) why.Add("the region has no fuel of its own and can be starved of it");
+        if (alone.tests.Count > 1 && !alone.tests[1].ok) why.Add("the region cannot pay for a war");
         return (t, why);
     }
 
@@ -133,7 +243,8 @@ public sealed class PolitySystem
         var region = w.Galaxy!.Region(regionId)!; var (_, _, _, backers) = Control(w, house, regionId); var (temper, why) = Temper(w, house, regionId);
         var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w);
         int n = w.Counter("polities_founded") + 1; w.WorldCounters["polities_founded"] = n;
-        var p = new Polity { Id = "polity_" + n, Name = NameFor(form, region.Name), Form = form, HeadHouseId = house.Id, Since = w.Turn, Temper = temper, Origin = origin };
+        var alone = StandAlone(w, house, regionId);
+        var p = new Polity { Id = "polity_" + n, Name = NameFor(form, region.Name), Form = form, HeadHouseId = house.Id, Since = w.Turn, Temper = temper, Origin = origin, Leverage = alone.leverage, Starved = alone.starved };
         p.Regions.Add(regionId); w.Polities.Add(p);
         Leave(w, house, p); foreach (var b in backers) Leave(w, b, p);
         // a house that leaves the Reach leaves the Reach's wars: the great war and a general's march are no longer its business
@@ -223,7 +334,7 @@ public sealed class PolitySystem
         return worlds.Count == 0 ? 0 : 100 * worlds.Count(h => p.Members.Contains(h.OwnerId)) / worlds.Count;
     }
     /// <summary>The Reach's will to go on with the war: what it was when the state broke away, less one for every three years.</summary>
-    public static int Will(World w, Polity p) => p.Temper - (p.WarSince > 0 ? (w.Turn - p.WarSince) / TemperFallsEvery : 0);
+    public static int Will(World w, Polity p) => p.Temper - (p.WarSince > 0 ? (w.Turn - p.WarSince) / (p.Leverage ? LeverageFallsEvery : TemperFallsEvery) : 0);
 
     // ---------------- the year ----------------
 
@@ -240,6 +351,7 @@ public sealed class PolitySystem
             if (!p.Members.Contains(p.HeadHouseId))   // the ruling house is gone: the strongest that is left rules
                 p.HeadHouseId = p.Members.OrderByDescending(id => FleetSystem.StrengthOf(w, id)).ThenBy(id => id, StringComparer.Ordinal).First();
             if (p.Recognised > 0) continue;
+            if (p.Starved) foreach (var id in p.Members) w.WorldCounters["embargo:" + id] = w.Turn + 2;   // no fuel of its own: the Reach's exchanges are closed to it while the war lasts
             int years = w.Turn - p.WarSince, share = Share(w, p), lead = Standing(w, p);
             if (share < LostShare) Dissolve(w, p, "its houses have lost the region");
             else if (years >= 2 && lead <= LoseLead) Dissolve(w, p, "it is beaten in the field");

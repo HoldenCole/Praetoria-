@@ -40,6 +40,33 @@ that depends on it (docs/REPUBLIC.md, sway). Never the house that holds the capi
 On declaring, the house and those who follow leave the Senate, their offices and their parties, and any war they
 were in ends.
 
+## Working on the region's houses
+
+The panel lists, for each region, the other houses that hold a world there, whether each would follow, and their
+regard for you. Once a year for each you may send:
+
+- **a quiet word** (2 influence): their regard rises by 8;
+- **a gift** (12 credits from the house): their regard rises by 12, and by 4 more if they are poor.
+
+At a regard of **25** they give their word, and it holds for ten years so long as they do not turn against you.
+
+**The capital's creature tells the capital.** A house that thinks well of the capital's holder (30 or more) and little
+of you (under 10) hears you out and reports it. Nothing is gained, the capital's holder thinks 15 the worse of you,
+and the house loses 2 legitimacy. The house that holds the capital cannot be approached at all.
+
+## Could it stand alone?
+
+Three questions, answered on the panel for each region, each with what it does to the Reach's temper:
+
+| Question | If the answer is no | If it is yes |
+|---|---|---|
+| **Fuel of its own:** does one of the houses that would go bring up helium-3? | Temper +1: it can be starved. While it fights for its independence the Reach's exchanges are closed to it | |
+| **A treasury that pays its way:** do those houses together take in more than they spend, and are they out of debt? | Temper +1: it cannot pay for a war | |
+| **Something the Reach cannot do without:** does half or more of the Reach's output of a strategic resource come from those houses? | | Helium-3: temper −2. Rare earths or isotopes: −1. And in the war the Reach's will falls every two years, not three |
+
+So a region with a helium-3 monopoly and a fleet is very likely to be let go, as the owner's sketch asked; and one that
+cannot fuel or pay for its own ships will be fought for.
+
 ## The Reach's temper
 
 Whether the Reach fights for the region is a number, shown on the panel with its reasons. It starts at 2.
@@ -79,7 +106,28 @@ remembered as having opposed him. For three years:
 
 ## How the great war ends
 
-The War of the Reach is still set off by its clock. How it starts is to be looked at again. How it ends has changed.
+### What sets it off
+
+It no longer comes by the calendar. From its tenth year the Reach has a pressure toward a great war, shown on the panel
+with its causes ("the peace of the Reach"). Each year the pressure is the sum of what is wrong:
+
+| What is wrong | Pressure |
+|---|---|
+| Each of: more than one region lawless; the capital's holder not respected; a war beyond the Reach going badly; the Exchange crashed | 7 |
+| Wars between houses | 3 each, to 12 |
+| One house with twice the fleet of the next | 6 |
+| Houses drawing together against one of their number; worlds taken by force | as counted |
+| A general marching on the capital | 8 |
+| A region has left the Reach in the last eight years | 4 |
+
+- At 40 there are rumblings. At 150 the houses sort into two camps. At 300 it is war.
+- **With nothing wrong, the pressure runs back** by 6 a year. If it falls well below where the camps formed, **the
+  houses stand down** and the camps dissolve.
+- So mending what is wrong (relief to a lawless region, a peace imposed on warring houses, a recognised capital) is
+  how the great war is put off, and a Reach that is well kept may never have one.
+- Once the war itself begins it runs on its own clock as before, and ends as below.
+
+### How it ends
 
 - **It lasts ten years at the least.** Its last stage cannot begin before the sixth year, and it cannot end before
   the tenth whatever the clock says.
@@ -102,7 +150,7 @@ The War of the Reach is still set off by its clock. How it starts is to be looke
 
 ## Events
 
-Eight, in `content/events/breakaway.json`: *The Declaration*, *They Let You Go*, *A War Of Independence*,
+Ten, in `content/events/breakaway.json`: *They Told The Capital*, *A House Gives Its Word*, and *The Declaration*, *They Let You Go*, *A War Of Independence*,
 *Independence*, *The State Is No More*, *You Need Not Kneel*, *A State Breaks Away*, *The Reach Is Partitioned*.
 
 ## For content
@@ -117,8 +165,8 @@ Eight, in `content/events/breakaway.json`: *The Declaration*, *They Let You Go*,
 ## How it is built
 
 - `src/Core/Systems/PolitySystem.cs`; `src/Core/State/Polity.cs`.
-- `SecessionCommand` (declare, seek a partition) in `src/Core/Commands/HouseholdCommands.cs`.
-- `GreatCrisisSystem`: `Ending`, `Resolve`, the ten-year floor in `Tick`.
+- `WorkHouseCommand` (a word, a gift) and `SecessionCommand` (declare, seek a partition) in `src/Core/Commands/HouseholdCommands.cs`.
+- `GreatCrisisSystem`: `Pressure`, `Nearness`, `Ending`, `Resolve`, the ten-year floor in `Tick`.
 - `PolitySystem.InReach` is the one test of membership, read by the Senate, elections, the ladder and the Caesar road.
 - `src/Web/Components/BreakawayPanel.razor`. `tests/BreakawayTests.cs` (8). `tools/browser/breakaway.js`.
 - `praetoria caesar` now also reports how long the great war lasted, how it ended, and how many states broke away.
@@ -134,12 +182,18 @@ Eight, in `content/events/breakaway.json`: *The Declaration*, *They Let You Go*,
 - `praetoria caesar --scenario all --seeds 6`, 36 Republic runs with a passive player: the great war lasted 10 to 16
   years in every run and ended **crushed in 16, by exhaustion in 16 and by partition in 4**. The Republic stood in all
   36. Four states came out of partitions.
+- **What sets it off, measured** (the same probe after the change): the great war broke out in 24 of 36 runs within
+  sixty years, starting between year 29 and year 52; it did not come in 12; and in two the camps formed and stood down.
+  Before the change it came in all 36 by the calendar.
+- Three more tests cover the pressure and its easing, standing alone, and working on a region's houses (606 in all).
+- In the browser on The Circling Heir the panel showed, for each of its two regions, the three standing-alone
+  answers and the neighbouring houses with their regard, and a quiet word raised one of them.
 - In the browser The Old Lion's house, which holds two of the three worlds of its region, declared a kingdom in the
   first year. The Reach sent four houses; three years on the kingdom had lost a world and was behind. No errors.
 
 ## Not in this stage
 
-This is the first stage of a large piece. What it leaves:
+This is the first stage of a large piece. What it leaves is in docs/GAPS.md (B1 to B10), and in short:
 
 - **How a state is governed.** The three forms differ only in name. A republic should have its own council, a
   dictatorship a term or a strongman, a kingdom a succession.
@@ -148,12 +202,8 @@ This is the first stage of a large piece. What it leaves:
 - **A state as a neighbour.** It makes no treaties, has no war or peace with the Reach as a state after it is
   recognised, sends no envoys, and cannot be reconquered or rejoin.
 - **More than one region,** and regions joining a state that already exists.
-- **Standing alone as a test.** The owner's sketch of secession asks for an economy that feeds itself or has
-  something the Reach cannot do without (a helium-3 monopoly) and a fleet to match. Today only the fleet and the
-  region are weighed.
-- **Persuading the region.** You cannot yet work on the houses of a region to bring them over; they follow or they
-  do not.
 - **The older free march** (a rim house that renounces the capital) is still its own small rule and should become
   one of these.
-- **What triggers the great war** is unchanged, and is to be looked at again.
+- Standing alone does not weigh food, manpower or the goods of the market. Working on a house is only a word or a gift.
+- There is one great war in a saga, and the player can lower the pressure toward it but not raise it.
 - Under a throne the Reach's temper is one number. A new Caesar should have his own.

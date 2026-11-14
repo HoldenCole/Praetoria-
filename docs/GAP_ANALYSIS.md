@@ -1128,3 +1128,34 @@ is then at war with the four strongest houses in the Reach.
 neighbour (no treaties, reconquest or rejoining). Standing alone is not tested (no economy, no monopoly). You cannot
 work on a region's houses to bring them over. Other houses break away only by partition or to refuse a throne. What
 sets off the great war is unchanged. Five of the eight events did not fire in the soak and are proved by a test.
+
+## 42. Closing the small gaps, and a register for the rest — 2026-11-14
+
+The owner asked for the gaps reported in §41 to be fixed, the small ones first, and for gaps to be mapped as things are
+built so that thin things do not pile up.
+
+**The register.** docs/GAPS.md now holds every thin thing in one list with a size. Collected from nine documents it
+came to 59 lines, which is the pile the owner was worried about. Five were closed today; 54 are open: 30 small, 20 a
+cycle, 4 several cycles. `tools/gaps.sh` prints the count. The rule (docs/PROCESS.md): add gaps in the commit that
+makes them, close before you open, depth before breadth, and raise the ones that recur. Four recur across systems and
+are listed first: other houses have no inner life; other houses do not use what the player can; numbers are first
+guesses; events that need a rare choice never fire in the soak.
+
+**Closed.**
+- *Standing alone.* Fuel of its own, a treasury that pays its way, and half the Reach's output of a strategic
+  resource now move the Reach's temper. No fuel means an embargo while the state fights; leverage means the Reach's
+  will runs out every two years instead of three.
+- *Working on a region's houses.* A quiet word or a gift, once a year a house; at a regard of 25 it gives its word.
+  The capital's creature reports the approach.
+- *What sets off the great war.* Pressure from what is wrong with the Reach, easing when nothing is, camps that stand
+  down. Measured: war in 24 of 36 passive runs within sixty years, from year 29 to 52; none in 12.
+
+**Found on the way.** "Is the Reach in its great war" had been true from the moment the camps formed, years before any
+fighting. It now means the war has begun. The first pressure weights brought the war in only 10 of 36 runs, mostly
+after year 36; they were raised by about a third.
+
+A save/load drift from the Caesar road, there since it was built and exposed when the soak's player gained new
+commands: loading a save noted the crews' commanders again. Fixed, with a test.
+
+**Next, in the register's order.** The small ones in breaking away and the Caesar road (B4, B5, B8 to B10, C1, C3, C5),
+then how each form of state is governed (B1) and a state on the map and as a neighbour (B2, B3), which need plans.

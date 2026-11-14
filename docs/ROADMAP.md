@@ -15,8 +15,9 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 602 |
-| Events with text | 327 in 34 files |
+| Automated tests | 606 |
+| Events with text | 329 in 34 files |
+| Open gaps (docs/GAPS.md) | 54: 30 small, 20 a cycle, 4 several cycles. Five closed on 2026-11-14 |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
@@ -169,8 +170,8 @@ the only real constraint on sequence. Each line is roughly one cycle of work (bu
 
 | Work | What it delivers | Ties to |
 |---|---|---|
-| **Breaking away, the rest** | Built, first stage: docs/BREAKAWAY.md (a house that controls a region founds a state; the Reach lets it go or fights; a war of independence with no fixed end; refusing a new throne; the great war ends by crushing, partition or exhaustion after ten years at least). Left: how each form of state is governed; a state on the map and as a neighbour (treaties, reconquest, rejoining); more than one region; standing alone as a test (an economy that feeds itself, a monopoly the Reach needs); working on a region's houses to bring them over; a multi-generation plan. The sketch below still stands for those. | Nations on the map. The economy (what a domain makes and uses). Politics under a throne (a new Caesar's own temper). |
-| **What sets off the great war** | Today a clock starts it. The owner wants its triggers looked at again: it should come out of what is happening in the Reach, not out of the calendar. | The times (docs/CAESAR.md) already measure what is wrong with the Republic. |
+| **Breaking away, the rest** | Built, first stage: docs/BREAKAWAY.md (a house that controls a region founds a state; the Reach lets it go or fights; a war of independence with no fixed end; refusing a new throne; the great war ends by crushing, partition or exhaustion after ten years at least). Also built: standing alone (fuel, a treasury that pays, a monopoly the Reach needs) and working on a region's houses with a word or a gift. Left (docs/GAPS.md B1 to B10): how each form of state is governed; a state on the map and as a neighbour (treaties, reconquest, rejoining); more than one region; food, manpower and market goods in standing alone; promises, marriages and threats when working on a house; a multi-generation plan. The sketch below still stands for those. | Nations on the map. The economy (what a domain makes and uses). Politics under a throne (a new Caesar's own temper). |
+| **The great war, the rest** | Built: it comes out of what is wrong with the Reach and recedes when that is mended (docs/BREAKAWAY.md). Left: a second great war in a long saga; ways for the player to raise the pressure as well as lower it. | The Caesar road (making the times). |
 
 **The economy**
 

@@ -327,3 +327,25 @@ public sealed class SecessionCommand : ICommand
         else { w.WorldFlags.Add(GreatCrisisSystem.PartitionWishFlag); w.Log($"{house.Name} lets it be known that it would take a region of its own as the price of peace."); }
     }
 }
+
+/// <summary>Working on a house of the region (docs/BREAKAWAY.md): a quiet word, or a gift, to bring it over before the region goes.</summary>
+public sealed class WorkHouseCommand : ICommand
+{
+    private readonly string _targetHouseId, _how; private readonly PolitySystem _polities;
+    public WorkHouseCommand(string actorId, string targetHouseId, string how, PolitySystem polities) { ActorId = actorId; _targetHouseId = targetHouseId; _how = how; _polities = polities; }
+    public string ActorId { get; }
+    public string Describe() => $"{_how} to {_targetHouseId}";
+    private IReadOnlyDictionary<string, int> Cost => _how == PolitySystem.Word ? new Dictionary<string, int> { [Pool.Influence] = PolitySystem.WordInfluence } : new Dictionary<string, int>();
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId); var house = head != null ? w.House(head.HouseId) : null;
+        if (head?.Alive != true || house == null || head.Id != w.ProtagonistId) return "no house";
+        return _polities.WorkRefusal(w, house, w.House(_targetHouseId), _how) ?? (ctx.PoolsOf(ActorId).CanAfford(Cost) ? null : "no influence");
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; ctx.PoolsOf(ActorId).Spend(Cost);
+        _polities.Work(w, w.House(w.Char(ActorId)!.HouseId)!, w.House(_targetHouseId)!, _how);
+    }
+}

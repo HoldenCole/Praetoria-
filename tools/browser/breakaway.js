@@ -30,6 +30,8 @@ require('fs').mkdirSync(shots, { recursive: true });
   const text = await panel();
   console.log('panel: ' + (/NaN|undefined|Exception|@\(/.test(text) ? 'SUSPICIOUS TEXT' : text === 'NO PANEL' ? text : 'ok'));
   console.log('   ' + await rows());
+  console.log('a quiet word: ' + (await press('A quiet word') || 'not open')); await page.waitForTimeout(400);
+  console.log('   ' + await rows());
   console.log('as a kingdom: ' + (await press('A kingdom') || 'no such button')); await page.waitForTimeout(300);
   await shot('breakaway-begin');
   const declared = await press('Declare independence');

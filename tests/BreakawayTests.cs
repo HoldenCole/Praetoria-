@@ -157,6 +157,71 @@ public class BreakawayTests
         if (temper <= 0) Assert.True(p.Recognised > 0); else Assert.NotEmpty(p.Foes);
     }
 
+    /// <summary>Make this house the only one in the Reach that brings up a strategic resource, from a world of its own in the region.</summary>
+    private static void Corner(World w, House h, string regionId, string resource)
+    {
+        foreach (var sys in w.Galaxy!.Systems.Values) sys.Deposits.Remove(resource);
+        var world = Worlds(w, regionId).First(x => x.OwnerId == h.Id); w.Galaxy.System(world.SystemId)!.Deposits[resource] = 3;
+        string id = resource == Resource.Helium3 ? "helium_skimmers" : resource == Resource.RareEarths ? "rare_earth_refinery" : "isotope_works";
+        Assert.Equal(resource, Content.Holdings.Building(id)!.RequiresDeposit);
+        world.Buildings.Add(id);
+    }
+
+    [Fact]
+    public void A_region_that_can_stand_alone_is_harder_to_keep_and_one_that_cannot_is_easier()
+    {
+        var (tc, w, _, mine, _) = Start(); Sound(w); string region = Give(w, mine, 100, Ring.Middle);
+        foreach (var sys in w.Galaxy!.Systems.Values) sys.Deposits.Remove(Resource.Helium3);          // nobody brings up fuel
+        mine.Treasury.Credits = 50;
+        var bare = tc.Polities.StandAlone(w, mine, region); int temperBare = tc.Polities.Temper(w, mine, region).temper;
+        Assert.False(bare.tests[0].ok); Assert.True(bare.starved); Assert.False(bare.leverage); Assert.Contains(tc.Polities.Temper(w, mine, region).why, x => x.Contains("starved"));
+        Corner(w, mine, region, Resource.Helium3);                                                   // now it is the Reach's only fuel
+        var held = tc.Polities.StandAlone(w, mine, region); int temperHeld = tc.Polities.Temper(w, mine, region).temper;
+        Assert.True(held.tests[0].ok); Assert.False(held.starved); Assert.True(held.leverage); Assert.True(held.tests[2].ok);
+        Assert.Equal(temperBare - 3, temperHeld);                                                    // no longer starved (+1 gone), and a monopoly (−2)
+        Assert.Contains(tc.Polities.Temper(w, mine, region).why, x => x.Contains("cannot do without"));
+        // and in the war that follows the Reach's will runs out faster
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == mine.Id)) f.Strength = 1;
+        var p = tc.Polities.Declare(w, mine, region, PolitySystem.Republic); Assert.True(p.Leverage); Assert.False(p.Starved);
+        if (p.Recognised == 0) { p.Temper = 2; w.Turn = p.WarSince + 4; Assert.Equal(0, PolitySystem.Will(w, p)); p.Leverage = false; Assert.Equal(1, PolitySystem.Will(w, p)); }
+        // a state with no fuel of its own is shut out of the Reach's exchanges while it fights
+        var (tc2, w2, _, mine2, _) = Start(); Sound(w2); string r2 = Give(w2, mine2, 100, Ring.Core); foreach (var sys in w2.Galaxy!.Systems.Values) sys.Deposits.Remove(Resource.Helium3);
+        foreach (var f in w2.Fleets.Values.Where(f => f.OwnerId == mine2.Id)) f.Strength = 1;
+        var p2 = tc2.Polities.Declare(w2, mine2, r2, PolitySystem.Republic); Assert.True(p2.Starved);
+        if (p2.Recognised == 0) { tc2.Polities.Tick(w2); Assert.True(SenateSystem.Embargoed(w2, mine2.Id)); }
+    }
+
+    [Fact]
+    public void A_house_of_the_region_can_be_brought_over_and_the_capitals_creature_tells_the_capital()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Sound(w); string region = Give(w, mine, 30, Ring.Rim); mine.Treasury.Credits = 100; w.PoolsFor(me.Id).Influence = 9;
+        var chair = RegionSystem.CapitalHolder(w)!; var other = w.Houses.Values.First(h => h.Id != mine.Id && h.Id != chair.Id && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null);
+        foreach (var x in Worlds(w, region).Where(x => x.OwnerId != mine.Id)) x.OwnerId = other.Id;        // the rest of the region is one other house's
+        var oh = Economy.HeadOf(w, other)!; w.Relationship(oh.Id, me.Id).Disposition = 10; w.Relationship(oh.Id, Economy.HeadOf(w, chair)!.Id).Disposition = 0; other.PatronId = "";
+        if (PolitySystem.Joins(w, other, mine)) return;                                                // it already depends on the house: nothing to prove
+        Assert.Contains("three in five", tc.Polities.DeclareRefusal(w, mine, region, PolitySystem.Republic));
+        Assert.Contains(PolitySystem.Neighbours(w, mine), h => h.Id == other.Id);
+        Assert.True(tc.Executor.TryExecute(new WorkHouseCommand(me.Id, other.Id, PolitySystem.Word, tc.Polities), ctx)); Assert.Equal(18, PolitySystem.Regard(w, other, mine));
+        Assert.NotNull(new WorkHouseCommand(me.Id, other.Id, PolitySystem.Gift, tc.Polities).Refusal(ctx));   // once a year
+        w.Turn += 1; Assert.True(tc.Executor.TryExecute(new WorkHouseCommand(me.Id, other.Id, PolitySystem.Gift, tc.Polities), ctx));
+        Assert.True(PolitySystem.Regard(w, other, mine) >= PolitySystem.JoinRegard); Assert.True(PolitySystem.Joins(w, other, mine)); Assert.True(w.HasFlag(PolitySystem.WonOverFlag)); Fires(w, "a_house_gives_its_word");
+        Assert.Equal(100 - PolitySystem.GiftCredits, mine.Treasury.Credits);
+        Assert.Null(tc.Polities.DeclareRefusal(w, mine, region, PolitySystem.Republic));                // the region would go now
+        w.Relationship(oh.Id, me.Id).Disposition = 5; Assert.True(PolitySystem.Joins(w, other, mine));   // its word holds while it does not turn against the house
+        w.Relationship(oh.Id, me.Id).Disposition = -5; Assert.False(PolitySystem.Joins(w, other, mine));
+
+        // a house that is the capital's creature, and no friend of this one, reports the approach
+        var (tc2, w2, me2, mine2, ctx2) = Start(); Sound(w2); string r2 = Give(w2, mine2, 30, Ring.Rim); w2.PoolsFor(me2.Id).Influence = 9;
+        var chair2 = RegionSystem.CapitalHolder(w2)!; var loyal = w2.Houses.Values.First(h => h.Id != mine2.Id && h.Id != chair2.Id && h.Id != PirateSystem.HouseId && Economy.HeadOf(w2, h) != null);
+        foreach (var x in Worlds(w2, r2).Where(x => x.OwnerId != mine2.Id)) x.OwnerId = loyal.Id;
+        var lh = Economy.HeadOf(w2, loyal)!; w2.Relationship(lh.Id, me2.Id).Disposition = 0; w2.Relationship(lh.Id, Economy.HeadOf(w2, chair2)!.Id).Disposition = 50;
+        int legit = mine2.Legitimacy, chairRegard = PolitySystem.Regard(w2, chair2, mine2);
+        Assert.True(tc2.Executor.TryExecute(new WorkHouseCommand(me2.Id, loyal.Id, PolitySystem.Word, tc2.Polities), ctx2));
+        Assert.Equal(0, PolitySystem.Regard(w2, loyal, mine2)); Assert.True(PolitySystem.Regard(w2, chair2, mine2) < chairRegard); Assert.True(mine2.Legitimacy < legit || legit == 0);
+        Assert.True(w2.HasFlag(PolitySystem.ReportedFlag)); Fires(w2, "they_told_the_capital");
+        Assert.NotNull(new WorkHouseCommand(me2.Id, chair2.Id, PolitySystem.Word, tc2.Polities).Refusal(ctx2));   // the capital's holder is not to be had
+    }
+
     private static void Fires(World w, string eventId)
     {
         var engine = new Praetoria.Core.Events.EventEngine(Content, WorldBuilder.RngFor(w));

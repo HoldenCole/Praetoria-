@@ -53,7 +53,7 @@ public sealed class CaesarSystem
     public static bool Enemy(World w, string houseId) => w.Counter(EnemyKey(houseId)) > w.Turn;
 
     /// <summary>Is the Reach in its great war (docs: the War of the Reach)? Nobody marches on a capital that every house is already fighting over.</summary>
-    public static bool GreatWar(World w) => w.Houses.Values.Any(h => h.Bloc == GreatCrisisSystem.HegemonBloc || h.Bloc == GreatCrisisSystem.AllianceBloc);
+    public static bool GreatWar(World w) => GreatCrisisSystem.AtWar(w);
 
     // ---------------- the crews and their commander ----------------
 
@@ -126,9 +126,12 @@ public sealed class CaesarSystem
         }
     }
 
-    /// <summary>When a world is opened, the crews already know the commanders they have: nothing is gained, it is only written down.</summary>
+    /// <summary>When a world is first opened, the crews already know the commanders they have: nothing is gained, it is only written down.</summary>
     public static void Open(World w)
     {
+        // once per world: a saved game that is opened again must not write them down a second time, or a commander appointed in
+        // the year of the save is a point ahead of where an unbroken run would have him
+        if (w.Counter("crews_opened") != 0) return; w.WorldCounters["crews_opened"] = 1;
         foreach (var f in w.Fleets.Values.Where(f => f.AdmiralId.Length > 0 && f.DevotedTo.Length == 0).OrderBy(f => f.Id, StringComparer.Ordinal))
             if (w.Char(f.AdmiralId) is { Alive: true } c) Attach(w, f, c);
     }
@@ -492,6 +495,14 @@ public sealed class CaesarSystem
     {
         var list = new List<string>(); if (w.IsImperium) return list;
         if (Within(w, GreatWarEndedKey, GreatWarMemory) || GreatWar(w)) list.Add("the War of the Reach is in living memory");
+        list.AddRange(Wrong(w));
+        return list;
+    }
+    /// <summary>What is wrong with the Reach this year, under either government and apart from the great war itself. The same list
+    /// tells a general the times are his and pushes the Reach toward its great war (docs/BREAKAWAY.md, what sets it off).</summary>
+    public static List<string> Wrong(World w)
+    {
+        var list = new List<string>();
         if (w.Galaxy != null && w.Regions.Values.Count(r => r.Lawlessness >= 50) >= 2) list.Add("the lanes of more than one region are lawless");
         if (RegionSystem.CapitalHolder(w) is { Legitimacy: < 40 } chair) list.Add($"{chair.Name}, which holds the capital, is not respected");
         if (w.Nations.Any(n => n.AtWar && n.ScoreNation > n.ScoreReach)) list.Add("a war beyond the Reach is going badly");

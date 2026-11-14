@@ -29,6 +29,33 @@ public sealed class GreatCrisisSystem
     public const int MinWarYears = 10, ClimaxYears = 6, ExhaustionYears = 16, MaxWarYears = 20;
     public const string BeganKey = "great_war_began", StartHullsKey = "great_war_hulls", PartitionWishFlag = "seek_partition";
     public const string Crushed = "crushed", Held = "held", PartitionEnd = "partition", Exhaustion = "exhaustion";
+    /// <summary>Has the war itself begun, and not yet ended? (The houses sort into blocs before it, and may stand down again.)</summary>
+    public static bool AtWar(World w) => w.WorldCounters.ContainsKey(BeganKey) && !w.HasFlag(ResolvedFlag);
+    public const int TroublePoints = 7, WarPoints = 3, WarPointsCap = 12, OvershadowPoints = 6, MarchPoints = 8, BreakawayPoints = 4, BreakawayYears = 8, EasesBy = 6;
+    public const string EasedCounter = "great_crisis_eased";
+
+    /// <summary>What is pushing the Reach toward its great war this year, and by how much. Nothing on this list, and the clock runs
+    /// back. The war comes out of what is happening, not out of the calendar.</summary>
+    public static List<(string what, int points)> Pressure(World w)
+    {
+        var list = new List<(string, int)>();
+        foreach (var t in CaesarSystem.Wrong(w).Where(t => !t.Contains("at war with each other"))) list.Add((t, TroublePoints));
+        if (w.Wars.Count > 0) list.Add(($"{w.Wars.Count} war(s) between houses", Math.Min(WarPointsCap, w.Wars.Count * WarPoints)));
+        var hulls = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id)).Select(h => (h, n: FleetSystem.StrengthOf(w, h.Id))).OrderByDescending(x => x.n).ThenBy(x => x.h.Id, StringComparer.Ordinal).Take(2).ToList();
+        if (hulls.Count == 2 && hulls[0].n >= 6 && hulls[0].n >= 2 * Math.Max(1, hulls[1].n)) list.Add(($"{hulls[0].h.Name} overshadows every other house in arms", OvershadowPoints));
+        if (w.Counter("coalition_pressure") > 0) list.Add(("the houses are drawing together against one of their number", w.Counter("coalition_pressure")));
+        if (w.Counter("seizures") > 0) list.Add(("worlds have been taken by force", Math.Min(5, w.Counter("seizures"))));
+        if (w.CivilWar != null) list.Add(("a general is marching on the capital", MarchPoints));
+        if (w.Polities.Any(p => w.Turn - p.Since <= BreakawayYears)) list.Add(("a region has lately left the Reach", BreakawayPoints));
+        return list;
+    }
+    /// <summary>How near the Reach is to its great war, in hundredths of the way (100 = the war).</summary>
+    public int Nearness(World w)
+    {
+        int at = _def?.Stages.FirstOrDefault(x => x.Behavior == "bloc_war")?.At ?? 300;
+        return AtWar(w) || w.HasFlag(ResolvedFlag) ? 100 : Math.Clamp(100 * w.Counter(ClockCounter) / Math.Max(1, at), 0, 100);
+    }
+
     public static int WarYears(World w) => w.WorldCounters.TryGetValue(BeganKey, out int t) ? w.Turn - t : 0;
     private static int Hulls(World w, string bloc) => w.Houses.Values.Where(h => h.Bloc == bloc).Sum(h => FleetSystem.StrengthOf(w, h.Id));
     private static bool HoldsCapital(World w, string bloc)
@@ -83,12 +110,32 @@ public sealed class GreatCrisisSystem
         double intensity = _def.IntensityOf(w.CrisisIntensity);
         if (intensity <= 0) return;
 
-        // the galaxy's own turmoil hurries the clock: wars, coalition pressure, fear
-        int turmoil = w.Wars.Count * 3 + w.Counter("coalition_pressure") + Math.Min(5, w.Counter("seizures"));
-        int advance = (int)Math.Round(_def.BaseRate * intensity) + turmoil;
-        w.WorldCounters[ClockCounter] = w.Counter(ClockCounter) + advance;
-
         int stage = w.WorldCounters.TryGetValue(StageCounter, out var s) ? s : -1;
+        if (AtWar(w))
+        {
+            // once it has begun the war runs on its own clock: the galaxy's turmoil hurries it
+            int turmoil = w.Wars.Count * 3 + w.Counter("coalition_pressure") + Math.Min(5, w.Counter("seizures"));
+            w.WorldCounters[ClockCounter] = w.Counter(ClockCounter) + (int)Math.Round(_def.BaseRate * intensity) + turmoil;
+        }
+        else
+        {
+            // before it, nothing moves the clock but what is wrong with the Reach; and when nothing is, the houses stand down
+            int pressure = Pressure(w).Sum(x => x.points);
+            if (pressure > 0) w.WorldCounters[ClockCounter] = w.Counter(ClockCounter) + (int)Math.Round(pressure * intensity);
+            else if (w.Counter(ClockCounter) > 0)
+            {
+                w.WorldCounters[ClockCounter] = Math.Max(0, w.Counter(ClockCounter) - EasesBy);
+                // the blocs dissolve if the Reach has eased well back from where they formed
+                int blocsAt = _def.Stages.FirstOrDefault(x => x.Behavior == "blocs")?.At ?? 150; int blocsStage = _def.Stages.ToList().FindIndex(x => x.Behavior == "blocs");
+                if (stage >= blocsStage && blocsStage >= 0 && w.Counter(ClockCounter) < blocsAt - 30)
+                {
+                    foreach (var h in w.Houses.Values.Where(h => h.Bloc == HegemonBloc || h.Bloc == AllianceBloc)) h.Bloc = "";
+                    for (int i = blocsStage; i <= stage; i++) w.WorldFlags.Remove(StageFlag(_def.Stages[i].Id));
+                    stage = blocsStage - 1; w.WorldCounters[StageCounter] = stage; w.WorldCounters[EasedCounter] = w.Counter(EasedCounter) + 1;
+                    w.Log($"[{_def.Name}] The houses that had been counting each other's fleets stand down. Whatever was coming has not come.");
+                }
+            }
+        }
         while (stage + 1 < _def.Stages.Count && w.Counter(ClockCounter) >= _def.Stages[stage + 1].At)
         {
             // the war is not over because the clock says so: it runs ten years at the least, and then until something ends it

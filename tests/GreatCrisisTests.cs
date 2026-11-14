@@ -32,14 +32,36 @@ public class GreatCrisisTests
     {
         var (content, w) = Fresh();
         var sys = new GreatCrisisSystem(content.GreatCrisis, new FleetSystem(content.Fleets));
+        w.WorldCounters["coalition_pressure"] = 8;                                   // something is wrong, and it still waits for the start turn
         w.Turn = 5; sys.Tick(w, TestContent.Rng());
         Assert.Equal(0, w.Counter(GreatCrisisSystem.ClockCounter));
         w.Turn = 10; sys.Tick(w, TestContent.Rng());
-        Assert.True(w.Counter(GreatCrisisSystem.ClockCounter) >= 10);
+        Assert.True(w.Counter(GreatCrisisSystem.ClockCounter) >= 8);
+        for (int i = 0; i < 6; i++) { w.Turn++; sys.Tick(w, TestContent.Rng()); }
         Assert.True(w.HasFlag(GreatCrisisSystem.StageFlag("rumblings")));
         var (_, w2) = Fresh(); w2.CrisisIntensity = "off"; w2.Turn = 30;
         sys.Tick(w2, TestContent.Rng());
         Assert.Equal(0, w2.Counter(GreatCrisisSystem.ClockCounter));
+    }
+
+    [Fact]
+    public void Nothing_wrong_and_the_great_war_does_not_come_and_what_was_coming_recedes()
+    {
+        var (content, w) = Fresh(); var sys = new GreatCrisisSystem(content.GreatCrisis, new FleetSystem(content.Fleets));
+        foreach (var x in w.Wars.ToList()) w.Wars.Remove(x); foreach (var f in w.Fleets.Values) f.Strength = 1;   // nobody overshadows anybody
+        Assert.Empty(GreatCrisisSystem.Pressure(w));
+        for (w.Turn = 10; w.Turn < 70; w.Turn++) sys.Tick(w, TestContent.Rng());
+        Assert.Equal(0, w.Counter(GreatCrisisSystem.ClockCounter)); Assert.False(w.HasFlag(GreatCrisisSystem.StageFlag("rumblings"))); Assert.Equal(0, sys.Nearness(w));
+        // trouble builds until the houses sort themselves into two camps...
+        w.WorldCounters["coalition_pressure"] = 20; w.Turn = 70;
+        while (!w.HasFlag(GreatCrisisSystem.StageFlag("alliances")) && w.Turn < 200) { w.Turn++; sys.Tick(w, TestContent.Rng()); }
+        Assert.True(w.HasFlag(GreatCrisisSystem.StageFlag("alliances"))); Assert.Contains(w.Houses.Values, h => h.Bloc.Length > 0); Assert.False(GreatCrisisSystem.AtWar(w));
+        Assert.Contains(GreatCrisisSystem.Pressure(w), x => x.what.Contains("drawing together")); Assert.InRange(sys.Nearness(w), 40, 99);
+        // ...and then whatever was wrong is put right, and they stand down
+        w.WorldCounters["coalition_pressure"] = 0; int was = w.Counter(GreatCrisisSystem.ClockCounter);
+        for (int i = 0; i < 20; i++) { w.Turn++; sys.Tick(w, TestContent.Rng()); }
+        Assert.True(w.Counter(GreatCrisisSystem.ClockCounter) < was); Assert.False(w.HasFlag(GreatCrisisSystem.StageFlag("alliances")));
+        Assert.DoesNotContain(w.Houses.Values, h => h.Bloc.Length > 0); Assert.False(w.HasFlag(GreatCrisisSystem.StageFlag("war")));
     }
 
     [Fact]

@@ -119,8 +119,8 @@ public sealed class TurnController
         if (_companies != null && !world.InAcademy) _companies.Seed(world);
         LadderSystem.Seed(world); LadderSystem.Open(world, content.Offices);   // the bench is not empty when a saga opens (docs/LADDER.md); before the orders are first measured
         _orders = new OrderSystem(_economy, _fleets, content.Titles, content.Offices, content.Market); if (!world.InAcademy && world.Houses.Values.All(h => h.Orders.Count == 0)) _orders.Tick(world);
-        _polities = new PolitySystem(_fleets, content.Offices);
-        _caesar = new CaesarSystem(_fleets, content.Offices); _senate.Caesar = _caesar; if (!world.InAcademy) CaesarSystem.Open(world);
+        _polities = new PolitySystem(_fleets, content.Offices, _economy, content.Holdings, content.Businesses);
+        _caesar = new CaesarSystem(_fleets, content.Offices); _senate.Caesar = _caesar;
         _senate.Exchange = _companies; if (_companies != null) _companies.Offices = content.Offices;
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures, Exchange = _companies, Orders = _orders, HoldingCatalogForFounding = content.Holdings };
         _dynasty = new DynastySystem { Content = content };
@@ -147,6 +147,7 @@ public sealed class TurnController
     {
         if (World.InAcademy) return BeginTerm();
         World.Turn++;
+        CaesarSystem.Open(World);   // once, at the start of the first year in the Reach: the same moment in an unbroken run and a resumed one
         foreach (var pools in World.Pools.Values) pools.Regenerate();
         using (Perf.Time("begin:_economy.Accrue")) { _economy?.Accrue(World); }     // RNG-free, so determinism is preserved (GDD §17)
         using (Perf.Time("begin:ProjectSystem.Tick")) { ProjectSystem.Tick(World, _content.Holdings, _content.Businesses); }   // a year passes on every building site (docs/ECONOMY_MARKET.md stage B)

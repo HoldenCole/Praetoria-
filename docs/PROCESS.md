@@ -212,3 +212,23 @@ really happened, there should be a way to try it.**
 When designing anything with an ending, list the endings history offers and build as many as the system can carry.
 Prefer a condition the player can work toward over a clock, and prefer "you may try, and here is what stands against
 you" over "you may not".
+
+## Map the gaps as you build
+
+Set by the owner on 2026-11-14: "make sure we're mapping gaps as we build new things so we don't have a lot of thin
+things."
+
+**Every thin thing is written down in one place, docs/GAPS.md, in the same commit that makes it.**
+
+- A piece of work is not finished until its gaps are in the register: what is missing, how large (small, a cycle,
+  several cycles), and what it leans on. The piece's own document may still list them; the register is the one that
+  counts.
+- **Close before you open.** Before starting a new system, close the small gaps of the last one. A cycle should close
+  at least as many gaps as it opens. If it cannot, say so in the report and say why.
+- **Depth before breadth.** Given a choice between a new system and making an existing one stand up, make the
+  existing one stand up, unless the owner has asked for the new one.
+- **Watch the recurring ones.** A gap that appears in several systems (other houses having no inner life, numbers
+  that are first guesses) is worth more than its line. Raise it; do not leave it to be rediscovered each time.
+- `./tools/gaps.sh` prints the count. Put it in docs/ROADMAP.md section 1 and in the report to the owner whenever it
+  changes, with the direction it moved.
+- When a gap is closed, move it to the register's Closed table with the date and what is left of it, if anything.
