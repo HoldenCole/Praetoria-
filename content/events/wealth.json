@@ -1,0 +1,425 @@
+{
+  "//": "PERSONAL WEALTH (docs/WEALTH.md). Reads kin_in_debt and allowance_resented (each year); kin_gave_to_the_house, will_contested and heirloom_sold (deeds); and the character flags in_debt, gave_to_the_house and remembered_in_the_will.",
+  "events": [
+    {
+      "id": "a_debt_in_the_family",
+      "tier": "situation",
+      "weight": 18,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "debtor",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "debtor",
+              "flag": "in_debt",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_in_debt",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "have_it_out_with_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "debtor",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "adjustSkill",
+              "role": "debtor",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had {debtor.name} in and went through the figures one by one. It was an unpleasant hour. {debtor.name} came out of it chastened, and a little more careful."
+            }
+          ]
+        },
+        {
+          "id": "say_the_house_stands_behind_its_own",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "debtor",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known that {debtor.name}'s credit was the house's credit. The creditors relaxed. The bill has still to be paid."
+            }
+          ]
+        },
+        {
+          "id": "it_is_their_affair",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "debtor",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that {debtor.name} was grown and the debt was {debtor.name}'s own. Which was true, for as long as the creditors agreed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "out_of_their_own_pocket",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "giver",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "giver",
+              "flag": "gave_to_the_house",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_gave_to_the_house",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "thank_them_before_the_family",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "giver",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked {giver.name} at the family's table, by name and by sum. {giver.name} went red and was pleased for a month."
+            }
+          ]
+        },
+        {
+          "id": "repay_it_when_you_can",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "giver",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote the sum down as a debt of the house to {giver.name}, to be repaid. {giver.name} said there was no need. {self.name} said there was."
+            }
+          ]
+        },
+        {
+          "id": "accept_it_as_owed",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "giver",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took it as no more than a member of the house owed the house. {giver.name} had not expected thanks, exactly. But had not expected nothing."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_mean_house",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "age",
+              "role": "kin",
+              "op": "gte",
+              "value": 16
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "allowance_resented",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "the_house_cannot_afford_more",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} the house could not afford more, and showed the ledger. {kin.name} looked at what {self.name} was wearing and said nothing."
+            }
+          ]
+        },
+        {
+          "id": "something_from_your_own_purse",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave {kin.name} something on the spot and said the allowance would be looked at. {kin.name} did not believe the second part but was glad of the first."
+            }
+          ]
+        },
+        {
+          "id": "they_may_earn_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that nobody of the house was forbidden to earn their own bread. {kin.name} has been repeating the remark to people ever since."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_will_is_read",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "legatee",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "legatee",
+              "flag": "remembered_in_the_will",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "will_contested",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "honour_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "legatee",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that the dead had the right to do as they pleased with their own, and that {legatee.name} was welcome to it. It cost {self.name} something to say."
+            }
+          ]
+        },
+        {
+          "id": "ask_them_to_give_it_up",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "legatee",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put it to {legatee.name} that a house's money belonged with the house. {legatee.name} handed some of it over, and the rest of their goodwill with it."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing_and_remember",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing at the reading. {self.name} has a long memory."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sold_out_of_the_family",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "heirloom_sold",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "it_was_only_a_thing",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said it had been a thing, and things are for use. The older members of the family did not come to dinner that week."
+            }
+          ]
+        },
+        {
+          "id": "promise_to_buy_it_back",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be understood that it would be bought back when times were better. Nobody quite believed it. They were glad it had been said."
+            }
+          ]
+        },
+        {
+          "id": "the_house_needed_the_money",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said plainly that the house had needed the money. It was honest, and it told every creditor in the Reach how things stood."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

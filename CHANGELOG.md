@@ -38,6 +38,12 @@
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **Personal wealth** (docs/WEALTH.md), on the House screen. Every grown member of the house has a purse of their own,
+  fed by an allowance the head sets (mean, customary, generous), by their service's pay and by any estate. What they do
+  with it is theirs: they give to a house in trouble, spend on being seen, gamble, save, and run into debt, which the
+  head may pay or leave until the creditors come to the house. **Heirlooms** belong to a person and can be given, sold
+  or left. **The will** sends the head's purse and heirlooms where they say, while the house goes by the law and the
+  treasury is kept whole or shared out in portions. Five events; `tools/browser/wealth.js`.
 - **Education and skills** (docs/EDUCATION.md). Every person has a ceiling in every skill, set by what they are. Skills
   are learned in points, each step costing more: from their service, a command, a governorship, an office or a duty;
   from what they choose to study; from a paid teacher; from a mentor. Children from six are brought up toward their

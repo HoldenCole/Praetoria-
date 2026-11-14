@@ -41,6 +41,14 @@ public sealed class Character
     /// </summary>
     public HashSet<string> Flags { get; set; } = new();
 
+    // ---- personal wealth (docs/WEALTH.md)
+    /// <summary>This person's own money, apart from their house's treasury. Negative is debt.</summary>
+    public int Purse { get; set; }
+    /// <summary>What they did with their money last year, in a line.</summary>
+    public string LastSpend { get; set; } = "";
+    /// <summary>What they have said shall be done with what is theirs when they die. Null: all of it to the heir.</summary>
+    public Will? Will { get; set; }
+
     // ---- education (docs/EDUCATION.md)
     /// <summary>Learning banked toward the next step in each skill.</summary>
     public Dictionary<string, int> Learning { get; set; } = new();

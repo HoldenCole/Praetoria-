@@ -22,3 +22,29 @@ public sealed class Petition
     public string As { get; set; } = "";
     public int Since { get; set; }
 }
+
+/// <summary>What a person has said shall be done with what is theirs when they die (docs/WEALTH.md). The house itself goes by the
+/// succession law, whatever this says.</summary>
+public sealed class Will
+{
+    /// <summary>Someone other than the heir who is to have part of the purse, or empty.</summary>
+    public string LegateeId { get; set; } = "";
+    /// <summary>The part of the purse they are to have: 0, 25, 50 or 100.</summary>
+    public int SharePct { get; set; }
+    /// <summary>Heirloom id → the person it is left to. Anything not named goes to the heir.</summary>
+    public Dictionary<string, string> Items { get; set; } = new();
+}
+
+/// <summary>A thing worth leaving to someone: a signet, a sword, a library, an estate. It belongs to a person, not to the house.</summary>
+public sealed class Heirloom
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    /// <summary>signet, sword, library or estate.</summary>
+    public string Kind { get; set; } = "";
+    public string HolderId { get; set; } = "";
+    /// <summary>The house it has always belonged to. Selling it out of that house is felt.</summary>
+    public string OfHouseId { get; set; } = "";
+    /// <summary>What it would fetch.</summary>
+    public int Value { get; set; }
+}

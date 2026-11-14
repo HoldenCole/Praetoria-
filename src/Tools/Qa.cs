@@ -310,6 +310,14 @@ internal static class Qa
             if (decisions.NextInt(0, 25) == 0) foreach (var mm in w.Marriages.Where(mm => w.Char(mm.A)?.HouseId == house.Id || w.Char(mm.B)?.HouseId == house.Id).OrderBy(mm => mm.A, StringComparer.Ordinal).Take(1))
                 cands.Add(new MarriageCommand(p.Id, w.Char(mm.A)?.HouseId == house.Id ? mm.A : mm.B, MarriageCommand.Divorce));
         }
+        {   // wealth: the allowance, the head's purse, debts, the will, heirlooms
+            if (decisions.NextInt(0, 6) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Allowance, "", WealthSystem.Allowances[decisions.NextInt(0, 3)]));
+            if (decisions.NextInt(0, 12) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Inheritance, "", decisions.NextInt(0, 2) == 0 ? WealthSystem.Entail : WealthSystem.Portions));
+            if (decisions.NextInt(0, 4) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Move, "", (decisions.NextInt(0, 2) == 0 ? 5 : -5).ToString()));
+            var grownKin = WealthSystem.Members(w, house).Where(k => k.Id != p.Id).ToList();
+            foreach (var k in grownKin.Where(k => k.Purse < 0)) cands.Add(new WealthCommand(p.Id, WealthCommand.Settle, k.Id, decisions.NextInt(0, 2) == 0 ? "purse" : "treasury"));
+            if (grownKin.Count > 0 && decisions.NextInt(0, 6) == 0) { var k = grownKin[decisions.NextInt(0, grownKin.Count)]; cands.Add(new WealthCommand(p.Id, WealthCommand.Will, k.Id, new[] { "0", "25", "50", "100" }[decisions.NextInt(0, 4)])); foreach (var it in WealthSystem.HeldBy(w, p.Id)) { cands.Add(new WealthCommand(p.Id, WealthCommand.Bequeath, it.Id, k.Id)); if (decisions.NextInt(0, 6) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Give, it.Id, k.Id)); if (decisions.NextInt(0, 10) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Sell, it.Id, "")); } }
+        }
         {   // education: what the head studies, the children's courses, tutors
             if (decisions.NextInt(0, 4) == 0) cands.Add(new EducationCommand(p.Id, EducationCommand.Study, p.Id, EducationSystem.All[decisions.NextInt(0, EducationSystem.All.Length)]));
             foreach (var k in w.LivingCharacters().Where(k => k.HouseId == house.Id).OrderBy(k => k.Id, StringComparer.Ordinal))

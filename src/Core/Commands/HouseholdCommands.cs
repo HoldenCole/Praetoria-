@@ -121,3 +121,50 @@ public sealed class EducationCommand : ICommand
         if (_what == Study) who.Study = _value; else if (_what == Upbringing) who.Upbringing = _value; else who.Tutor = int.Parse(_value);
     }
 }
+
+/// <summary>Personal wealth (docs/WEALTH.md). <see cref="Allowance"/>: what the house gives its grown members.
+/// <see cref="Inheritance"/>: whether the treasury is kept whole or shared out when the head dies. <see cref="Move"/>: credits
+/// between the head's own purse and the treasury. <see cref="Settle"/>: pay what one of the house owes (value "purse" or
+/// "treasury"). <see cref="Will"/>: who is to have what part of your purse. <see cref="Bequeath"/>, <see cref="Give"/>,
+/// <see cref="Sell"/>: an heirloom.</summary>
+public sealed class WealthCommand : ICommand
+{
+    public const string Allowance = "allowance", Inheritance = "inheritance", Move = "move", Settle = "settle", Will = "will", Bequeath = "bequeath", Give = "give", Sell = "sell";
+    private readonly string _what, _targetId, _value;
+    public WealthCommand(string actorId, string what, string targetId, string value) { ActorId = actorId; _what = what; _targetId = targetId; _value = value; }
+    public string ActorId { get; }
+    public string Describe() => $"{_what} {_targetId} {_value}".Trim();
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var me = w.Char(ActorId); var house = me != null ? w.House(me.HouseId) : null; if (me?.Alive != true || house == null) return "no house";
+        var item = w.Heirlooms.FirstOrDefault(h => h.Id == _targetId);
+        switch (_what)
+        {
+            case Allowance: return WealthSystem.Allowances.Contains(_value) ? null : "no such allowance";
+            case Inheritance: return _value is WealthSystem.Entail or WealthSystem.Portions ? null : "no such custom";
+            case Move: return int.TryParse(_value, out int amount) ? WealthSystem.MoveRefusal(w, me, amount) : "not a sum";
+            case Settle: return WealthSystem.SettleRefusal(w, me, w.Char(_targetId), _value == "purse");
+            case Will: return WealthSystem.WillRefusal(w, me, _targetId, int.TryParse(_value, out int pct) ? pct : -1);
+            case Bequeath: return item == null || item.HolderId != me.Id ? "not yours to leave" : _value.Length == 0 || w.Char(_value) is { Alive: true } ? null : "no such person";
+            case Give: return WealthSystem.GiveRefusal(w, me, item, w.Char(_value));
+            case Sell: return item != null && item.HolderId == me.Id ? null : "not yours to sell";
+            default: return "no such thing";
+        }
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var me = w.Char(ActorId)!; var house = w.House(me.HouseId)!; var item = w.Heirlooms.FirstOrDefault(h => h.Id == _targetId);
+        switch (_what)
+        {
+            case Allowance: house.Allowance = _value; w.Log($"{house.Name} keeps a {_value} house from now on."); break;
+            case Inheritance: house.Inheritance = _value; break;
+            case Move: WealthSystem.Move(w, me, int.Parse(_value)); break;
+            case Settle: WealthSystem.Settle(w, me, w.Char(_targetId)!, _value == "purse"); break;
+            case Will: me.Will ??= new State.Will(); me.Will.LegateeId = int.Parse(_value) == 0 ? "" : _targetId; me.Will.SharePct = _targetId.Length == 0 ? 0 : int.Parse(_value); break;
+            case Bequeath: me.Will ??= new State.Will(); if (_value.Length == 0) me.Will.Items.Remove(_targetId); else me.Will.Items[_targetId] = _value; break;
+            case Give: WealthSystem.Give(w, me, item!, w.Char(_value)!); break;
+            case Sell: WealthSystem.Sell(w, me, item!); break;
+        }
+    }
+}

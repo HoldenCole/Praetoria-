@@ -1,0 +1,98 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!;
+    var members = WealthSystem.Members(w, house).Where(c => c.Id != pid).OrderBy(c => c.Purse).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+    var mine = WealthSystem.HeldBy(w, pid); var others = w.Heirlooms.Where(h => h.HolderId != pid && w.Char(h.HolderId)?.HouseId == house.Id).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+    var heir = DynastySystem.FindHeir(w, p); var will = p.Will; var legatee = will != null && will.LegateeId.Length > 0 ? w.Char(will.LegateeId) : null;
+    var people = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age >= 6).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+    var spouse = DynastySystem.Spouse(w, p); if (spouse != null && !people.Contains(spouse)) people.Insert(0, spouse);
+    int income = WealthSystem.Pay(p) + WealthSystem.EstateIncome(w, pid); int bill = WealthSystem.AllowanceBill(w, house);
+}
+<section class="panel wealth">
+    <h3><Icon Name="house" Size="13" /> Purses, heirlooms and the will <span class="muted">your own purse @p.Purse · the allowance costs @bill a year</span></h3>
+    <div class="hh-cols">
+    <div>
+        <div class="hh-head"><b>Your own purse</b> <span class="muted small">@p.Purse credits@(income > 0 ? $", and {income} a year from your service and estates" : ""). It is yours, not the house's: it goes by your will, and the house's creditors cannot touch it.</span></div>
+        <div class="suit-acts"><span class="muted small">From the treasury</span>
+            @foreach (int a in Sums) { int amt = a; var no = new WealthCommand(pid, WealthCommand.Move, string.Empty, amt.ToString()).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? (house.Allowance == WealthSystem.Mean ? "the family, kept on a mean allowance, will notice" : ""))" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Move, string.Empty, amt.ToString()))">take @a</button> }
+            <span class="muted small">Into it</span>
+            @foreach (int a in Sums) { int amt = a; var no = new WealthCommand(pid, WealthCommand.Move, string.Empty, (-amt).ToString()).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(no != null)" title="@no" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Move, string.Empty, (-amt).ToString()))">put @a</button> }
+        </div>
+
+        <div class="hh-head"><b>What the house gives its own</b> <span class="muted small">Every grown member's allowance, paid from the treasury each year. @WealthSystem.AllowanceSays(house.Allowance)</span></div>
+        <div class="suit-acts">
+            @foreach (var a in WealthSystem.Allowances) { string pol = a; <button class="opt inline @(house.Allowance == a ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Allowance, string.Empty, pol))">@a · @WealthSystem.AllowanceOf(a) each</button> }
+        </div>
+
+        <div class="hh-head"><b>Their purses</b> <span class="muted small">What they do with their own money is their own business. You decide only whether to pay when they cannot.</span></div>
+        @if (members.Count == 0) { <div class="muted small">Nobody grown of the house but you.</div> }
+        @foreach (var c in members.Take(_all ? 40 : 7))
+        {
+            string cid = c.Id; bool debt = c.Purse < 0;
+            <div class="purse-row">
+                <b>@c.Name</b> <span class="pill small @(debt ? "warn" : c.Purse >= 15 ? "good" : "")">@(debt ? $"owes {-c.Purse}" : $"{c.Purse} credits")</span>
+                <span class="muted small">@(c.LastSpend.Length > 0 ? c.LastSpend : "Nothing to note yet.")</span>
+                @if (debt)
+                {
+                    var t = new WealthCommand(pid, WealthCommand.Settle, cid, "treasury").Refusal(G.Ctx); var mp = new WealthCommand(pid, WealthCommand.Settle, cid, "purse").Refusal(G.Ctx);
+                    <span class="suit-acts">
+                        <button class="opt inline tiny" disabled="@(t != null)" title="@t" @onclick="@(() => G.Execute(new WealthCommand(pid, WealthCommand.Settle, cid, Treasury)))">Pay it from the treasury</button>
+                        <button class="opt inline tiny" disabled="@(mp != null)" title="@(mp ?? "they will remember it was your own money")" @onclick="@(() => G.Execute(new WealthCommand(pid, WealthCommand.Settle, cid, Purse)))">Pay it yourself</button>
+                        <span class="muted small">Left alone it grows; past @(-WealthSystem.ScandalAt) the creditors come to the house.</span>
+                    </span>
+                }
+            </div>
+        }
+        @if (members.Count > 7) { <button class="opt inline tiny" @onclick="() => _all = !_all">@(_all ? "Show fewer" : $"Show all {members.Count}")</button> }
+    </div>
+    <div>
+        <div class="hh-head"><b>Heirlooms</b> <span class="muted small">They belong to a person, not to the house. An estate pays its holder 2 a year.</span></div>
+        @if (mine.Count == 0 && others.Count == 0) { <div class="muted small">Nothing has been handed down in this house. A new name has to make its own.</div> }
+        @foreach (var item in mine)
+        {
+            string iid = item.Id; var left = will != null && will.Items.TryGetValue(item.Id, out var toId) ? w.Char(toId) : null;
+            <div class="suit">
+                <b>@Cap(item.Name)</b> <span class="muted">yours · worth @item.Value · left to @(left?.Name ?? heir?.Name ?? "nobody yet")</span>
+                <div class="suit-acts"><span class="muted small">Leave it to</span>
+                    <button class="opt inline tiny @(left == null ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Bequeath, iid, string.Empty))">the heir</button>
+                    @foreach (var c in people.Take(6)) { string cid = c.Id; <button class="opt inline tiny @(left?.Id == c.Id ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Bequeath, iid, cid))">@First(c.Name)</button> }
+                </div>
+                <div class="suit-acts"><span class="muted small">Give it now to</span>
+                    @foreach (var c in people.Take(6)) { string cid = c.Id; <button class="opt inline tiny" title="they will not forget it" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, cid))">@First(c.Name)</button> }
+                    @if (_confirm == iid) { <button class="opt inline tiny veto" @onclick="() => { _confirm = null; G.Execute(new WealthCommand(pid, WealthCommand.Sell, iid, string.Empty)); }">Yes, sell it</button> <button class="opt inline tiny" @onclick="() => _confirm = null">No</button> }
+                    else { <button class="opt inline tiny" title="@(item.OfHouseId == house.Id ? "The family has always had it: the house loses standing and your blood kin resent it." : "")" @onclick="() => _confirm = iid">Sell · @item.Value</button> }
+                </div>
+            </div>
+        }
+        @foreach (var item in others) { <div class="suit"><b>@Cap(item.Name)</b> <span class="muted">held by @w.Char(item.HolderId)?.Name · worth @item.Value</span></div> }
+
+        <div class="hh-head"><b>Your will</b> <span class="muted small">The house goes to @(heir?.Name ?? "nobody: there is no heir") by @house.SuccessionLaw.Replace('_', ' '), whatever you write. Your purse and heirlooms go as you say.</span></div>
+        <div class="suit-acts"><span class="muted small">Of your purse</span>
+            <button class="opt inline tiny @(legatee == null ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Will, string.Empty, Zero))">all to the heir</button>
+            @foreach (int pct in Shares) { int sh = pct; <button class="opt inline tiny @(legatee != null && will!.SharePct == pct ? "here" : "")" disabled="@(_legatee == null && legatee == null)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Will, _legatee ?? legatee!.Id, sh.ToString()))">@(pct == 100 ? "all" : pct == 50 ? "half" : "a quarter")</button> }
+            <span class="muted small">to</span>
+            @foreach (var c in people.Where(c => c.Id != heir?.Id).Take(7)) { string cid = c.Id; <button class="opt inline tiny @((_legatee ?? legatee?.Id) == c.Id ? "here" : "")" @onclick="() => _legatee = cid">@First(c.Name)</button> }
+        </div>
+        @if (legatee != null) { <div class="muted small">@(will!.SharePct == 100 ? "All" : will.SharePct == 50 ? "Half" : "A quarter") of your purse to <b>@legatee.Name</b>, the rest to the heir.@(will.SharePct >= 50 ? " The heir will not thank them for it." : "")</div> }
+
+        <div class="hh-head"><b>The estate</b> <span class="muted small">What becomes of the treasury when the head dies.</span></div>
+        <div class="suit-acts">
+            <button class="opt inline @(house.Inheritance == WealthSystem.Entail ? "here" : "")" title="the heir takes all of it; the other grown children resent being passed over" @onclick="@(() => G.Execute(new WealthCommand(pid, WealthCommand.Inheritance, string.Empty, WealthSystem.Entail)))">Kept whole</button>
+            <button class="opt inline @(house.Inheritance == WealthSystem.Portions ? "here" : "")" title="each other grown child of the head takes a tenth of the treasury; they mind less, and the house is poorer" @onclick="@(() => G.Execute(new WealthCommand(pid, WealthCommand.Inheritance, string.Empty, WealthSystem.Portions)))">Shared out in portions</button>
+        </div>
+    </div>
+    </div>
+</section>
+
+@code {
+    private bool _all; private string? _legatee, _confirm;
+    private const string Treasury = "treasury", Purse = "purse", Zero = "0";
+    private static readonly int[] Sums = { 5, 20 }; private static readonly int[] Shares = { 25, 50, 100 };
+    private static string First(string name) => name.Split(' ')[0];
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

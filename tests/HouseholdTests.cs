@@ -15,6 +15,7 @@ public class HouseholdTests
     {
         var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), scenario), (ulong)seed);
         var tc = new TurnController(w, Content); tc.BeginTurn();
+        w.Protagonist!.Age = Math.Min(w.Protagonist.Age, 45);   // these tests are about the household, not about an old head dying in the middle of one
         return (tc, w, w.Protagonist!, w.House(w.Protagonist!.HouseId)!);
     }
     private static bool Do(World w, ICommand cmd) => new CommandExecutor().TryExecute(cmd, new CommandContext(w, TestContent.Rng()));

@@ -365,6 +365,7 @@ public sealed class DynastySystem
         if (heir != null)
         {
             HandOver(world, heir);
+            WealthSystem.Inherit(world, deceased, heir);   // the house went by the law; the purse and heirlooms go by the will (docs/WEALTH.md)
             return;
         }
 

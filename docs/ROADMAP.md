@@ -15,8 +15,8 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 548 |
-| Events with text | 283 in 28 files |
+| Automated tests | 556 |
+| Events with text | 288 in 29 files |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
@@ -40,6 +40,7 @@ deterministic and saves and loads.
 | Laws and estates | 22 laws by position, six estates with opinions, Reach-wide Acts | `POLITICS` |
 | The three orders | Standing in the Senate, Arms and Commerce; callings; old and new names; sway; patrons and clients; a seat by the census; canvassing | `REPUBLIC` |
 | The economy | Prices that follow war and scarcity; ventures bought and sold; building over years; companies, shares, dividends, takeovers; war bonds; the Senate's and throne's hand on the market | `ECONOMY_MARKET` |
+| Personal wealth | A purse for every grown member of the house, the allowance, what they do with their own money, debts, heirlooms, the will, and the estate kept whole or shared out | `WEALTH` |
 | Education and skills | A ceiling in every skill, learning by doing, by study and by being taught, children brought up toward their bent, tutors; the end of a step a year for everyone | `EDUCATION` |
 | The household | Found family (wards, protégés, companions, adoption), a mentor for yourself, people who come asking, and two duties (steward, marshal) you can hand to any member of the house | `HOUSEHOLD` |
 | Love, courting and marriage | Courtship over years (the person's favour and the family's consent), rivals, a bargained contract, promises between children, suits for your kin, and a marriage with a warmth that moves | `MARRIAGE` |
@@ -89,7 +90,8 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
    greater house; otherwise the father's). It is never negotiated: no marriage contract says whose the children are.
 3. Skills are learned now (docs/EDUCATION.md). Still missing: the Academy for anyone but you, asking a relative to study
    or teach, and any check of what slower skills do to battles and offices over a long run.
-4. A house has one purse. A person owns nothing; kin have no allowance, dowry or inheritance of their own.
+4. Purses, allowances, heirlooms and wills are built for the player's house (docs/WEALTH.md). A purse still holds only
+   credits, and nobody outside the player's house has one.
 5. Only houses can be patrons. A person cannot take a protégé, be a ward, or be adopted, and a house of one has no way
    to join a larger one.
 
@@ -140,7 +142,7 @@ the only real constraint on sequence. Each line is roughly one cycle of work (bu
 |---|---|---|
 | **Marriage, the rest** | Built: docs/MARRIAGE.md. Left: stewards who court, a spouse who counsels and runs the house in your absence, children outside marriage, a spouse's household. | Personal wealth (dowries in land and shares). Education (a spouse's skills count). |
 | **Education, the rest** | Built: docs/EDUCATION.md. Left: kin sent to the Academy, asking a relative to study or to teach, natures formed by an upbringing, learning that slows with age. | The Academy. Kin who pursue their ambitions. |
-| **Personal wealth, house wealth and the dynasty's assets** | A person's own purse beside the house's. Allowances, dowries, wills, heirlooms, and an estate that is divided or kept whole when the head dies. Sketch below. | The economy (shares and ventures can be held personally). Succession laws. Marriage. |
+| **Wealth, the rest** | Built: docs/WEALTH.md. Left: purses for everyone in the Reach, shares and ventures held personally, dowries from a purse, entailed land, lending to a relative, heirlooms that do something. | The Exchange (holders who are people). Kin who pursue their ambitions. |
 | **The household, the rest** | Built: docs/HOUSEHOLD.md. Left: other houses with households of their own, kin who find their own mentors, wards as hostages, the cost of keeping people, and wider duties (the Exchange, moving fleets). | Education. Personal wealth. Politics under a throne (hostages). |
 | **Kin who pursue their ambitions** | Every relative has an ambition as data, and today only defiance comes of it. They should act on it themselves: seek a command, stand for an office, start a venture, ask the head for help or a post, and succeed or fail without the player. | The rule in section 7. Personal wealth (their own purse). The ladder of offices. |
 | **A life of one's own** | Health and wounds, a personal reputation apart from the house's, friendships and rivalries that last decades, retirement, a funeral and what is said at it. | The look and feel pass (the character sheet). Glory in Arms is a first piece of this. |
@@ -374,15 +376,6 @@ Short on purpose. Each needs a proper plan before it is built. "Today" is what t
 - Adults can also study or be taught by someone better, which costs time or coin. Kin decide this for themselves; the head can pay for it or arrange a teacher.
 - Skills fade in old age. Some traits can be earned or lost in adult life.
 - The Academy year becomes one case of this, and other kin can be sent there.
-
-**Personal wealth, house wealth and the dynasty's assets**
-- *Today*: one treasury per house. People own nothing. The heir receives everything.
-- Each adult has a purse of their own; the house has its treasury; the head controls both the house's and their own.
-- Kin receive an allowance, and ask for more. A generous head is loved; a mean one is plotted against. What a kinsman does with their own purse is their business: they invest, spend and get into debt without being told.
-- Assets can be held by a person: shares, a venture, a villa, an heirloom. What a person holds is theirs to sell, give or leave.
-- A will says who gets what. The succession law says who gets the house. They need not agree, and that is a quarrel.
-- Dowries and bequests move wealth between houses. Debts are inherited too.
-- An entailed estate cannot be sold or split; the rest can. A house can be rich in land and poor in coin.
 
 **Secession: breaking away from the Republic or the Imperium**
 - *Today*: the Reach has ten regions of three or four systems, and each house's worlds sit in one or two of them. Wars

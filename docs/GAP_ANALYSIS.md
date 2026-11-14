@@ -973,3 +973,22 @@ upbringing forms no nature. Learning does not slow with age. A battle's step for
 nothing here has been tuned: slower skills must change battles, offices and the Exchange over sixty years, and that has
 only been checked for not breaking.
 
+## 35. Personal wealth — 2026-11-14
+
+Built as docs/WEALTH.md describes: purses, the allowance, what people do with their own money, debts, heirlooms, the will
+and the custom of the estate.
+
+**Measured.** 556 tests, eight of them for this. The soak passes on eleven starts and three seeds (lines ended in 4 of
+33). In the browser the old head died within four years, the house passed to the heir and the relative named in the
+will held 15 credits afterwards; the split itself is checked exactly by the tests, not by that run.
+
+**Found on the way.**
+- A debt scandal could not happen in a saga's first five years (the check compared against a year that had not come).
+- Two household tests depended on an old head surviving their first years; new events shifted the dice and they failed.
+  The tests now keep the head young.
+
+**Gaps that remain.** Only the player's house has purses. A purse holds credits only: no shares, ventures or land held
+by a person, so a relative cannot yet invest or build anything of their own, which the ambitions work will need. Dowries
+still come from the treasury. Nothing is entailed. Heirlooms are only worth something. Two of the five events were not
+seen in the soak.
+

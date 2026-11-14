@@ -1,0 +1,54 @@
+{
+  "texts": [
+    {
+      "id": "a_debt_in_the_family",
+      "title": "A Debt In The Family",
+      "body": "{debtor.name} owes money. Not a ruinous sum yet, but the kind that grows, to the kind of people who are patient only while it does. {debtor.name} has not asked {self.name} for anything. The steward thought {self.name} ought to know all the same.",
+      "choices": {
+        "have_it_out_with_them": "Have it out with them.",
+        "say_the_house_stands_behind_its_own": "Say the house stands behind its own.",
+        "it_is_their_affair": "It is their own affair."
+      }
+    },
+    {
+      "id": "out_of_their_own_pocket",
+      "title": "Out Of Their Own Pocket",
+      "body": "The treasury was short, and then it was a little less short, and nobody had been asked for anything. It turns out {giver.name} put in money of their own, quietly, through the steward, and asked that nothing be made of it.",
+      "choices": {
+        "thank_them_before_the_family": "Thank them before the family.",
+        "repay_it_when_you_can": "Write it down as a debt of the house.",
+        "accept_it_as_owed": "Accept it as no more than was owed."
+      }
+    },
+    {
+      "id": "a_mean_house",
+      "title": "A Mean House",
+      "body": "{kin.name} has come to ask, with visible effort, whether there is anything more to be had. The house gives its own almost nothing, and {kin.name} has reached the end of it. It is being said, {kin.name} adds, that the house of {self.name} keeps its people shorter than houses half as rich.",
+      "choices": {
+        "the_house_cannot_afford_more": "The house cannot afford more.",
+        "something_from_your_own_purse": "Give them something now.",
+        "they_may_earn_it": "They may earn it, like anyone."
+      }
+    },
+    {
+      "id": "the_will_is_read",
+      "title": "The Will Is Read",
+      "body": "The house is {self.name}'s; nobody disputes that. But the dead head's own money, the will says, is to go in great part to {legatee.name}. It is read out in front of the family. Everyone looks at {self.name}.",
+      "choices": {
+        "honour_it": "Honour it, and say so.",
+        "ask_them_to_give_it_up": "Ask them to give it up.",
+        "say_nothing_and_remember": "Say nothing, and remember."
+      }
+    },
+    {
+      "id": "sold_out_of_the_family",
+      "title": "Sold Out Of The Family",
+      "body": "It had been in the family longer than anyone could say, and now it is in a dealer's window with a price on it. The sale was {self.name}'s to make. The family is taking it as though something had died.",
+      "choices": {
+        "it_was_only_a_thing": "It was only a thing.",
+        "promise_to_buy_it_back": "Promise to buy it back one day.",
+        "the_house_needed_the_money": "The house needed the money."
+      }
+    }
+  ]
+}
