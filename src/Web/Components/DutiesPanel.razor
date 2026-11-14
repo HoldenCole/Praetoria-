@@ -1,0 +1,87 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var offices = c.Offices; var policy = c.Policies;
+    var seat = LadderSystem.DutyOf(w, pid, LadderSystem.SeatKind); var bench = LadderSystem.DutyOf(w, pid, LadderSystem.Hearing, LadderSystem.Appeal);
+    bool judge = LadderSystem.OnTheBench(p); int absent = w.Counter(LadderSystem.AbsentKey);
+    bool sat = w.OfficeWork.Any(b => b.HolderId == pid && b.Kind == LadderSystem.SeatKind); bool heard = w.OfficeWork.Any(b => b.HolderId == pid && (b.Kind == LadderSystem.Hearing || b.Kind == LadderSystem.Appeal));
+    string rank = c.Careers.RankName(p.CareerTrack, p.CareerRank, w.Era) ?? "";
+    string benchTitle = bench == null ? "" : bench.Kind == LadderSystem.Appeal ? "Your bench: an appeal" : "Your bench: a hearing";
+    string benchSays = bench == null ? "" : LadderSystem.DutySays(w, policy, bench);
+    string seatSays = seat == null ? "" : LadderSystem.DutySays(w, policy, seat);
+    string absentLine = absent <= 0 ? "" : absent == 1 ? "You did nothing with your seat last year." : "You have done nothing with your seat for " + absent + " years. At " + LadderSystem.AbsentYears + " it is remarked on.";
+    int latest = w.OfficeWork.Count == 0 ? -1 : w.OfficeWork.Max(b => b.Turn);
+    var kin = w.OfficeWork.Where(b => b.Turn == latest && b.HolderId != pid && b.Choice.Length > 0 && b.Choice != "left" && (b.Kind == LadderSystem.Hearing || b.Kind == LadderSystem.Appeal))
+        .Select(b => (b, who: w.Char(b.HolderId))).Where(x => x.who != null && (x.who.HouseId == house.Id || x.b.HouseA == house.Id || x.b.HouseB == house.Id)).ToList();
+    string Did(OfficeBusiness b) => b.Choice switch
+    {
+        LadderSystem.Law => "ruled on the law",
+        LadderSystem.ForHouse => "found for " + (w.House(b.HouseA)?.Name ?? "the house"),
+        LadderSystem.ForEstate => "found for the petitioners",
+        LadderSystem.Overturn => "overturned the ruling for " + (w.House(b.HouseB)?.Name ?? "a house") + ", and " + (w.House(b.HouseA)?.Name ?? "a house") + " was paid back",
+        LadderSystem.Uphold => "upheld the ruling for " + (w.House(b.HouseB)?.Name ?? "a house") + " against " + (w.House(b.HouseA)?.Name ?? "a house"),
+        LadderSystem.SendBack => "sent the appeal of " + (w.House(b.HouseA)?.Name ?? "a house") + " back to be heard again",
+        _ => "sat"
+    };
+}
+<section class="panel duties">
+    <h3><Icon Name="senate" Size="13" /> Your duties this year <span class="muted">what your positions ask of you</span></h3>
+    <div class="muted small">A position is work, not a title. Each of these is yours alone to decide, once a year. The business of an elected office is on the ladder below.</div>
+    @if (seat != null)
+    {
+        <div class="rung-row duty-seat">
+            <div><b>Your seat in the Senate</b></div>
+            <div class="small">@seatSays</div>
+            @foreach (var choice in LadderSystem.DutyChoices(LadderSystem.SeatKind))
+            {
+                string ch = choice; var no = new DutyCommand(pid, LadderSystem.SeatKind, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, seat, ch);
+                <div class="suit-acts">
+                    <button class="opt inline" disabled="@(no != null)" title="@(no ?? tip)" @onclick="() => G.Execute(new DutyCommand(pid, LadderSystem.SeatKind, ch, offices, policy))">@Label(ch)</button>
+                    <span class="muted small">@tip</span>
+                </div>
+            }
+            @if (absentLine.Length > 0) { <div class="small bad">@absentLine</div> }
+        </div>
+    }
+    else { <div class="muted small">@(sat ? SeatDone : SeatNotYet)</div> }
+    @if (bench != null)
+    {
+        <div class="rung-row duty-bench">
+            <div><b>@benchTitle</b> <span class="muted small">@rank</span></div>
+            <div class="small">@benchSays</div>
+            @foreach (var choice in LadderSystem.DutyChoices(bench.Kind))
+            {
+                string ch = choice; string kind = bench.Kind; var no = new DutyCommand(pid, kind, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, bench, ch);
+                <div class="suit-acts">
+                    <button class="opt inline" disabled="@(no != null)" title="@(no ?? tip)" @onclick="() => G.Execute(new DutyCommand(pid, kind, ch, offices, policy))">@Label(ch)</button>
+                    <span class="muted small">@tip</span>
+                </div>
+            }
+            <div class="muted small">Left unheard, it is noticed.</div>
+        </div>
+    }
+    else if (judge) { <div class="muted small">@(heard ? BenchDone : BenchNotYet)</div> }
+    else { <div class="muted small">@NoBench</div> }
+    @foreach (var (b, who) in kin)
+    {
+        <div class="muted small">@who!.Name@(who.HouseId == house.Id ? " (yours)" : " of " + w.House(who.HouseId)?.Name), on the bench: @Did(b).</div>
+    }
+</section>
+
+@code {
+    private const string SeatDone = "Your year in the Senate is spent.";
+    private const string SeatNotYet = "The Senate has not yet sat. Your year in it begins at the turn of the year.";
+    private const string BenchNotYet = "Nothing has come before your bench yet. The first matter comes at the turn of the year.";
+    private const string BenchDone = "Nothing more is before your bench this year.";
+    private const string NoBench = "You do not sit on the bench: that is for a Judge or a Justice of the law.";
+    private static string Label(string choice) => choice switch
+    {
+        LadderSystem.Law => "Rule on the law", LadderSystem.ForHouse => "Find for the house", LadderSystem.ForEstate => "Find for the petitioners",
+        LadderSystem.Overturn => "Overturn the ruling", LadderSystem.SendBack => "Send it back", LadderSystem.Uphold => "Uphold the praetor",
+        LadderSystem.Audit => "Read the accounts", LadderSystem.SpeakRegion => "Speak for your region", LadderSystem.Whip => "Work your bench", _ => choice
+    };
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

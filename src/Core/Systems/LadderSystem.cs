@@ -14,7 +14,7 @@ namespace Praetoria.Core.Systems;
 /// Holding a rung pays a little, teaches the work, is written into the life, and adds to the house's standing in the Senate for
 /// good. There is no ladder under a throne. RNG-free.
 /// </summary>
-public static class LadderSystem
+public static partial class LadderSystem
 {
     public const string Quaestor = "quaestor", Aedile = "aedile", Praetor = "praetor";
     public const int StandInfluence = 2, BackInfluence = 2, BackVotes = 6, Adult = DynastySystem.AgeOfMajority;
@@ -24,7 +24,7 @@ public static class LadderSystem
     public const string StandingFlag = "standing_for_office", MagistrateFlag = "is_magistrate", AedileFlag = "is_aedile";
     public const string ElectedChar = "newly_elected", StandingChar = "standing_for_office";
     public const string BlamedFlag = "kin_blames_the_head", BlamesChar = "blames_the_head"; public const int BlameRegard = 10;
-    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag };
+    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -260,7 +260,7 @@ public static class LadderSystem
     private static void MoveTrust(World w, int by) { int t = Trust(w); w.WorldCounters[TrustKey] = by > 0 ? Math.Max(t, Math.Min(TrustCeiling, t + by)) : Math.Max(0, t + by); }
     public static string KindOf(RungDef rung) => rung.Id == Praetor ? Case : rung.Games > 0 ? Works : Accounts;
     public static string[] ChoicesFor(string kind) => kind == Case ? new[] { Law, Friend, Gift } : kind == Works ? new[] { Lanes, Grain, Nothing } : new[] { Straight, Relief, Favour };
-    public static OfficeBusiness? BusinessOf(World w, string characterId) => w.OfficeWork.FirstOrDefault(b => b.HolderId == characterId && b.Choice.Length == 0);
+    public static OfficeBusiness? BusinessOf(World w, string characterId) => w.OfficeWork.FirstOrDefault(b => b.HolderId == characterId && b.Choice.Length == 0 && b.Kind is Accounts or Works or Case);
 
     private static int Regard(World w, House? of, House? toward)
     {
@@ -372,7 +372,7 @@ public static class LadderSystem
             case Law: case Friend: case Gift:
                 if (b.HouseA.Length == 0) break;
                 string winner = choice == Law ? b.RightId : choice == Friend ? FriendOf(w, b, house) : RicherOf(w, b), loser = winner == b.HouseA ? b.HouseB : b.HouseA;
-                var win = w.House(winner); var lose = w.House(loser); bool just = winner == b.RightId;
+                var win = w.House(winner); var lose = w.House(loser); bool just = winner == b.RightId; b.WinnerId = winner;
                 if (win != null && lose != null) { int paid = Math.Min(Damages, Math.Max(0, lose.Treasury.Credits)); lose.Treasury.Credits -= paid; win.Treasury.Credits += paid; }
                 Shift(w, win, house, choice == Law ? 6 : choice == Friend ? 12 : 4); Shift(w, lose, house, choice == Law ? -6 : -12);
                 if (choice == Law) { MoveTrust(w, 1); if (house is { Legitimacy: < 80 }) Legit(1); }
@@ -416,6 +416,7 @@ public static class LadderSystem
     private static void Business(World w, OfficeCatalog offices)
     {
         var p = w.Protagonist; w.WorldCounters.TryAdd(TrustKey, TrustStart);   // written down, so that what content does to it starts from where it stands
+        CloseDuties(w);
         foreach (var b in w.OfficeWork.Where(b => b.Choice.Length == 0).ToList())
         {
             b.Choice = "left"; MoveTrust(w, -1);
@@ -435,8 +436,9 @@ public static class LadderSystem
 
     // ---------------- the year ----------------
 
-    public static void Tick(World w, OfficeCatalog offices)
+    public static void Tick(World w, OfficeCatalog offices, PolicyCatalog? policy = null)
     {
+        w.WorldFlags.Remove(BenchFlag); w.WorldFlags.Remove(SeatFlag);
         w.WorldFlags.Remove(StandingFlag); w.WorldFlags.Remove(MagistrateFlag); w.WorldFlags.Remove(AedileFlag); w.WorldFlags.Remove(BusinessFlag); w.WorldFlags.Remove("case_won"); w.WorldFlags.Remove("case_lost");
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
         foreach (var c in w.Characters.Values) { if (!w.HasFlag(ElectedFlag) && !w.HasFlag(KinElectedFlag)) c.Flags.Remove(ElectedChar); c.Flags.Remove(StandingChar); }
@@ -453,9 +455,11 @@ public static class LadderSystem
             m.HouseId = c.HouseId;
             if (offices.Rung(m.OfficeId) is { Stipend: > 0 } rung && house != null && c.HouseId == house.Id) c.Purse += rung.Stipend;
         }
-        Business(w, offices);
+        Business(w, offices); Duties(w, offices, policy);
         if (p is not { Alive: true } || house == null) return;
         if (BusinessOf(w, p.Id) != null) w.WorldFlags.Add(BusinessFlag);
+        if (DutyOf(w, p.Id, Hearing, Appeal) != null) w.WorldFlags.Add(BenchFlag);
+        if (DutyOf(w, p.Id, SeatKind) != null) w.WorldFlags.Add(SeatFlag);
         w.Candidacies.RemoveAll(cd => w.Char(cd.CharacterId) is not { Alive: true } c || c.HouseId != house.Id || Bar(w, offices, c, offices.Rung(cd.RungId)) != null);
 
         // The people of the house stand for themselves (docs/PROCESS.md): one who wants to rise and be heard, or to be first, puts

@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-14 (fourth pass: the work of office and six small gaps closed; two found on the way).
+Last updated 2026-11-14 (fifth pass: the bench and the seat, J1 and S1 closed).
 
 ## The worklist: small gaps to fill now
 
@@ -17,15 +17,14 @@ position (magistrate, justice, senator) must have something to do. Worked from t
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | J1 | The law career's Judge and Justice sit a court of their own | next |
-| 2 | S1 | A senator with a seat and no motion to move still has a year's business | next |
-| 3 | O1 | The consuls, the Treasurer and the Speaker have yearly business as the magistrates now do | next |
-| 4 | A1, A3 | Relatives quarrel over the same prize; a relative's failure is marked | next |
-| 5 | W2, W4, E2, H1 | Dowries from a purse; a gift to a relative; ask a relative to study; kin find mentors | next |
-| 6 | B4, B9, B10 | Joining a state that exists; a second great war; raising the pressure as well as lowering it | next |
-| 7 | L7 | Public trust in the magistrates moves elections and the estates, not only the troubles of the Reach | next |
+| 1 | O1 | The consuls, the Treasurer and the Speaker have yearly business as the magistrates now do | next |
+| 2 | J2 | The navy's and the administration's ranks have a desk: a Comptroller, a High Treasurer, a Captain off campaign | next |
+| 3 | A1, A3 | Relatives quarrel over the same prize; a relative's failure is marked | next |
+| 4 | W2, W4, E2, H1 | Dowries from a purse; a gift to a relative; ask a relative to study; kin find mentors | next |
+| 5 | B4, B9, B10 | Joining a state that exists; a second great war; raising the pressure as well as lowering it | next |
+| 6 | L7 | Public trust in the magistrates moves elections and the estates, not only the troubles of the Reach | next |
 
-Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4 (see the bottom table).
+Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1 (see the bottom table).
 
 ## The same gap in many places
 
@@ -34,7 +33,7 @@ These recur across systems. Closing one properly closes several lines below, so 
 | Id | Gap | Where it shows | Size |
 |---|---|---|---|
 | X1 | **Only the player's house has an inner life.** Other houses have no purses, records, renown, households, ambitions or courtships of their own; their people are chosen by rules. | Marriage, household, wealth, ambitions, a life, the ladder, the Caesar road | L |
-| X2 | **Other houses do not use what the player can.** They do not canvass, back candidates, give games, work on a region, declare independence by choice, or pay donatives. Their magistrates decide their year's business by nature alone, never by what their house needs. | The ladder, the work of office, the Caesar road, breaking away | M |
+| X2 | **Other houses do not use what the player can.** They do not canvass, back candidates, give games, work on a region, declare independence by choice, or pay donatives. Their magistrates decide their year's business by nature alone, never by what their house needs. Their senators do not spend their year (one audits), and their judges hear no hearings. | The ladder, the work of office, the Caesar road, breaking away | M |
 | X3 | **Numbers are first guesses.** Every recent system says so. Each needs a probe and a tuning pass, as the Caesar road and the great war now have. | All of them | M each |
 | X4 | **Events that need a rare player choice never fire in the soak.** They are proved by scripted tests, not seen in play. | Most event files since courtship | S each, ongoing |
 
@@ -68,9 +67,7 @@ These recur across systems. Closing one properly closes several lines below, so 
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| J1 | The law career's Judge and Justice are ranks. They hear nothing. The praetor's court (L1, closed) is the pattern to build on. | M | |
 | J2 | The navy's and the administration's ranks are ranks: a Commander commands, but a Clerk, a Comptroller or a High Treasurer has no desk. | M | |
-| S1 | A house with a seat in the Senate that moves nothing and is lobbied by nobody has no business in a year. | S | |
 | O1 | The consuls, the Treasurer and the Speaker hold weight and a stipend, and have no yearly business as the three lower magistrates now do. | M | |
 
 ## The Caesar road (docs/CAESAR.md)
@@ -90,8 +87,9 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| L2 | The player cannot bribe a magistrate, prosecute a former one, or appeal a bent ruling: a house wronged in court can only remember it. | M | |
+| L2 | The player cannot bribe a magistrate or prosecute a former one. (A bent ruling is now appealed before a Justice.) | M | |
 | L3 | No censorship, tribunate, or province after office. | L | The state and commerce |
+| L8 | A senator's year is one of three things. There are no committees, no standing with a committee, and no record of attendance beyond three absent years. | M | |
 | L5 | The work of office is one decision a year from three. A case has no facts beyond who is in the right; the accounts have no figures; the works are one sum. | M | |
 | L7 | Public trust in the magistrates feeds only the troubles of the Reach. It does not move elections, the estates or a house's standing. | S | |
 
@@ -156,3 +154,5 @@ look-and-feel pass is planned and not begun, there is no sound.
 | C3 | The parties did not act as parties in the civil war. | 2026-11-14 | A bench whose leader has declared brings its members, all but one with a strong reason of its own; the general's own bench is his. The forecast on the panel uses the same rule. |
 | C5 | The Senate's sword got no command of the state's fleets. | 2026-11-14 | Every hull of the Reach's own that is not the marching general's to keep goes under the sword's colours for as long as the war lasts, and goes home after. |
 | E4 | A battle added a step without regard to the ceiling. | 2026-11-14 | A victory teaches the weaker of tactics and gunnery up to its ceiling, then the other, then nothing. C9 is what it uncovered. |
+| J1 | The law career's Judge and Justice heard nothing. | 2026-11-14 | A Judge hears a matter a year between an estate and a house; a Justice hears the appeal against a praetor's bent ruling and may overturn it. Another house's Justice hears it if yours has none, so a ruling against your house can be mended. |
+| S1 | A senator who moved nothing had no business in a year. | 2026-11-14 | The head spends the year's attention: read the accounts (and perhaps follow stolen money to a magistrate), speak for the region, or work the bench. Three years of nothing is remarked on. One upright senator of another house audits each year too. L8 is what is left. |

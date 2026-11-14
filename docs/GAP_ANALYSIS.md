@@ -1196,3 +1196,22 @@ start. Caesar probe, 50 Republic runs: the Republic stood in all 50.
 **Next, from the worklist.** The law career's Judge and Justice sit a court (J1); a senator's yearly business (S1);
 the consuls, Treasurer and Speaker (O1); then the small ones in ambitions, wealth and the household.
 
+### 43a. The bench and the seat, the same day
+
+The owner named the magistrate, the justice and the senator. The magistrates were done above; these are the other two.
+
+- **The seat (S1).** One decision a year for the head: read the accounts, speak for the region, or work the bench.
+  The audit can remove a magistrate who took money; three absent years cost legitimacy.
+- **The bench (J1).** A Judge hears an estate against a house, which ties the courts to the estates' approval. A
+  Justice hears the appeal against a praetor's bent ruling. Appeals go before another house's Justice when the
+  player's has none, so the courts can mend what they broke, in either direction.
+- **The soak's player now makes these decisions**, with the business of office and the physician, so they are
+  exercised over sixty years in every start and not only in scripted tests. The soak passes with no drift.
+
+627 tests, 339 events. Three of the eight new events still did not fire in the soak (a scandal in the player's own
+house, the audit finding a thief); each has a scripted test (X4).
+
+Found: in the first year nothing has been drawn yet and the panel said the year was "spent"; it now says the Senate
+has not yet sat. A senator's year is thin in its own way (L8), and other houses' senators and judges do not do any of
+this (X2).
+

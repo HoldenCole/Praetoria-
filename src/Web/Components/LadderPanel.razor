@@ -7,7 +7,7 @@
     var mySeat = LadderSystem.Seat(w, pid); var myStand = w.Candidacies.FirstOrDefault(x => x.CharacterId == pid);
     var consul = ElectionSystem.ConsulOffices(offices).FirstOrDefault();
     var consulMan = consul != null ? OfficeSystem.Candidate(w, consul, house.Id) : null;
-    var work = LadderSystem.BusinessOf(w, pid); int trust = LadderSystem.Trust(w);
+    var work = LadderSystem.BusinessOf(w, pid); int trust = LadderSystem.Trust(w); bool hadWork = w.OfficeWork.Any(b => b.HolderId == pid && b.RungId == mySeat?.OfficeId);
     string trustWord = trust < LadderSystem.TrustLow ? "for sale, and everyone knows it" : trust < 50 ? "not much trusted" : trust < 70 ? "trusted, more or less" : "trusted";
     string trustClass = trust < LadderSystem.TrustLow ? "pill bad" : trust < 50 ? "pill warn" : "pill good";
     string workTitle = work == null ? "" : "The business of your office: " + (work.Kind == LadderSystem.Case ? "a case" : work.Kind == LadderSystem.Works ? "the works" : "the accounts");
@@ -52,7 +52,7 @@
                 <div class="muted small">Left undone, the clerks close it at the year's end, and it is noticed.</div>
             </div>
         }
-        else if (mySeat != null) { <div class="muted small">The business of your office is done for this year.</div> }
+        else if (mySeat != null) { <div class="muted small">@(hadWork ? WorkDone : WorkNotYet)</div> }
         @if (done.Count > 0)
         {
             <details class="small"><summary>What the magistrates did this year (@done.Count)</summary>
@@ -109,6 +109,8 @@
 </section>
 
 @code {
+    private const string WorkDone = "The business of your office is done for this year.";
+    private const string WorkNotYet = "You have only just taken the office. Its first business comes at the turn of the year.";
     private const string TrustTip = "What the Reach thinks of its magistrates. Straight dealing mends it slowly; money taken in office breaks it quickly. Below 35 it is one of the things wrong with the Republic.";
     private static string Label(string choice) => choice switch
     {

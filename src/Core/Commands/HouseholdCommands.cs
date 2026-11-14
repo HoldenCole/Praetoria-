@@ -267,6 +267,19 @@ public sealed class LadderCommand : ICommand
     }
 }
 
+/// <summary>A year's duty that is not an elected office's (docs/LADDER.md, "The bench and the seat"): a judge's hearing, a
+/// justice's appeal, a senator's year. It is the holder's own to decide.</summary>
+public sealed class DutyCommand : ICommand
+{
+    private readonly string _kind, _choice; private readonly Data.OfficeCatalog _offices; private readonly Data.PolicyCatalog? _policy;
+    public DutyCommand(string actorId, string kind, string choice, Data.OfficeCatalog offices, Data.PolicyCatalog? policy = null) { ActorId = actorId; _kind = kind; _choice = choice; _offices = offices; _policy = policy; }
+    public string ActorId { get; }
+    public string Describe() => $"{_kind} {_choice}";
+    public string? Refusal(CommandContext ctx) => LadderSystem.DutyRefusal(ctx.World, ctx.World.Char(ActorId), _kind, _choice);
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) => LadderSystem.DecideDuty(ctx.World, _offices, _policy, ctx.World.Char(ActorId)!, _kind, _choice);
+}
+
 /// <summary>What the head of a house does on the Caesar road (docs/CAESAR.md): bring a recalled general home, cross the line,
 /// declare for a side in another's civil war, or pay the crews a donative in their commander's name.</summary>
 public sealed class CaesarCommand : ICommand

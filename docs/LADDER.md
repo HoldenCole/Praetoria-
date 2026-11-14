@@ -93,6 +93,43 @@ Where: the top of the ladder panel (Senate, "Your standing") shows your business
 does, what the Reach thinks of its magistrates, and what every magistrate did this year. The outliner says when your
 business is waiting.
 
+## The bench and the seat
+
+The same rule for the positions that are not elected offices.
+
+**A senator's year.** The head of a house in the Reach has the house's seat, and each year one thing to do with it
+besides the chamber's motions:
+
+| Choice | What it does |
+|---|---|
+| **Read the accounts** | If a magistrate of another house took money this year and has not been found out, you may follow it to them (one time in two): they are removed and barred, trust +4, you gain 1 influence and a little legitimacy, and their house thinks 15 the less of you. If there is nothing, or nothing provable, trust +1. |
+| **Speak for your region** | The region where your worlds are holds a little closer to the Reach (allegiance +2), its houses think +3 of you, legitimacy +1. |
+| **Work your bench** | Your party's leader thinks +6 of you and you gain 1 influence. If you lead it, every house on the bench thinks +3 of you. |
+
+Three years running of doing nothing with the seat is remarked on: legitimacy −2 and an event.
+
+**Somebody else reads the accounts too.** Each year one upright senator of another house audits last year's
+business. Money a magistrate took (yours included) and got away with at the time may come out through them a year
+later.
+
+**A Judge's hearing.** Anyone of the house who is a Judge or above in the law (and is not a sitting praetor, who has a
+court already) hears one matter a year: an estate has brought a house before the bench, and the law is with one of
+them. **Rule on the law** (the side in the right thinks better of your house, the other worse; trust +1), **find for
+the house** whatever the law says (+8 from the house, −6 with the estate; trust −2 if the law was against it), or
+**find for the petitioners** (+6 with the estate, −8 from the house; trust −1 if the law was against them). The
+estate's approval is the same number the Chancery shows (docs/POLITICS.md).
+
+**A Justice's appeal.** A praetor's ruling that went against the plain law is appealed the next year before a
+Justice who is of none of the houses in it: one of your house if there is one, otherwise a Justice of another house,
+who decides by nature (the honourable overturn; one obliged to the praetor's house upholds). **Overturn** (the house
+that won wrongly pays back double, the wronged house thinks +10 of the Justice's, the other two −8 each, trust +3),
+**send it back** (the wronged house is at least heard), or **uphold** (the praetor's house +8, the winner +4, the
+wronged −10, trust −2). So a bent ruling against your house may be mended by the courts, and a bent ruling of your
+own may be undone.
+
+The player decides their own; a relative on the bench decides theirs by nature. Where: "Your duties this year" at the
+top of the Senate's standing view, above the ladder. The outliner says when a matter is waiting.
+
 ## When a saga opens
 
 - Anyone of an age and rank to have climbed already has: a place in a service and 28 years makes a former quaestor;
@@ -148,8 +185,10 @@ Justice. The estate called the Magistrates is unchanged.
 ## Not in this piece
 
 - Other houses' people do not canvass, back each other or give games; their candidates are chosen by a rule.
-- The work of office is one decision a year from three. A case has no facts beyond who is in the right, and a house
-  wronged by a bent ruling can only remember it (docs/GAPS.md L2, L5).
+- The work of office is one decision a year from three. A case has no facts beyond who is in the right (docs/GAPS.md
+  L5). A bent ruling may be appealed, but nobody can prosecute a former magistrate or bribe a sitting one (L2).
+- Other houses' senators do not spend their year (but for the one who audits), and their judges hear no hearings
+  (docs/GAPS.md X2).
 - Public trust moves only the troubles of the Reach, not elections or the estates (L7).
 - The consuls, the Treasurer and the Speaker have no such business yet (O1).
 - No bribery, no prosecution of a former magistrate, no law on the order of offices that the Senate could change.

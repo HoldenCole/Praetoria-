@@ -1,5 +1,5 @@
 {
-  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected. The work of office: office_exposed, kin_office_exposed and kin_blames_the_head (deeds); case_won and case_lost (each year); and the character flags removed_from_office and blames_the_head.",
+  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected. The work of office: office_exposed, kin_office_exposed and kin_blames_the_head (deeds); case_won and case_lost (each year); and the character flags removed_from_office and blames_the_head. The bench and the seat: audit_found, ruling_overturned_for_us and not_seen_in_the_senate (deeds).",
   "events": [
     {
       "id": "the_canvass",
@@ -804,6 +804,230 @@
             {
               "type": "log",
               "text": "{self.name} had the praetor's name written down. A term of office is five years. A house's memory is longer."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_audit_names_a_name",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "audit_found",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_it_was_only_the_accounts",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that the figures had been there for anyone who cared to add them up. It was modest, and it was noticed that it was modest."
+            }
+          ]
+        },
+        {
+          "id": "make_a_speech_of_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "public_trust",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spoke in the Senate for the better part of an hour on what the Reach is owed by those it elects. It was well received by everyone who had nothing to fear from it."
+            }
+          ]
+        },
+        {
+          "id": "let_it_be_known_what_else_you_read",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "public_trust",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let two or three houses understand that theirs were not the only accounts that had been read. Gifts arrived. Nobody was named."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_appeal_goes_your_way",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "ruling_overturned_for_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "thank_the_justice_in_public",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "public_trust",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked the justice before the Senate, by name. A justice who is thanked for the law is a little likelier to rule by it next time, and so are the others watching."
+            }
+          ]
+        },
+        {
+          "id": "say_it_should_never_have_been_needed",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that a house should not need a second court to get what the first one owed it. It was true, and a praetor's house heard it said."
+            }
+          ]
+        },
+        {
+          "id": "take_the_money_and_let_it_lie",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took what was owed and said nothing. The quarrel was over. There was no reason to keep it warm."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "not_seen_in_the_senate",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "not_seen_in_the_senate",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "go_back_and_be_seen",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sat through a full session, spoke twice and stayed to the end. It was dull. It was also counted."
+            }
+          ]
+        },
+        {
+          "id": "say_the_house_has_had_other_work",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known that a house with worlds to run cannot sit in the chamber all year. Some of the benches accepted it."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "let_them_talk",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not answer. The talk went on a little longer for not being answered, and then found something else."
             }
           ]
         }

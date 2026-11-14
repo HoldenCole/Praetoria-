@@ -137,4 +137,12 @@ public sealed class OfficeBusiness
     public string RegionId { get; set; } = "";
     /// <summary>What was decided, or "" while it waits.</summary>
     public string Choice { get; set; } = "";
+    /// <summary>For a case: the house the ruling went for. A ruling against the law may be appealed.</summary>
+    public string WinnerId { get; set; } = "";
+    /// <summary>For a judge's hearing: the estate on the other side. For an appeal: nothing.</summary>
+    public string EstateId { get; set; } = "";
+    /// <summary>For an appeal: the praetor whose ruling it is.</summary>
+    public string SubjectId { get; set; } = "";
+    /// <summary>An audit or an appeal has looked at this already.</summary>
+    public bool Seen { get; set; }
 }

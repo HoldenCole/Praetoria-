@@ -11,6 +11,14 @@
   lost and the person may not stand for five years. What the magistrates do moves **public trust** in them, and below
   35 "the magistrates are known to be for sale" is one of the things wrong with the Reach. The ladder panel shows your
   business, the trust, and what every magistrate did this year. Five events. docs/LADDER.md.
+- **A senator's year.** The head of a house has one thing a year to do with its seat besides the chamber's motions:
+  read the accounts (and perhaps follow stolen money to the magistrate who took it), speak for the region, or work
+  the bench. Three years of doing nothing with it is remarked on. One upright senator of another house audits each
+  year too, so money taken in office may come out a year later.
+- **A Judge hears a matter a year** between an estate and a house, and **a Justice hears the appeal** against a
+  praetor's ruling that went against the law, and may overturn it. If your house has no Justice, one of another house
+  hears it, so a bent ruling against you can be mended. "Your duties this year" on the Senate's standing view. Three
+  events.
 - **Send your physicians to a relative** who is ill or ailing, from your own purse (the life panel).
 - **Old friends and old enemies count.** A friend of eight years leans your way in the Senate and stands by your house
   when something is aimed at it, and is likelier to take your side in a civil war. An old enemy does the opposite.
@@ -24,7 +32,7 @@
 - **A victory teaches its commander only what they have it in them to learn.** It used to add a step whatever the
   skill's ceiling. Measured: a rival general of the first rank is rarer than before (docs/CAESAR.md, docs/GAPS.md C9).
 - The gap register (docs/GAPS.md) has a worklist at its top, a section for forms of government as the owner set them
-  out, and a section for positions with nothing to do. 60 open, 16 closed.
+  out, and a section for positions with nothing to do. 59 open, 18 closed.
 
 ### Fixed
 - **A saved game could drift from an unbroken one.** Loading a save noted the crews' commanders a second time, which
