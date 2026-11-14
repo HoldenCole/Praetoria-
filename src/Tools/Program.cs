@@ -10,6 +10,7 @@ using Praetoria.Tools;
 //   validate                                                     lint the content set (CI gate)
 //   qa        [--scenario id|all] [--seeds N] [--turns N]        soak with a randomised player: invariants, save/load, coverage
 //   perf      [--scenario id|all] [--turns N]                    where a turn's milliseconds go
+//   caesar    [--scenario id|all] [--seeds N]                    how far generals get on the Caesar road in sixty years
 //   survive   [--scenario id|all] [--seeds N]                    how often a passive player's line ends, and when it weds
 //   balance   [--scenario id|all] [--seeds N]                    prices, production, the Exchange and the orders after sixty years
 // The whole simulation runs here without Godot — the Milestone-1 rule.
@@ -39,6 +40,7 @@ try
         "perf"     => Probes.PerfRun(opts),
         "survive"  => Probes.Survive(opts),
         "balance"  => Probes.Balance(opts),
+        "caesar"   => Probes.Caesar(opts),
         _ => Unknown(command)
     };
 }

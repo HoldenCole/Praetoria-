@@ -262,3 +262,39 @@ public sealed class LadderCommand : ICommand
         }
     }
 }
+
+/// <summary>What the head of a house does on the Caesar road (docs/CAESAR.md): bring a recalled general home, cross the line,
+/// declare for a side in another's civil war, or pay the crews a donative in their commander's name.</summary>
+public sealed class CaesarCommand : ICommand
+{
+    public const string Obey = "obey", Cross = "cross", Join = "join", Donative = "donative";
+    private readonly string _what, _target; private readonly CaesarSystem _caesar;
+    public CaesarCommand(string actorId, string what, string target, CaesarSystem caesar) { ActorId = actorId; _what = what; _target = target; _caesar = caesar; }
+    public string ActorId { get; }
+    public string Describe() => $"{_what} {_target}".Trim();
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId); var house = head != null ? w.House(head.HouseId) : null;
+        if (head?.Alive != true || house == null || head.Id != w.ProtagonistId) return "no house";
+        return _what switch
+        {
+            Obey => _caesar.ObeyRefusal(w, house),
+            Cross => _caesar.CrossRefusal(w, house),
+            Join => _caesar.JoinRefusal(w, house, _target),
+            Donative => _caesar.DonativeRefusal(w, house, w.Fleets.GetValueOrDefault(_target)),
+            _ => "no such thing"
+        };
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!;
+        switch (_what)
+        {
+            case Obey: _caesar.Obey(w, house, ordered: true); break;
+            case Cross: _caesar.Cross(w, house); break;
+            case Join: _caesar.Join(w, house, _target); break;
+            case Donative: _caesar.Donative(w, house, w.Fleets[_target]); break;
+        }
+    }
+}

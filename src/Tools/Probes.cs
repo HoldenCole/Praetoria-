@@ -79,6 +79,38 @@ internal static class Probes
         return 0;
     }
 
+    /// <summary>caesar: over --seeds runs of sixty years with a passive player, how far the generals of the Reach get on the Caesar
+    /// road (docs/CAESAR.md): battles won, the most victories and sway any one of them reached, triumphs, recalls, civil wars
+    /// and how they ended.</summary>
+    public static int Caesar(Options o)
+    {
+        var (content, scenarios) = Load(o); int seeds = Math.Max(1, Math.Min(o.Seeds, 6));
+        foreach (var sid in scenarios)
+        {
+            int triumphs = 0, recalls = 0, tMoved = 0, rMoved = 0, wars = 0, ended = 0, broken = 0, maxSway = 0, maxLaurels = 0, maxDevoted = 0, battles = 0; var throne = new List<string>();
+            for (ulong seed = 1; seed <= (ulong)seeds; seed++)
+            {
+                var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), sid), seed); var tc = new TurnController(w, content);
+                if (w.IsImperium) continue;
+                for (int t = 0; t < 60 && !w.IsDynastyDead; t++)
+                {
+                    PassiveTurn(tc);
+                    battles += tc.Fleets.LastBattles.Count;
+                    foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId))
+                        if (CaesarSystem.GeneralOf(w, h) is { } g) { maxSway = Math.Max(maxSway, CaesarSystem.Sway(w, g)); maxLaurels = Math.Max(maxLaurels, CaesarSystem.Laurels(w, g)); maxDevoted = Math.Max(maxDevoted, CaesarSystem.DevotedHulls(w, g)); }
+                    tc.EndTurn();
+                }
+                if (Environment.GetEnvironmentVariable("CAESAR_DEBUG") != null)
+                    foreach (var e in w.History.Where(e => e.Text.Contains("CROSSES") || e.Text.Contains("houses declare") || e.Text.Contains("march on the capital") || e.Text.Contains("SEIZES") || e.Text.Contains("lay down the command") || e.Text.Contains("lays down the command") || e.Text.Contains("rides in triumph") || e.Text.Contains("will not vote")))
+                        Console.WriteLine($"   seed {seed} y{e.Turn}: {(e.Text.Length > 230 ? e.Text[..230] : e.Text)}");
+                if (w.IsImperium) throne.Add($"y{w.History.FirstOrDefault(e => e.Text.Contains("THE THRONE") || e.Text.Contains("PROCLAIMS"))?.Turn}{(w.Counter("republics_ended") > 0 ? " by the road" : w.HasFlag(GreatCrisisSystem.ResolvedFlag) ? " by the great war" : "")}");
+                triumphs += w.Counter("triumphs_voted"); recalls += w.Counter("recalls_voted"); tMoved += w.Counter("triumphs_moved"); rMoved += w.Counter("recalls_moved"); wars += w.Counter("civil_wars"); ended += w.Counter("republics_ended"); broken += w.Counter("caesars_broken");
+            }
+            Console.WriteLine($"== {sid}: battles {battles} · most victories to one name {maxLaurels} · most devoted hulls {maxDevoted} · most sway {maxSway} · triumphs {triumphs} of {tMoved} moved · recalls {recalls} of {rMoved} moved · civil wars {wars} · the Republic fell {ended} · generals broken {broken} · a throne by: {(throne.Count == 0 ? "never" : string.Join(", ", throne))} (of {seeds} runs)");
+        }
+        return 0;
+    }
+
     /// <summary>balance: after sixty years, where prices sat against their usual level, what the Reach made and used, the Exchange,
     /// and how the houses stand in the three orders.</summary>
     public static int Balance(Options o)

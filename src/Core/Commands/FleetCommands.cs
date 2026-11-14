@@ -153,6 +153,7 @@ public sealed class AssignAdmiralCommand : ICommand
         if (actor?.Alive != true || c?.Alive != true) return false;
         if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId || c.HouseId != actor.HouseId) return false;
         if (f.AdmiralId == _characterId) return false;
+        if (Praetoria.Core.Systems.CaesarSystem.Barred(w, c)) return false;   // the Senate had them lay a command down (docs/CAESAR.md)
         if (w.Fleets.Values.Any(x => x.Id != _fleetId && x.AdmiralId == _characterId)) return false;
         return ctx.PoolsOf(ActorId).CanAfford(CostMap);
     }

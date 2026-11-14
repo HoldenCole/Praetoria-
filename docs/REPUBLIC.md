@@ -43,14 +43,10 @@ rather than the state, who can be voted a triumph or march on the capital.
 3. **The three orders — done (2026-11-13).** See the section below.
 3b. **The cursus honorum.** Offices gated by age and prior office (quaestor → aedile → praetor → consul in Roman terms;
    here Treasurer → Speaker/Admiral → Consul). Holding each feeds standing and the estates.
-4. **Generals' sway.** A commander's *imperium*: fleets of the house with loyalty above a threshold to a commander who
-   led them at the front follow *him* on succession or defection. The Senate may vote a **triumph** (legitimacy, the
-   officers' regard, a party's gratitude) — or a **recall**. A recalled general with loyal fleets and a hostile Senate
-   faces the Rubicon.
-5. **The Caesar.** A consul or general with an Achilles name, fleets loyal to him, a party behind him and a Senate
-   against him may **march on the capital**: a civil-war crisis with the Senate's parties choosing sides. Victory ends
-   the republic (the Imperium era, already in the game) with him on the throne; defeat ends the house. Rivals can do
-   this too — the player may be the Senate's sword against a rival Caesar.
+4. **Generals' sway — done (2026-11-14).** and 5. **The Caesar — done (2026-11-14).** See docs/CAESAR.md: crews that
+   follow the commander who wins with them, sway, triumph and recall by Senate vote, crossing the line, a civil war in
+   which the houses declare, and the Republic ended or the general broken. Left: a general who defects with his
+   crews, and rival Caesars that arise often enough to be met.
 
 ## The three orders — built 2026-11-13
 

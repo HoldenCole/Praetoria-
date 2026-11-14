@@ -48,6 +48,10 @@ public sealed class Fleet
     public int Loyalty { get; set; } = 70;
     /// <summary>0..100 supply: full within reach of a world or depot of the house, draining beyond; low, the fleet fights worse; nought, hulls desert.</summary>
     public int Supply { get; set; } = 100;
+    /// <summary>The commander the crews have come to follow (docs/CAESAR.md), and how far (0..100): victories under him raise it, a new
+    /// commander starts again. At fifty the crews follow the commander before the house.</summary>
+    public string DevotedTo { get; set; } = "";
+    public int Devotion { get; set; }
 
     public string SystemId { get; set; } = "";
 

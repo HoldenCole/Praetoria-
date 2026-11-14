@@ -97,6 +97,10 @@ public sealed class World
     public List<Candidacy> Candidacies { get; set; } = new();
     /// <summary>What was said over the dead of the player's house, most recent last (docs/LIFE.md).</summary>
     public List<Funeral> Funerals { get; set; } = new();
+    /// <summary>Generals the Senate has ordered home (docs/CAESAR.md).</summary>
+    public List<Recall> Recalls { get; set; } = new();
+    /// <summary>The civil war, while a general marches on the capital (docs/CAESAR.md).</summary>
+    public CivilWar? CivilWar { get; set; }
     /// <summary>Venture id → the member of the house who began it, kept from the founding until the venture stands (docs/AMBITIONS.md).</summary>
     public Dictionary<string, string> Founders { get; set; } = new();
     /// <summary>Things a person owns that are worth leaving to someone (docs/WEALTH.md).</summary>

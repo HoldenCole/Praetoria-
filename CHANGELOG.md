@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Fixed
+- When a house other than the player's took the throne, the Reach's resentment was recorded against the player. It
+  is now recorded against the head of the house that took it.
 - The orders, courtship and household panels kept showing last year's figures after End Turn until something in them
   was clicked. They now redraw when the world changes.
 - *Peacemaker of the Reach* was awarded for other houses' weddings: the marriages counter now counts only the player's
@@ -42,6 +44,15 @@
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **The Caesar road** (docs/CAESAR.md), on the Military screen. Crews come to follow the commander who wins with them
+  (**devotion**, beside loyalty to the house), and a commander's victories, crews, triumphs and rank make up his
+  **sway**. The Senate may vote a general a **triumph** after three victories, or **recall** one with sway. A recalled
+  general comes home, or his house **crosses the line**: a civil war in which every other house declares for him, for
+  the Senate or stands aside, and a few fight. Hold the capital's orbit two years or break the Senate's fleets and
+  **the Republic ends** with the general's house on the throne; lose and the general dies and the house is ruined
+  for a generation. When another's general marches you declare for a side or say nothing. A relative who is the
+  general keeps their own triumph and their own crews; what the house does about a recall is the head's to say.
+  Twelve events, a donative for the crews, `tools/browser/caesar.js`, and a probe: `praetoria caesar`.
 - **The ladder of offices** (docs/LADDER.md), on the Senate screen. Three elected offices below the consulship:
   **quaestor** (four, from 25), **aedile** (two, from 30) and **praetor** (two, from 34), each held by a person for
   five years. A **consul must be forty and have been praetor.** The houses vote with their weight and a candidate's

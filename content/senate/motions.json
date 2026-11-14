@@ -29,6 +29,10 @@
       "description": "{proposer} moves that the Senate break up the greatest company {target} directs: its ventures sold off, its holders paid what the sale fetches." },
     { "id": "rescue", "name": "Rescue of the Exchange", "target": "none", "interest": "rescue", "proposeInfluence": 3, "rescue": true,
       "description": "{proposer} moves that the Reach's purse stand behind the Exchange: the chair pays, every company in the red is made whole, and confidence is held up for two years." },
+    { "id": "triumph", "name": "Triumph", "target": "house", "interest": "triumph", "proposeInfluence": 2, "targetSelfAllowed": true,
+      "description": "{proposer} moves that the Senate vote a triumph to the general of {target}, for victories won in the Reach's name." },
+    { "id": "recall", "name": "Recall", "target": "house", "interest": "recall", "proposeInfluence": 3,
+      "description": "{proposer} moves that the general of {target} lay down the command and come home to answer to the Senate." },
     { "id": "embargo", "name": "Embargo", "target": "house", "interest": "embargo", "proposeInfluence": 3,
       "description": "{proposer} moves that the Senate close the exchanges of the Reach to {target} for eight years.",
       "embargoTurns": 8 }

@@ -73,7 +73,8 @@ public static class ThroneSystem
         if (former != null && former.Id != houseId)
         {
             former.Title = Title.Archduke;
-            foreach (var c in w.LivingCharacters().Where(c => c.HouseId == former.Id)) { c.Flags.Add(DeposedFlag); w.Relationship(c.Id, w.ProtagonistId).Disposition = -100; }
+            string by = Economy.HeadOf(w, h)?.Id ?? w.ProtagonistId;
+            foreach (var c in w.LivingCharacters().Where(c => c.HouseId == former.Id)) { c.Flags.Add(DeposedFlag); if (c.Id != by) w.Relationship(c.Id, by).Disposition = -100; }
             w.Wars.RemoveAll(x => x.Between(houseId, former.Id));
             FleetSystem.RefreshWarFlags(w);
         }
@@ -93,8 +94,10 @@ public static class ThroneSystem
             w.WorldFlags.Add(ProclaimedFlag);
             h.Legitimacy += 5;
         }
-        foreach (var c in w.LivingCharacters().Where(c => c.HouseId != houseId))
-            w.Relationship(c.Id, w.ProtagonistId).Disposition = Math.Clamp(w.Relationship(c.Id, w.ProtagonistId).Disposition - (seized ? 30 : 15), -100, 100);
+        // the Reach thinks less of whoever took it: the head of the house on the throne, who is not always the player
+        string taker = Economy.HeadOf(w, h)?.Id ?? w.ProtagonistId;
+        foreach (var c in w.LivingCharacters().Where(c => c.HouseId != houseId && c.Id != taker))
+            w.Relationship(c.Id, taker).Disposition = Math.Clamp(w.Relationship(c.Id, taker).Disposition - (seized ? 30 : 15), -100, 100);
         w.WorldCounters["thrones_taken"] = w.Counter("thrones_taken") + 1;
         var who = byCharacterId != null ? w.Char(byCharacterId)?.Name : null;
         w.Log(seized

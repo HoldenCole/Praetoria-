@@ -33,6 +33,7 @@ internal static class Qa
         var tokens = new HashSet<string>();
         var flagsSeen = new HashSet<string>();
         var deaths = new List<string>();
+        var caesar = new Dictionary<string, int>(); var fell = new List<string>();
         int runs = 0;
 
         Console.WriteLine($"=== QA — {scenarios.Count} scenario(s) × {o.Seeds} seed(s) × {turns} turns, randomised player ===\n");
@@ -59,6 +60,8 @@ internal static class Qa
                     var resumed = SoakWithRoundTrip(contentRoot, content, sid, (ulong)seed, turns, o);
                     string sa = Canonical(worldA), sr = Canonical(resumed);
                     if (sa != sr) failures.Add($"{label}: SAVE/LOAD DRIFT — resumed world differs from the straight run\n      {FirstDiff(sa, sr)}");
+                    foreach (var key in CaesarKeys) caesar[key] = caesar.GetValueOrDefault(key) + worldA.Counter(key);
+                    if (worldA.Counter("republics_ended") > 0) fell.Add(label);
                 }
                 catch (Exception ex)
                 {
@@ -72,6 +75,7 @@ internal static class Qa
         var rare = fired.Where(kv => kv.Value <= Math.Max(1, runs / 10)).OrderBy(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).ToList();
         var neverTaken = content.Events.SelectMany(e => e.Choices.Select(c => $"{e.Id}/{c.Id}")).Where(k => !taken.ContainsKey(k) && fired.ContainsKey(k.Split('/')[0])).OrderBy(x => x, StringComparer.Ordinal).ToList();
 
+        Console.WriteLine($"The Caesar road over {runs} runs: {string.Join(" · ", CaesarKeys.Select(k => $"{k.Replace('_', ' ')} {caesar.GetValueOrDefault(k)}"))}{(fell.Count > 0 ? " · fell in: " + string.Join(", ", fell) : "")}");
         Console.WriteLine($"Runs: {runs} · dynasties ended: {deaths.Count} · events fired: {fired.Values.Sum()} ({fired.Count}/{content.Events.Count} distinct)");
         if (deaths.Count > 0) Console.WriteLine("  ended: " + string.Join(", ", deaths));
 
@@ -164,6 +168,7 @@ internal static class Qa
     }
 
     private static readonly IRng NoRng = new SplitMix64Rng(0);
+    private static readonly string[] CaesarKeys = { "triumphs_voted", "recalls_voted", "civil_wars", "republics_ended", "caesars_broken" };
 
     /// <summary>One soak run. The player picks a random affordable choice (or skips one in five) from a decision stream seeded
     /// off the world seed, so a replay repeats the same decisions.</summary>
@@ -309,6 +314,12 @@ internal static class Qa
             cands.Add(new MarriageCommand(p.Id, p.Id, MarriageCommand.Tend));
             if (decisions.NextInt(0, 25) == 0) foreach (var mm in w.Marriages.Where(mm => w.Char(mm.A)?.HouseId == house.Id || w.Char(mm.B)?.HouseId == house.Id).OrderBy(mm => mm.A, StringComparer.Ordinal).Take(1))
                 cands.Add(new MarriageCommand(p.Id, w.Char(mm.A)?.HouseId == house.Id ? mm.A : mm.B, MarriageCommand.Divorce));
+        }
+        {   // the Caesar road: answer a recall, cross the line, declare in another's war, pay the crews
+            if (decisions.NextInt(0, 2) == 0) cands.Add(new CaesarCommand(p.Id, CaesarCommand.Obey, "", tc.Caesar));
+            if (decisions.NextInt(0, 2) == 0) cands.Add(new CaesarCommand(p.Id, CaesarCommand.Cross, "", tc.Caesar));
+            if (decisions.NextInt(0, 2) == 0) cands.Add(new CaesarCommand(p.Id, CaesarCommand.Join, decisions.NextInt(0, 2) == 0 ? CaesarSystem.General : CaesarSystem.Senate, tc.Caesar));
+            foreach (var fl in w.Fleets.Values.Where(x => x.OwnerId == house.Id && x.AdmiralId.Length > 0).OrderBy(x => x.Id, StringComparer.Ordinal)) if (decisions.NextInt(0, 6) == 0) cands.Add(new CaesarCommand(p.Id, CaesarCommand.Donative, fl.Id, tc.Caesar));
         }
         {   // the ladder: stand, call in what is owed, speak for one of the house, give games
             foreach (var rung in content.Offices.Rungs) if (decisions.NextInt(0, 2) == 0) cands.Add(new LadderCommand(p.Id, LadderCommand.Stand, p.Id, rung.Id, content.Offices));

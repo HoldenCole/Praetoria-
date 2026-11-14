@@ -193,6 +193,7 @@ public sealed class NationSystem
             f.Readiness = Math.Max(0, f.Readiness - ReadinessWin); f.Veterancy = Math.Min(_fleets.Rules.VeterancyMax, f.Veterancy + 1); f.Loyalty = Math.Min(100, f.Loyalty + _fleets.Rules.LoyaltyWin);
             w.Log($"{f.Name} beats the fleets of {d.Name} in their own space: {committed} hulls met, {lost} of ours lost, {d.Wealth} credits taken. The tally stands {n.ScoreReach} to {n.ScoreNation}.");
             if (f.OwnerId == mine) w.WorldFlags.Add("expedition_victory");
+            CaesarSystem.ExpeditionVictory(w, f, commander);
             if (commander != null)
             {
                 string skill = commander.Skill("tactics") <= commander.Skill("gunnery") ? "tactics" : "gunnery"; commander.Skills[skill] = commander.Skill(skill) + 1;
@@ -245,6 +246,7 @@ public sealed class NationSystem
             {
 top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legitimacy + LegitimacyTriumph); top.SphereInfluence["senate"] = top.SphereInfluence.GetValueOrDefault("senate") + InfluenceTriumph;
                 if (top.Id == mine) w.WorldFlags.Add("triumph");
+                CaesarSystem.Subdued(w, top);
                 w.Log($"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years. The triumph is {top.Name}'s, whose fleets won it.");
             }
             else w.Log($"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years.");

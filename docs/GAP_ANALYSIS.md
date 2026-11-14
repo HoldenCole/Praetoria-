@@ -1050,3 +1050,27 @@ Officer stood in the first year and was elected quaestor at 30.
 
 **Gaps that remain.** A magistrate has nothing to do in office. Other houses' candidates are picked by a rule and do
 not canvass. There is no bribery, prosecution, censorship or tribunate. The numbers are first guesses.
+
+## 39. The Caesar road — 2026-11-14
+
+Built as docs/CAESAR.md describes: devotion of crews to a commander, sway, triumph and recall as Senate motions, the
+march on the capital, a civil war with sides, and its two endings.
+
+**Measured.** 592 tests, ten of them for this; one walks the player's road, a relative's and another house's, and
+resolves every choice of the twelve events. The soak passes with the random player using every command. The survival
+probe is unchanged at 1 of 80. A new probe, `praetoria caesar`, reports how far generals get.
+
+**Found on the way.**
+- The game's great war ends the Republic around year 28 to 40 in two runs of three, by its own rule. That was not
+  written down anywhere near the Republic's design, and it bounds how long any general has.
+- Other houses' fleets are small: a general usually commands four hulls of a house's nine. The first bar for a march
+  (six devoted hulls) could never be met.
+- The house that holds the capital has most of the veteran generals. It could "march" on its own capital and win the
+  same year because nobody stood in the gate. It can no longer march, the capital's holder is always for the Senate,
+  and a house sitting in the capital cannot win by staying there.
+- `ThroneSystem.Enthrone` recorded the Reach's resentment against the player whoever took the throne.
+- A second event was nearly named `the_triumph`, which the foreign wars already use.
+
+**Gaps that remain.** For other houses the road is rare: in 30 passive runs, 7 triumphs, 2 recalls carried, no march,
+and none of the twelve events fired in the soak. A general does not defect with his crews. The parties do not act as
+parties in the war. There is no negotiated end. Every number is a first guess; the probe is the tool to tune them.

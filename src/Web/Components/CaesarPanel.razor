@@ -1,0 +1,132 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var cz = G.Turn!.Caesar;
+    var general = CaesarSystem.GeneralOf(w, house); bool mineIsMe = general?.Id == pid;
+    int sway = general != null ? CaesarSystem.Sway(w, general) : 0; int laurels = general != null ? CaesarSystem.Laurels(w, general) : 0;
+    int hulls = general != null ? CaesarSystem.DevotedHulls(w, general) : 0; int triumphs = general != null ? CaesarSystem.Triumphs(w, general) : 0;
+    var recall = w.Recalls.FirstOrDefault(r => r.HouseId == house.Id); var cw = w.CivilWar;
+    var fleets = w.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Office && f.AdmiralId.Length > 0).OrderByDescending(f => f.Devotion).ThenBy(f => f.Id, StringComparer.Ordinal).ToList();
+    var watched = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).Select(h => (h, g: CaesarSystem.GeneralOf(w, h))).Where(x => x.g != null && CaesarSystem.Sway(w, x.g) >= 30)
+        .OrderByDescending(x => CaesarSystem.Sway(w, x.g!)).ThenBy(x => x.h.Id, StringComparer.Ordinal).Take(3).ToList();
+    string? noTriumph = w.IsImperium ? null : new ProposeMotionCommand(pid, "triumph", house.Id, G.Turn.Senate).Refusal(G.Ctx);
+    string? noCross = new CaesarCommand(pid, CaesarCommand.Cross, "", cz).Refusal(G.Ctx);
+    string Mine(string? t) => t == null || general == null || !mineIsMe ? t ?? "" : t.Replace(general.Name + " has not", "you have not").Replace(general.Name + " has", "you have").Replace(general.Name + " is", "you are").Replace("follow " + general.Name, "follow you");
+    string who = general == null ? "" : mineIsMe ? "you" : general.Name; string whose = general == null ? "" : mineIsMe ? "your" : general.Name + "'s";
+    string swayWhy = general == null ? "" : string.Join(" · ", CaesarSystem.SwayParts(w, general).Select(x => $"{x.what} {x.points}"));
+    string generalLine = general == null ? "" : (mineIsMe ? "You are the house's general. " : general.Name + " is the house's general. It is " + general.Name + "'s name the crews know. ")
+        + (swayWhy.Length > 0 ? Cap(swayWhy) + ". " : "No victories yet. ") + "At " + CaesarSystem.RecallSway + " the Senate may order " + (mineIsMe ? "you" : "them") + " home.";
+    string crewsLine = hulls + " hull(s) would follow " + who + " before the house" + (triumphs > 0 ? " · " + triumphs + " triumph(s)" : "") + ". A triumph asks " + CaesarSystem.TriumphLaurels + " victories since the last: " + whose + " count is";
+    string watchedLine = string.Join("; ", watched.Select(x => x.g!.Name + " of " + x.h.Name + " (sway " + CaesarSystem.Sway(w, x.g) + (CaesarSystem.Triumphs(w, x.g) > 0 ? ", a triumph" : "") + (w.Recalls.Any(r => r.HouseId == x.h.Id) ? ", under recall" : "") + ")"));
+    string Names(IEnumerable<string> ids) => string.Join(", ", ids.Select(id => id == house.Id ? "your house" : w.House(id)?.Name ?? id).DefaultIfEmpty("nobody"));
+}
+<section class="panel caesar">
+    <h3><Icon Name="war" Size="13" /> The general and the Senate</h3>
+    @if (w.IsImperium)
+    {
+        <div class="muted small">@(w.HasFlag(CaesarSystem.RepublicFallenFlag) ? "The Republic ended when a general marched on the capital and was not stopped. " : "")There is a throne now. Commands are the throne's to give and to take away, and nobody is voted a triumph.</div>
+    }
+    else
+    {
+        @if (cw != null)
+        {
+            var g = w.Char(cw.GeneralId); bool mineWar = cw.HouseId == house.Id; string? declared = cw.Declared.GetValueOrDefault(house.Id);
+            int standing = CaesarSystem.Standing(w, cw); int hg = CaesarSystem.Hulls(w, cw.With.Prepend(cw.HouseId)), hs = CaesarSystem.Hulls(w, cw.Against);
+            string gName = g?.Name ?? "A general"; string gHouse = mineWar ? "your house" : w.House(cw.HouseId)?.Name ?? "";
+            string headline = mineWar && g?.Id == pid ? "You have crossed the line." : gName + " of " + gHouse + " has crossed the line.";
+            string swordName = cw.SwordHouseId == house.Id ? "yours" : (w.House(cw.SwordHouseId)?.Name ?? "nobody") + "'s";
+            string swordLine = cw.SwordHouseId.Length > 0 ? " · the war is " + swordName + " to carry" : "";
+            bool good = mineWar || declared == CaesarSystem.General ? standing > 0 : standing < 0;
+            int bar = Math.Clamp(50 + standing * 50 / CaesarSystem.DecisiveLead, 0, 100);
+            string standTip = "The lead in the battles fought, and each year nobody met counted to the stronger side. At +" + CaesarSystem.DecisiveLead + " the Senate's fleets are broken; at -" + CaesarSystem.DecisiveLead + " the general is.";
+            string declaredFor = declared == CaesarSystem.General ? gName : "the Senate";
+            <div class="caesar-war">
+                <div><b>@headline</b> <span class="muted small">year @cw.Since · @(w.Turn - cw.Since) of at most @CaesarSystem.WarYears years</span></div>
+                <div class="small">With the general: <b>@Names(cw.Declared.Where(kv => kv.Value == CaesarSystem.General).Select(kv => kv.Key))</b> · @hg hulls in the field</div>
+                <div class="small">For the Senate: <b>@Names(cw.Declared.Where(kv => kv.Value == CaesarSystem.Senate).Select(kv => kv.Key))</b> · @hs hulls in the field@(swordLine)</div>
+                <div class="gauges"><div class="gauge" title="@standTip"><span>How it stands</span><i><b style="width:@bar%" class="@(good ? GoodClass : string.Empty)"></b><u style="left:50%"></u></i><em>@(standing > 0 ? Plus : string.Empty)@standing</em></div></div>
+                <div class="muted small">The general wins by holding the capital's orbit for @CaesarSystem.HoldYears years running (held: @cw.Held) or by breaking the Senate's fleets. The general loses if the fleet is broken, the field is lost, or the war drags past @CaesarSystem.WarYears years; then the general dies and the house pays.</div>
+                @if (!mineWar)
+                {
+                    @if (declared != null) { <div class="small">Your house has declared for <b>@declaredFor</b>.</div> }
+                    else
+                    {
+                        <div class="suit-acts">
+                            <button class="opt inline" title="@JoinSenateTip" @onclick="() => G.Execute(new CaesarCommand(pid, CaesarCommand.Join, CaesarSystem.Senate, cz))">Declare for the Senate</button>
+                            <button class="opt inline" title="@JoinGeneralTip" @onclick="() => G.Execute(new CaesarCommand(pid, CaesarCommand.Join, CaesarSystem.General, cz))">Declare for @gName</button>
+                            <span class="muted small">Or say nothing, and stand aside.</span>
+                        </div>
+                    }
+                }
+            </div>
+        }
+        @if (general == null) { <div class="muted small">Nobody of the house commands a fleet. A name is made in command: appoint someone, or take a fleet yourself.</div> }
+        else
+        {
+            <div class="gauges">
+                <div class="gauge" title="@swayWhy"><span>Sway</span><i><b style="width:@sway%" class="@(sway >= CaesarSystem.FearedSway ? GoodClass : string.Empty)"></b><u style="left:@CaesarSystem.RecallSway%"></u></i><em>@sway</em></div>
+            </div>
+            <div class="muted small">@generalLine</div>
+            <div class="ac-fact"><span>The crews</span><p>@crewsLine <b>@laurels</b>.</p></div>
+            <div class="suit-acts">
+                <button class="opt inline" disabled="@(noTriumph != null)" title="@(noTriumph ?? TriumphTip)" @onclick="() => G.Execute(new ProposeMotionCommand(pid, MotionTriumph, house.Id, G.Turn!.Senate))">Ask the Senate for a triumph</button>
+                @if (noTriumph != null) { <span class="muted small">@Cap(Mine(noTriumph)).</span> }
+            </div>
+            @if (recall != null)
+            {
+                var rg = w.Char(recall.CharacterId); bool meRecalled = rg?.Id == pid; string rName = rg?.Name ?? "the general";
+                string recallHead = "The Senate has ordered " + (meRecalled ? "you" : rName) + " to lay down the command and come home, by year " + recall.Deadline + ".";
+                string recallWhat = meRecalled ? "Come home and you may not hold a command for " + CaesarSystem.BarredYears + " years, but the house is seen to keep the law."
+                    : rg != null && CourtshipSystem.Wilful(rg) ? rName + " has not come home, and is waiting to hear what you will do."
+                    : rName + " keeps the law, and will come home next year unless the house crosses the line first.";
+                <div class="caesar-recall">
+                    <b>@recallHead</b>
+                    <div class="muted small">@recallWhat If it is left unanswered the Senate's officers take the command, and the house is thought less of.</div>
+                    <div class="suit-acts">
+                        <button class="opt inline" @onclick="() => G.Execute(new CaesarCommand(pid, CaesarCommand.Obey, string.Empty, cz))">@(meRecalled ? ComeHome : OrderHome)</button>
+                    </div>
+                </div>
+            }
+            @if (cw == null)
+            {
+                <div class="suit-acts">
+                    @if (_confirm) { <button class="opt inline veto" @onclick="() => { _confirm = false; G.Execute(new CaesarCommand(pid, CaesarCommand.Cross, string.Empty, cz)); }">Yes: march on the capital</button> <button class="opt inline" @onclick="() => _confirm = false">No</button> }
+                    else { <button class="opt inline" disabled="@(noCross != null)" title="@(noCross ?? CrossTip)" @onclick="() => _confirm = true">Cross the line</button> }
+                    @if (noCross != null) { <span class="muted small">@Cap(Mine(noCross)).</span> }
+                </div>
+            }
+        }
+        @if (fleets.Count > 0)
+        {
+            <div class="hh-head"><b>Whose crews</b> <span class="muted small">At @CaesarSystem.DevotedAt they follow the commander before the house.</span></div>
+            @foreach (var f in fleets.Take(5))
+            {
+                string fid = f.Id; var adm = w.Char(f.AdmiralId); var no = new CaesarCommand(pid, CaesarCommand.Donative, fid, cz).Refusal(G.Ctx);
+                string admName = adm?.Id == pid ? "you" : adm?.Name ?? ""; string giftTip = no ?? "+" + CaesarSystem.DonativeDevotion + " to their regard for " + admName + ", and a little to the house";
+                <div class="crew-row">
+                    <span><b>@f.Name</b> <span class="muted small">@f.Strength hulls · @admName</span></span>
+                    <span class="gauge"><i><b style="width:@f.Devotion%" class="@(f.Devotion >= CaesarSystem.DevotedAt ? GoodClass : string.Empty)"></b><u style="left:@CaesarSystem.DevotedAt%"></u></i><em>@f.Devotion</em></span>
+                    <button class="opt inline tiny" disabled="@(no != null)" title="@giftTip" @onclick="() => G.Execute(new CaesarCommand(pid, CaesarCommand.Donative, fid, cz))">Donative · @CaesarSystem.DonativeCost(f) credits</button>
+                </div>
+            }
+        }
+        @if (watched.Count > 0)
+        {
+            <div class="ac-fact"><span>Names the Senate watches</span><p>@watchedLine. A recall is moved on the Senate screen.</p></div>
+        }
+    }
+</section>
+
+@code {
+    private bool _confirm;
+    private const string MotionTriumph = "triumph", GoodClass = "high", Plus = "+", ComeHome = "Come home", OrderHome = "Order them home";
+    private const string TriumphTip = "The Senate votes next session. If it carries: legitimacy, the crews' regard, and the general's name. If it is refused, that is a cause.";
+    private const string JoinSenateTip = "Your fleets go to war with the general's house. It is remembered when it ends.";
+    private const string JoinGeneralTip = "Your fleets go to war with the house that carries the Senate's war. If the general falls, so does your standing.";
+    private const string CrossTip = "A civil war. The houses declare for you, for the Senate, or stand aside. Hold the capital's orbit for two years or break the Senate's fleets and the Republic ends with your house on the throne. Lose, and the general dies and the house is ruined for a generation.";
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

@@ -612,6 +612,7 @@ public sealed class FleetSystem
             w.WorldFlags.Add(winner == player ? "battle_won" : "battle_lost");
             if (winnerAdmirals.Concat(loserAdmirals).Any(c => c.Id == w.ProtagonistId && c.Flags.Contains(FrontFlag))) w.WorldFlags.Add("fought_at_the_front");
         }
+        CaesarSystem.Victory(w, winner, loser, systemId);   // the crews take to the one who led them; a victory to his name (docs/CAESAR.md)
         AdmiralOutcomes(w, rng, winnerAdmirals, loserAdmirals);
         Retreat(w, loser, systemId);
 

@@ -219,6 +219,7 @@ three orders of the Republic (`REPUBLIC`).
 | **Personal wealth** | §14, §17 | ✅ | A purse for every grown member of the house, the allowance, debts, heirlooms, a will, and the estate kept whole or shared out. See `docs/WEALTH.md`. |
 | **Ambitions** | §18 | ✅ | The people of the house pursue what they want by themselves and ask the head for help now and then; a named heir. See `docs/AMBITIONS.md`. |
 | **A life of one's own** | §14, §18 | ✅ | Health and wounds, a record of deeds, renown and a name, old friends and enemies, retirement, funerals. See `docs/LIFE.md`. |
+| **The Caesar road** | §6, §10 | ✅ | Crews that follow their commander, a general's sway, triumph and recall by Senate vote, crossing the line, a civil war with sides, the Republic ended or the general broken. See `docs/CAESAR.md`. |
 | **The ladder of offices** | §6.1 | ✅ | Quaestor, aedile and praetor below the consulship, held by people and filled by election; a consul must have been praetor; relatives stand for themselves. See `docs/LADDER.md`. |
 | **Stress** | §18 | ✅ (thin) | Stress bleeds off slowly each year; at the ceiling the character *breaks* (a `broken` flag + `breakdowns` counter) and the authored *Breaking Point* set-piece decides what stands up afterward. |
 | **Career ladders** | §13 | ✅ | Tracks and named rank ladders are data (`/content/careers`); `advanceCareer` caps at the ladder top; events gate on `track`; prose names the rung. |
@@ -252,7 +253,7 @@ three orders of the Republic (`REPUBLIC`).
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 582 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
+**Verification:** 592 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
 round-trip that must reproduce an uninterrupted run; both content validators clean; every start auto-plays sixty turns
 across several seeds with a randomised player. The content counts in the table above are from the first release; the
 current ones (261 events, 9 scenarios, 31 systems) are in `docs/ROADMAP.md`.
@@ -273,7 +274,7 @@ if it's listed, it does not exist yet.
 The current, ranked list of gaps is **[`docs/ROADMAP.md`](docs/ROADMAP.md) section 3**, and the dated log behind it
 is `docs/GAP_ANALYSIS.md`. In short:
 
-- **The Republic**: no triumph, recall or march on the capital (the Caesar); a magistrate has no work to do in office; the state gives
+- **The Republic**: a rival Caesar is seldom seen (the road is the player's for now); a magistrate has no work to do in office; the state gives
   commerce no contracts.
 - **The economy**: rival houses do not take each other over; some goods are in permanent glut.
 - **The Imperium**: government under a throne is simple next to the Republic.

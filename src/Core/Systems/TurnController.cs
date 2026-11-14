@@ -47,6 +47,8 @@ public sealed class TurnController
     private readonly FamilySystem _family = new();
     private readonly AmbitionSystem _ambitions;        // what the people of the house are after, and what they ask of the head (docs/AMBITIONS.md)
     public AmbitionSystem Ambitions => _ambitions;
+    private readonly CaesarSystem _caesar;             // generals, triumphs, recalls and the march on the capital (docs/CAESAR.md)
+    public CaesarSystem Caesar => _caesar;
     private readonly HouseholdSystem _household;       // found family, and the duties the head hands out (docs/HOUSEHOLD.md)
     private readonly DynastySystem _dynasty;           // always-on — the dynasty IS the game (GDD §14)
     private readonly int _briefingBudget;
@@ -115,6 +117,7 @@ public sealed class TurnController
         if (_companies != null && !world.InAcademy) _companies.Seed(world);
         LadderSystem.Seed(world); LadderSystem.Open(world, content.Offices);   // the bench is not empty when a saga opens (docs/LADDER.md); before the orders are first measured
         _orders = new OrderSystem(_economy, _fleets, content.Titles, content.Offices, content.Market); if (!world.InAcademy && world.Houses.Values.All(h => h.Orders.Count == 0)) _orders.Tick(world);
+        _caesar = new CaesarSystem(_fleets, content.Offices); _senate.Caesar = _caesar; if (!world.InAcademy) CaesarSystem.Open(world);
         _senate.Exchange = _companies; if (_companies != null) _companies.Offices = content.Offices;
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures, Exchange = _companies, Orders = _orders, HoldingCatalogForFounding = content.Holdings };
         _dynasty = new DynastySystem { Content = content };
@@ -236,6 +239,7 @@ public sealed class TurnController
             _crises.Recover(World);       // and with no crisis active, the realm's wounds close (data rules)
         }
 
+        using (Perf.Time("end:caesar")) { _caesar.Tick(World); }   // crews and their commanders, recalls answered, the civil war if there is one (docs/CAESAR.md) — RNG-free
         using (Perf.Time("end:ladder")) { LadderSystem.Tick(World, _content.Offices); }   // seats lapse, magistrates are paid, the house's people put their names down (docs/LADDER.md) — RNG-free
         using (Perf.Time("end:life")) { LifeSystem.Tick(World, _content); }   // health, the record of each life, ties that have lasted (docs/LIFE.md) — RNG-free
         using (Perf.Time("end:wealth")) { WealthSystem.Tick(World); }   // allowances are paid, and people do as they like with their own money (docs/WEALTH.md) — RNG-free

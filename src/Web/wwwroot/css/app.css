@@ -678,7 +678,12 @@ table.prospects button { white-space: nowrap; } table.prospects td, table.prospe
 @media (max-width: 700px) { .suit .gauge { grid-template-columns: 6.5rem 1fr 30px; } table.prospects th:nth-child(3), table.prospects td:nth-child(3) { display: none; } }
 
 /* ---- the household: found family and delegated duties (docs/HOUSEHOLD.md) ---- */
-.panel.cursus { margin-top: .8rem; max-width: 980px; } .rung-row { border-top: 1px dotted var(--line); padding: .45rem 0 .35rem; line-height: 1.4; }
+.panel.cursus { margin-top: .8rem; max-width: 980px; }
+.caesar-war, .caesar-recall { border: 1px solid var(--warn, #c9a227); border-radius: 6px; padding: .5rem .6rem; margin: .4rem 0 .6rem; line-height: 1.45; }
+.caesar-war { border-color: var(--bad, #c0504d); }
+.crew-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .2rem .5rem; align-items: center; padding: .3rem 0; border-top: 1px dotted var(--line); } .crew-row > span:first-child { grid-column: 1 / -1; }
+.panel.caesar .ac-fact { display: block; } .panel.caesar .ac-fact > span { display: block; margin-bottom: .1rem; } .panel.caesar .suit-acts { flex-wrap: wrap; }
+.crew-row .gauge { display: flex; align-items: center; gap: .35rem; } .crew-row .gauge i { flex: 1; } .rung-row { border-top: 1px dotted var(--line); padding: .45rem 0 .35rem; line-height: 1.4; }
 .panel.life { grid-column: span 2; } @media (max-width: 1000px) { .panel.life { grid-column: auto; } }
 .panel.life .hh-head { border-top: 1px solid var(--line); margin-top: .5rem; padding-top: .45rem; } .panel.life b.bad { color: var(--warn); }
 .deed { font-size: .84rem; padding: .12rem 0; color: var(--ink2); } .deed span { display: inline-block; min-width: 3.4rem; color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }

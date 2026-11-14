@@ -1,0 +1,124 @@
+{
+  "texts": [
+    {
+      "id": "the_senates_triumph",
+      "title": "The Triumph",
+      "body": "The Senate has voted it. For one day the capital belongs to {self.name}: the route is cleared, the crews are in their best, and the crowd along the way has been waiting since before light. How a general rides on this day is remembered longer than the battles were.",
+      "choices": {
+        "ride_as_one_who_served": "Ride as one who served.",
+        "give_the_city_a_day": "Give the city a day to remember.",
+        "share_it_with_the_crews": "Put the crews in front."
+      }
+    },
+    {
+      "id": "a_kinsmans_triumph",
+      "title": "A Triumph In The House",
+      "body": "The Senate has voted a triumph to {kin.name}. It is {kin.name}'s victories it honours and {kin.name}'s name the crowd is shouting, and the crews who march behind know exactly whom they followed. The house is raised by it. The house's head is not the one being cheered.",
+      "choices": {
+        "walk_behind_them": "Walk in the procession, behind.",
+        "remind_the_city_whose_house": "Remind the city whose house it is.",
+        "let_them_have_the_day": "Let them have the day."
+      }
+    },
+    {
+      "id": "the_triumph_refused",
+      "title": "No Triumph",
+      "body": "The Senate has thrown it out. The victories were won, the standards were taken, and the benches have decided that the general of {self.house} shall not ride through the capital for them. Some voted from envy and some from fear, and a few perhaps from principle. The crews have already heard.",
+      "choices": {
+        "swallow_it": "Swallow it.",
+        "learn_who_voted": "Learn who voted against.",
+        "tell_the_crews_plainly": "Tell the crews plainly."
+      }
+    },
+    {
+      "id": "the_recall",
+      "title": "The Recall",
+      "body": "The order has come under the Senate's seal: {self.name} is to lay down the command and return to the capital to answer to the chamber. It gives a date. It does not say what the questions will be. The command is {self.name}'s until it is laid down, and the crews know it.",
+      "choices": {
+        "read_it_to_the_officers": "Read it to the officers.",
+        "write_to_friends_in_the_capital": "Write to friends in the capital.",
+        "keep_it_in_a_drawer": "Keep it in a drawer."
+      }
+    },
+    {
+      "id": "a_kinsman_recalled",
+      "title": "They Have Recalled One Of Yours",
+      "body": "The Senate has ordered {kin.name} to lay down the command and come home. {kin.name} has sent the order on to the head of the house, with a short note that asks nothing and means a great deal. The crews are {kin.name}'s. The fleets are the house's. What the house does next is {self.name}'s to say.",
+      "choices": {
+        "counsel_obedience": "Counsel obedience.",
+        "say_the_house_is_behind_them": "Say the house is behind them.",
+        "say_it_is_theirs_to_weigh": "Say it is theirs to weigh."
+      }
+    },
+    {
+      "id": "the_line_is_crossed",
+      "title": "The Line Is Crossed",
+      "body": "It is done. The fleet has left the station the law allowed it and is on the lanes to the capital, and by the Senate's own statute everyone aboard is now an enemy of the Reach. There is no order that can recall this. It ends on the capital's orbit with the Republic finished, or it ends with {self.name} dead.",
+      "choices": {
+        "speak_to_the_crews": "Speak to the crews.",
+        "write_to_the_senate_once_more": "Write to the Senate once more.",
+        "say_nothing_and_sail": "Say nothing, and sail."
+      }
+    },
+    {
+      "id": "a_general_marches",
+      "title": "A General Marches On The Capital",
+      "body": "A general has crossed the line with the fleets that follow him and is on the lanes to the capital. The Senate has named a house to carry its war. Every house in the Reach is being asked the same question this week, and silence is also an answer: for the general, for the Senate, or aside. It will be remembered either way.",
+      "choices": {
+        "call_the_house_together": "Call the house together.",
+        "put_the_fleets_in_order": "Put the fleets in order.",
+        "go_on_as_before": "Go on as before."
+      }
+    },
+    {
+      "id": "the_republic_saved",
+      "title": "The Republic Stands",
+      "body": "The march is over. The general who crossed the line is dead and the fleets that followed him are scattered or have come back to their oaths. {self.house} stood with the Senate when it was not certain the Senate would stand at all. The chamber is in session again, and remembers who did what.",
+      "choices": {
+        "take_the_thanks": "Take the Senate's thanks.",
+        "ask_what_it_is_worth": "Ask what it is worth.",
+        "go_home_quietly": "Go home quietly."
+      }
+    },
+    {
+      "id": "the_republic_falls",
+      "title": "The Republic Falls",
+      "body": "The general holds the capital and the Senate's fleets are broken or have gone over. There will be no more consuls who matter. The chamber met once more, under guard, to vote the victor everything it had refused before and a title it had no power to give. The Reach has a throne, and every house must decide how to stand in front of it.",
+      "choices": {
+        "kneel_among_the_first": "Kneel among the first.",
+        "kneel_when_it_cannot_be_helped": "Kneel when it cannot be helped.",
+        "stay_on_your_own_worlds": "Stay on your own worlds."
+      }
+    },
+    {
+      "id": "the_throne_is_yours",
+      "title": "The Capital Is Yours",
+      "body": "The fleet holds the capital's orbit and there is nobody left to dispute it. The Senate is waiting in its chamber to be told what it is to be now. Everything the Republic was is in {self.name}'s hands this morning, and so is everyone who fought to keep it.",
+      "choices": {
+        "clemency": "Clemency, for everyone.",
+        "settle_accounts": "Settle accounts.",
+        "say_the_republic_is_restored": "Say the Republic is restored."
+      }
+    },
+    {
+      "id": "the_march_fails",
+      "title": "The March Has Failed",
+      "body": "It is over, and it was lost. The general is dead. {self.house} stood on the side that marched on the capital, and the Senate has a list of the houses that did. There are fines, and worse than the fines is the silence when the house's name is read in the chamber.",
+      "choices": {
+        "bow_to_the_senate": "Bow to the Senate.",
+        "keep_the_grudge": "Pay, and keep the grudge.",
+        "sell_what_can_be_spared": "Sell what can be spared."
+      }
+    },
+    {
+      "id": "the_crews_are_theirs",
+      "title": "The Crews Are Theirs",
+      "body": "It is said aboard the house's fleets, and now ashore as well, that the crews under {kin.name} would follow {kin.name} anywhere. They are paid by {self.house} and they sail under its colours. Asked whose they are, they give the commander's name.",
+      "choices": {
+        "be_glad_of_it": "Be glad of it.",
+        "keep_an_eye_on_it": "Keep an eye on it.",
+        "give_them_more_to_do": "Give them more to do."
+      }
+    }
+  ]
+}
