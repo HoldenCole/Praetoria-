@@ -61,6 +61,8 @@ public static class EffectParser
                 return new RevokeClaimEffect(ConditionParser.OptStr(el, "role", "self"), S(el, "title"));
             case "succeed":
                 return new SucceedEffect(S(el, "role"));
+            case "takeIn":
+                return new TakeInEffect(S(el, "role"), ConditionParser.OptStr(el, "as", "companion"));
             case "courtship":
                 return new CourtshipEffect(ConditionParser.OptStr(el, "role", ""), I(el, "favour", 0), I(el, "consent", 0), I(el, "rival", 0));
             case "marriage":

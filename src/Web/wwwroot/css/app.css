@@ -674,6 +674,17 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .suit .terms { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem .3rem; margin: .2rem 0; font-size: .78rem; } .suit .terms > span { color: var(--muted); margin-right: .1rem; } .suit .terms > i { flex-basis: 100%; height: 0; }
 .suit b.good { color: var(--good); } .suit b.bad, .suit .small.bad { color: var(--warn); }
 .suit-head { margin-bottom: .2rem; }
-table.prospects td, table.prospects th { padding: .18rem .4rem; font-size: .82rem; } table.prospects td.num { text-align: right; font-variant-numeric: tabular-nums; } table.prospects td.good { color: var(--good); } table.prospects td.bad { color: var(--warn); }
+table.prospects button { white-space: nowrap; } table.prospects td, table.prospects th { padding: .18rem .4rem; font-size: .82rem; } table.prospects td.num { text-align: right; font-variant-numeric: tabular-nums; } table.prospects td.good { color: var(--good); } table.prospects td.bad { color: var(--warn); }
 @media (max-width: 700px) { .suit .gauge { grid-template-columns: 6.5rem 1fr 30px; } table.prospects th:nth-child(3), table.prospects td:nth-child(3) { display: none; } }
+
+/* ---- the household: found family and delegated duties (docs/HOUSEHOLD.md) ---- */
+.panel.household { margin-top: .8rem; } .hh-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 0 1.6rem; } .hh-cols > div > .hh-head:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+@media (max-width: 1000px) { .hh-cols { grid-template-columns: minmax(0, 1fr); } }
+.panel.household .hh-head { border-top: 1px solid var(--line); margin-top: .55rem; padding-top: .5rem; line-height: 1.35; }
+.panel.household .hh-head:first-of-type { border-top: 0; margin-top: 0; }
+.panel.household .duty { padding: .35rem 0 .3rem; border-top: 1px dotted var(--line); }
+.panel.household .duty-top { display: flex; align-items: baseline; gap: .4rem; flex-wrap: wrap; }
+.panel.household .suit { border-top: 1px dotted var(--line); padding: .4rem 0 .3rem; }
+.panel.household .suit.incoming { border-left: 2px solid var(--brass2); padding-left: .6rem; }
+.panel.household .small.bad { color: var(--warn); }
 

@@ -1,5 +1,6 @@
 @using Praetoria.Core.Systems
 @inject GameClient G
+@implements IDisposable
 @{
     var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!;
     var marriages = w.Marriages.Where(m => w.Char(m.A)?.HouseId == house.Id || w.Char(m.B)?.HouseId == house.Id)
@@ -159,6 +160,12 @@
 </section>
 
 @code {
+    // A panel with no parameters is not redrawn when its parent is, so it listens for the world changing itself: without this
+    // it showed last year's figures after End Turn until something in it was clicked.
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+
     private string? _suitor, _confirm; private bool _more;
     private readonly Dictionary<string, (string dowry, string kids)> _terms = new();
     private (string dowry, string kids) TermsOf(string id) => _terms.TryGetValue(id, out var t) ? t : (CourtshipSystem.Customary, "");

@@ -933,3 +933,24 @@ Two other houses asked for her hand in that time.
 have no purse. The house's building and ventures are all the head's doing; whether a steward of the family should run
 the routine of that is a question for the owner.
 
+## 33. The household: found family and delegated work — 2026-11-14
+
+Owner: "it's good to have the option to delegate things to competent members of the house if you want. Remember part of
+it is 'found family' as well." Built as docs/HOUSEHOLD.md describes; it is the roadmap's "Under the wing".
+
+**Measured.** 541 tests, ten of them for this. The soak passes on eleven starts and three seeds with a random player
+who uses all of it. In the browser on *The Old Lion*: both duties handed out, the steward began a power plant in year
+one, a protégé taken in, and in year four someone asked for a place unprompted. Lines ended in 4 of 33 soak runs against
+2 of 33 before; the random player now also sends people home and adopts at random, so this is not read as a regression,
+but it has not been explained either.
+
+**Found on the way.**
+- Panels with no parameters (orders, courtship, household) were not redrawn after End Turn. Fixed.
+- Characters other than the player's train a skill every year with no ceiling (a steward went from 3 to 7 in four
+  years). Not changed; recorded for the education work, where it will have to be capped or made to cost something.
+- A duty-holder who inherited the seat kept the duty under themselves. They lay it down now.
+
+**Gaps that remain.** Only the player's house has a household. Nobody but the player's character has a mentor. Wards
+are not hostages. Keeping people costs nothing. The duties are routine only. Three of the six events were not seen to
+fire in the soak.
+

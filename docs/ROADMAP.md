@@ -15,8 +15,8 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 531 |
-| Events with text | 274 in 26 files |
+| Automated tests | 541 |
+| Events with text | 280 in 27 files |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
@@ -40,6 +40,7 @@ deterministic and saves and loads.
 | Laws and estates | 22 laws by position, six estates with opinions, Reach-wide Acts | `POLITICS` |
 | The three orders | Standing in the Senate, Arms and Commerce; callings; old and new names; sway; patrons and clients; a seat by the census; canvassing | `REPUBLIC` |
 | The economy | Prices that follow war and scarcity; ventures bought and sold; building over years; companies, shares, dividends, takeovers; war bonds; the Senate's and throne's hand on the market | `ECONOMY_MARKET` |
+| The household | Found family (wards, protégés, companions, adoption), a mentor for yourself, people who come asking, and two duties (steward, marshal) you can hand to any member of the house | `HOUSEHOLD` |
 | Love, courting and marriage | Courtship over years (the person's favour and the family's consent), rivals, a bargained contract, promises between children, suits for your kin, and a marriage with a warmth that moves | `MARRIAGE` |
 | A character of your own | Every dial on the person, the face, the house, its holdings and its family; a fair budget or none; presets, dice, a saved file | `CHARACTER` |
 | The Academy | A year apart from the world at sixteen; a school in the Republic, the Institute under the Imperium; the tutorial in full or in brief | `ACADEMY` |
@@ -85,7 +86,8 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
    nothing once married, and there are no children outside marriage.
 2. Whose name a child carries is decided by a fixed rule (the head of a house keeps the seat's children; otherwise the
    greater house; otherwise the father's). It is never negotiated: no marriage contract says whose the children are.
-3. Skills change only when an event says so, or in the Academy year. Nobody studies, trains or is taught.
+3. The player's own skills change only by events, the Academy year, or a mentor. Everyone else already trains one skill a
+   year with no ceiling, which is the opposite problem: able people are too easy to come by (found 2026-11-14).
 4. A house has one purse. A person owns nothing; kin have no allowance, dowry or inheritance of their own.
 5. Only houses can be patrons. A person cannot take a protégé, be a ward, or be adopted, and a house of one has no way
    to join a larger one.
@@ -138,7 +140,7 @@ the only real constraint on sequence. Each line is roughly one cycle of work (bu
 | **Marriage, the rest** | Built: docs/MARRIAGE.md. Left: stewards who court, a spouse who counsels and runs the house in your absence, children outside marriage, a spouse's household. | Personal wealth (dowries in land and shares). Education (a spouse's skills count). |
 | **Education, skills and getting better** | Children are raised: a tutor, a focus, a household to be sent to. Adults improve by doing, by study and by being taught, and decline with age. Sketch below. | The Academy (a year of this already exists). The ladder of offices. Under the wing (a mentor teaches). |
 | **Personal wealth, house wealth and the dynasty's assets** | A person's own purse beside the house's. Allowances, dowries, wills, heirlooms, and an estate that is divided or kept whole when the head dies. Sketch below. | The economy (shares and ventures can be held personally). Succession laws. Marriage. |
-| **Under the wing** | A person, not only a house, can have a patron: a mentor, a guardian for a ward, adoption as an heir. A house of one can be taken into a greater household. Sketch below. | Patrons and clients (built for houses). Education. The custom character's "alone" start. |
+| **The household, the rest** | Built: docs/HOUSEHOLD.md. Left: other houses with households of their own, kin who find their own mentors, wards as hostages, the cost of keeping people, and wider duties (the Exchange, moving fleets). | Education. Personal wealth. Politics under a throne (hostages). |
 | **Kin who pursue their ambitions** | Every relative has an ambition as data, and today only defiance comes of it. They should act on it themselves: seek a command, stand for an office, start a venture, ask the head for help or a post, and succeed or fail without the player. | The rule in section 7. Personal wealth (their own purse). The ladder of offices. |
 | **A life of one's own** | Health and wounds, a personal reputation apart from the house's, friendships and rivalries that last decades, retirement, a funeral and what is said at it. | The look and feel pass (the character sheet). Glory in Arms is a first piece of this. |
 
@@ -267,24 +269,6 @@ Short on purpose. Each needs a proper plan before it is built. "Today" is what t
 - A will says who gets what. The succession law says who gets the house. They need not agree, and that is a quarrel.
 - Dowries and bequests move wealth between houses. Debts are inherited too.
 - An entailed estate cannot be sold or split; the rest can. A house can be rich in land and poor in coin.
-
-**Under the wing**
-- *Today*: a house may be the client of a richer house. In the Academy events there is a mentor. Kin can be fostered away for safety. Nothing ties one person to another as patron and protégé.
-- A person can take a protégé or seek a mentor: someone senior in their own service who teaches them, speaks for them at promotions, and expects loyalty.
-- A ward: an orphan or a hostage raised in your household, or you in theirs.
-- Adoption as the Romans did it: a head with no fit heir adopts a grown, able person, who takes the name. A talented nobody can be adopted into a great house.
-- A house of one (the lone officer, the new man with no kin) can be taken into a greater household as a junior branch, keeping its name, until it can stand alone.
-- All of these can go wrong: a mentor who falls, a protégé who outgrows you, an adopted heir the blood kin resent.
-
-**Politics under a throne**
-- *Today*: an Emperor exists; the Imperial Edict is a law only he sets; office fleets follow the office; he grants monopolies and, under proscriptions, seizes shares. Next to the Republic there is little to do.
-- The court is a place: who has the Emperor's ear this year, and what it costs to be heard.
-- Favour replaces the vote. Offices, commands, governorships and monopolies are appointments, won by favour, service, kinship or fear.
-- A council of a few great officers, each with real powers, and rivals for each seat.
-- The Senate remains: without the last word, but it can confirm, obstruct, and matter in a succession.
-- The succession is the great contest: a named heir, an adopted one, the guard's candidate, a general on the frontier.
-- The three orders mean something different: the Senate becomes the court, Arms can make an Emperor, Commerce funds the throne and is squeezed by it.
-- A bad Emperor can be endured, managed, or removed, and each has a price.
 
 **Secession: breaking away from the Republic or the Imperium**
 - *Today*: the Reach has ten regions of three or four systems, and each house's worlds sit in one or two of them. Wars

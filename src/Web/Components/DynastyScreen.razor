@@ -1,7 +1,7 @@
 @inject GameClient G
 @{
     var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
-    var kin = w.Characters.Values.Where(x => x.HouseId == house.Id).ToList();
+    var kin = w.Characters.Values.Where(x => x.HouseId == house.Id && !Praetoria.Core.Systems.HouseholdSystem.IsFound(x)).ToList();   // the blood; those taken in are on the House screen
     var heirs = Heirs(w, house);
     int generation = w.Counter("generation") + 1;
     int living = kin.Count(k => k.Alive), dead = kin.Count - living, children = kin.Count(k => k.Alive && k.Age < 16);

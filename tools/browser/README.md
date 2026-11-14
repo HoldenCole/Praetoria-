@@ -24,6 +24,7 @@ Playwright with Chromium must be installed where you run the script. `PRAETORIA_
 | `node play.js phone "The Fallen House" 2` | The main screens at 390 pixels wide, and what runs past the edge. |
 | `node courtship.js "The New Man" 8` | Courtship on the Dynasty screen: begins a suit, presses it each year, proposes when the family would agree. |
 | `node courtship.js "The New Man" 10 watch` | Does nothing about the family for ten years and reports what the kin do about their own matches. |
+| `node household.js "The Old Lion" 4` | The household panel on the House screen: hands out both duties, takes someone in, and reports what the steward and marshal do each year. |
 | `node workshop.js "The Heir" 3` | The character workshop: every tab, preset and mode, then a saga begun from it. Add `academy` to begin at the Academy. |
 
 ## Reading the numbers

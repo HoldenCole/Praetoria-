@@ -214,6 +214,7 @@ three orders of the Republic (`REPUBLIC`).
 | **Progression & soft-lock** | §13 | ✅ | A 7-rung title ladder with legitimacy requirements; the three rise paths as commands (Seize / Petition / Claim) at three exchange rates; holding above your legitimacy breeds instability that feeds the crisis web. |
 | **Dynasty lifecycle** | §14 | ✅ | Aging; mortality from 50; births to married couples (patrilineal, blood ties; a marriage counts from either spouse's edge); protagonist death → heir handoff (eldest blood child first) with the house persisting; voluntary handover via the `succeed` verb; a child head rules under a `regency` flag. **Ironman** ends the run at dynasty death; **continue mode** (`--continue`) hands the banner to a sworn house. `kill` and `age` verbs for events. |
 | **Courtship and marriage** | §14, §18 | ✅ | A suit won over years from the person and from their family; rivals; a bargained contract (dowry, the children's name); promises between children; a warmth that moves and bears on children and strain; divorce. See `docs/MARRIAGE.md`. |
+| **The household** | §18 | ✅ | Found family (wards, protégés, companions, adoption), a mentor, and duties (steward, marshal) the head can hand to any member of the house. Kin act for themselves. See `docs/HOUSEHOLD.md`. |
 | **Stress** | §18 | ✅ (thin) | Stress bleeds off slowly each year; at the ceiling the character *breaks* (a `broken` flag + `breakdowns` counter) and the authored *Breaking Point* set-piece decides what stands up afterward. |
 | **Career ladders** | §13 | ✅ | Tracks and named rank ladders are data (`/content/careers`); `advanceCareer` caps at the ladder top; events gate on `track`; prose names the rung. |
 | **Save / load** | BuildSpec §3, §7 | ✅ | The `World` (RNG position included) serialises to a versioned JSON envelope; a resumed run continues the exact same deterministic stream. `play --save` / `--load`. |
@@ -246,7 +247,7 @@ three orders of the Republic (`REPUBLIC`).
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 531 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
+**Verification:** 541 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
 round-trip that must reproduce an uninterrupted run; both content validators clean; every start auto-plays sixty turns
 across several seeds with a randomised player. The content counts in the table above are from the first release; the
 current ones (261 events, 9 scenarios, 31 systems) are in `docs/ROADMAP.md`.

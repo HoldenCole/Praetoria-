@@ -310,6 +310,15 @@ internal static class Qa
             if (decisions.NextInt(0, 25) == 0) foreach (var mm in w.Marriages.Where(mm => w.Char(mm.A)?.HouseId == house.Id || w.Char(mm.B)?.HouseId == house.Id).OrderBy(mm => mm.A, StringComparer.Ordinal).Take(1))
                 cands.Add(new MarriageCommand(p.Id, w.Char(mm.A)?.HouseId == house.Id ? mm.A : mm.B, MarriageCommand.Divorce));
         }
+        {   // the household: take people in, adopt, send home, seek a mentor, hand duties on and take them back
+            string[] kinds = { HouseholdSystem.Ward, HouseholdSystem.Protege, HouseholdSystem.Companion };
+            foreach (var pe in house.Petitions.ToList()) { cands.Add(new HouseholdCommand(p.Id, HouseholdCommand.TakeIn, pe.PersonId, pe.As)); if (decisions.NextInt(0, 3) == 0) cands.Add(new HouseholdCommand(p.Id, HouseholdCommand.Decline, pe.PersonId)); }
+            if (decisions.NextInt(0, 6) == 0) { var all = w.LivingCharacters().Where(x => x.HouseId != house.Id && x.Age >= 6).OrderBy(x => x.Id, StringComparer.Ordinal).ToList(); if (all.Count > 0) { var x = all[decisions.NextInt(0, all.Count)]; cands.Add(new HouseholdCommand(p.Id, HouseholdCommand.TakeIn, x.Id, kinds[decisions.NextInt(0, 3)])); cands.Add(new MentorCommand(p.Id, x.Id)); } }
+            foreach (var f in HouseholdSystem.Found(w, house.Id)) { if (decisions.NextInt(0, 6) == 0) cands.Add(new HouseholdCommand(p.Id, HouseholdCommand.Adopt, f.Id)); if (decisions.NextInt(0, 12) == 0) cands.Add(new HouseholdCommand(p.Id, HouseholdCommand.Release, f.Id)); }
+            if (decisions.NextInt(0, 20) == 0) cands.Add(new MentorCommand(p.Id, ""));
+            var grown = HouseholdSystem.Eligible(w, house);
+            foreach (var role in HouseholdSystem.Roles) { if (grown.Count > 0 && decisions.NextInt(0, 4) == 0) cands.Add(new DelegateCommand(p.Id, role, grown[decisions.NextInt(0, grown.Count)].Id, new[] { 0, 20, 100 }[decisions.NextInt(0, 3)])); if (decisions.NextInt(0, 15) == 0) cands.Add(new DelegateCommand(p.Id, role, "")); }
+        }
         if (tc.Companies is { Open: true } cx)   // the Exchange: list, trade, and sit on the board
         {
             foreach (var b in w.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0).OrderBy(b => b.Id, StringComparer.Ordinal)) if (decisions.NextInt(0, 5) == 0) cands.Add(new IncorporateCommand(p.Id, b.Id, CompanySystem.ControlledBy(w, house.Id).FirstOrDefault()?.Id ?? "", cx));

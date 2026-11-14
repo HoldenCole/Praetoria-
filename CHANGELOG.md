@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Fixed
+- The orders, courtship and household panels kept showing last year's figures after End Turn until something in them
+  was clicked. They now redraw when the world changes.
 - *Peacemaker of the Reach* was awarded for other houses' weddings: the marriages counter now counts only the player's
   own house's matches, and the honour reads wars the house itself began (`wars_begun`), not every war in the Reach.
 - The workshop's "Load a file" control is the same size as the chips beside it.
@@ -33,6 +35,13 @@
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **The household** (docs/HOUSEHOLD.md), on the House screen. **Found family:** take a child in as a ward or a grown
+  person as a protégé or companion. They keep their own names, live as members of the house, and stand in the line only
+  after the blood. A head can adopt one as an heir. People also come to the door and ask. **A mentor** for your own
+  character: a senior of your service who teaches you every third year. **Delegation:** hand the routine of the estates
+  to a steward and the upkeep of the fleets to a marshal, any grown member of the house. They act once a year by their
+  own skill, leave the reserve you set, report in a line, and may not be honest.
+- Six events for the household; the `takeIn` event effect; `tools/browser/household.js`.
 - **Love, courting and marriage** (docs/MARRIAGE.md), on the Dynasty screen. A courtship is won over years from the
   person (favour) and from their family (consent), one act a year: time together, a gift, the case put to the family,
   word against a rival. Rivals press the same suit and can win it. The contract is bargained when the match is proposed:

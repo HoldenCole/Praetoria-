@@ -77,5 +77,10 @@ public sealed class House
     public int Glory { get; set; }
     /// <summary>Strategic goods of which the house brings up a quarter or more of the Reach's production.</summary>
     public List<string> Corners { get; set; } = new();
+    /// <summary>Standing duties handed to members of the house (docs/HOUSEHOLD.md).</summary>
+    public List<Duty> Duties { get; set; } = new();
+    /// <summary>People asking to be taken into the house.</summary>
+    public List<Petition> Petitions { get; set; } = new();
+    public Duty? Duty(string role) => Duties.FirstOrDefault(d => d.Role == role);
     public int Order(string order) => Orders.TryGetValue(order, out var v) ? v : 0;
 }

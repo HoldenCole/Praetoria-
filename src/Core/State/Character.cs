@@ -41,5 +41,15 @@ public sealed class Character
     /// </summary>
     public HashSet<string> Flags { get; set; } = new();
 
+    // ---- found family (docs/HOUSEHOLD.md): people taken into a house they were not born to
+    /// <summary>The house this person was born to, when they now live in another. Empty for someone in the house of their birth.</summary>
+    public string BornHouseId { get; set; } = "";
+    /// <summary>The head who adopted them. An adopted person carries the name and stands in the line as a child of that head.</summary>
+    public string AdoptedById { get; set; } = "";
+    /// <summary>Whoever has this person under their wing: a mentor, or the head who took them in.</summary>
+    public string MentorId { get; set; } = "";
+    /// <summary>The turn they joined the house they now live in, or took their mentor.</summary>
+    public int JoinedTurn { get; set; }
+
     public int Skill(string key) => Skills.TryGetValue(key, out var v) ? v : 0;
 }

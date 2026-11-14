@@ -306,7 +306,8 @@ public sealed class DynastySystem
         var house = world.House(lineParent.HouseId);
         if (lineParent.HouseId == world.Protagonist?.HouseId) world.WorldCounters["dynasty_births"] = world.Counter("dynasty_births") + 1;   // the saga's own count
         string sex = rng.NextDouble() < 0.5 ? "male" : "female";
-        string surname = (house?.Name ?? lineParent.HouseId).Replace("House ", "");
+        // someone taken into a house keeps their own name, and so do their children
+        string surname = HouseholdSystem.IsFound(lineParent) && lineParent.Name.Contains(' ') ? lineParent.Name[(lineParent.Name.LastIndexOf(' ') + 1)..] : (house?.Name ?? lineParent.HouseId).Replace("House ", "");
         string given = $"Scion {n}";
         if (Content is { Names.IsEmpty: false })
         {
@@ -326,7 +327,8 @@ public sealed class DynastySystem
             Age = 0,
             Sex = sex,
             MotherId = mother.Id,
-            FatherId = father.Id
+            FatherId = father.Id,
+            BornHouseId = HouseholdSystem.IsFound(lineParent) ? lineParent.BornHouseId : ""   // born into the household, not into the blood
         };
         world.Characters[child.Id] = child;
         house?.Members.Add(child.Id);
@@ -437,6 +439,10 @@ public sealed class DynastySystem
     {
         var members = world.Characters.Values.Where(c => c.Alive && c.Id != deceased.Id && c.HouseId == deceased.HouseId);
         string law = world.House(deceased.HouseId)?.SuccessionLaw ?? "primogeniture";
+        // Found family (docs/HOUSEHOLD.md): those taken into the house stand after everyone of the blood, whatever the law. One who
+        // was adopted is of the blood, and a child of the head who adopted them.
+        var blood = members.Where(c => !HouseholdSystem.IsFound(c)).ToList();
+        if (blood.Count > 0) members = blood;
         return law switch
         {
             "ultimogeniture" => members.OrderByDescending(c => IsChildOf(c, deceased)).ThenBy(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault(),
@@ -447,5 +453,5 @@ public sealed class DynastySystem
     }
 
     private static bool IsChildOf(Character c, Character parent) =>
-        c.MotherId == parent.Id || c.FatherId == parent.Id;
+        c.MotherId == parent.Id || c.FatherId == parent.Id || c.AdoptedById == parent.Id;
 }

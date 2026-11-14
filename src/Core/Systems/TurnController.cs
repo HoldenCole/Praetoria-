@@ -45,6 +45,7 @@ public sealed class TurnController
     private readonly HonorSystem _honors;
     private readonly GreatCrisisSystem _greatCrisis;
     private readonly FamilySystem _family = new();
+    private readonly HouseholdSystem _household;       // found family, and the duties the head hands out (docs/HOUSEHOLD.md)
     private readonly DynastySystem _dynasty;           // always-on — the dynasty IS the game (GDD §14)
     private readonly int _briefingBudget;
     private readonly List<BriefingItem> _briefing = new();
@@ -114,6 +115,7 @@ public sealed class TurnController
         _senate.Exchange = _companies; if (_companies != null) _companies.Offices = content.Offices;
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures, Exchange = _companies, Orders = _orders, HoldingCatalogForFounding = content.Holdings };
         _dynasty = new DynastySystem { Content = content };
+        _household = new HouseholdSystem(content.Holdings, content.Businesses, content.Titles, content.Trade, content.Fleets.FuelHullsPerUnit);
         // Every marriage the world opens with gets its record, without fanfare. Once only: a save resumed mid-year must not
         // quietly record a wedding the year's own reckoning would have announced.
         if (world.Counter(CourtshipSystem.OpenedCounter) == 0) { CourtshipSystem.Sync(world, announce: false); world.WorldCounters[CourtshipSystem.OpenedCounter] = 1; }
@@ -212,6 +214,7 @@ public sealed class TurnController
     {
         if (World.InAcademy) { Phase = TurnPhase.Resolve; _academy.EndTerm(World); SyncRng(); Phase = TurnPhase.Idle; return; }   // the term closes; the world has not moved
         Phase = TurnPhase.Resolve;
+        using (Perf.Time("end:household")) { _household.Tick(World, Executor, Context()); }   // those the head has handed work to do it; the household's own lives go on (docs/HOUSEHOLD.md)
         using (Perf.Time("end:npc")) { _npcAi.Act(Executor, Context(), _crises, _economy == null ? null : _content.Holdings, _fleets.Rules, _content.Businesses); }   // NPCs act, invest, sail, and may author a crisis
         using (Perf.Time("end:senate")) { _senate.Tick(World); }          // the Senate votes last session's motions and hears new ones (GDD §6.1) — RNG-free
         using (Perf.Time("end:policy")) { PolicySystem.Tick(World, _content.Policies); }   // the estates weigh the laws (GDD §6.1) — RNG-free

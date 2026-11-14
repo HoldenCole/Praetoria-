@@ -364,3 +364,18 @@ public sealed class BeginCourtshipEffect : IEffect
     }
 }
 
+/// <summary>Take the character bound to <c>role</c> into the protagonist's household, whatever they would have said if asked
+/// (the event is the asking). JSON: { "type": "takeIn", "role": "child", "as": "ward" } — as: ward, protege, companion.</summary>
+public sealed class TakeInEffect : IEffect
+{
+    public string Role { get; }
+    public string As { get; }
+    public TakeInEffect(string role, string kind) { Role = role; As = kind; }
+    public void Apply(EvalContext ctx)
+    {
+        var w = ctx.World; var p = w.Protagonist; var c = ctx.Actor(Role); if (p == null || c is not { Alive: true } || c.HouseId == p.HouseId) return;
+        string kind = c.Age < Systems.DynastySystem.AgeOfMajority ? Systems.HouseholdSystem.Ward : As == Systems.HouseholdSystem.Ward ? Systems.HouseholdSystem.Companion : As;
+        if (w.House(p.HouseId) is { } h && Systems.HouseholdSystem.Found(w, h.Id).Count < Systems.HouseholdSystem.Room(h) && !w.AtWar(h.Id, c.HouseId)) Systems.HouseholdSystem.TakeIn(w, p, c, kind);
+    }
+}
+

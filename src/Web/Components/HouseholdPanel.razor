@@ -1,0 +1,169 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!;
+    var found = HouseholdSystem.Found(w, house.Id); int room = HouseholdSystem.Room(house);
+    var eligible = HouseholdSystem.Eligible(w, house);
+    var mentor = p.MentorId.Length > 0 ? w.Char(p.MentorId) : null;
+    string Rank(Character x) => c.Careers.RankName(x.CareerTrack, x.CareerRank, w.Era) ?? (x.Age < 16 ? "a child" : "of no office");
+    string Best(Character x) => x.Skills.Count == 0 ? "no training" : string.Join(", ", x.Skills.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(3).Select(kv => $"{kv.Key} {kv.Value}"));
+}
+<section class="panel household">
+    <h3><Icon Name="houses" Size="13" /> Found family and duties <span class="muted">@found.Count of @room taken in · @house.Duties.Count handed on</span></h3>
+
+    <div class="hh-cols">
+    <div>
+    <div class="hh-head"><b>Work you can hand on</b> <span class="muted small">Nothing has to be delegated. Whoever holds a duty does it once a year by their own skill, spends only what is above the reserve, and can be anyone grown of the house, born to it or taken in.</span></div>
+    @foreach (var role in HouseholdSystem.Roles)
+    {
+        var d = house.Duty(role); var holder = d != null ? w.Char(d.HolderId) : null; string r = role; int reserve = d?.Reserve ?? ReserveOf(role);
+        <div class="duty">
+            <div class="duty-top">
+                <b>@HouseholdSystem.RoleName(role)</b> <span class="muted small">@HouseholdSystem.RoleDoes(role)</span>
+                @if (holder != null) { <button class="opt inline tiny" @onclick="() => G.Execute(new DelegateCommand(pid, r, string.Empty))">Take it back</button> }
+            </div>
+            @if (holder != null && d != null)
+            {
+                <div class="suit-who">
+                    <Portrait Id="@holder.Id" Name="@holder.Name" Sex="@holder.Sex" Age="@holder.Age" Accent="@house.AccentColor" Size="34" />
+                    <div><b>@holder.Name</b> <span class="muted">@Rank(holder), @holder.Age@(HouseholdSystem.IsFound(holder) ? " · " + HouseholdSystem.KindName(HouseholdSystem.KindOf(holder)) : "") · skill @HouseholdSystem.Fit(holder, role) · @Years(w.Turn - d.Since) in the post</span>
+                        <div class="small">@(d.LastReport.Length > 0 ? d.LastReport : "Nothing to report yet.")</div>
+                        @if (holder.Flags.Contains(HouseholdSystem.SkimmingChar)) { <div class="small bad">The accounts under them do not add up.</div> }</div>
+                </div>
+                <div class="suit-acts"><span class="muted small" title="They spend only what the treasury holds above this.">Leave in the treasury</span>
+                    @foreach (int amt in Reserves) { int a = amt; <button class="opt inline tiny @(d.Reserve == amt ? "here" : "")" @onclick="() => G.Execute(new DelegateCommand(pid, r, d.HolderId, a))">@amt</button> }
+                </div>
+            }
+            else
+            {
+                <div class="suit-acts">
+                    @if (eligible.Count == 0) { <span class="muted small">Nobody grown of the house to hand it to. You do it yourself.</span> }
+                    @foreach (var k in eligible.OrderByDescending(k => HouseholdSystem.Fit(k, role)).ThenBy(k => k.Id, StringComparer.Ordinal).Take(6))
+                    {
+                        string kid = k.Id; var no = HouseholdSystem.AssignRefusal(w, p, role, k);
+                        <button class="opt inline" disabled="@(no != null)" title="@(no ?? Best(k))" @onclick="() => G.Execute(new DelegateCommand(pid, r, kid, reserve))">@First(k.Name) · skill @HouseholdSystem.Fit(k, role)@(HouseholdSystem.IsFound(k) ? " · taken in" : "")</button>
+                    }
+                </div>
+                @if (eligible.Count > 0)
+                {
+                    <div class="suit-acts"><span class="muted small">Leave in the treasury</span>
+                        @foreach (int amt in Reserves) { int a = amt; <button class="opt inline tiny @(reserve == amt ? "here" : "")" @onclick="() => _reserve[r] = a">@amt</button> }
+                    </div>
+                }
+            }
+        </div>
+    }
+
+    <div class="hh-head"><b>Under someone's wing</b> <span class="muted small">A senior of your own service who teaches you what they are best at, every third year, while you are behind them.</span></div>
+    @if (mentor != null)
+    {
+        var mh = w.House(mentor.HouseId);
+        <div class="suit-who">
+            <Portrait Id="@mentor.Id" Name="@mentor.Name" Sex="@mentor.Sex" Age="@mentor.Age" Accent="@(mh?.AccentColor ?? "#888")" Size="36" />
+            <div><b>@mentor.Name</b> of @mh?.Name has you under their wing <span class="muted">· @Rank(mentor) · @Best(mentor) · @Years(w.Turn - p.JoinedTurn)</span>
+                <div class="muted small">It ends if your houses go to war, or if they come to think ill of you.</div></div>
+            <button class="opt inline tiny" @onclick="() => G.Execute(new MentorCommand(pid, string.Empty))">Leave them</button>
+        </div>
+    }
+    else
+    {
+        var seniors = w.LivingCharacters().Where(x => x.Id != pid && x.CareerTrack == p.CareerTrack && p.CareerTrack.Length > 0 && x.CareerRank > p.CareerRank && x.Age >= p.Age + 8)
+            .OrderByDescending(x => w.GetRelationship(x.Id, pid)?.Disposition ?? 0).ThenByDescending(x => x.CareerRank).ThenBy(x => x.Id, StringComparer.Ordinal).Take(5).ToList();
+        @if (seniors.Count == 0) { <div class="muted small">@(p.CareerTrack.Length == 0 ? "You follow no service." : "Nobody senior to you in your service is old enough to be a mentor.")</div> }
+        <div class="suit-acts">
+            @foreach (var sx in seniors)
+            {
+                string sid = sx.Id; var no = new MentorCommand(pid, sid).Refusal(G.Ctx);
+                <button class="opt inline" disabled="@(no != null)" title="@(no ?? Best(sx))" @onclick="() => G.Execute(new MentorCommand(pid, sid))">@sx.Name · @Rank(sx) · regard @(w.GetRelationship(sx.Id, pid)?.Disposition ?? 0)</button>
+            }
+        </div>
+    }
+    </div>
+    <div>
+    <div class="hh-head"><b>Those you have taken in</b> <span class="muted small">They keep their own names, live as members of the house, and stand in the line only after everyone of the blood.</span></div>
+    @if (found.Count == 0) { <div class="muted small">Nobody. The house is its blood and no one else.</div> }
+    @foreach (var f in found)
+    {
+        string fid = f.Id; int regard = w.GetRelationship(f.Id, pid)?.Disposition ?? 0; var born = w.House(f.BornHouseId);
+        var adopt = new HouseholdCommand(pid, HouseholdCommand.Adopt, fid).Refusal(G.Ctx); var release = new HouseholdCommand(pid, HouseholdCommand.Release, fid).Refusal(G.Ctx);
+        <div class="suit">
+            <div class="suit-who">
+                <Portrait Id="@f.Id" Name="@f.Name" Sex="@f.Sex" Age="@f.Age" Accent="@(born?.AccentColor ?? house.AccentColor)" Size="36" />
+                <div><b>@f.Name</b> <span class="pill small">@HouseholdSystem.KindName(HouseholdSystem.KindOf(f))</span> <span class="pill small @(regard >= 30 ? "good" : regard < 0 ? "warn" : "")">@(regard >= 0 ? "+" : "")@regard</span>
+                    <div class="muted small">@f.Age, @Rank(f) · @Best(f)@(born != null ? $" · born to {born.Name}" : " · the house of their birth is gone") · @Years(w.Turn - f.JoinedTurn) with you@(f.MentorId == pid ? " · you are bringing them on" : "")</div></div>
+            </div>
+            <div class="suit-acts">
+                @if (f.Age >= 16) { <button class="opt inline" disabled="@(adopt != null)" title="@(adopt ?? "They take your name and stand in the line as your child. Your grown children by blood will not thank you.")" @onclick="() => G.Execute(new HouseholdCommand(pid, HouseholdCommand.Adopt, fid))">Adopt as an heir · @HouseholdSystem.AdoptInfluence influence</button> }
+                else { <span class="muted small">At sixteen they choose whether to stay.</span> }
+                <button class="opt inline" disabled="@(release != null)" title="@(release ?? "They go back to the house of their birth, and think the worse of you.")" @onclick="() => G.Execute(new HouseholdCommand(pid, HouseholdCommand.Release, fid))">Send them home</button>
+            </div>
+        </div>
+    }
+
+    @foreach (var pe in house.Petitions)
+    {
+        var who = w.Char(pe.PersonId); if (who == null) continue; var wh = w.House(who.HouseId); string wid = who.Id; string kind = pe.As;
+        var take = new HouseholdCommand(pid, HouseholdCommand.TakeIn, wid, kind).Refusal(G.Ctx);
+        <div class="suit incoming">
+            <div class="suit-who">
+                <Portrait Id="@who.Id" Name="@who.Name" Sex="@who.Sex" Age="@who.Age" Accent="@(wh?.AccentColor ?? "#888")" Size="36" />
+                <div><b>@(kind == HouseholdSystem.Ward ? $"{wh?.Name} asks you to take {who.Name} as a ward" : $"{who.Name} of {wh?.Name} asks for a place in your household")</b>
+                    <div class="muted small">@who.Age, @Rank(who) · @Best(who) · they will wait @Math.Max(1, HouseholdSystem.PetitionYears - (w.Turn - pe.Since)) more year(s)</div></div>
+            </div>
+            <div class="suit-acts">
+                <button class="opt inline" disabled="@(take != null)" title="@take" @onclick="() => G.Execute(new HouseholdCommand(pid, HouseholdCommand.TakeIn, wid, kind))">Take them in · @HouseholdSystem.TakeInInfluence influence</button>
+                <button class="opt inline" @onclick="() => G.Execute(new HouseholdCommand(pid, HouseholdCommand.Decline, wid))">There is no place</button>
+            </div>
+        </div>
+    }
+
+    <div class="hh-head"><b>Take someone in</b> <span class="muted small">@(found.Count >= room ? $"The house keeps as many as it can ({room})." : "Someone you have come to value, or a child who needs a house. They must be willing, or their family must.")</span>
+        @if (found.Count < room) { <button class="opt inline tiny" @onclick="() => _seek = !_seek">@(_seek ? "Close" : "Look for someone")</button> }</div>
+    @if (_seek && found.Count < room)
+    {
+        var cands = w.LivingCharacters().Where(x => x.HouseId != house.Id && x.HouseId != PirateSystem.HouseId && x.Age >= 6)
+            .Select(x => (x, kind: x.Age < 16 ? HouseholdSystem.Ward : x.CareerTrack == p.CareerTrack && p.CareerRank > x.CareerRank ? HouseholdSystem.Protege : HouseholdSystem.Companion))
+            .Select(t => (t.x, t.kind, will: HouseholdSystem.Willing(w, p, t.x, t.kind))).Where(t => t.will.score >= HouseholdSystem.WillingAt - 15)
+            .OrderByDescending(t => t.will.score >= HouseholdSystem.WillingAt).ThenByDescending(t => t.x.Skills.Values.Sum()).ThenBy(t => t.x.Id, StringComparer.Ordinal).Take(8).ToList();
+        @if (cands.Count == 0) { <div class="muted small">Nobody in the Reach would come to you now.</div> }
+        else
+        {
+            <table class="standings prospects">
+                <thead><tr><th></th><th>Who</th><th>House</th><th>As</th><th title="they come at @HouseholdSystem.WillingAt">Willing</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var t in cands)
+                    {
+                        var x = t.x; var xh = w.House(x.HouseId); string xid = x.Id; string kind = t.kind; var no = new HouseholdCommand(pid, HouseholdCommand.TakeIn, xid, kind).Refusal(G.Ctx);
+                        <tr>
+                            <td><Portrait Id="@x.Id" Name="@x.Name" Sex="@x.Sex" Age="@x.Age" Accent="@(xh?.AccentColor ?? "#888")" Size="26" /></td>
+                            <td><b>@x.Name</b> <span class="muted">@x.Age · @Best(x)</span></td>
+                            <td>@xh?.Name</td>
+                            <td>@HouseholdSystem.KindName(kind)</td>
+                            <td class="num @(t.will.score >= HouseholdSystem.WillingAt ? "good" : "bad")" title="@string.Join(" · ", t.will.why)">@t.will.score</td>
+                            <td><button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? string.Join(" · ", t.will.why))" @onclick="() => G.Execute(new HouseholdCommand(pid, HouseholdCommand.TakeIn, xid, kind))">Take in</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+
+    </div>
+    </div>
+</section>
+
+@code {
+    // A panel with no parameters is not redrawn when its parent is, so it listens for the world changing itself: without this
+    // it showed last year's figures after End Turn until something in it was clicked.
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+
+    private bool _seek;
+    private readonly Dictionary<string, int> _reserve = new();
+    private static readonly int[] Reserves = { 0, 20, 50, 100, 200 };
+    private int ReserveOf(string role) => _reserve.TryGetValue(role, out int v) ? v : 20;
+    private static string First(string name) => name.Split(' ')[0];
+    private static string Years(int n) => n <= 0 ? "this year" : n == 1 ? "a year" : $"{n} years";
+}
