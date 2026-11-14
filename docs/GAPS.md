@@ -25,7 +25,7 @@ These recur across systems. Closing one properly closes several lines below, so 
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| B1 | **The three forms of state differ only in name.** A republic needs its own council, a dictatorship a term or a strongman, a kingdom a succession. | L | Politics under a throne |
+| B1 | **The three forms of state differ only in name.** A republic needs its own council, a dictatorship a term or a strongman, a kingdom a succession. A sketch is in docs/BREAKAWAY.md ("The next stage") and waits on the owner. | L | Politics under a throne |
 | B2 | A state's border means nothing for trade, the lanes or the Exchange. Its region is named on the map but not drawn as a different country. | M | Nations on the map |
 | B3 | A state makes no agreements of its own: no trade treaty, no alliance, no envoys. It does not make war as a state. | M | B1 |
 | B4 | A state is one region. Regions and houses cannot join one that exists. | S | B3 |
