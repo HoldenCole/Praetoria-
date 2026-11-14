@@ -42,6 +42,42 @@ public sealed class FamilySystem
             }
             else if (rel.Disposition >= 0) kin.Flags.Remove(DefiantFlag);
         }
+        StepUp(w, p, house);
+    }
+
+    /// <summary>A post of the house that has stood empty for a year is taken up by whoever of the family is fit for it and
+    /// willing: nobody has to be assigned for the house's work to be done. The head can always put someone else in.</summary>
+    private static void StepUp(World w, Character p, House house)
+    {
+        var posted = w.Fleets.Values.Select(f => f.AdmiralId).Concat(w.Holdings.Values.Select(h => h.GovernorId)).Where(id => id.Length > 0).ToHashSet();
+        List<Character> Willing() => w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != p.Id && c.Age >= DynastySystem.CareerStartAge && !posted.Contains(c.Id)
+            && !c.Flags.Contains(DynastySystem.HiddenFlag) && !c.Flags.Contains(DefiantFlag) && (w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) >= DefyBelow).ToList();
+        bool Waited(string key, bool vacant)
+        {
+            key = "vacant:" + key;
+            if (!vacant) { w.WorldCounters.Remove(key); return false; }
+            if (!w.WorldCounters.TryGetValue(key, out int since)) { w.WorldCounters[key] = w.Turn; return false; }
+            return w.Turn > since;
+        }
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal))
+        {
+            if (!Waited(f.Id, f.AdmiralId.Length == 0)) continue;
+            var best = Willing().Where(c => c.CareerTrack == "military" || c.Skill("tactics") > 0).OrderByDescending(c => c.Skill("tactics") * 5 + c.Skill("gunnery") * 3 + c.Skill("leadership") * 2 + (c.CareerTrack == "military" ? 5 : 0))
+                .ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (best == null) continue;
+            f.AdmiralId = best.Id; posted.Add(best.Id); w.WorldCounters.Remove("vacant:" + f.Id);
+            w.Log($"{best.Name} has taken command of {f.Name}, which had no admiral.");
+        }
+        foreach (var h in w.HoldingsOf(house.Id).Where(h => h.IsPlanet).OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            bool vacant = h.GovernorId.Length == 0 || w.Char(h.GovernorId)?.Alive != true;
+            if (!Waited(h.Id, vacant)) continue;
+            var best = Willing().Where(c => c.CareerTrack == "stewardship" || c.Skill("administration") > 0).OrderByDescending(c => c.Skill("administration") * 5 + c.Skill("economics") * 2 + (c.CareerTrack == "stewardship" ? 5 : 0))
+                .ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (best == null) continue;
+            h.GovernorId = best.Id; posted.Add(best.Id); w.WorldCounters.Remove("vacant:" + h.Id);
+            w.Log($"{best.Name} has taken up the governing of {h.Name}, which had no governor.");
+        }
     }
 
     /// <summary>The kinsman leaves for a rival house, carrying your blood — and so a claim on your title — with them.</summary>

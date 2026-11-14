@@ -11,7 +11,7 @@
         .OrderByDescending(k => k.Id == pid).ThenByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal).ToList();
     var suitor = free.FirstOrDefault(k => k.Id == _suitor) ?? free.FirstOrDefault();
     var prospects = suitor == null ? new() : CourtshipSystem.Prospects(w, suitor);
-    bool full = suits.Count >= CourtshipSystem.MaxCourtships;
+    bool full = suits.Count(x => !x.Own || x.SuitorId == pid) >= CourtshipSystem.MaxCourtships;
 }
 <section class="panel courtship">
     <h3><Icon Name="marriage" Size="13" /> Courtship and marriage <span class="muted">@marriages.Count married · @suits.Count in hand@(incoming.Count > 0 ? $" · {incoming.Count} to answer" : "")</span></h3>
@@ -35,7 +35,8 @@
                 @(m.Estranged ? "No children will come of it until they are reconciled." : m.Warmth >= CourtshipSystem.WarmAt ? "Children come more readily" + (m.Has(pid) ? ", and the marriage eases you." : ".") : m.Warmth <= 20 && m.Has(pid) ? "It wears on you." : "")</div>
             <div class="suit-acts">
                 @if (m.Has(pid)) { <button class="opt inline" disabled="@(tend != null)" title="@(tend ?? "a season of your attention")" @onclick="() => G.Execute(new MarriageCommand(pid, mid, MarriageCommand.Tend))">Give it the quiet months · 1 influence</button> }
-                @if (_confirm == DivKey + mid) { <button class="opt inline veto" @onclick="() => { _confirm = null; G.Execute(new MarriageCommand(pid, mid, MarriageCommand.Divorce)); }">Yes, end the marriage</button> <button class="opt inline" @onclick="() => _confirm = null">No</button> }
+                @if (!m.Has(pid)) { <span class="muted small">Their marriage is their own.</span> }
+                else if (_confirm == DivKey + mid) { <button class="opt inline veto" @onclick="() => { _confirm = null; G.Execute(new MarriageCommand(pid, mid, MarriageCommand.Divorce)); }">Yes, end the marriage</button> <button class="opt inline" @onclick="() => _confirm = null">No</button> }
                 else { <button class="opt inline" title="@DivorceTip(w, m, sh)" @onclick="() => Ask(DivKey, mid)">Divorce</button> }
             </div>
         </div>
@@ -67,11 +68,12 @@
     {
         var who = w.Char(s.SuitorId)!; var t = w.Char(s.TargetId)!; var th = w.House(t.HouseId); string sid = s.Id; bool child = CourtshipSystem.IsChildMatch(w, s);
         var rival = s.RivalId.Length > 0 ? w.Char(s.RivalId) : null; int standing = CourtshipSystem.Standing(w, s);
-        <div class="suit">
+        bool mine = who.Id == pid; bool theirOwn = !mine && s.Own; bool asking = theirOwn && s.AskingSince >= 0 && !s.Forbidden;
+        <div class="suit @(asking ? "incoming" : "")">
             <div class="suit-who">
                 <Portrait Id="@who.Id" Name="@who.Name" Sex="@who.Sex" Age="@who.Age" Accent="@house.AccentColor" Size="40" />
                 <Portrait Id="@t.Id" Name="@t.Name" Sex="@t.Sex" Age="@t.Age" Accent="@(th?.AccentColor ?? "#888")" Size="40" />
-                <div><b>@who.Name</b> @(s.Betrothed ? "is promised to" : child ? "may be promised to" : "is courting") <b>@t.Name</b> of @th?.Name
+                <div><b>@who.Name</b> @(s.Betrothed ? "is promised to" : child ? "may be promised to" : asking ? "asks your leave to marry" : theirOwn ? "is courting, of their own accord," : mine ? "is courting" : "may be matched, by your arranging, with") <b>@t.Name</b> of @th?.Name
                     <div class="muted small">@t.Age, @(c.Careers.RankName(t.CareerTrack, t.CareerRank, w.Era) ?? (t.Age < 16 ? "a child" : "of no office")) · @(th == null ? "" : Praetoria.Core.Progression.Title.StyleOf(th.Title, w.Era)) house, legitimacy @th?.Legitimacy · @Years(w.Turn - s.Since)</div></div>
             </div>
             @if (s.Betrothed)
@@ -87,7 +89,12 @@
             {
                 var (dowry, kids) = TermsOf(sid); var ans = CourtshipSystem.Answer(w, s, dowry, kids); bool acted = s.ActedTurn >= w.Turn;
                 var elope = CourtshipSystem.ElopeRefusal(w, s); var ask = new SettleSuitCommand(pid, sid, SettleSuitCommand.Propose, dowry, kids).Refusal(G.Ctx);
+                @if (s.Forbidden) { <div class="small bad">You forbade it. @First(who.Name) has not given it up.</div> }
+                else if (asking) { <div class="small"><b>@First(who.Name) wants this match and has asked for your blessing.</b> <span class="muted">They will wait @Math.Max(1, CourtshipSystem.BlessingWaitYears - (w.Turn - s.AskingSince)) more year(s) for an answer.</span></div> }
+                else if (theirOwn) { <div class="muted small">@First(who.Name) sees to the courting. When it is serious they will ask your leave. You can help with the family, or not.</div> }
+                else if (!mine && !child) { <div class="muted small">A match you are arranging. @First(who.Name) @(s.Wish >= CourtshipSystem.LoveAt ? "likes the idea" : s.Wish >= 40 ? "is willing" : s.Wish >= CourtshipSystem.UnwillingWish ? "is not keen" : "does not want it, and will hold it against you")@(s.Wish >= 40 ? " and will do their own part of the courting." : ".")</div> }
                 <div class="gauges">
+                    @if (!mine && !child && !s.Own) { <div class="gauge" title="What your own kin thinks of the match you are arranging. Marry them against their inclination and they will hold it against you."><span>@First(who.Name)'s own wish</span><i><b style="width:@s.Wish%" class="@(s.Wish >= CourtshipSystem.LoveAt ? "high" : s.Wish < CourtshipSystem.UnwillingWish ? "low" : "")"></b></i><em>@s.Wish</em></div> }
                     @if (!child) { <div class="gauge" title="What @t.Name feels. At @CourtshipSystem.LoveAt they argue for the match at home; at @CourtshipSystem.ElopeAt they would marry without leave; below @CourtshipSystem.UnwillingBelow they will not have it at all."><span>@First(t.Name)'s favour</span><i><b style="width:@s.Favour%" class="@(s.Favour >= CourtshipSystem.LoveAt ? "high" : s.Favour < 25 ? "low" : "")"></b><u style="left:@CourtshipSystem.LoveAt%"></u></i><em>@s.Favour</em></div> }
                     <div class="gauge" title="What the family thinks of the match. They agree at @CourtshipSystem.AcceptAt, counting the terms and whether @t.Name wants it."><span>The family</span><i><b style="width:@s.Consent%" class="@(s.Consent >= CourtshipSystem.AcceptAt ? "high" : s.Consent < 25 ? "low" : "")"></b><u style="left:@CourtshipSystem.AcceptAt%"></u></i><em>@s.Consent</em></div>
                     @if (rival != null) { <div class="gauge rival" title="Another suit for the same hand. At @CourtshipSystem.RivalWinsAt, and ahead of yours (@standing), it is accepted."><span>@First(rival.Name)'s suit</span><i><b style="width:@s.RivalStanding%" class="low"></b><u style="left:@standing%"></u></i><em>@s.RivalStanding</em></div> }
@@ -96,25 +103,28 @@
                 <div class="suit-acts">
                     @foreach (var act in Acts)
                     {
-                        if (act.id == CourtshipSystem.ActRival && rival == null) continue; if (act.id == CourtshipSystem.ActTime && child) continue;
+                        if (act.id == CourtshipSystem.ActRival && rival == null) continue; if (act.id == CourtshipSystem.ActTime && (child || !mine)) continue;
                         string a = act.id; var no = new WooCommand(pid, sid, a).Refusal(G.Ctx);
-                        <button class="opt inline" disabled="@(no != null)" title="@(no ?? act.tip)" @onclick="() => G.Execute(new WooCommand(pid, sid, a))">@act.label</button>
+                        <button class="opt inline" disabled="@(no != null)" title="@(no ?? act.tip)" @onclick="() => G.Execute(new WooCommand(pid, sid, a))">@(mine ? act.label : act.help)</button>
                     }
-                    @if (acted) { <span class="muted small">Done for this year.</span> }
+                    @if (acted) { <span class="muted small">@(mine ? "Done for this year." : "You have helped this year.")</span> }
+                    else if (!mine) { <span class="muted small">Optional.</span> }
                 </div>
                 <TermsPicker W="w" Suit="s" Dowry="@dowry" Kids="@kids" OnChange="x => _terms[sid] = x" />
                 <div class="muted small">Asked now, on these terms: <b class="@(ans.ok ? "good" : "bad")">@ans.why</b>.@(!child && s.Favour >= CourtshipSystem.LoveAt ? $" {First(t.Name)} is arguing for it at home." : "")</div>
                 <div class="suit-acts">
-                    <button class="opt inline @(ans.ok ? "here" : "")" disabled="@(ask != null)" title="@(ask ?? (ans.ok ? "they will agree" : "they will refuse, and think a little less of the match for being asked too soon"))" @onclick="() => G.Execute(new SettleSuitCommand(pid, sid, SettleSuitCommand.Propose, dowry, kids))">@(child ? "Propose the betrothal" : "Propose the match")</button>
-                    @if (!child) { <button class="opt inline" disabled="@(elope != null)" title="@(elope ?? "marry without the family's leave: no dowry, the children yours, their house's lasting anger and some of your standing")" @onclick="() => G.Execute(new SettleSuitCommand(pid, sid, SettleSuitCommand.Elope))">Marry without their leave</button> }
-                    <button class="opt inline" @onclick="() => G.Execute(new SettleSuitCommand(pid, sid, SettleSuitCommand.BreakOff))">Let it drop</button>
+                    <button class="opt inline @(ans.ok ? "here" : "")" disabled="@(ask != null)" title="@(ask ?? (ans.ok ? "they will agree" : "they will refuse, and think a little less of the match for being asked too soon"))" @onclick="() => G.Execute(new SettleSuitCommand(pid, sid, SettleSuitCommand.Propose, dowry, kids))">@(child ? "Propose the betrothal" : theirOwn ? "Give your blessing and ask the family" : "Propose the match")</button>
+                    @if (!child && mine) { <button class="opt inline" disabled="@(elope != null)" title="@(elope ?? "marry without the family's leave: no dowry, the children yours, their house's lasting anger and some of your standing")" @onclick="() => G.Execute(new SettleSuitCommand(pid, sid, SettleSuitCommand.Elope))">Marry without their leave</button> }
+                    @if (!theirOwn) { <button class="opt inline" @onclick="() => G.Execute(new SettleSuitCommand(pid, sid, SettleSuitCommand.BreakOff))">Let it drop</button> }
+                    else if (_confirm == BrkKey + sid) { <button class="opt inline veto" @onclick="() => { _confirm = null; G.Execute(new SettleSuitCommand(pid, sid, SettleSuitCommand.BreakOff)); }">Yes, forbid it</button> <button class="opt inline" @onclick="() => _confirm = null">No</button> }
+                    else if (!s.Forbidden) { <button class="opt inline" title="@ForbidTip(who, s)" @onclick="() => Ask(BrkKey, sid)">Forbid it</button> }
                 </div>
             }
         </div>
     }
 
     <div class="suit begin">
-        <div class="suit-head"><b>Begin a suit</b> <span class="muted small">@(full ? "The house has as many suits in hand as it can manage." : free.Count == 0 ? "Nobody of the house is free to be matched." : "A courtship takes years and can win a match a plain proposal cannot. A proposal by treaty (Houses screen) is quick and cold.")</span></div>
+        <div class="suit-head"><b>Pay court, or arrange a match</b> <span class="muted small">@(full ? "You have as many matches in hand as you can manage." : free.Count == 0 ? "Nobody of the house is free to be matched." : "Your kin court for themselves and come to you for your blessing. You can also arrange a match for one of them, and they will have a view of it. Your own courtship is yours to press.")</span></div>
         @if (!full && suitor != null)
         {
             <div class="suit-acts">
@@ -125,7 +135,7 @@
             else
             {
                 <table class="standings prospects">
-                    <thead><tr><th></th><th>Who</th><th>House</th><th title="what they would feel on the first day">Favour</th><th title="what their family would think on the first day">Family</th><th></th></tr></thead>
+                    <thead><tr><th></th><th>Who</th><th>House</th>@if (suitor.Id != pid && suitor.Age >= 16) { <th title="what your own kin would think of them">@First(suitor.Name)'s wish</th> }<th title="what they would feel on the first day">Favour</th><th title="what their family would think on the first day">Family</th><th></th></tr></thead>
                     <tbody>
                         @foreach (var pr in prospects.Take(_more ? 24 : 6))
                         {
@@ -134,9 +144,10 @@
                                 <td><Portrait Id="@t.Id" Name="@t.Name" Sex="@t.Sex" Age="@t.Age" Accent="@(th?.AccentColor ?? "#888")" Size="26" /></td>
                                 <td><b>@t.Name</b> <span class="muted">@t.Age@(kid ? " · a promise, not a courtship" : "")</span>@if (!CourtshipSystem.CanBear(suitor, t)) { <span class="pill warn small" title="the woman is at or near the end of her bearing years: children are unlikely">heirs unlikely</span> }</td>
                                 <td>@th?.Name <span class="muted">@(th == null ? "" : Praetoria.Core.Progression.Title.StyleOf(th.Title, w.Era)) · @th?.Legitimacy</span></td>
+                                @if (suitor.Id != pid && suitor.Age >= 16) { int wish = kid ? 50 : CourtshipSystem.StartFavour(w, t, suitor); <td class="num @(wish >= 45 ? "good" : wish < CourtshipSystem.UnwillingWish ? "bad" : "")">@(kid ? "—" : wish.ToString())</td> }
                                 <td class="num @(pr.favour >= 45 ? "good" : pr.favour < 25 && !kid ? "bad" : "")">@(kid ? "—" : pr.favour.ToString())</td>
                                 <td class="num @(pr.consent >= 45 ? "good" : pr.consent < 25 ? "bad" : "")">@pr.consent</td>
-                                <td><button class="opt inline tiny" @onclick="() => G.Execute(new CourtCommand(pid, sid, tid))">@(kid ? "Sound them out" : "Pay court")</button></td>
+                                <td><button class="opt inline tiny" @onclick="() => G.Execute(new CourtCommand(pid, sid, tid))">@(kid ? "Sound them out" : suitor.Id == pid ? "Pay court" : "Arrange it")</button></td>
                             </tr>
                         }
                     </tbody>
@@ -151,13 +162,15 @@
     private string? _suitor, _confirm; private bool _more;
     private readonly Dictionary<string, (string dowry, string kids)> _terms = new();
     private (string dowry, string kids) TermsOf(string id) => _terms.TryGetValue(id, out var t) ? t : (CourtshipSystem.Customary, "");
-    private static readonly (string id, string label, string tip)[] Acts =
+    private static readonly (string id, string label, string help, string tip)[] Acts =
     {
-        (CourtshipSystem.ActTime, "Time together · 1 influence", "raises their favour, more for a suitor with charisma"),
-        (CourtshipSystem.ActGift, $"A gift · {CourtshipSystem.GiftCredits} credits", "raises their favour a little and the family's opinion a little"),
-        (CourtshipSystem.ActFamily, "Put the case to the family · 2 influence", "raises the family's opinion, more for a head with oratory or diplomacy"),
-        (CourtshipSystem.ActRival, "Put word about against the rival · 1 agent", "sets the rival's suit back, more for a head with intrigue; if it is traced to you the family will not like it"),
+        (CourtshipSystem.ActTime, "Time together · 1 influence", "", "raises their favour, more for a suitor with charisma"),
+        (CourtshipSystem.ActGift, $"A gift · {CourtshipSystem.GiftCredits} credits", $"Send a gift in the house's name · {CourtshipSystem.GiftCredits} credits", "raises their favour a little and the family's opinion a little"),
+        (CourtshipSystem.ActFamily, "Put the case to the family · 2 influence", "Speak to their family for them · 2 influence", "raises the family's opinion, more for a head with oratory or diplomacy"),
+        (CourtshipSystem.ActRival, "Put word about against the rival · 1 agent", "Put word about against their rival · 1 agent", "sets the rival's suit back, more for a head with intrigue; if it is traced to you the family will not like it"),
     };
+    private string ForbidTip(Character who, Courtship s) =>
+        $"{First(who.Name)} will hold it against you{(who.NatureTraits.Contains("Loyal") ? ", a little" : "")}.{(CourtshipSystem.Wilful(who) && s.Favour >= CourtshipSystem.ElopeAt ? " They are wilful and it has gone far: they may marry anyway." : "")}";
     private const string DivKey = "div:", BrkKey = "brk:";
     private void Ask(string what, string id) => _confirm = what + id;
     private static string First(string name) => name.Split(' ')[0];

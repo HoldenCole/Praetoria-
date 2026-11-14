@@ -16,6 +16,27 @@ other house accepted or refused on the spot) and a few events; once made, it onl
 A courtship can win a match a proposal cannot. A person who wants the match argues for it at home, which is worth 15
 to the family's consent. That is how a new name marries into an old one.
 
+## Whose courtship it is
+
+You play one person (docs/PROCESS.md, "One person, not a house"). Only your own courtship is yours to press.
+
+| Whose | Who does the courting | What the head does |
+|---|---|---|
+| Your own | You, one act a year | Everything below |
+| One of the house, by their own choice | They do. It advances by itself and never lapses for want of your attention | Optional help with the family (a gift, speaking for them, a word against a rival). When it is serious they ask your **blessing**: give it (and the match goes to the other family with the terms you set) or **forbid** it |
+| One of the house, arranged by you | They do their part if they are willing | You choose the match and deal with the family. They have a **wish** about it, shown before you choose |
+| A child | Nobody | The families agree a promise |
+
+- **Kin choose for themselves.** Each year an unmarried adult of the house may take a liking to someone, more often if a
+  great love is their ambition. How often scales with the family autonomy setting; at zero they wait to be matched.
+- **Asking your blessing.** At favour 60 they ask. They wait three years. Blessing it pleases them. No answer in three
+  years, and most give it up and think less of you.
+- **Forbidding it.** The loyal obey and mind a little. Others mind a lot. One who is wilful (ambitious, proud, or set on
+  a great love) and far gone (favour 75) marries anyway, without anyone's leave, at a small cost to the house's standing.
+- **Arranging against their wish.** Marry someone to a match they did not want (wish under 25) and they hold it
+  against you. A wilful one with a wish under 15 refuses outright.
+- **Their marriages are theirs.** You tend and end only your own.
+
 ## A courtship
 
 Two numbers, both 0 to 100.
@@ -94,9 +115,10 @@ takes it as an insult, a dowry received goes back, and the children stay where t
 
 ## Events
 
-Twelve, in `content/events/courtship.json`: an introduction that can start a courtship; a rival for the hand; the
+Thirteen, in `content/events/courtship.json`: an introduction that can start a courtship; a rival for the hand; the
 family asking your prospects; a letter unanswered; the wedding day; chosen against; a cold house; the affair is known;
-a marriage of two minds; the family's letter after an elopement; the in-laws ask a favour; widowed.
+a marriage of two minds; the family's letter after an elopement; the in-laws ask a favour; widowed; one of the house
+married without your leave.
 
 ## For content
 
@@ -105,8 +127,9 @@ a marriage of two minds; the family's letter after an elopement; the in-laws ask
 - World flags set each year: `courting`, `courtship_rival`, `suit_received`, `child_betrothed`, `married`,
   `marriage_warm`, `marriage_cold`, `estranged`.
 - World flags raised by a deed and kept for the next events phase: `just_wed`, `love_match`, `jilted`, `eloped`,
-  `divorced`, `betrothal_broken`, `undermining_exposed`, `widowed_now`, `suit_refused`.
-- Character flags: `courted` (someone the protagonist is courting), `rival_suitor`, `widowed`.
+  `divorced`, `betrothal_broken`, `undermining_exposed`, `widowed_now`, `suit_refused`, `kin_asks_blessing`, `kin_eloped`,
+  `match_forbidden`.
+- Character flags: `courted` (someone the protagonist is courting), `rival_suitor`, `widowed`, `eloped_kin`.
 - Counters: `marriage_warmth`, `courtship_standing`, `love_matches`.
 
 ## How it is built
@@ -126,7 +149,8 @@ neglected the family and lost to a rival.
 
 ## Not in this piece
 
-- Stewards do not court; houses other than the player's marry by proposal only, and never divorce.
+- Stewards do not court; houses other than the player's marry by proposal only, and never divorce. Your own kin court,
+  but do not yet divorce or stray on their own.
 - No children outside marriage. An affair is an event with consequences for the marriage, not for the succession.
 - A spouse does not yet do anything: no counsel, no running the house in your absence. Their skills do not count.
 - A spouse stays a member of their own house; nothing moves between households.

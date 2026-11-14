@@ -15,8 +15,8 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 525 |
-| Events with text | 273 in 26 files |
+| Automated tests | 531 |
+| Events with text | 274 in 26 files |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
@@ -139,6 +139,7 @@ the only real constraint on sequence. Each line is roughly one cycle of work (bu
 | **Education, skills and getting better** | Children are raised: a tutor, a focus, a household to be sent to. Adults improve by doing, by study and by being taught, and decline with age. Sketch below. | The Academy (a year of this already exists). The ladder of offices. Under the wing (a mentor teaches). |
 | **Personal wealth, house wealth and the dynasty's assets** | A person's own purse beside the house's. Allowances, dowries, wills, heirlooms, and an estate that is divided or kept whole when the head dies. Sketch below. | The economy (shares and ventures can be held personally). Succession laws. Marriage. |
 | **Under the wing** | A person, not only a house, can have a patron: a mentor, a guardian for a ward, adoption as an heir. A house of one can be taken into a greater household. Sketch below. | Patrons and clients (built for houses). Education. The custom character's "alone" start. |
+| **Kin who pursue their ambitions** | Every relative has an ambition as data, and today only defiance comes of it. They should act on it themselves: seek a command, stand for an office, start a venture, ask the head for help or a post, and succeed or fail without the player. | The rule in section 7. Personal wealth (their own purse). The ladder of offices. |
 | **A life of one's own** | Health and wounds, a personal reputation apart from the house's, friendships and rivalries that last decades, retirement, a funeral and what is said at it. | The look and feel pass (the character sheet). Glory in Arms is a first piece of this. |
 
 **The Republic**
@@ -251,17 +252,17 @@ Short on purpose. Each needs a proper plan before it is built. "Today" is what t
 
 **Education, skills and getting better**
 - *Today*: a child comes of age at sixteen with inherited traits, a track and starting skills; skills move only by events and the Academy year.
-- Each child has an upbringing you choose: a focus (arms, law, the counting-house), a tutor of some quality, or a place in another house's household.
+- Each child is brought up without being managed: by default the household raises them toward what they show a bent for. The head may step in: set a focus (arms, law, the counting-house), pay for a better tutor, or place them in another house's household.
 - What a child becomes depends on that, on their parents and on what happens to them. Not every child takes to what they are taught.
 - Adults improve by doing: commanding raises tactics, sitting as a magistrate raises law, running ventures raises economics. Slowly, with a ceiling set by aptitude.
-- Adults can also study or be taught by someone better, which costs time or coin.
+- Adults can also study or be taught by someone better, which costs time or coin. Kin decide this for themselves; the head can pay for it or arrange a teacher.
 - Skills fade in old age. Some traits can be earned or lost in adult life.
 - The Academy year becomes one case of this, and other kin can be sent there.
 
 **Personal wealth, house wealth and the dynasty's assets**
 - *Today*: one treasury per house. People own nothing. The heir receives everything.
 - Each adult has a purse of their own; the house has its treasury; the head controls both the house's and their own.
-- Kin receive an allowance, and ask for more. A generous head is loved; a mean one is plotted against.
+- Kin receive an allowance, and ask for more. A generous head is loved; a mean one is plotted against. What a kinsman does with their own purse is their business: they invest, spend and get into debt without being told.
 - Assets can be held by a person: shares, a venture, a villa, an heirloom. What a person holds is theirs to sell, give or leave.
 - A will says who gets what. The succession law says who gets the house. They need not agree, and that is a quarrel.
 - Dowries and bequests move wealth between houses. Debts are inherited too.
@@ -379,6 +380,10 @@ of the look and feel pass and the custom character: a line of history for every 
 9. *Other galaxies*: a generated map, or an editor. The content is already data.
 
 ## 7. Keeping this page honest
+
+**The rule for anything that touches the family:** you play one person, not a house. Kin act for themselves; the
+player approves, forbids, helps and arranges, and is never required to give a relative orders for them to have a life
+(docs/PROCESS.md, "One person, not a house"). Every piece in the person-and-family group is to be built to it.
 
 - A thing is "done" here only when it is tested, soaked and checked in the browser.
 - Numbers in section 1 come from the content files and the test run, not from memory.

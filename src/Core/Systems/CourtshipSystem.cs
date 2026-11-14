@@ -25,12 +25,20 @@ public static class CourtshipSystem
         WarmFlag = "marriage_warm", ColdFlag = "marriage_cold", EstrangedFlag = "estranged";
     // world flags raised by a deed, kept through the next events phase
     public const string JustWedFlag = "just_wed", LoveMatchFlag = "love_match", JiltedFlag = "jilted", ElopedFlag = "eloped", DivorcedFlag = "divorced",
-        BetrothalBrokenFlag = "betrothal_broken", ExposedFlag = "undermining_exposed", WidowedFlag = "widowed_now", SuitRefusedFlag = "suit_refused";
+        BetrothalBrokenFlag = "betrothal_broken", ExposedFlag = "undermining_exposed", WidowedFlag = "widowed_now", SuitRefusedFlag = "suit_refused",
+        KinAsksFlag = "kin_asks_blessing", KinElopedFlag = "kin_eloped", ForbiddenFlag = "match_forbidden";
     // character flags re-reckoned every year, so an event can bind the person
-    public const string CourtedChar = "courted", RivalChar = "rival_suitor", WidowedChar = "widowed";
+    public const string CourtedChar = "courted", RivalChar = "rival_suitor", WidowedChar = "widowed", ElopedChar = "eloped_kin";
+    public const int KinAdult = 18, BlessingWaitYears = 3, WillNotBelow = 15, UnwillingWish = 25;
     public const string WarmthCounter = "marriage_warmth", StandingCounter = "courtship_standing", OpenedCounter = "marriages_opened";
     private static readonly string[] TickFlags = { CourtingFlag, RivalFlag, SuitFlag, BetrothedFlag, MarriedFlag, WarmFlag, ColdFlag, EstrangedFlag };
-    private static readonly string[] DeedFlags = { JustWedFlag, LoveMatchFlag, JiltedFlag, ElopedFlag, DivorcedFlag, BetrothalBrokenFlag, ExposedFlag, WidowedFlag, SuitRefusedFlag };
+    private static readonly string[] DeedFlags = { JustWedFlag, LoveMatchFlag, JiltedFlag, ElopedFlag, DivorcedFlag, BetrothalBrokenFlag, ExposedFlag, WidowedFlag, SuitRefusedFlag, KinAsksFlag, KinElopedFlag, ForbiddenFlag };
+
+    /// <summary>One of the house with a will of their own (GDD §18): not Loyal, and ambitious, proud, or set on a great love.</summary>
+    public static bool Wilful(Character c) => !c.NatureTraits.Contains("Loyal") && (c.NatureTraits.Contains("Ambitious") || c.NatureTraits.Contains("Arrogant") || c.NatureTraits.Contains("Proud")
+        || c.Ambition is "win_a_great_love" or "seize_the_throne" or "outshine_all_rivals");
+    /// <summary>Is this suit the business of one of the house other than the player's own character?</summary>
+    public static bool IsKinSuit(World w, Courtship c) => !c.Incoming && c.SuitorId != w.ProtagonistId;
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -118,18 +126,23 @@ public static class CourtshipSystem
     {
         if (head?.Alive != true || s == null || s.HouseId != head.HouseId) return "not of your house";
         if (w.Courtships.Any(c => c.SuitorId == s.Id && !c.Incoming)) return $"{s.Name} is already paying court to someone";
-        if (w.Courtships.Count(c => !c.Incoming) >= MaxCourtships) return "the house has as many suits in hand as it can manage";
+        if (w.Courtships.Count(c => !c.Incoming && (!c.Own || c.SuitorId == w.ProtagonistId)) >= MaxCourtships) return "you have as many matches in hand as you can manage";
         return Bar(w, s, t);
     }
 
-    public static Courtship Begin(World w, Character s, Character t, int favourBonus = 0)
+    /// <summary>Begin a suit. <paramref name="own"/>: the suitor chose for themselves (always so for the player's own character).
+    /// Otherwise the head is arranging a match for one of the house, who has a view of it (<see cref="Courtship.Wish"/>).</summary>
+    public static Courtship Begin(World w, Character s, Character t, int favourBonus = 0, bool own = false)
     {
         int n = w.Counter("courtships") + 1; w.WorldCounters["courtships"] = n;
-        bool child = s.Age < Adult || t.Age < Adult;
-        var c = new Courtship { Id = "court_" + n, SuitorId = s.Id, TargetId = t.Id, Since = w.Turn, Favour = child ? 0 : Math.Clamp(StartFavour(w, s, t) + favourBonus, 0, 100), Consent = StartConsent(w, s, t) };
+        bool child = s.Age < Adult || t.Age < Adult; own = own || s.Id == w.ProtagonistId;
+        var c = new Courtship { Id = "court_" + n, SuitorId = s.Id, TargetId = t.Id, Since = w.Turn, Favour = child ? 0 : Math.Clamp(StartFavour(w, s, t) + favourBonus, 0, 100), Consent = StartConsent(w, s, t),
+            Own = own, Wish = own ? 100 : child ? 50 : StartFavour(w, t, s) };
         w.Courtships.Add(c);
         w.Log(child ? $"{w.House(s.HouseId)?.Name} sounds out {w.House(t.HouseId)?.Name} about promising {s.Name} to {t.Name}."
-                    : $"{s.Name} begins to pay court to {t.Name} of {w.House(t.HouseId)?.Name}.");
+            : s.Id == w.ProtagonistId ? $"{s.Name} begins to pay court to {t.Name} of {w.House(t.HouseId)?.Name}."
+            : own ? $"{s.Name} has begun, of their own accord, to pay court to {t.Name} of {w.House(t.HouseId)?.Name}."
+            : $"{w.House(s.HouseId)?.Name} looks to arrange a match between {s.Name} and {t.Name} of {w.House(t.HouseId)?.Name}.");
         return c;
     }
 
@@ -141,7 +154,7 @@ public static class CourtshipSystem
         bool child = IsChildMatch(w, c);
         return act switch
         {
-            ActTime => child ? "they are a child; this is for the families" : null,
+            ActTime => child ? "they are a child; this is for the families" : IsKinSuit(w, c) ? "their courting is their own affair; you can help with the family" : null,
             ActGift => (w.TreasuryOf(c.SuitorId)?.Credits ?? 0) >= GiftCredits ? null : "the house cannot spare the credits",
             ActFamily => null,
             ActRival => c.RivalId.Length > 0 ? null : "no rival presses the suit",
@@ -225,6 +238,7 @@ public static class CourtshipSystem
         else
         {
             if (!child && c.Favour < UnwillingBelow) return (false, 0, $"{theirs.Name} will not have it, whatever the family says");
+            if (!child && !c.Own && c.Wish < WillNotBelow && Wilful(ours)) return (false, 0, $"{ours.Name} will not be married to {theirs.Name}, whatever you say");
             score = c.Consent + (child ? 0 : c.Favour >= LoveAt ? 15 : c.Favour < 25 ? -10 : 0) + Terms(w, c, dowry, childrenTo);
         }
         return score >= AcceptAt ? (true, score, "they will agree") : (false, score, $"they will refuse: the match stands at {score} with them and needs {AcceptAt}");
@@ -247,8 +261,16 @@ public static class CourtshipSystem
             w.Log($"{s.Name} of {w.House(s.HouseId)?.Name} is promised to {t.Name} of {w.House(t.HouseId)?.Name}. They will wed when both are of age.");
             return true;
         }
-        string kind = c.Incoming ? (c.Favour >= LoveAt ? Love : Arranged) : c.Favour >= LoveAt ? Love : Advantage;
-        Wed(w, s, t, kind, dowry, childrenTo, favour: c.Favour);
+        string kind = c.Incoming ? (c.Favour >= LoveAt ? Love : Arranged) : !c.Own && c.Wish < 40 ? Arranged : c.Favour >= LoveAt ? Love : Advantage;
+        // what the house's own member thinks of having it settled for them
+        var head = w.Protagonist; var member = c.Incoming ? t : s; int wish = c.Incoming ? c.Favour : c.Wish; bool theirOwn = !c.Incoming && c.Own;
+        if (head != null && member.Id != head.Id)
+        {
+            if (theirOwn) Sour(w, member, head, 10);
+            else if (wish < UnwillingWish) { Sour(w, member, head, member.NatureTraits.Contains("Loyal") ? -8 : -20); w.Log($"{member.Name} did not want the match, and will remember who made it."); }
+            else if (wish >= LoveAt) Sour(w, member, head, 6);
+        }
+        Wed(w, s, t, kind, dowry, childrenTo, favour: c.Incoming ? c.Favour : Math.Min(c.Favour, c.Own ? 100 : c.Wish + 20));
         return true;
     }
 
@@ -288,8 +310,25 @@ public static class CourtshipSystem
             w.Log($"{w.House(breaker.HouseId)?.Name} broke the promise between {s.Name} and {t.Name}.");
             return;
         }
+        if (c.Own && s.Id != w.ProtagonistId && w.Protagonist is { } head)
+        {
+            // the head forbids what one of the house chose for themselves
+            Sour(w, s, head, s.NatureTraits.Contains("Loyal") ? -8 : -20); Mark(w, ForbiddenFlag);
+            if (Wilful(s) && c.Favour >= ElopeAt && w.FamilyAutonomy >= 1) { c.Forbidden = true; w.Courtships.Add(c); w.Log($"{head.Name} forbade {s.Name}'s match with {t.Name}. {s.Name} said nothing, which was not the same as agreeing."); return; }
+            w.Log($"{head.Name} forbade {s.Name}'s match with {t.Name}. {s.Name} gave it up, and did not thank {head.Name} for it.");
+            return;
+        }
         if (c.Favour >= 50) Sour(w, t, s, -10);
-        w.Log($"{s.Name} let the suit for {t.Name} drop.");
+        w.Log(c.Own ? $"{s.Name} let the suit for {t.Name} drop." : $"{w.House(s.HouseId)?.Name} let the match between {s.Name} and {t.Name} drop.");
+    }
+
+    /// <summary>One of the house marries without anyone's leave: theirs, or the head's.</summary>
+    private static void KinElopes(World w, Courtship c)
+    {
+        var s = w.Char(c.SuitorId)!; var t = w.Char(c.TargetId)!; var ours = w.House(s.HouseId)!;
+        Wed(w, s, t, Love, None, "", favour: c.Favour, log: false);
+        Sour(w, Head(w, t.HouseId), Head(w, s.HouseId), -25); ours.Legitimacy -= 2; Mark(w, KinElopedFlag); s.Flags.Add(ElopedChar);
+        w.Log($"{s.Name} of {ours.Name} and {t.Name} of {w.House(t.HouseId)?.Name} have married without anyone's leave.");
     }
 
     // ---------------- weddings ----------------
@@ -477,7 +516,7 @@ public static class CourtshipSystem
     {
         foreach (var f in TickFlags) w.WorldFlags.Remove(f);
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
-        foreach (var ch in w.Characters.Values) { ch.Flags.Remove(CourtedChar); ch.Flags.Remove(RivalChar); }
+        foreach (var ch in w.Characters.Values) { ch.Flags.Remove(CourtedChar); ch.Flags.Remove(RivalChar); if (!w.HasFlag(KinElopedFlag)) ch.Flags.Remove(ElopedChar); }
         Sync(w, announce: true);
         var p = w.Protagonist; string? mine = p?.HouseId;
 
@@ -508,6 +547,28 @@ public static class CourtshipSystem
             }
             bool child = IsChildMatch(w, c);
             if (!child && c.Favour == 0 && w.Turn > c.Since) c.Favour = StartFavour(w, s, t);   // promised as children, never agreed, now grown
+            bool kin = s.Id != p?.Id;
+            if (kin && !child)
+            {
+                // one of the house sees to their own courting: nobody has to do it for them
+                if (w.Turn > c.Since && (c.Own || c.Wish >= 40)) c.Favour = Math.Min(100, c.Favour + 4 + s.Skill("charisma") * 2);
+                if (c.Own && p != null)
+                {
+                    if (c.Forbidden) { KinElopes(w, c); continue; }
+                    if (c.AskingSince < 0 && c.Favour >= LoveAt)
+                    {
+                        c.AskingSince = w.Turn; Mark(w, KinAsksFlag);
+                        w.Log($"{s.Name} asks {p.Name}'s leave to marry {t.Name} of {w.House(t.HouseId)?.Name}.");
+                    }
+                    else if (c.AskingSince >= 0 && w.Turn - c.AskingSince >= BlessingWaitYears)
+                    {
+                        if (Wilful(s) && c.Favour >= ElopeAt && w.FamilyAutonomy >= 1) { KinElopes(w, c); continue; }
+                        w.Courtships.Remove(c); Sour(w, s, p, -10);
+                        w.Log($"{s.Name} waited {BlessingWaitYears} years for an answer about {t.Name} and has given it up.");
+                        continue;
+                    }
+                }
+            }
 
             if (c.RivalId.Length > 0)
             {
@@ -537,10 +598,10 @@ public static class CourtshipSystem
                 if (rival != null) AddRival(w, c, rival);
             }
 
-            if (c.ActedTurn < w.Turn && w.Turn > c.Since)
+            if (c.ActedTurn < w.Turn && w.Turn > c.Since && !(kin && c.Own))   // a suit of one's own choosing does not wait on the head
             {
-                if (!child) c.Favour = Math.Max(0, c.Favour - 3);
-                c.Consent = Math.Max(0, c.Consent - 1);
+                if (!child && !kin) c.Favour = Math.Max(0, c.Favour - 3);
+                if (!kin) c.Consent = Math.Max(0, c.Consent - 1);
                 if (w.Turn - Math.Max(c.ActedTurn, c.Since) >= LapseYears)
                 {
                     w.Courtships.Remove(c); w.Log($"Nothing has been done about {s.Name}'s suit for {t.Name} in years. It is over.");
@@ -548,6 +609,20 @@ public static class CourtshipSystem
                 }
             }
         }
+
+        // The house's own people fall for whom they fall for (GDD §18 "people, not puppets"). Nobody assigns them a courtship.
+        if (p != null && mine != null && w.FamilyAutonomy > 0)
+            foreach (var k in w.LivingCharacters().Where(k => k.HouseId == mine && k.Id != p.Id && k.Age >= KinAdult && k.Sex != "" && DynastySystem.Spouse(w, k) == null
+                         && !k.Flags.Contains(DynastySystem.HiddenFlag) && !Promised(w, k.Id) && !w.Courtships.Any(c => c.SuitorId == k.Id || c.TargetId == k.Id))
+                         .OrderBy(k => k.Id, StringComparer.Ordinal).ToList())
+            {
+                int chance = (int)((k.Ambition == "win_a_great_love" ? 45 : 22) * w.FamilyAutonomy);
+                if (Hash(k.Id + ":heart:" + w.Turn) % 100 >= chance) continue;
+                var pick = w.LivingCharacters().Where(t => t.HouseId != mine && t.HouseId != PirateSystem.HouseId && t.Age >= Adult && Math.Abs(t.Age - k.Age) <= 15 && Bar(w, k, t) == null)
+                    .Select(t => (t, liking: StartFavour(w, t, k), liked: StartFavour(w, k, t))).Where(x => x.liking >= 40 && x.liked >= 30)
+                    .OrderByDescending(x => x.liking + x.liked).ThenBy(x => x.t.Id, StringComparer.Ordinal).Select(x => x.t).FirstOrDefault();
+                if (pick != null) Begin(w, k, pick, own: true);
+            }
 
         foreach (var m in w.Marriages.OrderBy(m => m.A, StringComparer.Ordinal).ToList())
         {
@@ -581,9 +656,9 @@ public static class CourtshipSystem
         // what content may read
         if (p == null) return;
         var own = w.Courtships.Where(c => !c.Incoming && !c.Betrothed).ToList();
-        if (own.Count > 0) w.WorldFlags.Add(CourtingFlag);
+        if (own.Any(c => c.SuitorId == p.Id)) w.WorldFlags.Add(CourtingFlag);
         foreach (var c in own.Where(c => c.SuitorId == p.Id)) { w.Char(c.TargetId)?.Flags.Add(CourtedChar); if (c.RivalId.Length > 0) w.Char(c.RivalId)?.Flags.Add(RivalChar); }
-        if (own.Any(c => c.RivalId.Length > 0)) w.WorldFlags.Add(RivalFlag);
+        if (own.Any(c => c.SuitorId == p.Id && c.RivalId.Length > 0)) w.WorldFlags.Add(RivalFlag);
         if (w.Courtships.Any(c => c.Incoming)) w.WorldFlags.Add(SuitFlag);
         if (w.Courtships.Any(c => c.Betrothed)) w.WorldFlags.Add(BetrothedFlag);
         var pm = w.MarriageOf(p.Id);

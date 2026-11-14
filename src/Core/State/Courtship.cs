@@ -23,6 +23,15 @@ public sealed class Courtship
     public string RivalId { get; set; } = "";
     /// <summary>0..100: how far the rival's suit has got. At <c>RivalWinsAt</c>, and ahead of yours, the rival is accepted.</summary>
     public int RivalStanding { get; set; }
+    /// <summary>The suitor's own doing: the protagonist's suit, or one of the house who chose for themselves. A suit that is not
+    /// their own was arranged for them by the head.</summary>
+    public bool Own { get; set; } = true;
+    /// <summary>0..100: what the house's own member thinks of a match the head arranged for them. 100 where it is their own.</summary>
+    public int Wish { get; set; } = 100;
+    /// <summary>The turn one of the house asked the head's leave to marry, or -1.</summary>
+    public int AskingSince { get; set; } = -1;
+    /// <summary>The head forbade it, and they have not given it up.</summary>
+    public bool Forbidden { get; set; }
     /// <summary>The turn the rival appeared. Their suit does not advance in that same year.</summary>
     public int RivalSince { get; set; } = -1;
     /// <summary>The turn something was last done for this courtship. One act a year.</summary>

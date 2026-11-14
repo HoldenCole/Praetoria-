@@ -1,5 +1,5 @@
 {
-  "//": "COURTSHIP AND MARRIAGE (docs/MARRIAGE.md). Reads the flags CourtshipSystem raises each year: courting, courtship_rival, marriage_cold, marriage_warm, married; the deeds just_wed, jilted, eloped, widowed_now; and the character flags courted and rival_suitor. The courtship and marriage effects move a suit or a marriage.",
+  "//": "COURTSHIP AND MARRIAGE (docs/MARRIAGE.md). Reads the flags CourtshipSystem raises each year: courting, courtship_rival, marriage_cold, marriage_warm, married; the deeds just_wed, jilted, eloped, widowed_now; and the character flags courted and rival_suitor. The courtship and marriage effects move a suit or a marriage. kin_eloped and the character flag eloped_kin are raised when one of the house marries without anyone's leave.",
   "events": [
     {
       "id": "an_introduction",
@@ -1208,6 +1208,94 @@
             {
               "type": "log",
               "text": "{self.name} grieved, and within the season began to think about who would carry the name. A house cannot wait on grief."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "married_without_your_leave",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "eloped_kin",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_eloped",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "welcome_them_home",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had {kin.name} and the new spouse to dinner the week they came back, and let the house see it. Some thought it weak. {kin.name} did not."
+            }
+          ]
+        },
+        {
+          "id": "receive_them_coldly",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} received {kin.name} standing, said what a head of a house is expected to say, and did not ask them to stay. The house's dignity was kept. Something else was not."
+            }
+          ]
+        },
+        {
+          "id": "it_is_their_life",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that {kin.name} was of age and it was {kin.name}'s life, and went back to work."
             }
           ]
         }

@@ -77,8 +77,9 @@
     if (m.GreatCrisis is { Stage: not null, Resolved: false } gc) alerts.Add(("info", $"{gc.Name}: {gc.Stage}", "houses"));
     if (!w.Characters.Values.Any(c => c.Alive && c.HouseId == house.Id && c.Id != w.ProtagonistId)) alerts.Add(("warn", "No heir — the line hangs by a thread", "dynasty"));
     foreach (var su in w.Courtships.Where(x => x.Incoming)) alerts.Add(("info", $"{w.Char(su.SuitorId)?.Name} asks for {w.Char(su.TargetId)?.Name}'s hand: answer it", "dynasty"));
-    foreach (var su in w.Courtships.Where(x => !x.Incoming && !x.Betrothed && x.RivalId.Length > 0 && x.RivalStanding > Praetoria.Core.Systems.CourtshipSystem.Standing(w, x))) alerts.Add(("warn", $"A rival is ahead in the suit for {w.Char(su.TargetId)?.Name}", "dynasty"));
-    if (w.Courtships.Any(x => !x.Incoming && !x.Betrothed && x.ActedTurn < w.Turn)) alerts.Add(("info", "A suit waits on this year's attention", "dynasty"));
+    foreach (var su in w.Courtships.Where(x => !x.Incoming && !x.Betrothed && x.SuitorId == w.ProtagonistId && x.RivalId.Length > 0 && x.RivalStanding > Praetoria.Core.Systems.CourtshipSystem.Standing(w, x))) alerts.Add(("warn", $"A rival is ahead in the suit for {w.Char(su.TargetId)?.Name}", "dynasty"));
+    if (w.Courtships.Any(x => !x.Incoming && !x.Betrothed && x.SuitorId == w.ProtagonistId && x.ActedTurn < w.Turn)) alerts.Add(("info", "Your suit waits on this year's attention", "dynasty"));
+    foreach (var su in w.Courtships.Where(x => !x.Incoming && x.Own && x.SuitorId != w.ProtagonistId && x.AskingSince >= 0 && !x.Forbidden)) alerts.Add(("info", $"{w.Char(su.SuitorId)?.Name} asks your leave to marry {w.Char(su.TargetId)?.Name}", "dynasty"));
     if (w.MarriageOf(w.ProtagonistId) is { Estranged: true }) alerts.Add(("warn", "You and your spouse live apart", "dynasty"));
     if (m.Crises != null) foreach (var c in m.Crises.Active) alerts.Add(("warn", $"Crisis: {c.Name} (severity {c.Severity})", "house"));
 }

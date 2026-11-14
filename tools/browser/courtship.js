@@ -1,7 +1,8 @@
 // Drives courtship and marriage on the Dynasty screen: begins a suit, presses it for some years, proposes when the family would
 // agree, and reports what the panel shows at each step.
 //
-//   node courtship.js ["Start title"] [years]
+//   node courtship.js ["Start title"] [years]          press a suit of your own
+//   node courtship.js ["Start title"] [years] watch    do nothing, and report what your kin do about their own matches
 //
 // Needs the build served locally (see README.md here). Screenshots go to PRAETORIA_SHOTS (default ./shots).
 const { chromium } = require('playwright');
@@ -22,6 +23,17 @@ require('fs').mkdirSync(shots, { recursive: true });
   const press = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.courtship button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return !!b; }, text);
   const panel = () => page.evaluate(() => (document.querySelector('.panel.courtship') || {}).innerText || 'NO PANEL');
   const gauges = () => page.evaluate(() => [...document.querySelectorAll('.panel.courtship .suit .gauge')].map(g => g.innerText.replace(/\s+/g, ' ').trim()).join(' | '));
+  if (process.argv[4] === 'watch') {
+    let shot = false;
+    for (let y = 0; y < years; y++) {
+      await closeWindows(); await rail('Dynasty'); await page.waitForTimeout(500);
+      const lines = await page.evaluate(() => [...document.querySelectorAll('.panel.courtship .suit')].filter(e => !e.classList.contains('begin')).map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 150)));
+      console.log('year ' + y + ': ' + (lines.length ? lines.join(' || ') : 'nothing in hand'));
+      if (!shot && lines.some(l => /own accord|asks your leave/.test(l))) { shot = /asks your leave/.test(lines.join(' ')); await page.screenshot({ path: shots + '/courtship-kin.png' }); }
+      await rail('House'); await page.waitForTimeout(300); await endTurn();
+    }
+    console.log('errors: ' + errors.length); errors.slice(0, 5).forEach(e => console.log('   ' + e)); await browser.close(); return;
+  }
   await closeWindows(); await rail('Dynasty'); await page.waitForTimeout(700);
   let text = await panel(); console.log('panel: ' + (/NaN|undefined|Exception|@\(/.test(text) ? 'SUSPICIOUS TEXT' : 'ok') + ' · ' + text.split('\n')[0]);
   console.log('prospects listed: ' + await page.evaluate(() => document.querySelectorAll('table.prospects tbody tr').length));

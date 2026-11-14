@@ -88,7 +88,8 @@ public sealed class SettleSuitCommand : ICommand
     }
 }
 
-/// <summary>Give a marriage of the house a season's attention (1 influence, once a year), or end it.</summary>
+/// <summary>Give your own marriage a season's attention (1 influence, once a year), or end it. The marriages of the rest of the
+/// house are theirs.</summary>
 public sealed class MarriageCommand : ICommand
 {
     public const string Tend = "tend", Divorce = "divorce";
@@ -101,8 +102,8 @@ public sealed class MarriageCommand : ICommand
     {
         var w = ctx.World; var head = w.Char(ActorId); var who = w.Char(_whoId);
         if (head?.Alive != true || who?.Alive != true || who.HouseId != head.HouseId) return "not of your house";
+        if (who.Id != head.Id) return "their marriage is their own";
         if (_what == Divorce) return CourtshipSystem.DivorceRefusal(w, head, who);
-        if (who.Id != head.Id) return "only your own";
         return CourtshipSystem.TendRefusal(w, who) ?? (ctx.PoolsOf(ActorId).CanAfford(TendCost) ? null : "no influence");
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;

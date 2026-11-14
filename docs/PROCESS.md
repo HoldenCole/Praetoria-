@@ -152,3 +152,21 @@ Godot layer's compile check, and the web client's publish. The last two are **no
 and testing the solution alone does not prove a push is green. (2026-11-13: a signature changed in Core broke one
 line of the Godot layer, and every CI run failed for two days while all the tests passed locally.)
 
+## One person, not a house
+
+Set by the owner on 2026-11-14, and it governs every system that touches the family.
+
+**You play one person in a dynasty. Everyone else in it lives their own life.**
+
+- Kin act without being told. They follow their careers, court whom they like, marry, quarrel and take up work. Nothing a
+  kinsman does may wait on the player assigning it.
+- What the head (or a powerful member) has is influence over those lives, not control of them: approve or forbid, help
+  someone to a post, speak for them, pay for something, arrange a future for a child.
+- A kinsman has a view of what is done for them, and it has consequences. They may be grateful, resent it, or go their
+  own way regardless.
+- No screen may become a roster of relatives each needing an order every year. If a feature needs one, the feature is
+  wrong: make the relative do it themselves and let the player step in.
+
+The test for any new feature: **if the player ignores this person for ten years, do they still have a life?** They must.
+A second test: **can the player still help or hinder them when it matters?** They must be able to.
+

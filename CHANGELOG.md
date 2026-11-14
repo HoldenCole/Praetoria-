@@ -12,6 +12,12 @@
   `tools/ci.sh` now runs CI's exact steps locally.
 
 ### Changed
+- **You play one person, not a house** (docs/PROCESS.md). Kin now court for themselves: they choose whom, the suit
+  advances without the head, and when it is serious they ask your blessing. You can bless it, forbid it (the loyal obey;
+  the wilful may marry anyway), or help with the family. A match you arrange for a kinsman shows their own wish first,
+  and marrying them against it is resented or refused. Their marriages are theirs: you tend and end only your own.
+- A fleet or a world of the house left without an admiral or governor for a year is taken up by whoever of the family is
+  fit and willing. The head can still appoint anyone.
 - Another house can no longer marry one of your kin without asking: its proposal becomes a suit the head answers.
 - A steward's proposal to someone you are courting becomes a rival suit, not a wedding.
 - **Faster turns.** A house's laws are summed into one table per ledger instead of rescanning every region on each

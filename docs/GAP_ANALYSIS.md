@@ -907,3 +907,29 @@ never spoke to the family (28) lost to a rival in year six with favour at 100.
 are credits only. The affair and the elopement's letter were not seen to fire in the soak. The numbers (thresholds,
 the rival's pace, warmth's effect on births) are first guesses, checked only for not breaking a line.
 
+## 32. One person, not a house — 2026-11-14
+
+Owner: "You are playing as one singular person within a dynasty and then each of those people do their own things...
+What I don't want is a game where you have to assign all the characters to tasks or else they will not do anything."
+The courtship built the day before broke this: the head pressed every relative's suit year by year. The rule is now
+written into docs/PROCESS.md and the family systems were checked against it.
+
+| What | Before | Now |
+|---|---|---|
+| A relative's courtship | The head began it and pressed it every year | Theirs. They choose, it advances by itself, they ask a blessing; the head blesses, forbids or helps |
+| A match the head arranges | The relative had no view | They have a wish, shown first; against it they resent or refuse |
+| A relative's marriage | The head could end it | Theirs |
+| Another house asking for a relative | (built 11-13) the head answers | The same, and accepting against the relative's wish is resented |
+| An empty admiralty or governorship | Waited for ever to be assigned | A fit and willing relative takes it up after a year |
+| Careers | Advance by themselves | The same |
+| Ambitions | Data; only defiance comes of them | **Open.** Relatives do not yet act on their ambitions. On the roadmap |
+| Children's upbringing, study, personal purses | Planned as things the head sets | The plans now say they run by themselves and the head may step in |
+
+**Measured.** 531 tests, six of them for this. The soak passes. In the browser, on *The New Man* with nothing done about the family for ten years: the head's sister began a suit of
+her own in the fourth year, asked for a blessing in the fifth, waited three years without an answer and gave it up.
+Two other houses asked for her hand in that time.
+
+**Still wrong against the rule.** Relatives do not pursue their ambitions, do not divorce or stray by themselves, and
+have no purse. The house's building and ventures are all the head's doing; whether a steward of the family should run
+the routine of that is a question for the owner.
+

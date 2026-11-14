@@ -121,6 +121,16 @@
         "bury_it_in_work": "Bury it in work.",
         "think_of_the_house": "Think of the house."
       }
+    },
+    {
+      "id": "married_without_your_leave",
+      "title": "Married Without Your Leave",
+      "body": "{kin.name} is married. {self.name} hears it from a clerk, who had it from the registry, where it was entered three days ago. Nobody of either family was asked. {kin.name} knew what the answer would be and decided not to need it.",
+      "choices": {
+        "welcome_them_home": "Welcome them home.",
+        "receive_them_coldly": "Receive them coldly.",
+        "it_is_their_life": "It is their life."
+      }
     }
   ]
 }
