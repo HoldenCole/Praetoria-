@@ -1,5 +1,5 @@
 {
-  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected.",
+  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected. The work of office: office_exposed, kin_office_exposed and kin_blames_the_head (deeds); case_won and case_lost (each year); and the character flags removed_from_office and blames_the_head.",
   "events": [
     {
       "id": "the_canvass",
@@ -380,6 +380,430 @@
             {
               "type": "log",
               "text": "{self.name} put the season's money into the water and the roads. The city grumbled at having no show. The engineers have not stopped talking about it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_one_you_did_not_speak_for",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "blames_the_head",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_blames_the_head",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_you_will_next_time",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} it would not happen twice. {kin.name} said they would hold {self.name} to that, and went away somewhat less angry than they had come."
+            }
+          ]
+        },
+        {
+          "id": "tell_them_an_office_is_earned",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} that a magistrate who needs carrying is no magistrate. It may be true. {kin.name} did not thank {self.name} for it."
+            }
+          ]
+        },
+        {
+          "id": "make_it_up_to_them",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid what the canvass had cost {kin.name}, and a little over. It did not make {kin.name} a magistrate. It did make the quarrel shorter."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "your_name_in_the_scandal",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "office_exposed",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_nothing_and_wait",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing. It is the oldest answer, and people grow tired of a scandal nobody feeds."
+            }
+          ]
+        },
+        {
+          "id": "pay_it_back_in_the_open",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the money back before witnesses, and more than was owed. Some called it shame and some called it honesty, and the house was thought a little better of than the day before."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 12
+            }
+          ]
+        },
+        {
+          "id": "say_they_all_do_it",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "delta": -2,
+              "key": "public_trust"
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said aloud what everyone says in private: that there is not a magistrate in the Reach who has not done the same. It won {self.name} some friends among those who have. It did the magistrates no good."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "one_of_yours_is_removed",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "removed_from_office",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_office_exposed",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_beside_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} walked into the Senate at {kin.name}'s side the day after. It cost the house something, and {kin.name} will not forget who was there."
+            }
+          ]
+        },
+        {
+          "id": "say_it_was_theirs_alone",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said, in the Senate, that the house had no part in it and would not defend it. The benches approved. {kin.name} heard of it from somebody else."
+            }
+          ]
+        },
+        {
+          "id": "pay_it_back_for_them",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the money returned, without a word said in public. {kin.name} was not asked whether they wished it."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_court_finds_for_you",
+      "tier": "situation",
+      "weight": 25,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "case_won",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_it_gracefully",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said only that the law had been read as it was written, and left it there."
+            }
+          ]
+        },
+        {
+          "id": "let_them_hear_about_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} made sure the ruling was talked of at every table that mattered. It was pleasant. It will not have been forgotten by the house that lost."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_court_finds_against_you",
+      "tier": "situation",
+      "weight": 25,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "case_lost",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_and_say_nothing",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid what the court had set and did not speak of it. A house that quarrels with every ruling is believed in none of them."
+            }
+          ]
+        },
+        {
+          "id": "say_the_bench_was_bought",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "delta": -1,
+              "key": "public_trust"
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood in the Senate and said what the ruling had cost and who had paid for it. Nothing was proved. A good many people believed it."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "remember_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the praetor's name written down. A term of office is five years. A house's memory is longer."
             }
           ]
         }

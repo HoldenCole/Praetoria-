@@ -225,12 +225,26 @@ What is decided (to come home, to cross, to declare) is decided on the Military 
 
 The older routes to a throne (Seize and Proclaim) are the player's alone; no other house uses them.
 
+### Since then: parties, the sword, and what a victory teaches
+
+- **The parties go to war as parties.** Each house still weighs the general for itself. Then a bench whose leader has
+  declared brings its members with it, all but one with a strong reason of its own (a score of 4 or more for the
+  general, or −3 or less against). The general's own bench is his. The forecast on the panel uses the same rule, so
+  what it shows is what happens.
+- **The Senate's sword commands the Reach's own fleets.** When the Senate gives its war to a house, every hull of the
+  state that is not the marching general's own devoted command goes under that house's colours for as long as the war
+  lasts, and goes home when it ends. If you are the sword, they are yours to fight with.
+- **Old ties** (docs/LIFE.md) move a house two points toward or away from the side the player is on.
+- **A victory teaches only up to the ceiling** (docs/EDUCATION.md). Measured again with all of this in
+  (`praetoria caesar --scenario all --seeds 10`, 50 Republic runs): the Republic stood in all 50; another house's
+  general was of the first rank in 2 runs, loved in 42, passed all three gates in 1, and none marched. Before, skill
+  rose without limit and the first rank was reached in 15 runs of 60. A rival is rarer than it was. That is inside the
+  owner's rule (once in ten games or less) and may be too rare: docs/GAPS.md C9.
+
 ## Not in this piece
 
 - A general does not defect with his crews to another house, and crews do not follow a dead commander's heir.
-- The parties do not act as parties in the civil war; each house declares for itself.
 - No proscription lists, no amnesty, no negotiated end.
-- The Senate's sword gets no command of the state's fleets beyond what its offices already give.
 - A relative who is the general cannot cross against the head's wishes.
 - The player cannot yet *make* the times: nothing lets a house deliberately trouble the Republic, or mend it to stop a
   rival.

@@ -196,12 +196,12 @@ public sealed class AmbitionCommand : ICommand
 /// <see cref="Physicians"/>: 6 credits from your own purse. <see cref="Retire"/>: lay the house down in life to your heir.</summary>
 public sealed class LifeCommand : ICommand
 {
-    public const string Rest = "rest", Physicians = "physicians", Retire = "retire";
+    public const string Rest = "rest", Physicians = "physicians", Retire = "retire", Send = "send";
     private static readonly Dictionary<string, int> RestCost = new() { [Pool.Influence] = LifeSystem.RestInfluence };
-    private readonly string _what;
-    public LifeCommand(string actorId, string what) { ActorId = actorId; _what = what; }
+    private readonly string _what, _personId;
+    public LifeCommand(string actorId, string what, string personId = "") { ActorId = actorId; _what = what; _personId = personId; }
     public string ActorId { get; }
-    public string Describe() => _what;
+    public string Describe() => $"{_what} {_personId}".Trim();
     public string? Refusal(CommandContext ctx)
     {
         var w = ctx.World; var me = w.Char(ActorId);
@@ -210,6 +210,7 @@ public sealed class LifeCommand : ICommand
             Rest => LifeSystem.RestRefusal(w, me) ?? (ctx.PoolsOf(ActorId).CanAfford(RestCost) ? null : "no influence"),
             Physicians => LifeSystem.PhysicianRefusal(w, me),
             Retire => LifeSystem.RetireRefusal(w, me),
+            Send => LifeSystem.SendRefusal(w, me, w.Char(_personId)),
             _ => "no such thing"
         };
     }
@@ -219,6 +220,7 @@ public sealed class LifeCommand : ICommand
         var w = ctx.World; var me = w.Char(ActorId)!;
         if (_what == Rest) { ctx.PoolsOf(ActorId).Spend(RestCost); LifeSystem.Rest(w, me); }
         else if (_what == Physicians) LifeSystem.Physicians(w, me);
+        else if (_what == Send) LifeSystem.Send(w, me, w.Char(_personId)!);
         else LifeSystem.Retire(w, me);
     }
 }
@@ -228,7 +230,7 @@ public sealed class LifeCommand : ICommand
 /// standing (2 influence, twice at most). <see cref="Games"/>: as aedile, give games out of your own purse.</summary>
 public sealed class LadderCommand : ICommand
 {
-    public const string Stand = "stand", Withdraw = "withdraw", Back = "back", Games = "games", Dissuade = "dissuade";
+    public const string Stand = "stand", Withdraw = "withdraw", Back = "back", Games = "games", Dissuade = "dissuade", Decide = "decide";
     private readonly string _what, _personId, _rungId; private readonly Data.OfficeCatalog _offices;
     public LadderCommand(string actorId, string what, string personId, string rungId, Data.OfficeCatalog offices) { ActorId = actorId; _what = what; _personId = personId; _rungId = rungId; _offices = offices; }
     public string ActorId { get; }
@@ -244,6 +246,7 @@ public sealed class LadderCommand : ICommand
             Back => LadderSystem.BackRefusal(w, head, who),
             Dissuade => LadderSystem.DissuadeRefusal(w, _offices, head, who),
             Games => who?.Id == ActorId ? LadderSystem.GamesRefusal(w, _offices, who) : "their games are their own to give",
+            Decide => who?.Id == ActorId ? LadderSystem.DecideRefusal(w, who, _rungId) : "the business of their office is their own",
             _ => "no such thing"
         };
         return no ?? (ctx.PoolsOf(ActorId).CanAfford(Cost(_what)) ? null : "no influence");
@@ -259,6 +262,7 @@ public sealed class LadderCommand : ICommand
             case Back: LadderSystem.Back(w, head, who); break;
             case Dissuade: LadderSystem.Dissuade(w, _offices, head, who); break;
             case Games: LadderSystem.Games(w, _offices, who); break;
+            case Decide: LadderSystem.Decide(w, _offices, who, _rungId); break;   // the choice travels in the rung slot
         }
     }
 }

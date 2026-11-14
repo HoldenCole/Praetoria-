@@ -65,6 +65,16 @@ public static class LifeSystem
     }
     public static string? PhysicianRefusal(World w, Character? who) =>
         who?.Alive != true ? "no such person" : who.Purse < PhysicianCredits ? "your purse does not hold it" : who.Health >= Cap(who.Age) && !who.Flags.Contains(IllChar) ? "there is nothing for them to treat" : null;
+    /// <summary>The head sends their own physicians to someone of the house, and pays for it out of their own purse.</summary>
+    public static string? SendRefusal(World w, Character? head, Character? who) =>
+        head?.Alive != true || who?.Alive != true ? "no such person" : who.Id == head.Id ? "see your own physicians" : who.HouseId != head.HouseId ? "not of your house"
+        : head.Purse < PhysicianCredits ? "your purse does not hold it" : who.Health >= Cap(who.Age) && !who.Flags.Contains(IllChar) ? "there is nothing for them to treat" : null;
+    public static void Send(World w, Character head, Character who)
+    {
+        head.Purse -= PhysicianCredits; who.Health = Math.Min(Cap(who.Age), who.Health + 6); bool was = who.Flags.Remove(IllChar);
+        var r = w.Relationship(who.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition + 8, -100, 100);
+        w.Log(was ? $"{head.Name} sends their own physicians to {who.Name}, who is well again and does not forget it." : $"{head.Name} sends their own physicians to {who.Name}, who is the better for it.");
+    }
     public static void Physicians(World w, Character who)
     {
         who.Purse -= PhysicianCredits; who.Health = Math.Min(Cap(who.Age), who.Health + 6);

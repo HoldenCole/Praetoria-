@@ -93,6 +93,17 @@ public sealed class SenateSystem
         return lean;
     }
 
+    /// <summary>Old ties (docs/LIFE.md): a head who has been the player's friend for years is for what the player's house moves and
+    /// stands by it when something is aimed at it; an old enemy the other way. Regard already moves a vote: this is what years add.</summary>
+    public static int OldTie(World w, MotionDef def, Motion m, Character? head, string houseId)
+    {
+        var mine = w.Protagonist?.HouseId; if (head == null || mine == null || mine == houseId) return 0;
+        int tie = head.Flags.Contains(LifeSystem.OldFriendChar) ? 1 : head.Flags.Contains(LifeSystem.OldEnemyChar) ? -1 : 0; if (tie == 0) return 0;
+        int lean = m.ProposerHouseId == mine ? tie : 0;
+        if (def.Target == "house" && m.TargetId == mine) lean += def.Interest is "censure" or "embargo" or "breakup" or "recall" or "reconquest" ? -2 * tie : tie;
+        return lean;
+    }
+
     /// <summary>A house's lean by its own interests alone, before its bench is counted.</summary>
     public int RawLean(World w, Motion m, string houseId)
     {
@@ -104,6 +115,7 @@ public sealed class SenateSystem
         int toProposer = Disp(head, proposerHead), toTarget = Disp(head, targetHead);
         var proposerHouseForSway = w.House(m.ProposerHouseId);
         int lean = toProposer >= 20 ? 1 : toProposer <= -20 ? -1 : 0;
+        lean += OldTie(w, def, m, head, houseId);
         // sway (docs/REPUBLIC.md stage 3): a house leans with whoever it depends on — its patron, its creditor, the house whose fuel
         // its fleets burn — for what that house wants, and against what is aimed at it
         if (proposerHouseForSway != null && proposerHouseForSway.Id != houseId) lean += Math.Min(2, OrderSystem.Sway(w, h, proposerHouseForSway).lean);

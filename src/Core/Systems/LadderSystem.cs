@@ -23,7 +23,8 @@ public static class LadderSystem
     // each year
     public const string StandingFlag = "standing_for_office", MagistrateFlag = "is_magistrate", AedileFlag = "is_aedile";
     public const string ElectedChar = "newly_elected", StandingChar = "standing_for_office";
-    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag };
+    public const string BlamedFlag = "kin_blames_the_head", BlamesChar = "blames_the_head"; public const int BlameRegard = 10;
+    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -74,6 +75,7 @@ public static class LadderSystem
         if (c?.Alive != true || rung == null) return "no such office";
         if (!Active(w, offices)) return "there are no elections under a throne";
         if (!PolitySystem.InReach(w, c.HouseId)) return "the house has left the Reach";
+        if (w.Counter(BarredKey(c.Id)) > w.Turn) return $"they were removed from office for taking money, and may not stand until year {w.Counter(BarredKey(c.Id))}";
         if (c.Age < rung.MinAge) return $"not before {rung.MinAge}";
         if (c.CareerRank < rung.MinRank || c.CareerTrack.Length == 0) return "they must first have a place in a service";
         if (rung.Requires.Length > 0 && !c.Cursus.Contains(rung.Requires)) return $"they must first have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant() ?? rung.Requires}";
@@ -146,9 +148,18 @@ public static class LadderSystem
                 LifeSystem.Note(w, c, "office", $"Elected {rung.Name.ToLowerInvariant()}.");
                 if (c.HouseId == mine) { c.Flags.Add(ElectedChar); if (c.Id == p!.Id) Mark(w, ElectedFlag); else Mark(w, KinElectedFlag); }
             }
+            foreach (var c in winners.Where(c => c.HouseId == mine && c.Id != p!.Id && (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id)?.Backing ?? 0) > 0))
+            { var owed = w.Relationship(c.Id, p!.Id); owed.Disposition = Math.Clamp(owed.Disposition + 6, -100, 100); }   // one who was spoken for and won knows what they owe
             foreach (var c in candidates.Where(c => c.HouseId == mine && !winners.Contains(c)))
             {
                 if (c.Id == p!.Id) { Mark(w, LostFlag); c.Stress += 5; }
+                else if ((w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id)?.Backing ?? 0) == 0 && w.Candidacies.Any(cd => cd.CharacterId == c.Id))
+                {
+                    // they stood, the head said nothing for them, and they lost: it is the head they blame
+                    var r = w.Relationship(c.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition - BlameRegard, -100, 100); c.Stress += 5;
+                    c.Flags.Add(BlamesChar); Mark(w, BlamedFlag);
+                    w.Log($"{c.Name} stood alone and lost, and says so: {p.Name} did not speak one word for them.");
+                }
                 w.Log($"{c.Name} stood for {rung.Name.ToLowerInvariant()} and was not chosen ({tally[c.Id]} against {(winners.Count > 0 ? tally[winners[^1].Id] : 0)}).");
             }
             if (winners.Count > 0) lines.Add($"{rung.Name.ToLowerInvariant()}s {string.Join(", ", winners.Select(c => $"{c.Name} ({tally[c.Id]})"))}");
@@ -231,14 +242,207 @@ public static class LadderSystem
         return climbed.Count == 0 ? 0 : Math.Min(14, climbed.Max() + climbed.Count - 1);
     }
 
+    // ---------------- the work of office ----------------
+    // The owner's rule (docs/PROCESS.md): every position has work. A quaestor keeps the Reach's accounts, an aedile sees to its works,
+    // a praetor hears a case. Each year, each of them. The player decides the business of an office the player holds; everyone else
+    // decides their own by their nature. What they decide moves the public's trust in the magistrates, and that is one of the things
+    // that can be wrong with the Reach.
+
+    public const string Accounts = "accounts", Works = "works", Case = "case";
+    public const string Straight = "straight", Favour = "favour", Relief = "relief", Lanes = "lanes", Grain = "grain", Nothing = "nothing", Law = "law", Friend = "friend", Gift = "gift";
+    public const string TrustKey = "public_trust", ExposedFlag = "office_exposed", KinExposedFlag = "kin_office_exposed", BusinessFlag = "office_business", ExposedChar = "removed_from_office";
+    public const int TrustStart = 60, TrustLow = 35, FavourCredits = 8, WorksCredits = 6, GiftCredits = 10, Damages = 5, BarYears = 5, ReliefBy = 2, ReliefCredits = 4, TrustCeiling = 85;
+    public static string BarredKey(string characterId) => "barred_office:" + characterId;
+
+    /// <summary>What the Reach thinks of its magistrates, 0 to 100. Low, and they are known to be for sale.</summary>
+    public static int Trust(World w) => w.WorldCounters.TryGetValue(TrustKey, out int v) ? Math.Clamp(v, 0, 100) : TrustStart;
+    /// <summary>Straight dealing is what is expected: it mends trust, slowly, and never past the point where people stop looking.</summary>
+    private static void MoveTrust(World w, int by) { int t = Trust(w); w.WorldCounters[TrustKey] = by > 0 ? Math.Max(t, Math.Min(TrustCeiling, t + by)) : Math.Max(0, t + by); }
+    public static string KindOf(RungDef rung) => rung.Id == Praetor ? Case : rung.Games > 0 ? Works : Accounts;
+    public static string[] ChoicesFor(string kind) => kind == Case ? new[] { Law, Friend, Gift } : kind == Works ? new[] { Lanes, Grain, Nothing } : new[] { Straight, Relief, Favour };
+    public static OfficeBusiness? BusinessOf(World w, string characterId) => w.OfficeWork.FirstOrDefault(b => b.HolderId == characterId && b.Choice.Length == 0);
+
+    private static int Regard(World w, House? of, House? toward)
+    {
+        var a = of != null ? Economy.HeadOf(w, of) : null; var b = toward != null ? Economy.HeadOf(w, toward) : null;
+        return a != null && b != null && a.Id != b.Id ? w.GetRelationship(a.Id, b.Id)?.Disposition ?? 0 : 0;
+    }
+    private static void Shift(World w, House? of, House? toward, int by)
+    {
+        var a = of != null ? Economy.HeadOf(w, of) : null; var b = toward != null ? Economy.HeadOf(w, toward) : null;
+        if (a == null || b == null || a.Id == b.Id) return; var r = w.Relationship(a.Id, b.Id); r.Disposition = Math.Clamp(r.Disposition + by, -100, 100);
+    }
+    private static string? WorstRegion(World w, HashSet<string> taken) => w.Regions.Where(kv => kv.Value.Lawlessness >= 30 && !taken.Contains("region:" + kv.Key)).OrderByDescending(kv => kv.Value.Lawlessness).ThenBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => kv.Key).FirstOrDefault();
+    private static string? HomeRegion(World w, string houseId) => w.Galaxy == null ? null : w.HoldingsOf(houseId).Where(h => h.IsPlanet).Select(h => w.Galaxy.System(h.SystemId)?.RegionId ?? "").Where(r => r.Length > 0)
+        .GroupBy(r => r).OrderByDescending(g => g.Count()).ThenBy(g => g.Key, StringComparer.Ordinal).Select(g => g.Key).FirstOrDefault();
+
+    /// <summary>This year's business for a sitting magistrate.</summary>
+    private static OfficeBusiness Make(World w, OfficeHolding seat, RungDef rung, HashSet<string> taken)
+    {
+        var b = new OfficeBusiness { Id = $"biz_{w.Turn}_{seat.CharacterId}", RungId = rung.Id, HolderId = seat.CharacterId, Kind = KindOf(rung), Turn = w.Turn };
+        if (b.Kind == Accounts) { b.RegionId = (RegionSystem.CapitalHolder(w)?.Treasury.Credits ?? 0) >= ReliefCredits ? WorstRegion(w, taken) ?? "" : ""; if (b.RegionId.Length > 0) taken.Add("region:" + b.RegionId); }   // one quaestor to a region, and only if the purse has it
+        else if (b.Kind == Works) b.RegionId = HomeRegion(w, seat.HouseId) ?? "";
+        else
+        {
+            // two houses with a quarrel, neither the judge's own: those at war first, then those whose heads think worst of each other
+            var houses = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != seat.HouseId && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null && !taken.Contains(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+            var last = w.OfficeWork.Where(x => x.Kind == Case && x.Turn == w.Turn - 1 && x.HouseA.Length > 0).Select(x => string.CompareOrdinal(x.HouseA, x.HouseB) < 0 ? x.HouseA + "|" + x.HouseB : x.HouseB + "|" + x.HouseA).ToHashSet();
+            var pairs = new List<(House a, House b, int heat)>();
+            for (int i = 0; i < houses.Count; i++) for (int j = i + 1; j < houses.Count; j++)
+            {
+                int heat = (w.AtWar(houses[i].Id, houses[j].Id) ? 100 : 0) - Regard(w, houses[i], houses[j]) - Regard(w, houses[j], houses[i]);
+                if (heat >= 30 && !last.Contains(houses[i].Id + "|" + houses[j].Id)) pairs.Add((houses[i], houses[j], heat));   // a quarrel heard last year is not heard again this year
+            }
+            var pick = pairs.OrderByDescending(x => x.heat).ThenBy(x => x.a.Id, StringComparer.Ordinal).ThenBy(x => x.b.Id, StringComparer.Ordinal).Take(6).ToList();
+            if (pick.Count > 0) { var x = pick[(int)(Hash(b.Id) % (uint)pick.Count)]; b.HouseA = x.a.Id; b.HouseB = x.b.Id; }
+            else if (houses.Count >= 2) { int i = (int)(Hash(b.Id) % (uint)houses.Count); b.HouseA = houses[i].Id; b.HouseB = houses[(i + 1) % houses.Count].Id; }
+            if (b.HouseA.Length > 0) { b.RightId = Hash(b.Id + ":right") % 2 == 0 ? b.HouseA : b.HouseB; taken.Add(b.HouseA); taken.Add(b.HouseB); }
+        }
+        return b;
+    }
+
+    /// <summary>What it is, said to the one who must decide it.</summary>
+    public static string Says(World w, OfficeCatalog offices, OfficeBusiness b)
+    {
+        string region = w.Galaxy?.Region(b.RegionId)?.Name ?? "";
+        return b.Kind switch
+        {
+            Accounts => "The year's accounts of the Reach are yours to close." + (region.Length > 0 ? $" {region} is lawless, and there is a little in the purse that could go to it." : ""),
+            Works => "The city's works and the lanes are yours to see to this year, out of your own purse." + (region.Length > 0 ? $" The lanes of {region}, where your house's worlds are, want repair." : ""),
+            _ => b.HouseA.Length == 0 ? "No case of weight has come before you this year." : $"{w.House(b.HouseA)?.Name} and {w.House(b.HouseB)?.Name} are before your court. The law, read plainly, is with {w.House(b.RightId)?.Name}."
+        };
+    }
+    public static string ChoiceSays(World w, OfficeBusiness b, string choice)
+    {
+        var holder = w.Char(b.HolderId); var mine = holder != null ? w.House(holder.HouseId) : null;
+        string friend = b.Kind == Case && b.HouseA.Length > 0 ? (w.House(FriendOf(w, b, mine))?.Name ?? "") : "";
+        string richer = b.Kind == Case && b.HouseA.Length > 0 ? (w.House(RicherOf(w, b))?.Name ?? "") : "";
+        return choice switch
+        {
+            Straight => "Close them as they stand. The magistrates are trusted a little more, and so is your house.",
+            Relief => b.RegionId.Length > 0 ? $"Find {ReliefCredits} credits in the capital's purse for {w.Galaxy?.Region(b.RegionId)?.Name}: its lanes are safer, and its houses remember who did it." : "There is nowhere that needs it this year: close them as they stand.",
+            Favour => $"Let {FavourCredits} credits find their way to your house. The magistrates are trusted less, and one time in four it comes out.",
+            Lanes => b.RegionId.Length > 0 ? $"Repair the lanes of {w.Galaxy?.Region(b.RegionId)?.Name} for {WorksCredits} credits of your own." : $"There is no region of your house's to repair: the {WorksCredits} credits go on the capital's streets.",
+            Grain => $"Grain for the squares, for {WorksCredits} credits of your own: your house is thought the better of.",
+            Nothing => "Do nothing. Nothing is spent, and it is noticed.",
+            Law => b.HouseA.Length == 0 ? "Sit, and rise." : $"Rule on the law, for {w.House(b.RightId)?.Name}. The loser pays {Damages} credits and thinks the less of you; the winner the better.",
+            Friend => b.HouseA.Length == 0 ? "Sit, and rise." : $"Rule for {friend}, which thinks the better of your house." + (FriendOf(w, b, mine) == b.RightId ? " As it happens the law is with them." : " The law is not with them, and it will be seen."),
+            Gift => b.HouseA.Length == 0 ? "Sit, and rise." : $"Take {GiftCredits} credits from {richer}, and rule for them. One time in three it comes out.",
+            _ => ""
+        };
+    }
+    private static string FriendOf(World w, OfficeBusiness b, House? judge) => Regard(w, w.House(b.HouseA), judge) >= Regard(w, w.House(b.HouseB), judge) ? b.HouseA : b.HouseB;
+    private static string RicherOf(World w, OfficeBusiness b) => (w.House(b.HouseA)?.Treasury.Credits ?? 0) >= (w.House(b.HouseB)?.Treasury.Credits ?? 0) ? b.HouseA : b.HouseB;
+
+    public static string? DecideRefusal(World w, Character? who, string choice)
+    {
+        var b = who != null ? BusinessOf(w, who.Id) : null; if (who?.Alive != true || b == null) return "your office has no business waiting";
+        if (!ChoicesFor(b.Kind).Contains(choice)) return "not a thing this office can do";
+        if (choice == Relief && b.RegionId.Length == 0) return "no region is lawless enough to need it this year, or the capital's purse is empty";
+        return choice is Lanes or Grain && Funds(w, who) < WorksCredits ? $"it takes {WorksCredits} credits of your own" : null;
+    }
+    private static int Funds(World w, Character who) => who.HouseId == w.Protagonist?.HouseId ? who.Purse : w.House(who.HouseId)?.Treasury.Credits ?? 0;
+    private static void Pay(World w, Character who, int credits)
+    {
+        if (who.HouseId == w.Protagonist?.HouseId) who.Purse += credits; else if (w.House(who.HouseId) is { } h) h.Treasury.Credits += credits;
+    }
+
+    /// <summary>The holder decides the year's business.</summary>
+    public static void Decide(World w, OfficeCatalog offices, Character who, string choice)
+    {
+        var b = BusinessOf(w, who.Id)!; b.Choice = choice; var house = w.House(who.HouseId); var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w);
+        string office = offices.Rung(b.RungId)?.Name.ToLowerInvariant() ?? b.RungId; bool ours = who.HouseId == mine; bool exposed = false;
+        void Region(int by) { if (b.RegionId.Length > 0) { var rs = RegionSystem.StateOf(w, b.RegionId); rs.Lawlessness = Math.Clamp(rs.Lawlessness + by, 0, 100); } }
+        void Legit(int by) { if (house != null) house.Legitimacy = Math.Clamp(house.Legitimacy + by, 0, 100); }
+        switch (choice)
+        {
+            case Straight: MoveTrust(w, 1); if (house is { Legitimacy: < 80 }) Legit(1); break;
+            case Relief:
+                if (b.RegionId.Length == 0) { MoveTrust(w, 1); break; }
+                Region(-ReliefBy); MoveTrust(w, 1); if (chair != null) chair.Treasury.Credits -= Math.Min(ReliefCredits, Math.Max(0, chair.Treasury.Credits));
+                foreach (var h in w.Houses.Values.Where(h => h.Id != who.HouseId && HomeRegion(w, h.Id) == b.RegionId)) Shift(w, h, house, 6);
+                if (ours) w.Log($"{who.Name}, {office}, finds the money for {w.Galaxy?.Region(b.RegionId)?.Name}. Its lanes are the safer for it.");
+                break;
+            case Favour:
+                if (house != null) house.Treasury.Credits += FavourCredits; MoveTrust(w, -3); exposed = Hash(b.Id + ":exposed") % 4 == 0;
+                break;
+            case Lanes: Pay(w, who, -WorksCredits); Region(-ReliefBy); MoveTrust(w, 1); break;
+            case Grain: Pay(w, who, -WorksCredits); Legit(2); MoveTrust(w, 1); break;
+            case Nothing: MoveTrust(w, -1); break;
+            case Law: case Friend: case Gift:
+                if (b.HouseA.Length == 0) break;
+                string winner = choice == Law ? b.RightId : choice == Friend ? FriendOf(w, b, house) : RicherOf(w, b), loser = winner == b.HouseA ? b.HouseB : b.HouseA;
+                var win = w.House(winner); var lose = w.House(loser); bool just = winner == b.RightId;
+                if (win != null && lose != null) { int paid = Math.Min(Damages, Math.Max(0, lose.Treasury.Credits)); lose.Treasury.Credits -= paid; win.Treasury.Credits += paid; }
+                Shift(w, win, house, choice == Law ? 6 : choice == Friend ? 12 : 4); Shift(w, lose, house, choice == Law ? -6 : -12);
+                if (choice == Law) { MoveTrust(w, 1); if (house is { Legitimacy: < 80 }) Legit(1); }
+                else if (choice == Friend) { if (!just) { MoveTrust(w, -3); Legit(-1); } }
+                else { Pay(w, who, GiftCredits); if (win != null) win.Treasury.Credits -= Math.Min(GiftCredits, Math.Max(0, win.Treasury.Credits)); MoveTrust(w, -4); exposed = Hash(b.Id + ":exposed") % 3 == 0; }
+                if (ours || winner == mine || loser == mine)
+                    w.Log($"{who.Name}, praetor, finds for {win?.Name} against {lose?.Name}{(just ? "" : ", against the plain reading of the law")}. {lose?.Name} pays {Damages} credits.");
+                if (winner == mine || loser == mine) w.WorldFlags.Add(winner == mine ? "case_won" : "case_lost");
+                break;
+        }
+        string what = b.Kind == Case ? (choice == Law ? "Sat as praetor and ruled on the law." : choice == Friend ? "Sat as praetor and found for a friend." : "Sat as praetor and took a gift.")
+            : b.Kind == Works ? (choice == Nothing ? "" : "Saw to the Reach's works as aedile.") : choice == Favour ? "" : "Kept the Reach's accounts as quaestor.";
+        if (what.Length > 0 && who.Life?.Marks.Add("business:" + b.RungId + ":" + (choice is Friend or Gift ? choice : "done")) != false) LifeSystem.Note(w, who, "office", what);
+        if (exposed) Expose(w, offices, who, b);
+    }
+
+    /// <summary>It comes out. The magistrate is removed, may not stand again for five years, and the house is thought the less of.</summary>
+    private static void Expose(World w, OfficeCatalog offices, Character who, OfficeBusiness b)
+    {
+        var mine = w.Protagonist; var house = w.House(who.HouseId);
+        w.Magistrates.RemoveAll(m => m.CharacterId == who.Id); w.WorldCounters[BarredKey(who.Id)] = w.Turn + BarYears; MoveTrust(w, -3);
+        if (house != null) house.Legitimacy = Math.Clamp(house.Legitimacy - 5, 0, 100);
+        who.Flags.Add(ExposedChar); LifeSystem.Note(w, who, "office", "Was removed from office for taking money.");
+        if (mine != null && who.HouseId == mine.HouseId) Mark(w, who.Id == mine.Id ? ExposedFlag : KinExposedFlag);
+        w.Log($"It comes out that {who.Name} of {house?.Name}, {offices.Rung(b.RungId)?.Name.ToLowerInvariant()}, took money in office. {who.Name} is removed and may not stand again for {BarYears} years.");
+    }
+
+    /// <summary>What someone other than the player does with their year's business: by their nature.</summary>
+    public static string Inclination(World w, Character c, OfficeBusiness b)
+    {
+        bool honest = c.NatureTraits.Contains("Honorable") || c.NatureTraits.Contains("Just");
+        bool grasping = !honest && (c.NatureTraits.Contains("Ruthless") || c.NatureTraits.Contains("Cruel") || c.Ambition == "amass_a_fortune");
+        bool partial = !honest && (c.NatureTraits.Contains("Loyal") || c.NatureTraits.Contains("Vengeful") || Hash(c.Id + ":partial") % 3 == 0);
+        if (b.Kind == Case) return grasping && Hash(b.Id + ":take") % 2 == 0 ? Gift : partial && !grasping ? Friend : Law;
+        if (b.Kind == Works) return Funds(w, c) < WorksCredits ? Nothing : b.RegionId.Length > 0 && Hash(b.Id + ":works") % 2 == 0 ? Lanes : Grain;
+        return grasping && Hash(b.Id + ":take") % 2 == 0 ? Favour : b.RegionId.Length > 0 && (honest || Hash(b.Id + ":relief") % 3 == 0) ? Relief : Straight;
+    }
+
+    /// <summary>The year's business: last year's that the player left undone is closed by the clerks; every sitting magistrate has new
+    /// business; all but the player decide their own at once.</summary>
+    private static void Business(World w, OfficeCatalog offices)
+    {
+        var p = w.Protagonist; w.WorldCounters.TryAdd(TrustKey, TrustStart);   // written down, so that what content does to it starts from where it stands
+        foreach (var b in w.OfficeWork.Where(b => b.Choice.Length == 0).ToList())
+        {
+            b.Choice = "left"; MoveTrust(w, -1);
+            if (p != null && b.HolderId == p.Id) w.Log($"The business of {p.Name}'s office went undone last year, and the clerks closed it. It was noticed.");
+        }
+        w.OfficeWork.RemoveAll(b => b.Turn < w.Turn - 1);
+        var taken = new HashSet<string>();
+        foreach (var seat in w.Magistrates.OrderBy(m => m.OfficeId, StringComparer.Ordinal).ThenBy(m => m.CharacterId, StringComparer.Ordinal).ToList())
+        {
+            var rung = offices.Rung(seat.OfficeId); var who = w.Char(seat.CharacterId); if (rung == null || who is not { Alive: true }) continue;
+            var b = Make(w, seat, rung, taken); w.OfficeWork.Add(b);
+            if (p == null || who.Id != p.Id) Decide(w, offices, who, Inclination(w, who, b));
+        }
+        // drifting back toward where it started, a point a year, so that one bad magistrate is not remembered for ever
+        int t = Trust(w); if (t != TrustStart) w.WorldCounters[TrustKey] = t + Math.Sign(TrustStart - t);
+    }
+
     // ---------------- the year ----------------
 
     public static void Tick(World w, OfficeCatalog offices)
     {
-        w.WorldFlags.Remove(StandingFlag); w.WorldFlags.Remove(MagistrateFlag); w.WorldFlags.Remove(AedileFlag);
+        w.WorldFlags.Remove(StandingFlag); w.WorldFlags.Remove(MagistrateFlag); w.WorldFlags.Remove(AedileFlag); w.WorldFlags.Remove(BusinessFlag); w.WorldFlags.Remove("case_won"); w.WorldFlags.Remove("case_lost");
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
         foreach (var c in w.Characters.Values) { if (!w.HasFlag(ElectedFlag) && !w.HasFlag(KinElectedFlag)) c.Flags.Remove(ElectedChar); c.Flags.Remove(StandingChar); }
-        if (!Active(w, offices)) { w.Magistrates.Clear(); w.Candidacies.Clear(); return; }
+        if (!w.HasFlag(ExposedFlag) && !w.HasFlag(KinExposedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(ExposedChar);
+        if (!w.HasFlag(BlamedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(BlamesChar);
+        if (!Active(w, offices)) { w.Magistrates.Clear(); w.Candidacies.Clear(); w.OfficeWork.Clear(); return; }
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null;
 
         // a seat lapses with its holder; a holder is paid
@@ -249,7 +453,9 @@ public static class LadderSystem
             m.HouseId = c.HouseId;
             if (offices.Rung(m.OfficeId) is { Stipend: > 0 } rung && house != null && c.HouseId == house.Id) c.Purse += rung.Stipend;
         }
+        Business(w, offices);
         if (p is not { Alive: true } || house == null) return;
+        if (BusinessOf(w, p.Id) != null) w.WorldFlags.Add(BusinessFlag);
         w.Candidacies.RemoveAll(cd => w.Char(cd.CharacterId) is not { Alive: true } c || c.HouseId != house.Id || Bar(w, offices, c, offices.Rung(cd.RungId)) != null);
 
         // The people of the house stand for themselves (docs/PROCESS.md): one who wants to rise and be heard, or to be first, puts

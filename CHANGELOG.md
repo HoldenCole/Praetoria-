@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+### Added
+- **The work of office.** A quaestor, an aedile and a praetor each have business every year, and what they do with it
+  counts. The quaestor closes the Reach's accounts (straight, or with money found for a lawless region, or to their
+  own house's good). The aedile sees to the works from their own purse (the lanes, grain, or nothing). The praetor
+  hears a case between two houses at odds (on the law, for a friend, or for a gift). You decide your own; relatives
+  and every other house's magistrates decide theirs by nature. Money taken in office sometimes comes out: the seat is
+  lost and the person may not stand for five years. What the magistrates do moves **public trust** in them, and below
+  35 "the magistrates are known to be for sale" is one of the things wrong with the Reach. The ladder panel shows your
+  business, the trust, and what every magistrate did this year. Five events. docs/LADDER.md.
+- **Send your physicians to a relative** who is ill or ailing, from your own purse (the life panel).
+- **Old friends and old enemies count.** A friend of eight years leans your way in the Senate and stands by your house
+  when something is aimed at it, and is likelier to take your side in a civil war. An old enemy does the opposite.
+- **A relative who stood for office without a word from you, and lost, blames you for it.** One you spoke for who won
+  knows what they owe.
+- **In a civil war the parties go to war as parties:** a bench follows its leader unless a house has a strong reason
+  of its own. The forecast on the Caesar panel uses the same rule.
+- **The Senate's sword commands the Reach's own fleets** for as long as the civil war lasts.
+
+### Changed
+- **A victory teaches its commander only what they have it in them to learn.** It used to add a step whatever the
+  skill's ceiling. Measured: a rival general of the first rank is rarer than before (docs/CAESAR.md, docs/GAPS.md C9).
+- The gap register (docs/GAPS.md) has a worklist at its top, a section for forms of government as the owner set them
+  out, and a section for positions with nothing to do. 60 open, 16 closed.
+
 ### Fixed
 - **A saved game could drift from an unbroken one.** Loading a save noted the crews' commanders a second time, which
   put a commander appointed in the year of the save one point of devotion ahead. It is now done once, at the start of

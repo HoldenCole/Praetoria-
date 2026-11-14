@@ -7,6 +7,26 @@
     var mySeat = LadderSystem.Seat(w, pid); var myStand = w.Candidacies.FirstOrDefault(x => x.CharacterId == pid);
     var consul = ElectionSystem.ConsulOffices(offices).FirstOrDefault();
     var consulMan = consul != null ? OfficeSystem.Candidate(w, consul, house.Id) : null;
+    var work = LadderSystem.BusinessOf(w, pid); int trust = LadderSystem.Trust(w);
+    string trustWord = trust < LadderSystem.TrustLow ? "for sale, and everyone knows it" : trust < 50 ? "not much trusted" : trust < 70 ? "trusted, more or less" : "trusted";
+    string trustClass = trust < LadderSystem.TrustLow ? "pill bad" : trust < 50 ? "pill warn" : "pill good";
+    string workTitle = work == null ? "" : "The business of your office: " + (work.Kind == LadderSystem.Case ? "a case" : work.Kind == LadderSystem.Works ? "the works" : "the accounts");
+    string workSays = work == null ? "" : LadderSystem.Says(w, offices, work);
+    int latest = w.OfficeWork.Count == 0 ? -1 : w.OfficeWork.Max(b => b.Turn);   // drawn up at the year's turning, so it carries last year's number
+    var done = w.OfficeWork.Where(b => b.Turn == latest && b.Choice.Length > 0 && b.Choice != "left").Select(b => (b, who: w.Char(b.HolderId))).Where(x => x.who != null).ToList();
+    string Did(OfficeBusiness b) => b.Choice switch
+    {
+        LadderSystem.Straight => "closed the accounts as they stood",
+        LadderSystem.Relief => b.RegionId.Length > 0 ? "found money for " + (w.Galaxy?.Region(b.RegionId)?.Name ?? "a region") : "closed the accounts as they stood",
+        LadderSystem.Favour => "closed the accounts, it is said, to their own house's good",
+        LadderSystem.Lanes => "repaired the lanes" + (b.RegionId.Length > 0 ? " of " + (w.Galaxy?.Region(b.RegionId)?.Name ?? "") : ""),
+        LadderSystem.Grain => "gave grain to the squares",
+        LadderSystem.Nothing => "did nothing with the year",
+        LadderSystem.Law => b.HouseA.Length == 0 ? "heard no case of weight" : "ruled on the law for " + (w.House(b.RightId)?.Name ?? ""),
+        LadderSystem.Friend => "ruled for a friend",
+        LadderSystem.Gift => "ruled, it is said, for whoever paid",
+        _ => "sat"
+    };
     string Held(Character x) => x.Cursus.Count == 0 ? "nothing yet" : string.Join(", then ", x.Cursus.Select(id => offices.Rung(id)?.Name.ToLowerInvariant() ?? id));
 }
 <section class="panel cursus">
@@ -15,6 +35,33 @@
     else
     {
         <div class="muted small">Each rung is held by a person, for five years, and filled by election. The houses vote with their weight in the chamber; a candidate's own speaking, standing and record count besides. You have been: <b>@Held(p)</b>.</div>
+        <div class="small">The magistrates of the Reach are <span class="@trustClass" title="@TrustTip">@trustWord (@trust)</span></div>
+        @if (work != null)
+        {
+            <div class="rung-row office-work">
+                <div><b>@workTitle</b></div>
+                <div class="small">@workSays</div>
+                @foreach (var choice in LadderSystem.ChoicesFor(work.Kind))
+                {
+                    string ch = choice; var no = new LadderCommand(pid, LadderCommand.Decide, pid, ch, offices).Refusal(G.Ctx); string tip = LadderSystem.ChoiceSays(w, work, ch);
+                    <div class="suit-acts">
+                        <button class="opt inline" disabled="@(no != null)" title="@(no ?? tip)" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Decide, pid, ch, offices))">@Label(ch)</button>
+                        <span class="muted small">@tip</span>
+                    </div>
+                }
+                <div class="muted small">Left undone, the clerks close it at the year's end, and it is noticed.</div>
+            </div>
+        }
+        else if (mySeat != null) { <div class="muted small">The business of your office is done for this year.</div> }
+        @if (done.Count > 0)
+        {
+            <details class="small"><summary>What the magistrates did this year (@done.Count)</summary>
+                @foreach (var (b, who) in done)
+                {
+                    <div class="muted small">@who!.Name@(who.HouseId == house.Id ? " (yours)" : " of " + w.House(who.HouseId)?.Name), @(offices.Rung(b.RungId)?.Name.ToLowerInvariant()): @Did(b).</div>
+                }
+            </details>
+        }
         @foreach (var rung in offices.Rungs)
         {
             string rid = rung.Id; var holders = LadderSystem.Holders(w, rung.Id); var ours = w.Candidacies.Where(x => x.RungId == rung.Id).ToList();
@@ -62,6 +109,13 @@
 </section>
 
 @code {
+    private const string TrustTip = "What the Reach thinks of its magistrates. Straight dealing mends it slowly; money taken in office breaks it quickly. Below 35 it is one of the things wrong with the Republic.";
+    private static string Label(string choice) => choice switch
+    {
+        LadderSystem.Straight => "Close them as they stand", LadderSystem.Relief => "Find money for the lawless region", LadderSystem.Favour => "Favour your own house",
+        LadderSystem.Lanes => "Repair the lanes", LadderSystem.Grain => "Grain for the squares", LadderSystem.Nothing => "Do nothing",
+        LadderSystem.Law => "Rule on the law", LadderSystem.Friend => "Rule for a friend", LadderSystem.Gift => "Take the gift", _ => choice
+    };
     private const string AskDown = "It is their name. The loyal will take it down; the wilful will not, and either will think less of you.";
     private static string You(string s) => s.Replace("they have", "you have").Replace("they must", "you must");
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];

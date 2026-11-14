@@ -97,8 +97,12 @@ public static class OfficeSystem
             }
             if (def.CommandsFleets && chair != null && chair.Id != house.Id && w.AtWar(house.Id, chair.Id)) { Strip(w, def, "treason", true); continue; }
             if (def.Stipend > 0 && chair != null && chair.Id != house.Id) { int paid = Math.Min(def.Stipend, Math.Max(0, chair.Treasury.Credits)); chair.Treasury.Credits -= paid; house.Treasury.Credits += paid; }
-            if (def.CommandsFleets) foreach (var f in w.Fleets.Values.Where(f => f.Office && f.OwnerId != house.Id)) f.OwnerId = house.Id;   // the Admiral's colours on every office hull
+            if (def.CommandsFleets && w.CivilWar is not { SwordHouseId.Length: > 0 }) foreach (var f in w.Fleets.Values.Where(f => f.Office && f.OwnerId != house.Id)) f.OwnerId = house.Id;   // the Admiral's colours on every office hull
         }
+        if (w.CivilWar is { SwordHouseId.Length: > 0 } cw) CaesarSystem.ArmTheSword(w, cw);   // the Senate's sword commands them while the war lasts
+        else if (!offices.Defs.Any(d => d.CommandsFleets && Holding(w, d.Id) != null) && FleetsDefaultOwner(w) is { } chairId)
+            foreach (var f in w.Fleets.Values.Where(f => f.Office && f.OwnerId != chairId && w.Counter(CaesarSystem.SwordHeldKey) > 0)) f.OwnerId = chairId;   // and they go home when it is over
+        if (w.CivilWar == null) w.WorldCounters.Remove(CaesarSystem.SwordHeldKey);
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("holds_office:") || f.StartsWith("office_vacant:")).ToList()) w.WorldFlags.Remove(f);
         foreach (var def in offices.Defs)
         {

@@ -633,9 +633,11 @@ public sealed class FleetSystem
     {
         foreach (var c in winners)
         {
-            string skill = c.Skill("tactics") <= c.Skill("gunnery") ? "tactics" : "gunnery";
-            c.Skills[skill] = c.Skill(skill) + 1;
-            w.Log($"{c.Name} learns from the victory ({skill} {c.Skill(skill)}).");
+            // a victory teaches, but only what the commander has it in them to learn (docs/EDUCATION.md): the weaker of the two crafts
+            // first, the other if that one is at its ceiling, and nothing once both are
+            string skill = c.Skill("tactics") <= c.Skill("gunnery") ? "tactics" : "gunnery", other = skill == "tactics" ? "gunnery" : "tactics";
+            if (c.Skill(skill) >= EducationSystem.Ceiling(c, skill)) skill = other;
+            if (c.Skill(skill) < EducationSystem.Ceiling(c, skill)) { c.Skills[skill] = c.Skill(skill) + 1; w.Log($"{c.Name} learns from the victory ({skill} {c.Skill(skill)})."); }
             LifeSystem.Note(w, c, "victory", "Won a battle in command of a fleet.");
             if (c.Flags.Contains(FrontFlag))
             {

@@ -49,6 +49,55 @@
         "the_old_shows_done_well": "The old shows, done well.",
         "spend_it_on_the_drains": "Spend it on the drains instead."
       }
+    },
+    {
+      "id": "the_one_you_did_not_speak_for",
+      "title": "The One You Did Not Speak For",
+      "body": "{kin.name} stood for office, and lost, and has come to say what the whole house already knows: that {self.name} did not go to one door for them. Others had their head at their shoulder all through the canvass. {kin.name} had a name on a list.",
+      "choices": {
+        "say_you_will_next_time": "Say you will speak for them next time, and mean it.",
+        "tell_them_an_office_is_earned": "Tell them an office is earned, not handed down.",
+        "make_it_up_to_them": "Make it up to them out of your own purse."
+      }
+    },
+    {
+      "id": "your_name_in_the_scandal",
+      "title": "Your Name in the Scandal",
+      "body": "It has come out. The money that found its way to {self.name} in office has been followed back, and the Senate has taken the office away. For five years {self.name} may not stand for anything. What remains is what is said about it.",
+      "choices": {
+        "say_nothing_and_wait": "Say nothing, and wait for it to pass.",
+        "pay_it_back_in_the_open": "Pay it back in the open.",
+        "say_they_all_do_it": "Say that they all do it."
+      }
+    },
+    {
+      "id": "one_of_yours_is_removed",
+      "title": "One of Yours Is Removed",
+      "body": "{kin.name} took money in office, and it has come out, and the Senate has taken the office away. It was {kin.name}'s office and {kin.name}'s doing. It is the house's name in the mouths of the benches all the same.",
+      "choices": {
+        "stand_beside_them": "Stand beside them where it can be seen.",
+        "say_it_was_theirs_alone": "Say it was theirs alone, and that the house condemns it.",
+        "pay_it_back_for_them": "Pay it back for them, quietly."
+      }
+    },
+    {
+      "id": "the_court_finds_for_you",
+      "title": "The Court Finds for You",
+      "body": "The praetor has ruled, and the ruling is for the house. Damages have been paid over. It is a small sum and a larger satisfaction, and the other house will remember who sat on the bench.",
+      "choices": {
+        "take_it_gracefully": "Take it gracefully.",
+        "let_them_hear_about_it": "Let them hear about it."
+      }
+    },
+    {
+      "id": "the_court_finds_against_you",
+      "title": "The Court Finds Against You",
+      "body": "The praetor has ruled against the house, and damages have been paid out of the treasury. Whether the law was read straight or bent is a thing the house may have its own opinion about. The ruling stands either way.",
+      "choices": {
+        "pay_and_say_nothing": "Pay, and say nothing.",
+        "say_the_bench_was_bought": "Say in the Senate that the bench was bought.",
+        "remember_it": "Remember it."
+      }
     }
   ]
 }

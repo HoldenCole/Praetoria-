@@ -48,6 +48,16 @@ thought ill of you (−40) that long is an old enemy. A friendship that cools st
 - An old friend's regard deepens a little every year, and there is an event when they are in the city.
 - When an old friend dies it is felt (stress +8), written down, and there is an event. When an old enemy dies there is
   one too.
+- **In the Senate** an old friend leans one step toward whatever your house moves, and two steps against a censure,
+  embargo, breakup, recall or reconquest aimed at it (one step for a motion in its favour). An old enemy does the
+  opposite. Regard already moves a vote; this is what the years add.
+- **In a civil war** an old friend is two points likelier to take the side your house is on, whether you are the one
+  marching or have declared in another's war. An old enemy is two points likelier to take the other.
+
+### A physician for a relative
+
+Someone of your house who is ill or ailing is listed on the life panel with a button: **send your own physicians**
+(6 credits from your purse). Their health rises 6, an illness is cured, and they think 8 the better of you.
 
 ## Retirement
 

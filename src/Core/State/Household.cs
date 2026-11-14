@@ -118,3 +118,23 @@ public sealed class Candidacy
     /// <summary>What the head has put behind them: votes added at the count.</summary>
     public int Backing { get; set; }
 }
+
+/// <summary>A year's business for one who sits in an elected office (docs/LADDER.md, the work of office): the accounts for a
+/// quaestor, the works for an aedile, a case for a praetor. The holder decides it; a holder who does not is thought the less of.</summary>
+public sealed class OfficeBusiness
+{
+    public string Id { get; set; } = "";
+    public string RungId { get; set; } = "";
+    public string HolderId { get; set; } = "";
+    /// <summary>"accounts", "works" or "case".</summary>
+    public string Kind { get; set; } = "";
+    public int Turn { get; set; }
+    /// <summary>For a case: the two houses before the court, and which of them the law favours.</summary>
+    public string HouseA { get; set; } = "";
+    public string HouseB { get; set; } = "";
+    public string RightId { get; set; } = "";
+    /// <summary>The region the business concerns, if any.</summary>
+    public string RegionId { get; set; } = "";
+    /// <summary>What was decided, or "" while it waits.</summary>
+    public string Choice { get; set; } = "";
+}

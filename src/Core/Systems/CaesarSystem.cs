@@ -316,7 +316,48 @@ public sealed class CaesarSystem
         int troubles = Troubles(w).Count; s += troubles >= 3 ? 1 : troubles == 2 ? 0 : troubles == 1 ? -1 : -2;   // a sound Republic is defended
         if (FirstRank(w, g)) s += 1;
         if (Loved(w, g, general)) s += 1; else if (g.Skill("charisma") <= 2 && !g.Flags.Contains(FleetSystem.AchillesFlag)) s -= 1;
+        // old ties (docs/LIFE.md): one who has been the player's friend for years stands with the player's house, whichever side that is
+        if (head != null && w.Protagonist?.HouseId is { } mine && mine != h.Id)
+        {
+            int tie = head.Flags.Contains(LifeSystem.OldFriendChar) ? 2 : head.Flags.Contains(LifeSystem.OldEnemyChar) ? -2 : 0;
+            if (general.Id == mine) s += tie; else if (w.CivilWar is { } now && now.HouseId == general.Id && now.Declared.TryGetValue(mine, out var side)) s += side == General ? tie : -tie;
+        }
         return s + (int)(Hash(h.Id + ":side:" + general.Id) % 3) - 1;
+    }
+
+    public const string SwordHeldKey = "sword_holds_state_fleets";
+    /// <summary>A house breaks with its bench only for a strong reason of its own.</summary>
+    public const int BreaksForGeneral = 4, BreaksForSenate = -3;
+
+    /// <summary>Which side each house of the Reach takes when this house's general marches. Each weighs it for itself first; then the
+    /// parties go to war as parties: a bench whose leader has declared brings its members with it, all but one with a strong reason
+    /// of its own. The general's own bench is his. The player says for themselves (unless the capital is theirs), except in a forecast.</summary>
+    public Dictionary<string, string> Sides(World w, House house, Character g, bool forecast = false)
+    {
+        var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w); var own = new Dictionary<string, int>(); var sides = new Dictionary<string, string>();
+        foreach (var h in w.Houses.Values.Where(h => Real(h) && h.Id != house.Id && PolitySystem.InReach(w, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            if (h.Id == mine && !forecast) { if (chair?.Id == mine) sides[h.Id] = Senate; continue; }   // the player says for themselves, unless the throne stands on their world
+            int s = SideScore(w, h, house, g); own[h.Id] = s;
+            if (chair?.Id == h.Id || s <= -1) sides[h.Id] = Senate; else if (s >= 2) sides[h.Id] = General;   // the house the capital belongs to is never for the one marching on it
+        }
+        foreach (var f in w.Factions.OrderBy(f => f.Id, StringComparer.Ordinal))
+        {
+            string lead = f.LeaderHouseId == house.Id ? General : sides.GetValueOrDefault(f.LeaderHouseId, ""); if (lead.Length == 0) continue;
+            foreach (var id in f.Members.Where(id => id != f.LeaderHouseId && id != chair?.Id && own.ContainsKey(id)).OrderBy(id => id, StringComparer.Ordinal))
+                if (lead == General ? own[id] > BreaksForSenate : own[id] < BreaksForGeneral) sides[id] = lead;
+        }
+        return sides;
+    }
+
+    /// <summary>The Senate's sword commands the Reach's own fleets for as long as the war lasts (docs/CAESAR.md): every hull of the
+    /// state that is not the marching general's own to keep goes under the sword's colours.</summary>
+    public static int ArmTheSword(World w, CivilWar cw)
+    {
+        if (cw.SwordHouseId.Length == 0) return 0; int hulls = 0; w.WorldCounters[SwordHeldKey] = 1;
+        foreach (var f in w.Fleets.Values.Where(f => f.Office && f.OwnerId != cw.SwordHouseId && !(f.OwnerId == cw.HouseId && f.AdmiralId == cw.GeneralId && f.Devotion >= DevotedAt)).OrderBy(f => f.Id, StringComparer.Ordinal))
+        { f.OwnerId = cw.SwordHouseId; hulls += f.Strength; }
+        return hulls;
     }
 
     /// <summary>The house crosses the line: its general marches on the capital.</summary>
@@ -333,23 +374,19 @@ public sealed class CaesarSystem
             else f.Loyalty = Math.Max(0, f.Loyalty - 15);
         }
         w.Log($"{g.Name} of {house.Name} CROSSES THE LINE. {cause} The fleets that are {g.Name}'s turn toward {w.Galaxy?.System(w.Galaxy.Capital)?.Name ?? "the capital"}.");
-        foreach (var h in w.Houses.Values.Where(h => Real(h) && h.Id != house.Id && PolitySystem.InReach(w, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
-        {
-            if (h.Id == mine) { if (chair?.Id == mine) cw.Declared[h.Id] = Senate; continue; }   // the player says for themselves, unless the throne stands on their world
-            int s = SideScore(w, h, house, g);
-            if (chair?.Id == h.Id || s <= -1) cw.Declared[h.Id] = Senate; else if (s >= 2) cw.Declared[h.Id] = General;   // the house the capital belongs to is never for the one marching on it
-        }
+        foreach (var (id, side) in Sides(w, house, g)) cw.Declared[id] = side;
         List<string> Strongest(string side, int take) => cw.Declared.Where(kv => kv.Value == side && FleetSystem.StrengthOf(w, kv.Key) > 0)
             .OrderByDescending(kv => FleetSystem.StrengthOf(w, kv.Key)).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(take).Select(kv => kv.Key).ToList();
         cw.With = Strongest(General, 3); cw.Against = Strongest(Senate, 4);
         if (chair != null && chair.Id != house.Id && !cw.Against.Contains(chair.Id)) { cw.Declared[chair.Id] = Senate; cw.Against.Add(chair.Id); }
         var consul = ElectionSystem.ConsulOffices(_offices).Select(d => OfficeSystem.HolderHouse(w, d.Id)).FirstOrDefault(id => id != null && cw.Against.Contains(id));
         cw.SwordHouseId = consul ?? cw.Against.OrderByDescending(id => FleetSystem.StrengthOf(w, id)).ThenBy(id => id, StringComparer.Ordinal).FirstOrDefault() ?? "";
+        int stateHulls = ArmTheSword(w, cw);
         foreach (var a in cw.Against) _fleets.DeclareWar(w, house.Id, a);
         for (int i = 0; i < cw.With.Count && cw.Against.Count > 0; i++) _fleets.DeclareWar(w, cw.With[i], cw.Against[i % cw.Against.Count]);
         string Names(IEnumerable<string> ids) => string.Join(", ", ids.Select(id => w.House(id)?.Name ?? id).DefaultIfEmpty("nobody"));
         w.Log($"The houses declare. With {g.Name}: {Names(cw.Declared.Where(kv => kv.Value == General).Select(kv => kv.Key))}. For the Senate: {Names(cw.Declared.Where(kv => kv.Value == Senate).Select(kv => kv.Key))}."
-            + (cw.SwordHouseId.Length > 0 ? $" The Senate gives its war to {w.House(cw.SwordHouseId)?.Name}." : " Nobody stands in the gate."));
+            + (cw.SwordHouseId.Length > 0 ? $" The Senate gives its war to {w.House(cw.SwordHouseId)?.Name}{(stateHulls > 0 ? $", and with it the Reach's own {stateHulls} hulls" : "")}." : " Nobody stands in the gate."));
         if (house.Id == mine) Mark(w, CrossedFlag); else Mark(w, MarchesFlag);
         if (cw.Against.Count == 0) Win(w, cw);
     }
@@ -375,7 +412,7 @@ public sealed class CaesarSystem
         else
         {
             if (fights) { cw.Against.Add(house.Id); _fleets.DeclareWar(w, house.Id, cw.HouseId); }
-            if (cw.SwordHouseId.Length == 0) cw.SwordHouseId = house.Id;
+            if (cw.SwordHouseId.Length == 0) { cw.SwordHouseId = house.Id; int hulls = ArmTheSword(w, cw); if (hulls > 0) w.Log($"The Senate puts the Reach's own {hulls} hulls under {house.Name}."); }
             house.Legitimacy = Math.Clamp(house.Legitimacy + 2, 0, 100);
         }
         if (general != null && Economy.HeadOf(w, general) is { } gh && Economy.HeadOf(w, house) is { } hh)
@@ -508,6 +545,7 @@ public sealed class CaesarSystem
         if (w.Nations.Any(n => n.AtWar && n.ScoreNation > n.ScoreReach)) list.Add("a war beyond the Reach is going badly");
         if (w.Wars.Count >= 4) list.Add("the houses are at war with each other");
         if (w.WorldFlags.Contains(CompanySystem.CrashFlag)) list.Add("the Exchange has crashed");
+        if (LadderSystem.Trust(w) < LadderSystem.TrustLow) list.Add("the magistrates are known to be for sale");
         return list;
     }
     public static bool Troubled(World w) => Troubles(w).Count >= TroubledAt;
@@ -556,11 +594,8 @@ public sealed class CaesarSystem
     {
         var g = GeneralOf(w, house); var a = new List<House>(); var b = new List<House>(); if (g == null) return (a, b);
         var chair = RegionSystem.CapitalHolder(w);
-        foreach (var h in w.Houses.Values.Where(h => Real(h) && h.Id != house.Id && PolitySystem.InReach(w, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
-        {
-            int s = SideScore(w, h, house, g);
-            if (chair?.Id == h.Id || s <= -1) b.Add(h); else if (s >= 2) a.Add(h);
-        }
+        _ = chair;
+        foreach (var (id, side) in Sides(w, house, g, forecast: true).OrderBy(kv => kv.Key, StringComparer.Ordinal)) (side == General ? a : b).Add(w.House(id)!);
         return (a, b);
     }
 

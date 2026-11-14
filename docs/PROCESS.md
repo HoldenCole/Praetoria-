@@ -232,3 +232,18 @@ things."
 - `./tools/gaps.sh` prints the count. Put it in docs/ROADMAP.md section 1 and in the report to the owner whenever it
   changes, with the direction it moved.
 - When a gap is closed, move it to the register's Closed table with the date and what is left of it, if anything.
+
+## Close and deepen; every position has work
+
+Set by the owner on 2026-11-14.
+
+**For now, no new systems. Close the gaps that exist, then deepen what is there.**
+
+- Work from the worklist at the top of docs/GAPS.md. It is in order.
+- **Every position must have something to do.** A magistrate, a justice, a senator, a treasurer: if the game gives
+  someone a title, that person has business because of it each year, and the business has consequences. A title
+  that only pays and counts is a gap. Before adding any office, rank or seat, write down what its holder does.
+- The one-person rule still governs: the player does the business of the offices the player holds. Everyone else does
+  their own, by their own nature, and the head hears about it.
+- Tie new depth into what is already there (the times, the great war's pressure, legitimacy, regard) so that it
+  matters to more than itself.

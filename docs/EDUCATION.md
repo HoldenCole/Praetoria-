@@ -94,13 +94,19 @@ Seven tests. The soak passes on all eleven starts. The survival probe: lines end
 before. In the browser on *The Old Lion*: a study chosen and studied hard; over six years a child following a bent for
 arms reached tactics 2 and leadership 1, and one set against her bent reached a single step.
 
+## A battle teaches up to the ceiling
+
+A victory used to add a step of tactics or gunnery whatever the commander's ceiling was, so a much-fought admiral
+drifted above what anyone could learn by study. Now a victory teaches the weaker of the two crafts if it is below its
+ceiling, the other if not, and nothing once both are there. What this did to the Caesar road's first gate is in
+docs/CAESAR.md.
+
 ## Not in this piece
 
 - Nobody but you is sent to the Academy; it is still a year only your own character has.
 - You cannot ask a grown relative to study something, or set one of the house to teach another. You can only pay.
 - No trait is lost, and no nature is formed by an upbringing; only aptitudes can be earned.
 - Old age still dulls a skill every fifth year from sixty, as before. Learning does not slow with age.
-- A battle still adds a step to its commander directly, without regard to the ceiling.
 - Authored characters keep the skills they were written with, even where those sit above their ceiling.
 - The numbers are first guesses. What slower-growing skills do to battles, offices and the Exchange over sixty years
   has been checked only for not breaking anything.

@@ -1159,3 +1159,40 @@ commands: loading a save noted the crews' commanders again. Fixed, with a test.
 
 **Next, in the register's order.** The small ones in breaking away and the Caesar road (B4, B5, B8 to B10, C1, C3, C5),
 then how each form of state is governed (B1) and a state on the map and as a neighbour (B2, B3), which need plans.
+
+## 43. Close and deepen: every position has work — 2026-11-14
+
+The owner's direction: a state changes its form more easily toward the democratic end than the authoritarian; there
+are two kinds of dictatorship and two of republic; the people may revolt (later); the Reach lives under the same rules
+as any state. **And before any of that: list the small gaps, close them, and make sure every position has something to
+do.** The forms of government are written down as planned work (docs/BREAKAWAY.md, docs/GAPS.md G1 to G7) and not
+built. The rule is in docs/PROCESS.md.
+
+**Built: the work of office (L1).** Every sitting quaestor, aedile and praetor has a year's business with three
+choices and consequences in credits, regard, legitimacy, a region's lawlessness and the public's trust in the
+magistrates. The player decides their own; relatives and other houses' magistrates decide theirs by nature. Taking
+money sometimes comes out. Trust below 35 is a thing wrong with the Reach, so it feeds the Caesar road's "times" and
+the great war's pressure: the new depth is tied into what was already there, as asked.
+
+**Closed with it.** L4 (the relative who was not spoken for), F2 (old ties in the Senate and a civil war), F4 (a
+physician for a relative), C3 (parties in the civil war), C5 (the Senate's sword and the state's fleets), E4 (a battle
+and the ceiling). Seven closed; 60 open, 16 closed in all.
+
+**Measured.** 623 tests. The soak passes with no save/load drift. Survival: the line ended in 0 or 1 of 10 runs per
+start. Caesar probe, 50 Republic runs: the Republic stood in all 50.
+
+**Found on the way, and written into the register.**
+- The magistrates' relief, at its first strength, brought the most lawless rim region to order within twenty years in
+  a test run. It was halved and limited to one quaestor a region a year. The rim still starts restless; the test that
+  says so now looks at year twelve.
+- With ceilings holding in battle, another house's general reaches the first rank in 2 runs of 50 (it was 15 of 60).
+  A rival Caesar was already rare; this makes it rarer. Inside the owner's rule, possibly too far inside: C9.
+- The same two houses were before the court year after year. A quarrel heard last year is not heard this year.
+- The work of office is one decision a year from three (L5); trust moves only the troubles of the Reach (L7); old ties
+  count nowhere but the Senate and a civil war (F6); a wronged house cannot appeal or prosecute (L2).
+- Two of the five new events did not fire in the soak (they need a magistrate of the player's house to be found out);
+  both are proved by scripted tests (X4).
+
+**Next, from the worklist.** The law career's Judge and Justice sit a court (J1); a senator's yearly business (S1);
+the consuls, Treasurer and Speaker (O1); then the small ones in ambitions, wealth and the household.
+

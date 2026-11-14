@@ -9,6 +9,7 @@
     var deeds = life?.Deeds.OrderByDescending(d => d.Turn).ToList() ?? new();
     var rest = new LifeCommand(pid, LifeCommand.Rest).Refusal(G.Ctx); var phys = new LifeCommand(pid, LifeCommand.Physicians).Refusal(G.Ctx); var retire = new LifeCommand(pid, LifeCommand.Retire).Refusal(G.Ctx);
     var heir = DynastySystem.FindHeir(w, p); var elder = p.MentorId.Length > 0 && w.Char(p.MentorId) is { Alive: true } m && m.Flags.Contains(LifeSystem.RetiredChar) ? m : null;
+    var unwell = w.LivingCharacters().Where(x => x.HouseId == house.Id && x.Id != pid && (x.Flags.Contains(LifeSystem.IllChar) || x.Health < LifeSystem.Sound)).OrderBy(x => x.Health).ThenBy(x => x.Id, StringComparer.Ordinal).Take(4).ToList();
     string Tie(string id, int since) { var o = w.Char(id)!; int y = w.Turn - since; return $"{o.Name} of {w.House(o.HouseId)?.Name}, {(y <= 0 ? "this year" : y == 1 ? "a year" : y + " years")}"; }
 }
 <section class="panel life">
@@ -24,10 +25,20 @@
         @if (_confirm) { <button class="opt inline veto" @onclick="() => { _confirm = false; G.Execute(new LifeCommand(pid, LifeCommand.Retire)); }">Yes, lay it down</button> <button class="opt inline" @onclick="() => _confirm = false">No</button> }
         else { <button class="opt inline" disabled="@(retire != null)" title="@(retire ?? $"{heir?.Name} has the house and you play on as them. You stay as its elder and teach them.")" @onclick="() => _confirm = true">Lay the house down</button> }
     </div>
+    @foreach (var x in unwell)
+    {
+        string xid = x.Id; var send = new LifeCommand(pid, LifeCommand.Send, xid).Refusal(G.Ctx); string state = x.Name + " is " + LifeSystem.HealthName(x.Health) + (x.Flags.Contains(LifeSystem.IllChar) ? ", and ill" : "") + ".";
+        <div class="suit-acts">
+            <span class="small">@state</span>
+            <button class="opt inline tiny" disabled="@(send != null)" title="@(send ?? SendTip)" @onclick="() => G.Execute(new LifeCommand(pid, LifeCommand.Send, xid))">Send your physicians · @LifeSystem.PhysicianCredits credits</button>
+        </div>
+    }
     @if (elder != null) { <div class="muted small">@elder.Name laid the house down to you and is its elder still, and teaches you.</div> }
 
     <div class="ac-fact"><span>Old friends</span><p>@(friends.Count == 0 ? "Nobody outside the house has thought well of you long enough to be called one." : string.Join("; ", friends.Take(5).Select(kv => Tie(kv.Key, kv.Value) + (w.Turn - kv.Value >= LifeSystem.OldTieYears ? "" : " (not yet old)"))) + ".")</p></div>
     <div class="ac-fact"><span>Old enemies</span><p>@(enemies.Count == 0 ? "Nobody has hated you long enough to be called one." : string.Join("; ", enemies.Take(5).Select(kv => Tie(kv.Key, kv.Value) + (w.Turn - kv.Value >= LifeSystem.OldTieYears ? "" : " (not yet old)"))) + ".")</p></div>
+
+    <div class="muted small">A friend of @LifeSystem.OldTieYears years leans your way on what you move in the Senate, stands by you when something is aimed at your house, and is likelier to take your side in a civil war. An enemy of as long does the opposite.</div>
 
     <div class="hh-head"><b>What you have done</b> <span class="muted small">It is what will be said of you.</span></div>
     @if (deeds.Count == 0) { <div class="muted small">Nothing is written yet.</div> }
@@ -36,6 +47,7 @@
 </section>
 
 @code {
+    private const string SendTip = "Their health +6, and an illness cured; from your own purse. They will remember who sent them.";
     private bool _confirm, _all;
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);

@@ -207,26 +207,36 @@ Twelve, in `content/events/breakaway.json`: *They Come Back For It*, *Back In Th
 - In the browser The Old Lion's house, which holds two of the three worlds of its region, declared a kingdom in the
   first year. The Reach sent four houses; three years on the kingdom had lost a world and was behind. No errors.
 
-## The next stage: how each form governs (a sketch, not built)
+## The next stage: forms of government (the owner's direction, not built)
 
-Gap B1 in docs/GAPS.md. It needs the owner's eye before it is built, because it decides what ruling a state is like.
-The proposal is that the three forms differ in three things: who rules and how that changes, what the ruler takes,
-and what holds the houses together.
+Set by the owner on 2026-11-14 in answer to the sketch that stood here. It is planned work, held in docs/GAPS.md as
+G1 to G7. Nothing below is built yet: the three forms a state can take today still differ only in name.
 
-| | A republic | A republic under one hand | A kingdom |
-|---|---|---|---|
-| **Who rules** | The houses of the state elect a First Citizen every five years, by the worlds each holds and how the others regard it. The founder can be voted out | The Dictator rules until death or overthrow. May lay the office down, and the state becomes a republic | The ruling house's head is King or Queen. The crown passes with the house's own succession |
-| **What the ruler takes** | A small levy the houses agree to. Their regard rises a little each year for being asked | A heavy levy. Their regard falls each year | A middling levy. Their regard holds while the ruling house is respected, and falls when it is not |
-| **What holds it together** | Consent. Houses seldom leave, but the chair changes hands | Force. Nobody may leave in the first five years. After that a house that hates the Dictator and is as strong goes back to the Reach or takes the office | Legitimacy. While the ruling house stands above 50 nobody leaves. Below it houses go, or raise another dynasty |
-| **In a war for its life** | The Reach's will falls a little faster: its own houses ask why a republic is being burned | Its fleets hold together better | Nothing special, but a succession in the middle of the war is dangerous |
+**One ladder, for every state.** The Reach is a state like any other and is governed by the same rules. A region that
+breaks away is run as its own government by them. From the most authoritarian to the most democratic:
 
-For the player this is one person's game still: as First Citizen you canvass your own state's houses; as Dictator
-you watch the one who might replace you; as King you look to your heir and your house's name. A house of the state
-that is not its ruler lives under whichever of these it is, and can try for the chair, plot, or go.
+| Form | Who rules | How the ruler is made |
+|---|---|---|
+| **Imperium** | An emperor | The throne, taken or inherited |
+| **Kingdom** | A king or queen | Inherited in the ruling house |
+| **Dictatorship: one person** | A strongman | Seized, and held until death or overthrow |
+| **Dictatorship: the military** | The fleets' commanders | A command that took the state, and rules through its officers |
+| **Republic of the nobles** | A ruler chosen by the great houses among themselves | Elected by the houses |
+| **Republic of the people** | A ruler the people choose | Elected directly |
 
-Open questions for the owner: whether a state may change its form (a Dictator crowning himself, a kingdom thrown
-down into a republic); whether the Reach itself should be governed by the same rules once a Caesar has it; and
-whether houses of a state should be able to break away from *it* in turn.
+**A state can change its form.**
+
+- **Toward the democratic end it is easier.** Each step down the table asks less. Going from an imperium to a
+  dictatorship counts: it is the more democratic of the two, and should be the easier move.
+- **Toward the authoritarian end there are gates,** as there are for a Caesar: the one who would do it must have the
+  strength, the standing and the moment, and the houses and the people weigh in.
+
+**The people can revolt.** A further expansion, after the forms themselves: a state whose people are pushed far
+enough rise against whoever rules it, whatever the form.
+
+**What each form should feel like to rule and to live under** is the design still to do: who the ruler answers to,
+what the ruler takes, what holds the houses together, and what a house that is not the ruler can do about it. The
+earlier sketch (election in a republic, force in a dictatorship, legitimacy in a kingdom) is the starting point.
 
 ## Not in this stage
 

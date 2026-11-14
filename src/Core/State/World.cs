@@ -97,6 +97,8 @@ public sealed class World
     public List<Candidacy> Candidacies { get; set; } = new();
     /// <summary>What was said over the dead of the player's house, most recent last (docs/LIFE.md).</summary>
     public List<Funeral> Funerals { get; set; } = new();
+    /// <summary>This year's business for those who sit in the elected offices (docs/LADDER.md).</summary>
+    public List<OfficeBusiness> OfficeWork { get; set; } = new();
     /// <summary>States that have broken away from the Reach (docs/BREAKAWAY.md).</summary>
     public List<Polity> Polities { get; set; } = new();
     /// <summary>Generals the Senate has ordered home (docs/CAESAR.md).</summary>

@@ -1,11 +1,12 @@
 // Drives the ladder of offices: opens the Senate's standing view, reads the ladder, puts the head's name down for the first rung
-// they may stand for, calls in what is owed, plays past the next election, and reads who sits and what was written.
+// they may stand for, calls in what is owed, plays past the next election, and reads who sits and what was written. If the head
+// holds an office it then reads the year's business of that office, decides it, and reads what the other magistrates did.
 //
 //   node ladder.js ["Start title"] [years]
 //
 // Needs the build served locally (see README.md here). Screenshots go to PRAETORIA_SHOTS (default ./shots).
 const { chromium } = require('playwright');
-const title = process.argv[2] || 'The Circling Heir'; const years = parseInt(process.argv[3] || '7', 10);
+const title = process.argv[2] || 'The Risen Officer'   // a head of an age to stand who has held nothing yet; const years = parseInt(process.argv[3] || '7', 10);
 const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
@@ -35,12 +36,21 @@ require('fs').mkdirSync(shots, { recursive: true });
   await shot('ladder-standing');
   for (let y = 0; y < years; y++) {
     await endTurn();
-    const alerts = await page.evaluate(() => [...document.querySelectorAll('.ol-row')].map(e => e.innerText.replace(/\s+/g, ' ')).filter(t => /stand|election|games|magistr/i.test(t)).slice(0, 2).join(' | '));
+    const alerts = await page.evaluate(() => [...document.querySelectorAll('.ol-row')].map(e => e.innerText.replace(/\s+/g, ' ')).filter(t => /stand|election|games|magistr|accounts wait|case waits|works wait/i.test(t)).slice(0, 2).join(' | '));
     if (alerts) console.log('  turn ' + await turnNo() + ' alerts: ' + alerts.slice(0, 200));
   }
   await standing();
   console.log('after ' + years + ' years: ' + await head());
   console.log('   ' + await rungs());
+  const work = () => page.evaluate(() => { const el = document.querySelector('.panel.cursus .office-work'); return el ? el.innerText.replace(/\s+/g, ' ').slice(0, 900) : ''; });
+  console.log('the magistrates are: ' + await page.evaluate(() => { const el = document.querySelector('.panel.cursus .pill'); return el ? el.innerText.trim() : 'NO TRUST LINE'; }));
+  const waiting = await work(); console.log('business: ' + (waiting || 'none waiting'));
+  await shot('ladder-business');
+  if (waiting) {
+    const did = await page.evaluate(() => { const b = document.querySelector('.panel.cursus .office-work button:not([disabled])'); if (b) b.click(); return b ? b.innerText.trim() : ''; });
+    await page.waitForTimeout(500); console.log('decided: ' + (did || 'NOTHING COULD BE PRESSED') + ' · then: ' + (await work() || 'the business is done for the year'));
+  }
+  console.log('what the others did: ' + await page.evaluate(() => { const d = document.querySelector('.panel.cursus details'); if (!d) return 'NOT SHOWN'; d.open = true; return d.innerText.replace(/\s+/g, ' ').slice(0, 700); }));
   const games = await press('Give games'); if (games) { console.log('games: ' + games); await page.waitForTimeout(400); }
   await shot('ladder-after');
   await rail('Chronicle'); await page.waitForTimeout(600);

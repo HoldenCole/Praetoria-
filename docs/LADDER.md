@@ -63,6 +63,36 @@ With the family's independence set to deferential (docs/CHARACTER.md), relatives
   A house with nobody of that age and record cannot stand.
 - **The ambition to master the Senate** (docs/AMBITIONS.md) counts rungs climbed.
 
+## The work of office
+
+The owner's rule (docs/PROCESS.md, "every position has work"): an office is not a title. Every year each sitting
+magistrate has business, and what they do with it has consequences.
+
+| Office | The year's business | The choices |
+|---|---|---|
+| **Quaestor** | The accounts of the Reach. One quaestor a year is given the most lawless region, if the capital's purse can bear it. | **Close them as they stand** (trust +1, the house thought a little better of). **Find money for the lawless region** (its lawlessness −2, 4 credits from the capital's purse, its houses think +6 of yours). **Favour your own house** (+8 credits to the house, trust −3, and one time in four it comes out). |
+| **Aedile** | The works and the lanes, paid from the aedile's own purse. | **Repair the lanes** of the region where the house's worlds are (6 credits, lawlessness −2). **Grain for the squares** (6 credits, legitimacy +2). **Do nothing** (trust −1). |
+| **Praetor** | A case between two houses at odds, neither the praetor's own. The law is with one of them. | **Rule on the law** (the loser pays 5 credits, the winner thinks +6 and the loser −6, trust +1). **Rule for a friend** (the house that thinks better of yours: +12 from them, −12 from the other; if the law was not with them, trust −3 and legitimacy −1). **Take the gift** (10 credits to your own purse from the richer house, a ruling for them, trust −4, and one time in three it comes out). |
+
+- **You decide your own; nobody decides yours and you decide nobody else's.** A relative who holds an office decides
+  their own business, as every other house's magistrate does, by nature: the honourable and the just deal straight,
+  the ruthless and the cruel take money about half the time, the loyal and the vengeful rule for their friends.
+- **Left undone**, the clerks close it at the year's end and it is noticed (trust −1).
+- **When it comes out** that a magistrate took money, they are removed, may not stand for five years, and the house
+  loses 5 legitimacy. If it is you, or one of yours, there is an event.
+- **Public trust in the magistrates** runs from 0 to 100 and starts at 60. Straight dealing mends it slowly and never
+  past 85; money taken breaks it quickly; it drifts a point a year back toward 60. **Below 35, "the magistrates are
+  known to be for sale" is one of the things wrong with the Reach**, so it counts toward the times a Caesar needs
+  (docs/CAESAR.md) and toward the pressure that brings the great war (docs/BREAKAWAY.md).
+- A house that is a party to a case hears of it (an event when it wins, another when it loses). The same quarrel is
+  not heard two years running, and no house is before two courts in one year.
+- **A relative who stood without a word from the head and lost blames the head** (regard −10, an event). One who was
+  spoken for and won knows what they owe (+6).
+
+Where: the top of the ladder panel (Senate, "Your standing") shows your business with its three choices and what each
+does, what the Reach thinks of its magistrates, and what every magistrate did this year. The outliner says when your
+business is waiting.
+
 ## When a saga opens
 
 - Anyone of an age and rank to have climbed already has: a place in a service and 28 years makes a former quaestor;
@@ -118,9 +148,10 @@ Justice. The estate called the Magistrates is unchanged.
 ## Not in this piece
 
 - Other houses' people do not canvass, back each other or give games; their candidates are chosen by a rule.
-- A magistrate has no work to do in office: no cases for a praetor, no accounts for a quaestor. The office pays,
-  teaches and counts toward standing, and that is all.
+- The work of office is one decision a year from three. A case has no facts beyond who is in the right, and a house
+  wronged by a bent ruling can only remember it (docs/GAPS.md L2, L5).
+- Public trust moves only the troubles of the Reach, not elections or the estates (L7).
+- The consuls, the Treasurer and the Speaker have no such business yet (O1).
 - No bribery, no prosecution of a former magistrate, no law on the order of offices that the Senate could change.
 - The censorship, the tribunate and provincial commands after office are not here.
-- A relative who wins does not ask the head for anything, and one who loses does not blame the head.
 - The numbers (seats, ages, votes for backing, the weight of merit) are first guesses.

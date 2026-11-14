@@ -167,7 +167,9 @@ public class RegionSystemTests
         Assert.Equal(2, g.Regions.Count(r => r.Ring == Ring.Core)); Assert.Equal(4, g.Regions.Count(r => r.Ring == Ring.Middle)); Assert.Equal(4, g.Regions.Count(r => r.Ring == Ring.Rim));
         Assert.Null(w.PlanetHolder("the_gallows")); Assert.Null(w.PlanetHolder("sorrow"));
         var tc = new TurnController(w, content);
-        for (int t = 0; t < 24 && !w.IsDynastyDead; t++) { foreach (var i in tc.BeginTurn()) { var c = tc.Offer(i).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(i, c.Choice.Id); } tc.EndTurn(); }
+        // twelve years, not twenty-four: the rim STARTS restless. What the magistrates and the houses do about it afterwards is theirs
+        // (docs/LADDER.md, the work of office), and by the third decade a rim region may well have been brought to order.
+        for (int t = 0; t < 12 && !w.IsDynastyDead; t++) { foreach (var i in tc.BeginTurn()) { var c = tc.Offer(i).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(i, c.Choice.Id); } tc.EndTurn(); }
         Assert.True(RegionSystem.StateOf(w, "ashen_verge").Lawlessness > RegionSystem.StateOf(w, "imperial_core").Lawlessness);
         Assert.True(RegionSystem.StateOf(w, "imperial_core").Allegiance > RegionSystem.StateOf(w, "pale_reaches").Allegiance);
         Assert.True(GalaxyProjection.Regions(w).All(r => r.Ring is Ring.Core or Ring.Middle or Ring.Rim));
