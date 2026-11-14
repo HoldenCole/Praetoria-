@@ -224,8 +224,11 @@ public sealed class DynastySystem
         foreach (var id in world.Characters.Keys.OrderBy(k => k, StringComparer.Ordinal).ToList())
         {
             var c = world.Char(id);
-            if (c is not { Alive: true } || c.Age < MortalityAge) continue;   // young ⇒ no roll, no RNG
-            if (rng.NextDouble() < DeathProbability(c.Age))
+            if (c is not { Alive: true }) continue;
+            // health bears on it (docs/LIFE.md): the hale outlive their years, the frail do not, and the young die only of what ails them
+            double chance = c.Age >= MortalityAge ? DeathProbability(c.Age) * LifeSystem.DeathFactor(c) : LifeSystem.EarlyDeath(c);
+            if (chance <= 0) continue;   // young and well ⇒ no roll, no RNG
+            if (rng.NextDouble() < chance)
                 Die(world, id);
         }
     }
@@ -345,6 +348,7 @@ public sealed class DynastySystem
             world.Relationship(child.Id, parent).BondStrength = 100;
         }
         world.Log($"A child, {child.Name}, is born to {father.Name} and {mother.Name}.");
+        LifeSystem.Note(world, mother, "child", $"{given} was born."); LifeSystem.Note(world, father, "child", $"{given} was born.");
     }
 
     /// <summary>Kill a character (natural death, assassination, Bloody Event). If it was the
@@ -355,6 +359,7 @@ public sealed class DynastySystem
         if (c is not { Alive: true }) return;
         c.Alive = false;
         world.Log($"{c.Name} dies at {c.Age}.");
+        LifeSystem.Died(world, c);   // buried and spoken over, while the house still knows whose it is (docs/LIFE.md)
 
         if (id == world.ProtagonistId) Succeed(world, c);
     }
@@ -423,6 +428,7 @@ public sealed class DynastySystem
             }
         world.ProtagonistId = heir.Id;
         world.Pools[heir.Id] = ActionPools.ForPlayer();
+        LifeSystem.Note(world, heir, "head", $"Became head of {world.House(heir.HouseId)?.Name}.");
         world.WorldCounters["generation"] = world.Counter("generation") + 1;
         world.Successions.Add(new SuccessionRecord
         {

@@ -310,6 +310,11 @@ internal static class Qa
             if (decisions.NextInt(0, 25) == 0) foreach (var mm in w.Marriages.Where(mm => w.Char(mm.A)?.HouseId == house.Id || w.Char(mm.B)?.HouseId == house.Id).OrderBy(mm => mm.A, StringComparer.Ordinal).Take(1))
                 cands.Add(new MarriageCommand(p.Id, w.Char(mm.A)?.HouseId == house.Id ? mm.A : mm.B, MarriageCommand.Divorce));
         }
+        {   // a life: rest, the physicians, and laying the house down
+            if (decisions.NextInt(0, 4) == 0) cands.Add(new LifeCommand(p.Id, LifeCommand.Rest));
+            if (decisions.NextInt(0, 4) == 0) cands.Add(new LifeCommand(p.Id, LifeCommand.Physicians));
+            if (decisions.NextInt(0, 40) == 0) cands.Add(new LifeCommand(p.Id, LifeCommand.Retire));
+        }
         {   // ambitions: grant or refuse what the house's people ask, and name an heir
             foreach (var k in AmbitionSystem.Members(w, house).Where(k => k.Pursuit is { Request.Length: > 0 })) cands.Add(new AmbitionCommand(p.Id, decisions.NextInt(0, 3) == 0 ? AmbitionCommand.Refuse : AmbitionCommand.Grant, k.Id, tc.Ambitions));
             if (decisions.NextInt(0, 20) == 0) { var grownUp = AmbitionSystem.Members(w, house); cands.Add(new AmbitionCommand(p.Id, AmbitionCommand.NameHeir, grownUp.Count > 0 && decisions.NextInt(0, 3) != 0 ? grownUp[decisions.NextInt(0, grownUp.Count)].Id : "", tc.Ambitions)); }

@@ -41,6 +41,12 @@ public sealed class Character
     /// </summary>
     public HashSet<string> Flags { get; set; } = new();
 
+    // ---- a life of one's own (docs/LIFE.md)
+    /// <summary>0..100. Age lowers what it can be; wounds, illness and strain lower it; rest restores it. It bears on how long they live.</summary>
+    public int Health { get; set; } = 100;
+    /// <summary>What this person has done, who has been their friend and their enemy. Kept for the people of the player's house.</summary>
+    public Life? Life { get; set; }
+
     /// <summary>What this person is doing about their ambition (docs/AMBITIONS.md). Kept for the people of the player's house.</summary>
     public Pursuit? Pursuit { get; set; }
 

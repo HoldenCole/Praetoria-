@@ -1,0 +1,74 @@
+{
+  "texts": [
+    {
+      "id": "the_wound",
+      "title": "The Wound",
+      "body": "It will heal, the physicians say, and it will always show. {self.name} has looked at it in the glass. A person is not quite the same afterwards: slower on one side, and aware for the first time of having a body that can be broken.",
+      "choices": {
+        "carry_on_as_before": "Carry on as before, and be seen to.",
+        "take_the_time_it_needs": "Take the time it needs.",
+        "make_light_of_it": "Make light of it."
+      }
+    },
+    {
+      "id": "the_physicians_verdict",
+      "title": "The Physicians' Verdict",
+      "body": "They are careful how they put it. {self.name} is not dying, they say; {self.name} is simply not going to get better. The strength that was there last year is not coming back. There is time. It would be wise to use it.",
+      "choices": {
+        "put_the_house_in_order": "Put the house in order.",
+        "tell_no_one": "Tell no one.",
+        "spend_the_time_with_the_family": "Spend the time with the family."
+      }
+    },
+    {
+      "id": "an_old_friend",
+      "title": "An Old Friend",
+      "body": "{friend.name} of {friend.house} is in the city and has sent word, the way {friend.name} always does: no title, no business, a time and a place. They have known each other longer than either has held any office. There are not many people {self.name} can say that of.",
+      "choices": {
+        "an_evening_of_it": "Make an evening of it.",
+        "ask_what_they_hear": "Ask what they are hearing.",
+        "ask_a_favour": "Ask a favour."
+      }
+    },
+    {
+      "id": "a_friend_is_buried",
+      "title": "A Friend Is Buried",
+      "body": "The news came by an ordinary messenger on an ordinary day. They had been friends for longer than {self.name} has been most of the things {self.name} is. The house goes on around {self.name} as if nothing had happened.",
+      "choices": {
+        "speak_at_the_grave": "Speak at the grave.",
+        "go_and_say_nothing": "Go, and say nothing.",
+        "see_to_their_family": "See to their family."
+      }
+    },
+    {
+      "id": "the_enemy_is_dead",
+      "title": "The Enemy Is Dead",
+      "body": "For years there was someone whose first thought on hearing {self.name}'s name was how to do {self.name} harm. That person is dead, of nothing {self.name} did. A part of how {self.name} has arranged a life was arranged against them.",
+      "choices": {
+        "feel_nothing": "Feel nothing, and go on.",
+        "send_a_wreath": "Send a wreath.",
+        "drink_to_it": "Drink to it."
+      }
+    },
+    {
+      "id": "a_death_in_the_house",
+      "title": "A Death In The House",
+      "body": "One of the house is dead, and the house must bury them. What was said over them is written in the book. How it is done is for {self.name} to decide, and will be remembered by everyone who was there.",
+      "choices": {
+        "a_funeral_the_city_sees": "A funeral the city will see.",
+        "the_family_only": "The family only.",
+        "as_the_dead_would_have_wanted": "As the dead would have wanted."
+      }
+    },
+    {
+      "id": "the_elder_at_the_table",
+      "title": "The Elder At The Table",
+      "body": "{elder.name} laid the house down and has not quite laid it down. At dinner {elder.name} has an opinion on the matter before {self.name}, and the household has turned to hear it before {self.name} has spoken. {elder.name} ran this house for a long time.",
+      "choices": {
+        "ask_their_counsel": "Ask their counsel.",
+        "decide_it_yourself": "Decide it yourself.",
+        "let_them_tell_it_their_way": "Let them tell it their way."
+      }
+    }
+  ]
+}

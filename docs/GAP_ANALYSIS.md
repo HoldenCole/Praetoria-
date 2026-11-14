@@ -1010,3 +1010,18 @@ not stand for an office of state. Nobody in any other house pursues anything. A 
 **Gaps that remain.** See "Not in this piece" in docs/AMBITIONS.md. The one most felt in play is that restoring the
 house from an allowance is too slow to matter within one head's life.
 
+## 37. A life of one's own — 2026-11-14
+
+Built as docs/LIFE.md describes. With it the roadmap's person-and-family group is built through once; each piece has a
+"the rest" line for what it left.
+
+**Measured.** 572 tests, eight of them for this. The soak passes on eleven starts and three seeds, and in the last run
+no line ended in 33. The survival probe with health bearing on death: 1 of 80 lines ended (3 of 80 before). In the
+browser the old head laid the house down and died the next year, and the funeral was made from his record.
+
+**Found on the way.** A saga opened with everyone at full health whatever their age, so a head of 68 showed 100 against
+a most of 58 until the first year turned. Health is set to what each person's years allow when a world is first opened.
+
+**Gaps that remain.** Only the player's house has records, renown, names and funerals. There is no ill fame. Old friends
+do not act. There are no duels. Two of the seven events were not seen in the soak. Nothing is tuned.
+

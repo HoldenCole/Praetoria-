@@ -1,0 +1,512 @@
+{
+  "//": "A LIFE OF ONE'S OWN (docs/LIFE.md). Reads head_frail, has_old_friend, elder_in_the_house (each year); wounded_now, old_friend_died, old_enemy_died, funeral_held (deeds); and the character flags old_friend and retired.",
+  "events": [
+    {
+      "id": "the_wound",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "wounded_now",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "carry_on_as_before",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} was back at work before the dressings were off, and let it be seen. It impressed everyone except the physicians."
+            }
+          ]
+        },
+        {
+          "id": "take_the_time_it_needs",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -6
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did as the physicians said, for once, and let the wound close properly. Things got done without {self.name}, which was a lesson of its own."
+            }
+          ]
+        },
+        {
+          "id": "make_light_of_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said it looked worse than it was. It looks, to be fair, quite bad."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_physicians_verdict",
+      "tier": "situation",
+      "weight": 20,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "head_frail",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "put_the_house_in_order",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spent a week with the steward and the lawyers and came out of it knowing exactly what would happen to everything. It was not restful. It was a relief."
+            }
+          ]
+        },
+        {
+          "id": "tell_no_one",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told nobody what the physicians had said. The household guessed within the month."
+            }
+          ]
+        },
+        {
+          "id": "spend_the_time_with_the_family",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the business of the house go where it would for a season and sat with the family. Nobody mentioned why."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "an_old_friend",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "friend",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "friend",
+              "flag": "old_friend",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "has_old_friend",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "an_evening_of_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "friend",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {friend.name} sat up until the lamps failed and settled nothing. It was the best evening in a year."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_they_hear",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {friend.name} what was being said in {friend.house}. {friend.name} told the truth, as always, including the parts {self.name} would rather not have heard."
+            }
+          ]
+        },
+        {
+          "id": "ask_a_favour",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "friend",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {friend.name} for something. It was given at once. Both of them noticed that it had been asked."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_friend_is_buried",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "old_friend_died",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "speak_at_the_grave",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spoke at the grave, briefly and without notes. People who had come for the family's sake stayed to hear it."
+            }
+          ]
+        },
+        {
+          "id": "go_and_say_nothing",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood at the back and left before the end."
+            }
+          ]
+        },
+        {
+          "id": "see_to_their_family",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} saw quietly that the family wanted for nothing that season. Nobody was told whose doing it was."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_enemy_is_dead",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "old_enemy_died",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "feel_nothing",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} heard it and went on with the day. It was strange how little there was to feel."
+            }
+          ]
+        },
+        {
+          "id": "send_a_wreath",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a wreath, correctly worded. The family of the dead did not know what to make of it, which was partly the point."
+            }
+          ]
+        },
+        {
+          "id": "drink_to_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the good wine opened. It was heard of, as these things are."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_death_in_the_house",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "funeral_held",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_funeral_the_city_sees",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 10
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -10
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The house buried its dead with every honour, and the city came to watch. It was what a great house does."
+            }
+          ]
+        },
+        {
+          "id": "the_family_only",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "The house buried its dead with the family and nobody else. The things said were said by people who meant them."
+            }
+          ]
+        },
+        {
+          "id": "as_the_dead_would_have_wanted",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had it done as the dead had once said they wanted, down to the music. It was noticed by those who had known them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_elder_at_the_table",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "elder",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "elder",
+              "flag": "retired",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "elder",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "elder_in_the_house",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "ask_their_counsel",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "elder",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {elder.name} what {elder.name} would have done. The answer was long, and two-thirds of it was right."
+            }
+          ]
+        },
+        {
+          "id": "decide_it_yourself",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "elder",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked {elder.name} for the thought and decided the matter alone. {elder.name} said nothing more that evening."
+            }
+          ]
+        },
+        {
+          "id": "let_them_tell_it_their_way",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {elder.name} tell the whole story again, the way it has been told for years. The house likes to hear it."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

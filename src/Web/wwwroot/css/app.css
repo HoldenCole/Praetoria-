@@ -678,6 +678,11 @@ table.prospects button { white-space: nowrap; } table.prospects td, table.prospe
 @media (max-width: 700px) { .suit .gauge { grid-template-columns: 6.5rem 1fr 30px; } table.prospects th:nth-child(3), table.prospects td:nth-child(3) { display: none; } }
 
 /* ---- the household: found family and delegated duties (docs/HOUSEHOLD.md) ---- */
+.panel.life { grid-column: span 2; } @media (max-width: 1000px) { .panel.life { grid-column: auto; } }
+.panel.life .hh-head { border-top: 1px solid var(--line); margin-top: .5rem; padding-top: .45rem; } .panel.life b.bad { color: var(--warn); }
+.deed { font-size: .84rem; padding: .12rem 0; color: var(--ink2); } .deed span { display: inline-block; min-width: 3.4rem; color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
+.health-row { padding: .2rem 0; border-top: 1px dotted var(--line); font-size: .86rem; } .health-row:first-of-type { border-top: 0; }
+.funeral { border-top: 1px dotted var(--line); padding: .4rem 0; font-size: .86rem; color: var(--ink2); line-height: 1.45; } .funeral .first { color: var(--ink); font-family: var(--serif, inherit); }
 .panel.ambitions .suit { border-top: 1px dotted var(--line); padding: .4rem 0 .3rem; } .panel.ambitions .suit.incoming { border-left: 2px solid var(--brass2); padding-left: .6rem; }
 .panel.wealth { margin-top: .8rem; } .panel.wealth .hh-head { border-top: 1px solid var(--line); margin-top: .55rem; padding-top: .5rem; line-height: 1.35; } .panel.wealth .suit { border-top: 1px dotted var(--line); padding: .35rem 0 .25rem; }
 .purse-row { padding: .25rem 0; border-top: 1px dotted var(--line); font-size: .86rem; } .purse-row .suit-acts { display: flex; }

@@ -14,6 +14,8 @@
   `tools/ci.sh` now runs CI's exact steps locally.
 
 ### Changed
+- A wound in battle now costs health, is written into the person's record and leaves a scar on their portrait.
+- Someone under fifty can now die, if their health is very low.
 - Nobody climbs a skill a step a year any more. Other characters used to drill their best skill every year without
   limit; training now adds learning toward the next step and stops at the person's ceiling.
 - The skill chart on the character sheet runs to ten, not five.
@@ -38,6 +40,13 @@
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **A life of one's own** (docs/LIFE.md). **Health** for everyone: age lowers what it can be, wounds, illness and
+  strain lower it, rest and physicians restore it, and it bears on how long a person lives. **A record** of what each
+  person of the house did, from which come their renown and, for some, a name. **Old friends and old enemies**, whose
+  deaths are felt. **Retirement:** a head may lay the house down in life and stay on as its elder; relatives lay down
+  their work at seventy or when their health fails. **Funerals,** at which what is said is made from the record.
+  A Life panel on the character sheet, the house's health and its dead on the Dynasty screen, seven events,
+  `tools/browser/life.js`.
 - **Ambitions** (docs/AMBITIONS.md), on the Dynasty screen. Every grown member of the house goes after what they want
   without being told: takes an empty command, founds a venture with their own money, puts their purse into a house
   that is short, builds a standing to rival the heir's. Now and then one asks the head for a command, a stake, a word

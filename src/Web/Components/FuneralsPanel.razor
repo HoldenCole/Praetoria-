@@ -1,0 +1,43 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
+    var funerals = w.Funerals.OrderByDescending(f => f.Turn).ToList();
+    var living = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != p.Id && c.Age >= 16).OrderBy(c => c.Health).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+}
+<section class="panel funerals">
+    <h3><Icon Name="dynasty" Size="13" /> The health of the house</h3>
+    @if (living.Count == 0) { <div class="muted small">Nobody grown of the house but you.</div> }
+    @foreach (var c in living.Take(8))
+    {
+        string epithet = LifeSystem.Epithet(c);
+        <div class="health-row" title="@($"renown {LifeSystem.Renown(c)}: {LifeSystem.RenownName(LifeSystem.Renown(c))}")">
+            <b>@c.Name</b>@(epithet.Length > 0 ? $", {epithet}" : "") <span class="muted">@c.Age</span>
+            <span class="pill small @(c.Health < LifeSystem.Frail ? "warn" : c.Health >= 80 ? "good" : "")">@LifeSystem.HealthName(c.Health)</span>
+            @if (c.Flags.Contains(LifeSystem.IllChar)) { <span class="pill small warn">ill</span> }
+            @if (c.Flags.Contains(LifeSystem.WoundedChar)) { <span class="pill small warn">wounded</span> }
+            @if (c.Flags.Contains(LifeSystem.RetiredChar)) { <span class="pill small">has laid down their work</span> }
+        </div>
+    }
+</section>
+@if (funerals.Count > 0)
+{
+    <section class="panel funerals">
+        <h3><Icon Name="dynasty" Size="13" /> What was said of the dead</h3>
+        @foreach (var f in funerals.Take(_all ? 12 : 2))
+        {
+            <div class="funeral">
+                @foreach (var (line, i) in f.Lines.Select((l, i) => (l, i))) { <div class="@(i == 0 ? "first" : "")">@line</div> }
+            </div>
+        }
+        @if (funerals.Count > 2) { <button class="opt inline tiny" @onclick="() => _all = !_all">@(_all ? "Show fewer" : $"Show all {funerals.Count}")</button> }
+    </section>
+}
+
+@code {
+    private bool _all;
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

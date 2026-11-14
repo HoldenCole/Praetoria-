@@ -191,3 +191,34 @@ public sealed class AmbitionCommand : ICommand
         if (_what == NameHeir) AmbitionSystem.NameHeir(w, head, who); else _system.Answer(w, head, who!, _what == Grant, new CommandExecutor(), ctx);
     }
 }
+
+/// <summary>A life of one's own (docs/LIFE.md). <see cref="Rest"/>: a season away (2 influence, once a year).
+/// <see cref="Physicians"/>: 6 credits from your own purse. <see cref="Retire"/>: lay the house down in life to your heir.</summary>
+public sealed class LifeCommand : ICommand
+{
+    public const string Rest = "rest", Physicians = "physicians", Retire = "retire";
+    private static readonly Dictionary<string, int> RestCost = new() { [Pool.Influence] = LifeSystem.RestInfluence };
+    private readonly string _what;
+    public LifeCommand(string actorId, string what) { ActorId = actorId; _what = what; }
+    public string ActorId { get; }
+    public string Describe() => _what;
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var me = w.Char(ActorId);
+        return _what switch
+        {
+            Rest => LifeSystem.RestRefusal(w, me) ?? (ctx.PoolsOf(ActorId).CanAfford(RestCost) ? null : "no influence"),
+            Physicians => LifeSystem.PhysicianRefusal(w, me),
+            Retire => LifeSystem.RetireRefusal(w, me),
+            _ => "no such thing"
+        };
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var me = w.Char(ActorId)!;
+        if (_what == Rest) { ctx.PoolsOf(ActorId).Spend(RestCost); LifeSystem.Rest(w, me); }
+        else if (_what == Physicians) LifeSystem.Physicians(w, me);
+        else LifeSystem.Retire(w, me);
+    }
+}

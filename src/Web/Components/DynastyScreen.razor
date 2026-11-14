@@ -43,6 +43,7 @@
         <EducationPanel />
         </div>
         <aside class="dash-side">
+            <FuneralsPanel />
             @if (fc != null)
             {
                 var fh = w.House(fc.HouseId)!; var rel = w.GetRelationship(fc.Id, pid); int d = rel?.Disposition ?? 0; var sp = DynastySystem.Spouse(w, fc);

@@ -74,3 +74,38 @@ public sealed class Pursuit
     /// <summary>What they did about it this year, in a line.</summary>
     public string Note { get; set; } = "";
 }
+
+/// <summary>One thing a person did, for the record of their life (docs/LIFE.md).</summary>
+public sealed class Deed
+{
+    public int Turn { get; set; }
+    public int Age { get; set; }
+    public string Kind { get; set; } = "";
+    public string Text { get; set; } = "";
+}
+
+/// <summary>The record of a life (docs/LIFE.md): what they did, how often they were wounded, and who has been their friend or their
+/// enemy long enough for it to count.</summary>
+public sealed class Life
+{
+    public List<Deed> Deeds { get; set; } = new();
+    public int Wounds { get; set; }
+    /// <summary>Things already noted once, so they are not noted again (a rank reached, a skill mastered, an office held).</summary>
+    public HashSet<string> Marks { get; set; } = new();
+    /// <summary>Person id → the turn they first thought well enough of this person to be called a friend.</summary>
+    public Dictionary<string, int> Friends { get; set; } = new();
+    /// <summary>Person id → the turn they first thought ill enough of this person to be called an enemy.</summary>
+    public Dictionary<string, int> Enemies { get; set; } = new();
+    public int RestedTurn { get; set; } = -1;
+}
+
+/// <summary>What was said when one of the house was buried.</summary>
+public sealed class Funeral
+{
+    public int Turn { get; set; }
+    public string PersonId { get; set; } = "";
+    public string Name { get; set; } = "";
+    public int Age { get; set; }
+    public string Epithet { get; set; } = "";
+    public List<string> Lines { get; set; } = new();
+}

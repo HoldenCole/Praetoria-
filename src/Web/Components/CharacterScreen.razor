@@ -53,6 +53,7 @@
             </div>
         </section>
         <LearningPanel />
+        <LifePanel />
         <section class="panel">
             <h3><Icon Name="marriage" Size="13" /> Blood and bonds</h3>
             @if (spouse != null) { <div class="person"><Portrait Id="@spouse.Id" Name="@spouse.Name" Sex="@spouse.Sex" Age="@spouse.Age" Alive="@spouse.Alive" Accent="@(w.House(spouse.HouseId)?.AccentColor ?? "#888")" Size="30" /><span><b>@spouse.Name</b> <span class="muted">your spouse · @(spouse.Alive ? spouse.Age.ToString() : "†")@(spouse.HouseId != house.Id ? $" · of {w.House(spouse.HouseId)?.Name}" : "")</span></span></div> }

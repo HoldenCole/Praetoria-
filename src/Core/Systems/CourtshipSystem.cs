@@ -103,7 +103,7 @@ public static class CourtshipSystem
         if (ours.PatronId == theirs.Id || theirs.PatronId == ours.Id) v += 15;
         if (ours.Bloc.Length > 0 && ours.Bloc == theirs.Bloc) v += 5;
         if (ourHead?.Id == s.Id) v += 6;
-        v += Math.Min(10, s.CareerRank * 2);
+        v += Math.Min(10, s.CareerRank * 2) + Math.Min(8, LifeSystem.Renown(s) / 10);   // a name of their own counts with a family
         if (ours.Origin == "new" && theirs.Origin == "old") v -= 8;
         return Math.Clamp(v, 0, 80);
     }
@@ -375,6 +375,7 @@ public static class CourtshipSystem
         w.Courtships.RemoveAll(c => c.SuitorId == a.Id || c.SuitorId == b.Id || c.TargetId == a.Id || c.TargetId == b.Id);
         foreach (var c in w.Courtships.Where(c => c.RivalId == a.Id || c.RivalId == b.Id)) { c.RivalId = ""; c.RivalStanding = 0; }
         if (log) w.Log($"{a.Name} of {ha?.Name} weds {b.Name} of {hb?.Name}{(kind == Love ? ", and by every account gladly" : "")}.{(paid > 0 ? $" {paid} credits pass with the bride." : "")}");
+        LifeSystem.Note(w, a, kind == Love ? "love" : "wed", $"Married {b.Name} of {hb?.Name}{(kind == Love ? ", for love" : "")}."); LifeSystem.Note(w, b, kind == Love ? "love" : "wed", $"Married {a.Name} of {ha?.Name}{(kind == Love ? ", for love" : "")}.");
         if (ourWedding)
         {
             Mark(w, JustWedFlag); if (kind == Love) { Mark(w, LoveMatchFlag); w.WorldCounters["love_matches"] = w.Counter("love_matches") + 1; }

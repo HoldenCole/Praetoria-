@@ -1,0 +1,43 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var life = p.Life;
+    int cap = LifeSystem.Cap(p.Age); int renown = LifeSystem.Renown(p); string epithet = LifeSystem.Epithet(p);
+    var friends = life == null ? new() : life.Friends.Where(kv => w.Char(kv.Key) is { Alive: true }).OrderBy(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).ToList();
+    var enemies = life == null ? new() : life.Enemies.Where(kv => w.Char(kv.Key) is { Alive: true }).OrderBy(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).ToList();
+    var deeds = life?.Deeds.OrderByDescending(d => d.Turn).ToList() ?? new();
+    var rest = new LifeCommand(pid, LifeCommand.Rest).Refusal(G.Ctx); var phys = new LifeCommand(pid, LifeCommand.Physicians).Refusal(G.Ctx); var retire = new LifeCommand(pid, LifeCommand.Retire).Refusal(G.Ctx);
+    var heir = DynastySystem.FindHeir(w, p); var elder = p.MentorId.Length > 0 && w.Char(p.MentorId) is { Alive: true } m && m.Flags.Contains(LifeSystem.RetiredChar) ? m : null;
+    string Tie(string id, int since) { var o = w.Char(id)!; int y = w.Turn - since; return $"{o.Name} of {w.House(o.HouseId)?.Name}, {(y <= 0 ? "this year" : y == 1 ? "a year" : y + " years")}"; }
+}
+<section class="panel life">
+    <h3><Icon Name="claim" Size="13" /> A life <span class="muted">@(epithet.Length > 0 ? epithet + " · " : "")@LifeSystem.RenownName(renown)</span></h3>
+    <div class="gauges">
+        <div class="gauge" title="Age lowers what it can be (the mark). Wounds, illness and great strain lower it. Rest and time restore it. It bears on how long you live."><span>Health</span><i><b style="width:@p.Health%" class="@(p.Health >= 80 ? "high" : p.Health < LifeSystem.Sound ? "low" : "")"></b><u style="left:@cap%"></u></i><em>@p.Health</em></div>
+        <div class="gauge" title="What you are apart from your house: how far you rose and what you did."><span>Renown</span><i><b style="width:@renown%" class="@(renown >= 45 ? "high" : "")"></b></i><em>@renown</em></div>
+    </div>
+    <div class="muted small">You are <b class="@(p.Health < LifeSystem.Sound ? "bad" : "")">@LifeSystem.HealthName(p.Health)</b>@(p.Flags.Contains(LifeSystem.IllChar) ? ", and ill" : "")@(p.Flags.Contains(LifeSystem.WoundedChar) ? ", and carrying a wound" : "")@(life is { Wounds: > 0 } ? $" · wounded {life.Wounds} time(s)" : "") · at @p.Age you can be no better than @cap.@(p.Health < LifeSystem.Frail ? " The frail lay their commands down, and do not live long." : "")</div>
+    <div class="suit-acts">
+        <button class="opt inline" disabled="@(rest != null)" title="@(rest ?? "health +8, strain −10")" @onclick="() => G.Execute(new LifeCommand(pid, LifeCommand.Rest))">A season away · @LifeSystem.RestInfluence influence</button>
+        <button class="opt inline" disabled="@(phys != null)" title="@(phys ?? "health +6, and an illness cured; from your own purse")" @onclick="() => G.Execute(new LifeCommand(pid, LifeCommand.Physicians))">The physicians · @LifeSystem.PhysicianCredits credits</button>
+        @if (_confirm) { <button class="opt inline veto" @onclick="() => { _confirm = false; G.Execute(new LifeCommand(pid, LifeCommand.Retire)); }">Yes, lay it down</button> <button class="opt inline" @onclick="() => _confirm = false">No</button> }
+        else { <button class="opt inline" disabled="@(retire != null)" title="@(retire ?? $"{heir?.Name} has the house and you play on as them. You stay as its elder and teach them.")" @onclick="() => _confirm = true">Lay the house down</button> }
+    </div>
+    @if (elder != null) { <div class="muted small">@elder.Name laid the house down to you and is its elder still, and teaches you.</div> }
+
+    <div class="ac-fact"><span>Old friends</span><p>@(friends.Count == 0 ? "Nobody outside the house has thought well of you long enough to be called one." : string.Join("; ", friends.Take(5).Select(kv => Tie(kv.Key, kv.Value) + (w.Turn - kv.Value >= LifeSystem.OldTieYears ? "" : " (not yet old)"))) + ".")</p></div>
+    <div class="ac-fact"><span>Old enemies</span><p>@(enemies.Count == 0 ? "Nobody has hated you long enough to be called one." : string.Join("; ", enemies.Take(5).Select(kv => Tie(kv.Key, kv.Value) + (w.Turn - kv.Value >= LifeSystem.OldTieYears ? "" : " (not yet old)"))) + ".")</p></div>
+
+    <div class="hh-head"><b>What you have done</b> <span class="muted small">It is what will be said of you.</span></div>
+    @if (deeds.Count == 0) { <div class="muted small">Nothing is written yet.</div> }
+    @foreach (var d in deeds.Take(_all ? 40 : 6)) { <div class="deed"><span>at @d.Age</span> @d.Text</div> }
+    @if (deeds.Count > 6) { <button class="opt inline tiny" @onclick="() => _all = !_all">@(_all ? "Show fewer" : $"Show all {deeds.Count}")</button> }
+</section>
+
+@code {
+    private bool _confirm, _all;
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

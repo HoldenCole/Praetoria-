@@ -635,6 +635,7 @@ public sealed class FleetSystem
             string skill = c.Skill("tactics") <= c.Skill("gunnery") ? "tactics" : "gunnery";
             c.Skills[skill] = c.Skill(skill) + 1;
             w.Log($"{c.Name} learns from the victory ({skill} {c.Skill(skill)}).");
+            LifeSystem.Note(w, c, "victory", "Won a battle in command of a fleet.");
             if (c.Flags.Contains(FrontFlag))
             {
                 int v = w.Counter(ValourKey(c.Id)) + 1; w.WorldCounters[ValourKey(c.Id)] = v;
@@ -657,7 +658,7 @@ public sealed class FleetSystem
             }
             else
             {
-                c.Flags.Add("wounded");
+                LifeSystem.Wound(w, c, "when the line broke");   // it costs their health, and it shows (docs/LIFE.md)
                 c.Stress = Math.Min(100, c.Stress + 10);
             }
         }

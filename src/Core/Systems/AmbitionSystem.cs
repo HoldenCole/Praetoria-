@@ -167,7 +167,7 @@ public sealed class AmbitionSystem
         if (fromPurse) { who.Purse -= cost; house.Treasury.Credits += cost; }
         if (!executor.TryExecute(new FoundBusinessCommand(who.Id, def.Id, sys, _ventures, _holdings, _titles), ctx))
         { if (fromPurse) { who.Purse += cost; house.Treasury.Credits -= cost; } return false; }
-        w.Founders[FoundBusinessCommand.IdFor(house.Id, def.Id, sys)] = who.Id; who.Pursuit!.Note = $"Founded {def.Name}."; who.Flags.Add(FounderChar); Mark(w, FoundedFlag);
+        w.Founders[FoundBusinessCommand.IdFor(house.Id, def.Id, sys)] = who.Id; who.Pursuit!.Note = $"Founded {def.Name}."; who.Flags.Add(FounderChar); Mark(w, FoundedFlag); LifeSystem.Note(w, who, "venture", $"Founded {def.Name} for the house.");
         w.Log($"{who.Name} founds {def.Name} for {house.Name}{(fromPurse ? " with their own money" : " with the house's stake")}.");
         return true;
     }
@@ -285,7 +285,7 @@ public sealed class AmbitionSystem
             if (u.Progress >= 100 && !u.Fulfilled)
             {
                 u.Fulfilled = true; u.FulfilledTurn = w.Turn; u.Request = ""; u.RequestArg = ""; c.Flags.Remove(AskingChar); c.Flags.Add(FulfilledChar); Mark(w, FulfilledFlag);
-                Regard(w, c, p, 4 + 6 * Math.Min(2, u.Helped));
+                Regard(w, c, p, 4 + 6 * Math.Min(2, u.Helped)); LifeSystem.Note(w, c, "fulfilled", $"Had what they had wanted: {Wants(u.Goal)}.");
                 w.Log($"{c.Name} has what they wanted: {Wants(u.Goal)}.{(u.Helped > 0 ? $" They know what {p.Name} did toward it." : "")}");
             }
             else if (!u.Fulfilled && w.Turn - u.Since >= ThwartedAfter && u.Progress < 30 && u.Refused > u.Helped)

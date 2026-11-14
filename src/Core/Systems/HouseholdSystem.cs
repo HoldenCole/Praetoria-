@@ -77,6 +77,7 @@ public sealed class HouseholdSystem
         if (!child && theirHead != null && (person.MotherId == theirHead.Id || person.FatherId == theirHead.Id) && Title.RankOf(theirs.Title) >= Title.RankOf(ours.Title)) Add(-30, "a child of a house as great as yours");
         bool orphan = child && (person.MotherId.Length == 0 || w.Char(person.MotherId)?.Alive != true) && (person.FatherId.Length == 0 || w.Char(person.FatherId)?.Alive != true);
         if (orphan) Add(30, "an orphan");
+        if (LifeSystem.Renown(head) >= 25) Add(Math.Min(10, LifeSystem.Renown(head) / 8), "your own name");
         if (kind == Protege && head.CareerTrack.Length > 0 && person.CareerTrack == head.CareerTrack && head.CareerRank > person.CareerRank) Add(10, "you are senior in their own service");
         if (DynastySystem.Spouse(w, person) is { } sp && sp.HouseId != ours.Id) Add(-25, "married elsewhere");
         return (v, why);
@@ -115,6 +116,7 @@ public sealed class HouseholdSystem
         ours.Petitions.RemoveAll(p => p.PersonId == person.Id);
         w.Courtships.RemoveAll(c => c.Incoming && c.TargetId == person.Id);
         if (ours.Id == w.Protagonist?.HouseId) Mark(w, TookInFlag);
+        LifeSystem.Note(w, head, "took_in", $"Took {person.Name} into the house."); LifeSystem.Note(w, person, "took_in", $"Was taken into {ours.Name} by {head.Name}.");
         w.Log(kind switch
         {
             Ward => $"{person.Name} comes to {ours.Name} as {head.Name}'s ward.",
@@ -143,6 +145,7 @@ public sealed class HouseholdSystem
         string old = person.Name; person.Name = Given(person.Name) + " " + house.Name.Replace("House ", "");
         foreach (var (a, b) in new[] { (person.Id, head.Id), (head.Id, person.Id) }) { var r = w.Relationship(a, b); r.Bond = BondType.Blood; r.BondStrength = 80; r.Disposition = Math.Clamp(r.Disposition + 20, -100, 100); }
         Mark(w, AdoptedFlag);
+        LifeSystem.Note(w, head, "adopted", $"Adopted {person.Name} as an heir."); LifeSystem.Note(w, person, "adopted", $"Was adopted by {head.Name} and took the name.");
         w.Log($"{head.Name} adopts {old}, who is {person.Name} from this day and stands in the line of {house.Name}.");
     }
 
