@@ -1,5 +1,5 @@
 {
-  "//": "BREAKING AWAY (docs/BREAKAWAY.md). Reads war_of_independence, may_refuse_the_throne (each year); declared_independence, let_go_by_the_reach, independence_won, independence_lost, a_state_breaks_away, the_reach_is_partitioned, sedition_reported, house_won_over (deeds). What is decided is decided on the Senate screen's standing view.",
+  "//": "BREAKING AWAY (docs/BREAKAWAY.md). Reads war_of_independence, may_refuse_the_throne (each year); declared_independence, let_go_by_the_reach, independence_won, independence_lost, a_state_breaks_away, the_reach_is_partitioned, sedition_reported, house_won_over, reconquest_begun, rejoined_the_reach (deeds). What is decided is decided on the Senate screen's standing view.",
   "events": [
     {
       "id": "the_declaration",
@@ -656,6 +656,143 @@
             {
               "type": "log",
               "text": "{self.name} asked them, since they knew the region, who else was tired of the capital. They had been waiting to be asked."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "they_come_back_for_it",
+      "tier": "situation",
+      "weight": 80,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "reconquest_begun",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "hold_them_to_the_treaty",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the treaty read aloud on every world of the state, with the Senate's seal held up for the crowd to see. It will not stop a fleet. It tells everyone who broke their word."
+            }
+          ]
+        },
+        {
+          "id": "say_it_was_always_coming",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the captains that nobody had ever believed the treaty would outlast the capital's patience, and that the state had spent its years of peace getting ready. Some of that was true."
+            }
+          ]
+        },
+        {
+          "id": "send_for_terms_at_once",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent to ask what the Reach would take to turn its fleets around. The answer was the region. It was worth asking."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "back_in_the_reach",
+      "tier": "situation",
+      "weight": 70,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "rejoined_the_reach",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_your_seat_quietly",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the house's old seat in the chamber without a speech. Several members found reasons to walk past it."
+            }
+          ]
+        },
+        {
+          "id": "say_why_you_came_back",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the chamber plainly why the house had left and why it had returned. It was heard in silence, which in that room is a kind of respect."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_it_was_for",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} walked the capital's galleries that evening wondering what the years outside had been for. Nobody who was asked had an answer either."
             }
           ]
         }

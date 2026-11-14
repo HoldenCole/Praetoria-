@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-14.
+Last updated 2026-11-14 (second pass).
 
 ## The same gap in many places
 
@@ -26,10 +26,10 @@ These recur across systems. Closing one properly closes several lines below, so 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
 | B1 | **The three forms of state differ only in name.** A republic needs its own council, a dictatorship a term or a strongman, a kingdom a succession. | L | Politics under a throne |
-| B2 | **A state is not on the map.** Its region is not drawn differently; its border means nothing for lanes, trade or the Exchange. | M | Nations on the map |
-| B3 | **A state is not a neighbour.** No treaties, no later war or peace as a state, no reconquest, no rejoining. | M | B2 |
-| B4 | A state is one region. Regions cannot join one that exists. | S | B3 |
-| B5 | The older free march (a rim house renouncing the capital) is its own small rule and should become a breakaway state. | S | |
+| B2 | A state's border means nothing for trade, the lanes or the Exchange. Its region is named on the map but not drawn as a different country. | M | Nations on the map |
+| B3 | A state makes no agreements of its own: no trade treaty, no alliance, no envoys. It does not make war as a state. | M | B1 |
+| B4 | A state is one region. Regions and houses cannot join one that exists. | S | B3 |
+| B5 | The older free march (a rim house renouncing the capital) and free holds (a rebel world) are their own rules and should become breakaway states. | M | |
 | B6 | Under a throne the Reach's temper is one number. A new Caesar should have his own. | S | Politics under a throne |
 | B7 | Standing alone weighs fuel, the treasury and strategic monopolies. It does not weigh food, manpower or the goods of the market. | M | The economy |
 | B8 | Working on a house is a word or a gift. No promise of a place in the new state, no marriage to bind it, no threat. | S | B1 |
@@ -38,9 +38,10 @@ These recur across systems. Closing one properly closes several lines below, so 
 
 ## The Caesar road (docs/CAESAR.md)
 
+A rival Caesar is rare on purpose (docs/PROCESS.md). Measured: a general passed all three gates in 1 of 60 runs.
+
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| C1 | **A rival Caesar was not seen in 60 runs.** No general was both of the first rank and loved. Rarer than the owner's "once in ten or less" if it should be met now and then. | S | A probe run per change |
 | C2 | A general does not defect with his crews, and crews do not follow a dead commander's heir. | M | |
 | C3 | The parties do not act as parties in the civil war. | S | |
 | C4 | No proscription, amnesty or negotiated end. | M | |
@@ -109,5 +110,8 @@ look-and-feel pass is planned and not begun, there is no sound.
 | B-a | Standing alone was not tested: no economy, no monopoly. | 2026-11-14 | Fuel of its own, a treasury that pays its way, and half the Reach's output of a strategic resource now move the Reach's temper; a state with no fuel is embargoed while it fights; one with leverage outlasts the Reach faster. B7 is what is left. |
 | B-b | You could not work on a region's houses. | 2026-11-14 | A quiet word or a gift raises a house's regard; at 25 it gives its word. The capital's creature reports you. B8 is what is left. |
 | B-c | The great war came by the calendar. | 2026-11-14 | Its clock is moved only by what is wrong with the Reach, and runs back when nothing is; blocs that had formed stand down. B9 and B10 are what is left. |
+| B-d | A state was not a neighbour: no treaty, no reconquest, no rejoining. | 2026-11-14 | Recognition signs a ten-year treaty that bars war either way; when it lapses a rested Reach may vote a reconquest; the ruling house may take the state back in. B3 is what is left. |
+| B-e | A state was not on the map. | 2026-11-14 | Its name is on its region on the map, in the region list and on the Worlds screen, with whether it is still fighting. B2 is what is left. |
+| C-a | A rival Caesar could never arise: no general was both of the first rank and loved. | 2026-11-14 | Seven victories now count as being the squares' hero, charisma 5 as charm, and the Senate's guardians recall a general of that stature, which is his cause. Measured: one in 60 runs passes every gate. Rare by the owner's rule. |
 | R-a | The Republic fell in two games of three with nobody trying. | 2026-11-14 | The great war no longer crowns anyone; a rival must pass three gates. |
 | A-a | A relative could not stand for office. | 2026-11-14 | The ladder of offices. |

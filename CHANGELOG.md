@@ -70,6 +70,9 @@
 ### Added
 - **A gap register** (docs/GAPS.md, `tools/gaps.sh`) and the rule for keeping it (docs/PROCESS.md): every thin thing
   in one list with its size, added in the same commit that makes it; close before you open.
+- **A state as a neighbour** (docs/BREAKAWAY.md). Recognition signs a **ten-year treaty** that bars war either way.
+  When it lapses a rested Reach may vote a **Reconquest**, and a state that holds on is recognised again. The ruling
+  house may **rejoin the Reach**. A state's name is on its region on the map and the Worlds screen.
 - **Could it stand alone?** (docs/BREAKAWAY.md). A region that would break away is asked three things, and the
   answers move the Reach's temper: fuel of its own (without it the Reach closes its exchanges while the state fights),
   a treasury that pays its way, and something the Reach cannot do without (half its helium-3, rare earths or

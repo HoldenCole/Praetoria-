@@ -487,7 +487,7 @@ public sealed class CaesarSystem
     // a reason: he was extremely able, extremely well liked, and the times were his. Another house's general marches only when all
     // three hold. The player may march without them, and then finds what they are worth in who declares.
 
-    public const int GateTactics = 6, GateVictories = 4, GateCharisma = 6, GateCharm = 9, GateTriumphs = 2, GateLegitimacy = 50, TroubledAt = 2, GreatWarMemory = 15;
+    public const int GateTactics = 6, GateVictories = 4, GateCharisma = 5, GateCharm = 8, GateTriumphs = 2, GateHeroVictories = 7, GateLegitimacy = 50, TroubledAt = 2, GreatWarMemory = 15;
     public const string GreatWarEndedKey = "great_war_ended";
 
     /// <summary>What is wrong with the Republic this year. Two or more and it is troubled: the times a general needs.</summary>
@@ -519,7 +519,7 @@ public sealed class CaesarSystem
     /// <summary>Liked by nature (charisma, or charisma and a tongue), or made the squares' own by what they have done: the name the Reach
     /// gives one who leads from the front, or a second triumph.</summary>
     public static bool Charms(World w, Character c) =>
-        c.Skill("charisma") >= GateCharisma || c.Skill("charisma") + c.Skill("oratory") >= GateCharm || c.Flags.Contains(FleetSystem.AchillesFlag) || Triumphs(w, c) >= GateTriumphs;
+        c.Skill("charisma") >= GateCharisma || c.Skill("charisma") + c.Skill("oratory") >= GateCharm || c.Flags.Contains(FleetSystem.AchillesFlag) || Triumphs(w, c) >= GateTriumphs || Victories(w, c) >= GateHeroVictories;
 
     /// <summary>The three gates for this house's general, each with whether it is met and what it lacks.</summary>
     public static List<(string name, bool met, string says)> Gates(World w, House house)
@@ -531,7 +531,7 @@ public sealed class CaesarSystem
         if (Triumphs(w, g) == 0) lacks.Add("no triumph");
         list.Add(("A commander of the first rank", lacks.Count == 0, lacks.Count == 0 ? $"tactics {g.Skill("tactics")}, {Victories(w, g)} battles won, {Triumphs(w, g)} triumph(s)" : string.Join(", ", lacks)));
         lacks = new List<string>();
-        if (!Charms(w, g)) lacks.Add($"charisma {g.Skill("charisma")} of {GateCharisma}, no name the Reach has given, and not a second triumph");
+        if (!Charms(w, g)) lacks.Add($"charisma {g.Skill("charisma")} of {GateCharisma}, no name the Reach has given, not a second triumph, and {Victories(w, g)} of {GateHeroVictories} victories");
         if (DevotedHulls(w, g) < MarchHulls) lacks.Add($"{DevotedHulls(w, g)} of {MarchHulls} hulls would follow");
         if (house.Legitimacy < GateLegitimacy) lacks.Add($"the house's legitimacy is {house.Legitimacy} of {GateLegitimacy}");
         list.Add(("Loved", lacks.Count == 0, lacks.Count == 0 ? "by the crews, by the squares, and of a house that is respected" : string.Join(", ", lacks)));

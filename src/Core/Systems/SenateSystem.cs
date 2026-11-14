@@ -34,6 +34,8 @@ public sealed class SenateSystem
     public const int DefyRegard = -15, ObligeRegard = 5;
     /// <summary>The generals and the Senate (docs/CAESAR.md): triumphs and recalls are voted here.</summary>
     public CaesarSystem? Caesar { get; set; }
+    /// <summary>States that have left the Reach (docs/BREAKAWAY.md): going back for one is voted here.</summary>
+    public PolitySystem? Polities { get; set; }
     public static bool IsPetition(Motion m) => m.ProposerHouseId.StartsWith(EstatePrefix);
     public static string? PetitionEstate(Motion m) => IsPetition(m) ? m.ProposerHouseId[EstatePrefix.Length..] : null;
     /// <summary>Who brings the motion: a house's name, or an estate's for a petition.</summary>
@@ -168,6 +170,9 @@ public sealed class SenateSystem
                 break;
             case "recall":
                 if (Caesar != null && targetHouse != null) lean += Caesar.RecallLean(w, h, targetHouse, toTarget);
+                break;
+            case "reconquest":
+                if (Polities != null && targetHouse != null) lean += Polities.ReconquestLean(w, h, targetHouse, toTarget);
                 break;
             case "act":
                 lean += ActLean(w, h, m);
@@ -409,6 +414,7 @@ public sealed class SenateSystem
         }
         if (def.Interest == "triumph" && target != null) Caesar?.TriumphVoted(w, target, proposer, passed: true);
         if (def.Interest == "recall" && target != null) Caesar?.RecallVoted(w, target, proposer, passed: true);
+        if (def.Interest == "reconquest" && target != null && Polities != null && PolitySystem.Of(w, target.Id) is { Recognised: > 0 } state) Polities.Reconquer(w, state);
         if (def.Target == "nation") NationSystem.DeclareWar(w, Nations, m.TargetId, m.ProposerHouseId);
         if (def.Peace && target != null && _fleets != null)
             foreach (var enemy in w.EnemiesOf(target.Id).ToList()) _fleets.MakePeace(w, target.Id, enemy, terms: false);
@@ -495,6 +501,15 @@ public sealed class SenateSystem
     /// True if something was moved.</summary>
     private bool Generals(World w, string? mine)
     {
+        // going back for a state: the capital's holder moves it once the treaty has lapsed, the Reach is rested, and what would be sent is twice what would be met
+        if (Polities != null && _motions.Def("reconquest") != null && !w.Motions.Any(m => m.Open && m.Kind == "reconquest") && RegionSystem.CapitalHolder(w) is { } seat && seat.Id != mine
+            && PolitySystem.InReach(w, seat.Id) && MayPropose(w, seat.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == seat.Id))
+            foreach (var p in w.Polities.Where(p => w.House(p.HeadHouseId) is { } ruler && Polities.ReconquestRefusal(w, ruler) == null).OrderBy(p => p.Id, StringComparer.Ordinal))
+            {
+                int theirs = p.Members.Sum(id => FleetSystem.StrengthOf(w, id));
+                int ours = FleetSystem.StrengthOf(w, seat.Id) + w.Houses.Values.Where(h => h.Id != seat.Id && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id)).Select(h => FleetSystem.StrengthOf(w, h.Id)).OrderByDescending(x => x).Take(3).Sum();
+                if (ours >= 2 * Math.Max(1, theirs) && !p.Leverage && !Stale(w, seat.Id, "reconquest", p.HeadHouseId)) { Add(w, seat.Id, "reconquest", p.HeadHouseId); return true; }
+            }
         if (Caesar == null || w.IsImperium || w.CivilWar != null) return false;
         bool Can(House h) => h.Id != mine && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null;
         if (_motions.Def("triumph") != null && !w.Motions.Any(m => m.Open && m.Kind == "triumph"))
@@ -511,9 +526,10 @@ public sealed class SenateSystem
         if (_motions.Def("recall") != null && !w.Motions.Any(m => m.Open && m.Kind == "recall"))
             foreach (var t in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != RegionSystem.CapitalHolder(w)?.Id && Caesar.RecallRefusal(w, h) == null).OrderByDescending(h => CaesarSystem.Sway(w, CaesarSystem.GeneralOf(w, h)!)).ThenBy(h => h.Id, StringComparer.Ordinal))
             {
-                int sway = CaesarSystem.Sway(w, CaesarSystem.GeneralOf(w, t)!); var th = Economy.HeadOf(w, t); if (th == null) continue;
+                var tg = CaesarSystem.GeneralOf(w, t)!; int sway = CaesarSystem.Sway(w, tg); var th = Economy.HeadOf(w, t); if (th == null) continue;
+                bool great = CaesarSystem.FirstRank(w, tg) && CaesarSystem.Loved(w, tg, t);   // a commander of the first rank, and loved: the Senate's guardians always move to have that one home
                 var mover = w.Houses.Values.Where(h => h.Id != t.Id && Can(h) && !Stale(w, h.Id, "recall", t.Id)
-                        && ((w.GetRelationship(Economy.HeadOf(w, h)!.Id, th.Id)?.Disposition ?? 0) <= -30 || (sway >= CaesarSystem.AlarmSway && (RegionSystem.CapitalHolder(w)?.Id == h.Id || ElectionSystem.IsConsul(w, _offices, h.Id)))))
+                        && ((w.GetRelationship(Economy.HeadOf(w, h)!.Id, th.Id)?.Disposition ?? 0) <= -30 || ((sway >= CaesarSystem.AlarmSway || great) && (RegionSystem.CapitalHolder(w)?.Id == h.Id || ElectionSystem.IsConsul(w, _offices, h.Id)))))
                     .OrderByDescending(h => h.SphereInfluence.GetValueOrDefault("senate")).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (mover != null) { Add(w, mover.Id, "recall", t.Id); w.WorldCounters["recalls_moved"] = w.Counter("recalls_moved") + 1; return true; }
             }

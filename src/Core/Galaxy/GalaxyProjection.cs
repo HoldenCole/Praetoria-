@@ -16,7 +16,7 @@ public sealed record MapLane(string A, string B);
 /// <summary>A region of the map: its systems, its centre, the house that holds most of its planets (if any), and how
 /// restless it is (mean unrest of its populated worlds).</summary>
 public sealed record MapRegion(string Id, string Name, string Culture, string Description, IReadOnlyList<string> SystemIds, double CX, double CY,
-    string? DominantHouseId, string? DominantHouseName, string AccentColor, int Planets, int Unrest, string Ring = "middle", int Allegiance = 50, int Lawlessness = 20, int Rebellions = 0, bool FreeMarch = false);
+    string? DominantHouseId, string? DominantHouseName, string AccentColor, int Planets, int Unrest, string Ring = "middle", int Allegiance = 50, int Lawlessness = 20, int Rebellions = 0, bool FreeMarch = false, string? StateName = null, bool StateAtWar = false);
 
 /// <summary>The rings drawn: the galaxy's centre and the mean radius of each ring's systems (map units).</summary>
 public sealed record MapRings(double CX, double CY, double Core, double Middle, double Rim);
@@ -96,7 +96,8 @@ public static class GalaxyProjection
                 systems.Average(s => s.X), systems.Average(s => s.Y), dominant, house?.Name, Presentation.Palette.Region(world.Galaxy!.Regions.IndexOf(r)),
                 mine.Count(n => n.PlanetHoldingId != null), populated.Count == 0 ? 0 : (int)populated.Average(n => n.Unrest),
                 r.Ring, world.Regions.TryGetValue(r.Id, out var rs) ? rs.Allegiance : Math.Clamp(50 + world.Galaxy.RulesFor(r.Ring).Allegiance, 0, 100),
-                rs?.Lawlessness ?? world.Galaxy.RulesFor(r.Ring).LawlessnessStart, mine.Count(n => n.Rebellion > 0), house?.Bloc == Systems.RegionSystem.FreeholdsBloc));
+                rs?.Lawlessness ?? world.Galaxy.RulesFor(r.Ring).LawlessnessStart, mine.Count(n => n.Rebellion > 0), house?.Bloc == Systems.RegionSystem.FreeholdsBloc,
+                Systems.PolitySystem.OfRegion(world, r.Id)?.Name, Systems.PolitySystem.OfRegion(world, r.Id) is { Recognised: 0 }));
         }
         return list;
     }

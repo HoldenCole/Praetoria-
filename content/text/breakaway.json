@@ -99,6 +99,26 @@
         "promise_them_nothing_yet": "Promise them nothing yet.",
         "ask_who_else_might_listen": "Ask who else might listen."
       }
+    },
+    {
+      "id": "they_come_back_for_it",
+      "title": "They Come Back For It",
+      "body": "The treaty's years ran out, and the Senate has voted. The Reach is rested, it thinks it has the fleets, and it has decided that a border it agreed to once is not a border it agreed to for ever. The state that {self.house} belongs to is at war for its independence a second time, on the same terms as the first: hold the region, and outlast them.",
+      "choices": {
+        "hold_them_to_the_treaty": "Hold them to the treaty, aloud.",
+        "say_it_was_always_coming": "Say it was always coming.",
+        "send_for_terms_at_once": "Send for terms at once."
+      }
+    },
+    {
+      "id": "back_in_the_reach",
+      "title": "Back In The Reach",
+      "body": "The state is no more, by its own ruler's decision. The border is off the maps, the region answers to the capital again, and {self.house} has its seat in the Senate back. Some there will say it should never have left. Others, more quietly, that it should never have come back.",
+      "choices": {
+        "take_your_seat_quietly": "Take your seat quietly.",
+        "say_why_you_came_back": "Say why you came back.",
+        "ask_what_it_was_for": "Ask yourself what it was for."
+      }
     }
   ]
 }

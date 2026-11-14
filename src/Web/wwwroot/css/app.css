@@ -715,3 +715,4 @@ table.prospects button { white-space: nowrap; } table.prospects td, table.prospe
 .panel.education .suit { border-top: 1px dotted var(--line); padding: .4rem 0 .3rem; } .panel.education .small.bad { color: var(--warn); } .panel.education .small.good { color: var(--good); }
 .panel.education .hh-head { border-top: 1px solid var(--line); margin-top: .5rem; padding-top: .45rem; }
 
+.region-label .rs.state { color: #e2c36b; letter-spacing: .08em; }

@@ -222,6 +222,55 @@ public class BreakawayTests
         Assert.NotNull(new WorkHouseCommand(me2.Id, chair2.Id, PolitySystem.Word, tc2.Polities).Refusal(ctx2));   // the capital's holder is not to be had
     }
 
+    [Fact]
+    public void A_recognised_state_has_a_treaty_and_the_reach_may_come_back_for_it_when_it_lapses()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Sound(w); string region = Give(w, mine, 80, Ring.Rim); mine.Treasury.Credits = 100; w.PoolsFor(me.Id).Influence = 9;
+        w.WorldCounters[CaesarSystem.GreatWarEndedKey] = w.Turn; var p = tc.Polities.Declare(w, mine, region, PolitySystem.Republic);
+        if (p.Recognised == 0) tc.Polities.Recognise(w, p);
+        Assert.Equal(w.Turn + PolitySystem.TreatyYears, p.TreatyUntil);
+        // while it holds: no war either way, and no motion to go back
+        var chair = RegionSystem.CapitalHolder(w)!; var ch = Economy.HeadOf(w, chair)!; w.PoolsFor(ch.Id).Influence = 9;
+        Assert.NotNull(PolitySystem.TreatyBetween(w, chair.Id, mine.Id)); Assert.Null(PolitySystem.TreatyBetween(w, chair.Id, chair.Id));
+        Assert.False(new DeclareWarCommand(ch.Id, mine.Id, Content.Fleets).CanExecute(new CommandContext(w, TestContent.Rng())));
+        Assert.False(new DeclareWarCommand(me.Id, chair.Id, Content.Fleets).CanExecute(ctx));
+        Assert.Contains("treaty", tc.Polities.ReconquestRefusal(w, mine)); Assert.Contains("not a state", tc.Polities.ReconquestRefusal(w, chair));
+        // when it lapses and the Reach is rested, the Senate may vote to come back
+        w.Turn = p.TreatyUntil; w.WorldCounters.Remove(CaesarSystem.GreatWarEndedKey);
+        Assert.Null(PolitySystem.TreatyBetween(w, chair.Id, mine.Id)); Assert.Null(tc.Polities.ReconquestRefusal(w, mine));
+        w.WorldCounters[CaesarSystem.GreatWarEndedKey] = w.Turn; Assert.Contains("stomach", tc.Polities.ReconquestRefusal(w, mine)); w.WorldCounters.Remove(CaesarSystem.GreatWarEndedKey);
+        Assert.True(tc.Polities.ReconquestLean(w, chair, mine, 0) > 0);                                // the capital's holder wants it back
+        tc.Polities.Reconquer(w, p);
+        Assert.Equal(0, p.Recognised); Assert.Equal(1, p.Reconquests); Assert.NotEmpty(p.Foes); Assert.True(w.AtWar(chair.Id, mine.Id)); Assert.True(w.HasFlag(PolitySystem.ReconquestFlag));
+        Fires(w, "they_come_back_for_it");
+        // it holds on again, and is recognised again, with a new treaty
+        int years = 0; while (p.Recognised == 0 && years < 25 && w.Polities.Contains(p)) { w.Turn += 1; years++; tc.Polities.Tick(w); }
+        Assert.True(p.Recognised > 0); Assert.Equal(p.Recognised + PolitySystem.TreatyYears, p.TreatyUntil);
+    }
+
+    [Fact]
+    public void A_state_may_come_back_into_the_reach_of_its_own_will()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Sound(w); string region = Give(w, mine, 80, Ring.Rim); w.WorldCounters[CaesarSystem.GreatWarEndedKey] = w.Turn; w.PoolsFor(me.Id).Influence = 9;
+        Assert.NotNull(new SecessionCommand(me.Id, SecessionCommand.Rejoin, "", "", tc.Polities).Refusal(ctx));     // nothing to come back from
+        var p = tc.Polities.Declare(w, mine, region, PolitySystem.Kingdom); if (p.Recognised == 0) tc.Polities.Recognise(w, p);
+        int legit = mine.Legitimacy, weight = tc.Senate.Weight(w, mine.Id); Assert.Equal(0, weight);
+        Assert.True(tc.Executor.TryExecute(new SecessionCommand(me.Id, SecessionCommand.Rejoin, "", "", tc.Polities), ctx));
+        Assert.Empty(w.Polities); Assert.True(PolitySystem.InReach(w, mine.Id)); Assert.True(tc.Senate.Weight(w, mine.Id) > 0); Assert.Equal(legit, mine.Legitimacy);
+        Assert.True(w.HasFlag(PolitySystem.RejoinedFlag)); Fires(w, "back_in_the_reach");
+        Assert.Null(tc.Polities.DeclareRefusal(w, mine, region, PolitySystem.Republic));                       // and may go again another year
+        // in the middle of its war it comes back on the Reach's terms: lighter than defeat, not free
+        var (tc2, w2, me2, mine2, ctx2) = Start(); Sound(w2); string r2 = Give(w2, mine2, 100, Ring.Core); foreach (var f in w2.Fleets.Values.Where(f => f.OwnerId == mine2.Id)) f.Strength = 1;
+        var p2 = tc2.Polities.Declare(w2, mine2, r2, PolitySystem.Republic); if (p2.Recognised > 0) return; int legit2 = mine2.Legitimacy;
+        Assert.True(tc2.Executor.TryExecute(new SecessionCommand(me2.Id, SecessionCommand.Rejoin, "", "", tc2.Polities), ctx2));
+        Assert.Empty(w2.Polities); Assert.DoesNotContain(w2.Wars, x => x.Involves(mine2.Id)); Assert.True(mine2.Legitimacy <= legit2); Assert.False(CaesarSystem.Enemy(w2, mine2.Id));
+        // and the map knows a state when it sees one
+        var (tc3, w3, _, mine3, _) = Start(); Sound(w3); string r3 = Give(w3, mine3, 80, Ring.Rim); w3.WorldCounters[CaesarSystem.GreatWarEndedKey] = w3.Turn;
+        var p3 = tc3.Polities.Declare(w3, mine3, r3, PolitySystem.Kingdom);
+        var seen = Praetoria.Core.Galaxy.GalaxyProjection.Regions(w3).First(x => x.Id == r3); Assert.Equal(p3.Name, seen.StateName); Assert.Equal(p3.Recognised == 0, seen.StateAtWar);
+        Assert.All(Praetoria.Core.Galaxy.GalaxyProjection.Regions(w3).Where(x => x.Id != r3), x => Assert.Null(x.StateName));
+    }
+
     private static void Fires(World w, string eventId)
     {
         var engine = new Praetoria.Core.Events.EventEngine(Content, WorldBuilder.RngFor(w));

@@ -33,6 +33,8 @@
       "description": "{proposer} moves that the Senate vote a triumph to the general of {target}, for victories won in the Reach's name." },
     { "id": "recall", "name": "Recall", "target": "house", "interest": "recall", "proposeInfluence": 3,
       "description": "{proposer} moves that the general of {target} lay down the command and come home to answer to the Senate." },
+    { "id": "reconquest", "name": "Reconquest", "target": "house", "interest": "reconquest", "proposeInfluence": 3,
+      "description": "{proposer} moves that the Reach go back for the state that {target} rules, and bring its region home." },
     { "id": "embargo", "name": "Embargo", "target": "house", "interest": "embargo", "proposeInfluence": 3,
       "description": "{proposer} moves that the Senate close the exchanges of the Reach to {target} for eight years.",
       "embargoTurns": 8 }

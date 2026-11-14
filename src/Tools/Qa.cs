@@ -321,6 +321,7 @@ internal static class Qa
         {   // breaking away: declare a region independent, rarely; in the great war, ask for a partition
             if (decisions.NextInt(0, 12) == 0) foreach (var rg in PolitySystem.RegionsOf(w, house).Take(2)) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Declare, rg.Id, PolitySystem.Forms[decisions.NextInt(0, PolitySystem.Forms.Length)], tc.Polities));
             if (decisions.NextInt(0, 6) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.SeekPartition, "", "", tc.Polities));
+            if (decisions.NextInt(0, 20) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Rejoin, "", "", tc.Polities));
         }
         {   // the Caesar road: answer a recall, cross the line, declare in another's war, pay the crews
             if (decisions.NextInt(0, 2) == 0) cands.Add(new CaesarCommand(p.Id, CaesarCommand.Obey, "", tc.Caesar));

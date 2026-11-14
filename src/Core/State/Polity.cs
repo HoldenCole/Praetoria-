@@ -14,6 +14,11 @@ public sealed class Polity
     public int Since { get; set; }
     /// <summary>The year the Reach accepted it, or 0 while it is still at war for its independence.</summary>
     public int Recognised { get; set; }
+    /// <summary>The treaty that recognised it holds until this year: until then no house of the Reach and no house of the state may
+    /// make war on the other.</summary>
+    public int TreatyUntil { get; set; }
+    /// <summary>How many times the Reach has come back to retake it.</summary>
+    public int Reconquests { get; set; }
     /// <summary>The year the war of independence began, or 0 if there was none.</summary>
     public int WarSince { get; set; }
     /// <summary>The houses of the Reach that went to war to bring it back.</summary>

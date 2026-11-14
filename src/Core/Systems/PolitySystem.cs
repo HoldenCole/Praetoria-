@@ -18,8 +18,8 @@ public sealed class PolitySystem
     public const string Republic = "republic", Dictatorship = "dictatorship", Kingdom = "kingdom";
     public static readonly string[] Forms = { Republic, Dictatorship, Kingdom };
     public const int OwnShare = 25, ControlShare = 60, HoldShare = 50, LostShare = 25, WearyYears = 8, WinYears = 3, WinLead = 6, LoseLead = -8, TemperFallsEvery = 3, LeverageFallsEvery = 2, RefuseYears = 3,
-        JoinRegard = 25, WordInfluence = 2, WordRegard = 8, GiftCredits = 12, GiftRegard = 12, PledgeYears = 10, LoyalRegard = 30;
-    public const string Word = "word", Gift = "gift", ReportedFlag = "sedition_reported", WonOverFlag = "house_won_over";
+        TreatyYears = 10, JoinRegard = 25, WordInfluence = 2, WordRegard = 8, GiftCredits = 12, GiftRegard = 12, PledgeYears = 10, LoyalRegard = 30;
+    public const string Word = "word", Gift = "gift", ReportedFlag = "sedition_reported", WonOverFlag = "house_won_over", ReconquestFlag = "reconquest_begun", RejoinedFlag = "rejoined_the_reach";
     public static string PledgeKey(string houseId, string leaderId) => $"pledged:{houseId}:{leaderId}";
     private static string WorkedKey(string houseId, string leaderId) => $"worked:{houseId}:{leaderId}";
     // true each year while it holds
@@ -28,7 +28,7 @@ public sealed class PolitySystem
     public const string DeclaredFlag = "declared_independence", LetGoFlag = "let_go_by_the_reach", WonFlag = "independence_won", LostFlag = "independence_lost",
         OtherBreaksFlag = "a_state_breaks_away", PartitionFlag = "the_reach_is_partitioned";
     private static readonly string[] YearFlags = { IndependentFlag, WarFlag, PossibleFlag, RefuseFlag };
-    private static readonly string[] DeedFlags = { DeclaredFlag, LetGoFlag, WonFlag, LostFlag, OtherBreaksFlag, PartitionFlag, ReportedFlag, WonOverFlag };
+    private static readonly string[] DeedFlags = { DeclaredFlag, LetGoFlag, WonFlag, LostFlag, OtherBreaksFlag, PartitionFlag, ReportedFlag, WonOverFlag, ReconquestFlag, RejoinedFlag };
     public const string CivilWarEndedKey = "civil_war_ended";
     public static string OpposedKey(string houseId) => "opposed_the_throne:" + houseId;
 
@@ -281,7 +281,7 @@ public sealed class PolitySystem
     /// <summary>The Reach accepts that the state is a state.</summary>
     public void Recognise(World w, Polity p, bool letGo = false)
     {
-        var mine = w.Protagonist?.HouseId; Peace(w, p); p.Recognised = w.Turn; p.Foes.Clear();
+        var mine = w.Protagonist?.HouseId; Peace(w, p); p.Recognised = w.Turn; p.Foes.Clear(); p.TreatyUntil = w.Turn + TreatyYears; p.WarSince = 0;
         if (w.House(p.HeadHouseId) is { } head) head.Legitimacy = Math.Clamp(head.Legitimacy + 10, 0, 100);
         w.WorldCounters["polities_recognised"] = w.Counter("polities_recognised") + 1;
         if (!letGo) w.Log($"The Reach makes peace with {p.Name} and names it in the treaty. It is a state now, and will be on the maps.");
@@ -307,6 +307,81 @@ public sealed class PolitySystem
         if (p.Members.Contains(mine ?? "")) Mark(w, LostFlag);
     }
 
+    // ---------------- a state as a neighbour ----------------
+
+    /// <summary>Does a treaty stand between these two houses: one of the Reach, one of a state it has recognised, inside the treaty's years?</summary>
+    public static Polity? TreatyBetween(World w, string a, string b)
+    {
+        var pa = Of(w, a); var pb = Of(w, b); if ((pa == null) == (pb == null)) return null;
+        var p = pa ?? pb; return p!.Recognised > 0 && w.Turn < p.TreatyUntil ? p : null;
+    }
+
+    public string? ReconquestRefusal(World w, House? target)
+    {
+        var p = target != null ? Of(w, target.Id) : null;
+        if (target == null || p == null) return "not a state that has left the Reach";
+        if (p.HeadHouseId != target.Id) return $"{w.House(p.HeadHouseId)?.Name} rules {p.Name}: name them";
+        if (p.Recognised == 0) return "the Reach is already at war with it";
+        if (w.Turn < p.TreatyUntil) return $"the treaty with {p.Name} holds until year {p.TreatyUntil}";
+        return Weary(w) ? "the Reach has no stomach for it: it has fought too lately" : null;
+    }
+
+    /// <summary>How a house of the Reach leans on going back for a state.</summary>
+    public int ReconquestLean(World w, House h, House ruler, int toRuler)
+    {
+        var p = Of(w, ruler.Id); if (p == null) return 0; var chair = RegionSystem.CapitalHolder(w);
+        int lean = toRuler >= 20 ? -2 : toRuler <= -20 ? 2 : 0;
+        if (chair?.Id == h.Id) lean += 3;
+        lean += FactionSystem.Of(w, h.Id)?.PartyId switch { "optimates" => 1, "sword" => 1, "factors" => -1, "populares" => -1, _ => 0 };
+        int ours = p.Members.Sum(id => FleetSystem.StrengthOf(w, id)), mine = FleetSystem.StrengthOf(w, h.Id);
+        if (mine > 0 && ours * 2 >= mine * 3) lean -= 1;                                  // it would be this house's hulls that went
+        string ring = p.Regions.Select(r => w.Galaxy?.Region(r)?.Ring).FirstOrDefault() ?? Ring.Middle;
+        if (ring == Ring.Rim) lean -= 1; else if (ring == Ring.Core) lean += 1;
+        if (p.Leverage) lean -= 1;                                                       // and the Reach still buys what it makes
+        return lean;
+    }
+
+    /// <summary>The Reach goes back for a state it once recognised. It is a war of independence again, on the same terms.</summary>
+    public void Reconquer(World w, Polity p)
+    {
+        var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w); var ruler = w.House(p.HeadHouseId);
+        p.Recognised = 0; p.TreatyUntil = 0; p.WarSince = w.Turn; p.Reconquests++; p.Temper = Math.Max(1, ruler != null && p.Regions.Count > 0 ? Temper(w, ruler, p.Regions[0]).temper : 1);
+        p.Foes = w.Houses.Values.Where(h => Real(h) && InReach(w, h.Id) && h.Id != chair?.Id && FleetSystem.StrengthOf(w, h.Id) > 0)
+            .OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).Take(3).Select(h => h.Id).ToList();
+        if (chair != null && InReach(w, chair.Id)) p.Foes.Insert(0, chair.Id);
+        var members = p.Members.OrderByDescending(id => id == p.HeadHouseId).ThenBy(id => id, StringComparer.Ordinal).ToList();
+        foreach (var foe in p.Foes) _fleets.DeclareWar(w, foe, p.HeadHouseId);
+        for (int i = 1; i < members.Count && p.Foes.Count > 0; i++) _fleets.DeclareWar(w, p.Foes[i % p.Foes.Count], members[i]);
+        w.WorldCounters["reconquests"] = w.Counter("reconquests") + 1;
+        if (p.Members.Contains(mine ?? "")) Mark(w, ReconquestFlag);
+        w.Log($"The Reach comes back for {p.Name}. {string.Join(", ", p.Foes.Select(id => w.House(id)?.Name ?? id))} are sent. The treaty is so much paper.");
+    }
+
+    public string? RejoinRefusal(World w, House? house)
+    {
+        var p = house != null ? Of(w, house.Id) : null;
+        if (house == null || p == null) return "the house is of the Reach";
+        return p.HeadHouseId != house.Id ? $"{w.House(p.HeadHouseId)?.Name} rules {p.Name}: it is theirs to say" : null;
+    }
+
+    /// <summary>The ruling house takes the state back into the Reach of its own will. Recognised, it comes back whole and is thought
+    /// the better of in the capital; in the middle of its war it comes back on the Reach's terms, lighter than defeat.</summary>
+    public void Rejoin(World w, Polity p)
+    {
+        var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w); bool atWar = p.Recognised == 0; Peace(w, p); w.Polities.Remove(p);
+        foreach (var id in p.Members)
+        {
+            var h = w.House(id); if (h == null) continue; h.PolityId = "";
+            if (atWar) h.Legitimacy = Math.Clamp(h.Legitimacy - (id == p.HeadHouseId ? 6 : 2), 0, 100);
+        }
+        if (chair != null && w.House(p.HeadHouseId) is { } ruler && Systems.Economy.HeadOf(w, chair) is { } ch && Systems.Economy.HeadOf(w, ruler) is { } rh)
+        { var r = w.Relationship(ch.Id, rh.Id); r.Disposition = Math.Clamp(r.Disposition + (atWar ? 5 : 15), -100, 100); }
+        w.WorldCounters["polities_rejoined"] = w.Counter("polities_rejoined") + 1;
+        if (p.Members.Contains(mine ?? "")) Mark(w, RejoinedFlag);
+        w.Log(atWar ? $"{char.ToUpperInvariant(p.Name[0])}{p.Name[1..]} lays down its arms and comes back into the Reach on the Reach's terms."
+                    : $"{char.ToUpperInvariant(p.Name[0])}{p.Name[1..]} comes back into the Reach of its own will. Its houses take their seats again.");
+    }
+
     /// <summary>Out of the great war: a side that cannot win but holds a region keeps it, and the peace says so.</summary>
     public Polity Partition(World w, House leader, string regionId, IEnumerable<House> side)
     {
@@ -315,7 +390,7 @@ public sealed class PolitySystem
         p.Regions.Add(regionId); w.Polities.Add(p);
         var worlds = Worlds(w, regionId);
         foreach (var h in side.Where(h => h.Id == leader.Id || worlds.Any(x => x.OwnerId == h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal)) Leave(w, h, p);
-        p.Recognised = w.Turn; w.WorldCounters["polities_recognised"] = w.Counter("polities_recognised") + 1; Mark(w, PartitionFlag);
+        p.Recognised = w.Turn; p.TreatyUntil = w.Turn + TreatyYears; w.WorldCounters["polities_recognised"] = w.Counter("polities_recognised") + 1; Mark(w, PartitionFlag);
         w.Log($"The peace partitions the Reach. {region.Name} goes its own way as {p.Name}, {FormName(p.Form)}, under {leader.Name}: {string.Join(", ", p.Members.Select(id => w.House(id)?.Name ?? id))}.");
         return p;
     }

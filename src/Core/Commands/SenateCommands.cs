@@ -48,6 +48,7 @@ public sealed class ProposeMotionCommand : ICommand
             if (def.TargetMustBeAtWar && !w.Wars.Any(x => x.Involves(_targetId))) return $"{t.Name} is at peace";
             if (w.Motions.Any(m => m.Open && m.Kind == _kind && m.TargetId == _targetId)) return "already before the Senate";
             if (def.Interest == "triumph" && (_senate.Caesar == null ? "no such motion" : _senate.Caesar.TriumphRefusal(w, t)) is { } noTriumph) return noTriumph;
+            if (def.Interest == "reconquest" && (_senate.Polities == null ? "no such motion" : _senate.Polities.ReconquestRefusal(w, t)) is { } noReconquest) return noReconquest;
             if (def.Interest == "recall" && (_senate.Caesar == null ? "no such motion" : _senate.Caesar.RecallRefusal(w, t)) is { } noRecall) return noRecall;
         }
         else if (def.Target == "region") { if (w.Galaxy?.Regions.Any(r => r.Id == _targetId) != true) return "no such region"; }

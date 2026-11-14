@@ -81,7 +81,7 @@ lacks.
 | Gate | It asks |
 |---|---|
 | **A commander of the first rank** | tactics of 6 or more, four battles won in command, and a triumph |
-| **Loved** | liked by nature (charisma 6, or charisma and oratory together 9) or made the squares' own by deeds (the name the Reach gives one who leads from the front, or a second triumph); four hulls whose crews would follow; and a house with legitimacy of 50 or more |
+| **Loved** | liked by nature (charisma 5, or charisma and oratory together 8) or made the squares' own by deeds (the name the Reach gives one who leads from the front, a second triumph, or seven victories); four hulls whose crews would follow; and a house with legitimacy of 50 or more |
 | **The times** | the Republic is **troubled**: two or more things wrong at once |
 
 **What can be wrong with the Republic:**
@@ -214,12 +214,11 @@ What is decided (to come home, to cross, to declare) is decided on the Military 
 
 - **The Republic stood in all 60.** Before the rule it fell in about two runs of three, to the great war.
 - The Senate's business with generals is lively: 64 triumphs voted of 112 moved, 11 recalls carried of 38 moved.
-- **No rival marched.** Another house's general was of the first rank in 14 runs and loved in 31, and never both at
-  once. The Republic was troubled in every run, for about one year in six.
-- So a rival Caesar is possible (a test builds one and he marches) and was not seen in 60 runs. That is on the rare
-  side of the owner's "once in ten games or less". The knobs, if it should be seen a little more: `GateVictories`,
-  `GateTactics`, `GateTriumphs` and `GateCharisma` in `CaesarSystem`, and `AlarmSway`, the sway at which the capital's
-  holder and the consuls move a recall. Change one, run the probe, and keep a rival's success under one game in ten.
+- **A rival is possible and very rare.** After the last adjustment (seven victories or charisma of 5 count toward being
+  loved; the Senate's guardians recall a general of that stature) another house's general was of the first rank in 15
+  runs of 60, loved in 42, both in 3, and passed all three gates in 1. None marched in those 60. That is on the rare
+  side of the owner's "once in ten games or less", on purpose. The knobs: `GateVictories`, `GateTactics`,
+  `GateHeroVictories`, `GateCharisma` and `TroubledAt` in `CaesarSystem`. Change one, run the probe.
 - Found while measuring: the benches used to recall any commander who had won twice, and he came home and lost his
   command, so nobody could ever grow into the full figure. Other houses now move a recall only against a general they
   hate, or (the capital's holder and the consuls) one whose sway alarms them.

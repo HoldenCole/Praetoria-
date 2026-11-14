@@ -120,7 +120,7 @@ public sealed class TurnController
         LadderSystem.Seed(world); LadderSystem.Open(world, content.Offices);   // the bench is not empty when a saga opens (docs/LADDER.md); before the orders are first measured
         _orders = new OrderSystem(_economy, _fleets, content.Titles, content.Offices, content.Market); if (!world.InAcademy && world.Houses.Values.All(h => h.Orders.Count == 0)) _orders.Tick(world);
         _polities = new PolitySystem(_fleets, content.Offices, _economy, content.Holdings, content.Businesses);
-        _caesar = new CaesarSystem(_fleets, content.Offices); _senate.Caesar = _caesar;
+        _caesar = new CaesarSystem(_fleets, content.Offices); _senate.Caesar = _caesar; _senate.Polities = _polities;
         _senate.Exchange = _companies; if (_companies != null) _companies.Offices = content.Offices;
         _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures, Exchange = _companies, Orders = _orders, HoldingCatalogForFounding = content.Holdings };
         _dynasty = new DynastySystem { Content = content };

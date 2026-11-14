@@ -95,6 +95,22 @@ It has no fixed end. You may declare with one ship and fight for as long as you 
   behind by 8. The house that led it out loses 15 legitimacy and three tenths of its treasury and may not stand for
   consul for ten years. Those who followed lose 6 legitimacy. Nobody is put to death for it.
 
+## A state as a neighbour
+
+- **The treaty.** Recognition, however it came, signs a treaty for **ten years**. While it holds no house of the Reach
+  may make war on a house of the state, nor the other way.
+- **The Reach may come back.** When the treaty has lapsed and the Reach is rested (not weary), the Senate may vote a
+  **Reconquest** (a motion, 3 influence, against the state's ruling house). The capital's holder moves it by itself
+  when what the Reach would send is twice what it would meet and the state has nothing the Reach needs. Houses lean
+  for it as the capital's holder, the Optimates and the Sword do; against it for a friend, the Factors and the
+  Populares, the rim, and a state that still sells the Reach what it makes. Carried, it is a war of independence
+  again on the same terms, and a state that holds on is recognised again with a new treaty.
+- **Rejoining.** The ruling house may take the state back into the Reach. At peace it comes back whole and the
+  capital thinks the better of it. In the middle of its war it comes back on the Reach's terms: a little legitimacy
+  lost, no fine, no ban.
+- **On the map.** The state's name is on its region on the galaxy map, in the region list and on the Worlds screen,
+  with whether it is still fighting for it.
+
 ## Refusing a throne
 
 When a general has marched on the capital and won (docs/CAESAR.md), every house that declared for the Senate is
@@ -150,7 +166,7 @@ with its causes ("the peace of the Reach"). Each year the pressure is the sum of
 
 ## Events
 
-Ten, in `content/events/breakaway.json`: *They Told The Capital*, *A House Gives Its Word*, and *The Declaration*, *They Let You Go*, *A War Of Independence*,
+Twelve, in `content/events/breakaway.json`: *They Come Back For It*, *Back In The Reach*, *They Told The Capital*, *A House Gives Its Word*, and *The Declaration*, *They Let You Go*, *A War Of Independence*,
 *Independence*, *The State Is No More*, *You Need Not Kneel*, *A State Breaks Away*, *The Reach Is Partitioned*.
 
 ## For content
@@ -197,10 +213,9 @@ This is the first stage of a large piece. What it leaves is in docs/GAPS.md (B1 
 
 - **How a state is governed.** The three forms differ only in name. A republic should have its own council, a
   dictatorship a term or a strongman, a kingdom a succession.
-- **A state on the map.** Its region is not drawn differently, and its border has no meaning for trade, lanes or the
+- **A state's border.** It has no meaning for trade, lanes or the
   Exchange.
-- **A state as a neighbour.** It makes no treaties, has no war or peace with the Reach as a state after it is
-  recognised, sends no envoys, and cannot be reconquered or rejoin.
+- **A state's own dealings.** It makes no trade treaty or alliance, sends no envoys, and does not make war as a state.
 - **More than one region,** and regions joining a state that already exists.
 - **The older free march** (a rim house that renounces the capital) is still its own small rule and should become
   one of these.

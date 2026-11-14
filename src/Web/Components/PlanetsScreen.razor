@@ -24,7 +24,7 @@
             <div class="vols"><button class="rung @(_region == null ? "here" : "")" @onclick="() => _region = null">all regions</button>@foreach (var r in regions) { <button class="rung @(_region == r.Id ? "here" : "")" style="--accent:@r.AccentColor" @onclick="() => _region = r.Id">@r.Name</button> }</div>
             @foreach (var r in shown)
             {
-                <div class="region-head" style="--accent:@r.AccentColor"><h4>@r.Name <span class="ring @r.Ring">@r.Ring</span></h4><span class="muted small">@r.Culture · @(r.DominantHouseName != null ? $"{r.DominantHouseName} dominates" : "no house dominates")@(r.FreeMarch ? " · FREE MARCH" : "") · unrest @r.Unrest</span></div>
+                <div class="region-head" style="--accent:@r.AccentColor"><h4>@r.Name <span class="ring @r.Ring">@r.Ring</span></h4><span class="muted small">@r.Culture · @(r.DominantHouseName != null ? $"{r.DominantHouseName} dominates" : "no house dominates")@(r.FreeMarch ? " · FREE MARCH" : "")@(r.StateName != null ? " · " + r.StateName : "") · unrest @r.Unrest</span></div>
                 <table class="standings worlds-tbl">
                     <thead><tr><th>World</th><th>Class</th><th>Holder</th><th>Governor</th><th>Loyalty</th><th>Prosperity</th><th>Pop</th><th>Riches</th></tr></thead>
                     <tbody>
