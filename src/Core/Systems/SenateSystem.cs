@@ -490,7 +490,8 @@ public sealed class SenateSystem
 
     /// <summary>The generals' business (docs/CAESAR.md) is moved whoever else has business: a house asks a triumph for its own general
     /// who has earned one; a house that hates a general with sway, or one that guards the Senate (the chair, a consul) against one
-    /// with a great deal, moves to have him home. True if something was moved.</summary>
+    /// with a great deal, moves to have him home. A recall is a serious act: it is not moved against every commander who has won twice.
+    /// True if something was moved.</summary>
     private bool Generals(World w, string? mine)
     {
         if (Caesar == null || w.IsImperium || w.CivilWar != null) return false;
@@ -511,7 +512,7 @@ public sealed class SenateSystem
             {
                 int sway = CaesarSystem.Sway(w, CaesarSystem.GeneralOf(w, t)!); var th = Economy.HeadOf(w, t); if (th == null) continue;
                 var mover = w.Houses.Values.Where(h => h.Id != t.Id && Can(h) && !Stale(w, h.Id, "recall", t.Id)
-                        && ((w.GetRelationship(Economy.HeadOf(w, h)!.Id, th.Id)?.Disposition ?? 0) <= -10 || (sway >= CaesarSystem.FearedSway && (RegionSystem.CapitalHolder(w)?.Id == h.Id || ElectionSystem.IsConsul(w, _offices, h.Id)))))
+                        && ((w.GetRelationship(Economy.HeadOf(w, h)!.Id, th.Id)?.Disposition ?? 0) <= -30 || (sway >= CaesarSystem.AlarmSway && (RegionSystem.CapitalHolder(w)?.Id == h.Id || ElectionSystem.IsConsul(w, _offices, h.Id)))))
                     .OrderByDescending(h => h.SphereInfluence.GetValueOrDefault("senate")).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (mover != null) { Add(w, mover.Id, "recall", t.Id); w.WorldCounters["recalls_moved"] = w.Counter("recalls_moved") + 1; return true; }
             }

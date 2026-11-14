@@ -170,3 +170,26 @@ Set by the owner on 2026-11-14, and it governs every system that touches the fam
 The test for any new feature: **if the player ignores this person for ten years, do they still have a life?** They must.
 A second test: **can the player still help or hinder them when it matters?** They must be able to.
 
+
+## The Republic stands unless the player ends it
+
+Set by the owner on 2026-11-14, and it governs every system that can end the Republic.
+
+**The Republic does not become the Imperium in the ordinary course of a game. It ends because the player set out to end
+it, or, rarely, because a rival did and nobody stopped them.**
+
+- Nothing ends the Republic by a clock or by default. The War of the Reach is fought, won and lost, and the Senate
+  still sits afterwards.
+- A Caesar is rare for a reason. History had one, and several who tried. He has to be **extremely able** and
+  **extremely well liked**, and **the times** have to be his as well. The game asks all three of another house's
+  general before he will march (docs/CAESAR.md, "The three gates").
+- **For another house, succeeding should happen about once in ten games, or less.** Measure it with
+  `praetoria caesar --scenario all --seeds 10` whenever anything that feeds it changes (battles, fleets, skills,
+  troubles), and keep it there.
+- **For the player it is a thing to try.** The player may march without the gates and finds out what they are worth in
+  who declares. It should be hard, and possible.
+- When a rival does try, the player must be able to fight it: to declare for the Senate, to carry its war, to stop
+  the general before the capital.
+
+Tests to apply to any new route to a throne: "does this fire without the player wanting it?" and "if a rival does it,
+can the player stand in the way?"

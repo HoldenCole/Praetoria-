@@ -119,6 +119,36 @@
         "keep_an_eye_on_it": "Keep an eye on it.",
         "give_them_more_to_do": "Give them more to do."
       }
+    },
+    {
+      "id": "the_republic_falters",
+      "title": "The Republic Falters",
+      "body": "More than one thing is wrong at once, and the Senate is seen not to be mending any of it. In the squares they have begun to say that what the Reach needs is one strong hand. It is the kind of talk that means nothing for years and then, in a particular season, means everything. It depends who is there to hear it.",
+      "choices": {
+        "speak_for_the_senate": "Speak for the Senate.",
+        "say_what_everyone_is_thinking": "Say what everyone is thinking.",
+        "keep_your_own_counsel": "Keep your own counsel."
+      }
+    },
+    {
+      "id": "a_name_on_every_lip",
+      "title": "A Name On Every Lip",
+      "body": "{general.name} of {general.house} has won too often for it to be luck, has been voted a triumph, and is liked: by the crews, who would follow, and by people who have never met a general in their lives. The Reach has many good commanders. It very rarely has one of these. If the Republic were ever in real trouble, it is {general.name} they would send for, or {general.name} they would have to stop.",
+      "choices": {
+        "make_a_friend_of_them": "Make a friend of them.",
+        "warn_the_senate": "Warn the Senate.",
+        "watch_and_wait": "Watch, and wait."
+      }
+    },
+    {
+      "id": "the_hour",
+      "title": "They Are Saying It Of Your House",
+      "body": "The Republic is in trouble and everyone knows it. {self.house} has a general of the first rank with a triumph behind them, crews who would follow anywhere, and a name the squares like the sound of. People who would not have said it a year ago are saying it now, and they are saying it about this house. Nothing has been done. Everything that would be needed is in place.",
+      "choices": {
+        "let_it_be_said": "Let it be said.",
+        "deny_it_in_the_chamber": "Deny it in the chamber.",
+        "put_it_out_of_mind": "Put it out of mind."
+      }
     }
   ]
 }

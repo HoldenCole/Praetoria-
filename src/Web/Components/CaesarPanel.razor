@@ -19,6 +19,13 @@
         + (swayWhy.Length > 0 ? Cap(swayWhy) + ". " : "No victories yet. ") + "At " + CaesarSystem.RecallSway + " the Senate may order " + (mineIsMe ? "you" : "them") + " home.";
     string crewsLine = hulls + " hull(s) would follow " + who + " before the house" + (triumphs > 0 ? " · " + triumphs + " triumph(s)" : "") + ". A triumph asks " + CaesarSystem.TriumphLaurels + " victories since the last: " + whose + " count is";
     string watchedLine = string.Join("; ", watched.Select(x => x.g!.Name + " of " + x.h.Name + " (sway " + CaesarSystem.Sway(w, x.g) + (CaesarSystem.Triumphs(w, x.g) > 0 ? ", a triumph" : "") + (w.Recalls.Any(r => r.HouseId == x.h.Id) ? ", under recall" : "") + ")"));
+    var troubles = CaesarSystem.Troubles(w); var gates = CaesarSystem.Gates(w, house); var forecast = cz.Forecast(w, house);
+    string republic = troubles.Count == 0 ? "sound" : troubles.Count < CaesarSystem.TroubledAt ? "uneasy" : "troubled";
+    string republicLine = troubles.Count == 0 ? "Nothing is wrong that the Senate cannot manage. A general who marched now would be marching on a Republic its houses will defend."
+        : Cap(string.Join("; ", troubles)) + (troubles.Count < CaesarSystem.TroubledAt ? ". One thing wrong is not enough to make the houses look for a strong hand." : ". These are the times a general waits for.");
+    string forecastLine = general == null ? "" : "If the house crossed the line today, " + forecast.forGeneral.Count + " house(s) would declare for " + who + " and " + forecast.forSenate.Count + " for the Senate"
+        + (forecast.forGeneral.Count > 0 ? " (for: " + string.Join(", ", forecast.forGeneral.Take(4).Select(h => h.Name)) + (forecast.forGeneral.Count > 4 ? ", and others" : "") + ")" : "") + ". The rest would stand aside.";
+    string greatNames = string.Join("; ", w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).Select(h => (h, g: CaesarSystem.GeneralOf(w, h))).Where(x => x.g != null && x.g.Flags.Contains(CaesarSystem.GreatNameChar)).Select(x => x.g!.Name + " of " + x.h.Name));
     string Names(IEnumerable<string> ids) => string.Join(", ", ids.Select(id => id == house.Id ? "your house" : w.House(id)?.Name ?? id).DefaultIfEmpty("nobody"));
 }
 <section class="panel caesar">
@@ -90,6 +97,12 @@
             }
             @if (cw == null)
             {
+                <div class="hh-head"><b>What a Caesar is made of</b> <span class="muted small">There was one, and for a reason.</span></div>
+                @foreach (var gate in gates)
+                {
+                    <div class="gate-row"><span class="pill small @(gate.met ? GoodPill : string.Empty)">@(gate.met ? Met : NotMet)</span> <b>@gate.name</b> <span class="muted small">@gate.says</span></div>
+                }
+                <div class="muted small">@forecastLine You may march without all three. The houses weigh them when they choose a side.</div>
                 <div class="suit-acts">
                     @if (_confirm) { <button class="opt inline veto" @onclick="() => { _confirm = false; G.Execute(new CaesarCommand(pid, CaesarCommand.Cross, string.Empty, cz)); }">Yes: march on the capital</button> <button class="opt inline" @onclick="() => _confirm = false">No</button> }
                     else { <button class="opt inline" disabled="@(noCross != null)" title="@(noCross ?? CrossTip)" @onclick="() => _confirm = true">Cross the line</button> }
@@ -97,6 +110,8 @@
                 </div>
             }
         }
+        <div class="ac-fact"><span>The Republic is @republic</span><p>@republicLine</p></div>
+        @if (greatNames.Length > 0) { <div class="caesar-recall"><b>A name on every lip: @greatNames.</b> <div class="muted small">A commander of the first rank, and loved. If the times turn, this is who the Reach would look to. A recall, moved on the Senate screen, is the Senate's answer; so is being the house that stands in the way.</div></div> }
         @if (fleets.Count > 0)
         {
             <div class="hh-head"><b>Whose crews</b> <span class="muted small">At @CaesarSystem.DevotedAt they follow the commander before the house.</span></div>
@@ -120,6 +135,7 @@
 
 @code {
     private bool _confirm;
+    private const string GoodPill = "good", Met = "met", NotMet = "not yet";
     private const string MotionTriumph = "triumph", GoodClass = "high", Plus = "+", ComeHome = "Come home", OrderHome = "Order them home";
     private const string TriumphTip = "The Senate votes next session. If it carries: legitimacy, the crews' regard, and the general's name. If it is refused, that is a cause.";
     private const string JoinSenateTip = "Your fleets go to war with the general's house. It is remembered when it ends.";

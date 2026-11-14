@@ -20,7 +20,7 @@ bloodline — toward the throne of a fractured human galaxy. Your character will
 **Engine:** C# (.NET 8) headless core · **browser client** (Blazor WebAssembly, `src/Web`) · Godot 4.3 desktop layer (`src/Game`). **Status: v0.8.0-alpha — "The War of the Reach".** The whole human game is
 built headless and tested — ships, admirals, sieges, wars with score and terms, named heirs who come of age,
 succession laws, fostering, assassination, marriage, honors, megastructures, the throne, **the Great Crisis** (a
-clocked galaxy-war that sorts the houses into blocs and births an Imperium), family with wills of their own,
+clocked galaxy-war that sorts the houses into blocs; it shakes the Republic but does not end it), family with wills of their own,
 advisors who speak from intel, and the saga epilogue — and the Godot layer (creation, Court, Galaxy, dynasty tree)
 renders all of it. A balance simulation (`praetoria simulate`) drives tuning. The browser client is the playable build and is
 driven through a headless browser for QA every session (`docs/WEB_CLIENT.md`). The Godot layer compiles against the Godot SDK and is
@@ -253,7 +253,7 @@ three orders of the Republic (`REPUBLIC`).
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 592 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
+**Verification:** 594 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
 round-trip that must reproduce an uninterrupted run; both content validators clean; every start auto-plays sixty turns
 across several seeds with a randomised player. The content counts in the table above are from the first release; the
 current ones (261 events, 9 scenarios, 31 systems) are in `docs/ROADMAP.md`.
@@ -274,7 +274,7 @@ if it's listed, it does not exist yet.
 The current, ranked list of gaps is **[`docs/ROADMAP.md`](docs/ROADMAP.md) section 3**, and the dated log behind it
 is `docs/GAP_ANALYSIS.md`. In short:
 
-- **The Republic**: a rival Caesar is seldom seen (the road is the player's for now); a magistrate has no work to do in office; the state gives
+- **The Republic**: the player cannot yet make or mend the times a Caesar needs; a magistrate has no work to do in office; the state gives
   commerce no contracts.
 - **The economy**: rival houses do not take each other over; some goods are in permanent glut.
 - **The Imperium**: government under a throne is simple next to the Republic.

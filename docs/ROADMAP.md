@@ -15,8 +15,8 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 592 |
-| Events with text | 316 in 33 files |
+| Automated tests | 594 |
+| Events with text | 319 in 33 files |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
@@ -42,7 +42,7 @@ deterministic and saves and loads.
 | The economy | Prices that follow war and scarcity; ventures bought and sold; building over years; companies, shares, dividends, takeovers; war bonds; the Senate's and throne's hand on the market | `ECONOMY_MARKET` |
 | A life of one's own | Health and wounds, a record of what each person did, renown and a name, old friends and enemies, retirement, funerals | `LIFE` |
 | The ladder of offices | Quaestor, aedile and praetor below the consulship, held by people and filled by election every fifth year; a consul must be forty and have been praetor; relatives stand for themselves | `LADDER` |
-| The Caesar road | Crews that follow the commander who wins with them; a general's sway; triumph and recall voted by the Senate; crossing the line, a civil war in which the houses declare, and the Republic ended or the general broken | `CAESAR` |
+| The Caesar road | Crews that follow the commander who wins with them; a general's sway; triumph and recall voted by the Senate; crossing the line, a civil war in which the houses declare, and the Republic ended or the general broken. Another house's general marches only through three gates (first rank, loved, the times); the great war no longer makes an emperor | `CAESAR` |
 | Ambitions | The people of the house go after what they want by themselves, ask the head for help now and then, and succeed or are thwarted; a named heir | `AMBITIONS` |
 | Personal wealth | A purse for every grown member of the house, the allowance, what they do with their own money, debts, heirlooms, the will, and the estate kept whole or shared out | `WEALTH` |
 | Education and skills | A ceiling in every skill, learning by doing, by study and by being taught, children brought up toward their bent, tutors; the end of a step a year for everyone | `EDUCATION` |
@@ -58,9 +58,8 @@ deterministic and saves and loads.
 Ranked within each group by how much they hurt play. The list of what the 2026-11-13 fix pass closed is at the end.
 
 **The Republic**
-1. A rival Caesar is seldom seen. The road (docs/CAESAR.md) is there for the player, but in 30 passive runs other houses
-   won 7 triumphs, had 2 generals recalled and never marched: the Reach fights about eight battles a run, fleets are
-   small, and the great war ends the Republic around year 28 to 40.
+1. The player cannot make or mend the times. A Caesar needs a troubled Republic (docs/CAESAR.md), and nothing yet lets
+   a house deliberately trouble it, or steady it to stop a rival. A rival Caesar is rare by the owner's rule, not a gap.
 2. A magistrate has nothing to do in office. The ladder (docs/LADDER.md) is climbed, paid and counted, but a praetor hears no cases and a quaestor keeps no accounts.
 3. Commerce gets nothing from the state: no tax-farming, no contracts to supply the fleet.
 4. A patron notices how a client votes, but never asks for anything else: no loan to a third house, no marriage, no
@@ -155,7 +154,7 @@ the only real constraint on sequence. Each line is roughly one cycle of work (bu
 
 | Work | What it delivers | Ties to |
 |---|---|---|
-| **The Caesar road, the rest** | Built: docs/CAESAR.md. Left: rival Caesars that actually arise (tune against `praetoria caesar`), a general who defects with his crews, parties that act as parties in the war, proscription and amnesty, a negotiated end, the state's fleets under the Senate's sword. | Politics under a throne (what the victor does next). Secession (a civil war with sides). |
+| **The Caesar road, the rest** | Built: docs/CAESAR.md, with the owner's rule that the Republic stands unless the player ends it. Left: ways for the player to make or mend the times, a general who defects with his crews, parties that act as parties in the war, proscription and amnesty, a negotiated end, the state's fleets under the Senate's sword. Keep a rival's success at about one game in ten or less (`praetoria caesar`). | Politics under a throne (what the victor does next). Secession (a civil war with sides). |
 | **The ladder, the rest** | Built: docs/LADDER.md. Left: work to do in office (cases, accounts, the city), other houses that canvass and back, bribery and prosecution, the censorship and the tribunate, a province after office. | The Caesar road (a command after the consulship). The state and commerce. |
 | **The state and commerce** | Tax-farming a region and contracts to supply the fleet, let by Senate motion. A patron calls in a client's vote on a real motion. Stewards use sway deliberately. | The Exchange; patrons and clients; under the wing. |
 

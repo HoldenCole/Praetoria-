@@ -8,8 +8,8 @@ namespace Praetoria.Core.Systems;
 /// <summary>
 /// The Great-Crisis framework (GDD §11/§16, BuildSpec M6): a clock, an intensity setting, stages with flags and effects,
 /// and the archetype's behaviours. V1's archetype is the human galaxy-war: the houses sort into the hegemon's bloc
-/// and the alliance against it, the blocs go to war, and when the clock runs out the wars end and — in the fractured
-/// stars — the strongest house of the winning bloc takes the throne. Deterministic; the clock is a world counter.
+/// and the alliance against it, the blocs go to war, and when the clock runs out the wars end. The victor gains standing
+/// but no throne (docs/PROCESS.md: the Republic stands unless the player ends it). Deterministic; the clock is a world counter.
 /// </summary>
 public sealed class GreatCrisisSystem
 {
@@ -112,7 +112,8 @@ public sealed class GreatCrisisSystem
         if (player != null && w.House(player)?.Bloc == HegemonBloc) w.WorldCounters["coalition_pressure"] = SphereSystem.MaxCoalitionPressure;
     }
 
-    /// <summary>The wars end; the bloc with more hulls wins; in the fractured stars its strongest house takes the throne.</summary>
+    /// <summary>The wars end; the bloc with more hulls wins. Its strongest house, if it won decisively and holds the capital, gains
+    /// legitimacy, glory and rank, and the Republic is shaken for years; nobody is enthroned.</summary>
     public void Resolve(World w)
     {
         int hegemonHulls = w.Houses.Values.Where(h => h.Bloc == HegemonBloc).Sum(h => FleetSystem.StrengthOf(w, h.Id));
@@ -138,11 +139,15 @@ public sealed class GreatCrisisSystem
             else if (w.Fleets.Values.Any(f => f.OwnerId == victor.Id && !f.Moving && f.SystemId == cap.Capital && f.Strength >= 2)) crowned = victor;
         }
         else crowned = victor;
+        w.WorldCounters[CaesarSystem.GreatWarEndedKey] = w.Turn;   // the Republic is shaken by it for years (docs/CAESAR.md, the times)
+        // The owner's rule (docs/PROCESS.md, 2026-11-14): the Republic stands unless the player ends it. The War of the Reach is won
+        // and lost, but it does not hand anyone a throne. A house that wants one must take it: by the Caesar's road, or by force.
         if (crowned != null && w.Era != "imperium" && crowned.Title != Progression.Title.Emperor && decisive)
         {
-            crowned.Title = Progression.Title.Archduke;
-            ThroneSystem.Enthrone(w, crowned.Id, seized: true);
-            w.Log($"The War of the Reach ends with {crowned.Name} on a throne that did not exist when it began{(crowned.Id != victor!.Id ? $"; {victor.Name} won the field and {crowned.Name} the capital" : "")}.");
+            crowned.Legitimacy = Math.Min(100, crowned.Legitimacy + 10); crowned.Glory = Math.Min(12, crowned.Glory + 4);
+            if (Progression.Title.RankOf(crowned.Title) < 4) crowned.Title = Progression.Title.Duke;
+            w.WorldFlags.Add("great_crisis:victor"); if (crowned.Id == player) w.WorldFlags.Add("great_crisis:player_holds_the_reach");
+            w.Log($"The War of the Reach ends with {crowned.Name} holding the field and the capital. The Senate still sits. Whether it goes on sitting is now a question people ask aloud.");
         }
         else if (victor != null && w.Era != "imperium")
         {

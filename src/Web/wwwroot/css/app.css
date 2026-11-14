@@ -682,6 +682,7 @@ table.prospects button { white-space: nowrap; } table.prospects td, table.prospe
 .caesar-war, .caesar-recall { border: 1px solid var(--warn, #c9a227); border-radius: 6px; padding: .5rem .6rem; margin: .4rem 0 .6rem; line-height: 1.45; }
 .caesar-war { border-color: var(--bad, #c0504d); }
 .crew-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .2rem .5rem; align-items: center; padding: .3rem 0; border-top: 1px dotted var(--line); } .crew-row > span:first-child { grid-column: 1 / -1; }
+.gate-row { padding: .18rem 0; line-height: 1.4; } .gate-row .pill { min-width: 3.6rem; text-align: center; display: inline-block; }
 .panel.caesar .ac-fact { display: block; } .panel.caesar .ac-fact > span { display: block; margin-bottom: .1rem; } .panel.caesar .suit-acts { flex-wrap: wrap; }
 .crew-row .gauge { display: flex; align-items: center; gap: .35rem; } .crew-row .gauge i { flex: 1; } .rung-row { border-top: 1px dotted var(--line); padding: .45rem 0 .35rem; line-height: 1.4; }
 .panel.life { grid-column: span 2; } @media (max-width: 1000px) { .panel.life { grid-column: auto; } }

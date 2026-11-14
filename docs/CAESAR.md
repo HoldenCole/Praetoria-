@@ -5,7 +5,14 @@ house and nothing else: the Senate could not honour him or call him home, the cr
 and nobody could march on the capital. Now a commander makes a name, the Senate answers it, and the answer can end the
 Republic.
 
-The rule is docs/PROCESS.md: you play one person. The general may be you or one of your house. If it is one of your
+Two rules from docs/PROCESS.md govern it.
+
+**The Republic stands unless the player ends it.** Nothing ends it by a clock or by default. A Caesar is rare for a
+reason: he has to be extremely able and extremely well liked, and the times have to be his. Another house's general
+marches only through all three gates below, and should succeed about once in ten games or less. The player may try
+without them, and can fight a rival who tries.
+
+**You play one person.** The general may be you or one of your house. If it is one of your
 house, the victories, the crews and the triumph are theirs. What the *house* does about a recall is the head's to say.
 
 ## The crews and their commander
@@ -66,6 +73,45 @@ against one with sway of **40** or more.
 - **Coming home:** the fleets are left without a commander, the general may hold no command for five years, and the
   house gains 4 legitimacy for keeping the law.
 
+## The three gates
+
+What a Caesar is made of. Shown on the Military screen for your own general, each as met or not yet with what it
+lacks.
+
+| Gate | It asks |
+|---|---|
+| **A commander of the first rank** | tactics of 6 or more, four battles won in command, and a triumph |
+| **Loved** | liked by nature (charisma 6, or charisma and oratory together 9) or made the squares' own by deeds (the name the Reach gives one who leads from the front, or a second triumph); four hulls whose crews would follow; and a house with legitimacy of 50 or more |
+| **The times** | the Republic is **troubled**: two or more things wrong at once |
+
+**What can be wrong with the Republic:**
+
+- the War of the Reach is in living memory (the fifteen years after it ends);
+- the lanes of more than one region are lawless;
+- the house that holds the capital is not respected (legitimacy under 40);
+- a war beyond the Reach is going badly;
+- the houses are at war with each other (four wars or more);
+- the Exchange has crashed.
+
+**Another house's general** crosses only if all three gates are met, he is the kind who would (not loyal by nature, and not one who wants only a quiet life), the Senate has given him a
+cause, and his house's fleet is at least two fifths of the strongest other. One gate short, he comes home when recalled.
+
+**The player** needs only what "Crossing the line" asks. The gates then decide who stands with them: every house weighs
+the times (a sound Republic is defended: −2; one thing wrong −1; three or more +1), whether the general is of the first
+rank (+1) and whether he is loved (+1, or −1 for one with no charm and no name). The panel says how many houses would
+declare each way if the house crossed today.
+
+**Warnings before anything is done.** When the Republic is troubled, when another house's general is both of the first
+rank and loved, and when your own house has passed all three, the outliner and an event say so.
+
+## The War of the Reach no longer makes an emperor
+
+The game's great war used to end with the winning side's strongest house on a throne, which ended the Republic in
+about two runs of three around year 28 to 40. It is still fought, won and lost. Its victor gains legitimacy, glory and
+rank, and the Senate still sits. The Republic is shaken for fifteen years afterwards, which is one of the things that
+can be wrong with it. A house that wants a throne must take it: by this road, or by the older Seize and Proclaim
+commands, which only the player uses.
+
 ## Crossing the line
 
 The head of a house may march its general on the capital when all of these hold:
@@ -118,7 +164,8 @@ A march is cut short without a victor if a throne is taken some other way or the
 
 ## Events
 
-Twelve, in `content/events/caesar.json`: *The Triumph*, *A Triumph In The House*, *No Triumph*, *The Recall*, *They
+Fifteen, in `content/events/caesar.json`. Three are warnings: *The Republic Falters*, *A Name On Every Lip* (another
+house's general who is of the first rank and loved), *They Are Saying It Of Your House*. The other twelve: *The Triumph*, *A Triumph In The House*, *No Triumph*, *The Recall*, *They
 Have Recalled One Of Yours*, *The Line Is Crossed*, *A General Marches On The Capital*, *The Republic Stands*, *The
 Republic Falls*, *The Capital Is Yours*, *The March Has Failed*, *The Crews Are Theirs*. They colour what happened.
 What is decided (to come home, to cross, to declare) is decided on the Military screen.
@@ -126,12 +173,13 @@ What is decided (to come home, to cross, to declare) is decided on the Military 
 ## For content
 
 - World flags, each year: `recalled`, `kin_recalled`, `civil_war`, `civil_war_mine`, `sword_of_the_senate`,
-  `general_has_sway`, `laurels_earned`, `kin_general_loved`.
+  `general_has_sway`, `laurels_earned`, `kin_general_loved`, `republic_troubled`, `great_name_rises`,
+  `the_hour_is_mine`.
 - World flags, for a year after: `triumph_voted`, `kin_triumph`, `triumph_refused`, `recall_obeyed`,
   `crossed_the_line`, `caesar_marches`, `caesar_crowned`, `republic_fell`, `republic_saved`, `caesar_broken`,
   `served_caesar`, `opposed_caesar`. For good: `republic_fallen`.
 - Character flags: `triumphator`, `new_triumphator`, `recalled_general`, `caesar`, `loved_by_the_fleet`,
-  `first_emperor`.
+  `first_emperor`, `great_name`.
 - Counters: `laurels:<id>`, `victories:<id>`, `triumphs:<id>`; `triumphs_voted`, `recalls_voted`, `civil_wars`,
   `republics_ended`, `caesars_broken`.
 - No new effect types.
@@ -150,24 +198,32 @@ What is decided (to come home, to cross, to declare) is decided on the Military 
 
 ## Checked
 
-- 592 tests. One walks all three roads (your own, a relative's, another house's) and resolves every choice of all
-  twelve events. One runs sixty years on two seeds and asserts there is never more than one civil war and none under a
-  throne.
+- 594 tests. One walks all three roads (your own, a relative's, another house's) and resolves every choice of the
+  fifteen events. One shows another house's general refusing to march with any one gate unmet, and marching with all
+  of them. One shows the same general finding more houses for him in a troubled Republic than a sound one. One runs
+  sixty years on two seeds and asserts there is never more than one civil war and none under a throne.
 - The soak passes (eleven starts, three seeds, sixty years, save and load compared), with the random player answering
-  recalls, crossing, declaring and paying donatives when it can. The survival probe is unchanged at 1 of 80.
-- In the browser on The Old Lion the panel reads the general's sway and its parts, a donative moved the crews' regard,
-  and there were no errors.
+  recalls, crossing, declaring and paying donatives when it can. The survival probe is unchanged.
+- In the browser on The Old Lion the panel reads the general's sway, the three gates with what each lacks, the state
+  of the Republic and who would declare, and a donative moved the crews' regard. No errors.
 
 ## What the probe found
 
-- **For other houses the road is rare.** In 30 passive sixty-year runs: 7 triumphs, 2 recalls carried of 11 moved, and
-  no march. The Reach sees about eight battles a run, its fleets are small (a general commands four hulls of a house's
-  nine), and the game's great war ends the Republic around year 28 to 40 in two runs of three. None of the twelve
-  events fired in the soak. The road is there for the player to walk; a rival Caesar will seldom be seen until the
-  Reach fights more or the thresholds are tuned against the probe.
-- The house that holds the capital has most of the veteran generals. It cannot march on its own capital, and other
-  houses no longer spend recalls on it.
-- The older routes to a throne are unchanged: the great war's victor, and the Seize and Proclaim commands.
+`praetoria caesar --scenario all --seeds 10`: sixty Republic runs of sixty years with a passive player.
+
+- **The Republic stood in all 60.** Before the rule it fell in about two runs of three, to the great war.
+- The Senate's business with generals is lively: 64 triumphs voted of 112 moved, 11 recalls carried of 38 moved.
+- **No rival marched.** Another house's general was of the first rank in 14 runs and loved in 31, and never both at
+  once. The Republic was troubled in every run, for about one year in six.
+- So a rival Caesar is possible (a test builds one and he marches) and was not seen in 60 runs. That is on the rare
+  side of the owner's "once in ten games or less". The knobs, if it should be seen a little more: `GateVictories`,
+  `GateTactics`, `GateTriumphs` and `GateCharisma` in `CaesarSystem`, and `AlarmSway`, the sway at which the capital's
+  holder and the consuls move a recall. Change one, run the probe, and keep a rival's success under one game in ten.
+- Found while measuring: the benches used to recall any commander who had won twice, and he came home and lost his
+  command, so nobody could ever grow into the full figure. Other houses now move a recall only against a general they
+  hate, or (the capital's holder and the consuls) one whose sway alarms them.
+
+The older routes to a throne (Seize and Proclaim) are the player's alone; no other house uses them.
 
 ## Not in this piece
 
@@ -176,5 +232,7 @@ What is decided (to come home, to cross, to declare) is decided on the Military 
 - No proscription lists, no amnesty, no negotiated end.
 - The Senate's sword gets no command of the state's fleets beyond what its offices already give.
 - A relative who is the general cannot cross against the head's wishes.
+- The player cannot yet *make* the times: nothing lets a house deliberately trouble the Republic, or mend it to stop a
+  rival.
 - Under a throne there is nothing here yet: no triumph by the throne's gift, no guard. That is politics under a throne.
 - Every number is a first guess.

@@ -13,11 +13,13 @@ namespace Praetoria.Core.Systems;
 /// </summary>
 public sealed class CaesarSystem
 {
-    public const int DevotedAt = 50, TriumphLaurels = 3, RecallSway = 40, FearedSway = 45, MarchSway = 40, MarchHulls = 4, RecallYears = 2, HoldYears = 2, WarYears = 10,
+    public const int DevotedAt = 50, TriumphLaurels = 3, RecallSway = 40, FearedSway = 45, AlarmSway = 55, MarchSway = 40, MarchHulls = 4, RecallYears = 2, HoldYears = 2, WarYears = 10,
         DecisiveLead = 8, GrievanceYears = 5, BarredYears = 5, DonativePerHull = 2, DonativeDevotion = 8;
     // true each year while it holds
     public const string RecalledFlag = "recalled", KinRecalledFlag = "kin_recalled", CivilWarFlag = "civil_war", MyCivilWarFlag = "civil_war_mine",
-        SwordFlag = "sword_of_the_senate", SwayFlag = "general_has_sway", LaurelsFlag = "laurels_earned", KinLovedFlag = "kin_general_loved";
+        SwordFlag = "sword_of_the_senate", SwayFlag = "general_has_sway", LaurelsFlag = "laurels_earned", KinLovedFlag = "kin_general_loved",
+        TroubledFlag = "republic_troubled", GreatNameFlag = "great_name_rises", HourFlag = "the_hour_is_mine";
+    public const string GreatNameChar = "great_name";
     // true for a year after the deed
     public const string TriumphFlag = "triumph_voted", KinTriumphFlag = "kin_triumph", RefusedFlag = "triumph_refused", ObeyedFlag = "recall_obeyed",
         CrossedFlag = "crossed_the_line", MarchesFlag = "caesar_marches", CrownedFlag = "caesar_crowned", FallenFlag = "republic_fell",
@@ -26,7 +28,7 @@ public sealed class CaesarSystem
     public const string RepublicFallenFlag = "republic_fallen";
     public const string TriumphatorChar = "triumphator", NewTriumphatorChar = "new_triumphator", CaesarChar = "caesar", RecalledChar = "recalled_general", LovedChar = "loved_by_the_fleet";
     public const string General = "general", Senate = "senate";
-    private static readonly string[] YearFlags = { RecalledFlag, KinRecalledFlag, CivilWarFlag, MyCivilWarFlag, SwordFlag, SwayFlag, LaurelsFlag, KinLovedFlag };
+    private static readonly string[] YearFlags = { RecalledFlag, KinRecalledFlag, CivilWarFlag, MyCivilWarFlag, SwordFlag, SwayFlag, LaurelsFlag, KinLovedFlag, TroubledFlag, GreatNameFlag, HourFlag };
     private static readonly string[] DeedFlags = { TriumphFlag, KinTriumphFlag, RefusedFlag, ObeyedFlag, CrossedFlag, MarchesFlag, CrownedFlag, FallenFlag, SavedFlag, BrokenFlag, ServedFlag, OpposedFlag };
 
     private readonly FleetSystem _fleets; private readonly OfficeCatalog _offices;
@@ -302,6 +304,10 @@ public sealed class CaesarSystem
         if (w.AtWar(h.Id, general.Id)) s -= 3;
         if (FleetSystem.StrengthOf(w, general.Id) >= 2 * Math.Max(1, FleetSystem.StrengthOf(w, h.Id))) s += 1;
         if (g.Flags.Contains(FleetSystem.AchillesFlag)) s += 1;
+        // the three gates, as the other houses weigh them: the times, the man, and whether he is loved
+        int troubles = Troubles(w).Count; s += troubles >= 3 ? 1 : troubles == 2 ? 0 : troubles == 1 ? -1 : -2;   // a sound Republic is defended
+        if (FirstRank(w, g)) s += 1;
+        if (Loved(w, g, general)) s += 1; else if (g.Skill("charisma") <= 2 && !g.Flags.Contains(FleetSystem.AchillesFlag)) s -= 1;
         return s + (int)(Hash(h.Id + ":side:" + general.Id) % 3) - 1;
     }
 
@@ -466,16 +472,78 @@ public sealed class CaesarSystem
 
     // ---------------- the year ----------------
 
-    /// <summary>Would this house's general cross if he could? One who wants the throne, a name spoken like Achilles' that wants to be
-    /// first, or one with nearly all the sway there is; and only with a fleet that is not plainly outmatched.</summary>
+    // ---------------- the three gates ----------------
+    // The owner's rule (docs/PROCESS.md, 2026-11-14): the Republic stands unless the player ends it. There was one Caesar, and for
+    // a reason: he was extremely able, extremely well liked, and the times were his. Another house's general marches only when all
+    // three hold. The player may march without them, and then finds what they are worth in who declares.
+
+    public const int GateTactics = 6, GateVictories = 4, GateCharisma = 6, GateCharm = 9, GateTriumphs = 2, GateLegitimacy = 50, TroubledAt = 2, GreatWarMemory = 15;
+    public const string GreatWarEndedKey = "great_war_ended";
+
+    /// <summary>What is wrong with the Republic this year. Two or more and it is troubled: the times a general needs.</summary>
+    public static List<string> Troubles(World w)
+    {
+        var list = new List<string>(); if (w.IsImperium) return list;
+        if (Within(w, GreatWarEndedKey, GreatWarMemory) || GreatWar(w)) list.Add("the War of the Reach is in living memory");
+        if (w.Galaxy != null && w.Regions.Values.Count(r => r.Lawlessness >= 50) >= 2) list.Add("the lanes of more than one region are lawless");
+        if (RegionSystem.CapitalHolder(w) is { Legitimacy: < 40 } chair) list.Add($"{chair.Name}, which holds the capital, is not respected");
+        if (w.Nations.Any(n => n.AtWar && n.ScoreNation > n.ScoreReach)) list.Add("a war beyond the Reach is going badly");
+        if (w.Wars.Count >= 4) list.Add("the houses are at war with each other");
+        if (w.WorldFlags.Contains(CompanySystem.CrashFlag)) list.Add("the Exchange has crashed");
+        return list;
+    }
+    public static bool Troubled(World w) => Troubles(w).Count >= TroubledAt;
+
+    /// <summary>A commander of the first rank: the skill, the victories, and a triumph to show for them.</summary>
+    public static bool FirstRank(World w, Character c) => c.Skill("tactics") >= GateTactics && Victories(w, c) >= GateVictories && Triumphs(w, c) > 0;
+    /// <summary>Loved: by nature or by the name the Reach has given, by crews who would follow, and of a house that is respected.</summary>
+    public static bool Loved(World w, Character c, House house) => Charms(w, c) && DevotedHulls(w, c) >= MarchHulls && house.Legitimacy >= GateLegitimacy;
+    /// <summary>Liked by nature (charisma, or charisma and a tongue), or made the squares' own by what they have done: the name the Reach
+    /// gives one who leads from the front, or a second triumph.</summary>
+    public static bool Charms(World w, Character c) =>
+        c.Skill("charisma") >= GateCharisma || c.Skill("charisma") + c.Skill("oratory") >= GateCharm || c.Flags.Contains(FleetSystem.AchillesFlag) || Triumphs(w, c) >= GateTriumphs;
+
+    /// <summary>The three gates for this house's general, each with whether it is met and what it lacks.</summary>
+    public static List<(string name, bool met, string says)> Gates(World w, House house)
+    {
+        var g = GeneralOf(w, house); var list = new List<(string, bool, string)>(); if (g == null) return list;
+        var lacks = new List<string>();
+        if (g.Skill("tactics") < GateTactics) lacks.Add($"tactics {g.Skill("tactics")} of {GateTactics}");
+        if (Victories(w, g) < GateVictories) lacks.Add($"{Victories(w, g)} of {GateVictories} battles won");
+        if (Triumphs(w, g) == 0) lacks.Add("no triumph");
+        list.Add(("A commander of the first rank", lacks.Count == 0, lacks.Count == 0 ? $"tactics {g.Skill("tactics")}, {Victories(w, g)} battles won, {Triumphs(w, g)} triumph(s)" : string.Join(", ", lacks)));
+        lacks = new List<string>();
+        if (!Charms(w, g)) lacks.Add($"charisma {g.Skill("charisma")} of {GateCharisma}, no name the Reach has given, and not a second triumph");
+        if (DevotedHulls(w, g) < MarchHulls) lacks.Add($"{DevotedHulls(w, g)} of {MarchHulls} hulls would follow");
+        if (house.Legitimacy < GateLegitimacy) lacks.Add($"the house's legitimacy is {house.Legitimacy} of {GateLegitimacy}");
+        list.Add(("Loved", lacks.Count == 0, lacks.Count == 0 ? "by the crews, by the squares, and of a house that is respected" : string.Join(", ", lacks)));
+        var troubles = Troubles(w);
+        list.Add(("The times", troubles.Count >= TroubledAt, troubles.Count == 0 ? "the Republic is sound" : (troubles.Count >= TroubledAt ? "" : "only one thing is wrong: ") + string.Join("; ", troubles)));
+        return list;
+    }
+    public static bool Ready(World w, House house) { var gates = Gates(w, house); return gates.Count > 0 && gates.All(x => x.met); }
+
+    /// <summary>Would another house's general cross? Only one who has passed all three gates, wants it, and is not plainly outmatched.</summary>
     public bool WouldCross(World w, House house)
     {
-        var g = GeneralOf(w, house); if (g == null) return false;
-        int sway = Sway(w, g);
-        // one who wants the throne or to be first, a wilful one, or (of those who have never said what they want) one in three
-        bool wants = g.Ambition is "seize_the_throne" or "outshine_all_rivals" || CourtshipSystem.Wilful(g) || sway >= 65 || (g.Ambition.Length == 0 && Hash(g.Id + ":caesar") % 3 == 0);
+        var g = GeneralOf(w, house); if (g == null || !Ready(w, house)) return false;
+        // one with the record, the love and the times mostly would: only the loyal by nature, and those who want a quiet life, do not
+        bool wants = g.Ambition is "seize_the_throne" or "outshine_all_rivals" || CourtshipSystem.Wilful(g) || (!g.NatureTraits.Contains("Loyal") && g.Ambition != "win_a_great_love");
         int strongest = w.Houses.Values.Where(h => Real(h) && h.Id != house.Id).Select(h => FleetSystem.StrengthOf(w, h.Id)).DefaultIfEmpty(0).Max();
-        return wants && FleetSystem.StrengthOf(w, house.Id) * 5 >= strongest * 3;
+        return wants && FleetSystem.StrengthOf(w, house.Id) * 5 >= strongest * 2;
+    }
+
+    /// <summary>If this house crossed today, which houses would declare for its general and which for the Senate.</summary>
+    public (List<House> forGeneral, List<House> forSenate) Forecast(World w, House house)
+    {
+        var g = GeneralOf(w, house); var a = new List<House>(); var b = new List<House>(); if (g == null) return (a, b);
+        var chair = RegionSystem.CapitalHolder(w);
+        foreach (var h in w.Houses.Values.Where(h => Real(h) && h.Id != house.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            int s = SideScore(w, h, house, g);
+            if (chair?.Id == h.Id || s <= -1) b.Add(h); else if (s >= 2) a.Add(h);
+        }
+        return (a, b);
     }
 
     public void Tick(World w)
@@ -484,7 +552,7 @@ public sealed class CaesarSystem
         foreach (var f in YearFlags) w.WorldFlags.Remove(f);
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
         if (!w.HasFlag(TriumphFlag) && !w.HasFlag(KinTriumphFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(NewTriumphatorChar);
-        foreach (var c in w.Characters.Values) c.Flags.Remove(LovedChar);
+        foreach (var c in w.Characters.Values) { c.Flags.Remove(LovedChar); c.Flags.Remove(GreatNameChar); }
         Crews(w, mine);
 
         // the recalls: another house's general answers in the year; the player's house has until the deadline
@@ -500,7 +568,7 @@ public sealed class CaesarSystem
         // a general with a grievance and the fleet for it may not wait to be recalled
         if (!w.IsImperium && w.CivilWar == null)
             foreach (var h in w.Houses.Values.Where(h => Real(h) && h.Id != mine).OrderBy(h => h.Id, StringComparer.Ordinal))
-                if (Grievance(w, h) != null && Hash(h.Id + ":march:" + w.Turn) % 4 == 0 && WouldCross(w, h) && CrossRefusal(w, h) == null) { Cross(w, h); break; }
+                if (Grievance(w, h) != null && WouldCross(w, h) && CrossRefusal(w, h) == null) { Cross(w, h); break; }
 
         // a throne taken some other way, or the great war breaking out, ends a march without a victor
         if (w.CivilWar is { } stale && (w.IsImperium || GreatWar(w))) { Peace(w, stale); w.CivilWar = null; w.Char(stale.GeneralId)?.Flags.Remove(CaesarChar); w.Log("The march on the capital is swallowed by a larger war."); }
@@ -532,6 +600,11 @@ public sealed class CaesarSystem
         if (w.Recalls.FirstOrDefault(r => r.HouseId == mine) is { } rc) w.WorldFlags.Add(rc.CharacterId == p.Id ? RecalledFlag : KinRecalledFlag);
         if (w.CivilWar is { } now) { w.WorldFlags.Add(CivilWarFlag); if (now.HouseId == mine) w.WorldFlags.Add(MyCivilWarFlag); if (now.SwordHouseId == mine) w.WorldFlags.Add(SwordFlag); }
         if (w.IsImperium) return;
+        if (Troubled(w)) w.WorldFlags.Add(TroubledFlag);
+        if (Ready(w, my)) w.WorldFlags.Add(HourFlag);
+        // a general of another house who is of the first rank and loved: the one the Reach may yet have to reckon with
+        foreach (var h in w.Houses.Values.Where(h => Real(h) && h.Id != mine && h.Id != RegionSystem.CapitalHolder(w)?.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
+            if (GeneralOf(w, h) is { } rg && FirstRank(w, rg) && Loved(w, rg, h)) { rg.Flags.Add(GreatNameChar); w.WorldFlags.Add(GreatNameFlag); }
         if (Sway(w, p) >= RecallSway) w.WorldFlags.Add(SwayFlag);
         if (GeneralOf(w, my) is { } mg && Laurels(w, mg) >= TriumphLaurels) w.WorldFlags.Add(LaurelsFlag);
         foreach (var c in w.LivingCharacters().Where(c => c.HouseId == mine && c.Id != p.Id && DevotedHulls(w, c) >= MarchHulls)) { c.Flags.Add(LovedChar); w.WorldFlags.Add(KinLovedFlag); }

@@ -1074,3 +1074,30 @@ probe is unchanged at 1 of 80. A new probe, `praetoria caesar`, reports how far 
 **Gaps that remain.** For other houses the road is rare: in 30 passive runs, 7 triumphs, 2 recalls carried, no march,
 and none of the twelve events fired in the soak. A general does not defect with his crews. The parties do not act as
 parties in the war. There is no negotiated end. Every number is a first guess; the probe is the tool to tune them.
+
+## 40. The Republic stands unless the player ends it — 2026-11-14
+
+The owner's correction to §39, written into docs/PROCESS.md: the Republic should not become the Imperium in the
+ordinary course of a game; a Caesar is rare for a reason (extremely able, extremely well liked, and the times his); a
+rival should succeed about once in ten games or less; the player may try, and can fight a rival who tries.
+
+**What was wrong.** The great war (a clock from the first design) ended the Republic in about two runs of three,
+around year 28 to 40, by putting its victor on a throne. Nobody had chosen that; it was simply how the crisis ended.
+And §39 had spent its tuning making rival Caesars more common, which was the wrong direction.
+
+**What changed.**
+- The War of the Reach no longer enthrones anyone. Its victor gains legitimacy, glory and rank; the Republic is shaken
+  for fifteen years.
+- Another house's general marches only through three gates: of the first rank, loved, and the times.
+- The same three things decide who declares for a general who marches, so a player who crosses in a sound Republic
+  finds it defended. The panel shows the gates, the state of the Republic and a forecast.
+- Three warning events and an alert.
+- Other houses move a recall only against a general they hate or fear.
+
+**Measured** (`praetoria caesar --scenario all --seeds 10`, 60 Republic runs of sixty years, passive player). The
+Republic stood in all 60. 64 triumphs, 11 recalls carried. No rival marched: a first-rank general in 14 runs, a loved
+one in 31, never both at once. 594 tests; the soak passes and no Republic fell in it either.
+
+**Gaps that remain.** A rival Caesar was not seen at all in 60 runs, which is rarer than "once in ten" if the owner
+wants it met now and then; the knobs are named in docs/CAESAR.md. The player cannot make or mend the times. Of the
+fifteen events only *The Republic Falters* fired in the soak; the rest are proved by a scripted test.

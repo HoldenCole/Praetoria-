@@ -71,7 +71,7 @@ public class GreatCrisisTests
     }
 
     [Fact]
-    public void Resolution_EndsTheWars_AndBirthsAnImperium()
+    public void Resolution_EndsTheWars_AndTheRepublicStands()
     {
         var (content, w) = Fresh();
         var fleets = new FleetSystem(content.Fleets);
@@ -82,8 +82,12 @@ public class GreatCrisisTests
         sys.Resolve(w);
         Assert.Empty(w.Wars);
         Assert.True(w.HasFlag(GreatCrisisSystem.ResolvedFlag));
-        Assert.Equal("imperium", w.Era);
-        Assert.Equal("emperor", w.House("corwin")!.Title);
+        // the owner's rule (docs/PROCESS.md): the Republic stands unless the player ends it. The war is won; no throne is handed out.
+        Assert.NotEqual("imperium", w.Era);
+        Assert.NotEqual("emperor", w.House("corwin")!.Title);
+        Assert.True(w.HasFlag("great_crisis:victor")); Assert.True(Praetoria.Core.Progression.Title.RankOf(w.House("corwin")!.Title) >= 4);
+        Assert.Equal(w.Turn, w.Counter(CaesarSystem.GreatWarEndedKey));    // and the Republic is shaken by it for years
+        Assert.Contains(CaesarSystem.Troubles(w), t => t.Contains("War of the Reach"));
         Assert.True(w.HasFlag("great_crisis:player_lost"));
         Assert.All(w.Houses.Values, h => Assert.Equal("", h.Bloc));
     }

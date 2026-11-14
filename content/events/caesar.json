@@ -1,5 +1,5 @@
 {
-  "//": "THE CAESAR ROAD (docs/CAESAR.md). Reads recalled, kin_recalled, kin_general_loved (each year); triumph_voted, kin_triumph, triumph_refused, crossed_the_line, caesar_marches, republic_saved, republic_fell, caesar_crowned, caesar_broken (deeds); and the character flags new_triumphator, recalled_general, loved_by_the_fleet. What is decided (to come home, to cross, to declare) is decided on the Military screen, not here.",
+  "//": "THE CAESAR ROAD (docs/CAESAR.md). Reads recalled, kin_recalled, kin_general_loved, republic_troubled, great_name_rises, the_hour_is_mine (each year); triumph_voted, kin_triumph, triumph_refused, crossed_the_line, caesar_marches, republic_saved, republic_fell, caesar_crowned, caesar_broken (deeds); and the character flags new_triumphator, recalled_general, loved_by_the_fleet, great_name. What is decided (to come home, to cross, to declare) is decided on the Military screen, not here.",
   "events": [
     {
       "id": "the_senates_triumph",
@@ -841,6 +841,238 @@
             {
               "type": "log",
               "text": "{self.name} gave {kin.name} a freer hand with the fleet. {kin.name} was pleased. So, when they heard, were the crews."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_republic_falters",
+      "tier": "situation",
+      "weight": 22,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "republic_troubled",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "speak_for_the_senate",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} rose in the chamber and said that the Republic had come through worse and would come through this. It was not what the benches expected to hear, and several of them sat a little straighter."
+            }
+          ]
+        },
+        {
+          "id": "say_what_everyone_is_thinking",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said aloud, at a dinner where it would be repeated, that the Senate could no longer do what it was for. It was repeated."
+            }
+          ]
+        },
+        {
+          "id": "keep_your_own_counsel",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} listened to the talk and added nothing to it. There will be time to have an opinion when it is clearer what the opinions are worth."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_name_on_every_lip",
+      "tier": "situation",
+      "weight": 26,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "general",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "general",
+              "flag": "great_name",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_name_rises",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "make_a_friend_of_them",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "general",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to some trouble to be of use to {general.name}: an introduction, a contract, a word in the right place. {general.name} is the kind who remembers."
+            }
+          ]
+        },
+        {
+          "id": "warn_the_senate",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "general",
+              "to": "self",
+              "delta": -12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the chamber plainly what a commander like {general.name} becomes if nobody is watching. {general.name} heard of it the same evening."
+            }
+          ]
+        },
+        {
+          "id": "watch_and_wait",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had {general.name}'s dispatches copied as they came in, and read them carefully. Nothing more than that. Not yet."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_hour",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "the_hour_is_mine",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_it_be_said",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} heard what was being said and did nothing to stop it. Not stopping it was noticed."
+            }
+          ]
+        },
+        {
+          "id": "deny_it_in_the_chamber",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the Senate that the house's general served the Republic and wanted nothing the Republic had not voted. It was well received. Some of the benches believed it."
+            }
+          ]
+        },
+        {
+          "id": "put_it_out_of_mind",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went back to the season's work. The talk went on without any help."
             }
           ]
         }

@@ -16,6 +16,17 @@
   `tools/ci.sh` now runs CI's exact steps locally.
 
 ### Changed
+- **The Republic stands unless the player ends it** (docs/PROCESS.md, the owner's rule of 2026-11-14).
+  - **The War of the Reach no longer makes an emperor.** It used to end the Republic in about two games of three,
+    around year 28 to 40. It is still fought and won; the victor gains legitimacy, glory and rank; the Senate still
+    sits; and the Republic is shaken for fifteen years.
+  - **Another house's general marches only through three gates:** a commander of the first rank (tactics 6, four
+    battles won, a triumph), loved (charm or the squares' hero, crews who would follow, a respected house), and the
+    times (two or more things wrong with the Republic at once). One gate short, he comes home when recalled.
+  - **The player may still try without them,** and the gates decide who stands with them: a sound Republic is
+    defended. The Military screen shows the three gates, what each lacks, the state of the Republic, and how many
+    houses would declare each way if the house crossed today.
+  - Three warning events and an outliner alert: the Republic falters, a rival of great name rises, the hour is yours.
 - The law career's ranks **Magistrate** and **Praetor** are now **Judge** and **Justice**, so that "praetor" means
   one thing: the elected office.
 - A wound in battle now costs health, is written into the person's record and leaves a scar on their portrait.

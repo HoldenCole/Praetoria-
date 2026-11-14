@@ -46,7 +46,8 @@ rather than the state, who can be voted a triumph or march on the capital.
 4. **Generals' sway — done (2026-11-14).** and 5. **The Caesar — done (2026-11-14).** See docs/CAESAR.md: crews that
    follow the commander who wins with them, sway, triumph and recall by Senate vote, crossing the line, a civil war in
    which the houses declare, and the Republic ended or the general broken. Left: a general who defects with his
-   crews, and rival Caesars that arise often enough to be met.
+   crews. By the owner's rule (docs/PROCESS.md) the Republic stands unless the player ends it: a rival Caesar must be
+   extremely able, loved, and have the times, and should succeed about once in ten games or less.
 
 ## The three orders — built 2026-11-13
 

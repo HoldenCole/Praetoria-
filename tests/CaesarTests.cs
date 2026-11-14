@@ -160,6 +160,56 @@ public class CaesarTests
         Assert.NotNull(new CaesarCommand(me.Id, CaesarCommand.Donative, f.Id, tc.Caesar).Refusal(ctx));
     }
 
+    /// <summary>Everything a Caesar needs but the times: the skill, the victories, a triumph, charm, crews and a respected house.</summary>
+    private static void Great(World w, House h, Character c)
+    {
+        Name(w, c); c.Skills["tactics"] = 9; c.Skills["charisma"] = 8; c.Ambition = "seize_the_throne"; h.Legitimacy = 80;
+        w.WorldCounters[CaesarSystem.VictoryKey(c.Id)] = 6; w.WorldCounters[CaesarSystem.TriumphKey(c.Id)] = 1;
+    }
+    private static void Trouble(World w) { w.WorldCounters[CaesarSystem.GreatWarEndedKey] = w.Turn; w.WorldFlags.Add(CompanySystem.CrashFlag); }
+
+    [Fact]
+    public void Another_houses_general_marches_only_through_all_three_gates()
+    {
+        var (tc, w, _, mine, _) = Start(); var rival = Rival(w, mine); var g = Economy.HeadOf(w, rival)!; Legion(w, rival, g, hulls: 14);
+        foreach (var x in w.Wars.ToList()) w.Wars.Remove(x); w.WorldFlags.Remove(CompanySystem.CrashFlag); foreach (var r in w.Regions.Values) r.Lawlessness = 0; foreach (var n in w.Nations) n.AtWar = false;
+        if (RegionSystem.CapitalHolder(w) is { } chair) chair.Legitimacy = 80;
+        Great(w, rival, g); tc.Caesar.TriumphVoted(w, rival, null, passed: false);                    // a cause
+        Assert.Empty(CaesarSystem.Troubles(w)); Assert.False(CaesarSystem.Ready(w, rival)); Assert.False(tc.Caesar.WouldCross(w, rival));   // the times are not his
+        Trouble(w); Assert.True(CaesarSystem.Troubled(w)); Assert.True(CaesarSystem.Ready(w, rival)); Assert.True(tc.Caesar.WouldCross(w, rival));
+        g.Skills["tactics"] = 5; Assert.False(tc.Caesar.WouldCross(w, rival)); g.Skills["tactics"] = 9;      // not able enough
+        g.Skills["charisma"] = 1; g.Flags.Remove(FleetSystem.AchillesFlag); Assert.False(tc.Caesar.WouldCross(w, rival)); g.Skills["charisma"] = 8;   // not loved
+        w.WorldCounters[CaesarSystem.TriumphKey(g.Id)] = 0; Assert.False(tc.Caesar.WouldCross(w, rival)); w.WorldCounters[CaesarSystem.TriumphKey(g.Id)] = 1;   // never honoured
+        g.Ambition = "amass_a_fortune"; g.NatureTraits.Clear(); g.NatureTraits.Add("Loyal"); Assert.False(tc.Caesar.WouldCross(w, rival));   // does not want it
+        // with every gate passed he crosses in the year; one gate short, he comes home when recalled
+        g.Ambition = "seize_the_throne"; w.Turn += 1; tc.Caesar.Tick(w); Assert.NotNull(w.CivilWar); Assert.Equal(rival.Id, w.CivilWar!.HouseId);
+
+        var (tc2, w2, _, mine2, _) = Start(); var rival2 = Rival(w2, mine2); var g2 = Economy.HeadOf(w2, rival2)!; Legion(w2, rival2, g2, hulls: 14); Great(w2, rival2, g2); Trouble(w2);
+        g2.Skills["charisma"] = 1; g2.Flags.Remove(FleetSystem.AchillesFlag);
+        tc2.Caesar.RecallVoted(w2, rival2, mine2, passed: true); w2.Turn += 1; tc2.Caesar.Tick(w2);
+        Assert.Null(w2.CivilWar); Assert.Empty(w2.Recalls); Assert.True(CaesarSystem.Barred(w2, g2));
+    }
+
+    [Fact]
+    public void A_sound_republic_is_defended_and_a_troubled_one_is_not()
+    {
+        var (tc, w, me, mine, _) = Start(); Legion(w, mine, me, hulls: 14); Name(w, me);
+        foreach (var x in w.Wars.ToList()) w.Wars.Remove(x); w.WorldFlags.Remove(CompanySystem.CrashFlag); foreach (var r in w.Regions.Values) r.Lawlessness = 0; foreach (var n in w.Nations) n.AtWar = false;
+        if (RegionSystem.CapitalHolder(w) is { } chair) chair.Legitimacy = 80;
+        var sound = tc.Caesar.Forecast(w, mine);
+        Great(w, mine, me); Trouble(w); w.WorldCounters[CaesarSystem.GreatWarEndedKey] = w.Turn; foreach (var r in w.Regions.Values) r.Lawlessness = 80;
+        var ripe = tc.Caesar.Forecast(w, mine);
+        Assert.True(ripe.forGeneral.Count > sound.forGeneral.Count, $"for the general: {sound.forGeneral.Count} then {ripe.forGeneral.Count}");
+        Assert.True(ripe.forSenate.Count < sound.forSenate.Count, $"for the Senate: {sound.forSenate.Count} then {ripe.forSenate.Count}");
+        Assert.Contains(ripe.forSenate, h => h.Id == RegionSystem.CapitalHolder(w)?.Id);              // whoever holds the capital is never for the one marching on it
+        Assert.All(CaesarSystem.Gates(w, mine), x => Assert.True(x.met, x.name + ": " + x.says));
+        tc.Caesar.Tick(w); Assert.True(w.HasFlag(CaesarSystem.TroubledFlag)); Assert.True(w.HasFlag(CaesarSystem.HourFlag));
+        mine.Treasury.Credits = 100; w.PoolsFor(me.Id).Influence = 9; Fires(w, "the_republic_falters"); Fires(w, "the_hour");
+        // and a rival who is of the first rank and loved is named to the player before anything is done
+        var rival = Rival(w, mine); var rg = Economy.HeadOf(w, rival)!; Legion(w, rival, rg, hulls: 10); Great(w, rival, rg);
+        tc.Caesar.Tick(w); Assert.True(w.HasFlag(CaesarSystem.GreatNameFlag)); Assert.Contains(CaesarSystem.GreatNameChar, rg.Flags); Fires(w, "a_name_on_every_lip");
+    }
+
     private static void Fires(World w, string eventId, params string[] choices)
     {
         var engine = new Praetoria.Core.Events.EventEngine(Content, WorldBuilder.RngFor(w));
