@@ -48,3 +48,29 @@ public sealed class Heirloom
     /// <summary>What it would fetch.</summary>
     public int Value { get; set; }
 }
+
+/// <summary>What one of the house is doing about what they want (docs/AMBITIONS.md). They pursue it themselves; now and then they
+/// ask the head for something that would help.</summary>
+public sealed class Pursuit
+{
+    /// <summary>The ambition this pursuit is for.</summary>
+    public string Goal { get; set; } = "";
+    /// <summary>0..100. At a hundred they have what they wanted.</summary>
+    public int Progress { get; set; }
+    public int Since { get; set; }
+    public bool Fulfilled { get; set; }
+    public int FulfilledTurn { get; set; } = -1;
+    /// <summary>What they have asked the head for and not been answered: command, stake, word or heir. Empty when nothing is asked.</summary>
+    public string Request { get; set; } = "";
+    /// <summary>The fleet they want, or the sum.</summary>
+    public string RequestArg { get; set; } = "";
+    public int RequestSince { get; set; } = -1;
+    public int LastAsked { get; set; } = -99;
+    /// <summary>Times the head helped, and times the head refused or did not answer.</summary>
+    public int Helped { get; set; }
+    public int Refused { get; set; }
+    /// <summary>Credits of their own they have put into the house.</summary>
+    public int Given { get; set; }
+    /// <summary>What they did about it this year, in a line.</summary>
+    public string Note { get; set; } = "";
+}

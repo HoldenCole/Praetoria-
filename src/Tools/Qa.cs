@@ -310,6 +310,10 @@ internal static class Qa
             if (decisions.NextInt(0, 25) == 0) foreach (var mm in w.Marriages.Where(mm => w.Char(mm.A)?.HouseId == house.Id || w.Char(mm.B)?.HouseId == house.Id).OrderBy(mm => mm.A, StringComparer.Ordinal).Take(1))
                 cands.Add(new MarriageCommand(p.Id, w.Char(mm.A)?.HouseId == house.Id ? mm.A : mm.B, MarriageCommand.Divorce));
         }
+        {   // ambitions: grant or refuse what the house's people ask, and name an heir
+            foreach (var k in AmbitionSystem.Members(w, house).Where(k => k.Pursuit is { Request.Length: > 0 })) cands.Add(new AmbitionCommand(p.Id, decisions.NextInt(0, 3) == 0 ? AmbitionCommand.Refuse : AmbitionCommand.Grant, k.Id, tc.Ambitions));
+            if (decisions.NextInt(0, 20) == 0) { var grownUp = AmbitionSystem.Members(w, house); cands.Add(new AmbitionCommand(p.Id, AmbitionCommand.NameHeir, grownUp.Count > 0 && decisions.NextInt(0, 3) != 0 ? grownUp[decisions.NextInt(0, grownUp.Count)].Id : "", tc.Ambitions)); }
+        }
         {   // wealth: the allowance, the head's purse, debts, the will, heirlooms
             if (decisions.NextInt(0, 6) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Allowance, "", WealthSystem.Allowances[decisions.NextInt(0, 3)]));
             if (decisions.NextInt(0, 12) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Inheritance, "", decisions.NextInt(0, 2) == 0 ? WealthSystem.Entail : WealthSystem.Portions));

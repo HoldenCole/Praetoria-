@@ -1,0 +1,44 @@
+{
+  "texts": [
+    {
+      "id": "what_they_wanted",
+      "title": "What They Wanted",
+      "body": "{kin.name} has it: the thing they have wanted for years and have talked about, when they talked about themselves at all, as if it were only a matter of time. It was a matter of work. They have come to tell {self.name} themselves, trying not to look as pleased as they are.",
+      "choices": {
+        "be_glad_for_them": "Be glad for them.",
+        "remind_them_who_helped": "Remind them who stood behind them.",
+        "ask_what_they_want_next": "Ask what they want next."
+      }
+    },
+    {
+      "id": "no_nearer_it",
+      "title": "No Nearer It",
+      "body": "It is ten years since {kin.name} set their mind on it, and they are no nearer. They do not complain to {self.name}. They have stopped mentioning it, which is worse. The household knows that {self.name} was asked for help more than once, and what the answer was.",
+      "choices": {
+        "help_them_now": "Help them now, late as it is.",
+        "tell_them_to_want_something_else": "Tell them to want something else.",
+        "say_it_will_come": "Say it will come."
+      }
+    },
+    {
+      "id": "a_venture_of_their_own",
+      "title": "A Venture Of Their Own",
+      "body": "{kin.name} has founded something: found the site, struck the bargain, put up the money, all of it without a word to anyone until it was done. It carries the house's name, as everything does. It is {kin.name}'s all the same, and {kin.name} would like that to be understood.",
+      "choices": {
+        "wish_them_luck": "Wish them luck with it.",
+        "send_the_stewards_eye": "Send the steward to look it over.",
+        "leave_them_to_it": "Leave them to it."
+      }
+    },
+    {
+      "id": "the_heir_is_named",
+      "title": "The Heir Is Named",
+      "body": "It is done: {self.name} has said who is to have the house, and it is not who the law would have given it to. Every member of the family has spent the day working out what it means for them.",
+      "choices": {
+        "say_it_before_the_house": "Say it before the whole house.",
+        "let_it_be_known_quietly": "Let it be known quietly.",
+        "soften_it_for_the_one_passed_over": "Soften it for the one passed over."
+      }
+    }
+  ]
+}

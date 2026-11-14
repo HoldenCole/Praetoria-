@@ -1,0 +1,316 @@
+{
+  "//": "AMBITIONS (docs/AMBITIONS.md). Reads kin_fulfilled, kin_thwarted, kin_founded_a_venture and heir_named (deeds), and the character flags has_what_they_wanted, thwarted and founded_a_venture.",
+  "events": [
+    {
+      "id": "what_they_wanted",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "has_what_they_wanted",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_fulfilled",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "be_glad_for_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} it had been earned, and meant it. It is a rare thing to watch someone get what they set out for."
+            }
+          ]
+        },
+        {
+          "id": "remind_them_who_helped",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {kin.name} understand whose house had stood behind them. {kin.name} understood. The moment was a little smaller for it."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_they_want_next",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {kin.name} what came next. {kin.name} had not thought. It was plain they would start thinking soon."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "no_nearer_it",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "thwarted",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_thwarted",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "help_them_now",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took {kin.name}'s part at last, and spent some credit doing it. It was late. {kin.name} took it all the same."
+            }
+          ]
+        },
+        {
+          "id": "tell_them_to_want_something_else",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} that it was time to want something that could be had. {kin.name} thanked {self.name} for the advice in a voice with nothing in it."
+            }
+          ]
+        },
+        {
+          "id": "say_it_will_come",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that these things take time. {kin.name} has been hearing that for ten years."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_venture_of_their_own",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "founded_a_venture",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_founded_a_venture",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "wish_them_luck",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wished {kin.name} luck with it and asked to be shown the place when it was running. {kin.name} had hoped to be asked."
+            }
+          ]
+        },
+        {
+          "id": "send_the_stewards_eye",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the steward go over {kin.name}'s arrangements. The steward found two things to put right. {kin.name} did not enjoy being found right about the rest."
+            }
+          ]
+        },
+        {
+          "id": "leave_them_to_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} left {kin.name} to it. It is {kin.name}'s to make work, or not."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_heir_is_named",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "heir_named",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_it_before_the_house",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said it aloud before the assembled house, so that nobody could later claim not to have heard. Faces were watched while it was said."
+            }
+          ]
+        },
+        {
+          "id": "let_it_be_known_quietly",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} had it written into the house's book and let people find it there. They found it within the day."
+            }
+          ]
+        },
+        {
+          "id": "soften_it_for_the_one_passed_over",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} saw to it that whoever was passed over had something to show for a lifetime of expecting. It did not buy contentment. It bought civility."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

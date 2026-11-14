@@ -15,8 +15,8 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 556 |
-| Events with text | 288 in 29 files |
+| Automated tests | 564 |
+| Events with text | 292 in 30 files |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
@@ -40,6 +40,7 @@ deterministic and saves and loads.
 | Laws and estates | 22 laws by position, six estates with opinions, Reach-wide Acts | `POLITICS` |
 | The three orders | Standing in the Senate, Arms and Commerce; callings; old and new names; sway; patrons and clients; a seat by the census; canvassing | `REPUBLIC` |
 | The economy | Prices that follow war and scarcity; ventures bought and sold; building over years; companies, shares, dividends, takeovers; war bonds; the Senate's and throne's hand on the market | `ECONOMY_MARKET` |
+| Ambitions | The people of the house go after what they want by themselves, ask the head for help now and then, and succeed or are thwarted; a named heir | `AMBITIONS` |
 | Personal wealth | A purse for every grown member of the house, the allowance, what they do with their own money, debts, heirlooms, the will, and the estate kept whole or shared out | `WEALTH` |
 | Education and skills | A ceiling in every skill, learning by doing, by study and by being taught, children brought up toward their bent, tutors; the end of a step a year for everyone | `EDUCATION` |
 | The household | Found family (wards, protégés, companions, adoption), a mentor for yourself, people who come asking, and two duties (steward, marshal) you can hand to any member of the house | `HOUSEHOLD` |
@@ -144,7 +145,7 @@ the only real constraint on sequence. Each line is roughly one cycle of work (bu
 | **Education, the rest** | Built: docs/EDUCATION.md. Left: kin sent to the Academy, asking a relative to study or to teach, natures formed by an upbringing, learning that slows with age. | The Academy. Kin who pursue their ambitions. |
 | **Wealth, the rest** | Built: docs/WEALTH.md. Left: purses for everyone in the Reach, shares and ventures held personally, dowries from a purse, entailed land, lending to a relative, heirlooms that do something. | The Exchange (holders who are people). Kin who pursue their ambitions. |
 | **The household, the rest** | Built: docs/HOUSEHOLD.md. Left: other houses with households of their own, kin who find their own mentors, wards as hostages, the cost of keeping people, and wider duties (the Exchange, moving fleets). | Education. Personal wealth. Politics under a throne (hostages). |
-| **Kin who pursue their ambitions** | Every relative has an ambition as data, and today only defiance comes of it. They should act on it themselves: seek a command, stand for an office, start a venture, ask the head for help or a post, and succeed or fail without the player. | The rule in section 7. Personal wealth (their own purse). The ladder of offices. |
+| **Ambitions, the rest** | Built: docs/AMBITIONS.md. Left: other houses' people with ambitions, standing for an office oneself, two relatives wanting the same thing, an ambition formed by an upbringing, failure that is felt. | The ladder of offices. Politics under a throne. |
 | **A life of one's own** | Health and wounds, a personal reputation apart from the house's, friendships and rivalries that last decades, retirement, a funeral and what is said at it. | The look and feel pass (the character sheet). Glory in Arms is a first piece of this. |
 
 **The Republic**

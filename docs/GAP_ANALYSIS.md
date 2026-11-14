@@ -992,3 +992,21 @@ by a person, so a relative cannot yet invest or build anything of their own, whi
 still come from the treasury. Nothing is entailed. Heirlooms are only worth something. Two of the five events were not
 seen in the soak.
 
+## 36. Ambitions — 2026-11-14
+
+Built as docs/AMBITIONS.md describes. It closes the line left open in §32: relatives did not act on their ambitions.
+
+**Measured.** 564 tests, eight of them for this. The soak passes on eleven starts and three seeds (lines ended in 5 of
+33) and all four new events fired in it. In the browser on *The Old Lion*, with nothing done but granting the first
+request: three relatives had pursuits by the second year, one asked to be named heir in the third and was, and another
+put one or two credits of her own into the house in each of four years.
+
+**Found on the way.** The first draft remembered who had begun a venture only in memory, so a save taken while it was
+being built would have lost the founder. It is kept in the save now, and tested.
+
+**Against the rule in docs/PROCESS.md, what is still wrong.** Relatives do not divorce or stray by themselves. They do
+not stand for an office of state. Nobody in any other house pursues anything. A relative cannot yet hold shares.
+
+**Gaps that remain.** See "Not in this piece" in docs/AMBITIONS.md. The one most felt in play is that restoring the
+house from an allowance is too slow to matter within one head's life.
+

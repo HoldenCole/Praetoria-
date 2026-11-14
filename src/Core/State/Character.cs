@@ -41,6 +41,9 @@ public sealed class Character
     /// </summary>
     public HashSet<string> Flags { get; set; } = new();
 
+    /// <summary>What this person is doing about their ambition (docs/AMBITIONS.md). Kept for the people of the player's house.</summary>
+    public Pursuit? Pursuit { get; set; }
+
     // ---- personal wealth (docs/WEALTH.md)
     /// <summary>This person's own money, apart from their house's treasury. Negative is debt.</summary>
     public int Purse { get; set; }

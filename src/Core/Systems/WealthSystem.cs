@@ -213,7 +213,7 @@ public static class WealthSystem
             {
                 int gift = Math.Min(c.Purse / 2, -house.Treasury.Credits); c.Purse -= gift; house.Treasury.Credits += gift;
                 c.Flags.Add(GaveChar); Mark(w, KinGaveFlag); Regard(w, p, c, 3);
-                c.LastSpend = $"Put {gift} credits of their own into the house."; w.Log($"{c.Name} puts {gift} credits of their own into the treasury of {house.Name}, unasked.");
+                c.LastSpend = $"Put {gift} credit{(gift == 1 ? "" : "s")} of their own into the house."; w.Log($"{c.Name} puts {gift} credits of their own into the treasury of {house.Name}, unasked.");
             }
             else if (!steady && c.Skill("discipline") < 2 && h < 12) { int lost = 5 + h % 8; c.Purse -= lost; c.LastSpend = $"Lost {lost} credits at the tables."; }
             else if ((c.NatureTraits.Contains("Proud") || c.NatureTraits.Contains("Arrogant") || c.Ambition == "outshine_all_rivals") && c.Purse >= 4)

@@ -81,6 +81,7 @@
     if (w.Courtships.Any(x => !x.Incoming && !x.Betrothed && x.SuitorId == w.ProtagonistId && x.ActedTurn < w.Turn)) alerts.Add(("info", "Your suit waits on this year's attention", "dynasty"));
     foreach (var su in w.Courtships.Where(x => !x.Incoming && x.Own && x.SuitorId != w.ProtagonistId && x.AskingSince >= 0 && !x.Forbidden)) alerts.Add(("info", $"{w.Char(su.SuitorId)?.Name} asks your leave to marry {w.Char(su.TargetId)?.Name}", "dynasty"));
     if (w.HasFlag(Praetoria.Core.Systems.EducationSystem.ResistsFlag)) alerts.Add(("info", "A child of the house is set against their bent", "dynasty"));
+    foreach (var ask in Praetoria.Core.Systems.AmbitionSystem.Members(w, house).Where(x => x.Pursuit is { Request.Length: > 0 })) alerts.Add(("info", $"{ask.Name} {Praetoria.Core.Systems.AmbitionSystem.RequestSays(w, ask)}", "dynasty"));
     if (w.HasFlag(Praetoria.Core.Systems.WealthSystem.DebtFlag)) alerts.Add(("warn", "One of the house is in debt", "house"));
     foreach (var pe in house.Petitions) alerts.Add(("info", $"{w.Char(pe.PersonId)?.Name} asks for a place in your household", "house"));
     if (house.Duties.Any(du => w.Char(du.HolderId)?.Flags.Contains(Praetoria.Core.Systems.HouseholdSystem.SkimmingChar) == true)) alerts.Add(("warn", "The steward's accounts do not add up", "house"));

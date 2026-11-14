@@ -31,5 +31,8 @@ public sealed class Business
     public string CompanyId { get; set; } = "";
 
     /// <summary>The turn until which an offer of it stands (0 = never offered): a steward waits for the answer, and does not offer the same house twice.</summary>
+    /// <summary>The member of the house who founded it with their own money, or a stake they asked for (docs/AMBITIONS.md).</summary>
+    public string FounderId { get; set; } = "";
+
     public int OfferedUntil { get; set; }
 }

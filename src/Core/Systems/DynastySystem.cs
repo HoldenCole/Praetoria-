@@ -444,6 +444,8 @@ public sealed class DynastySystem
     {
         var members = world.Characters.Values.Where(c => c.Alive && c.Id != deceased.Id && c.HouseId == deceased.HouseId);
         string law = world.House(deceased.HouseId)?.SuccessionLaw ?? "primogeniture";
+        // someone the head named stands first, whatever the law says (docs/AMBITIONS.md)
+        if (world.House(deceased.HouseId) is { NamedHeirId.Length: > 0 } named && world.Char(named.NamedHeirId) is { Alive: true } chosen && chosen.HouseId == deceased.HouseId && chosen.Id != deceased.Id) return chosen;
         // Found family (docs/HOUSEHOLD.md): those taken into the house stand after everyone of the blood, whatever the law. One who
         // was adopted is of the blood, and a child of the head who adopted them.
         var blood = members.Where(c => !HouseholdSystem.IsFound(c)).ToList();

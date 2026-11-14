@@ -1,0 +1,60 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var sys = G.Turn!.Ambitions;
+    var members = AmbitionSystem.Members(w, house).Where(c => c.Pursuit != null)
+        .OrderByDescending(c => c.Pursuit!.Request.Length > 0).ThenByDescending(c => c.Pursuit!.Progress).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+    var heir = DynastySystem.FindHeir(w, p); var named = house.NamedHeirId.Length > 0 ? w.Char(house.NamedHeirId) : null;
+    var grown = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age >= 16).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+    int asking = members.Count(c => c.Pursuit!.Request.Length > 0);
+}
+<section class="panel ambitions">
+    <h3><Icon Name="claim" Size="13" /> What your people are after <span class="muted">@members.Count pursuing@(asking > 0 ? $" · {asking} asking" : "")</span></h3>
+    <div class="muted small">They go after it themselves. Now and then one of them asks you for something that would help. You grant it or you do not; that is all there is for you to do.</div>
+
+    <div class="ac-fact"><span>Your heir</span><p>
+        @if (named != null) { <text>You have named <b>@named.Name</b>, whatever the law would say. </text> }
+        else if (heir != null) { <text><b>@heir.Name</b>, by @house.SuccessionLaw.Replace('_', ' '). </text> }
+        else { <text>Nobody. </text> }
+        @if (named != null) { <button class="opt inline tiny" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.NameHeir, string.Empty, sys))">Leave it to the law</button> }
+        @foreach (var c in grown.Where(c => c.Id != named?.Id && c.Id != (named == null ? heir?.Id : null)).Take(6))
+        {
+            string cid = c.Id;
+            <button class="opt inline tiny" title="Passing over whoever the law would give costs the house a little standing, and that person's regard." @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.NameHeir, cid, sys))">Name @First(c.Name)</button>
+        }
+    </p></div>
+
+    @if (members.Count == 0) { <div class="muted small">@(w.FamilyAutonomy <= 0 ? "Yours is a deferential family: they wait to be told." : "Nobody grown of the house has set their mind on anything yet.")</div> }
+    @foreach (var c in members)
+    {
+        var u = c.Pursuit!; string cid = c.Id; bool asks = u.Request.Length > 0;
+        <div class="suit @(asks ? "incoming" : "")">
+            <div class="suit-who">
+                <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="34" />
+                <div><b>@c.Name</b> wants @AmbitionSystem.Wants(u.Goal)@(" ")
+                    @if (u.Fulfilled) { <span class="pill small good">has it</span> }
+                    @if (c.Flags.Contains(AmbitionSystem.ThwartedChar)) { <span class="pill small warn">thwarted</span> }
+                    <div class="muted small">@(u.Note.Length > 0 ? u.Note : "Nothing to note this year.")@(u.Helped + u.Refused > 0 ? $" · you have helped {u.Helped} time(s) and said no {u.Refused}" : "")</div></div>
+            </div>
+            @if (!u.Fulfilled) { <div class="gauges"><div class="gauge" title="How near they are to it, by their own reckoning."><span>How near</span><i><b style="width:@u.Progress%" class="@(u.Progress >= 70 ? "high" : u.Progress < 25 ? "low" : "")"></b></i><em>@u.Progress</em></div></div> }
+            @if (asks)
+            {
+                var no = new AmbitionCommand(pid, AmbitionCommand.Grant, cid, sys).Refusal(G.Ctx); int left = Math.Max(1, AmbitionSystem.RequestYears - (w.Turn - u.RequestSince));
+                <div class="small"><b>@First(c.Name) @AmbitionSystem.RequestSays(w, c).</b> <span class="muted">They will take silence for a no in @left year(s).</span></div>
+                <div class="suit-acts">
+                    <button class="opt inline" disabled="@(no != null)" title="@(no ?? "It costs: " + AmbitionSystem.GrantCosts(w, c) + ".")" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.Grant, cid, sys))">Grant it</button>
+                    <button class="opt inline" title="They will remember it." @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.Refuse, cid, sys))">Say no</button>
+                    <span class="muted small">Costs @AmbitionSystem.GrantCosts(w, c).</span>
+                </div>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private static string First(string name) => name.Split(' ')[0];
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

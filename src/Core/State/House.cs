@@ -77,6 +77,8 @@ public sealed class House
     public int Glory { get; set; }
     /// <summary>Strategic goods of which the house brings up a quarter or more of the Reach's production.</summary>
     public List<string> Corners { get; set; } = new();
+    /// <summary>Someone the head has named to succeed them, ahead of whoever the succession law would give (docs/AMBITIONS.md).</summary>
+    public string NamedHeirId { get; set; } = "";
     /// <summary>What the house gives its grown members a year (docs/WEALTH.md): mean, customary or generous.</summary>
     public string Allowance { get; set; } = "customary";
     /// <summary>What happens to the treasury when the head dies: "entail" (the heir takes all) or "portions" (each other grown

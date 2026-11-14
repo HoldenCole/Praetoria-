@@ -217,6 +217,7 @@ three orders of the Republic (`REPUBLIC`).
 | **The household** | §18 | ✅ | Found family (wards, protégés, companions, adoption), a mentor, and duties (steward, marshal) the head can hand to any member of the house. Kin act for themselves. See `docs/HOUSEHOLD.md`. |
 | **Education and skills** | §13, §14 | ✅ | A ceiling in every skill; learning by doing, study and teaching, each step dearer than the last; children brought up toward their bent. See `docs/EDUCATION.md`. |
 | **Personal wealth** | §14, §17 | ✅ | A purse for every grown member of the house, the allowance, debts, heirlooms, a will, and the estate kept whole or shared out. See `docs/WEALTH.md`. |
+| **Ambitions** | §18 | ✅ | The people of the house pursue what they want by themselves and ask the head for help now and then; a named heir. See `docs/AMBITIONS.md`. |
 | **Stress** | §18 | ✅ (thin) | Stress bleeds off slowly each year; at the ceiling the character *breaks* (a `broken` flag + `breakdowns` counter) and the authored *Breaking Point* set-piece decides what stands up afterward. |
 | **Career ladders** | §13 | ✅ | Tracks and named rank ladders are data (`/content/careers`); `advanceCareer` caps at the ladder top; events gate on `track`; prose names the rung. |
 | **Save / load** | BuildSpec §3, §7 | ✅ | The `World` (RNG position included) serialises to a versioned JSON envelope; a resumed run continues the exact same deterministic stream. `play --save` / `--load`. |
@@ -249,7 +250,7 @@ three orders of the Republic (`REPUBLIC`).
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 556 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
+**Verification:** 564 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
 round-trip that must reproduce an uninterrupted run; both content validators clean; every start auto-plays sixty turns
 across several seeds with a randomised player. The content counts in the table above are from the first release; the
 current ones (261 events, 9 scenarios, 31 systems) are in `docs/ROADMAP.md`.

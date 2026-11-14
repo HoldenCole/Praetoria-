@@ -91,6 +91,8 @@ public sealed class World
     public List<VentureOffer> Offers { get; set; } = new();
     public IEnumerable<Project> ProjectsOf(string houseId) => Projects.Where(p => p.OwnerId == houseId);
     /// <summary>The companies on the Exchange (docs/ECONOMY_MARKET.md stage C) and the Reach's war bonds (stage D).</summary>
+    /// <summary>Venture id → the member of the house who began it, kept from the founding until the venture stands (docs/AMBITIONS.md).</summary>
+    public Dictionary<string, string> Founders { get; set; } = new();
     /// <summary>Things a person owns that are worth leaving to someone (docs/WEALTH.md).</summary>
     public List<Heirloom> Heirlooms { get; set; } = new();
     /// <summary>Courtships under way and suits not yet answered (docs/MARRIAGE.md).</summary>

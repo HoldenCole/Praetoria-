@@ -38,6 +38,14 @@
   README, the design document, the build spec and code comments no longer speak of DLC or paid releases.
 
 ### Added
+- **Ambitions** (docs/AMBITIONS.md), on the Dynasty screen. Every grown member of the house goes after what they want
+  without being told: takes an empty command, founds a venture with their own money, puts their purse into a house
+  that is short, builds a standing to rival the heir's. Now and then one asks the head for a command, a stake, a word
+  for their promotion, or to be named heir; the head grants it or says no, and that is all. They remember which.
+  Ten years of nothing and too many refusals leaves them thwarted.
+- **A named heir.** The head may name anyone grown of the house to succeed them, ahead of the law's choice, at a cost
+  in standing and the regard of whoever is passed over.
+- Four events; `tools/browser/ambitions.js`.
 - **Personal wealth** (docs/WEALTH.md), on the House screen. Every grown member of the house has a purse of their own,
   fed by an allowance the head sets (mean, customary, generous), by their service's pay and by any estate. What they do
   with it is theirs: they give to a house in trouble, spend on being seen, gamble, save, and run into debt, which the
