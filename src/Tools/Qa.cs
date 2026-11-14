@@ -339,6 +339,18 @@ internal static class Qa
             if (LadderSystem.BusinessOf(w, p.Id) is { } officeWork && decisions.NextInt(0, 4) != 0) { var cs = LadderSystem.ChoicesFor(officeWork.Kind); cands.Add(new LadderCommand(p.Id, LadderCommand.Decide, p.Id, cs[decisions.NextInt(0, cs.Length)], content.Offices)); }
             foreach (var kind in new[] { LadderSystem.Hearing, LadderSystem.Appeal, LadderSystem.SeatKind, LadderSystem.Charge, LadderSystem.Desk, LadderSystem.Posting })
                 if (LadderSystem.DutyOf(w, p.Id, kind) is { } duty && decisions.NextInt(0, 3) != 0) { var cs = LadderSystem.ChoicesOf(content.Offices, duty); cands.Add(new DutyCommand(p.Id, kind, cs[decisions.NextInt(0, cs.Length)], content.Offices, content.Policies)); }
+            // the family (docs/WEALTH.md, docs/EDUCATION.md): a sum given or lent, a loan forgiven, whose money a dowry is, asking and teaching
+            var grownKin = w.LivingCharacters().Where(x => x.HouseId == house.Id && x.Id != p.Id && x.Age >= WealthSystem.Adult).OrderBy(x => x.Id, StringComparer.Ordinal).ToList();
+            if (grownKin.Count > 0 && decisions.NextInt(0, 6) == 0)
+            {
+                var kin = grownKin[decisions.NextInt(0, grownKin.Count)]; int pick = decisions.NextInt(0, 6);
+                if (pick == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Gift, kin.Id, "5"));
+                else if (pick == 1) cands.Add(new WealthCommand(p.Id, WealthCommand.Lend, kin.Id, "10"));
+                else if (pick == 2) cands.Add(new WealthCommand(p.Id, WealthCommand.Forgive, kin.Id, ""));
+                else if (pick == 3) cands.Add(new WealthCommand(p.Id, WealthCommand.Dowries, "", decisions.NextInt(0, 2) == 0 ? "purse" : "treasury"));
+                else if (pick == 4) cands.Add(new EducationCommand(p.Id, EducationCommand.Ask, kin.Id, EducationSystem.All[decisions.NextInt(0, EducationSystem.All.Length)]));
+                else cands.Add(new EducationCommand(p.Id, EducationCommand.Teach, kin.Id, grownKin[decisions.NextInt(0, grownKin.Count)].Id));
+            }
             foreach (var sick in w.LivingCharacters().Where(x => x.HouseId == house.Id && x.Id != p.Id && x.Flags.Contains(LifeSystem.IllChar)).OrderBy(x => x.Id, StringComparer.Ordinal).Take(1)) if (decisions.NextInt(0, 2) == 0) cands.Add(new LifeCommand(p.Id, LifeCommand.Send, sick.Id));
         }
         {   // a life: rest, the physicians, and laying the house down

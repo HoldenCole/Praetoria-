@@ -1,5 +1,5 @@
 {
-  "//": "FOUND FAMILY AND DUTIES (docs/HOUSEHOLD.md). Reads the flags HouseholdSystem raises: found_family, has_ward, has_protege (each year); ward_stayed, steward_skims, mentor_lost (deeds); and the character flags taken_in, ward_of_age, protege, skimming. The takeIn effect brings someone into the house.",
+  "//": "FOUND FAMILY AND DUTIES (docs/HOUSEHOLD.md). Reads the flags HouseholdSystem raises: found_family, has_ward, has_protege (each year); ward_stayed, steward_skims, mentor_lost (deeds); and the character flags taken_in, ward_of_age, protege, skimming. The takeIn effect brings someone into the house. Relatives' mentors: kin_found_a_mentor (deed) and the character flag found_a_mentor.",
   "events": [
     {
       "id": "a_child_with_nowhere_to_go",
@@ -537,6 +537,85 @@
             {
               "type": "log",
               "text": "{self.name} began, discreetly, to look at who else in the service was worth learning from."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "one_of_yours_finds_a_mentor",
+      "tier": "situation",
+      "weight": 25,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "found_a_mentor",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_found_a_mentor",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "be_glad_of_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said it was well done and asked to be introduced. {kin.name} had half expected to be asked why they had not come to the head first."
+            }
+          ]
+        },
+        {
+          "id": "ask_who_this_person_is",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} made some enquiries. They came back clean. {kin.name} heard that they had been made."
+            }
+          ]
+        },
+        {
+          "id": "leave_it_theirs",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} said nothing about it at all. {kin.name}'s career is {kin.name}'s."
             }
           ]
         }

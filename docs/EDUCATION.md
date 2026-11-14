@@ -101,6 +101,20 @@ drifted above what anyone could learn by study. Now a victory teaches the weaker
 ceiling, the other if not, and nothing once both are there. What this did to the Caesar road's first gate is in
 docs/CAESAR.md.
 
+## Asking, not telling
+
+What a grown relative studies is their own. The head may **ask**, once in three years of each of them.
+
+- The loyal will, and so will anyone who thinks well enough of the head: any regard at all for something that suits
+  them, 20 for something against their bent, 40 from the wilful. The button says beforehand which it will be.
+- One who agrees turns to it and keeps at it until they have gone as far as they can. Against their bent, they think 2
+  the less of the head for it.
+- One who refuses thinks 3 the less of the head for being asked, and there is an event.
+
+The head may also ask one of the house to **teach another**: someone at least two steps ahead in something the other
+can still learn, who does not think ill of the head. The pupil is under their wing from then on and learns a step of
+it every third year, until there is nothing left to pass on.
+
 ## Not in this piece
 
 - Nobody but you is sent to the Academy; it is still a year only your own character has.

@@ -1,5 +1,5 @@
 {
-  "//": "PERSONAL WEALTH (docs/WEALTH.md). Reads kin_in_debt and allowance_resented (each year); kin_gave_to_the_house, will_contested and heirloom_sold (deeds); and the character flags in_debt, gave_to_the_house and remembered_in_the_will.",
+  "//": "PERSONAL WEALTH (docs/WEALTH.md). Reads kin_in_debt and allowance_resented (each year); kin_gave_to_the_house, will_contested and heirloom_sold (deeds); and the character flags in_debt, gave_to_the_house and remembered_in_the_will. Loans: loan_soured (deed) and the character flag owes_too_long; the choice that forgives sets loan_forgiven on the debtor, which the engine reads.",
   "events": [
     {
       "id": "a_debt_in_the_family",
@@ -416,6 +416,96 @@
             {
               "type": "log",
               "text": "{self.name} said plainly that the house had needed the money. It was honest, and it told every creditor in the Reach how things stood."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_loan_that_sits_between_you",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "owes_too_long",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "loan_soured",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_it_is_forgotten",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "loan_forgiven",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} the debt was done with and was not to be mentioned again. {kin.name} did not mention it. Something eased."
+            }
+          ]
+        },
+        {
+          "id": "speak_of_it_plainly",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustStress",
+              "role": "kin",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said, without heat, that the money was still owed and that {self.name} had not forgotten. {kin.name} said they had not forgotten either."
+            }
+          ]
+        },
+        {
+          "id": "leave_it_where_it_is",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing, as before. The debt went on being there."
             }
           ]
         }

@@ -29,6 +29,16 @@
         "keep_at_it": "Keep at it.",
         "allow_yourself_the_evening": "Allow yourself the evening."
       }
+    },
+    {
+      "id": "their_study_is_their_own",
+      "title": "Their Study Is Their Own",
+      "body": "{self.name} asked {kin.name} to give their time to something the house has need of, and {kin.name} said no: that what a grown person studies is their own affair, and that they had not asked the head of the house what the head read in the evenings.",
+      "choices": {
+        "let_it_be": "Let it be. They are right.",
+        "say_what_the_house_needs": "Say what the house needs, and leave them to think on it.",
+        "offer_to_pay_for_a_teacher": "Offer to pay for a teacher in what they do study."
+      }
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "//": "EDUCATION AND SKILLS (docs/EDUCATION.md). Reads child_resists_lessons (each year), child_prodigy and mastery_gained (deeds), and the character flags resists_lessons and prodigy. setUpbringing changes a child's course.",
+  "//": "EDUCATION AND SKILLS (docs/EDUCATION.md). Reads child_resists_lessons (each year), child_prodigy and mastery_gained (deeds), and the character flags resists_lessons and prodigy. setUpbringing changes a child's course. Asking: kin_would_not_study (deed) and the character flag would_not_study.",
   "events": [
     {
       "id": "not_made_for_it",
@@ -251,6 +251,104 @@
             {
               "type": "log",
               "text": "{self.name} put the work down for one evening, which was not a habit, and enjoyed it more than expected."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "their_study_is_their_own",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "would_not_study",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_would_not_study",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_it_be",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it drop, and said so. {kin.name} had expected an argument and was somewhat disarmed not to get one."
+            }
+          ]
+        },
+        {
+          "id": "say_what_the_house_needs",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} set out, once, what the house would want of its people in ten years, and left it there. {kin.name} did not change their mind. They did not forget the conversation either."
+            }
+          ]
+        },
+        {
+          "id": "offer_to_pay_for_a_teacher",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked what {kin.name} was studying, and offered to pay for somebody good in it. It was not what {self.name} had wanted. It was taken as it was meant."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
             }
           ]
         }

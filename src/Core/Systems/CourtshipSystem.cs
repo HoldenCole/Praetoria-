@@ -231,7 +231,7 @@ public static class CourtshipSystem
     public static (bool ok, int score, string why) Answer(World w, Courtship c, string dowry, string childrenTo)
     {
         var (ours, theirs) = Sides(w, c); bool child = IsChildMatch(w, c); bool weReceive = theirs.Sex == "female";
-        if (!weReceive && (w.TreasuryOf(ours.Id)?.Credits ?? 0) < DowryAmount(w, ours.HouseId, dowry)) return (false, 0, "the house cannot pay such a dowry");
+        if (!weReceive && (w.TreasuryOf(ours.Id)?.Credits ?? 0) + (w.House(ours.HouseId) is { DowryFromPurse: true } oh && oh.Id == w.Protagonist?.HouseId ? Math.Max(0, w.Protagonist!.Purse) : 0) < DowryAmount(w, ours.HouseId, dowry)) return (false, 0, "the house cannot pay such a dowry");
         int score;
         if (c.Incoming)
             score = 62 + Math.Clamp(((w.House(ours.HouseId)?.Legitimacy ?? 0) - (w.House(theirs.HouseId)?.Legitimacy ?? 0)) / 2, -10, 15) + Terms(w, c, dowry, childrenTo);   // they asked: custom's terms are always enough
@@ -365,8 +365,16 @@ public static class CourtshipSystem
         var bride = a.Sex == "female" ? a : b; var groom = bride == a ? b : a; int paid = 0;
         if (dowry != None && w.House(bride.HouseId) is { } from && w.House(groom.HouseId) is { } to && from.Id != to.Id)
         {
-            paid = Math.Min(DowryAmount(w, from.Id, dowry), Math.Max(0, from.Treasury.Credits));
-            from.Treasury.Credits -= paid; to.Treasury.Credits += paid;
+            // the head who has said so pays out of their own purse first (docs/WEALTH.md), and the bride knows whose money it was
+            int due = DowryAmount(w, from.Id, dowry), own = 0; var giver = from.DowryFromPurse && from.Id == mine ? w.Protagonist : null;
+            if (giver is { Alive: true }) { own = Math.Clamp(giver.Purse, 0, due); giver.Purse -= own; }
+            paid = own + Math.Min(due - own, Math.Max(0, from.Treasury.Credits));
+            from.Treasury.Credits -= paid - own; to.Treasury.Credits += paid;
+            if (giver != null && own > 0 && own * 2 >= paid && bride.Id != giver.Id)
+            {
+                var r = w.Relationship(bride.Id, giver.Id); r.Disposition = Math.Clamp(r.Disposition + WealthSystem.DowryRegard, -100, 100);
+                if (log) w.Log($"{giver.Name} pays {own} credits of {bride.Name}'s dowry out of their own purse.");
+            }
         }
         bool first = string.CompareOrdinal(a.Id, b.Id) < 0;
         var m = new Marriage { A = first ? a.Id : b.Id, B = first ? b.Id : a.Id, Since = w.Turn, Kind = kind, ChildrenTo = childrenTo, Dowry = paid, DowryFrom = paid > 0 ? bride.HouseId : "", Warmth = StartWarmth(w, a, b, kind, favour) };

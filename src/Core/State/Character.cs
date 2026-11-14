@@ -58,6 +58,9 @@ public sealed class Character
     public int Purse { get; set; }
     /// <summary>What they did with their money last year, in a line.</summary>
     public string LastSpend { get; set; } = "";
+    /// <summary>What they owe the head of their house, lent from the head's own purse (docs/WEALTH.md), and since when.</summary>
+    public int OwesHead { get; set; }
+    public int OwesSince { get; set; } = -1;
     /// <summary>What they have said shall be done with what is theirs when they die. Null: all of it to the heir.</summary>
     public Will? Will { get; set; }
 

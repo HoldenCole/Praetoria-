@@ -47,6 +47,7 @@ public sealed class TurnController
     private readonly FamilySystem _family = new();
     private readonly AmbitionSystem _ambitions;        // what the people of the house are after, and what they ask of the head (docs/AMBITIONS.md)
     public AmbitionSystem Ambitions => _ambitions;
+    public HouseholdSystem Household => _household;
     private readonly PolitySystem _polities;           // states that have broken away from the Reach (docs/BREAKAWAY.md)
     public PolitySystem Polities => _polities;
     private readonly CaesarSystem _caesar;             // generals, triumphs, recalls and the march on the capital (docs/CAESAR.md)

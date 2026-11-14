@@ -104,6 +104,18 @@ allowance set, half the purse willed to a younger relative and the estate set to
 four years, the house passed to the heir, and the relative named in the will held 15 credits afterwards (the legacy,
 any portion and their allowance together; the run did not separate them).
 
+## A sum to a relative, and whose money a dowry is
+
+- **Give.** From your own purse to a grown relative's, once a year each. It is theirs. They think the better of you
+  for it (2, and one more for every 2 credits, to 10).
+- **Lend.** From your own purse; one loan to a person at a time. They pay it back by thirds as they have the money
+  (the honourable and the loyal always, others about three years in five). **Left six years unpaid it sits between
+  you**: each thinks one the less of the other every year, and there is an event. You can **forgive** it at any time
+  (+8). What the dead owed is written off, and one who comes to have the house owes its head nothing.
+- **Dowries.** A custom of the house, with the allowance and the estate: from the treasury, as is usual, or **from my
+  own purse first**. Then you pay what your purse holds and the treasury the rest, and a bride whose portion came
+  mostly from your own hand thinks 6 the better of you. A purse counts toward whether the house can afford the terms.
+
 ## Not in this piece
 
 - **Only your house has purses.** Everyone else in the Reach still has only their house's treasury.
@@ -111,7 +123,6 @@ any portion and their allowance together; the run did not separate them).
   the Exchange or found a venture with their own money.
 - **Dowries still come from the treasury.**
 - **Nothing is entailed.** Any world or venture can still be sold by the head.
-- You cannot lend to a relative, or give one a sum beyond the allowance.
 - Heirlooms do nothing but be worth something, and pay if they are estates.
 - Two of the five events (the will is read, sold out of the family) were not seen to fire in the soak.
 - The numbers are first guesses.

@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-14 (eighth pass: quarrels and marked failures; A1 and A3 closed).
+Last updated 2026-11-14 (ninth pass: the family items; W2, W4, E2 and H1 closed).
 
 ## The worklist: small gaps to fill now
 
@@ -17,13 +17,13 @@ position (magistrate, justice, senator) must have something to do. Worked from t
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | W2, W4, E2, H1 | Dowries from a purse; a gift to a relative; ask a relative to study; kin find mentors | next |
-| 2 | B4, B9, B10 | Joining a state that exists; a second great war; raising the pressure as well as lowering it | next |
-| 3 | L7 | Public trust in the magistrates moves elections and the estates, not only the troubles of the Reach | next |
-| 4 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune | next |
-| 5 | J3 | The lowest ranks: an Advocate pleads before a bench, a Lieutenant and a Clerk have a year's work | next |
+| 1 | B4, B9, B10 | Joining a state that exists; a second great war; raising the pressure as well as lowering it | next |
+| 2 | L7 | Public trust in the magistrates moves elections and the estates, not only the troubles of the Reach | next |
+| 3 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune | next |
+| 4 | J3 | The lowest ranks: an Advocate pleads before a bench, a Lieutenant and a Clerk have a year's work | next |
+| 5 | A2, A4, A5 | Restoring the house from an allowance; ambitions formed by an upbringing; ventures that fail | next |
 
-Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3 (see the bottom table).
+Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1 (see the bottom table).
 
 ## The same gap in many places
 
@@ -107,17 +107,15 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 |---|---|---|---|
 | A5 | A venture never fails, so a founder's failure is never marked; and a quarrel is between two people only: the house does not divide behind them, and the loser holds nothing against the winner afterwards. | S | |
 | A2 | Restoring the house from an allowance is too slow to matter. | S | |
-| A4 | An ambition is set by the dice at sixteen, not by an upbringing. | S | E3 |
+| A4 | An ambition is set by the dice at sixteen, not by an upbringing. | S | E6 | A relative asked to study has no say but yes or no: they do not ask for something in return, and a teacher of the house is not thanked or paid. | S | |
+| E3 |
 | W1 | A purse holds credits only: no shares, ventures or worlds held personally. | M | |
-| W2 | Dowries come from the treasury, not a purse. | S | |
+| W6 | A loan is from the head to a relative only: relatives do not lend to each other or to the head, nobody charges interest, and a bride's own purse does not go toward her portion. | S | |
 | W3 | Nothing is entailed. | S | |
-| W4 | You cannot lend to a relative or give a sum beyond the allowance. | S | |
 | W5 | Heirlooms do nothing but be worth something. | S | |
 | E1 | Only your own character goes to the Academy. | M | |
-| E2 | You cannot ask a relative to study, or one to teach another. | S | |
 | E3 | No nature is formed by an upbringing; no trait is lost. | M | |
 | E5 | Authored characters sit above their ceilings. | S | |
-| H1 | Kin do not find mentors for themselves. | S | |
 | H2 | Wards are not hostages. | M | |
 | H3 | Keeping a household costs nothing. | S | |
 | H4 | A steward does routine only: no Exchange, tithe or ventures. | M | |
@@ -158,3 +156,7 @@ look-and-feel pass is planned and not begun, there is no sound.
 | J2 | The navy's and the administration's ranks had no desk. | 2026-11-14 | A Governor or above has the year's returns to assess, press or skim; a Commander or above without a fleet has a year ashore to drill the crews, patrol the home lanes or sit on a board. J3 (the lowest ranks) is what is left. |
 | A1 | Two relatives who wanted the same thing did not quarrel. | 2026-11-14 | Two after the same office, fleet or inheritance think less of each other every year it lasts; the head may stand behind one, stop it, or keep out. It ends when the prize is settled. A5 is what is left. |
 | A3 | A relative's failure was not marked. | 2026-11-14 | An election lost and a battle lost in command are written into the life as failures, cost renown and nerve, and count against the ambition; three and the relative gives it up. Ventures do not fail yet (A5). |
+| W2 | Dowries came from the treasury only. | 2026-11-14 | A custom of the house: from the head's own purse first, the treasury the rest. A bride whose portion came mostly from the head's hand thinks the better of them. |
+| W4 | You could not give or lend to a relative. | 2026-11-14 | A sum given once a year; a loan paid back by thirds, that sours after six years unpaid and can be forgiven. W6 is what is left. |
+| E2 | You could not ask a relative to study, or one to teach another. | 2026-11-14 | The head asks; they agree or refuse by loyalty, regard and their bent. One of the house can be asked to take another under their wing. E6 is what is left. |
+| H1 | Kin did not find mentors for themselves. | 2026-11-14 | A young relative in a service finds a senior of that service who is well disposed, in the house first, without being told. Their mentor teaches as the head's does. |

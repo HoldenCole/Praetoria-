@@ -105,6 +105,13 @@ the fourth year someone else came asking for a place unprompted.
 - **Everyone else trained a skill every year with no ceiling** (fixed since, in docs/EDUCATION.md). A steward of skill 3 was at 7 four years later,
   which made "competent members of the house" too easy to come by.
 
+## Relatives find mentors for themselves
+
+One of the house between sixteen and thirty-two, in a service, with nobody over them, looks for a mentor about one
+year in three: someone of their own service, senior to them, eight years older and well disposed, of the house first
+and of another house if there is nobody. Nobody tells them to, and the head hears of it afterwards (an event). A
+relative's mentor teaches as the head's own does. With the family's autonomy turned off, nobody goes looking.
+
 ## Not in this piece
 
 - Only the player's house has a household. Other houses do not take people in, adopt, or delegate.

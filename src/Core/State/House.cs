@@ -87,6 +87,8 @@ public sealed class House
     /// <summary>What happens to the treasury when the head dies: "entail" (the heir takes all) or "portions" (each other grown
     /// child of the head takes a tenth).</summary>
     public string Inheritance { get; set; } = "entail";
+    /// <summary>The house's daughters' dowries are paid from the head's own purse first, and only the rest from the treasury.</summary>
+    public bool DowryFromPurse { get; set; }
     /// <summary>Standing duties handed to members of the house (docs/HOUSEHOLD.md).</summary>
     public List<Duty> Duties { get; set; } = new();
     /// <summary>People asking to be taken into the house.</summary>

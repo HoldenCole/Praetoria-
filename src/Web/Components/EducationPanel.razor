@@ -35,13 +35,30 @@
     }
     @if (young.Count == 0) { <div class="muted small">There are no children in the house.</div> }
 
-    @if (grown.Count > 0) { <div class="hh-head"><b>The grown</b> <span class="muted small">What they study is their own choice. A teacher is yours to pay for.</span></div> }
+    @if (grown.Count > 0) { <div class="hh-head"><b>The grown</b> <span class="muted small">What they study is their own choice. You may ask, and they may say no. A teacher is yours to pay for.</span></div> }
     @foreach (var c in grown.Take(_all ? 40 : 6))
     {
         string cid = c.Id; var practice = EducationSystem.Practice(w, c);
         <div class="suit">
             <b>@c.Name</b> <span class="muted">@c.Age · @Best(c)</span>
             <div class="muted small">@(c.Study.Length > 0 ? $"Studying {c.Study} ({c.Skill(c.Study)}, can reach {EducationSystem.Ceiling(c, c.Study)})" : "Has not settled on a study")@(practice.Count > 0 ? " · learning " + string.Join(", ", practice.Select(x => x.skill).Distinct()) + " by their work" : "")</div>
+            @{
+                var mentor = c.MentorId.Length > 0 ? w.Char(c.MentorId) : null; string under = mentor is { Alive: true } ? "Under the wing of " + mentor.Name + (mentor.HouseId == house.Id ? "" : " of " + w.House(mentor.HouseId)?.Name) + "." : "";
+                var subjects = Suggest(c); var teachers = grown.Where(t => t.Id != c.Id && new EducationCommand(pid, EducationCommand.Teach, cid, t.Id).Refusal(G.Ctx) == null).Take(2).ToList();
+            }
+            @if (under.Length > 0) { <div class="muted small">@under</div> }
+            <div class="suit-acts"><span class="muted small">Ask them to study</span>
+                @foreach (var sk in subjects)
+                {
+                    string skill = sk; var no = new EducationCommand(pid, EducationCommand.Ask, cid, skill).Refusal(G.Ctx); bool would = EducationSystem.WouldStudy(w, p, c, skill);
+                    <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? (would ? AskYes : AskNo))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Ask, cid, skill))">@skill</button>
+                }
+                @foreach (var t in teachers)
+                {
+                    string tid = t.Id; string label = "Have " + t.Name.Split(' ')[0] + " teach them " + EducationSystem.Lesson(t, c);
+                    <button class="opt inline tiny" title="@TeachTip" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Teach, cid, tid))">@label</button>
+                }
+            </div>
             <div class="suit-acts"><span class="muted small">Teacher</span>
                 @foreach (int t in Tutors) { int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()).Refusal(G.Ctx); <button class="opt inline tiny @(c.Tutor == t ? "here" : "")" disabled="@(no != null)" title="@no" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()))">@TutorLabel(t)</button> }
             </div>
@@ -53,6 +70,15 @@
 @code {
     private bool _all;
     private static readonly int[] Tutors = { 0, 1, 2 };
+    private const string AskYes = "They would do it for the asking.";
+    private const string AskNo = "They would refuse, and think the less of you for asking.";
+    private const string TeachTip = "They take them under their wing and pass on a step every third year.";
+    /// <summary>Three things worth asking of them: the skills of their service and of rule that they have most room left in.</summary>
+    private static List<string> Suggest(Character c)
+    {
+        var pool = EducationSystem.TrackSkills(c.CareerTrack).Concat(new[] { "administration", "oratory", "tactics", "economics", "diplomacy" }).Distinct();
+        return pool.Where(s => s != c.Study && c.Skill(s) < EducationSystem.Ceiling(c, s)).OrderByDescending(s => EducationSystem.Ceiling(c, s) - c.Skill(s)).ThenBy(s => s, StringComparer.Ordinal).Take(3).ToList();
+    }
     private static string TutorLabel(int t) => t == 0 ? "none" : t == 1 ? $"good · {EducationSystem.GoodTutorCredits}" : $"the best · {EducationSystem.BestTutorCredits}";
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);

@@ -30,7 +30,7 @@ public sealed class HouseholdSystem
     // world flags raised by a deed, kept through the next events phase
     public const string TookInFlag = "took_someone_in", AdoptedFlag = "adopted_an_heir", WardStayedFlag = "ward_stayed", WardLeftFlag = "ward_went_home", SkimsFlag = "steward_skims", MentorLostFlag = "mentor_lost", MentorTaughtFlag = "mentor_taught";
     private static readonly string[] TickFlags = { FoundFamilyFlag, HasMentorFlag, HasProtegeFlag, HasWardFlag, PetitionFlag, DelegatedFlag };
-    private static readonly string[] DeedFlags = { TookInFlag, AdoptedFlag, WardStayedFlag, WardLeftFlag, SkimsFlag, MentorLostFlag, MentorTaughtFlag };
+    private static readonly string[] DeedFlags = { TookInFlag, AdoptedFlag, WardStayedFlag, WardLeftFlag, SkimsFlag, MentorLostFlag, MentorTaughtFlag, "kin_found_a_mentor" };
 
     private readonly HoldingCatalog _holdings; private readonly BusinessCatalog _ventures; private readonly TitleCatalog? _titles; private readonly TradeRules _trade; private readonly int _fuelHullsPerUnit;
     public HouseholdSystem(HoldingCatalog holdings, BusinessCatalog ventures, TitleCatalog? titles, TradeRules trade, int fuelHullsPerUnit = 3)
@@ -184,6 +184,17 @@ public sealed class HouseholdSystem
         w.Log($"{mentor.Name} of {w.House(mentor.HouseId)?.Name} takes {me.Name} under their wing.");
     }
 
+    public const int SeeksMentorUntil = 32; public const string KinMentorFlag = "kin_found_a_mentor", FoundMentorChar = "found_a_mentor";
+    /// <summary>A relative's mentor teaches as the head's does: every third year, a step in what they are furthest ahead in.</summary>
+    private static void TeachKin(World w, Character pupil, Character mentor)
+    {
+        if (w.Turn <= pupil.JoinedTurn || (w.Turn - pupil.JoinedTurn) % MentorEvery != 0) return;
+        string skill = EducationSystem.Lesson(mentor, pupil); if (skill.Length == 0) skill = mentor.Skills.Where(kv => kv.Value > pupil.Skill(kv.Key) && pupil.Skill(kv.Key) < EducationSystem.Ceiling(pupil, kv.Key)).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => kv.Key).FirstOrDefault() ?? "";
+        if (skill.Length == 0) { pupil.MentorId = ""; w.Log($"{mentor.Name} has taught {pupil.Name} what they had to teach."); return; }
+        if (!EducationSystem.Step(w, pupil, skill)) return;
+        Regard(w, pupil, mentor, 3); w.Log($"{pupil.Name} has learned something of {skill} from {mentor.Name}.");
+    }
+
     /// <summary>What a mentor passes on: every third year, a step in the skill they are best at, while the pupil is behind them.</summary>
     private static void Teach(World w, Character pupil, Character mentor)
     {
@@ -306,6 +317,25 @@ public sealed class HouseholdSystem
             if (c.MentorId == p.Id) Teach(w, c, p);
             if (w.Turn > c.JoinedTurn && (w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) < 60) Regard(w, c, p, 1);   // a house that keeps you is one you come to think well of
         }
+
+        // Relatives under one another's wing, or under somebody's of another house: the same teaching. And one of the house who has
+        // nobody finds a mentor for themselves (docs/HOUSEHOLD.md): of their own service, senior, older, and well disposed.
+        var taken = Found(w, house.Id).Select(x => x.Id).ToHashSet();   // those the head took in are the head's to teach, above
+        foreach (var c in w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != p.Id && !taken.Contains(c.Id)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
+        {
+            if (c.MentorId.Length > 0 && c.MentorId != p.Id)
+            {
+                var m = w.Char(c.MentorId);
+                if (m?.Alive != true || w.AtWar(c.HouseId, m.HouseId)) { c.MentorId = ""; continue; }
+                TeachKin(w, c, m); continue;
+            }
+            if (c.MentorId.Length > 0 || w.FamilyAutonomy <= 0 || c.Age < Adult || c.Age > SeeksMentorUntil || c.CareerTrack.Length == 0 || Hash(c.Id + ":seeks:" + w.Turn) % 3 != 0) continue;
+            var mentor = w.LivingCharacters().Where(m => m.Id != p.Id && MentorRefusal(w, c, m) == null)
+                .OrderByDescending(m => m.HouseId == house.Id).ThenByDescending(m => w.GetRelationship(m.Id, c.Id)?.Disposition ?? 0).ThenByDescending(m => m.CareerRank).ThenBy(m => m.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (mentor == null) continue;
+            TakeMentor(w, c, mentor); Mark(w, KinMentorFlag); c.Flags.Add(FoundMentorChar);
+        }
+        if (!w.HasFlag(KinMentorFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(FoundMentorChar);
 
         // whoever has the protagonist under their wing
         if (p.MentorId.Length > 0)

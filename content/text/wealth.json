@@ -49,6 +49,16 @@
         "promise_to_buy_it_back": "Promise to buy it back one day.",
         "the_house_needed_the_money": "The house needed the money."
       }
+    },
+    {
+      "id": "the_loan_that_sits_between_you",
+      "title": "The Loan That Sits Between You",
+      "body": "{kin.name} has owed {self.name} money for six years. Neither of them has spoken of it in four. It is there all the same, at every table the two of them sit at, and it has begun to change how {kin.name} looks at the head of the house.",
+      "choices": {
+        "say_it_is_forgotten": "Tell them it is forgotten.",
+        "speak_of_it_plainly": "Speak of it plainly: it is owed.",
+        "leave_it_where_it_is": "Leave it where it is."
+      }
     }
   ]
 }

@@ -25,7 +25,7 @@ public static class WealthSystem
     // deeds
     public const string KinGaveFlag = "kin_gave_to_the_house", WillReadFlag = "will_read", WillContestedFlag = "will_contested", HeirloomSoldFlag = "heirloom_sold", HeirloomGivenFlag = "heirloom_given", DebtScandalFlag = "debt_scandal";
     public const string InDebtChar = "in_debt", GaveChar = "gave_to_the_house", LegateeChar = "remembered_in_the_will";
-    private static readonly string[] DeedFlags = { KinGaveFlag, WillReadFlag, WillContestedFlag, HeirloomSoldFlag, HeirloomGivenFlag, DebtScandalFlag };
+    private static readonly string[] DeedFlags = { KinGaveFlag, WillReadFlag, WillContestedFlag, HeirloomSoldFlag, HeirloomGivenFlag, DebtScandalFlag, LoanRepaidFlag, LoanSouredFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -126,6 +126,39 @@ public static class WealthSystem
         w.Log($"{head.Name} pays the {owed} credits {debtor.Name} owed{(fromPurse ? ", out of their own purse" : "")}.");
     }
 
+    // ---------------- a sum to a relative: given, or lent ----------------
+
+    public const int DowryRegard = 6, LoanSoursAfter = 6; public const string LoanRepaidFlag = "loan_repaid", LoanSouredFlag = "loan_soured", OwesTooLongChar = "owes_too_long", LoanForgivenChar = "loan_forgiven";
+    private static string GiftKey(string id) => "gift_year:" + id;
+
+    public static string? GiftRefusal(World w, Character? head, Character? to, int amount, bool lend)
+    {
+        if (head?.Alive != true || to?.Alive != true || to.Id == head.Id || to.HouseId != head.HouseId) return "not of your house";
+        if (to.Age < Adult) return "they are a child, and have no purse of their own";
+        if (amount <= 0) return "not a sum";
+        if (head.Purse < amount) return "your purse does not hold it";
+        if (lend && to.OwesHead > 0) return "they owe you already";
+        return !lend && w.Counter(GiftKey(to.Id)) == w.Turn ? "you have given to them this year" : null;
+    }
+    /// <summary>The head gives one of the house a sum out of their own purse. It is theirs, and they know whose it was.</summary>
+    public static void Gift(World w, Character head, Character to, int amount)
+    {
+        head.Purse -= amount; to.Purse += amount; w.WorldCounters[GiftKey(to.Id)] = w.Turn; if (to.Purse > DebtAt) to.Flags.Remove(InDebtChar);
+        Regard(w, to, head, Math.Min(10, 2 + amount / 2)); w.Log($"{head.Name} gives {to.Name} {amount} credits of their own.");
+    }
+    /// <summary>The head lends one of the house a sum. They pay it back as they can; a debt that sits too long sits between the two.</summary>
+    public static void Lend(World w, Character head, Character to, int amount)
+    {
+        head.Purse -= amount; to.Purse += amount; to.OwesHead = amount; to.OwesSince = w.Turn; if (to.Purse > DebtAt) to.Flags.Remove(InDebtChar);
+        Regard(w, to, head, 3); w.Log($"{head.Name} lends {to.Name} {amount} credits.");
+    }
+    public static string? ForgiveRefusal(World w, Character? head, Character? to) =>
+        head?.Alive != true || to?.Alive != true || to.HouseId != head.HouseId ? "not of your house" : to.OwesHead <= 0 ? "they owe you nothing" : null;
+    public static void Forgive(World w, Character head, Character to)
+    {
+        int owed = to.OwesHead; to.OwesHead = 0; to.OwesSince = -1; Regard(w, to, head, 8); w.Log($"{head.Name} forgives {to.Name} the {owed} credits they owed.");
+    }
+
     // ---------------- the will, and what happens when a head dies ----------------
 
     public static string? WillRefusal(World w, Character? who, string legateeId, int sharePct)
@@ -180,7 +213,7 @@ public static class WealthSystem
     {
         var house = w.House(dead.HouseId); var head = house != null ? Economy.HeadOf(w, house) : null; if (head == null || head.Id == dead.Id) return;
         if (dead.Purse < 0 && house != null) house.Treasury.Credits += dead.Purse; else head.Purse += dead.Purse;
-        dead.Purse = 0; foreach (var item in HeldBy(w, dead.Id)) item.HolderId = head.Id;
+        dead.Purse = 0; dead.OwesHead = 0; dead.OwesSince = -1; foreach (var item in HeldBy(w, dead.Id)) item.HolderId = head.Id;   // what the dead owed is written off
     }
 
     // ---------------- the year ----------------
@@ -198,7 +231,7 @@ public static class WealthSystem
         foreach (var c in Members(w, house))
         {
             int income = Pay(c) + EstateIncome(w, c.Id);
-            if (c.Id == p.Id) { c.Purse += income; continue; }
+            if (c.Id == p.Id) { c.Purse += income; c.OwesHead = 0; c.OwesSince = -1; continue; }   // one who has the house now owes its head nothing
             // the allowance, as far as the treasury goes
             if (give > 0) { if (house.Treasury.Credits >= give) { house.Treasury.Credits -= give; income += give; } else Regard(w, c, p, -1, floor: -40); }
             c.Purse += income;
@@ -222,6 +255,23 @@ public static class WealthSystem
             }
             else if (c.AptitudeTraits.Contains("Greedy") || c.Ambition == "amass_a_fortune") c.LastSpend = "Put it by.";
             else { c.Purse = Math.Min(c.Purse, ComfortablePurse); c.LastSpend = "Lived within their means."; }
+
+            // what they were lent by the head: paid back as they can; left too long, it sits between the two
+            if (c.Flags.Remove(LoanForgivenChar) && c.OwesHead > 0) { c.OwesHead = 0; c.OwesSince = -1; }   // the head said it was forgotten (an event's choice)
+            if (!w.HasFlag(LoanSouredFlag)) c.Flags.Remove(OwesTooLongChar);
+            if (c.OwesHead > 0)
+            {
+                if (c.Purse >= 4 && (steady || h < 60))
+                {
+                    int pay = Math.Min(c.OwesHead, Math.Max(1, c.Purse / 3)); c.Purse -= pay; p.Purse += pay; c.OwesHead -= pay;
+                    if (c.OwesHead == 0) { c.OwesSince = -1; Regard(w, c, p, 2); Mark(w, LoanRepaidFlag); w.Log($"{c.Name} has paid back the last of what {p.Name} lent them."); }
+                }
+                else if (w.Turn - c.OwesSince >= LoanSoursAfter)
+                {
+                    Regard(w, c, p, -1, floor: -30); Regard(w, p, c, -1, floor: -30);
+                    if (w.Turn - c.OwesSince == LoanSoursAfter) { Mark(w, LoanSouredFlag); c.Flags.Add(OwesTooLongChar); w.Log($"{c.Name} has owed {p.Name} {c.OwesHead} credits for {LoanSoursAfter} years, and neither of them mentions it."); }
+                }
+            }
 
             if (c.Purse <= DebtAt)
             {

@@ -33,6 +33,7 @@ Playwright with Chromium must be installed where you run the script. `PRAETORIA_
 | `node caesar.js "The Old Lion" 8` | The Caesar road's panel on the Military screen: the general's sway and whose the crews are, a donative, the triumph and the march (and why not), then some years, answering a recall if one comes. |
 | `node ladder.js "The Risen Officer" 6` | The ladder of offices on the Senate screen: reads the rungs, stands for the first one open to the head, calls in what is owed, plays past the election and reads who sits and what was written. If the head wins a seat it reads the year's business of the office, decides it, and reads what the other magistrates did. |
 | `node duties.js "The Circling Heir" 4` | "Your duties this year" on the Senate screen: reads the senator's year and any matter before the head's bench (this head is a Judge), decides each for some years, and checks nothing is left alerting. |
+| `node family.js "The Old Lion" 6` | The family controls: on the wealth panel takes money into the head's purse, gives a relative a sum, lends another, sets whose money a dowry is; on the education panel asks a relative to study and sets one to teach another; plays on and reads what is owed and the chronicle. |
 | `node workshop.js "The Heir" 3` | The character workshop: every tab, preset and mode, then a saga begun from it. Add `academy` to begin at the Academy. |
 
 ## Reading the numbers

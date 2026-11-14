@@ -15,9 +15,9 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 636 |
-| Events with text | 344 in 34 files |
-| Open gaps (docs/GAPS.md) | 58: 24 small, 28 a cycle, 6 several cycles. 22 closed so far (`./tools/gaps.sh`) |
+| Automated tests | 640 |
+| Events with text | 347 in 34 files |
+| Open gaps (docs/GAPS.md) | 56: 21 small, 28 a cycle, 6 several cycles. 26 closed so far (`./tools/gaps.sh`) |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |

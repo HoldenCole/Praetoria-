@@ -31,6 +31,11 @@
   stand behind one, tell them both it stops, or keep out of it.
 - **A relative's failure is marked.** An election lost or a battle lost in command is written into their life, costs
   their renown and counts against what they want. Three, and they give the hope up. Two events.
+- **Give or lend a relative a sum** from your own purse. A loan is paid back as they can; six years unpaid it sits
+  between you, and you can forgive it.
+- **Whose money a dowry is**: the treasury's, or your own purse first.
+- **Ask a relative to study something**, which they may refuse, and **ask one of the house to teach another**.
+- **Relatives find mentors for themselves**, and a relative's mentor teaches them. Three events.
 - **Send your physicians to a relative** who is ill or ailing, from your own purse (the life panel).
 - **Old friends and old enemies count.** A friend of eight years leans your way in the Senate and stands by your house
   when something is aimed at it, and is likelier to take your side in a civil war. An old enemy does the opposite.
@@ -44,7 +49,7 @@
 - **A victory teaches its commander only what they have it in them to learn.** It used to add a step whatever the
   skill's ceiling. Measured: a rival general of the first rank is rarer than before (docs/CAESAR.md, docs/GAPS.md C9).
 - The gap register (docs/GAPS.md) has a worklist at its top, a section for forms of government as the owner set them
-  out, and a section for positions with nothing to do. 58 open, 22 closed.
+  out, and a section for positions with nothing to do. 56 open, 26 closed.
 
 ### Fixed
 - **A save could drift from an unbroken run** when a magistrate's relief, a senator's speech for a region or an

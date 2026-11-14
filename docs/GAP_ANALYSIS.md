@@ -1258,3 +1258,17 @@ three end the hope. Both events fired in the soak without help, which is rare fo
 
 Left (A5): ventures never fail, so that failure cannot be marked; a quarrel does not divide the house.
 
+### 43e. The family items
+
+W2, W4, E2 and H1 from the worklist, by the owner's order. All four keep to the one-person rule: the head gives, lends
+and asks; the relative keeps the money, pays back or does not, agrees or refuses, and finds a mentor without being
+told.
+
+640 tests, 347 events. The soak's player now gives, lends, forgives, asks and sets teachers; the soak passes at four
+seeds. Survival: the line ended in 0 or 1 of 10 per start (one start moved from 0 to 1 with relatives finding
+mentors; inside the range it has always had). Seen in the browser on the Old Lion start: a gift, a loan shown as
+owed, the dowry custom, a refusal to study and a teacher set.
+
+Found: a relative who came to have the house still "owed its head" what the dead head had lent them. Cleared.
+Left: W6 (loans only run from the head down) and E6 (asking has no bargaining).
+

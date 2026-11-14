@@ -21,7 +21,7 @@ public static class EducationSystem
         GoodTutorCredits = 2, BestTutorCredits = 5, EarnAptitudeAt = 7, ProdigyAt = 4;
     public const string ResistsFlag = "child_resists_lessons", ProdigyFlag = "child_prodigy", MasteryFlag = "mastery_gained", TutorDismissedFlag = "tutor_dismissed";
     public const string ResistsChar = "resists_lessons", ProdigyChar = "prodigy";
-    private static readonly string[] DeedFlags = { ProdigyFlag, MasteryFlag, TutorDismissedFlag };
+    private static readonly string[] DeedFlags = { ProdigyFlag, MasteryFlag, TutorDismissedFlag, "kin_would_not_study" };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -107,6 +107,59 @@ public static class EducationSystem
                 }
     }
 
+    // ---------------- asking, not telling (docs/EDUCATION.md) ----------------
+
+    public const int AskEvery = 3, TeachLead = 2; public const string StudyRefusedFlag = "kin_would_not_study", StudyRefusedChar = "would_not_study";
+    private static string AskedKey(string id) => "asked_to_study:" + id;
+    private static int RegardOf(World w, Character from, Character to) => w.GetRelationship(from.Id, to.Id)?.Disposition ?? 0;
+
+    public static string? AskRefusal(World w, Character? head, Character? who, string skill)
+    {
+        if (head?.Alive != true || who?.Alive != true || who.Id == head.Id || who.HouseId != head.HouseId) return "not of your house";
+        if (who.Age < Adult) return "a child is brought up, not asked";
+        if (!All.Contains(skill)) return "no such study";
+        if (who.Skill(skill) >= Ceiling(who, skill)) return "they have gone as far in it as they can";
+        if (who.Study == skill) return "it is what they study already";
+        return w.WorldCounters.TryGetValue(AskedKey(who.Id), out int last) && w.Turn - last < AskEvery ? $"you asked them not long ago (again in {AskEvery - (w.Turn - last)} year(s))" : null;
+    }
+    /// <summary>Whether they would do it for the asking: the loyal and those who think well of the head will; the wilful who do not, will not.</summary>
+    public static bool WouldStudy(World w, Character head, Character who, string skill) =>
+        who.NatureTraits.Contains("Loyal") || RegardOf(w, who, head) >= (CourtshipSystem.Wilful(who) ? 40 : Bent(who, skill) < 0 ? 20 : 0);
+    /// <summary>The head asks one of the house to turn their study to something. It is theirs to say yes to.</summary>
+    public static bool Ask(World w, Character head, Character who, string skill)
+    {
+        w.WorldCounters[AskedKey(who.Id)] = w.Turn;
+        if (!WouldStudy(w, head, who, skill))
+        {
+            var r = w.Relationship(who.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition - 3, -100, 100); who.Flags.Add(StudyRefusedChar); Mark(w, StudyRefusedFlag);
+            w.Log($"{head.Name} asks {who.Name} to give their time to {skill}. {who.Name} says that what they study is their own affair."); return false;
+        }
+        who.Study = skill;
+        if (Bent(who, skill) < 0) { var r = w.Relationship(who.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition - 2, -100, 100); }
+        w.Log($"{who.Name} turns to {skill}, because {head.Name} asked it{(Bent(who, skill) < 0 ? ", though it is not where their mind runs" : "")}."); return true;
+    }
+
+    /// <summary>What a teacher of the house could pass on to this pupil: the skill they are furthest ahead in that the pupil can still learn.</summary>
+    public static string Lesson(Character teacher, Character pupil) => teacher.Skills.Where(kv => kv.Value >= pupil.Skill(kv.Key) + TeachLead && pupil.Skill(kv.Key) < Ceiling(pupil, kv.Key))
+        .OrderByDescending(kv => kv.Value - pupil.Skill(kv.Key)).ThenBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => kv.Key).FirstOrDefault() ?? "";
+    public static string? TeachRefusal(World w, Character? head, Character? pupil, Character? teacher)
+    {
+        if (head?.Alive != true || pupil?.Alive != true || teacher?.Alive != true || pupil.HouseId != head.HouseId || teacher.HouseId != head.HouseId) return "not of your house";
+        if (pupil.Id == head.Id || teacher.Id == head.Id || pupil.Id == teacher.Id) return "it is between two others of the house";
+        if (teacher.Age < Adult) return "the teacher is a child";
+        if (pupil.Age < SchoolAge) return "too young for lessons";
+        if (pupil.MentorId.Length > 0 && w.Char(pupil.MentorId) is { Alive: true }) return "they are under someone's wing already";
+        if (Lesson(teacher, pupil).Length == 0) return "they have nothing to teach them";
+        return RegardOf(w, teacher, head) >= 0 ? null : "they will not do it for you";
+    }
+    /// <summary>The head asks one of the house to take another under their wing.</summary>
+    public static void SetToTeach(World w, Character head, Character pupil, Character teacher)
+    {
+        pupil.MentorId = teacher.Id; pupil.JoinedTurn = w.Turn;
+        foreach (var (a, b) in new[] { (pupil.Id, teacher.Id), (teacher.Id, pupil.Id) }) { var r = w.Relationship(a, b); r.Disposition = Math.Clamp(r.Disposition + 5, -100, 100); }
+        w.Log($"{teacher.Name} takes {pupil.Name} in hand, at {head.Name}'s asking, and will teach them {Lesson(teacher, pupil)}.");
+    }
+
     /// <summary>What a grown person sets themselves to study when nobody tells them: what their ambition wants, or failing that
     /// whatever of their service has most room left in it.</summary>
     public static string ChooseStudy(World w, Character c)
@@ -166,6 +219,7 @@ public static class EducationSystem
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
         var p = w.Protagonist; var mine = p != null ? w.House(p.HouseId) : null;
         if (!w.HasFlag(ProdigyFlag)) foreach (var ch in w.Characters.Values) ch.Flags.Remove(ProdigyChar);
+        if (!w.HasFlag(StudyRefusedFlag)) foreach (var ch in w.Characters.Values) ch.Flags.Remove(StudyRefusedChar);
 
         // tutors are paid for, or let go
         if (mine != null)
