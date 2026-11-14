@@ -20,6 +20,8 @@
         LadderSystem.Silence => "gave " + (w.House(b.HouseA)?.Name ?? "a house") + " no day in the Senate",
         _ => "held the office"
     };
+    var post = LadderSystem.DutyOf(w, pid, LadderSystem.Desk, LadderSystem.Posting); string postTitle = post == null ? "" : post.Kind == LadderSystem.Desk ? "Your desk: the year's returns" : "Your posting: a year ashore";
+    string postSays = post == null ? "" : LadderSystem.DutySays(w, policy, post);
     bool judge = LadderSystem.OnTheBench(p); int absent = w.Counter(LadderSystem.AbsentKey);
     bool sat = w.OfficeWork.Any(b => b.HolderId == pid && b.Kind == LadderSystem.SeatKind); bool heard = w.OfficeWork.Any(b => b.HolderId == pid && (b.Kind == LadderSystem.Hearing || b.Kind == LadderSystem.Appeal));
     string rank = c.Careers.RankName(p.CareerTrack, p.CareerRank, w.Era) ?? "";
@@ -95,7 +97,22 @@
         </div>
     }
     else if (judge) { <div class="muted small">@(heard ? BenchDone : BenchNotYet)</div> }
-    else { <div class="muted small">@NoBench</div> }
+    @if (post != null)
+    {
+        <div class="rung-row duty-post">
+            <div><b>@postTitle</b> <span class="muted small">@rank</span></div>
+            <div class="small">@postSays</div>
+            @foreach (var choice in LadderSystem.DutyChoices(post.Kind))
+            {
+                string ch = choice; string kind = post.Kind; var no = new DutyCommand(pid, kind, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, post, ch);
+                <div class="suit-acts">
+                    <button class="opt inline" disabled="@(no != null)" title="@(no ?? tip)" @onclick="() => G.Execute(new DutyCommand(pid, kind, ch, offices, policy))">@Label(ch)</button>
+                    <span class="muted small">@tip</span>
+                </div>
+            }
+        </div>
+    }
+    else if (post == null && charge == null) { <div class="muted small">@NoBench</div> }
     @if (officers.Count > 0)
     {
         <details class="small"><summary>What the officers of the Reach did this year (@officers.Count)</summary>
@@ -117,7 +134,7 @@
     private const string SeatNotYet = "The Senate has not yet sat. Your year in it begins at the turn of the year.";
     private const string BenchNotYet = "Nothing has come before your bench yet. The first matter comes at the turn of the year.";
     private const string BenchDone = "Nothing more is before your bench this year.";
-    private const string NoBench = "You do not sit on the bench: that is for a Judge or a Justice of the law.";
+    private const string NoBench = "Your rank asks nothing more of you this year. A Judge has a bench, a Governor a desk, an officer without a fleet a posting.";
     private static string Label(string choice) => choice switch
     {
         LadderSystem.Law => "Rule on the law", LadderSystem.ForHouse => "Find for the house", LadderSystem.ForEstate => "Find for the petitioners",
@@ -125,6 +142,8 @@
         LadderSystem.Account => "Call the magistrates to account", LadderSystem.Sweep => "Send the fleet onto the lanes", LadderSystem.Party => "Spend the year on your bench",
         LadderSystem.Balance => "Balance the books", LadderSystem.Remit => "Forgive a region its levy", LadderSystem.Contracts => "Let the contracts to your own house",
         LadderSystem.Fair => "Keep the order fair", LadderSystem.Own => "Bring your own business forward", LadderSystem.Silence => "Give an enemy no day",
+        LadderSystem.Assess => "Assess it fairly", LadderSystem.Press => "Press the collection", LadderSystem.Skim => "Keep a share",
+        LadderSystem.Drill => "Drill the crews", LadderSystem.Patrol => "Patrol the home lanes", LadderSystem.Board => "Sit on a board of inquiry",
         LadderSystem.Audit => "Read the accounts", LadderSystem.SpeakRegion => "Speak for your region", LadderSystem.Whip => "Work your bench", _ => choice
     };
     protected override void OnInitialized() => G.Changed += Redraw;

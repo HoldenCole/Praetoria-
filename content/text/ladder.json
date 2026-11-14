@@ -148,6 +148,16 @@
         "wait_out_the_year": "Wait out the year.",
         "send_a_gift_to_the_speaker": "Send the Speaker a gift."
       }
+    },
+    {
+      "id": "the_returns_are_reopened",
+      "title": "The Returns Are Reopened",
+      "body": "The year's returns that crossed {self.name}'s desk have been gone through again by somebody with no reason to be kind, and a share of them is found to have stopped there. {self.name} has been broken a grade. The rank can be won back. What is said in the meantime is another matter.",
+      "choices": {
+        "take_the_grade_and_work_it_back": "Take the grade, and work it back.",
+        "pay_back_what_was_kept": "Pay back what was kept.",
+        "say_the_figures_were_always_soft": "Say the figures were always soft."
+      }
     }
   ]
 }

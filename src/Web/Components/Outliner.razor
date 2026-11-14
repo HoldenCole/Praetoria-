@@ -86,6 +86,8 @@
         alerts.Add(("warn", benchWork.Kind == Praetoria.Core.Systems.LadderSystem.Appeal ? "An appeal waits before your bench" : "A hearing waits before your bench", "senate"));
     if (w.Protagonist is { } holder && Praetoria.Core.Systems.LadderSystem.DutyOf(w, holder.Id, Praetoria.Core.Systems.LadderSystem.Charge) is { } chargeWork)
         alerts.Add(("warn", "The year's charge of your office waits on you: " + (G.Content!.Offices.Def(chargeWork.RungId)?.Name ?? "an office of the Reach"), "senate"));
+    if (w.Protagonist is { } ranker && Praetoria.Core.Systems.LadderSystem.DutyOf(w, ranker.Id, Praetoria.Core.Systems.LadderSystem.Desk, Praetoria.Core.Systems.LadderSystem.Posting) is { } rankWork)
+        alerts.Add(("info", rankWork.Kind == Praetoria.Core.Systems.LadderSystem.Desk ? "The year's returns are on your desk" : "You have a year ashore to spend", "senate"));
     if (w.Protagonist is { } senator && Praetoria.Core.Systems.LadderSystem.DutyOf(w, senator.Id, Praetoria.Core.Systems.LadderSystem.SeatKind) != null)
         alerts.Add(("info", "Your year in the Senate is not yet spent", "senate"));
     if (w.Protagonist is { } officer && Praetoria.Core.Systems.LadderSystem.BusinessOf(w, officer.Id) is { } officeWork)

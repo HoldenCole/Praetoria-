@@ -33,12 +33,13 @@ require('fs').mkdirSync(shots, { recursive: true });
     await endTurn(); await standing();
     if (!(await page.evaluate(() => !!document.querySelector('.panel.duties')))) { await closeWindows(); await page.waitForTimeout(400); await standing(); }   // something was still on top of the screen
     if (y === 0) console.log('panel at turn ' + await turnNo() + ': ' + (await page.evaluate(() => (document.querySelector('.panel.duties') || {}).innerText || 'NO PANEL')).replace(/\s+/g, ' ').slice(0, 500));
-    const seat = await block('.duty-seat'); const bench = await block('.duty-bench'); const charge = await block('.duty-charge');
+    const seat = await block('.duty-seat'); const bench = await block('.duty-bench'); const charge = await block('.duty-charge'); const post = await block('.duty-post');
     if (charge) { console.log('charge: ' + charge); await shot('duties-charge'); console.log('  charge → ' + (await press('.duty-charge', y) || 'NOTHING COULD BE PRESSED')); await page.waitForTimeout(300); }
+    if (post) { if (y === 0) { console.log('desk or posting: ' + post); await shot('duties-post'); } console.log('  desk or posting → ' + (await press('.duty-post', y) || 'NOTHING COULD BE PRESSED')); await page.waitForTimeout(300); }
     if (y === 0) { console.log('seat: ' + (seat || (charge ? 'none: the charge is the year' : 'NOTHING WAITING'))); console.log('bench: ' + (bench || 'nothing before the bench')); await shot('duties-waiting'); }
     const s = seat ? await press('.duty-seat', y) : ''; const b = bench ? await press('.duty-bench', y) : ''; await page.waitForTimeout(350);
     console.log('  turn ' + await turnNo() + ': seat → ' + (s || 'none') + (bench ? ' · bench → ' + (b || 'NOTHING COULD BE PRESSED') : '') + ' · left waiting: ' + ((await block('.duty-seat')) ? 'seat ' : '') + ((await block('.duty-bench')) ? 'bench' : '') );
-    const alerts = await page.evaluate(() => [...document.querySelectorAll('.ol-row')].map(e => e.innerText.replace(/\s+/g, ' ')).filter(t => /bench|year in the Senate|charge of your office/i.test(t)).join(' | '));
+    const alerts = await page.evaluate(() => [...document.querySelectorAll('.ol-row')].map(e => e.innerText.replace(/\s+/g, ' ')).filter(t => /bench|year in the Senate|charge of your office|on your desk|year ashore/i.test(t)).join(' | '));
     if (alerts) console.log('    STILL ALERTING: ' + alerts.slice(0, 160));
   }
   await shot('duties-after');

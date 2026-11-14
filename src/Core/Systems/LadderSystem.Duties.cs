@@ -21,6 +21,17 @@ public static partial class LadderSystem
     public const string ChargeFlag = "charge_business", RemittedFlag = "levy_remitted_for_us", SilencedFlag = "no_day_in_the_senate";
     public const int SweepBy = 4, SweepCredits = 4, RemitBy = 4, RemitCredits = 5, ContractCredits = 10, BalanceCredits = 5;
 
+    // the desk and the posting: what a rank in the administration or the navy asks of one who holds it and has no command
+    public const string Desk = "desk", Posting = "posting";
+    public const string Assess = "assess", Press = "press", Skim = "skim", Drill = "drill", Patrol = "patrol", Board = "board";
+    public const string DeskFlag = "desk_business", DeskExposedFlag = "desk_exposed";
+    public const int DeskRank = 2, PostingRank = 3, PressCredits = 6, SkimCredits = 6, DrillBy = 4;
+    /// <summary>A Governor, a Minister or a High Treasurer: the administration's work is theirs.</summary>
+    public static bool AtADesk(Character c) => c.Alive && c.CareerTrack == "stewardship" && c.CareerRank >= DeskRank && !c.Flags.Contains(LifeSystem.RetiredChar) && !c.Flags.Contains(DynastySystem.HiddenFlag);
+    /// <summary>A Commander or above with no fleet under them this year.</summary>
+    public static bool Ashore(World w, Character c) => c.Alive && c.CareerTrack == "military" && c.CareerRank >= PostingRank && !c.Flags.Contains(LifeSystem.RetiredChar) && !c.Flags.Contains(DynastySystem.HiddenFlag)
+        && !w.Fleets.Values.Any(f => f.AdmiralId == c.Id);
+
     /// <summary>Which kind of charge an office of the Reach carries, or "" if it carries none (the Admiral has the fleets).</summary>
     public static string ChargeOf(OfficeDef? def) => def == null ? "" : def.Elected ? Consul : def.Sphere == "treasury" ? Treasurer : def.Sphere == "senate" ? Speaker : "";
     public static string[] ChoicesOf(OfficeCatalog offices, OfficeBusiness b) => b.Kind != Charge ? DutyChoices(b.Kind) : ChargeOf(offices.Def(b.RungId)) switch
@@ -36,7 +47,8 @@ public static partial class LadderSystem
     /// <summary>One who sits on the bench by their career: a Judge, a Justice, a High Justice.</summary>
     public static bool OnTheBench(Character c) => c.Alive && c.CareerTrack == "law" && c.CareerRank >= JudgeRank && !c.Flags.Contains(LifeSystem.RetiredChar) && !c.Flags.Contains(DynastySystem.HiddenFlag);
     public static OfficeBusiness? DutyOf(World w, string characterId, params string[] kinds) => w.OfficeWork.FirstOrDefault(b => b.HolderId == characterId && b.Choice.Length == 0 && kinds.Contains(b.Kind));
-    public static string[] DutyChoices(string kind) => kind == Hearing ? new[] { Law, ForHouse, ForEstate } : kind == Appeal ? new[] { Overturn, SendBack, Uphold } : new[] { Audit, SpeakRegion, Whip };
+    public static string[] DutyChoices(string kind) => kind == Hearing ? new[] { Law, ForHouse, ForEstate } : kind == Appeal ? new[] { Overturn, SendBack, Uphold } : kind == Desk ? new[] { Assess, Press, Skim }
+        : kind == Posting ? new[] { Drill, Patrol, Board } : new[] { Audit, SpeakRegion, Whip };
     private static bool Took(OfficeBusiness b) => b.Choice is Favour or Gift;
     private static string EstateName(PolicyCatalog? policy, string id) => policy?.Estates.FirstOrDefault(e => e.Id == id)?.Name ?? "the petitioners";
 
@@ -84,6 +96,16 @@ public static partial class LadderSystem
                 if (j.Id != p.Id) DecideDuty(w, offices, policy, j, Hearing, DutyInclination(w, j, h));
             }
 
+        // 2b. a desk for each of the house's people who has a rank in the administration, and a posting for each officer of rank
+        //     who has no fleet under them this year
+        foreach (var c in w.LivingCharacters().Where(c => c.HouseId == mine.Id && (AtADesk(c) || Ashore(w, c))).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
+        {
+            string kind = AtADesk(c) ? Desk : Posting;
+            var d = new OfficeBusiness { Id = $"{kind}_{w.Turn}_{c.Id}", RungId = kind, HolderId = c.Id, Kind = kind, Turn = w.Turn, RegionId = HomeRegion(w, mine.Id) ?? "" };
+            w.OfficeWork.Add(d);
+            if (c.Id != p.Id) DecideDuty(w, offices, policy, c, kind, DeskInclination(w, offices, c, d));
+        }
+
         // 3. the seat: the head's year in the Senate
         if (PolitySystem.InReach(w, mine.Id) && DutyOf(w, p.Id, Charge) == null)   // one who holds an office of the Reach spends the year on its charge
             w.OfficeWork.Add(new OfficeBusiness { Id = $"seat_{w.Turn}_{p.Id}", RungId = "senate", HolderId = p.Id, Kind = SeatKind, Turn = w.Turn, RegionId = HomeRegion(w, mine.Id) ?? "" });
@@ -116,6 +138,8 @@ public static partial class LadderSystem
             Hearing => $"{EstateName(policy, b.EstateId)} have brought {a} before your bench. The law, read plainly, is with {(b.RightId == Estate ? EstateName(policy, b.EstateId).ToLowerInvariant() : a)}.",
             Appeal => $"{a} appeals against the ruling {w.Char(b.SubjectId)?.Name ?? "a praetor"} gave for {bn} last year. On the plain reading of the law, {a} was in the right.",
             Charge => ChargeSays(w, b),
+            Desk => "The year's returns from the house's region cross your desk. How they are assessed, and how hard they are collected, is the administration's to say, and this year the administration is you.",
+            Posting => "You have a rank and no fleet under you this year. The service finds work for officers ashore, and lets one of your standing choose it.",
             _ => "The Senate sits, and a year of it is yours to spend. The motions are the chamber's business; this is your own."
         };
     }
@@ -123,6 +147,17 @@ public static partial class LadderSystem
         ? "The year is in your name. The magistrates answer to you, the Reach's own fleet sails on your word, and your bench expects something of it."
         : b.RungId == "treasurer" ? "The Reach's budget for the year is yours to draw up: what is saved, what is forgiven, and who is given the work."
         : "The order of business is yours: what the Senate hears, when, and what it never reaches.";
+    /// <summary>What a relative does with a desk or a posting: by their nature.</summary>
+    public static string DeskInclination(World w, OfficeCatalog offices, Character c, OfficeBusiness b)
+    {
+        bool honest = c.NatureTraits.Contains("Honorable") || c.NatureTraits.Contains("Just") || c.NatureTraits.Contains("Loyal");
+        bool grasping = !honest && (c.NatureTraits.Contains("Ruthless") || c.NatureTraits.Contains("Cruel") || c.Ambition == "amass_a_fortune");
+        var choices = DutyChoices(b.Kind);
+        if (b.Kind == Desk) return grasping && Hash(b.Id + ":take") % 2 == 0 ? Skim : honest || Hash(b.Id + ":press") % 2 == 0 ? Assess : Press;
+        foreach (var ch in new[] { choices[(int)(Hash(b.Id + ":posting") % 3)], Drill, Board }) if (DutyRefusal(w, offices, c, Posting, ch) == null) return ch;
+        return Board;
+    }
+
     /// <summary>What an office-holder other than the player does with the year's charge: by their nature.</summary>
     public static string ChargeInclination(World w, OfficeCatalog offices, Character c, OfficeBusiness b)
     {
@@ -147,6 +182,12 @@ public static partial class LadderSystem
             Uphold => $"Uphold the praetor. His house and {bn} are obliged to you; {a} is not, and the magistrates are trusted less.",
             Audit => "Read the year's accounts. If a magistrate took money this year you may follow it to them: they are removed, and their house will hate you for it.",
             SpeakRegion => b.RegionId.Length > 0 ? $"Speak for {w.Galaxy?.Region(b.RegionId)?.Name}: it holds a little closer to the Reach, its houses think the better of you, and your house is thought the better of." : "Your house has no worlds to speak for.",
+            Assess => "Assess it fairly. The merchants think the better of your house" + (b.RegionId.Length > 0 ? $", {w.Galaxy?.Region(b.RegionId)?.Name} holds a little closer" : "") + ", and the magistrates are trusted a little more.",
+            Press => $"Press the collection: {PressCredits} credits more for the house. The commons think the less of it" + (b.RegionId.Length > 0 ? $", and {w.Galaxy?.Region(b.RegionId)?.Name} holds a little less closely." : "."),
+            Skim => $"Keep a share: {SkimCredits} credits to your own purse. One time in four the returns are reopened, and you are broken a grade.",
+            Drill => $"Drill the house's crews. Every fleet of the house is {DrillBy} the more loyal.",
+            Patrol => b.RegionId.Length > 0 ? $"Take a squadron of the house's round the lanes of {w.Galaxy?.Region(b.RegionId)?.Name}: lawlessness there falls by {ReliefBy}." : "The house has no home lanes to patrol.",
+            Board => "Sit on a board of inquiry. The officers think the better of your house, the magistrates are trusted a little more, and you gain a little influence.",
             Account => "Call the magistrates to account. Whatever was taken this year is looked for, and what is found is punished. The magistrates are trusted more, and nobody who sits thanks you.",
             Sweep => b.RegionId.Length > 0 ? $"Send the Reach's fleet onto the lanes of {w.Galaxy?.Region(b.RegionId)?.Name}: lawlessness there falls by {SweepBy}, for {SweepCredits} credits of the capital's, and its houses remember it." : "No region is lawless enough to need the fleet.",
             Party => "Spend the year on your bench. Its houses are obliged to you and you gain influence; the magistrates are trusted a little less for it.",
@@ -167,6 +208,8 @@ public static partial class LadderSystem
         if (!ChoicesOf(offices, b).Contains(choice)) return "not a thing to be done with it";
         if (choice is Sweep or Remit && b.RegionId.Length == 0) return choice == Sweep ? "no region is lawless enough to need the fleet" : "no region holds loosely enough to need it";
         if (choice is Sweep or Remit && (RegionSystem.CapitalHolder(w)?.Treasury.Credits ?? 0) < (choice == Sweep ? SweepCredits : RemitCredits)) return "the capital's purse does not hold it";
+        if (choice == Patrol && b.RegionId.Length == 0) return "the house has no home lanes to patrol";
+        if (choice is Patrol or Drill && FleetSystem.StrengthOf(w, who.HouseId) <= 0) return "the house has no fleet";
         if (choice == Party && FactionSystem.Of(w, who.HouseId) == null) return "your house sits on no bench";
         if (choice == Silence && b.HouseA.Length == 0) return "you have no enemy worth the trouble";
         if (choice == SpeakRegion && b.RegionId.Length == 0) return "your house has no worlds to speak for";
@@ -206,6 +249,37 @@ public static partial class LadderSystem
                 }
                 else if (choice == Uphold) { Shift(w, bench, house, 8); Shift(w, winner, house, 4); Shift(w, wronged, house, -10); MoveTrust(w, -2); }
                 else { Shift(w, wronged, house, 3); MoveTrust(w, 1); }
+                break;
+            }
+            case Desk:
+            {
+                void Estate_(string id, int by) { string key = PolicySystem.ApprovalKey(w, who.HouseId, id); w.WorldCounters[key] = Math.Clamp(w.Counter(key) + by, -100, 100); }
+                if (choice == Assess) { Estate_("merchants", 2); MoveTrust(w, 1); if (b.RegionId.Length > 0) { var rs = RegionSystem.StateOf(w, b.RegionId); rs.Allegiance = Math.Clamp(rs.Allegiance + 1, 0, 100); } }
+                else if (choice == Press)
+                {
+                    if (house != null) house.Treasury.Credits += PressCredits; Estate_("commons", -4);
+                    if (b.RegionId.Length > 0) { var rs = RegionSystem.StateOf(w, b.RegionId); rs.Allegiance = Math.Clamp(rs.Allegiance - 1, 0, 100); }
+                }
+                else
+                {
+                    who.Purse += SkimCredits; MoveTrust(w, -2);
+                    if (Hash(b.Id + ":exposed") % 4 == 0)
+                    {
+                        who.CareerRank = Math.Max(0, who.CareerRank - 1); if (house != null) house.Legitimacy = Math.Clamp(house.Legitimacy - 3, 0, 100);
+                        LifeSystem.Note(w, who, "office", "Was broken a grade for keeping a share of the returns.");
+                        w.Log($"The year's returns are reopened, and {who.Name} of {house?.Name} is found to have kept a share. {who.Name} is broken a grade.");
+                        if (ours && who.Id == p!.Id) Mark(w, DeskExposedFlag);
+                    }
+                }
+                if (choice != Skim && who.Life?.Marks.Add("desk") != false) LifeSystem.Note(w, who, "office", "Had the year's returns across their desk.");
+                break;
+            }
+            case Posting:
+            {
+                if (choice == Drill) foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == who.HouseId).OrderBy(f => f.Id, StringComparer.Ordinal)) f.Loyalty = Math.Min(100, f.Loyalty + DrillBy);
+                else if (choice == Patrol) { var rs = RegionSystem.StateOf(w, b.RegionId); rs.Lawlessness = Math.Clamp(rs.Lawlessness - ReliefBy, 0, 100); }
+                else { string key = PolicySystem.ApprovalKey(w, who.HouseId, "officers"); w.WorldCounters[key] = Math.Clamp(w.Counter(key) + 2, -100, 100); MoveTrust(w, 1); w.PoolsFor(who.Id).Influence += 1; }
+                if (ours && who.Id == p!.Id) w.Log(choice == Drill ? $"{who.Name} spends the year drilling the house's crews." : choice == Patrol ? $"{who.Name} takes a squadron round the lanes of {w.Galaxy?.Region(b.RegionId)?.Name}." : $"{who.Name} sits on a board of inquiry.");
                 break;
             }
             case Charge:
@@ -337,7 +411,7 @@ public static partial class LadderSystem
     private static void CloseDuties(World w)
     {
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null;
-        foreach (var b in w.OfficeWork.Where(b => b.Choice.Length == 0 && b.Kind is Hearing or Appeal or SeatKind or Charge).ToList())
+        foreach (var b in w.OfficeWork.Where(b => b.Choice.Length == 0 && b.Kind is Hearing or Appeal or SeatKind or Charge or Desk or Posting).ToList())
         {
             b.Choice = "left";
             if (b.Kind == SeatKind)
@@ -349,6 +423,7 @@ public static partial class LadderSystem
                     w.Log($"{p?.Name} has not been seen in the Senate for {AbsentYears} years. It is remarked on, and the house is thought the less of.");
                 }
             }
+            else if (b.Kind is Desk or Posting) { if (b.Kind == Desk) MoveTrust(w, -1); }   // the clerks see to it; an officer ashore who does nothing is merely ashore
             else if (b.Kind == Charge) { MoveTrust(w, -2); if (house != null && p != null && b.HolderId == p.Id) { house.Legitimacy = Math.Clamp(house.Legitimacy - 1, 0, 100); w.Log($"{p.Name} held a great office of the Reach last year and did nothing with it. It was noticed, and said."); } }
             else { MoveTrust(w, -1); if (p != null && b.HolderId == p.Id) w.Log($"The matter before {p.Name}'s bench went unheard last year. It was noticed."); }
         }

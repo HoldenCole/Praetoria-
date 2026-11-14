@@ -1,5 +1,5 @@
 {
-  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected. The work of office: office_exposed, kin_office_exposed and kin_blames_the_head (deeds); case_won and case_lost (each year); and the character flags removed_from_office and blames_the_head. The bench and the seat: audit_found, ruling_overturned_for_us and not_seen_in_the_senate (deeds). The charge of an office of the Reach: levy_remitted_for_us and no_day_in_the_senate (deeds).",
+  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected. The work of office: office_exposed, kin_office_exposed and kin_blames_the_head (deeds); case_won and case_lost (each year); and the character flags removed_from_office and blames_the_head. The bench and the seat: audit_found, ruling_overturned_for_us and not_seen_in_the_senate (deeds). The charge of an office of the Reach: levy_remitted_for_us and no_day_in_the_senate (deeds). The desk: desk_exposed (deed).",
   "events": [
     {
       "id": "the_canvass",
@@ -1178,6 +1178,91 @@
               "resource": "credits",
               "op": "gte",
               "value": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_returns_are_reopened",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "desk_exposed",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_the_grade_and_work_it_back",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the lower grade and went back to the same desk the next morning. There are worse answers to a disgrace than being seen to work."
+            }
+          ]
+        },
+        {
+          "id": "pay_back_what_was_kept",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 8
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid back what had been kept, and somewhat more. The grade was not restored. The talk was shorter than it would have been."
+            }
+          ]
+        },
+        {
+          "id": "say_the_figures_were_always_soft",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "public_trust",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that returns are an estimate and always have been, and that nobody had complained while the estimate ran the other way. Some of the service agreed, quietly."
             }
           ]
         }

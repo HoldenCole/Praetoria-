@@ -24,7 +24,7 @@ public static partial class LadderSystem
     public const string StandingFlag = "standing_for_office", MagistrateFlag = "is_magistrate", AedileFlag = "is_aedile";
     public const string ElectedChar = "newly_elected", StandingChar = "standing_for_office";
     public const string BlamedFlag = "kin_blames_the_head", BlamesChar = "blames_the_head"; public const int BlameRegard = 10;
-    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag };
+    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -438,7 +438,7 @@ public static partial class LadderSystem
 
     public static void Tick(World w, OfficeCatalog offices, PolicyCatalog? policy = null)
     {
-        w.WorldFlags.Remove(BenchFlag); w.WorldFlags.Remove(SeatFlag); w.WorldFlags.Remove(ChargeFlag);
+        w.WorldFlags.Remove(BenchFlag); w.WorldFlags.Remove(SeatFlag); w.WorldFlags.Remove(ChargeFlag); w.WorldFlags.Remove(DeskFlag);
         w.WorldFlags.Remove(StandingFlag); w.WorldFlags.Remove(MagistrateFlag); w.WorldFlags.Remove(AedileFlag); w.WorldFlags.Remove(BusinessFlag); w.WorldFlags.Remove("case_won"); w.WorldFlags.Remove("case_lost");
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
         foreach (var c in w.Characters.Values) { if (!w.HasFlag(ElectedFlag) && !w.HasFlag(KinElectedFlag)) c.Flags.Remove(ElectedChar); c.Flags.Remove(StandingChar); }
@@ -461,6 +461,7 @@ public static partial class LadderSystem
         if (DutyOf(w, p.Id, Hearing, Appeal) != null) w.WorldFlags.Add(BenchFlag);
         if (DutyOf(w, p.Id, SeatKind) != null) w.WorldFlags.Add(SeatFlag);
         if (DutyOf(w, p.Id, Charge) != null) w.WorldFlags.Add(ChargeFlag);
+        if (DutyOf(w, p.Id, Desk, Posting) != null) w.WorldFlags.Add(DeskFlag);
         w.Candidacies.RemoveAll(cd => w.Char(cd.CharacterId) is not { Alive: true } c || c.HouseId != house.Id || Bar(w, offices, c, offices.Rung(cd.RungId)) != null);
 
         // The people of the house stand for themselves (docs/PROCESS.md): one who wants to rise and be heard, or to be first, puts

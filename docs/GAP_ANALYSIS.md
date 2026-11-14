@@ -1232,3 +1232,19 @@ is thin about it is O2.
   drawn in his name; the heir had nothing. Found in the browser, traced with a script. The year now passes with the
   house, and a test plays twelve years checking the head always has it.
 
+### 43c. The desk and the posting
+
+J2 from the worklist. The stewardship career's Governor and above have the year's returns across their desk; a naval
+officer of rank without a fleet has a year ashore. Both tie into what exists: the merchants', commons' and officers'
+approval, a region's allegiance and lawlessness, the fleets' loyalty, trust, and the person's own purse.
+
+634 tests, 342 events. Soak passes at five seeds; survival unchanged (the line ended in 0 or 1 of 10 per start).
+
+Found: fair assessment at first raised the house's legitimacy, and with two or three relatives at desks the house
+climbed a point or more every year for nothing. It now moves the region and the merchants instead. No start's head has
+a desk or a posting in the first year, so the panel's block for them is proved by tests and not yet seen in a browser.
+What is left is the lowest ranks (J3).
+
+With this every rank from Judge, Governor and Commander up, every elected office, every office of the Reach and the
+Senate seat has yearly work. The worklist's next items are in the family (A1, A3, W2, W4, E2, H1).
+

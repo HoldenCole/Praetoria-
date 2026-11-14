@@ -141,6 +141,18 @@ Other houses' officers decide by nature, at once, and what they do reaches you: 
 region its levy and a Speaker who keeps your house off the floor each bring an event. A great office held and not used
 is noticed: trust −2 and legitimacy −1.
 
+**A desk, and a posting.** The other two careers ask something of their ranks as well, of the people of your house.
+
+- **A Governor, a Minister or a High Treasurer** has the year's returns from the house's region across their desk.
+  **Assess it fairly** (the merchants +2, the region's allegiance +1, trust +1), **press the collection** (6 credits to
+  the house, the commons −4, allegiance −1), or **keep a share** (6 credits to your own purse, trust −2, and one time
+  in four the returns are reopened: you are broken a grade and the house loses 3 legitimacy).
+- **A Commander or above with no fleet under them** has a year ashore. **Drill the house's crews** (every fleet of the
+  house +4 loyalty), **patrol the home lanes** (lawlessness −2), or **sit on a board of inquiry** (the officers +2,
+  trust +1, influence +1). With a fleet, the command is the work and there is no posting.
+
+A relative with a desk or a posting decides for themselves.
+
 **The seat is the house's.** If the head dies or lays the house down after the year's business is drawn up, the new
 head has the year.
 
