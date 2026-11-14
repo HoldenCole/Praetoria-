@@ -127,6 +127,23 @@ that won wrongly pays back double, the wronged house thinks +10 of the Justice's
 wronged −10, trust −2). So a bent ruling against your house may be mended by the courts, and a bent ruling of your
 own may be undone.
 
+**The charge of an office of the Reach.** The consuls, the Treasurer and the Speaker each carry one decision a year.
+(The Admiral has the Reach's fleets, which is work enough.) One who holds such an office spends the year on it: it
+takes the place of the senator's year.
+
+| Office | The choices |
+|---|---|
+| **Consul** (both) | **Call the magistrates to account**: up to two who took money this year are looked at, each caught one time in two and removed; trust +2 and +4 for each caught; every magistrate's house thinks −2 of you. **Send the fleet onto the lanes** of the most lawless region: lawlessness −4 for 4 credits of the capital's; its houses think +4. **Spend the year on your bench**: its houses +4, influence +2, trust −1. |
+| **Treasurer** | **Balance the books**: 5 credits found for the capital's purse, trust +1, legitimacy +1. **Forgive a region its levy**: the region that holds loosest gains 4 allegiance for 5 credits of the capital's; its houses think +4. **Let the contracts to your own house**: +10 credits, trust −3, and one time in four it comes out: the office is taken away and you may not stand for five years. |
+| **Speaker** | **Keep the order fair**: every bench's leader +2, trust +1, legitimacy +1. **Bring your own business forward**: influence +2, your bench's leader +4, the others −3. **Give an enemy no day**: the house you are worst at odds with thinks −10 of you, those who hate it think +5, trust −1. |
+
+Other houses' officers decide by nature, at once, and what they do reaches you: a Treasurer who forgives your own
+region its levy and a Speaker who keeps your house off the floor each bring an event. A great office held and not used
+is noticed: trust −2 and legitimacy −1.
+
+**The seat is the house's.** If the head dies or lays the house down after the year's business is drawn up, the new
+head has the year.
+
 The player decides their own; a relative on the bench decides theirs by nature. Where: "Your duties this year" at the
 top of the Senate's standing view, above the ladder. The outliner says when a matter is waiting.
 
@@ -190,7 +207,7 @@ Justice. The estate called the Magistrates is unchanged.
 - Other houses' senators do not spend their year (but for the one who audits), and their judges hear no hearings
   (docs/GAPS.md X2).
 - Public trust moves only the troubles of the Reach, not elections or the estates (L7).
-- The consuls, the Treasurer and the Speaker have no such business yet (O1).
+- An office's charge is one of three things a year. A consul does not preside, a Treasurer has no budget with figures, a Speaker orders no actual motions (docs/GAPS.md O2).
 - No bribery, no prosecution of a former magistrate, no law on the order of offices that the Senate could change.
 - The censorship, the tribunate and provincial commands after office are not here.
 - The numbers (seats, ages, votes for backing, the weight of merit) are first guesses.

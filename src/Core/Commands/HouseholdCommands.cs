@@ -275,7 +275,7 @@ public sealed class DutyCommand : ICommand
     public DutyCommand(string actorId, string kind, string choice, Data.OfficeCatalog offices, Data.PolicyCatalog? policy = null) { ActorId = actorId; _kind = kind; _choice = choice; _offices = offices; _policy = policy; }
     public string ActorId { get; }
     public string Describe() => $"{_kind} {_choice}";
-    public string? Refusal(CommandContext ctx) => LadderSystem.DutyRefusal(ctx.World, ctx.World.Char(ActorId), _kind, _choice);
+    public string? Refusal(CommandContext ctx) => LadderSystem.DutyRefusal(ctx.World, _offices, ctx.World.Char(ActorId), _kind, _choice);
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx) => LadderSystem.DecideDuty(ctx.World, _offices, _policy, ctx.World.Char(ActorId)!, _kind, _choice);
 }

@@ -148,6 +148,7 @@ public sealed class TurnController
         if (World.InAcademy) return BeginTerm();
         World.Turn++;
         CaesarSystem.Open(World);   // once, at the start of the first year in the Reach: the same moment in an unbroken run and a resumed one
+        LadderSystem.Handover(World);   // a head who died after the year's business was drawn: the seat's year is the new head's
         foreach (var pools in World.Pools.Values) pools.Regenerate();
         using (Perf.Time("begin:_economy.Accrue")) { _economy?.Accrue(World); }     // RNG-free, so determinism is preserved (GDD §17)
         using (Perf.Time("begin:ProjectSystem.Tick")) { ProjectSystem.Tick(World, _content.Holdings, _content.Businesses); }   // a year passes on every building site (docs/ECONOMY_MARKET.md stage B)

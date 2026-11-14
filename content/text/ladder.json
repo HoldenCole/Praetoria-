@@ -128,6 +128,26 @@
         "say_the_house_has_had_other_work": "Say the house has had other work.",
         "let_them_talk": "Let them talk."
       }
+    },
+    {
+      "id": "the_levy_is_forgiven",
+      "title": "The Levy Is Forgiven",
+      "body": "The Treasurer of the Reach has forgiven the house's own region its levy for the year. Nobody asked the house. It is the Treasurer who will be thanked for it in the region's squares, unless somebody else is seen to have had a hand in it.",
+      "choices": {
+        "thank_the_treasurer": "Thank the Treasurer, and mean it.",
+        "let_it_be_thought_your_doing": "Let it be thought your doing.",
+        "say_it_was_owed": "Say it was no more than was owed."
+      }
+    },
+    {
+      "id": "no_day_in_the_senate",
+      "title": "No Day in the Senate",
+      "body": "The Speaker has drawn up the year's order of business, and the house's is not on it. Nothing has been refused. It has simply not been reached, and will not be. The Speaker is no friend of the house and has found the cheapest way to say so.",
+      "choices": {
+        "say_so_from_the_floor": "Say so from the floor, on somebody else's motion.",
+        "wait_out_the_year": "Wait out the year.",
+        "send_a_gift_to_the_speaker": "Send the Speaker a gift."
+      }
     }
   ]
 }

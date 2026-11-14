@@ -1,5 +1,5 @@
 {
-  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected. The work of office: office_exposed, kin_office_exposed and kin_blames_the_head (deeds); case_won and case_lost (each year); and the character flags removed_from_office and blames_the_head. The bench and the seat: audit_found, ruling_overturned_for_us and not_seen_in_the_senate (deeds).",
+  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected. The work of office: office_exposed, kin_office_exposed and kin_blames_the_head (deeds); case_won and case_lost (each year); and the character flags removed_from_office and blames_the_head. The bench and the seat: audit_found, ruling_overturned_for_us and not_seen_in_the_senate (deeds). The charge of an office of the Reach: levy_remitted_for_us and no_day_in_the_senate (deeds).",
   "events": [
     {
       "id": "the_canvass",
@@ -1028,6 +1028,156 @@
             {
               "type": "log",
               "text": "{self.name} did not answer. The talk went on a little longer for not being answered, and then found something else."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_levy_is_forgiven",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "levy_remitted_for_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "thank_the_treasurer",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote to the Treasurer in the region's name. It cost nothing, and a Treasurer remembers who wrote."
+            }
+          ]
+        },
+        {
+          "id": "let_it_be_thought_your_doing",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not say that the house had arranged it. {self.name} did not say that it had not. The region drew its own conclusion."
+            }
+          ]
+        },
+        {
+          "id": "say_it_was_owed",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that a region which pays its levy every year is owed one year's grace in ten, and left it there."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "no_day_in_the_senate",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "no_day_in_the_senate",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_so_from_the_floor",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} rose on a motion about harbour dues and spoke for a quarter of an hour about the Speaker. It was out of order. It was also heard."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "wait_out_the_year",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} waited. A Speaker's year is a year. The house's business will keep, and so will the memory of who kept it waiting."
+            }
+          ]
+        },
+        {
+          "id": "send_a_gift_to_the_speaker",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the Speaker something handsome and a note that said nothing at all. The house's business was found a day after all, late in the session."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
             }
           ]
         }

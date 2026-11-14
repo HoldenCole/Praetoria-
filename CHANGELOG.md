@@ -19,6 +19,11 @@
   praetor's ruling that went against the law, and may overturn it. If your house has no Justice, one of another house
   hears it, so a bent ruling against you can be mended. "Your duties this year" on the Senate's standing view. Three
   events.
+- **The consuls, the Treasurer and the Speaker each carry a charge a year.** A consul calls the magistrates to account,
+  sends the Reach's fleet onto the lanes, or spends the year on the bench. The Treasurer balances the books, forgives a
+  region its levy, or lets the contracts to their own house (and may lose the office for it). The Speaker keeps the
+  order fair, brings their own business forward, or gives an enemy no day. Other houses' officers decide by nature,
+  and when one forgives your region its levy or keeps your house off the floor you hear of it. Two events.
 - **Send your physicians to a relative** who is ill or ailing, from your own purse (the life panel).
 - **Old friends and old enemies count.** A friend of eight years leans your way in the Senate and stands by your house
   when something is aimed at it, and is likelier to take your side in a civil war. An old enemy does the opposite.
@@ -32,9 +37,14 @@
 - **A victory teaches its commander only what they have it in them to learn.** It used to add a step whatever the
   skill's ceiling. Measured: a rival general of the first rank is rarer than before (docs/CAESAR.md, docs/GAPS.md C9).
 - The gap register (docs/GAPS.md) has a worklist at its top, a section for forms of government as the owner set them
-  out, and a section for positions with nothing to do. 59 open, 18 closed.
+  out, and a section for positions with nothing to do. 59 open, 19 closed.
 
 ### Fixed
+- **A save could drift from an unbroken run** when a magistrate's relief, a senator's speech for a region or an
+  officer's charge moved several houses' regard in one go: the houses were walked in an order that a load could
+  change. They are now walked by name. The soak caught it.
+- **A new head had no year in the Senate** if the old one died after the year's business was drawn up. The seat is the
+  house's: the year passes to whoever has the house.
 - **A saved game could drift from an unbroken one.** Loading a save noted the crews' commanders a second time, which
   put a commander appointed in the year of the save one point of devotion ahead. It is now done once, at the start of
   the first year in the Reach. The soak caught it; a test holds it.

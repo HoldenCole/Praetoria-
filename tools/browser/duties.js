@@ -1,5 +1,6 @@
 // Drives the duties panel on the Senate's standing view: reads the year a senator has to spend and any matter before the
-// head's bench, decides each, plays some years doing so, and reads the panel and the chronicle again.
+// head's bench or the charge of an office of the Reach the head holds, decides each, plays some years doing so, and reads the
+// panel and the chronicle again.
 //
 //   node duties.js ["Start title"] [years]
 //
@@ -30,11 +31,14 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('panel at the start: ' + (/NaN|undefined|Exception|@\(/.test(text) ? 'SUSPICIOUS TEXT' : text === 'NO PANEL' ? text : 'ok') + ' · ' + text.replace(/\s+/g, ' ').slice(0, 260));
   for (let y = 0; y < years; y++) {
     await endTurn(); await standing();
-    const seat = await block('.duty-seat'); const bench = await block('.duty-bench');
-    if (y === 0) { console.log('seat: ' + (seat || 'NOTHING WAITING')); console.log('bench: ' + (bench || 'nothing before the bench')); await shot('duties-waiting'); }
+    if (!(await page.evaluate(() => !!document.querySelector('.panel.duties')))) { await closeWindows(); await page.waitForTimeout(400); await standing(); }   // something was still on top of the screen
+    if (y === 0) console.log('panel at turn ' + await turnNo() + ': ' + (await page.evaluate(() => (document.querySelector('.panel.duties') || {}).innerText || 'NO PANEL')).replace(/\s+/g, ' ').slice(0, 500));
+    const seat = await block('.duty-seat'); const bench = await block('.duty-bench'); const charge = await block('.duty-charge');
+    if (charge) { console.log('charge: ' + charge); await shot('duties-charge'); console.log('  charge → ' + (await press('.duty-charge', y) || 'NOTHING COULD BE PRESSED')); await page.waitForTimeout(300); }
+    if (y === 0) { console.log('seat: ' + (seat || (charge ? 'none: the charge is the year' : 'NOTHING WAITING'))); console.log('bench: ' + (bench || 'nothing before the bench')); await shot('duties-waiting'); }
     const s = seat ? await press('.duty-seat', y) : ''; const b = bench ? await press('.duty-bench', y) : ''; await page.waitForTimeout(350);
     console.log('  turn ' + await turnNo() + ': seat → ' + (s || 'none') + (bench ? ' · bench → ' + (b || 'NOTHING COULD BE PRESSED') : '') + ' · left waiting: ' + ((await block('.duty-seat')) ? 'seat ' : '') + ((await block('.duty-bench')) ? 'bench' : '') );
-    const alerts = await page.evaluate(() => [...document.querySelectorAll('.ol-row')].map(e => e.innerText.replace(/\s+/g, ' ')).filter(t => /bench|year in the Senate/i.test(t)).join(' | '));
+    const alerts = await page.evaluate(() => [...document.querySelectorAll('.ol-row')].map(e => e.innerText.replace(/\s+/g, ' ')).filter(t => /bench|year in the Senate|charge of your office/i.test(t)).join(' | '));
     if (alerts) console.log('    STILL ALERTING: ' + alerts.slice(0, 160));
   }
   await shot('duties-after');

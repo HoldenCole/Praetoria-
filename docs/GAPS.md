@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-14 (fifth pass: the bench and the seat, J1 and S1 closed).
+Last updated 2026-11-14 (sixth pass: the charge of the consuls, the Treasurer and the Speaker; O1 closed).
 
 ## The worklist: small gaps to fill now
 
@@ -17,14 +17,13 @@ position (magistrate, justice, senator) must have something to do. Worked from t
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | O1 | The consuls, the Treasurer and the Speaker have yearly business as the magistrates now do | next |
-| 2 | J2 | The navy's and the administration's ranks have a desk: a Comptroller, a High Treasurer, a Captain off campaign | next |
-| 3 | A1, A3 | Relatives quarrel over the same prize; a relative's failure is marked | next |
-| 4 | W2, W4, E2, H1 | Dowries from a purse; a gift to a relative; ask a relative to study; kin find mentors | next |
-| 5 | B4, B9, B10 | Joining a state that exists; a second great war; raising the pressure as well as lowering it | next |
-| 6 | L7 | Public trust in the magistrates moves elections and the estates, not only the troubles of the Reach | next |
+| 1 | J2 | The navy's and the administration's ranks have a desk: a Governor, a Minister, a Captain off campaign | next |
+| 2 | A1, A3 | Relatives quarrel over the same prize; a relative's failure is marked | next |
+| 3 | W2, W4, E2, H1 | Dowries from a purse; a gift to a relative; ask a relative to study; kin find mentors | next |
+| 4 | B4, B9, B10 | Joining a state that exists; a second great war; raising the pressure as well as lowering it | next |
+| 5 | L7 | Public trust in the magistrates moves elections and the estates, not only the troubles of the Reach | next |
 
-Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1 (see the bottom table).
+Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1 (see the bottom table).
 
 ## The same gap in many places
 
@@ -68,7 +67,7 @@ These recur across systems. Closing one properly closes several lines below, so 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
 | J2 | The navy's and the administration's ranks are ranks: a Commander commands, but a Clerk, a Comptroller or a High Treasurer has no desk. | M | |
-| O1 | The consuls, the Treasurer and the Speaker hold weight and a stipend, and have no yearly business as the three lower magistrates now do. | M | |
+| O2 | The charge of an office of the Reach is one decision a year from three. A consul does not preside over anything, the Treasurer's budget has no figures, and the Speaker's order of business does not touch the motions actually on the docket. | M | The Senate |
 
 ## The Caesar road (docs/CAESAR.md)
 
@@ -156,3 +155,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | E4 | A battle added a step without regard to the ceiling. | 2026-11-14 | A victory teaches the weaker of tactics and gunnery up to its ceiling, then the other, then nothing. C9 is what it uncovered. |
 | J1 | The law career's Judge and Justice heard nothing. | 2026-11-14 | A Judge hears a matter a year between an estate and a house; a Justice hears the appeal against a praetor's bent ruling and may overturn it. Another house's Justice hears it if yours has none, so a ruling against your house can be mended. |
 | S1 | A senator who moved nothing had no business in a year. | 2026-11-14 | The head spends the year's attention: read the accounts (and perhaps follow stolen money to a magistrate), speak for the region, or work the bench. Three years of nothing is remarked on. One upright senator of another house audits each year too. L8 is what is left. |
+| O1 | The consuls, the Treasurer and the Speaker decided nothing. | 2026-11-14 | Each carries a charge a year: a consul calls the magistrates to account, sends the fleet onto the lanes or serves the bench; the Treasurer balances the books, forgives a region its levy or lets the contracts to their own house; the Speaker keeps the order fair, brings their own business forward or gives an enemy no day. Other houses' officers decide by nature, and what they do to the player's house brings an event. O2 is what is left. |

@@ -1215,3 +1215,20 @@ Found: in the first year nothing has been drawn yet and the panel said the year 
 has not yet sat. A senator's year is thin in its own way (L8), and other houses' senators and judges do not do any of
 this (X2).
 
+### 43b. The consuls, the Treasurer and the Speaker
+
+The owner: "keep going down the worklist, consuls and Treasurer next." Each office of the Reach but the Admiral's now
+carries a charge a year (docs/LADDER.md), decided by its holder: the player their own, everyone else by nature. What
+another house's officer does reaches the player (a levy forgiven, a year with no day in the Senate). O1 is closed; what
+is thin about it is O2.
+
+632 tests, 341 events. The soak passes at three seeds and at six.
+
+**Two faults found by measuring, both fixed.**
+- *Save/load drift.* Loops that moved several houses' regard at once walked the houses in dictionary order, which a
+  load can change. It was in the two commits before this one as well and had passed the soak by luck. Every such loop
+  now walks by name.
+- *A dead head's year.* On the Old Lion start the head sometimes dies in the first year, after the seat's business was
+  drawn in his name; the heir had nothing. Found in the browser, traced with a script. The year now passes with the
+  house, and a test plays twelve years checking the head always has it.
+

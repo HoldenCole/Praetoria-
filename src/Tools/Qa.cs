@@ -337,8 +337,8 @@ internal static class Qa
             cands.Add(new LadderCommand(p.Id, LadderCommand.Games, p.Id, "", content.Offices));
             // the work of a position (docs/LADDER.md): the business of an office, a matter before the bench, the year in the Senate
             if (LadderSystem.BusinessOf(w, p.Id) is { } officeWork && decisions.NextInt(0, 4) != 0) { var cs = LadderSystem.ChoicesFor(officeWork.Kind); cands.Add(new LadderCommand(p.Id, LadderCommand.Decide, p.Id, cs[decisions.NextInt(0, cs.Length)], content.Offices)); }
-            foreach (var kind in new[] { LadderSystem.Hearing, LadderSystem.Appeal, LadderSystem.SeatKind })
-                if (LadderSystem.DutyOf(w, p.Id, kind) != null && decisions.NextInt(0, 3) != 0) { var cs = LadderSystem.DutyChoices(kind); cands.Add(new DutyCommand(p.Id, kind, cs[decisions.NextInt(0, cs.Length)], content.Offices, content.Policies)); }
+            foreach (var kind in new[] { LadderSystem.Hearing, LadderSystem.Appeal, LadderSystem.SeatKind, LadderSystem.Charge })
+                if (LadderSystem.DutyOf(w, p.Id, kind) is { } duty && decisions.NextInt(0, 3) != 0) { var cs = LadderSystem.ChoicesOf(content.Offices, duty); cands.Add(new DutyCommand(p.Id, kind, cs[decisions.NextInt(0, cs.Length)], content.Offices, content.Policies)); }
             foreach (var sick in w.LivingCharacters().Where(x => x.HouseId == house.Id && x.Id != p.Id && x.Flags.Contains(LifeSystem.IllChar)).OrderBy(x => x.Id, StringComparer.Ordinal).Take(1)) if (decisions.NextInt(0, 2) == 0) cands.Add(new LifeCommand(p.Id, LifeCommand.Send, sick.Id));
         }
         {   // a life: rest, the physicians, and laying the house down

@@ -84,6 +84,8 @@
     foreach (var ask in Praetoria.Core.Systems.AmbitionSystem.Members(w, house).Where(x => x.Pursuit is { Request.Length: > 0 })) alerts.Add(("info", $"{ask.Name} {Praetoria.Core.Systems.AmbitionSystem.RequestSays(w, ask)}", "dynasty"));
     if (w.Protagonist is { } sitter && Praetoria.Core.Systems.LadderSystem.DutyOf(w, sitter.Id, Praetoria.Core.Systems.LadderSystem.Hearing, Praetoria.Core.Systems.LadderSystem.Appeal) is { } benchWork)
         alerts.Add(("warn", benchWork.Kind == Praetoria.Core.Systems.LadderSystem.Appeal ? "An appeal waits before your bench" : "A hearing waits before your bench", "senate"));
+    if (w.Protagonist is { } holder && Praetoria.Core.Systems.LadderSystem.DutyOf(w, holder.Id, Praetoria.Core.Systems.LadderSystem.Charge) is { } chargeWork)
+        alerts.Add(("warn", "The year's charge of your office waits on you: " + (G.Content!.Offices.Def(chargeWork.RungId)?.Name ?? "an office of the Reach"), "senate"));
     if (w.Protagonist is { } senator && Praetoria.Core.Systems.LadderSystem.DutyOf(w, senator.Id, Praetoria.Core.Systems.LadderSystem.SeatKind) != null)
         alerts.Add(("info", "Your year in the Senate is not yet spent", "senate"));
     if (w.Protagonist is { } officer && Praetoria.Core.Systems.LadderSystem.BusinessOf(w, officer.Id) is { } officeWork)
