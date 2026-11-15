@@ -61,6 +61,12 @@ public sealed class Character
     /// <summary>What they owe the head of their house, lent from the head's own purse (docs/WEALTH.md), and since when.</summary>
     public int OwesHead { get; set; }
     public int OwesSince { get; set; } = -1;
+    /// <summary>What the head of the house owes this person, who lent it out of their own purse (docs/WEALTH.md), and since when.</summary>
+    public int LentHead { get; set; }
+    public int LentSince { get; set; } = -1;
+    /// <summary>What this person owes another of the house, who helped them out of a debt.</summary>
+    public string OwesKinId { get; set; } = "";
+    public int OwesKin { get; set; }
     /// <summary>What they have said shall be done with what is theirs when they die. Null: all of it to the heir.</summary>
     public Will? Will { get; set; }
 

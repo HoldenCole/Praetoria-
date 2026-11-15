@@ -69,6 +69,16 @@
         "ask_who_this_person_is": "Ask, carefully, who this person is.",
         "leave_it_theirs": "Say nothing. It is theirs."
       }
+    },
+    {
+      "id": "the_household_goes_unpaid",
+      "title": "The Household Goes Unpaid",
+      "body": "There was not enough in the treasury this year to keep the people the house has taken in, or to pay those who do its head's work for them. They are still here. They eat at the same table and do the same work, and each of them has done the sum of what they are owed.",
+      "choices": {
+        "tell_them_plainly": "Tell them plainly how things stand.",
+        "pay_them_from_your_own": "Find the money somewhere, and pay them late.",
+        "say_nothing": "Say nothing, and let it go on."
+      }
     }
   ]
 }

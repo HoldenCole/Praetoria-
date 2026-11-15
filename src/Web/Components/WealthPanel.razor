@@ -9,9 +9,10 @@
     var people = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age >= 6).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
     var spouse = DynastySystem.Spouse(w, p); if (spouse != null && !people.Contains(spouse)) people.Insert(0, spouse);
     int income = WealthSystem.Pay(p) + WealthSystem.EstateIncome(w, pid); int bill = WealthSystem.AllowanceBill(w, house);
+    int keep = HouseholdSystem.Keep(w, house); string keepLine = keep > 0 ? " · the household's keep " + keep + " a year" : "";
 }
 <section class="panel wealth">
-    <h3><Icon Name="house" Size="13" /> Purses, heirlooms and the will <span class="muted">your own purse @p.Purse · the allowance costs @bill a year</span></h3>
+    <h3><Icon Name="house" Size="13" /> Purses, heirlooms and the will <span class="muted">your own purse @p.Purse · the allowance costs @bill a year@(keepLine)</span></h3>
     <div class="hh-cols">
     <div>
         <div class="hh-head"><b>Your own purse</b> <span class="muted small">@p.Purse credits@(income > 0 ? $", and {income} a year from your service and estates" : ""). It is yours, not the house's: it goes by your will, and the house's creditors cannot touch it.</span></div>
@@ -46,7 +47,20 @@
                     {
                         var no = new WealthCommand(pid, WealthCommand.Lend, cid, LoanSum).Refusal(G.Ctx);
                         <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? LendTip)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Lend, cid, LoanSum))">Lend @LoanSum</button>
+                        <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? InterestTip)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.LendAtInterest, cid, LoanSum))">Lend @LoanSum at interest</button>
                     }
+                    @if (c.LentHead > 0)
+                    {
+                        string iOwe = "you owe them " + c.LentHead + (w.Turn - c.LentSince >= WealthSystem.LoanSoursAfter ? ", and they mind it" : ""); var noPay = new WealthCommand(pid, WealthCommand.Repay, cid, string.Empty).Refusal(G.Ctx);
+                        <span class="pill small warn">@iOwe</span>
+                        <button class="opt inline tiny" disabled="@(noPay != null)" title="@(noPay ?? RepayTip)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Repay, cid, string.Empty))">Pay them back</button>
+                    }
+                    else if (c.OwesHead == 0)
+                    {
+                        var noAsk = new WealthCommand(pid, WealthCommand.Borrow, cid, LoanSum).Refusal(G.Ctx); string askTip = noAsk ?? (WealthSystem.BorrowOwed(c, 10) > 10 ? "They would lend it, and want " + WealthSystem.BorrowOwed(c, 10) + " back." : BorrowTip);
+                        <button class="opt inline tiny" disabled="@(noAsk != null)" title="@askTip" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Borrow, cid, LoanSum))">Borrow @LoanSum</button>
+                    }
+                    @if (c.OwesKin > 0) { string kinOwes = "owes " + (w.Char(c.OwesKinId)?.Name ?? "one of the house") + " " + c.OwesKin; <span class="pill small">@kinOwes</span> }
                 </span>
                 @if (debt)
                 {
@@ -62,13 +76,25 @@
         @if (members.Count > 7) { <button class="opt inline tiny" @onclick="() => _all = !_all">@(_all ? "Show fewer" : $"Show all {members.Count}")</button> }
     </div>
     <div>
-        <div class="hh-head"><b>Heirlooms</b> <span class="muted small">They belong to a person, not to the house. An estate pays its holder 2 a year.</span></div>
+        <div class="hh-head"><b>Heirlooms</b> <span class="muted small">They belong to a person, not to the house, unless the head entails them. Each does something for whoever holds it.</span></div>
         @if (mine.Count == 0 && others.Count == 0) { <div class="muted small">Nothing has been handed down in this house. A new name has to make its own.</div> }
         @foreach (var item in mine)
         {
             string iid = item.Id; var left = will != null && will.Items.TryGetValue(item.Id, out var toId) ? w.Char(toId) : null;
             <div class="suit">
-                <b>@Cap(item.Name)</b> <span class="muted">yours · worth @item.Value · left to @(left?.Name ?? heir?.Name ?? "nobody yet")</span>
+                <b>@Cap(item.Name)</b> <span class="muted">yours · worth @item.Value · @(item.Entailed ? "entailed: it goes with the house" : "left to " + (left?.Name ?? heir?.Name ?? "nobody yet"))</span>
+                <div class="muted small">@WealthSystem.Does(w, item)</div>
+                @{ var noEntail = new WealthCommand(pid, WealthCommand.EntailItem, iid, string.Empty).Refusal(G.Ctx); var noBreak = new WealthCommand(pid, WealthCommand.BreakEntail, iid, string.Empty).Refusal(G.Ctx); }
+                @if (item.Entailed)
+                {
+                    <div class="suit-acts">
+                        @if (_break == iid) { <button class="opt inline tiny veto" @onclick="() => { _break = null; G.Execute(new WealthCommand(pid, WealthCommand.BreakEntail, iid, string.Empty)); }">Yes, break the entail</button> <button class="opt inline tiny" @onclick="() => _break = null">No</button> }
+                        else { <button class="opt inline tiny" disabled="@(noBreak != null)" title="@(noBreak ?? BreakTip)" @onclick="() => _break = iid">Break the entail</button> }
+                    </div>
+                }
+                else
+                {
+                <div class="suit-acts"><button class="opt inline tiny" disabled="@(noEntail != null)" title="@(noEntail ?? EntailTip)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.EntailItem, iid, string.Empty))">Entail it</button></div>
                 <div class="suit-acts"><span class="muted small">Leave it to</span>
                     <button class="opt inline tiny @(left == null ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Bequeath, iid, string.Empty))">the heir</button>
                     @foreach (var c in people.Take(6)) { string cid = c.Id; <button class="opt inline tiny @(left?.Id == c.Id ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Bequeath, iid, cid))">@First(c.Name)</button> }
@@ -78,9 +104,10 @@
                     @if (_confirm == iid) { <button class="opt inline tiny veto" @onclick="() => { _confirm = null; G.Execute(new WealthCommand(pid, WealthCommand.Sell, iid, string.Empty)); }">Yes, sell it</button> <button class="opt inline tiny" @onclick="() => _confirm = null">No</button> }
                     else { <button class="opt inline tiny" title="@(item.OfHouseId == house.Id ? "The family has always had it: the house loses standing and your blood kin resent it." : "")" @onclick="() => _confirm = iid">Sell · @item.Value</button> }
                 </div>
+                }
             </div>
         }
-        @foreach (var item in others) { <div class="suit"><b>@Cap(item.Name)</b> <span class="muted">held by @w.Char(item.HolderId)?.Name · worth @item.Value</span></div> }
+        @foreach (var item in others) { <div class="suit"><b>@Cap(item.Name)</b> <span class="muted">held by @w.Char(item.HolderId)?.Name · worth @item.Value@(item.Entailed ? " · entailed" : "")</span><div class="muted small">@WealthSystem.Does(w, item)</div></div> }
 
         <div class="hh-head"><b>Your will</b> <span class="muted small">The house goes to @(heir?.Name ?? "nobody: there is no heir") by @house.SuccessionLaw.Replace('_', ' '), whatever you write. Your purse and heirlooms go as you say.</span></div>
         <div class="suit-acts"><span class="muted small">Of your purse</span>
@@ -107,7 +134,12 @@
 </section>
 
 @code {
-    private bool _all; private string? _legatee, _confirm;
+    private bool _all; private string? _legatee, _confirm, _break;
+    private const string InterestTip = "The same loan with a fifth on top. It is business, and they take it as business.";
+    private const string BorrowTip = "Out of their own purse into yours. They will not ask for it. Left six years unpaid, they mind it.";
+    private const string RepayTip = "As far as your purse goes.";
+    private const string EntailTip = "It goes with the house from now on, to whoever has it, and cannot be sold, given or willed away. The old families approve.";
+    private const string BreakTip = "Done in a court. The house loses standing, the old families think the worse of it, and your blood kin do not forget why.";
     private const string Treasury = "treasury", Purse = "purse", Zero = "0", LoanSum = "10";
     private static readonly int[] Gifts = { 5, 10 };
     private const string GiftTip = "Out of your own purse, once a year. It is theirs to do as they like with, and they will think the better of you.";

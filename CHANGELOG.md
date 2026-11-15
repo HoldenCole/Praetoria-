@@ -3,6 +3,38 @@
 ## [Unreleased]
 
 ### Added
+- **An entail.** The head can bind a thing of the house's own name to the house: it goes with whoever has the house,
+  whatever a will says, and cannot be sold, given or left away. Breaking it is done in court and is remembered. An old
+  name's own heirloom is entailed from the start.
+- **Heirlooms do something.** A signet on the head's hand mends the house's name; a sword carried in the fleet teaches
+  discipline; a library speeds the study of everyone in its holder's house; an estate pays. The panel says which.
+- **Loans the other way.** The head can borrow of a relative (who may refuse, or want a fifth on top) and can lend at
+  interest. One of the house in debt is helped by another who has it to spare and thinks well of them. A bride puts
+  half her own purse toward her portion.
+- **A household costs something.** A credit a year for each person taken in, and two a year into the purse of whoever
+  does the head's work. A house that cannot pay keeps them, and they think the worse of it.
+- **A price for studying, and thanks for teaching.** One who would not study for the asking may name a sum; the head
+  can thank one of the house who is bringing another on.
+- **The elder is not idle.** Each year the elder makes peace between two of the house, or takes work off the head, or
+  speaks for the new head to someone who still thinks well of the old one. The elder's old friends stay the house's.
+- **Old ties count at the count, in a court and in a match.** Old friends are worth votes to anyone of the house who
+  stands; a magistrate who is an old friend finds for the house; a family whose head is one is readier for a match.
+  Old enemies the other way.
+- **Other houses divorce**, now and then, when a marriage has gone on apart.
+- **A junior has somebody above them.** The judge an advocate appears before, a clerk's senior, the captain of the
+  ship a junior officer serves in: by name, and the same one year after year. Good work is noticed; after three good
+  years they are spoken for and go up a step. An advocate before a judge of their own house who is not upright wins
+  what they would have lost, and it is seen.
+- **The merchants and the magistrates' own order** now mind it when the magistrates are not believed, as the commons do.
+- **Stirring against a house can end in a censure**: a house that has come to believe what it is told moves one.
+- **The house divides behind a quarrel**: the others take a side, and say so.
+- Seven events.
+
+**Changed in the same pass:**
+- **Nobody sits above their ceiling.** What a person has already reached is taken as what was in them.
+- The gap register now marks the rows that are the owner's to decide, with the question each turns on; and the process
+  notes say to work down the register without asking (docs/PROCESS.md).
+
 - **More ways to bring a house over.** Promise it a place (its regard rises at once; if the state is founded with it
   in it, you owe it three credits a year for ten years), or threaten it if you have three hulls to its one (it follows
   for as long as it is afraid). A marriage between the two houses makes it easier asked.
@@ -91,6 +123,11 @@
   out, and a section for positions with nothing to do. 51 open, 37 closed.
 
 ### Fixed
+- **The player's own character could be made to rebel out of their own house.** A world taken by another house kept the
+  governor its old house had seated, and an ambitious governor who hated the new owner could declare the world for
+  themselves, the player's character included. A governor now leaves with the house that lost the world, and the
+  player's character never does what the player did not choose. Found by the survival probe, which now says how each
+  lost line ended.
 - **A save could drift from an unbroken run** when a magistrate's relief, a senator's speech for a region or an
   officer's charge moved several houses' regard in one go: the houses were walked in an order that a load could
   change. They are now walked by name. The soak caught it.

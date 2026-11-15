@@ -1484,6 +1484,85 @@
           ]
         }
       ]
+    },
+    {
+      "id": "one_of_yours_is_spoken_for",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "spoken_for",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_spoken_for",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_they_earned_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} that the step had been earned and that the house had had no hand in it. It was true, and {kin.name} had needed to hear the second part."
+            }
+          ]
+        },
+        {
+          "id": "write_to_the_one_who_spoke",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote a civil line to the one who had spoken for {kin.name}. It is useful to be known to such people. {kin.name} would rather the head of the house had stayed out of it."
+            }
+          ]
+        },
+        {
+          "id": "let_it_pass",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} heard of it and let it pass. People go up in the service. It is what the service is for."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

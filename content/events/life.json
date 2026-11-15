@@ -507,6 +507,100 @@
           ]
         }
       ]
+    },
+    {
+      "id": "the_elder_makes_peace",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "reconciled_by_the_elder",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "elder_made_peace",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "thank_the_elder",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked the old head for it, and meant it. There are things one person of a house can say to two others that its head cannot."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_was_said",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {kin.name} what had been said in that room. {kin.name} told some of it. {self.name} now knows a little more about the house than the house had meant."
+            }
+          ]
+        },
+        {
+          "id": "say_it_was_yours_to_settle",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known that quarrels in the house are the head's to settle. It was understood. The old head will think twice before doing it again, which is what was wanted and may not be what was wise."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

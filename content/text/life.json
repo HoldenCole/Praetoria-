@@ -69,6 +69,16 @@
         "decide_it_yourself": "Decide it yourself.",
         "let_them_tell_it_their_way": "Let them tell it their way."
       }
+    },
+    {
+      "id": "the_elder_makes_peace",
+      "title": "The Elder Makes Peace",
+      "body": "Two of the house had not spoken civilly in a year, {kin.name} one of them. The old head, who gave the house up and kept the chair by the window, had them both in one afternoon and shut the door. Nobody has said what passed. They came down to dinner together.",
+      "choices": {
+        "thank_the_elder": "Thank the old head for it.",
+        "ask_what_was_said": "Ask what was said in that room.",
+        "say_it_was_yours_to_settle": "Say that it was yours to settle."
+      }
     }
   ]
 }

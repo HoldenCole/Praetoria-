@@ -25,7 +25,7 @@ public static class WealthSystem
     // deeds
     public const string KinGaveFlag = "kin_gave_to_the_house", WillReadFlag = "will_read", WillContestedFlag = "will_contested", HeirloomSoldFlag = "heirloom_sold", HeirloomGivenFlag = "heirloom_given", DebtScandalFlag = "debt_scandal";
     public const string InDebtChar = "in_debt", GaveChar = "gave_to_the_house", LegateeChar = "remembered_in_the_will";
-    private static readonly string[] DeedFlags = { KinGaveFlag, WillReadFlag, WillContestedFlag, HeirloomSoldFlag, HeirloomGivenFlag, DebtScandalFlag, LoanRepaidFlag, LoanSouredFlag };
+    private static readonly string[] DeedFlags = { KinGaveFlag, WillReadFlag, WillContestedFlag, HeirloomSoldFlag, HeirloomGivenFlag, DebtScandalFlag, LoanRepaidFlag, LoanSouredFlag, KinLentFlag, HeadOwesFlag, EntailBrokenFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -59,7 +59,7 @@ public static class WealthSystem
             var head = Economy.HeadOf(w, h); if (head == null) continue;
             string name = h.Name.Replace("House ", ""); uint x = Hash(h.Id + ":heirloom");
             var (kind, what) = (x % 4) switch { 0u => ("signet", $"the {name} signet"), 1u => ("sword", $"the sword of {h.Name}"), 2u => ("library", $"the {name} library"), _ => ("estate", $"the old {name} estate") };
-            w.Heirlooms.Add(new Heirloom { Id = "heirloom_" + h.Id, Name = what, Kind = kind, HolderId = head.Id, OfHouseId = h.Id, Value = 15 + (int)(x / 7 % 26) });
+            w.Heirlooms.Add(new Heirloom { Id = "heirloom_" + h.Id, Name = what, Kind = kind, HolderId = head.Id, OfHouseId = h.Id, Value = 15 + (int)(x / 7 % 26), Entailed = h.Origin == "old" });
         }
     }
 
@@ -67,6 +67,7 @@ public static class WealthSystem
     {
         if (giver?.Alive != true || item == null || item.HolderId != giver.Id) return "not yours to give";
         if (to?.Alive != true || to.Id == giver.Id) return "no such person";
+        if (item.Entailed) return "it is entailed: it goes with the house";
         return to.Age >= 6 ? null : "too young to be given it";
     }
 
@@ -77,6 +78,75 @@ public static class WealthSystem
         if (to.HouseId != item.OfHouseId && w.House(item.OfHouseId) is { } of && of.Id == giver.HouseId) of.Legitimacy -= 1;
         Mark(w, HeirloomGivenFlag);
         w.Log($"{giver.Name} gives {item.Name} to {to.Name}.");
+    }
+
+    public static string? SellRefusal(World w, Character? seller, Heirloom? item) =>
+        seller?.Alive != true || item == null || item.HolderId != seller.Id ? "not yours to sell" : item.Entailed ? "it is entailed: it goes with the house" : null;
+    public static string? BequeathRefusal(World w, Character? who, Heirloom? item, string toId) =>
+        who?.Alive != true || item == null || item.HolderId != who.Id ? "not yours to leave" : item.Entailed && toId.Length > 0 ? "it is entailed: it goes with the house" : toId.Length == 0 || w.Char(toId) is { Alive: true } ? null : "no such person";
+
+    // ---------------- the entail, and what a thing handed down does ----------------
+
+    public const int EntailSway = 2, BreakLegitimacy = 3, BreakRegard = 6, SignetMendsBelow = 50, SwordPoints = 2, LibraryPoints = 1;
+    public const string EntailBrokenFlag = "entail_broken";
+
+    /// <summary>Only the head of the house a thing has always belonged to can entail it, or break the entail.</summary>
+    public static string? EntailRefusal(World w, Character? head, Heirloom? item, bool on)
+    {
+        var house = head != null ? w.House(head.HouseId) : null; if (head?.Alive != true || house == null || item == null || item.HolderId != head.Id) return "not yours";
+        if (Economy.HeadOf(w, house)?.Id != head.Id) return "only the head of the house can bind it";
+        if (item.OfHouseId != house.Id) return "it is not of your house's name";
+        return item.Entailed == on ? (on ? "it is entailed already" : "it is not entailed") : null;
+    }
+    /// <summary>Entail it: it goes with the house from now on, to whoever has the house, and cannot be sold, given or willed away. The
+    /// old families approve. Breaking an entail is done in a court, and is remembered by the family.</summary>
+    public static void SetEntail(World w, Character head, Heirloom item, bool on)
+    {
+        var house = w.House(head.HouseId)!; item.Entailed = on;
+        if (on)
+        {
+            if (head.Will != null) head.Will.Items.Remove(item.Id);
+            PolicySystem.Sway(w, house.Id, "old_blood", EntailSway); w.Log($"{head.Name} entails {item.Name}: it goes with {house.Name} from now on.");
+        }
+        else
+        {
+            house.Legitimacy -= BreakLegitimacy; PolicySystem.Sway(w, house.Id, "old_blood", -EntailSway - 1);
+            foreach (var k in Members(w, house).Where(k => k.Id != head.Id && !HouseholdSystem.IsFound(k))) Regard(w, k, head, -BreakRegard);
+            Mark(w, EntailBrokenFlag); w.Log($"{head.Name} has the entail on {item.Name} broken in court. It is theirs to sell now, and the family knows why.");
+        }
+    }
+
+    /// <summary>What a thing handed down does for whoever holds it (docs/WEALTH.md), in a line.</summary>
+    public static string Does(World w, Heirloom item)
+    {
+        var holder = w.Char(item.HolderId); var of = w.House(item.OfHouseId); bool home = holder != null && holder.HouseId == item.OfHouseId;
+        return item.Kind switch
+        {
+            "signet" => home && of != null && Economy.HeadOf(w, of)?.Id == holder!.Id ? $"On the head's hand, the house's name mends a point a year while its standing is under {SignetMendsBelow}." : "Does nothing off the hand of the head of its own house.",
+            "sword" => holder?.CareerTrack == "military" ? "Carried in the fleet, it is something to live up to: its holder learns discipline faster." : "Does nothing on a wall: it wants carrying by someone in the fleet.",
+            "library" => "Everyone of its holder's house who has set themselves a study learns it a little faster.",
+            "estate" => "Brings its holder 2 credits a year.",
+            _ => ""
+        };
+    }
+    public static bool HasLibrary(World w, string houseId) => w.Heirlooms.Any(h => h.Kind == "library" && w.Char(h.HolderId) is { Alive: true } c && c.HouseId == houseId);
+
+    /// <summary>The year's work of things handed down, for every house: an entailed thing follows the house; a signet mends a name;
+    /// a sword in the fleet teaches. (The library is read in the schoolroom: <see cref="EducationSystem"/>.)</summary>
+    private static void Heirlooms(World w)
+    {
+        foreach (var item in w.Heirlooms.OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        {
+            var of = w.House(item.OfHouseId); var head = of != null ? Economy.HeadOf(w, of) : null; var holder = w.Char(item.HolderId);
+            if (item.Entailed && head != null && holder?.Id != head.Id)
+            {
+                item.HolderId = head.Id; holder = head;
+                if (of!.Id == w.Protagonist?.HouseId) w.Log($"{item.Name} is entailed, and goes to {head.Name} with the house.");
+            }
+            if (holder?.Alive != true) continue;
+            if (item.Kind == "signet" && of != null && head?.Id == holder.Id && of.Legitimacy < SignetMendsBelow) of.Legitimacy += 1;
+            else if (item.Kind == "sword" && holder.CareerTrack == "military") EducationSystem.Gain(w, holder, "discipline", SwordPoints);
+        }
     }
 
     /// <summary>Sell it. The money is the seller's own. Selling something the family has always had is noticed and resented.</summary>
@@ -152,6 +222,46 @@ public static class WealthSystem
         head.Purse -= amount; to.Purse += amount; to.OwesHead = amount; to.OwesSince = w.Turn; if (to.Purse > DebtAt) to.Flags.Remove(InDebtChar);
         Regard(w, to, head, 3); w.Log($"{head.Name} lends {to.Name} {amount} credits.");
     }
+    /// <summary>The same loan with a fifth on top. It is business, and is taken as business.</summary>
+    public static int WithInterest(int amount) => amount + Math.Max(1, amount / InterestPart);
+    public static void LendAtInterest(World w, Character head, Character to, int amount)
+    {
+        head.Purse -= amount; to.Purse += amount; to.OwesHead = WithInterest(amount); to.OwesSince = w.Turn; if (to.Purse > DebtAt) to.Flags.Remove(InDebtChar);
+        Regard(w, to, head, -1); w.Log($"{head.Name} lends {to.Name} {amount} credits, to be paid back as {to.OwesHead}.");
+    }
+
+    public const int InterestPart = 5, LendsAtRegard = 20, KeepsBack = 2, KinLendsAtRegard = 30, KinLendsFrom = 10;
+    public const string KinLentFlag = "kin_lent_to_kin", HeadOwesFlag = "head_owes_too_long", KinLentChar = "lent_to_kin", HeadOwesChar = "is_owed_by_the_head";
+    private static bool Grasping(Character c) => c.AptitudeTraits.Contains("Greedy") || c.Ambition == "amass_a_fortune";
+
+    /// <summary>The head asks one of the house for a loan out of that person's own purse. It is theirs to refuse.</summary>
+    public static string? BorrowRefusal(World w, Character? head, Character? from, int amount)
+    {
+        if (head?.Alive != true || from?.Alive != true || from.Id == head.Id || from.HouseId != head.HouseId) return "not of your house";
+        if (from.Age < Adult) return "they are a child, and have no purse of their own";
+        if (amount <= 0) return "not a sum";
+        if (from.LentHead > 0) return "you owe them already";
+        if (from.OwesHead > 0) return "they owe you: ask for that back instead";
+        if (from.Purse < amount + KeepsBack) return "their purse does not hold it";
+        return from.NatureTraits.Contains("Loyal") || (w.GetRelationship(from.Id, head.Id)?.Disposition ?? 0) >= LendsAtRegard ? null : "they will not lend it to you";
+    }
+    /// <summary>What the head will owe for it: the sum, and a fifth on top to one who counts such things.</summary>
+    public static int BorrowOwed(Character from, int amount) => Grasping(from) ? WithInterest(amount) : amount;
+    public static void Borrow(World w, Character head, Character from, int amount)
+    {
+        from.Purse -= amount; head.Purse += amount; from.LentHead = BorrowOwed(from, amount); from.LentSince = w.Turn;
+        w.Log($"{from.Name} lends {head.Name} {amount} credits of their own{(from.LentHead > amount ? $", to be paid back as {from.LentHead}" : "")}.");
+    }
+    public static string? RepayRefusal(World w, Character? head, Character? to) =>
+        head?.Alive != true || to?.Alive != true || to.HouseId != head.HouseId ? "not of your house" : to.LentHead <= 0 ? "you owe them nothing" : head.Purse <= 0 ? "your purse is empty" : null;
+    /// <summary>Pay back what the head borrowed, as far as their purse goes.</summary>
+    public static void Repay(World w, Character head, Character to)
+    {
+        int pay = Math.Min(to.LentHead, head.Purse); head.Purse -= pay; to.Purse += pay; to.LentHead -= pay;
+        if (to.LentHead == 0) { bool late = w.Turn - to.LentSince >= LoanSoursAfter; to.LentSince = -1; to.Flags.Remove(HeadOwesChar); Regard(w, to, head, late ? 2 : 5); w.Log($"{head.Name} pays {to.Name} back the last of what they lent."); }
+        else w.Log($"{head.Name} pays {to.Name} back {pay} credits, and owes {to.LentHead} still.");
+    }
+
     public static string? ForgiveRefusal(World w, Character? head, Character? to) =>
         head?.Alive != true || to?.Alive != true || to.HouseId != head.HouseId ? "not of your house" : to.OwesHead <= 0 ? "they owe you nothing" : null;
     public static void Forgive(World w, Character head, Character to)
@@ -175,6 +285,14 @@ public static class WealthSystem
     {
         var house = w.House(heir.HouseId); if (house == null) return;
         var will = dead.Will ?? new Will(); var legatee = will.LegateeId.Length > 0 ? w.Char(will.LegateeId) : null; if (legatee is not { Alive: true } || legatee.Id == heir.Id) legatee = null;
+        // what the dead head borrowed of their own people is paid before anything is shared: from the purse, then from the house
+        foreach (var c in w.LivingCharacters().Where(c => c.LentHead > 0 && c.HouseId == house.Id).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
+        {
+            int fromPurse = Math.Clamp(dead.Purse, 0, c.LentHead), fromHouse = c.Id == heir.Id ? 0 : Math.Clamp(house.Treasury.Credits, 0, c.LentHead - fromPurse);
+            dead.Purse -= fromPurse; house.Treasury.Credits -= fromHouse; c.Purse += fromPurse + fromHouse;
+            if (fromPurse + fromHouse < c.LentHead && c.Id != heir.Id) { Regard(w, c, heir, -5); w.Log($"{dead.Name} died owing {c.Name} {c.LentHead - fromPurse - fromHouse} credits that nobody will see now."); }
+            c.LentHead = 0; c.LentSince = -1; c.Flags.Remove(HeadOwesChar);
+        }
         int purse = dead.Purse; dead.Purse = 0;
         if (purse < 0) { house.Treasury.Credits += purse; w.Log($"{dead.Name} died owing {-purse} credits. {house.Name} must pay it."); }
         else if (purse > 0)
@@ -190,7 +308,7 @@ public static class WealthSystem
         }
         foreach (var item in HeldBy(w, dead.Id))
         {
-            var to = will.Items.TryGetValue(item.Id, out var id) && w.Char(id) is { Alive: true } named ? named : heir;
+            var to = !item.Entailed && will.Items.TryGetValue(item.Id, out var id) && w.Char(id) is { Alive: true } named ? named : heir;
             item.HolderId = to.Id; if (to.Id != heir.Id) { to.Flags.Add(LegateeChar); w.Log($"{item.Name} goes to {to.Name}, by {dead.Name}'s will."); }
         }
         // the estate: kept whole, or shared out
@@ -213,6 +331,8 @@ public static class WealthSystem
     {
         var house = w.House(dead.HouseId); var head = house != null ? Economy.HeadOf(w, house) : null; if (head == null || head.Id == dead.Id) return;
         if (dead.Purse < 0 && house != null) house.Treasury.Credits += dead.Purse; else head.Purse += dead.Purse;
+        if (dead.LentHead > 0) { int pay = Math.Clamp(head.Purse, 0, dead.LentHead); head.Purse -= pay; dead.LentHead = 0; dead.LentSince = -1; }
+        dead.OwesKin = 0; dead.OwesKinId = "";
         dead.Purse = 0; dead.OwesHead = 0; dead.OwesSince = -1; foreach (var item in HeldBy(w, dead.Id)) item.HolderId = head.Id;   // what the dead owed is written off
     }
 
@@ -222,8 +342,9 @@ public static class WealthSystem
     {
         w.WorldFlags.Remove(DebtFlag); w.WorldFlags.Remove(ResentedFlag);
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
+        Heirlooms(w);
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null; if (p is not { Alive: true } || house == null) return;
-        foreach (var c in w.Characters.Values) { if (!w.HasFlag(KinGaveFlag)) c.Flags.Remove(GaveChar); if (!w.HasFlag(WillReadFlag)) c.Flags.Remove(LegateeChar); }
+        foreach (var c in w.Characters.Values) { if (!w.HasFlag(KinGaveFlag)) c.Flags.Remove(GaveChar); if (!w.HasFlag(WillReadFlag)) c.Flags.Remove(LegateeChar); if (!w.HasFlag(KinLentFlag)) c.Flags.Remove(KinLentChar); }
         // the dead keep nothing; a holder who is gone or has left loses nothing, but the dead's things come home
         foreach (var dead in w.Characters.Values.Where(c => !c.Alive && (c.Purse != 0 || w.Heirlooms.Any(h => h.HolderId == c.Id))).OrderBy(c => c.Id, StringComparer.Ordinal).ToList()) Lapse(w, dead);
 
@@ -231,7 +352,7 @@ public static class WealthSystem
         foreach (var c in Members(w, house))
         {
             int income = Pay(c) + EstateIncome(w, c.Id);
-            if (c.Id == p.Id) { c.Purse += income; c.OwesHead = 0; c.OwesSince = -1; continue; }   // one who has the house now owes its head nothing
+            if (c.Id == p.Id) { c.Purse += income; c.OwesHead = 0; c.OwesSince = -1; c.LentHead = 0; c.LentSince = -1; c.Flags.Remove(HeadOwesChar); continue; }   // one who has the house now owes its head nothing
             // the allowance, as far as the treasury goes
             if (give > 0) { if (house.Treasury.Credits >= give) { house.Treasury.Credits -= give; income += give; } else Regard(w, c, p, -1, floor: -40); }
             c.Purse += income;
@@ -270,6 +391,38 @@ public static class WealthSystem
                 {
                     Regard(w, c, p, -1, floor: -30); Regard(w, p, c, -1, floor: -30);
                     if (w.Turn - c.OwesSince == LoanSoursAfter) { Mark(w, LoanSouredFlag); c.Flags.Add(OwesTooLongChar); w.Log($"{c.Name} has owed {p.Name} {c.OwesHead} credits for {LoanSoursAfter} years, and neither of them mentions it."); }
+                }
+            }
+
+            // what the head borrowed of them: left too long, they mind it, and say so sooner than the head would
+            if (c.LentHead > 0 && w.Turn - c.LentSince >= LoanSoursAfter)
+            {
+                Regard(w, c, p, -2, floor: -30);
+                if (w.Turn - c.LentSince == LoanSoursAfter) { Mark(w, HeadOwesFlag); c.Flags.Add(HeadOwesChar); w.Log($"{p.Name} has owed {c.Name} {c.LentHead} credits for {LoanSoursAfter} years."); }
+            }
+            else if (c.LentHead == 0 || !w.HasFlag(HeadOwesFlag)) c.Flags.Remove(HeadOwesChar);
+
+            // what one of the house lent another: paid back as they can; written off if the lender is gone
+            if (c.OwesKin > 0)
+            {
+                var lender = w.Char(c.OwesKinId);
+                if (lender?.Alive != true || lender.HouseId != house.Id) { c.OwesKin = 0; c.OwesKinId = ""; }
+                else if (c.Purse >= 4)
+                {
+                    int pay = Math.Min(c.OwesKin, Math.Max(1, c.Purse / 3)); c.Purse -= pay; lender.Purse += pay; c.OwesKin -= pay;
+                    if (c.OwesKin == 0) { c.OwesKinId = ""; Regard(w, lender, c, 3); }
+                }
+            }
+            // one in debt is helped by another of the house who has it to spare and thinks well of them
+            if (c.Purse <= DebtAt && c.OwesKin == 0 && w.FamilyAutonomy > 0)
+            {
+                var lender = Members(w, house).Where(k => k.Id != c.Id && k.Id != p.Id && k.Purse >= KinLendsFrom && (w.GetRelationship(k.Id, c.Id)?.Disposition ?? 0) >= KinLendsAtRegard)
+                    .OrderByDescending(k => w.GetRelationship(k.Id, c.Id)?.Disposition ?? 0).ThenBy(k => k.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (lender != null)
+                {
+                    int sum = Math.Min(-c.Purse, lender.Purse / 2); lender.Purse -= sum; c.Purse += sum; c.OwesKinId = lender.Id; c.OwesKin = Grasping(lender) ? WithInterest(sum) : sum;
+                    Regard(w, c, lender, 6); c.Flags.Add(KinLentChar); lender.Flags.Add(KinLentChar); Mark(w, KinLentFlag);
+                    w.Log($"{lender.Name} lends {c.Name} {sum} credits of their own, without being asked to.");
                 }
             }
 

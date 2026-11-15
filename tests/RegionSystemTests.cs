@@ -381,6 +381,19 @@ public class DepthCycleTests
     }
 
     [Fact]
+    public void AGovernorGoesWithTheHouseThatSeatedThem_AndThePlayersOwnCharacterNeverRevolts()
+    {
+        // Found by the survival probe (docs/GAP_ANALYSIS.md section 48): a world taken by another house kept its old governor, and
+        // the player's own character, left "governing" it, was made to declare it for themselves and so left their own house.
+        var w = Rings(60); var rs = new RegionSystem(); var me = w.Protagonist!; me.NatureTraits.Add("Ambitious");
+        var other = w.Houses.Values.First(h => h.Id != me.HouseId && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null); var theirHead = Economy.HeadOf(w, other)!;
+        var barony = w.Holding("barony")!; barony.GovernorId = me.Id; barony.FormerOwnerId = me.HouseId; barony.OwnerId = other.Id; w.Relationship(me.Id, theirHead.Id).Disposition = -60;
+        RegionSystem.StateOf(w, "rim").Allegiance = 90;
+        for (w.Turn = 1; w.Turn <= 24; w.Turn++) rs.GovernorRevolts(w);
+        Assert.Equal("", barony.GovernorId); Assert.Equal(other.Id, barony.OwnerId); Assert.Equal("vega", me.HouseId); Assert.Equal(0, w.Counter("governor_revolts"));
+    }
+
+    [Fact]
     public void AnAmbitiousHostileGovernor_DeclaresTheWorldForThemselves()
     {
         var w = Rings(60); var rs = new RegionSystem();

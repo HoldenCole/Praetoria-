@@ -196,7 +196,7 @@ public sealed class NationSystem
             CaesarSystem.ExpeditionVictory(w, f, commander);
             if (commander != null)
             {
-                string skill = commander.Skill("tactics") <= commander.Skill("gunnery") ? "tactics" : "gunnery"; commander.Skills[skill] = commander.Skill(skill) + 1;
+                string skill = commander.Skill("tactics") <= commander.Skill("gunnery") ? "tactics" : "gunnery"; if (commander.Skill(skill) < EducationSystem.Ceiling(commander, skill)) commander.Skills[skill] = commander.Skill(skill) + 1;
                 if (commander.Flags.Contains(FleetSystem.FrontFlag))
                 {
                     int v = w.Counter(FleetSystem.ValourKey(commander.Id)) + 1; w.WorldCounters[FleetSystem.ValourKey(commander.Id)] = v;

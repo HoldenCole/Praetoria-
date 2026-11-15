@@ -39,6 +39,16 @@
         "say_what_the_house_needs": "Say what the house needs, and leave them to think on it.",
         "offer_to_pay_for_a_teacher": "Offer to pay for a teacher in what they do study."
       }
+    },
+    {
+      "id": "brought_on_by_one_of_the_house",
+      "title": "Brought On by One of the House",
+      "body": "{kin.name} has had a younger one of the house in hand for some years, and it has begun to show: the pupil can do this year what they could not do last. Nobody asked the head of the house for anything. The work was done in the evenings, by somebody who had their own work in the day.",
+      "choices": {
+        "thank_them_before_the_house": "Thank them before the house.",
+        "a_purse_for_their_trouble": "Send them a purse for their trouble.",
+        "take_it_as_their_duty": "Take it as their duty to the house."
+      }
     }
   ]
 }

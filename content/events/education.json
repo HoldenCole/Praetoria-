@@ -353,6 +353,99 @@
           ]
         }
       ]
+    },
+    {
+      "id": "brought_on_by_one_of_the_house",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "taught_one_of_the_house",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_taught_kin",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "thank_them_before_the_house",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked {kin.name} at table, by name, for what they had made of a younger one of the house. {kin.name} said it was nothing and was plainly pleased."
+            }
+          ]
+        },
+        {
+          "id": "a_purse_for_their_trouble",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {kin.name} a purse with a line saying what it was for. Teaching is work, and it is not often that anybody says so."
+            }
+          ]
+        },
+        {
+          "id": "take_it_as_their_duty",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took it as no more than one of the house owes the house. {kin.name} had not expected thanks. They had noticed there were none."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

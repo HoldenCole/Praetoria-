@@ -1423,3 +1423,64 @@ threat refused with its reason (three hulls to their one).
 a house does not lead to a censure or a war (B14). The two new events did not fire in the soak; both have scripted
 tests (X4).
 
+## 48. Straight down the register — 2026-11-15
+
+The owner's word, written into docs/PROCESS.md: work down the register without asking; do every small and obvious
+gap; skip, and list, the ones that are the owner's to decide. This is the first pass under it. Thirteen rows closed.
+
+**Family and wealth.** An entail (W3). Heirlooms that do something: a signet mends a name, a sword teaches in the
+fleet, a library speeds study (W5). The head can borrow of a relative and lend at interest; relatives lend to each
+other; a bride's purse goes toward her portion (W6). A household costs a credit a head and a stipend for whoever does
+the head's work (H3). A relative may name a price for studying, and a teacher of the house can be thanked (E6).
+Nobody sits above their ceiling (E5).
+
+**A life and its ties.** The elder does one thing a year that nobody asked for, and the elder's old friends stay the
+house's (F5). Old ties count at the count, in a court and in a match (F6). Other houses divorce (half of M1).
+
+**Public life.** A junior has someone above them by name, whose regard is their standing, and who speaks for them
+after three good years (J4). The merchants and the magistrates' own order mind a magistracy for sale (half of L9).
+A house stirred against another moves a censure of it (half of B14). The house divides behind a quarrel (half of A5).
+
+**Measured.** The soak (33 runs of sixty years, a randomised player, with a save and load in the middle of each) passes
+with no drift. `praetoria caesar --scenario all --seeds 10`: over the sixty Republic runs the Republic fell in none.
+Survival (`praetoria survive --scenario all --seeds 10`, a passive player): **the first measurement lost a line in
+two starts**, the Imperial Court and the Risen Officer, where the last pass had lost none. That was followed up, and
+is the next paragraph. After the fix: 0 of 10 on every start. The soak and the Republic probe were run before that
+fix; both were started again on the final build and their figures go in the next section.
+
+**An older fault, found by following up one lost line.** The survival probe now prints, for each line that ends, the
+seed, the year, and what the chronicle last said of the house. For the Imperial Court, seed 6, year 42, it said that
+the player's own character, "governor of Lesser Marrow, declares the world for himself". Two things were wrong, and
+neither was new: a world taken by another house kept the governor the old house had seated, so the head of House
+Thorne was still "governing" a world House Ferro had taken; and the rule that lets an ambitious governor who hates the
+owner declare a world for themselves did not except the player's own character. He was moved out of his own house
+into a house of one, which ended the same year. Fixed: a governor of the house a world was taken from leaves the
+chair, and the player's own character never does what the player did not choose. A test holds both. Nothing in this
+pass caused it; a small change elsewhere moved that saga onto the path where it happens.
+
+680 tests (twenty new in tests/RegisterTests.cs, each named for the row it closes, and one for the governor), 362 events (seven new).
+
+**A fault of my own, caught by the build.** Editing an existing test, I again put a comment in the middle of a line
+and commented out the rest of it. The compiler stopped it. It is the third time; the rule (never a `//` inside a line
+when editing by replacement) is in my notes and I broke it. The changed lines of this pass were scanned for others.
+
+**A design caught by an existing test.** As first written, a junior whom the one above already thought well of was
+spoken for in their first year: the Old Lion, pleading one brief before a judge who knew the name, went up a step.
+That is the name being rewarded, not the work. It now takes three good years under that person as well.
+
+**Seen in the browser** on the Old Lion start: the sword of House Castellan entailed from the start, with what it
+does; the entail broken (with the confirmation) and made again; a loan at interest showing "owes you 12" and paid off
+within eight years; no console errors. The Borrow button was dark throughout, because no relative had twelve credits:
+mapped as W7.
+
+**Mapped while building** (ten rows, docs/GAPS.md): W7 relatives' purses are small; W8 no heirloom is ever made or
+won; E7 a price is only ever money; H5 the keep is the same for everyone and nobody leaves over it; F7 the elder
+cannot be asked for anything; M6 nobody chooses another house's divorce; J5 a junior's standing is the player's
+house's only; L10 trust is still one number; B15 houses do not go to war over what is said; A6 a venture never fails.
+
+**Skipped as the owner's to decide**, each marked in the register with the question it turns on: C9 (should the gate
+ask less of other houses' generals), C6 (may a relative end the Republic against the head's wishes), M4 (does a
+spouse move house, and which one), B13 and G1 to G7 (the forms of government).
+
+**Events not seen in the soak.** Four of the seven new events did not fire in it (they need a blood relative in a
+particular state); all seven have scripted tests (X4).

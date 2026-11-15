@@ -361,8 +361,14 @@ internal static class Qa
             var grownKin = w.LivingCharacters().Where(x => x.HouseId == house.Id && x.Id != p.Id && x.Age >= WealthSystem.Adult).OrderBy(x => x.Id, StringComparer.Ordinal).ToList();
             if (grownKin.Count > 0 && decisions.NextInt(0, 6) == 0)
             {
-                var kin = grownKin[decisions.NextInt(0, grownKin.Count)]; int pick = decisions.NextInt(0, 6);
+                var kin = grownKin[decisions.NextInt(0, grownKin.Count)]; int pick = decisions.NextInt(0, 12);
                 if (pick == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Gift, kin.Id, "5"));
+                else if (pick == 6) cands.Add(new WealthCommand(p.Id, WealthCommand.LendAtInterest, kin.Id, "10"));
+                else if (pick == 7) cands.Add(new WealthCommand(p.Id, WealthCommand.Borrow, kin.Id, "5"));
+                else if (pick == 8) cands.Add(new WealthCommand(p.Id, WealthCommand.Repay, kin.Id, ""));
+                else if (pick == 9) cands.Add(new EducationCommand(p.Id, EducationCommand.AskAndPay, kin.Id, EducationSystem.All[decisions.NextInt(0, EducationSystem.All.Length)]));
+                else if (pick == 10) cands.Add(new EducationCommand(p.Id, EducationCommand.Thank, kin.Id, ""));
+                else if (pick == 11) { foreach (var it in WealthSystem.HeldBy(w, p.Id).Take(1)) cands.Add(new WealthCommand(p.Id, it.Entailed ? WealthCommand.BreakEntail : WealthCommand.EntailItem, it.Id, "")); }
                 else if (pick == 1) cands.Add(new WealthCommand(p.Id, WealthCommand.Lend, kin.Id, "10"));
                 else if (pick == 2) cands.Add(new WealthCommand(p.Id, WealthCommand.Forgive, kin.Id, ""));
                 else if (pick == 3) cands.Add(new WealthCommand(p.Id, WealthCommand.Dowries, "", decisions.NextInt(0, 2) == 0 ? "purse" : "treasury"));

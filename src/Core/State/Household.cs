@@ -47,6 +47,8 @@ public sealed class Heirloom
     public string OfHouseId { get; set; } = "";
     /// <summary>What it would fetch.</summary>
     public int Value { get; set; }
+    /// <summary>Entailed: it goes with the house to whoever has it, and cannot be sold, given or willed away (docs/WEALTH.md).</summary>
+    public bool Entailed { get; set; }
 }
 
 /// <summary>What one of the house is doing about what they want (docs/AMBITIONS.md). They pursue it themselves; now and then they
@@ -103,6 +105,8 @@ public sealed class Life
     /// <summary>Person id → the turn they first thought ill enough of this person to be called an enemy.</summary>
     public Dictionary<string, int> Enemies { get; set; } = new();
     public int RestedTurn { get; set; } = -1;
+    /// <summary>What they did for the house last year as its elder, in a line (docs/LIFE.md).</summary>
+    public string Counsel { get; set; } = "";
 }
 
 /// <summary>What was said when one of the house was buried.</summary>

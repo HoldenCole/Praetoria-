@@ -46,12 +46,23 @@
                 var mentor = c.MentorId.Length > 0 ? w.Char(c.MentorId) : null; string under = mentor is { Alive: true } ? "Under the wing of " + mentor.Name + (mentor.HouseId == house.Id ? "" : " of " + w.House(mentor.HouseId)?.Name) + "." : "";
                 var subjects = Suggest(c); var teachers = grown.Where(t => t.Id != c.Id && new EducationCommand(pid, EducationCommand.Teach, cid, t.Id).Refusal(G.Ctx) == null).Take(2).ToList();
             }
-            @if (under.Length > 0) { <div class="muted small">@under</div> }
+            @if (under.Length > 0)
+            {
+                var noThanks = new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty).Refusal(G.Ctx); bool ofHouse = mentor is { Alive: true } && mentor.HouseId == house.Id && mentor.Id != pid;
+                <div class="muted small">@under
+                    @if (ofHouse) { string thankLabel = "Thank " + mentor!.Name.Split(' ')[0] + " · " + EducationSystem.ThanksCredits; <button class="opt inline tiny" disabled="@(noThanks != null)" title="@(noThanks ?? ThankTip)" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty))">@thankLabel</button> }
+                </div>
+            }
             <div class="suit-acts"><span class="muted small">Ask them to study</span>
                 @foreach (var sk in subjects)
                 {
                     string skill = sk; var no = new EducationCommand(pid, EducationCommand.Ask, cid, skill).Refusal(G.Ctx); bool would = EducationSystem.WouldStudy(w, p, c, skill);
                     <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? (would ? AskYes : AskNo))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Ask, cid, skill))">@skill</button>
+                    @if (no == null && !would)
+                    {
+                        int price = EducationSystem.StudyPrice(w, p, c, skill); var noPay = new EducationCommand(pid, EducationCommand.AskAndPay, cid, skill).Refusal(G.Ctx); string payLabel = "…for " + price + " of your own";
+                        if (price > 0) { <button class="opt inline tiny" disabled="@(noPay != null)" title="@(noPay ?? PayTip)" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.AskAndPay, cid, skill))">@payLabel</button> }
+                    }
                 }
                 @foreach (var t in teachers)
                 {
@@ -72,6 +83,8 @@
     private static readonly int[] Tutors = { 0, 1, 2 };
     private const string AskYes = "They would do it for the asking.";
     private const string AskNo = "They would refuse, and think the less of you for asking.";
+    private const string PayTip = "They name a price, you pay it out of your own purse, and they turn to it. A bargain: nobody thinks the worse of anybody.";
+    private const string ThankTip = "A purse out of your own, to the one of the house who is bringing them on. They will think the better of you for noticing.";
     private const string TeachTip = "They take them under their wing and pass on a step every third year.";
     /// <summary>Three things worth asking of them: the skills of their service and of rule that they have most room left in.</summary>
     private static List<string> Suggest(Character c)

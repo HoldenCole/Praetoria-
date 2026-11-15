@@ -116,13 +116,51 @@ any portion and their allowance together; the run did not separate them).
   own purse first**. Then you pay what your purse holds and the treasury the rest, and a bride whose portion came
   mostly from your own hand thinks 6 the better of you. A purse counts toward whether the house can afford the terms.
 
+## The entail, what an heirloom does, and loans the other way
+
+Closed straight off the register on 2026-11-15 (docs/GAPS.md W3, W5, W6).
+
+**The entail.** The head of the house a thing has always belonged to can entail it. It then goes with the house, to
+whoever has the house, whatever a will says; and it cannot be sold, given or left away. The old families approve
+(+2). Breaking an entail is done in a court: the house loses 3 standing, the old families think the worse of it, each
+of the blood thinks 6 worse of the head, and the family is told why (an event). An old name's own heirloom is
+entailed from the start. If an entailed thing is ever found in the wrong hands it goes back to the head.
+
+**What each kind does.**
+
+| Kind | For whoever holds it |
+|---|---|
+| Signet | On the hand of the head of its own house, the house's standing mends a point a year while it is under 50. Off that hand, nothing. |
+| Sword | Carried by someone in the fleet, 2 learning a year toward discipline. On a wall, nothing. |
+| Library | Everyone of its holder's house who has set themselves a study learns it 1 faster a year. |
+| Estate | 2 credits a year to its holder (as before). |
+
+The panel says what each does where it is.
+
+**Loans the other way, and between relatives.**
+
+- The head can **borrow** of a relative, out of that person's purse. They must keep 2 back, and they lend only if they
+  are loyal or think 20 or better of the head. One who counts such things (greedy, or set on a fortune) wants a fifth
+  on top. The head pays back as far as their purse goes. Left six years, the lender thinks 2 worse of the head each
+  year and an event asks what is to be done. If the head dies owing it, it is paid out of their purse, then out of the
+  treasury, before anything is shared.
+- The head can **lend at interest**: the same loan with a fifth on top. It is taken as business (−1, where a plain
+  loan is +3).
+- **One of the house in debt** is helped by another who has 10 or more to spare and thinks 30 or better of them: half
+  the lender's purse at most. The debtor thinks 6 better of them, pays it back by thirds, and the head is told.
+- **A bride** puts half her own purse toward her portion, up to half of what is due, before the head's purse or the
+  treasury is touched.
+
+Found while building it, and mapped: relatives' purses are small, so the Borrow button is usually dark (W7); an
+heirloom is one of four kinds and no house ever comes by a new one (W8).
+
 ## Not in this piece
 
 - **Only your house has purses.** Everyone else in the Reach still has only their house's treasury.
 - **A purse holds credits only.** Shares, ventures and worlds still belong to the house. A relative cannot yet invest on
   the Exchange or found a venture with their own money.
-- **Dowries still come from the treasury.**
-- **Nothing is entailed.** Any world or venture can still be sold by the head.
-- Heirlooms do nothing but be worth something, and pay if they are estates.
+- ~~Dowries still come from the treasury.~~ Closed: from the head's purse if they say so, and from the bride's own first.
+- An heirloom can be entailed. A world or a venture cannot: any of them can still be sold by the head.
+- An heirloom is one of four kinds, each with one effect, and none is ever made, won or given by another house (docs/GAPS.md W8).
 - Two of the five events (the will is read, sold out of the family) were not seen to fire in the soak.
 - The numbers are first guesses.

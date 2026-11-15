@@ -8,7 +8,8 @@
     var enemies = life == null ? new() : life.Enemies.Where(kv => w.Char(kv.Key) is { Alive: true }).OrderBy(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).ToList();
     var deeds = life?.Deeds.OrderByDescending(d => d.Turn).ToList() ?? new();
     var rest = new LifeCommand(pid, LifeCommand.Rest).Refusal(G.Ctx); var phys = new LifeCommand(pid, LifeCommand.Physicians).Refusal(G.Ctx); var retire = new LifeCommand(pid, LifeCommand.Retire).Refusal(G.Ctx);
-    var heir = DynastySystem.FindHeir(w, p); var elder = p.MentorId.Length > 0 && w.Char(p.MentorId) is { Alive: true } m && m.Flags.Contains(LifeSystem.RetiredChar) ? m : null;
+    var heir = DynastySystem.FindHeir(w, p); var elder = LifeSystem.ElderOf(w, w.House(p.HouseId)!); string counsel = elder?.Life?.Counsel ?? ""; int tieVotes = LifeSystem.TieVotes(w, p.HouseId);
+    string tieLine = tieVotes > 0 ? "Old friends are worth " + tieVotes + " votes to anyone of your house who stands, and stand by you in a court and in a match." : tieVotes < 0 ? "Old enemies cost anyone of your house who stands " + (-tieVotes) + " votes, and are against you in a court and in a match." : "";
     var unwell = w.LivingCharacters().Where(x => x.HouseId == house.Id && x.Id != pid && (x.Flags.Contains(LifeSystem.IllChar) || x.Health < LifeSystem.Sound)).OrderBy(x => x.Health).ThenBy(x => x.Id, StringComparer.Ordinal).Take(4).ToList();
     string Tie(string id, int since) { var o = w.Char(id)!; int y = w.Turn - since; return $"{o.Name} of {w.House(o.HouseId)?.Name}, {(y <= 0 ? "this year" : y == 1 ? "a year" : y + " years")}"; }
 }
@@ -33,7 +34,8 @@
             <button class="opt inline tiny" disabled="@(send != null)" title="@(send ?? SendTip)" @onclick="() => G.Execute(new LifeCommand(pid, LifeCommand.Send, xid))">Send your physicians · @LifeSystem.PhysicianCredits credits</button>
         </div>
     }
-    @if (elder != null) { <div class="muted small">@elder.Name laid the house down to you and is its elder still, and teaches you.</div> }
+    @if (elder != null) { <div class="muted small elder-line">@elder.Name laid the house down and is its elder still. Their old friends are the house's while they live.@(counsel.Length > 0 ? " Last year: " + counsel : "")</div> }
+    @if (tieLine.Length > 0) { <div class="muted small tie-line">@tieLine</div> }
 
     <div class="ac-fact"><span>Old friends</span><p>@(friends.Count == 0 ? "Nobody outside the house has thought well of you long enough to be called one." : string.Join("; ", friends.Take(5).Select(kv => Tie(kv.Key, kv.Value) + (w.Turn - kv.Value >= LifeSystem.OldTieYears ? "" : " (not yet old)"))) + ".")</p></div>
     <div class="ac-fact"><span>Old enemies</span><p>@(enemies.Count == 0 ? "Nobody has hated you long enough to be called one." : string.Join("; ", enemies.Take(5).Select(kv => Tie(kv.Key, kv.Value) + (w.Turn - kv.Value >= LifeSystem.OldTieYears ? "" : " (not yet old)"))) + ".")</p></div>

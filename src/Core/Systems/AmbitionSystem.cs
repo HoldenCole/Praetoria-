@@ -26,6 +26,15 @@ public sealed class AmbitionSystem
     public const string FulfilledChar = "has_what_they_wanted", ThwartedChar = "thwarted", FounderChar = "founded_a_venture", AskingChar = "asking_the_head";
     public const string FailedFlag = "kin_failed", FailedChar = "has_failed", QuarrelFlag = "kin_quarrel", QuarrelFirst = "quarrel_first", QuarrelSecond = "quarrel_second", GaveUpFlag = "kin_gave_up";
     public const int GiveUpAfter = 3, QuarrelRegard = 3, GrudgeRegard = 8, RestoreKeeps = 3, PoorAt = 60, RestoredAt = 150, VentureCounts = 2;
+    public const int SideBy = 10, SideRegard = 2;
+    /// <summary>Who of the house stands behind which of two who quarrel: each of the others, the head apart, who thinks better of
+    /// one than of the other by a clear margin.</summary>
+    public static (List<Character> withA, List<Character> withB) Sides(World w, IEnumerable<Character> members, Character a, Character b)
+    {
+        int Reg(Character from, Character to) => w.GetRelationship(from.Id, to.Id)?.Disposition ?? 0;
+        var others = members.Where(m => m.Id != a.Id && m.Id != b.Id && m.Id != w.ProtagonistId && m.Age >= DynastySystem.AgeOfMajority).OrderBy(m => m.Id, StringComparer.Ordinal).ToList();
+        return (others.Where(m => Reg(m, a) - Reg(m, b) >= SideBy).ToList(), others.Where(m => Reg(m, b) - Reg(m, a) >= SideBy).ToList());
+    }
     private static readonly string[] DeedFlags = { FulfilledFlag, ThwartedFlag, FoundedFlag, HeirNamedFlag, RefusedFlag, FailedFlag, QuarrelFlag, GaveUpFlag };
 
     /// <summary>A failure of their own (an election lost, a battle lost in command) is written into their life, costs them, and counts
@@ -360,6 +369,14 @@ public sealed class AmbitionSystem
             var a = two[0]; var b = two[1]; bool fresh = a.Pursuit!.RivalId != b.Id || b.Pursuit!.RivalId != a.Id;
             a.Pursuit.RivalId = b.Id; b.Pursuit!.RivalId = a.Id; a.Pursuit.RivalPrize = prize; b.Pursuit.RivalPrize = prize; Regard(w, a, b, -QuarrelRegard, floor: -60); Regard(w, b, a, -QuarrelRegard, floor: -60);
             a.Pursuit.Note = (a.Pursuit.Note + $" Quarrels with {b.Name} over {prize}.").Trim(); b.Pursuit.Note = (b.Pursuit.Note + $" Quarrels with {a.Name} over {prize}.").Trim();
+            // the house divides behind them: each of the others who thinks clearly better of one thinks a little worse of the other
+            var (withA, withB) = Sides(w, members, a, b);
+            foreach (var m in withA) Regard(w, m, b, -SideRegard, floor: -40);
+            foreach (var m in withB) Regard(w, m, a, -SideRegard, floor: -40);
+            if (withA.Count + withB.Count > 0)
+            {
+                a.Pursuit.Note = (a.Pursuit.Note + $" {withA.Count} of the house with them, {withB.Count} against.").Trim(); b.Pursuit.Note = (b.Pursuit.Note + $" {withB.Count} of the house with them, {withA.Count} against.").Trim();
+            }
             if (fresh && !w.HasFlag(QuarrelFlag))
             {
                 a.Flags.Add(QuarrelFirst); b.Flags.Add(QuarrelSecond); Mark(w, QuarrelFlag);

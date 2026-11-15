@@ -510,6 +510,249 @@
           ]
         }
       ]
+    },
+    {
+      "id": "what_you_owe_your_own",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "is_owed_by_the_head",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "head_owes_too_long",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "name_a_day",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} named a day by which it would be paid, in front of {kin.name} and one other. Having said it aloud, {self.name} will have to do it."
+            }
+          ]
+        },
+        {
+          "id": "say_the_house_has_had_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that the money had gone where all of the house's money goes, and that {kin.name} had eaten at the table it paid for. {kin.name} did not argue. They will not lend again."
+            }
+          ]
+        },
+        {
+          "id": "let_them_raise_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} waited for {kin.name} to raise it. {kin.name} did not, which is not the same as having forgotten."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "one_of_them_lent_the_other",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "lent_to_kin",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_lent_to_kin",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "make_it_good_yourself",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the sum across from the house's own money, so that nobody of the family would owe anybody of it. It was taken as generous. One of them thought it was also a way of keeping the books in one hand."
+            }
+          ]
+        },
+        {
+          "id": "say_it_was_well_done",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said, in passing, that it had been well done and that the house was the better for having people who looked to each other. It cost nothing and was remembered."
+            }
+          ]
+        },
+        {
+          "id": "stay_out_of_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} let it be between the two of them, where they had put it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_entail_is_broken",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "entail_broken",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_why",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the family what the money was for, in figures. Some of them were persuaded. All of them now know how matters stand."
+            }
+          ]
+        },
+        {
+          "id": "say_it_was_yours_to_do",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that the head of a house binds and unbinds what is the house's, and that there was nothing more to say. Nobody said more. It was noted outside the house that {self.name} is not a person who explains."
+            }
+          ]
+        },
+        {
+          "id": "promise_to_restore_it",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave their word that the entail would be made again when the house was on its feet. A word of that kind is cheap on the day and is remembered every year after."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

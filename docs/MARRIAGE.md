@@ -147,10 +147,21 @@ them, tends marriages and divorces; it found one save/load fault, now fixed and 
 plays a suit to its end in the browser: in one run a three-year courtship ended in a love match, in another the suitor
 neglected the family and lost to a rival.
 
+## Other houses divorce
+
+Closed straight off the register on 2026-11-15 (half of docs/GAPS.md M1). A marriage between people of other houses
+that has gone on apart is, about one year in sixteen, ended. The one whose house had the dowry gives it back, that
+house loses a little standing, and the two heads think the worse of each other, as when the player does it. The
+player's own marriage, and those of the player's house, are never ended for them.
+
+And old ties now count in a match (docs/LIFE.md): a family whose head has been the player's friend for years is
+readier to agree, and an old enemy's is not.
+
 ## Not in this piece
 
-- Stewards do not court; houses other than the player's marry by proposal only, and never divorce. Your own kin court,
-  but do not yet divorce or stray on their own.
+- Stewards do not court; houses other than the player's marry by proposal only. Their divorces are a throw of the dice
+  on a marriage gone cold: nobody chooses one (docs/GAPS.md M6). Your own kin court, but do not yet divorce or stray on
+  their own.
 - No children outside marriage. An affair is an event with consequences for the marriage, not for the succession.
 - A spouse does not yet do anything: no counsel, no running the house in your absence. Their skills do not count.
 - A spouse stays a member of their own house; nothing moves between households.

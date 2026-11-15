@@ -474,6 +474,11 @@ public sealed class SenateSystem
             var head = Economy.HeadOf(w, h); if (head == null) continue;
             var war = w.Wars.Where(x => x.Involves(h.Id)).OrderBy(x => x.Lead(h.Id)).FirstOrDefault();
             if (war != null && war.Lead(h.Id) <= -3 && _motions.Def("peace") != null && !Stale(w, h.Id, "peace", h.Id)) { Add(w, h.Id, "peace", h.Id); return; }
+            if (PolitySystem.StirredAgainst(w, h.Id) is { Legitimacy: > 20 } talkedOf && talkedOf.Id != h.Id && _motions.Def("censure") != null && !Stale(w, h.Id, "censure", talkedOf.Id))
+            {
+                Add(w, h.Id, "censure", talkedOf.Id); w.WorldCounters["censures_stirred"] = w.Counter("censures_stirred") + 1;
+                w.Log($"{h.Name} moves a censure of {talkedOf.Name}. It has heard a great deal about that house lately, and has believed it."); return;
+            }
             if (_motions.Def("foreign_war") != null && WantedWar(w, h) is { } nation && !Stale(w, h.Id, "foreign_war", nation)) { Add(w, h.Id, "foreign_war", nation); return; }
             if (_motions.Def("commission") != null)
                 foreach (var office in _offices.Defs.Where(o => !o.Elected).OrderBy(o => o.Id, StringComparer.Ordinal))

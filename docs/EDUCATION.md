@@ -115,12 +115,24 @@ The head may also ask one of the house to **teach another**: someone at least tw
 can still learn, who does not think ill of the head. The pupil is under their wing from then on and learns a step of
 it every third year, until there is nothing left to pass on.
 
+## A price for studying, thanks for teaching, and ceilings that hold
+
+Closed straight off the register on 2026-11-15 (docs/GAPS.md E5, E6).
+
+- **A price.** One who would not study for the asking, but is within 12 of it, will for 4 credits of the head's own;
+  within 25, for 8; further off, not for anything. Paid, they turn to it, the money is theirs, and nobody thinks the
+  worse of anybody. The button appears beside the subject when asking alone would be refused.
+- **Thanks.** The head can thank one of the house who has another of it under their wing: 4 credits of the head's own,
+  +8 regard, once in three years. And when a pupil has taken a step from a teacher of the house, an event asks whether
+  the head thanks them, pays them, or takes it as their duty.
+- **Ceilings.** Nobody sits above their ceiling: what a person has already reached is taken as what was in them, and
+  they go no further. A victory beyond the Reach and a duty of the household no longer raise a skill past it.
+
 ## Not in this piece
 
 - Nobody but you is sent to the Academy; it is still a year only your own character has.
-- You cannot ask a grown relative to study something, or set one of the house to teach another. You can only pay.
+- A relative's price for studying is one of two sums; they never ask for something that is not money (docs/GAPS.md E7).
 - No trait is lost, and no nature is formed by an upbringing; only aptitudes can be earned.
 - Old age still dulls a skill every fifth year from sixty, as before. Learning does not slow with age.
-- Authored characters keep the skills they were written with, even where those sit above their ceiling.
 - The numbers are first guesses. What slower-growing skills do to battles, offices and the Exchange over sixty years
   has been checked only for not breaking anything.

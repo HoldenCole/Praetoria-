@@ -59,6 +59,36 @@
         "speak_of_it_plainly": "Speak of it plainly: it is owed.",
         "leave_it_where_it_is": "Leave it where it is."
       }
+    },
+    {
+      "id": "what_you_owe_your_own",
+      "title": "What You Owe Your Own",
+      "body": "Six years ago {kin.name} lent {self.name} money out of their own purse, because the head of the house asked and it is not easy to refuse the head of the house. It has not been paid. {kin.name} has not asked for it. They have begun to be absent from the table on the days the accounts are read.",
+      "choices": {
+        "name_a_day": "Name a day by which it will be paid.",
+        "say_the_house_has_had_it": "Say the house has had the good of it, and so have they.",
+        "let_them_raise_it": "Wait for them to raise it."
+      }
+    },
+    {
+      "id": "one_of_them_lent_the_other",
+      "title": "One of Them Lent the Other",
+      "body": "{kin.name} is one of two people of the house who have settled a debt between themselves without a word to its head: the one was in trouble with creditors, the other had money put by, and it was done in an afternoon. {self.name} heard of it from the steward's clerk.",
+      "choices": {
+        "make_it_good_yourself": "Make the sum good from the house's money, so that neither owes the other.",
+        "say_it_was_well_done": "Say that it was well done.",
+        "stay_out_of_it": "Stay out of it. It is between them."
+      }
+    },
+    {
+      "id": "the_entail_is_broken",
+      "title": "The Entail Is Broken",
+      "body": "The court has set aside the entail, and a thing that was to go with the house for ever is now simply {self.name}'s to sell. The advocates were civil about it. The family has been told, and has understood exactly what a head of a house breaks an entail for.",
+      "choices": {
+        "say_why": "Tell them why, with the figures.",
+        "say_it_was_yours_to_do": "Say that it was yours to do.",
+        "promise_to_restore_it": "Give your word that it will be made again."
+      }
     }
   ]
 }

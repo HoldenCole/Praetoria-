@@ -428,6 +428,14 @@ public sealed class PolitySystem
     }
     /// <summary>The house sets the great houses against one another on purpose: money and words in the right places, for three years.
     /// It pushes the Reach toward its great war. One time in three the capital hears whose money it was.</summary>
+    public const int CensureAt = -30;
+    public static string StirredKey(string houseId, string againstId) => $"stirred_until:{houseId}:{againstId}";
+    /// <summary>The house this one has been stirred against, while the talk lasts: it will move a censure of it before anything else.</summary>
+    public static House? StirredAgainst(World w, string houseId)
+    {
+        string prefix = $"stirred_until:{houseId}:";
+        return w.WorldCounters.Where(kv => kv.Value >= w.Turn && kv.Key.StartsWith(prefix, StringComparison.Ordinal)).OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => w.House(kv.Key[prefix.Length..])).FirstOrDefault(h => h != null && InReach(w, h.Id));
+    }
     public bool Stir(World w, House house, House? against = null)
     {
         var mine = w.Protagonist?.HouseId; house.Treasury.Credits -= StirCredits;
@@ -436,7 +444,12 @@ public sealed class PolitySystem
             // the five strongest of the rest hear worse of this one house than of any other
             var ah = Systems.Economy.HeadOf(w, against);
             foreach (var h in w.Houses.Values.Where(h => Real(h) && InReach(w, h.Id) && h.Id != house.Id && h.Id != against.Id).OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).Take(5))
-                if (Systems.Economy.HeadOf(w, h) is { } hd && ah != null && hd.Id != ah.Id) { var r = w.Relationship(hd.Id, ah.Id); r.Disposition = Math.Clamp(r.Disposition - StirAgainst, -100, 100); }
+                if (Systems.Economy.HeadOf(w, h) is { } hd && ah != null && hd.Id != ah.Id)
+                {
+                    var r = w.Relationship(hd.Id, ah.Id); r.Disposition = Math.Clamp(r.Disposition - StirAgainst, -100, 100);
+                    // one that has come to think ill enough of it will say so in the chamber while the talk lasts (docs/BREAKAWAY.md)
+                    if (r.Disposition <= CensureAt) w.WorldCounters[StirredKey(h.Id, against.Id)] = w.Turn + StirYears;
+                }
             w.Log($"What is said in the great houses this year is said, more than anything, about {against.Name}.");
         } w.WorldCounters[StirKey] = w.Turn + StirYears; w.WorldCounters["camps_stirred"] = w.Counter("camps_stirred") + 1;
         if (house.Id == mine) Mark(w, StirredFlag);

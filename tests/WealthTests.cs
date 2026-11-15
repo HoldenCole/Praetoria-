@@ -82,6 +82,7 @@ public class WealthTests
         var (_, w, me, mine) = Start(); Assert.NotEmpty(w.Heirlooms); Assert.All(w.Heirlooms, h => { Assert.NotNull(w.Char(h.HolderId)); Assert.InRange(h.Value, 15, 40); });
         var item = WealthSystem.HeldBy(w, me.Id).FirstOrDefault() ?? new Heirloom { Id = "test_item", Name = "the test signet", Kind = "signet", HolderId = me.Id, OfHouseId = mine.Id, Value = 20 };
         if (!w.Heirlooms.Contains(item)) w.Heirlooms.Add(item);
+        item.Entailed = false;   // an old name's own thing is entailed (docs/WEALTH.md): this one is taken as free to dispose of
         var k = Kin(w, mine, me, "kin"); int regard = w.Relationship(k.Id, me.Id).Disposition;
         Assert.True(Do(w, new WealthCommand(me.Id, WealthCommand.Give, item.Id, k.Id))); Assert.Equal(k.Id, item.HolderId); Assert.Equal(regard + 15, w.Relationship(k.Id, me.Id).Disposition);
         Assert.False(Do(w, new WealthCommand(me.Id, WealthCommand.Sell, item.Id, "")));   // no longer yours

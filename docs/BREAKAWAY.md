@@ -284,6 +284,14 @@ Sixty Republic runs of sixty years, a passive player: the Republic stood in all 
 was forgotten before the saga's end in 6 and no run reached a second; 11 states were recognised, all by partition; one
 house went over to a state by itself. Joining, the second war and stirring are each proved by a scripted test.
 
+### Stirring that ends in a censure (2026-11-15)
+
+Closed straight off the register (docs/GAPS.md B14). When the camps are stirred against one house, each of the five
+strongest others thinks 8 worse of it, as before. One that has come to think −30 or worse of it is now stirred against
+it for as long as the talk lasts (three years): it moves a censure of that house before any other business it has,
+provided the house has standing left to lose. In the test, three years of stirring put a censure on the order paper.
+Nothing more follows than a censure: other houses still do not go to war with one another over what is said (B15).
+
 ## The next stage: forms of government (the owner's direction, not built)
 
 Set by the owner on 2026-11-14 in answer to the sketch that stood here. It is planned work, held in docs/GAPS.md as
@@ -327,4 +335,4 @@ This is the first stage of a large piece. What it leaves is in docs/GAPS.md (B1 
 - **A state does not make war as a state** to take a region: it grows only by houses coming over.
 - **The older free march** (a rim house that renounces the capital) is still its own small rule and should become
   one of these.
-- Standing alone does not weigh food, manpower or the goods of the market. A marriage binds a house only if it already exists: one cannot be offered as the price.
+- Standing alone does not weigh food, manpower or the goods of the market. A marriage binds a house only if it already exists: one cannot be offered as the price. That one waits on the forms of government, and is the owner's to decide (B13).

@@ -88,7 +88,7 @@ public sealed class DelegateCommand : ICommand
 /// <see cref="Tutor"/>: a paid teacher for yourself or anyone of the house (0 none, 1 good, 2 the best).</summary>
 public sealed class EducationCommand : ICommand
 {
-    public const string Study = "study", Upbringing = "upbringing", Tutor = "tutor", Ask = "ask", Teach = "teach";
+    public const string Study = "study", Upbringing = "upbringing", Tutor = "tutor", Ask = "ask", Teach = "teach", AskAndPay = "ask_and_pay", Thank = "thank";
     private readonly string _what, _personId, _value;
     public EducationCommand(string actorId, string what, string personId, string value) { ActorId = actorId; _what = what; _personId = personId; _value = value; }
     public string ActorId { get; }
@@ -101,6 +101,8 @@ public sealed class EducationCommand : ICommand
         {
             case Ask: return EducationSystem.AskRefusal(w, head, who, _value);
             case Teach: return EducationSystem.TeachRefusal(w, head, who, w.Char(_value));
+            case AskAndPay: return EducationSystem.AskAndPayRefusal(w, head, who, _value);
+            case Thank: return EducationSystem.ThankRefusal(w, head, who);
             case Study:
                 if (who.Id != head.Id) return "what they study is their own affair; you may ask";
                 if (_value.Length == 0) return null;
@@ -122,6 +124,8 @@ public sealed class EducationCommand : ICommand
         var who = ctx.World.Char(_personId)!;
         if (_what == Ask) EducationSystem.Ask(ctx.World, ctx.World.Char(ActorId)!, who, _value);
         else if (_what == Teach) EducationSystem.SetToTeach(ctx.World, ctx.World.Char(ActorId)!, who, ctx.World.Char(_value)!);
+        else if (_what == AskAndPay) EducationSystem.AskAndPay(ctx.World, ctx.World.Char(ActorId)!, who, _value);
+        else if (_what == Thank) EducationSystem.Thank(ctx.World, ctx.World.Char(ActorId)!, who);
         else if (_what == Study) who.Study = _value; else if (_what == Upbringing) who.Upbringing = _value; else who.Tutor = int.Parse(_value);
     }
 }
@@ -133,7 +137,7 @@ public sealed class EducationCommand : ICommand
 /// <see cref="Sell"/>: an heirloom.</summary>
 public sealed class WealthCommand : ICommand
 {
-    public const string Allowance = "allowance", Inheritance = "inheritance", Move = "move", Settle = "settle", Will = "will", Bequeath = "bequeath", Give = "give", Sell = "sell", Gift = "gift", Lend = "lend", Forgive = "forgive", Dowries = "dowries";
+    public const string Allowance = "allowance", Inheritance = "inheritance", Move = "move", Settle = "settle", Will = "will", Bequeath = "bequeath", Give = "give", Sell = "sell", Gift = "gift", Lend = "lend", Forgive = "forgive", Dowries = "dowries", EntailItem = "entail_item", BreakEntail = "break_entail", LendAtInterest = "lend_interest", Borrow = "borrow", Repay = "repay";
     private readonly string _what, _targetId, _value;
     public WealthCommand(string actorId, string what, string targetId, string value) { ActorId = actorId; _what = what; _targetId = targetId; _value = value; }
     public string ActorId { get; }
@@ -149,10 +153,13 @@ public sealed class WealthCommand : ICommand
             case Move: return int.TryParse(_value, out int amount) ? WealthSystem.MoveRefusal(w, me, amount) : "not a sum";
             case Settle: return WealthSystem.SettleRefusal(w, me, w.Char(_targetId), _value == "purse");
             case Will: return WealthSystem.WillRefusal(w, me, _targetId, int.TryParse(_value, out int pct) ? pct : -1);
-            case Bequeath: return item == null || item.HolderId != me.Id ? "not yours to leave" : _value.Length == 0 || w.Char(_value) is { Alive: true } ? null : "no such person";
+            case Bequeath: return WealthSystem.BequeathRefusal(w, me, item, _value);
             case Give: return WealthSystem.GiveRefusal(w, me, item, w.Char(_value));
-            case Sell: return item != null && item.HolderId == me.Id ? null : "not yours to sell";
-            case Gift: case Lend: return int.TryParse(_value, out int sum) ? WealthSystem.GiftRefusal(w, me, w.Char(_targetId), sum, _what == Lend) : "not a sum";
+            case Sell: return WealthSystem.SellRefusal(w, me, item);
+            case Gift: case Lend: case LendAtInterest: return int.TryParse(_value, out int sum) ? WealthSystem.GiftRefusal(w, me, w.Char(_targetId), sum, _what != Gift) : "not a sum";
+            case EntailItem: case BreakEntail: return WealthSystem.EntailRefusal(w, me, item, _what == EntailItem);
+            case Borrow: return int.TryParse(_value, out int ask) ? WealthSystem.BorrowRefusal(w, me, w.Char(_targetId), ask) : "not a sum";
+            case Repay: return WealthSystem.RepayRefusal(w, me, w.Char(_targetId));
             case Forgive: return WealthSystem.ForgiveRefusal(w, me, w.Char(_targetId));
             case Dowries: return _value is "purse" or "treasury" ? null : "no such custom";
             default: return "no such thing";
@@ -175,6 +182,10 @@ public sealed class WealthCommand : ICommand
             case Gift: WealthSystem.Gift(w, me, w.Char(_targetId)!, int.Parse(_value)); break;
             case Lend: WealthSystem.Lend(w, me, w.Char(_targetId)!, int.Parse(_value)); break;
             case Forgive: WealthSystem.Forgive(w, me, w.Char(_targetId)!); break;
+            case LendAtInterest: WealthSystem.LendAtInterest(w, me, w.Char(_targetId)!, int.Parse(_value)); break;
+            case EntailItem: case BreakEntail: WealthSystem.SetEntail(w, me, item!, _what == EntailItem); break;
+            case Borrow: WealthSystem.Borrow(w, me, w.Char(_targetId)!, int.Parse(_value)); break;
+            case Repay: WealthSystem.Repay(w, me, w.Char(_targetId)!); break;
             case Dowries: house.DowryFromPurse = _value == "purse"; break;
         }
     }

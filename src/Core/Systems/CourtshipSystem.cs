@@ -227,6 +227,15 @@ public static class CourtshipSystem
         return v;
     }
 
+    public const int OldFriendMatch = 10, OldEnemyMatch = -15, NpcDivorcePct = 6;
+    /// <summary>Old ties in a match (docs/LIFE.md): a family whose head has been the player's friend for years is the readier to
+    /// marry into the player's house; one whose head is an old enemy is not.</summary>
+    public static int OldTie(World w, Character theirs)
+    {
+        var p = w.Protagonist; var head = Head(w, theirs.HouseId); if (p == null || head == null || theirs.HouseId == p.HouseId) return 0;
+        return head.Flags.Contains(LifeSystem.OldFriendChar) ? OldFriendMatch : head.Flags.Contains(LifeSystem.OldEnemyChar) ? OldEnemyMatch : 0;
+    }
+
     /// <summary>Would the other family agree to the match on these terms? With the reckoning and, if not, why.</summary>
     public static (bool ok, int score, string why) Answer(World w, Courtship c, string dowry, string childrenTo)
     {
@@ -241,6 +250,7 @@ public static class CourtshipSystem
             if (!child && !c.Own && c.Wish < WillNotBelow && Wilful(ours)) return (false, 0, $"{ours.Name} will not be married to {theirs.Name}, whatever you say");
             score = c.Consent + (child ? 0 : c.Favour >= LoveAt ? 15 : c.Favour < 25 ? -10 : 0) + Terms(w, c, dowry, childrenTo);
         }
+        score += OldTie(w, theirs);
         return score >= AcceptAt ? (true, score, "they will agree") : (false, score, $"they will refuse: the match stands at {score} with them and needs {AcceptAt}");
     }
 
@@ -367,9 +377,12 @@ public static class CourtshipSystem
         {
             // the head who has said so pays out of their own purse first (docs/WEALTH.md), and the bride knows whose money it was
             int due = DowryAmount(w, from.Id, dowry), own = 0; var giver = from.DowryFromPurse && from.Id == mine ? w.Protagonist : null;
-            if (giver is { Alive: true }) { own = Math.Clamp(giver.Purse, 0, due); giver.Purse -= own; }
-            paid = own + Math.Min(due - own, Math.Max(0, from.Treasury.Credits));
-            from.Treasury.Credits -= paid - own; to.Treasury.Credits += paid;
+            // a bride with a purse of her own puts half of it toward her portion, up to half of what is due
+            int hers = from.Id == mine && bride.Id != w.ProtagonistId ? Math.Clamp(bride.Purse / 2, 0, due / 2) : 0; bride.Purse -= hers;
+            if (hers > 0 && log) w.Log($"{bride.Name} puts {hers} credits of her own toward her portion.");
+            if (giver is { Alive: true }) { own = Math.Clamp(giver.Purse, 0, due - hers); giver.Purse -= own; }
+            paid = hers + own + Math.Min(due - hers - own, Math.Max(0, from.Treasury.Credits));
+            from.Treasury.Credits -= paid - own - hers; to.Treasury.Credits += paid;
             if (giver != null && own > 0 && own * 2 >= paid && bride.Id != giver.Id)
             {
                 var r = w.Relationship(bride.Id, giver.Id); r.Disposition = Math.Clamp(r.Disposition + WealthSystem.DowryRegard, -100, 100);
@@ -419,7 +432,7 @@ public static class CourtshipSystem
 
     /// <summary>End a marriage. The children stay where they are; a dowry received goes back; the other house takes it as an insult
     /// unless the two were already living apart.</summary>
-    public static void Divorce(World w, Character who)
+    public static void Divorce(World w, Character who, bool deed = true)
     {
         var m = w.MarriageOf(who.Id)!; var spouse = w.Char(m.Other(who.Id))!; var ours = w.House(who.HouseId)!; var theirs = w.House(spouse.HouseId);
         foreach (var (x, y) in new[] { (who.Id, spouse.Id), (spouse.Id, who.Id) })
@@ -433,7 +446,7 @@ public static class CourtshipSystem
             Sour(w, Head(w, theirs.Id), Head(w, ours.Id), m.Estranged ? -10 : -25);
             if (m.Dowry > 0 && m.DowryFrom == theirs.Id) { int back = Math.Min(m.Dowry, Math.Max(0, ours.Treasury.Credits)); ours.Treasury.Credits -= back; theirs.Treasury.Credits += back; }
         }
-        Mark(w, DivorcedFlag);
+        if (deed) Mark(w, DivorcedFlag);
         w.Log($"{who.Name} of {ours.Name} and {spouse.Name} are divorced.{(m.Dowry > 0 && m.DowryFrom == theirs?.Id ? " The dowry goes back." : "")}");
     }
 
@@ -651,6 +664,12 @@ public static class CourtshipSystem
             bool ours = mine != null && (a.HouseId == mine || b.HouseId == mine);
             if (!m.Estranged && m.Warmth <= EstrangedAt) { m.Estranged = true; if (ours) w.Log($"{a.Name} and {b.Name} no longer live under one roof."); }
             else if (m.Estranged && m.Warmth >= ReconciledAt) { m.Estranged = false; if (ours) w.Log($"{a.Name} and {b.Name} are reconciled."); }
+            // Other houses end marriages too: one that has gone on apart is, now and then, ended. The one whose house had the
+            // dowry gives it back.
+            if (!ours && m.Estranged && a.Alive && b.Alive && Hash(m.A + ":" + m.B + ":parted:" + w.Turn) % 100 < NpcDivorcePct)
+            {
+                Divorce(w, m.DowryFrom == a.HouseId ? b : a, deed: false); w.WorldCounters["divorces_in_the_reach"] = w.Counter("divorces_in_the_reach") + 1; continue;
+            }
             if (a.HouseId != b.HouseId)
             {
                 var ha = Head(w, a.HouseId); var hb = Head(w, b.HouseId); int tie = m.Estranged ? -2 : m.Warmth >= WarmAt ? 1 : 0;

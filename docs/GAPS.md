@@ -8,22 +8,25 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (fourteenth pass: the second batch of breakaway items; B6, B8, B11 and B12 closed; C9 set aside by the owner).
+Last updated 2026-11-15 (fifteenth pass: thirteen small gaps closed straight off the register, ten that were left behind them mapped, and the rows that are the owner's to decide marked).
 
-## The worklist: small gaps to fill now
+## The worklist
 
 Set by the owner on 2026-11-14: close what exists, then deepen it; no new systems until this list is short. Every
-position (magistrate, justice, senator) must have something to do. Worked from the top.
+position (magistrate, justice, senator) must have something to do. And on 2026-11-15: work down the register without
+asking; do the small and obvious ones; skip, and list, what is the owner's to decide (docs/PROCESS.md).
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune (set aside by the owner, 2026-11-15) | waiting |
-| 2 | L2, L5, L8 | Prosecuting a former magistrate; cases with facts; a senator's committees | next |
-| 3 | J4, L9, W6, E6, F6 | Threads for juniors; trust by region; loans between relatives; bargaining over study; old ties in more places | next |
-| 4 | A5, W3, W5, H3 | Ventures that fail; entail; heirlooms that do something; what a household costs | next |
-| 5 | B5, B13, B14 | The older free march as a state; a marriage or an office as the price; stirring that leads somewhere | next |
+| 1 | W7, H5, E7, F7, M6 | Small, and mapped while closing the last batch: relatives' purses; what a household's keep depends on; a price that is not money; asking the elder; who chooses a divorce | next |
+| 2 | L2, L5, L8, O2 | Prosecuting a former magistrate; cases with facts; a senator's committees; an office's charge with figures | next |
+| 3 | B5, B15, J5, L10 | The older free march as a state; houses that go to war over what is said; a junior's patron; trust by region and office | next |
+| 4 | A6, W8, W1 | Ventures that fail; heirlooms that are made and won; a purse that holds more than credits | next |
 
-Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3, then A2 and A4, then B6, B8, B11 and B12 (see the bottom table).
+**Waiting on the owner** (each row says what it turns on): C9 and C6 (the Caesar road), M4 (where a spouse lives),
+B13 and G1 to G7 (the forms of government).
+
+Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3, then A2 and A4, then B6, B8, B11 and B12, then B14, J4, L9, F5, F6, A5, E6, W6, W3, W5, E5, H3 and M1 (see the bottom table).
 
 ## The same gap in many places
 
@@ -42,8 +45,8 @@ These recur across systems. Closing one properly closes several lines below, so 
 |---|---|---|---|
 | B2 | A state's border means nothing for trade, the lanes or the Exchange. Its region is named on the map but not drawn as a different country. | M | Nations on the map |
 | B3 | A state makes no agreements of its own: no trade treaty, no alliance, no envoys. It does not make war as a state. | M | B1 |
-| B13 | A marriage binds a house only if it already exists: one cannot be offered as the price of a region. A promise is paid in credits only, not in an office of the state. | S | G1 |
-| B14 | Stirring against a house lowers what others think of it and nothing more: it does not make them move a censure or go to war. | S | |
+| B13 | A marriage binds a house only if it already exists: one cannot be offered as the price of a region. A promise is paid in credits only, not in an office of the state. | S | G1. **The owner's:** waits on the forms of government (G1) |
+| B15 | Other houses do not go to war with one another over what is said of them: a censure is as far as stirring a house against another goes. | M | X2 |
 | B5 | The older free march (a rim house renouncing the capital) and free holds (a rebel world) are their own rules and should become breakaway states. | M | |
 | B7 | Standing alone weighs fuel, the treasury and strategic monopolies. It does not weigh food, manpower or the goods of the market. | M | The economy |
 
@@ -51,19 +54,19 @@ These recur across systems. Closing one properly closes several lines below, so 
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| G1 | **Each form of state is governed differently:** who rules, what the ruler takes, what holds the houses together, what a house that is not the ruler can do. Replaces B1. | L | |
-| G2 | **A state can change its form.** Easier toward the democratic end; gated toward the authoritarian end, as a Caesar is gated. An imperium becoming a dictatorship is a step toward the democratic end. | M | G1 |
-| G3 | **Two dictatorships:** one person who took the state, and a military that did. | M | G1, the Caesar road |
-| G4 | **Two republics:** one where the great houses elect the ruler among themselves, one where the people elect directly. | M | G1 |
-| G5 | **The Reach is a state under the same rules.** Its Republic and its Imperium are two rungs of the same ladder, and a region that leaves it is governed by the same rules. | L | G1, politics under a throne |
-| G6 | **The people can revolt** against whoever rules, in any form. A later expansion. | L | G1, the estates |
-| G7 | A house of a state can try for its chair, plot against its ruler, or take its own region out of the state in turn. | M | G1 |
+| G1 | **Each form of state is governed differently:** who rules, what the ruler takes, what holds the houses together, what a house that is not the ruler can do. Replaces B1. | L | **The owner's:** planned, and not to be built yet |
+| G2 | **A state can change its form.** Easier toward the democratic end; gated toward the authoritarian end, as a Caesar is gated. An imperium becoming a dictatorship is a step toward the democratic end. | M | G1. **The owner's:** planned, and not to be built yet |
+| G3 | **Two dictatorships:** one person who took the state, and a military that did. | M | G1, the Caesar road. **The owner's:** planned, and not to be built yet |
+| G4 | **Two republics:** one where the great houses elect the ruler among themselves, one where the people elect directly. | M | G1. **The owner's:** planned, and not to be built yet |
+| G5 | **The Reach is a state under the same rules.** Its Republic and its Imperium are two rungs of the same ladder, and a region that leaves it is governed by the same rules. | L | G1, politics under a throne. **The owner's:** planned, and not to be built yet |
+| G6 | **The people can revolt** against whoever rules, in any form. A later expansion. | L | G1, the estates. **The owner's:** planned, and not to be built yet |
+| G7 | A house of a state can try for its chair, plot against its ruler, or take its own region out of the state in turn. | M | G1. **The owner's:** planned, and not to be built yet |
 
 ## Positions with nothing to do
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| J4 | A junior's work is one of three things with no thread from year to year: an advocate has no standing with a bench, a clerk no superior by name, a lieutenant no ship. And a brief is not heard by anybody in particular, though the house may have a Judge sitting. | S | |
+| J5 | A junior's standing with the one above them is kept for the player's house only, and the one above does one thing with it: speaks for them once at each rank. No patron who takes them along to a new post, and no falling out. | M | X1 |
 | O2 | The charge of an office of the Reach is one decision a year from three. A consul does not preside over anything, the Treasurer's budget has no figures, and the Speaker's order of business does not touch the motions actually on the docket. | M | The Senate |
 
 ## The Caesar road (docs/CAESAR.md)
@@ -74,10 +77,10 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 |---|---|---|---|
 | C2 | A general does not defect with his crews, and crews do not follow a dead commander's heir. | M | |
 | C4 | No proscription, amnesty or negotiated end. | M | |
-| C6 | A relative who is the general cannot cross against the head's wishes. | S | The one-person rule |
+| C6 | A relative who is the general cannot cross against the head's wishes. | S | The one-person rule. **The owner's:** may a relative end the Republic against the head's wishes, when the rule is that it stands unless the player ends it? |
 | C7 | The player cannot make the times a Caesar needs, only meet them. (Stirring the camps raises the pressure toward the great war, which is one of the things that counts afterwards; nothing troubles the Republic directly.) | M | |
 | C8 | Nothing here under a throne: no triumph by the throne's gift, no guard. | L | Politics under a throne |
-| C9 | With skill ceilings holding in battle, a commander of the first rank is now very rare among other houses (2 runs of 50). The gate may ask too much of them: `GateTactics` and `GateVictories` want a probe and a decision. | S | X3 |
+| C9 | With skill ceilings holding in battle, a commander of the first rank is now very rare among other houses (2 runs of 50). The gate may ask too much of them: `GateTactics` and `GateVictories` want a probe and a decision. | S | X3. **The owner's:** should the gate ask less of other houses' generals? Set aside by the owner on 2026-11-15 |
 
 ## The ladder of offices (docs/LADDER.md)
 
@@ -87,7 +90,7 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 | L3 | No censorship, tribunate, or province after office. | L | The state and commerce |
 | L8 | A senator's year is one of three things. There are no committees, no standing with a committee, and no record of attendance beyond three absent years. | M | |
 | L5 | The work of office is one decision a year from three. A case has no facts beyond who is in the right; the accounts have no figures; the works are one sum. | M | |
-| L9 | Public trust is one number for the whole Reach. It does not tell a region's courts, or one office's name, from another's; and only the commons react to it, not the other estates. | S | |
+| L10 | Public trust is one number for the whole Reach. It does not tell a region's courts, or one office's name, from another's. | M | |
 
 ## A life of one's own (docs/LIFE.md)
 
@@ -95,29 +98,26 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 |---|---|---|---|
 | F1 | No ill fame: nothing a person does is held against them as a person. (A magistrate removed for taking money is barred for five years, and that is all.) | M | |
 | F3 | No duels, and no wound but in battle. | M | |
-| F5 | The elder teaches the new head and otherwise does nothing. | S | |
-| F6 | Old ties count in the Senate and in a civil war. They do not count in an election, a court case or a marriage. | S | |
+| F7 | The elder does one of three things a year, unasked. The head cannot ask the elder for anything, and the elders of other houses do nothing. | S | X1 |
 
 ## Ambitions, wealth, education, the household, marriage
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| A5 | A venture never fails, so a founder's failure is never marked; and a quarrel is between two people only: the house does not divide behind them. | S | The economy |
-| E3 |
+| A6 | A venture never fails, so a founder's failure is never marked. | M | The economy |
+| E7 | What a relative would take to study is one of two sums. They never ask for something that is not money: a post, a match, a word in the right place. | S | |
 | W1 | A purse holds credits only: no shares, ventures or worlds held personally. | M | |
-| W6 | A loan is from the head to a relative only: relatives do not lend to each other or to the head, nobody charges interest, and a bride's own purse does not go toward her portion. | S | |
-| W3 | Nothing is entailed. | S | |
-| W5 | Heirlooms do nothing but be worth something. | S | |
+| W7 | Relatives' purses are small (one who lives within their means keeps no more than twenty credits), so the head can seldom borrow of them and they seldom have anything to lend each other. Seen in play: the button is usually dark. | S | X3 |
+| W8 | An heirloom is one of four kinds with one fixed effect, and no house ever comes by a new one: nothing is commissioned, won, or given by another house. | M | |
 | E1 | Only your own character goes to the Academy. | M | |
 | E3 | No nature is formed by an upbringing; no trait is lost. | M | |
-| E5 | Authored characters sit above their ceilings. | S | |
 | H2 | Wards are not hostages. | M | |
-| H3 | Keeping a household costs nothing. | S | |
+| H5 | The keep of the household is a credit a head whatever their age or standing, and a house that cannot pay loses nobody: they stay and think the worse of it. | S | |
 | H4 | A steward does routine only: no Exchange, tithe or ventures. | M | |
-| M1 | Stewards do not court; other houses never divorce. | S | X1 |
+| M6 | Stewards do not court. And another house's divorce is a throw of the dice on a marriage gone cold: nobody chooses it, and nobody marries again on purpose. | S | X1 |
 | M2 | No children outside marriage. | M | |
 | M3 | A spouse does nothing: no counsel, no running the house in your absence. | M | |
-| M4 | A spouse stays in their own house. | S | |
+| M4 | A spouse stays in their own house. | S | **The owner's:** does a spouse come to live in the house, and which of the two moves? |
 | M5 | No affection outside courtship. | M | |
 
 ## Older, from docs/ROADMAP.md section 3
@@ -166,3 +166,16 @@ look-and-feel pass is planned and not begun, there is no sound.
 | B8 | Working on a house was a word or a gift. | 2026-11-15 | Also a promise of a place (regard at once, and three credits a year owed for ten years if the state is founded) and a threat (they follow while they are afraid). A marriage between the houses makes a house easier asked. B13 is what is left. |
 | B11 | A state at war could not be joined, nobody could leave one, and a state could not reach. | 2026-11-15 | A house may join a state still fighting and is at war for it; a member may leave, and does when it thinks ill of its ruler; a ruler may court houses of the Reach in or beside the state, and one that controls a bordering region may bring it. |
 | B12 | Stirring named no target. | 2026-11-15 | It can be aimed at one house, which the five strongest others then think the less of. B14 is what is left. |
+| B14 | Stirring against a house lowers what others think of it and nothing more: it does not make them move a censure or go to war. | 2026-11-15 | A house that has come to think ill enough of the one it is being told about (regard −30) moves a censure of it before any other business, while the talk lasts. In the test, three years of stirring put a censure on the order paper. B15 is what is left. |
+| J4 | A junior's work is one of three things with no thread from year to year: an advocate has no standing with a bench, a clerk no superior by name, a lieutenant no ship. And a brief is not heard by anybody in particular, though the house may have a Judge sitting. | 2026-11-15 | A junior has someone above them by name, the same one year after year: the judge an advocate appears before, a clerk's senior, the captain of the ship a junior officer serves in; one of their own house if it has one. The year's work moves what that one thinks of them. After three good years, and a regard of 20, they are spoken for and go up a step, once at each rank and never faster than the service allows. An advocate before a judge of their own house who is not upright wins cases they would have lost, and it costs the Reach's trust. J5 is what is left. |
+| L9 | Public trust is one number for the whole Reach. It does not tell a region's courts, or one office's name, from another's; and only the commons react to it, not the other estates. | 2026-11-15 | The merchants and the magistrates' own order now think the worse of the houses in office while the magistrates are not believed (−2 a year each), and the better while they are (+1). L10 is what is left. |
+| F5 | The elder teaches the new head and otherwise does nothing. | 2026-11-15 | Each year, unless they are too unwell, the elder does one thing nobody asked for: sits two of the house down who are at odds; or takes work off a head who is carrying too much; or speaks for the new head to someone who still thinks well of the old one. Those who were the elder's friends for years are the house's friends while the elder lives. F7 is what is left. |
+| F6 | Old ties count in the Senate and in a civil war. They do not count in an election, a court case or a marriage. | 2026-11-15 | Old friends are worth up to six votes to anyone of the house who stands, and old enemies cost as many. A magistrate who is an old friend finds for the house when it is before them, an old enemy for the other side; the upright rule on the law. A family whose head is an old friend is readier for a match (+10), an old enemy's less (−15). |
+| A5 | A venture never fails, so a founder's failure is never marked; and a quarrel is between two people only: the house does not divide behind them. | 2026-11-15 | The house divides behind two who quarrel: each of the others who thinks clearly better of one thinks a little worse of the other each year it lasts, and the panel says how many stand where. A6 (a venture that fails) is what is left. |
+| E6 | A relative asked to study has no say but yes or no: they do not ask for something in return, and a teacher of the house is not thanked or paid. | 2026-11-15 | One who would not study for the asking, but is not far from it, names a price (4 or 8 credits of the head's own); paid, they turn to it and nobody thinks the worse of anybody. The head can thank one of the house who has another under their wing with a purse, and is asked what to do when a pupil has plainly been brought on. E7 is what is left. |
+| W6 | A loan is from the head to a relative only: relatives do not lend to each other or to the head, nobody charges interest, and a bride's own purse does not go toward her portion. | 2026-11-15 | The head can borrow of a relative, who may refuse and, if they count such things, wants a fifth on top; left six years unpaid it is minded, and it comes out of what a dead head leaves before anything is shared. The head can lend at interest. One of the house in debt is helped by another who has it to spare and thinks well of them, and pays it back. A bride puts half her own purse toward her portion. W7 is what is left. |
+| W3 | Nothing is entailed. | 2026-11-15 | The head can entail a thing of the house's own name: it goes with the house whatever a will says, and cannot be sold, given or left away. Breaking an entail is done in court and costs standing, the old families' regard and the family's. An old name's own heirloom is entailed from the start. |
+| W5 | Heirlooms do nothing but be worth something. | 2026-11-15 | A signet on the head's hand mends the house's name while its standing is under 50; a sword carried by someone in the fleet teaches them discipline; a library speeds the study of everyone in its holder's house; an estate pays its holder. The panel says what each does. W8 is what is left. |
+| E5 | Authored characters sit above their ceilings. | 2026-11-15 | Nobody sits above their ceiling: what a person has already reached is taken as what was in them. Two places that raised a skill without looking at the ceiling now look. |
+| H3 | Keeping a household costs nothing. | 2026-11-15 | Each person taken in costs the treasury a credit a year, and whoever does the head's work is paid two into their own purse. A house that cannot pay keeps them, and they think the worse of it. H5 is what is left. |
+| M1 | Stewards do not court; other houses never divorce. | 2026-11-15 | A marriage of other houses that has gone on apart is, about one year in sixteen, ended; the dowry goes back. The player's own is never ended for them. M6 is what is left. |

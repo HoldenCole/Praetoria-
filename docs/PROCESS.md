@@ -247,3 +247,23 @@ Set by the owner on 2026-11-14.
   their own, by their own nature, and the head hears about it.
 - Tie new depth into what is already there (the times, the great war's pressure, legitimacy, regard) so that it
   matters to more than itself.
+
+## Work down the register without asking
+
+The owner, 2026-11-15: "I don't want you to keep asking me about what to do next. You have the list of gaps that need
+to be filled. Just go through that and do those gaps. If there are small ones, then just do all those, but if there are
+gaps that require me to answer something or give you my opinion, then just skip over those and do all the obvious
+ones."
+
+So:
+
+- **The register is the instruction.** After a piece is pushed and green, take the next gaps from docs/GAPS.md and
+  build them. Do not stop to ask which.
+- **Small and obvious first, all of them.** A gap is obvious when there is one sensible thing it could mean and it
+  fits the rules already written here.
+- **Skip what is the owner's to decide**, and say so: mark the row "the owner's" in the register with the question it
+  turns on, and list those rows in the report. Do not guess at them and do not build half of one.
+- A gap that turns out bigger than it looked (a new system, an economy-wide change) is not small: leave it, with a
+  line on why.
+- The other rules still hold: measure, map new gaps in the same commit, close before you open.
+

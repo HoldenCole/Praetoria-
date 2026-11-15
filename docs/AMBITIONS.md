@@ -101,10 +101,17 @@ also a say in what they will want, and forcing one against their nature has a co
 **The loser of a quarrel** over an office or a command, when the other one gets it, thinks 8 the less of them and
 stops coming to table. The winner has nothing to forgive.
 
+## The house divides behind a quarrel
+
+Closed straight off the register on 2026-11-15 (the second half of docs/GAPS.md A5). While two of the house quarrel
+over a prize, each of the others, the head apart, who thinks better of one than of the other by 10 or more stands with
+that one, and thinks 2 worse of the other each year it lasts (never below −40 on that account). Each of the two is
+shown with how many of the house are with them and how many against.
+
 ## Not in this piece
 
 - **Only your house.** Nobody in any other house pursues an ambition this way.
 - ~~Standing for office is not theirs to do.~~ Closed by the ladder of offices (docs/LADDER.md): one who wants to rise
   and be heard, or to be first, now puts their own name down for quaestor, aedile or praetor.
-- A venture cannot fail, so that failure is never marked; and a quarrel is between two people only (docs/GAPS.md A5).
+- A venture cannot fail, so that failure is never marked (docs/GAPS.md A6).
 - The numbers are first guesses.

@@ -620,6 +620,80 @@
           ]
         }
       ]
+    },
+    {
+      "id": "the_household_goes_unpaid",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "household_unpaid",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "tell_them_plainly",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called the household together and told them the house could not pay them this year and did not know about next. Nobody left that day. People think better of being told than of finding out."
+            }
+          ]
+        },
+        {
+          "id": "pay_them_from_your_own",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} found the money somewhere, and the household was paid late and in full. Nobody asked where it had come from."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing, and the household went on as if it were paid. It is talked of in the kitchens, and kitchens talk to other kitchens."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

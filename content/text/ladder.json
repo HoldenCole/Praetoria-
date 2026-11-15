@@ -188,6 +188,16 @@
         "say_it_was_a_slip_of_the_pen": "Say it was a slip of the pen.",
         "take_the_reprimand_in_silence": "Take the reprimand in silence."
       }
+    },
+    {
+      "id": "one_of_yours_is_spoken_for",
+      "title": "One of Yours Is Spoken For",
+      "body": "{kin.name} has gone up a step in the service sooner than their years would have taken them. Somebody above them, who has watched their work for some time and owes this house nothing, said a word in the right room. Nobody asked the head of the house.",
+      "choices": {
+        "say_they_earned_it": "Tell them they earned it.",
+        "write_to_the_one_who_spoke": "Write to the one who spoke for them.",
+        "let_it_pass": "Let it pass. It is the service's business."
+      }
     }
   ]
 }

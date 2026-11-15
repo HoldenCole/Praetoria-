@@ -211,6 +211,38 @@ when, and what it costs.
   from the player's house, which wins its own. They sit until the first election.
 - Both happen once per world, so a save made before this piece opens with a full bench and no second seeding.
 
+## A junior's thread, and who else minds a magistrate for sale
+
+Closed straight off the register on 2026-11-15 (docs/GAPS.md J4, L9).
+
+**Somebody above them, by name.** A junior's year is no longer three things in the air. The advocate's brief is heard
+by a named judge; the clerk has a named senior at a desk; the junior officer serves in a named ship of the house under
+whoever commands it. It is the same person year after year while they live and keep their place, and one of the
+junior's own house if it has one.
+
+| The junior does | What the one above thinks |
+|---|---|
+| Pleads on the law | +2 for a win, +1 for a case well lost |
+| Takes the side that pays | −2 |
+| Pleads for one who cannot pay | +1 |
+| Keeps the ledgers exactly | +2 |
+| Makes themselves useful | +4 |
+| Has a padded account found | −8 |
+| Stands watches / volunteers / makes friends in the mess | +2 / +3 / +1 |
+
+What that one thinks is the junior's standing, and it does three things. It moves the odds of winning a brief (a
+fifth of it, 8 either way at most). After **three good years** under them and a regard of **20**, they speak for the
+junior, who goes up a step sooner than the years alone would have taken them: once at each rank, and never faster
+than the service lets anybody rise. And an advocate who appears before a judge of their own house who is not upright
+wins cases they would have lost (15 in a hundred); each such win is seen, and costs the Reach a point of trust.
+
+**The other estates.** While the magistrates are not believed (trust under 35) the merchants and the magistrates' own
+order think 2 worse a year of every house in office, beside the commons' 3; while they are trusted (75 or more) each
+thinks 1 better.
+
+Left, and mapped: this is kept for the player's house only, and the one above has no further use for a junior (J5);
+trust is still one number for the whole Reach (L10).
+
 ## Where it is
 
 The Senate screen, under **Your standing · the orders and the ladder**: each rung with its seats, age, prerequisite
@@ -263,7 +295,7 @@ Justice. The estate called the Magistrates is unchanged.
 - Other houses' senators do not spend their year (but for the one who audits), and their judges hear no hearings
   (docs/GAPS.md X2).
 - Public trust is one number for the whole Reach: a region's own courts, or one office's name, are not told apart
-  (docs/GAPS.md L9).
+  (docs/GAPS.md L10).
 - An office's charge is one of three things a year. A consul does not preside, a Treasurer has no budget with figures, a Speaker orders no actual motions (docs/GAPS.md O2).
 - No bribery, no prosecution of a former magistrate, no law on the order of offices that the Senate could change.
 - The censorship, the tribunate and provincial commands after office are not here.

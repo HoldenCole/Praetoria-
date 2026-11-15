@@ -48,6 +48,45 @@ public static partial class LadderSystem
     };
     public static bool Junior(string kind) => kind is Brief or Ledgers or Watch;
 
+    // ---------------- the thread from year to year: who is above a junior (docs/LADDER.md) ----------------
+
+    public const int StandingAt = 20, StandingOdds = 8, KinBenchOdds = 15, SpokenAfter = 3; public const string SpokenForFlag = "kin_spoken_for", SpokenForChar = "spoken_for";
+    /// <summary>The ship a junior officer serves in: the first of their house's fleets that somebody else commands.</summary>
+    public static Fleet? ShipOf(World w, Character c) => w.Fleets.Values.Where(f => f.OwnerId == c.HouseId && f.AdmiralId != c.Id).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+    /// <summary>The one above a junior, by name, and the same one year after year while they live and keep their place: the judge
+    /// an advocate appears before, a clerk's senior, a junior officer's captain. One of their own house if it has one.</summary>
+    public static Character? Above(World w, Character c)
+    {
+        string kind = JuniorKind(w, c); if (kind.Length == 0) return null;
+        if (kind == Watch) return ShipOf(w, c) is { } ship && w.Char(ship.AdmiralId) is { Alive: true } captain ? captain : null;
+        return w.LivingCharacters().Where(x => x.Id != c.Id && (kind == Brief ? OnTheBench(x) : AtADesk(x)) && PolitySystem.InReach(w, x.HouseId))
+            .OrderByDescending(x => x.HouseId == c.HouseId).ThenBy(x => Hash(c.Id + ":above:" + x.Id)).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
+    }
+    /// <summary>What the one above them thinks of them: the whole of a junior's standing.</summary>
+    public static int Standing(World w, Character junior) => Above(w, junior) is { } above ? w.GetRelationship(above.Id, junior.Id)?.Disposition ?? 0 : 0;
+    private static void Noticed(World w, OfficeBusiness b, Character who, int by)
+    {
+        if (w.Char(b.SubjectId) is not { Alive: true } above || above.Id == who.Id) return;
+        var r = w.Relationship(above.Id, who.Id); r.Disposition = Math.Clamp(r.Disposition + by, -100, 100);
+        if (by > 0) w.WorldCounters[UnderKey(who.Id, above.Id)] = w.Counter(UnderKey(who.Id, above.Id)) + 1;   // a year's work under them that they had no fault to find with
+    }
+    public static string UnderKey(string juniorId, string aboveId) => $"served_under:{juniorId}:{aboveId}";
+    /// <summary>One whose senior has come to think well of them, and has had three good years' work of them, is spoken for, once at
+    /// each rank, and goes up a step sooner than the years alone would have taken them: never faster than the service allows anybody.</summary>
+    private static void SpokenFor(World w, OfficeBusiness b, Character who)
+    {
+        if (w.Char(b.SubjectId) is not { Alive: true } above || (w.GetRelationship(above.Id, who.Id)?.Disposition ?? 0) < StandingAt) return;
+        if (w.Counter(UnderKey(who.Id, above.Id)) < SpokenAfter) return;   // it is the work they have seen, not the name
+        if (who.CareerRank >= (who.Age - DynastySystem.AgeOfMajority) / DynastySystem.YearsPerRank) return;
+        who.Life ??= new Life(); if (!who.Life.Marks.Add("spoken_for:" + who.CareerRank)) return;
+        who.CareerRank++; LifeSystem.Note(w, who, "office", $"Was spoken for by {above.Name}, and went up a step.");
+        if (who.HouseId == w.Protagonist?.HouseId)
+        {
+            w.Log($"{above.Name} speaks for {who.Name}, who goes up a step in the service sooner than the years alone would have taken them.");
+            if (who.Id != w.ProtagonistId) { who.Flags.Add(SpokenForChar); Mark(w, SpokenForFlag); }
+        }
+    }
+
     /// <summary>Which kind of charge an office of the Reach carries, or "" if it carries none (the Admiral has the fleets).</summary>
     public static string ChargeOf(OfficeDef? def) => def == null ? "" : def.Elected ? Consul : def.Sphere == "treasury" ? Treasurer : def.Sphere == "senate" ? Speaker : "";
     public static string[] ChoicesOf(OfficeCatalog offices, OfficeBusiness b) => b.Kind != Charge ? DutyChoices(b.Kind) : ChargeOf(offices.Def(b.RungId)) switch
@@ -120,6 +159,7 @@ public static partial class LadderSystem
             string kind = AtADesk(c) ? Desk : Ashore(w, c) ? Posting : JuniorKind(w, c);
             var d = new OfficeBusiness { Id = $"{kind}_{w.Turn}_{c.Id}", RungId = kind, HolderId = c.Id, Kind = kind, Turn = w.Turn, RegionId = HomeRegion(w, mine.Id) ?? "" };
             if (kind == Brief && others.Count >= 2) { int i = (int)(Hash(d.Id) % (uint)others.Count); d.HouseA = others[i].Id; d.HouseB = others[(i + 1) % others.Count].Id; }   // the client, and the other side
+            if (Junior(kind)) { d.SubjectId = Above(w, c)?.Id ?? ""; if (kind == Watch) d.RightId = ShipOf(w, c)?.Id ?? ""; }
             w.OfficeWork.Add(d);
             if (c.Id != p.Id) DecideDuty(w, offices, policy, c, kind, DeskInclination(w, offices, c, d));
         }
@@ -158,9 +198,9 @@ public static partial class LadderSystem
             Charge => ChargeSays(w, b),
             Desk => "The year's returns from the house's region cross your desk. How they are assessed, and how hard they are collected, is the administration's to say, and this year the administration is you.",
             Posting => "You have a rank and no fleet under you this year. The service finds work for officers ashore, and lets one of your standing choose it.",
-            Brief => b.HouseA.Length > 0 ? $"A brief has come to you: {a} against {bn}, before a lesser court. It is small, and it is yours." : "A brief has come to you, before a lesser court. It is small, and it is yours.",
-            Ledgers => "A year of the administration's ledgers is yours to keep. Nobody above you reads them unless something is wrong.",
-            Watch => "You are a junior officer with no command. The year is watches, drills, and whatever you make of them.",
+            Brief => (b.HouseA.Length > 0 ? $"A brief has come to you: {a} against {bn}, before a lesser court. It is small, and it is yours." : "A brief has come to you, before a lesser court. It is small, and it is yours.") + AboveSays(w, b),
+            Ledgers => "A year of the administration's ledgers is yours to keep. Nobody above you reads them unless something is wrong." + AboveSays(w, b),
+            Watch => "You are a junior officer with no command. The year is watches, drills, and whatever you make of them." + AboveSays(w, b),
             _ => "The Senate sits, and a year of it is yours to spend. The motions are the chamber's business; this is your own."
         };
     }
@@ -312,32 +352,43 @@ public static partial class LadderSystem
                 if (choice == Plead)
                 {
                     EducationSystem.Gain(w, who, "law", 2); EducationSystem.Gain(w, who, "oratory", 1);
-                    bool won = (who.Skill("oratory") + who.Skill("law")) * 8 + 30 > (int)(Hash(b.Id + ":won") % 100);
+                    // the judge they appear before: one who thinks well of them hears them the more readily, and one of their own
+                    // house who is not upright more readily still, which is seen
+                    var judge = w.Char(b.SubjectId); int standing = judge is { Alive: true } ? Math.Clamp((w.GetRelationship(judge.Id, who.Id)?.Disposition ?? 0) / 5, -StandingOdds, StandingOdds) : 0;
+                    bool partial = judge is { Alive: true } && judge.HouseId == who.HouseId && !judge.NatureTraits.Contains("Honorable") && !judge.NatureTraits.Contains("Just");
+                    int roll = (int)(Hash(b.Id + ":won") % 100), plain = (who.Skill("oratory") + who.Skill("law")) * 8 + 30 + standing;
+                    bool won = plain + (partial ? KinBenchOdds : 0) > roll;
+                    if (won && plain <= roll) { MoveTrust(w, -1); if (ours) w.Log($"{who.Name} wins a case before {judge!.Name}, of the same house. It is remarked on."); }
+                    Noticed(w, b, who, won ? 2 : 1);
                     if (won) { Shift(w, w.House(b.HouseA), house, 4); if (who.Life?.Marks.Add("brief:won") != false) LifeSystem.Note(w, who, "office", "Won a case as an advocate."); }
                     else who.Stress = Math.Min(100, who.Stress + 2);
                     if (ours && who.Id == p!.Id) w.Log(won ? $"{who.Name} pleads for {w.House(b.HouseA)?.Name} and wins." : $"{who.Name} pleads for {w.House(b.HouseA)?.Name} and loses. It was well argued.");
                 }
-                else if (choice == RichClient) { who.Purse += ClientCredits; EducationSystem.Gain(w, who, "oratory", 1); Shift(w, w.House(b.HouseB), house, -3); }
-                else { PolicySystem.Sway(w, who.HouseId, "commons", 2); EducationSystem.Gain(w, who, "oratory", 2); }
+                else if (choice == RichClient) { who.Purse += ClientCredits; EducationSystem.Gain(w, who, "oratory", 1); Shift(w, w.House(b.HouseB), house, -3); Noticed(w, b, who, -2); }
+                else { PolicySystem.Sway(w, who.HouseId, "commons", 2); EducationSystem.Gain(w, who, "oratory", 2); Noticed(w, b, who, 1); }
+                SpokenFor(w, b, who);
                 break;
             }
             case Ledgers:
             {
-                if (choice == Diligent) { EducationSystem.Gain(w, who, "administration", 2); if (house != null) house.Treasury.Credits += 1; }
-                else if (choice == Useful) { EducationSystem.Gain(w, who, "economics", 1); if (who.Id == p?.Id) w.PoolsFor(who.Id).Influence += 1; else if (p != null) { var r = w.Relationship(p.Id, who.Id); r.Disposition = Math.Clamp(r.Disposition + 2, -100, 100); } }
+                if (choice == Diligent) { EducationSystem.Gain(w, who, "administration", 2); if (house != null) house.Treasury.Credits += 1; Noticed(w, b, who, 2); }
+                else if (choice == Useful) { Noticed(w, b, who, 4); EducationSystem.Gain(w, who, "economics", 1); if (who.Id == p?.Id) w.PoolsFor(who.Id).Influence += 1; else if (p != null) { var r = w.Relationship(p.Id, who.Id); r.Disposition = Math.Clamp(r.Disposition + 2, -100, 100); } }
                 else
                 {
                     who.Purse += PadCredits;
                     if (Hash(b.Id + ":found") % 5 == 0)
                     {
                         AmbitionSystem.Setback(w, who, "Was reprimanded for a padded account."); if (ours && who.Id == p!.Id) Mark(w, JuniorCaughtFlag);
+                        Noticed(w, b, who, -8);
                         if (ours) w.Log($"{who.Name}'s ledgers are gone through, and an account is found padded. It is written against them.");
                     }
                 }
+                SpokenFor(w, b, who);
                 break;
             }
             case Watch:
             {
+                Noticed(w, b, who, choice == Watches ? 2 : choice == Volunteer ? 3 : 1);
                 if (choice == Watches) EducationSystem.Gain(w, who, "tactics", 2);
                 else if (choice == Volunteer)
                 {
@@ -348,8 +399,9 @@ public static partial class LadderSystem
                 else
                 {
                     PolicySystem.Sway(w, who.HouseId, "officers", 1); EducationSystem.Gain(w, who, "leadership", 1);
-                    if (w.Fleets.Values.Where(f => f.OwnerId == who.HouseId).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault() is { } crew) crew.Loyalty = Math.Min(100, crew.Loyalty + 2);
+                    if ((w.Fleets.GetValueOrDefault(b.RightId) ?? w.Fleets.Values.Where(f => f.OwnerId == who.HouseId).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault()) is { } crew) crew.Loyalty = Math.Min(100, crew.Loyalty + 2);
                 }
+                SpokenFor(w, b, who);
                 break;
             }
             case Posting:
@@ -461,6 +513,21 @@ public static partial class LadderSystem
     }
 
     /// <summary>What someone other than the player does with a hearing or an appeal: by their nature.</summary>
+    /// <summary>Who is above them this year, and what that one thinks of them so far.</summary>
+    public static string AboveSays(World w, OfficeBusiness b)
+    {
+        var who = w.Char(b.HolderId); var above = w.Char(b.SubjectId); if (who == null || above is not { Alive: true }) return b.Kind == Watch ? " The house has no ship for you to serve in." : "";
+        int regard = w.GetRelationship(above.Id, who.Id)?.Disposition ?? 0; bool kin = above.HouseId == who.HouseId;
+        string thinks = regard >= StandingAt ? "thinks well of you" : regard >= 5 ? "has begun to notice you" : regard <= -10 ? "thinks little of you" : "does not yet know your name";
+        string whose = kin ? "of your own house" : "of " + (w.House(above.HouseId)?.Name ?? "another house");
+        return b.Kind switch
+        {
+            Brief => $" It will be heard by {above.Name}, {whose}, who {thinks}.",
+            Ledgers => $" Your senior is {above.Name}, {whose}, who {thinks}.",
+            _ => $" You serve in {w.Fleets.GetValueOrDefault(b.RightId)?.Name ?? "the house's ships"} under {above.Name}, who {thinks}."
+        };
+    }
+
     public static string DutyInclination(World w, Character c, OfficeBusiness b)
     {
         bool honest = c.NatureTraits.Contains("Honorable") || c.NatureTraits.Contains("Just"); var own = w.House(c.HouseId);

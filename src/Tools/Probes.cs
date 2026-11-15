@@ -56,11 +56,11 @@ internal static class Probes
         var (content, scenarios) = Load(o); int seeds = Math.Max(1, o.Seeds);
         foreach (var sid in scenarios)
         {
-            int dead = 0; var wed = new List<int>(); var child = new List<int>();
+            int dead = 0; var wed = new List<int>(); var child = new List<int>(); var ends = new List<string>();
             for (ulong seed = 1; seed <= (ulong)seeds; seed++)
             {
                 var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), sid), seed); var tc = new TurnController(w, content);
-                int wedTurn = -1, childTurn = -1;
+                int wedTurn = -1, childTurn = -1; string houseName = w.Protagonist is { } first ? w.House(first.HouseId)?.Name ?? "?" : "?";
                 for (int t = 0; t < 60 && !w.IsDynastyDead; t++)
                 {
                     PassiveTurn(tc);
@@ -71,10 +71,15 @@ internal static class Probes
                     }
                     tc.EndTurn();
                 }
-                if (w.IsDynastyDead) dead++; if (wedTurn >= 0) wed.Add(wedTurn); if (childTurn >= 0) child.Add(childTurn);
+                if (w.IsDynastyDead)
+                {
+                    dead++; ends.Add($"   seed {seed}, year {w.Turn}: " + string.Join(" / ", w.History.Where(h => h.Text.Contains(houseName)).TakeLast(o.Turns > 0 && o.Turns < 60 ? o.Turns : 5).Select(h => $"[{h.Turn}] " + (h.Text.Length > 130 ? h.Text[..130] + "…" : h.Text))));
+                }
+                if (wedTurn >= 0) wed.Add(wedTurn); if (childTurn >= 0) child.Add(childTurn);
             }
             string Mid(List<int> xs) => xs.Count == 0 ? "never" : $"year {xs.OrderBy(x => x).ElementAt(xs.Count / 2)} (in {xs.Count} of {seeds})";
             Console.WriteLine($"== {sid}: the line ended in {dead} of {seeds} · the head wed by {Mid(wed)} · a child in the house by {Mid(child)}");
+            foreach (var e in ends) Console.WriteLine(e);   // how each one ended, so that a line lost can be told from a line unlucky
         }
         return 0;
     }

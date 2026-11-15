@@ -24,7 +24,7 @@ public static partial class LadderSystem
     public const string StandingFlag = "standing_for_office", MagistrateFlag = "is_magistrate", AedileFlag = "is_aedile";
     public const string ElectedChar = "newly_elected", StandingChar = "standing_for_office";
     public const string BlamedFlag = "kin_blames_the_head", BlamesChar = "blames_the_head"; public const int BlameRegard = 10;
-    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag, TrustFellFlag, TrustRestoredFlag, JuniorCaughtFlag };
+    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag, TrustFellFlag, TrustRestoredFlag, JuniorCaughtFlag, SpokenForFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -115,7 +115,7 @@ public static partial class LadderSystem
     /// <summary>The count: each house's weight to a candidate, and each candidate's own merit, backing and canvass.</summary>
     public static Dictionary<string, int> Tally(World w, OfficeCatalog offices, RungDef rung, List<Character> candidates, Func<string, int> weight)
     {
-        var tally = candidates.ToDictionary(c => c.Id, c => Merit(c) + TrustVotes(w, c) + (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id && cd.RungId == rung.Id)?.Backing ?? 0) + w.Counter(OrderSystem.CanvassKey(c.HouseId)));
+        var tally = candidates.ToDictionary(c => c.Id, c => Merit(c) + TrustVotes(w, c) + LifeSystem.TieVotes(w, c.HouseId) + (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id && cd.RungId == rung.Id)?.Backing ?? 0) + w.Counter(OrderSystem.CanvassKey(c.HouseId)));
         if (candidates.Count == 0) return tally;
         foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
@@ -335,6 +335,7 @@ public static partial class LadderSystem
     }
 
     /// <summary>The year's consequences of that trust: for the houses in office, for the commons, and for the house that holds the capital.</summary>
+    public const int TrustEstates = 2;
     private static void TrustYear(World w)
     {
         int t = Trust(w); var chair = RegionSystem.CapitalHolder(w); bool was = w.Counter(TrustLowKey) > 0;
@@ -342,11 +343,13 @@ public static partial class LadderSystem
         if (t < TrustLow)
         {
             if (chair is { Legitimacy: > 20 }) chair.Legitimacy -= 1;             // it is the chair that is blamed for what sits under it
-            foreach (var id in inOffice) PolicySystem.Sway(w, id, "commons", -3);
+            // the commons most; the merchants, who must go to those courts and deal with those desks; and the magistrates' own
+            // order, whose name it is
+            foreach (var id in inOffice) { PolicySystem.Sway(w, id, "commons", -3); PolicySystem.Sway(w, id, "merchants", -TrustEstates); PolicySystem.Sway(w, id, "magistrates", -TrustEstates); }
             if (!was) { w.WorldCounters[TrustLowKey] = 1; Mark(w, TrustFellFlag); w.Log("The Reach no longer believes its magistrates can be had for less than money. It is said openly in the squares, and the houses in office are the ones it is said about."); }
             return;
         }
-        if (t >= TrustHigh) foreach (var id in inOffice) { PolicySystem.Sway(w, id, "commons", 1); if (w.House(id) is { Legitimacy: < 70 } h) h.Legitimacy += 1; }
+        if (t >= TrustHigh) foreach (var id in inOffice) { PolicySystem.Sway(w, id, "commons", 1); PolicySystem.Sway(w, id, "merchants", 1); PolicySystem.Sway(w, id, "magistrates", 1); if (w.House(id) is { Legitimacy: < 70 } h) h.Legitimacy += 1; }
         if (was && t >= 50) { w.WorldCounters.Remove(TrustLowKey); Mark(w, TrustRestoredFlag); w.Log("The magistrates of the Reach are believed again, more or less. It took years, and it was done by people who could have taken the money."); }
     }
 
@@ -379,6 +382,13 @@ public static partial class LadderSystem
             Gift => b.HouseA.Length == 0 ? "Sit, and rise." : $"Take {GiftCredits} credits from {richer}, and rule for them. One time in three it comes out.",
             _ => ""
         };
+    }
+    /// <summary>Old ties in a court (docs/LIFE.md): a magistrate who has been the player's friend for years finds for the player's
+    /// house when it is before them, and an old enemy for the other side. The upright rule on the law, whoever is before them.</summary>
+    public static string? TieWinner(World w, OfficeBusiness b, Character judge)
+    {
+        var mine = w.Protagonist?.HouseId; if (mine == null || judge.HouseId == mine || (b.HouseA != mine && b.HouseB != mine)) return null;
+        return judge.Flags.Contains(LifeSystem.OldFriendChar) ? mine : judge.Flags.Contains(LifeSystem.OldEnemyChar) ? (b.HouseA == mine ? b.HouseB : b.HouseA) : null;
     }
     private static string FriendOf(World w, OfficeBusiness b, House? judge) => Regard(w, w.House(b.HouseA), judge) >= Regard(w, w.House(b.HouseB), judge) ? b.HouseA : b.HouseB;
     private static string RicherOf(World w, OfficeBusiness b) => (w.House(b.HouseA)?.Treasury.Credits ?? 0) >= (w.House(b.HouseB)?.Treasury.Credits ?? 0) ? b.HouseA : b.HouseB;
@@ -420,7 +430,7 @@ public static partial class LadderSystem
             case Nothing: if (Funds(w, who) >= WorksCredits) MoveTrust(w, -1); break;   // one who could have paid and did not is noticed; one who could not is merely poor
             case Law: case Friend: case Gift:
                 if (b.HouseA.Length == 0) break;
-                string winner = choice == Law ? b.RightId : choice == Friend ? FriendOf(w, b, house) : RicherOf(w, b), loser = winner == b.HouseA ? b.HouseB : b.HouseA;
+                string winner = choice == Law ? b.RightId : choice == Friend ? TieWinner(w, b, who) ?? FriendOf(w, b, house) : RicherOf(w, b), loser = winner == b.HouseA ? b.HouseB : b.HouseA;
                 var win = w.House(winner); var lose = w.House(loser); bool just = winner == b.RightId; b.WinnerId = winner;
                 if (win != null && lose != null) { int paid = Math.Min(Damages, Math.Max(0, lose.Treasury.Credits)); lose.Treasury.Credits -= paid; win.Treasury.Credits += paid; }
                 Shift(w, win, house, choice == Law ? 6 : choice == Friend ? 12 : 4); Shift(w, lose, house, choice == Law ? -6 : -12);
@@ -455,6 +465,7 @@ public static partial class LadderSystem
         bool honest = c.NatureTraits.Contains("Honorable") || c.NatureTraits.Contains("Just");
         bool grasping = !honest && (c.NatureTraits.Contains("Ruthless") || c.NatureTraits.Contains("Cruel") || c.Ambition == "amass_a_fortune");
         bool partial = !honest && (c.NatureTraits.Contains("Loyal") || c.NatureTraits.Contains("Vengeful") || Hash(c.Id + ":partial") % 3 == 0);
+        if (b.Kind == Case && !honest && TieWinner(w, b, c) != null) return Friend;   // an old friend, or an old enemy, of one of the parties
         if (b.Kind == Case) return grasping && Hash(b.Id + ":take") % 2 == 0 ? Gift : partial && !grasping ? Friend : Law;
         if (b.Kind == Works) return Funds(w, c) < WorksCredits ? Nothing : b.RegionId.Length > 0 && Hash(b.Id + ":works") % 2 == 0 ? Lanes : Grain;
         return grasping && Hash(b.Id + ":take") % 2 == 0 ? Favour : b.RegionId.Length > 0 && (honest || Hash(b.Id + ":relief") % 3 == 0) ? Relief : Straight;
@@ -493,6 +504,7 @@ public static partial class LadderSystem
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
         foreach (var c in w.Characters.Values) { if (!w.HasFlag(ElectedFlag) && !w.HasFlag(KinElectedFlag)) c.Flags.Remove(ElectedChar); c.Flags.Remove(StandingChar); }
         if (!w.HasFlag(ExposedFlag) && !w.HasFlag(KinExposedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(ExposedChar);
+        if (!w.HasFlag(SpokenForFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(SpokenForChar);
         if (!w.HasFlag(BlamedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(BlamesChar);
         if (!Active(w, offices)) { w.Magistrates.Clear(); w.Candidacies.Clear(); w.OfficeWork.Clear(); return; }
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null;

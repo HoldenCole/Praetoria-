@@ -26,10 +26,10 @@ public sealed class HouseholdSystem
 
     public const string FoundChar = "taken_in", AdoptedChar = "adopted", SkimmingChar = "skimming", WardOfAgeChar = "ward_of_age";
     // world flags re-reckoned every year
-    public const string FoundFamilyFlag = "found_family", HasMentorFlag = "has_mentor", HasProtegeFlag = "has_protege", HasWardFlag = "has_ward", PetitionFlag = "petition_at_the_door", DelegatedFlag = "duties_delegated";
+    public const string FoundFamilyFlag = "found_family", HasMentorFlag = "has_mentor", HasProtegeFlag = "has_protege", HasWardFlag = "has_ward", PetitionFlag = "petition_at_the_door", DelegatedFlag = "duties_delegated", UnpaidFlag = "household_unpaid";
     // world flags raised by a deed, kept through the next events phase
     public const string TookInFlag = "took_someone_in", AdoptedFlag = "adopted_an_heir", WardStayedFlag = "ward_stayed", WardLeftFlag = "ward_went_home", SkimsFlag = "steward_skims", MentorLostFlag = "mentor_lost", MentorTaughtFlag = "mentor_taught";
-    private static readonly string[] TickFlags = { FoundFamilyFlag, HasMentorFlag, HasProtegeFlag, HasWardFlag, PetitionFlag, DelegatedFlag };
+    private static readonly string[] TickFlags = { FoundFamilyFlag, HasMentorFlag, HasProtegeFlag, HasWardFlag, PetitionFlag, DelegatedFlag, UnpaidFlag };
     private static readonly string[] DeedFlags = { TookInFlag, AdoptedFlag, WardStayedFlag, WardLeftFlag, SkimsFlag, MentorLostFlag, MentorTaughtFlag, "kin_found_a_mentor" };
 
     private readonly HoldingCatalog _holdings; private readonly BusinessCatalog _ventures; private readonly TitleCatalog? _titles; private readonly TradeRules _trade; private readonly int _fuelHullsPerUnit;
@@ -55,6 +55,9 @@ public sealed class HouseholdSystem
     public static string KindName(string kind) => kind switch { Ward => "ward", Protege => "protégé", Companion => "companion", _ => "of the household" };
     public static List<Character> Found(World w, string houseId) =>
         w.LivingCharacters().Where(c => c.HouseId == houseId && IsFound(c)).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+    public const int KeepEach = 1, Stipend = 2;
+    /// <summary>What the household costs the treasury a year: the keep of those taken in, and the stipends of those who do the head's work.</summary>
+    public static int Keep(World w, House house) => Found(w, house.Id).Count * KeepEach + house.Duties.Count(d => w.Char(d.HolderId) is { Alive: true }) * Stipend;
     /// <summary>How many the house can keep who are not of its blood: two, and one more for each step of rank.</summary>
     public static int Room(House h) => 2 + Title.RankOf(h.Title);
 
@@ -193,6 +196,8 @@ public sealed class HouseholdSystem
         if (skill.Length == 0) { pupil.MentorId = ""; w.Log($"{mentor.Name} has taught {pupil.Name} what they had to teach."); return; }
         if (!EducationSystem.Step(w, pupil, skill)) return;
         Regard(w, pupil, mentor, 3); w.Log($"{pupil.Name} has learned something of {skill} from {mentor.Name}.");
+        // one of the house bringing on another of it is the head's to notice, or not
+        if (mentor.HouseId == pupil.HouseId && mentor.Id != w.ProtagonistId) { mentor.Flags.Add(EducationSystem.TaughtKinChar); EducationSystem.Mark(w, EducationSystem.KinTaughtFlag); }
     }
 
     /// <summary>What a mentor passes on: every third year, a step in the skill they are best at, while the pupil is behind them.</summary>
@@ -378,10 +383,26 @@ public sealed class HouseholdSystem
             if (w.Turn > d.Since && (w.Turn - d.Since) % PostYearsPerSkill == 0)
             {
                 string key = d.Role == Steward ? (holder.Skill("administration") >= holder.Skill("economics") ? "administration" : "economics") : (holder.Skill("logistics") >= holder.Skill("leadership") ? "logistics" : "leadership");
-                if (holder.Skill(key) < SkillFromPostCap) { holder.Skills[key] = holder.Skill(key) + 1; w.Log($"{holder.Name} has grown into the {RoleName(d.Role).ToLowerInvariant()}'s work."); }
+                if (holder.Skill(key) < Math.Min(SkillFromPostCap, EducationSystem.Ceiling(holder, key))) { holder.Skills[key] = holder.Skill(key) + 1; w.Log($"{holder.Name} has grown into the {RoleName(d.Role).ToLowerInvariant()}'s work."); }
             }
             if ((w.GetRelationship(holder.Id, p.Id)?.Disposition ?? 0) < 60) Regard(w, holder, p, 1);
         }
+
+        // Keeping them (docs/HOUSEHOLD.md): a credit a year for each who is not of the blood, and a stipend into the purse of whoever
+        // does the head's work. A house that cannot pay keeps them anyway, and they notice.
+        int unpaid = 0;
+        foreach (var c in Found(w, house.Id))
+        {
+            if (house.Treasury.Credits >= KeepEach) house.Treasury.Credits -= KeepEach;
+            else { unpaid++; if ((w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) > -20) Regard(w, c, p, -2); }
+        }
+        foreach (var d in house.Duties.OrderBy(d => d.Role, StringComparer.Ordinal))
+        {
+            if (w.Char(d.HolderId) is not { Alive: true } holder) continue;
+            if (house.Treasury.Credits >= Stipend) { house.Treasury.Credits -= Stipend; holder.Purse += Stipend; }
+            else { unpaid++; if ((w.GetRelationship(holder.Id, p.Id)?.Disposition ?? 0) > -20) Regard(w, holder, p, -2); }
+        }
+        if (unpaid > 0) { w.WorldFlags.Add(UnpaidFlag); w.Log($"{house.Name} cannot pay for its household this year. {unpaid} of its people go without, and know it."); }
 
         var found = Found(w, house.Id);
         if (found.Count > 0) w.WorldFlags.Add(FoundFamilyFlag);

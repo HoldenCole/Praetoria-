@@ -104,15 +104,38 @@ Eight tests. The soak passes on all eleven starts. The survival probe with healt
 died the next; the new head's record showed becoming head and a child; and the funerals read "…is dead at 69. At 68:
 laid down the headship of House Castellan in life… Nobody present can remember a promise of theirs broken."
 
+## The elder's year, and old ties at the count, in a court and in a match
+
+Closed straight off the register on 2026-11-15 (docs/GAPS.md F5, F6).
+
+**The elder.** One who laid the house down in life and is still of it is not idle. Each year, unless they are ill or
+frail, they do one thing nobody asked for, the first of these that applies:
+
+1. Two grown people of the house are at odds (either thinks −20 or worse of the other): the elder sits them down, and
+   each thinks 6 better of the other. The head is asked what they make of it.
+2. The head is carrying too much (stress 50 or more): the elder takes 6 of it.
+3. Somebody who heads another house still thinks 30 or better of the old head: the elder speaks for the new one, and
+   that person thinks 3 better of them.
+
+Those who were the elder's friends for eight years are the house's friends while the elder lives. The life panel says
+what the elder did last year.
+
+**Old ties.** They already counted in the Senate and in a civil war. Now also:
+
+- **At the count.** Old friends canvass for anyone of the house who stands, on the ladder or for the consulship: 2
+  votes for one who heads a house, 1 for anyone else, six at most. Old enemies cost the same.
+- **In a court.** A magistrate who is an old friend finds for the house when it is before them, whatever the law says;
+  an old enemy finds for the other side. The upright rule on the law, whoever is before them.
+- **In a match.** A family whose head is an old friend is readier to marry into the house (+10); an old enemy's is
+  not (−15).
+
 ## Not in this piece
 
 - **Only your house has a record.** Nobody else's deeds are kept, so nobody else has renown or a name, and only your own
   dead are spoken over.
 - **Reputation is only renown.** There is no ill fame: nothing a person does is held against them as a person.
-- **Old friends do little.** They deepen and are mourned; they do not come to your aid in the Senate or a war.
 - **No duels**, and no wound but in battle.
-- **A relative's ill health is shown but not acted on by you.** You cannot send a physician to someone else.
-- The elder teaches the new head and otherwise does nothing.
+- The elder cannot be asked for anything, and the elders of other houses do nothing (docs/GAPS.md F7).
 - Two of the seven events (the wound, the elder at the table) were not seen to fire in the soak.
 - The numbers are first guesses. Health makes the hale live a little longer and the very old die a little sooner; what
   that does to the length of a reign has only been checked for not breaking a line.

@@ -20,7 +20,7 @@ public static class LifeSystem
     // deeds
     public const string WoundedNowFlag = "wounded_now", FriendDiedFlag = "old_friend_died", EnemyDiedFlag = "old_enemy_died", FuneralFlag = "funeral_held", RetiredNowFlag = "head_retired";
     private static readonly string[] TickFlags = { AilingFlag, FrailFlag, IllFlag, OldFriendFlag, OldEnemyFlag, ElderFlag };
-    private static readonly string[] DeedFlags = { WoundedNowFlag, FriendDiedFlag, EnemyDiedFlag, FuneralFlag, RetiredNowFlag };
+    private static readonly string[] DeedFlags = { WoundedNowFlag, FriendDiedFlag, EnemyDiedFlag, FuneralFlag, RetiredNowFlag, ElderPeaceFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -257,5 +257,66 @@ public static class LifeSystem
         if (p.Flags.Contains(IllChar)) w.WorldFlags.Add(IllFlag);
         if (p.Health < Frail) w.WorldFlags.Add(FrailFlag); else if (p.Health < Sound) w.WorldFlags.Add(AilingFlag);
         if (w.LivingCharacters().Any(c => c.HouseId == house.Id && c.Id != p.Id && c.Flags.Contains(RetiredChar) && p.MentorId == c.Id)) w.WorldFlags.Add(ElderFlag);
+        Elder(w, p, house);
+    }
+
+    // ---------------- the elder's year, and what old ties are worth at the count ----------------
+
+    public const string ElderPeaceFlag = "elder_made_peace", PeaceMadeChar = "reconciled_by_the_elder";
+    public const int ElderPeace = 6, ElderEases = 6, ElderSpeaks = 3, QuarrelAt = -20, TieVoteHead = 2, TieVoteOther = 1, TieVotesMax = 6;
+
+    /// <summary>The one who laid the house down in life and is still of it.</summary>
+    public static Character? ElderOf(World w, House house) =>
+        w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Flags.Contains(RetiredChar) && c.Id != w.ProtagonistId).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+
+    /// <summary>An elder is not idle (docs/LIFE.md). Those who were their friends for years are still the house's friends while
+    /// they live. And each year, unless they are too unwell, they do one thing nobody asked for: sit two of the house down who are
+    /// at odds; or take some of the weight off a head who is carrying too much; or speak for the new head to someone who still
+    /// thinks well of the old one.</summary>
+    private static void Elder(World w, Character p, House house)
+    {
+        if (!w.HasFlag(ElderPeaceFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(PeaceMadeChar);
+        var e = ElderOf(w, house); if (e == null) return;
+        e.Life ??= new Life();
+        foreach (var id in e.Life.Friends.Keys.Where(id => w.Char(id) is not { Alive: true }).ToList()) e.Life.Friends.Remove(id);
+        foreach (var (id, since) in e.Life.Friends.Where(kv => w.Turn - kv.Value >= OldTieYears).OrderBy(kv => kv.Key, StringComparer.Ordinal))
+        {
+            var o = w.Char(id)!; if (o.HouseId == house.Id || p.Life!.Enemies.ContainsKey(id)) continue;
+            o.Flags.Add(OldFriendChar); w.WorldFlags.Add(OldFriendFlag); _ = since;
+        }
+        if (e.Flags.Contains(IllChar) || e.Health < Frail) { e.Life.Counsel = "Too unwell this year to do more than be there."; return; }
+        int Reg(Character a, Character b) => w.GetRelationship(a.Id, b.Id)?.Disposition ?? 0;
+        var grown = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= Adult && c.Id != e.Id).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
+        foreach (var a in grown)
+            foreach (var b in grown.Where(b => string.CompareOrdinal(a.Id, b.Id) < 0))
+            {
+                if (Math.Min(Reg(a, b), Reg(b, a)) > QuarrelAt) continue;
+                foreach (var (x, y) in new[] { (a, b), (b, a) }) { var r = w.Relationship(x.Id, y.Id); r.Disposition = Math.Clamp(r.Disposition + ElderPeace, -100, 100); }
+                a.Flags.Add(PeaceMadeChar); b.Flags.Add(PeaceMadeChar); Mark(w, ElderPeaceFlag);
+                e.Life.Counsel = $"Sat {a.Name} and {b.Name} down together. It is better between them than it was."; w.Log($"{e.Name} sits {a.Name} and {b.Name} down together, and it is better between them than it was."); return;
+            }
+        if (p.Stress >= 50) { p.Stress = Math.Max(0, p.Stress - ElderEases); e.Life.Counsel = $"Took some of the work off {p.Name}'s desk."; return; }
+        var friend = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).Select(h => Economy.HeadOf(w, h))
+            .Where(o => o is { Alive: true } && Reg(o, e) >= 30 && Reg(o, p) < 60).OrderByDescending(o => Reg(o!, e)).ThenBy(o => o!.Id, StringComparer.Ordinal).FirstOrDefault();
+        if (friend != null)
+        {
+            var r = w.Relationship(friend.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition + ElderSpeaks, -100, 100);
+            e.Life.Counsel = $"Spoke for {p.Name} to {friend.Name} of {w.House(friend.HouseId)?.Name}, who still thinks well of the old head."; return;
+        }
+        e.Life.Counsel = "Kept their own counsel this year.";
+    }
+
+    /// <summary>Old ties at the count (docs/LIFE.md): those who have been the head's friends for years canvass for the people of
+    /// the house, and old enemies against them. A head of a house counts for two.</summary>
+    public static int TieVotes(World w, string houseId)
+    {
+        var p = w.Protagonist; if (p is not { Alive: true } || p.HouseId != houseId) return 0;
+        int v = 0;
+        foreach (var c in w.LivingCharacters())
+        {
+            int tie = c.Flags.Contains(OldFriendChar) ? 1 : c.Flags.Contains(OldEnemyChar) ? -1 : 0; if (tie == 0 || c.HouseId == houseId) continue;
+            v += tie * (w.House(c.HouseId) is { } h && Economy.HeadOf(w, h)?.Id == c.Id ? TieVoteHead : TieVoteOther);
+        }
+        return Math.Clamp(v, -TieVotesMax, TieVotesMax);
     }
 }

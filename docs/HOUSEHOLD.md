@@ -112,12 +112,20 @@ year in three: someone of their own service, senior to them, eight years older a
 and of another house if there is nobody. Nobody tells them to, and the head hears of it afterwards (an event). A
 relative's mentor teaches as the head's own does. With the family's autonomy turned off, nobody goes looking.
 
+## What a household costs
+
+Closed straight off the register on 2026-11-15 (docs/GAPS.md H3). Each person taken in costs the treasury a credit a
+year. Whoever does the head's work (a steward, a marshal) is paid 2 a year into their own purse. A house that cannot
+pay keeps them all the same: each goes without, thinks 2 worse of the head that year, and an event asks what the head
+says about it. The household and wealth panels both show the yearly figure.
+
+Left, and mapped: the keep is the same for a child and a companion of sixty, and nobody ever leaves over it (H5).
+
 ## Not in this piece
 
 - Only the player's house has a household. Other houses do not take people in, adopt, or delegate.
-- Kin and household do not find mentors for themselves; only your own character has one, and you teach your protégés.
 - Wards are not hostages: nothing holds a house to good behaviour through a child in your keeping.
-- Keeping the household costs nothing.
+- The keep is the same for everyone, and a house that cannot pay loses nobody (docs/GAPS.md H5).
 - The two duties cover routine only. A steward does not buy and sell on the Exchange, set the tithe, or found ventures;
   a marshal does not move fleets or choose tactics.
 - Three of the six events were not seen to fire in the soak (they need a protégé, a dishonest steward or a lost mentor,

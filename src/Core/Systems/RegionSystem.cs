@@ -117,9 +117,15 @@ public sealed class RegionSystem
     public void GovernorRevolts(World w)
     {
         var g = w.Galaxy; if (g == null) return;
+        // A governor goes with the house that lost the world: when it is taken the chair is empty. (It used to stay filled, and a
+        // head of a house could be left "governing" a world another house had taken from them.) One the owner has seated from
+        // outside its own house stays.
+        foreach (var h in w.Holdings.Values.Where(h => h.GovernorId.Length > 0 && h.FormerOwnerId.Length > 0 && h.FormerOwnerId != h.OwnerId).OrderBy(h => h.Id, StringComparer.Ordinal))
+            if (w.Char(h.GovernorId) is not { Alive: true } seated || seated.HouseId == h.FormerOwnerId) h.GovernorId = "";
         foreach (var h in w.Holdings.Values.Where(h => h.IsPlanet && h.GovernorId.Length > 0 && !h.InRebellion).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             var house = w.House(h.OwnerId); var gov = w.Char(h.GovernorId); if (house == null || gov is not { Alive: true } || house.Id == PirateSystem.HouseId) continue;
+            if (gov.Id == w.ProtagonistId) continue;   // the player's own character does nothing the player did not choose
             var head = Economy.HeadOf(w, house); if (head == null || gov.Id == head.Id) continue;
             if (!gov.NatureTraits.Contains("Ambitious") || (w.GetRelationship(gov.Id, head.Id)?.Disposition ?? 0) > RevoltDisposition) continue;
             if (h.Unrest < 50 && h.Prosperity < 70) continue;

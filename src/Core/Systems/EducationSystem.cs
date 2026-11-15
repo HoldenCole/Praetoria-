@@ -21,9 +21,9 @@ public static class EducationSystem
         GoodTutorCredits = 2, BestTutorCredits = 5, EarnAptitudeAt = 7, ProdigyAt = 4;
     public const string ResistsFlag = "child_resists_lessons", ProdigyFlag = "child_prodigy", MasteryFlag = "mastery_gained", TutorDismissedFlag = "tutor_dismissed";
     public const string ResistsChar = "resists_lessons", ProdigyChar = "prodigy";
-    private static readonly string[] DeedFlags = { ProdigyFlag, MasteryFlag, TutorDismissedFlag, "kin_would_not_study" };
+    private static readonly string[] DeedFlags = { ProdigyFlag, MasteryFlag, TutorDismissedFlag, "kin_would_not_study", KinTaughtFlag };
 
-    private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
+    public static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
 
     public static string[] GroupSkills(string group) => group switch
@@ -62,7 +62,8 @@ public static class EducationSystem
         int v = 5 + Bent(c, skill);
         foreach (var (trait, s) in Gifts) if (s == skill && c.AptitudeTraits.Contains(trait)) { v += 3; break; }
         if (c.AptitudeTraits.Contains("Brilliant")) v += 1;
-        return Math.Clamp(v, 3, Max);
+        // one who is already further than that was written so, and what they have reached is evidently what was in them
+        return Math.Clamp(Math.Max(v, c.Skill(skill)), 3, Max);
     }
 
     /// <summary>The learning the next step costs from this level.</summary>
@@ -125,6 +126,50 @@ public static class EducationSystem
     /// <summary>Whether they would do it for the asking: the loyal and those who think well of the head will; the wilful who do not, will not.</summary>
     public static bool WouldStudy(World w, Character head, Character who, string skill) =>
         who.NatureTraits.Contains("Loyal") || RegardOf(w, who, head) >= (CourtshipSystem.Wilful(who) ? 40 : Bent(who, skill) < 0 ? 20 : 0);
+    public const int PriceNear = 4, PriceFar = 8, NearBy = 12, FarBy = 25, ThanksCredits = 4, ThanksRegard = 8, ThanksEvery = 3;
+    public const string KinTaughtFlag = "kin_taught_kin", TaughtKinChar = "taught_one_of_the_house";
+    /// <summary>What they would take to do it: nothing, if they would for the asking; a sum for their own purse, if they are not far
+    /// from saying yes; and −1 if they would not for anything.</summary>
+    public static int StudyPrice(World w, Character head, Character who, string skill)
+    {
+        if (WouldStudy(w, head, who, skill)) return 0;
+        int need = CourtshipSystem.Wilful(who) ? 40 : Bent(who, skill) < 0 ? 20 : 0, by = need - RegardOf(w, who, head);
+        return by <= NearBy ? PriceNear : by <= FarBy ? PriceFar : -1;
+    }
+    public static string? AskAndPayRefusal(World w, Character? head, Character? who, string skill)
+    {
+        if (head?.Alive != true || who?.Alive != true || who.Id == head.Id || who.HouseId != head.HouseId) return "not of your house";
+        if (who.Age < Adult) return "a child is brought up, not asked";
+        if (!All.Contains(skill)) return "no such study";
+        if (who.Skill(skill) >= Ceiling(who, skill)) return "they have gone as far in it as they can";
+        if (who.Study == skill) return "it is what they study already";
+        int price = StudyPrice(w, head, who, skill);
+        return price == 0 ? "they would do it for the asking" : price < 0 ? "they will not, for anything you could offer" : head.Purse >= price ? null : $"they would want {price} credits of your own, and your purse does not hold it";
+    }
+    /// <summary>The head asks, and pays what they would take. It is a bargain, and nobody thinks the worse of anybody.</summary>
+    public static void AskAndPay(World w, Character head, Character who, string skill)
+    {
+        int price = StudyPrice(w, head, who, skill); head.Purse -= price; who.Purse += price; who.Study = skill; who.Flags.Remove(StudyRefusedChar); w.WorldCounters[AskedKey(who.Id)] = w.Turn;
+        w.Log($"{who.Name} turns to {skill} for {price} credits of {head.Name}'s own. It was a bargain, and both of them call it one.");
+    }
+
+    private static string ThankedKey(string id) => "thanked_for_teaching:" + id;
+    /// <summary>The head thanks one of the house who has another of it under their wing, with a purse out of their own.</summary>
+    public static string? ThankRefusal(World w, Character? head, Character? pupil)
+    {
+        if (head?.Alive != true || pupil?.Alive != true || pupil.HouseId != head.HouseId) return "not of your house";
+        var teacher = pupil.MentorId.Length > 0 ? w.Char(pupil.MentorId) : null;
+        if (teacher?.Alive != true || teacher.Id == head.Id || teacher.HouseId != head.HouseId) return "nobody of the house is teaching them";
+        if (w.WorldCounters.TryGetValue(ThankedKey(teacher.Id), out int last) && w.Turn - last < ThanksEvery) return "you thanked them not long ago";
+        return head.Purse >= ThanksCredits ? null : $"needs {ThanksCredits} credits of your own";
+    }
+    public static void Thank(World w, Character head, Character pupil)
+    {
+        var teacher = w.Char(pupil.MentorId)!; head.Purse -= ThanksCredits; teacher.Purse += ThanksCredits; w.WorldCounters[ThankedKey(teacher.Id)] = w.Turn;
+        var r = w.Relationship(teacher.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition + ThanksRegard, -100, 100);
+        w.Log($"{head.Name} thanks {teacher.Name} for what they are doing for {pupil.Name}, and not only in words.");
+    }
+
     /// <summary>The head asks one of the house to turn their study to something. It is theirs to say yes to.</summary>
     public static bool Ask(World w, Character head, Character who, string skill)
     {
@@ -220,6 +265,7 @@ public static class EducationSystem
         var p = w.Protagonist; var mine = p != null ? w.House(p.HouseId) : null;
         if (!w.HasFlag(ProdigyFlag)) foreach (var ch in w.Characters.Values) ch.Flags.Remove(ProdigyChar);
         if (!w.HasFlag(StudyRefusedFlag)) foreach (var ch in w.Characters.Values) ch.Flags.Remove(StudyRefusedChar);
+        if (!w.HasFlag(KinTaughtFlag)) foreach (var ch in w.Characters.Values) ch.Flags.Remove(TaughtKinChar);
 
         // tutors are paid for, or let go
         if (mine != null)
@@ -235,6 +281,7 @@ public static class EducationSystem
         var officers = w.Offices.Select(o => o.CharacterId).ToHashSet();
         var magistrates = w.Magistrates.GroupBy(m => m.CharacterId).ToDictionary(g => g.Key, g => g.First().OfficeId);
         var heads = w.Houses.Values.Select(h => Economy.HeadOf(w, h)?.Id ?? "").Where(id => id.Length > 0).ToHashSet();
+        var libraries = w.Heirlooms.Where(h => h.Kind == "library").Select(h => w.Char(h.HolderId)).Where(c => c is { Alive: true }).Select(c => c!.HouseId).ToHashSet();
 
         foreach (var c in w.LivingCharacters().Where(c => c.Age >= SchoolAge).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
         {
@@ -264,7 +311,7 @@ public static class EducationSystem
             // by study: their own choice, the protagonist's included
             bool player = p != null && c.Id == p.Id;
             if (!player && (c.Study.Length == 0 || c.Skill(c.Study) >= Ceiling(c, c.Study))) c.Study = ChooseStudy(w, c);
-            if (c.Study.Length > 0) Gain(w, c, c.Study, StudyPoints + TutorPoints(c.Tutor));
+            if (c.Study.Length > 0) Gain(w, c, c.Study, StudyPoints + TutorPoints(c.Tutor) + (libraries.Contains(c.HouseId) ? WealthSystem.LibraryPoints : 0));
         }
     }
 }

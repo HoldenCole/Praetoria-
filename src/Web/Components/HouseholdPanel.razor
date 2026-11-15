@@ -5,12 +5,15 @@
     var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!;
     var found = HouseholdSystem.Found(w, house.Id); int room = HouseholdSystem.Room(house);
     var eligible = HouseholdSystem.Eligible(w, house);
+    int keep = HouseholdSystem.Keep(w, house); string keepLine = keep > 0 ? " · costs " + keep + " a year" : "";
     var mentor = p.MentorId.Length > 0 ? w.Char(p.MentorId) : null;
     string Rank(Character x) => c.Careers.RankName(x.CareerTrack, x.CareerRank, w.Era) ?? (x.Age < 16 ? "a child" : "of no office");
     string Best(Character x) => x.Skills.Count == 0 ? "no training" : string.Join(", ", x.Skills.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(3).Select(kv => $"{kv.Key} {kv.Value}"));
 }
 <section class="panel household">
-    <h3><Icon Name="houses" Size="13" /> Found family and duties <span class="muted">@found.Count of @room taken in · @house.Duties.Count handed on</span></h3>
+    <h3><Icon Name="houses" Size="13" /> Found family and duties <span class="muted">@found.Count of @room taken in · @house.Duties.Count handed on@(keepLine)</span></h3>
+    @if (w.HasFlag(HouseholdSystem.UnpaidFlag)) { <div class="small bad">The treasury could not pay for the household this year. They stay, and think the worse of it.</div> }
+    else if (keep > 0) { <div class="muted small">@KeepNote</div> }
 
     <div class="hh-cols">
     <div>
@@ -154,6 +157,7 @@
 </section>
 
 @code {
+    private static readonly string KeepNote = $"Each person taken in costs the treasury {HouseholdSystem.KeepEach} a year; whoever does your work is paid {HouseholdSystem.Stipend} a year into their own purse.";
     // A panel with no parameters is not redrawn when its parent is, so it listens for the world changing itself: without this
     // it showed last year's figures after End Turn until something in it was clicked.
     protected override void OnInitialized() => G.Changed += Redraw;
