@@ -392,6 +392,33 @@ public sealed class AmbitionSystem
         }
     }
 
+    public const int SecondStartYears = 6, SecondStartRegard = 10; public const string SecondStartsKey = "second_starts";
+    /// <summary>What a second start would found and cost, or why there can be none.</summary>
+    public (string? refusal, string what, int cost) SecondStartOffer(World w, Character? head, Character? who, CommandContext ctx)
+    {
+        var house = head != null ? w.House(head.HouseId) : null; if (head?.Alive != true || house == null || Economy.HeadOf(w, house)?.Id != head.Id) return ("only the head of the house can", "", 0);
+        if (who?.Alive != true || who.HouseId != house.Id || who.Id == head.Id) return ("not one of your house", "", 0);
+        int failed = w.Counter(VentureSystem.FailedFounderKey(who.Id)); if (failed <= 0) return ("nothing they founded has failed", "", 0);
+        if (w.Turn - failed > SecondStartYears) return ("it is too long ago: they have given it up", "", 0);
+        if (w.Businesses.Values.Any(b => b.FounderId == who.Id && b.OwnerId == house.Id) || w.Founders.Values.Contains(who.Id)) return ("they have a venture of their own again", "", 0);
+        var open = Opening(w, house, who, ctx, house.Treasury.Credits);
+        return open == null ? ("the treasury can found nothing for them now", "", 0) : (null, open.Value.def.Name, open.Value.cost);
+    }
+    /// <summary>The head stakes a founder whose venture failed to another. It is the house's money and the founder's venture;
+    /// the failure is not forgotten, but it is no longer the last word.</summary>
+    public bool SecondStart(World w, Character head, Character who, CommandExecutor executor, CommandContext ctx)
+    {
+        var house = w.House(head.HouseId)!; var open = Opening(w, house, who, ctx, house.Treasury.Credits); if (open == null) return false; var (def, sys, _) = open.Value;
+        if (!executor.TryExecute(new FoundBusinessCommand(who.Id, def.Id, sys, _ventures, _holdings, _titles), ctx)) return false;
+        w.Founders[FoundBusinessCommand.IdFor(house.Id, def.Id, sys)] = who.Id; w.WorldCounters.Remove(VentureSystem.FailedFounderKey(who.Id));
+        var r = w.Relationship(who.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition + SecondStartRegard, -100, 100);
+        if (who.Pursuit is { Setbacks: > 0 } u) { u.Setbacks--; u.Note = $"Given a second start: founded {def.Name}."; }
+        LifeSystem.Note(w, who, "venture", $"Was given a second start by {head.Name}, and founded {def.Name}.");
+        w.WorldCounters[SecondStartsKey] = w.Counter(SecondStartsKey) + 1;
+        w.Log($"{head.Name} stakes {who.Name} to a second start: {def.Name}, for {house.Name}.");
+        return true;
+    }
+
     public const string FounderStakesKey = "founder_stakes";
     /// <summary>What a venture pays the one who founded it each year, out of what it brings the house.</summary>
     public static int FounderStake(Business b) => Math.Max(1, b.Level);

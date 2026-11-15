@@ -260,4 +260,87 @@ public class VentureTests
         w.Turn++; vs.Tick(w); Assert.Equal(0, fresh.LosingYears); Assert.Equal(0, held.LosingYears);
         Assert.Contains("company", vs.PropRefusal(w, mine, held));
     }
+
+    // ---------------- a failing venture, beyond its owner and beyond one cause (docs/GAPS.md A7) ----------------
+
+    /// <summary>A venture of another house on the ruined, lawless world, under an embargo of its own: it earns nothing.</summary>
+    private static Business LosingFor(World w, VentureSystem vs, string owner, string id)
+    {
+        w.Holding("barony")!.Prosperity = 0; RegionSystem.StateOf(w, "rim").Lawlessness = 100; w.WorldCounters["embargo:" + owner] = w.Turn + 50;
+        foreach (var def in Content.Businesses.Defs.OrderBy(d => d.Id, StringComparer.Ordinal))
+        {
+            var b = Put(w, id, owner, def.Id, "tessaly"); b.Founded = w.Turn - 5;
+            if (vs.Earnings(w, b) <= 0) return b;
+            w.Businesses.Remove(id);
+        }
+        throw new Xunit.Sdk.XunitException("no kind of venture earns nothing there");
+    }
+
+    [Fact]
+    public void A7_Another_house_that_minds_its_books_carries_a_failing_venture_or_sells_it_before_it_is_wound_up()
+    {
+        var (w, _, vs) = Reach(); var corwin = w.House("corwin")!; w.Char("corwin_head")!.Skills["economics"] = 2;
+        var b = LosingFor(w, vs, "corwin", "theirs"); vs.Tick(w); Assert.Equal(1, b.LosingYears);
+        // rich enough: it is carried, and has three more years
+        int credits = corwin.Treasury.Credits, cost = vs.PropCost(w, b); w.Turn++; vs.Tick(w);
+        Assert.Equal(0, b.LosingYears); Assert.Equal(credits - cost, corwin.Treasury.Credits); Assert.Equal(1, w.Counter(VentureSystem.CarriedByOthersCounter));
+        // too poor to carry it: it is sold while it is still worth more than its salvage halved
+        w.Turn++; vs.Tick(w); corwin.Treasury.Credits = 5; int fetch = vs.MarketPrice(w, b); Assert.True(fetch > vs.WoundUp(b));
+        w.Turn++; vs.Tick(w);
+        Assert.Null(w.Business("theirs")); Assert.Equal(5 + fetch, corwin.Treasury.Credits); Assert.Equal(1, w.Counter(VentureSystem.SoldFailingCounter)); Assert.Equal(0, w.Counter(VentureSystem.FailedCounter));
+        Assert.False(VentureSystem.BadName(w, "corwin"));
+        // every failing venture of a house is carried, sold or wound up: none is left standing in its fourth losing year
+        w.Char("corwin_head")!.Skills["economics"] = 0; corwin.Treasury.Credits = 0;
+        for (int i = 0; i < 9; i++) LosingFor(w, vs, "corwin", "n" + i);
+        for (int y = 0; y < 3; y++) { w.Turn++; vs.Tick(w); }
+        Assert.DoesNotContain(w.Businesses.Values, x => x.Id.StartsWith("n"));
+        Assert.Equal(9, w.Counter(VentureSystem.SoldFailingCounter) - 1 + w.Counter(VentureSystem.FailedCounter)); Assert.True(w.Counter(VentureSystem.FailedCounter) > 0, "a head who does not mind the books lets some go");
+        // the player is never acted for: their own is left to them, with a warning
+        var mine = LosingFor(w, vs, "vega", "mine"); w.Turn++; vs.Tick(w); w.Turn++; vs.Tick(w); Assert.Equal(2, mine.LosingYears); Assert.True(w.HasFlag(VentureSystem.FailingFlag));
+    }
+
+    [Fact]
+    public void A7_A_failure_pays_those_the_house_owes_first_and_leaves_it_a_name_for_bad_business()
+    {
+        var (w, _, vs) = Reach(); var mine = w.House("vega")!; var b = Losing(w, vs); int back = vs.WoundUp(b); Assert.True(back >= 2);
+        mine.Debt = 1; mine.LenderId = "aurelian"; int merchants = PolicySystem.Approval(w, "vega", "merchants"), commons = PolicySystem.Approval(w, "vega", "commons");
+        vs.Tick(w); w.Turn++; vs.Tick(w); int credits = mine.Treasury.Credits; w.Turn++; vs.Tick(w);
+        Assert.Equal(0, mine.Debt); Assert.Equal("", mine.LenderId); Assert.Equal(credits + back - 1, mine.Treasury.Credits); Assert.Equal(1, w.Counter(VentureSystem.CreditorsCounter));
+        Assert.Equal(merchants - VentureSystem.FailMerchants, PolicySystem.Approval(w, "vega", "merchants")); Assert.Equal(commons - VentureSystem.FailCommons, PolicySystem.Approval(w, "vega", "commons"));
+        Assert.Contains(w.History, h => h.Text.Contains("to those the house owes"));
+        // a name for bad business: for five years buyers bid a tenth less for what the house sells
+        Assert.True(VentureSystem.BadName(w, "vega")); w.Holding("barony")!.Prosperity = 80; RegionSystem.StateOf(w, "rim").Lawlessness = 0; w.WorldCounters.Remove("embargo:vega");
+        var good = Content.Businesses.Defs.OrderBy(d => d.Id, StringComparer.Ordinal).Select(d => { var x = Put(w, "good_" + d.Id, "vega", d.Id, "tessaly"); x.Founded = w.Turn - 5; return x; }).First(x => vs.Earnings(w, x) > 0 && vs.Bid(w, "aurelian", x) > 0);
+        int low = vs.Bid(w, "aurelian", good); w.Turn += VentureSystem.BadNameYears; Assert.False(VentureSystem.BadName(w, "vega")); Assert.True(vs.Bid(w, "aurelian", good) > low);
+    }
+
+    [Fact]
+    public void A7_A_companys_venture_is_carried_out_of_the_companys_cash_once_and_then_closed()
+    {
+        var (w, _, vs) = Reach(); var co = new Company { Id = "co_t", Name = "The Test Company", ControllerId = "vega", Shares = 100, Cash = 500 }; co.Holders["vega"] = 100; w.Companies.Add(co);
+        var b = Losing(w, vs); b.CompanyId = co.Id; int cost = vs.PropCost(w, b);
+        vs.Tick(w); w.Turn++; vs.Tick(w); Assert.Equal(2, b.LosingYears); Assert.False(w.HasFlag(VentureSystem.FailingFlag));
+        w.Turn++; vs.Tick(w); Assert.Equal(0, b.LosingYears); Assert.Equal(500 - cost, co.Cash); Assert.Equal(1, w.Counter(VentureSystem.CompanyCarriedCounter));
+        co.Cash = 0; int back = vs.WoundUp(b); for (int y = 0; y < 3; y++) { w.Turn++; vs.Tick(w); }
+        Assert.Null(w.Business("losing")); Assert.Equal(back, co.Cash); Assert.True(co.Flow < 0); Assert.Equal(1, w.Counter(VentureSystem.CompanyClosedCounter));
+        Assert.Equal(0, w.Counter(VentureSystem.FailedCounter)); Assert.False(VentureSystem.BadName(w, "vega")); Assert.Contains(w.History, h => h.Text.Contains("The Test Company closes"));
+    }
+
+    [Fact]
+    public void A7_When_a_world_is_stormed_some_of_the_enemys_ventures_there_are_sacked()
+    {
+        var (w, _, vs) = Reach(); var kin = new Character { Id = "kin", Name = "Test Kin", HouseId = "vega", Age = 30, Alive = true }; w.Characters["kin"] = kin; w.House("vega")!.Members.Add("kin");
+        string kind = Content.Businesses.Defs.OrderBy(d => d.Id, StringComparer.Ordinal).First().Id;
+        for (int i = 0; i < 8; i++) Put(w, "s" + i, "vega", kind, "tessaly").FounderId = "kin";
+        Put(w, "neutral", "aurelian", kind, "tessaly"); Put(w, "elsewhere", "vega", kind, "mid1");
+        Assert.Equal(0, VentureSystem.Sack(w, "tessaly", "corwin"));   // no war, no sack
+        w.Wars.Add(new War { HouseA = "vega", HouseB = "corwin" }); int credits = w.House("corwin")!.Treasury.Credits, home = w.House("vega")!.Treasury.Credits;
+        int n = VentureSystem.Sack(w, "tessaly", "corwin");
+        Assert.InRange(n, 1, 7); Assert.Equal(8 - n, w.Businesses.Values.Count(b => b.Id.StartsWith("s"))); Assert.NotNull(w.Business("neutral")); Assert.NotNull(w.Business("elsewhere"));
+        Assert.Equal(credits + n * VentureSystem.SackPlunder, w.House("corwin")!.Treasury.Credits); Assert.Equal(home, w.House("vega")!.Treasury.Credits);
+        Assert.Equal(n, w.Counter(VentureSystem.SackedCounter)); Assert.True(w.HasFlag(VentureSystem.SackedFlag)); Assert.Equal(w.Turn, w.Counter(VentureSystem.FailedFounderKey("kin")));
+        Assert.Contains(kin.Life!.Deeds, d => d.Text.Contains("sacked"));
+        Fires(w, "a_venture_is_sacked");
+        vs.Tick(w); Assert.False(w.HasFlag(VentureSystem.SackedFlag));
+    }
 }

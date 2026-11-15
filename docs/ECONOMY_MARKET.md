@@ -276,8 +276,8 @@ never go wrong. Now every venture a house owns outright is reckoned at the start
   gives the thing up.
 
 A venture stops paying for the reasons its earnings already answer to: a world brought low, lawless lanes, an
-embargo, a war with the world's holder, prices that have turned. Nothing new was invented to make it fail. A venture
-held by a company is the company's affair and is not judged here.
+embargo, a war with the world's holder, prices that have turned. Nothing new was invented to make it fail. (A
+company's venture was not judged then. It is now: see section 13.)
 
 Measured before the rule was fixed (ten runs of one start): 3% of venture-years went without a profit, and the
 unprofitable ones stayed so, which is what makes three years the right length: about twenty ventures a run are wound
@@ -290,3 +290,35 @@ credits"; docs/GAPS.md W1). A person buys out of their own purse at the price a 
 company, is paid their dividend into their purse, and is paid out like a house when a company is wound up. A
 person's shares are out of the float but carry no vote: who directs a company is still reckoned among houses only,
 and a company no house holds is still wound up, with its private holders paid. What is left is W10.
+
+## 13. A failing venture, beyond its owner and beyond one cause (2026-11-15)
+
+Closed off the register (docs/GAPS.md A7). Section 11 gave a venture one way to fail and only the player a way to
+stop it.
+
+- **Other houses act.** A year from being wound up, a house whose head knows economics (2 or better), or which sits
+  with the Factors, or one house in three otherwise, does something. If it has the cost of carrying the venture and
+  60 credits beside, it carries it. If not, it sells: to the best bidder among the other houses, or on the open
+  market, which pays more than a winding up would. The rest let it go. The player is never sold to unasked.
+- **A company's venture is judged** like any other. After three years without a profit the company carries it out of
+  its own cash if it has the cost and 20 beside; otherwise it closes it, takes half the salvage into its cash, and
+  its shares are sold off a little (a twentieth of them, as selling pressure).
+- **A failure costs more than money.** Those the house owes are paid out of what comes back before the house is. The
+  merchants think 3 worse of the house and the commons 1. And for five years the house has **a name for bad
+  business**: other houses bid a tenth less for any venture it sells. The Exchange screen says so.
+- **A second cause: sacked.** When a world falls to a siege, about half the ventures there that belong to houses at
+  war with whoever took it are sacked. Nothing comes back to the owner; the taker carries off 4 credits a level. A
+  founder of the owner's house has failed at it, as if it had been wound up. An event for the head.
+- **A second start.** For six years after a venture they founded fails or is sacked, the head can stake its founder
+  to another: the house founds the cheapest venture it can, in the founder's name. They think 10 better of the head
+  and one of their setbacks is taken off. The button is on the founder's line in the ambitions panel.
+
+Measured over sixty runs of sixty years: 697 failing ventures were carried by their houses and 575 sold before they
+failed; 469 were still wound up (1,074 before this); companies carried 5 and closed 28; 189 were sacked. About as
+many ventures stood at the end as before (7,064 against 7,082).
+
+Not seen in play: nothing was paid to creditors out of a failure (houses in debt seldom own a failing venture), and
+no second start was given, in the probe or the soak. Both are proved by tests.
+
+Found while building it, and mapped (A8): a sacked venture is never claimed at the peace or rebuilt; a company only
+carries or closes a failing venture and never sells it; other houses give no founder a second start.

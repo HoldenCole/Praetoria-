@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **A failing venture, beyond its owner** (docs/ECONOMY_MARKET.md, section 13; docs/GAPS.md A7). Other houses now
+  carry a failing venture or sell it before it is wound up. A company carries or closes its own. A failure pays
+  those the house owes first, costs it with the merchants and the commons, and leaves it a name for bad business
+  for five years: buyers bid a tenth less for what it sells. A venture on a world that is stormed may be sacked. And
+  you can stake a founder whose venture failed to a second start, from the ambitions panel. An event for a sack.
 - **Shares in your own name** (docs/WEALTH.md, "A purse that holds more than credits"; docs/GAPS.md W1). You can buy
   shares out of your own purse, up to a tenth of a company. What they pay goes into your purse, not the treasury;
   they are not the house's, give it no say in the company, and go by your will. Relatives with a head for money buy

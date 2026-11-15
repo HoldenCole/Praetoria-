@@ -820,6 +820,7 @@ public sealed class FleetSystem
     {
         string old = h.OwnerId;
         h.OwnerId = conqueror; h.FormerOwnerId = old;
+        if (h.IsPlanet) VentureSystem.Sack(w, h.SystemId, conqueror);   // some of the enemy's ventures there do not survive the storming (docs/ECONOMY_MARKET.md)
         h.Unrest = Math.Clamp(h.Unrest + _rules.ConquestUnrest, 0, 100);
         w.Wars.FirstOrDefault(x => x.Between(old, conqueror))?.AddScore(conqueror, 3);
         if (conqueror == player)

@@ -781,4 +781,24 @@ public class RegisterTests
         Assert.Equal(2, Assert.Single(AmbitionSystem.StakesOf(w, friend)).Stake); mine.Treasury.Credits = 50; int purse = friend.Purse;
         w.Turn++; tc.Ambitions.Tick(w, tc.Executor, ctx); Assert.Equal(purse + 2, friend.Purse); Assert.Equal(2, w.Counter(AmbitionSystem.FounderStakesKey));
     }
+
+    // ---------------- A7: a second start for a founder ----------------
+
+    [Fact]
+    public void A7_The_head_can_stake_a_founder_whose_venture_failed_to_a_second_start()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Alone(w, mine, me); var k = Blood(w, me, Kin(w, mine, me, "founder")); var sys = tc.Ambitions; mine.Treasury.Credits = 500; w.Turn = 20;
+        Assert.Equal("nothing they founded has failed", sys.SecondStartOffer(w, me, k, ctx).refusal);
+        w.WorldCounters[VentureSystem.FailedFounderKey(k.Id)] = w.Turn - AmbitionSystem.SecondStartYears - 1; Assert.Contains("too long ago", sys.SecondStartOffer(w, me, k, ctx).refusal);
+        w.WorldCounters[VentureSystem.FailedFounderKey(k.Id)] = w.Turn; mine.Treasury.Credits = 0; Assert.Contains("treasury", sys.SecondStartOffer(w, me, k, ctx).refusal);
+        mine.Treasury.Credits = 500; var offer = sys.SecondStartOffer(w, me, k, ctx); Assert.Null(offer.refusal); Assert.True(offer.cost > 0); Assert.NotEqual("", offer.what);
+        Assert.Equal("only the head of the house can", sys.SecondStartOffer(w, k, me, ctx).refusal);
+        int ventures = w.BusinessesOf(mine.Id).Count() + w.Projects.Count(p => p.OwnerId == mine.Id), regard = w.Relationship(k.Id, me.Id).Disposition;
+        Assert.True(Do(w, new AmbitionCommand(me.Id, AmbitionCommand.SecondStart, k.Id, sys)));
+        Assert.Equal(ventures + 1, w.BusinessesOf(mine.Id).Count() + w.Projects.Count(p => p.OwnerId == mine.Id)); Assert.True(mine.Treasury.Credits < 500); Assert.Contains(k.Id, w.Founders.Values);   // it is begun: a venture takes time to stand
+        Assert.Equal(regard + AmbitionSystem.SecondStartRegard, w.Relationship(k.Id, me.Id).Disposition); Assert.Equal(0, w.Counter(VentureSystem.FailedFounderKey(k.Id))); Assert.Equal(1, w.Counter(AmbitionSystem.SecondStartsKey));
+        Assert.Contains(k.Life!.Deeds, d => d.Text.Contains("second start"));
+        Assert.False(Do(w, new AmbitionCommand(me.Id, AmbitionCommand.SecondStart, k.Id, sys)));
+        Assert.NotNull(sys.SecondStartOffer(w, me, k, ctx).refusal);
+    }
 }

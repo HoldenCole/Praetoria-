@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (twenty-seventh pass: shares in a person's own name; W1 closed, W10 mapped).
+Last updated 2026-11-15 (twenty-eighth pass: a failing venture beyond its owner; A7 closed, A8 mapped).
 
 ## The worklist
 
@@ -18,7 +18,7 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | A7, W9, W10 | What the last three passes left behind: other houses and a failing venture; a standard asked back and gifts between houses; a venture held outright by a person | next |
+| 1 | W9, W10 | A standard asked back and gifts between houses; a venture held outright by a person | next |
 
 **No small gap is left that is not the owner's.** What remains is a cycle or more each.
 
@@ -101,7 +101,7 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| A7 | A venture fails for one reason, three years without a profit, and only its owner can do anything about it. Other houses never carry or sell one that is failing; a company's venture is never judged; a failure costs the house the money and nothing else (no creditors, no people put out of work, no name for bad business); and a founder cannot be given a second start. | M | The economy |
+| A8 | A sacked venture is gone for good: it is never claimed at the peace or rebuilt. A company only carries or closes a failing venture, and never sells it. Other houses give no founder a second start. In sixty runs nothing was paid to creditors out of a failure, because houses in debt seldom own a failing venture. | M | The economy |
 | W10 | A venture is the house's even when one of its people founded it: the founder draws a stake, but the head can sell it over their head and they have no say. No world is a person's. Shares in a person's own name carry no vote in the company, even alongside their house's. | M | X1 |
 | W9 | A standard lost is never fought for or asked back, and the house that lost it thinks no worse of whoever flies it. A relative never has anything made with their own money: only the head does, and the heads of other houses. A gift between houses comes only at a wedding, never to mend a quarrel or to ask a favour. | M | |
 | E1 | Only your own character goes to the Academy. | M | |
@@ -188,3 +188,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | A6 | A venture never fails, so a founder's failure is never marked. | 2026-11-15 | A venture a house owns outright that earns nothing or loses money three years running is wound up: half its salvage comes back and it is gone. The owner is warned a year before, and can put money in to wipe the count out, or sell. If one of the house founded it, that is a failure of their own, written into their life and counted against what they want. In sixty runs 1,063 ventures were wound up (about eighteen a run, of some hundred and twenty standing); a year without a profit was 1 to 3% of venture-years. The Republic stood in all sixty. A7 is what is left. |
 | W8 | An heirloom is one of four kinds with one fixed effect, and no house ever comes by a new one: nothing is commissioned, won, or given by another house. | 2026-11-15 | Three new kinds, each come by its own way. A shrine (or a library) is made to order out of a person's own purse, one to a house: the commons think a point better of the house each year. A standard is taken in about one victory in four by whoever commanded, and is theirs: flown from their flagship, that fleet grows a point more loyal each year. Plate is sent by the other house at about one wedding in twelve, to the one who married: holder and sender think a point better of each other each year, and selling it is taken badly. Other houses have things made too. In sixty runs 209 were made, 99 standards taken and 401 gifts sent; 30% of houses ended holding something they were not born with. The Republic stood in all sixty. What is left is W9. |
 | W1 | A purse holds credits only: no shares, ventures or worlds held personally. | 2026-11-15 | A person buys shares in their own name out of their purse, up to a tenth of a company. What they pay goes into the purse, not the treasury; they give the house no say and are not taken with the house's; they go by the will. Relatives with a head for money buy for themselves, and one in debt sells. Every founder of a venture draws a stake from it, not only one who wanted a fortune. In sixty runs relatives bought 3,042 shares, which paid 7,162 credits into purses; 124 people held some at the end. The Republic stood in all sixty. Ventures and worlds held outright, and a vote for personal shares, are W10. |
+| A7 | A venture fails for one reason, three years without a profit, and only its owner can do anything about it. Other houses never carry or sell one that is failing; a company's venture is never judged; a failure costs the house the money and nothing else; and a founder cannot be given a second start. | 2026-11-15 | A house that minds its books carries a failing venture if it is rich enough and sells it if not; the rest let it go. A company carries its own out of its cash once, or closes it. A failure pays the house's creditors first, costs it with the merchants and the commons, and leaves it a name for bad business for five years (a tenth off every bid). A venture on a world that is stormed may be sacked: a second cause. The head can stake a founder to a second start for six years after. In sixty runs 697 were carried, 575 sold, 469 wound up (1,074 before), 189 sacked. The Republic stood in all sixty. What is left is A8. |

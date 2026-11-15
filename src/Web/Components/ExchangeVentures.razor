@@ -10,6 +10,7 @@
 <div class="dash-grid exchange-grid">
     <section class="panel">
         <h3><Icon Name="trade_hub" Size="13" /> Your ventures <span class="muted">@mine.Count · earning @earns credits a year at this year's prices · worth @worth</span></h3>
+        @if (VentureSystem.BadName(w, w.Protagonist!.HouseId)) { <div class="row small"><span class="pill warn" title="A venture of the house failed and was wound up. Buyers know it: they bid a tenth less for anything the house sells, until the year is out.">A name for bad business until year @w.Counter(VentureSystem.BadNameKey(w.Protagonist!.HouseId))</span> <span class="muted">Other houses bid a tenth less for what you sell.</span></div> }
         @if (mine.Count == 0) { <div class="muted">The house owns no venture. Found one below, or buy one from a house that needs the coin.</div> }
         @foreach (var b in mine)
         {

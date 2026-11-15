@@ -57,6 +57,16 @@
         "take_the_loss_and_say_nothing": "Take the loss and say nothing.",
         "find_out_whose_fault_it_was": "Find out whose fault it was."
       }
+    },
+    {
+      "id": "a_venture_is_sacked",
+      "title": "Sacked With The World",
+      "body": "The world fell, and one of the house's ventures fell with it. The men who took the place went through the yard and the warehouses before their officers had them in hand again. What they could not carry they burned. Nothing of it comes back to the treasury: there is nothing to wind up.",
+      "choices": {
+        "see_to_its_people": "See to the people who worked there.",
+        "it_goes_on_the_bill": "Write it down for the peace.",
+        "it_was_a_war": "It was a war."
+      }
     }
   ]
 }

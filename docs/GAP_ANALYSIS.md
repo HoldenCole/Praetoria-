@@ -1882,3 +1882,29 @@ private buying moves share prices, and through them the houses' money; it was no
 
 **Left, and mapped.** A venture or a world held outright by a person, and a vote for shares held in a person's name
 (W10).
+
+## 61. A failing venture, beyond its owner and beyond one cause — 2026-11-15
+
+**A7.** Five things were missing and all five are built (docs/ECONOMY_MARKET.md, section 13): other houses carry or
+sell a failing venture; a company's venture is judged; a failure pays creditors first, costs standing with two
+estates and leaves a name for bad business; a venture can be sacked when its world is stormed; and the head can
+stake a founder to a second start.
+
+**Measured.** The Republic probe (60 runs of 60 years): 697 carried by their houses, 575 sold before they failed,
+469 wound up (1,074), 28 closed by companies and 5 carried, 189 sacked. Ventures standing at the end: 7,064
+(7,082). The Republic stood in all 60; 31 states broke away (26); trust in the magistrates averaged 49 to 63 by
+start and was low in 15 runs (15). The soak (33 runs, a save and load in each) passes with no drift, and the event
+for a sacked venture fired in it. Survival: 0 of 10 on every start.
+
+**The great war is fought less often.** 41 runs of 60, against 45 after the last pass and 49 before that. Two
+passes running have lowered it, and both moved money between houses (private share dealing, then houses saving
+their ventures). It was not traced. If the fall continues it wants a pass of its own.
+
+**Not seen in play.** Nothing was paid to creditors out of a failure, and no second start was given, in the probe
+or the soak. Both are proved by tests. The second-start button, the name for bad business on the Exchange and the
+sack event were not looked at in the browser.
+
+726 tests (five new).
+
+**Left, and mapped.** A sacked venture is never claimed at the peace or rebuilt; a company never sells a failing
+venture; other houses give no second start (A8).

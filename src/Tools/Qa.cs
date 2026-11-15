@@ -168,7 +168,7 @@ internal static class Qa
     }
 
     private static readonly IRng NoRng = new SplitMix64Rng(0);
-    private static readonly string[] CaesarKeys = { "triumphs_voted", "recalls_voted", "civil_wars", "republics_ended", "caesars_broken", "polities_founded", "polities_recognised", "polities_dissolved", "free_marches", "free_states", "camps_stirred", "censures_stirred", "wars_over_words", "motions_held_over", "chair_spoke", "casting_votes", "ventures_failed", "ventures_propped", "heirlooms_commissioned", "standards_won", "wedding_gifts", "heirlooms_sold", "private_shares_bought", "private_shares_sold", "private_dividends", "private_shares_left", "founder_stakes" };
+    private static readonly string[] CaesarKeys = { "triumphs_voted", "recalls_voted", "civil_wars", "republics_ended", "caesars_broken", "polities_founded", "polities_recognised", "polities_dissolved", "free_marches", "free_states", "camps_stirred", "censures_stirred", "wars_over_words", "motions_held_over", "chair_spoke", "casting_votes", "ventures_failed", "ventures_propped", "heirlooms_commissioned", "standards_won", "wedding_gifts", "heirlooms_sold", "private_shares_bought", "private_shares_sold", "private_dividends", "private_shares_left", "founder_stakes", "ventures_carried_by_others", "ventures_sold_failing", "company_ventures_carried", "company_ventures_closed", "ventures_sacked", "second_starts" };
 
     /// <summary>One soak run. The player picks a random affordable choice (or skips one in five) from a decision stream seeded
     /// off the world seed, so a replay repeats the same decisions.</summary>
@@ -394,6 +394,7 @@ internal static class Qa
         }
         {   // ambitions: grant or refuse what the house's people ask, and name an heir
             foreach (var k in AmbitionSystem.Members(w, house).Where(k => k.Pursuit is { Request.Length: > 0 })) cands.Add(new AmbitionCommand(p.Id, decisions.NextInt(0, 3) == 0 ? AmbitionCommand.Refuse : AmbitionCommand.Grant, k.Id, tc.Ambitions));
+            foreach (var k in AmbitionSystem.Members(w, house).Where(k => w.Counter(VentureSystem.FailedFounderKey(k.Id)) > 0)) if (decisions.NextInt(0, 3) == 0) cands.Add(new AmbitionCommand(p.Id, AmbitionCommand.SecondStart, k.Id, tc.Ambitions));
             if (decisions.NextInt(0, 20) == 0) { var grownUp = AmbitionSystem.Members(w, house); cands.Add(new AmbitionCommand(p.Id, AmbitionCommand.NameHeir, grownUp.Count > 0 && decisions.NextInt(0, 3) != 0 ? grownUp[decisions.NextInt(0, grownUp.Count)].Id : "", tc.Ambitions)); }
         }
         {   // wealth: the allowance, the head's purse, debts, the will, heirlooms
