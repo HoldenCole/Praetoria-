@@ -1,5 +1,5 @@
 {
-  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected. The work of office: office_exposed, kin_office_exposed and kin_blames_the_head (deeds); case_won and case_lost (each year); and the character flags removed_from_office and blames_the_head. The bench and the seat: audit_found, ruling_overturned_for_us and not_seen_in_the_senate (deeds). The charge of an office of the Reach: levy_remitted_for_us and no_day_in_the_senate (deeds). The desk: desk_exposed (deed). Public trust: trust_collapsed and trust_restored (deeds).",
+  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected. The work of office: office_exposed, kin_office_exposed and kin_blames_the_head (deeds); case_won and case_lost (each year); and the character flags removed_from_office and blames_the_head. The bench and the seat: audit_found, ruling_overturned_for_us and not_seen_in_the_senate (deeds). The charge of an office of the Reach: levy_remitted_for_us and no_day_in_the_senate (deeds). The desk: desk_exposed (deed). Public trust: trust_collapsed and trust_restored (deeds). The lowest ranks: padded_account_found (deed).",
   "events": [
     {
       "id": "the_canvass",
@@ -1405,6 +1405,81 @@
             {
               "type": "log",
               "text": "{self.name} said nothing about it. Good order, when it comes back, is best not looked at too hard."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_padded_account",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "padded_account_found",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "own_it_and_put_it_right",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to the senior clerk before being sent for, said what had been done, and paid it back. It is still on the record. So is the fact of having come unasked."
+            }
+          ]
+        },
+        {
+          "id": "say_it_was_a_slip_of_the_pen",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said the figure had been carried wrong. Nobody believed it and nobody could disprove it. The ledgers will be read more closely from now on."
+            }
+          ]
+        },
+        {
+          "id": "take_the_reprimand_in_silence",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood and heard it out and said nothing. There are services where that counts for something."
             }
           ]
         }

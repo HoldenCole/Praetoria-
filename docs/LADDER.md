@@ -152,7 +152,18 @@ merchants, think one the less of it), not the Reach's name.
   house +4 loyalty), **patrol the home lanes** (lawlessness −2), or **sit on a board of inquiry** (the officers +2,
   trust +1, influence +1). With a fleet, the command is the work and there is no posting.
 
-A relative with a desk or a posting decides for themselves.
+**The lowest ranks.** Below those, a rank still has a year's work, and how it is done is the junior's own.
+
+| Rank | The work | The choices |
+|---|---|---|
+| **Aspirant, Advocate** | A brief before a lesser court: a client house against another | **Plead it on the law**: learn the law and some speaking; win (likelier the better you speak and know the law) and the client thinks +4 of your house. **Take the side that pays**: 4 credits to your own purse, the other house −3. **Plead for one who cannot pay**: practice at speaking, and the commons +2. |
+| **Clerk, Administrator** | A year of the administration's ledgers | **Keep them exactly**: learn the administration; the house is a credit the better. **Make yourself useful**: a little influence, a little economics. **Pad an account**: 3 credits to your purse; one time in five it is found and written against you as a failure. |
+| **Cadet, Ensign, Lieutenant** with no command | Watches and drills | **Stand your watches**: learn tactics. **Volunteer for the patrol**: learn gunnery, the home lanes −1 lawlessness, and one time in ten you come back hurt. **Make friends in the mess**: the officers +1, a crew of the house's a little steadier, some leadership. |
+
+What is learned is on top of what the service teaches anyone by the year. A junior who lets the year go by loses only
+the learning. With this, every rank of every service has work.
+
+A relative with a desk, a posting or a junior's work decides for themselves.
 
 **The seat is the house's.** If the head dies or lays the house down after the year's business is drawn up, the new
 head has the year.

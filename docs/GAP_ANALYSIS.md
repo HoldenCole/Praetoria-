@@ -1345,3 +1345,25 @@ the line that set the number of years. Fixed.
 
 **Left**: trust is one number for the whole Reach, and only the commons react to it (L9).
 
+## 46. The lowest ranks — 2026-11-15
+
+The owner set C9 (the rival Caesar's first gate) aside for now; it stays on the worklist marked as waiting. Next was
+J3.
+
+An Aspirant or Advocate pleads a brief; a Clerk or Administrator keeps the ledgers; a Cadet, Ensign or Lieutenant
+with no command has the watches. Each is one choice of three a year, in learning, the person's own purse, regard, the
+estates and a small risk. **With this every rank of every service has work**, along with every elected office, every
+office of the Reach but the Admiral's, and the Senate seat: the owner's "every position has work" is met at its first
+depth everywhere.
+
+650 tests, 353 events. Soak passes at four seeds. Seen in the browser on two starts whose heads are juniors (a
+Lieutenant's watches, an Administrator's ledgers), which is also the first time the panel's block for a desk, a posting
+or a junior's work has been seen on screen and not only tested.
+
+**Survival.** The line ended in 0 of 10 on six starts, 1 of 10 on one and **2 of 10 on the Risen Officer**. That start
+has read 0, 1 or 2 across the last six commits: it is the fragile one, and any change to the year moves it. Halving a
+junior's risk on patrol did not change it, so the patrol is not the cause. It wants its own look.
+
+**Left**: a junior's work has no thread from year to year, and a brief is heard by nobody in particular (J4). The
+padded-account event did not fire in the soak; it has a scripted test (X4).
+

@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **The lowest ranks have work.** An Aspirant or Advocate pleads a brief (on the law, for the side that pays, or for
+  one who cannot pay). A Clerk or Administrator keeps the ledgers (exactly, usefully, or with an account padded). A
+  Cadet, Ensign or Lieutenant with no command has the watches (stand them, volunteer for the patrol, or make friends
+  in the mess). With this every rank of every service, every elected office, every office of the Reach and the Senate
+  seat has a year's work. One event.
 - **Join a state that exists.** A house of the Reach can go over to a recognised state as it stands, or take a
   bordering region into it. The Reach lets the region go, or calls the treaty broken and comes for the whole state.
   Houses that think well of a state's ruler and ill of the capital go over by themselves.
@@ -67,7 +72,7 @@
 - **A victory teaches its commander only what they have it in them to learn.** It used to add a step whatever the
   skill's ceiling. Measured: a rival general of the first rank is rarer than before (docs/CAESAR.md, docs/GAPS.md C9).
 - The gap register (docs/GAPS.md) has a worklist at its top, a section for forms of government as the owner set them
-  out, and a section for positions with nothing to do. 55 open, 30 closed.
+  out, and a section for positions with nothing to do. 55 open, 31 closed.
 
 ### Fixed
 - **A save could drift from an unbroken run** when a magistrate's relief, a senator's speech for a region or an

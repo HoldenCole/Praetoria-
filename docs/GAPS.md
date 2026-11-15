@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (eleventh pass: what public trust does; L7 closed).
+Last updated 2026-11-15 (twelfth pass: the lowest ranks; J3 closed; C9 set aside by the owner).
 
 ## The worklist: small gaps to fill now
 
@@ -17,13 +17,13 @@ position (magistrate, justice, senator) must have something to do. Worked from t
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune | next |
-| 2 | J3 | The lowest ranks: an Advocate pleads before a bench, a Lieutenant and a Clerk have a year's work | next |
-| 3 | A2, A4, A5 | Restoring the house from an allowance; ambitions formed by an upbringing; ventures that fail | next |
-| 4 | B6, B8, B11, B12 | A new Caesar's own temper; more ways to work on a house; leaving a state; stirring with a target | next |
-| 5 | L2, L5, L8 | Prosecuting a former magistrate; cases with facts; a senator's committees | next |
+| 1 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune (set aside by the owner, 2026-11-15) | waiting |
+| 2 | A2, A4, A5 | Restoring the house from an allowance; ambitions formed by an upbringing; ventures that fail | next |
+| 3 | B6, B8, B11, B12 | A new Caesar's own temper; more ways to work on a house; leaving a state; stirring with a target | next |
+| 4 | L2, L5, L8 | Prosecuting a former magistrate; cases with facts; a senator's committees | next |
+| 5 | J4, L9, W6, E6, F6 | Threads for juniors; trust by region; loans between relatives; bargaining over study; old ties in more places | next |
 
-Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7 (see the bottom table).
+Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3 (see the bottom table).
 
 ## The same gap in many places
 
@@ -65,7 +65,7 @@ These recur across systems. Closing one properly closes several lines below, so 
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| J3 | The lowest ranks have no work: a Cadet to a Lieutenant, a Clerk, an Administrator, an Aspirant, an Advocate. They learn by doing and that is all. An Advocate should plead before somebody's bench. | M | |
+| J4 | A junior's work is one of three things with no thread from year to year: an advocate has no standing with a bench, a clerk no superior by name, a lieutenant no ship. And a brief is not heard by anybody in particular, though the house may have a Judge sitting. | S | |
 | O2 | The charge of an office of the Reach is one decision a year from three. A consul does not preside over anything, the Treasurer's budget has no figures, and the Speaker's order of business does not touch the motions actually on the docket. | M | The Senate |
 
 ## The Caesar road (docs/CAESAR.md)
@@ -163,3 +163,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | B9 | Only one great war in a saga. | 2026-11-15 | Fifteen years after a great war it is forgotten: its clock and verdict are cleared and the Reach can come to another, named the Second, the Third. Each finished war is kept on the record. |
 | B10 | The player could not raise the pressure toward a great war. | 2026-11-15 | Stir the camps: three years of added pressure for influence and credits, and one time in three the capital hears whose money it was. B12 is what is left. |
 | L7 | Public trust fed only the troubles of the Reach. | 2026-11-15 | A scandal in office costs a house votes for ten years, at the ladder and the consulship, and more when trust is low. Below 35 the commons turn on every house in office and the capital's holder loses standing; at 75 office is honoured. Measured, trust had been pinned near its ceiling; how it moves was rebalanced so that it sits near 60, is honoured in about a tenth of years and sometimes collapses. L9 is what is left. |
+| J3 | The lowest ranks had no work. | 2026-11-15 | An Aspirant or Advocate pleads a brief, a Clerk or Administrator keeps the ledgers, a Cadet to a Lieutenant without a command has watches. Three choices each, in learning, purse, regard and risk. Every rank of every service now has work. J4 is what is left. |

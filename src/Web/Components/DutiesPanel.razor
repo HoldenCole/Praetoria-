@@ -20,7 +20,8 @@
         LadderSystem.Silence => "gave " + (w.House(b.HouseA)?.Name ?? "a house") + " no day in the Senate",
         _ => "held the office"
     };
-    var post = LadderSystem.DutyOf(w, pid, LadderSystem.Desk, LadderSystem.Posting); string postTitle = post == null ? "" : post.Kind == LadderSystem.Desk ? "Your desk: the year's returns" : "Your posting: a year ashore";
+    var post = LadderSystem.DutyOf(w, pid, LadderSystem.Desk, LadderSystem.Posting, LadderSystem.Brief, LadderSystem.Ledgers, LadderSystem.Watch);
+    string postTitle = post == null ? "" : PostTitle(post.Kind);
     string postSays = post == null ? "" : LadderSystem.DutySays(w, policy, post);
     bool judge = LadderSystem.OnTheBench(p); int absent = w.Counter(LadderSystem.AbsentKey);
     bool sat = w.OfficeWork.Any(b => b.HolderId == pid && b.Kind == LadderSystem.SeatKind); bool heard = w.OfficeWork.Any(b => b.HolderId == pid && (b.Kind == LadderSystem.Hearing || b.Kind == LadderSystem.Appeal));
@@ -134,7 +135,12 @@
     private const string SeatNotYet = "The Senate has not yet sat. Your year in it begins at the turn of the year.";
     private const string BenchNotYet = "Nothing has come before your bench yet. The first matter comes at the turn of the year.";
     private const string BenchDone = "Nothing more is before your bench this year.";
-    private const string NoBench = "Your rank asks nothing more of you this year. A Judge has a bench, a Governor a desk, an officer without a fleet a posting.";
+    private static string PostTitle(string kind) => kind switch
+    {
+        LadderSystem.Desk => "Your desk: the year's returns", LadderSystem.Posting => "Your posting: a year ashore", LadderSystem.Brief => "A brief",
+        LadderSystem.Ledgers => "The ledgers", LadderSystem.Watch => "A junior's year", _ => "Your work"
+    };
+    private const string NoBench = "Your rank asks nothing more of you this year. Every rank in a service has work: a brief, the ledgers or the watches for a junior; a bench, a desk or a posting above that.";
     private static string Label(string choice) => choice switch
     {
         LadderSystem.Law => "Rule on the law", LadderSystem.ForHouse => "Find for the house", LadderSystem.ForEstate => "Find for the petitioners",
@@ -142,6 +148,9 @@
         LadderSystem.Account => "Call the magistrates to account", LadderSystem.Sweep => "Send the fleet onto the lanes", LadderSystem.Party => "Spend the year on your bench",
         LadderSystem.Balance => "Balance the books", LadderSystem.Remit => "Forgive a region its levy", LadderSystem.Contracts => "Let the contracts to your own house",
         LadderSystem.Fair => "Keep the order fair", LadderSystem.Own => "Bring your own business forward", LadderSystem.Silence => "Give an enemy no day",
+        LadderSystem.Plead => "Plead it on the law", LadderSystem.RichClient => "Take the side that pays", LadderSystem.PoorClient => "Plead for one who cannot pay",
+        LadderSystem.Diligent => "Keep them exactly", LadderSystem.Useful => "Make yourself useful", LadderSystem.Pad => "Pad an account",
+        LadderSystem.Watches => "Stand your watches", LadderSystem.Volunteer => "Volunteer for the patrol", LadderSystem.Mess => "Make friends in the mess",
         LadderSystem.Assess => "Assess it fairly", LadderSystem.Press => "Press the collection", LadderSystem.Skim => "Keep a share",
         LadderSystem.Drill => "Drill the crews", LadderSystem.Patrol => "Patrol the home lanes", LadderSystem.Board => "Sit on a board of inquiry",
         LadderSystem.Audit => "Read the accounts", LadderSystem.SpeakRegion => "Speak for your region", LadderSystem.Whip => "Work your bench", _ => choice
