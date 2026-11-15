@@ -17,6 +17,8 @@ public static class ThroneSystem
     public const string SeizedFlag = "throne_seized";
     public const string DeposedFlag = "deposed";          // char flag on the heads of the house that lost the throne
 
+    /// <summary>The year the house now on the throne took it. Absent for a throne that was there when the saga opened.</summary>
+    public const string SinceKey = "throne_since";
     public static House? Emperor(World w) => w.Houses.Values.Where(h => h.Title == Title.Emperor).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
 
     public static string? ProclaimRefusal(World w, string houseId, TitleCatalog titles)
@@ -78,7 +80,7 @@ public static class ThroneSystem
             w.Wars.RemoveAll(x => x.Between(houseId, former.Id));
             FleetSystem.RefreshWarFlags(w);
         }
-        h.Title = Title.Emperor;
+        h.Title = Title.Emperor; w.WorldCounters[SinceKey] = w.Turn;
         h.Claims.Remove(Title.Emperor);
         bool flipped = w.Era != "imperium";
         w.Era = "imperium";

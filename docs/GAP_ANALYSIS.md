@@ -1390,3 +1390,36 @@ were no others.
 
 **Left**: ventures do not fail, and a quarrel does not divide the house (A5).
 
+## 47. The second batch of breakaway items — 2026-11-15
+
+B6, B8, B11 and B12 from the worklist, by the owner's order.
+
+- **A throne's own temper (B6).** Under a throne, whether the Reach fights for a region is the Emperor's answer: how
+  new the throne is, the Emperor's nature, how secure the throne is at home, and what the Emperor thinks of the house.
+- **More ways to bring a house over (B8).** A promise of a place (regard at once, and a debt of three credits a year
+  for ten years if the state is founded with them in it), a threat (they follow while they are afraid), and a
+  marriage between the two houses making a house easier asked.
+- **Joining, leaving and reaching (B11).** A state still fighting can be joined; a member that is not the ruler can
+  leave, and does when it thinks ill of its ruler; a ruler can court houses of the Reach in or beside the state, and
+  one that controls a bordering region may bring it.
+- **Stirring with a target (B12).** The same act can name one house.
+
+**Measured** (`praetoria caesar --scenario all --seeds 10`, sixty Republic runs of sixty years, a passive player): the
+Republic stood in all 60; the great war broke out in 39; 14 states were recognised; 2 houses went over to a state by
+themselves. The probe now also counts houses that leave a state; that was added after this run, so it has no figure
+yet. No throne arises with a passive player, so the throne's temper is proved by a scripted test only.
+
+659 tests, 355 events. **The soak's player now founds more states**: 8 over 44 runs where it had been 1 to 4, because
+it can promise and threaten its way to control of a region. The soak passes with no drift. Survival: 0 of 10 on every
+start.
+
+**A fault found by a test.** A house that had been one of those sent against a state stayed on the state's list of
+enemies after it went over to that state. Fixed: it is taken off the list.
+
+**Seen in the browser** on the Old Lion start: the four houses offered as targets for stirring, a promise made, and a
+threat refused with its reason (three hulls to their one).
+
+**Left** (in the register): a marriage or an office cannot be offered as the price of a region (B13); stirring against
+a house does not lead to a censure or a war (B14). The two new events did not fire in the soak; both have scripted
+tests (X4).
+

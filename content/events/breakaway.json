@@ -1,5 +1,5 @@
 {
-  "//": "BREAKING AWAY (docs/BREAKAWAY.md). Reads war_of_independence, may_refuse_the_throne (each year); declared_independence, let_go_by_the_reach, independence_won, independence_lost, a_state_breaks_away, the_reach_is_partitioned, sedition_reported, house_won_over, reconquest_begun, rejoined_the_reach (deeds). What is decided is decided on the Senate screen's standing view. Joining a state and a second great war: a_house_joins_our_state, treaty_broken_by_accession, joined_a_state and camps_stirred (deeds); great_war_forgotten (a year).",
+  "//": "BREAKING AWAY (docs/BREAKAWAY.md). Reads war_of_independence, may_refuse_the_throne (each year); declared_independence, let_go_by_the_reach, independence_won, independence_lost, a_state_breaks_away, the_reach_is_partitioned, sedition_reported, house_won_over, reconquest_begun, rejoined_the_reach (deeds). What is decided is decided on the Senate screen's standing view. Joining a state and a second great war: a_house_joins_our_state, treaty_broken_by_accession, joined_a_state and camps_stirred (deeds); great_war_forgotten (a year). Leaving a state and promises: a_house_leaves_our_state, left_a_state and promise_unpaid (deeds).",
   "events": [
     {
       "id": "the_declaration",
@@ -1023,6 +1023,169 @@
             {
               "type": "log",
               "text": "{self.name} noted who had cheered, and who paid them. A house that knows which way the young are leaning has something to sell."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_house_leaves_the_state",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "a_house_leaves_our_state",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_the_state_is_better_without_them",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that a house which could be bought back was no loss. It was said firmly. Some of those listening had been made offers of their own."
+            }
+          ]
+        },
+        {
+          "id": "ask_the_others_what_they_want",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went round the houses that remained, one at a time, and came away poorer and somewhat better informed."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ]
+        },
+        {
+          "id": "let_it_pass",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} made no statement. A state that notices every departure invites the next."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_place_you_promised",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "promise_unpaid",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_it_from_what_can_be_found",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} found the sum, late, from somewhere it should not have come from, and sent it with an apology."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ]
+        },
+        {
+          "id": "ask_them_to_wait_a_year",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked for a year's grace. It was given. It will not be given twice."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "say_a_state_is_not_a_counting_house",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that what had been promised was a place, not a pension. The house did not argue the point. It simply stopped attending."
             }
           ]
         }

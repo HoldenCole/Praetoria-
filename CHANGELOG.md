@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+- **More ways to bring a house over.** Promise it a place (its regard rises at once; if the state is founded with it
+  in it, you owe it three credits a year for ten years), or threaten it if you have three hulls to its one (it follows
+  for as long as it is afraid). A marriage between the two houses makes it easier asked.
+- **A state can be joined while it is still fighting**, and a house that does is at war with the Reach for it. **A
+  member house can leave a state**, and does by itself when it has come to think ill of its ruler. **A state's ruler
+  can court houses of the Reach** in or beside the state, and one that controls a bordering region may bring it over.
+- **Stirring the camps can be aimed at one house.**
+- **Under a throne, whether the Reach fights for a region is the Emperor's own answer**: a new throne will not be seen
+  to lose a province; a just Emperor, or one who thinks well of your house, may let it go. Two events.
 - **What a child is brought up to shapes what they want.** Two in three come of age wanting what they were raised
   toward (a command, the Senate, a fortune, or the house restored if it is poor). One set against their own bent wants
   something that is nobody's plan. The rest are left to the dice.
@@ -79,7 +88,7 @@
 - **A victory teaches its commander only what they have it in them to learn.** It used to add a step whatever the
   skill's ceiling. Measured: a rival general of the first rank is rarer than before (docs/CAESAR.md, docs/GAPS.md C9).
 - The gap register (docs/GAPS.md) has a worklist at its top, a section for forms of government as the owner set them
-  out, and a section for positions with nothing to do. 53 open, 33 closed.
+  out, and a section for positions with nothing to do. 51 open, 37 closed.
 
 ### Fixed
 - **A save could drift from an unbroken run** when a magistrate's relief, a senator's speech for a region or an

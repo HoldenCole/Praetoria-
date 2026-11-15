@@ -364,10 +364,144 @@ public class BreakawayTests
         Assert.True(w.HasFlag(PolitySystem.JoinedFlag)); Assert.True(p.Recognised > 0); Assert.Single(p.Regions); Assert.DoesNotContain(w.Wars, x => x.Involves(mine.Id));
         Assert.NotNull(tc.Polities.AccedeRefusal(w, mine, p));                                       // once
         var back = SaveSystem.Deserialize(SaveSystem.Serialize(w)); Assert.Equal(p.Id, back.House(mine.Id)!.PolityId);
-        // a state still fighting to exist cannot be joined
-        var (tc2, w2, _, mine2, _) = Start(); Sound(w2); var f2 = Other(w2, mine2); string r2 = Give(w2, f2, 70, Ring.Rim);
-        var fighting = tc2.Polities.Declare(w2, f2, r2, PolitySystem.Republic);
-        if (fighting.Recognised == 0) Assert.Contains("still fighting", tc2.Polities.AccedeRefusal(w2, mine2, fighting));
+    }
+
+    [Fact]
+    public void A_house_may_join_a_state_that_is_still_fighting_and_is_at_war_with_the_reach_for_it()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Sound(w); var founder = Other(w, mine); string region = Give(w, founder, 70, Ring.Rim);
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == founder.Id)) f.Strength = 0;        // nothing to fight with: the Reach will come for it
+        var p = tc.Polities.Declare(w, founder, region, PolitySystem.Republic);
+        if (p.Recognised > 0) { p.Recognised = 0; p.WarSince = w.Turn; p.Foes = new List<string> { RegionSystem.CapitalHolder(w)!.Id }; }   // (a Reach too weary to fight: make it fight, for the test)
+        Worlds(w, region).Last().OwnerId = mine.Id; Regard(w, founder, mine, 10);
+        Assert.Contains("cannot take in a region", tc.Polities.AccedeRefusal(w, mine, p, region));                 // a region waits until it is a state
+        Assert.Null(tc.Polities.AccedeRefusal(w, mine, p));
+        Assert.True(tc.Executor.TryExecute(new SecessionCommand(me.Id, SecessionCommand.Join, "", p.Id, tc.Polities), ctx));
+        Assert.Equal(p.Id, mine.PolityId); Assert.DoesNotContain(mine.Id, p.Foes);   // if it had been sent against the state, it is its enemy no longer
+        if (p.Foes.Count == 0) p.Foes.Add(Other(w, mine, 3).Id); Assert.All(p.Foes.Where(f => w.Wars.Any(x => x.Between(f, founder.Id))), foe => Assert.True(w.AtWar(foe, mine.Id)));
+        Assert.Contains(w.History, l => l.Text.Contains("in the middle of its war"));
+    }
+
+    [Fact]
+    public void A_house_can_be_promised_a_place_threatened_or_bound_by_a_marriage()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Sound(w); string region = Give(w, mine, 30, Ring.Rim); var chair = RegionSystem.CapitalHolder(w);
+        var target = Other(w, mine); Worlds(w, region).Last().OwnerId = target.Id; w.PoolsFor(me.Id).Influence = 9; mine.Treasury.Credits = 200;
+        Regard(w, target, mine, 12); if (chair != null) Regard(w, target, chair, 0);
+        Assert.False(PolitySystem.Joins(w, target, mine));
+        // a marriage between the houses: asked for less
+        var theirs = w.LivingCharacters().First(c => c.HouseId == target.Id); var ours = w.LivingCharacters().First(c => c.HouseId == mine.Id && c.Id != me.Id);
+        w.Marriages.Add(new Marriage { A = ours.Id, B = theirs.Id, Since = w.Turn }); Assert.True(PolitySystem.Bound(w, target, mine)); Assert.True(PolitySystem.Joins(w, target, mine));
+        w.Marriages.RemoveAll(m => m.Has(ours.Id) && m.Has(theirs.Id)); Assert.False(PolitySystem.Joins(w, target, mine));
+        // a promise: regard at once, and a debt
+        Assert.True(tc.Executor.TryExecute(new WorkHouseCommand(me.Id, target.Id, PolitySystem.Promise, tc.Polities), ctx));
+        Assert.Equal(12 + PolitySystem.PromiseRegard, PolitySystem.Regard(w, target, mine)); Assert.True(PolitySystem.IsPromised(w, target, mine)); Assert.True(PolitySystem.Joins(w, target, mine));
+        w.Turn++; Assert.Contains("already", tc.Polities.WorkRefusal(w, mine, target, PolitySystem.Promise));
+        // founded with them in it, the promise falls due: three credits a year, while the ruler can pay
+        Hold(w, mine, region, 50); Worlds(w, region).Last().OwnerId = target.Id; w.WorldCounters[CaesarSystem.GreatWarEndedKey] = w.Turn;
+        Assert.Null(tc.Polities.DeclareRefusal(w, mine, region, PolitySystem.Republic));
+        var p = tc.Polities.Declare(w, mine, region, PolitySystem.Republic); if (p.Recognised == 0) tc.Polities.Recognise(w, p);
+        Assert.Contains(target.Id, p.Members); Assert.Contains(target.Id, p.Promised); Assert.False(PolitySystem.IsPromised(w, target, mine));
+        mine.Treasury.Credits = 50; int got = target.Treasury.Credits; w.Turn++; tc.Polities.Tick(w);
+        Assert.Equal(50 - PolitySystem.PromiseCredits, mine.Treasury.Credits); Assert.Equal(got + PolitySystem.PromiseCredits, target.Treasury.Credits);
+        // a ruler who cannot pay is thought the less of, and hears of it
+        mine.Treasury.Credits = 0; int regard = PolitySystem.Regard(w, target, mine); w.Turn++; tc.Polities.Tick(w);
+        Assert.Equal(regard - 8, PolitySystem.Regard(w, target, mine)); Assert.True(w.HasFlag(PolitySystem.UnpaidFlag)); mine.Treasury.Credits = 100; Fires(w, "the_place_you_promised");
+        // ten years on the debt is done
+        w.Turn = p.Since + PolitySystem.PledgeYears + 1; tc.Polities.Tick(w); Assert.Empty(p.Promised);
+
+        // a threat: it takes three hulls to their one; they follow while they are afraid, and think the less of you
+        var (tc2, w2, me2, mine2, ctx2) = Start(); Sound(w2); string r2 = Give(w2, mine2, 30, Ring.Rim); var weak = Other(w2, mine2); Worlds(w2, r2).Last().OwnerId = weak.Id; w2.PoolsFor(me2.Id).Influence = 9;
+        var chair2 = RegionSystem.CapitalHolder(w2); Regard(w2, weak, mine2, 0); if (chair2 != null) Regard(w2, weak, chair2, 0);
+        foreach (var f in w2.Fleets.Values.Where(f => f.OwnerId == mine2.Id || f.OwnerId == weak.Id)) f.Strength = 0;
+        w2.Fleets["w"] = new Fleet { Id = "w", Name = "W", OwnerId = weak.Id, SystemId = w2.Galaxy!.Capital, HomeSystemId = w2.Galaxy.Capital, Strength = 4 };
+        w2.Fleets["m"] = new Fleet { Id = "m", Name = "M", OwnerId = mine2.Id, SystemId = w2.Galaxy.Capital, HomeSystemId = w2.Galaxy.Capital, Strength = 8 };
+        Assert.Contains("not afraid", tc2.Polities.WorkRefusal(w2, mine2, weak, PolitySystem.Threat));
+        w2.Fleets["m"].Strength = 12; Assert.False(PolitySystem.Joins(w2, weak, mine2));
+        Assert.True(tc2.Executor.TryExecute(new WorkHouseCommand(me2.Id, weak.Id, PolitySystem.Threat, tc2.Polities), ctx2));
+        Assert.True(PolitySystem.Cowed(w2, weak, mine2)); Assert.True(PolitySystem.Joins(w2, weak, mine2)); Assert.Equal(PolitySystem.ThreatRegard, PolitySystem.Regard(w2, weak, mine2));
+        w2.Fleets["m"].Strength = 5; Assert.False(PolitySystem.Cowed(w2, weak, mine2)); Assert.False(PolitySystem.Joins(w2, weak, mine2));   // no longer afraid
+    }
+
+    [Fact]
+    public void A_member_house_may_leave_a_state_and_one_that_thinks_ill_of_its_ruler_does()
+    {
+        // the player's house, a member of another's state, leaves it
+        var (tc, w, me, mine, ctx) = Start(); Sound(w); var founder = Other(w, mine); var p = StateOf(tc, w, founder, out string region);
+        Worlds(w, region).Last().OwnerId = mine.Id; Regard(w, founder, mine, 10); Assert.Contains("of the Reach", tc.Polities.DepartRefusal(w, mine));
+        Assert.True(tc.Executor.TryExecute(new SecessionCommand(me.Id, SecessionCommand.Join, "", p.Id, tc.Polities), ctx));
+        Assert.Contains("yours", tc.Polities.DepartRefusal(w, founder)); Assert.Null(tc.Polities.DepartRefusal(w, mine)); int held = Worlds(w, region).Count(x => x.OwnerId == mine.Id);
+        Assert.True(tc.Executor.TryExecute(new SecessionCommand(me.Id, SecessionCommand.Leave, "", "", tc.Polities), ctx));
+        Assert.True(PolitySystem.InReach(w, mine.Id)); Assert.DoesNotContain(mine.Id, p.Members); Assert.True(w.HasFlag(PolitySystem.LeftFlag)); Assert.True(tc.Senate.Weight(w, mine.Id) > 0);
+        Assert.Equal(held, Worlds(w, region).Count(x => x.OwnerId == mine.Id)); Assert.Equal(10 + 10 - 25, PolitySystem.Regard(w, founder, mine));   // glad to have them, and then not
+        // a house of the player's state that has come to think ill of the player leaves by itself; one that is afraid stays
+        var (tc2, w2, me2, mine2, _) = Start(); Sound(w2); string r2 = Give(w2, mine2, 60, Ring.Rim); var a = Other(w2, mine2); var b = Other(w2, mine2, 1);
+        var ws = Worlds(w2, r2); ws[^1].OwnerId = a.Id; if (ws.Count >= 4) ws[^2].OwnerId = b.Id; Regard(w2, a, mine2, 40); Regard(w2, b, mine2, 40); w2.WorldCounters[CaesarSystem.GreatWarEndedKey] = w2.Turn;
+        var own = tc2.Polities.Declare(w2, mine2, r2, PolitySystem.Kingdom); if (own.Recognised == 0) tc2.Polities.Recognise(w2, own);
+        Assert.Contains(a.Id, own.Members); bool left = false;
+        for (int y = 0; y < 24 && !left; y++) { w2.Turn++; Regard(w2, a, mine2, -30); tc2.Polities.Tick(w2); left = !own.Members.Contains(a.Id); }
+        Assert.True(left, "in twenty-four years it never left"); Assert.True(PolitySystem.InReach(w2, a.Id)); Assert.True(w2.HasFlag(PolitySystem.LeftOursFlag));
+        mine2.Treasury.Credits = 100; w2.PoolsFor(me2.Id).Influence = 9; Fires(w2, "a_house_leaves_the_state");
+        if (own.Members.Contains(b.Id))
+        {
+            foreach (var f in w2.Fleets.Values.Where(f => f.OwnerId == b.Id)) f.Strength = 1; w2.Fleets["big"] = new Fleet { Id = "big", Name = "Big", OwnerId = mine2.Id, SystemId = w2.Galaxy!.Capital, HomeSystemId = w2.Galaxy.Capital, Strength = 30 };
+            w2.WorldCounters[PolitySystem.CowedKey(b.Id, mine2.Id)] = w2.Turn;
+            for (int y = 0; y < 8; y++) { w2.Turn++; Regard(w2, b, mine2, -40); w2.WorldCounters[PolitySystem.CowedKey(b.Id, mine2.Id)] = w2.Turn; tc2.Polities.Tick(w2); }
+            Assert.Contains(b.Id, own.Members);                                  // afraid to
+        }
+    }
+
+    [Fact]
+    public void A_states_ruler_may_court_a_house_of_the_reach_on_its_border()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Sound(w); string region = Give(w, mine, 70, Ring.Rim); w.WorldCounters[CaesarSystem.GreatWarEndedKey] = w.Turn;
+        var p = tc.Polities.Declare(w, mine, region, PolitySystem.Republic); if (p.Recognised == 0) tc.Polities.Recognise(w, p);
+        var inside = w.Houses.Values.Where(h => PolitySystem.InReach(w, h.Id) && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null && h.Id != RegionSystem.CapitalHolder(w)?.Id).OrderBy(h => h.Id, StringComparer.Ordinal).First();
+        var far = w.Houses.Values.Where(h => PolitySystem.InReach(w, h.Id) && h.Id != inside.Id && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null && !PolitySystem.Courtable(w, p, h)).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+        Worlds(w, region).Last().OwnerId = inside.Id; Assert.True(PolitySystem.Courtable(w, p, inside));
+        w.PoolsFor(me.Id).Influence = 9; mine.Treasury.Credits = 100; Regard(w, inside, mine, 0); if (RegionSystem.CapitalHolder(w) is { } chair) Regard(w, inside, chair, 0);
+        Assert.Null(tc.Polities.WorkRefusal(w, mine, inside, PolitySystem.Gift));
+        Assert.Contains("words and gifts", tc.Polities.WorkRefusal(w, mine, inside, PolitySystem.Threat));
+        if (far != null) Assert.Contains("beside it", tc.Polities.WorkRefusal(w, mine, far, PolitySystem.Word));
+        Assert.True(tc.Executor.TryExecute(new WorkHouseCommand(me.Id, inside.Id, PolitySystem.Gift, tc.Polities), ctx));
+        Assert.True(PolitySystem.Regard(w, inside, mine) >= PolitySystem.GiftRegard); Assert.Equal(100 - PolitySystem.GiftCredits, mine.Treasury.Credits);
+    }
+
+    [Fact]
+    public void Under_a_throne_the_answer_is_the_emperors_own()
+    {
+        var (tc, w, _, mine, _) = Start(); Sound(w); string region = Give(w, mine, 70, Ring.Middle);
+        var throne = Other(w, mine, 2); var emperor = Economy.HeadOf(w, throne)!; emperor.NatureTraits.Clear(); throne.Legitimacy = 60; Regard(w, throne, mine, 0);
+        int republic = tc.Polities.Temper(w, mine, region).temper;
+        ThroneSystem.Enthrone(w, throne.Id, seized: false); w.CivilWar = null; w.WorldCounters.Remove(PolitySystem.CivilWarEndedKey); Regard(w, throne, mine, 0); throne.Legitimacy = 60;
+        var fresh = tc.Polities.Temper(w, mine, region); Assert.Equal(republic + 2, fresh.temper); Assert.Contains(fresh.why, x => x.Contains("new on the throne"));
+        w.Turn += PolitySystem.NewThroneYears + 1; var old = tc.Polities.Temper(w, mine, region); Assert.Equal(republic + 1, old.temper); Assert.Contains(old.why, x => x.Contains("does not let provinces go"));
+        emperor.NatureTraits.Add("Ruthless"); Assert.Equal(republic + 2, tc.Polities.Temper(w, mine, region).temper);
+        emperor.NatureTraits.Clear(); emperor.NatureTraits.Add("Just"); Assert.Equal(republic, tc.Polities.Temper(w, mine, region).temper);
+        throne.Legitimacy = 30; Assert.Equal(republic - 1, tc.Polities.Temper(w, mine, region).temper);
+        Regard(w, throne, mine, 40); var kind = tc.Polities.Temper(w, mine, region); Assert.Equal(republic - 2, kind.temper); Assert.Contains(kind.why, x => x.Contains("thinks well of the house"));
+        Regard(w, throne, mine, -40); Assert.Equal(republic, tc.Polities.Temper(w, mine, region).temper);
+    }
+
+    [Fact]
+    public void The_camps_can_be_stirred_against_one_house()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Sound(w); mine.Treasury.Credits = 100; w.PoolsFor(me.Id).Influence = 9; var victim = Other(w, mine);
+        var others = w.Houses.Values.Where(h => h.Id != mine.Id && h.Id != victim.Id && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null)
+            .OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
+        foreach (var h in others) Regard(w, h, victim, 10);
+        Assert.Contains("no such house", new SecessionCommand(me.Id, SecessionCommand.Stir, "nobody_at_all", "", tc.Polities).Refusal(ctx));
+        Assert.True(tc.Executor.TryExecute(new SecessionCommand(me.Id, SecessionCommand.Stir, victim.Id, "", tc.Polities), ctx));
+        Assert.All(others.Take(5), h => Assert.Equal(10 - PolitySystem.StirAgainst, PolitySystem.Regard(w, h, victim)));
+        if (others.Count > 5) Assert.Equal(10, PolitySystem.Regard(w, others[5], victim));
+        Assert.True(PolitySystem.Stirring(w)); Assert.Contains(w.History, l => l.Text.Contains(victim.Name) && l.Text.Contains("said"));
+        // found out, the house it was aimed at hears too
+        var chair = RegionSystem.CapitalHolder(w); bool heard = false;
+        if (chair != null && chair.Id != mine.Id && chair.Id != victim.Id)
+        {
+            for (int y = 0; y < 30 && !heard; y++) { w.Turn++; w.WorldCounters.Remove(PolitySystem.StirKey); mine.Treasury.Credits = 100; Regard(w, victim, mine, 0); heard = tc.Polities.Stir(w, mine, victim); }
+            Assert.True(heard); Assert.Equal(-25, PolitySystem.Regard(w, victim, mine));
+        }
     }
 
     [Fact]

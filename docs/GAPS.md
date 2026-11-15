@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (thirteenth pass: restoring the house and where an ambition comes from; A2 and A4 closed; C9 set aside by the owner).
+Last updated 2026-11-15 (fourteenth pass: the second batch of breakaway items; B6, B8, B11 and B12 closed; C9 set aside by the owner).
 
 ## The worklist: small gaps to fill now
 
@@ -18,12 +18,12 @@ position (magistrate, justice, senator) must have something to do. Worked from t
 | Order | Id | What | State |
 |---|---|---|---|
 | 1 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune (set aside by the owner, 2026-11-15) | waiting |
-| 2 | B6, B8, B11, B12 | A new Caesar's own temper; more ways to work on a house; leaving a state; stirring with a target | next |
-| 3 | L2, L5, L8 | Prosecuting a former magistrate; cases with facts; a senator's committees | next |
-| 4 | J4, L9, W6, E6, F6 | Threads for juniors; trust by region; loans between relatives; bargaining over study; old ties in more places | next |
-| 5 | A5, W3, W5, H3 | Ventures that fail; entail; heirlooms that do something; what a household costs | next |
+| 2 | L2, L5, L8 | Prosecuting a former magistrate; cases with facts; a senator's committees | next |
+| 3 | J4, L9, W6, E6, F6 | Threads for juniors; trust by region; loans between relatives; bargaining over study; old ties in more places | next |
+| 4 | A5, W3, W5, H3 | Ventures that fail; entail; heirlooms that do something; what a household costs | next |
+| 5 | B5, B13, B14 | The older free march as a state; a marriage or an office as the price; stirring that leads somewhere | next |
 
-Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3, then A2 and A4 (see the bottom table).
+Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3, then A2 and A4, then B6, B8, B11 and B12 (see the bottom table).
 
 ## The same gap in many places
 
@@ -42,12 +42,10 @@ These recur across systems. Closing one properly closes several lines below, so 
 |---|---|---|---|
 | B2 | A state's border means nothing for trade, the lanes or the Exchange. Its region is named on the map but not drawn as a different country. | M | Nations on the map |
 | B3 | A state makes no agreements of its own: no trade treaty, no alliance, no envoys. It does not make war as a state. | M | B1 |
-| B11 | A state at war cannot be joined; a state cannot itself reach for a region; and a house cannot leave a state for the Reach or for another state on its own. | S | G7 |
-| B12 | Stirring the camps is one act with one price. It names no target: a house cannot set two particular houses against each other. | S | |
+| B13 | A marriage binds a house only if it already exists: one cannot be offered as the price of a region. A promise is paid in credits only, not in an office of the state. | S | G1 |
+| B14 | Stirring against a house lowers what others think of it and nothing more: it does not make them move a censure or go to war. | S | |
 | B5 | The older free march (a rim house renouncing the capital) and free holds (a rebel world) are their own rules and should become breakaway states. | M | |
-| B6 | Under a throne the Reach's temper is one number. A new Caesar should have his own. | S | Politics under a throne |
 | B7 | Standing alone weighs fuel, the treasury and strategic monopolies. It does not weigh food, manpower or the goods of the market. | M | The economy |
-| B8 | Working on a house is a word or a gift. No promise of a place in the new state, no marriage to bind it, no threat. | S | B1 |
 
 ## Forms of government (the owner's direction, docs/BREAKAWAY.md "The next stage")
 
@@ -164,3 +162,7 @@ look-and-feel pass is planned and not begun, there is no sound.
 | J3 | The lowest ranks had no work. | 2026-11-15 | An Aspirant or Advocate pleads a brief, a Clerk or Administrator keeps the ledgers, a Cadet to a Lieutenant without a command has watches. Three choices each, in learning, purse, regard and risk. Every rank of every service now has work. J4 is what is left. |
 | A2 | Restoring the house from an allowance was too slow to matter. | 2026-11-15 | A restorer keeps 3 credits and gives the rest while the house is poor, a third while it is thin; a venture they found counts by its cost and by what it brings in each year. Done inside fifteen years from an ordinary purse. |
 | A4 | An ambition was set by the dice at sixteen. | 2026-11-15 | Two in three want what they were brought up toward; one set against their bent wants something of their own; the rest are left to the dice. The same number of dice are thrown, so no saga's other luck is disturbed. |
+| B6 | Under a throne the Reach's temper was one number. | 2026-11-15 | It is the Emperor's own: a new throne will not be seen to lose a province; a hard ruler will not let it pass; a just one, an insecure one, or one who thinks well of the house may. |
+| B8 | Working on a house was a word or a gift. | 2026-11-15 | Also a promise of a place (regard at once, and three credits a year owed for ten years if the state is founded) and a threat (they follow while they are afraid). A marriage between the houses makes a house easier asked. B13 is what is left. |
+| B11 | A state at war could not be joined, nobody could leave one, and a state could not reach. | 2026-11-15 | A house may join a state still fighting and is at war for it; a member may leave, and does when it thinks ill of its ruler; a ruler may court houses of the Reach in or beside the state, and one that controls a bordering region may bring it. |
+| B12 | Stirring named no target. | 2026-11-15 | It can be aimed at one house, which the five strongest others then think the less of. B14 is what is left. |

@@ -13,6 +13,10 @@
     var pastWars = GreatCrisisSystem.Past(w); string pastLine = pastWars.Count == 0 ? "" : "Great wars fought: " + string.Join("; ", pastWars.Select((x, i) => (i == 0 ? "the first" : i == 1 ? "the second" : "another") + " from year " + x.began + ", " + x.years + " years, ended " + EndingSays(x.how))) + ".";
     int peaceLeft = GreatCrisisSystem.PeaceLeft(w); int wars = w.Counter(GreatCrisisSystem.WarsCounter);
     string? noStir = new SecessionCommand(pid, SecessionCommand.Stir, "", "", ps).Refusal(G.Ctx); bool stirring = PolitySystem.Stirring(w);
+    var great = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null).OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).Take(4).ToList();
+    string? noLeave = own == null ? "not of a state" : new SecessionCommand(pid, SecessionCommand.Leave, "", "", ps).Refusal(G.Ctx);
+    string promisedLine = own == null || own.Promised.Count == 0 ? "" : "Promised a place, and paid " + PolitySystem.PromiseCredits + " credits a year by its ruler until year " + (own.Since + PolitySystem.PledgeYears) + ": " + string.Join(", ", own.Promised.Select(id => id == house.Id ? "your house" : w.House(id)?.Name ?? id)) + ".";
+    var court = own != null && own.HeadHouseId == house.Id ? w.Houses.Values.Where(h => PolitySystem.Courtable(w, own, h)).OrderBy(h => h.Id, StringComparer.Ordinal).Take(6).ToList() : new List<House>();
     string stirLine = stirring ? "Somebody's money is setting the great houses against one another, until year " + w.Counter(PolitySystem.StirKey) + "." : "";
     string peace = warOver ? "The Reach has fought its great war" + (wars > 1 ? " (" + wars + " of them now)" : "") + ". For " + peaceLeft + " more year(s) nobody will be stirred to another; after that it is something people were told about, and what is wrong with the Reach can bring one again. " : greatWar ? "" : near == 0 && pressure.Count == 0 ? "The Reach is at peace with itself, and nothing is pushing it toward a great war. "
         : (near < 15 ? "The Reach is quiet" : near < 50 ? "The Reach is uneasy" : "The houses are counting each other's fleets") + " (" + near + " in a hundred of the way to a great war). "
@@ -48,6 +52,13 @@
             <button class="opt inline tiny" disabled="@(noStir != null)" title="@(noStir ?? StirTip)" @onclick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.Stir, string.Empty, string.Empty, ps))">Stir the camps · @PolitySystem.StirInfluence influence, @PolitySystem.StirCredits credits</button>
             @if (stirLine.Length > 0) { <span class="muted small">@stirLine</span> }
         </div>
+        @if (noStir == null && great.Count > 0)
+        {
+            <div class="suit-acts">
+                <span class="muted small">Or set them against one house:</span>
+                @foreach (var g in great) { string gid = g.Id; <button class="opt inline tiny" title="@StirAgainstTip" @onclick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.Stir, gid, string.Empty, ps))">@g.Name</button> }
+            </div>
+        }
     }
     @if (own != null)
     {
@@ -60,7 +71,26 @@
                 @if (_confirm == RejoinKey) { <button class="opt inline veto" @onclick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Rejoin, string.Empty, string.Empty, ps)); }">Yes: take the state back into the Reach</button> <button class="opt inline" @onclick="() => _confirm = string.Empty">No</button> }
                 else { <button class="opt inline" title="@RejoinTip" @onclick="() => _confirm = RejoinKey">Rejoin the Reach</button> }
             </div>
+            @foreach (var h in court)
+            {
+                string hid = h.Id; int regard = PolitySystem.Regard(w, h, house);
+                string? noWord = new WorkHouseCommand(pid, hid, PolitySystem.Word, ps).Refusal(G.Ctx); string? noGift = new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps).Refusal(G.Ctx);
+                string cLine = h.Name + " is of the Reach and holds worlds in your state or beside it (regard " + regard + "; at " + PolitySystem.GoesOverRegard + ", and no friend of the capital, it may come over).";
+                <div class="suit-acts">
+                    <span class="small">@cLine</span>
+                    <button class="opt inline tiny" disabled="@(noWord != null)" title="@(noWord ?? CourtTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Word, ps))">A quiet word · @PolitySystem.WordInfluence influence</button>
+                    <button class="opt inline tiny" disabled="@(noGift != null)" title="@(noGift ?? CourtTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps))">A gift · @PolitySystem.GiftCredits credits</button>
+                </div>
+            }
         }
+        else
+        {
+            <div class="suit-acts">
+                @if (_confirm == LeaveKey) { <button class="opt inline veto" @onclick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Leave, string.Empty, string.Empty, ps)); }">Yes: leave it, and go back to the Reach</button> <button class="opt inline" @onclick="() => _confirm = string.Empty">No</button> }
+                else { <button class="opt inline" disabled="@(noLeave != null)" title="@(noLeave ?? LeaveTip)" @onclick="() => _confirm = LeaveKey">Leave the state</button> }
+            </div>
+        }
+        @if (promisedLine.Length > 0) { <div class="muted small">@promisedLine</div> }
     }
     else
     {
@@ -85,11 +115,15 @@
                 {
                     string hid = h.Id; bool joins = PolitySystem.Joins(w, h, house); int regard = PolitySystem.Regard(w, h, house);
                     string? noWord = new WorkHouseCommand(pid, hid, PolitySystem.Word, ps).Refusal(G.Ctx); string? noGift = new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps).Refusal(G.Ctx);
-                    string hLine = h.Name + (joins ? " would follow you" : " would not follow you") + " (regard " + regard + " of " + PolitySystem.JoinRegard + ").";
+                    bool bound = PolitySystem.Bound(w, h, house), cowed = PolitySystem.Cowed(w, h, house), promised = PolitySystem.IsPromised(w, h, house); int need = PolitySystem.JoinRegard - (bound ? PolitySystem.MarriageEases : 0);
+                    string? noPromise = new WorkHouseCommand(pid, hid, PolitySystem.Promise, ps).Refusal(G.Ctx); string? noThreat = new WorkHouseCommand(pid, hid, PolitySystem.Threat, ps).Refusal(G.Ctx);
+                    string hLine = h.Name + (joins ? " would follow you" : " would not follow you") + " (regard " + regard + " of " + need + (bound ? ", bound to you by a marriage" : "") + (cowed ? ", afraid of you" : "") + (promised ? ", promised a place" : "") + ").";
                     <div class="suit-acts">
                         <span class="small">@hLine</span>
                         <button class="opt inline tiny" disabled="@(noWord != null)" title="@(noWord ?? WordTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Word, ps))">A quiet word · @PolitySystem.WordInfluence influence</button>
                         <button class="opt inline tiny" disabled="@(noGift != null)" title="@(noGift ?? GiftTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps))">A gift · @PolitySystem.GiftCredits credits</button>
+                        <button class="opt inline tiny" disabled="@(noPromise != null)" title="@(noPromise ?? PromiseTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Promise, ps))">Promise a place</button>
+                        <button class="opt inline tiny" disabled="@(noThreat != null)" title="@(noThreat ?? ThreatTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Threat, ps))">Threaten</button>
                     </div>
                 }
                 @foreach (var st in others.Where(o => o.Recognised > 0 && o.Regions.Any(x => PolitySystem.Borders(w, x, rid))))
@@ -139,7 +173,12 @@
 
 @code {
     private string _form = PolitySystem.Republic, _confirm = "";
-    private const string RejoinKey = "@rejoin";
+    private const string RejoinKey = "@rejoin", LeaveKey = "@leave";
+    private const string LeaveTip = "Your house goes back to the Reach with its worlds and takes its seat in the Senate again. The state's ruler will not forgive it; the capital will be glad of it.";
+    private const string PromiseTip = "Their regard for you rises by 15 at once. If the state is founded with them in it, you owe them 3 credits a year for ten years; a ruler who cannot pay is thought the less of, and a house that comes to think ill of its ruler leaves.";
+    private const string ThreatTip = "It takes three hulls to their one. They will follow you for as long as they are afraid, think 20 the less of you, and leave the state the day they are not.";
+    private const string CourtTip = "Their regard for you rises. A house of the Reach that thinks well of a state's ruler and ill of the capital may come over by itself, with its worlds or with a whole region on your border.";
+    private const string StirAgainstTip = "The same price and the same risk. The five strongest of the other houses each think 8 the less of this one. If the capital hears whose money it was, so does this house.";
     private const string RejoinTip = "The state ends and its houses take their seats in the Senate again. At peace it comes back whole, and the capital thinks the better of you. In the middle of its war it comes back on the Reach's terms, which are lighter than defeat.";
     private const string Chosen = "on", GoodPill = "good", Yes = "yes", No = "no";
     private const string WordTip = "Their regard for you rises. At 25 they give their word to go with the region. A house that is the capital's creature and no friend of yours will report it.";

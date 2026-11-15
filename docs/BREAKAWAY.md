@@ -48,7 +48,14 @@ regard for you. Once a year for each you may send:
 - **a quiet word** (2 influence): their regard rises by 8;
 - **a gift** (12 credits from the house): their regard rises by 12, and by 4 more if they are poor.
 
+- **a promise of a place** (2 influence): their regard rises by 15 at once, and you owe them. If the state is founded
+  with them in it, its ruler pays them 3 credits a year for ten years. A ruler who cannot pay is thought 8 the less of
+  each year, and there is an event;
+- **a threat** (2 influence), if you have three hulls to their one: they will follow you for as long as they are
+  afraid (ten years, and while you still have two hulls to their one), and think 20 the less of you.
+
 At a regard of **25** they give their word, and it holds for ten years so long as they do not turn against you.
+**A marriage between the two houses** makes it 10: one of yours wed to one of theirs, both living.
 
 **The capital's creature tells the capital.** A house that thinks well of the capital's holder (30 or more) and little
 of you (under 10) hears you out and reports it. Nothing is gained, the capital's holder thinks 15 the worse of you,
@@ -78,11 +85,27 @@ Whether the Reach fights for the region is a number, shown on the panel with its
 | Facing fleets less than a quarter of what it would send | +1 |
 | The region is on the rim | −1 |
 | The region is in the core | +1 |
-| Under a throne | +1 |
+| Under a throne | The Emperor's own: see below |
 
 - **At nought or below it lets the region go.** No fleet comes, and the state is recognised at once.
 - **Above nought it is a war of independence.** The capital's holder and the three strongest houses of the Reach go
   to war with the house and its followers.
+
+### Under a throne
+
+The answer is the Emperor's own, not one number for every throne:
+
+| | Will |
+|---|---|
+| New on the throne (eight years or less) | +2: cannot be seen to lose a province |
+| An older throne | +1 |
+| The Emperor is ruthless, cruel or proud | +1 |
+| The Emperor is just or honourable | −1: would sooner treat than burn a region |
+| The throne's house is not respected (legitimacy under 40) | −1: cannot spare the fleets from home |
+| The Emperor thinks well of your house (30 or more) | −1 |
+| The Emperor has no love for it (−30 or less) | +1 |
+
+So an old, just Emperor who thinks well of you may let a rim region go; a new and ruthless one will not.
 
 ## A war of independence
 
@@ -126,7 +149,17 @@ its party as it would by declaring.
   - the will to fight, and **the Reach calls it a breach of the treaty**: the whole state is at war for its life
     again, on the same rules as a war of independence. There is an event for a house of that state.
 
-A state still fighting to exist cannot be joined: there is nothing yet to join.
+**A state still fighting can be joined, as it stands.** A house that holds a world in it and goes over is at war
+with the Reach from that day, on the state's side. If it had been one of those sent against the state, it is its enemy
+no longer. A region cannot be taken into a state until the Reach has recognised it.
+
+**A house can leave.** A member that is not the ruler may go back to the Reach, with its worlds: the ruler thinks 25
+the less of it, the capital 10 the better. Members do it by themselves when they have come to think ill of their ruler
+(−20 or worse), about one year in three, unless they are afraid to. If one leaves your state there is an event.
+
+**A state reaches for its neighbours.** Its ruler may send a word or a gift to a house of the Reach that holds a world
+in the state or in a region on its border. Such a house, once it thinks well enough of the ruler (30) and has no love
+for the capital, comes over by itself: with its worlds, or (at 40, if it controls the region) with the whole region.
 
 **Other houses do it too.** A house of the Reach that holds worlds inside a recognised state, thinks well of its ruler
 (regard 30) and no better than nothing of the capital's holder, goes over of its own accord, about one year in four,
@@ -161,6 +194,8 @@ with its causes ("the peace of the Reach"). Each year the pressure is the sum of
 | A region has left the Reach in the last eight years | 4 |
 
 - At 40 there are rumblings. At 150 the houses sort into two camps. At 300 it is war.
+- **It can be aimed.** The same act can name one house: the five strongest of the others each think 8 the less of it.
+  If the capital hears whose money it was, so does that house (−25).
 - **A house can push it on purpose.** "Stir the camps" (3 influence, 12 credits): money and letters in the right
   places, and for three years "somebody's money is setting the great houses against one another" adds 6 to the
   pressure. One time in three the capital hears whose money it was: its holder thinks 15 the less of you and your house
@@ -289,9 +324,7 @@ This is the first stage of a large piece. What it leaves is in docs/GAPS.md (B1 
 - **A state's border.** It has no meaning for trade, lanes or the
   Exchange.
 - **A state's own dealings.** It makes no trade treaty or alliance, sends no envoys, and does not make war as a state.
-- **A state at war cannot be joined,** and a state cannot itself reach for a region: only a house of the Reach can
-  bring one in.
+- **A state does not make war as a state** to take a region: it grows only by houses coming over.
 - **The older free march** (a rim house that renounces the capital) is still its own small rule and should become
   one of these.
-- Standing alone does not weigh food, manpower or the goods of the market. Working on a house is only a word or a gift.
-- Under a throne the Reach's temper is one number. A new Caesar should have his own.
+- Standing alone does not weigh food, manpower or the goods of the market. A marriage binds a house only if it already exists: one cannot be offered as the price.

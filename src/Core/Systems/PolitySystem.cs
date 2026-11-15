@@ -27,9 +27,22 @@ public sealed class PolitySystem
     // true for a year after the deed
     public const string DeclaredFlag = "declared_independence", LetGoFlag = "let_go_by_the_reach", WonFlag = "independence_won", LostFlag = "independence_lost",
         OtherBreaksFlag = "a_state_breaks_away", PartitionFlag = "the_reach_is_partitioned", JoinedFlag = "joined_a_state", JoinedOursFlag = "a_house_joins_our_state", BreachFlag = "treaty_broken_by_accession", StirredFlag = "camps_stirred";
+    public const string Promise = "promise", Threat = "threat", LeftFlag = "left_a_state", LeftOursFlag = "a_house_leaves_our_state", UnpaidFlag = "promise_unpaid";
+    public const int PromiseRegard = 15, PromiseCredits = 3, ThreatRegard = -20, ThreatOdds = 3, MarriageEases = 15, LeavesRegard = -20, NewThroneYears = 8, StirAgainst = 8;
+    public static string PromisedKey(string houseId, string leaderId) => $"promised:{houseId}:{leaderId}";
+    public static string CowedKey(string houseId, string leaderId) => $"cowed:{houseId}:{leaderId}";
+    /// <summary>Has this house been promised a place by that one, and not yet had it?</summary>
+    public static bool IsPromised(World w, House h, House leader) => w.WorldCounters.ContainsKey(PromisedKey(h.Id, leader.Id));
+    /// <summary>Is this house afraid of that one: threatened inside the last ten years, and still much the weaker?</summary>
+    public static bool Cowed(World w, House h, House leader) => w.WorldCounters.TryGetValue(CowedKey(h.Id, leader.Id), out int t) && w.Turn - t <= PledgeYears
+        && FleetSystem.StrengthOf(w, leader.Id) >= 2 * Math.Max(1, FleetSystem.StrengthOf(w, h.Id));
+    /// <summary>Are the two houses bound by a marriage: one of each, living, wed to the other?</summary>
+    public static bool Bound(World w, House a, House b) => w.Marriages.Any(m => w.Char(m.A) is { Alive: true } x && w.Char(m.B) is { Alive: true } y
+        && ((Of_(x) == a.Id && Of_(y) == b.Id) || (Of_(x) == b.Id && Of_(y) == a.Id)));
+    private static string Of_(Character c) => c.BornHouseId.Length > 0 ? c.BornHouseId : c.HouseId;
     public const string StirKey = "camps_stirred_until"; public const int StirYears = 3, StirInfluence = 3, StirCredits = 12, AccedeRegard = 0, GoesOverRegard = 30;
     private static readonly string[] YearFlags = { IndependentFlag, WarFlag, PossibleFlag, RefuseFlag };
-    private static readonly string[] DeedFlags = { DeclaredFlag, LetGoFlag, WonFlag, LostFlag, OtherBreaksFlag, PartitionFlag, ReportedFlag, WonOverFlag, ReconquestFlag, RejoinedFlag, JoinedFlag, JoinedOursFlag, BreachFlag, StirredFlag };
+    private static readonly string[] DeedFlags = { DeclaredFlag, LetGoFlag, WonFlag, LostFlag, OtherBreaksFlag, PartitionFlag, ReportedFlag, WonOverFlag, ReconquestFlag, RejoinedFlag, JoinedFlag, JoinedOursFlag, BreachFlag, StirredFlag, LeftFlag, LeftOursFlag, UnpaidFlag };
     public const string CivilWarEndedKey = "civil_war_ended";
     public static string OpposedKey(string houseId) => "opposed_the_throne:" + houseId;
 
@@ -65,8 +78,9 @@ public sealed class PolitySystem
     {
         if (h.Id == leader.Id || !Real(h) || !InReach(w, h.Id) || RegionSystem.CapitalHolder(w)?.Id == h.Id) return false;
         if (h.PatronId == leader.Id) return true;
+        if (Cowed(w, h, leader)) return true;                                    // it is afraid to do otherwise
         int regard = Regard(w, h, leader);
-        if (regard >= JoinRegard) return true;
+        if (regard >= JoinRegard - (Bound(w, h, leader) ? MarriageEases : 0)) return true;   // a marriage between the houses makes it easier asked
         if (regard >= 0 && w.WorldCounters.TryGetValue(PledgeKey(h.Id, leader.Id), out int pledged) && w.Turn - pledged <= PledgeYears) return true;   // it gave its word
         return OrderSystem.Sway(w, h, leader).lean >= 2;
     }
@@ -87,14 +101,27 @@ public sealed class PolitySystem
     public string? WorkRefusal(World w, House? house, House? target, string how)
     {
         if (house == null || target == null || !Real(target) || house.Id == target.Id) return "no such house";
-        if (how != Word && how != Gift) return "a word or a gift";
-        if (!InReach(w, house.Id)) return "the house has already left the Reach";
+        if (how != Word && how != Gift && how != Promise && how != Threat) return "a word, a gift, a promise or a threat";
         if (!InReach(w, target.Id)) return $"{target.Name} has already left the Reach";
-        if (!Neighbours(w, house).Any(h => h.Id == target.Id)) return $"{target.Name} holds no world in a region of yours";
+        if (!InReach(w, house.Id))
+        {
+            // a state reaches for its neighbours: its ruler may court a house of the Reach that holds worlds in the state or beside it
+            var own = Of(w, house.Id); if (own == null || own.HeadHouseId != house.Id) return "the house has already left the Reach";
+            if (how is Promise or Threat) return "a state courts its neighbours with words and gifts";
+            if (!Courtable(w, own, target)) return $"{target.Name} holds no world in {own.Name} or beside it";
+        }
+        else if (!Neighbours(w, house).Any(h => h.Id == target.Id)) return $"{target.Name} holds no world in a region of yours";
+        if (how == Promise && IsPromised(w, target, house)) return "you have promised them a place already";
+        if (how == Threat && FleetSystem.StrengthOf(w, house.Id) < ThreatOdds * Math.Max(1, FleetSystem.StrengthOf(w, target.Id))) return $"they are not afraid of you: it takes {ThreatOdds} hulls to their one";
+        if (how == Threat && Cowed(w, target, house)) return "they are afraid of you already";
         if (RegionSystem.CapitalHolder(w)?.Id == target.Id) return $"{target.Name} holds the capital, and will never leave it";
         if (w.Counter(WorkedKey(target.Id, house.Id)) == w.Turn + 1) return "you have approached them this year";
         return how == Gift && house.Treasury.Credits < GiftCredits ? $"a gift takes {GiftCredits} credits" : null;
     }
+
+    /// <summary>A house of the Reach a state's ruler might court: one that holds a world in the state's regions, or in a region that borders them.</summary>
+    public static bool Courtable(World w, Polity p, House target) => Real(target) && InReach(w, target.Id) && w.Galaxy != null && w.Galaxy.Regions.Any(r =>
+        (p.Regions.Contains(r.Id) || p.Regions.Any(x => Borders(w, x, r.Id))) && Worlds(w, r.Id).Any(x => x.OwnerId == target.Id));
 
     /// <summary>The head sounds out a house of the region: a word, or a gift. One that thinks well enough of the house afterwards gives
     /// its word to go with it. One that is the capital's creature tells the capital. True if it was won over.</summary>
@@ -114,8 +141,14 @@ public sealed class PolitySystem
         }
         if (th != null && hh != null)
         {
-            int gain = how == Gift ? GiftRegard + (target.Treasury.Credits < 20 ? 4 : 0) : WordRegard;
+            int gain = how == Gift ? GiftRegard + (target.Treasury.Credits < 20 ? 4 : 0) : how == Promise ? PromiseRegard : how == Threat ? ThreatRegard : WordRegard;
             var r = w.Relationship(th.Id, hh.Id); r.Disposition = Math.Clamp(r.Disposition + gain, -100, 100);
+        }
+        if (how == Promise) { w.WorldCounters[PromisedKey(target.Id, house.Id)] = w.Turn; w.Log($"{house.Name} promises {target.Name} a place in whatever comes after. It is a debt, and both of them know it."); }
+        if (how == Threat)
+        {
+            w.WorldCounters[CowedKey(target.Id, house.Id)] = w.Turn;
+            w.Log($"{house.Name} lets {target.Name} understand what its fleets could do. {target.Name} will go where it is told, and will not forget being told."); return false;
         }
         bool won = Regard(w, target, house) >= JoinRegard && !w.WorldCounters.ContainsKey(PledgeKey(target.Id, house.Id));
         if (Regard(w, target, house) >= JoinRegard) w.WorldCounters[PledgeKey(target.Id, house.Id)] = w.Turn;
@@ -201,12 +234,29 @@ public sealed class PolitySystem
         string ring = w.Galaxy?.Region(regionId)?.Ring ?? Ring.Middle;
         if (ring == Ring.Rim) { t -= 1; why.Add("the rim is a long way to send a fleet"); }
         else if (ring == Ring.Core) { t += 1; why.Add("the core is too near the capital to let go"); }
-        if (w.IsImperium) { t += 1; why.Add("a throne does not let provinces go"); }
+        if (w.IsImperium) t += ThroneTemper(w, house, why);
         var alone = StandAlone(w, house, regionId); t += alone.temper;
         if (alone.leverage) why.Add("the Reach cannot do without what the region makes");
         if (alone.starved) why.Add("the region has no fuel of its own and can be starved of it");
         if (alone.tests.Count > 1 && !alone.tests[1].ok) why.Add("the region cannot pay for a war");
         return (t, why);
+    }
+
+    /// <summary>Under a throne the answer is the Emperor's own (docs/BREAKAWAY.md): a new throne cannot be seen to lose a province, a
+    /// hard ruler will not, one who is not secure at home cannot spare the fleets, and one who thinks well of the house may let it go.</summary>
+    public static int ThroneTemper(World w, House house, List<string> why)
+    {
+        var throne = ThroneSystem.Emperor(w); var emperor = throne != null ? Systems.Economy.HeadOf(w, throne) : null;
+        if (throne == null || emperor == null) { why.Add("a throne does not let provinces go"); return 1; }
+        int t = 0;
+        if (w.WorldCounters.TryGetValue(ThroneSystem.SinceKey, out int since) && w.Turn - since <= NewThroneYears) { t += 2; why.Add($"{emperor.Name} is new on the throne and cannot be seen to lose a province"); }
+        else { t += 1; why.Add("a throne does not let provinces go"); }
+        if (emperor.NatureTraits.Contains("Ruthless") || emperor.NatureTraits.Contains("Cruel") || emperor.NatureTraits.Contains("Proud")) { t += 1; why.Add($"{emperor.Name} is not one to let it pass"); }
+        else if (emperor.NatureTraits.Contains("Just") || emperor.NatureTraits.Contains("Honorable")) { t -= 1; why.Add($"{emperor.Name} would sooner treat than burn a region"); }
+        if (throne.Legitimacy < 40) { t -= 1; why.Add("the throne is not secure enough at home to send its fleets away"); }
+        int regard = Regard(w, throne, house);
+        if (regard >= 30) { t -= 1; why.Add($"{emperor.Name} thinks well of the house"); } else if (regard <= -30) { t += 1; why.Add($"{emperor.Name} has no love for the house"); }
+        return t;
     }
 
     // ---------------- declaring ----------------
@@ -248,6 +298,7 @@ public sealed class PolitySystem
         var p = new Polity { Id = "polity_" + n, Name = NameFor(form, region.Name), Form = form, HeadHouseId = house.Id, Since = w.Turn, Temper = temper, Origin = origin, Leverage = alone.leverage, Starved = alone.starved };
         p.Regions.Add(regionId); w.Polities.Add(p);
         Leave(w, house, p); foreach (var b in backers) Leave(w, b, p);
+        foreach (var b in backers.Where(b => IsPromised(w, b, house))) { p.Promised.Add(b.Id); w.WorldCounters.Remove(PromisedKey(b.Id, house.Id)); }   // what was promised falls due
         // a house that leaves the Reach leaves the Reach's wars: the great war and a general's march are no longer its business
         foreach (var id in p.Members.ToList()) foreach (var war in w.Wars.Where(x => x.Involves(id)).ToList()) _fleets.MakePeace(w, war.HouseA, war.HouseB, terms: false);
         if (w.CivilWar is { } cw) { foreach (var id in p.Members) { cw.With.Remove(id); cw.Against.Remove(id); cw.Declared.Remove(id); } }
@@ -292,7 +343,7 @@ public sealed class PolitySystem
     {
         if (house == null || !Real(house) || p == null || !w.Polities.Contains(p)) return "no such state";
         if (!InReach(w, house.Id)) return "the house has already left the Reach";
-        if (p.Recognised == 0) return $"{p.Name} is still fighting to exist: there is nothing yet to join";
+        if (p.Recognised == 0 && regionId.Length > 0) return $"{p.Name} is still fighting to exist: it cannot take in a region until it is a state";
         if (RegionSystem.CapitalHolder(w)?.Id == house.Id) return "the house holds the capital: it cannot leave what it sits at the head of";
         if (w.CivilWar?.HouseId == house.Id) return "the house is marching on the capital";
         var ruler = w.House(p.HeadHouseId); if (ruler == null) return "the state has no ruler to treat with";
@@ -317,12 +368,19 @@ public sealed class PolitySystem
         var backers = region != null ? Control(w, house, regionId).backers : new List<House>(); int temper = region != null ? Temper(w, house, regionId).temper : 0;
         Leave(w, house, p); foreach (var b in backers) Leave(w, b, p);
         foreach (var h in backers.Prepend(house)) foreach (var war in w.Wars.Where(x => x.Involves(h.Id)).ToList()) _fleets.MakePeace(w, war.HouseA, war.HouseB, terms: false);
+        foreach (var h in backers.Prepend(house)) p.Foes.Remove(h.Id);   // one that was sent against the state and has gone over to it is its enemy no longer
         if (w.CivilWar is { } cw) foreach (var h in backers.Prepend(house)) { cw.With.Remove(h.Id); cw.Against.Remove(h.Id); cw.Declared.Remove(h.Id); }
         if (chair != null && Systems.Economy.HeadOf(w, chair) is { } ch && Systems.Economy.HeadOf(w, house) is { } hh) { var r = w.Relationship(ch.Id, hh.Id); r.Disposition = Math.Clamp(r.Disposition - (region != null ? 30 : 20), -100, 100); }
         if (w.House(p.HeadHouseId) is { } ruler) { var a = Systems.Economy.HeadOf(w, ruler); var b = Systems.Economy.HeadOf(w, house); if (a != null && b != null && a.Id != b.Id) { var r = w.Relationship(a.Id, b.Id); r.Disposition = Math.Clamp(r.Disposition + 10, -100, 100); } }
         w.WorldCounters["polities_joined"] = w.Counter("polities_joined") + 1;
         if (house.Id == mine) Mark(w, JoinedFlag); else if (p.Members.Contains(mine ?? "")) Mark(w, JoinedOursFlag);
-        if (region == null) { w.Log($"{house.Name} goes over to {p.Name}. It has no seat in the Senate from today."); return false; }
+        if (region == null)
+        {
+            if (p.Recognised > 0) { w.Log($"{house.Name} goes over to {p.Name}. It has no seat in the Senate from today."); return false; }
+            // a state still fighting: the house joins its war
+            foreach (var foe in p.Foes) _fleets.DeclareWar(w, foe, house.Id);
+            w.Log($"{house.Name} goes over to {p.Name} in the middle of its war, and is at war with the Reach from today."); return true;
+        }
         p.Regions.Add(regionId);
         w.Log($"{house.Name} takes {region.Name} out of the Reach and into {p.Name}." + (backers.Count > 0 ? $" {string.Join(", ", backers.Select(b => b.Name))} go with it." : ""));
         if (temper <= 0) { w.Log("The Reach does not answer with a fleet. The treaty stands, and the maps are redrawn."); return false; }
@@ -333,12 +391,35 @@ public sealed class PolitySystem
         return true;
     }
 
+    // ---------------- leaving a state ----------------
+
+    public string? DepartRefusal(World w, House? house)
+    {
+        var p = house != null ? Of(w, house.Id) : null;
+        if (house == null || p == null) return "the house is of the Reach";
+        return p.HeadHouseId == house.Id ? "the state is yours: bring it back into the Reach, or keep it" : null;
+    }
+    /// <summary>A house that is not its ruler leaves a state and goes back to the Reach, with its worlds. The ruler does not forgive it;
+    /// the capital is glad of it.</summary>
+    public void Depart(World w, House house, Polity p)
+    {
+        var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w); var ruler = w.House(p.HeadHouseId);
+        foreach (var f in p.Foes.ToList()) _fleets.MakePeace(w, house.Id, f, terms: false);
+        p.Members.Remove(house.Id); p.Promised.Remove(house.Id); house.PolityId = "";
+        void Shift(House? of, House? toward, int by) { var a = of != null ? Systems.Economy.HeadOf(w, of) : null; var b = toward != null ? Systems.Economy.HeadOf(w, toward) : null; if (a == null || b == null || a.Id == b.Id) return; var r = w.Relationship(a.Id, b.Id); r.Disposition = Math.Clamp(r.Disposition + by, -100, 100); }
+        Shift(ruler, house, -25); Shift(chair, house, 10);
+        w.WorldCounters["polities_left"] = w.Counter("polities_left") + 1;
+        if (house.Id == mine) Mark(w, LeftFlag); else if (p.Members.Contains(mine ?? "")) Mark(w, LeftOursFlag);
+        w.Log($"{house.Name} leaves {p.Name} and takes its seat in the Senate again. Its worlds go with it.");
+    }
+
     // ---------------- stirring the camps (docs/BREAKAWAY.md, what brings the great war) ----------------
 
     public static bool Stirring(World w) => w.Counter(StirKey) >= w.Turn && w.Counter(StirKey) > 0;
-    public string? StirRefusal(World w, House? house)
+    public string? StirRefusal(World w, House? house, House? against = null)
     {
         if (house == null || !Real(house)) return "no such house";
+        if (against != null && (!Real(against) || against.Id == house.Id || !InReach(w, against.Id))) return "no such house of the Reach to set them against";
         if (!InReach(w, house.Id)) return "the house has left the Reach, and its quarrels";
         if (GreatCrisisSystem.AtWar(w)) return "the war has come: there is nothing left to stir";
         if (w.HasFlag(GreatCrisisSystem.ResolvedFlag)) return "the Reach has had its war, and will not be stirred to another for years";
@@ -347,15 +428,24 @@ public sealed class PolitySystem
     }
     /// <summary>The house sets the great houses against one another on purpose: money and words in the right places, for three years.
     /// It pushes the Reach toward its great war. One time in three the capital hears whose money it was.</summary>
-    public bool Stir(World w, House house)
+    public bool Stir(World w, House house, House? against = null)
     {
-        var mine = w.Protagonist?.HouseId; house.Treasury.Credits -= StirCredits; w.WorldCounters[StirKey] = w.Turn + StirYears; w.WorldCounters["camps_stirred"] = w.Counter("camps_stirred") + 1;
+        var mine = w.Protagonist?.HouseId; house.Treasury.Credits -= StirCredits;
+        if (against != null)
+        {
+            // the five strongest of the rest hear worse of this one house than of any other
+            var ah = Systems.Economy.HeadOf(w, against);
+            foreach (var h in w.Houses.Values.Where(h => Real(h) && InReach(w, h.Id) && h.Id != house.Id && h.Id != against.Id).OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).Take(5))
+                if (Systems.Economy.HeadOf(w, h) is { } hd && ah != null && hd.Id != ah.Id) { var r = w.Relationship(hd.Id, ah.Id); r.Disposition = Math.Clamp(r.Disposition - StirAgainst, -100, 100); }
+            w.Log($"What is said in the great houses this year is said, more than anything, about {against.Name}.");
+        } w.WorldCounters[StirKey] = w.Turn + StirYears; w.WorldCounters["camps_stirred"] = w.Counter("camps_stirred") + 1;
         if (house.Id == mine) Mark(w, StirredFlag);
         w.Log($"Money moves, and letters. For {StirYears} years the great houses will hear worse of one another than they did.");
         var chair = RegionSystem.CapitalHolder(w); bool heard = chair != null && chair.Id != house.Id && Hash($"stir:{house.Id}:{w.Turn}") % 3 == 0;
         if (!heard) return false;
         if (Systems.Economy.HeadOf(w, chair!) is { } ch && Systems.Economy.HeadOf(w, house) is { } hh) { var r = w.Relationship(ch.Id, hh.Id); r.Disposition = Math.Clamp(r.Disposition - 15, -100, 100); }
         house.Legitimacy = Math.Clamp(house.Legitimacy - 3, 0, 100); if (house.Id == mine) Mark(w, ReportedFlag);
+        if (against != null && Systems.Economy.HeadOf(w, against) is { } victim && Systems.Economy.HeadOf(w, house) is { } me2 && victim.Id != me2.Id) { var r = w.Relationship(victim.Id, me2.Id); r.Disposition = Math.Clamp(r.Disposition - 25, -100, 100); }   // and so does the house it was aimed at
         w.Log($"{chair!.Name} learns whose money it was. {house.Name} is spoken of in the capital as a house that wants a war."); return true;
     }
 
@@ -523,6 +613,24 @@ public sealed class PolitySystem
             }
         }
 
+        // What was promised is paid, for ten years from the founding: three credits a year from the ruler to each house it promised.
+        // A ruler who cannot pay is thought the less of. A member that has come to think ill of the ruler leaves, unless it is afraid to.
+        foreach (var p in w.Polities.OrderBy(p => p.Id, StringComparer.Ordinal).ToList())
+        {
+            var ruler = w.House(p.HeadHouseId); if (ruler == null) continue;
+            p.Promised.RemoveAll(id => !p.Members.Contains(id)); if (w.Turn - p.Since > PledgeYears) p.Promised.Clear();
+            foreach (var id in p.Promised.OrderBy(id => id, StringComparer.Ordinal).ToList())
+            {
+                var owed = w.House(id); if (owed == null) continue;
+                if (ruler.Treasury.Credits >= PromiseCredits) { ruler.Treasury.Credits -= PromiseCredits; owed.Treasury.Credits += PromiseCredits; continue; }
+                if (Systems.Economy.HeadOf(w, owed) is { } oh && Systems.Economy.HeadOf(w, ruler) is { } rh && oh.Id != rh.Id) { var r = w.Relationship(oh.Id, rh.Id); r.Disposition = Math.Clamp(r.Disposition - 8, -100, 100); }
+                if (ruler.Id == mine && !w.HasFlag(UnpaidFlag)) { Mark(w, UnpaidFlag); w.Log($"{ruler.Name} cannot pay {owed.Name} what it was promised this year. {owed.Name} had been counting on it."); }
+            }
+            var leaver = p.Members.Where(id => id != p.HeadHouseId && id != mine).Select(id => w.House(id)).Where(h => h != null && Regard(w, h!, ruler) <= LeavesRegard && !Cowed(w, h!, ruler) && Hash($"leaves:{h!.Id}:{w.Turn}") % 3 == 0)
+                .OrderBy(h => Regard(w, h!, ruler)).ThenBy(h => h!.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (leaver != null) Depart(w, leaver, p);
+        }
+
         // A house of the Reach that holds worlds inside a recognised state, thinks well of its ruler and ill of the capital, goes over
         // to it of its own accord: one a year at the most (docs/BREAKAWAY.md). The player's house is never moved for them.
         var chairNow = RegionSystem.CapitalHolder(w);
@@ -532,6 +640,15 @@ public sealed class PolitySystem
             var goer = w.Houses.Values.Where(h => h.Id != mine && AccedeRefusal(w, h, p) == null && Regard(w, h, ruler) >= GoesOverRegard && (chairNow == null || Regard(w, h, chairNow) <= 0) && Hash($"goes_over:{h.Id}:{w.Turn}") % 4 == 0)
                 .OrderByDescending(h => Regard(w, h, ruler)).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
             if (goer != null) { Accede(w, goer, p); break; }
+            // and one that controls a region on the state's border, thinks very well of its ruler and ill of the capital, may bring the region
+            if (w.Galaxy == null) continue;
+            foreach (var r in w.Galaxy.Regions.Where(r => p.Regions.Any(x => Borders(w, x, r.Id))).OrderBy(r => r.Id, StringComparer.Ordinal))
+            {
+                var bringer = w.Houses.Values.Where(h => h.Id != mine && AccedeRefusal(w, h, p, r.Id) == null && Regard(w, h, ruler) >= GoesOverRegard + 10 && (chairNow == null || Regard(w, h, chairNow) <= -10) && Hash($"brings:{h.Id}:{r.Id}:{w.Turn}") % 6 == 0)
+                    .OrderByDescending(h => Regard(w, h, ruler)).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (bringer != null) { Accede(w, bringer, p, r.Id); goer = bringer; break; }
+            }
+            if (goer != null) break;
         }
 
         // those who fought a general who is now on the throne need not kneel: one of them that holds a region may take it out

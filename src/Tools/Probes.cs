@@ -88,7 +88,7 @@ internal static class Probes
         foreach (var sid in scenarios)
         {
             long trustSum = 0; int lowYears = 0, highYears = 0, lowRuns = 0, taintedYears = 0;
-            int triumphs = 0, recalls = 0, tMoved = 0, rMoved = 0, wars = 0, ended = 0, broken = 0, maxSway = 0, maxLaurels = 0, maxDevoted = 0, battles = 0, sawFirst = 0, sawLoved = 0, sawGreat = 0, sawTroubled = 0, sawReady = 0, sawWilling = 0, troubledYears = 0, years = 0; var throne = new List<string>(); var greatWars = new List<string>(); int secondWars = 0, joined = 0; int founded = 0, recognised = 0, dissolved = 0;
+            int triumphs = 0, recalls = 0, tMoved = 0, rMoved = 0, wars = 0, ended = 0, broken = 0, maxSway = 0, maxLaurels = 0, maxDevoted = 0, battles = 0, sawFirst = 0, sawLoved = 0, sawGreat = 0, sawTroubled = 0, sawReady = 0, sawWilling = 0, troubledYears = 0, years = 0; var throne = new List<string>(); var greatWars = new List<string>(); int secondWars = 0, joined = 0, departed = 0; int founded = 0, recognised = 0, dissolved = 0;
             for (ulong seed = 1; seed <= (ulong)seeds; seed++)
             {
                 var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), sid), seed); var tc = new TurnController(w, content);
@@ -114,14 +114,14 @@ internal static class Probes
                 if (GreatCrisisSystem.AtWar(w)) greatWars.Add((fought.Length > 0 ? fought + " then " : "") + $"{GreatCrisisSystem.WarYears(w)}y unfinished");
                 else if (past.Count > 0) greatWars.Add(fought + (forgotten ? $" (forgotten; {tc.GreatCrisis.Nearness(w)}% toward another)" : ""));
                 else greatWars.Add($"none ({tc.GreatCrisis.Nearness(w)}%{(w.Counter(GreatCrisisSystem.EasedCounter) > 0 ? ", stood down " + w.Counter(GreatCrisisSystem.EasedCounter) + "x" : "")})");
-                founded += w.Counter("polities_founded"); recognised += w.Counter("polities_recognised"); dissolved += w.Counter("polities_dissolved"); joined += w.Counter("polities_joined");
+                founded += w.Counter("polities_founded"); recognised += w.Counter("polities_recognised"); dissolved += w.Counter("polities_dissolved"); joined += w.Counter("polities_joined"); departed += w.Counter("polities_left");
                 if (lowRun) lowRuns++;
                 if (first) sawFirst++; if (loved) sawLoved++; if (great) sawGreat++; if (troubled) sawTroubled++; if (ready) sawReady++; if (willing) sawWilling++;
                 if (w.IsImperium) throne.Add($"y{w.History.FirstOrDefault(e => e.Text.Contains("THE THRONE") || e.Text.Contains("PROCLAIMS"))?.Turn}{(w.Counter("republics_ended") > 0 ? " by the road" : w.HasFlag(GreatCrisisSystem.ResolvedFlag) ? " by the great war" : "")}");
                 triumphs += w.Counter("triumphs_voted"); recalls += w.Counter("recalls_voted"); tMoved += w.Counter("triumphs_moved"); rMoved += w.Counter("recalls_moved"); wars += w.Counter("civil_wars"); ended += w.Counter("republics_ended"); broken += w.Counter("caesars_broken");
             }
             Console.WriteLine($"== {sid}: battles {battles} · most victories to one name {maxLaurels} · most devoted hulls {maxDevoted} · most sway {maxSway} · triumphs {triumphs} of {tMoved} moved · recalls {recalls} of {rMoved} moved · civil wars {wars} · the Republic fell {ended} · generals broken {broken} · a throne by: {(throne.Count == 0 ? "never" : string.Join(", ", throne))} (of {seeds} runs)");
-            Console.WriteLine($"   the great war, how long and how it ended: {(greatWars.Count == 0 ? "never fought" : string.Join(", ", greatWars))} · states that broke away {founded}, recognised {recognised}, brought back {dissolved}; houses that went over to one {joined}; runs with a second great war {secondWars}");
+            Console.WriteLine($"   the great war, how long and how it ended: {(greatWars.Count == 0 ? "never fought" : string.Join(", ", greatWars))} · states that broke away {founded}, recognised {recognised}, brought back {dissolved}; houses that went over to one {joined}, that left one {departed}; runs with a second great war {secondWars}");
             if (years > 0) Console.WriteLine($"   trust in the magistrates: {trustSum / years} on average · below {LadderSystem.TrustLow} in {lowRuns} of {seeds} runs, {100 * lowYears / years}% of years · at {LadderSystem.TrustHigh} or more in {100 * highYears / years}% of years · some house under a scandal in {100 * taintedYears / years}% of years");
             Console.WriteLine($"   gates, in how many of {seeds} runs another house's general: was of the first rank {sawFirst} · was loved {sawLoved} · was both {sawGreat} · passed all three {sawReady} · and would march {sawWilling} · the Republic was troubled in {sawTroubled} runs, {(years == 0 ? 0 : 100 * troubledYears / years)}% of its years");
         }

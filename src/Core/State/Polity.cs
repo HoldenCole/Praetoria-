@@ -30,5 +30,7 @@ public sealed class Polity
     /// <summary>It brings up no fuel of its own: while it is at war for its independence the Reach's exchanges are closed to it.</summary>
     public bool Starved { get; set; }
     /// <summary>How it came to be: "declared", "let_go", "partition" (out of the great war), "refused" (would not kneel to a new throne).</summary>
+    /// <summary>Houses that were promised a place in the state before it was founded, and are owed for it (docs/BREAKAWAY.md).</summary>
+    public List<string> Promised { get; set; } = new();
     public string Origin { get; set; } = "declared";
 }

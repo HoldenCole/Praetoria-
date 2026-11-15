@@ -149,6 +149,26 @@
         "let_them_learn_it": "Let them learn it the way everyone does.",
         "see_what_can_be_made_of_it": "Consider what a house might make of such a mood."
       }
+    },
+    {
+      "id": "a_house_leaves_the_state",
+      "title": "A House Leaves the State",
+      "body": "One of the houses that came out of the Reach with the state has gone back to it. It took its worlds, sent no word beforehand, and was in the Senate chamber within the month. The state is smaller by what that house held, and everyone who stayed is asking whether it knew something.",
+      "choices": {
+        "say_the_state_is_better_without_them": "Say the state is the better for it.",
+        "ask_the_others_what_they_want": "Ask the houses that stayed what they want.",
+        "let_it_pass": "Let it pass without remark."
+      }
+    },
+    {
+      "id": "the_place_you_promised",
+      "title": "The Place You Promised",
+      "body": "Before the state existed {self.name} promised a house a place in it, and the house came. The place was to be paid for, year by year. This year the treasury did not hold it. The house has said nothing yet. It has, however, been seen to count.",
+      "choices": {
+        "pay_it_from_what_can_be_found": "Find it somewhere.",
+        "ask_them_to_wait_a_year": "Ask them to wait a year.",
+        "say_a_state_is_not_a_counting_house": "Say that a state is not a counting-house."
+      }
     }
   ]
 }

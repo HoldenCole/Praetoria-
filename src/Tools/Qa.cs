@@ -329,6 +329,17 @@ internal static class Qa
                 if (decisions.NextInt(0, 8) == 0) foreach (var rg in PolitySystem.RegionsOf(w, house).Take(2)) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Join, rg.Id, st.Id, tc.Polities));
             }
             if (decisions.NextInt(0, 15) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Stir, "", "", tc.Polities));
+            // the rest of it: stirring against one house, leaving a state, a promise or a threat to a house of the region
+            var reachHouses = w.Houses.Values.Where(x => x.Id != house.Id && x.Id != PirateSystem.HouseId && PolitySystem.InReach(w, x.Id)).OrderBy(x => x.Id, StringComparer.Ordinal).ToList();
+            if (reachHouses.Count > 0 && decisions.NextInt(0, 20) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Stir, reachHouses[decisions.NextInt(0, reachHouses.Count)].Id, "", tc.Polities));
+            if (decisions.NextInt(0, 25) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Leave, "", "", tc.Polities));
+            foreach (var nb in PolitySystem.Neighbours(w, house).Take(3))
+            {
+                if (decisions.NextInt(0, 8) == 0) cands.Add(new WorkHouseCommand(p.Id, nb.Id, PolitySystem.Promise, tc.Polities));
+                if (decisions.NextInt(0, 12) == 0) cands.Add(new WorkHouseCommand(p.Id, nb.Id, PolitySystem.Threat, tc.Polities));
+            }
+            if (PolitySystem.Of(w, house.Id) is { } ownState && ownState.HeadHouseId == house.Id)
+                foreach (var ct in reachHouses.Where(x => PolitySystem.Courtable(w, ownState, x)).Take(2)) if (decisions.NextInt(0, 4) == 0) cands.Add(new WorkHouseCommand(p.Id, ct.Id, decisions.NextInt(0, 2) == 0 ? PolitySystem.Word : PolitySystem.Gift, tc.Polities));
         }
         {   // the Caesar road: answer a recall, cross the line, declare in another's war, pay the crews
             if (decisions.NextInt(0, 2) == 0) cands.Add(new CaesarCommand(p.Id, CaesarCommand.Obey, "", tc.Caesar));
