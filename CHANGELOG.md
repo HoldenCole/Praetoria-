@@ -3,6 +3,16 @@
 ## [Unreleased]
 
 ### Added
+- **The Command Deck, rebuilt** (docs/DASHBOARDS.md). It opens with one sentence that says how things stand: a
+  battle at the year's end, dry tanks, a war, a hostile fleet near a world of yours, or peace and where you rank. Six
+  tiles each carry a figure and what to read it against: your hulls and your place among the navies; whether the fleets
+  will fight; helium-3 in years of burn; upkeep against what the house takes in; the nearest hostile fleet and how
+  far; your wars. The plot is drawn on what lies within three jumps of your worlds, with every system and fleet named.
+  A table lists every fleet near you and what its house is to you. Fleets carry a status word. The navies are ranked.
+  The general and the Senate, and the nations beyond the Reach, are on tabs of their own.
+- **An audit of every dashboard** (docs/DASHBOARDS.md, `tools/browser/audit.js`): each screen at laptop size,
+  measured and judged; what Victoria 3, Europa Universalis IV, Democracy 4, Football Manager and Total War do about
+  the same problems; ten rules taken from them; and the order the screens will be rebuilt in.
 - **The Senate has committees.** The Purse, the Fleet and the Laws. Every house sits on one. A senator can spend the
   year on the committee's work, and each such year raises their standing with it: at three the committee's other
   houses lean toward what your house moves on the committee's own business, and the highest standing takes the chair.
@@ -156,6 +166,8 @@
   out, and a section for positions with nothing to do. 51 open, 37 closed.
 
 ### Fixed
+- **Panel headings wrapped into ragged columns** on every screen (a title beside three lines of capitals). The
+  subtitle now sits on its own line under the title, in ordinary type.
 - **The player's own character could be made to rebel out of their own house.** A world taken by another house kept the
   governor its old house had seated, and an ambitious governor who hated the new owner could declare the world for
   themselves, the player's character included. A governor now leaves with the house that lost the world, and the

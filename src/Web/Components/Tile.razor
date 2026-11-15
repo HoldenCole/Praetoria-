@@ -1,0 +1,28 @@
+@* One figure at the top of a dashboard (docs/DASHBOARDS.md, rule 2: no number alone). A label that is a question's subject, the
+   value, what it is to be read against, and a tone that says whether it is well or ill. Optional small bars for a value that is
+   really three (a fleet's readiness, loyalty and supply). The tooltip carries the detail. *@
+<div class="tile @Tone" title="@Title">
+    <span class="t-label">@Label</span>
+    <b class="t-value">@Value</b>
+    @if (Bars != null)
+    {
+        <span class="t-bars">
+            @foreach (var (name, pct, low) in Bars) { <span class="t-bar" title="@name @pct"><em>@name</em><i><u class="@(low ? "low" : "")" style="width:@(Math.Clamp(pct, 0, 100))%"></u></i></span> }
+        </span>
+    }
+    @if (Share >= 0) { <i class="t-share"><u class="@(Tone == "bad" || Tone == "warn" ? "low" : "")" style="width:@(Math.Clamp(Share, 0, 100))%"></u></i> }
+    <span class="t-note">@Note</span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter, EditorRequired] public string Value { get; set; } = "";
+    /// <summary>What the value is to be read against: a rank, a limit, a share, a distance.</summary>
+    [Parameter] public string Note { get; set; } = "";
+    /// <summary>"good", "warn", "bad" or nothing.</summary>
+    [Parameter] public string Tone { get; set; } = "";
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public IReadOnlyList<(string name, int pct, bool low)>? Bars { get; set; }
+    /// <summary>A single bar under the value, nought to a hundred; below nought for none.</summary>
+    [Parameter] public int Share { get; set; } = -1;
+}

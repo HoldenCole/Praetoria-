@@ -716,3 +716,44 @@ table.prospects button { white-space: nowrap; } table.prospects td, table.prospe
 .panel.education .hh-head { border-top: 1px solid var(--line); margin-top: .5rem; padding-top: .45rem; }
 
 .region-label .rs.state { color: #e2c36b; letter-spacing: .08em; }
+
+/* ===== the picture: a headline, tiles that carry a comparison, tables that say what a thing is to you (docs/DASHBOARDS.md) ===== */
+h3 { flex-wrap: wrap; row-gap: .1rem; }
+h3 > .muted { flex: 1 1 100%; font-family: var(--sans); font-size: .72rem; font-weight: 400; letter-spacing: .02em; text-transform: none; color: var(--muted); }
+.dash-head.picture { display: block; padding: .6rem .9rem .7rem; } .dash-head.picture .dh-title { margin-bottom: .25rem; }
+.headline { font-size: 1.02rem; line-height: 1.35; color: var(--ink); margin: .1rem 0 .6rem; padding: .05rem 0 .05rem .65rem; border-left: 3px solid var(--line2); max-width: 86ch; }
+.headline.good { border-left-color: var(--good); } .headline.warn { border-left-color: #e0a84f; } .headline.bad { border-left-color: var(--warn); color: #f6d3c9; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .5rem; }
+.tile { display: flex; flex-direction: column; gap: .14rem; padding: .4rem .55rem .45rem; border: 1px solid var(--line); border-top: 2px solid var(--line2); border-radius: 3px; background: rgba(5,7,12,.5); min-width: 0; }
+.tile.good { border-top-color: var(--good); } .tile.warn { border-top-color: #e0a84f; } .tile.bad { border-top-color: var(--warn); }
+.t-label { font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.t-value { font-family: var(--display); font-size: 1.15rem; font-weight: 600; color: var(--ink); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile.bad .t-value { color: #f0a090; } .tile.good .t-value { color: #bfe8cf; } .tile.warn .t-value { color: #ecd39b; }
+.t-note { font-size: .72rem; color: var(--ink2); line-height: 1.3; }
+.t-share, .t-bar i { display: block; height: 4px; background: rgba(255,255,255,.08); border-radius: 2px; overflow: hidden; }
+.t-share u, .t-bar i u { display: block; height: 100%; background: var(--good); text-decoration: none; } .t-share u { background: var(--brass); } .t-share u.low, .t-bar i u.low { background: var(--warn); }
+.t-bars { display: grid; gap: .14rem; margin: .1rem 0; } .t-bar { display: grid; grid-template-columns: 2.9rem 1fr; align-items: center; gap: .3rem; }
+.t-bar em { font-style: normal; font-size: .58rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.deck2-grid { grid-template-columns: minmax(0, 1.25fr) minmax(330px, 1fr); } .deck-one { grid-template-columns: minmax(0, 1fr); }
+.deck-col { display: flex; flex-direction: column; gap: .7rem; } .deck-col > .panel { margin-bottom: 0; }
+.plot .lane { stroke: #1e2536; stroke-width: 1; } .plot .lane.ours { stroke: #4a5a80; stroke-width: 1.5; } .plot .node.far { stroke: none; opacity: .85; }
+.plot .nlabel { font-size: 13px; } .plot .nlabel.mine { fill: #f1d78e; font-weight: 600; font-size: 15px; }
+.plot .flabel { fill: #b7b1a3; font-size: 12px; text-anchor: middle; font-family: var(--sans); } .plot .flabel.mine { fill: #f1d78e; } .plot .flabel.enemy { fill: #f0937f; font-weight: 600; }
+.plot .fleet .fl { font-size: 11px; } .plot .fleet.faint { opacity: .22; }
+.plot-legend { display: flex; flex-wrap: wrap; gap: .25rem .9rem; margin-top: .4rem; font-size: .72rem; color: var(--ink2); } .plot-legend span { display: inline-flex; align-items: center; gap: .35rem; }
+.lg { display: inline-block; width: 10px; height: 10px; flex: none; } .lg.node.mine { border-radius: 50%; background: var(--accent, #c9a24a); box-shadow: 0 0 0 2px #f1d78e; }
+.lg.supply { border-radius: 50%; background: rgba(201,162,74,.2); border: 1px solid rgba(201,162,74,.6); } .lg.fleet { transform: rotate(45deg); width: 8px; height: 8px; }
+.lg.fleet.mine { background: var(--accent, #c9a24a); box-shadow: 0 0 0 1.5px #f1d78e; } .lg.fleet.enemy { background: #c0392b; } .lg.fleet.other { background: #8a93a8; } .lg.front { width: 18px; height: 0; border-top: 2px dashed #d8705a; }
+table.near { width: 100%; border-collapse: collapse; font-size: .82rem; }
+table.near th { text-align: left; font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 500; padding: .15rem .35rem; border-bottom: 1px solid var(--line); }
+table.near td { padding: .28rem .35rem; border-bottom: 1px dotted var(--line); vertical-align: middle; } table.near .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.near tr.hostile td:first-child { box-shadow: inset 2px 0 0 var(--warn); } table.near tr.mine td { background: rgba(201,162,74,.09); color: var(--brass2); }
+table.near .vs { font-style: normal; font-size: .68rem; color: var(--muted); margin-left: .25rem; } table.near .vs.bad, table.near td.bad { color: #f0937f; } table.near td.good { color: #9fdcb6; }
+.hbar { display: block; height: 7px; min-width: 60px; background: rgba(255,255,255,.06); border-radius: 2px; overflow: hidden; } .hbar i { display: block; height: 100%; }
+.pill.status.good { border-color: var(--good); color: #9fdcb6; } .pill.status.bad { border-color: var(--warn); color: #f0937f; } .pill.status.warn { border-color: #e0a84f; color: #e9c383; }
+details.orders { margin-top: .3rem; border-top: 1px dotted var(--line); padding-top: .25rem; } details.orders > summary { font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); cursor: pointer; }
+.ex-tabs .rung { cursor: pointer; background: none; } .ex-tabs .rung.warn { border-color: var(--warn); color: #f0937f; }
+@media (max-width: 1100px) { .deck2-grid { grid-template-columns: minmax(0, 1fr); } }
+.plot .nlabel.far { fill: #6f7890; font-size: 11px; } .plot .fleet .fl { font-size: 13px; } .plot .flabel { font-size: 13px; }
+.deck .row .opt, .deck details.orders .opt { white-space: nowrap; } .deck .fcard .row { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .4rem; margin: .25rem 0; }
+.plot .nlabel { font-size: 11px; } .plot .nlabel.mine { font-size: 13px; } .plot .nlabel.far { font-size: 9.5px; } .plot .fleet .fl { font-size: 11px; } .plot .flabel { font-size: 10.5px; }
