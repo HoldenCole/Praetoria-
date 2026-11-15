@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (twenty-third pass: patrons; J5 closed, J6 mapped).
+Last updated 2026-11-15 (twenty-fourth pass: trust by office and region; L10 closed, L13 mapped).
 
 ## The worklist
 
@@ -18,8 +18,7 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | L10 | Trust by region and office | next |
-| 2 | A6, W8, W1 | Ventures that fail; heirlooms that are made and won; a purse that holds more than credits | next |
+| 1 | A6, W8, W1 | Ventures that fail; heirlooms that are made and won; a purse that holds more than credits | next |
 
 **No small gap is left that is not the owner's.** What remains is a cycle or more each, and is worked in the order above.
 
@@ -89,7 +88,7 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 | L11 | A trial is one praetor's decision, and the facts of a case or of the accounts are a few figures drawn by lot. No evidence is led or found out, there is no appeal from a verdict, and the accused does nothing in their own defence but be well or badly represented. Only a praetor can be bought: not a quaestor, an aedile or a vote. | M | |
 | L3 | No censorship, tribunate, or province after office. | L | The state and commerce |
 | L12 | A committee of the Senate has work to be done and no business of its own to decide: it reports nothing, examines nobody, and holds no inquiry. Only the player's house has a standing that is earned; the others' is reckoned. | M | X1 |
-| L10 | Public trust is one number for the whole Reach. It does not tell a region's courts, or one office's name, from another's. | M | |
+| L13 | An office's name and a region's belief in the magistrates are each one figure moved by whatever was done. A region does not tell a court that wronged it from a quaestor who robbed it; nobody can set out to mend a name (an inquiry, a purge, a reform); and a region's belief does only one thing, to its allegiance. | M | |
 
 ## A life of one's own (docs/LIFE.md)
 
@@ -185,3 +184,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | B5 | The older free march (a rim house renouncing the capital) and free holds (a rebel world) are their own rules and should become breakaway states. | 2026-11-15 | A free march takes its region out as a state, in the form its house chooses, on the terms of any declaration but without waiting for three worlds in five; the Reach lets it go or sends the fleets. A rebel world that breaks from its holder is a free state from its first day: outside the Reach, with no seat and no office; its old holder may buy it back or take it; after three years the Reach names it in a treaty; the Senate does not go back for one world and it does not push the Reach toward a great war. In sixty runs: 6 free marches, 111 free states of which 24 were taken back. The Republic stood in all sixty. B16 is what is left. |
 | B15 | Other houses do not go to war with one another over what is said of them: a censure is as far as stirring a house against another goes. | 2026-11-15 | A house stirred against another, that thinks −50 or worse of it, has at least as many hulls, has no war already and is not bound to it by marriage, goes to war with it: one such war a year, never against the capital's holder, never moved for the player. If the money was the player's an event says so. In the soak (33 runs, whose player stirs) two wars began this way and the event fired; in the probe, whose player does nothing, none did, and nothing else moved. B17 is what is left. |
 | J5 | A junior's standing with the one above them is kept for the player's house only, and the one above does one thing with it: speaks for them once at each rank. No patron who takes them along to a new post, and no falling out. | 2026-11-15 | A senior who thinks well of a junior and has had three good years of them takes them up: a patron, above them wherever either is posted. When the patron rises the junior is taken along (their trade learned faster, 3 credits). A junior the one above has come to think ill of falls out with them: the patron is lost, the years count for nothing, and that senior is not above them again. The juniors of every house of the Reach have it, by a reckoning of good and bad years. In sixty runs: 1,769 taken up, 988 taken along, 117 fallings out, 2,431 spoken for. The Republic stood in all sixty. J6 is what is left. |
+| L10 | Public trust is one number for the whole Reach. It does not tell a region's courts, or one office's name, from another's. | 2026-11-15 | Every point that moves the Reach's trust is also set against the office whose business it was and the region where it was felt. An office's name is what a scandal costs at the count for that office. A region that does not believe the magistrates holds a point less closely to the Reach each year; one that does, a point closer. A wrong is felt twice over where it was done; honest dealing mends a name and does not lift it. In sixty runs an office's name stood 5 or more under the Reach's in 6 to 7% of office-years and over it in 7 to 12%; a region believed the magistrates 5 or more less than the Reach in 17 to 29% of region-years. The Republic stood in all sixty. L13 is what is left. |

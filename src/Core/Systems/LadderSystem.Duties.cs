@@ -312,6 +312,10 @@ public static partial class LadderSystem
     /// <summary>The holder decides.</summary>
     public static void DecideDuty(World w, OfficeCatalog offices, PolicyCatalog? policy, Character who, string kind, string choice)
     {
+        TrustOf(w, DutyOf(w, who.Id, kind)!, who); try { DecideDutyIt(w, offices, policy, who, kind, choice); } finally { TrustDone(); }
+    }
+    private static void DecideDutyIt(World w, OfficeCatalog offices, PolicyCatalog? policy, Character who, string kind, string choice)
+    {
         var b = DutyOf(w, who.Id, kind)!; b.Choice = choice; var house = w.House(who.HouseId); var p = w.Protagonist; var mine = p?.HouseId; bool ours = who.HouseId == mine;
         void Legit(int by) { if (house != null && (by < 0 || house.Legitimacy < 80)) house.Legitimacy = Math.Clamp(house.Legitimacy + by, 0, 100); }
         void Approve(int by) => PolicySystem.Sway(w, who.HouseId, b.EstateId, by);

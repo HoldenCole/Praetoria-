@@ -115,7 +115,7 @@ public static partial class LadderSystem
     /// <summary>The count: each house's weight to a candidate, and each candidate's own merit, backing and canvass.</summary>
     public static Dictionary<string, int> Tally(World w, OfficeCatalog offices, RungDef rung, List<Character> candidates, Func<string, int> weight)
     {
-        var tally = candidates.ToDictionary(c => c.Id, c => Merit(c) + TrustVotes(w, c) + LifeSystem.TieVotes(w, c.HouseId) + AttendanceVotes(w, c) + (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id && cd.RungId == rung.Id)?.Backing ?? 0) + w.Counter(OrderSystem.CanvassKey(c.HouseId)));
+        var tally = candidates.ToDictionary(c => c.Id, c => Merit(c) + TrustVotes(w, c, rung.Id) + LifeSystem.TieVotes(w, c.HouseId) + AttendanceVotes(w, c) + (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id && cd.RungId == rung.Id)?.Backing ?? 0) + w.Counter(OrderSystem.CanvassKey(c.HouseId)));
         if (candidates.Count == 0) return tally;
         foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
@@ -263,6 +263,7 @@ public static partial class LadderSystem
     /// And it mends by one point a year at the most, however many of them deal straight: a year of honest magistrates is a year.
     private static void MoveTrust(World w, int by)
     {
+        SetAgainst(w, by);   // and against the office whose business it was, and the region where it was felt (docs/LADDER.md, "Whose name it is")
         int t = Trust(w);
         if (by <= 0) { w.WorldCounters[TrustKey] = Math.Max(0, t + by); return; }
         if (by == 1) { if (t >= TrustStart || w.Counter(MendedKey) == w.Turn + 1) return; w.WorldCounters[MendedKey] = w.Turn + 1; w.WorldCounters[TrustKey] = t + 1; return; }
@@ -355,9 +356,9 @@ public static partial class LadderSystem
     /// <summary>A house one of whose people was removed from office for taking money, inside the last ten years.</summary>
     public static bool Tainted(World w, string houseId) => w.WorldCounters.TryGetValue(ScandalKey(houseId), out int t) && w.Turn - t < ScandalYears;
     /// <summary>What a house's scandal costs it at a count: more when the magistrates are little trusted and the Reach wants clean hands.</summary>
-    public static int TaintCost(World w, string houseId) => !Tainted(w, houseId) ? 0 : Trust(w) < 50 ? TaintVotesLow : TaintVotes;
+    public static int TaintCost(World w, string houseId, string office = "") => !Tainted(w, houseId) ? 0 : OfficeTrust(w, office) < 50 ? TaintVotesLow : TaintVotes;
     /// <summary>The votes a candidate loses for their house's scandal, and for having been removed from office themselves.</summary>
-    public static int TrustVotes(World w, Character c) => -TaintCost(w, c.HouseId) - (w.WorldCounters.ContainsKey(BarredKey(c.Id)) ? RemovedVotes : 0);
+    public static int TrustVotes(World w, Character c, string office = "") => -TaintCost(w, c.HouseId, office) - (w.WorldCounters.ContainsKey(BarredKey(c.Id)) ? RemovedVotes : 0);
 
     /// <summary>What the state of the magistrates' name is doing this year, said plainly.</summary>
     public static string TrustSays(World w)
@@ -456,6 +457,10 @@ public static partial class LadderSystem
 
     /// <summary>The holder decides the year's business.</summary>
     public static void Decide(World w, OfficeCatalog offices, Character who, string choice)
+    {
+        TrustOf(w, BusinessOf(w, who.Id)!, who); try { DecideIt(w, offices, who, choice); } finally { TrustDone(); }
+    }
+    private static void DecideIt(World w, OfficeCatalog offices, Character who, string choice)
     {
         var b = BusinessOf(w, who.Id)!; b.Choice = choice; var house = w.House(who.HouseId); var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w);
         string office = offices.Rung(b.RungId)?.Name.ToLowerInvariant() ?? b.RungId; bool ours = who.HouseId == mine; bool exposed = false;
@@ -563,7 +568,7 @@ public static partial class LadderSystem
         }
         // above where it starts, a good name fades a point a year; below it, nothing mends it but honest dealing (a point a year, above)
         int t = Trust(w); if (t > TrustStart) w.WorldCounters[TrustKey] = t - 1;
-        TrustYear(w);
+        TrustYear(w); TrustApart(w);
     }
 
     // ---------------- the year ----------------

@@ -40,6 +40,7 @@
     {
         <div class="muted small">Each rung is held by a person, for five years, and filled by election. The houses vote with their weight in the chamber; a candidate's own speaking, standing and record count besides. You have been: <b>@Held(p)</b>.</div>
         <div class="small">The magistrates of the Reach are <span class="@trustClass" title="@TrustTip">@trustWord (@trust)</span> <span class="muted small">@trustDoes</span></div>
+        @if (LadderSystem.TrustApartSays(w) is { Length: > 0 } apart) { <div class="muted small" title="An office's own name is what a scandal costs at the count for that office. A region that does not believe the magistrates holds a little less closely to the Reach each year.">@apart</div> }
         @if (taintLine.Length > 0) { <div class="small bad">@taintLine</div> }
         @if (work != null)
         {

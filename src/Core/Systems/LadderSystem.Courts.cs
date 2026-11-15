@@ -82,6 +82,12 @@ public static partial class LadderSystem
     /// <summary>The charge is brought and heard. Whichever way it goes, it is not heard twice.</summary>
     public static bool Prosecute(World w, OfficeCatalog offices, Character head, OfficeDeed d)
     {
+        // what a court does with an old wrong is set against the office it was done in, and felt where the accused's house lives
+        _trustOffice = d.RungId; _trustRegion = HomeRegion(w, d.HouseId) ?? "";
+        try { return ProsecuteIt(w, offices, head, d); } finally { TrustDone(); }
+    }
+    private static bool ProsecuteIt(World w, OfficeCatalog offices, Character head, OfficeDeed d)
+    {
         var accuser = w.House(head.HouseId)!; var judge = Court(w, d, accuser.Id)!; var who = w.Char(d.CharacterId)!; var accused = w.House(d.HouseId);
         var (guilty, why) = Verdict(w, d, accuser.Id, judge); bool bent = !guilty && !why.StartsWith("neither", StringComparison.Ordinal);
         d.Answered = true; w.WorldCounters[TriedKey(accuser.Id)] = w.Turn + 1; w.WorldCounters["prosecutions"] = w.Counter("prosecutions") + 1;

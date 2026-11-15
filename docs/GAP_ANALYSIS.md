@@ -1757,3 +1757,34 @@ turn it down is the reckoning (four good years in six), not the rule.
 **Left, and mapped.** A patron takes a junior along and speaks for them, and that is all: a junior cannot seek one
 out, a patron asks nothing back, and a patron's enemies are not the junior's (J6).
 
+## 57. Whose name it is: trust by office and by region — 2026-11-15
+
+**L10.** Public trust was one number for the whole Reach. It still is. But every point that moves it is now also set
+against the office whose business it was and the region where it was felt (docs/LADDER.md, "Whose name it is"). An
+office's name is what a scandal costs at the count for that office. A region that believes the magistrates under 35
+holds a point less closely to the Reach each year; one that believes them at 75 or more, a point closer.
+
+**Measured, twice, because the first build was lopsided.** As first built every point counted alike. The probe
+showed two faults. An office's name stood 5 or more *over* the Reach's in 24 to 35% of office-years and under it in
+6%: routine honest work, which the Reach's own figure is built to ignore, was piling up on the offices. And a region
+stood 5 or more under the Reach in 1% of region-years: a wrong done to a region was forgotten before the next one.
+Three changes: ordinary honest dealing mends a name that is under the Reach's and does not lift one above it; a
+wrong is felt twice over in the region it was done to; and a region's figure runs back a point every second year,
+where an office's runs back every year.
+
+**After.** The Republic probe (60 runs of 60 years): an office's name stood 5 or more under the Reach's in 6 to 7%
+of office-years and 5 or more over in 7 to 12%. A region believed the magistrates 5 or more less than the Reach in
+17 to 29% of region-years, and under 35 in 0 to 23% depending on the start. The Republic stood in all 60 runs; the
+great war was fought in 47; 33 states broke away; trust in the magistrates averaged 48 to 61 by start: all as in
+the last section. The soak (33 runs, a save and load in each) passes with no drift. Survival: 0 of 10 on every
+start.
+
+713 tests (two new).
+
+**Not looked at in the browser.** The ladder panel's line and the Worlds screen's gauge compile and the screens
+load; no script plays to a year in which an office or a region stands apart, so neither was seen rendered.
+
+**Left, and mapped.** Each is one figure moved by whatever was done: a region does not tell a court that wronged it
+from a quaestor who robbed it. Nobody can set out to mend a name. A region's belief does one thing, to its
+allegiance (L13).
+

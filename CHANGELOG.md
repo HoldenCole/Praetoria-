@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Trust told apart by office and by region** (docs/LADDER.md; docs/GAPS.md L10). What a magistrate does is set
+  against their own office's name and against the belief of the region where it was felt, as well as against the
+  Reach's trust. A scandal costs a house double at the count for an office whose own name is low. A region that does
+  not believe the magistrates holds a little less closely to the Reach each year. The ladder panel says which offices
+  and regions stand apart; the Worlds screen shows a region's belief.
 - **Patrons** (docs/LADDER.md; docs/GAPS.md J5). A senior who thinks well of a junior and has had three good years'
   work of them takes them up: they are that junior's patron wherever either is posted, and when the patron rises the
   junior is taken along. A junior the one above has come to think ill of falls out with them, loses a patron, and is

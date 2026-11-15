@@ -87,7 +87,8 @@
                 {
                     int mineHere = r.SystemIds.Count(id => nodes[id].IsPlayerTerritory);
                     <div class="region-row" style="--accent:@r.AccentColor" @onclick="() => _region = r.Id"><b>@r.Name</b> <span class="ring @r.Ring">@r.Ring</span><div class="muted small">@r.SystemIds.Count systems · @(r.DominantHouseName ?? "no one") dominates@(mineHere > 0 ? $" · {mineHere} yours" : "")@(r.FreeMarch ? " · free march" : "")</div>
-                        <div class="gauge" title="regional unrest"><span>Unrest</span><i><b style="width:@r.Unrest%" class="@(r.Unrest >= 50 ? "low" : "")"></b></i><em>@r.Unrest</em></div></div>
+                        <div class="gauge" title="regional unrest"><span>Unrest</span><i><b style="width:@r.Unrest%" class="@(r.Unrest >= 50 ? "low" : "")"></b></i><em>@r.Unrest</em></div>
+                        @if (w.Counter(LadderSystem.RegionTrustKey(r.Id)) != 0) { int rt = LadderSystem.RegionTrust(w, r.Id); <div class="gauge" title="What this region thinks of the magistrates, against the Reach's @LadderSystem.Trust(w). Under @LadderSystem.TrustLow it holds a little less closely to the Reach each year; at @LadderSystem.TrustHigh or more, a little closer."><span>Magistrates</span><i><b style="width:@rt%" class="@(rt < LadderSystem.TrustLow ? "low" : "")"></b></i><em>@rt</em></div> }</div>
                 }
             </section>
         </aside>

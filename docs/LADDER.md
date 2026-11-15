@@ -265,8 +265,8 @@ wins cases they would have lost (15 in a hundred); each such win is seen, and co
 order think 2 worse a year of every house in office, beside the commons' 3; while they are trusted (75 or more) each
 thinks 1 better.
 
-Left, and mapped: trust is still one number for the whole Reach (L10). What the one above does with a junior beyond
-speaking for them is the next section.
+What the one above does with a junior beyond speaking for them is the next section; trust told apart by office and
+by region is the one after.
 
 ## A patron, and a falling out
 
@@ -300,6 +300,32 @@ head of a house when one of their own is taken up, taken along, or falls out.
 
 Left, and mapped: a patron does nothing for a junior but take them along and speak for them. A junior cannot seek
 one out or choose between two, a patron asks nothing back, and a patron's enemies are not the junior's (J6).
+
+## Whose name it is
+
+Closed off the register on 2026-11-15 (docs/GAPS.md L10). Public trust was one number for the whole Reach. It still
+is, and it is what the Reach as a whole thinks of its magistrates. But every point that moves it is now also set
+against two other things.
+
+**The office whose business it was.** The quaestors, the aediles, the praetors, the consuls, the Treasurer, the
+Speaker, the judges and the administration each have a name of their own: the Reach's figure, plus or minus what
+that office's holders have done. A quaestor who gives the surplus to a friend lowers the Reach's trust by 3 and the
+quaestors' own by 3 more. A former aedile convicted mends the aediles' name. **An office's name is what a scandal
+costs at the count for that office**: a house with a scandal loses 6 votes at a count, and 12 where the name of the
+office being filled stands under 50. It used to be the Reach's figure at every count.
+
+**The region where it was felt.** Each region has its own belief in the magistrates: the Reach's figure, plus or
+minus what has been done to it and in it (the region the business concerned, or else the home region of the house
+that did it). A region that believes them under 35 holds a point less closely to the Reach each year; one that
+believes them at 75 or more, a point closer. A region nothing has happened to goes as the Reach goes.
+
+A wrong is felt twice over in the region it was done to: it was their money, or their case. Ordinary honest dealing
+mends a name that stands under the Reach's and does no more; only something notable (a thief caught, a bent ruling
+overturned) lifts a name above it. An office's name runs a point a year back toward the Reach's figure; a region
+remembers longer, and runs back a point every second year. Neither can stand more than 30 from the Reach's. The ladder panel
+says which offices and regions stand five or more apart from the Reach ("The quaestors are trusted less than the
+rest (48 against 57)"); the Worlds screen shows a region's belief beside its allegiance when it has a figure of its
+own.
 
 ## Committees
 
@@ -478,8 +504,8 @@ Justice. The estate called the Magistrates is unchanged.
   decision (docs/GAPS.md L11).
 - Other houses' senators do not spend their year (but for the one who audits), and their judges hear no hearings
   (docs/GAPS.md X2).
-- Public trust is one number for the whole Reach: a region's own courts, or one office's name, are not told apart
-  (docs/GAPS.md L10).
+- An office's name and a region's belief are each one figure, moved by whatever was done: a region does not tell a
+  court that wronged it from a quaestor who robbed it, and nobody can set out to mend a name (docs/GAPS.md L13).
 - The chair acts on one motion a year, and the budget is three choices read against figures. The Treasurer does not
   set each head of the budget, the consuls do not summon or dismiss the Senate, and nothing is debated (docs/GAPS.md
   O3).
