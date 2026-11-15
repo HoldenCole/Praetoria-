@@ -1367,3 +1367,26 @@ junior's risk on patrol did not change it, so the patrol is not the cause. It wa
 **Left**: a junior's work has no thread from year to year, and a brief is heard by nobody in particular (J4). The
 padded-account event did not fire in the soak; it has a scripted test (X4).
 
+### 46a. Ambition items, the same day
+
+A2 and A4 from the worklist, and the small half of A5.
+
+- **Restoring the house (A2).** A restorer gives nearly all of a purse while the house is poor and counts what they
+  build for it. From an ordinary purse with nothing built it is done inside fifteen years (a test plays it); it had
+  been thirty or more.
+- **Where an ambition comes from (A4).** Two in three want what they were brought up toward; one set against their
+  bent wants something of their own. The same dice are still thrown the same number of times, so nothing else in a
+  saga's luck moves. A test plays three sagas and checks most who come of age want what they were raised to, and not
+  all.
+- **A grudge (part of A5).** The loser of a quarrel over an office or a command holds it against the one who has it.
+
+653 tests. Soak passes at four seeds. **Survival: 0 of 10 on every start**, the Risen Officer included; it read 2 of
+10 one commit earlier, which is the fragility noted in section 46 and not a result of this change.
+
+**A mistake of mine, twice today.** Inserting a statement with a trailing comment into the middle of an existing line
+commented out the rest of that line: once in `tools/browser/ladder.js`, once in `AmbitionSystem.Found` (caught by an
+existing test before it was committed). All forty files changed in this session were scanned for the same thing; there
+were no others.
+
+**Left**: ventures do not fail, and a quarrel does not divide the house (A5).
+

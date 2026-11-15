@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- **What a child is brought up to shapes what they want.** Two in three come of age wanting what they were raised
+  toward (a command, the Senate, a fortune, or the house restored if it is poor). One set against their own bent wants
+  something that is nobody's plan. The rest are left to the dice.
+- **The loser of a quarrel holds it against the winner** when the other one gets the office or the command.
 - **The lowest ranks have work.** An Aspirant or Advocate pleads a brief (on the law, for the side that pays, or for
   one who cannot pay). A Clerk or Administrator keeps the ledgers (exactly, usefully, or with an account padded). A
   Cadet, Ensign or Lieutenant with no command has the watches (stand them, volunteer for the patrol, or make friends
@@ -58,6 +62,9 @@
 - **The Senate's sword commands the Reach's own fleets** for as long as the civil war lasts.
 
 ### Changed
+- **A relative who means to restore the house now can.** They keep 3 credits and give the rest while the house is
+  poor, and a venture they found counts toward it, by its cost and by what it brings in each year. It used to take a
+  lifetime on an allowance.
 - **Public trust in the magistrates now means something, and moves as it should.** A house one of whose people was
   removed from office for taking money loses votes at every count for ten years, for the ladder and the consulship,
   and twice as many when the magistrates are little trusted. When trust collapses the commons turn on every house in
@@ -72,7 +79,7 @@
 - **A victory teaches its commander only what they have it in them to learn.** It used to add a step whatever the
   skill's ceiling. Measured: a rival general of the first rank is rarer than before (docs/CAESAR.md, docs/GAPS.md C9).
 - The gap register (docs/GAPS.md) has a worklist at its top, a section for forms of government as the owner set them
-  out, and a section for positions with nothing to do. 55 open, 31 closed.
+  out, and a section for positions with nothing to do. 53 open, 33 closed.
 
 ### Fixed
 - **A save could drift from an unbroken run** when a magistrate's relief, a senator's speech for a region or an

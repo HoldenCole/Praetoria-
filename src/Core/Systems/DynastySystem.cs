@@ -113,8 +113,25 @@ public sealed class DynastySystem
     /// inherited from a parent, an aptitude from the other if they have one, a career track (the parents' track if
     /// they share one, else drawn), baseline skills on that track, an ambition drawn from the catalog, and a return
     /// from fostering. Deterministic from the seed.</summary>
+    private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
+    /// <summary>What someone brought up as they were is likely to want when they come of age: the service they were raised toward
+    /// gives it, and a poor house's steward wants to mend it. One who was set against their own bent wants something of their own.</summary>
+    public static string RaisedToWant(World w, Character c, bool against)
+    {
+        if (against) return c.NatureTraits.Contains("Proud") || c.NatureTraits.Contains("Ambitious") ? "outshine_all_rivals" : "win_a_great_love";
+        return c.CareerTrack switch
+        {
+            "military" => "earn_a_command",
+            "law" => "master_the_senate",
+            "stewardship" => w.House(c.HouseId) is { } h && h.Treasury.Credits < AmbitionSystem.PoorAt ? "restore_house_fortunes" : "amass_a_fortune",
+            _ => ""
+        };
+    }
+
     private void ComeOfAge(World world, Character c, IRng rng)
     {
+        // what they were set to as a child, and whether it went against their bent, before the upbringing is closed (docs/AMBITIONS.md)
+        string raisedAs = c.Upbringing; bool against = raisedAs.Length > 0 && raisedAs != EducationSystem.BentGroup(c);
         var mother = world.Char(c.MotherId); var father = world.Char(c.FatherId);
         var parents = new[] { father, mother }.Where(p => p != null).Select(p => p!).ToList();
         if (c.NatureTraits.Count == 0)
@@ -142,7 +159,12 @@ public sealed class DynastySystem
             c.Upbringing = ""; c.Tutor = 0;
         }
         if (string.IsNullOrEmpty(c.Ambition) && Content is { Traits.Ambitions.Count: > 0 })
-            c.Ambition = Content.Traits.Ambitions[rng.NextInt(0, Content.Traits.Ambitions.Count)].Id;
+        {
+            // The dice are still thrown (and the same number of times), but two in three want what they were brought up toward; one
+            // set against their bent wants something that is nobody's plan but their own.
+            string dice = Content.Traits.Ambitions[rng.NextInt(0, Content.Traits.Ambitions.Count)].Id, raised = RaisedToWant(world, c, against);
+            c.Ambition = raised.Length > 0 && Content.Traits.Ambitions.Any(a => a.Id == raised) && Hash(c.Id + ":raised") % 3 != 0 ? raised : dice;
+        }
         bool wasHidden = c.Flags.Remove(HiddenFlag);
         c.Flags.Add(ComeOfAgeFlag);
         world.Log($"{c.Name} comes of age{(wasHidden ? ", home from fostering" : "")} — {string.Join("/", c.NatureTraits)}{(c.AptitudeTraits.Count > 0 ? $" ({string.Join("/", c.AptitudeTraits)})" : "")}, bound for {Content?.Careers.ById(c.CareerTrack)?.Name ?? c.CareerTrack}.");

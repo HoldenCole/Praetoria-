@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (twelfth pass: the lowest ranks; J3 closed; C9 set aside by the owner).
+Last updated 2026-11-15 (thirteenth pass: restoring the house and where an ambition comes from; A2 and A4 closed; C9 set aside by the owner).
 
 ## The worklist: small gaps to fill now
 
@@ -18,12 +18,12 @@ position (magistrate, justice, senator) must have something to do. Worked from t
 | Order | Id | What | State |
 |---|---|---|---|
 | 1 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune (set aside by the owner, 2026-11-15) | waiting |
-| 2 | A2, A4, A5 | Restoring the house from an allowance; ambitions formed by an upbringing; ventures that fail | next |
-| 3 | B6, B8, B11, B12 | A new Caesar's own temper; more ways to work on a house; leaving a state; stirring with a target | next |
-| 4 | L2, L5, L8 | Prosecuting a former magistrate; cases with facts; a senator's committees | next |
-| 5 | J4, L9, W6, E6, F6 | Threads for juniors; trust by region; loans between relatives; bargaining over study; old ties in more places | next |
+| 2 | B6, B8, B11, B12 | A new Caesar's own temper; more ways to work on a house; leaving a state; stirring with a target | next |
+| 3 | L2, L5, L8 | Prosecuting a former magistrate; cases with facts; a senator's committees | next |
+| 4 | J4, L9, W6, E6, F6 | Threads for juniors; trust by region; loans between relatives; bargaining over study; old ties in more places | next |
+| 5 | A5, W3, W5, H3 | Ventures that fail; entail; heirlooms that do something; what a household costs | next |
 
-Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3 (see the bottom table).
+Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3, then A2 and A4 (see the bottom table).
 
 ## The same gap in many places
 
@@ -104,9 +104,7 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| A5 | A venture never fails, so a founder's failure is never marked; and a quarrel is between two people only: the house does not divide behind them, and the loser holds nothing against the winner afterwards. | S | |
-| A2 | Restoring the house from an allowance is too slow to matter. | S | |
-| A4 | An ambition is set by the dice at sixteen, not by an upbringing. | S | E6 | A relative asked to study has no say but yes or no: they do not ask for something in return, and a teacher of the house is not thanked or paid. | S | |
+| A5 | A venture never fails, so a founder's failure is never marked; and a quarrel is between two people only: the house does not divide behind them. | S | The economy |
 | E3 |
 | W1 | A purse holds credits only: no shares, ventures or worlds held personally. | M | |
 | W6 | A loan is from the head to a relative only: relatives do not lend to each other or to the head, nobody charges interest, and a bride's own purse does not go toward her portion. | S | |
@@ -164,3 +162,5 @@ look-and-feel pass is planned and not begun, there is no sound.
 | B10 | The player could not raise the pressure toward a great war. | 2026-11-15 | Stir the camps: three years of added pressure for influence and credits, and one time in three the capital hears whose money it was. B12 is what is left. |
 | L7 | Public trust fed only the troubles of the Reach. | 2026-11-15 | A scandal in office costs a house votes for ten years, at the ladder and the consulship, and more when trust is low. Below 35 the commons turn on every house in office and the capital's holder loses standing; at 75 office is honoured. Measured, trust had been pinned near its ceiling; how it moves was rebalanced so that it sits near 60, is honoured in about a tenth of years and sometimes collapses. L9 is what is left. |
 | J3 | The lowest ranks had no work. | 2026-11-15 | An Aspirant or Advocate pleads a brief, a Clerk or Administrator keeps the ledgers, a Cadet to a Lieutenant without a command has watches. Three choices each, in learning, purse, regard and risk. Every rank of every service now has work. J4 is what is left. |
+| A2 | Restoring the house from an allowance was too slow to matter. | 2026-11-15 | A restorer keeps 3 credits and gives the rest while the house is poor, a third while it is thin; a venture they found counts by its cost and by what it brings in each year. Done inside fifteen years from an ordinary purse. |
+| A4 | An ambition was set by the dice at sixteen. | 2026-11-15 | Two in three want what they were brought up toward; one set against their bent wants something of their own; the rest are left to the dice. The same number of dice are thrown, so no saga's other luck is disturbed. |

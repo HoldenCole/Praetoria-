@@ -70,6 +70,8 @@ public sealed class Pursuit
     public int Setbacks { get; set; }
     /// <summary>The relative who wants the same prize, while the two quarrel over it.</summary>
     public string RivalId { get; set; } = "";
+    /// <summary>What the two of them quarrel over, as it was said: kept so that the loser can hold it against the winner.</summary>
+    public string RivalPrize { get; set; } = "";
     /// <summary>Times the head helped, and times the head refused or did not answer.</summary>
     public int Helped { get; set; }
     public int Refused { get; set; }

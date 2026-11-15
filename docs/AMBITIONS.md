@@ -11,7 +11,7 @@ Every grown member of the house, born to it or taken in, pursues their ambition 
 |---|---|---|
 | A command of their own | Take a command that stands empty; rise in their service | They have commanded a fleet of the house for three years |
 | A fortune of their own | Save; found a venture with their own money once they can afford the cheapest; take a share of what it earns | Their purse reaches 50 |
-| To see the house rich again | Put half of what they have above 5 into the treasury whenever it is short; found a venture for the house | They have given the house 34 credits of their own |
+| To see the house rich again | While the house is poor (under 60) they keep 3 credits and give the rest; while it is only thin (under 150), a third of what they can spare. They found a venture for the house, and its cost counts; so does what it brings in, 2 a level every year it stands | They have given the house 34 credits of their own, in money and in what they built |
 | To rise in their service and be heard | Work at their service and their speaking | They hold an office of state, or have risen far |
 | To be the first of the house | Measure themselves against whoever of the house stands highest; the two grow cooler toward each other | They are well ahead of that person |
 | The seat of the house | Build a standing to rival the heir's | They stand to inherit |
@@ -89,16 +89,22 @@ they want. There is an event the first time the head hears of it. **Three failur
 turn to something else; if the head never once helped, they think 4 the less of the head for it. The head's own
 failures are written down the same way.
 
+## Where an ambition comes from
+
+A child who comes of age without one is given one. **Two in three want what they were brought up toward**: a command
+for one raised to arms, the Senate for one raised to the forum, a fortune for one raised to the counting-house (or to
+see the house rich again, if it is poor when they come of age). **One who was set against their own bent wants
+something that is nobody's plan**: to outshine everyone, if they are proud or ambitious, or a love of their own. The
+third in three is left to the dice, as all of them used to be. So the course you set a child (docs/EDUCATION.md) is
+also a say in what they will want, and forcing one against their nature has a cost you meet ten years later.
+
+**The loser of a quarrel** over an office or a command, when the other one gets it, thinks 8 the less of them and
+stops coming to table. The winner has nothing to forgive.
+
 ## Not in this piece
 
 - **Only your house.** Nobody in any other house pursues an ambition this way.
 - ~~Standing for office is not theirs to do.~~ Closed by the ladder of offices (docs/LADDER.md): one who wants to rise
   and be heard, or to be first, now puts their own name down for quaestor, aedile or praetor.
-- **Ambitions do not conflict much.** Two who both want the same command do not quarrel over it; only the one who wants
-  to be first of the house has a rival.
-- **Restoring the house from an allowance is slow.** On the customary allowance it is a credit or two a year, so 34
-  takes a generation unless they found a venture.
-- **Failure is quiet.** A relative's venture can do badly and a command can be lost in battle, but nothing marks either
-  as the ruin of an ambition.
-- A person's ambition is still set at sixteen by the dice, not by how they were brought up.
+- A venture cannot fail, so that failure is never marked; and a quarrel is between two people only (docs/GAPS.md A5).
 - The numbers are first guesses.

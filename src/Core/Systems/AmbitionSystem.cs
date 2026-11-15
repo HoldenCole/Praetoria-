@@ -25,7 +25,7 @@ public sealed class AmbitionSystem
     public const string FulfilledFlag = "kin_fulfilled", ThwartedFlag = "kin_thwarted", FoundedFlag = "kin_founded_a_venture", HeirNamedFlag = "heir_named", RefusedFlag = "kin_refused";
     public const string FulfilledChar = "has_what_they_wanted", ThwartedChar = "thwarted", FounderChar = "founded_a_venture", AskingChar = "asking_the_head";
     public const string FailedFlag = "kin_failed", FailedChar = "has_failed", QuarrelFlag = "kin_quarrel", QuarrelFirst = "quarrel_first", QuarrelSecond = "quarrel_second", GaveUpFlag = "kin_gave_up";
-    public const int GiveUpAfter = 3, QuarrelRegard = 3;
+    public const int GiveUpAfter = 3, QuarrelRegard = 3, GrudgeRegard = 8, RestoreKeeps = 3, PoorAt = 60, RestoredAt = 150, VentureCounts = 2;
     private static readonly string[] DeedFlags = { FulfilledFlag, ThwartedFlag, FoundedFlag, HeirNamedFlag, RefusedFlag, FailedFlag, QuarrelFlag, GaveUpFlag };
 
     /// <summary>A failure of their own (an election lost, a battle lost in command) is written into their life, costs them, and counts
@@ -37,6 +37,11 @@ public sealed class AmbitionSystem
         if (c.Pursuit is { Fulfilled: false } u) u.Setbacks++;
         if (c.Id != p.Id) { c.Flags.Add(FailedChar); Mark(w, FailedFlag); }
     }
+
+    /// <summary>Has this person the thing that was quarrelled over: the office, the command?</summary>
+    private static bool Has(World w, Character c, string prize) =>
+        prize.StartsWith("the office of ") ? LadderSystem.Seat(w, c.Id)?.OfficeId == prize["the office of ".Length..]
+        : prize.StartsWith("the command of ") && w.Fleets.Values.Any(f => f.AdmiralId == c.Id && "the command of " + f.Name == prize);
 
     /// <summary>What a relative is trying for that somebody else could be trying for too: a rung, a fleet, the house itself.</summary>
     public static string Prize(World w, Character c, Character? heir)
@@ -189,6 +194,7 @@ public sealed class AmbitionSystem
         if (!executor.TryExecute(new FoundBusinessCommand(who.Id, def.Id, sys, _ventures, _holdings, _titles), ctx))
         { if (fromPurse) { who.Purse += cost; house.Treasury.Credits -= cost; } return false; }
         w.Founders[FoundBusinessCommand.IdFor(house.Id, def.Id, sys)] = who.Id; who.Pursuit!.Note = $"Founded {def.Name}."; who.Flags.Add(FounderChar); Mark(w, FoundedFlag); LifeSystem.Note(w, who, "venture", $"Founded {def.Name} for the house.");
+        if (who.Pursuit.Goal == "restore_house_fortunes") who.Pursuit.Given += cost;   // what they built for the house is what they gave it
         w.Log($"{who.Name} founds {def.Name} for {house.Name}{(fromPurse ? " with their own money" : " with the house's stake")}.");
         return true;
     }
@@ -266,10 +272,14 @@ public sealed class AmbitionSystem
                 case "amass_a_fortune": case "restore_house_fortunes":
                 {
                     bool restore = u.Goal == "restore_house_fortunes"; int cheapest = CheapestVenture();
-                    if (restore && c.Purse > 5 && house.Treasury.Credits < 60)
+                    if (restore && c.Purse > RestoreKeeps && house.Treasury.Credits < RestoredAt)
                     {
-                        int gift = (c.Purse - 5) / 2; if (gift > 0) { c.Purse -= gift; house.Treasury.Credits += gift; u.Given += gift; u.Note = $"Put {gift} credit{(gift == 1 ? "" : "s")} of their own into the house."; }
+                        // one who means to see the house rich again keeps little back while it is poor, and a third while it is only thin
+                        int spare = c.Purse - RestoreKeeps; int gift = house.Treasury.Credits < PoorAt ? spare : Math.Max(1, spare / 3);
+                        c.Purse -= gift; house.Treasury.Credits += gift; u.Given += gift; u.Note = $"Put {gift} credit{(gift == 1 ? "" : "s")} of their own into the house.";
                     }
+                    // what they founded goes on bringing in money, and they count that as theirs to have given
+                    if (restore) u.Given += w.BusinessesOf(house.Id).Where(b => b.FounderId == c.Id).Sum(b => Math.Max(1, b.Level) * VentureCounts);
                     u.Progress = restore ? Math.Min(100, u.Given * 100 / GivenAt) : Math.Clamp(c.Purse * 100 / FortuneAt, 0, 100);
                     bool hasVenture = w.Founders.Values.Contains(c.Id) || w.Businesses.Values.Any(b => b.FounderId == c.Id);
                     if (!hasVenture && cheapest > 0 && c.Purse >= cheapest + 3 && Found(w, house, c, executor, ctx, fromPurse: true)) break;
@@ -334,11 +344,21 @@ public sealed class AmbitionSystem
         var pairs = members.Where(m => m.Pursuit != null).Select(m => (m, prize: Prize(w, m, heir))).Where(x => x.prize.Length > 0).GroupBy(x => x.prize).Where(g => g.Count() >= 2).OrderBy(g => g.Key, StringComparer.Ordinal)
             .Select(g => (prize: g.Key, two: g.Select(x => x.m).OrderByDescending(Standing).ThenBy(m => m.Id, StringComparer.Ordinal).Take(2).ToList())).ToList();
         var quarrelling = pairs.SelectMany(x => x.two.Select(m => m.Id)).ToHashSet();
-        foreach (var m in members.Where(m => m.Pursuit is { RivalId.Length: > 0 } && !quarrelling.Contains(m.Id))) m.Pursuit!.RivalId = "";   // the prize is settled, or one of them wants it no longer
+        foreach (var m in members.Where(m => m.Pursuit is { RivalId.Length: > 0 } && !quarrelling.Contains(m.Id)).ToList())
+        {
+            // the prize is settled, or one of them wants it no longer. If the other one has it, it is not forgiven quickly.
+            var other = w.Char(m.Pursuit!.RivalId); string prize = m.Pursuit.RivalPrize;
+            if (other is { Alive: true } && Has(w, other, prize) && !Has(w, m, prize))
+            {
+                Regard(w, m, other, -GrudgeRegard, floor: -70);
+                w.Log($"{other.Name} has {prize}, and {m.Name} wanted it. {m.Name} says nothing, and has stopped coming to table when {other.Name} is there.");
+            }
+            m.Pursuit.RivalId = ""; m.Pursuit.RivalPrize = "";
+        }
         foreach (var (prize, two) in pairs)
         {
             var a = two[0]; var b = two[1]; bool fresh = a.Pursuit!.RivalId != b.Id || b.Pursuit!.RivalId != a.Id;
-            a.Pursuit.RivalId = b.Id; b.Pursuit!.RivalId = a.Id; Regard(w, a, b, -QuarrelRegard, floor: -60); Regard(w, b, a, -QuarrelRegard, floor: -60);
+            a.Pursuit.RivalId = b.Id; b.Pursuit!.RivalId = a.Id; a.Pursuit.RivalPrize = prize; b.Pursuit.RivalPrize = prize; Regard(w, a, b, -QuarrelRegard, floor: -60); Regard(w, b, a, -QuarrelRegard, floor: -60);
             a.Pursuit.Note = (a.Pursuit.Note + $" Quarrels with {b.Name} over {prize}.").Trim(); b.Pursuit.Note = (b.Pursuit.Note + $" Quarrels with {a.Name} over {prize}.").Trim();
             if (fresh && !w.HasFlag(QuarrelFlag))
             {
