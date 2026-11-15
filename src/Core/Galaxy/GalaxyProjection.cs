@@ -96,7 +96,7 @@ public static class GalaxyProjection
                 systems.Average(s => s.X), systems.Average(s => s.Y), dominant, house?.Name, Presentation.Palette.Region(world.Galaxy!.Regions.IndexOf(r)),
                 mine.Count(n => n.PlanetHoldingId != null), populated.Count == 0 ? 0 : (int)populated.Average(n => n.Unrest),
                 r.Ring, world.Regions.TryGetValue(r.Id, out var rs) ? rs.Allegiance : Math.Clamp(50 + world.Galaxy.RulesFor(r.Ring).Allegiance, 0, 100),
-                rs?.Lawlessness ?? world.Galaxy.RulesFor(r.Ring).LawlessnessStart, mine.Count(n => n.Rebellion > 0), house?.Bloc == Systems.RegionSystem.FreeholdsBloc,
+                rs?.Lawlessness ?? world.Galaxy.RulesFor(r.Ring).LawlessnessStart, mine.Count(n => n.Rebellion > 0), house?.Bloc == Systems.RegionSystem.FreeholdsBloc || Systems.PolitySystem.OfRegion(world, r.Id)?.Origin == Systems.PolitySystem.FreeMarchOrigin,
                 Systems.PolitySystem.OfRegion(world, r.Id)?.Name, Systems.PolitySystem.OfRegion(world, r.Id) is { Recognised: 0 }));
         }
         return list;

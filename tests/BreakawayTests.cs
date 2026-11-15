@@ -608,4 +608,49 @@ public class BreakawayTests
         Assert.Equal(2, w.Counter(GreatCrisisSystem.WarsCounter)); Assert.Contains(w.History, l => l.Text.StartsWith("The Second War of the Reach ends"));
         var past = GreatCrisisSystem.Past(w); Assert.Equal(2, past.Count); Assert.All(past, x => { Assert.True(x.years >= GreatCrisisSystem.MinWarYears); Assert.NotEqual("", x.how); }); Assert.True(past[1].began > past[0].began);
     }
+
+    // ---------------- the older rules, as states (docs/GAPS.md B5) ----------------
+
+    [Fact]
+    public void A_rebel_world_that_breaks_from_its_holder_is_a_free_state_outside_the_reach()
+    {
+        var (tc, w, _, mine, _) = Start(); Sound(w); var old = Other(w, mine);
+        string regionId = Give(w, old, 34, Ring.Rim); var world = Worlds(w, regionId).First(x => x.OwnerId == old.Id); var region = w.Galaxy!.Region(regionId)!;
+        int founded = w.Counter("polities_founded"), recognised = w.Counter("polities_recognised");
+        tc.Regions.Secede(w, world, region);
+        var free = w.House(world.OwnerId)!; var p = PolitySystem.Of(w, free.Id)!;
+        Assert.Equal(RegionSystem.FreeholdsBloc, free.Bloc); Assert.True(PolitySystem.IsFreeHold(p)); Assert.Empty(p.Regions); Assert.Equal(0, p.Recognised);
+        Assert.False(PolitySystem.InReach(w, free.Id)); Assert.Contains(old.Id, p.Foes); Assert.Equal(1, w.Counter("free_states")); Assert.Equal(founded, w.Counter("polities_founded"));
+        Assert.Equal(100, PolitySystem.Share(w, p));
+        // the Senate does not go back for one world, and one world does not push the Reach toward a great war
+        Assert.Contains("one world", tc.Polities.ReconquestRefusal(w, free));
+        Assert.DoesNotContain(GreatCrisisSystem.Pressure(w), x => x.what.Contains("left the Reach"));
+        // it stands three years, and the Reach names it in a treaty
+        for (int y = 0; y < PolitySystem.WinYears; y++) { w.Turn++; tc.Polities.Tick(w); }
+        Assert.True(p.Recognised > 0); Assert.Equal(1, w.Counter("free_states_recognised")); Assert.Equal(recognised, w.Counter("polities_recognised"));
+        Assert.NotNull(PolitySystem.TreatyBetween(w, old.Id, free.Id));
+        // bought back or taken, it is a state no longer, treaty or no treaty
+        world.OwnerId = old.Id; w.Turn++; tc.Polities.Tick(w);
+        Assert.DoesNotContain(p, w.Polities); Assert.Equal(1, w.Counter("free_states_ended")); Assert.Equal("", free.PolityId);
+    }
+
+    [Fact]
+    public void A_free_march_takes_its_region_out_as_a_state()
+    {
+        var (tc, w, _, mine, _) = Start(); Sound(w); var house = Other(w, mine);
+        string regionId = Give(w, house, 67, Ring.Rim); foreach (var x in Worlds(w, regionId)) { x.Unrest = 0; x.Rebellion = 0; }
+        Assert.Null(tc.Polities.FreeMarchRefusal(w, house, regionId));
+        RegionSystem.StateOf(w, regionId).Allegiance = 5;
+        tc.Regions.Tick(w);
+        var p = PolitySystem.OfRegion(w, regionId);
+        Assert.NotNull(p); Assert.Equal(PolitySystem.FreeMarchOrigin, p!.Origin); Assert.Equal(house.Id, p.HeadHouseId); Assert.Contains(p.Form, PolitySystem.Forms);
+        Assert.False(PolitySystem.InReach(w, house.Id)); Assert.Equal("", house.Bloc); Assert.Equal(1, w.Counter("free_marches")); Assert.True(w.HasFlag("free_march:" + regionId));
+        // the Reach answers it as it answers any declaration: it is let go, or the fleets are sent
+        Assert.True(p.Recognised > 0 || p.Foes.Count > 0);
+        // and the player's house is not walked out for them
+        var (tc2, w2, _, mine2, _) = Start(); Sound(w2);
+        string own = Give(w2, mine2, 67, Ring.Rim); foreach (var x in Worlds(w2, own)) { x.Unrest = 0; x.Rebellion = 0; }
+        RegionSystem.StateOf(w2, own).Allegiance = 5; tc2.Regions.Tick(w2);
+        Assert.Null(PolitySystem.OfRegion(w2, own)); Assert.True(PolitySystem.InReach(w2, mine2.Id));
+    }
 }

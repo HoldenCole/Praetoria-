@@ -1671,3 +1671,33 @@ on the docket and renders without error; the buttons' refusals and effects are t
 **Left, and mapped.** One motion a year each; three budget choices, not a budget whose heads are set; no summoning
 or dismissing the Senate; nothing debated (O3).
 
+## 54. Free marches and free holds are states — 2026-11-15
+
+**B5.** Two rules older than the breakaway states made houses that had "left" without leaving. A free march set a
+flag on a house and nothing else: it kept its seat in the Senate and could be elected consul. A free hold, a rebel
+world under a new house, also sat in the Senate. Both are states now (docs/BREAKAWAY.md, "Free marches and free
+holds"). A free march takes its region out, on the terms of any declaration except that it does not wait for three
+worlds in five. A free hold is the Free City of its world from its first day: outside the Reach, its old holder's to
+buy back or take, named in a treaty if it stands three years, and not the Senate's business.
+
+**Measured before it was built.** In ten runs of one start there were no free marches and 17 rebel worlds: the rule
+that mattered was the second, so it was built to be light. A free state does not count as a region that has left the
+Reach, and the Senate cannot move to reconquer it, or 111 rebel worlds in sixty runs would have been 111 causes of
+war.
+
+**Measured after.** The Republic probe (60 runs of 60 years): the Republic stood in all 60. There were 6 free marches
+and 111 free states; 24 of the free states were bought back or taken, and 106 were named in a treaty at some point.
+22 states of the larger kind broke away (14 in the last section), 6 of them free marches; the great war was fought in
+47 runs (44). The free marches are the likeliest cause of both rises: a free march is a region that has left the
+Reach and is counted as one. Trust in the magistrates averaged 50 to 63 by start and was low in 5 of 60 runs; 634
+former magistrates were charged and 433 convicted. The soak (33 runs, a save and load in each) passes with no drift.
+Survival: 0 of 10 on every start.
+
+707 tests (two new).
+
+**Not looked at in the browser.** The Breakaway panel lists a free state on a line of its own; no script plays long
+enough to see a rebel world break away, so the line was not seen rendered. It compiles, and the screen loads.
+
+**Left, and mapped.** Almost every free state is named in a treaty, because an old holder seldom comes back inside
+three years. A free state cannot join a larger state or league with its like, and nobody courts it (B16).
+

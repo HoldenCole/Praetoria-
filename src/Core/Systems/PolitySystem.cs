@@ -261,7 +261,7 @@ public sealed class PolitySystem
 
     // ---------------- declaring ----------------
 
-    public string? DeclareRefusal(World w, House? house, string regionId, string form)
+    public string? DeclareRefusal(World w, House? house, string regionId, string form, bool march = false)
     {
         if (house == null || !Real(house)) return "no such house";
         if (!InReach(w, house.Id)) return "the house has already left the Reach";
@@ -274,7 +274,39 @@ public sealed class PolitySystem
         var (own, with, total, _) = Control(w, house, regionId);
         if (total == 0 || own == 0) return $"the house holds no world of {region.Name}";
         if (own * 100 < OwnShare * total) return $"the house holds {own} of the {total} worlds of {region.Name}, and must hold a quarter";
-        return with * 100 < ControlShare * total ? $"with the houses that would follow, {with} of the {total} worlds of {region.Name} would go: it takes three in five" : null;
+        return !march && with * 100 < ControlShare * total ? $"with the houses that would follow, {with} of the {total} worlds of {region.Name} would go: it takes three in five" : null;
+    }
+
+    // ---------------- the older rules, as states (docs/BREAKAWAY.md, "Free marches and free holds") ----------------
+
+    public const string FreeMarchOrigin = "free march", FreeHoldOrigin = "free hold";
+    public const int FreeHoldTemper = 1;
+    public static bool IsFreeHold(Polity p) => p.Origin == FreeHoldOrigin;
+    /// <summary>The form a house takes of its own choosing: a soldier's is one hand, an old and proud house's a crown, anyone else's a republic.</summary>
+    public static string FormOf(World w, House house)
+    {
+        var head = Systems.Economy.HeadOf(w, house); if (head == null || house.Id == w.Protagonist?.HouseId) return Republic;
+        return head.CareerTrack == "military" ? Dictatorship : head.NatureTraits.Contains("Proud") && house.Legitimacy >= 60 ? Kingdom : Republic;
+    }
+    /// <summary>A FREE MARCH: the dominant house of a region that has stopped believing in the capital takes the region out. It is a
+    /// declaration like any other, and the Reach lets it go or comes for it, but it does not wait for three worlds in five to follow.</summary>
+    public string? FreeMarchRefusal(World w, House? house, string regionId) => DeclareRefusal(w, house, regionId, Republic, march: true);
+    public Polity FreeMarch(World w, House house, string regionId)
+    {
+        var p = Declare(w, house, regionId, FormOf(w, house), FreeMarchOrigin);
+        w.WorldCounters["free_marches"] = w.Counter("free_marches") + 1; w.WorldFlags.Add("free_march:" + regionId);
+        return p;
+    }
+    /// <summary>A FREE HOLD: a rebel world that has broken from its holder is a state from its first day. One house, one world, no
+    /// region, recognised by nobody. Its old holder may buy it back or take it; if it still stands after three years the Reach
+    /// stops pretending otherwise and names it in a treaty. The Senate does not go back for a single world.</summary>
+    public Polity FreeHold(World w, House house, House? from, string worldName)
+    {
+        int n = w.Counter("free_states") + 1; w.WorldCounters["free_states"] = n;
+        var p = new Polity { Id = "freehold_" + n, Name = "the Free City of " + worldName, Form = Republic, HeadHouseId = house.Id, Since = w.Turn, Temper = FreeHoldTemper, Origin = FreeHoldOrigin, WarSince = w.Turn };
+        if (from != null && InReach(w, from.Id)) p.Foes.Add(from.Id);
+        p.Members.Add(house.Id); house.PolityId = p.Id; w.Polities.Add(p);
+        return p;
     }
 
     private void Leave(World w, House h, Polity p)
@@ -472,7 +504,7 @@ public sealed class PolitySystem
     {
         var mine = w.Protagonist?.HouseId; Peace(w, p); p.Recognised = w.Turn; p.Foes.Clear(); p.TreatyUntil = w.Turn + TreatyYears; p.WarSince = 0;
         if (w.House(p.HeadHouseId) is { } head) head.Legitimacy = Math.Clamp(head.Legitimacy + 10, 0, 100);
-        w.WorldCounters["polities_recognised"] = w.Counter("polities_recognised") + 1;
+        string counted = IsFreeHold(p) ? "free_states_recognised" : "polities_recognised"; w.WorldCounters[counted] = w.Counter(counted) + 1;
         if (!letGo) w.Log($"The Reach makes peace with {p.Name} and names it in the treaty. It is a state now, and will be on the maps.");
         if (p.Members.Contains(mine ?? "")) Mark(w, letGo ? LetGoFlag : WonFlag);
     }
@@ -492,7 +524,7 @@ public sealed class PolitySystem
                 if (h.Treasury.Credits > 0) { int fine = h.Treasury.Credits * 3 / 10; h.Treasury.Credits -= fine; if (chair != null) chair.Treasury.Credits += fine; }
             }
         }
-        w.WorldCounters["polities_dissolved"] = w.Counter("polities_dissolved") + 1;
+        string ended = IsFreeHold(p) ? "free_states_ended" : "polities_dissolved"; w.WorldCounters[ended] = w.Counter(ended) + 1;
         if (p.Members.Contains(mine ?? "")) Mark(w, LostFlag);
     }
 
@@ -510,6 +542,7 @@ public sealed class PolitySystem
         var p = target != null ? Of(w, target.Id) : null;
         if (target == null || p == null) return "not a state that has left the Reach";
         if (p.HeadHouseId != target.Id) return $"{w.House(p.HeadHouseId)?.Name} rules {p.Name}: name them";
+        if (IsFreeHold(p)) return "one world is its old holder's business, not the Senate's";
         if (p.Recognised == 0) return "the Reach is already at war with it";
         if (w.Turn < p.TreatyUntil) return $"the treaty with {p.Name} holds until year {p.TreatyUntil}";
         return Weary(w) ? "the Reach has no stomach for it: it has fought too lately" : null;
@@ -594,6 +627,7 @@ public sealed class PolitySystem
     /// <summary>How much of its regions the state's own houses still hold, in hundredths.</summary>
     public static int Share(World w, Polity p)
     {
+        if (p.Regions.Count == 0) return p.Members.Any(id => w.HoldingsOf(id).Any(h => h.IsPlanet)) ? 100 : 0;   // a free hold has a world and no region: it stands while it holds it
         var worlds = p.Regions.SelectMany(r => Worlds(w, r)).ToList();
         return worlds.Count == 0 ? 0 : 100 * worlds.Count(h => p.Members.Contains(h.OwnerId)) / worlds.Count;
     }
@@ -614,10 +648,11 @@ public sealed class PolitySystem
             if (p.Members.Count == 0) { w.Polities.Remove(p); continue; }
             if (!p.Members.Contains(p.HeadHouseId))   // the ruling house is gone: the strongest that is left rules
                 p.HeadHouseId = p.Members.OrderByDescending(id => FleetSystem.StrengthOf(w, id)).ThenBy(id => id, StringComparer.Ordinal).First();
+            if (IsFreeHold(p) && Share(w, p) == 0) { Dissolve(w, p, "its world is taken"); continue; }   // bought back or taken, treaty or no treaty
             if (p.Recognised > 0) continue;
             if (p.Starved) foreach (var id in p.Members) w.WorldCounters["embargo:" + id] = w.Turn + 2;   // no fuel of its own: the Reach's exchanges are closed to it while the war lasts
             int years = w.Turn - p.WarSince, share = Share(w, p), lead = Standing(w, p);
-            if (share < LostShare) Dissolve(w, p, "its houses have lost the region");
+            if (share < LostShare) Dissolve(w, p, p.Regions.Count == 0 ? "its world is taken" : "its houses have lost the region");
             else if (years >= 2 && lead <= LoseLead) Dissolve(w, p, "it is beaten in the field");
             else if (years >= WinYears && share >= HoldShare && (lead >= WinLead || Will(w, p) <= 0))
             {

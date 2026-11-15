@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Free marches and free holds are states** (docs/BREAKAWAY.md; docs/GAPS.md B5). A house that declares a free
+  march takes its region out of the Reach as a state, in a form of its own choosing, and the Reach lets it go or
+  sends the fleets. A rebel world that breaks from its holder is a free state from its first day: outside the Reach,
+  with no seat in the Senate; its old holder may buy it back or take it; after three years the Reach names it in a
+  treaty. The Senate does not go back for a single world.
 - **The chair** (docs/LADDER.md; docs/GAPS.md O2). The Speaker can hold one motion a year over to the next. The
   presiding consul can speak from the chair for or against one motion a year, and the houses lean with it; a tied
   Senate now goes as the presiding consul voted. Officers of other houses do the same by their interest. The Senate
@@ -187,6 +192,8 @@
 - **The Senate's sword commands the Reach's own fleets** for as long as the civil war lasts.
 
 ### Changed
+- A house that had declared a free march, and a rebel world's new house, no longer sit in the Senate or stand for
+  office: they have left the Reach.
 - A Speaker who gives an enemy no day now holds over whatever that house has moved. Balancing the books banks half the
   year's surplus, not a fixed 5 credits; forgiving a levy and the contracts are sums from the year's figures.
 - **A relative who means to restore the house now can.** They keep 3 credits and give the rest while the house is

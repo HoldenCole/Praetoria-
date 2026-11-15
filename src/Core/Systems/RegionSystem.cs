@@ -21,6 +21,9 @@ public sealed class RegionSystem
     public const int RebellionUnrest = 70, RebellionAllegiance = 35, RebellionEndsUnrest = 50, SecessionTurns = 4, GarrisonStrength = 2;
     public const int FreeMarchAllegiance = 20;
     public const string FreeholdsBloc = "freeholds";
+    /// <summary>The states (docs/BREAKAWAY.md). With it set, a free march is a state and a free hold is a free state; without it (a
+    /// region system run alone) the older rules stand.</summary>
+    public PolitySystem? Polities { get; set; }
 
     private readonly NameCatalog _names;
     public RegionSystem(NameCatalog? names = null) => _names = names ?? NameCatalog.Empty;
@@ -100,7 +103,10 @@ public sealed class RegionSystem
             var dominantId = worlds.GroupBy(h => h.OwnerId).OrderByDescending(x => x.Count()).ThenBy(x => x.Key, StringComparer.Ordinal).FirstOrDefault()?.Key;
             var dominant = dominantId != null ? w.House(dominantId) : null;
             if (dominant != null && capital != null && dominant.Id != capital.Id && region.Ring != Ring.Core && state.Allegiance < FreeMarchAllegiance && dominant.Bloc.Length == 0 && dominant.Title != "emperor" && (dominant.Id != w.Protagonist?.HouseId || w.HasFlag("declare_free_march")))
-                DeclareFreeMarch(w, dominant, region, capital);
+            {
+                if (Polities == null) DeclareFreeMarch(w, dominant, region, capital);
+                else if (Polities.FreeMarchRefusal(w, dominant, region.Id) == null) Polities.FreeMarch(w, dominant, region.Id);
+            }
         }
         w.WorldFlags.Remove("declare_free_march");
         PlayerDecrees(w);
@@ -199,6 +205,7 @@ public sealed class RegionSystem
             if (old.Id == w.Protagonist?.HouseId) w.WorldFlags.Add("lost_a_world_to_rebellion");
         }
         w.WorldCounters["secessions"] = w.Counter("secessions") + 1; w.WorldFlags.Add("secession:" + sys.Id);
+        Polities?.FreeHold(w, house, old, sys.Name.Replace("The ", ""));   // it is a state from its first day, outside the Reach
         w.Log($"{sys.Name} breaks from {old?.Name ?? "its holder"}. {leader.Name} is acclaimed in the square, and {house.Name} declare for no one.");
     }
 
@@ -231,7 +238,7 @@ public sealed class RegionSystem
         var worlds = w.HoldingsOf(mine).Where(h => h.IsPlanet).ToList();
         if (worlds.Any(h => h.InRebellion)) w.WorldFlags.Add("rebellion");
         if (worlds.Any(h => StateOf(w, g.System(h.SystemId)?.RegionId ?? "").Lawlessness >= 60)) w.WorldFlags.Add("region_lawless");
-        if (house.Bloc == FreeholdsBloc) w.WorldFlags.Add("free_march");
+        if (house.Bloc == FreeholdsBloc || PolitySystem.Of(w, mine)?.Origin == PolitySystem.FreeMarchOrigin) w.WorldFlags.Add("free_march");
         w.WorldFlags.Remove("governor_petition");
         if (w.HoldingsOf(mine).Any(h => h.IsPlanet && h.Prosperity < 40 && h.GovernorId.Length > 0 && h.GovernorId != w.ProtagonistId && !h.InRebellion)) w.WorldFlags.Add("governor_petition");
         w.WorldFlags.Remove("freehold_of_ours");

@@ -168,6 +168,30 @@ one house a year at the most. If the state is yours, you are told. The player's 
 Where: the breakaway panel. "Go over to it" sits under each state in the list; "Take *region* into *state*" sits in a
 region's block when a recognised state borders it.
 
+## Free marches and free holds
+
+Two older rules made houses that had "left" without leaving: they kept their seats in the Senate, could be elected,
+and none of what is above applied to them. Both are states now.
+
+**A free march.** The dominant house of a middle or rim region whose allegiance to the capital has fallen under 20
+takes the region out. It is a declaration like any other: the house must hold a quarter of the region's worlds, the
+houses that would follow go with it, and the Reach lets it go or sends the fleets by its temper. It differs in one
+thing: it does not wait for three worlds in five. The form is the house's own choice: a soldier's is one hand, an old
+and proud house's a crown, anyone else's a republic. The player's house is never walked out for them: the event that
+offers a free march still has to be chosen.
+
+**A free hold.** A world four years in rebellion breaks from its holder under a new house (its governor, if of
+another house, or a leader raised from its own people). That house is a state from its first day: the Free City of
+the world, one house and one world, with no region, outside the Reach and recognised by nobody. It has no seat in the
+Senate and can hold no office.
+
+| | |
+|---|---|
+| Its old holder | may buy it back or take it by force, as before. Either way the free state is no more. |
+| Three years standing | the Reach stops pretending and names it in a treaty: ten years in which no house of the Reach may make war on it. It can still be bought back. |
+| The Senate | does not go back for a single world. A motion of reconquest cannot be moved against it. |
+| The great war | a rebel world is not "a region that has left the Reach" and does not push the Reach toward its great war. |
+
 ## Refusing a throne
 
 When a general has marched on the capital and won (docs/CAESAR.md), every house that declared for the Senate is
@@ -333,6 +357,5 @@ This is the first stage of a large piece. What it leaves is in docs/GAPS.md (B1 
   Exchange.
 - **A state's own dealings.** It makes no trade treaty or alliance, sends no envoys, and does not make war as a state.
 - **A state does not make war as a state** to take a region: it grows only by houses coming over.
-- **The older free march** (a rim house that renounces the capital) is still its own small rule and should become
-  one of these.
+- **A free state cannot join a larger one**, and nobody courts it (docs/GAPS.md B16).
 - Standing alone does not weigh food, manpower or the goods of the market. A marriage binds a house only if it already exists: one cannot be offered as the price. That one waits on the forms of government, and is the owner's to decide (B13).

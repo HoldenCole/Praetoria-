@@ -153,7 +153,12 @@
     @if (others.Count > 0)
     {
         <div class="hh-head"><b>States that have left the Reach</b></div>
-        @foreach (var o in others)
+        @foreach (var o in others.Where(PolitySystem.IsFreeHold))
+        {
+            var world = w.HoldingsOf(o.HeadHouseId).FirstOrDefault(h => h.IsPlanet); string was = world != null && w.House(world.FormerOwnerId) is { } old ? ", once " + old.Name + "'s" : "";
+            <div class="small">@(Cap(o.Name))@was, a free hold since year @o.Since: @(o.Recognised == 0 ? "sworn to no one, and named in no treaty yet" : w.Turn < o.TreatyUntil ? "named in a treaty that holds until year " + o.TreatyUntil : "its treaty run out"). Its old holder may buy it back or take it; the Senate does not go back for one world.</div>
+        }
+        @foreach (var o in others.Where(x => !PolitySystem.IsFreeHold(x)))
         {
             string line = Cap(o.Name) + ", " + PolitySystem.FormName(o.Form) + " under " + (w.House(o.HeadHouseId)?.Name ?? o.HeadHouseId) + ", since year " + o.Since
                 + (o.Recognised == 0 ? ", still fighting for it" : w.Turn < o.TreatyUntil ? ", under treaty until year " + o.TreatyUntil : ", its treaty run out") + ". A motion to go back for it is moved on the Senate screen.";

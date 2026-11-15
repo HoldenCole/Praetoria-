@@ -69,7 +69,7 @@ public sealed class GreatCrisisSystem
         if (w.Counter("coalition_pressure") > 0) list.Add(("the houses are drawing together against one of their number", w.Counter("coalition_pressure")));
         if (w.Counter("seizures") > 0) list.Add(("worlds have been taken by force", Math.Min(5, w.Counter("seizures"))));
         if (w.CivilWar != null) list.Add(("a general is marching on the capital", MarchPoints));
-        if (w.Polities.Any(p => w.Turn - p.Since <= BreakawayYears)) list.Add(("a region has lately left the Reach", BreakawayPoints));
+        if (w.Polities.Any(p => p.Regions.Count > 0 && w.Turn - p.Since <= BreakawayYears)) list.Add(("a region has lately left the Reach", BreakawayPoints));
         if (PolitySystem.Stirring(w)) list.Add(("somebody's money is setting the great houses against one another", StirPoints));
         return list;
     }
