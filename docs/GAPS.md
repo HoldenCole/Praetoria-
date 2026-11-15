@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (tenth pass: the breakaway items; B4, B9 and B10 closed).
+Last updated 2026-11-15 (eleventh pass: what public trust does; L7 closed).
 
 ## The worklist: small gaps to fill now
 
@@ -17,13 +17,13 @@ position (magistrate, justice, senator) must have something to do. Worked from t
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | L7 | Public trust in the magistrates moves elections and the estates, not only the troubles of the Reach | next |
-| 2 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune | next |
-| 3 | J3 | The lowest ranks: an Advocate pleads before a bench, a Lieutenant and a Clerk have a year's work | next |
-| 4 | A2, A4, A5 | Restoring the house from an allowance; ambitions formed by an upbringing; ventures that fail | next |
-| 5 | B6, B8, B11, B12 | A new Caesar's own temper; more ways to work on a house; leaving a state; stirring with a target | next |
+| 1 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune | next |
+| 2 | J3 | The lowest ranks: an Advocate pleads before a bench, a Lieutenant and a Clerk have a year's work | next |
+| 3 | A2, A4, A5 | Restoring the house from an allowance; ambitions formed by an upbringing; ventures that fail | next |
+| 4 | B6, B8, B11, B12 | A new Caesar's own temper; more ways to work on a house; leaving a state; stirring with a target | next |
+| 5 | L2, L5, L8 | Prosecuting a former magistrate; cases with facts; a senator's committees | next |
 
-Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10 (see the bottom table).
+Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7 (see the bottom table).
 
 ## The same gap in many places
 
@@ -89,7 +89,7 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 | L3 | No censorship, tribunate, or province after office. | L | The state and commerce |
 | L8 | A senator's year is one of three things. There are no committees, no standing with a committee, and no record of attendance beyond three absent years. | M | |
 | L5 | The work of office is one decision a year from three. A case has no facts beyond who is in the right; the accounts have no figures; the works are one sum. | M | |
-| L7 | Public trust in the magistrates feeds only the troubles of the Reach. It does not move elections, the estates or a house's standing. | S | |
+| L9 | Public trust is one number for the whole Reach. It does not tell a region's courts, or one office's name, from another's; and only the commons react to it, not the other estates. | S | |
 
 ## A life of one's own (docs/LIFE.md)
 
@@ -162,3 +162,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | B4 | A state was one region, and nobody could join one that existed. | 2026-11-15 | A house of the Reach goes over to a recognised state as it stands, or takes a bordering region into it; the Reach lets the region go or calls the treaty broken and comes for the whole state. Other houses go over by themselves. B11 is what is left. |
 | B9 | Only one great war in a saga. | 2026-11-15 | Fifteen years after a great war it is forgotten: its clock and verdict are cleared and the Reach can come to another, named the Second, the Third. Each finished war is kept on the record. |
 | B10 | The player could not raise the pressure toward a great war. | 2026-11-15 | Stir the camps: three years of added pressure for influence and credits, and one time in three the capital hears whose money it was. B12 is what is left. |
+| L7 | Public trust fed only the troubles of the Reach. | 2026-11-15 | A scandal in office costs a house votes for ten years, at the ladder and the consulship, and more when trust is low. Below 35 the commons turn on every house in office and the capital's holder loses standing; at 75 office is honoured. Measured, trust had been pinned near its ceiling; how it moves was rebalanced so that it sits near 60, is honoured in about a tenth of years and sometimes collapses. L9 is what is left. |

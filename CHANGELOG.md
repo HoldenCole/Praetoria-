@@ -53,10 +53,21 @@
 - **The Senate's sword commands the Reach's own fleets** for as long as the civil war lasts.
 
 ### Changed
+- **Public trust in the magistrates now means something, and moves as it should.** A house one of whose people was
+  removed from office for taking money loses votes at every count for ten years, for the ladder and the consulship,
+  and twice as many when the magistrates are little trusted. When trust collapses the commons turn on every house in
+  office and the house that holds the capital loses standing; when it is high, office is honoured. Measured over
+  sixty-year sagas, trust had been sitting near its ceiling while some house was under a scandal nine years in ten:
+  catching a thief raised it more than the theft lowered it. Now routine honesty only mends it, a point a year;
+  something notable is needed to lift it; and a caught thief no longer outweighs the theft. Two events.
+- What a person of your house does to an estate (a judge's ruling, a governor's returns) now lasts: it fades a point
+  a year instead of being gone within the year.
+- A bench or a desk left empty costs its own house with the commons or the merchants, not the Reach's trust. An
+  aedile who cannot afford the works is no longer held against the magistrates' name.
 - **A victory teaches its commander only what they have it in them to learn.** It used to add a step whatever the
   skill's ceiling. Measured: a rival general of the first rank is rarer than before (docs/CAESAR.md, docs/GAPS.md C9).
 - The gap register (docs/GAPS.md) has a worklist at its top, a section for forms of government as the owner set them
-  out, and a section for positions with nothing to do. 55 open, 29 closed.
+  out, and a section for positions with nothing to do. 55 open, 30 closed.
 
 ### Fixed
 - **A save could drift from an unbroken run** when a magistrate's relief, a senator's speech for a region or an

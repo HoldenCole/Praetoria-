@@ -6,7 +6,8 @@
 //
 // Needs the build served locally (see README.md here). Screenshots go to PRAETORIA_SHOTS (default ./shots).
 const { chromium } = require('playwright');
-const title = process.argv[2] || 'The Risen Officer'   // a head of an age to stand who has held nothing yet; const years = parseInt(process.argv[3] || '7', 10);
+const title = process.argv[2] || 'The Risen Officer';   // a head of an age to stand who has held nothing yet
+const years = parseInt(process.argv[3] || '7', 10);
 const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
@@ -43,7 +44,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('after ' + years + ' years: ' + await head());
   console.log('   ' + await rungs());
   const work = () => page.evaluate(() => { const el = document.querySelector('.panel.cursus .office-work'); return el ? el.innerText.replace(/\s+/g, ' ').slice(0, 900) : ''; });
-  console.log('the magistrates are: ' + await page.evaluate(() => { const el = document.querySelector('.panel.cursus .pill'); return el ? el.innerText.trim() : 'NO TRUST LINE'; }));
+  console.log('the magistrates are: ' + await page.evaluate(() => { const el = document.querySelector('.panel.cursus .pill'); return el ? el.parentElement.innerText.replace(/\s+/g, ' ').trim() : 'NO TRUST LINE'; }));
   const waiting = await work(); console.log('business: ' + (waiting || 'none waiting'));
   await shot('ladder-business');
   if (waiting) {

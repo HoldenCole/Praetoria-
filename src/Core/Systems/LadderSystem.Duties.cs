@@ -123,7 +123,7 @@ public static partial class LadderSystem
                 {
                     var thief = w.Char(found.HolderId)!;
                     w.Log($"{Economy.HeadOf(w, auditor)?.Name} of {auditor.Name}, reading the year's accounts in the Senate, follows the money to {thief.Name}.");
-                    Expose(w, offices, thief, found); MoveTrust(w, 4);
+                    Expose(w, offices, thief, found); MoveTrust(w, 2);
                 }
             }
         }
@@ -176,7 +176,7 @@ public static partial class LadderSystem
         {
             Law => b.RightId == Estate ? $"Rule on the law, for {estate}. They think the better of your house; {a} thinks the less." : $"Rule on the law, for {a}. It thinks the better of your house; {estate} think the less.",
             ForHouse => $"Find for {a}, whatever the law says. It will remember it, and so will {estate}." + (b.RightId == Estate ? " The law is not with them, and it will be seen." : ""),
-            ForEstate => $"Find for {estate}, whatever the law says. The squares like a judge who does." + (b.RightId == Estate ? "" : " The law is not with them, and it will be seen."),
+            ForEstate => $"Find for {estate}, whatever the law says. The squares like a judge who does." + (b.RightId == Estate ? "" : " The law is not with them; nobody in the squares will mind."),
             Overturn => $"Overturn it. {bn} pays back {Damages * 2} credits to {a}; {a} will not forget it, and neither will {bn} or the praetor's house. The magistrates are trusted more.",
             SendBack => $"Send it back to be heard again. Nothing is settled; {a} is at least heard.",
             Uphold => $"Uphold the praetor. His house and {bn} are obliged to you; {a} is not, and the magistrates are trusted less.",
@@ -222,7 +222,7 @@ public static partial class LadderSystem
     {
         var b = DutyOf(w, who.Id, kind)!; b.Choice = choice; var house = w.House(who.HouseId); var p = w.Protagonist; var mine = p?.HouseId; bool ours = who.HouseId == mine;
         void Legit(int by) { if (house != null && (by < 0 || house.Legitimacy < 80)) house.Legitimacy = Math.Clamp(house.Legitimacy + by, 0, 100); }
-        void Approve(int by) { if (b.EstateId.Length == 0) return; string key = PolicySystem.ApprovalKey(w, who.HouseId, b.EstateId); w.WorldCounters[key] = Math.Clamp(w.Counter(key) + by, -100, 100); }
+        void Approve(int by) => PolicySystem.Sway(w, who.HouseId, b.EstateId, by);
         switch (kind)
         {
             case Hearing:
@@ -230,7 +230,7 @@ public static partial class LadderSystem
                 var other = w.House(b.HouseA); bool lawForHouse = b.RightId != Estate; bool forHouse = choice == ForHouse || (choice == Law && lawForHouse);
                 Shift(w, other, house, choice == Law ? (forHouse ? 5 : -5) : forHouse ? 8 : -8);
                 Approve(choice == Law ? (forHouse ? -3 : 4) : forHouse ? -6 : 6);
-                if (choice == Law) MoveTrust(w, 1); else if (forHouse != lawForHouse) MoveTrust(w, forHouse ? -2 : -1);
+                if (choice == Law) MoveTrust(w, 1); else if (forHouse != lawForHouse && forHouse) MoveTrust(w, -1);   // a lesser court: a ruling bent for a great house is talked of; one bent for the squares is cheered
                 if (who.Life?.Marks.Add("bench:" + (choice == Law ? "law" : "bent")) != false) LifeSystem.Note(w, who, "office", choice == Law ? "Sat as a judge and ruled on the law." : "Sat as a judge and ruled as it suited.");
                 if (ours && who.Id == p!.Id) w.Log($"{who.Name} finds for {(forHouse ? other?.Name : EstateName(policy, b.EstateId).ToLowerInvariant())}{(forHouse == lawForHouse ? "" : ", against the plain reading of the law")}.");
                 break;
@@ -253,7 +253,7 @@ public static partial class LadderSystem
             }
             case Desk:
             {
-                void Estate_(string id, int by) { string key = PolicySystem.ApprovalKey(w, who.HouseId, id); w.WorldCounters[key] = Math.Clamp(w.Counter(key) + by, -100, 100); }
+                void Estate_(string id, int by) => PolicySystem.Sway(w, who.HouseId, id, by);
                 if (choice == Assess) { Estate_("merchants", 2); MoveTrust(w, 1); if (b.RegionId.Length > 0) { var rs = RegionSystem.StateOf(w, b.RegionId); rs.Allegiance = Math.Clamp(rs.Allegiance + 1, 0, 100); } }
                 else if (choice == Press)
                 {
@@ -278,7 +278,7 @@ public static partial class LadderSystem
             {
                 if (choice == Drill) foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == who.HouseId).OrderBy(f => f.Id, StringComparer.Ordinal)) f.Loyalty = Math.Min(100, f.Loyalty + DrillBy);
                 else if (choice == Patrol) { var rs = RegionSystem.StateOf(w, b.RegionId); rs.Lawlessness = Math.Clamp(rs.Lawlessness - ReliefBy, 0, 100); }
-                else { string key = PolicySystem.ApprovalKey(w, who.HouseId, "officers"); w.WorldCounters[key] = Math.Clamp(w.Counter(key) + 2, -100, 100); MoveTrust(w, 1); w.PoolsFor(who.Id).Influence += 1; }
+                else { PolicySystem.Sway(w, who.HouseId, "officers", 2); MoveTrust(w, 1); w.PoolsFor(who.Id).Influence += 1; }
                 if (ours && who.Id == p!.Id) w.Log(choice == Drill ? $"{who.Name} spends the year drilling the house's crews." : choice == Patrol ? $"{who.Name} takes a squadron round the lanes of {w.Galaxy?.Region(b.RegionId)?.Name}." : $"{who.Name} sits on a board of inquiry.");
                 break;
             }
@@ -295,7 +295,7 @@ public static partial class LadderSystem
                         {
                             x.Seen = true; if (Hash(x.Id + ":account") % 2 != 0) continue;
                             var thief = w.Char(x.HolderId)!; w.Log($"{who.Name}, {title.ToLowerInvariant()}, calls the magistrates to account, and {thief.Name} cannot answer.");
-                            Expose(w, offices, thief, x); MoveTrust(w, 4); Shift(w, w.House(thief.HouseId), house, -10); caught++;
+                            Expose(w, offices, thief, x); MoveTrust(w, 2); Shift(w, w.House(thief.HouseId), house, -10); caught++;
                         }
                         foreach (var m in w.Magistrates.Where(m => m.HouseId != who.HouseId).Select(m => m.HouseId).Distinct().ToList()) Shift(w, w.House(m), house, -2);
                         if (ours && caught > 0) Mark(w, AuditFoundFlag);
@@ -325,7 +325,7 @@ public static partial class LadderSystem
                         if (Hash(b.Id + ":exposed") % 4 == 0 && def != null)
                         {
                             OfficeSystem.Strip(w, def, "the Reach's contracts were let to their own house", false);
-                            w.WorldCounters[BarredKey(who.Id)] = w.Turn + BarYears; MoveTrust(w, -2); if (house != null) house.Legitimacy = Math.Clamp(house.Legitimacy - 5, 0, 100);
+                            w.WorldCounters[BarredKey(who.Id)] = w.Turn + BarYears; w.WorldCounters[ScandalKey(who.HouseId)] = w.Turn; MoveTrust(w, -2); if (house != null) house.Legitimacy = Math.Clamp(house.Legitimacy - 5, 0, 100);
                             who.Flags.Add(ExposedChar); LifeSystem.Note(w, who, "office", "Was removed from office for taking money.");
                             if (ours) Mark(w, who.Id == p!.Id ? ExposedFlag : KinExposedFlag);
                         }
@@ -354,7 +354,7 @@ public static partial class LadderSystem
                     {
                         found.Seen = true; var thief = w.Char(found.HolderId)!; var theirs = w.House(thief.HouseId);
                         w.Log($"{who.Name}, reading the year's accounts in the Senate, follows the money to {thief.Name} of {theirs?.Name}.");
-                        Expose(w, offices, thief, found); MoveTrust(w, 4); Shift(w, theirs, house, -15); w.PoolsFor(who.Id).Influence += 1; Legit(1);
+                        Expose(w, offices, thief, found); MoveTrust(w, 2); Shift(w, theirs, house, -15); w.PoolsFor(who.Id).Influence += 1; Legit(1);
                         if (ours) Mark(w, AuditFoundFlag);
                         if (who.Life?.Marks.Add("audit:found") != false) LifeSystem.Note(w, who, "office", "Followed stolen money to a magistrate, in the Senate.");
                     }
@@ -423,9 +423,9 @@ public static partial class LadderSystem
                     w.Log($"{p?.Name} has not been seen in the Senate for {AbsentYears} years. It is remarked on, and the house is thought the less of.");
                 }
             }
-            else if (b.Kind is Desk or Posting) { if (b.Kind == Desk) MoveTrust(w, -1); }   // the clerks see to it; an officer ashore who does nothing is merely ashore
-            else if (b.Kind == Charge) { MoveTrust(w, -2); if (house != null && p != null && b.HolderId == p.Id) { house.Legitimacy = Math.Clamp(house.Legitimacy - 1, 0, 100); w.Log($"{p.Name} held a great office of the Reach last year and did nothing with it. It was noticed, and said."); } }
-            else { MoveTrust(w, -1); if (p != null && b.HolderId == p.Id) w.Log($"The matter before {p.Name}'s bench went unheard last year. It was noticed."); }
+            else if (b.Kind is Desk or Posting) { if (b.Kind == Desk && house != null) PolicySystem.Sway(w, house.Id, "merchants", -1); }   // the clerks see to it, and the merchants notice who was not at the desk; an officer ashore who does nothing is merely ashore
+            else if (b.Kind == Charge) { MoveTrust(w, -1); if (house != null && p != null && b.HolderId == p.Id) { house.Legitimacy = Math.Clamp(house.Legitimacy - 1, 0, 100); w.Log($"{p.Name} held a great office of the Reach last year and did nothing with it. It was noticed, and said."); } }
+            else { if (house != null) PolicySystem.Sway(w, house.Id, "commons", -1); if (p != null && b.HolderId == p.Id) w.Log($"The matter before {p.Name}'s bench went unheard last year. It was noticed, and held against the house."); }   // one bench left empty costs its own house, not the Reach's name
         }
     }
 }

@@ -87,17 +87,18 @@ internal static class Probes
         var (content, scenarios) = Load(o); int seeds = Math.Max(1, Math.Min(o.Seeds, 10));
         foreach (var sid in scenarios)
         {
+            long trustSum = 0; int lowYears = 0, highYears = 0, lowRuns = 0, taintedYears = 0;
             int triumphs = 0, recalls = 0, tMoved = 0, rMoved = 0, wars = 0, ended = 0, broken = 0, maxSway = 0, maxLaurels = 0, maxDevoted = 0, battles = 0, sawFirst = 0, sawLoved = 0, sawGreat = 0, sawTroubled = 0, sawReady = 0, sawWilling = 0, troubledYears = 0, years = 0; var throne = new List<string>(); var greatWars = new List<string>(); int secondWars = 0, joined = 0; int founded = 0, recognised = 0, dissolved = 0;
             for (ulong seed = 1; seed <= (ulong)seeds; seed++)
             {
                 var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), sid), seed); var tc = new TurnController(w, content);
                 if (w.IsImperium) continue;
-                bool first = false, loved = false, great = false, troubled = false, ready = false, willing = false;
+                bool first = false, loved = false, great = false, troubled = false, ready = false, willing = false, lowRun = false;
                 for (int t = 0; t < 60 && !w.IsDynastyDead; t++)
                 {
                     PassiveTurn(tc);
                     battles += tc.Fleets.LastBattles.Count;
-                    if (!w.IsImperium) { years++; if (CaesarSystem.Troubled(w)) { troubled = true; troubledYears++; } }
+                    if (!w.IsImperium) { years++; if (CaesarSystem.Troubled(w)) { troubled = true; troubledYears++; } int tr = LadderSystem.Trust(w); trustSum += tr; if (tr < LadderSystem.TrustLow) { lowYears++; lowRun = true; } if (tr >= LadderSystem.TrustHigh) highYears++; if (w.Houses.Values.Any(h => LadderSystem.Tainted(w, h.Id))) taintedYears++; }
                     foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId))
                         if (CaesarSystem.GeneralOf(w, h) is { } g) { if (!w.IsImperium && h.Id != RegionSystem.CapitalHolder(w)?.Id && h.Id != w.Protagonist?.HouseId) { bool f1 = CaesarSystem.FirstRank(w, g), l1 = CaesarSystem.Loved(w, g, h); first |= f1; loved |= l1; great |= f1 && l1; if (f1 && Environment.GetEnvironmentVariable("CAESAR_STATS") != null && w.Counter("probe_seen:" + g.Id) == 0) { w.WorldCounters["probe_seen:" + g.Id] = 1; Console.WriteLine($"   FIRST y{w.Turn} {g.Name}: charisma {g.Skill("charisma")} oratory {g.Skill("oratory")} achilles {g.Flags.Contains(FleetSystem.AchillesFlag)} triumphs {CaesarSystem.Triumphs(w, g)} wins {CaesarSystem.Victories(w, g)} devoted {CaesarSystem.DevotedHulls(w, g)} legit {h.Legitimacy} amb '{g.Ambition}' troubles {CaesarSystem.Troubles(w).Count}"); } if (CaesarSystem.Ready(w, h)) { ready = true; if (tc.Caesar.WouldCross(w, h)) willing = true; } } maxSway = Math.Max(maxSway, CaesarSystem.Sway(w, g)); maxLaurels = Math.Max(maxLaurels, CaesarSystem.Laurels(w, g)); maxDevoted = Math.Max(maxDevoted, CaesarSystem.DevotedHulls(w, g)); }
                     tc.EndTurn();
@@ -114,12 +115,14 @@ internal static class Probes
                 else if (past.Count > 0) greatWars.Add(fought + (forgotten ? $" (forgotten; {tc.GreatCrisis.Nearness(w)}% toward another)" : ""));
                 else greatWars.Add($"none ({tc.GreatCrisis.Nearness(w)}%{(w.Counter(GreatCrisisSystem.EasedCounter) > 0 ? ", stood down " + w.Counter(GreatCrisisSystem.EasedCounter) + "x" : "")})");
                 founded += w.Counter("polities_founded"); recognised += w.Counter("polities_recognised"); dissolved += w.Counter("polities_dissolved"); joined += w.Counter("polities_joined");
+                if (lowRun) lowRuns++;
                 if (first) sawFirst++; if (loved) sawLoved++; if (great) sawGreat++; if (troubled) sawTroubled++; if (ready) sawReady++; if (willing) sawWilling++;
                 if (w.IsImperium) throne.Add($"y{w.History.FirstOrDefault(e => e.Text.Contains("THE THRONE") || e.Text.Contains("PROCLAIMS"))?.Turn}{(w.Counter("republics_ended") > 0 ? " by the road" : w.HasFlag(GreatCrisisSystem.ResolvedFlag) ? " by the great war" : "")}");
                 triumphs += w.Counter("triumphs_voted"); recalls += w.Counter("recalls_voted"); tMoved += w.Counter("triumphs_moved"); rMoved += w.Counter("recalls_moved"); wars += w.Counter("civil_wars"); ended += w.Counter("republics_ended"); broken += w.Counter("caesars_broken");
             }
             Console.WriteLine($"== {sid}: battles {battles} · most victories to one name {maxLaurels} · most devoted hulls {maxDevoted} · most sway {maxSway} · triumphs {triumphs} of {tMoved} moved · recalls {recalls} of {rMoved} moved · civil wars {wars} · the Republic fell {ended} · generals broken {broken} · a throne by: {(throne.Count == 0 ? "never" : string.Join(", ", throne))} (of {seeds} runs)");
             Console.WriteLine($"   the great war, how long and how it ended: {(greatWars.Count == 0 ? "never fought" : string.Join(", ", greatWars))} · states that broke away {founded}, recognised {recognised}, brought back {dissolved}; houses that went over to one {joined}; runs with a second great war {secondWars}");
+            if (years > 0) Console.WriteLine($"   trust in the magistrates: {trustSum / years} on average · below {LadderSystem.TrustLow} in {lowRuns} of {seeds} runs, {100 * lowYears / years}% of years · at {LadderSystem.TrustHigh} or more in {100 * highYears / years}% of years · some house under a scandal in {100 * taintedYears / years}% of years");
             Console.WriteLine($"   gates, in how many of {seeds} runs another house's general: was of the first rank {sawFirst} · was loved {sawLoved} · was both {sawGreat} · passed all three {sawReady} · and would march {sawWilling} · the Republic was troubled in {sawTroubled} runs, {(years == 0 ? 0 : 100 * troubledYears / years)}% of its years");
         }
         return 0;

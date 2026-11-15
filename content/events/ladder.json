@@ -1,5 +1,5 @@
 {
-  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected. The work of office: office_exposed, kin_office_exposed and kin_blames_the_head (deeds); case_won and case_lost (each year); and the character flags removed_from_office and blames_the_head. The bench and the seat: audit_found, ruling_overturned_for_us and not_seen_in_the_senate (deeds). The charge of an office of the Reach: levy_remitted_for_us and no_day_in_the_senate (deeds). The desk: desk_exposed (deed).",
+  "//": "THE LADDER OF OFFICES (docs/LADDER.md). Reads standing_for_office and is_aedile (each year); ladder_elected, ladder_lost and kin_elected (deeds); and the character flag newly_elected. The work of office: office_exposed, kin_office_exposed and kin_blames_the_head (deeds); case_won and case_lost (each year); and the character flags removed_from_office and blames_the_head. The bench and the seat: audit_found, ruling_overturned_for_us and not_seen_in_the_senate (deeds). The charge of an office of the Reach: levy_remitted_for_us and no_day_in_the_senate (deeds). The desk: desk_exposed (deed). Public trust: trust_collapsed and trust_restored (deeds).",
   "events": [
     {
       "id": "the_canvass",
@@ -1263,6 +1263,148 @@
             {
               "type": "log",
               "text": "{self.name} said that returns are an estimate and always have been, and that nobody had complained while the estimate ran the other way. Some of the service agreed, quietly."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_squares_turn_on_the_magistrates",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "trust_collapsed",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_for_the_accounts_to_be_opened",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "public_trust",
+              "delta": 3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} moved that the accounts of every sitting magistrate be laid on the table. It carried, because nobody dared be seen to vote against it. A good many senators have not spoken to {self.name} since."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "id": "say_your_house_has_nothing_to_hide",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that the house's own people would answer any question put to them. It was noted who said it, and who did not."
+            }
+          ]
+        },
+        {
+          "id": "keep_out_of_the_weather",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing in public for a season. The squares were angry at offices, not names, and it is easy to stay out of the way of that."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_magistrates_are_believed_again",
+      "tier": "situation",
+      "weight": 25,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "trust_restored",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_it_was_the_work_of_many",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "public_trust",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said, when asked, that the credit belonged to those who had sat in office and taken nothing. It was true, and it cost nothing to say."
+            }
+          ]
+        },
+        {
+          "id": "remind_them_who_stood_where",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had a long memory for who had said what in the bad years, and let it be known. It made the house no new friends. It reminded the old ones why they were friends."
+            }
+          ]
+        },
+        {
+          "id": "let_it_pass_unremarked",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} said nothing about it. Good order, when it comes back, is best not looked at too hard."
             }
           ]
         }

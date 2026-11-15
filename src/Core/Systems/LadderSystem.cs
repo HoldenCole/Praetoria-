@@ -24,7 +24,7 @@ public static partial class LadderSystem
     public const string StandingFlag = "standing_for_office", MagistrateFlag = "is_magistrate", AedileFlag = "is_aedile";
     public const string ElectedChar = "newly_elected", StandingChar = "standing_for_office";
     public const string BlamedFlag = "kin_blames_the_head", BlamesChar = "blames_the_head"; public const int BlameRegard = 10;
-    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag };
+    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag, TrustFellFlag, TrustRestoredFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -115,7 +115,7 @@ public static partial class LadderSystem
     /// <summary>The count: each house's weight to a candidate, and each candidate's own merit, backing and canvass.</summary>
     public static Dictionary<string, int> Tally(World w, OfficeCatalog offices, RungDef rung, List<Character> candidates, Func<string, int> weight)
     {
-        var tally = candidates.ToDictionary(c => c.Id, c => Merit(c) + (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id && cd.RungId == rung.Id)?.Backing ?? 0) + w.Counter(OrderSystem.CanvassKey(c.HouseId)));
+        var tally = candidates.ToDictionary(c => c.Id, c => Merit(c) + TrustVotes(w, c) + (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id && cd.RungId == rung.Id)?.Backing ?? 0) + w.Counter(OrderSystem.CanvassKey(c.HouseId)));
         if (candidates.Count == 0) return tally;
         foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
@@ -258,7 +258,17 @@ public static partial class LadderSystem
     /// <summary>What the Reach thinks of its magistrates, 0 to 100. Low, and they are known to be for sale.</summary>
     public static int Trust(World w) => w.WorldCounters.TryGetValue(TrustKey, out int v) ? Math.Clamp(v, 0, 100) : TrustStart;
     /// <summary>Straight dealing is what is expected: it mends trust, slowly, and never past the point where people stop looking.</summary>
-    private static void MoveTrust(World w, int by) { int t = Trust(w); w.WorldCounters[TrustKey] = by > 0 ? Math.Max(t, Math.Min(TrustCeiling, t + by)) : Math.Max(0, t + by); }
+    /// Ordinary honest dealing (a single point) only mends trust back to where it starts: nobody is admired for doing the job. Something
+    /// notable (two points or more: a thief caught, a bent ruling overturned, a region relieved) can lift it past that.
+    /// And it mends by one point a year at the most, however many of them deal straight: a year of honest magistrates is a year.
+    private static void MoveTrust(World w, int by)
+    {
+        int t = Trust(w);
+        if (by <= 0) { w.WorldCounters[TrustKey] = Math.Max(0, t + by); return; }
+        if (by == 1) { if (t >= TrustStart || w.Counter(MendedKey) == w.Turn + 1) return; w.WorldCounters[MendedKey] = w.Turn + 1; w.WorldCounters[TrustKey] = t + 1; return; }
+        w.WorldCounters[TrustKey] = Math.Max(t, Math.Min(TrustCeiling, t + by));
+    }
+    private const string MendedKey = "trust_mended_in";
     public static string KindOf(RungDef rung) => rung.Id == Praetor ? Case : rung.Games > 0 ? Works : Accounts;
     public static string[] ChoicesFor(string kind) => kind == Case ? new[] { Law, Friend, Gift } : kind == Works ? new[] { Lanes, Grain, Nothing } : new[] { Straight, Relief, Favour };
     public static OfficeBusiness? BusinessOf(World w, string characterId) => w.OfficeWork.FirstOrDefault(b => b.HolderId == characterId && b.Choice.Length == 0 && b.Kind is Accounts or Works or Case);
@@ -302,6 +312,44 @@ public static partial class LadderSystem
         return b;
     }
 
+    // ---------------- what the Reach's trust in its magistrates does (docs/LADDER.md) ----------------
+
+    public const int TrustHigh = 75, ScandalYears = 10, TaintVotes = 6, TaintVotesLow = 12, RemovedVotes = 8;
+    public const string TrustFellFlag = "trust_collapsed", TrustRestoredFlag = "trust_restored", TrustLowKey = "trust_is_low";
+    public static string ScandalKey(string houseId) => "office_scandal:" + houseId;
+    /// <summary>A house one of whose people was removed from office for taking money, inside the last ten years.</summary>
+    public static bool Tainted(World w, string houseId) => w.WorldCounters.TryGetValue(ScandalKey(houseId), out int t) && w.Turn - t < ScandalYears;
+    /// <summary>What a house's scandal costs it at a count: more when the magistrates are little trusted and the Reach wants clean hands.</summary>
+    public static int TaintCost(World w, string houseId) => !Tainted(w, houseId) ? 0 : Trust(w) < 50 ? TaintVotesLow : TaintVotes;
+    /// <summary>The votes a candidate loses for their house's scandal, and for having been removed from office themselves.</summary>
+    public static int TrustVotes(World w, Character c) => -TaintCost(w, c.HouseId) - (w.WorldCounters.ContainsKey(BarredKey(c.Id)) ? RemovedVotes : 0);
+
+    /// <summary>What the state of the magistrates' name is doing this year, said plainly.</summary>
+    public static string TrustSays(World w)
+    {
+        int t = Trust(w);
+        return t < TrustLow ? "The squares blame whoever is in office: the commons think worse of every house that holds one, every year, and the house that holds the capital loses standing with them. A house with a scandal to its name loses twice the votes at a count."
+            : t < 50 ? "A house with a scandal to its name loses twice the votes at a count, because the Reach wants clean hands."
+            : t >= TrustHigh ? "Office is honoured: every house that holds one gains standing, and the commons think the better of it."
+            : "It does nothing either way while it stands here.";
+    }
+
+    /// <summary>The year's consequences of that trust: for the houses in office, for the commons, and for the house that holds the capital.</summary>
+    private static void TrustYear(World w)
+    {
+        int t = Trust(w); var chair = RegionSystem.CapitalHolder(w); bool was = w.Counter(TrustLowKey) > 0;
+        var inOffice = w.Magistrates.Select(m => m.HouseId).Concat(w.Offices.Select(o => o.HouseId)).Distinct().OrderBy(id => id, StringComparer.Ordinal).ToList();
+        if (t < TrustLow)
+        {
+            if (chair is { Legitimacy: > 20 }) chair.Legitimacy -= 1;             // it is the chair that is blamed for what sits under it
+            foreach (var id in inOffice) PolicySystem.Sway(w, id, "commons", -3);
+            if (!was) { w.WorldCounters[TrustLowKey] = 1; Mark(w, TrustFellFlag); w.Log("The Reach no longer believes its magistrates can be had for less than money. It is said openly in the squares, and the houses in office are the ones it is said about."); }
+            return;
+        }
+        if (t >= TrustHigh) foreach (var id in inOffice) { PolicySystem.Sway(w, id, "commons", 1); if (w.House(id) is { Legitimacy: < 70 } h) h.Legitimacy += 1; }
+        if (was && t >= 50) { w.WorldCounters.Remove(TrustLowKey); Mark(w, TrustRestoredFlag); w.Log("The magistrates of the Reach are believed again, more or less. It took years, and it was done by people who could have taken the money."); }
+    }
+
     /// <summary>What it is, said to the one who must decide it.</summary>
     public static string Says(World w, OfficeCatalog offices, OfficeBusiness b)
     {
@@ -325,7 +373,7 @@ public static partial class LadderSystem
             Favour => $"Let {FavourCredits} credits find their way to your house. The magistrates are trusted less, and one time in four it comes out.",
             Lanes => b.RegionId.Length > 0 ? $"Repair the lanes of {w.Galaxy?.Region(b.RegionId)?.Name} for {WorksCredits} credits of your own." : $"There is no region of your house's to repair: the {WorksCredits} credits go on the capital's streets.",
             Grain => $"Grain for the squares, for {WorksCredits} credits of your own: your house is thought the better of.",
-            Nothing => "Do nothing. Nothing is spent, and it is noticed.",
+            Nothing => "Do nothing. Nothing is spent, and if you could have paid it is noticed.",
             Law => b.HouseA.Length == 0 ? "Sit, and rise." : $"Rule on the law, for {w.House(b.RightId)?.Name}. The loser pays {Damages} credits and thinks the less of you; the winner the better.",
             Friend => b.HouseA.Length == 0 ? "Sit, and rise." : $"Rule for {friend}, which thinks the better of your house." + (FriendOf(w, b, mine) == b.RightId ? " As it happens the law is with them." : " The law is not with them, and it will be seen."),
             Gift => b.HouseA.Length == 0 ? "Sit, and rise." : $"Take {GiftCredits} credits from {richer}, and rule for them. One time in three it comes out.",
@@ -369,7 +417,7 @@ public static partial class LadderSystem
                 break;
             case Lanes: Pay(w, who, -WorksCredits); Region(-ReliefBy); MoveTrust(w, 1); break;
             case Grain: Pay(w, who, -WorksCredits); Legit(2); MoveTrust(w, 1); break;
-            case Nothing: MoveTrust(w, -1); break;
+            case Nothing: if (Funds(w, who) >= WorksCredits) MoveTrust(w, -1); break;   // one who could have paid and did not is noticed; one who could not is merely poor
             case Law: case Friend: case Gift:
                 if (b.HouseA.Length == 0) break;
                 string winner = choice == Law ? b.RightId : choice == Friend ? FriendOf(w, b, house) : RicherOf(w, b), loser = winner == b.HouseA ? b.HouseB : b.HouseA;
@@ -394,7 +442,7 @@ public static partial class LadderSystem
     private static void Expose(World w, OfficeCatalog offices, Character who, OfficeBusiness b)
     {
         var mine = w.Protagonist; var house = w.House(who.HouseId);
-        w.Magistrates.RemoveAll(m => m.CharacterId == who.Id); w.WorldCounters[BarredKey(who.Id)] = w.Turn + BarYears; MoveTrust(w, -3);
+        w.Magistrates.RemoveAll(m => m.CharacterId == who.Id); w.WorldCounters[BarredKey(who.Id)] = w.Turn + BarYears; w.WorldCounters[ScandalKey(who.HouseId)] = w.Turn; MoveTrust(w, -3);
         if (house != null) house.Legitimacy = Math.Clamp(house.Legitimacy - 5, 0, 100);
         who.Flags.Add(ExposedChar); LifeSystem.Note(w, who, "office", "Was removed from office for taking money.");
         if (mine != null && who.HouseId == mine.HouseId) Mark(w, who.Id == mine.Id ? ExposedFlag : KinExposedFlag);
@@ -431,8 +479,9 @@ public static partial class LadderSystem
             var b = Make(w, seat, rung, taken); w.OfficeWork.Add(b);
             if (p == null || who.Id != p.Id) Decide(w, offices, who, Inclination(w, who, b));
         }
-        // drifting back toward where it started, a point a year, so that one bad magistrate is not remembered for ever
-        int t = Trust(w); if (t != TrustStart) w.WorldCounters[TrustKey] = t + Math.Sign(TrustStart - t);
+        // above where it starts, a good name fades a point a year; below it, nothing mends it but honest dealing (a point a year, above)
+        int t = Trust(w); if (t > TrustStart) w.WorldCounters[TrustKey] = t - 1;
+        TrustYear(w);
     }
 
     // ---------------- the year ----------------

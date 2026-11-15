@@ -22,6 +22,14 @@ public static class PolicySystem
     /// <summary>The counter that holds an estate's approval of a house: the player's are <c>estate:&lt;id&gt;</c> (content reads them), a rival's <c>estate:&lt;house&gt;:&lt;id&gt;</c>.</summary>
     public static string ApprovalKey(World w, string houseId, string estateId) => houseId == w.Protagonist?.HouseId ? "estate:" + estateId : $"estate:{houseId}:{estateId}";
     public static int Approval(World w, string houseId, string estateId) => w.Counter(ApprovalKey(w, houseId, estateId));
+    /// <summary>Something a house or one of its people did moves what an estate thinks of it. For the player's house it is also
+    /// written to the estate's offset, so that it lasts and fades a point a year instead of being drifted away at once.</summary>
+    public static void Sway(World w, string houseId, string estateId, int by)
+    {
+        if (by == 0 || estateId.Length == 0) return; string key = ApprovalKey(w, houseId, estateId);
+        w.WorldCounters[key] = Math.Clamp(w.Counter(key) + by, -100, 100);
+        if (houseId == w.Protagonist?.HouseId) { string off = "estate_offset:" + estateId; w.WorldCounters[off] = Math.Clamp(w.Counter(off) + by, -60, 60); }
+    }
 
     /// <summary>Every house begins with its culture's laws (content/politics/cultures.json), the player's too; a law the culture does not name stays at its default.</summary>
     public static void ApplyCultures(World w, PolicyCatalog cat)

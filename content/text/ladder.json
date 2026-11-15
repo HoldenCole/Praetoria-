@@ -158,6 +158,26 @@
         "pay_back_what_was_kept": "Pay back what was kept.",
         "say_the_figures_were_always_soft": "Say the figures were always soft."
       }
+    },
+    {
+      "id": "the_squares_turn_on_the_magistrates",
+      "title": "The Squares Turn on the Magistrates",
+      "body": "It is no longer whispered. In the markets and on the docks it is said in a plain voice that a ruling of the Reach is a thing with a price, and that the price is known. Nobody much cares which magistrate. They are all spoken of together now, and so are the houses that sent them.",
+      "choices": {
+        "call_for_the_accounts_to_be_opened": "Call, in the Senate, for every magistrate's accounts to be opened.",
+        "say_your_house_has_nothing_to_hide": "Say only that your own house has nothing to hide.",
+        "keep_out_of_the_weather": "Keep out of the weather until it passes."
+      }
+    },
+    {
+      "id": "the_magistrates_are_believed_again",
+      "title": "The Magistrates Are Believed Again",
+      "body": "It took years. A ruling is once again a thing people expect to be able to read without asking who paid for it. Nobody announced the change. It is only that the jokes have stopped, and that a magistrate crossing the square is no longer watched by everyone who has ever lost a case.",
+      "choices": {
+        "say_it_was_the_work_of_many": "Say it was the work of a good many honest people.",
+        "remind_them_who_stood_where": "Remind the Senate who stood where when it was otherwise.",
+        "let_it_pass_unremarked": "Let it pass unremarked."
+      }
     }
   ]
 }

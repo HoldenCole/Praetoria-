@@ -56,7 +56,7 @@ public static class ElectionSystem
             }
             if (vote != null) tally[vote] = tally.GetValueOrDefault(vote) + weight(h.Id);
         }
-        foreach (var n in nominees) tally[n.houseId] = tally.GetValueOrDefault(n.houseId) + w.Counter(OrderSystem.CanvassKey(n.houseId));   // coin spent on the voters in the nominee's name
+        foreach (var n in nominees) tally[n.houseId] = tally.GetValueOrDefault(n.houseId) + w.Counter(OrderSystem.CanvassKey(n.houseId)) - LadderSystem.TaintCost(w, n.houseId);   // coin spent on the voters in the nominee's name; and what a scandal in office costs the house (docs/LADDER.md)
         return tally;
     }
 

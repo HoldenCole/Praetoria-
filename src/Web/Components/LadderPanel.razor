@@ -9,6 +9,8 @@
     var consulMan = consul != null ? OfficeSystem.Candidate(w, consul, house.Id) : null;
     var work = LadderSystem.BusinessOf(w, pid); int trust = LadderSystem.Trust(w); bool hadWork = w.OfficeWork.Any(b => b.HolderId == pid && b.RungId == mySeat?.OfficeId);
     string trustWord = trust < LadderSystem.TrustLow ? "for sale, and everyone knows it" : trust < 50 ? "not much trusted" : trust < 70 ? "trusted, more or less" : "trusted";
+    string trustDoes = LadderSystem.TrustSays(w); int taint = LadderSystem.TaintCost(w, house.Id); int scandal = w.Counter(LadderSystem.ScandalKey(house.Id));
+    string taintLine = taint == 0 ? "" : "One of your house was removed from office in year " + scandal + ". Until year " + (scandal + LadderSystem.ScandalYears) + " its candidates lose " + taint + " votes at every count, for consul as well.";
     string trustClass = trust < LadderSystem.TrustLow ? "pill bad" : trust < 50 ? "pill warn" : "pill good";
     string workTitle = work == null ? "" : "The business of your office: " + (work.Kind == LadderSystem.Case ? "a case" : work.Kind == LadderSystem.Works ? "the works" : "the accounts");
     string workSays = work == null ? "" : LadderSystem.Says(w, offices, work);
@@ -35,7 +37,8 @@
     else
     {
         <div class="muted small">Each rung is held by a person, for five years, and filled by election. The houses vote with their weight in the chamber; a candidate's own speaking, standing and record count besides. You have been: <b>@Held(p)</b>.</div>
-        <div class="small">The magistrates of the Reach are <span class="@trustClass" title="@TrustTip">@trustWord (@trust)</span></div>
+        <div class="small">The magistrates of the Reach are <span class="@trustClass" title="@TrustTip">@trustWord (@trust)</span> <span class="muted small">@trustDoes</span></div>
+        @if (taintLine.Length > 0) { <div class="small bad">@taintLine</div> }
         @if (work != null)
         {
             <div class="rung-row office-work">

@@ -77,13 +77,13 @@ magistrate has business, and what they do with it has consequences.
 - **You decide your own; nobody decides yours and you decide nobody else's.** A relative who holds an office decides
   their own business, as every other house's magistrate does, by nature: the honourable and the just deal straight,
   the ruthless and the cruel take money about half the time, the loyal and the vengeful rule for their friends.
-- **Left undone**, the clerks close it at the year's end and it is noticed (trust −1).
+- **Left undone**, the clerks close it at the year's end and it is noticed (trust −1). An aedile who does nothing is
+  noticed only if they could have paid for the works; one who could not is merely poor.
 - **When it comes out** that a magistrate took money, they are removed, may not stand for five years, and the house
   loses 5 legitimacy. If it is you, or one of yours, there is an event.
-- **Public trust in the magistrates** runs from 0 to 100 and starts at 60. Straight dealing mends it slowly and never
-  past 85; money taken breaks it quickly; it drifts a point a year back toward 60. **Below 35, "the magistrates are
-  known to be for sale" is one of the things wrong with the Reach**, so it counts toward the times a Caesar needs
-  (docs/CAESAR.md) and toward the pressure that brings the great war (docs/BREAKAWAY.md).
+- **Public trust in the magistrates** runs from 0 to 100 and starts at 60. See "What trust does" below. **Below 35,
+  "the magistrates are known to be for sale" is one of the things wrong with the Reach**, so it counts toward the
+  times a Caesar needs (docs/CAESAR.md) and toward the pressure that brings the great war (docs/BREAKAWAY.md).
 - A house that is a party to a case hears of it (an event when it wins, another when it loses). The same quarrel is
   not heard two years running, and no house is before two courts in one year.
 - **A relative who stood without a word from the head and lost blames the head** (regard −10, an event). One who was
@@ -102,7 +102,7 @@ besides the chamber's motions:
 
 | Choice | What it does |
 |---|---|
-| **Read the accounts** | If a magistrate of another house took money this year and has not been found out, you may follow it to them (one time in two): they are removed and barred, trust +4, you gain 1 influence and a little legitimacy, and their house thinks 15 the less of you. If there is nothing, or nothing provable, trust +1. |
+| **Read the accounts** | If a magistrate of another house took money this year and has not been found out, you may follow it to them (one time in two): they are removed and barred, trust +2, you gain 1 influence and a little legitimacy, and their house thinks 15 the less of you. If there is nothing, or nothing provable, trust +1. |
 | **Speak for your region** | The region where your worlds are holds a little closer to the Reach (allegiance +2), its houses think +3 of you, legitimacy +1. |
 | **Work your bench** | Your party's leader thinks +6 of you and you gain 1 influence. If you lead it, every house on the bench thinks +3 of you. |
 
@@ -115,8 +115,8 @@ later.
 **A Judge's hearing.** Anyone of the house who is a Judge or above in the law (and is not a sitting praetor, who has a
 court already) hears one matter a year: an estate has brought a house before the bench, and the law is with one of
 them. **Rule on the law** (the side in the right thinks better of your house, the other worse; trust +1), **find for
-the house** whatever the law says (+8 from the house, −6 with the estate; trust −2 if the law was against it), or
-**find for the petitioners** (+6 with the estate, −8 from the house; trust −1 if the law was against them). The
+the house** whatever the law says (+8 from the house, −6 with the estate; trust −1 if the law was against it), or
+**find for the petitioners** (+6 with the estate, −8 from the house; the squares do not mind a ruling bent their way). The
 estate's approval is the same number the Chancery shows (docs/POLITICS.md).
 
 **A Justice's appeal.** A praetor's ruling that went against the plain law is appealed the next year before a
@@ -133,13 +133,14 @@ takes the place of the senator's year.
 
 | Office | The choices |
 |---|---|
-| **Consul** (both) | **Call the magistrates to account**: up to two who took money this year are looked at, each caught one time in two and removed; trust +2 and +4 for each caught; every magistrate's house thinks −2 of you. **Send the fleet onto the lanes** of the most lawless region: lawlessness −4 for 4 credits of the capital's; its houses think +4. **Spend the year on your bench**: its houses +4, influence +2, trust −1. |
+| **Consul** (both) | **Call the magistrates to account**: up to two who took money this year are looked at, each caught one time in two and removed; trust +2 and +2 for each caught; every magistrate's house thinks −2 of you. **Send the fleet onto the lanes** of the most lawless region: lawlessness −4 for 4 credits of the capital's; its houses think +4. **Spend the year on your bench**: its houses +4, influence +2, trust −1. |
 | **Treasurer** | **Balance the books**: 5 credits found for the capital's purse, trust +1, legitimacy +1. **Forgive a region its levy**: the region that holds loosest gains 4 allegiance for 5 credits of the capital's; its houses think +4. **Let the contracts to your own house**: +10 credits, trust −3, and one time in four it comes out: the office is taken away and you may not stand for five years. |
 | **Speaker** | **Keep the order fair**: every bench's leader +2, trust +1, legitimacy +1. **Bring your own business forward**: influence +2, your bench's leader +4, the others −3. **Give an enemy no day**: the house you are worst at odds with thinks −10 of you, those who hate it think +5, trust −1. |
 
 Other houses' officers decide by nature, at once, and what they do reaches you: a Treasurer who forgives your own
 region its levy and a Speaker who keeps your house off the floor each bring an event. A great office held and not used
-is noticed: trust −2 and legitimacy −1.
+is noticed: trust −1 and legitimacy −1. A bench or a desk left empty costs its own house (the commons, or the
+merchants, think one the less of it), not the Reach's name.
 
 **A desk, and a posting.** The other two careers ask something of their ranks as well, of the people of your house.
 
@@ -158,6 +159,38 @@ head has the year.
 
 The player decides their own; a relative on the bench decides theirs by nature. Where: "Your duties this year" at the
 top of the Senate's standing view, above the ladder. The outliner says when a matter is waiting.
+
+## What trust does
+
+**How it moves.**
+
+- **Ordinary honest dealing mends it, and no more.** Closing the accounts straight, ruling on the law, keeping the
+  order fair: each is a single point, and all of them together mend trust by **one point a year at the most**, and
+  only back up to 60. Nobody is admired for doing the job.
+- **Something notable lifts it past 60**, to 85 at the highest: a thief followed to their office (+2), the magistrates
+  called to account (+2), a bent ruling overturned (+3).
+- **Money taken breaks it**: a quaestor's favour −3, a praetor's gift −4, a ruling bent for a friend −3, the Reach's
+  contracts let to the Treasurer's own house −3, and −3 again each time one of them is found out. Catching a thief no
+  longer outweighs the theft.
+- Above 60 a good name fades a point a year. **Below 60 nothing mends it but honest dealing.**
+
+**What it does.**
+
+| Trust | Elections | The commons | Standing |
+|---|---|---|---|
+| **Below 35** (for sale) | A house with a scandal loses 12 votes at every count | Think 3 the less, every year, of every house that holds an office | The house that holds the capital loses a point of legitimacy a year, down to 20 |
+| **35 to 49** | A house with a scandal loses 12 votes | | |
+| **50 to 74** | A house with a scandal loses 6 votes | | |
+| **75 or more** (honoured) | A house with a scandal loses 6 votes | Think 1 the better, every year, of every house that holds an office | Every house that holds an office gains a point of legitimacy a year, up to 70 |
+
+- **A scandal** is a magistrate or an officer of the Reach removed for taking money. It lies on their house for **ten
+  years**, at the count for the ladder and for the consulship both. The person removed loses 8 votes more, for good.
+- There is an event when trust first falls below 35, and another when it is believed again (back to 50).
+- What a person of your house does to an estate (a judge's ruling, a governor's returns, a year on a board) now
+  **lasts**: it fades a point a year instead of being gone within a year.
+
+The ladder panel says in a line what trust is doing this year, and tells you if your house is under a scandal, until
+when, and what it costs.
 
 ## When a saga opens
 
@@ -218,7 +251,8 @@ Justice. The estate called the Magistrates is unchanged.
   L5). A bent ruling may be appealed, but nobody can prosecute a former magistrate or bribe a sitting one (L2).
 - Other houses' senators do not spend their year (but for the one who audits), and their judges hear no hearings
   (docs/GAPS.md X2).
-- Public trust moves only the troubles of the Reach, not elections or the estates (L7).
+- Public trust is one number for the whole Reach: a region's own courts, or one office's name, are not told apart
+  (docs/GAPS.md L9).
 - An office's charge is one of three things a year. A consul does not preside, a Treasurer has no budget with figures, a Speaker orders no actual motions (docs/GAPS.md O2).
 - No bribery, no prosecution of a former magistrate, no law on the order of offices that the Senate could change.
 - The censorship, the tribunate and provincial commands after office are not here.
