@@ -801,4 +801,94 @@ public class RegisterTests
         Assert.False(Do(w, new AmbitionCommand(me.Id, AmbitionCommand.SecondStart, k.Id, sys)));
         Assert.NotNull(sys.SecondStartOffer(w, me, k, ctx).refusal);
     }
+
+    // ---------------- W9: a standard asked back, a relative's commission, a gift to mend a quarrel ----------------
+
+    private static (House theirs, Character head) Another(World w, House mine, int skip = 0)
+    {
+        var h = w.Houses.Values.Where(x => x.Id != mine.Id && x.Id != PirateSystem.HouseId && Economy.HeadOf(w, x) != null).OrderBy(x => x.Id, StringComparer.Ordinal).Skip(skip).First();
+        return (h, Economy.HeadOf(w, h)!);
+    }
+    private static Heirloom Taken(World w, Character holder, House from, string id = "taken")
+    {
+        var item = new Heirloom { Id = id, Name = "the test standard", Kind = WealthSystem.Standard, HolderId = holder.Id, OfHouseId = holder.HouseId, FromHouseId = from.Id, Value = WealthSystem.StandardValue };
+        w.Heirlooms.Add(item); return item;
+    }
+
+    [Fact]
+    public void W9_The_house_a_standard_was_taken_from_resents_it_asks_for_it_and_can_be_given_or_sold_it_back()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me); w.Heirlooms.Clear(); var (theirs, head) = Another(w, mine); var item = Taken(w, me, theirs);
+        w.Relationship(head.Id, me.Id).Disposition = 0; w.Turn++; WealthSystem.Tick(w); Assert.Equal(-1, w.Relationship(head.Id, me.Id).Disposition);
+        w.Relationship(head.Id, me.Id).Disposition = WealthSystem.StandardGrudgeFloor; w.Turn++; WealthSystem.Tick(w); Assert.Equal(WealthSystem.StandardGrudgeFloor, w.Relationship(head.Id, me.Id).Disposition);
+        Assert.Contains("has not forgotten", WealthSystem.Does(w, item));
+        // at peace they ask, now and then; at war they do not
+        int years = 0; while (!w.HasFlag(WealthSystem.StandardAskedFlag) && years++ < 60) { w.Turn++; WealthSystem.Tick(w); }
+        Assert.True(w.HasFlag(WealthSystem.StandardAskedFlag)); Assert.Contains(WealthSystem.AsksChar, head.Flags); Fires(w, "they_ask_for_their_standard");
+        // sent home for nothing: it is theirs again, with nothing owed, and it is remembered
+        w.WorldFlags.Remove(WealthSystem.RansomAgreedFlag); w.WorldFlags.Add(WealthSystem.GivenBackFlag); w.Relationship(head.Id, me.Id).Disposition = 0; w.Turn++; WealthSystem.Tick(w);
+        Assert.Equal(head.Id, item.HolderId); Assert.Equal(theirs.Id, item.OfHouseId); Assert.Equal("", item.FromHouseId); Assert.Contains("come home", item.Name);
+        Assert.Equal(WealthSystem.ReturnRegard, w.Relationship(head.Id, me.Id).Disposition); Assert.Equal(1, w.Counter(WealthSystem.ReturnedKey)); Assert.False(w.HasFlag(WealthSystem.GivenBackFlag));
+
+        // sold home at the asking: the money is the holder's own
+        var second = Taken(w, me, theirs, "taken2"); w.WorldCounters["standard_asked:taken2"] = w.Turn; w.WorldFlags.Add(WealthSystem.RansomAgreedFlag); theirs.Treasury.Credits = 500; int purse = me.Purse;
+        WealthSystem.Tick(w); Assert.Equal(head.Id, second.HolderId); Assert.Equal(500 - WealthSystem.RansomPrice(second), theirs.Treasury.Credits); Assert.Equal(1, w.Counter(WealthSystem.RansomedKey));
+        Assert.True(me.Purse >= purse + WealthSystem.RansomPrice(second));
+
+        // or handed straight to their head, unasked
+        var third = Taken(w, me, theirs, "taken3"); Assert.True(Do(w, new WealthCommand(me.Id, WealthCommand.Give, third.Id, head.Id)));
+        Assert.Equal(head.Id, third.HolderId); Assert.Equal("", third.FromHouseId); Assert.Equal(2, w.Counter(WealthSystem.ReturnedKey));
+    }
+
+    [Fact]
+    public void W9_A_standard_your_house_lost_is_bought_home_or_retaken_in_battle_and_other_houses_buy_theirs_home_too()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me); w.Heirlooms.Clear(); var (theirs, head) = Another(w, mine); var lost = Taken(w, head, mine); int price = WealthSystem.RansomPrice(lost);
+        me.Purse = price - 1; Assert.Contains("purse", WealthSystem.RansomRefusal(w, me, lost));
+        me.Purse = price + 5; w.Relationship(head.Id, me.Id).Disposition = WealthSystem.RansomWillNot - 1; Assert.Contains("will not hear of it", WealthSystem.RansomRefusal(w, me, lost));
+        w.Relationship(head.Id, me.Id).Disposition = 0; var war = new War { HouseA = mine.Id, HouseB = theirs.Id }; w.Wars.Add(war); Assert.Contains("at war", WealthSystem.RansomRefusal(w, me, lost));
+        w.Wars.Remove(war); int treasury = theirs.Treasury.Credits;
+        Assert.True(Do(w, new WealthCommand(me.Id, WealthCommand.Ransom, lost.Id, "")));
+        Assert.Equal(me.Id, lost.HolderId); Assert.Equal(mine.Id, lost.OfHouseId); Assert.Equal("", lost.FromHouseId); Assert.Equal(5, me.Purse); Assert.Equal(treasury + price, theirs.Treasury.Credits);
+        Assert.Equal("not a standard of your house", WealthSystem.RansomRefusal(w, me, lost));
+
+        // beaten in battle, the house that flies it gives it up to whoever commanded
+        var again = Taken(w, head, mine, "taken_again"); var k = Blood(w, me, Kin(w, mine, me, "admiral"));
+        var won = WealthSystem.StandardWon(w, mine.Id, theirs.Id, w.Galaxy!.Capital, new[] { k });
+        Assert.Same(again, won); Assert.Equal(k.Id, again.HolderId); Assert.Equal("", again.FromHouseId); Assert.Contains("retaken", again.Name); Assert.Equal(1, w.Counter(WealthSystem.RetakenKey));
+
+        // two other houses: the one that lost it buys it home in time, if it can pay
+        var (third, thirdHead) = Another(w, mine, 1); var between = Taken(w, head, third, "between"); int years = 0;
+        while (between.FromHouseId.Length > 0 && years++ < 120) { w.Turn++; third.Treasury.Credits = 500; WealthSystem.Tick(w); }
+        Assert.Equal("", between.FromHouseId); Assert.Equal(thirdHead.Id, between.HolderId); Assert.True(years > 1, "not at once");
+    }
+
+    [Fact]
+    public void W9_One_of_the_house_has_a_thing_made_in_their_own_name_with_their_own_money()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me); w.Heirlooms.Clear(); var k = Blood(w, me, Kin(w, mine, me, "maker")); mine.Treasury.Credits = 200; int years = 0;
+        while (WealthSystem.HeldBy(w, k.Id).Count == 0 && years++ < 40) { w.Turn++; k.Purse = WealthSystem.ShrineCost + WealthSystem.KinKeepsBack; WealthSystem.Tick(w); }
+        var made = Assert.Single(WealthSystem.HeldBy(w, k.Id)); Assert.Equal(WealthSystem.Shrine, made.Kind); Assert.Equal(mine.Id, made.OfHouseId); Assert.True(years > 1, "not the first year they could");
+        Assert.StartsWith("Had", k.LastSpend); Assert.True(w.HasFlag(WealthSystem.KinMadeFlag)); Assert.Contains(WealthSystem.KinMadeChar, k.Flags); Assert.Equal(1, w.Counter(WealthSystem.KinMadeKey));
+        Fires(w, "one_of_yours_has_a_thing_made");
+        // one of a kind to a house: the next of them with money does not build a second shrine
+        var other = Blood(w, me, Kin(w, mine, me, "second"));
+        for (int y = 0; y < 30; y++) { w.Turn++; other.Purse = WealthSystem.ShrineCost + WealthSystem.KinKeepsBack; WealthSystem.Tick(w); }
+        Assert.DoesNotContain(w.Heirlooms, h => h.Kind == WealthSystem.Shrine && h.HolderId == other.Id);
+    }
+
+    [Fact]
+    public void W9_A_head_who_would_rather_not_be_at_odds_sends_a_gift_and_it_can_be_sent_back()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me); w.Heirlooms.Clear(); var (theirs, head) = Another(w, mine);
+        foreach (var h in w.Houses.Values) h.Treasury.Credits = 0; int years = 0;
+        w.Relationship(head.Id, me.Id).Disposition = -30; w.Relationship(me.Id, head.Id).Disposition = -30;
+        while (!w.HasFlag(WealthSystem.MendFlag) && years++ < 200) { w.Turn++; theirs.Treasury.Credits = 200; w.Relationship(head.Id, me.Id).Disposition = -30; w.Relationship(me.Id, head.Id).Disposition = -30; WealthSystem.Tick(w); }
+        Assert.True(w.HasFlag(WealthSystem.MendFlag)); Assert.True(years > 1, "not at once");
+        var gift = Assert.Single(w.Heirlooms, h => h.Id.StartsWith("gift_")); Assert.Equal(WealthSystem.Plate, gift.Kind); Assert.Equal(me.Id, gift.HolderId); Assert.Equal(theirs.Id, gift.FromHouseId);
+        Assert.True(w.Relationship(head.Id, me.Id).Disposition >= -30 + WealthSystem.MendRegard); Assert.Contains(WealthSystem.MendChar, head.Flags); Assert.Equal(1, w.Counter(WealthSystem.MendKey));
+        Fires(w, "a_gift_to_mend_a_quarrel");   // the last answer sends it back
+        Assert.True(w.HasFlag(WealthSystem.SendBackFlag)); theirs.Treasury.Credits = 0; w.Turn++; WealthSystem.Tick(w);
+        Assert.DoesNotContain(w.Heirlooms, h => h.Id.StartsWith("gift_")); Assert.Equal(1, w.Counter(WealthSystem.SentBackKey)); Assert.False(w.HasFlag(WealthSystem.SendBackFlag));
+    }
 }

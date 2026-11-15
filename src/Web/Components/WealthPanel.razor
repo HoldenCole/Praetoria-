@@ -7,6 +7,7 @@
     var heads = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).Select(h => Economy.HeadOf(w, h)).Where(c => c is { Alive: true }).Select(c => c!).Take(3).ToList();
     var cs = G.Turn?.Companies; var myShares = CompanySystem.HeldPersonally(w, pid);
     var offered = w.Companies.Where(c => c.HeldBy(Company.Public) > 0).OrderByDescending(c => c.Price > 0 && c.Shares > 0 ? c.LastDividend / (c.Price * c.Shares) : 0).ThenBy(c => c.Id, StringComparer.Ordinal).Take(3).ToList();
+    var flownElsewhere = w.Heirlooms.Where(h => h.Kind == WealthSystem.Standard && h.FromHouseId == house.Id && w.Char(h.HolderId) is { Alive: true } k && k.HouseId != house.Id).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
     var mine = WealthSystem.HeldBy(w, pid); var others = w.Heirlooms.Where(h => h.HolderId != pid && w.Char(h.HolderId)?.HouseId == house.Id).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
     var heir = DynastySystem.FindHeir(w, p); var will = p.Will; var legatee = will != null && will.LegateeId.Length > 0 ? w.Char(will.LegateeId) : null;
     var people = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age >= 6).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
@@ -140,12 +141,19 @@
                 </div>
                 <div class="suit-acts"><span class="muted small">Give it now to</span>
                     @foreach (var c in people.Take(6)) { string cid = c.Id; <button class="opt inline tiny" title="they will not forget it" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, cid))">@First(c.Name)</button> }
+                    @if (item.Kind == WealthSystem.Standard && w.House(item.FromHouseId) is { } lostBy && Economy.HeadOf(w, lostBy) is { Alive: true } theirHead) { string thid = theirHead.Id; <button class="opt inline tiny" title="@($"It was {lostBy.Name}'s. Sent home with nothing asked, {theirHead.Name} will think much better of you. While you keep it, they think a little worse of you each year.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, thid))">Send it home to @lostBy.Name.Replace("House ", "")</button> }
                     @foreach (var hd in heads) { string hid = hd.Id; <button class="opt inline tiny" title="@($"A gift to the head of {w.House(hd.HouseId)?.Name}. They will think much better of you for it, and it is theirs for good.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, hid))">@First(hd.Name) of @(w.House(hd.HouseId)?.Name.Replace("House ", ""))</button> }
                     @if (_confirm == iid) { <button class="opt inline tiny veto" @onclick="() => { _confirm = null; G.Execute(new WealthCommand(pid, WealthCommand.Sell, iid, string.Empty)); }">Yes, sell it</button> <button class="opt inline tiny" @onclick="() => _confirm = null">No</button> }
                     else { <button class="opt inline tiny" title="@(item.OfHouseId == house.Id ? "The family has always had it: the house loses standing and your blood kin resent it." : "")" @onclick="() => _confirm = iid">Sell · @item.Value</button> }
                 </div>
                 }
             </div>
+        }
+        @foreach (var item in flownElsewhere)
+        {
+            string lid = item.Id; var keeper = w.Char(item.HolderId); var no = new WealthCommand(pid, WealthCommand.Ransom, lid, string.Empty).Refusal(G.Ctx);
+            <div class="suit"><b>@Cap(item.Name)</b> <span class="muted">a standard of your house, flown by @keeper?.Name of @(w.House(keeper?.HouseId ?? "")?.Name)</span>
+                <div class="suit-acts"><button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? "Out of your own purse. It comes home as yours, with nothing owed. Beating them in battle would bring it home too.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Ransom, lid, string.Empty))">Buy it home · @WealthSystem.RansomPrice(item)</button></div></div>
         }
         @foreach (var item in others) { <div class="suit"><b>@Cap(item.Name)</b> <span class="muted">held by @w.Char(item.HolderId)?.Name · worth @item.Value@(item.Entailed ? " · entailed" : "")</span><div class="muted small">@WealthSystem.Does(w, item)</div></div> }
 

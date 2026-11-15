@@ -119,6 +119,36 @@
         "tell_them_what_you_know": "Tell them what the house knows of the Exchange.",
         "the_house_comes_first": "The house comes first: buy in its name."
       }
+    },
+    {
+      "id": "they_ask_for_their_standard",
+      "title": "They Ask For Their Standard",
+      "body": "{asker.name} has written, civilly, about the standard one of yours took from their house. The war is over. They would like it home, and they have not said what they would give for it. It is the holder's own, but nobody in either house doubts that the answer is yours.",
+      "choices": {
+        "send_it_home": "Send it home, and ask nothing.",
+        "name_a_price": "They may have it for a price.",
+        "it_was_fairly_taken": "It was fairly taken. It stays."
+      }
+    },
+    {
+      "id": "one_of_yours_has_a_thing_made",
+      "title": "Made In Their Own Name",
+      "body": "{kin.name} has had something made for the house with their own money: saved, ordered and paid for without a word to you until it was done. It bears the house's name. It is {kin.name}'s.",
+      "choices": {
+        "it_does_the_house_credit": "It does the house credit.",
+        "add_to_it": "Put the house's money beside theirs.",
+        "it_should_have_been_the_houses": "It should have been the house's to give."
+      }
+    },
+    {
+      "id": "a_gift_to_mend_a_quarrel",
+      "title": "A Gift, Unasked",
+      "body": "A gift has come from {giver.name}: plate, well made, with a short letter that mentions no quarrel. There has been ill feeling between you, and this is how a head of a house says they would rather there were not. What you do with it will be known by the end of the week.",
+      "choices": {
+        "take_it_as_it_is_meant": "Take it as it is meant.",
+        "answer_in_kind": "Answer in kind, to the credit.",
+        "send_it_back": "Send it back."
+      }
     }
   ]
 }

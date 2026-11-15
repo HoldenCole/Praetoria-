@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **A standard asked back, and gifts between houses** (docs/WEALTH.md; docs/GAPS.md W9). The house a standard was
+  taken from thinks worse of whoever flies it, retakes it if it beats them in battle, and at peace buys it home or
+  asks you for it. You can send one home, or buy your own back from your purse. A relative with the money has a
+  shrine or a library made in their own name. A head who would rather not be at odds with you sometimes sends a
+  gift, which you can accept, answer or send back. Three events.
 - **A failing venture, beyond its owner** (docs/ECONOMY_MARKET.md, section 13; docs/GAPS.md A7). Other houses now
   carry a failing venture or sell it before it is wound up. A company carries or closes its own. A failure pays
   those the house owes first, costs it with the merchants and the commons, and leaves it a name for bad business

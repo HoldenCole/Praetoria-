@@ -1908,3 +1908,29 @@ sack event were not looked at in the browser.
 
 **Left, and mapped.** A sacked venture is never claimed at the peace or rebuilt; a company never sells a failing
 venture; other houses give no second start (A8).
+
+## 62. A standard asked back, and gifts between houses — 2026-11-15
+
+**W9.** Three things the last pass left (docs/WEALTH.md, the section after "New things"). A standard is now
+remembered by the house that lost it: resented, retaken in battle, bought home, or asked for. A relative has a
+thing made with their own money. A head who would rather not be at odds sends a gift.
+
+**Measured.** The Republic probe (60 runs of 60 years): 86 standards taken, 23 retaken in battle, 26 bought home,
+35 still flown at the end; 71 things made by relatives of the player's house; 269 gifts to mend a quarrel. Houses
+holding something they were not born with: 36% (30%). The Republic stood in all 60; the great war was fought in 41
+runs (41); 23 states broke away (31); trust in the magistrates averaged 47 to 61 by start and was low in 15 runs
+(15). The soak (33 runs, a save and load in each) passes with no drift; in it a house asked for its standard once
+and was sent it, 19 standards were bought home, relatives had 34 things made and 11 gifts were sent back. All three
+new events fired. Survival: 0 of 10 on every start.
+
+**Tuned.** Gifts at one year in twelve put four houses in ten in possession of something new; at one in thirty it is
+36%, a little over the third the last pass aimed at.
+
+**Seen in the browser.** The purses panel, the ambitions panel and the Exchange were driven after this pass and the
+last and load without errors. No script reaches a year in which the player holds another house's standard or has
+lost one, so the "send it home" and "buy it home" buttons were not seen; nor was the second-start button from A7.
+
+730 tests (four new).
+
+**Left, and mapped.** A gift is always plate and never asks a favour; nothing but a standard is taken in a war
+(W11).

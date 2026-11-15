@@ -191,7 +191,42 @@ were tried and dropped: at the first, three houses in four ended with something 
 noticing.
 
 Found while building it, and mapped (W9): a standard lost is never fought for or asked back; a relative never has
-anything made with their own money; and a gift between houses comes only at a wedding.
+anything made with their own money; and a gift between houses comes only at a wedding. All three were closed the
+same day: see the next section.
+
+### A standard asked back, a relative's commission, a gift to mend a quarrel (W9, 2026-11-15)
+
+**A standard is remembered by the house that lost it.**
+
+- The head of that house thinks a point worse of whoever flies it each year, down to −40.
+- **Retaken.** If that house beats the house that flies it in a battle, the standard comes home at once, to whoever
+  commanded. This is certain, not a chance: it is what the day was for.
+- **Bought home.** At peace, a house can buy its standard back for three times its worth (36 credits). You do it
+  from your own purse, from the heirlooms list, unless the other head thinks −20 or worse of you. Other houses do it
+  among themselves in about one year in eight, when they can pay.
+- **Asked for.** A house whose standard one of yours flies asks for it, in about one year in four and not more than
+  once in five years. An event: send it home and ask nothing (they think 25 better of the holder), name a price (they
+  pay it into the holder's purse), or keep it (they think 10 worse of you). You can also send one home unasked, with
+  the button on the standard itself.
+- A standard that has come home is that house's own again and nobody resents it.
+
+**A relative has a thing made.** One of your house with a shrine's price and 6 credits beside has one made in their
+own name, in about one year in four: a library instead if they are learned and can pay for it. One of a kind to a
+house still holds. An event for the head: it does the house credit, add the house's money to it, or it should have
+been the house's to give.
+
+**A gift to mend a quarrel.** A head who thinks −45 to −15 of another, is not at war with them and has 60 credits
+sends plate, in about one year in thirty: to whichever such head they think worst of. Each thinks 8 better of the
+other, and the plate does what plate does. Sent to you, an event: take it as it is meant, answer in kind, or send it
+back (they think 14 worse of you, and it is gone).
+
+Measured over sixty runs of sixty years: 86 standards were taken; 23 were retaken in battle and 26 bought home; 35
+were still flown at the end by the house that took them. Relatives of the player's house had 71 things made. 269
+gifts were sent to mend a quarrel, between four and five a run. Houses holding something they were not born with:
+36% at the end (30% before this). The first setting for gifts, one year in twelve, put that at 41% and was cut.
+
+Found while building it, and mapped (W11): a gift is always plate and is never sent to ask a favour; nothing but a
+standard is ever taken in a war.
 
 ### A purse that holds more than credits (W1, 2026-11-15)
 

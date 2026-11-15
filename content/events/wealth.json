@@ -1038,6 +1038,276 @@
           ]
         }
       ]
+    },
+    {
+      "id": "they_ask_for_their_standard",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "asker",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "asker",
+              "flag": "asks_for_their_standard",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "standard_asked_back",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "send_it_home",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "standard_given_back"
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the standard cased and sent back to {asker.name} with an escort and no bill. It was talked of in both houses for a long time."
+            }
+          ]
+        },
+        {
+          "id": "name_a_price",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "standard_ransom_agreed"
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that {asker.name} could have it for what it was worth to them. {asker.name} paid, and did not say thank you."
+            }
+          ]
+        },
+        {
+          "id": "it_was_fairly_taken",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "asker",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} answered that it had been taken in a fair fight and would be kept where it could be seen. {asker.name} will not ask twice."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "one_of_yours_has_a_thing_made",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "had_a_thing_made",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_had_a_thing_made",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "it_does_the_house_credit",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to see it, and said in front of the household that it did the house credit. {kin.name} had not been sure it would be said."
+            }
+          ]
+        },
+        {
+          "id": "add_to_it",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the house's money beside {kin.name}'s, so that it was finished properly. It is still {kin.name}'s, and everyone knows who began it."
+            }
+          ]
+        },
+        {
+          "id": "it_should_have_been_the_houses",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that a thing in the house's name should be the house's to give. {kin.name} heard it out, and kept the deed in their own name."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_gift_to_mend_a_quarrel",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "giver",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "giver",
+              "flag": "sent_a_gift",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "gift_to_mend",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_it_as_it_is_meant",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "giver",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "giver",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the gift set out where callers would see it, and wrote to {giver.name} that the old matter was closed."
+            }
+          ]
+        },
+        {
+          "id": "answer_in_kind",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "giver",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "giver",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a gift back to {giver.name} of the same worth, to the credit. Neither house owes the other anything now, which was the point."
+            }
+          ]
+        },
+        {
+          "id": "send_it_back",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "gift_sent_back"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "giver",
+              "to": "self",
+              "delta": -14
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent it back unopened. {giver.name} had offered a hand in front of everyone, and everyone saw it refused."
+            }
+          ]
+        }
+      ]
     }
   ]
 }
