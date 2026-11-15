@@ -5,19 +5,48 @@
     var mk = m.Market;
     var mover = mk?.Goods.OrderByDescending(g => Math.Abs(g.ChangePct)).FirstOrDefault();
     int wars = w.Wars.Count;
+
+    // The picture (docs/DASHBOARDS.md): on what terms you trade, what is dear and what is cheap against its usual price, and what you own.
+    var goods = mk?.Goods ?? (IReadOnlyList<GoodLine>)Array.Empty<GoodLine>();
+    static int Against(GoodLine g) => g.Base > 0 ? (int)Math.Round(100 * (g.Price - g.Base) / g.Base) : 0;
+    var dearest = goods.OrderByDescending(Against).FirstOrDefault(); var cheapest = goods.OrderBy(Against).FirstOrDefault();
+    var lacking = goods.Where(g => g.Held <= 0 && g.NetPerTurn < 0).OrderBy(g => g.NetPerTurn).FirstOrDefault();
+    int ventures = m.Businesses?.Count ?? 0, earning = m.Businesses?.Sum(x => x.Earnings) ?? 0, sites = m.Assets?.Projects.Count ?? 0, net = m.Ledger?.Net.Credits ?? 0;
+    string terms = mk == null ? "" : mk.OwnMarket ? "through your own market" : "through the caravaneers";
+    static string Signed(int n) => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.Abs(n);
+    string story, storyTone;
+    if (mk == null) { story = "There is no market in this age."; storyTone = ""; }
+    else if (mk.Embargoed) { story = "The Senate's embargo closes the exchanges to your house. Nothing may be bought or sold until it lifts."; storyTone = "bad"; }
+    else if (lacking != null) { int want = Math.Max(3, -lacking.NetPerTurn * 3); var q = MarketSystem.QuoteBuy(w, t, house.Id, lacking.Id, want);
+        story = $"The house burns {-lacking.NetPerTurn} {lacking.Name.ToLowerInvariant()} a year and has none. It stands at {F2(lacking.Price)} a unit, {(Against(lacking) == 0 ? "its usual price" : Signed(Against(lacking)) + "% against its usual price")}: "
+            + (q.Refusal != null ? $"buying {want} units {q.Refusal}, and the treasury has {m.Treasury.Credits}." : $"{want} units would cost {q.Credits} credits, and the treasury has {m.Treasury.Credits}."); storyTone = "warn"; }
+    else if (mover != null && mover.ChangePct != 0) { story = $"{mover.Name} has moved most: {Signed(mover.ChangePct)}% in five years. {Cap(mover.Cause)}. You trade {terms} at a {mk.SpreadPct}% spread."; storyTone = ""; }
+    else { story = $"Prices are steady. You trade {terms} at a {mk.SpreadPct}% spread."; storyTone = ""; }
 }
 <div class="dash exchange" style="--accent:@m.HouseAccent">
-    <header class="dash-head">
+    <header class="dash-head picture">
         <div class="dh-title"><Icon Name="trade_hub" Size="18" /> <b>The Exchange</b>
             <span class="muted">the Reach's markets · prices follow what the houses make, burn and fight over</span></div>
-        <div class="dh-stats">
-            <div class="stat @(m.Treasury.Insolvent ? "warn" : "")"><span>Credits</span><b>@m.Treasury.Credits</b></div>
+        <p class="headline @storyTone">@story</p>
+        <div class="tiles">
+            <Tile Label="Credits to trade with" Value="@m.Treasury.Credits.ToString()" Tone="@(m.Treasury.Insolvent ? "bad" : "")" Note="@(net > 0 ? $"+{net} a year coming in" : net < 0 ? $"−{-net} a year going out" : "neither growing nor shrinking")" />
             @if (mk != null)
             {
-                <div class="stat @(mk.Embargoed ? "warn" : "")"><span>Your terms</span><b>@(mk.Embargoed ? "embargoed" : mk.OwnMarket ? $"own market · {mk.SpreadPct}% spread" : $"the caravaneers · {mk.SpreadPct}% spread")</b></div>
-                @if (mover != null && mover.ChangePct != 0) { <div class="stat @(mover.ChangePct > 0 ? "warn" : "")"><span>Biggest mover</span><b>@mover.Name @(mover.ChangePct > 0 ? "+" : "")@mover.ChangePct% <i class="muted">in five years</i></b></div> }
+                <Tile Label="Your terms" Value="@(mk.Embargoed ? "embargoed" : $"{mk.SpreadPct}% spread")" Tone="@(mk.Embargoed ? "bad" : mk.OwnMarket ? "good" : "warn")"
+                      Note="@(mk.Embargoed ? "nothing bought or sold until it lifts" : mk.OwnMarket ? "through your own market: the narrow spread" : $"through the caravaneers · a market of your own makes it {c.Market.Rules.SpreadPct}%")" Title="The spread is what you lose between the price you buy at and the price you sell at." />
+                @if (dearest != null)
+                {
+                    <Tile Label="Dearest good" Value="@(Against(dearest) == 0 ? "usual price" : Signed(Against(dearest)) + "%")" Tone="@(Against(dearest) >= 50 ? "warn" : "")"
+                          Note="@($"{dearest.Name}: {F2(dearest.Price)} a unit against a usual {F2(dearest.Base)}{(dearest.Held > 0 ? $" · you hold {dearest.Held}" : "")}")" Title="@Cap(dearest.Cause)" />
+                }
+                @if (cheapest != null && cheapest.Id != dearest?.Id)
+                {
+                    <Tile Label="Cheapest good" Value="@(Against(cheapest) == 0 ? "usual price" : Signed(Against(cheapest)) + "%")" Tone="@(Against(cheapest) <= -30 ? "good" : "")"
+                          Note="@($"{cheapest.Name}: {F2(cheapest.Price)} a unit against a usual {F2(cheapest.Base)}{(cheapest.Held > 0 ? $" · you hold {cheapest.Held}" : "")}")" Title="@Cap(cheapest.Cause)" />
+                }
             }
-            <div class="stat @(wars > 0 ? "warn" : "")"><span>Wars in the Reach</span><b>@wars</b></div>
+            <Tile Label="Wars in the Reach" Value="@wars.ToString()" Tone="@(wars > 0 ? "warn" : "")" Note="@(wars > 0 ? "each lifts fuel, isotopes, crews and materials" : "peace: yards and magazines are not buying ahead")" />
+            <Tile Label="Your ventures" Value="@(ventures == 0 ? "none" : ventures.ToString())" Tone="@(ventures > 0 && earning > 0 ? "good" : "")" Note="@(ventures == 0 ? (sites > 0 ? $"{sites} site(s) being built" : "coin that is not land still counts") : $"{Signed(earning)} a year between them{(sites > 0 ? $" · {sites} site(s) being built" : "")}")" Title="Found, enlarge, buy and sell them on the Ventures tab." />
         </div>
     </header>
 
@@ -26,11 +55,12 @@
     </div>
 
     @if (_tab == "ventures") { <ExchangeVentures Model="m" /> }
-    else if (_tab == "projects") { <ExchangeProjects Model="m" /> }
+    else if (_tab == "projects") { <ExchangeProjects Model="m" OnTab="@(x => _tab = x)" OnGo="OnGo" /> }
     else if (_tab == "shares") { <ExchangeShares Model="m" /> }
     else
     {
-    <div class="dash-grid exchange-grid">
+    <div class="dash-grid deck-one">
+        <div class="deck-col">
         <section class="panel">
             <h3><Icon Name="materials" Size="13" /> Goods <span class="muted">credits a unit · the line is the last twelve years · the dash is the usual price</span></h3>
             @if (mk == null) { <div class="muted">No market in this age.</div> }
@@ -63,26 +93,24 @@
                     }
                     </tbody>
                 </table>
-                <div class="muted small">An order moves the price against itself by its share of the merchants' stock, so a large one costs more a unit than the quote and leaves next year's price higher. Splitting it does not help.</div>
-            }
-        </section>
-
-        <aside class="dash-side">
-            <section class="panel">
-                <h3><Icon Name="report" Size="13" /> What moves a price</h3>
+                <details class="orders"><summary>What moves a price</summary>
                 <div class="ac-fact"><span>War</span><p>Every war lifts demand for fuel, isotopes, rare earths, crews and materials: yards and magazines buying ahead.</p></div>
                 <div class="ac-fact"><span>Siege and revolt</span><p>A blockaded world sends half; a world in revolt sends nothing. If it made much of a good, the price shows it.</p></div>
                 <div class="ac-fact"><span>Raiders</span><p>Lawless lanes lose a share of everything that travels them.</p></div>
                 <div class="ac-fact"><span>The nations</span><p>Nations at peace ship goods in. War with one closes its ports; a tributary ships double.</p></div>
                 <div class="ac-fact"><span>The law</span><p>The Trade Charter taxes or frees every purchase. The Arms Market decides whether isotopes may be bought at all.</p></div>
                 <div class="ac-fact"><span>You</span><p>Buy a tenth of the stock and the market notices. Buy half and everyone pays for it next year.</p></div>
-            </section>
+                </details>
+                <div class="muted small">An order moves the price against itself by its share of the merchants' stock, so a large one costs more a unit than the quote and leaves next year's price higher. Splitting it does not help.</div>
+            }
+        </section>
+
             <section class="panel">
                 <h3><Icon Name="influence" Size="13" /> Favours for coin</h3>
                 <div class="muted small">Influence is not a good and has no market. It is bought and sold in private, at a fixed and poor rate.</div>
                 @if (m.Standing is { } s) { foreach (var o in s.ExchangeOptions) { var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))">@o.Label</button> } }
             </section>
-        </aside>
+        </div>
     </div>
     }
 </div>
@@ -97,6 +125,7 @@
         yield return ("shares", "Shares", m.Exchange?.Companies.Count ?? 0);
     }
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
+    [Parameter] public EventCallback<string> OnGo { get; set; }
     private readonly Dictionary<string, int> _qty = new();
     private int Qty(string good) => _qty.TryGetValue(good, out var q) ? q : 5;
     private void SetQty(string good, ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out var q)) _qty[good] = Math.Clamp(q, 1, 999); }

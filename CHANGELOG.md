@@ -3,6 +3,16 @@
 ## [Unreleased]
 
 ### Added
+- **The Chronicle, rebuilt** (docs/DASHBOARDS.md). One sentence on what the last year wrote of your house. Six tiles.
+  The years have their numbers under them and a key. It opens on the last five years. Each year is two columns: what
+  was written of your house, and what of the Reach, each line marked by its kind.
+- **The Dynasty screen, rebuilt**. One sentence on the heir and how deep the line is. Six tiles: the heir, the line,
+  the blood, who is unwed and of age, the health of the house, the generation. The family tree is drawn to the width
+  of the family, with first names and larger text; one who married in stands beside their partner. The line of
+  succession is first in the side column.
+- **The Exchange, rebuilt**. One sentence: an embargo, a good you burn and have none of and what it would cost, or
+  what has moved most and why. Six tiles. The goods have the whole width; "what moves a price" and "how building
+  works" are folded away. With nothing being built, Projects says what would be there and how to begin.
 - **The Laws screen, rebuilt** (docs/DASHBOARDS.md). One sentence on the estates: who is hostile and what it costs,
   who the laws are driving away, or who is nearest to loyalty and the one change of law that would bring them nearer.
   Six tiles with what each figure is read against. One estate to a row: a bar from −100 to +100 with a mark where the
@@ -188,6 +198,8 @@
   out, and a section for positions with nothing to do. 51 open, 37 closed.
 
 ### Fixed
+- The Exchange's Buy and Sell buttons ran off the edge of the goods table at laptop width.
+- On the family tree, one who had married into the house was drawn in the first row, with the founders.
 - **"Your standing" on the Senate screen could not be read on a laptop**: five panels were squeezed into strips with
   a scroll bar each. They are on tabs of their own.
 - The Senate's bench legend was printed over itself, by a style added with the Command Deck. "You moves that" is "You

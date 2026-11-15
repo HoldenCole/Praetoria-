@@ -46,7 +46,7 @@ const suspicious = text => /NaN|undefined|Exception|Infinity|at Praetoria|@\(/.t
   }
   if (mode === 'phone') {
     const { browser, page, errors } = await open({ width: 390, height: 844 }); await play(page, turns);
-    for (const s of ['House', 'Senate', 'Exchange', 'Houses', 'Military', 'You']) {
+    for (const s of ['House', 'Senate', 'Exchange', 'Houses', 'Military', 'You', 'Laws', 'Dynasty', 'Chronicle']) {
       if (!await rail(page, s)) { console.log(s + ': no rail button at this width'); continue; } await page.waitForTimeout(700);
       const over = await page.evaluate(() => { const w = document.documentElement.clientWidth; return { page: document.documentElement.scrollWidth - w, worst: [...document.querySelectorAll('.dash *')].map(e => ({ r: e.getBoundingClientRect(), c: e.className })).filter(x => x.r.right > w + 4 && x.r.width > 0).slice(0, 3).map(x => String(x.c).slice(0, 30) + ' +' + Math.round(x.r.right - w)) }; });
       console.log(s + ': page scrolls sideways by ' + over.page + ' px' + (over.worst.length ? ' · past the edge: ' + over.worst.join(', ') : ''));

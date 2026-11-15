@@ -128,9 +128,9 @@ And the owner's own limit on all of it: not overwhelming. The test of a screen i
 | 3 | Senate | What is before the chamber and how it will go, first; an empty order paper that says what could be moved | done: see below |
 | 4 | Laws | One estate per row with a bar; laws as a grid of current positions; the essay on hover | done: see below |
 | 5 | You | One skills display, not two; the life as a timeline; ties as a list that is short when it is empty | done: see below |
-| 6 | Chronicle | Full width; the bars labelled; a year's summary line | next |
-| 7 | Dynasty | A tree that can be read; the heir and the line first | next |
-| 8 | Exchange | The fixed essay behind a hover; projects' empty state | next |
+| 6 | Chronicle | Full width; the bars labelled; a year's summary line | done: see below |
+| 7 | Dynasty | A tree that can be read; the heir and the line first | done: see below |
+| 8 | Exchange | The fixed essay behind a hover; projects' empty state | done: see below |
 
 ## The Command Deck, rebuilt
 
@@ -233,6 +233,73 @@ The same squeeze as the House and the Senate: five panels in a grid as tall as t
 - **Empty states** (9): no old friends and no old enemies is one entry that says how one is made, in place of two
   entries and a paragraph. "Your story so far: nothing written yet" is not shown at all while it is empty; what you
   have done is in the life.
+
+## The Chronicle, rebuilt
+
+- **Headline** (1): what the last year wrote of your house, and how much it wrote of the rest of the Reach; or, when
+  it wrote nothing of you, that, and the latest thing it did write.
+- **Six tiles** (2): how much is written and how much of it is about your house; wars declared, with how many are
+  being fought now; battles, with how many your house won; what the Senate carried, with how many were Acts; houses
+  fallen against how many stand; seats passed, with which of your line you are.
+- **The years** (7): the bars have a year under them, the fullest year is named with its count, and a key says what
+  red, brass and grey are. It opens on the last five years, not on whichever ten the present year falls in (which in
+  the first year of a decade was one year, half empty).
+- **Each year is two columns** (10): what was written of your house, and what of the Reach. The second takes the
+  width and runs in two columns of its own. Each line of the Reach's has a mark for its kind, and the kind filters
+  carry the same marks, so the filters are the key. A year's heading says how much was written and how much of it
+  was yours.
+
+## The Dynasty, rebuilt
+
+- **Headline** (1), by priority: no heir; an heir who is a child; an heir with nobody behind; and otherwise who the
+  heir is, how old and of what rank, by what law, how many stand behind, how many of the blood live and whether any
+  is ailing. It adds that the heir thinks ill of you, when they do.
+- **Six tiles** (2): the heir, with age, rank and regard for you; how deep the line is and who is next; the blood, by
+  grown and children; who is unwed and of age, by name; the health of the house; which generation this is.
+- **A tree that can be read** (7): it is drawn to the width of what is in it and no wider, so a small family is not
+  shrunk to fit a thousand units; first names only (the surname is the house's); the text half as large again. One
+  who married into the house stands beside their partner, joined by the marriage line, with their children under
+  both; they had been drawn in the first row with the dead founders. The key shows the ring for you and for the heir.
+- **The line of succession is first in the side column** (4), above the bonds, the health of the house and the dead.
+
+## The Exchange, rebuilt
+
+- **Headline** (1), by priority: an embargo; a good the house burns and has none of, with its price against the
+  usual and what a few years' worth would cost against what is in the treasury; and otherwise the good that has moved
+  most and why, and on what terms you trade.
+- **Six tiles** (2): credits and which way they are moving; your spread and what a market of your own would make it;
+  the dearest and the cheapest good against their usual prices; the wars in the Reach and what they do to prices; your
+  ventures and what they earn.
+- **The goods have the whole width** (10): a third of it was a fixed essay on what moves a price, and the Buy and
+  Sell buttons ran off the edge. The essay is folded under the table (5); each good already says why its own price
+  moved.
+- **Projects, empty** (9, 10): the panel is as tall as what is in it, says what a site would show, and has the two
+  ways to begin one as buttons. "How building works" is folded.
+
+## After
+
+The same start and year as the audit (The Old Lion, turn 11, 1440 by 900):
+
+| Screen | Empty before | Empty after | What it opens on now |
+|---|---|---|---|
+| Military | 21% | 18% | A sentence, six tiles, a labelled plot and a table of what is near |
+| House | 26% | 14% | A sentence, six tiles, the worlds and the ledger (they could not be seen before) |
+| Senate | 30% | 15% | A sentence, six tiles, what is before the chamber, the seats by bench |
+| Laws | 16% | 17% | A sentence, six tiles, one estate to a row |
+| You | 21% | 18% | A sentence, six tiles, the person and the skills |
+| Chronicle | 33% | 19% | A sentence, six tiles, the years, and each year in two columns |
+| Dynasty | 14% | 17% | A sentence, six tiles, a tree that can be read, the line of succession |
+| Exchange, goods | 19% | 16% | A sentence, six tiles, the goods at full width |
+| Exchange, projects | 47% | 52% | A small panel that says what would be there and how to begin |
+
+The empty figure moved less than the screens did, and on two it rose: the measure counts space, and a headline with
+room round it, or a panel made small because it has little to say, is space. What changed is what the audit judged by
+eye: every screen now says in its first line how things stand, and no figure at the top of one stands alone.
+
+Three faults were found on the way that were not design at all. On the House, Senate and You screens, panels had
+been added under a grid that is as tall as the window, and at laptop height they squeezed the grid, or each other, to
+strips: the House's worlds and ledger could not be seen. The wealth table's bars were drawn under the names. And a
+style added for the Command Deck's legend had overprinted the Senate's.
 
 ## Sources
 
