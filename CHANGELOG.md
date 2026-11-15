@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **The House screen, rebuilt** (docs/DASHBOARDS.md). It opens with one sentence on how the house stands: whether it
+  pays its way, on what the money goes, how long the treasury would bear a shortfall, or what it clears a year and
+  where it ranks. Six tiles carry a figure and what to read it against: the treasury and what a year does to it; what
+  comes in and how much of it is spent; wealth, ranked; debt; the worlds, by the least loyal; legitimacy against what
+  the house's rank wants. The estate (worlds, ledger, stores, ventures, the wealth of the houses) is the first tab; the
+  household and the purses are tabs of their own. Each person of the household says how they regard you and what they
+  want.
 - **The Command Deck, rebuilt** (docs/DASHBOARDS.md). It opens with one sentence that says how things stand: a
   battle at the year's end, dry tanks, a war, a hostile fleet near a world of yours, or peace and where you rank. Six
   tiles each carry a figure and what to read it against: your hulls and your place among the navies; whether the fleets
@@ -166,6 +173,9 @@
   out, and a section for positions with nothing to do. 51 open, 37 closed.
 
 ### Fixed
+- **The worlds and the ledger could not be seen on a laptop.** Two panels added under the House screen's grid took
+  all of its height in a window 900 pixels tall, and the grid above them was squeezed to nothing. They are tabs now.
+- The wealth table's bars were drawn under the house names instead of beside them.
 - **Panel headings wrapped into ragged columns** on every screen (a title beside three lines of capitals). The
   subtitle now sits on its own line under the title, in ordinary type.
 - **The player's own character could be made to rebel out of their own house.** A world taken by another house kept the

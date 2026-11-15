@@ -124,7 +124,7 @@ And the owner's own limit on all of it: not overwhelming. The test of a screen i
 |---|---|---|---|
 | 0 | All | Headings that do not wrap into columns; a tile that carries a comparison and a tone; a headline | done, this pass |
 | 1 | Military | Rebuilt whole: see below | done, this pass |
-| 2 | House | The ledger and the worlds first; the household, purses and learning behind tabs | next |
+| 2 | House | The ledger and the worlds first; the household, purses and learning behind tabs | done: see below |
 | 3 | Senate | What is before the chamber and how it will go, first; an empty order paper that says what could be moved | next |
 | 4 | Laws | One estate per row with a bar; laws as a grid of current positions; the essay on hover | next |
 | 5 | You | One skills display, not two; the life as a timeline; ties as a list that is short when it is empty | next |
@@ -153,6 +153,32 @@ What it now does, against the rules:
   wavering, under way). Orders are folded under the card.
 - **The navies** (2): ranked, with your row marked, their regard for you, and whether you are at war.
 - **Empty states** (9): no wars is one line that says who thinks worst of you; no battles is no panel at all.
+
+## The House, rebuilt
+
+The audit said the House screen told the wrong story: it opened on the household's delegated duties. The cause was
+worse than the order of the panels. A dashboard is as tall as the window and its grid takes what room is left; two
+panels had been added under the grid, and at laptop height they took all of it. **The worlds and the ledger were
+squeezed to nothing**: on a 900-pixel screen they could not be seen at all. They showed only in a tall window, which
+is what the other browser scripts use, so nothing caught it. A panel is not added under a dashboard's grid again; it
+goes on a tab.
+
+What the screen now does:
+
+- **Headline** (1), by priority: the house cannot pay its way; a world is under siege; more goes out than comes in,
+  on what, and how many years the treasury would bear it; a world is restless; a debt; and otherwise what the house
+  clears a year, from where, and where it stands among the houses and by how much.
+- **Six tiles** (2, 3): the treasury and what a year does to it; what the house takes in and how much of that it
+  spends, on what; wealth, ranked, with a bar against the richest house; debt, or that the counting-houses would
+  lend; the worlds, with the loyalty of the least loyal and the average prosperity as bars; legitimacy against what
+  the rank it holds or the next one wants.
+- **Three tabs** (4): the estate; the household; purses, heirlooms and the will.
+- **The estate**: the worlds as cards and the wealth of the houses on the left; on the right the ledger as bars with
+  what is left drawn on the same scale, the stores as eight small cells, and the ventures. The line of mixed goods
+  that used to be the ledger's last row is a sentence under it.
+- **The household** (8): each person is a line that says how they regard you, what they are and what they want.
+- The wealth table's bars had been drawn under the names instead of beside them, by a style meant for another
+  screen. Fixed.
 
 ## Sources
 

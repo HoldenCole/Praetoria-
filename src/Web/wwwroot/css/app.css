@@ -753,7 +753,11 @@ table.near .vs { font-style: normal; font-size: .68rem; color: var(--muted); mar
 .pill.status.good { border-color: var(--good); color: #9fdcb6; } .pill.status.bad { border-color: var(--warn); color: #f0937f; } .pill.status.warn { border-color: #e0a84f; color: #e9c383; }
 details.orders { margin-top: .3rem; border-top: 1px dotted var(--line); padding-top: .25rem; } details.orders > summary { font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); cursor: pointer; }
 .ex-tabs .rung { cursor: pointer; background: none; } .ex-tabs .rung.warn { border-color: var(--warn); color: #f0937f; }
-@media (max-width: 1100px) { .deck2-grid { grid-template-columns: minmax(0, 1fr); } }
+.keep2-grid { grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); } .deck-col > .panel { margin-top: 0; }
+.keep .res-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: .2rem; } .keep .res-cell { display: grid; grid-template-columns: auto 1fr; align-items: baseline; column-gap: .4rem; padding: .25rem .45rem; }
+.keep .res-cell > span { grid-column: 1 / -1; font-size: .68rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .keep .res-cell small { text-align: right; white-space: nowrap; }
+.person .p-who { flex: 1 1 calc(100% - 44px); min-width: 0; } .dash .wealth-row .bar { grid-column: auto; } .person .p-what { display: block; font-size: .74rem; color: var(--muted); } .person .p-what i { font-style: normal; } .person .p-what i.good { color: #9fdcb6; } .person .p-what i.bad { color: #f0937f; }
+@media (max-width: 1100px) { .deck2-grid, .keep2-grid { grid-template-columns: minmax(0, 1fr); } }
 .plot .nlabel.far { fill: #6f7890; font-size: 11px; } .plot .fleet .fl { font-size: 13px; } .plot .flabel { font-size: 13px; }
 .deck .row .opt, .deck details.orders .opt { white-space: nowrap; } .deck .fcard .row { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .4rem; margin: .25rem 0; }
 .plot .nlabel { font-size: 11px; } .plot .nlabel.mine { font-size: 13px; } .plot .nlabel.far { font-size: 9.5px; } .plot .fleet .fl { font-size: 11px; } .plot .flabel { font-size: 10.5px; }
