@@ -232,6 +232,11 @@
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<string> OnGo { get; set; }
     private string? _focus; private string _view = "estate";
+    /// <summary>The tab an alert asked for, and a stamp that changes each time one asks; a stamp is used once.</summary>
+    [Parameter] public string Tab { get; set; } = "";
+    [Parameter] public int TabStamp { get; set; }
+    private static int _seenStamp;
+    protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) _view = Tab; } }
     private static string GovClass(HoldingCard h) => h.GovernorDisposition <= -30 ? "hostile" : h.GovernorDisposition < 10 ? "cool" : "loyal";
     private static string GovText(HoldingCard h) => h.GovernorDisposition <= -30 ? (h.GovernorAmbitious ? "hostile · ambitious" : "hostile") : h.GovernorDisposition < 10 ? "cool" : "loyal";
     private static string GovTitle(HoldingCard h) => "disposition toward you " + h.GovernorDisposition + (h.GovernorAmbitious ? " · ambitious" : "");

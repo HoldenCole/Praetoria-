@@ -72,10 +72,10 @@ else
             @switch (_screen)
             {
                 case "character": <CharacterScreen Model="m" /> break;
-                case "senate": <SenateScreen Model="m" /> break;
+                case "senate": <SenateScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
                 case "galaxy": <GalaxyMap @ref="_map" /> break;
                 case "planets": <PlanetsScreen OnFocus="FocusSystem" /> break;
-                case "house": <HouseScreen Model="m" OnGo="Go" /> break;
+                case "house": <HouseScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
                 case "exchange": <ExchangeScreen Model="m" /> break;
                 case "laws": <LawsScreen Model="m" /> break;
                 case "military": <MilitaryScreen Model="m" /> break;
@@ -199,7 +199,9 @@ else
         InvokeAsync(StateHasChanged);
     }
 
-    private void Go(string id) => _screen = id;
+    // "senate:duties" opens the Senate on its duties tab: an alert goes to the thing it is about, not to the screen it is somewhere on
+    private string _tab = ""; private int _tabStamp;
+    private void Go(string id) { int i = id.IndexOf(':'); _screen = i < 0 ? id : id[..i]; _tab = i < 0 ? "" : id[(i + 1)..]; _tabStamp++; }
     private void Teach(string mode) => G.Execute(new SetTutorialCommand(G.World!.ProtagonistId, mode));
     /// <summary>The seat has passed: the heir lands on their register's home screen, so the change of life is seen at once.</summary>
     private void CloseSuccession() { _succession = null; if (G.World != null) _screen = RoleTheme.Home(RoleTheme.Of(G.World)); }

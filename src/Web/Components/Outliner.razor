@@ -46,9 +46,9 @@
     if (w.HasFlag("petition_refused")) alerts.Add(("warn", "The Senate turned a petition away — the estate's worlds stir", "laws"));
     if (w.HasFlag("petition_carried")) alerts.Add(("good", "The Senate heard a petition — the estate's regard rises", "laws"));
     if (w.HasFlag("embargoed")) alerts.Add(("warn", "The Senate's embargo closes the exchanges to you", "senate"));
-    if (w.HasFlag("office_granted")) alerts.Add(("good", "The Senate has commissioned you to an office", "senate"));
-    if (w.HasFlag("office_lost")) alerts.Add(("warn", w.HasFlag("treason") ? "Stripped of office for treason" : "Relieved of office by the Senate", "senate"));
-    foreach (var f in w.WorldFlags.Where(f => f.StartsWith("office_vacant:")).Take(1)) alerts.Add(("info", "An office of the Reach stands vacant", "senate"));
+    if (w.HasFlag("office_granted")) alerts.Add(("good", "The Senate has commissioned you to an office", "senate:offices"));
+    if (w.HasFlag("office_lost")) alerts.Add(("warn", w.HasFlag("treason") ? "Stripped of office for treason" : "Relieved of office by the Senate", "senate:offices"));
+    foreach (var f in w.WorldFlags.Where(f => f.StartsWith("office_vacant:")).Take(1)) alerts.Add(("info", "An office of the Reach stands vacant", "senate:offices"));
     if (w.HasFlag("faction_against_me")) alerts.Add(("warn", "A bench's leader has moved against you — the whole bench will follow", "senate"));
     if (w.HasFlag("broke_the_whip")) alerts.Add(("warn", "You voted against your bench", "senate"));
     if (w.HasFlag("faction_formed")) alerts.Add(("info", "A bench has formed with you on it", "senate"));
@@ -83,19 +83,19 @@
     if (w.HasFlag(Praetoria.Core.Systems.EducationSystem.ResistsFlag)) alerts.Add(("info", "A child of the house is set against their bent", "dynasty"));
     foreach (var ask in Praetoria.Core.Systems.AmbitionSystem.Members(w, house).Where(x => x.Pursuit is { Request.Length: > 0 })) alerts.Add(("info", $"{ask.Name} {Praetoria.Core.Systems.AmbitionSystem.RequestSays(w, ask)}", "dynasty"));
     if (w.Protagonist is { } sitter && Praetoria.Core.Systems.LadderSystem.DutyOf(w, sitter.Id, Praetoria.Core.Systems.LadderSystem.Hearing, Praetoria.Core.Systems.LadderSystem.Appeal) is { } benchWork)
-        alerts.Add(("warn", benchWork.Kind == Praetoria.Core.Systems.LadderSystem.Appeal ? "An appeal waits before your bench" : "A hearing waits before your bench", "senate"));
+        alerts.Add(("warn", benchWork.Kind == Praetoria.Core.Systems.LadderSystem.Appeal ? "An appeal waits before your bench" : "A hearing waits before your bench", "senate:duties"));
     if (w.Protagonist is { } holder && Praetoria.Core.Systems.LadderSystem.DutyOf(w, holder.Id, Praetoria.Core.Systems.LadderSystem.Charge) is { } chargeWork)
-        alerts.Add(("warn", "The year's charge of your office waits on you: " + (G.Content!.Offices.Def(chargeWork.RungId)?.Name ?? "an office of the Reach"), "senate"));
+        alerts.Add(("warn", "The year's charge of your office waits on you: " + (G.Content!.Offices.Def(chargeWork.RungId)?.Name ?? "an office of the Reach"), "senate:duties"));
     if (w.Protagonist is { } ranker && Praetoria.Core.Systems.LadderSystem.DutyOf(w, ranker.Id, Praetoria.Core.Systems.LadderSystem.Desk, Praetoria.Core.Systems.LadderSystem.Posting, Praetoria.Core.Systems.LadderSystem.Brief, Praetoria.Core.Systems.LadderSystem.Ledgers, Praetoria.Core.Systems.LadderSystem.Watch) is { } rankWork)
-        alerts.Add(("info", rankWork.Kind switch { Praetoria.Core.Systems.LadderSystem.Desk => "The year's returns are on your desk", Praetoria.Core.Systems.LadderSystem.Posting => "You have a year ashore to spend", Praetoria.Core.Systems.LadderSystem.Brief => "A brief has come to you", Praetoria.Core.Systems.LadderSystem.Ledgers => "The year's ledgers are yours to keep", _ => "Your year as a junior officer is yours to spend" }, "senate"));
+        alerts.Add(("info", rankWork.Kind switch { Praetoria.Core.Systems.LadderSystem.Desk => "The year's returns are on your desk", Praetoria.Core.Systems.LadderSystem.Posting => "You have a year ashore to spend", Praetoria.Core.Systems.LadderSystem.Brief => "A brief has come to you", Praetoria.Core.Systems.LadderSystem.Ledgers => "The year's ledgers are yours to keep", _ => "Your year as a junior officer is yours to spend" }, "senate:duties"));
     if (w.Protagonist is { } senator && Praetoria.Core.Systems.LadderSystem.DutyOf(w, senator.Id, Praetoria.Core.Systems.LadderSystem.SeatKind) != null)
-        alerts.Add(("info", "Your year in the Senate is not yet spent", "senate"));
+        alerts.Add(("info", "Your year in the Senate is not yet spent", "senate:duties"));
     if (w.Protagonist is { } officer && Praetoria.Core.Systems.LadderSystem.BusinessOf(w, officer.Id) is { } officeWork)
-        alerts.Add(("warn", officeWork.Kind == Praetoria.Core.Systems.LadderSystem.Case ? "A case waits for your ruling as praetor" : officeWork.Kind == Praetoria.Core.Systems.LadderSystem.Works ? "The works wait on you as aedile" : "The year's accounts wait on you as quaestor", "senate"));
+        alerts.Add(("warn", officeWork.Kind == Praetoria.Core.Systems.LadderSystem.Case ? "A case waits for your ruling as praetor" : officeWork.Kind == Praetoria.Core.Systems.LadderSystem.Works ? "The works wait on you as aedile" : "The year's accounts wait on you as quaestor", "senate:ladder"));
     if (Praetoria.Core.Systems.LadderSystem.Active(w, G.Content!.Offices) && Praetoria.Core.Systems.LadderSystem.NextIn(w, G.Content.Offices) <= 2 && w.Protagonist is { } cand && !w.Candidacies.Any(x => x.CharacterId == cand.Id) && Praetoria.Core.Systems.LadderSystem.Next(w, G.Content.Offices, cand) is { } nextRung)
-        alerts.Add(("info", $"You could stand for {nextRung.Name.ToLowerInvariant()}: the election is in {Praetoria.Core.Systems.LadderSystem.NextIn(w, G.Content.Offices)} year(s)", "senate"));
-    if (w.HasFlag(Praetoria.Core.Systems.PolitySystem.WarFlag)) alerts.Add(("warn", "Your state is at war for its independence: hold the region", "senate"));
-    else if (w.HasFlag(Praetoria.Core.Systems.PolitySystem.RefuseFlag)) alerts.Add(("warn", "You fought the one who now holds the throne, and you hold a region: you need not kneel", "senate"));
+        alerts.Add(("info", $"You could stand for {nextRung.Name.ToLowerInvariant()}: the election is in {Praetoria.Core.Systems.LadderSystem.NextIn(w, G.Content.Offices)} year(s)", "senate:ladder"));
+    if (w.HasFlag(Praetoria.Core.Systems.PolitySystem.WarFlag)) alerts.Add(("warn", "Your state is at war for its independence: hold the region", "senate:orders"));
+    else if (w.HasFlag(Praetoria.Core.Systems.PolitySystem.RefuseFlag)) alerts.Add(("warn", "You fought the one who now holds the throne, and you hold a region: you need not kneel", "senate:orders"));
     if (w.Recalls.FirstOrDefault(r => r.HouseId == w.Protagonist?.HouseId) is { } recall)
         alerts.Add(("warn", $"The Senate has ordered {(recall.CharacterId == w.ProtagonistId ? "you" : w.Char(recall.CharacterId)?.Name)} home by year {recall.Deadline}: answer it", "military"));
     if (w.CivilWar is { } civil && w.Protagonist is { } cme)
@@ -108,11 +108,11 @@
     else if (w.HasFlag(Praetoria.Core.Systems.CaesarSystem.LaurelsFlag)) alerts.Add(("info", "The house's general has the victories for a triumph: ask the Senate", "military"));
     if (w.Protagonist is { } self && self.Health < Praetoria.Core.Systems.LifeSystem.Sound) alerts.Add(("warn", self.Health < Praetoria.Core.Systems.LifeSystem.Frail ? "Your health is failing" : "You are ailing", "you"));
     if (w.Protagonist is { } sick && sick.Flags.Contains(Praetoria.Core.Systems.LifeSystem.IllChar)) alerts.Add(("warn", "You are ill", "you"));
-    if (w.HasFlag(Praetoria.Core.Systems.WealthSystem.DebtFlag)) alerts.Add(("warn", "One of the house is in debt", "house"));
-    foreach (var pe in house.Petitions) alerts.Add(("info", $"{w.Char(pe.PersonId)?.Name} asks for a place in your household", "house"));
-    if (house.Duties.Any(du => w.Char(du.HolderId)?.Flags.Contains(Praetoria.Core.Systems.HouseholdSystem.SkimmingChar) == true)) alerts.Add(("warn", "The steward's accounts do not add up", "house"));
+    if (w.HasFlag(Praetoria.Core.Systems.WealthSystem.DebtFlag)) alerts.Add(("warn", "One of the house is in debt", "house:purse"));
+    foreach (var pe in house.Petitions) alerts.Add(("info", $"{w.Char(pe.PersonId)?.Name} asks for a place in your household", "house:household"));
+    if (house.Duties.Any(du => w.Char(du.HolderId)?.Flags.Contains(Praetoria.Core.Systems.HouseholdSystem.SkimmingChar) == true)) alerts.Add(("warn", "The steward's accounts do not add up", "house:household"));
     if (w.MarriageOf(w.ProtagonistId) is { Estranged: true }) alerts.Add(("warn", "You and your spouse live apart", "dynasty"));
-    if (m.Crises != null) foreach (var c in m.Crises.Active) alerts.Add(("warn", $"Crisis: {c.Name} (severity {c.Severity})", "house"));
+    if (m.Crises != null) foreach (var c in m.Crises.Active) alerts.Add(("warn", $"Crisis: {c.Name} (severity {c.Severity})", "senate:offices"));
 }
 <aside class="outliner">
     <section class="ol-block">

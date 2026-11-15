@@ -28,7 +28,7 @@ require('fs').mkdirSync(shots, { recursive: true });
 
   await closeWindows();
   const bad = t => /NaN|undefined|Exception|@\(/.test(t) ? 'SUSPICIOUS TEXT' : 'ok';
-  const senate = async () => { await rail('Senate'); await page.waitForTimeout(400); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => e.innerText.includes('Your standing')); if (b) b.click(); }); await page.waitForTimeout(500); return page.evaluate(() => !!document.querySelector('.panel.courts')); };
+  const senate = async () => { await rail('Senate'); await page.waitForTimeout(400); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => e.innerText.includes('The ladder')); if (b) b.click(); }); await page.waitForTimeout(500); return page.evaluate(() => !!document.querySelector('.panel.courts')); };
   console.log('courts panel on the Senate screen: ' + await senate());
   let t = await text('.panel.courts'); console.log('courts: ' + bad(t) + ' · ' + t.slice(0, 260));
   let brought = false, offered = false;

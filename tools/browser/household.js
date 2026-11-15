@@ -16,12 +16,14 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()) || [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.toLowerCase().includes(n.toLowerCase())); if (el) el.click(); return !!el; }, name);
+  // the House screen keeps its household and its purses on tabs
+  const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.ex-tabs .rung')].find(e => e.innerText.includes(n)); if (t) t.click(); }, name); };
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
   const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => e.innerText.includes('End Turn')); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
   const panel = () => page.evaluate(() => (document.querySelector('.panel.household') || {}).innerText || 'NO PANEL');
   const press = (sel, text) => page.evaluate(([s, t]) => { const b = [...document.querySelectorAll(s)].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').slice(0, 60) : ''; }, [sel, text]);
-  await closeWindows(); await rail('House'); await page.waitForTimeout(700);
+  await closeWindows(); await rail('House'); await tab('The household'); await page.waitForTimeout(700);
   let text = await panel(); console.log('panel: ' + (/NaN|undefined|Exception|@\(/.test(text) ? 'SUSPICIOUS TEXT' : 'ok') + ' · ' + text.split('\n')[0]);
   console.log('steward given to: ' + await page.evaluate(() => { const d = [...document.querySelectorAll('.panel.household .duty')][0]; const b = d && [...d.querySelectorAll('button.opt.inline')].find(e => !e.disabled && /skill/.test(e.innerText)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ') : 'nobody'; }));
   await page.waitForTimeout(300);
@@ -32,7 +34,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('took in: ' + (await press('.panel.household table.prospects button', 'Take in') || 'nobody willing'));
   await page.waitForTimeout(400); await page.screenshot({ path: shots + '/household-begin.png' });
   for (let y = 0; y < years; y++) {
-    await endTurn(); await rail('House'); await page.waitForTimeout(500);
+    await endTurn(); await rail('House'); await tab('The household'); await page.waitForTimeout(500);
     text = await panel(); if (/NaN|undefined|Exception|@\(/.test(text)) console.log('SUSPICIOUS TEXT in year ' + y);
     const reports = await page.evaluate(() => [...document.querySelectorAll('.panel.household .duty .suit-who .small')].map(e => e.innerText.replace(/\s+/g, ' ')).join(' || '));
     console.log('year ' + (y + 1) + ' (turn ' + await turnNo() + '): ' + reports.slice(0, 260));

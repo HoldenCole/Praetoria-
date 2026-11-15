@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **The Senate screen, rebuilt** (docs/DASHBOARDS.md). It opens with one sentence: a motion against you and how it
+  will go, or what is before the chamber, or that nothing is, with your seats, your bench's and how far that is from a
+  majority. Six tiles: your seats, ranked; your bench against a majority; the order paper and how it leans; the
+  consulship and who leads; the fear of you against the mark where the houses combine; trust in the magistrates. Five
+  tabs in place of two, so that each holds one or two panels that can be read whole. The seats are drawn in their
+  bench's colour, so the legend describes the picture.
+- **An alert opens the tab it is about**: the duties, the offices, the household, the purses.
 - **The House screen, rebuilt** (docs/DASHBOARDS.md). It opens with one sentence on how the house stands: whether it
   pays its way, on what the money goes, how long the treasury would bear a shortfall, or what it clears a year and
   where it ranks. Six tiles carry a figure and what to read it against: the treasury and what a year does to it; what
@@ -173,6 +180,10 @@
   out, and a section for positions with nothing to do. 51 open, 37 closed.
 
 ### Fixed
+- **"Your standing" on the Senate screen could not be read on a laptop**: five panels were squeezed into strips with
+  a scroll bar each. They are on tabs of their own.
+- The Senate's bench legend was printed over itself, by a style added with the Command Deck. "You moves that" is "You
+  move that".
 - **The worlds and the ledger could not be seen on a laptop.** Two panels added under the House screen's grid took
   all of its height in a window 900 pixels tall, and the grid above them was squeezed to nothing. They are tabs now.
 - The wealth table's bars were drawn under the house names instead of beside them.

@@ -20,7 +20,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => e.innerText.includes('End Turn')); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
   // find the screen each panel lives on
-  const find = async sel => { for (const s of ['Dynasty', 'You', 'House', 'Houses']) { await rail(s); await page.waitForTimeout(450); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; } return ''; };
+  const find = async sel => { for (const s of ['Dynasty', 'You', 'House', 'Houses']) { await rail(s); await page.waitForTimeout(450); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; const tabs = await page.evaluate(() => document.querySelectorAll('.ex-tabs .rung').length); for (let i = 1; i < tabs; i++) { await page.evaluate(k => document.querySelectorAll('.ex-tabs .rung')[k].click(), i); await page.waitForTimeout(300); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; } } return ''; };
   const press = (sel, text) => page.evaluate(([s, t]) => { const b = [...document.querySelectorAll(s + ' button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.trim() : ''; }, [sel, text]);
   const text = sel => page.evaluate(s => { const el = document.querySelector(s); return el ? el.innerText.replace(/\s+/g, ' ') : 'NO PANEL'; }, sel);
   const shot = async (sel, name) => { const box = await page.evaluate(s => { const el = document.querySelector(s); if (!el) return null; el.scrollIntoView({ block: 'start' }); const r = el.getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1300) }; }, sel); if (box) await page.screenshot({ path: shots + '/' + name + '.png', clip: box }); };
@@ -41,7 +41,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('teach: ' + (await press('.panel.education', 'Have ') || 'nobody has anything to teach another')); await page.waitForTimeout(300);
   await shot('.panel.education', 'family-education');
   for (let y = 0; y < years; y++) await endTurn();
-  await rail(wealthOn || 'Dynasty'); await page.waitForTimeout(500);
+  await find('.panel.wealth'); await page.waitForTimeout(300);
   console.log('after ' + years + ' years, owed: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .pill')].map(e => e.innerText).filter(x => /owes you/.test(x)).join(' | ') || 'nothing'));
   await rail('Chronicle'); await page.waitForTimeout(600);
   console.log('chronicle: ' + await page.evaluate(() => (document.body.innerText || '').split('\n').map(x => x.trim()).filter(x => /credits of their own|lends |paid back the last|turns to |their own affair|takes .* in hand|under their wing|has learned something/i.test(x)).slice(0, 8).map(x => x.slice(0, 200)).join('\n   ')));

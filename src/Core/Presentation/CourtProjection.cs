@@ -481,7 +481,7 @@ public static class CourtProjection
                 var firstOpen = laws.SelectMany(l => l.Options).FirstOrDefault(o => o.Refusal == null); probe = firstOpen.Refusal ?? laws.SelectMany(l => l.Options).Select(o => o.Refusal).FirstOrDefault(r => r != "already the law of the Reach") ?? probe;
                 if (laws.SelectMany(l => l.Options).Any(o => o.Refusal == null)) probe = null;
             }
-            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : d.Target == "nation" ? "a nation beyond the Reach" : "").Replace("{office}", "an office").Replace("{law}", "a law of the Reach").Replace("{option}", "so set"), cost, d.Target, targets, probe, d.Office,
+            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer} moves", "You move").Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : d.Target == "nation" ? "a nation beyond the Reach" : "").Replace("{office}", "an office").Replace("{law}", "a law of the Reach").Replace("{option}", "so set"), cost, d.Target, targets, probe, d.Office,
                 d.Office ? commissionable.Select(o => (Id: o.Id, Name: o.Name)).ToList() : null, d.Law, laws);
         }).ToList();
         int total = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).Sum(h => senate.Weight(w, h.Id));

@@ -125,7 +125,7 @@ And the owner's own limit on all of it: not overwhelming. The test of a screen i
 | 0 | All | Headings that do not wrap into columns; a tile that carries a comparison and a tone; a headline | done, this pass |
 | 1 | Military | Rebuilt whole: see below | done, this pass |
 | 2 | House | The ledger and the worlds first; the household, purses and learning behind tabs | done: see below |
-| 3 | Senate | What is before the chamber and how it will go, first; an empty order paper that says what could be moved | next |
+| 3 | Senate | What is before the chamber and how it will go, first; an empty order paper that says what could be moved | done: see below |
 | 4 | Laws | One estate per row with a bar; laws as a grid of current positions; the essay on hover | next |
 | 5 | You | One skills display, not two; the life as a timeline; ties as a list that is short when it is empty | next |
 | 6 | Chronicle | Full width; the bars labelled; a year's summary line | next |
@@ -179,6 +179,28 @@ What the screen now does:
 - **The household** (8): each person is a line that says how they regard you, what they are and what they want.
 - The wealth table's bars had been drawn under the names instead of beside them, by a style meant for another
   screen. Fixed.
+
+## The Senate, rebuilt
+
+The same fault as the House, and worse: "Your standing" was five panels under one grid, each squeezed to a strip a
+hundred pixels tall with its own scroll bar. None of them could be read on a laptop.
+
+- **Headline** (1), by priority: a motion against you and how it will go; what is before the chamber and how it will
+  go; and otherwise that nothing is, with your seats, your bench's seats and how far that is from a majority, and when
+  the consuls are next elected. It adds that your own year in the Senate is not yet spent, when it is not.
+- **Six tiles** (2): your seats, ranked, against the house with most; your bench and how short of a majority it is;
+  what is before the chamber and how it leans; the consulship, when, and who leads; the fear of you against the mark at
+  which the houses draw together; trust in the magistrates, with what its level does.
+- **Five tabs** in place of two: the chamber; offices, parties and titles; your duties this year (marked when work is
+  waiting); the ladder and the courts; the orders and the peace of the Reach. Each is one or two panels, read whole.
+- **The chamber tab** opens on what is before the chamber (4). When nothing is, the panel says so, shows what was
+  decided lately, and lays open what you could move (9).
+- **The seats are drawn in their bench's colour** (7). They were drawn in each house's colour over a legend of the
+  benches' colours, so the legend did not describe the picture. The bench legend was also overprinted by a style added
+  for the Command Deck's plot: fixed.
+- **An alert opens the tab it is about.** "Your year in the Senate is not yet spent" opens the duties; a vacant
+  office opens the offices; a petition to join the household opens the household. `audit.js` presses each alert and
+  prints where it landed.
 
 ## Sources
 

@@ -67,6 +67,15 @@ require('fs').mkdirSync(shots, { recursive: true });
       console.log(('  ' + tabs[t].slice(0, 26)).padEnd(30) + ' empty ' + String(mt.emptyPct).padStart(3) + '% · words ' + String(mt.words).padStart(4) + ' · numbers ' + String(mt.numbers).padStart(3) + ' · buttons ' + String(mt.buttons).padStart(3) + ' · charts ' + String(mt.charts).padStart(2) + ' · runs to ' + mt.pages + ' screens');
     }
   }
+  // an alert should land on the thing it is about: press each and say which screen and which tab it opened
+  if (!only.length) {
+    const alerts = await page.evaluate(() => [...document.querySelectorAll('.ol-alert')].map(e => e.innerText.trim()));
+    for (let i = 0; i < alerts.length; i++) {
+      await page.evaluate(k => { const b = document.querySelectorAll('.ol-alert')[k]; if (b) b.click(); }, i); await page.waitForTimeout(500); await closeWindows();
+      const at = await page.evaluate(() => ({ rail: (document.querySelector('.rail-btn.active, .rail-btn.here, .rail-btn.on') || {}).innerText || '?', tab: (document.querySelector('.ex-tabs .rung.here') || {}).innerText || '' }));
+      console.log('alert: ' + alerts[i].slice(0, 60).padEnd(62) + ' -> ' + at.rail.trim() + (at.tab ? ' · ' + at.tab.trim() : ''));
+    }
+  }
   console.log('console errors: ' + (errors.length ? errors.slice(0, 5).join(' || ') : 'none'));
   await browser.close();
 })();
