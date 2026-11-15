@@ -314,7 +314,18 @@ Closed straight off the register (docs/GAPS.md B14). When the camps are stirred 
 strongest others thinks 8 worse of it, as before. One that has come to think −30 or worse of it is now stirred against
 it for as long as the talk lasts (three years): it moves a censure of that house before any other business it has,
 provided the house has standing left to lose. In the test, three years of stirring put a censure on the order paper.
-Nothing more follows than a censure: other houses still do not go to war with one another over what is said (B15).
+What follows a censure is below.
+
+### Stirring that ends in a war (2026-11-15)
+
+Closed off the register (docs/GAPS.md B15). A censure was as far as it went. Now a house that has been stirred
+against another, and thinks −50 or worse of it, goes to war with it, if all of these hold: it has at least as many
+hulls as the other; it has no war already; the two are not bound by a marriage; the other does not hold the capital;
+and the Reach is not already in its great war or a civil war. One such war a year at the most, and one from a
+stirring. The player's house is never moved to it, and is never its target. Stirring lowers a house's regard for the
+target by 8, so this is the last push on a hatred that was already there, not a war made from nothing. If the money
+was yours an event tells you so. The chronicle says what kind of war it is: nothing was taken and nothing done.
+
 
 ## The next stage: forms of government (the owner's direction, not built)
 

@@ -653,4 +653,52 @@ public class BreakawayTests
         RegionSystem.StateOf(w2, own).Allegiance = 5; tc2.Regions.Tick(w2);
         Assert.Null(PolitySystem.OfRegion(w2, own)); Assert.True(PolitySystem.InReach(w2, mine2.Id));
     }
+
+    // ---------------- a war over what was said (docs/GAPS.md B15) ----------------
+
+    private static void Hulls(World w, House h, int n)
+    {
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == h.Id).ToList()) w.Fleets.Remove(f.Id);
+        if (n > 0) w.Fleets["test_" + h.Id] = new Fleet { Id = "test_" + h.Id, Name = "Test", OwnerId = h.Id, Strength = n, SystemId = w.Galaxy!.Capital };
+    }
+
+    [Fact]
+    public void A_house_stirred_against_one_it_already_hates_goes_to_war_with_it()
+    {
+        var (tc, w, _, mine, _) = Start(); Sound(w); foreach (var war in w.Wars.ToList()) w.Wars.Remove(war);
+        var angry = Other(w, mine, 0); var hated = Other(w, mine, 1); mine.Treasury.Credits = 100;
+        foreach (var h in w.Houses.Values) Hulls(w, h, 1);
+        Hulls(w, angry, 20); Hulls(w, hated, 6);
+        Regard(w, angry, hated, PolitySystem.WarOverWordsAt + PolitySystem.StirAgainst - 1);   // one push short of it
+        Assert.NotNull(PolitySystem.WarOverWordsRefusal(w, angry, hated));
+        Assert.Null(tc.Polities.StirRefusal(w, mine, hated)); tc.Polities.Stir(w, mine, hated);
+        Assert.Equal(hated.Id, PolitySystem.StirredAgainst(w, angry.Id)?.Id); Assert.Null(PolitySystem.WarOverWordsRefusal(w, angry, hated));
+        tc.Polities.Tick(w);
+        Assert.True(w.AtWar(angry.Id, hated.Id)); Assert.Equal(1, w.Counter(PolitySystem.WarOverWordsCounter)); Assert.True(w.HasFlag(PolitySystem.WarOverWordsFlag));
+        Assert.Contains(w.History, h => h.Text.Contains("over what has been said"));
+        Fires(w, "a_war_over_words");
+        // it does not happen twice from one stirring
+        Assert.Null(PolitySystem.StirredAgainst(w, angry.Id));
+    }
+
+    [Fact]
+    public void A_house_does_not_go_to_war_over_words_without_the_hulls_the_hatred_or_against_its_own_kin()
+    {
+        var (tc, w, _, mine, _) = Start(); Sound(w); foreach (var war in w.Wars.ToList()) w.Wars.Remove(war);
+        var angry = Other(w, mine, 0); var hated = Other(w, mine, 1);
+        foreach (var h in w.Houses.Values) Hulls(w, h, 1);
+        w.WorldCounters[PolitySystem.StirredKey(angry.Id, hated.Id)] = w.Turn + 3;
+        // the hatred, and not the hulls
+        Hulls(w, angry, 2); Hulls(w, hated, 6); Regard(w, angry, hated, -80);
+        Assert.Contains("hulls", PolitySystem.WarOverWordsRefusal(w, angry, hated)); tc.Polities.Tick(w); Assert.False(w.AtWar(angry.Id, hated.Id));
+        // the hulls, and not the hatred
+        Hulls(w, angry, 20); Regard(w, angry, hated, -40);
+        Assert.Contains("ill enough", PolitySystem.WarOverWordsRefusal(w, angry, hated)); tc.Polities.Tick(w); Assert.False(w.AtWar(angry.Id, hated.Id));
+        // both, and a marriage between them
+        Regard(w, angry, hated, -80);
+        var a = Economy.HeadOf(w, angry)!; var b = Economy.HeadOf(w, hated)!; w.Marriages.RemoveAll(m => m.A == a.Id || m.B == a.Id || m.A == b.Id || m.B == b.Id);
+        w.Marriages.Add(new Marriage { A = a.Id, B = b.Id });
+        Assert.Contains("marriage", PolitySystem.WarOverWordsRefusal(w, angry, hated)); tc.Polities.Tick(w); Assert.False(w.AtWar(angry.Id, hated.Id));
+        Assert.Equal(0, w.Counter(PolitySystem.WarOverWordsCounter));
+    }
 }

@@ -169,6 +169,16 @@
         "ask_them_to_wait_a_year": "Ask them to wait a year.",
         "say_a_state_is_not_a_counting_house": "Say that a state is not a counting-house."
       }
+    },
+    {
+      "id": "a_war_over_words",
+      "title": "A War Over Words",
+      "body": "It began as talk, and the talk was paid for. For three years one house heard worse of another than it had ever heard, in every room where it was a guest. It thought ill of them already. Now its fleets have sailed. Nothing was taken and nothing was done: there is no cause but what was said, and the money that said it was yours.",
+      "choices": {
+        "say_nothing_and_watch": "Say nothing, and watch.",
+        "offer_to_mediate": "Offer to stand between them.",
+        "sell_to_both": "Sell to both."
+      }
     }
   ]
 }

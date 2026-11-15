@@ -42,7 +42,7 @@ public sealed class PolitySystem
     private static string Of_(Character c) => c.BornHouseId.Length > 0 ? c.BornHouseId : c.HouseId;
     public const string StirKey = "camps_stirred_until"; public const int StirYears = 3, StirInfluence = 3, StirCredits = 12, AccedeRegard = 0, GoesOverRegard = 30;
     private static readonly string[] YearFlags = { IndependentFlag, WarFlag, PossibleFlag, RefuseFlag };
-    private static readonly string[] DeedFlags = { DeclaredFlag, LetGoFlag, WonFlag, LostFlag, OtherBreaksFlag, PartitionFlag, ReportedFlag, WonOverFlag, ReconquestFlag, RejoinedFlag, JoinedFlag, JoinedOursFlag, BreachFlag, StirredFlag, LeftFlag, LeftOursFlag, UnpaidFlag };
+    private static readonly string[] DeedFlags = { DeclaredFlag, LetGoFlag, WonFlag, LostFlag, OtherBreaksFlag, PartitionFlag, ReportedFlag, WonOverFlag, ReconquestFlag, RejoinedFlag, JoinedFlag, JoinedOursFlag, BreachFlag, StirredFlag, LeftFlag, LeftOursFlag, UnpaidFlag, WarOverWordsFlag };
     public const string CivilWarEndedKey = "civil_war_ended";
     public static string OpposedKey(string houseId) => "opposed_the_throne:" + houseId;
 
@@ -485,6 +485,7 @@ public sealed class PolitySystem
             w.Log($"What is said in the great houses this year is said, more than anything, about {against.Name}.");
         } w.WorldCounters[StirKey] = w.Turn + StirYears; w.WorldCounters["camps_stirred"] = w.Counter("camps_stirred") + 1;
         if (house.Id == mine) Mark(w, StirredFlag);
+        if (house.Id == mine && against != null) w.WorldCounters[MyStirKey(against.Id)] = w.Turn + StirYears;   // whose money it was, should it come to a war
         w.Log($"Money moves, and letters. For {StirYears} years the great houses will hear worse of one another than they did.");
         var chair = RegionSystem.CapitalHolder(w); bool heard = chair != null && chair.Id != house.Id && Hash($"stir:{house.Id}:{w.Turn}") % 3 == 0;
         if (!heard) return false;
@@ -492,6 +493,39 @@ public sealed class PolitySystem
         house.Legitimacy = Math.Clamp(house.Legitimacy - 3, 0, 100); if (house.Id == mine) Mark(w, ReportedFlag);
         if (against != null && Systems.Economy.HeadOf(w, against) is { } victim && Systems.Economy.HeadOf(w, house) is { } me2 && victim.Id != me2.Id) { var r = w.Relationship(victim.Id, me2.Id); r.Disposition = Math.Clamp(r.Disposition - 25, -100, 100); }   // and so does the house it was aimed at
         w.Log($"{chair!.Name} learns whose money it was. {house.Name} is spoken of in the capital as a house that wants a war."); return true;
+    }
+
+    // ---------------- a war over what was said (docs/BREAKAWAY.md, "Stirring the camps") ----------------
+
+    public const int WarOverWordsAt = -50;
+    public const string WarOverWordsFlag = "war_over_words", WarOverWordsCounter = "wars_over_words";
+    public static string MyStirKey(string againstId) => "my_stir_against:" + againstId;
+    /// <summary>Why a house that has been stirred against another does not go to war with it, or null if it will.</summary>
+    public static string? WarOverWordsRefusal(World w, House h, House? target)
+    {
+        if (target == null || target.Id == h.Id || !Real(h) || !InReach(w, h.Id) || !InReach(w, target.Id)) return "nobody it has been stirred against";
+        if (GreatCrisisSystem.AtWar(w) || w.CivilWar != null) return "the Reach is at war with itself already";
+        if (Regard(w, h, target) > WarOverWordsAt) return "it does not think ill enough of them";
+        int ours = FleetSystem.StrengthOf(w, h.Id), theirs = FleetSystem.StrengthOf(w, target.Id);
+        if (ours <= 0 || ours < theirs) return "it has not the hulls";
+        if (w.Wars.Any(x => x.Involves(h.Id))) return "it has a war already";
+        if (Bound(w, h, target)) return "the two are bound by a marriage";
+        return RegionSystem.CapitalHolder(w)?.Id == target.Id ? "nobody goes to war with the capital over talk" : null;
+    }
+    /// <summary>A house that has been stirred against another, already thought very ill of it and is no weaker in hulls goes to war
+    /// with it: what was a censure becomes a war. One such war a year at the most; the player's house is never moved for them.</summary>
+    private void WarsOverWords(World w)
+    {
+        var mine = w.Protagonist?.HouseId;
+        foreach (var h in w.Houses.Values.Where(h => Real(h) && h.Id != mine).OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            var target = StirredAgainst(w, h.Id); if (target == null || target.Id == mine || WarOverWordsRefusal(w, h, target) != null) continue;
+            _fleets.DeclareWar(w, h.Id, target.Id);
+            w.WorldCounters.Remove(StirredKey(h.Id, target.Id)); w.WorldCounters[WarOverWordsCounter] = w.Counter(WarOverWordsCounter) + 1;
+            w.Log($"{h.Name} goes to war with {target.Name}. Nothing has been taken from it and nothing done to it: it is over what has been said of {target.Name} in every great house these three years.");
+            if (w.Counter(MyStirKey(target.Id)) >= w.Turn) Mark(w, WarOverWordsFlag);
+            break;
+        }
     }
 
     private void Peace(World w, Polity p)
@@ -698,6 +732,8 @@ public sealed class PolitySystem
             }
             if (goer != null) break;
         }
+
+        WarsOverWords(w);
 
         // those who fought a general who is now on the throne need not kneel: one of them that holds a region may take it out
         if (w.IsImperium)

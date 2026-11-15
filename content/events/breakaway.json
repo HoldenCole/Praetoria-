@@ -1190,6 +1190,91 @@
           ]
         }
       ]
+    },
+    {
+      "id": "a_war_over_words",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "war_over_words",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_nothing_and_watch",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} read the dispatches and said nothing to anyone. Two houses were at war that had not been, and neither knew who had wanted it."
+            }
+          ]
+        },
+        {
+          "id": "offer_to_mediate",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote to both houses offering to stand between them. It was refused twice, and remembered as an offer. Nobody thought to ask who had paid for the talk."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "id": "sell_to_both",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known that the house had stores to sell and no opinion about who bought them. Both did."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -168,7 +168,7 @@ internal static class Qa
     }
 
     private static readonly IRng NoRng = new SplitMix64Rng(0);
-    private static readonly string[] CaesarKeys = { "triumphs_voted", "recalls_voted", "civil_wars", "republics_ended", "caesars_broken", "polities_founded", "polities_recognised", "polities_dissolved" };
+    private static readonly string[] CaesarKeys = { "triumphs_voted", "recalls_voted", "civil_wars", "republics_ended", "caesars_broken", "polities_founded", "polities_recognised", "polities_dissolved", "free_marches", "free_states", "camps_stirred", "censures_stirred", "wars_over_words", "motions_held_over", "chair_spoke", "casting_votes" };
 
     /// <summary>One soak run. The player picks a random affordable choice (or skips one in five) from a decision stream seeded
     /// off the world seed, so a replay repeats the same decisions.</summary>

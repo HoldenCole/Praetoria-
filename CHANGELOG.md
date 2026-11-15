@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- **A war over what was said** (docs/BREAKAWAY.md; docs/GAPS.md B15). A house that has been stirred against another,
+  already thought very ill of it and is no weaker in ships now goes to war with it; a censure used to be as far as it
+  went. If the money that paid for the talk was yours, an event says so.
 - **Free marches and free holds are states** (docs/BREAKAWAY.md; docs/GAPS.md B5). A house that declares a free
   march takes its region out of the Reach as a state, in a form of its own choosing, and the Reach lets it go or
   sends the fleets. A rebel world that breaks from its holder is a free state from its first day: outside the Reach,

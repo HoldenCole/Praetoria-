@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (twenty-first pass: free marches and free holds as states; B5 closed, B16 mapped).
+Last updated 2026-11-15 (twenty-second pass: wars over what is said; B15 closed, B17 mapped).
 
 ## The worklist
 
@@ -18,7 +18,7 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | B15, J5, L10 | Houses that go to war over what is said; a junior's patron; trust by region and office | next |
+| 1 | J5, L10 | A junior's patron; trust by region and office | next |
 | 2 | A6, W8, W1 | Ventures that fail; heirlooms that are made and won; a purse that holds more than credits | next |
 
 **No small gap is left that is not the owner's.** What remains is a cycle or more each, and is worked in the order above.
@@ -46,7 +46,7 @@ These recur across systems. Closing one properly closes several lines below, so 
 | B2 | A state's border means nothing for trade, the lanes or the Exchange. Its region is named on the map but not drawn as a different country. | M | Nations on the map |
 | B3 | A state makes no agreements of its own: no trade treaty, no alliance, no envoys. It does not make war as a state. | M | B1 |
 | B13 | A marriage binds a house only if it already exists: one cannot be offered as the price of a region. A promise is paid in credits only, not in an office of the state. | S | G1. **The owner's:** waits on the forms of government (G1) |
-| B15 | Other houses do not go to war with one another over what is said of them: a censure is as far as stirring a house against another goes. | M | X2 |
+| B17 | Only the player stirs the camps, so a war over what was said begins only where the player's money went: no other house sets two houses against each other, and the probe's passive player never sees one. The war itself is an ordinary war: it has no aim, no terms of its own, and nobody is asked to take a side in it. | M | X2 |
 | B16 | A free state (a rebel world that broke from its holder) is one house and one world for good: it cannot join a larger state, nobody courts it, and it makes no league with its like. In sixty runs 106 of 111 were named in a treaty, because an old holder seldom comes back for a world inside three years. | M | |
 | B7 | Standing alone weighs fuel, the treasury and strategic monopolies. It does not weigh food, manpower or the goods of the market. | M | The economy |
 
@@ -183,3 +183,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | L8 | A senator's year is one of three things. There are no committees, no standing with a committee, and no record of attendance beyond three absent years. | 2026-11-15 | Three standing committees (the Purse, the Fleet, the Laws); every house sits on one, by its head's service unless the head moves. A senator can spend the year on the committee's work, which raises their standing with it. At a standing of 3 the committee's other houses lean toward what the house moves on the committee's business; the highest standing at 6 or more has the chair. A year missed costs a point. The years sat and missed are kept, and count for or against a senator at any election. L12 is what is left. |
 | O2 | The charge of an office of the Reach is one decision a year from three. A consul does not preside over anything, the Treasurer's budget has no figures, and the Speaker's order of business does not touch the motions actually on the docket. | 2026-11-15 | The Speaker holds one motion a year over to the next (a motion once), and giving an enemy no day holds over what that house has moved. The presiding consul speaks from the chair on one motion a year and the houses lean with it, and a tied Senate goes as the presiding consul voted. The Treasurer's budget is drawn from the state of the Reach (what was assessed, what the lawless lanes lost, what the hulls, the lanes and the loose regions call for) and the three choices are sums read against it. Other houses' officers use all of it. In sixty runs a Speaker held a motion over 9 times and a consul spoke from the chair 155 times; no vote tied. O3 is what is left. |
 | B5 | The older free march (a rim house renouncing the capital) and free holds (a rebel world) are their own rules and should become breakaway states. | 2026-11-15 | A free march takes its region out as a state, in the form its house chooses, on the terms of any declaration but without waiting for three worlds in five; the Reach lets it go or sends the fleets. A rebel world that breaks from its holder is a free state from its first day: outside the Reach, with no seat and no office; its old holder may buy it back or take it; after three years the Reach names it in a treaty; the Senate does not go back for one world and it does not push the Reach toward a great war. In sixty runs: 6 free marches, 111 free states of which 24 were taken back. The Republic stood in all sixty. B16 is what is left. |
+| B15 | Other houses do not go to war with one another over what is said of them: a censure is as far as stirring a house against another goes. | 2026-11-15 | A house stirred against another, that thinks −50 or worse of it, has at least as many hulls, has no war already and is not bound to it by marriage, goes to war with it: one such war a year, never against the capital's holder, never moved for the player. If the money was the player's an event says so. In the soak (33 runs, whose player stirs) two wars began this way and the event fired; in the probe, whose player does nothing, none did, and nothing else moved. B17 is what is left. |

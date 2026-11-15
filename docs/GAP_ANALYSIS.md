@@ -1701,3 +1701,22 @@ enough to see a rebel world break away, so the line was not seen rendered. It co
 **Left, and mapped.** Almost every free state is named in a treaty, because an old holder seldom comes back inside
 three years. A free state cannot join a larger state or league with its like, and nobody courts it (B16).
 
+## 55. A war over what was said — 2026-11-15
+
+**B15.** Stirring one house against another ended, at most, in a censure. Now a house that has been stirred against
+another and already thought very ill of it (−50 or worse) goes to war with it, if it has at least as many hulls, has
+no war already, is not bound to it by a marriage, and the other does not hold the capital. One such war a year; the
+player's house is never moved to one and is never the target. Stirring costs a house 8 of its regard for the target,
+so this is the last push on a hatred that was there. Details in docs/BREAKAWAY.md.
+
+**Measured.** The soak (33 runs, a save and load in each; its player stirs the camps at random): two wars began over
+what was said, and the event that tells the player whose money it was fired, with two of its three choices taken. The
+soak passes with no drift. The Republic probe's player does nothing, so nobody stirs and no such war begins: its
+figures are the last section's to the digit (the Republic stood in 60 of 60, the great war in 47). Survival: 0 of 10
+on every start.
+
+709 tests (two new).
+
+**Left, and mapped.** Only the player stirs. No other house sets two houses against each other, so in a game where
+the player leaves the camps alone this never happens; and the war is an ordinary war with no aim of its own (B17).
+
