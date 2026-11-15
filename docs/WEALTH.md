@@ -193,11 +193,38 @@ noticing.
 Found while building it, and mapped (W9): a standard lost is never fought for or asked back; a relative never has
 anything made with their own money; and a gift between houses comes only at a wedding.
 
+### A purse that holds more than credits (W1, 2026-11-15)
+
+A purse held credits and nothing else. Now a person can hold **shares in their own name**.
+
+- **Bought out of the purse** on the Exchange, at the same price a house pays, and sold back into it. One person may
+  hold a tenth of a company and no more.
+- **What they pay goes into the purse**, each year, not into the treasury. The house's ledger never shows them.
+- **They are not the house's.** They give the house no say in the company; when a company is wound up a person is
+  paid as a house is; and what takes the house's holdings does not take them.
+- **They go by the will**, as the purse does: the share the will leaves to someone, of each holding, and the rest to
+  the heir. When one of the house other than its head dies, theirs go to the head, in the head's own name. Shares in
+  the name of someone with nobody to come after them go back to the float.
+- **Relatives do it for themselves.** One who is greedy, wants a fortune, or knows economics (3 or better), and has 12
+  credits or more, buys up to five shares a year of the company that pays best for its price, keeping 6 back. One in
+  debt sells what covers it. The purses list says what each did and what they hold. An event tells the head the first
+  a relative buys: it is their money, or tell them what the house knows, or the house comes first.
+- **A founder's stake.** Whoever of the house founded a venture draws its level in credits a year out of the
+  treasury, into their purse. This was true only of those who wanted a fortune; it is now true of every founder.
+
+Measured over sixty runs of sixty years: relatives bought 3,042 shares in their own names (about fifty a run) and
+sold 73; the shares paid 7,162 credits into purses (about two a year to a house's people); 1,741 shares passed on
+at a death; at the end 124 people held some, worth 5,253 credits together. Founders drew 441 credits in stakes.
+
+Found while building it, and mapped (W10): a venture is still the house's, and the head can sell it over its
+founder's head; no world is a person's; shares in a person's name carry no vote, even alongside their house's; and
+only the people of your house hold any, since nobody else has a purse (X1).
+
 ## Not in this piece
 
 - **Only your house has purses.** Everyone else in the Reach still has only their house's treasury.
-- **A purse holds credits only.** Shares, ventures and worlds still belong to the house. A relative cannot yet invest on
-  the Exchange or found a venture with their own money.
+- ~~A purse holds credits only.~~ Closed in part (W1): a person holds shares in their own name, and a founder draws a stake from
+  what they founded. No venture and no world is a person's outright; see "A purse that holds more than credits" (W10).
 - ~~Dowries still come from the treasury.~~ Closed: from the head's purse if they say so, and from the bride's own first.
 - An heirloom can be entailed. A world or a venture cannot: any of them can still be sold by the head.
 - ~~An heirloom is one of four kinds, and none is ever made, won or given by another house.~~ Closed (W8): see "New things". What is left is W9.

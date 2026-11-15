@@ -109,6 +109,16 @@
         "send_something_back": "Send something back, worth a little more.",
         "take_it_as_due": "Take it as no more than was due."
       }
+    },
+    {
+      "id": "one_of_yours_buys_shares",
+      "title": "Shares Of Their Own",
+      "body": "{kin.name} has bought shares on the Exchange with their own money, in their own name. They are not the house's: what they pay goes into {kin.name}'s purse, and they give the house no say in the company. {kin.name} has told you because they would rather you heard it from them.",
+      "choices": {
+        "it_is_their_money": "It is their money.",
+        "tell_them_what_you_know": "Tell them what the house knows of the Exchange.",
+        "the_house_comes_first": "The house comes first: buy in its name."
+      }
     }
   ]
 }

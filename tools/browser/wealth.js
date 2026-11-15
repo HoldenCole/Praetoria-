@@ -41,8 +41,14 @@ require('fs').mkdirSync(shots, { recursive: true });
   // the treasury of a poor start does not hold a shrine at once: try again with the years' income
   for (let i = 0; i < 6; i++) { await press('take 5'); await page.waitForTimeout(300); }
   console.log('made to order, later: ' + (await press('A shrine') || 'could not: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => e.innerText.trim().startsWith('A shrine')); return b ? b.title : 'no button'; }))); await page.waitForTimeout(400);
+  // shares in the head's own name: buy one of whatever is offered, and say what the panel then shows (docs/WEALTH.md)
+  for (let i = 0; i < 4; i++) { await press('take 5'); await page.waitForTimeout(300); }
+  const offer = await page.evaluate(() => { const row = [...document.querySelectorAll('.panel.wealth .suit-acts')].find(e => e.innerText.includes('Buy for yourself')); if (!row) return 'NO ROW'; const bs = [...row.querySelectorAll('button')]; const b = bs.find(e => !e.disabled); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ') : 'nothing affordable: ' + (bs[0] ? bs[0].title : 'no company listed'); });
+  await page.waitForTimeout(400);
+  console.log('own shares, bought: ' + offer);
+  console.log('own shares, held: ' + await page.evaluate(() => { const col = [...document.querySelectorAll('.panel.wealth .hh-head')].find(e => e.innerText.startsWith('Shares of your own')); let n = col ? col.nextElementSibling : null; const out = []; while (n && !n.classList.contains('hh-head')) { if (n.classList.contains('purse-row') || n.classList.contains('muted')) out.push(n.innerText.replace(/\s+/g, ' ').slice(0, 160)); n = n.nextElementSibling; } return out.join(' || ') || 'NO SECTION'; }));
   console.log('heirlooms now: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .suit')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 200)).filter(t => /worth/.test(t)).join(' || ')));
-  console.log('their purses: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .purse-row')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 90)).join(' || ')));
+  console.log('their purses: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .purse-row:not(.own-share)')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 90)).join(' || ')));
   await page.evaluate(() => { const el = document.querySelector('.panel.wealth'); if (el) el.scrollIntoView(); }); await page.waitForTimeout(300);
   const box = await page.evaluate(() => { const r = document.querySelector('.panel.wealth').getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1400) }; });
   await page.screenshot({ path: shots + '/wealth-panel.png', clip: box });

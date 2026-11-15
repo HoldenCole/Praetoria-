@@ -5,6 +5,8 @@
     var w = G.World!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!;
     var members = WealthSystem.Members(w, house).Where(c => c.Id != pid).OrderBy(c => c.Purse).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
     var heads = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).Select(h => Economy.HeadOf(w, h)).Where(c => c is { Alive: true }).Select(c => c!).Take(3).ToList();
+    var cs = G.Turn?.Companies; var myShares = CompanySystem.HeldPersonally(w, pid);
+    var offered = w.Companies.Where(c => c.HeldBy(Company.Public) > 0).OrderByDescending(c => c.Price > 0 && c.Shares > 0 ? c.LastDividend / (c.Price * c.Shares) : 0).ThenBy(c => c.Id, StringComparer.Ordinal).Take(3).ToList();
     var mine = WealthSystem.HeldBy(w, pid); var others = w.Heirlooms.Where(h => h.HolderId != pid && w.Char(h.HolderId)?.HouseId == house.Id).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
     var heir = DynastySystem.FindHeir(w, p); var will = p.Will; var legatee = will != null && will.LegateeId.Length > 0 ? w.Char(will.LegateeId) : null;
     var people = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age >= 6).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
@@ -23,6 +25,35 @@
             @foreach (int a in Sums) { int amt = a; var no = new WealthCommand(pid, WealthCommand.Move, string.Empty, (-amt).ToString()).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(no != null)" title="@no" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Move, string.Empty, (-amt).ToString()))">put @a</button> }
         </div>
 
+        @if (cs != null && cs.Open)
+        {
+            <div class="hh-head"><b>Shares of your own</b> <span class="muted small">Bought out of your purse, in your name. What they pay goes into your purse, and they go by your will. They are not the house's: they give it no say in a company, and what is taken from the house does not take them. One person may hold a tenth of a company.</span></div>
+            @if (myShares.Count == 0) { <div class="muted small">You hold none in your own name.</div> }
+            @foreach (var (co, n) in myShares)
+            {
+                string coid = co.Id; int held = n; int pays = co.Shares > 0 ? co.LastDividend * n / co.Shares : 0;
+                var one = cs.QuotePrivateSell(w, p, co, 1); var all = cs.QuotePrivateSell(w, p, co, n);
+                <div class="purse-row own-share">
+                    <b>@co.Name</b> <span class="pill small good">@n share@(n == 1 ? "" : "s") · worth @((int)(n * co.Price))</span>
+                    <span class="muted small">@(pays > 0 ? $"pays you {pays} a year" : "paid nothing last year")</span>
+                    <span class="suit-acts">
+                        <button class="opt inline tiny" disabled="@(one.Refusal != null)" title="@one.Refusal" @onclick="() => G.Execute(new PrivateSharesCommand(pid, coid, 1, false, cs))">Sell 1 · @one.Credits</button>
+                        @if (n > 1) { <button class="opt inline tiny" disabled="@(all.Refusal != null)" title="@all.Refusal" @onclick="() => G.Execute(new PrivateSharesCommand(pid, coid, held, false, cs))">Sell all · @all.Credits</button> }
+                    </span>
+                </div>
+            }
+            <div class="suit-acts"><span class="muted small">Buy for yourself</span>
+                @foreach (var co in offered)
+                {
+                    string coid = co.Id; var q1 = cs.QuotePrivateBuy(w, p, co, 1); var q5 = cs.QuotePrivateBuy(w, p, co, 5);
+                    int yield = co.Price > 0 && co.Shares > 0 ? (int)Math.Round(co.LastDividend * 100.0 / (co.Price * co.Shares)) : 0;
+                    <button class="opt inline tiny" disabled="@(q1.Refusal != null)" title="@(q1.Refusal ?? $"{co.Name}: paid {yield}% of its price last year. One share, out of your purse.")" @onclick="() => G.Execute(new PrivateSharesCommand(pid, coid, 1, true, cs))">@co.Name · 1 for @(q1.Credits > 0 ? q1.Credits.ToString() : "—")</button>
+                    <button class="opt inline tiny" disabled="@(q5.Refusal != null)" title="@(q5.Refusal ?? "Five shares, out of your purse.")" @onclick="() => G.Execute(new PrivateSharesCommand(pid, coid, 5, true, cs))">5 for @(q5.Credits > 0 ? q5.Credits.ToString() : "—")</button>
+                }
+                @if (offered.Count == 0) { <span class="muted small">No company has shares on the float.</span> }
+            </div>
+        }
+
         <div class="hh-head"><b>What the house gives its own</b> <span class="muted small">Every grown member's allowance, paid from the treasury each year. @WealthSystem.AllowanceSays(house.Allowance)</span></div>
         <div class="suit-acts">
             @foreach (var a in WealthSystem.Allowances) { string pol = a; <button class="opt inline @(house.Allowance == a ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Allowance, string.Empty, pol))">@a · @WealthSystem.AllowanceOf(a) each</button> }
@@ -35,7 +66,7 @@
             string cid = c.Id; bool debt = c.Purse < 0;
             <div class="purse-row">
                 <b>@c.Name</b> <span class="pill small @(debt ? "warn" : c.Purse >= 15 ? "good" : "")">@(debt ? $"owes {-c.Purse}" : $"{c.Purse} credits")</span>
-                <span class="muted small">@(c.LastSpend.Length > 0 ? c.LastSpend : "Nothing to note yet.")</span>
+                <span class="muted small">@(c.LastSpend.Length > 0 ? c.LastSpend : "Nothing to note yet.")@OwnsLine(w, c)</span>
                 <span class="suit-acts">
                     @foreach (int a in Gifts) { int amt = a; var no = new WealthCommand(pid, WealthCommand.Gift, cid, amt.ToString()).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? GiftTip)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Gift, cid, amt.ToString()))">Give @amt</button> }
                     @if (c.OwesHead > 0)
@@ -147,6 +178,13 @@
     private const string InterestTip = "The same loan with a fifth on top. It is business, and they take it as business.";
     private const string BorrowTip = "Out of their own purse into yours. They will not ask for it. Left six years unpaid, they mind it.";
     private const string RepayTip = "As far as your purse goes.";
+    /// <summary>What a relative has besides credits: shares in their own name, and a stake in what they founded.</summary>
+    private static string OwnsLine(World w, Character c)
+    {
+        var held = CompanySystem.HeldPersonally(w, c.Id); int stake = AmbitionSystem.StakesOf(w, c).Sum(x => x.Stake);
+        string shares = held.Count > 0 ? $" Holds {held.Sum(h => h.Shares)} share{(held.Sum(h => h.Shares) == 1 ? "" : "s")} of their own, worth {CompanySystem.PersonalWorth(w, c.Id)}." : "";
+        return shares + (stake > 0 ? $" Draws {stake} a year from what they founded." : "");
+    }
     private static string MadeTip(string kind) => kind == WealthSystem.Library
         ? "A library of your own house: everyone in it who has set themselves a study learns it a little faster. It is yours, and the house's after you."
         : $"A shrine in your house's name: the commons think a point better of the house each year, while they think less than {WealthSystem.ShrineCeiling} of it. It is yours, and the house's after you.";

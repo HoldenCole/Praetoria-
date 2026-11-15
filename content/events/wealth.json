@@ -941,6 +941,103 @@
           ]
         }
       ]
+    },
+    {
+      "id": "one_of_yours_buys_shares",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "invested_of_their_own",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_invested",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "it_is_their_money",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that {kin.name}'s money was {kin.name}'s to place. It was the answer they had hoped for."
+            }
+          ]
+        },
+        {
+          "id": "tell_them_what_you_know",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustSkill",
+              "role": "kin",
+              "skill": "economics",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sat down with {kin.name} and went through what the house hears of the Exchange before the Exchange hears it. {kin.name} listened closely."
+            }
+          ]
+        },
+        {
+          "id": "the_house_comes_first",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that money made under the house's name should be placed in the house's name. {kin.name} paid a little into the treasury and kept their shares, and their own counsel."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -701,4 +701,84 @@ public class RegisterTests
         var cousin = new Character { Id = "cousin", Name = "Test cousin", HouseId = mine.Id, Age = 24, Sex = "female" }; w.Characters[cousin.Id] = cousin;
         Assert.Null(WealthSystem.WeddingGift(w, cousin, groom, 0));
     }
+
+    // ---------------- W1: a purse that holds more than credits ----------------
+
+    private static Company Listed(World w, int dividendAShare = 0)
+    {
+        var co = w.Companies.Where(c => c.HeldBy(Company.Public) >= 20).OrderBy(c => c.Id, StringComparer.Ordinal).First();
+        co.LastDividend = co.Shares * dividendAShare; return co;
+    }
+
+    [Fact]
+    public void W1_A_person_buys_shares_in_their_own_name_and_they_pay_into_the_purse_not_the_treasury()
+    {
+        var (tc, w, me, mine, _) = Start(); var cs = tc.Companies!; var co = Listed(w); string key = Company.PersonKey(me.Id); int shares = co.Shares;
+        me.Purse = 0; Assert.Contains("purse", cs.QuotePrivateBuy(w, me, co, 1).Refusal); Assert.False(Do(w, new PrivateSharesCommand(me.Id, co.Id, 1, true, cs)));
+        me.Purse = 5000; int treasury = mine.Treasury.Credits, floated = co.HeldBy(Company.Public); var q = cs.QuotePrivateBuy(w, me, co, 3);
+        Assert.True(Do(w, new PrivateSharesCommand(me.Id, co.Id, 3, true, cs)));
+        Assert.Equal(3, co.HeldBy(key)); Assert.Equal(floated - 3, co.HeldBy(Company.Public)); Assert.Equal(5000 - q.Credits, me.Purse);
+        Assert.Equal(treasury, mine.Treasury.Credits); Assert.Equal(0, co.HeldBy(mine.Id)); Assert.NotEqual(mine.Id, co.ControllerId);
+        Assert.Equal(shares, co.Holders.Values.Sum()); Assert.Equal(3, Assert.Single(CompanySystem.HeldPersonally(w, me.Id)).Shares); Assert.Equal(3, w.Counter(CompanySystem.PrivateBoughtKey));
+
+        // one person may hold a tenth of a company and no more
+        int cap = CompanySystem.PrivateCap(co); Assert.Contains("no more than", cs.QuotePrivateBuy(w, me, co, cap - 2).Refusal); Assert.Null(cs.QuotePrivateBuy(w, me, co, 1).Refusal);
+
+        // what the shares pay goes into the purse; the house's ledger never sees it
+        co.LastDividend = co.Shares * 2; int purse = me.Purse; Assert.Equal(6, CompanySystem.PersonalDividend(w, me.Id));
+        cs.PrivateHolders(w); Assert.Equal(purse + 6, me.Purse); Assert.Equal(treasury, mine.Treasury.Credits); Assert.Equal(6, w.Counter(CompanySystem.PrivateDividendsKey));
+        Assert.DoesNotContain(tc.Economy!.Compute(w, mine.Id, tc.Fleets).Lines, l => l.Kind == "dividend");
+
+        // sold again, out of the holding, into the purse
+        purse = me.Purse; var sell = cs.QuotePrivateSell(w, me, co, 1); Assert.True(Do(w, new PrivateSharesCommand(me.Id, co.Id, 1, false, cs)));
+        Assert.Equal(2, co.HeldBy(key)); Assert.Equal(purse + sell.Credits, me.Purse); Assert.Contains("only 2", cs.QuotePrivateSell(w, me, co, 3).Refusal);
+
+        // a company wound up pays a person as it pays a house
+        purse = me.Purse; co.Cash = co.Shares * 3; cs.Liquidate(w, co, "a test"); Assert.True(me.Purse >= purse + 6); Assert.Empty(CompanySystem.HeldPersonally(w, me.Id));
+    }
+
+    [Fact]
+    public void W1_A_relative_with_a_head_for_money_invests_of_their_own_accord_and_one_in_debt_sells()
+    {
+        var (tc, w, me, mine, _) = Start(); Alone(w, mine, me); var cs = tc.Companies!; foreach (var c in w.Companies) c.LastDividend = c.Shares;
+        var keen = Kin(w, mine, me, "keen"); keen.Skills["economics"] = 3; keen.Purse = 60; var plain = Kin(w, mine, me, "plain"); plain.Purse = 60;
+        var poor = Kin(w, mine, me, "poorkeen"); poor.Skills["economics"] = 3; poor.Purse = CompanySystem.InvestAt - 1;
+        cs.PrivateHolders(w);
+        var held = Assert.Single(CompanySystem.HeldPersonally(w, keen.Id)); Assert.InRange(held.Shares, 1, CompanySystem.InvestMost); Assert.True(keen.Purse >= CompanySystem.InvestKeeps);
+        Assert.StartsWith("Bought", keen.LastSpend); Assert.Contains(CompanySystem.InvestedChar, keen.Flags); Assert.True(w.HasFlag(CompanySystem.KinInvestedFlag));
+        Assert.Empty(CompanySystem.HeldPersonally(w, plain.Id)); Assert.Empty(CompanySystem.HeldPersonally(w, poor.Id)); Assert.Empty(CompanySystem.HeldPersonally(w, me.Id));
+        Fires(w, "one_of_yours_buys_shares");
+
+        // the next year the news is old; and in debt, they sell what covers it
+        keen.Purse = 0; cs.PrivateHolders(w); Assert.False(w.HasFlag(CompanySystem.KinInvestedFlag)); Assert.DoesNotContain(CompanySystem.InvestedChar, keen.Flags);
+        int before = CompanySystem.HeldPersonally(w, keen.Id).Sum(h => h.Shares); foreach (var c in w.Companies) c.LastDividend = 0;
+        keen.Purse = -3; cs.PrivateHolders(w);
+        Assert.True(keen.Purse >= 0); Assert.True(CompanySystem.HeldPersonally(w, keen.Id).Sum(h => h.Shares) < before); Assert.Contains("to pay what they owe", keen.LastSpend);
+        Assert.All(w.Companies, c => Assert.Equal(c.Shares, c.Holders.Values.Sum()));
+    }
+
+    [Fact]
+    public void W1_Shares_in_a_persons_name_go_by_the_will_and_a_founder_draws_a_stake_from_what_they_founded()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Alone(w, mine, me); var cs = tc.Companies!; var co = Listed(w);
+        var heir = Blood(w, me, Kin(w, mine, me, "heir")); var friend = Kin(w, mine, me, "friend"); var aunt = Kin(w, mine, me, "aunt");
+        me.Purse = 5000; aunt.Purse = 5000; Assert.True(cs.BuyPrivately(w, me, co, 8)); Assert.True(cs.BuyPrivately(w, aunt, co, 2));
+
+        // one of the house dies: what she held goes to the head, in the head's own name
+        aunt.Alive = false; WealthSystem.Lapse(w, aunt); Assert.Equal(0, co.HeldBy(Company.PersonKey(aunt.Id))); Assert.Equal(10, co.HeldBy(Company.PersonKey(me.Id)));
+
+        // the head dies: half to the one the will remembers, the rest to the heir; none of it to the house
+        me.Will = new Will { LegateeId = friend.Id, SharePct = 50 }; me.Alive = false; WealthSystem.Inherit(w, me, heir);
+        Assert.Equal(0, co.HeldBy(Company.PersonKey(me.Id))); Assert.Equal(5, co.HeldBy(Company.PersonKey(friend.Id))); Assert.Equal(5, co.HeldBy(Company.PersonKey(heir.Id))); Assert.Equal(0, co.HeldBy(mine.Id));
+
+        // shares in the name of someone nobody has buried go to the float at the year's reckoning
+        co.Holders["person:nobody"] = 3; co.Holders[Company.Public] = co.HeldBy(Company.Public) - 3; cs.PrivateHolders(w);
+        Assert.False(co.Holders.ContainsKey("person:nobody")); Assert.Equal(co.Shares, co.Holders.Values.Sum());
+
+        // a founder's stake: whoever founded a venture draws from it each year, whatever they wanted it for
+        me.Alive = true; var def = Content.Businesses.Def("trading_company")!; var sys = w.Galaxy!.System(w.HoldingsOf(mine.Id).First(h => h.IsPlanet).SystemId)!;
+        var b = FoundBusinessCommand.Open(w, mine, def, sys); b.FounderId = friend.Id; b.Level = 2; friend.Ambition = ""; friend.Pursuit = null;
+        Assert.Equal(2, Assert.Single(AmbitionSystem.StakesOf(w, friend)).Stake); mine.Treasury.Credits = 50; int purse = friend.Purse;
+        w.Turn++; tc.Ambitions.Tick(w, tc.Executor, ctx); Assert.Equal(purse + 2, friend.Purse); Assert.Equal(2, w.Counter(AmbitionSystem.FounderStakesKey));
+    }
 }

@@ -1848,3 +1848,37 @@ gift to another house's head were not looked at in the browser.
 
 **Left, and mapped.** A standard lost is never fought for or asked back; a relative never has anything made; a gift
 between houses comes only at a wedding (W9).
+
+## 60. Shares in a person's own name — 2026-11-15
+
+**W1.** A purse held credits only. Now a person buys shares out of their purse, in their own name (docs/WEALTH.md,
+"A purse that holds more than credits"). What they pay goes into the purse; they are not the house's and give it no
+say; they go by the will. Relatives with a head for money invest for themselves and one in debt sells. Every founder
+of a venture now draws a stake from it, which only those who wanted a fortune did before.
+
+**How it is kept.** A person's holding is a holder of the company like any other, under a key of its own, so the
+shares are out of the float and the count of a company's shares still adds up. Six places in the company's code
+that assumed every holder was a house were changed: dividends, a special dividend, winding up, the yearly check for
+holders that no longer exist, the check that someone still holds the company, and the notice of a rival's stake.
+
+**Measured.** The Republic probe (60 runs of 60 years): 3,042 shares bought in a person's name, 73 sold, 7,162
+credits paid into purses, 1,741 shares passed on at a death, 124 people holding some at the end; founders drew 441
+credits. The Republic stood in all 60; the great war was fought in 45 runs (49); 26 states broke away (30); trust
+in the magistrates averaged 51 to 62 by start and was low in 15 runs (15); 1,074 ventures were wound up (1,039).
+The soak (33 runs, a save and load in each) passes with no drift; in it 1,304 shares were bought privately and the
+event for a relative's first purchase fired often enough that every answer was taken. Survival: 0 of 10 on every
+start.
+
+**Seen in the browser.** On the Old Lion start the head moved money to the purse and bought one share of the Bank
+of the Reach; the panel then listed it under "Shares of your own" with its worth and a button to sell.
+`tools/browser/wealth.js` does this. The screenshot also shows the shrine from W8 and the three heads of other
+houses a thing can be given to.
+
+**Not seen.** A relative's line in the purses list saying what they hold, and a will read with shares in it, were
+not looked at in the browser; both are proved by tests. The great war was fought in four fewer runs than before:
+private buying moves share prices, and through them the houses' money; it was not traced further.
+
+721 tests (three new).
+
+**Left, and mapped.** A venture or a world held outright by a person, and a vote for shares held in a person's name
+(W10).

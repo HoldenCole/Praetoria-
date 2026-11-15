@@ -18,7 +18,7 @@ public sealed record ShareQuote(int Credits, int Levy, double UnitPrice, string?
 /// </list>
 /// Whoever holds more than half directs the company, whoever founded it. RNG-free: a small hash wobble keeps twins apart.
 /// </summary>
-public sealed class CompanySystem
+public sealed partial class CompanySystem
 {
     public const string CrashFlag = "market_crash", BoomFlag = "market_boom", DividendCutFlag = "dividend_cut", StakeFlag = "stake_in_mine", FailedFlag = "company_failed",
         TakenFromMeFlag = "takeover_of_mine", TakenByMeFlag = "company_taken", FloatedFlag = "company_floated", GoldenFlag = "golden_share_used", ListedCounter = "companies_listed",
@@ -299,7 +299,7 @@ public sealed class CompanySystem
     public void SpecialDividend(World w, Company co)
     {
         int pot = co.Cash - Reserve; if (pot <= 0) return; co.Cash -= pot;
-        foreach (var kv in co.Holders.Where(kv => kv.Key != Company.Public).OrderBy(kv => kv.Key, StringComparer.Ordinal)) if (w.House(kv.Key) is { } h) h.Treasury.Credits += pot * kv.Value / Math.Max(1, co.Shares);
+        foreach (var kv in co.Holders.Where(kv => kv.Key != Company.Public).OrderBy(kv => kv.Key, StringComparer.Ordinal)) PayHolder(w, kv.Key, pot * kv.Value / Math.Max(1, co.Shares));
         w.Log($"{co.Name} pays a special dividend of {pot} credits.");
     }
 
@@ -346,7 +346,7 @@ public sealed class CompanySystem
         foreach (var b in VenturesOf(w, co).ToList()) { pot += Math.Max((_ventures.Def(b.Kind)?.Value(b.Level) ?? 0) * Economy.SalvagePct / 100, _economy.VentureValue(w, b) * VentureSystem.MarketPct / 100); w.Businesses.Remove(b.Id); }
         foreach (var p in w.Projects.Where(p => p.CompanyId == co.Id).ToList()) { pot += (int)(Economy.WorthOf(w, p.Paid) / 2); w.Projects.Remove(p); }
         if (co.Chartered) pot = Math.Max(pot, (int)(Cap(co) * 0.6));
-        if (pot > 0) foreach (var kv in co.Holders.Where(kv => kv.Key != Company.Public).OrderBy(kv => kv.Key, StringComparer.Ordinal)) if (w.House(kv.Key) is { } h) h.Treasury.Credits += pot * kv.Value / Math.Max(1, co.Shares);
+        if (pot > 0) foreach (var kv in co.Holders.Where(kv => kv.Key != Company.Public).OrderBy(kv => kv.Key, StringComparer.Ordinal)) PayHolder(w, kv.Key, pot * kv.Value / Math.Max(1, co.Shares));
         if (w.Protagonist is { } pc && co.HeldBy(pc.HouseId) > 0) w.WorldFlags.Add(FailedFlag);
         w.Companies.Remove(co);
         w.Log($"{co.Name} is wound up: {why}.{(pot > 0 ? $" Its holders share {pot} credits." : " Its holders get nothing.")}");
@@ -502,8 +502,9 @@ public sealed class CompanySystem
         foreach (var co in w.Companies.OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
         {
             // shares of a house that is no more go to the float
-            foreach (var gone in co.Holders.Keys.Where(k => k != Company.Public && w.House(k) == null).ToList()) { co.Holders[Company.Public] = co.HeldBy(Company.Public) + co.Holders[gone]; co.Holders.Remove(gone); }
-            if (!co.Chartered && co.Holders.All(kv => kv.Key == Company.Public || kv.Value <= 0)) { Liquidate(w, co, "no house holds a share of it"); continue; }
+            SettleTheDead(w, co);   // a person's own shares outlive them only in someone else's name
+            foreach (var gone in co.Holders.Keys.Where(k => k != Company.Public && !IsPerson(k) && w.House(k) == null).ToList()) { co.Holders[Company.Public] = co.HeldBy(Company.Public) + co.Holders[gone]; co.Holders.Remove(gone); }
+            if (!co.Chartered && co.Holders.All(kv => kv.Key == Company.Public || IsPerson(kv.Key) || kv.Value <= 0)) { Liquidate(w, co, "no house holds a share of it"); continue; }
             Recontrol(w, co);
             int earnings = Earnings(w, co), earnedWas = co.LastEarnings; co.LastEarnings = earnings;
             // a monopoly's grantee takes its rent off the top
@@ -529,7 +530,7 @@ public sealed class CompanySystem
             co.Cause = CauseOf(w, co, pct, flow, outlook, earnings, earnedWas, m.Confidence - confWas);
             if (best.co == null || pct > best.pct) best = (co, pct); if (worst.co == null || pct < worst.pct) worst = (co, pct);
             // a rival with a tenth of a company you direct is public knowledge
-            if (mine != null && co.ControllerId == mine && co.Holders.Any(kv => kv.Key != mine && kv.Key != Company.Public && kv.Value * 100 >= co.Shares * r.PublicStakePct)) w.WorldFlags.Add(StakeFlag);
+            if (mine != null && co.ControllerId == mine && co.Holders.Any(kv => kv.Key != mine && kv.Key != Company.Public && !IsPerson(kv.Key) && kv.Value * 100 >= co.Shares * r.PublicStakePct)) w.WorldFlags.Add(StakeFlag);
         }
         SettleBonds(w);
         double indexWas = m.Index;

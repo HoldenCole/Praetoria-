@@ -9,6 +9,9 @@ public sealed class Company
 {
     /// <summary>The key under which shares not held by any house are counted: the public float.</summary>
     public const string Public = "public";
+    /// <summary>The prefix of the key under which a person holds shares in their own name (docs/WEALTH.md).</summary>
+    public const string PersonPrefix = "person:";
+    public static string PersonKey(string characterId) => PersonPrefix + characterId;
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
     /// <summary>The house that incorporated it; "" for a company chartered by the Senate.</summary>
@@ -18,7 +21,7 @@ public sealed class Company
     /// <summary>trade, extraction, arms, shipping, finance, services: what moves its outlook.</summary>
     public string Sector { get; set; } = "trade";
     public int Shares { get; set; } = 100;
-    /// <summary>House id (or <see cref="Public"/>) → shares held.</summary>
+    /// <summary>House id, <see cref="Public"/>, or <see cref="PersonKey"/> for a person's own holding → shares held.</summary>
     public Dictionary<string, int> Holders { get; set; } = new();
     /// <summary>Credits the company holds: earnings kept, capital raised. Spent only on its own projects.</summary>
     public int Cash { get; set; }

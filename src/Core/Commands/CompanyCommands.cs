@@ -130,3 +130,21 @@ public sealed class ThroneExchangeCommand : ICommand
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx) { if (_act == GrantAct) _cs.Grant(ctx.World, ctx.World.Company(_companyId)!, _houseId); else _cs.Seize(ctx.World, _houseId); }
 }
+
+/// <summary>Buy or sell shares in one's own name, out of one's own purse (docs/WEALTH.md "A purse that holds more than credits").</summary>
+public sealed class PrivateSharesCommand : ICommand
+{
+    private readonly string _companyId; private readonly int _n; private readonly bool _buy; private readonly CompanySystem _cs;
+    public PrivateSharesCommand(string actorId, string companyId, int shares, bool buy, CompanySystem cs) { ActorId = actorId; _companyId = companyId; _n = Math.Max(1, shares); _buy = buy; _cs = cs; }
+    public string ActorId { get; }
+    public string Describe() => $"{(_buy ? "buy" : "sell")} {_n} shares of {_companyId} in their own name";
+    public ShareQuote Quote(World w) => _buy ? _cs.QuotePrivateBuy(w, w.Char(ActorId), w.Company(_companyId), _n) : _cs.QuotePrivateSell(w, w.Char(ActorId), w.Company(_companyId), _n);
+    public string? Refusal(CommandContext ctx) => Quote(ctx.World).Refusal;
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var who = w.Char(ActorId)!; var co = w.Company(_companyId)!;
+        if (_buy) { if (_cs.BuyPrivately(w, who, co, _n)) w.Log($"{who.Name} buys {_n} share{(_n == 1 ? "" : "s")} of {co.Name} in their own name."); }
+        else if (_cs.SellPrivately(w, who, co, _n)) w.Log($"{who.Name} sells {_n} share{(_n == 1 ? "" : "s")} of {co.Name} out of their own holding.");
+    }
+}

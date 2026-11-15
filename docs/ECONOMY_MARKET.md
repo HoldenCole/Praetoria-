@@ -283,3 +283,10 @@ Measured before the rule was fixed (ten runs of one start): 3% of venture-years 
 unprofitable ones stayed so, which is what makes three years the right length: about twenty ventures a run are wound
 up over sixty years, of some hundred and ten standing at the end.
 
+## 12. Shares in a person's own name (2026-11-15)
+
+A holder of a company is a house, the public float, or now a person (docs/WEALTH.md, "A purse that holds more than
+credits"; docs/GAPS.md W1). A person buys out of their own purse at the price a house pays, may hold a tenth of a
+company, is paid their dividend into their purse, and is paid out like a house when a company is wound up. A
+person's shares are out of the float but carry no vote: who directs a company is still reckoned among houses only,
+and a company no house holds is still wound up, with its private holders paid. What is left is W10.

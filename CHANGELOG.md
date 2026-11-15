@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Shares in your own name** (docs/WEALTH.md, "A purse that holds more than credits"; docs/GAPS.md W1). You can buy
+  shares out of your own purse, up to a tenth of a company. What they pay goes into your purse, not the treasury;
+  they are not the house's, give it no say in the company, and go by your will. Relatives with a head for money buy
+  shares for themselves, and one in debt sells them; the purses list says what each holds. Whoever founded a
+  venture now draws a stake from it each year. An event for a relative's first purchase.
 - **Things a house comes by** (docs/WEALTH.md, "New things"; docs/GAPS.md W8). Three new kinds of thing to hand
   down. A shrine or a library can be made to order out of your own purse. A standard is sometimes taken in a battle
   by whoever commanded, and is theirs: flown from their flagship, the fleet grows more loyal. Another house

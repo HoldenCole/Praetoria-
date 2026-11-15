@@ -384,11 +384,18 @@ public sealed class AmbitionSystem
             }
         }
         foreach (var m in members.Where(m => m.Pursuit is { Fulfilled: false, Setbacks: > 0 })) m.Pursuit!.Note = (m.Pursuit.Note + $" Has failed at it {(m.Pursuit.Setbacks == 1 ? "once" : m.Pursuit.Setbacks + " times")}.").Trim();
-        // a founder who wanted a fortune takes a share of what their venture earns
+        // whoever founded a venture has a stake in it: a share of what it earns is theirs, whatever they wanted it for (docs/WEALTH.md)
         foreach (var b in w.BusinessesOf(house.Id).Where(b => b.FounderId.Length > 0))
         {
-            var f = w.Char(b.FounderId); if (f is not { Alive: true } || f.HouseId != house.Id || f.Pursuit?.Goal != "amass_a_fortune" && f.Ambition != "amass_a_fortune") continue;
-            int share = Math.Max(1, b.Level); if (house.Treasury.Credits >= share) { house.Treasury.Credits -= share; f.Purse += share; }
+            var f = w.Char(b.FounderId); if (f is not { Alive: true } || f.HouseId != house.Id) continue;
+            int share = FounderStake(b); if (house.Treasury.Credits >= share) { house.Treasury.Credits -= share; f.Purse += share; w.WorldCounters[FounderStakesKey] = w.Counter(FounderStakesKey) + share; }
         }
     }
+
+    public const string FounderStakesKey = "founder_stakes";
+    /// <summary>What a venture pays the one who founded it each year, out of what it brings the house.</summary>
+    public static int FounderStake(Business b) => Math.Max(1, b.Level);
+    /// <summary>The ventures someone founded that their house still has, and what each pays them.</summary>
+    public static List<(Business Venture, int Stake)> StakesOf(World w, Character c) =>
+        w.BusinessesOf(c.HouseId).Where(b => b.FounderId == c.Id).OrderBy(b => b.Id, StringComparer.Ordinal).Select(b => (b, FounderStake(b))).ToList();
 }

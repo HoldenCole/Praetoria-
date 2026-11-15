@@ -298,6 +298,7 @@ public static partial class WealthSystem
             if (fromPurse + fromHouse < c.LentHead && c.Id != heir.Id) { Regard(w, c, heir, -5); w.Log($"{dead.Name} died owing {c.Name} {c.LentHead - fromPurse - fromHouse} credits that nobody will see now."); }
             c.LentHead = 0; c.LentSince = -1; c.Flags.Remove(HeadOwesChar);
         }
+        CompanySystem.Leave(w, dead, heir, legatee, will.SharePct);   // shares in the dead head's own name go as the purse goes
         int purse = dead.Purse; dead.Purse = 0;
         if (purse < 0) { house.Treasury.Credits += purse; w.Log($"{dead.Name} died owing {-purse} credits. {house.Name} must pay it."); }
         else if (purse > 0)
@@ -337,7 +338,7 @@ public static partial class WealthSystem
         var house = w.House(dead.HouseId); var head = house != null ? Economy.HeadOf(w, house) : null; if (head == null || head.Id == dead.Id) return;
         if (dead.Purse < 0 && house != null) house.Treasury.Credits += dead.Purse; else head.Purse += dead.Purse;
         if (dead.LentHead > 0) { int pay = Math.Clamp(head.Purse, 0, dead.LentHead); head.Purse -= pay; dead.LentHead = 0; dead.LentSince = -1; }
-        dead.OwesKin = 0; dead.OwesKinId = "";
+        dead.OwesKin = 0; dead.OwesKinId = ""; CompanySystem.Leave(w, dead, head);
         dead.Purse = 0; dead.OwesHead = 0; dead.OwesSince = -1; foreach (var item in HeldBy(w, dead.Id)) item.HolderId = head.Id;   // what the dead owed is written off
     }
 
@@ -351,7 +352,7 @@ public static partial class WealthSystem
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null; if (p is not { Alive: true } || house == null) return;
         foreach (var c in w.Characters.Values) { if (!w.HasFlag(KinGaveFlag)) c.Flags.Remove(GaveChar); if (!w.HasFlag(WillReadFlag)) c.Flags.Remove(LegateeChar); if (!w.HasFlag(KinLentFlag)) c.Flags.Remove(KinLentChar); if (!w.HasFlag(StandardWonFlag)) c.Flags.Remove(WonStandardChar); if (!w.HasFlag(WeddingGiftFlag)) c.Flags.Remove(GaveGiftChar); }
         // the dead keep nothing; a holder who is gone or has left loses nothing, but the dead's things come home
-        foreach (var dead in w.Characters.Values.Where(c => !c.Alive && (c.Purse != 0 || w.Heirlooms.Any(h => h.HolderId == c.Id))).OrderBy(c => c.Id, StringComparer.Ordinal).ToList()) Lapse(w, dead);
+        foreach (var dead in w.Characters.Values.Where(c => !c.Alive && (c.Purse != 0 || w.Heirlooms.Any(h => h.HolderId == c.Id) || CompanySystem.HeldPersonally(w, c.Id).Count > 0)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList()) Lapse(w, dead);
 
         int give = AllowanceOf(house.Allowance);
         foreach (var c in Members(w, house))
