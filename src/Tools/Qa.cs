@@ -455,6 +455,7 @@ internal static class Qa
         {
             cands.Add(new VoteCommand(p.Id, m.Id, decisions.NextInt(0, 3) - 1));
             if (decisions.NextInt(0, 3) == 0) cands.Add(new VetoCommand(p.Id, m.Id, content.Offices, tc.Senate));
+            if (decisions.NextInt(0, 3) == 0) cands.Add(new ChairCommand(p.Id, m.Id, new[] { LadderSystem.HoldMotion, LadderSystem.SpeakFor, LadderSystem.SpeakAgainst }[decisions.NextInt(0, 3)], tc.Senate));
             if (others.Count > 0) { var t = others[decisions.NextInt(0, others.Count)]; cands.Add(new LobbyCommand(p.Id, m.Id, t.Id, decisions.NextInt(0, 2) == 0 ? 1 : -1, bribe: decisions.NextInt(0, 3) == 0)); }
         }
         if (others.Count > 0 && decisions.NextInt(0, 4) == 0) cands.Add(new DeclareWarCommand(p.Id, others[decisions.NextInt(0, others.Count)].Id, content.Fleets));

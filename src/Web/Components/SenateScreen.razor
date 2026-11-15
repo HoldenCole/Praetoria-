@@ -171,16 +171,26 @@
                 @foreach (var mo in sen.Docket)
                 {
                     int total = Math.Max(1, mo.ForWeight + mo.AgainstWeight);
+                    var motionNow = w.Motions.FirstOrDefault(x => x.Id == mo.Id); bool motionHeld = motionNow?.HeldOver == true; int motionChair = motionNow?.Chair ?? 0;
+                    bool tied = mo.ForWeight == mo.AgainstWeight && mo.ForWeight > 0; var presides = LadderSystem.Presiding(w);
+                    bool chairCarries = tied && presides != null && (presides.HouseId == house.Id ? mo.MyStance : mo.Stances.FirstOrDefault(x => x.HouseId == presides.HouseId)?.Stance ?? 0) > 0;
                     <div class="motion @(mo.AgainstMe ? "against" : mo.Mine ? "mine" : mo.Petition ? "petition" : "") @(watched?.Id == mo.Id ? "watched" : "")" @onclick="() => _watch = mo.Id">
-                        <div class="mo-head"><b>@mo.KindName</b> <span class="muted small">@(mo.Petition ? "the petition of" : "moved by") <span style="color:@mo.ProposerAccent">@mo.ProposerName</span> · vote @(mo.ProposedTurn < w.Turn ? "at the end of this turn" : "next session")</span></div>
+                        <div class="mo-head"><b>@mo.KindName</b> <span class="muted small">@(mo.Petition ? "the petition of" : "moved by") <span style="color:@mo.ProposerAccent">@mo.ProposerName</span> · vote @(mo.ProposedTurn < w.Turn ? "at the end of this year" : "next year")@(motionHeld ? " · held over by the Speaker" : "")@(motionChair != 0 ? $" · the chair has spoken {(motionChair > 0 ? "for" : "against")} it" : "")</span></div>
                         <div class="mo-text">@mo.Text</div>
-                        @{ var motionNow = w.Motions.FirstOrDefault(x => x.Id == mo.Id); int patronWish = motionNow != null ? senate.PatronWish(w, motionNow, house.Id) : 0; }
+                        @{ int patronWish = motionNow != null ? senate.PatronWish(w, motionNow, house.Id) : 0; }
                         @if (patronWish != 0) { <div class="small warn">Your patron, @(w.House(house.PatronId)?.Name), wants this @(patronWish > 0 ? "carried" : "thrown out"). How you vote will be noticed.</div> }
                         <div class="tally"><span class="for" style="width:@(100 * mo.ForWeight / total)%"></span><span class="against" style="width:@(100 * mo.AgainstWeight / total)%"></span></div>
-                        <div class="small tally-line"><b class="@(mo.ForWeight > mo.AgainstWeight ? "good" : "warn")">@(mo.ForWeight > mo.AgainstWeight ? "Carries" : mo.ForWeight == mo.AgainstWeight ? "Tied — fails" : "Fails") as the benches lean</b> <span class="muted">· for @mo.ForWeight · against @mo.AgainstWeight</span></div>
+                        <div class="small tally-line"><b class="@(mo.ForWeight > mo.AgainstWeight || chairCarries ? "good" : "warn")">@(mo.ForWeight > mo.AgainstWeight ? "Carries" : chairCarries ? $"Tied: carries on the casting vote of {presides!.Name}, presiding," : tied && presides != null ? $"Tied: fails, since {presides.Name}, presiding, is not for it," : mo.ForWeight == mo.AgainstWeight ? "Tied: fails" : "Fails") as the benches lean</b> <span class="muted">· for @mo.ForWeight · against @mo.AgainstWeight</span></div>
                         <div class="row small">
                             @foreach (var (stance, label) in new[] { (1, "Vote for"), (-1, "Vote against"), (0, "Abstain") })
                             { <button class="opt inline @(mo.MyStance == stance ? "here" : "")" @onclick="() => G.Execute(new VoteCommand(pid, mo.Id, stance))" @onclick:stopPropagation="true">@label</button> }
+                            @if (LadderSystem.SpeakerOf(w)?.Id == pid) { var holdNo = LadderSystem.ChairRefusal(w, p, motionNow, LadderSystem.HoldMotion); <button class="opt inline veto" disabled="@(holdNo != null)" title="@(holdNo ?? "As Speaker: it is not reached this year, and is voted next year. Once a year; whoever moved it will not thank you.")" @onclick="() => G.Execute(new ChairCommand(pid, mo.Id, LadderSystem.HoldMotion, G.Turn!.Senate))" @onclick:stopPropagation="true">Hold it over</button> }
+                            @if (presides?.Id == pid)
+                            {
+                                var forNo = LadderSystem.ChairRefusal(w, p, motionNow, LadderSystem.SpeakFor); var againstNo = LadderSystem.ChairRefusal(w, p, motionNow, LadderSystem.SpeakAgainst);
+                                <button class="opt inline" disabled="@(forNo != null)" title="@(forNo ?? "As presiding consul: the houses lean with the chair. Once a year.")" @onclick="() => G.Execute(new ChairCommand(pid, mo.Id, LadderSystem.SpeakFor, G.Turn!.Senate))" @onclick:stopPropagation="true">Speak for it from the chair</button>
+                                <button class="opt inline" disabled="@(againstNo != null)" title="@(againstNo ?? "As presiding consul: the houses lean with the chair. Once a year.")" @onclick="() => G.Execute(new ChairCommand(pid, mo.Id, LadderSystem.SpeakAgainst, G.Turn!.Senate))" @onclick:stopPropagation="true">Speak against it</button>
+                            }
                             @if (sen.Election is { AmConsul: true }) { <button class="opt inline veto" disabled="@(mo.VetoRefusal != null)" title="@(mo.VetoRefusal ?? "the consul's veto: struck from the docket, once a term")" @onclick="() => G.Execute(new VetoCommand(pid, mo.Id, c.Offices, G.Turn!.Senate))" @onclick:stopPropagation="true">Veto</button> }
                         </div>
                         <details @onclick:stopPropagation="true"><summary>The benches · whip them</summary>

@@ -258,3 +258,20 @@ public sealed class VetoCommand : ICommand
         w.Log($"{w.House(actor.HouseId)?.Name}, as consul, vetoes: {_senate.Describe(w, m)}");
     }
 }
+
+/// <summary>The chair's own acts on a motion before the Senate (docs/LADDER.md, "The chair"): the Speaker holds it over a year; the
+/// presiding consul speaks for it or against it from the chair. Free; once a year each.</summary>
+public sealed class ChairCommand : ICommand
+{
+    private readonly string _motionId, _what; private readonly SenateSystem _senate;
+    public ChairCommand(string actorId, string motionId, string what, SenateSystem senate) { ActorId = actorId; _motionId = motionId; _what = what; _senate = senate; }
+    public string ActorId { get; }
+    public string Describe() => $"chair {_what} {_motionId}";
+    public string? Refusal(CommandContext ctx) => LadderSystem.ChairRefusal(ctx.World, ctx.World.Char(ActorId), ctx.World.Motions.FirstOrDefault(x => x.Id == _motionId), _what);
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var m = w.Motions.First(x => x.Id == _motionId);
+        LadderSystem.Chair(w, w.Char(ActorId)!, m, _what, _senate.Describe(w, m));
+    }
+}

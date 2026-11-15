@@ -115,7 +115,7 @@ public sealed class SenateSystem
         int toProposer = Disp(head, proposerHead), toTarget = Disp(head, targetHead);
         var proposerHouseForSway = w.House(m.ProposerHouseId);
         int lean = toProposer >= 20 ? 1 : toProposer <= -20 ? -1 : 0;
-        lean += OldTie(w, def, m, head, houseId) + LadderSystem.CommitteeLean(w, def.Interest, m.ProposerHouseId, houseId);
+        lean += OldTie(w, def, m, head, houseId) + LadderSystem.CommitteeLean(w, def.Interest, m.ProposerHouseId, houseId) + LadderSystem.ChairLeanOf(w, m, houseId);
         // sway (docs/REPUBLIC.md stage 3): a house leans with whoever it depends on — its patron, its creditor, the house whose fuel
         // its fleets burn — for what that house wants, and against what is aimed at it
         if (proposerHouseForSway != null && proposerHouseForSway.Id != houseId) lean += Math.Min(2, OrderSystem.Sway(w, h, proposerHouseForSway).lean);
@@ -275,6 +275,7 @@ public sealed class SenateSystem
         // last turn's news is cleared before this turn's is written — the offices' and the benches' too, since resolving a motion sets theirs
         foreach (var f in TurnFlags.Concat(OfficeSystem.TurnFlags).Concat(FactionSystem.TurnFlags).Concat(ElectionSystem.TurnFlags).Concat(NationSystem.SenateTurnFlags)) w.WorldFlags.Remove(f);
         ElectionSystem.RivalVetoes(w, _offices, this);   // the consuls strike what strikes at them, before the vote
+        LadderSystem.ChairActs(w, this);   // the Speaker orders the docket and the presiding consul speaks from the chair (docs/LADDER.md, "The chair")
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn).ToList()) Resolve(w, m, mine);
         OfficeSystem.Tick(w, _offices);
         if (LadderSystem.Due(w, _offices)) LadderSystem.Hold(w, _offices, id => Weight(w, id));   // every fifth year the magistrates below the consulship (docs/LADDER.md), before the consuls
@@ -312,7 +313,8 @@ public sealed class SenateSystem
         }
         foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId)) if (!m.Votes.ContainsKey(h.Id)) m.Votes[h.Id] = Math.Sign(Lean(w, m, h.Id));   // the rivals declare
         var (f, a) = Tally(w, m);
-        m.ForWeight = f; m.AgainstWeight = a; m.Passed = f > a; m.Resolved = true; m.ResolvedTurn = w.Turn;
+        Character? casting = null; bool byChair = f == a && f > 0 && LadderSystem.CastingVote(w, m, out casting);   // a tied Senate goes as the presiding consul voted
+        m.ForWeight = f; m.AgainstWeight = a; m.Passed = f > a || byChair; m.Resolved = true; m.ResolvedTurn = w.Turn;
         if (mine != null && FactionSystem.Of(w, mine) is { } bench && bench.LeaderHouseId != mine && m.TargetId != mine && m.Votes.GetValueOrDefault(mine) != 0)
         {
             int expected = FactionSystem.LeaderStance(w, m, bench, id => RawLean(w, m, id));
@@ -328,7 +330,7 @@ public sealed class SenateSystem
             w.WorldCounters["motions_passed:" + m.ProposerHouseId] = w.Counter("motions_passed:" + m.ProposerHouseId) + 1;
             Apply(w, m, def, mine);
             if (m.ProposerHouseId == mine) w.WorldFlags.Add("motion_passed_mine");
-            w.Log($"The Senate carries it, {f} to {a}: {text}");
+            w.Log(byChair ? $"The Senate is tied, {f} to {a}, and {casting?.Name}, presiding, gives the casting vote for it: {text}" : $"The Senate carries it, {f} to {a}: {text}");
         }
         else
         {

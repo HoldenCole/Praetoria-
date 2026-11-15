@@ -134,13 +134,36 @@ takes the place of the senator's year.
 | Office | The choices |
 |---|---|
 | **Consul** (both) | **Call the magistrates to account**: up to two who took money this year are looked at, each caught one time in two and removed; trust +2 and +2 for each caught; every magistrate's house thinks −2 of you. **Send the fleet onto the lanes** of the most lawless region: lawlessness −4 for 4 credits of the capital's; its houses think +4. **Spend the year on your bench**: its houses +4, influence +2, trust −1. |
-| **Treasurer** | **Balance the books**: 5 credits found for the capital's purse, trust +1, legitimacy +1. **Forgive a region its levy**: the region that holds loosest gains 4 allegiance for 5 credits of the capital's; its houses think +4. **Let the contracts to your own house**: +10 credits, trust −3, and one time in four it comes out: the office is taken away and you may not stand for five years. |
-| **Speaker** | **Keep the order fair**: every bench's leader +2, trust +1, legitimacy +1. **Bring your own business forward**: influence +2, your bench's leader +4, the others −3. **Give an enemy no day**: the house you are worst at odds with thinks −10 of you, those who hate it think +5, trust −1. |
+| **Treasurer** | **Balance the books**: half the year's surplus is banked for the capital's purse (in a year of shortfall nothing is, and the Reach's own fleets each lose 5 readiness), trust +1, legitimacy +1. **Forgive a region its levy**: the region that holds loosest gains 4 allegiance for what its landed houses would have paid, out of the capital's purse; its houses think +4. **Let the contracts to your own house**: a third of what the year calls for (6 to 18 credits), trust −3, and one time in four it comes out: the office is taken away and you may not stand for five years. |
+| **Speaker** | **Keep the order fair**: every bench's leader +2, trust +1, legitimacy +1. **Bring your own business forward**: influence +2, your bench's leader +4, the others −3. **Give an enemy no day**: whatever that house has moved is held over a year; the house you are worst at odds with thinks −10 of you, those who hate it think +5, trust −1. |
 
 Other houses' officers decide by nature, at once, and what they do reaches you: a Treasurer who forgives your own
 region its levy and a Speaker who keeps your house off the floor each bring an event. A great office held and not used
 is noticed: trust −1 and legitimacy −1. A bench or a desk left empty costs its own house (the commons, or the
 merchants, think one the less of it), not the Reach's name.
+
+**The budget.** The Treasurer's charge has figures, drawn from the state of the Reach when the year's business is
+drawn and kept with it, so that what is read is what is decided. *What came in*: 2 credits assessed on each landed
+house of the Reach, less the 2 of every house whose home region is lawless (40 or more): the lanes lose it. *What is
+called for*: a credit for every hull of the Reach's own fleets, 2 for every region with lawlessness of 20 or more,
+and 2 for every region whose allegiance is under 60. The difference is the year's surplus or its shortfall, and the
+three choices are read against it: "34 credits were assessed on the landed houses and 30 came in: the lawless lanes
+lost 4. The Reach's own hulls call for 4, its lanes for 8 and its loose regions for 6: 18 in all. That leaves 12
+over."
+
+**The chair.** The great offices also act on the Senate's real business, on the docket itself.
+
+| Who | What | Cost and limit |
+|---|---|---|
+| **The Speaker** | **Holds a motion over**: it is not reached this year and is voted next year. | Once a year; a motion can be held over once. Whoever moved it thinks −6 of the Speaker's house; whoever it was aimed at, +4. Holding over what is aimed at the Speaker's own house costs a point of trust. |
+| **The presiding consul** (the senior; the junior when there is no senior) | **Speaks from the chair** for or against one motion: every house that neither moved it nor is its target leans with the chair by 1, and by 2 if it sits on no bench. | Once a year; once on a motion. The mover thinks +3 or −4 of the consul's house. |
+| **The presiding consul** | **The casting vote**: a tied Senate goes as the presiding consul's own house voted. A tie used to fail whoever was in the chair. | None: it is the office. |
+
+Officers of other houses use it by their interest, before the vote. A Speaker holds over a motion aimed at their own
+house or at their bench's leader. A presiding consul speaks against such a motion, or otherwise for one that a house
+of their own bench has moved. A motion of yours held over by another house's Speaker brings an event. The Senate
+screen shows on each motion whether it has been held over and what the chair has said, gives the Speaker and the
+presiding consul their buttons there, and says of a tied count which way the casting vote will take it.
 
 **A desk, and a posting.** The other two careers ask something of their ranks as well, of the people of your house.
 
@@ -424,7 +447,9 @@ Justice. The estate called the Magistrates is unchanged.
   (docs/GAPS.md X2).
 - Public trust is one number for the whole Reach: a region's own courts, or one office's name, are not told apart
   (docs/GAPS.md L10).
-- An office's charge is one of three things a year. A consul does not preside, a Treasurer has no budget with figures, a Speaker orders no actual motions (docs/GAPS.md O2).
+- The chair acts on one motion a year, and the budget is three choices read against figures. The Treasurer does not
+  set each head of the budget, the consuls do not summon or dismiss the Senate, and nothing is debated (docs/GAPS.md
+  O3).
 - No bribery, no prosecution of a former magistrate, no law on the order of offices that the Senate could change.
 - The censorship, the tribunate and provincial commands after office are not here.
 - The numbers (seats, ages, votes for backing, the weight of merit) are first guesses.

@@ -1868,6 +1868,99 @@
           ]
         }
       ]
+    },
+    {
+      "id": "my_motion_held_over",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "my_motion_held_over",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "protest_from_the_floor",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} rose and asked the Speaker, by name, on what day the house's motion would be reached. There was no answer. The question was the point, and it was heard."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "use_the_year",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing, and spent the year the Speaker had given them on the benches, one house at a time. A motion held over is a motion with a year to be whipped."
+            }
+          ]
+        },
+        {
+          "id": "let_it_be_known",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had it said in the squares that the Senate had a motion before it and a Speaker who would not let it be heard. It cost a little, and the squares enjoyed it."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ]
+        }
+      ]
     }
   ]
 }

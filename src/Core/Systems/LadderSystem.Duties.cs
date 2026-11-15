@@ -143,6 +143,7 @@ public static partial class LadderSystem
             var c = new OfficeBusiness { Id = $"charge_{w.Turn}_{held.OfficeId}", RungId = held.OfficeId, HolderId = holder.Id, Kind = Charge, Turn = w.Turn };
             c.RegionId = ChargeOf(def) == Consul ? MostLawless(w) ?? "" : ChargeOf(def) == Treasurer ? Loosest(w) ?? "" : "";
             if (ChargeOf(def) == Speaker) c.HouseA = Enemy(w, w.House(holder.HouseId))?.Id ?? "";
+            if (ChargeOf(def) == Treasurer) DrawBudget(w, c);
             w.OfficeWork.Add(c);
             if (p == null || holder.Id != p.Id) DecideDuty(w, offices, policy, holder, Charge, ChargeInclination(w, offices, holder, c));
         }
@@ -214,7 +215,7 @@ public static partial class LadderSystem
     }
     private static string ChargeSays(World w, OfficeBusiness b) => b.RungId.StartsWith("consul")
         ? "The year is in your name. The magistrates answer to you, the Reach's own fleet sails on your word, and your bench expects something of it."
-        : b.RungId == "treasurer" ? "The Reach's budget for the year is yours to draw up: what is saved, what is forgiven, and who is given the work."
+        : b.RungId == "treasurer" ? "The Reach's budget for the year is yours to draw up: what is saved, what is forgiven, and who is given the work." + BudgetSays(b)
         : "The order of business is yours: what the Senate hears, when, and what it never reaches.";
     /// <summary>What a relative does with a desk or a posting: by their nature.</summary>
     public static string DeskInclination(World w, OfficeCatalog offices, Character c, OfficeBusiness b)
@@ -272,12 +273,13 @@ public static partial class LadderSystem
             Account => "Call the magistrates to account. Whatever was taken this year is looked for, and what is found is punished. The magistrates are trusted more, and nobody who sits thanks you.",
             Sweep => b.RegionId.Length > 0 ? $"Send the Reach's fleet onto the lanes of {w.Galaxy?.Region(b.RegionId)?.Name}: lawlessness there falls by {SweepBy}, for {SweepCredits} credits of the capital's, and its houses remember it." : "No region is lawless enough to need the fleet.",
             Party => "Spend the year on your bench. Its houses are obliged to you and you gain influence; the magistrates are trusted a little less for it.",
-            Balance => $"Balance the books. {BalanceCredits} credits are found for the capital's purse, and your house is thought the better of.",
-            Remit => b.RegionId.Length > 0 ? $"Forgive {w.Galaxy?.Region(b.RegionId)?.Name} its levy for the year: it holds closer to the Reach (allegiance +{RemitBy}) for {RemitCredits} credits of the capital's, and its houses remember it." : "No region holds loosely enough to need it.",
-            Contracts => $"Let the Reach's contracts to your own house: {ContractCredits} credits. The magistrates are trusted less, and one time in four it comes out and the office is taken away.",
+            Balance => BudgetOf(b) is { Surplus: <= 0 } ? $"Balance the books: spend only what came in. Nothing is banked, and the Reach's own fleets go short ({FleetShort} readiness each). Your house is thought the better of."
+                : $"Balance the books. {BalanceSum(b)} credits are banked for the capital's purse, and your house is thought the better of.",
+            Remit => b.RegionId.Length > 0 ? $"Forgive {w.Galaxy?.Region(b.RegionId)?.Name} its levy for the year: it holds closer to the Reach (allegiance +{RemitBy}) for the {RemitSum(b)} credits its houses would have paid, out of the capital's purse, and its houses remember it." : "No region holds loosely enough to need it.",
+            Contracts => $"Let the Reach's contracts to your own house: {ContractSum(b)} credits. The magistrates are trusted less, and one time in four it comes out and the office is taken away.",
             Fair => "Keep the order of business fair. Every bench's leader thinks a little better of you, and so does the Reach.",
             Own => "Bring your own bench's business forward. You gain influence and its leader is obliged; the other benches' leaders are not pleased.",
-            Silence => b.HouseA.Length > 0 ? $"Give {w.House(b.HouseA)?.Name} no day in the Senate. They will hate you for it; those who hate them will not." : "You have no enemy worth the trouble.",
+            Silence => b.HouseA.Length > 0 ? $"Give {w.House(b.HouseA)?.Name} no day in the Senate: whatever they have moved is held over a year. They will hate you for it; those who hate them will not." : "You have no enemy worth the trouble.",
             CommitteeWork => w.Char(b.HolderId) is { } sen && w.House(sen.HouseId) is { } senHouse ? $"Do the work of {CommitteeName(CommitteeOf(w, senHouse))}. Your standing with it rises a point; you learn its business, and it does the Reach a little good."
                 : "Do the committee's work.",
             Whip => f == null ? "Your house sits on no bench." : f.LeaderHouseId == w.Char(b.HolderId)?.HouseId ? $"Hold {f.Name} together: every house on your bench thinks a little better of you." : $"Work for {f.Name}: its leader is obliged to you, and you gain a little influence.",
@@ -290,7 +292,7 @@ public static partial class LadderSystem
         var b = who != null ? DutyOf(w, who.Id, kind) : null; if (who?.Alive != true || b == null) return "nothing of the kind is waiting";
         if (!ChoicesOf(offices, b).Contains(choice)) return "not a thing to be done with it";
         if (choice is Sweep or Remit && b.RegionId.Length == 0) return choice == Sweep ? "no region is lawless enough to need the fleet" : "no region holds loosely enough to need it";
-        if (choice is Sweep or Remit && (RegionSystem.CapitalHolder(w)?.Treasury.Credits ?? 0) < (choice == Sweep ? SweepCredits : RemitCredits)) return "the capital's purse does not hold it";
+        if (choice is Sweep or Remit && (RegionSystem.CapitalHolder(w)?.Treasury.Credits ?? 0) < (choice == Sweep ? SweepCredits : RemitSum(b))) return "the capital's purse does not hold it";
         if (choice == Patrol && b.RegionId.Length == 0) return "the house has no home lanes to patrol";
         if (choice is Patrol or Drill && FleetSystem.StrengthOf(w, who.HouseId) <= 0) return "the house has no fleet";
         if (choice == Party && FactionSystem.Of(w, who.HouseId) == null) return "your house sits on no bench";
@@ -451,17 +453,20 @@ public static partial class LadderSystem
                     case Party:
                         foreach (var id in bench!.Members.Where(id => id != who.HouseId)) Shift(w, w.House(id), house, 4);
                         w.PoolsFor(who.Id).Influence += 2; MoveTrust(w, -1); break;
-                    case Balance: Purse(BalanceCredits); MoveTrust(w, 1); Legit(1); break;
+                    case Balance:
+                        Purse(BalanceSum(b)); MoveTrust(w, 1); Legit(1);
+                        if (BudgetOf(b) is { Surplus: < 0 }) foreach (var f in w.Fleets.Values.Where(f => f.Office).OrderBy(f => f.Id, StringComparer.Ordinal)) f.Readiness = Math.Max(0, f.Readiness - FleetShort);   // a year of shortfall, and the books square: the fleet goes short
+                        break;
                     case Remit:
                     {
-                        var rs = RegionSystem.StateOf(w, b.RegionId); rs.Allegiance = Math.Clamp(rs.Allegiance + RemitBy, 0, 100); Purse(-RemitCredits);
+                        var rs = RegionSystem.StateOf(w, b.RegionId); rs.Allegiance = Math.Clamp(rs.Allegiance + RemitBy, 0, 100); Purse(-RemitSum(b));
                         foreach (var h in w.Houses.Values.Where(h => h.Id != who.HouseId && HomeRegion(w, h.Id) == b.RegionId).OrderBy(h => h.Id, StringComparer.Ordinal)) Shift(w, h, house, 4);
                         if (!ours && mine != null && HomeRegion(w, mine) == b.RegionId) Mark(w, RemittedFlag);
                         if (ours || HomeRegion(w, mine ?? "") == b.RegionId) w.Log($"{who.Name}, {title.ToLowerInvariant()}, forgives {w.Galaxy?.Region(b.RegionId)?.Name} its levy for the year.");
                         break;
                     }
                     case Contracts:
-                        if (house != null) house.Treasury.Credits += ContractCredits; MoveTrust(w, -3);
+                        if (house != null) house.Treasury.Credits += ContractSum(b); MoveTrust(w, -3);
                         if (Hash(b.Id + ":exposed") % 4 == 0 && def != null)
                         {
                             OfficeSystem.Strip(w, def, "the Reach's contracts were let to their own house", false);
@@ -475,6 +480,7 @@ public static partial class LadderSystem
                     case Silence:
                     {
                         var foe = w.House(b.HouseA); Shift(w, foe, house, -10); MoveTrust(w, -1);
+                        foreach (var held in w.Motions.Where(x => x.Open && !x.HeldOver && x.ProposerHouseId == b.HouseA).OrderBy(x => x.Id, StringComparer.Ordinal).ToList()) HoldOver(w, held, null);   // what they moved is not reached
                         foreach (var h in w.Houses.Values.Where(h => h.Id != who.HouseId && h.Id != b.HouseA && Regard(w, h, foe) <= -20).OrderBy(h => h.Id, StringComparer.Ordinal)) Shift(w, h, house, 5);
                         if (b.HouseA == mine) { Mark(w, SilencedFlag); w.Log($"{who.Name}, {title.ToLowerInvariant()}, gives {foe?.Name} no day in the Senate this year."); }
                         else if (ours) w.Log($"{who.Name} gives {foe?.Name} no day in the Senate this year.");

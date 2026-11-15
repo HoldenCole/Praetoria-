@@ -1633,3 +1633,41 @@ after a year there the panel read "Your standing with it is 1 of 10".
 **Left, and mapped.** A committee has work to be done and no business of its own to decide: it reports nothing,
 examines nobody, holds no inquiry. Only the player's house has a standing that is earned; the others' is reckoned
 from their head's rank (L12).
+
+## 53. The chair, and a budget with figures — 2026-11-15
+
+**O2.** The charge of an office of the Reach was one decision a year from three, and none of the three touched
+anything real: the Speaker's "order of business" ordered no motion, the consul presided over nothing, and the
+Treasurer's budget was three fixed sums. Three things changed (docs/LADDER.md, "The chair" and "The budget").
+
+- **The Speaker** holds one motion a year over to the next; a motion can be held over once. Giving an enemy no day
+  now holds over whatever that house has moved.
+- **The presiding consul** speaks from the chair for or against one motion a year, and the houses that neither moved
+  it nor are its target lean with the chair. A tied Senate goes as the presiding consul's house voted; a tie used to
+  fail whoever sat in the chair.
+- **The Treasurer's budget** is drawn from the state of the Reach: what was assessed on the landed houses, what the
+  lawless lanes lost of it, and what the Reach's own hulls, its lanes and its loose regions call for. Balancing the
+  books banks half the surplus, and in a year of shortfall banks nothing and leaves the Reach's fleets short.
+  Forgiving a region costs what its houses would have paid. The contracts are a third of what the year calls for.
+
+Officers of other houses use the chair by their interest before each vote.
+
+**Measured.** The Republic probe (60 runs of 60 years): a Speaker held a motion over 9 times; a presiding consul
+spoke from the chair 155 times; **no vote tied, so the casting vote was never given**. That rule is proved by a test
+and has not been seen in play, and the register says so (O3). The Republic stood in all 60 runs. The great war was
+fought in 44 (43 before), 14 states broke away (15), 625 former magistrates were charged and 448 convicted (629 and
+436), and trust in the magistrates averaged 53 to 64 by start and was low in 8 of 60 runs, as before. The soak (33
+runs, a save and load in each; its player now uses the chair) passes with no drift. Survival: 0 of 10 on every start.
+
+**Not seen.** The event that follows a motion of yours being held over did not fire in the soak: its player seldom
+has a motion due in a year when a Speaker of another house has reason to hold it. It has a scripted test.
+
+705 tests (seven new).
+
+**Not looked at in the browser as the office-holder.** No start begins as Speaker or consul, and no script reaches
+either office, so the buttons on the Senate screen were not pressed in a browser. The screen was loaded with a motion
+on the docket and renders without error; the buttons' refusals and effects are the command's, which is tested.
+
+**Left, and mapped.** One motion a year each; three budget choices, not a budget whose heads are set; no summoning
+or dismissing the Senate; nothing debated (O3).
+

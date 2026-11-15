@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **The chair** (docs/LADDER.md; docs/GAPS.md O2). The Speaker can hold one motion a year over to the next. The
+  presiding consul can speak from the chair for or against one motion a year, and the houses lean with it; a tied
+  Senate now goes as the presiding consul voted. Officers of other houses do the same by their interest. The Senate
+  screen shows on each motion whether it was held over and what the chair said, and which way a tie would go.
+- **The Treasurer's budget has figures**: what the levy brought in, what the lawless lanes lost, and what the Reach's
+  hulls, lanes and loose regions call for. The three choices are sums read against that year's surplus or shortfall.
+- An event for a motion of yours that a Speaker does not reach.
 - **Houses and Worlds open with a sentence and six tiles**, like every other dashboard: where you stand and who is
   with and against you; what is yours, what is restless and what is there to be had. Their tables are as they were.
 - **The Chronicle, rebuilt** (docs/DASHBOARDS.md). One sentence on what the last year wrote of your house. Six tiles.
@@ -180,6 +187,8 @@
 - **The Senate's sword commands the Reach's own fleets** for as long as the civil war lasts.
 
 ### Changed
+- A Speaker who gives an enemy no day now holds over whatever that house has moved. Balancing the books banks half the
+  year's surplus, not a fixed 5 credits; forgiving a levy and the contracts are sums from the year's figures.
 - **A relative who means to restore the house now can.** They keep 3 credits and give the rest while the house is
   poor, and a venture they found counts toward it, by its cost and by what it brings in each year. It used to take a
   lifetime on an allowance.

@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (nineteenth pass: the Senate's committees; L8 closed, L12 mapped).
+Last updated 2026-11-15 (twentieth pass: the chair and the budget; O2 closed, O3 mapped).
 
 ## The worklist
 
@@ -18,9 +18,8 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | O2 | An office's charge with figures | next |
-| 2 | B5, B15, J5, L10 | The older free march as a state; houses that go to war over what is said; a junior's patron; trust by region and office | next |
-| 3 | A6, W8, W1 | Ventures that fail; heirlooms that are made and won; a purse that holds more than credits | next |
+| 1 | B5, B15, J5, L10 | The older free march as a state; houses that go to war over what is said; a junior's patron; trust by region and office | next |
+| 2 | A6, W8, W1 | Ventures that fail; heirlooms that are made and won; a purse that holds more than credits | next |
 
 **No small gap is left that is not the owner's.** What remains is a cycle or more each, and is worked in the order above.
 
@@ -68,7 +67,7 @@ These recur across systems. Closing one properly closes several lines below, so 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
 | J5 | A junior's standing with the one above them is kept for the player's house only, and the one above does one thing with it: speaks for them once at each rank. No patron who takes them along to a new post, and no falling out. | M | X1 |
-| O2 | The charge of an office of the Reach is one decision a year from three. A consul does not preside over anything, the Treasurer's budget has no figures, and the Speaker's order of business does not touch the motions actually on the docket. | M | The Senate |
+| O3 | The chair acts on one motion a year and the Treasurer's budget is three choices read against figures. The Treasurer does not set each head of the budget; the consuls do not summon or dismiss the Senate; nothing is debated; and a tied Senate, which the casting vote now settles, did not arise once in sixty measured runs. | M | The Senate |
 
 ## The Caesar road (docs/CAESAR.md)
 
@@ -182,3 +181,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | L2 | The player cannot bribe a magistrate or prosecute a former one. (A bent ruling is now appealed before a Justice.) | 2026-11-15 | A bent act in office is kept on a record for eight years. Once the magistrate no longer sits, the head of any house may bring a charge before a sitting praetor of a third house, whose verdict it is: the upright convict on the record, a friend of the accused's house lets them go, one for sale finds for the richer house, and before the rest it goes by who pleads better. Other houses bring charges too, one a year in the Reach, and the player's people are not excepted. A sitting praetor can be offered a sum: the upright refuse from the bench, and a bought ruling comes out one time in three. L11 is what is left. |
 | L5 | The work of office is one decision a year from three. A case has no facts beyond who is in the right; the accounts have no figures; the works are one sum. | 2026-11-15 | A case has a matter, a stake of 5 to 15 credits and a law that is plain, arguable or doubtful: the plainer the law, the more a ruling against it costs, and a doubtful one is not held against the judge. A praetor can bring the two houses to terms. The accounts show a surplus of 4 to 12 credits and where it came from, and that is what can be sent to a region or taken. An aedile can give lanes and grain both. L11 is what is left. |
 | L8 | A senator's year is one of three things. There are no committees, no standing with a committee, and no record of attendance beyond three absent years. | 2026-11-15 | Three standing committees (the Purse, the Fleet, the Laws); every house sits on one, by its head's service unless the head moves. A senator can spend the year on the committee's work, which raises their standing with it. At a standing of 3 the committee's other houses lean toward what the house moves on the committee's business; the highest standing at 6 or more has the chair. A year missed costs a point. The years sat and missed are kept, and count for or against a senator at any election. L12 is what is left. |
+| O2 | The charge of an office of the Reach is one decision a year from three. A consul does not preside over anything, the Treasurer's budget has no figures, and the Speaker's order of business does not touch the motions actually on the docket. | 2026-11-15 | The Speaker holds one motion a year over to the next (a motion once), and giving an enemy no day holds over what that house has moved. The presiding consul speaks from the chair on one motion a year and the houses lean with it, and a tied Senate goes as the presiding consul voted. The Treasurer's budget is drawn from the state of the Reach (what was assessed, what the lawless lanes lost, what the hulls, the lanes and the loose regions call for) and the three choices are sums read against it. Other houses' officers use all of it. In sixty runs a Speaker held a motion over 9 times and a consul spoke from the chair 155 times; no vote tied. O3 is what is left. |
