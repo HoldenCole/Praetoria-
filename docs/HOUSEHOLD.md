@@ -119,13 +119,18 @@ year. Whoever does the head's work (a steward, a marshal) is paid 2 a year into 
 pay keeps them all the same: each goes without, thinks 2 worse of the head that year, and an event asks what the head
 says about it. The household and wealth panels both show the yearly figure.
 
-Left, and mapped: the keep is the same for a child and a companion of sixty, and nobody ever leaves over it (H5).
+
+### The keep by standing, and going unpaid (H5, the same day)
+
+A grown person of standing (the fourth rank of a service or above) who was taken in costs 2 a year: they are kept as
+what they are. One who goes unpaid two years running, and thinks less than 20 of the head, goes. A grown person taken
+in goes home, if there is a home to go to; one doing the head's work lays it down. A child stays where they were put.
+A year paid in full starts the count again.
 
 ## Not in this piece
 
 - Only the player's house has a household. Other houses do not take people in, adopt, or delegate.
 - Wards are not hostages: nothing holds a house to good behaviour through a child in your keeping.
-- The keep is the same for everyone, and a house that cannot pay loses nobody (docs/GAPS.md H5).
 - The two duties cover routine only. A steward does not buy and sell on the Exchange, set the tithe, or found ventures;
   a marshal does not move fleets or choose tactics.
 - Three of the six events were not seen to fire in the soak (they need a protégé, a dishonest steward or a lost mentor,

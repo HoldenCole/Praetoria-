@@ -107,6 +107,8 @@ public sealed class Life
     public int RestedTurn { get; set; } = -1;
     /// <summary>What they did for the house last year as its elder, in a line (docs/LIFE.md).</summary>
     public string Counsel { get; set; } = "";
+    /// <summary>What the head has asked of them as the elder this year: "peace", "ease" or "speak"; empty when nothing.</summary>
+    public string Asked { get; set; } = "";
 }
 
 /// <summary>What was said when one of the house was buried.</summary>

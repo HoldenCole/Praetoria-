@@ -1484,3 +1484,47 @@ spouse move house, and which one), B13 and G1 to G7 (the forms of government).
 
 **Events not seen in the soak.** Four of the seven new events did not fire in it (they need a blood relative in a
 particular state); all seven have scripted tests (X4).
+
+## 49. The small ones left behind, and the figures owed — 2026-11-15
+
+**The figures owed from section 48**, on its final build (with the governor fix): the soak passes with no drift;
+`praetoria caesar --scenario all --seeds 10` over sixty Republic runs: the Republic stood in all 60, the great war
+broke out in 41, 9 states were recognised, no house went over to a state by itself, trust in the magistrates averaged
+54 to 63 by start. Survival: 0 of 10 on every start.
+
+**This pass** closes the five small gaps that section 48 mapped, so that no small gap is left that is not the
+owner's to decide:
+
+- **W7, relatives' purses.** The first attempt did not work, and the browser said so. Letting a careful person keep
+  thirty credits instead of twenty, offering a loan of five as well as ten, and letting a relative with six to spare
+  help another changed nothing in play: after twelve years on the Old Lion start nobody had seven credits. The cause
+  was income, not the cap. A person's service now pays them their rank and one more a year, where it paid half that.
+  Driven again: in year twelve a relative lent the head five.
+- **H5, the keep.** A grown person of standing costs two a year. One unpaid two years running, who thinks less than
+  20 of the head, goes home or lays down the work; a child stays.
+- **E7, a price that is not money.** One or two influence, for a word said for them in the right place.
+- **F7, asking the elder.** For one of the three things; done first and with a will, or the elder says why not. An
+  elder who thinks ill of the head keeps their own counsel.
+- **M6, who chooses a divorce.** After three years apart, with no child or with the houses fallen out, the head of
+  the house that took the dowry ends it; an upright head does not.
+
+**Seen in the browser, and changed.** The Risen Officer, the start that is about a junior officer, was told "the
+house has no ship for you to serve in": the J4 thread asked for a ship of the house's own and his house has no fleet.
+A junior officer now serves in a ship of their patron's, or failing that of the house that holds the capital. Driven
+again: "You serve in The Aurelian Guard of House Aurelian under Placidia Aurelian, who does not yet know your name."
+
+**Measured** on this pass's final build. The soak (33 runs of sixty years with a save and load in each) passes with no drift;
+its player founded nine states. The Republic probe, sixty Republic runs: the Republic stood in all 60; the great war
+broke out in 40; 12 states were recognised; one house went over to a state by itself; trust in the magistrates
+averaged 54 to 63 by start. Survival, eighty passive runs: **one line ended**, the Circling Heir on seed 4, where the
+last pass had none. The survival probe now says how a line ended, so this one can be read: the house fought House
+Morrow over its only world for twenty years, ran out of fuel in year 35, lost the world in year 51 and ended in
+year 53. That is a house losing a war with nobody at the helm, not a fault; but it is a line lost that was not lost
+before, and it is written here as such. The other seventy-nine stood.
+
+684 tests (four new, and the divorce test extended to cover who chooses and who does not).
+
+**What is left.** 43 rows open: 32 a cycle each and 6 several cycles. Of the 5 marked small, four are the owner's
+(C9, C6, M4, B13) and the fifth is the standing note about events the soak does not reach (X4). The next rows in
+order are L2, L5, L8 and O2 (a magistrate prosecuted; cases with facts; a senator's committees; an office's charge
+with figures), each a cycle.

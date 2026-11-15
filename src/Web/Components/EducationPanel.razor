@@ -61,7 +61,12 @@
                     @if (no == null && !would)
                     {
                         int price = EducationSystem.StudyPrice(w, p, c, skill); var noPay = new EducationCommand(pid, EducationCommand.AskAndPay, cid, skill).Refusal(G.Ctx); string payLabel = "…for " + price + " of your own";
-                        if (price > 0) { <button class="opt inline tiny" disabled="@(noPay != null)" title="@(noPay ?? PayTip)" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.AskAndPay, cid, skill))">@payLabel</button> }
+                        if (price > 0)
+                        {
+                            int word = EducationSystem.FavourPrice(w, p, c, skill); var noWord = new EducationCommand(pid, EducationCommand.AskAndSpeak, cid, skill).Refusal(G.Ctx); string wordLabel = "…or a word for them · " + word + " influence";
+                            <button class="opt inline tiny" disabled="@(noPay != null)" title="@(noPay ?? PayTip)" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.AskAndPay, cid, skill))">@payLabel</button>
+                            <button class="opt inline tiny" disabled="@(noWord != null)" title="@(noWord ?? WordTip)" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.AskAndSpeak, cid, skill))">@wordLabel</button>
+                        }
                     }
                 }
                 @foreach (var t in teachers)
@@ -84,6 +89,7 @@
     private const string AskYes = "They would do it for the asking.";
     private const string AskNo = "They would refuse, and think the less of you for asking.";
     private const string PayTip = "They name a price, you pay it out of your own purse, and they turn to it. A bargain: nobody thinks the worse of anybody.";
+    private const string WordTip = "Not money: you have a word said for them in the right place. They turn to it, and think a little better of you.";
     private const string ThankTip = "A purse out of your own, to the one of the house who is bringing them on. They will think the better of you for noticing.";
     private const string TeachTip = "They take them under their wing and pass on a step every third year.";
     /// <summary>Three things worth asking of them: the skills of their service and of rule that they have most room left in.</summary>

@@ -129,13 +129,20 @@ what the elder did last year.
 - **In a match.** A family whose head is an old friend is readier to marry into the house (+10); an old enemy's is
   not (−15).
 
+### Asking the elder (F7, the same day)
+
+The head can ask the elder for one of the three things this year. What was asked is done first, and done with a will
+(2 more than unasked; and the elder takes work off the head's desk however little the head is carrying). If it cannot
+be done (nobody is at odds, nobody still thinks well of the old head) the elder does whatever most wants doing and
+says so. An elder who thinks ill of the head keeps their own counsel and is not to be asked; nor is one who is ill.
+
 ## Not in this piece
 
 - **Only your house has a record.** Nobody else's deeds are kept, so nobody else has renown or a name, and only your own
   dead are spoken over.
 - **Reputation is only renown.** There is no ill fame: nothing a person does is held against them as a person.
 - **No duels**, and no wound but in battle.
-- The elder cannot be asked for anything, and the elders of other houses do nothing (docs/GAPS.md F7).
+- The elders of other houses do nothing (docs/GAPS.md X1).
 - Two of the seven events (the wound, the elder at the table) were not seen to fire in the soak.
 - The numbers are first guesses. Health makes the hale live a little longer and the very old die a little sooner; what
   that does to the length of a reign has only been checked for not breaking a line.

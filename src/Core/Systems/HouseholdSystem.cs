@@ -30,7 +30,7 @@ public sealed class HouseholdSystem
     // world flags raised by a deed, kept through the next events phase
     public const string TookInFlag = "took_someone_in", AdoptedFlag = "adopted_an_heir", WardStayedFlag = "ward_stayed", WardLeftFlag = "ward_went_home", SkimsFlag = "steward_skims", MentorLostFlag = "mentor_lost", MentorTaughtFlag = "mentor_taught";
     private static readonly string[] TickFlags = { FoundFamilyFlag, HasMentorFlag, HasProtegeFlag, HasWardFlag, PetitionFlag, DelegatedFlag, UnpaidFlag };
-    private static readonly string[] DeedFlags = { TookInFlag, AdoptedFlag, WardStayedFlag, WardLeftFlag, SkimsFlag, MentorLostFlag, MentorTaughtFlag, "kin_found_a_mentor" };
+    private static readonly string[] DeedFlags = { TookInFlag, AdoptedFlag, WardStayedFlag, WardLeftFlag, SkimsFlag, MentorLostFlag, MentorTaughtFlag, "kin_found_a_mentor", LeftUnpaidFlag };
 
     private readonly HoldingCatalog _holdings; private readonly BusinessCatalog _ventures; private readonly TitleCatalog? _titles; private readonly TradeRules _trade; private readonly int _fuelHullsPerUnit;
     public HouseholdSystem(HoldingCatalog holdings, BusinessCatalog ventures, TitleCatalog? titles, TradeRules trade, int fuelHullsPerUnit = 3)
@@ -55,9 +55,12 @@ public sealed class HouseholdSystem
     public static string KindName(string kind) => kind switch { Ward => "ward", Protege => "protégé", Companion => "companion", _ => "of the household" };
     public static List<Character> Found(World w, string houseId) =>
         w.LivingCharacters().Where(c => c.HouseId == houseId && IsFound(c)).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
-    public const int KeepEach = 1, Stipend = 2;
+    public const int KeepEach = 1, KeepOfStanding = 2, StandingRank = 3, Stipend = 2, LeavesAfter = 2, StaysAtRegard = 20; public const string LeftUnpaidFlag = "household_left_unpaid";
+    /// <summary>What one who was taken in costs a year: a credit, and two for a grown person of standing, who is kept as one.</summary>
+    public static int KeepOf(Character c) => c.Age >= Adult && c.CareerRank >= StandingRank ? KeepOfStanding : KeepEach;
+    private static string UnpaidKey(string id) => "unpaid_years:" + id;
     /// <summary>What the household costs the treasury a year: the keep of those taken in, and the stipends of those who do the head's work.</summary>
-    public static int Keep(World w, House house) => Found(w, house.Id).Count * KeepEach + house.Duties.Count(d => w.Char(d.HolderId) is { Alive: true }) * Stipend;
+    public static int Keep(World w, House house) => Found(w, house.Id).Sum(KeepOf) + house.Duties.Count(d => w.Char(d.HolderId) is { Alive: true }) * Stipend;
     /// <summary>How many the house can keep who are not of its blood: two, and one more for each step of rank.</summary>
     public static int Room(House h) => 2 + Title.RankOf(h.Title);
 
@@ -391,16 +394,30 @@ public sealed class HouseholdSystem
         // Keeping them (docs/HOUSEHOLD.md): a credit a year for each who is not of the blood, and a stipend into the purse of whoever
         // does the head's work. A house that cannot pay keeps them anyway, and they notice.
         int unpaid = 0;
+        // One who goes unpaid two years running, and does not think well enough of the head to bear it, goes: a grown person
+        // taken in goes home, if there is a home; one doing the head's work lays it down. A child stays where they were put.
         foreach (var c in Found(w, house.Id))
         {
-            if (house.Treasury.Credits >= KeepEach) house.Treasury.Credits -= KeepEach;
-            else { unpaid++; if ((w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) > -20) Regard(w, c, p, -2); }
+            int keep = KeepOf(c);
+            if (house.Treasury.Credits >= keep) { house.Treasury.Credits -= keep; w.WorldCounters.Remove(UnpaidKey(c.Id)); continue; }
+            unpaid++; if ((w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) > -20) Regard(w, c, p, -2);
+            int years = w.Counter(UnpaidKey(c.Id)) + 1; w.WorldCounters[UnpaidKey(c.Id)] = years;
+            if (years >= LeavesAfter && c.Age >= Adult && (w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) < StaysAtRegard && w.House(c.BornHouseId) != null)
+            {
+                w.WorldCounters.Remove(UnpaidKey(c.Id)); Mark(w, LeftUnpaidFlag); w.Log($"{c.Name} has gone unpaid in {house.Name} for {years} years, and goes."); Release(w, p, c, theirChoice: true);
+            }
         }
-        foreach (var d in house.Duties.OrderBy(d => d.Role, StringComparer.Ordinal))
+        foreach (var d in house.Duties.OrderBy(d => d.Role, StringComparer.Ordinal).ToList())
         {
             if (w.Char(d.HolderId) is not { Alive: true } holder) continue;
-            if (house.Treasury.Credits >= Stipend) { house.Treasury.Credits -= Stipend; holder.Purse += Stipend; }
-            else { unpaid++; if ((w.GetRelationship(holder.Id, p.Id)?.Disposition ?? 0) > -20) Regard(w, holder, p, -2); }
+            if (house.Treasury.Credits >= Stipend) { house.Treasury.Credits -= Stipend; holder.Purse += Stipend; w.WorldCounters.Remove(UnpaidKey(holder.Id)); continue; }
+            unpaid++; if ((w.GetRelationship(holder.Id, p.Id)?.Disposition ?? 0) > -20) Regard(w, holder, p, -2);
+            int years = w.Counter(UnpaidKey(holder.Id)) + 1; w.WorldCounters[UnpaidKey(holder.Id)] = years;
+            if (years >= LeavesAfter && (w.GetRelationship(holder.Id, p.Id)?.Disposition ?? 0) < StaysAtRegard)
+            {
+                house.Duties.Remove(d); w.WorldCounters.Remove(UnpaidKey(holder.Id)); Mark(w, LeftUnpaidFlag);
+                w.Log($"{holder.Name} has done the {RoleName(d.Role).ToLowerInvariant()}'s work unpaid for {years} years, and lays it down.");
+            }
         }
         if (unpaid > 0) { w.WorldFlags.Add(UnpaidFlag); w.Log($"{house.Name} cannot pay for its household this year. {unpaid} of its people go without, and know it."); }
 

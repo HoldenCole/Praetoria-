@@ -216,8 +216,10 @@ when, and what it costs.
 Closed straight off the register on 2026-11-15 (docs/GAPS.md J4, L9).
 
 **Somebody above them, by name.** A junior's year is no longer three things in the air. The advocate's brief is heard
-by a named judge; the clerk has a named senior at a desk; the junior officer serves in a named ship of the house under
-whoever commands it. It is the same person year after year while they live and keep their place, and one of the
+by a named judge; the clerk has a named senior at a desk; the junior officer serves in a named ship under whoever
+commands it: one of their own house's, failing that their patron's, failing that one of the house that holds the
+capital, which is the Reach's own. (As first built it had to be the house's own, and the Risen Officer, whose house
+has no fleet, was told there was no ship for him. Seen in the browser, and changed the same day.) It is the same person year after year while they live and keep their place, and one of the
 junior's own house if it has one.
 
 | The junior does | What the one above thinks |

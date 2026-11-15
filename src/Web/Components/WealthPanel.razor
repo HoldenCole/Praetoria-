@@ -57,8 +57,11 @@
                     }
                     else if (c.OwesHead == 0)
                     {
-                        var noAsk = new WealthCommand(pid, WealthCommand.Borrow, cid, LoanSum).Refusal(G.Ctx); string askTip = noAsk ?? (WealthSystem.BorrowOwed(c, 10) > 10 ? "They would lend it, and want " + WealthSystem.BorrowOwed(c, 10) + " back." : BorrowTip);
-                        <button class="opt inline tiny" disabled="@(noAsk != null)" title="@askTip" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Borrow, cid, LoanSum))">Borrow @LoanSum</button>
+                        foreach (int sum in Borrows)
+                        {
+                            string amt = sum.ToString(); var noAsk = new WealthCommand(pid, WealthCommand.Borrow, cid, amt).Refusal(G.Ctx); string askTip = noAsk ?? (WealthSystem.BorrowOwed(c, sum) > sum ? "They would lend it, and want " + WealthSystem.BorrowOwed(c, sum) + " back." : BorrowTip);
+                            <button class="opt inline tiny" disabled="@(noAsk != null)" title="@askTip" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Borrow, cid, amt))">Borrow @sum</button>
+                        }
                     }
                     @if (c.OwesKin > 0) { string kinOwes = "owes " + (w.Char(c.OwesKinId)?.Name ?? "one of the house") + " " + c.OwesKin; <span class="pill small">@kinOwes</span> }
                 </span>
@@ -141,7 +144,7 @@
     private const string EntailTip = "It goes with the house from now on, to whoever has it, and cannot be sold, given or willed away. The old families approve.";
     private const string BreakTip = "Done in a court. The house loses standing, the old families think the worse of it, and your blood kin do not forget why.";
     private const string Treasury = "treasury", Purse = "purse", Zero = "0", LoanSum = "10";
-    private static readonly int[] Gifts = { 5, 10 };
+    private static readonly int[] Gifts = { 5, 10 }; private static readonly int[] Borrows = { 5, 10 };
     private const string GiftTip = "Out of your own purse, once a year. It is theirs to do as they like with, and they will think the better of you.";
     private const string LendTip = "Out of your own purse. They pay it back as they can. Left six years unpaid it sits between you.";
     private const string ForgiveTip = "They owe you nothing more, and will not forget it.";

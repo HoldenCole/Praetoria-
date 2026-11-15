@@ -19,7 +19,7 @@ public static class WealthSystem
     public const string Mean = "mean", Customary = "customary", Generous = "generous";
     public static readonly string[] Allowances = { Mean, Customary, Generous };
     public const string Entail = "entail", Portions = "portions";
-    public const int Adult = DynastySystem.AgeOfMajority, DebtAt = -8, ScandalAt = -20, PortionPct = 10, ComfortablePurse = 20;
+    public const int Adult = DynastySystem.AgeOfMajority, DebtAt = -8, ScandalAt = -20, PortionPct = 10, ComfortablePurse = 30;
     // each year
     public const string DebtFlag = "kin_in_debt", ResentedFlag = "allowance_resented";
     // deeds
@@ -41,7 +41,7 @@ public static class WealthSystem
     public static int AllowanceOf(string policy) => policy == Generous ? 3 : policy == Mean ? 0 : 1;
     public static string AllowanceSays(string policy) => policy == Generous ? "They think the better of you for it, year by year." : policy == Mean ? "They think the worse of you for it, year by year, and the wilful most of all." : "Nobody remarks on it.";
     /// <summary>What a person's own service pays them.</summary>
-    public static int Pay(Character c) => c.CareerTrack.Length > 0 ? (c.CareerRank + 1) / 2 : 0;
+    public static int Pay(Character c) => c.CareerTrack.Length > 0 ? c.CareerRank + 1 : 0;
     public static List<Character> Members(World w, House house) =>
         w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= Adult).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
     public static int AllowanceBill(World w, House house) => Members(w, house).Count(c => c.Id != w.ProtagonistId) * AllowanceOf(house.Allowance);
@@ -230,7 +230,7 @@ public static class WealthSystem
         Regard(w, to, head, -1); w.Log($"{head.Name} lends {to.Name} {amount} credits, to be paid back as {to.OwesHead}.");
     }
 
-    public const int InterestPart = 5, LendsAtRegard = 20, KeepsBack = 2, KinLendsAtRegard = 30, KinLendsFrom = 10;
+    public const int InterestPart = 5, LendsAtRegard = 20, KeepsBack = 2, KinLendsAtRegard = 30, KinLendsFrom = 6;
     public const string KinLentFlag = "kin_lent_to_kin", HeadOwesFlag = "head_owes_too_long", KinLentChar = "lent_to_kin", HeadOwesChar = "is_owed_by_the_head";
     private static bool Grasping(Character c) => c.AptitudeTraits.Contains("Greedy") || c.Ambition == "amass_a_fortune";
 

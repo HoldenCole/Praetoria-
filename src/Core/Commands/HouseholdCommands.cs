@@ -88,7 +88,7 @@ public sealed class DelegateCommand : ICommand
 /// <see cref="Tutor"/>: a paid teacher for yourself or anyone of the house (0 none, 1 good, 2 the best).</summary>
 public sealed class EducationCommand : ICommand
 {
-    public const string Study = "study", Upbringing = "upbringing", Tutor = "tutor", Ask = "ask", Teach = "teach", AskAndPay = "ask_and_pay", Thank = "thank";
+    public const string Study = "study", Upbringing = "upbringing", Tutor = "tutor", Ask = "ask", Teach = "teach", AskAndPay = "ask_and_pay", AskAndSpeak = "ask_and_speak", Thank = "thank";
     private readonly string _what, _personId, _value;
     public EducationCommand(string actorId, string what, string personId, string value) { ActorId = actorId; _what = what; _personId = personId; _value = value; }
     public string ActorId { get; }
@@ -102,6 +102,8 @@ public sealed class EducationCommand : ICommand
             case Ask: return EducationSystem.AskRefusal(w, head, who, _value);
             case Teach: return EducationSystem.TeachRefusal(w, head, who, w.Char(_value));
             case AskAndPay: return EducationSystem.AskAndPayRefusal(w, head, who, _value);
+            case AskAndSpeak:
+                return EducationSystem.AskAndSpeakRefusal(w, head, who, _value) ?? (ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = EducationSystem.FavourPrice(w, head, who, _value) }) ? null : "no influence");
             case Thank: return EducationSystem.ThankRefusal(w, head, who);
             case Study:
                 if (who.Id != head.Id) return "what they study is their own affair; you may ask";
@@ -125,6 +127,11 @@ public sealed class EducationCommand : ICommand
         if (_what == Ask) EducationSystem.Ask(ctx.World, ctx.World.Char(ActorId)!, who, _value);
         else if (_what == Teach) EducationSystem.SetToTeach(ctx.World, ctx.World.Char(ActorId)!, who, ctx.World.Char(_value)!);
         else if (_what == AskAndPay) EducationSystem.AskAndPay(ctx.World, ctx.World.Char(ActorId)!, who, _value);
+        else if (_what == AskAndSpeak)
+        {
+            var head = ctx.World.Char(ActorId)!; ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = EducationSystem.FavourPrice(ctx.World, head, who, _value) });
+            EducationSystem.AskAndSpeak(ctx.World, head, who, _value);
+        }
         else if (_what == Thank) EducationSystem.Thank(ctx.World, ctx.World.Char(ActorId)!, who);
         else if (_what == Study) who.Study = _value; else if (_what == Upbringing) who.Upbringing = _value; else who.Tutor = int.Parse(_value);
     }
@@ -218,7 +225,7 @@ public sealed class AmbitionCommand : ICommand
 /// <see cref="Physicians"/>: 6 credits from your own purse. <see cref="Retire"/>: lay the house down in life to your heir.</summary>
 public sealed class LifeCommand : ICommand
 {
-    public const string Rest = "rest", Physicians = "physicians", Retire = "retire", Send = "send";
+    public const string Rest = "rest", Physicians = "physicians", Retire = "retire", Send = "send", AskElder = "ask_elder";
     private static readonly Dictionary<string, int> RestCost = new() { [Pool.Influence] = LifeSystem.RestInfluence };
     private readonly string _what, _personId;
     public LifeCommand(string actorId, string what, string personId = "") { ActorId = actorId; _what = what; _personId = personId; }
@@ -233,6 +240,7 @@ public sealed class LifeCommand : ICommand
             Physicians => LifeSystem.PhysicianRefusal(w, me),
             Retire => LifeSystem.RetireRefusal(w, me),
             Send => LifeSystem.SendRefusal(w, me, w.Char(_personId)),
+            AskElder => LifeSystem.AskElderRefusal(w, me, _personId),
             _ => "no such thing"
         };
     }
@@ -243,6 +251,7 @@ public sealed class LifeCommand : ICommand
         if (_what == Rest) { ctx.PoolsOf(ActorId).Spend(RestCost); LifeSystem.Rest(w, me); }
         else if (_what == Physicians) LifeSystem.Physicians(w, me);
         else if (_what == Send) LifeSystem.Send(w, me, w.Char(_personId)!);
+        else if (_what == AskElder) LifeSystem.AskElder(w, me, _personId);
         else LifeSystem.Retire(w, me);
     }
 }

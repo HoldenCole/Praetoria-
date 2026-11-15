@@ -51,8 +51,16 @@ public static partial class LadderSystem
     // ---------------- the thread from year to year: who is above a junior (docs/LADDER.md) ----------------
 
     public const int StandingAt = 20, StandingOdds = 8, KinBenchOdds = 15, SpokenAfter = 3; public const string SpokenForFlag = "kin_spoken_for", SpokenForChar = "spoken_for";
-    /// <summary>The ship a junior officer serves in: the first of their house's fleets that somebody else commands.</summary>
-    public static Fleet? ShipOf(World w, Character c) => w.Fleets.Values.Where(f => f.OwnerId == c.HouseId && f.AdmiralId != c.Id).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+    /// <summary>The ship a junior officer serves in: a fleet of their own house that somebody else commands; failing that one of
+    /// their patron's; failing that one of the house that holds the capital, which is the Reach's own. One with a living
+    /// commander before one without.</summary>
+    public static Fleet? ShipOf(World w, Character c)
+    {
+        var house = w.House(c.HouseId); string patron = house?.PatronId ?? "", chair = RegionSystem.CapitalHolder(w)?.Id ?? "";
+        int Near(Fleet f) => f.OwnerId == c.HouseId ? 0 : f.OwnerId == patron ? 1 : 2;
+        return w.Fleets.Values.Where(f => f.AdmiralId != c.Id && f.Strength > 0 && (f.OwnerId == c.HouseId || (patron.Length > 0 && f.OwnerId == patron) || (chair.Length > 0 && f.OwnerId == chair && PolitySystem.InReach(w, c.HouseId))))
+            .OrderBy(Near).ThenByDescending(f => w.Char(f.AdmiralId) is { Alive: true }).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+    }
     /// <summary>The one above a junior, by name, and the same one year after year while they live and keep their place: the judge
     /// an advocate appears before, a clerk's senior, a junior officer's captain. One of their own house if it has one.</summary>
     public static Character? Above(World w, Character c)
@@ -254,7 +262,7 @@ public static partial class LadderSystem
             Pad => $"Pad an account: {PadCredits} credits to your own purse. One time in five it is found, and it is written against you.",
             Watches => "Stand your watches. You learn your trade.",
             Volunteer => "Volunteer for the patrol. You learn gunnery, the home lanes are a little safer, and one time in ten you come back hurt.",
-            Mess => "Make friends in the mess. The officers think the better of your house, a crew of the house's is a little steadier, and you learn something of leading.",
+            Mess => "Make friends in the mess. The officers think the better of your house, the crew you serve with is a little steadier, and you learn something of leading.",
             Assess => "Assess it fairly. The merchants think the better of your house" + (b.RegionId.Length > 0 ? $", {w.Galaxy?.Region(b.RegionId)?.Name} holds a little closer" : "") + ", and the magistrates are trusted a little more.",
             Press => $"Press the collection: {PressCredits} credits more for the house. The commons think the less of it" + (b.RegionId.Length > 0 ? $", and {w.Galaxy?.Region(b.RegionId)?.Name} holds a little less closely." : "."),
             Skim => $"Keep a share: {SkimCredits} credits to your own purse. One time in four the returns are reopened, and you are broken a grade.",
@@ -516,7 +524,7 @@ public static partial class LadderSystem
     /// <summary>Who is above them this year, and what that one thinks of them so far.</summary>
     public static string AboveSays(World w, OfficeBusiness b)
     {
-        var who = w.Char(b.HolderId); var above = w.Char(b.SubjectId); if (who == null || above is not { Alive: true }) return b.Kind == Watch ? " The house has no ship for you to serve in." : "";
+        var who = w.Char(b.HolderId); var above = w.Char(b.SubjectId); if (who == null || above is not { Alive: true }) return b.Kind != Watch ? "" : w.Fleets.GetValueOrDefault(b.RightId) is { } idle ? $" You serve in {idle.Name}, which has nobody in command this year." : " There is no ship for you to serve in.";
         int regard = w.GetRelationship(above.Id, who.Id)?.Disposition ?? 0; bool kin = above.HouseId == who.HouseId;
         string thinks = regard >= StandingAt ? "thinks well of you" : regard >= 5 ? "has begun to notice you" : regard <= -10 ? "thinks little of you" : "does not yet know your name";
         string whose = kin ? "of your own house" : "of " + (w.House(above.HouseId)?.Name ?? "another house");
@@ -524,7 +532,7 @@ public static partial class LadderSystem
         {
             Brief => $" It will be heard by {above.Name}, {whose}, who {thinks}.",
             Ledgers => $" Your senior is {above.Name}, {whose}, who {thinks}.",
-            _ => $" You serve in {w.Fleets.GetValueOrDefault(b.RightId)?.Name ?? "the house's ships"} under {above.Name}, who {thinks}."
+            _ => $" You serve in {w.Fleets.GetValueOrDefault(b.RightId)?.Name ?? "the house's ships"}{(w.Fleets.GetValueOrDefault(b.RightId) is { } ship && ship.OwnerId != who.HouseId ? " of " + (w.House(ship.OwnerId)?.Name ?? "the Reach") : "")} under {above.Name}, who {thinks}."
         };
     }
 

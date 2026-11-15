@@ -227,7 +227,7 @@ public static class CourtshipSystem
         return v;
     }
 
-    public const int OldFriendMatch = 10, OldEnemyMatch = -15, NpcDivorcePct = 6;
+    public const int OldFriendMatch = 10, OldEnemyMatch = -15, ApartYears = 3, DivorceRegard = -20;
     /// <summary>Old ties in a match (docs/LIFE.md): a family whose head has been the player's friend for years is the readier to
     /// marry into the player's house; one whose head is an old enemy is not.</summary>
     public static int OldTie(World w, Character theirs)
@@ -664,11 +664,21 @@ public static class CourtshipSystem
             bool ours = mine != null && (a.HouseId == mine || b.HouseId == mine);
             if (!m.Estranged && m.Warmth <= EstrangedAt) { m.Estranged = true; if (ours) w.Log($"{a.Name} and {b.Name} no longer live under one roof."); }
             else if (m.Estranged && m.Warmth >= ReconciledAt) { m.Estranged = false; if (ours) w.Log($"{a.Name} and {b.Name} are reconciled."); }
-            // Other houses end marriages too: one that has gone on apart is, now and then, ended. The one whose house had the
-            // dowry gives it back.
-            if (!ours && m.Estranged && a.Alive && b.Alive && Hash(m.A + ":" + m.B + ":parted:" + w.Turn) % 100 < NpcDivorcePct)
+            // Other houses end marriages too, and somebody chooses it (docs/MARRIAGE.md): when a couple has lived apart three years,
+            // and there is no child of the two or the two houses have fallen out, the head of the house that took the dowry ends
+            // it and gives the dowry back. An upright head does not.
+            string apart = $"apart:{m.A}:{m.B}";
+            if (!m.Estranged) w.WorldCounters.Remove(apart);
+            else if (!ours && a.Alive && b.Alive)
             {
-                Divorce(w, m.DowryFrom == a.HouseId ? b : a, deed: false); w.WorldCounters["divorces_in_the_reach"] = w.Counter("divorces_in_the_reach") + 1; continue;
+                int years = w.Counter(apart) + 1; w.WorldCounters[apart] = years;
+                var who = m.DowryFrom == a.HouseId ? b : a; var chooser = Head(w, who.HouseId); var theirHead = Head(w, (who == a ? b : a).HouseId);
+                bool fallenOut = chooser != null && theirHead != null && chooser.Id != theirHead.Id && (w.GetRelationship(chooser.Id, theirHead.Id)?.Disposition ?? 0) <= DivorceRegard;
+                bool upright = chooser == null || chooser.NatureTraits.Contains("Honorable") || chooser.NatureTraits.Contains("Loyal");
+                if (years >= ApartYears && !upright && (children == 0 || fallenOut))
+                {
+                    w.WorldCounters.Remove(apart); Divorce(w, who, deed: false); w.WorldCounters["divorces_in_the_reach"] = w.Counter("divorces_in_the_reach") + 1; continue;
+                }
             }
             if (a.HouseId != b.HouseId)
             {

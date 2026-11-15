@@ -35,6 +35,16 @@
         </div>
     }
     @if (elder != null) { <div class="muted small elder-line">@elder.Name laid the house down and is its elder still. Their old friends are the house's while they live.@(counsel.Length > 0 ? " Last year: " + counsel : "")</div> }
+    @if (elder != null)
+    {
+        <div class="suit-acts elder-asks"><span class="muted small">Ask the elder to</span>
+            @foreach (var (what, label, tip) in ElderAsks)
+            {
+                string ask = what; var no = new LifeCommand(p.Id, LifeCommand.AskElder, ask).Refusal(G.Ctx); bool set = elder.Life?.Asked == what;
+                <button class="opt inline tiny @(set ? "here" : "")" disabled="@(no != null && !set)" title="@(set ? "Asked. It is theirs to do this year." : no ?? tip)" @onclick="() => G.Execute(new LifeCommand(p.Id, LifeCommand.AskElder, ask))">@label</button>
+            }
+        </div>
+    }
     @if (tieLine.Length > 0) { <div class="muted small tie-line">@tieLine</div> }
 
     <div class="ac-fact"><span>Old friends</span><p>@(friends.Count == 0 ? "Nobody outside the house has thought well of you long enough to be called one." : string.Join("; ", friends.Take(5).Select(kv => Tie(kv.Key, kv.Value) + (w.Turn - kv.Value >= LifeSystem.OldTieYears ? "" : " (not yet old)"))) + ".")</p></div>
@@ -49,6 +59,12 @@
 </section>
 
 @code {
+    private static readonly (string what, string label, string tip)[] ElderAsks =
+    {
+        (LifeSystem.AskPeace, "make peace in the house", "If two of the house are at odds, the elder sits them down this year before anything else, and does it with a will."),
+        (LifeSystem.AskEase, "take some of the work", "The elder takes work off your desk this year, however much or little you are carrying."),
+        (LifeSystem.AskSpeak, "speak for you", "The elder speaks for you this year to whoever still thinks best of the old head.")
+    };
     private const string SendTip = "Their health +6, and an illness cured; from your own purse. They will remember who sent them.";
     private bool _confirm, _all;
     protected override void OnInitialized() => G.Changed += Redraw;

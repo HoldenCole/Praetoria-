@@ -151,8 +151,18 @@ The panel says what each does where it is.
 - **A bride** puts half her own purse toward her portion, up to half of what is due, before the head's purse or the
   treasury is touched.
 
-Found while building it, and mapped: relatives' purses are small, so the Borrow button is usually dark (W7); an
-heirloom is one of four kinds and no house ever comes by a new one (W8).
+Found while building it, and mapped: an heirloom is one of four kinds and no house ever comes by a new one (W8).
+
+### Purses that hold something (W7, the same day)
+
+Seen in play: the Borrow button was nearly always dark. Raising what a careful person keeps (twenty credits to thirty),
+offering five as well as ten, and letting a relative with six to spare help another, did not change that: driven
+again in the browser for twelve years, nobody had seven credits. The cause was income. A person's service paid them
+half their rank a year, and an allowance one more; the proud spent it and the rest saved a credit or two a year.
+
+**A person's service now pays them their rank and one more a year.** Driven again on the Old Lion start: in year
+twelve a relative lent the head five, and is owed it. Purses are still small (two to four credits beside that loan),
+which is as it should be for people living on an allowance; they are no longer empty.
 
 ## Not in this piece
 

@@ -157,7 +157,7 @@
 </section>
 
 @code {
-    private static readonly string KeepNote = $"Each person taken in costs the treasury {HouseholdSystem.KeepEach} a year; whoever does your work is paid {HouseholdSystem.Stipend} a year into their own purse.";
+    private static readonly string KeepNote = $"Each person taken in costs the treasury {HouseholdSystem.KeepEach} a year ({HouseholdSystem.KeepOfStanding} for a grown person of standing); whoever does your work is paid {HouseholdSystem.Stipend} a year into their own purse. Unpaid {HouseholdSystem.LeavesAfter} years running, one who does not think well of you goes.";
     // A panel with no parameters is not redrawn when its parent is, so it listens for the world changing itself: without this
     // it showed last year's figures after End Turn until something in it was clicked.
     protected override void OnInitialized() => G.Changed += Redraw;

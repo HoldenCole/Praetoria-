@@ -284,26 +284,57 @@ public static class LifeSystem
             var o = w.Char(id)!; if (o.HouseId == house.Id || p.Life!.Enemies.ContainsKey(id)) continue;
             o.Flags.Add(OldFriendChar); w.WorldFlags.Add(OldFriendFlag); _ = since;
         }
+        string asked = e.Life.Asked; e.Life.Asked = "";
         if (e.Flags.Contains(IllChar) || e.Health < Frail) { e.Life.Counsel = "Too unwell this year to do more than be there."; return; }
         int Reg(Character a, Character b) => w.GetRelationship(a.Id, b.Id)?.Disposition ?? 0;
-        var grown = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= Adult && c.Id != e.Id).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
-        foreach (var a in grown)
-            foreach (var b in grown.Where(b => string.CompareOrdinal(a.Id, b.Id) < 0))
-            {
-                if (Math.Min(Reg(a, b), Reg(b, a)) > QuarrelAt) continue;
-                foreach (var (x, y) in new[] { (a, b), (b, a) }) { var r = w.Relationship(x.Id, y.Id); r.Disposition = Math.Clamp(r.Disposition + ElderPeace, -100, 100); }
-                a.Flags.Add(PeaceMadeChar); b.Flags.Add(PeaceMadeChar); Mark(w, ElderPeaceFlag);
-                e.Life.Counsel = $"Sat {a.Name} and {b.Name} down together. It is better between them than it was."; w.Log($"{e.Name} sits {a.Name} and {b.Name} down together, and it is better between them than it was."); return;
-            }
-        if (p.Stress >= 50) { p.Stress = Math.Max(0, p.Stress - ElderEases); e.Life.Counsel = $"Took some of the work off {p.Name}'s desk."; return; }
-        var friend = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).Select(h => Economy.HeadOf(w, h))
-            .Where(o => o is { Alive: true } && Reg(o, e) >= 30 && Reg(o, p) < 60).OrderByDescending(o => Reg(o!, e)).ThenBy(o => o!.Id, StringComparer.Ordinal).FirstOrDefault();
-        if (friend != null)
+        // what was asked is done first, and done with a will; then whatever else most wants doing
+        bool Peace(int more)
         {
-            var r = w.Relationship(friend.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition + ElderSpeaks, -100, 100);
-            e.Life.Counsel = $"Spoke for {p.Name} to {friend.Name} of {w.House(friend.HouseId)?.Name}, who still thinks well of the old head."; return;
+            var grown = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= Adult && c.Id != e.Id).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
+            foreach (var a in grown)
+                foreach (var b in grown.Where(b => string.CompareOrdinal(a.Id, b.Id) < 0))
+                {
+                    if (Math.Min(Reg(a, b), Reg(b, a)) > QuarrelAt) continue;
+                    foreach (var (x, y) in new[] { (a, b), (b, a) }) { var r = w.Relationship(x.Id, y.Id); r.Disposition = Math.Clamp(r.Disposition + ElderPeace + more, -100, 100); }
+                    a.Flags.Add(PeaceMadeChar); b.Flags.Add(PeaceMadeChar); Mark(w, ElderPeaceFlag);
+                    e.Life!.Counsel = $"Sat {a.Name} and {b.Name} down together. It is better between them than it was."; w.Log($"{e.Name} sits {a.Name} and {b.Name} down together, and it is better between them than it was."); return true;
+                }
+            return false;
         }
-        e.Life.Counsel = "Kept their own counsel this year.";
+        bool Ease(int more, int from)
+        {
+            if (p.Stress < from) return false;
+            p.Stress = Math.Max(0, p.Stress - ElderEases - more); e.Life!.Counsel = $"Took some of the work off {p.Name}'s desk."; return true;
+        }
+        bool Speak(int more)
+        {
+            var friend = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).Select(h => Economy.HeadOf(w, h))
+                .Where(o => o is { Alive: true } && Reg(o, e) >= 30 && Reg(o, p) < 60).OrderByDescending(o => Reg(o!, e)).ThenBy(o => o!.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (friend == null) return false;
+            var r = w.Relationship(friend.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition + ElderSpeaks + more, -100, 100);
+            e.Life!.Counsel = $"Spoke for {p.Name} to {friend.Name} of {w.House(friend.HouseId)?.Name}, who still thinks well of the old head."; return true;
+        }
+        if (asked == AskPeace && Peace(AskedMore) || asked == AskEase && Ease(AskedMore, 1) || asked == AskSpeak && Speak(AskedMore)) { e.Life.Counsel += " You had asked it."; return; }
+        if (Peace(0) || Ease(0, 50) || Speak(0)) { if (asked.Length > 0) e.Life.Counsel += " What you asked could not be done this year."; return; }
+        e.Life.Counsel = asked.Length > 0 ? "What you asked could not be done this year, and nothing else wanted doing." : "Kept their own counsel this year.";
+    }
+
+    public const string AskPeace = "peace", AskEase = "ease", AskSpeak = "speak"; public const int AskedMore = 2;
+    /// <summary>The head asks the elder for one thing this year. It is the elder's to do, and one who thinks ill of the head
+    /// keeps their own counsel.</summary>
+    public static string? AskElderRefusal(World w, Character? head, string what)
+    {
+        var house = head != null ? w.House(head.HouseId) : null; if (head?.Alive != true || house == null || Economy.HeadOf(w, house)?.Id != head.Id) return "only the head of the house asks it";
+        if (what is not (AskPeace or AskEase or AskSpeak)) return "no such thing to ask";
+        var e = ElderOf(w, house); if (e == null) return "the house has no elder";
+        if (e.Flags.Contains(IllChar) || e.Health < Frail) return "they are too unwell to be asked";
+        if ((w.GetRelationship(e.Id, head.Id)?.Disposition ?? 0) < 0) return "they keep their own counsel where you are concerned";
+        return e.Life?.Asked == what ? "you have asked it" : null;
+    }
+    public static void AskElder(World w, Character head, string what)
+    {
+        var e = ElderOf(w, w.House(head.HouseId)!)!; e.Life ??= new Life(); e.Life.Asked = what;
+        w.Log($"{head.Name} asks {e.Name} to {(what == AskPeace ? "make peace in the house" : what == AskEase ? "take some of the work" : "speak for them where the old name still counts")}.");
     }
 
     /// <summary>Old ties at the count (docs/LIFE.md): those who have been the head's friends for years canvass for the people of

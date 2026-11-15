@@ -3,6 +3,16 @@
 ## [Unreleased]
 
 ### Added
+- **Ask the elder.** The head can ask the elder for one thing this year: to make peace in the house, to take some of
+  the work, or to speak for them. An elder who thinks ill of the head keeps their own counsel.
+- **A price that is not money.** A relative who would want a sum to study something will take a word said for them in
+  the right place instead: one or two influence, and an empty purse is no bar.
+- **Going unpaid has an end.** One of the household unpaid two years running, who does not think well of the head,
+  goes home or lays down the work. A grown person of standing costs two a year to keep.
+- **Another house's divorce is somebody's choice**: after three years apart, with no child or with the houses fallen
+  out, the head of the house that took the dowry ends it. An upright head does not.
+- **A person's service pays them their rank and one more a year** (it had been half that), so that relatives have
+  something of their own to lend, give or lose. The head can ask to borrow five as well as ten.
 - **An entail.** The head can bind a thing of the house's own name to the house: it goes with whoever has the house,
   whatever a will says, and cannot be sold, given or left away. Breaking it is done in court and is remembered. An old
   name's own heirloom is entailed from the start.

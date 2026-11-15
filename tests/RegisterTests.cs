@@ -324,14 +324,31 @@ public class RegisterTests
         var a = new Character { Id = "np_a", Name = "Npc A", HouseId = others[0].Id, Age = 30, Sex = "male" }; var b = new Character { Id = "np_b", Name = "Npc B", HouseId = others[1].Id, Age = 28, Sex = "female" };
         foreach (var c in new[] { a, b }) { c.NatureTraits.Add("Cruel"); c.NatureTraits.Add("Arrogant"); w.Characters[c.Id] = c; w.House(c.HouseId)!.Members.Add(c.Id); }
         others[1].Treasury.Credits = 100; others[0].Treasury.Credits = 100; var m = CourtshipSystem.Wed(w, a, b, CourtshipSystem.Arranged, CourtshipSystem.Customary); int dowry = m.Dowry; Assert.True(dowry > 0);
-        int got = others[1].Treasury.Credits; bool ended = false;
+        var chooser = Economy.HeadOf(w, others[0])!; chooser.NatureTraits.Remove("Honorable"); chooser.NatureTraits.Remove("Loyal");   // the house that took the dowry: its head ends it
+        int got = others[1].Treasury.Credits; bool ended = false; int years = 0;
         for (int i = 0; i < 80 && !ended; i++)
         {
+            years++;
             m.Warmth = 0; m.Estranged = true; others[0].Treasury.Credits = Math.Max(others[0].Treasury.Credits, dowry); int before = others[1].Treasury.Credits;
             w.Turn++; CourtshipSystem.Tick(w); ended = !w.Marriages.Contains(m);
             if (ended) Assert.Equal(before + dowry, others[1].Treasury.Credits);   // the dowry goes back
         }
-        Assert.True(ended); Assert.Null(w.MarriageOf(a.Id)); Assert.False(w.HasFlag(CourtshipSystem.DivorcedFlag)); Assert.True(w.Counter("divorces_in_the_reach") >= 1); _ = got;
+        Assert.True(ended); Assert.Equal(CourtshipSystem.ApartYears, years);   // M6: it is chosen, in the third year apart, not thrown for
+        Assert.Null(w.MarriageOf(a.Id)); Assert.False(w.HasFlag(CourtshipSystem.DivorcedFlag)); Assert.True(w.Counter("divorces_in_the_reach") >= 1); _ = got;
+        // M6: an upright head does not end it; and with a child of the two, and the houses on terms, nobody does
+        bool Ended(bool upright, bool child)
+        {
+            var (_, wx, mex, minex, _) = Start(); var ho = wx.Houses.Values.Where(h => h.Id != minex.Id && h.Id != PirateSystem.HouseId && Economy.HeadOf(wx, h) != null).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+            var x = new Character { Id = "np_x", Name = "Npc X", HouseId = ho[0].Id, Age = 30, Sex = "male" }; var y = new Character { Id = "np_y", Name = "Npc Y", HouseId = ho[1].Id, Age = 28, Sex = "female" };
+            foreach (var c in new[] { x, y }) { wx.Characters[c.Id] = c; wx.House(c.HouseId)!.Members.Add(c.Id); }
+            var h0 = Economy.HeadOf(wx, ho[0])!; var h1 = Economy.HeadOf(wx, ho[1])!; h0.NatureTraits.Remove("Honorable"); h0.NatureTraits.Remove("Loyal"); if (upright) h0.NatureTraits.Add("Honorable");
+            wx.Relationship(h0.Id, h1.Id).Disposition = 30; wx.Relationship(h1.Id, h0.Id).Disposition = 30;
+            var mx = CourtshipSystem.Wed(wx, x, y, CourtshipSystem.Arranged);
+            if (child) { var kid = new Character { Id = "np_kid", Name = "Npc Kid", HouseId = ho[0].Id, Age = 3, Sex = "male", FatherId = x.Id, MotherId = y.Id }; wx.Characters[kid.Id] = kid; ho[0].Members.Add(kid.Id); }
+            for (int i = 0; i < 8; i++) { mx.Warmth = 0; mx.Estranged = true; wx.Relationship(h0.Id, h1.Id).Disposition = 30; wx.Turn++; CourtshipSystem.Tick(wx); if (!wx.Marriages.Contains(mx)) return true; }
+            return false;
+        }
+        Assert.True(Ended(upright: false, child: false)); Assert.False(Ended(upright: true, child: false)); Assert.False(Ended(upright: false, child: true));
         // the player's own marriage is never ended for them
         var (_, w2, me2, mine2, _) = Start(); var wife = w2.LivingCharacters().First(c => c.HouseId != mine2.Id && c.Sex != me2.Sex && c.Age >= 18 && w2.MarriageOf(c.Id) == null && w2.House(c.HouseId) != null);
         if (w2.MarriageOf(me2.Id) is { } old) w2.Marriages.Remove(old);
@@ -440,5 +457,83 @@ public class RegisterTests
         var (_, w3, me3, mine3, _) = Start(); var lt = Kin(w3, mine3, me3, "lt"); lt.CareerTrack = "military"; lt.CareerRank = 1;
         if (LadderSystem.ShipOf(w3, lt) is { } ship) Assert.Equal(ship.AdmiralId.Length > 0 && w3.Char(ship.AdmiralId) is { Alive: true } ? ship.AdmiralId : null, LadderSystem.Above(w3, lt)?.Id);
         else Assert.Null(LadderSystem.Above(w3, lt));
+        // a house with no ship of its own: its junior officer serves in one of the Reach's, the capital holder's
+        var chair = RegionSystem.CapitalHolder(w3);
+        if (chair != null && chair.Id != mine3.Id && w3.Fleets.Values.Any(f => f.OwnerId == chair.Id && f.Strength > 0))
+        {
+            foreach (var f in w3.Fleets.Values.Where(f => f.OwnerId == mine3.Id).ToList()) w3.Fleets.Remove(f.Id);
+            mine3.PatronId = ""; var theirs = LadderSystem.ShipOf(w3, lt); Assert.NotNull(theirs); Assert.Equal(chair.Id, theirs!.OwnerId);
+            var b = new OfficeBusiness { Id = "watch_x", RungId = LadderSystem.Watch, HolderId = lt.Id, Kind = LadderSystem.Watch, Turn = w3.Turn, RightId = theirs.Id, SubjectId = LadderSystem.Above(w3, lt)?.Id ?? "" };
+            Assert.Contains(theirs.Name, LadderSystem.DutySays(w3, Content.Policies, b)); Assert.DoesNotContain("no ship", LadderSystem.DutySays(w3, Content.Policies, b));
+        }
+    }
+
+    // ---------------- W7, H5, E7, F7: the small ones mapped while closing the others ----------------
+
+    [Fact]
+    public void W7_A_relative_who_lives_within_their_means_has_something_to_lend()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me); mine.Allowance = WealthSystem.Generous; mine.Treasury.Credits = 500;
+        var k = Kin(w, mine, me, "kin", 40, "Honorable"); k.Purse = 0; k.CareerTrack = "law"; k.CareerRank = 3;
+        for (int i = 0; i < 12; i++) WealthSystem.Tick(w);
+        Assert.InRange(k.Purse, 12, WealthSystem.ComfortablePurse);                       // enough to be asked for five or ten
+        me.Purse = 0; Assert.Null(WealthSystem.BorrowRefusal(w, me, k, 5)); Assert.Null(WealthSystem.BorrowRefusal(w, me, k, 10));
+        Assert.True(WealthSystem.KinLendsFrom <= 6);
+    }
+
+    [Fact]
+    public void H5_The_keep_goes_by_standing_and_one_unpaid_two_years_running_goes()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Alone(w, mine, me); mine.Petitions.Clear(); var theirs = w.Houses.Values.First(h => h.Id != mine.Id && h.Id != PirateSystem.HouseId);
+        Character Guest(string id, int age, int rank, int regard)
+        {
+            var g = new Character { Id = id, Name = "Guest " + id, HouseId = theirs.Id, Age = age, Sex = "male", CareerTrack = age >= 16 ? "law" : "", CareerRank = rank }; w.Characters[id] = g; theirs.Members.Add(id);
+            w.Relationship(id, me.Id).Disposition = 90; HouseholdSystem.TakeIn(w, me, g, age < 16 ? HouseholdSystem.Ward : HouseholdSystem.Companion); w.Relationship(id, me.Id).Disposition = regard; return g;
+        }
+        var great = Guest("great", 45, HouseholdSystem.StandingRank, 10); var plain = Guest("plain", 30, 0, 60); var child = Guest("child", 9, 0, 0);
+        Assert.Equal(HouseholdSystem.KeepOfStanding, HouseholdSystem.KeepOf(great)); Assert.Equal(HouseholdSystem.KeepEach, HouseholdSystem.KeepOf(plain)); Assert.Equal(HouseholdSystem.KeepEach, HouseholdSystem.KeepOf(child));
+        Assert.Equal(HouseholdSystem.KeepOfStanding + 2 * HouseholdSystem.KeepEach, HouseholdSystem.Keep(w, mine));
+        mine.Treasury.Credits = 0; tc.Household.Tick(w, tc.Executor, ctx); Assert.Contains(great.Id, mine.Members);                 // one bad year is borne
+        mine.Treasury.Credits = 0; w.Relationship(great.Id, me.Id).Disposition = 10; w.Relationship(plain.Id, me.Id).Disposition = 60; tc.Household.Tick(w, tc.Executor, ctx);
+        Assert.DoesNotContain(great.Id, mine.Members); Assert.Equal(theirs.Id, great.HouseId); Assert.True(w.HasFlag(HouseholdSystem.LeftUnpaidFlag));
+        Assert.Contains(plain.Id, mine.Members); Assert.Contains(child.Id, mine.Members);   // one who thinks well of the head stays, and a child stays where they were put
+        // paid again, the count starts over
+        mine.Treasury.Credits = 50; tc.Household.Tick(w, tc.Executor, ctx); mine.Treasury.Credits = 0; w.Relationship(plain.Id, me.Id).Disposition = 0; tc.Household.Tick(w, tc.Executor, ctx);
+        Assert.Contains(plain.Id, mine.Members);
+    }
+
+    [Fact]
+    public void E7_A_relative_may_be_paid_in_a_word_instead_of_a_sum()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Alone(w, mine, me); var k = Kin(w, mine, me, "kin", 30, "Proud");
+        string skill = EducationSystem.All.First(s => k.Skill(s) < EducationSystem.Ceiling(k, s) && k.Study != s);
+        Assert.Equal(1, EducationSystem.FavourPrice(w, me, k, skill)); me.Purse = 0; w.PoolsFor(me.Id).Influence = 0;
+        Assert.False(tc.Executor.TryExecute(new EducationCommand(me.Id, EducationCommand.AskAndSpeak, k.Id, skill), ctx));   // no influence
+        w.PoolsFor(me.Id).Influence = 3; int regard = w.Relationship(k.Id, me.Id).Disposition;
+        Assert.True(tc.Executor.TryExecute(new EducationCommand(me.Id, EducationCommand.AskAndSpeak, k.Id, skill), ctx));   // an empty purse is no bar
+        Assert.Equal(skill, k.Study); Assert.Equal(2, w.PoolsFor(me.Id).Influence); Assert.Equal(regard + 2, w.Relationship(k.Id, me.Id).Disposition); Assert.Equal(0, me.Purse);
+        w.Relationship(k.Id, me.Id).Disposition = 20; k.Study = ""; Assert.Equal(2, EducationSystem.FavourPrice(w, me, k, skill));
+        w.Relationship(k.Id, me.Id).Disposition = 0; Assert.False(tc.Executor.TryExecute(new EducationCommand(me.Id, EducationCommand.AskAndSpeak, k.Id, skill), ctx));   // not for anything
+    }
+
+    [Fact]
+    public void F7_The_head_can_ask_the_elder_for_one_thing_and_an_elder_who_thinks_ill_of_them_keeps_their_own_counsel()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me); var e = Elder(w, mine, me);
+        var a = Kin(w, mine, me, "a_kin"); var b = Kin(w, mine, me, "b_kin"); w.Relationship(a.Id, b.Id).Disposition = -30; me.Stress = 20; me.Health = 90;
+        // unasked, the quarrel comes first; asked to take the work, the elder does that instead, and with a will
+        Assert.True(Do(w, new LifeCommand(me.Id, LifeCommand.AskElder, LifeSystem.AskEase))); Assert.Equal(LifeSystem.AskEase, e.Life!.Asked);
+        Assert.False(Do(w, new LifeCommand(me.Id, LifeCommand.AskElder, LifeSystem.AskEase)));   // asked already
+        LifeSystem.Tick(w, Content);
+        Assert.Equal(-30, w.Relationship(a.Id, b.Id).Disposition); Assert.Contains("desk", e.Life.Counsel); Assert.Contains("You had asked it", e.Life.Counsel); Assert.Equal("", e.Life.Asked);
+        Assert.True(me.Stress <= 20 - LifeSystem.ElderEases - LifeSystem.AskedMore + 3);
+        // asked for what cannot be done, they do what most wants doing, and say so
+        w.Relationship(a.Id, b.Id).Disposition = -30; foreach (var h in w.Houses.Values) if (Economy.HeadOf(w, h) is { } x) w.Relationship(x.Id, e.Id).Disposition = 0;
+        Assert.True(Do(w, new LifeCommand(me.Id, LifeCommand.AskElder, LifeSystem.AskSpeak))); LifeSystem.Tick(w, Content);
+        Assert.Equal(-30 + LifeSystem.ElderPeace, w.Relationship(a.Id, b.Id).Disposition); Assert.Contains("could not be done", e.Life.Counsel);
+        // one who thinks ill of the head is not to be asked; nor one too unwell; nor is there anyone to ask in a house without one
+        w.Relationship(e.Id, me.Id).Disposition = -5; Assert.Contains("own counsel", LifeSystem.AskElderRefusal(w, me, LifeSystem.AskPeace));
+        w.Relationship(e.Id, me.Id).Disposition = 40; e.Health = 10; Assert.Contains("unwell", LifeSystem.AskElderRefusal(w, me, LifeSystem.AskPeace));
+        e.Alive = false; Assert.Contains("no elder", LifeSystem.AskElderRefusal(w, me, LifeSystem.AskPeace)); Assert.Contains("no such thing", LifeSystem.AskElderRefusal(w, me, "sing"));
     }
 }

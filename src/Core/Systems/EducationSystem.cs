@@ -153,6 +153,22 @@ public static class EducationSystem
         w.Log($"{who.Name} turns to {skill} for {price} credits of {head.Name}'s own. It was a bargain, and both of them call it one.");
     }
 
+    /// <summary>The same bargain paid in something that is not money: a word in the right place for them. One influence where
+    /// the sum would have been small, two where it would have been large; nothing if no sum would do.</summary>
+    public static int FavourPrice(World w, Character head, Character who, string skill) { int price = StudyPrice(w, head, who, skill); return price <= 0 ? price : price == PriceNear ? 1 : 2; }
+    public static string? AskAndSpeakRefusal(World w, Character? head, Character? who, string skill)
+    {
+        var no = AskAndPayRefusal(w, head, who, skill); if (no == null || !no.Contains("purse")) return no;
+        return null;   // the purse is not what is asked for here: the influence is the command's to check
+    }
+    /// <summary>The head asks, and does something for them that is not money. They turn to it, and think the better of the head.</summary>
+    public static void AskAndSpeak(World w, Character head, Character who, string skill)
+    {
+        who.Study = skill; who.Flags.Remove(StudyRefusedChar); w.WorldCounters[AskedKey(who.Id)] = w.Turn;
+        var r = w.Relationship(who.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition + 2, -100, 100);
+        w.Log($"{who.Name} turns to {skill}. {head.Name} had a word said for them in the right place, and it was understood what the word was for.");
+    }
+
     private static string ThankedKey(string id) => "thanked_for_teaching:" + id;
     /// <summary>The head thanks one of the house who has another of it under their wing, with a purse out of their own.</summary>
     public static string? ThankRefusal(World w, Character? head, Character? pupil)
