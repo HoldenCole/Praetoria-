@@ -228,6 +228,39 @@
           ]
         }
       ]
+    },
+    {
+      "id": "a_venture_is_foreclosed",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "venture_foreclosed", "value": true } ],
+      "choices": [
+        {
+          "id": "sign_and_say_nothing",
+          "effects": [
+            { "type": "adjustStress", "role": "self", "delta": 3 },
+            { "type": "log", "text": "{self.name} signed where the lender's clerk pointed and saw him to the door. It was done in a morning." }
+          ]
+        },
+        {
+          "id": "let_it_be_known_it_was_agreed",
+          "requires": [ { "type": "resource", "resource": "influence", "op": "gte", "value": 1 } ],
+          "effects": [
+            { "type": "adjustResource", "resource": "influence", "delta": -1 },
+            { "type": "adjustLegitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} let it be understood that the venture had been sold by arrangement, to settle an account. Some believed it. It was a better story than the true one." }
+          ]
+        },
+        {
+          "id": "cut_the_house_to_fit",
+          "effects": [
+            { "type": "adjustStress", "role": "self", "delta": 5 },
+            { "type": "adjustCounter", "key": "standing", "delta": 1 },
+            { "type": "log", "text": "{self.name} went through the house's spending line by line that night and struck out what could be struck. A house that has been foreclosed on once is watched for the second time." }
+          ]
+        }
+      ]
     }
   ]
 }

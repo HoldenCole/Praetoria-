@@ -67,6 +67,16 @@
         "it_goes_on_the_bill": "Write it down for the peace.",
         "it_was_a_war": "It was a war."
       }
+    },
+    {
+      "id": "a_venture_is_foreclosed",
+      "title": "The Lender's Clerk",
+      "body": "The house owes money and the treasury is empty. The lender has not waited. One of the house's ventures has been taken against the debt: the least of them, valued by the lender's own man. Part of what was owed is written off. Everyone who deals with the house will know by the end of the month.",
+      "choices": {
+        "sign_and_say_nothing": "Sign, and say nothing.",
+        "let_it_be_known_it_was_agreed": "Let it be known it was agreed between you.",
+        "cut_the_house_to_fit": "Cut the house's spending to fit."
+      }
     }
   ]
 }

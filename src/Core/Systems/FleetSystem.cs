@@ -481,6 +481,7 @@ public sealed class FleetSystem
         var war = w.Wars.FirstOrDefault(x => x.Between(a, b));
         if (war == null) return;
         w.Wars.Remove(war);
+        VentureSystem.SettleClaims(w, war, CessionLead);   // the bills for what was sacked are presented (docs/ECONOMY_MARKET.md, section 14)
         if (terms)
         {
             string? loser = war.Lead(a) >= CessionLead ? b : war.Lead(b) >= CessionLead ? a : null;

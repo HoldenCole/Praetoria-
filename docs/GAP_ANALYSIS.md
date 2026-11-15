@@ -1960,3 +1960,29 @@ Exchange: the card read "Livia Crane's own" and the purses list "Has 1 venture o
 
 **Left, and mapped.** No world is a person's: the owner's question (W12). A person who owns a venture does nothing
 with it themselves.
+
+## 64. Bills at the peace, a company that sells, creditors who foreclose — 2026-11-15
+
+**A8.** Three of the row's four parts are built (docs/ECONOMY_MARKET.md, section 14): a sacked venture is billed
+at the peace, a company sells a failing venture, and a house that cannot pay is foreclosed on, which is what makes
+creditors real. The fourth, a second start for founders of other houses, cannot be built while other houses have
+no founders, and is folded into X1.
+
+**The rule that never applied.** Foreclosure was first written for a house with a loan unpaid and nothing in the
+treasury, or a treasury 20 under. Ten runs gave none. Counting showed why: a house is overdrawn in about one
+house-year in twenty-five, but almost never deeply, and seldom while it owns a venture. Two years overdrawn running
+was added, and the count is kept in the probe.
+
+**Measured.** The Republic probe (60 runs of 60 years): 3,059 credits paid at a peace for what was sacked, 60
+struck out; 10 ventures sold by a company and 11 closed; 26 foreclosed on; 181 sacked; 504 wound up (498). The
+Republic stood in all 60; the great war was fought in 40 runs (41); 23 states broke away (23); trust in the
+magistrates averaged 47 to 61 by start and was low in 14 runs (14). The soak (33 runs, a save and load in each)
+passes with no drift: 38 foreclosures in it, and the event for the player's own fired. Survival: 0 of 10 on every
+start.
+
+**Not looked at in the browser.** Nothing in this pass has a screen of its own: it shows in the chronicle, the
+event and the name for bad business already on the Exchange.
+
+736 tests (three new).
+
+**Left, and mapped.** Foreclosure takes a venture and nothing else; a bill at the peace is for ventures only (A9).

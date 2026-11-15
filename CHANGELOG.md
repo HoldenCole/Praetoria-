@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Bills at the peace, and foreclosure** (docs/ECONOMY_MARKET.md, section 14; docs/GAPS.md A8). A venture sacked in
+  a war is billed to whoever took the world and paid when peace is made, unless the claimant was beaten. A company
+  that cannot carry a failing venture sells it rather than close it, if its board minds the books. A house that
+  owes and cannot pay, or has been overdrawn two years running, is foreclosed on: its least venture goes to its
+  lender or is sold. You are warned a year before. A venture that is a person's own is never taken. One event.
 - **A venture of one's own** (docs/WEALTH.md; docs/GAPS.md W10). You can settle a venture on one of your house, or
   on yourself, from its card on the Exchange. What it earns is paid over to them, it is not sold or listed unless
   they agree, its price is theirs, and it goes by the will. A relative who founds a venture with their own money

@@ -236,6 +236,82 @@ public sealed class VentureSystem
             b.HeldById = to is { Alive: true } && to.HouseId == b.OwnerId ? to.Id : "";
     }
 
+    // ---------------- claims at the peace, a company that sells, creditors who foreclose (docs/ECONOMY_MARKET.md, section 14) ----------------
+
+    public const int SackClaimALevel = 10, ForecloseAt = -20, OverdrawnYears = 2;
+    public static string OverdrawnKey(string houseId) => "overdrawn_years:" + houseId;
+    public const string ClaimPrefix = "sack_claim:", ClaimsPaidCounter = "sack_claims_paid", ClaimsForfeitCounter = "sack_claims_forfeited", CompanySoldCounter = "company_ventures_sold", ForeclosedCounter = "ventures_foreclosed", ForeclosedFlag = "venture_foreclosed";
+    public const string OverdrawnYearsCounter = "overdrawn_house_years", DeepOverdrawnYearsCounter = "deep_overdrawn_house_years", OverdrawnWithVentureCounter = "overdrawn_with_venture_years";
+    /// <summary>What <paramref name="ownerId"/> has written down against <paramref name="takerId"/> for ventures sacked in their war.</summary>
+    public static string ClaimKey(string ownerId, string takerId) => $"{ClaimPrefix}{ownerId}>{takerId}";
+
+    /// <summary>The peace is made: each side's bill for what was sacked is paid by the other, as far as its treasury goes. A side
+    /// beaten badly enough to cede a world is in no position to present a bill, and its claim is struck out.</summary>
+    public static void SettleClaims(World w, War war, int beatenBy)
+    {
+        foreach (var (x, y) in new[] { (war.HouseA, war.HouseB), (war.HouseB, war.HouseA) })
+        {
+            string key = ClaimKey(x, y); int claim = w.Counter(key); if (claim <= 0) continue; w.WorldCounters.Remove(key);
+            var claimant = w.House(x); var payer = w.House(y); if (claimant == null || payer == null) continue;
+            bool ours = x == w.Protagonist?.HouseId || y == w.Protagonist?.HouseId;
+            if (war.Lead(x) <= -beatenBy) { Bump(w, ClaimsForfeitCounter, claim); if (ours) w.Log($"{claimant.Name}'s bill of {claim} credits for what was sacked is struck out of the peace: the beaten do not present bills."); continue; }
+            int pay = Math.Min(claim, Math.Max(0, payer.Treasury.Credits)); payer.Treasury.Credits -= pay; claimant.Treasury.Credits += pay; Bump(w, ClaimsPaidCounter, pay);
+            if (ours) w.Log($"By the peace, {payer.Name} pays {claimant.Name} {pay} credits for the ventures sacked in the war{(pay < claim ? $", of {claim} claimed" : "")}.");
+        }
+    }
+    /// <summary>A bill with no war behind it is not presented: the war ended some other way.</summary>
+    private static void LapseClaims(World w)
+    {
+        foreach (var key in w.WorldCounters.Keys.Where(k => k.StartsWith(ClaimPrefix, StringComparison.Ordinal)).OrderBy(k => k, StringComparer.Ordinal).ToList())
+        { var parts = key[ClaimPrefix.Length..].Split('>'); if (parts.Length != 2 || !w.AtWar(parts[0], parts[1])) w.WorldCounters.Remove(key); }
+    }
+
+    /// <summary>A company that cannot carry a failing venture sells it rather than close it, if the house that directs it minds
+    /// its books: to the holder of the world it works, at the market's price, or to the market.</summary>
+    private bool CompanySells(World w, Company co, Business b, string? mine)
+    {
+        var board = w.House(co.ControllerId); var chair = board != null ? Economy.HeadOf(w, board) : null;
+        bool minds = (chair?.Skill("economics") ?? 0) >= 2 || board != null && FactionSystem.Of(w, board.Id)?.PartyId == "factors" || Hash($"{b.Id}:{w.Turn}:board") % 3 == 0;
+        if (!minds) return false;
+        int price = MarketPrice(w, b); var holder = Holder(w, b) is { } hid ? w.House(hid) : null;
+        bool takes = holder != null && holder.Id != mine && holder.Id != co.ControllerId && holder.Treasury.Credits >= price + Reserve && !w.AtWar(holder.Id, co.ControllerId)
+            && !w.Businesses.Values.Any(o => o.OwnerId == holder.Id && o.Kind == b.Kind && o.SystemId == b.SystemId && o.Id != b.Id);
+        co.Cash += price; Bump(w, CompanySoldCounter);
+        if (takes) { holder!.Treasury.Credits -= price; b.CompanyId = ""; b.OwnerId = holder.Id; b.LosingYears = 0; b.HeldById = ""; }
+        else w.Businesses.Remove(b.Id);
+        bool ours = mine != null && (co.HeldBy(mine) > 0 || co.ControllerId == mine || w.ProtagonistId.Length > 0 && co.HeldBy(Company.PersonKey(w.ProtagonistId)) > 0);
+        if (ours) w.Log($"{co.Name} sells the {b.Name}{(takes ? $" to {holder!.Name}" : " on the open market")} for {price} credits: it had earned nothing for {FailsAfter} years.");
+        return true;
+    }
+
+    /// <summary>A house that owes on a loan and has nothing, or whose treasury is <see cref="ForecloseAt"/> or worse, or which has
+    /// been overdrawn <see cref="OverdrawnYears"/> years running, is foreclosed on: its lender takes the least of its ventures against the debt, or it is sold to pay what is owed. What is someone's own is not the house's to lose. The house has a name for bad business.</summary>
+    private void Foreclose(World w, string? mine)
+    {
+        foreach (var h in w.Houses.Values.Where(h => h.Treasury.Credits >= 0)) w.WorldCounters.Remove(OverdrawnKey(h.Id));
+        foreach (var h in w.Houses.Values.Where(h => h.Treasury.Credits < 0 && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        {
+            Bump(w, OverdrawnKey(h.Id)); Bump(w, OverdrawnYearsCounter);
+            if (h.Id == mine && w.Counter(OverdrawnKey(h.Id)) == OverdrawnYears - 1 && w.BusinessesOf(h.Id).Any(x => x.CompanyId.Length == 0 && HolderOf(w, x) == null)) w.Log("The house is overdrawn. If it still is next year, those it owes will take one of its ventures."); if (h.Treasury.Credits <= ForecloseAt) Bump(w, DeepOverdrawnYearsCounter); if (w.BusinessesOf(h.Id).Any(x => x.CompanyId.Length == 0)) Bump(w, OverdrawnWithVentureCounter);
+        }
+        foreach (var house in w.Houses.Values.Where(h => (h.Debt > 0 && h.Treasury.Credits < 0 || h.Treasury.Credits <= ForecloseAt || w.Counter(OverdrawnKey(h.Id)) >= OverdrawnYears) && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        {
+            var b = w.BusinessesOf(house.Id).Where(x => x.CompanyId.Length == 0 && HolderOf(w, x) == null && _ventures.Def(x.Kind) != null).OrderBy(x => MarketPrice(w, x)).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (b == null) continue;
+            int price = MarketPrice(w, b), owed = Math.Min(house.Debt, price); var lender = w.House(house.LenderId);
+            bool takes = lender != null && lender.Id != house.Id && !w.AtWar(lender.Id, house.Id) && lender.Treasury.Credits >= price - owed
+                && !w.Businesses.Values.Any(o => o.OwnerId == lender.Id && o.Kind == b.Kind && o.SystemId == b.SystemId);
+            int overdrawn = Math.Min(price - owed, Math.Max(0, -house.Treasury.Credits));   // what is not owed on the loan goes to whoever else the house owes, and then to the house
+            house.Debt -= owed; if (house.Debt == 0) house.LenderId = ""; house.Treasury.Credits += price - owed; Bump(w, CreditorsCounter, owed + overdrawn); Bump(w, ForeclosedCounter);
+            w.WorldCounters[BadNameKey(house.Id)] = w.Turn + BadNameYears;
+            foreach (var o in w.Offers.Where(o => o.BusinessId == b.Id).ToList()) w.Offers.Remove(o);
+            if (takes) { lender!.Treasury.Credits -= price - owed; b.OwnerId = lender.Id; b.OfferedUntil = 0; b.LosingYears = 0; if (lender.Id == mine) w.WorldFlags.Add(BoughtFlag); }
+            else w.Businesses.Remove(b.Id);
+            if (house.Id == mine) { w.WorldFlags.Add(ForeclosedFlag); w.Log($"The house owes money and has none. {(takes ? lender!.Name + " takes" : "Its creditors sell")} the {b.Name} against what is owed: {owed + overdrawn} credits of it are paid{(price > owed + overdrawn ? $", and {price - owed - overdrawn} come back" : "")}."); }
+            else if (takes && lender!.Id == mine) w.Log($"{house.Name} cannot pay what it owes you. The {b.Name} is yours, against {owed} credits of the debt.");
+        }
+    }
+
     // ---------------- a venture can fail (docs/ECONOMY_MARKET.md, "A venture can fail") ----------------
 
     public const int FailsAfter = 3, WoundUpPct = 50, PropFloor = 4;
@@ -275,6 +351,7 @@ public sealed class VentureSystem
     {
         var mine = w.Protagonist?.HouseId;
         foreach (var c in w.Characters.Values) c.Flags.Remove(FounderFailedChar);
+        LapseClaims(w); Foreclose(w, mine);
         foreach (var b in w.Businesses.Values.Where(b => b.CompanyId.Length == 0 && w.House(b.OwnerId) != null && _ventures.Def(b.Kind) != null).OrderBy(b => b.Id, StringComparer.Ordinal).ToList())
         {
             if (w.Turn - b.Founded < 1) continue;   // its first year is not judged
@@ -292,6 +369,7 @@ public sealed class VentureSystem
             b.LosingYears++; if (b.LosingYears < FailsAfter) continue;
             var co = w.Company(b.CompanyId)!; int cost = PropCost(w, b);
             if (co.Cash >= cost + CompanyCarryReserve) { co.Cash -= cost; b.LosingYears = 0; Bump(w, CompanyCarriedCounter); continue; }
+            if (CompanySells(w, co, b, mine)) continue;
             co.Cash += WoundUp(b); w.Businesses.Remove(b.Id); co.Flow -= co.Shares * CompanyCloseFlowPct / 100.0; Bump(w, CompanyClosedCounter);
             bool ours = mine != null && (co.HeldBy(mine) > 0 || co.ControllerId == mine || w.ProtagonistId.Length > 0 && co.HeldBy(Company.PersonKey(w.ProtagonistId)) > 0);
             if (ours) w.Log($"{co.Name} closes the {b.Name}: it had earned nothing for {FailsAfter} years. The shares will feel it.");
@@ -324,6 +402,7 @@ public sealed class VentureSystem
             var owner = w.House(b.OwnerId); w.Businesses.Remove(b.Id); foreach (var o in w.Offers.Where(o => o.BusinessId == b.Id).ToList()) w.Offers.Remove(o);
             if (taker != null) taker.Treasury.Credits += SackPlunder * Math.Max(1, b.Level);
             Bump(w, SackedCounter); sacked++;
+            if (owner != null) Bump(w, ClaimKey(owner.Id, conquerorId), SackClaimALevel * Math.Max(1, b.Level));   // written down, to be laid before whoever makes the peace
             var founder = b.FounderId.Length > 0 ? w.Char(b.FounderId) : null; bool theirs = founder is { Alive: true } && owner != null && founder.HouseId == owner.Id;
             if (theirs) { AmbitionSystem.Setback(w, founder!, $"The {b.Name}, which they founded, was sacked when its world fell."); w.WorldCounters[FailedFounderKey(founder!.Id)] = w.Turn; }
             if (owner?.Id == mine) { w.WorldFlags.Add(SackedFlag); w.Log($"The {b.Name} is sacked as its world falls to {taker?.Name ?? "the enemy"}. Nothing of it comes back."); }
@@ -355,7 +434,7 @@ public sealed class VentureSystem
     /// <summary>Offers lapse after their year; an offer whose venture is gone or sold goes with it. Then every venture is reckoned.</summary>
     public void Tick(World w)
     {
-        w.WorldFlags.Remove(OfferedFlag); w.WorldFlags.Remove(BoughtFlag); w.WorldFlags.Remove(RefusedFirstFlag); w.WorldFlags.Remove(FailingFlag); w.WorldFlags.Remove(FailedFlag); w.WorldFlags.Remove(SackedFlag);
+        w.WorldFlags.Remove(OfferedFlag); w.WorldFlags.Remove(BoughtFlag); w.WorldFlags.Remove(RefusedFirstFlag); w.WorldFlags.Remove(FailingFlag); w.WorldFlags.Remove(FailedFlag); w.WorldFlags.Remove(SackedFlag); w.WorldFlags.Remove(ForeclosedFlag);
         Reckon(w);
         foreach (var o in w.Offers.ToList())
             if (o.Expires < w.Turn || w.Business(o.BusinessId) is not { } b || b.OwnerId != o.FromHouseId) w.Offers.Remove(o);

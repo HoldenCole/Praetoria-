@@ -323,3 +323,29 @@ no second start was given, in the probe or the soak. Both are proved by tests.
 
 Found while building it, and mapped (A8): a sacked venture is never claimed at the peace or rebuilt; a company only
 carries or closes a failing venture and never sells it; other houses give no founder a second start.
+
+## 14. Bills at the peace, a company that sells, creditors who foreclose (2026-11-15)
+
+Closed off the register (docs/GAPS.md A8).
+
+- **A bill for what was sacked.** Every venture sacked is written down against whoever took the world: 10 credits a
+  level. When the two make peace the bill is paid, as far as the payer's treasury goes. A house beaten badly enough
+  to cede a world presents no bill: its claim is struck out. A bill with no war behind it (the war ended some other
+  way) lapses at the year's reckoning.
+- **A company sells.** A company that cannot carry a failing venture now sells it rather than close it, if the house
+  that directs it minds its books (the same test as for a house): to the holder of the world it works, at the
+  market's price, or on the open market. The money is the company's. A board that does not mind still closes it.
+- **Foreclosure.** A house is foreclosed on when it owes on a loan and its treasury is empty, or its treasury is 20
+  or more under, or it has been overdrawn two years running. Its lender takes the least valuable of its ventures
+  against the loan and pays over anything above it; with no lender able to, the venture is sold. The proceeds pay
+  the loan, then whatever else the house owes, then the house. It has a name for bad business for five years. **A
+  venture that is someone's own is not the house's to lose**, and is never taken. You are warned in the first year
+  you are overdrawn. An event when it happens to you.
+
+Measured over sixty runs of sixty years: 3,059 credits were paid at a peace for what had been sacked and 60 struck
+out; companies sold 10 failing ventures and closed 11; 26 ventures were foreclosed on. A house was overdrawn in
+4,596 house-years, about one in twenty-five, but by 20 or more in only 42 of them, which is why the first form of the
+rule (a loan unpaid, or 20 under) never once applied and two years overdrawn was added.
+
+Found while building it, and mapped (A9): foreclosure takes a venture and nothing else, and the house has no say in
+which; a bill at the peace is for ventures only.

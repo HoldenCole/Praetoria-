@@ -343,4 +343,67 @@ public class VentureTests
         Fires(w, "a_venture_is_sacked");
         vs.Tick(w); Assert.False(w.HasFlag(VentureSystem.SackedFlag));
     }
+
+    // ---------------- claims at the peace, a company that sells, creditors who foreclose (docs/GAPS.md A8) ----------------
+
+    [Fact]
+    public void A8_What_was_sacked_is_billed_at_the_peace_unless_the_claimant_was_beaten()
+    {
+        var (w, _, _) = Reach(); string kind = Content.Businesses.Defs.OrderBy(d => d.Id, StringComparer.Ordinal).First().Id;
+        for (int i = 0; i < 8; i++) Put(w, "s" + i, "vega", kind, "tessaly", level: 2);
+        var war = new War { HouseA = "vega", HouseB = "corwin" }; w.Wars.Add(war); int n = VentureSystem.Sack(w, "tessaly", "corwin"); Assert.InRange(n, 1, 7);
+        int claim = n * 2 * VentureSystem.SackClaimALevel; Assert.Equal(claim, w.Counter(VentureSystem.ClaimKey("vega", "corwin")));
+        // the peace: the taker pays the bill, as far as its treasury goes
+        int mine = w.House("vega")!.Treasury.Credits; w.House("corwin")!.Treasury.Credits = claim + 50; var fleets = new FleetSystem(Content.Fleets, Content.Holdings);
+        fleets.MakePeace(w, "vega", "corwin");
+        Assert.Equal(mine + claim, w.House("vega")!.Treasury.Credits); Assert.Equal(50, w.House("corwin")!.Treasury.Credits); Assert.Equal(0, w.Counter(VentureSystem.ClaimKey("vega", "corwin"))); Assert.Equal(claim, w.Counter(VentureSystem.ClaimsPaidCounter));
+        Assert.Contains(w.History, h => h.Text.Contains("for the ventures sacked"));
+        // a house beaten badly enough to cede a world presents no bill
+        w.WorldCounters[VentureSystem.ClaimKey("vega", "corwin")] = 40; var lost = new War { HouseA = "vega", HouseB = "corwin", ScoreB = FleetSystem.CessionLead }; mine = w.House("vega")!.Treasury.Credits;
+        VentureSystem.SettleClaims(w, lost, FleetSystem.CessionLead); Assert.Equal(mine, w.House("vega")!.Treasury.Credits); Assert.Equal(40, w.Counter(VentureSystem.ClaimsForfeitCounter)); Assert.Equal(0, w.Counter(VentureSystem.ClaimKey("vega", "corwin")));
+        // a payer who has nothing pays nothing; a bill with no war behind it lapses at the year's reckoning
+        w.WorldCounters[VentureSystem.ClaimKey("vega", "corwin")] = 40; w.House("corwin")!.Treasury.Credits = -5; VentureSystem.SettleClaims(w, new War { HouseA = "vega", HouseB = "corwin" }, FleetSystem.CessionLead); Assert.Equal(-5, w.House("corwin")!.Treasury.Credits);
+        w.WorldCounters[VentureSystem.ClaimKey("vega", "aurelian")] = 30; var (_, _, vs) = (w, 0, new VentureSystem(new Economy(Content.Holdings, Content.Businesses, Content.Policies), Content.Businesses)); vs.Tick(w);
+        Assert.Equal(0, w.Counter(VentureSystem.ClaimKey("vega", "aurelian")));
+    }
+
+    [Fact]
+    public void A8_A_company_whose_board_minds_its_books_sells_a_failing_venture_rather_than_close_it()
+    {
+        var (w, _, vs) = Reach(); var co = new Company { Id = "co_t", Name = "The Test Company", ControllerId = "corwin", Shares = 100, Cash = 0 }; co.Holders["corwin"] = 100; w.Companies.Add(co);
+        w.Char("corwin_head")!.Skills["economics"] = 2; var b = LosingFor(w, vs, "corwin", "held"); b.CompanyId = co.Id; int price = vs.MarketPrice(w, b); Assert.True(price > vs.WoundUp(b));
+        for (int y = 0; y < 3; y++) { w.Turn++; vs.Tick(w); }
+        Assert.Null(w.Business("held")); Assert.Equal(price, co.Cash); Assert.Equal(1, w.Counter(VentureSystem.CompanySoldCounter)); Assert.Equal(0, w.Counter(VentureSystem.CompanyClosedCounter));
+        // the holder of the world it works takes it at that price, if it is not the player and can pay
+        w.Holding("barony")!.OwnerId = "aurelian"; co.Cash = 0; var b2 = LosingFor(w, vs, "corwin", "held2"); b2.CompanyId = co.Id; int credits = w.House("aurelian")!.Treasury.Credits; price = vs.MarketPrice(w, b2);
+        for (int y = 0; y < 3; y++) { w.Turn++; vs.Tick(w); }
+        Assert.Equal("aurelian", b2.OwnerId); Assert.Equal("", b2.CompanyId); Assert.Equal(0, b2.LosingYears); Assert.Equal(price, co.Cash); Assert.Equal(credits - price, w.House("aurelian")!.Treasury.Credits);
+    }
+
+    [Fact]
+    public void A8_A_house_that_owes_and_has_nothing_is_foreclosed_on_and_what_is_someones_own_is_not_taken()
+    {
+        var (w, _, vs) = Reach(); var mine = w.House("vega")!; var lender = w.House("aurelian")!; string[] kinds = Content.Businesses.Defs.Where(d => !d.Lender).OrderBy(d => d.Id, StringComparer.Ordinal).Select(d => d.Id).Take(2).ToArray();
+        var kin = new Character { Id = "kin", Name = "Test Kin", HouseId = "vega", Age = 30, Alive = true }; w.Characters["kin"] = kin; mine.Members.Add("kin");
+        var own = Put(w, "own", "vega", kinds[0], "tessaly"); own.HeldById = "kin"; own.Founded = w.Turn; var b = Put(w, "houses", "vega", kinds[1], "tessaly"); b.Founded = w.Turn;
+        // in debt but solvent: nothing happens
+        mine.Debt = 5; mine.LenderId = "aurelian"; mine.Treasury.Credits = 10; vs.Tick(w); Assert.Equal("vega", b.OwnerId); Assert.Equal(0, w.Counter(VentureSystem.ForeclosedCounter));
+        // owing and empty: the lender takes the house's venture against the debt, pays over the rest, and leaves the one that is a person's own
+        mine.Treasury.Credits = -3; int price = vs.MarketPrice(w, b), theirs = lender.Treasury.Credits; w.Turn++; vs.Tick(w);
+        Assert.Equal("aurelian", b.OwnerId); Assert.Equal("vega", own.OwnerId); Assert.Equal(0, mine.Debt); Assert.Equal("", mine.LenderId); Assert.Equal(-3 + price - 5, mine.Treasury.Credits); Assert.Equal(theirs - (price - 5), lender.Treasury.Credits);
+        Assert.Equal(1, w.Counter(VentureSystem.ForeclosedCounter)); Assert.Equal(5 + 3, w.Counter(VentureSystem.CreditorsCounter)); Assert.True(VentureSystem.BadName(w, "vega")); Assert.True(w.HasFlag(VentureSystem.ForeclosedFlag));
+        Fires(w, "a_venture_is_foreclosed");
+        // with nothing left that is the house's, there is nothing to take; with no lender who can take it, it is sold
+        mine.Debt = 5; mine.LenderId = "aurelian"; mine.Treasury.Credits = -3; w.Turn++; vs.Tick(w); Assert.Equal(1, w.Counter(VentureSystem.ForeclosedCounter)); Assert.False(w.HasFlag(VentureSystem.ForeclosedFlag));
+        var b3 = Put(w, "third", "vega", kinds[1], "mid1"); b3.Founded = w.Turn; mine.LenderId = ""; mine.Debt = 500; mine.Treasury.Credits = -3; price = vs.MarketPrice(w, b3); w.Turn++; vs.Tick(w);
+        Assert.Null(w.Business("third")); Assert.Equal(500 - price, mine.Debt); Assert.Equal(-3, mine.Treasury.Credits); Assert.Equal(2, w.Counter(VentureSystem.ForeclosedCounter));
+        // no loan at all, but a treasury far enough under: whoever the house owes is paid out of a sale
+        void Year(Business keep, int credits) { w.Turn++; keep.Founded = w.Turn; mine.Treasury.Credits = credits; vs.Tick(w); }   // a new venture is not judged, so only its owner's credit is at stake
+        var b4 = Put(w, "fourth", "vega", kinds[1], "mid1"); mine.Debt = 0; Year(b4, 5); Year(b4, VentureSystem.ForecloseAt + 1); Assert.NotNull(w.Business("fourth"));   // overdrawn one year: a warning
+        Assert.Contains(w.History, h => h.Text.Contains("If it still is next year")); Year(b4, 5); Assert.Equal(0, w.Counter(VentureSystem.OverdrawnKey("vega")));
+        price = vs.MarketPrice(w, b4); Year(b4, VentureSystem.ForecloseAt); Assert.Null(w.Business("fourth")); Assert.Equal(VentureSystem.ForecloseAt + price, mine.Treasury.Credits); Assert.Equal(3, w.Counter(VentureSystem.ForeclosedCounter));
+        // or simply overdrawn two years running, however little
+        var b5 = Put(w, "fifth", "vega", kinds[1], "mid1"); Year(b5, 5); Year(b5, -1); Assert.NotNull(w.Business("fifth")); Year(b5, -1);
+        Assert.Null(w.Business("fifth")); Assert.Equal(4, w.Counter(VentureSystem.ForeclosedCounter));
+    }
 }
