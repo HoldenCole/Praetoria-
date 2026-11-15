@@ -245,6 +245,54 @@ thinks 1 better.
 Left, and mapped: this is kept for the player's house only, and the one above has no further use for a junior (J5);
 trust is still one number for the whole Reach (L10).
 
+## The courts: what a magistrate did is answered for
+
+Built 2026-11-15 (docs/GAPS.md L2). Until now a magistrate who took money either had it come out that year, and was
+removed, or got away with it for ever: the year's business was thrown away with the year.
+
+**The record.** A bent act in office is written down and kept eight years: money taken from the accounts, a gift
+taken to rule, a ruling against the law for a friend. One that came out at the time, and cost the magistrate the
+seat, is marked as answered.
+
+**A magistrate cannot be touched while they sit.** When they no longer hold the office they did it in, the head of
+any house of the Reach may bring a charge: 2 influence, one charge a year from a house, and each act is heard once
+whichever way it goes. It comes before the longest-sitting praetor who is of neither house. If there is none, nobody
+can hear it.
+
+**The verdict is that praetor's**, and the panel says beforehand what kind of praetor it is:
+
+| The praetor | Finds |
+|---|---|
+| Upright (honourable, or just) | Guilty. It is on the record. |
+| Bought by one of the two houses | For whoever paid. |
+| Of a house that thinks 30 or better of the accused's | Not guilty. |
+| Known to be for sale (ruthless, cruel, or set on a fortune) | For the richer of the two houses. |
+| None of these | By who pleads better: 40 in a hundred, 6 more for each point of law and oratory the accuser's best advocate has, 4 fewer for each the accused's has. |
+
+**Proved:** the accused may not stand for five years and loses any seat they hold; their house is under a scandal
+(its candidates lose votes for ten years), loses 4 standing and pays 10 credits, to the house that was wronged if
+there was one and to the capital's if not. The house that brought it gains 2 standing and the commons' regard, and
+the Reach's trust in its magistrates rises 2. **Let go:** the house that brought it loses a point of standing, and
+if everyone can see why they were let go, trust falls a point. Either way the accused's house does not forgive it
+(−25 if proved, −15 if not).
+
+**Other houses do the same.** Once a year, in the whole Reach, one house that thinks −30 or worse of another and
+finds something on the record against one of its people brings it. The people of the player's house are not
+excepted: one of them convicted is treated exactly as one removed from office, and the events that follow a removal
+follow this.
+
+**A praetor can be bought.** 15 credits of the head's own, to a sitting praetor of another house. The panel says
+what is known of them. The upright refuse and say so from the bench: the house loses 4 standing and is under a
+scandal as if one of its own had been removed. One known to be for sale takes it. The rest take it one time in two,
+and only from a house they do not think ill of; refusing, they say nothing and think the less of you. A bought
+praetor finds for the buyer's house whenever it is before them, in a case or on a charge, for as long as they sit.
+Each such ruling in a case comes out one time in three, and then the praetor is removed and the buyer falls too
+(5 standing and a scandal). And the buying itself goes on the record against the head who did it, where any house
+that hates yours may find it.
+
+Left, and mapped: a trial is one praetor's decision with no evidence led and no appeal from it, and the accused does
+nothing in their own defence but be well or badly represented (L11).
+
 ## Where it is
 
 The Senate screen, under **Your standing · the orders and the ladder**: each rung with its seats, age, prerequisite
@@ -293,7 +341,7 @@ Justice. The estate called the Magistrates is unchanged.
 
 - Other houses' people do not canvass, back each other or give games; their candidates are chosen by a rule.
 - The work of office is one decision a year from three. A case has no facts beyond who is in the right (docs/GAPS.md
-  L5). A bent ruling may be appealed, but nobody can prosecute a former magistrate or bribe a sitting one (L2).
+  L5). A bent ruling may be appealed, a former magistrate prosecuted and a praetor bought; a trial is still one decision (L11).
 - Other houses' senators do not spend their year (but for the one who audits), and their judges hear no hearings
   (docs/GAPS.md X2).
 - Public trust is one number for the whole Reach: a region's own courts, or one office's name, are not told apart

@@ -256,6 +256,33 @@ public sealed class LifeCommand : ICommand
     }
 }
 
+/// <summary>The courts (docs/LADDER.md). <see cref="Prosecute"/>: bring a charge against a former magistrate for something on the
+/// record (the deed's id). <see cref="Buy"/>: offer a sitting praetor a sum (the praetor's id).</summary>
+public sealed class ProsecutionCommand : ICommand
+{
+    public const string Prosecute = "prosecute", Buy = "buy";
+    private static readonly Dictionary<string, int> Cost = new() { [Pool.Influence] = LadderSystem.ProsecuteInfluence };
+    private readonly string _what, _targetId; private readonly Data.OfficeCatalog _offices;
+    public ProsecutionCommand(string actorId, string what, string targetId, Data.OfficeCatalog offices) { ActorId = actorId; _what = what; _targetId = targetId; _offices = offices; }
+    public string ActorId { get; }
+    public string Describe() => $"{_what} {_targetId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId);
+        if (!LadderSystem.Active(w, _offices)) return "there are no courts of the Republic";
+        if (_what == Buy) return LadderSystem.BuyRefusal(w, head, w.Char(_targetId));
+        if (_what != Prosecute) return "no such thing";
+        return LadderSystem.ProsecuteRefusal(w, head, w.OfficeRecord.FirstOrDefault(d => d.Id == _targetId)) ?? (ctx.PoolsOf(ActorId).CanAfford(Cost) ? null : "no influence");
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId)!;
+        if (_what == Buy) { LadderSystem.Buy(w, head, w.Char(_targetId)!); return; }
+        ctx.PoolsOf(ActorId).Spend(Cost); LadderSystem.Prosecute(w, _offices, head, w.OfficeRecord.First(d => d.Id == _targetId));
+    }
+}
+
 /// <summary>The ladder of offices (docs/LADDER.md). <see cref="Stand"/>: put your own name down for a rung at the next election
 /// (2 influence). <see cref="Withdraw"/> it. <see cref="Back"/>: put your weight behind yourself or someone of the house who is
 /// standing (2 influence, twice at most). <see cref="Games"/>: as aedile, give games out of your own purse.</summary>

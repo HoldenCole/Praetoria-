@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+- **The courts.** What a magistrate took in office is kept on a record for eight years. They cannot be touched while
+  they sit; afterwards the head of any house can bring a charge before a sitting praetor, and the verdict is that
+  praetor's: the upright convict, a friend of the accused's house lets them go, one known to be for sale finds for the
+  richer house, and before the rest it goes by who pleads better. Other houses bring charges too, against your people
+  as against anyone's. A new panel on the Senate screen shows the record, who would hear each charge, and what stands
+  against your own house.
+- **A praetor can be bought**, for fifteen credits of your own. The upright refuse and say so from the bench. One who
+  takes it finds for your house whenever it is before them, until it comes out, and then you fall with them. Three
+  events.
 - **Ask the elder.** The head can ask the elder for one thing this year: to make peace in the house, to take some of
   the work, or to speak for them. An elder who thinks ill of the head keeps their own counsel.
 - **A price that is not money.** A relative who would want a sum to study something will take a word said for them in
@@ -11,6 +20,8 @@
   goes home or lays down the work. A grown person of standing costs two a year to keep.
 - **Another house's divorce is somebody's choice**: after three years apart, with no child or with the houses fallen
   out, the head of the house that took the dowry ends it. An upright head does not.
+- **A marriage between two houses is strained when the houses fall out**, and more when they are at war. (Other
+  houses' marriages never went cold before, so none ever ended: found by measuring.)
 - **A person's service pays them their rank and one more a year** (it had been half that), so that relatives have
   something of their own to lend, give or lose. The head can ask to borrow five as well as ten.
 - **An entail.** The head can bind a thing of the house's own name to the house: it goes with whoever has the house,

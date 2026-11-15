@@ -1,0 +1,147 @@
+using Praetoria.Core.Commands;
+using Praetoria.Core.Data;
+using Praetoria.Core.State;
+using Praetoria.Core.Systems;
+using Xunit;
+
+namespace Praetoria.Tests;
+
+/// <summary>The courts (docs/LADDER.md; docs/GAPS.md L2): what a magistrate did is on a record that outlasts the year; a former
+/// magistrate can be prosecuted before a sitting praetor, whose verdict it is; other houses prosecute too; and a praetor can be
+/// bought, or refuse and say so.</summary>
+public class CourtsTests
+{
+    private static readonly ContentDatabase Content = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir());
+    private static OfficeCatalog Offices => Content.Offices;
+    private static (TurnController tc, World w, Character me, House mine, CommandContext ctx) Start(string scenario = "the_old_lion", int seed = 7)
+    {
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), scenario), (ulong)seed);
+        var tc = new TurnController(w, Content); tc.BeginTurn();
+        return (tc, w, w.Protagonist!, w.House(w.Protagonist!.HouseId)!, new CommandContext(w, TestContent.Rng()));
+    }
+    private static List<House> Others(World w, House mine) =>
+        w.Houses.Values.Where(h => h.Id != mine.Id && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+    private static Character Person(World w, House h, string id, params string[] natures)
+    {
+        var c = new Character { Id = id, Name = "Test " + id, HouseId = h.Id, Age = 40, Sex = "male", CareerTrack = "law", CareerRank = 2 }; foreach (var n in natures) c.NatureTraits.Add(n);
+        w.Characters[id] = c; h.Members.Add(id); return c;
+    }
+    private static void Sit(World w, Character c, string rung) { w.Magistrates.RemoveAll(m => m.CharacterId == c.Id); w.Magistrates.Add(new OfficeHolding { OfficeId = rung, HouseId = c.HouseId, CharacterId = c.Id, SinceTurn = w.Turn }); }
+    private static OfficeDeed Deed(World w, Character who, string what = LadderSystem.TookAccounts, string rung = "quaestor", string against = "")
+    {
+        var d = new OfficeDeed { Id = "deed_" + who.Id + "_" + w.OfficeRecord.Count, CharacterId = who.Id, HouseId = who.HouseId, RungId = rung, Turn = w.Turn, What = what, AgainstId = against }; w.OfficeRecord.Add(d); return d;
+    }
+    private static void Fires(World w, string eventId)
+    {
+        var me = w.Protagonist!; w.House(me.HouseId)!.Treasury.Credits = 100; w.PoolsFor(me.Id).Influence = 9;
+        var engine = new Praetoria.Core.Events.EventEngine(Content, WorldBuilder.RngFor(w));
+        var found = engine.GatherEligible(w).FirstOrDefault(e => e.def.Id == eventId);
+        Assert.True(found.def != null, $"{eventId} is not eligible");
+        foreach (var c in found.def!.Choices)
+        {
+            var again = engine.GatherEligible(w).FirstOrDefault(e => e.def.Id == eventId); if (again.def == null) break;
+            engine.Resolve(new Praetoria.Core.Events.FiredEvent(again.def, again.binding), w, c.Id);
+        }
+    }
+
+    [Fact]
+    public void What_a_magistrate_took_is_on_a_record_that_outlasts_the_year_and_cannot_be_charged_while_they_sit()
+    {
+        var (_, w, me, mine, _) = Start(); var others = Others(w, mine); w.Magistrates.Clear(); w.OfficeWork.Clear(); w.OfficeRecord.Clear();
+        var thief = Person(w, others[0], "thief", "Ruthless"); Sit(w, thief, "quaestor");
+        var biz = new OfficeBusiness { Id = "biz_take", RungId = "quaestor", HolderId = thief.Id, Kind = LadderSystem.Accounts, Turn = w.Turn }; w.OfficeWork.Add(biz);
+        LadderSystem.Decide(w, Offices, thief, LadderSystem.Favour);
+        var deed = Assert.Single(w.OfficeRecord); Assert.Equal(thief.Id, deed.CharacterId); Assert.Equal(LadderSystem.TookAccounts, deed.What); Assert.Contains("accounts", LadderSystem.DeedSays(w, Offices, deed));
+        if (deed.Answered) { Assert.Null(LadderSystem.Seat(w, thief.Id)); return; }   // it came out at once: they were removed for it, and are not tried twice
+        Assert.Empty(LadderSystem.Chargeable(w, mine.Id));                              // they still sit
+        w.Turn += 3; Assert.Single(w.OfficeRecord);                                     // the year's business is gone; the record is not
+        w.Magistrates.Clear(); Assert.Single(LadderSystem.Chargeable(w, mine.Id)); Assert.Empty(LadderSystem.Chargeable(w, others[0].Id));   // nobody charges their own
+        w.Turn += LadderSystem.RecordYears; LadderSystem.Tick(w, Offices, Content.Policies); Assert.Empty(w.OfficeRecord);                    // and in the end it is forgotten
+        // an honest year leaves nothing on it
+        var straight = Person(w, others[1], "straight", "Just"); Sit(w, straight, "quaestor"); w.OfficeWork.Add(new OfficeBusiness { Id = "biz_ok", RungId = "quaestor", HolderId = straight.Id, Kind = LadderSystem.Accounts, Turn = w.Turn });
+        LadderSystem.Decide(w, Offices, straight, LadderSystem.Straight); Assert.DoesNotContain(w.OfficeRecord, d => d.CharacterId == straight.Id);
+    }
+
+    [Fact]
+    public void An_upright_praetor_convicts_on_the_record_and_the_house_answers_for_it()
+    {
+        var (tc, w, me, mine, ctx) = Start(); var others = Others(w, mine); w.Magistrates.Clear(); w.OfficeRecord.Clear();
+        var thief = Person(w, others[0], "thief"); var judge = Person(w, others[1], "judge", "Just"); Sit(w, judge, LadderSystem.Praetor); var wronged = others[2];
+        var deed = Deed(w, thief, LadderSystem.TookGift, LadderSystem.Praetor, wronged.Id);
+        others[0].Treasury.Credits = 50; int legit = others[0].Legitimacy, mineLegit = mine.Legitimacy, got = wronged.Treasury.Credits, trust = LadderSystem.Trust(w); w.PoolsFor(me.Id).Influence = 5;
+        var (guilty, why) = LadderSystem.Verdict(w, deed, mine.Id, judge); Assert.True(guilty); Assert.Contains("upright", why);
+        Assert.True(tc.Executor.TryExecute(new ProsecutionCommand(me.Id, ProsecutionCommand.Prosecute, deed.Id, Offices), ctx));
+        Assert.Equal(5 - LadderSystem.ProsecuteInfluence, w.PoolsFor(me.Id).Influence); Assert.True(deed.Answered);
+        Assert.Equal(w.Turn + LadderSystem.BarYears, w.Counter(LadderSystem.BarredKey(thief.Id))); Assert.True(LadderSystem.Tainted(w, others[0].Id));
+        Assert.Equal(legit - LadderSystem.ConvictLegitimacy, others[0].Legitimacy); Assert.Equal(50 - LadderSystem.FineCredits, others[0].Treasury.Credits); Assert.Equal(got + LadderSystem.FineCredits, wronged.Treasury.Credits);
+        Assert.Equal(Math.Min(100, mineLegit + 2), mine.Legitimacy); Assert.True(LadderSystem.Trust(w) >= trust); Assert.True(w.HasFlag(LadderSystem.ProsecutionWonFlag));
+        // not heard twice, and one charge a year
+        Assert.False(tc.Executor.TryExecute(new ProsecutionCommand(me.Id, ProsecutionCommand.Prosecute, deed.Id, Offices), ctx));
+        var second = Deed(w, Person(w, others[3], "other_thief")); Assert.Contains("this year", LadderSystem.ProsecuteRefusal(w, me, second));
+        Fires(w, "the_charge_is_proved");
+    }
+
+    [Fact]
+    public void A_praetor_who_is_a_friend_of_the_accused_lets_them_go_and_one_for_sale_finds_for_the_richer_house()
+    {
+        var (tc, w, me, mine, ctx) = Start(); var others = Others(w, mine); w.Magistrates.Clear(); w.OfficeRecord.Clear();
+        var thief = Person(w, others[0], "thief"); var judge = Person(w, others[1], "judge", "Loyal"); Sit(w, judge, LadderSystem.Praetor);
+        w.Relationship(Economy.HeadOf(w, others[1])!.Id, Economy.HeadOf(w, others[0])!.Id).Disposition = 40;
+        var deed = Deed(w, thief); Assert.False(LadderSystem.Verdict(w, deed, mine.Id, judge).guilty);
+        int legit = mine.Legitimacy, trust = LadderSystem.Trust(w); w.PoolsFor(me.Id).Influence = 5;
+        Assert.True(tc.Executor.TryExecute(new ProsecutionCommand(me.Id, ProsecutionCommand.Prosecute, deed.Id, Offices), ctx));
+        Assert.False(w.WorldCounters.ContainsKey(LadderSystem.BarredKey(thief.Id))); Assert.Equal(legit - 1, mine.Legitimacy); Assert.Equal(trust - 1, LadderSystem.Trust(w));
+        Assert.True(w.HasFlag(LadderSystem.ProsecutionLostFlag)); Fires(w, "the_court_lets_them_go");
+        // one known to be for sale: the richer house has the verdict
+        w.Relationship(Economy.HeadOf(w, others[1])!.Id, Economy.HeadOf(w, others[0])!.Id).Disposition = 0; judge.NatureTraits.Clear(); judge.NatureTraits.Add("Ruthless");
+        var d2 = Deed(w, thief); others[0].Treasury.Credits = 500; mine.Treasury.Credits = 10; Assert.False(LadderSystem.Verdict(w, d2, mine.Id, judge).guilty);
+        mine.Treasury.Credits = 900; Assert.True(LadderSystem.Verdict(w, d2, mine.Id, judge).guilty);
+        // no praetor of a third house: nobody can hear it
+        w.Turn++; w.Magistrates.Clear(); Sit(w, Person(w, others[0], "their_own_praetor"), LadderSystem.Praetor); Assert.Contains("no praetor", LadderSystem.ProsecuteRefusal(w, me, d2));
+    }
+
+    [Fact]
+    public void Other_houses_prosecute_too_and_the_players_own_people_are_not_excepted()
+    {
+        var (_, w, me, mine, _) = Start(); var others = Others(w, mine); w.Magistrates.Clear(); w.OfficeRecord.Clear(); w.OfficeWork.Clear(); w.Candidacies.Clear();
+        var kin = Person(w, mine, "kin"); var judge = Person(w, others[1], "judge", "Just"); Sit(w, judge, LadderSystem.Praetor);
+        var deed = Deed(w, kin); int legit = mine.Legitimacy;
+        // nobody hates the house: nobody brings it
+        foreach (var h in others) w.Relationship(Economy.HeadOf(w, h)!.Id, me.Id).Disposition = 10;
+        LadderSystem.Tick(w, Offices, Content.Policies); Assert.False(deed.Answered);
+        w.Relationship(Economy.HeadOf(w, others[0])!.Id, me.Id).Disposition = -50; Sit(w, judge, LadderSystem.Praetor);
+        LadderSystem.Tick(w, Offices, Content.Policies);
+        Assert.True(deed.Answered); Assert.True(w.Counter(LadderSystem.BarredKey(kin.Id)) > w.Turn); Assert.True(mine.Legitimacy < legit); Assert.True(w.HasFlag(LadderSystem.KinExposedFlag)); Assert.Contains(LadderSystem.ExposedChar, kin.Flags);
+        Assert.Equal(1, w.Counter("convictions"));
+    }
+
+    [Fact]
+    public void A_praetor_can_be_bought_unless_they_are_upright_and_a_bought_ruling_can_come_out()
+    {
+        var (tc, w, me, mine, ctx) = Start(); var others = Others(w, mine); w.Magistrates.Clear(); w.OfficeRecord.Clear(); w.OfficeWork.Clear();
+        // the upright refuse, and say so in open court
+        var upright = Person(w, others[0], "upright", "Just"); Sit(w, upright, LadderSystem.Praetor); me.Purse = 40; int legit = mine.Legitimacy;
+        Assert.False(LadderSystem.WouldTake(w, me, upright));
+        Assert.True(tc.Executor.TryExecute(new ProsecutionCommand(me.Id, ProsecutionCommand.Buy, upright.Id, Offices), ctx));
+        Assert.Equal(40, me.Purse); Assert.Null(LadderSystem.BoughtBy(w, upright)); Assert.True(mine.Legitimacy < legit); Assert.True(LadderSystem.Tainted(w, mine.Id)); Assert.True(w.HasFlag(LadderSystem.BribeRefusedFlag));
+        Fires(w, "the_praetor_is_not_for_sale");
+        // one who is for sale takes it, and finds for the buyer whenever that house is before them
+        var bent = Person(w, others[1], "bent", "Ruthless"); Sit(w, bent, LadderSystem.Praetor); me.Purse = 40; int theirs = others[1].Treasury.Credits;
+        Assert.True(LadderSystem.WouldTake(w, me, bent)); Assert.True(tc.Executor.TryExecute(new ProsecutionCommand(me.Id, ProsecutionCommand.Buy, bent.Id, Offices), ctx));
+        Assert.Equal(40 - LadderSystem.BribeCredits, me.Purse); Assert.Equal(theirs + LadderSystem.BribeCredits, others[1].Treasury.Credits); Assert.Equal(mine.Id, LadderSystem.BoughtBy(w, bent));
+        Assert.Contains(w.OfficeRecord, d => d.What == LadderSystem.Bribed && d.HouseId == mine.Id);
+        Assert.Contains("spoken for", LadderSystem.BuyRefusal(w, me, bent));
+        bool cameOut = false; int won = 0;
+        for (int i = 0; i < 12 && !cameOut; i++)
+        {
+            var biz = new OfficeBusiness { Id = "case_" + i, RungId = LadderSystem.Praetor, HolderId = bent.Id, Kind = LadderSystem.Case, Turn = w.Turn, HouseA = mine.Id, HouseB = others[2].Id, RightId = others[2].Id }; w.OfficeWork.Add(biz);
+            Assert.Equal(LadderSystem.Gift, LadderSystem.Inclination(w, bent, biz)); LadderSystem.Decide(w, Offices, bent, LadderSystem.Gift);
+            Assert.Equal(mine.Id, biz.WinnerId); won++; cameOut = w.HasFlag(LadderSystem.BribeOutFlag);
+            if (!cameOut) Sit(w, bent, LadderSystem.Praetor);
+        }
+        Assert.True(won >= 1); Assert.True(cameOut, "twelve bought rulings and nobody ever asked whose money it was");
+        Assert.Null(LadderSystem.Seat(w, bent.Id)); Assert.True(LadderSystem.Tainted(w, mine.Id));
+        // a praetor who no longer sits is nobody's
+        LadderSystem.Tick(w, Offices, Content.Policies); Assert.Null(LadderSystem.BoughtBy(w, bent));
+    }
+}

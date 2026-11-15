@@ -131,6 +131,24 @@ public sealed class Candidacy
     public int Backing { get; set; }
 }
 
+/// <summary>Something a magistrate did that can be answered for after their term (docs/LADDER.md, "The courts"). Kept for some
+/// years; heard once.</summary>
+public sealed class OfficeDeed
+{
+    public string Id { get; set; } = "";
+    public string CharacterId { get; set; } = "";
+    public string HouseId { get; set; } = "";
+    public string RungId { get; set; } = "";
+    public int Turn { get; set; }
+    /// <summary>"accounts" (money out of the accounts), "gift" (a gift taken to rule), "ruling" (found for a friend against the
+    /// law), "bribe" (bought a praetor).</summary>
+    public string What { get; set; } = "";
+    /// <summary>The house wronged by it, if there was one.</summary>
+    public string AgainstId { get; set; } = "";
+    /// <summary>Removed for it at the time, or tried for it since.</summary>
+    public bool Answered { get; set; }
+}
+
 /// <summary>A year's business for one who sits in an elected office (docs/LADDER.md, the work of office): the accounts for a
 /// quaestor, the works for an aedile, a case for a praetor. The holder decides it; a holder who does not is thought the less of.</summary>
 public sealed class OfficeBusiness

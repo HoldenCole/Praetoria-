@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (sixteenth pass: the five small gaps mapped in the fifteenth are closed; no small gap is left that is not the owner's to decide).
+Last updated 2026-11-15 (seventeenth pass: the courts; L2 closed, L11 mapped).
 
 ## The worklist
 
@@ -18,7 +18,7 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | L2, L5, L8, O2 | Prosecuting a former magistrate; cases with facts; a senator's committees; an office's charge with figures | next |
+| 1 | L5, L8, O2 | Cases with facts; a senator's committees; an office's charge with figures | next |
 | 2 | B5, B15, J5, L10 | The older free march as a state; houses that go to war over what is said; a junior's patron; trust by region and office | next |
 | 3 | A6, W8, W1 | Ventures that fail; heirlooms that are made and won; a purse that holds more than credits | next |
 
@@ -27,7 +27,7 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 **Waiting on the owner** (each row says what it turns on): C9 and C6 (the Caesar road), M4 (where a spouse lives),
 B13 and G1 to G7 (the forms of government).
 
-Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3, then A2 and A4, then B6, B8, B11 and B12, then B14, J4, L9, F5, F6, A5, E6, W6, W3, W5, E5, H3 and M1, then W7, H5, E7, F7 and M6 (see the bottom table).
+Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3, then A2 and A4, then B6, B8, B11 and B12, then B14, J4, L9, F5, F6, A5, E6, W6, W3, W5, E5, H3 and M1, then W7, H5, E7, F7 and M6, then L2 (see the bottom table).
 
 ## The same gap in many places
 
@@ -87,7 +87,7 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| L2 | The player cannot bribe a magistrate or prosecute a former one. (A bent ruling is now appealed before a Justice.) | M | |
+| L11 | A trial is one praetor's decision. No evidence is led, there is no appeal from a verdict, and the accused does nothing in their own defence but be well or badly represented. Only a praetor can be bought: not a quaestor, an aedile or a vote. | M | L5 |
 | L3 | No censorship, tribunate, or province after office. | L | The state and commerce |
 | L8 | A senator's year is one of three things. There are no committees, no standing with a committee, and no record of attendance beyond three absent years. | M | |
 | L5 | The work of office is one decision a year from three. A case has no facts beyond who is in the right; the accounts have no figures; the works are one sum. | M | |
@@ -174,9 +174,10 @@ look-and-feel pass is planned and not begun, there is no sound.
 | W5 | Heirlooms do nothing but be worth something. | 2026-11-15 | A signet on the head's hand mends the house's name while its standing is under 50; a sword carried by someone in the fleet teaches them discipline; a library speeds the study of everyone in its holder's house; an estate pays its holder. The panel says what each does. W8 is what is left. |
 | E5 | Authored characters sit above their ceilings. | 2026-11-15 | Nobody sits above their ceiling: what a person has already reached is taken as what was in them. Two places that raised a skill without looking at the ceiling now look. |
 | H3 | Keeping a household costs nothing. | 2026-11-15 | Each person taken in costs the treasury a credit a year, and whoever does the head's work is paid two into their own purse. A house that cannot pay keeps them, and they think the worse of it. H5 is what is left. |
-| M1 | Stewards do not court; other houses never divorce. | 2026-11-15 | A marriage of other houses that has gone on apart is, about one year in sixteen, ended; the dowry goes back. The player's own is never ended for them. M6 is what is left. |
+| M1 | Stewards do not court; other houses never divorce. | 2026-11-15 | A marriage of other houses that has gone on apart is, about one year in sixteen, ended; the dowry goes back. The player's own is never ended for them. M6 is what is left. **Corrected the same day:** measured over sixty runs, none ended, because no marriage of another house ever went cold. A marriage between two houses now loses warmth while they are at war or have fallen out, and then the rule has something to act on (5 ended in four runs of a warlike start). |
 | W7 | Relatives' purses are small (one who lives within their means keeps no more than twenty credits), so the head can seldom borrow of them and they seldom have anything to lend each other. Seen in play: the button is usually dark. | 2026-11-15 | A person's service now pays them their rank and one more a year (it had been half that); one who lives within their means keeps up to thirty credits; the head can ask to borrow five as well as ten; and a relative with six to spare will help another. The first three changes alone did not close it: in the browser the button was still dark after twelve years, because nobody earned enough to save. With the pay raised, on the Old Lion start a relative lent the head five in year twelve. |
 | H5 | The keep of the household is a credit a head whatever their age or standing, and a house that cannot pay loses nobody: they stay and think the worse of it. | 2026-11-15 | A grown person of standing who was taken in costs two a year. One who goes unpaid two years running, and thinks less than 20 of the head, goes: a grown person taken in goes home if there is a home; one doing the head's work lays it down. A child stays. Paid again, the count starts over. |
 | E7 | What a relative would take to study is one of two sums. They never ask for something that is not money: a post, a match, a word in the right place. | 2026-11-15 | The same bargain can be paid in a word said for them in the right place: one influence where the sum would have been four, two where it would have been eight. An empty purse is no bar, and they think a little better of the head. |
 | F7 | The elder does one of three things a year, unasked. The head cannot ask the elder for anything, and the elders of other houses do nothing. | 2026-11-15 | The head can ask the elder for one thing this year: to make peace in the house, to take some of the work, or to speak for them. What was asked is done first and with a will; if it cannot be done the elder does what most wants doing and says so. An elder who thinks ill of the head is not to be asked. Other houses' elders are part of X1. |
 | M6 | Stewards do not court. And another house's divorce is a throw of the dice on a marriage gone cold: nobody chooses it, and nobody marries again on purpose. | 2026-11-15 | Another house's divorce is chosen: after three years apart, and with no child of the two or the two houses fallen out, the head of the house that took the dowry ends it; an upright head does not. That stewards do not court is part of X1. |
+| L2 | The player cannot bribe a magistrate or prosecute a former one. (A bent ruling is now appealed before a Justice.) | 2026-11-15 | A bent act in office is kept on a record for eight years. Once the magistrate no longer sits, the head of any house may bring a charge before a sitting praetor of a third house, whose verdict it is: the upright convict on the record, a friend of the accused's house lets them go, one for sale finds for the richer house, and before the rest it goes by who pleads better. Other houses bring charges too, one a year in the Reach, and the player's people are not excepted. A sitting praetor can be offered a sum: the upright refuse from the bench, and a bought ruling comes out one time in three. L11 is what is left. |

@@ -164,6 +164,22 @@ apart, if there is no child of the two or the two houses have fallen out (−20 
 the house that took the dowry ends the marriage and gives the dowry back. An upright head (honourable, or loyal) does
 not.
 
+### What it took for that to happen at all (the same day)
+
+Measured, it did not happen. Over sixty probe runs of sixty years no marriage of another house ended, because none
+ever went cold: nothing in another house's marriage moved its warmth below where it settled. The rule above had
+nothing to act on, and the two rows it closed in the register were closed on a test and not on the game.
+
+What strains a marriage made between two houses is the two houses falling out. While they are **at war** it loses
+8 warmth a year; while their heads think −30 or worse of each other, 5. A love match bears half of either. At 15 the
+couple live apart, and three years after that the rule above applies; a war between the two houses counts as their
+having fallen out. This is for other houses only: the player's own marriages are theirs to tend.
+
+Measured again on four runs each: on the Risen Officer start, where there is a great deal of war, 5 of some 220
+marriages of other houses ended and 11 more were living apart at the end; on the Old Lion start, which is quieter,
+none ended and 4 were living apart. And on the full probe of sixty runs: of 2,763 marriages of other houses standing at the
+end, 69 were cold, 53 living apart, and 38 had been ended over the years.
+
 ## Not in this piece
 
 - Stewards do not court; houses other than the player's marry by proposal only (docs/GAPS.md X1). Your own kin court,

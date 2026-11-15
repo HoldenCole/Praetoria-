@@ -376,6 +376,13 @@ internal static class Qa
                 else if (pick == 4) cands.Add(new EducationCommand(p.Id, EducationCommand.Ask, kin.Id, EducationSystem.All[decisions.NextInt(0, EducationSystem.All.Length)]));
                 else cands.Add(new EducationCommand(p.Id, EducationCommand.Teach, kin.Id, grownKin[decisions.NextInt(0, grownKin.Count)].Id));
             }
+            // the courts (docs/LADDER.md): a charge against a former magistrate, and now and then an offer to a sitting praetor
+            if (LadderSystem.Active(w, content.Offices) && decisions.NextInt(0, 3) == 0)
+            {
+                var charges = LadderSystem.Chargeable(w, house.Id); if (charges.Count > 0) cands.Add(new ProsecutionCommand(p.Id, ProsecutionCommand.Prosecute, charges[decisions.NextInt(0, charges.Count)].Id, content.Offices));
+                var sitting = w.Magistrates.Where(m => m.OfficeId == LadderSystem.Praetor && m.HouseId != house.Id).OrderBy(m => m.CharacterId, StringComparer.Ordinal).ToList();
+                if (sitting.Count > 0 && decisions.NextInt(0, 4) == 0) cands.Add(new ProsecutionCommand(p.Id, ProsecutionCommand.Buy, sitting[decisions.NextInt(0, sitting.Count)].CharacterId, content.Offices));
+            }
             if (LifeSystem.ElderOf(w, house) != null && decisions.NextInt(0, 3) == 0) cands.Add(new LifeCommand(p.Id, LifeCommand.AskElder, new[] { LifeSystem.AskPeace, LifeSystem.AskEase, LifeSystem.AskSpeak }[decisions.NextInt(0, 3)]));
             foreach (var sick in w.LivingCharacters().Where(x => x.HouseId == house.Id && x.Id != p.Id && x.Flags.Contains(LifeSystem.IllChar)).OrderBy(x => x.Id, StringComparer.Ordinal).Take(1)) if (decisions.NextInt(0, 2) == 0) cands.Add(new LifeCommand(p.Id, LifeCommand.Send, sick.Id));
         }

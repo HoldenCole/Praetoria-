@@ -1,0 +1,70 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var offices = c.Offices;
+    bool active = LadderSystem.Active(w, offices);
+    var charges = active ? LadderSystem.Chargeable(w, house.Id).Take(_all ? 30 : 5).ToList() : new List<OfficeDeed>();
+    int more = active ? LadderSystem.Chargeable(w, house.Id).Count - charges.Count : 0;
+    var ours = active ? w.OfficeRecord.Where(d => d.HouseId == house.Id && !d.Answered && w.Char(d.CharacterId) is { Alive: true }).OrderByDescending(d => d.Turn).ThenBy(d => d.Id, StringComparer.Ordinal).ToList() : new List<OfficeDeed>();
+    var bench = active ? w.Magistrates.Where(m => m.OfficeId == LadderSystem.Praetor && m.HouseId != house.Id).Select(m => w.Char(m.CharacterId)).Where(x => x is { Alive: true }).Select(x => x!).OrderBy(x => x.Id, StringComparer.Ordinal).ToList() : new List<Character>();
+    string Nature(Character j) => j.NatureTraits.Contains("Honorable") || j.NatureTraits.Contains("Just") ? "upright" : j.NatureTraits.Contains("Ruthless") || j.NatureTraits.Contains("Cruel") || j.Ambition == "amass_a_fortune" ? "known to be for sale" : "neither upright nor for sale";
+}
+@if (active)
+{
+<section class="panel courts">
+    <h3><Icon Name="senate" Size="13" /> The courts <span class="muted">@(charges.Count + more) on the record · @bench.Count praetor@(bench.Count == 1 ? "" : "s") of other houses sitting</span></h3>
+    <div class="muted small">@Intro</div>
+
+    <div class="hh-head"><b>On the record</b> <span class="muted small">What former magistrates of other houses did and have not answered for. A charge is heard once.</span></div>
+    @if (charges.Count == 0) { <div class="muted small">Nothing stands against anybody who no longer sits. It is kept @LadderSystem.RecordYears years.</div> }
+    @foreach (var d in charges)
+    {
+        string did = d.Id; var who = w.Char(d.CharacterId)!; var judge = LadderSystem.Court(w, d, house.Id);
+        var no = new ProsecutionCommand(pid, ProsecutionCommand.Prosecute, did, offices).Refusal(G.Ctx);
+        string hears = judge == null ? "No praetor of a third house sits to hear it." : "It would come before " + judge.Name + " of " + (w.House(judge.HouseId)?.Name ?? "") + ", who is " + LadderSystem.Verdict(w, d, house.Id, judge).why + ".";
+        string label = "Bring the charge · " + LadderSystem.ProsecuteInfluence + " influence";
+        <div class="suit court-charge">
+            <b>@who.Name</b> <span class="muted">of @(w.House(d.HouseId)?.Name) · @LadderSystem.DeedSays(w, offices, d)</span>
+            <div class="muted small">@hears</div>
+            <div class="suit-acts"><button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? ChargeTip)" @onclick="() => G.Execute(new ProsecutionCommand(pid, ProsecutionCommand.Prosecute, did, offices))">@label</button></div>
+        </div>
+    }
+    @if (more > 0 || _all) { <button class="opt inline tiny" @onclick="() => _all = !_all">@(_all ? "Show fewer" : "Show " + more + " more")</button> }
+
+    @if (ours.Count > 0)
+    {
+        <div class="hh-head"><b>Against your own house</b> <span class="muted small">Any house that thinks ill enough of yours may bring these, once the one named no longer sits.</span></div>
+        @foreach (var d in ours)
+        {
+            var who = w.Char(d.CharacterId)!; bool sits = d.What != LadderSystem.Bribed && LadderSystem.Seat(w, who.Id)?.OfficeId == d.RungId;
+            <div class="suit court-ours"><b>@who.Name</b> <span class="muted">@LadderSystem.DeedSays(w, offices, d) · @(sits ? "still sits, and cannot be touched" : "can be charged") · forgotten in year @(d.Turn + LadderSystem.RecordYears + 1)</span></div>
+        }
+    }
+
+    <div class="hh-head"><b>The bench</b> <span class="muted small">A praetor can be offered a sum. One who takes it finds for your house whenever it is before them, while they sit, until it comes out.</span></div>
+    @if (bench.Count == 0) { <div class="muted small">No praetor of another house sits this year.</div> }
+    @foreach (var j in bench)
+    {
+        string jid = j.Id; var no = new ProsecutionCommand(pid, ProsecutionCommand.Buy, jid, offices).Refusal(G.Ctx); string nature = Nature(j); bool mine = LadderSystem.BoughtBy(w, j) == house.Id;
+        string tip = nature == "upright" ? UprightTip : nature == "known to be for sale" ? SaleTip : MaybeTip; string label = "Offer · " + LadderSystem.BribeCredits + " of your own";
+        <div class="suit court-bench">
+            <b>@j.Name</b> <span class="muted">of @(w.House(j.HouseId)?.Name) · @nature</span>
+            @if (mine) { <span class="pill small warn">in your pocket</span> }
+            else { <span class="suit-acts"><button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? tip)" @onclick="() => G.Execute(new ProsecutionCommand(pid, ProsecutionCommand.Buy, jid, offices))">@label</button></span> }
+        </div>
+    }
+</section>
+}
+
+@code {
+    private bool _all;
+    private const string Intro = "A magistrate cannot be touched while they sit. When the term is over, what they took is still on the record, and any house may bring it before a sitting praetor. The verdict is that praetor's.";
+    private const string ChargeTip = "If it is proved they may not stand for five years, their house pays and is thought the less of, and yours the better. If they are let go, your house looks the worse for bringing it. Either way their house will not forgive you.";
+    private const string UprightTip = "Upright. They would refuse, and say in open court what you offered: your house would lose standing and its candidates votes.";
+    private const string SaleTip = "Known to be for sale. They would take it. A bought ruling comes out one time in three, and you fall with them.";
+    private const string MaybeTip = "They might take it, if they do not think ill of you. If they do not, they say nothing and think the less of you.";
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

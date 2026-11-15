@@ -24,7 +24,7 @@ public static partial class LadderSystem
     public const string StandingFlag = "standing_for_office", MagistrateFlag = "is_magistrate", AedileFlag = "is_aedile";
     public const string ElectedChar = "newly_elected", StandingChar = "standing_for_office";
     public const string BlamedFlag = "kin_blames_the_head", BlamesChar = "blames_the_head"; public const int BlameRegard = 10;
-    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag, TrustFellFlag, TrustRestoredFlag, JuniorCaughtFlag, SpokenForFlag };
+    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag, TrustFellFlag, TrustRestoredFlag, JuniorCaughtFlag, SpokenForFlag, ProsecutionWonFlag, ProsecutionLostFlag, BribeRefusedFlag, BribeOutFlag, KinAcquittedFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -430,13 +430,19 @@ public static partial class LadderSystem
             case Nothing: if (Funds(w, who) >= WorksCredits) MoveTrust(w, -1); break;   // one who could have paid and did not is noticed; one who could not is merely poor
             case Law: case Friend: case Gift:
                 if (b.HouseA.Length == 0) break;
-                string winner = choice == Law ? b.RightId : choice == Friend ? TieWinner(w, b, who) ?? FriendOf(w, b, house) : RicherOf(w, b), loser = winner == b.HouseA ? b.HouseB : b.HouseA;
+                string winner = choice == Law ? b.RightId : choice == Friend ? TieWinner(w, b, who) ?? FriendOf(w, b, house) : BoughtWinner(w, b, who) ?? RicherOf(w, b), loser = winner == b.HouseA ? b.HouseB : b.HouseA;
                 var win = w.House(winner); var lose = w.House(loser); bool just = winner == b.RightId; b.WinnerId = winner;
                 if (win != null && lose != null) { int paid = Math.Min(Damages, Math.Max(0, lose.Treasury.Credits)); lose.Treasury.Credits -= paid; win.Treasury.Credits += paid; }
                 Shift(w, win, house, choice == Law ? 6 : choice == Friend ? 12 : 4); Shift(w, lose, house, choice == Law ? -6 : -12);
                 if (choice == Law) { MoveTrust(w, 1); if (house is { Legitimacy: < 80 }) Legit(1); }
                 else if (choice == Friend) { if (!just) { MoveTrust(w, -3); Legit(-1); } }
-                else { Pay(w, who, GiftCredits); if (win != null) win.Treasury.Credits -= Math.Min(GiftCredits, Math.Max(0, win.Treasury.Credits)); MoveTrust(w, -4); exposed = Hash(b.Id + ":exposed") % 3 == 0; }
+                else
+                {
+                    string? buyer = BoughtWinner(w, b, who);   // one already paid is not paid again
+                    if (buyer == null) { Pay(w, who, GiftCredits); if (win != null) win.Treasury.Credits -= Math.Min(GiftCredits, Math.Max(0, win.Treasury.Credits)); }
+                    MoveTrust(w, -4); exposed = Hash(b.Id + ":exposed") % 3 == 0;
+                    if (buyer != null && exposed) BribeOut(w, buyer, who);
+                }
                 if (ours || winner == mine || loser == mine)
                     w.Log($"{who.Name}, praetor, finds for {win?.Name} against {lose?.Name}{(just ? "" : ", against the plain reading of the law")}. {lose?.Name} pays {Damages} credits.");
                 if (winner == mine || loser == mine) w.WorldFlags.Add(winner == mine ? "case_won" : "case_lost");
@@ -445,6 +451,7 @@ public static partial class LadderSystem
         string what = b.Kind == Case ? (choice == Law ? "Sat as praetor and ruled on the law." : choice == Friend ? "Sat as praetor and found for a friend." : "Sat as praetor and took a gift.")
             : b.Kind == Works ? (choice == Nothing ? "" : "Saw to the Reach's works as aedile.") : choice == Favour ? "" : "Kept the Reach's accounts as quaestor.";
         if (what.Length > 0 && who.Life?.Marks.Add("business:" + b.RungId + ":" + (choice is Friend or Gift ? choice : "done")) != false) LifeSystem.Note(w, who, "office", what);
+        if (choice == Favour || choice == Gift || (choice == Friend && b.WinnerId.Length > 0 && b.WinnerId != b.RightId)) Record(w, who, b, choice, exposed);
         if (exposed) Expose(w, offices, who, b);
     }
 
@@ -465,6 +472,7 @@ public static partial class LadderSystem
         bool honest = c.NatureTraits.Contains("Honorable") || c.NatureTraits.Contains("Just");
         bool grasping = !honest && (c.NatureTraits.Contains("Ruthless") || c.NatureTraits.Contains("Cruel") || c.Ambition == "amass_a_fortune");
         bool partial = !honest && (c.NatureTraits.Contains("Loyal") || c.NatureTraits.Contains("Vengeful") || Hash(c.Id + ":partial") % 3 == 0);
+        if (b.Kind == Case && BoughtWinner(w, b, c) != null) return Gift;             // bought, and the buyer is before them
         if (b.Kind == Case && !honest && TieWinner(w, b, c) != null) return Friend;   // an old friend, or an old enemy, of one of the parties
         if (b.Kind == Case) return grasping && Hash(b.Id + ":take") % 2 == 0 ? Gift : partial && !grasping ? Friend : Law;
         if (b.Kind == Works) return Funds(w, c) < WorksCredits ? Nothing : b.RegionId.Length > 0 && Hash(b.Id + ":works") % 2 == 0 ? Lanes : Grain;
@@ -506,7 +514,7 @@ public static partial class LadderSystem
         if (!w.HasFlag(ExposedFlag) && !w.HasFlag(KinExposedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(ExposedChar);
         if (!w.HasFlag(SpokenForFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(SpokenForChar);
         if (!w.HasFlag(BlamedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(BlamesChar);
-        if (!Active(w, offices)) { w.Magistrates.Clear(); w.Candidacies.Clear(); w.OfficeWork.Clear(); return; }
+        if (!Active(w, offices)) { w.Magistrates.Clear(); w.Candidacies.Clear(); w.OfficeWork.Clear(); w.OfficeRecord.Clear(); return; }
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null;
 
         // a seat lapses with its holder; a holder is paid
@@ -517,7 +525,7 @@ public static partial class LadderSystem
             m.HouseId = c.HouseId;
             if (offices.Rung(m.OfficeId) is { Stipend: > 0 } rung && house != null && c.HouseId == house.Id) c.Purse += rung.Stipend;
         }
-        Business(w, offices); Duties(w, offices, policy);
+        Business(w, offices); Duties(w, offices, policy); Courts(w, offices);
         if (p is not { Alive: true } || house == null) return;
         if (BusinessOf(w, p.Id) != null) w.WorldFlags.Add(BusinessFlag);
         if (DutyOf(w, p.Id, Hearing, Appeal) != null) w.WorldFlags.Add(BenchFlag);

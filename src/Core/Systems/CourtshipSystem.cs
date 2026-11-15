@@ -227,7 +227,7 @@ public static class CourtshipSystem
         return v;
     }
 
-    public const int OldFriendMatch = 10, OldEnemyMatch = -15, ApartYears = 3, DivorceRegard = -20;
+    public const int OldFriendMatch = 10, OldEnemyMatch = -15, ApartYears = 3, DivorceRegard = -20, WarStrain = 8, FeudStrain = 5;
     /// <summary>Old ties in a match (docs/LIFE.md): a family whose head has been the player's friend for years is the readier to
     /// marry into the player's house; one whose head is an old enemy is not.</summary>
     public static int OldTie(World w, Character theirs)
@@ -660,8 +660,18 @@ public static class CourtshipSystem
             if (m.Warmth < target) m.Warmth = Math.Min(target, m.Warmth + 2);
             else if (m.Warmth > target && m.TendedTurn < w.Turn) m.Warmth = Math.Max(target, m.Warmth - 2);
             if ((a.Stress >= 60 || b.Stress >= 60) && m.TendedTurn < w.Turn) m.Warmth -= 2;
-            m.Warmth = Math.Clamp(m.Warmth, 0, 100);
             bool ours = mine != null && (a.HouseId == mine || b.HouseId == mine);
+            // A marriage made between two houses is strained when the houses fall out, and more when they are at war: it was made
+            // for the alliance, and the alliance is gone. A love match bears it better. (Other houses only: the player's own
+            // marriages are theirs to tend.)
+            if (!ours && a.HouseId != b.HouseId && a.Alive && b.Alive)
+            {
+                var ha0 = Head(w, a.HouseId); var hb0 = Head(w, b.HouseId);
+                int between = ha0 != null && hb0 != null ? Math.Min(w.GetRelationship(ha0.Id, hb0.Id)?.Disposition ?? 0, w.GetRelationship(hb0.Id, ha0.Id)?.Disposition ?? 0) : 0;
+                int strain = w.AtWar(a.HouseId, b.HouseId) ? WarStrain : between <= DivorceRegard - 10 ? FeudStrain : 0;
+                if (strain > 0) m.Warmth -= m.Kind == Love ? strain / 2 : strain;
+            }
+            m.Warmth = Math.Clamp(m.Warmth, 0, 100);
             if (!m.Estranged && m.Warmth <= EstrangedAt) { m.Estranged = true; if (ours) w.Log($"{a.Name} and {b.Name} no longer live under one roof."); }
             else if (m.Estranged && m.Warmth >= ReconciledAt) { m.Estranged = false; if (ours) w.Log($"{a.Name} and {b.Name} are reconciled."); }
             // Other houses end marriages too, and somebody chooses it (docs/MARRIAGE.md): when a couple has lived apart three years,
@@ -673,7 +683,7 @@ public static class CourtshipSystem
             {
                 int years = w.Counter(apart) + 1; w.WorldCounters[apart] = years;
                 var who = m.DowryFrom == a.HouseId ? b : a; var chooser = Head(w, who.HouseId); var theirHead = Head(w, (who == a ? b : a).HouseId);
-                bool fallenOut = chooser != null && theirHead != null && chooser.Id != theirHead.Id && (w.GetRelationship(chooser.Id, theirHead.Id)?.Disposition ?? 0) <= DivorceRegard;
+                bool fallenOut = w.AtWar(a.HouseId, b.HouseId) || (chooser != null && theirHead != null && chooser.Id != theirHead.Id && (w.GetRelationship(chooser.Id, theirHead.Id)?.Disposition ?? 0) <= DivorceRegard);
                 bool upright = chooser == null || chooser.NatureTraits.Contains("Honorable") || chooser.NatureTraits.Contains("Loyal");
                 if (years >= ApartYears && !upright && (children == 0 || fallenOut))
                 {

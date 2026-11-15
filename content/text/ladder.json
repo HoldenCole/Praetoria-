@@ -198,6 +198,36 @@
         "write_to_the_one_who_spoke": "Write to the one who spoke for them.",
         "let_it_pass": "Let it pass. It is the service's business."
       }
+    },
+    {
+      "id": "the_charge_is_proved",
+      "title": "The Charge Is Proved",
+      "body": "The praetor read the record back to the court, which took some time, and found it proved. A man who sat in an office of the Reach and took money in it may not stand for anything for five years, and his house has paid. It was {self.name}'s house that brought the charge, and the Reach knows it.",
+      "choices": {
+        "say_it_was_the_law": "Say it was the law, and nothing more.",
+        "press_the_advantage": "Let it be known there are other names on the record.",
+        "offer_the_family_a_way_back": "Send a private word to the family."
+      }
+    },
+    {
+      "id": "the_court_lets_them_go",
+      "title": "The Court Lets Them Go",
+      "body": "The house brought its charge and the praetor heard it out and let the accused go. The record says what it said before. The court says something else. {self.name} is left holding a case that will not be heard again, and the man it was against is dining out on it.",
+      "choices": {
+        "accept_the_verdict": "Accept the verdict in public.",
+        "say_what_the_court_was_worth": "Say what that court's verdict is worth.",
+        "keep_the_papers": "Have the papers kept."
+      }
+    },
+    {
+      "id": "the_praetor_is_not_for_sale",
+      "title": "The Praetor Is Not for Sale",
+      "body": "The offer was put with every delicacy and nothing in writing. The praetor heard it through, and the next morning repeated it from the bench, with the sum, and the name of the house that had named it. Nothing changed hands. The whole of the capital has now heard what {self.name} thought a judgment would cost.",
+      "choices": {
+        "deny_it": "Deny it flatly.",
+        "say_it_was_a_test": "Let it be said that it was a test of the bench.",
+        "own_it_and_be_done": "Own it, and say no more."
+      }
     }
   ]
 }

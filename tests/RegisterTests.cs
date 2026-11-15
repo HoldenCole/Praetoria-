@@ -358,6 +358,27 @@ public class RegisterTests
     }
 
     [Fact]
+    public void M1_A_marriage_between_two_houses_at_war_goes_cold_and_is_ended_and_a_love_match_bears_it_better()
+    {
+        // Measured (docs/GAP_ANALYSIS.md section 50): as first built, no marriage of another house ended in sixty runs, because none
+        // ever went cold. What strains one is its two houses falling out.
+        int Years(string kind, bool war)
+        {
+            var (_, w, me, mine, _) = Start(); var ho = w.Houses.Values.Where(h => h.Id != mine.Id && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+            var x = new Character { Id = "np_x", Name = "Npc X", HouseId = ho[0].Id, Age = 30, Sex = "male" }; var y = new Character { Id = "np_y", Name = "Npc Y", HouseId = ho[1].Id, Age = 28, Sex = "female" };
+            foreach (var c in new[] { x, y }) { w.Characters[c.Id] = c; w.House(c.HouseId)!.Members.Add(c.Id); }
+            var h0 = Economy.HeadOf(w, ho[0])!; h0.NatureTraits.Remove("Honorable"); h0.NatureTraits.Remove("Loyal");
+            w.Wars.RemoveAll(q => q.Between(ho[0].Id, ho[1].Id)); if (war) w.Wars.Add(new War { HouseA = ho[0].Id, HouseB = ho[1].Id, Since = w.Turn });
+            var m = CourtshipSystem.Wed(w, x, y, kind); m.Warmth = 60;
+            for (int i = 1; i <= 40; i++) { w.Turn++; if (war && !w.AtWar(ho[0].Id, ho[1].Id)) w.Wars.Add(new War { HouseA = ho[0].Id, HouseB = ho[1].Id, Since = w.Turn }); CourtshipSystem.Tick(w); if (!w.Marriages.Contains(m)) return i; }
+            return 99;
+        }
+        int arranged = Years(CourtshipSystem.Arranged, war: true), love = Years(CourtshipSystem.Love, war: true);
+        Assert.InRange(arranged, 6, 20); Assert.True(love > arranged, $"a love match should bear a war longer ({love} against {arranged})");
+        Assert.Equal(99, Years(CourtshipSystem.Arranged, war: false));   // at peace, and the houses on terms, it lasts
+    }
+
+    [Fact]
     public void The_elders_peace_is_an_event()
     {
         var (_, w, me, mine, _) = Start(); Alone(w, mine, me); Elder(w, mine, me);

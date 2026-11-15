@@ -1563,6 +1563,240 @@
           ]
         }
       ]
+    },
+    {
+      "id": "the_charge_is_proved",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "prosecution_won",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_it_was_the_law",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "public_trust",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that the house had brought a charge and the court had found it proved, and that there was nothing more in it than that. It was a dull thing to say, and people repeated it."
+            }
+          ]
+        },
+        {
+          "id": "press_the_advantage",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be understood that there were other names on the record and that the house had a long memory. Several people became more civil that month. None of them became friends."
+            }
+          ]
+        },
+        {
+          "id": "offer_the_family_a_way_back",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a private word to the convicted man's family: the charge was against what was done, not against the name. They did not answer. They did not have to."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_court_lets_them_go",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "prosecution_lost",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "accept_the_verdict",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that a court had heard it and that was the end of the matter. Nobody believed {self.name} thought so, and everybody noted that it had been said."
+            }
+          ]
+        },
+        {
+          "id": "say_what_the_court_was_worth",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "public_trust",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said, where it would be repeated, what a verdict from that bench was worth and to whom it had been worth it. It was true. Saying it did the courts no good and {self.name} some."
+            }
+          ]
+        },
+        {
+          "id": "keep_the_papers",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the papers put away and not burned. A charge is heard once. A record is read as often as anyone cares to."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_praetor_is_not_for_sale",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "bribe_refused",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "deny_it",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} denied it flatly. The praetor had no witness and did not need one. A denial of that kind is believed by the people who would have believed anything."
+            }
+          ]
+        },
+        {
+          "id": "say_it_was_a_test",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be said that the house had wished to know whether the bench could be had, and was glad to learn it could not. It was clever. It was heard as clever."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "own_it_and_be_done",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that the offer had been made and should not have been, and said no more. It cost the house what it was always going to cost, and not a day longer."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

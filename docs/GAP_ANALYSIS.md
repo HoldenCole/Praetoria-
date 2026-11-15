@@ -1528,3 +1528,45 @@ before, and it is written here as such. The other seventy-nine stood.
 (C9, C6, M4, B13) and the fifth is the standing note about events the soak does not reach (X4). The next rows in
 order are L2, L5, L8 and O2 (a magistrate prosecuted; cases with facts; a senator's committees; an office's charge
 with figures), each a cycle.
+
+## 50. The courts, and a row that was closed on a test and not on the game — 2026-11-15
+
+**L2: what a magistrate did is answered for.** Until now a magistrate who took money either had it come out that
+year or got away with it for ever, because the year's business was thrown away with the year. A bent act is now
+kept on a record for eight years. A magistrate cannot be touched while they sit; afterwards the head of any house can
+bring a charge before a sitting praetor of a third house, and the verdict is that praetor's (the upright convict, a
+friend of the accused's house lets them go, one for sale finds for the richer house, and before the rest it goes by
+who pleads better). Other houses bring charges too, one a year in the whole Reach, and the people of the player's
+house are not excepted. A sitting praetor can be offered a sum: the upright refuse from the bench, and a bought
+ruling comes out one time in three. A new panel on the Senate screen shows the record, who would hear each charge and
+what kind of praetor that is, what stands against the player's own house, and the bench. Details in docs/LADDER.md.
+
+**Measured.** On the final build. The soak (33 runs, a randomised player who now brings charges and makes
+offers, a save and load in each) passes with no drift. Survival: 0 of 10 on every start. The Republic probe, sixty
+Republic runs with a passive player: the Republic stood in all 60; the great war in 38; 15 states recognised. In
+those sixty runs **707 former magistrates were charged and 499 convicted**: about twelve charges a run, one every
+five years, seven in ten of them proved. Trust in the magistrates averaged 59 to 64 by start, two or three points up
+on the last pass, which is the convictions. A house was under a scandal in about nine years in ten, as before.
+
+**Seen in the browser.** The Old Lion: a quaestor of House Dreyer who took money in year 1 was on the record by
+year 3; the charge came before a praetor "known to be for sale, who will find for the richer house"; the Old Lion's
+house being the richer, it was proved. The same praetor then took fifteen credits and was shown as "in your pocket",
+and the buying appeared under "Against your own house". The New Man: the first praetor offered was upright, and the
+chronicle reads "Placidia Aurelian, praetor, says in open court what Marcus Crane offered. Nothing was taken.
+Everything was heard." My first run of the script found no panel: it is under the "Your standing" tab, and the
+script was wrong, not the page.
+
+**A row closed on a test and not on the game.** The probe now counts marriages of other houses that end. Over the
+first sixty runs with the count in, it was none. Sections 48 and 49 closed M1 and M6 (other houses divorce; somebody
+chooses it) on tests that set a marriage's warmth to nothing by hand. In play no marriage of another house ever went
+cold, so the rule had nothing to act on. I should have measured it before closing it; the register rule says built,
+tested **and measured**, and I had done two of the three.
+
+What strains a marriage made between two houses is the two houses falling out, so that is what was added: it loses
+warmth while they are at war (8 a year) or their heads have fallen out (5), half as much if it was a love match.
+Measured on
+the final build over the same sixty runs: of 2,763 marriages of other houses standing at the end, 69 were cold and
+53 living apart, and **38 had been ended** over the years. The test now makes a war and waits, and does not touch the warmth.
+
+**Left, and mapped.** A trial is one praetor's decision: no evidence is led, there is no appeal from a verdict, and
+the accused does nothing in their own defence. Only a praetor can be bought (L11).
