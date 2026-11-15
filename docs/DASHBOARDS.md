@@ -131,6 +131,7 @@ And the owner's own limit on all of it: not overwhelming. The test of a screen i
 | 6 | Chronicle | Full width; the bars labelled; a year's summary line | done: see below |
 | 7 | Dynasty | A tree that can be read; the heir and the line first | done: see below |
 | 8 | Exchange | The fixed essay behind a hover; projects' empty state | done: see below |
+| 9 | Houses, Worlds | The audit judged both good; they kept the strip of bare numbers | done: a headline and six tiles each |
 
 ## The Command Deck, rebuilt
 
@@ -275,6 +276,15 @@ The same squeeze as the House and the Senate: five panels in a grid as tall as t
   moved.
 - **Projects, empty** (9, 10): the panel is as tall as what is in it, says what a site would show, and has the two
   ways to begin one as buttons. "How building works" is folded.
+
+## Houses and Worlds
+
+Both were judged good in the audit, and their tables are untouched. Each still opened with the strip of bare numbers
+every dashboard had, so each has the headline and the tiles now. **Houses**: where you stand, with whom you are at
+war, how many think well and ill of you with the warmest and the coldest named, and the strongest in arms and the
+richest against what you have. **Worlds**: how many are yours and whether any is restless, your least loyal world
+against the mark at which a world is restless, the restless across the Reach and the worst region, the unclaimed, the
+free marches, and the systems with deposits and how many of those are yours.
 
 ## After
 

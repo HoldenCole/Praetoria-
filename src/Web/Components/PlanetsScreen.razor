@@ -6,16 +6,28 @@
     var fn = _focus != null && nodes.TryGetValue(_focus, out var f0) ? f0 : null;
     int myWorlds = nodes.Values.Count(n => n.IsPlayerTerritory && n.PlanetHoldingId != null), restless = nodes.Values.Count(n => n.Population > 0 && n.Unrest >= 50), unclaimed = nodes.Values.Count(n => n.OwnerHouseId == null);
     var shown = _region == null ? regions : regions.Where(r => r.Id == _region).ToList();
+
+    // The picture (docs/DASHBOARDS.md): what is yours, what is restless, and what is there to be had.
+    var worlds = nodes.Values.Where(n => n.PlanetHoldingId != null).ToList(); var peopled = worlds.Where(n => n.Population > 0).ToList();
+    var ours = worlds.Where(n => n.IsPlayerTerritory).OrderByDescending(n => n.Unrest).ThenBy(n => n.SystemId, StringComparer.Ordinal).ToList(); var worst = ours.FirstOrDefault();
+    var marches = regions.Where(r => r.FreeMarch).ToList(); var unruly = regions.OrderByDescending(r => r.Unrest).FirstOrDefault();
+    int withDeposits = nodes.Values.Count(n => n.Deposits is { Count: > 0 }), oursDeposits = nodes.Values.Count(n => n.IsPlayerTerritory && n.Deposits is { Count: > 0 });
+    string story, storyTone;
+    if (worst is { Unrest: >= 50 }) { story = $"{worst.Name}, a world of yours, is restless: loyalty {100 - worst.Unrest}. You hold {ours.Count} of the Reach's {worlds.Count} worlds."; storyTone = "bad"; }
+    else if (ours.Count == 0) { story = $"You hold no world. {unclaimed} system(s) lie unclaimed, and {restless} of the Reach's {peopled.Count} peopled worlds are restless."; storyTone = ""; }
+    else { story = $"You hold {ours.Count} of the Reach's {worlds.Count} worlds, and none of them is restless{(worst == null ? "" : worst.Unrest == 0 ? ": every one is wholly loyal" : $": the least loyal is {worst.Name}, at {100 - worst.Unrest}")}. Across the Reach {restless} of {peopled.Count} peopled worlds are restless{(unruly != null && restless > 0 ? $", most of all in {unruly.Name}" : "")}."; storyTone = "good"; }
 }
 <div class="dash worlds" style="--accent:@house.AccentColor">
-    <header class="dash-head">
+    <header class="dash-head picture">
         <div class="dh-title"><Icon Name="worlds" Size="18" /> <b>The Worlds of @w.Galaxy!.Name</b> <span class="muted">@regions.Count regions · @nodes.Count systems · @w.Holdings.Values.Count(h => !h.IsPlanet) stations</span></div>
-        <div class="dh-stats">
-            <div class="stat"><span>Yours</span><b>@myWorlds</b></div>
-            <div class="stat"><span>Unclaimed</span><b>@unclaimed</b></div>
-            <div class="stat @(restless > 3 ? "warn" : "")"><span>Restless worlds</span><b>@restless</b></div>
-            <div class="stat"><span>Free marches</span><b>@regions.Count(r => r.FreeMarch)</b></div>
-            <div class="stat"><span>Deposits</span><b>@nodes.Values.Count(n => n.Deposits is { Count: > 0 })</b></div>
+        <p class="headline @storyTone">@story</p>
+        <div class="tiles">
+            <Tile Label="Yours" Value="@($"{ours.Count} of {worlds.Count}")" Share="@(worlds.Count > 0 ? 100 * ours.Count / worlds.Count : 0)" Note="@(ours.Count == 0 ? "a fief is won, granted, or married into" : $"worlds, in {ours.Select(n => n.RegionId).Distinct().Count()} region(s)")" Title="The bar is your share of the Reach's worlds." />
+            @if (worst != null) { <Tile Label="Your least loyal" Value="@($"{100 - worst.Unrest}")" Share="@(100 - worst.Unrest)" Tone="@(worst.Unrest >= 50 ? "bad" : worst.Unrest >= 35 ? "warn" : "good")" Note="@($"{worst.Name} · restless below 50")" Title="Loyalty is a hundred less the unrest. A restless world yields less and may rise." /> }
+            <Tile Label="Restless in the Reach" Value="@restless.ToString()" Share="@(peopled.Count > 0 ? 100 * restless / peopled.Count : 0)" Tone="@(restless > 3 ? "warn" : "")" Note="@($"of {peopled.Count} peopled worlds{(unruly != null && unruly.Unrest > 0 ? $" · worst region: {unruly.Name}" : "")}")" />
+            <Tile Label="Unclaimed" Value="@unclaimed.ToString()" Note="@(unclaimed == 0 ? "every system has a master" : "systems with no master: to be settled or taken")" />
+            <Tile Label="Free marches" Value="@(marches.Count == 0 ? "none" : marches.Count.ToString())" Tone="@(marches.Count > 0 ? "warn" : "")" Note="@(marches.Count == 0 ? "no region has thrown off the Reach" : string.Join(", ", marches.Take(2).Select(r => r.Name)))" Title="A region that answers to nobody." />
+            <Tile Label="Deposits" Value="@withDeposits.ToString()" Share="@(withDeposits > 0 ? 100 * oursDeposits / withDeposits : 0)" Note="@($"systems with something under them · {oursDeposits} of them yours")" Title="Helium-3, rare earths and isotopes lie under some systems; what you lack, you buy." />
         </div>
     </header>
     <div class="dash-grid worlds-grid">

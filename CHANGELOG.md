@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Added
+- **Houses and Worlds open with a sentence and six tiles**, like every other dashboard: where you stand and who is
+  with and against you; what is yours, what is restless and what is there to be had. Their tables are as they were.
 - **The Chronicle, rebuilt** (docs/DASHBOARDS.md). One sentence on what the last year wrote of your house. Six tiles.
   The years have their numbers under them and a key. It opens on the last five years. Each year is two columns: what
   was written of your house, and what of the Reach, each line marked by its kind.

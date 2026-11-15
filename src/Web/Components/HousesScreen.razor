@@ -13,16 +13,32 @@
     int maxHulls = Math.Max(1, w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).Max(h => FleetSystem.StrengthOf(w, h.Id))), maxSeats = Math.Max(1, w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).Max(h => senate.Weight(w, h.Id))), maxWorlds = Math.Max(1, w.Houses.Values.Max(h => w.HoldingsOf(h.Id).Count(x => x.IsPlanet)));
     string capLine = m.Capital == null ? "" : " · the capital " + m.Capital.SystemName + " is " + (m.Capital.Mine ? "yours" : m.Capital.HolderName != null ? m.Capital.HolderName + "'s" : "masterless");
     int myRank = 1 + housesAll.Count(h => c.Titles.RankOf(h.Title) > c.Titles.RankOf(mine.Title) || (c.Titles.RankOf(h.Title) == c.Titles.RankOf(mine.Title) && h.Legitimacy > mine.Legitimacy));
+
+    // The picture (docs/DASHBOARDS.md): where you stand among the houses, who is with you and against you, and who is strongest.
+    var regard = houses.ToDictionary(h => h.Id, Disp);
+    var warring = houses.Where(h => w.AtWar(mine.Id, h.Id)).ToList(); var friends = houses.Where(h => regard[h.Id] > 20).ToList(); var enemies = houses.Where(h => regard[h.Id] < -20).ToList();
+    var warmest = houses.OrderByDescending(h => regard[h.Id]).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault(); var coldest = houses.OrderBy(h => regard[h.Id]).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+    var strongest = houses.OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault(); int myHulls = FleetSystem.StrengthOf(w, mine.Id), theirHulls = strongest != null ? FleetSystem.StrengthOf(w, strongest.Id) : 0;
+    var richest = houses.OrderByDescending(h => h.Wealth).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+    static string Signed(int n) => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.Abs(n);
+    string by = w.IsImperium ? "title" : "rank";
+    string story, storyTone;
+    if (warring.Count > 0) { story = $"You are at war with {string.Join(" and ", warring.Take(2).Select(h => h.Name))}{(warring.Count > 2 ? $" and {warring.Count - 2} more" : "")}. You stand {Ordinal(myRank)} of {houses.Count + 1} houses by {by}, with {myHulls} hull(s) to {(strongest != null ? $"{strongest.Name}'s {theirHulls}, the most of any" : "nobody's")}."; storyTone = "bad"; }
+    else if (enemies.Count > friends.Count && coldest != null) { story = $"More houses think ill of you than well: {enemies.Count} against {friends.Count}. {coldest.Name} think worst of you ({Signed(regard[coldest.Id])}). You stand {Ordinal(myRank)} of {houses.Count + 1} by {by}."; storyTone = "warn"; }
+    else { story = $"You stand {Ordinal(myRank)} of {houses.Count + 1} houses by {by}, at war with none. {(friends.Count == 0 ? "None" : friends.Count.ToString())} think well of you and {(enemies.Count == 0 ? "none" : enemies.Count.ToString())} ill"
+            + (strongest != null ? (theirHulls > myHulls ? $"; {strongest.Name} are strongest in arms, with {theirHulls} hull(s) to your {myHulls}." : $"; no house has more hulls than your {myHulls}.") : "."); storyTone = ""; }
 }
 <div class="dash gallery" style="--accent:@mine.AccentColor">
-    <header class="dash-head">
+    <header class="dash-head picture">
         <div class="dh-title"><Icon Name="houses" Size="18" /> <b>The Houses of @(w.Era == "imperium" ? "the Imperium" : "the Reach")</b> <span class="muted">@(houses.Count + 1) houses · @great hold worlds · @(houses.Count - great) hold stations or a name@(capLine)</span></div>
-        <div class="dh-stats">
-            <div class="stat"><span>Your standing</span><b>@Ordinal(myRank) <i class="muted">of @(houses.Count + 1) by @(w.IsImperium ? "title" : "rank")</i></b></div>
-            <div class="stat @(wars > 0 ? "warn" : "")"><span>At war with you</span><b>@wars</b></div>
-            <div class="stat"><span>Friends (+20)</span><b>@houses.Count(h => Disp(h) > 20)</b></div>
-            <div class="stat @(houses.Count(h => Disp(h) < -20) > 3 ? "warn" : "")"><span>Enemies (−20)</span><b>@houses.Count(h => Disp(h) < -20)</b></div>
-            <div class="stat"><span>Free holds</span><b>@houses.Count(h => h.Bloc == RegionSystem.FreeholdsBloc)</b></div>
+        <p class="headline @storyTone">@story</p>
+        <div class="tiles">
+            <Tile Label="Your standing" Value="@($"{Ordinal(myRank)} of {houses.Count + 1}")" Share="@(100 * (houses.Count + 1 - myRank) / Math.Max(1, houses.Count))" Tone="@(myRank * 3 <= houses.Count + 1 ? "good" : "")" Note="@($"by {by}, then by legitimacy")" Title="The bar is how many houses stand below you." />
+            <Tile Label="At war with you" Value="@(warring.Count == 0 ? "none" : warring.Count.ToString())" Tone="@(warring.Count > 0 ? "bad" : "good")" Note="@(warring.Count == 0 ? "no house is in arms against you" : string.Join(", ", warring.Take(2).Select(h => h.Name)) + (warring.Count > 2 ? " and others" : ""))" />
+            <Tile Label="Think well of you" Value="@friends.Count.ToString()" Share="@(houses.Count > 0 ? 100 * friends.Count / houses.Count : 0)" Tone="@(friends.Count > enemies.Count ? "good" : "")" Note="@(warmest != null ? $"of {houses.Count} · warmest: {warmest.Name} {Signed(regard[warmest.Id])}" : "")" Title="Houses whose people regard you at more than +20, on average." />
+            <Tile Label="Think ill of you" Value="@enemies.Count.ToString()" Share="@(houses.Count > 0 ? 100 * enemies.Count / houses.Count : 0)" Tone="@(enemies.Count > friends.Count ? "warn" : "")" Note="@(coldest != null ? $"of {houses.Count} · coldest: {coldest.Name} {Signed(regard[coldest.Id])}" : "")" Title="Houses whose people regard you at less than −20, on average." />
+            @if (strongest != null) { <Tile Label="Strongest in arms" Value="@($"{theirHulls} hulls")" Share="@(theirHulls > 0 ? 100 * myHulls / Math.Max(myHulls, theirHulls) : 0)" Tone="@(myHulls >= theirHulls ? "good" : myHulls * 2 < theirHulls ? "warn" : "")" Note="@($"{strongest.Name} · you have {myHulls}")" Title="The bar is your hulls against theirs." /> }
+            @if (richest != null) { <Tile Label="Richest" Value="@richest.Wealth.ToString()" Share="@(richest.Wealth > 0 ? Math.Clamp(100 * mine.Wealth / Math.Max(mine.Wealth, richest.Wealth), 0, 100) : 0)" Tone="@(mine.Wealth >= richest.Wealth ? "good" : "")" Note="@($"{richest.Name} · you have {mine.Wealth}")" Title="The bar is your wealth against theirs." /> }
         </div>
     </header>
     <div class="dash-grid gallery-grid">
