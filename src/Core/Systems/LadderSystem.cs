@@ -270,7 +270,41 @@ public static partial class LadderSystem
     }
     private const string MendedKey = "trust_mended_in";
     public static string KindOf(RungDef rung) => rung.Id == Praetor ? Case : rung.Games > 0 ? Works : Accounts;
-    public static string[] ChoicesFor(string kind) => kind == Case ? new[] { Law, Friend, Gift } : kind == Works ? new[] { Lanes, Grain, Nothing } : new[] { Straight, Relief, Favour };
+    public static string[] ChoicesFor(string kind) => kind == Case ? new[] { Law, Settle, Friend, Gift } : kind == Works ? new[] { Lanes, Grain, Both, Nothing } : new[] { Straight, Relief, Favour };
+
+    // ---------------- the facts of the year's business (docs/LADDER.md, "The facts") ----------------
+
+    public const string Settle = "settle", Both = "both"; public const int Plain = 3, Arguable = 2, Doubtful = 1;
+    private static readonly (string id, string says)[] Matters =
+    {
+        ("boundary", "a boundary between two estates"), ("debt", "a debt of long standing"), ("contract", "a contract that was not honoured"), ("inheritance", "a contested inheritance"), ("salvage", "the salvage of a wreck")
+    };
+    private static readonly (string id, string says)[] Surpluses =
+    {
+        ("dues", "harbour dues that came in over the estimate"), ("fines", "fines the courts collected"), ("levy", "a levy that was overcollected"), ("escheat", "an estate that fell to the Reach for want of an heir")
+    };
+    /// <summary>What turns on it: a case's damages, the accounts' surplus. Five where the business was made before there were facts.</summary>
+    public static int StakeOf(OfficeBusiness b) => b.Stake > 0 ? b.Stake : Damages;
+    /// <summary>How plain the law is in a case. Plain, where it was made before there were facts.</summary>
+    public static int WeightOf(OfficeBusiness b) => b.Weight > 0 ? b.Weight : Plain;
+    public static string WeightSays(OfficeBusiness b) => WeightOf(b) == Plain ? "The law, read plainly, is with" : WeightOf(b) == Arguable ? "The law is arguable, and leans to" : "The law is doubtful. If anything it leans to";
+    private static string MatterSays(OfficeBusiness b) => Matters.Concat(Surpluses).FirstOrDefault(m => m.id == b.Matter).says ?? "";
+    /// <summary>What a ruling against the law costs the Reach's trust: the plainer the law, the more.</summary>
+    public static int BentCost(OfficeBusiness b) => WeightOf(b) == Plain ? 4 : WeightOf(b) == Arguable ? 3 : 1;
+    private static void Facts(World w, OfficeBusiness b)
+    {
+        if (b.Kind == Case && b.HouseA.Length > 0)
+        {
+            b.Matter = Matters[(int)(Hash(b.Id + ":matter") % (uint)Matters.Length)].id;
+            uint x = Hash(b.Id + ":weight") % 10; b.Weight = x < 4 ? Plain : x < 8 ? Arguable : Doubtful;
+            b.Stake = Damages * (1 + (int)(Hash(b.Id + ":stake") % 3));
+        }
+        else if (b.Kind == Accounts)
+        {
+            b.Matter = Surpluses[(int)(Hash(b.Id + ":matter") % (uint)Surpluses.Length)].id;
+            b.Stake = Math.Min(4 + (int)(Hash(b.Id + ":stake") % 9), Math.Max(0, RegionSystem.CapitalHolder(w)?.Treasury.Credits ?? 0));
+        }
+    }
     public static OfficeBusiness? BusinessOf(World w, string characterId) => w.OfficeWork.FirstOrDefault(b => b.HolderId == characterId && b.Choice.Length == 0 && b.Kind is Accounts or Works or Case);
 
     private static int Regard(World w, House? of, House? toward)
@@ -309,6 +343,7 @@ public static partial class LadderSystem
             else if (houses.Count >= 2) { int i = (int)(Hash(b.Id) % (uint)houses.Count); b.HouseA = houses[i].Id; b.HouseB = houses[(i + 1) % houses.Count].Id; }
             if (b.HouseA.Length > 0) { b.RightId = Hash(b.Id + ":right") % 2 == 0 ? b.HouseA : b.HouseB; taken.Add(b.HouseA); taken.Add(b.HouseB); }
         }
+        Facts(w, b);
         return b;
     }
 
@@ -359,9 +394,11 @@ public static partial class LadderSystem
         string region = w.Galaxy?.Region(b.RegionId)?.Name ?? "";
         return b.Kind switch
         {
-            Accounts => "The year's accounts of the Reach are yours to close." + (region.Length > 0 ? $" {region} is lawless, and there is a little in the purse that could go to it." : ""),
-            Works => "The city's works and the lanes are yours to see to this year, out of your own purse." + (region.Length > 0 ? $" The lanes of {region}, where your house's worlds are, want repair." : ""),
-            _ => b.HouseA.Length == 0 ? "No case of weight has come before you this year." : $"{w.House(b.HouseA)?.Name} and {w.House(b.HouseB)?.Name} are before your court. The law, read plainly, is with {w.House(b.RightId)?.Name}."
+            Accounts => "The year's accounts of the Reach are yours to close." + (b.Stake > 0 ? $" They show {b.Stake} credits over, from {MatterSays(b)}." : " They balance to the credit: there is nothing over.")
+                + (region.Length > 0 ? $" {region} is lawless ({RegionSystem.StateOf(w, b.RegionId).Lawlessness} in a hundred), and what is over could go to it." : ""),
+            Works => "The city's works and the lanes are yours to see to this year, out of your own purse." + (region.Length > 0 ? $" The lanes of {region}, where your house's worlds are, want repair ({RegionSystem.StateOf(w, b.RegionId).Lawlessness} in a hundred lawless)." : ""),
+            _ => b.HouseA.Length == 0 ? "No case of weight has come before you this year."
+                : $"{w.House(b.HouseA)?.Name} and {w.House(b.HouseB)?.Name} are before your court{(MatterSays(b).Length > 0 ? " over " + MatterSays(b) : "")}. {StakeOf(b)} credits turn on it. {WeightSays(b)} {w.House(b.RightId)?.Name}."
         };
     }
     public static string ChoiceSays(World w, OfficeBusiness b, string choice)
@@ -372,13 +409,17 @@ public static partial class LadderSystem
         return choice switch
         {
             Straight => "Close them as they stand. The magistrates are trusted a little more, and so is your house.",
-            Relief => b.RegionId.Length > 0 ? $"Find {ReliefCredits} credits in the capital's purse for {w.Galaxy?.Region(b.RegionId)?.Name}: its lanes are safer, and its houses remember who did it." : "There is nowhere that needs it this year: close them as they stand.",
-            Favour => $"Let {FavourCredits} credits find their way to your house. The magistrates are trusted less, and one time in four it comes out.",
+            Relief => b.RegionId.Length > 0 ? $"Send the {ReliefSum(b)} credits to {w.Galaxy?.Region(b.RegionId)?.Name}: its lanes are safer by {ReliefFor(b)}, and its houses remember who did it." : "There is nowhere that needs it this year: close them as they stand.",
+            Favour => $"Let {FavourSum(b)} credits find their way to your house. The magistrates are trusted less, and one time in {(FavourSum(b) >= BigSum ? "three" : "four")} it comes out{(FavourSum(b) >= BigSum ? ": it is a large sum to lose" : "")}.",
+            Both => $"Lanes and grain both, for {WorksCredits * 2} credits of your own: the lanes are safer, your house is thought the better of, and it is remembered as a generous year.",
+            Settle => b.HouseA.Length == 0 ? "Sit, and rise." : WeightOf(b) == Doubtful ? $"Bring them to terms: {w.House(b.RightId)?.Name} takes half of what it asked. Where the law is doubtful this is what an honest court does, and both houses think the better of yours."
+                : $"Bring them to terms: {w.House(b.RightId)?.Name} takes half of what the law gives it. The other house thinks the better of yours; {w.House(b.RightId)?.Name} had the law, and knows it.",
             Lanes => b.RegionId.Length > 0 ? $"Repair the lanes of {w.Galaxy?.Region(b.RegionId)?.Name} for {WorksCredits} credits of your own." : $"There is no region of your house's to repair: the {WorksCredits} credits go on the capital's streets.",
             Grain => $"Grain for the squares, for {WorksCredits} credits of your own: your house is thought the better of.",
             Nothing => "Do nothing. Nothing is spent, and if you could have paid it is noticed.",
-            Law => b.HouseA.Length == 0 ? "Sit, and rise." : $"Rule on the law, for {w.House(b.RightId)?.Name}. The loser pays {Damages} credits and thinks the less of you; the winner the better.",
-            Friend => b.HouseA.Length == 0 ? "Sit, and rise." : $"Rule for {friend}, which thinks the better of your house." + (FriendOf(w, b, mine) == b.RightId ? " As it happens the law is with them." : " The law is not with them, and it will be seen."),
+            Law => b.HouseA.Length == 0 ? "Sit, and rise." : $"Rule on the law, for {w.House(b.RightId)?.Name}. The loser pays {StakeOf(b)} credits and thinks the less of you; the winner the better.",
+            Friend => b.HouseA.Length == 0 ? "Sit, and rise." : $"Rule for {friend}, which thinks the better of your house." + (FriendOf(w, b, mine) == b.RightId ? " As it happens the law is with them."
+                : WeightOf(b) == Doubtful ? " The law leans the other way, but it is doubtful enough that the ruling can be defended: it will not be appealed or held against you." : $" The law is not with them, and it will be seen: it may be appealed, and it stays on the record."),
             Gift => b.HouseA.Length == 0 ? "Sit, and rise." : $"Take {GiftCredits} credits from {richer}, and rule for them. One time in three it comes out.",
             _ => ""
         };
@@ -398,8 +439,15 @@ public static partial class LadderSystem
         var b = who != null ? BusinessOf(w, who.Id) : null; if (who?.Alive != true || b == null) return "your office has no business waiting";
         if (!ChoicesFor(b.Kind).Contains(choice)) return "not a thing this office can do";
         if (choice == Relief && b.RegionId.Length == 0) return "no region is lawless enough to need it this year, or the capital's purse is empty";
+        if (choice == Settle && b.HouseA.Length == 0) return "there is nobody before you to bring to terms";
+        if (choice == Both && Funds(w, who) < WorksCredits * 2) return $"it takes {WorksCredits * 2} credits of your own";
         return choice is Lanes or Grain && Funds(w, who) < WorksCredits ? $"it takes {WorksCredits} credits of your own" : null;
     }
+    public const int BigSum = 9;
+    /// <summary>What the quaestor can send to a region: the year's surplus, or the old fixed sum where there are no figures.</summary>
+    public static int ReliefSum(OfficeBusiness b) => b.Stake > 0 ? b.Stake : ReliefCredits;
+    public static int ReliefFor(OfficeBusiness b) => Math.Max(1, ReliefSum(b) / 2);
+    public static int FavourSum(OfficeBusiness b) => b.Stake > 0 ? b.Stake : FavourCredits;
     private static int Funds(World w, Character who) => who.HouseId == w.Protagonist?.HouseId ? who.Purse : w.House(who.HouseId)?.Treasury.Credits ?? 0;
     private static void Pay(World w, Character who, int credits)
     {
@@ -418,24 +466,37 @@ public static partial class LadderSystem
             case Straight: MoveTrust(w, 1); if (house is { Legitimacy: < 80 }) Legit(1); break;
             case Relief:
                 if (b.RegionId.Length == 0) { MoveTrust(w, 1); break; }
-                Region(-ReliefBy); MoveTrust(w, 1); if (chair != null) chair.Treasury.Credits -= Math.Min(ReliefCredits, Math.Max(0, chair.Treasury.Credits));
+                Region(-ReliefFor(b)); MoveTrust(w, 1); if (chair != null) chair.Treasury.Credits -= Math.Min(ReliefSum(b), Math.Max(0, chair.Treasury.Credits));
                 foreach (var h in w.Houses.Values.Where(h => h.Id != who.HouseId && HomeRegion(w, h.Id) == b.RegionId).OrderBy(h => h.Id, StringComparer.Ordinal)) Shift(w, h, house, 6);
                 if (ours) w.Log($"{who.Name}, {office}, finds the money for {w.Galaxy?.Region(b.RegionId)?.Name}. Its lanes are the safer for it.");
                 break;
             case Favour:
-                if (house != null) house.Treasury.Credits += FavourCredits; MoveTrust(w, -3); exposed = Hash(b.Id + ":exposed") % 4 == 0;
+                if (house != null) house.Treasury.Credits += FavourSum(b); if (b.Stake > 0 && chair != null && chair.Id != who.HouseId) chair.Treasury.Credits -= Math.Min(b.Stake, Math.Max(0, chair.Treasury.Credits));
+                MoveTrust(w, -3); exposed = Hash(b.Id + ":exposed") % (FavourSum(b) >= BigSum ? 3 : 4) == 0;
                 break;
+            case Both: Pay(w, who, -WorksCredits * 2); Region(-ReliefBy); Legit(3); MoveTrust(w, 1); break;   // good work, as either alone is: it mends a poor name, and does not gild a good one
             case Lanes: Pay(w, who, -WorksCredits); Region(-ReliefBy); MoveTrust(w, 1); break;
             case Grain: Pay(w, who, -WorksCredits); Legit(2); MoveTrust(w, 1); break;
             case Nothing: if (Funds(w, who) >= WorksCredits) MoveTrust(w, -1); break;   // one who could have paid and did not is noticed; one who could not is merely poor
+            case Settle:
+            {
+                if (b.HouseA.Length == 0) break;
+                var right = w.House(b.RightId); var other = w.House(b.RightId == b.HouseA ? b.HouseB : b.HouseA); b.WinnerId = b.RightId;
+                if (right != null && other != null) { int half = Math.Min(StakeOf(b) / 2, Math.Max(0, other.Treasury.Credits)); other.Treasury.Credits -= half; right.Treasury.Credits += half; }
+                Shift(w, other, house, 4); Shift(w, right, house, WeightOf(b) == Doubtful ? 4 : -3);
+                if (WeightOf(b) == Doubtful) { MoveTrust(w, 1); if (house is { Legitimacy: < 80 }) Legit(1); }
+                if (ours || b.HouseA == mine || b.HouseB == mine) w.Log($"{who.Name}, praetor, brings {right?.Name} and {other?.Name} to terms. {other?.Name} pays {StakeOf(b) / 2} credits.");
+                if (b.RightId == mine) w.WorldFlags.Add("case_won"); else if (b.HouseA == mine || b.HouseB == mine) w.WorldFlags.Add("case_lost");
+                break;
+            }
             case Law: case Friend: case Gift:
                 if (b.HouseA.Length == 0) break;
                 string winner = choice == Law ? b.RightId : choice == Friend ? TieWinner(w, b, who) ?? FriendOf(w, b, house) : BoughtWinner(w, b, who) ?? RicherOf(w, b), loser = winner == b.HouseA ? b.HouseB : b.HouseA;
                 var win = w.House(winner); var lose = w.House(loser); bool just = winner == b.RightId; b.WinnerId = winner;
-                if (win != null && lose != null) { int paid = Math.Min(Damages, Math.Max(0, lose.Treasury.Credits)); lose.Treasury.Credits -= paid; win.Treasury.Credits += paid; }
+                if (win != null && lose != null) { int paid = Math.Min(StakeOf(b), Math.Max(0, lose.Treasury.Credits)); lose.Treasury.Credits -= paid; win.Treasury.Credits += paid; }
                 Shift(w, win, house, choice == Law ? 6 : choice == Friend ? 12 : 4); Shift(w, lose, house, choice == Law ? -6 : -12);
                 if (choice == Law) { MoveTrust(w, 1); if (house is { Legitimacy: < 80 }) Legit(1); }
-                else if (choice == Friend) { if (!just) { MoveTrust(w, -3); Legit(-1); } }
+                else if (choice == Friend) { if (!just) { MoveTrust(w, -BentCost(b)); if (WeightOf(b) != Doubtful) Legit(-1); } }
                 else
                 {
                     string? buyer = BoughtWinner(w, b, who);   // one already paid is not paid again
@@ -444,14 +505,14 @@ public static partial class LadderSystem
                     if (buyer != null && exposed) BribeOut(w, buyer, who);
                 }
                 if (ours || winner == mine || loser == mine)
-                    w.Log($"{who.Name}, praetor, finds for {win?.Name} against {lose?.Name}{(just ? "" : ", against the plain reading of the law")}. {lose?.Name} pays {Damages} credits.");
+                    w.Log($"{who.Name}, praetor, finds for {win?.Name} against {lose?.Name}{(just ? "" : WeightOf(b) == Doubtful ? ", where the law was doubtful" : ", against the plain reading of the law")}. {lose?.Name} pays {StakeOf(b)} credits.");
                 if (winner == mine || loser == mine) w.WorldFlags.Add(winner == mine ? "case_won" : "case_lost");
                 break;
         }
-        string what = b.Kind == Case ? (choice == Law ? "Sat as praetor and ruled on the law." : choice == Friend ? "Sat as praetor and found for a friend." : "Sat as praetor and took a gift.")
-            : b.Kind == Works ? (choice == Nothing ? "" : "Saw to the Reach's works as aedile.") : choice == Favour ? "" : "Kept the Reach's accounts as quaestor.";
+        string what = b.Kind == Case ? (choice == Law ? "Sat as praetor and ruled on the law." : choice == Settle ? "Sat as praetor and brought two houses to terms." : choice == Friend ? "Sat as praetor and found for a friend." : "Sat as praetor and took a gift.")
+            : b.Kind == Works ? (choice == Nothing ? "" : choice == Both ? "Gave the Reach lanes and grain in one year as aedile." : "Saw to the Reach's works as aedile.") : choice == Favour ? "" : "Kept the Reach's accounts as quaestor.";
         if (what.Length > 0 && who.Life?.Marks.Add("business:" + b.RungId + ":" + (choice is Friend or Gift ? choice : "done")) != false) LifeSystem.Note(w, who, "office", what);
-        if (choice == Favour || choice == Gift || (choice == Friend && b.WinnerId.Length > 0 && b.WinnerId != b.RightId)) Record(w, who, b, choice, exposed);
+        if (choice == Favour || choice == Gift || (choice == Friend && b.WinnerId.Length > 0 && b.WinnerId != b.RightId && WeightOf(b) != Doubtful)) Record(w, who, b, choice, exposed);
         if (exposed) Expose(w, offices, who, b);
     }
 
@@ -474,8 +535,10 @@ public static partial class LadderSystem
         bool partial = !honest && (c.NatureTraits.Contains("Loyal") || c.NatureTraits.Contains("Vengeful") || Hash(c.Id + ":partial") % 3 == 0);
         if (b.Kind == Case && BoughtWinner(w, b, c) != null) return Gift;             // bought, and the buyer is before them
         if (b.Kind == Case && !honest && TieWinner(w, b, c) != null) return Friend;   // an old friend, or an old enemy, of one of the parties
-        if (b.Kind == Case) return grasping && Hash(b.Id + ":take") % 2 == 0 ? Gift : partial && !grasping ? Friend : Law;
-        if (b.Kind == Works) return Funds(w, c) < WorksCredits ? Nothing : b.RegionId.Length > 0 && Hash(b.Id + ":works") % 2 == 0 ? Lanes : Grain;
+        if (b.Kind == Case) return grasping && Hash(b.Id + ":take") % 2 == 0 ? Gift : partial && !grasping ? Friend : b.HouseA.Length > 0 && WeightOf(b) == Doubtful ? Settle : Law;
+        if (b.Kind == Works) return Funds(w, c) < WorksCredits ? Nothing
+            : Funds(w, c) >= WorksCredits * 6 && (c.NatureTraits.Contains("Proud") || c.Ambition is "master_the_senate" or "outshine_all_rivals") ? Both
+            : b.RegionId.Length > 0 && Hash(b.Id + ":works") % 2 == 0 ? Lanes : Grain;
         return grasping && Hash(b.Id + ":take") % 2 == 0 ? Favour : b.RegionId.Length > 0 && (honest || Hash(b.Id + ":relief") % 3 == 0) ? Relief : Straight;
     }
 

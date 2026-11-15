@@ -245,6 +245,50 @@ thinks 1 better.
 Left, and mapped: this is kept for the player's house only, and the one above has no further use for a junior (J5);
 trust is still one number for the whole Reach (L10).
 
+## The facts of the year's business
+
+Built 2026-11-15 (docs/GAPS.md L5). The work of an elected office was one decision from three with nothing behind
+it: a case said only who was in the right, the accounts had no figures, the works were one sum.
+
+**A praetor's case** now has three facts, and each changes what a ruling does.
+
+- **The matter**: a boundary, a debt, a contract not honoured, a contested inheritance, the salvage of a wreck.
+- **The stake**: 5, 10 or 15 credits. It is what the loser pays, and twice it is what an overturned ruling pays back.
+- **How plain the law is**: plain (four cases in ten), arguable (four), doubtful (two).
+
+| A ruling against the law | Costs the Reach's trust | On the record, and open to appeal |
+|---|---|---|
+| where the law is plain | 4 | yes |
+| where it is arguable | 3 | yes |
+| where it is doubtful | 1 | no: a ruling either way can be defended |
+
+And a praetor has a fourth thing to do: **bring them to terms**. The house the law leans to takes half the stake.
+Where the law is doubtful this is what an honest court does: both houses think the better of the praetor's, and the
+magistrates are trusted a point more. Where the law is plain, the house that had it is short-changed and thinks the
+worse of the praetor's house; the other is grateful. An upright praetor of another house settles a doubtful case
+and rules on the law in the rest.
+
+**A quaestor's accounts** show what is over: 4 to 12 credits, never more than the capital's purse holds, and where
+it came from (dues, fines, a levy overcollected, an estate fallen to the Reach). That figure is what the quaestor
+has to dispose of. Sent to a lawless region, it makes the lanes safer by half of it (2 to 6), where it was always
+2. Taken, it is what the house gets and what the capital's purse loses, where it was always 8; and a sum of 9 or
+more is likelier noticed (one time in three, not four).
+
+**An aedile** can give lanes and grain both, for twice the sum: both effects, and it is remembered as a generous
+year (3 standing). A proud or ambitious aedile of a rich house does.
+
+**Measured, and corrected.** As first built these raised the Reach's trust in its magistrates too far: over sixty
+runs it averaged 61 to 70 and was never low in any of them, where it had been 54 to 63 and low in six. Three numbers
+were wrong: an arguable ruling against the law cost 2 where every such ruling used to cost 3; lanes and grain both
+gave 2 trust, which is the kind of gain that is not capped at sixty; and (from the courts, the pass before) every
+conviction gave 2, a dozen times a run. A ruling against the law now costs 4, 3 or 1, which averages what it did
+before; lanes and grain both, and a conviction, mend a poor name by a point and do not gild a good one. Measured
+again on three starts: 62, 64 and 53 on average, and low in five of ten runs on the last. And on the full probe of sixty runs: 53 to 64 on average
+by start, and low at some time in 8 of the 60.
+
+Left, and mapped: the facts are a few figures drawn by lot, not found out. Nobody gives evidence, and a quaestor
+cannot be deceived about the accounts or deceive anyone (L11).
+
 ## The courts: what a magistrate did is answered for
 
 Built 2026-11-15 (docs/GAPS.md L2). Until now a magistrate who took money either had it come out that year, and was
@@ -272,7 +316,7 @@ can hear it.
 **Proved:** the accused may not stand for five years and loses any seat they hold; their house is under a scandal
 (its candidates lose votes for ten years), loses 4 standing and pays 10 credits, to the house that was wronged if
 there was one and to the capital's if not. The house that brought it gains 2 standing and the commons' regard, and
-the Reach's trust in its magistrates rises 2. **Let go:** the house that brought it loses a point of standing, and
+the Reach's trust in its magistrates is mended a point if it is under sixty. **Let go:** the house that brought it loses a point of standing, and
 if everyone can see why they were let go, trust falls a point. Either way the accused's house does not forgive it
 (−25 if proved, −15 if not).
 
@@ -340,8 +384,8 @@ Justice. The estate called the Magistrates is unchanged.
 ## Not in this piece
 
 - Other houses' people do not canvass, back each other or give games; their candidates are chosen by a rule.
-- The work of office is one decision a year from three. A case has no facts beyond who is in the right (docs/GAPS.md
-  L5). A bent ruling may be appealed, a former magistrate prosecuted and a praetor bought; a trial is still one decision (L11).
+- The facts of a year's business are drawn by lot, not found out: nobody gives evidence, and a trial is still one
+  decision (docs/GAPS.md L11).
 - Other houses' senators do not spend their year (but for the one who audits), and their judges hear no hearings
   (docs/GAPS.md X2).
 - Public trust is one number for the whole Reach: a region's own courts, or one office's name, are not told apart

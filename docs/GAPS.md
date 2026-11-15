@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (seventeenth pass: the courts; L2 closed, L11 mapped).
+Last updated 2026-11-15 (eighteenth pass: the facts of a year's business; L5 closed).
 
 ## The worklist
 
@@ -18,7 +18,7 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | L5, L8, O2 | Cases with facts; a senator's committees; an office's charge with figures | next |
+| 1 | L8, O2 | A senator's committees; an office's charge with figures | next |
 | 2 | B5, B15, J5, L10 | The older free march as a state; houses that go to war over what is said; a junior's patron; trust by region and office | next |
 | 3 | A6, W8, W1 | Ventures that fail; heirlooms that are made and won; a purse that holds more than credits | next |
 
@@ -27,7 +27,7 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 **Waiting on the owner** (each row says what it turns on): C9 and C6 (the Caesar road), M4 (where a spouse lives),
 B13 and G1 to G7 (the forms of government).
 
-Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3, then A2 and A4, then B6, B8, B11 and B12, then B14, J4, L9, F5, F6, A5, E6, W6, W3, W5, E5, H3 and M1, then W7, H5, E7, F7 and M6, then L2 (see the bottom table).
+Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3, then A2 and A4, then B6, B8, B11 and B12, then B14, J4, L9, F5, F6, A5, E6, W6, W3, W5, E5, H3 and M1, then W7, H5, E7, F7 and M6, then L2, then L5 (see the bottom table).
 
 ## The same gap in many places
 
@@ -87,10 +87,9 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| L11 | A trial is one praetor's decision. No evidence is led, there is no appeal from a verdict, and the accused does nothing in their own defence but be well or badly represented. Only a praetor can be bought: not a quaestor, an aedile or a vote. | M | L5 |
+| L11 | A trial is one praetor's decision, and the facts of a case or of the accounts are a few figures drawn by lot. No evidence is led or found out, there is no appeal from a verdict, and the accused does nothing in their own defence but be well or badly represented. Only a praetor can be bought: not a quaestor, an aedile or a vote. | M | |
 | L3 | No censorship, tribunate, or province after office. | L | The state and commerce |
 | L8 | A senator's year is one of three things. There are no committees, no standing with a committee, and no record of attendance beyond three absent years. | M | |
-| L5 | The work of office is one decision a year from three. A case has no facts beyond who is in the right; the accounts have no figures; the works are one sum. | M | |
 | L10 | Public trust is one number for the whole Reach. It does not tell a region's courts, or one office's name, from another's. | M | |
 
 ## A life of one's own (docs/LIFE.md)
@@ -181,3 +180,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | F7 | The elder does one of three things a year, unasked. The head cannot ask the elder for anything, and the elders of other houses do nothing. | 2026-11-15 | The head can ask the elder for one thing this year: to make peace in the house, to take some of the work, or to speak for them. What was asked is done first and with a will; if it cannot be done the elder does what most wants doing and says so. An elder who thinks ill of the head is not to be asked. Other houses' elders are part of X1. |
 | M6 | Stewards do not court. And another house's divorce is a throw of the dice on a marriage gone cold: nobody chooses it, and nobody marries again on purpose. | 2026-11-15 | Another house's divorce is chosen: after three years apart, and with no child of the two or the two houses fallen out, the head of the house that took the dowry ends it; an upright head does not. That stewards do not court is part of X1. |
 | L2 | The player cannot bribe a magistrate or prosecute a former one. (A bent ruling is now appealed before a Justice.) | 2026-11-15 | A bent act in office is kept on a record for eight years. Once the magistrate no longer sits, the head of any house may bring a charge before a sitting praetor of a third house, whose verdict it is: the upright convict on the record, a friend of the accused's house lets them go, one for sale finds for the richer house, and before the rest it goes by who pleads better. Other houses bring charges too, one a year in the Reach, and the player's people are not excepted. A sitting praetor can be offered a sum: the upright refuse from the bench, and a bought ruling comes out one time in three. L11 is what is left. |
+| L5 | The work of office is one decision a year from three. A case has no facts beyond who is in the right; the accounts have no figures; the works are one sum. | 2026-11-15 | A case has a matter, a stake of 5 to 15 credits and a law that is plain, arguable or doubtful: the plainer the law, the more a ruling against it costs, and a doubtful one is not held against the judge. A praetor can bring the two houses to terms. The accounts show a surplus of 4 to 12 credits and where it came from, and that is what can be sent to a region or taken. An aedile can give lanes and grain both. L11 is what is left. |

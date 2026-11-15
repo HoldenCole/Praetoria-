@@ -96,7 +96,7 @@ public static partial class LadderSystem
                 int fine = Math.Min(FineCredits, Math.Max(0, accused.Treasury.Credits)); accused.Treasury.Credits -= fine;
                 if (w.House(d.AgainstId) is { } wronged) wronged.Treasury.Credits += fine; else if (RegionSystem.CapitalHolder(w) is { } chair && chair.Id != accused.Id) chair.Treasury.Credits += fine;
             }
-            accuser.Legitimacy = Math.Clamp(accuser.Legitimacy + 2, 0, 100); PolicySystem.Sway(w, accuser.Id, "commons", 2); MoveTrust(w, 2); Shift(w, accused, accuser, -25);
+            accuser.Legitimacy = Math.Clamp(accuser.Legitimacy + 2, 0, 100); PolicySystem.Sway(w, accuser.Id, "commons", 2); MoveTrust(w, 1); Shift(w, accused, accuser, -25);
             who.Flags.Add(ExposedChar); LifeSystem.Note(w, who, "office", "Was convicted of what they did in office."); LifeSystem.Note(w, pleader, "office", $"Prosecuted {who.Name} and won.");
             if (ours) Mark(w, ProsecutionWonFlag); if (theirs) Mark(w, who.Id == mine!.Id ? ExposedFlag : KinExposedFlag);
             w.WorldCounters["convictions"] = w.Counter("convictions") + 1;

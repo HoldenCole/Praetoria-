@@ -144,4 +144,99 @@ public class CourtsTests
         // a praetor who no longer sits is nobody's
         LadderSystem.Tick(w, Offices, Content.Policies); Assert.Null(LadderSystem.BoughtBy(w, bent));
     }
+
+    // ---------------- L5: the facts of the year's business ----------------
+
+    [Fact]
+    public void A_case_has_a_matter_a_stake_and_a_law_that_is_plain_arguable_or_doubtful()
+    {
+        var (_, w, me, mine, _) = Start(); var seen = new HashSet<int>(); var stakes = new HashSet<int>(); var matters = new HashSet<string>(); int cases = 0;
+        var benchHouses = Others(w, mine); var j1 = Person(w, benchHouses[0], "bench_one", "Just"); var j2 = Person(w, benchHouses[1], "bench_two", "Just");
+        for (int year = 0; year < 40; year++)
+        {
+            w.Turn++; Sit(w, j1, LadderSystem.Praetor); Sit(w, j2, LadderSystem.Praetor); LadderSystem.Tick(w, Offices, Content.Policies);   // no election is held here, so the bench is kept filled by hand
+            foreach (var b in w.OfficeWork.Where(b => b.Turn == w.Turn && b.Kind == LadderSystem.Case && b.HouseA.Length > 0))
+            {
+                Assert.InRange(b.Weight, LadderSystem.Doubtful, LadderSystem.Plain); Assert.Contains(b.Stake, new[] { LadderSystem.Damages, LadderSystem.Damages * 2, LadderSystem.Damages * 3 }); Assert.NotEqual("", b.Matter);
+                seen.Add(b.Weight); stakes.Add(b.Stake); matters.Add(b.Matter); cases++;
+                string says = LadderSystem.Says(w, Offices, b); Assert.Contains(b.Stake + " credits turn on it", says); Assert.Contains(" over ", says);
+                Assert.Contains(b.Weight == LadderSystem.Plain ? "read plainly" : b.Weight == LadderSystem.Arguable ? "arguable" : "doubtful", says);
+            }
+            foreach (var b in w.OfficeWork.Where(b => b.Turn == w.Turn && b.Kind == LadderSystem.Accounts)) { Assert.InRange(b.Stake, 0, 12); if (b.Stake > 0) Assert.Contains(b.Stake + " credits over", LadderSystem.Says(w, Offices, b)); }
+        }
+        Assert.True(seen.Count == 3, $"weights seen: {string.Join(",", seen)} over {cases} cases, {w.Magistrates.Count(m => m.OfficeId == LadderSystem.Praetor)} praetors sitting"); Assert.True(stakes.Count >= 2); Assert.True(matters.Count >= 3);
+        _ = me; _ = mine;
+    }
+
+    private static OfficeBusiness Case(World w, Character judge, House a, House b, House right, int weight, int stake = 10)
+    {
+        var biz = new OfficeBusiness { Id = $"case_{w.OfficeWork.Count}_{weight}", RungId = LadderSystem.Praetor, HolderId = judge.Id, Kind = LadderSystem.Case, Turn = w.Turn, HouseA = a.Id, HouseB = b.Id, RightId = right.Id, Weight = weight, Stake = stake, Matter = "debt" };
+        w.OfficeWork.RemoveAll(x => x.HolderId == judge.Id && x.Choice.Length == 0); w.OfficeWork.Add(biz); return biz;
+    }
+
+    [Fact]
+    public void The_plainer_the_law_the_more_a_bent_ruling_costs_and_a_doubtful_one_is_not_held_against_the_judge()
+    {
+        var (_, w, me, mine, _) = Start(); var others = Others(w, mine); w.Magistrates.Clear(); w.OfficeWork.Clear(); w.OfficeRecord.Clear();
+        var judge = Person(w, others[0], "judge"); var a = others[1]; var b = others[2];
+        int Cost(int weight)
+        {
+            w.WorldCounters[LadderSystem.TrustKey] = 60; Sit(w, judge, LadderSystem.Praetor); a.Treasury.Credits = 100; b.Treasury.Credits = 100;
+            w.Relationship(Economy.HeadOf(w, b)!.Id, Economy.HeadOf(w, others[0])!.Id).Disposition = 80; w.Relationship(Economy.HeadOf(w, a)!.Id, Economy.HeadOf(w, others[0])!.Id).Disposition = -50;   // the friend is the house the law is against
+            var biz = Case(w, judge, a, b, right: a, weight); int before = b.Treasury.Credits; LadderSystem.Decide(w, Offices, judge, LadderSystem.Friend);
+            Assert.Equal(b.Id, biz.WinnerId); Assert.Equal(before + 10, b.Treasury.Credits);   // the stake, not a fixed sum
+            return 60 - LadderSystem.Trust(w);
+        }
+        int plain = Cost(LadderSystem.Plain), arguable = Cost(LadderSystem.Arguable); int onRecord = w.OfficeRecord.Count; int doubtful = Cost(LadderSystem.Doubtful);
+        Assert.True(plain > arguable && arguable > doubtful, $"{plain} {arguable} {doubtful}"); Assert.Equal(2, onRecord); Assert.Equal(2, w.OfficeRecord.Count);   // the doubtful ruling is not on the record
+        // and it is not appealed the year after
+        w.Turn++; LadderSystem.Tick(w, Offices, Content.Policies);
+        Assert.DoesNotContain(w.OfficeWork, x => x.Kind == LadderSystem.Appeal && x.Weight == LadderSystem.Doubtful);
+    }
+
+    [Fact]
+    public void A_praetor_can_bring_two_houses_to_terms_and_where_the_law_is_doubtful_that_is_the_honest_ruling()
+    {
+        var (_, w, me, mine, _) = Start(); var others = Others(w, mine); w.Magistrates.Clear(); w.OfficeWork.Clear();
+        var judge = Person(w, others[0], "judge", "Just"); Sit(w, judge, LadderSystem.Praetor); var a = others[1]; var b = others[2]; a.Treasury.Credits = 100; b.Treasury.Credits = 100;
+        var doubtful = Case(w, judge, a, b, right: a, LadderSystem.Doubtful); Assert.Equal(LadderSystem.Settle, LadderSystem.Inclination(w, judge, doubtful));
+        var ha = Economy.HeadOf(w, a)!; var hb = Economy.HeadOf(w, b)!; var hj = Economy.HeadOf(w, others[0])!; int ra = w.Relationship(ha.Id, hj.Id).Disposition, rb = w.Relationship(hb.Id, hj.Id).Disposition;
+        w.WorldCounters[LadderSystem.TrustKey] = 50; LadderSystem.Decide(w, Offices, judge, LadderSystem.Settle);
+        Assert.Equal(105, a.Treasury.Credits); Assert.Equal(95, b.Treasury.Credits);                                   // half the stake
+        Assert.True(w.Relationship(ha.Id, hj.Id).Disposition > ra); Assert.True(w.Relationship(hb.Id, hj.Id).Disposition > rb); Assert.Equal(51, LadderSystem.Trust(w));
+        // where the law is plain, the house that had it is short-changed, and knows it; and an upright judge rules on the law
+        Sit(w, judge, LadderSystem.Praetor); var plain = Case(w, judge, a, b, right: a, LadderSystem.Plain); Assert.Equal(LadderSystem.Law, LadderSystem.Inclination(w, judge, plain));
+        ra = w.Relationship(ha.Id, hj.Id).Disposition; LadderSystem.Decide(w, Offices, judge, LadderSystem.Settle); Assert.True(w.Relationship(ha.Id, hj.Id).Disposition < ra);
+        Assert.Contains("had the law", LadderSystem.ChoiceSays(w, plain, LadderSystem.Settle));
+        // nobody before the court: nothing to settle
+        Sit(w, judge, LadderSystem.Praetor); w.OfficeWork.Add(new OfficeBusiness { Id = "empty", RungId = LadderSystem.Praetor, HolderId = judge.Id, Kind = LadderSystem.Case, Turn = w.Turn });
+        Assert.Contains("nobody before you", LadderSystem.DecideRefusal(w, judge, LadderSystem.Settle));
+    }
+
+    [Fact]
+    public void The_accounts_show_what_is_over_and_that_is_what_can_be_sent_or_taken_and_an_aedile_can_give_both()
+    {
+        var (_, w, me, mine, _) = Start(); var others = Others(w, mine); w.Magistrates.Clear(); w.OfficeWork.Clear(); w.OfficeRecord.Clear();
+        var chair = RegionSystem.CapitalHolder(w)!; var q = Person(w, others.First(h => h.Id != chair.Id), "quaestor_man"); Sit(w, q, "quaestor"); var house = w.House(q.HouseId)!;
+        string region = w.Regions.Keys.OrderBy(k => k, StringComparer.Ordinal).First(); RegionSystem.StateOf(w, region).Lawlessness = 60;
+        // a large surplus sent to a region does more than a small one
+        int Sent(int surplus)
+        {
+            Sit(w, q, "quaestor"); chair.Treasury.Credits = 100; RegionSystem.StateOf(w, region).Lawlessness = 60;
+            w.OfficeWork.RemoveAll(x => x.HolderId == q.Id); w.OfficeWork.Add(new OfficeBusiness { Id = "acc_" + surplus, RungId = "quaestor", HolderId = q.Id, Kind = LadderSystem.Accounts, Turn = w.Turn, RegionId = region, Stake = surplus, Matter = "dues" });
+            LadderSystem.Decide(w, Offices, q, LadderSystem.Relief); Assert.Equal(100 - surplus, chair.Treasury.Credits); return 60 - RegionSystem.StateOf(w, region).Lawlessness;
+        }
+        Assert.Equal(2, Sent(4)); Assert.Equal(6, Sent(12));
+        // and what is taken is what was over, out of the capital's purse
+        Sit(w, q, "quaestor"); chair.Treasury.Credits = 100; int had = house.Treasury.Credits; w.OfficeWork.RemoveAll(x => x.HolderId == q.Id);
+        w.OfficeWork.Add(new OfficeBusiness { Id = "acc_take", RungId = "quaestor", HolderId = q.Id, Kind = LadderSystem.Accounts, Turn = w.Turn, Stake = 11, Matter = "fines" });
+        LadderSystem.Decide(w, Offices, q, LadderSystem.Favour); Assert.Equal(had + 11, house.Treasury.Credits); Assert.Equal(89, chair.Treasury.Credits);
+        // the aedile: lanes and grain both, for twice the sum
+        var ae = Person(w, others.First(h => h.Id != chair.Id && h.Id != house.Id), "aedile_man"); Sit(w, ae, "aedile"); var aeHouse = w.House(ae.HouseId)!; aeHouse.Treasury.Credits = 5;
+        w.OfficeWork.Add(new OfficeBusiness { Id = "works_both", RungId = "aedile", HolderId = ae.Id, Kind = LadderSystem.Works, Turn = w.Turn, RegionId = region });
+        Assert.Contains((LadderSystem.WorksCredits * 2).ToString(), LadderSystem.DecideRefusal(w, ae, LadderSystem.Both));
+        aeHouse.Treasury.Credits = 40; int legit = aeHouse.Legitimacy; RegionSystem.StateOf(w, region).Lawlessness = 60;
+        LadderSystem.Decide(w, Offices, ae, LadderSystem.Both);
+        Assert.Equal(40 - LadderSystem.WorksCredits * 2, aeHouse.Treasury.Credits); Assert.Equal(60 - LadderSystem.ReliefBy, RegionSystem.StateOf(w, region).Lawlessness); Assert.Equal(Math.Min(100, legit + 3), aeHouse.Legitimacy);
+    }
 }

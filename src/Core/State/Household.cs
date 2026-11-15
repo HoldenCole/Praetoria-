@@ -153,6 +153,13 @@ public sealed class OfficeDeed
 /// quaestor, the works for an aedile, a case for a praetor. The holder decides it; a holder who does not is thought the less of.</summary>
 public sealed class OfficeBusiness
 {
+    /// <summary>What it is about (docs/LADDER.md, "The facts"): for a case the matter in dispute, for the accounts where the
+    /// year's surplus came from.</summary>
+    public string Matter { get; set; } = "";
+    /// <summary>For a case, how plain the law is: 3 plain, 2 arguable, 1 doubtful. 0 on business made before there were facts.</summary>
+    public int Weight { get; set; }
+    /// <summary>What turns on it, in credits: a case's damages, the accounts' surplus.</summary>
+    public int Stake { get; set; }
     public string Id { get; set; } = "";
     public string RungId { get; set; } = "";
     public string HolderId { get; set; } = "";

@@ -1570,3 +1570,39 @@ the final build over the same sixty runs: of 2,763 marriages of other houses sta
 
 **Left, and mapped.** A trial is one praetor's decision: no evidence is led, there is no appeal from a verdict, and
 the accused does nothing in their own defence. Only a praetor can be bought (L11).
+
+## 51. The facts of a year's business, and three numbers that were wrong — 2026-11-15
+
+**L5.** The work of an elected office was one decision from three with nothing behind it. A praetor's case now has a
+matter, a stake of 5 to 15 credits and a law that is plain, arguable or doubtful; the plainer the law, the more a
+ruling against it costs, and a doubtful one is neither appealed nor kept on the record. A praetor can bring the two
+houses to terms, which is the honest ruling where the law is doubtful and short-changes the house that had the law
+where it is plain. A quaestor's accounts show what is over (4 to 12 credits, and where it came from): that sum is
+what can be sent to a lawless region or taken. An aedile can give lanes and grain both. Details in docs/LADDER.md.
+
+**Measured, and corrected.** The first measurement on this build: the soak passed, survival was 0 of 10 everywhere,
+the Republic stood in all 60 runs. And the Reach's trust in its magistrates had risen to 61 to 70 on average and was
+never low in any of the sixty runs, where before the courts it had been 54 to 63 and low in six. That matters: low
+trust is one of the things that can go wrong with the Republic, and a number that can never fall is a mechanic that
+is switched off. Three numbers were wrong, two from this pass and one from the last:
+
+| What | Was | Is |
+|---|---|---|
+| An arguable ruling against the law | −2 (every such ruling used to cost 3) | −3; a plain one −4, a doubtful one −1: three on average, as before |
+| Lanes and grain both | +2, a gain that is not capped at sixty | +1, capped at sixty like any honest year's work |
+| A conviction (from the courts) | +2, about twelve times a run | +1, capped at sixty |
+
+**Measured again on the final build.** The soak (33 runs, with a save and load in each) passes with no drift.
+Survival: 0 of 10 on every start. The Republic probe, sixty Republic runs: the Republic stood in all 60; the great war
+in 43; 15 states recognised; 629 former magistrates charged and 436 convicted; 41 marriages of other houses ended.
+Trust in the magistrates averaged 53 to 64 by start and was low at some time in 8 of the 60 runs: where it stood
+before the courts were built, and a little more often low.
+
+694 tests (four new for the facts; three older tests that assumed five credits of damages now read the stake).
+
+**Seen in the browser.** The Risen Officer, elected quaestor at thirty: "The year's accounts of the Reach are yours
+to close. They show 3 credits over, from harbour dues that came in over the estimate", with the offer to let "3
+credits find their way to your house". Three, not the old eight, because that year the capital's purse held three.
+
+**Left, and mapped.** The facts are figures drawn by lot. Nobody gives evidence, nothing is found out, and a trial is
+still one decision (L11).

@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **A case has facts.** What it is about, how many credits turn on it, and whether the law is plain, arguable or
+  doubtful. The plainer the law, the more a ruling against it costs; where it is doubtful a ruling either way can be
+  defended, and is neither appealed nor kept on the record. A praetor can also **bring the two houses to terms**.
+- **The accounts have figures.** A quaestor sees what is over this year and where it came from; that sum is what can
+  be sent to a lawless region or taken, and a large sum taken is likelier noticed.
+- **An aedile can give lanes and grain both**, for twice the sum.
 - **The courts.** What a magistrate took in office is kept on a record for eight years. They cannot be touched while
   they sit; afterwards the head of any house can bring a charge before a sitting praetor, and the verdict is that
   praetor's: the upright convict, a friend of the accused's house lets them go, one known to be for sale finds for the

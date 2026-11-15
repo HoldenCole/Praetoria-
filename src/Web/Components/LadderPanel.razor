@@ -27,6 +27,8 @@
         LadderSystem.Law => b.HouseA.Length == 0 ? "heard no case of weight" : "ruled on the law for " + (w.House(b.RightId)?.Name ?? ""),
         LadderSystem.Friend => "ruled for a friend",
         LadderSystem.Gift => "ruled, it is said, for whoever paid",
+        LadderSystem.Settle => "brought two houses to terms",
+        LadderSystem.Both => "gave lanes and grain both",
         _ => "sat"
     };
     string Held(Character x) => x.Cursus.Count == 0 ? "nothing yet" : string.Join(", then ", x.Cursus.Select(id => offices.Rung(id)?.Name.ToLowerInvariant() ?? id));
@@ -119,7 +121,8 @@
     {
         LadderSystem.Straight => "Close them as they stand", LadderSystem.Relief => "Find money for the lawless region", LadderSystem.Favour => "Favour your own house",
         LadderSystem.Lanes => "Repair the lanes", LadderSystem.Grain => "Grain for the squares", LadderSystem.Nothing => "Do nothing",
-        LadderSystem.Law => "Rule on the law", LadderSystem.Friend => "Rule for a friend", LadderSystem.Gift => "Take the gift", _ => choice
+        LadderSystem.Law => "Rule on the law", LadderSystem.Friend => "Rule for a friend", LadderSystem.Gift => "Take the gift",
+        LadderSystem.Settle => "Bring them to terms", LadderSystem.Both => "Lanes and grain both", _ => choice
     };
     private const string AskDown = "It is their name. The loyal will take it down; the wilful will not, and either will think less of you.";
     private static string You(string s) => s.Replace("they have", "you have").Replace("they must", "you must");

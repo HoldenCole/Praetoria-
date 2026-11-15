@@ -123,7 +123,7 @@ public static partial class LadderSystem
         var p = w.Protagonist; var mine = p != null ? w.House(p.HouseId) : null; var busy = new HashSet<string>();
 
         // 1. the appeal: a ruling that went against the plain law last year goes before a Justice who is of none of the houses in it
-        foreach (var bent in w.OfficeWork.Where(b => b.Kind == Case && b.Turn == w.Turn - 1 && b.WinnerId.Length > 0 && b.WinnerId != b.RightId && !b.Seen).OrderBy(b => b.Id, StringComparer.Ordinal).ToList())
+        foreach (var bent in w.OfficeWork.Where(b => b.Kind == Case && b.Turn == w.Turn - 1 && b.WinnerId.Length > 0 && b.WinnerId != b.RightId && !b.Seen && WeightOf(b) != Doubtful).OrderBy(b => b.Id, StringComparer.Ordinal).ToList())
         {
             bent.Seen = true; var praetor = w.Char(bent.HolderId); if (praetor == null) continue;
             var involved = new[] { bent.HouseA, bent.HouseB, praetor.HouseId };
@@ -132,7 +132,7 @@ public static partial class LadderSystem
                 ?? justices.OrderBy(c => Hash(c.Id + ":appeal:" + bent.Id)).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
             if (justice == null) continue;
             busy.Add(justice.Id);
-            var a = new OfficeBusiness { Id = $"appeal_{w.Turn}_{justice.Id}", RungId = "bench", HolderId = justice.Id, Kind = Appeal, Turn = w.Turn, HouseA = bent.RightId, HouseB = bent.WinnerId, RightId = bent.RightId, SubjectId = praetor.Id };
+            var a = new OfficeBusiness { Id = $"appeal_{w.Turn}_{justice.Id}", RungId = "bench", HolderId = justice.Id, Kind = Appeal, Turn = w.Turn, HouseA = bent.RightId, HouseB = bent.WinnerId, RightId = bent.RightId, SubjectId = praetor.Id, Stake = bent.Stake, Matter = bent.Matter, Weight = bent.Weight };
             w.OfficeWork.Add(a);
             if (p == null || justice.Id != p.Id) DecideDuty(w, offices, policy, justice, Appeal, DutyInclination(w, justice, a));
         }
@@ -249,7 +249,7 @@ public static partial class LadderSystem
             Law => b.RightId == Estate ? $"Rule on the law, for {estate}. They think the better of your house; {a} thinks the less." : $"Rule on the law, for {a}. It thinks the better of your house; {estate} think the less.",
             ForHouse => $"Find for {a}, whatever the law says. It will remember it, and so will {estate}." + (b.RightId == Estate ? " The law is not with them, and it will be seen." : ""),
             ForEstate => $"Find for {estate}, whatever the law says. The squares like a judge who does." + (b.RightId == Estate ? "" : " The law is not with them; nobody in the squares will mind."),
-            Overturn => $"Overturn it. {bn} pays back {Damages * 2} credits to {a}; {a} will not forget it, and neither will {bn} or the praetor's house. The magistrates are trusted more.",
+            Overturn => $"Overturn it. {bn} pays back {StakeOf(b) * 2} credits to {a}; {a} will not forget it, and neither will {bn} or the praetor's house. The magistrates are trusted more.",
             SendBack => $"Send it back to be heard again. Nothing is settled; {a} is at least heard.",
             Uphold => $"Uphold the praetor. His house and {bn} are obliged to you; {a} is not, and the magistrates are trusted less.",
             Audit => "Read the year's accounts. If a magistrate took money this year you may follow it to them: they are removed, and their house will hate you for it.",
@@ -321,7 +321,7 @@ public static partial class LadderSystem
                 var wronged = w.House(b.HouseA); var winner = w.House(b.HouseB); var praetor = w.Char(b.SubjectId); var bench = praetor != null ? w.House(praetor.HouseId) : null;
                 if (choice == Overturn)
                 {
-                    if (wronged != null && winner != null) { int back = Math.Min(Damages * 2, Math.Max(0, winner.Treasury.Credits)); winner.Treasury.Credits -= back; wronged.Treasury.Credits += back; }
+                    if (wronged != null && winner != null) { int back = Math.Min(StakeOf(b) * 2, Math.Max(0, winner.Treasury.Credits)); winner.Treasury.Credits -= back; wronged.Treasury.Credits += back; }
                     Shift(w, wronged, house, 10); Shift(w, winner, house, -8); Shift(w, bench, house, -8); MoveTrust(w, 3); Legit(1);
                     if (b.HouseA == mine && !ours) Mark(w, OverturnedForUsFlag);
                     if (ours || b.HouseA == mine || b.HouseB == mine || praetor?.HouseId == mine)
