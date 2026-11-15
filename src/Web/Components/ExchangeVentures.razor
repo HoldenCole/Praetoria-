@@ -6,6 +6,7 @@
     var open = (m.Ventures ?? new List<VentureOption>()).Where(v => v.Refusal == null).OrderBy(v => v.PerYear > 0 ? 0 : 1).ThenByDescending(v => v.PerYear).ThenBy(v => v.Name, StringComparer.Ordinal).ToList();
     var shut = (m.Ventures ?? new List<VentureOption>()).Where(v => v.Refusal != null).ToList();
     int earns = mine.Sum(b => b.Earnings), worth = mine.Sum(b => b.Value);
+    var settleOn = new[] { w.Protagonist! }.Concat(WealthSystem.Members(w, w.House(w.Protagonist!.HouseId)!).Where(k => k.Id != pid)).ToList();
 }
 <div class="dash-grid exchange-grid">
     <section class="panel">
@@ -24,6 +25,19 @@
                     <div class="row small"><span class="warn">@(failing.LosingYears >= VentureSystem.FailsAfter - 1 ? "It will be wound up next year if it does not pay." : "It has stopped paying.")</span>
                         <button class="opt inline tiny" disabled="@(noProp != null)" title="@(noProp ?? "The losing years are wiped out, and it has three more to come right.")" @onclick="() => G.Execute(new PropVentureCommand(pid, b.Id, vs))">Put @vs.PropCost(w, failing) credits in</button>
                         <span class="muted">or sell it below. Wound up, it returns @vs.WoundUp(failing).</span></div>
+                }
+                @if (vs != null && w.Business(b.Id) is { CompanyId.Length: 0 } own)
+                {
+                    var its = VentureSystem.HolderOf(w, own); string bid0 = b.Id;
+                    <div class="row small">
+                        @if (its != null) { <span class="pill" title="What it earns is paid over to them each year, it is not sold or listed unless they agree, and it goes as they leave it.">@(its.Id == pid ? "your own, apart from the house" : its.Name + "'s own")</span> }
+                        else if (own.FounderId.Length > 0 && w.Char(own.FounderId) is { Alive: true } fo && fo.Id != pid) { <span class="muted">Founded by @fo.Name: a fifth of its price is theirs if it is sold, and they will mind.</span> }
+                        @if (its == null || its.Id == pid)
+                        {
+                            <span class="muted">Settle it on</span>
+                            @foreach (var k in settleOn.Where(k => k.Id != its?.Id).Take(5)) { string kid = k.Id; var noSettle = vs.SettleRefusal(w, w.Protagonist, own, k); <button class="opt inline tiny" disabled="@(noSettle != null)" title="@(noSettle ?? (kid == pid ? "It is yours, not the house's: what it earns goes to your purse, and it goes by your will." : "It is theirs from now on: what it earns, and the say in selling it. They will think much better of you. You cannot take it back."))" @onclick="() => G.Execute(new SettleVentureCommand(pid, bid0, kid, vs))">@(kid == pid ? "yourself" : k.Name.Split(' ')[0])</button> }
+                        }
+                    </div>
                 }
                 <div class="kv"><span>Pays</span><b>@b.Yield@(b.Charter != null ? $" · charter {b.Charter}" : "")</b></div>
                 <div class="kv"><span>Worth</span><b>@b.Value <i class="muted">six years of what it earns now, half its book at least</i></b></div>

@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **A venture of one's own** (docs/WEALTH.md; docs/GAPS.md W10). You can settle a venture on one of your house, or
+  on yourself, from its card on the Exchange. What it earns is paid over to them, it is not sold or listed unless
+  they agree, its price is theirs, and it goes by the will. A relative who founds a venture with their own money
+  owns it. A founder who does not own what they founded gets a fifth of its price when you sell it, and minds.
+  Shares held in a person's own name now vote with their house, while that person thinks no ill of its head.
 - **A standard asked back, and gifts between houses** (docs/WEALTH.md; docs/GAPS.md W9). The house a standard was
   taken from thinks worse of whoever flies it, retakes it if it beats them in battle, and at peace buys it home or
   asks you for it. You can send one home, or buy your own back from your purse. A relative with the money has a

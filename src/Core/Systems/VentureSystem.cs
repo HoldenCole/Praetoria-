@@ -95,8 +95,8 @@ public sealed class VentureSystem
     public void Transfer(World w, Business b, House to, int price, string how)
     {
         var from = w.House(b.OwnerId)!;
-        to.Treasury.Credits -= price; from.Treasury.Credits += price;
-        b.OwnerId = to.Id; b.OfferedUntil = 0;
+        to.Treasury.Credits -= price; from.Treasury.Credits += price; Proceeds(w, b, from, price);
+        b.OwnerId = to.Id; b.OfferedUntil = 0; b.HeldById = "";
         foreach (var o in w.Offers.Where(o => o.BusinessId == b.Id).ToList()) w.Offers.Remove(o);
         w.WorldCounters[SoldCounter] = w.Counter(SoldCounter) + 1;
         if (to.Id == w.Protagonist?.HouseId) w.WorldFlags.Add(BoughtFlag);
@@ -108,7 +108,7 @@ public sealed class VentureSystem
     {
         var from = w.House(b.OwnerId)!; int price = MarketPrice(w, b);
         if (FirstRefuser(w, b, null, price) is { } holder) { Transfer(w, b, holder, price, "takes up its first refusal and buys"); return; }
-        from.Treasury.Credits += price; w.Businesses.Remove(b.Id);
+        from.Treasury.Credits += price; Proceeds(w, b, from, price); w.Businesses.Remove(b.Id);
         foreach (var o in w.Offers.Where(o => o.BusinessId == b.Id).ToList()) w.Offers.Remove(o);
         w.WorldCounters[SoldCounter] = w.Counter(SoldCounter) + 1;
         w.Log($"{from.Name} sells the {b.Name} on the open market for {price} credits; the caravaneers break it up.");
@@ -144,7 +144,7 @@ public sealed class VentureSystem
     /// stand well with the seller and have the coin; else the best bidder takes it; else the open market.</summary>
     public void StewardSells(World w, Business b)
     {
-        var seller = w.House(b.OwnerId); var mine = w.Protagonist != null ? w.House(w.Protagonist.HouseId) : null; if (seller == null) return;
+        var seller = w.House(b.OwnerId); var mine = w.Protagonist != null ? w.House(w.Protagonist.HouseId) : null; if (seller == null || ConsentRefusal(w, b) != null) return;
         int fair = Math.Max(Salvage(b), Value(w, b) * OfferPct / 100);
         if (mine != null && mine.Id != seller.Id && b.OfferedUntil == 0 && !w.AtWar(mine.Id, seller.Id) && Ask(w, b, mine.Id).refusal == null
             && (Holder(w, b) == mine.Id || (Regard(w, seller, mine) >= 10 && mine.Treasury.Credits >= fair)))
@@ -173,6 +173,67 @@ public sealed class VentureSystem
             .Select(b => (b, ask: Ask(w, b, buyerId), earn: EarningsFor(w, b, buyerId)))
             .Where(x => x.ask.refusal == null && x.earn > 0 && x.ask.price <= x.earn * 10 && x.ask.price + 60 <= buyer.Treasury.Credits)
             .OrderBy(x => Holder(w, x.b) == buyerId ? 0 : 1).ThenBy(x => (double)x.ask.price / x.earn).ThenBy(x => x.b.Id, StringComparer.Ordinal).Select(x => x.b).FirstOrDefault();
+    }
+
+    // ---------------- a venture of one's own (docs/WEALTH.md, W10) ----------------
+
+    public const int SettleRegard = 12, ConsentAt = 20, SoldOverRegard = 10, SoldFailingRegard = 4, FounderCutPct = 20;
+    public const string SettledCounter = "ventures_settled", HeldIncomeCounter = "held_venture_income", FounderCutCounter = "founder_cuts", OwnMoneyPrefix = "own_money:";
+    private static Character? HeadOfHouse(World w, string houseId) => w.House(houseId) is { } h ? Economy.HeadOf(w, h) : null;
+    /// <summary>Whose own it is, if it is someone's: a living member of the house that owns it.</summary>
+    public static Character? HolderOf(World w, Business b) =>
+        b.HeldById.Length > 0 && b.CompanyId.Length == 0 && w.Char(b.HeldById) is { Alive: true } c && c.HouseId == b.OwnerId ? c : null;
+
+    public string? SettleRefusal(World w, Character? head, Business? b, Character? on)
+    {
+        var house = head != null ? w.House(head.HouseId) : null; if (head?.Alive != true || house == null || b == null || b.OwnerId != house.Id) return "not a venture of yours";
+        if (Economy.HeadOf(w, house)?.Id != head.Id) return "only the head of the house can settle it";
+        if (b.CompanyId.Length > 0) return "it is a company's";
+        if (on?.Alive != true || on.HouseId != house.Id || on.Age < DynastySystem.AgeOfMajority) return "not a grown member of your house";
+        var holder = HolderOf(w, b); if (holder?.Id == on.Id) return "it is theirs already";
+        return holder != null && holder.Id != head.Id ? $"it is {holder.Name}'s own: it is not yours to give again" : null;
+    }
+    /// <summary>The head settles a venture on one of the house: it is that person's own from now on.</summary>
+    public void Settle(World w, Character head, Business b, Character on)
+    {
+        b.HeldById = on.Id; Bump(w, SettledCounter);
+        if (on.Id != head.Id) { var r = w.Relationship(on.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition + SettleRegard, -100, 100); LifeSystem.Note(w, on, "venture", $"Was given the {b.Name} as their own."); }
+        w.Log(on.Id == head.Id ? $"{head.Name} takes the {b.Name} as their own, apart from the house." : $"{head.Name} settles the {b.Name} on {on.Name}. It is theirs: what it earns, and the say in selling it.");
+    }
+    /// <summary>A venture that is someone's own is not sold, listed or given up over their head: they must think well enough of
+    /// the head to agree. One the head holds themselves is theirs to sell.</summary>
+    public static string? ConsentRefusal(World w, Business? b)
+    {
+        if (b == null || HolderOf(w, b) is not { } holder) return null; var head = HeadOfHouse(w, b.OwnerId); if (head == null || head.Id == holder.Id) return null;
+        return (w.GetRelationship(holder.Id, head.Id)?.Disposition ?? 0) >= ConsentAt ? null : $"it is {holder.Name}'s own, and they will not agree to it";
+    }
+    /// <summary>The price of a venture that was someone's own is theirs. One that was the house's but was founded by one of its
+    /// people pays the founder a part, and they mind its going (less, if it was failing).</summary>
+    private void Proceeds(World w, Business b, House from, int price)
+    {
+        if (HolderOf(w, b) is { } holder) { from.Treasury.Credits -= price; holder.Purse += price; return; }
+        if (from.Id != w.Protagonist?.HouseId || b.FounderId.Length == 0 || w.Char(b.FounderId) is not { Alive: true } founder || founder.HouseId != from.Id) return;
+        var head = Economy.HeadOf(w, from); if (head == null || head.Id == founder.Id) return;
+        int cut = price * FounderCutPct / 100; from.Treasury.Credits -= cut; founder.Purse += cut; Bump(w, FounderCutCounter, cut);
+        var r = w.Relationship(founder.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition - (b.LosingYears > 0 ? SoldFailingRegard : SoldOverRegard), -100, 100);
+        w.Log($"{founder.Name} founded the {b.Name}; {cut} credits of its price are theirs, and they are {(b.LosingYears > 0 ? "sorry" : "not glad")} to see it go.");
+    }
+    /// <summary>The year's earnings of every venture that is someone's own are paid over to them, as far as the treasury goes.
+    /// One whose holder is dead or has left the house is the house's again unless a will has said otherwise.</summary>
+    public void PayHolders(World w)
+    {
+        foreach (var b in w.Businesses.Values.Where(b => b.HeldById.Length > 0).OrderBy(b => b.Id, StringComparer.Ordinal).ToList())
+        {
+            var holder = HolderOf(w, b); var owner = w.House(b.OwnerId); if (holder == null || owner == null) { b.HeldById = ""; continue; }
+            int pay = Math.Min(Math.Max(0, Earnings(w, b)), Math.Max(0, owner.Treasury.Credits)); if (pay <= 0) continue;
+            owner.Treasury.Credits -= pay; holder.Purse += pay; Bump(w, HeldIncomeCounter, pay);
+        }
+    }
+    /// <summary>What someone left when they died: their own ventures go to whoever is named, within the house, or back to it.</summary>
+    public static void Leave(World w, Character dead, Character? to)
+    {
+        foreach (var b in w.Businesses.Values.Where(b => b.HeldById == dead.Id).OrderBy(b => b.Id, StringComparer.Ordinal))
+            b.HeldById = to is { Alive: true } && to.HouseId == b.OwnerId ? to.Id : "";
     }
 
     // ---------------- a venture can fail (docs/ECONOMY_MARKET.md, "A venture can fail") ----------------
@@ -277,6 +338,7 @@ public sealed class VentureSystem
         int owed = Math.Clamp(owner.Debt, 0, left); owner.Debt -= owed; if (owner.Debt == 0) owner.LenderId = ""; owner.Treasury.Credits += left - owed; if (owed > 0) Bump(w, CreditorsCounter, owed);
         PolicySystem.Sway(w, owner.Id, "merchants", -FailMerchants); PolicySystem.Sway(w, owner.Id, "commons", -FailCommons);
         w.WorldCounters[BadNameKey(owner.Id)] = w.Turn + BadNameYears; left -= owed;
+        if (HolderOf(w, b) is { } its && left > 0) { owner.Treasury.Credits -= left; its.Purse += left; }   // what is left of a person's own venture is theirs
         foreach (var o in w.Offers.Where(o => o.BusinessId == b.Id).ToList()) w.Offers.Remove(o);
         w.WorldCounters[FailedCounter] = w.Counter(FailedCounter) + 1;
         var founder = b.FounderId.Length > 0 ? w.Char(b.FounderId) : null;

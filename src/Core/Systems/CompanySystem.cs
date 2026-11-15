@@ -140,6 +140,7 @@ public sealed partial class CompanySystem
         var house = w.House(houseId); if (!Open || house == null || b == null) return "no such venture";
         if (b.OwnerId != houseId) return "not your venture";
         if (b.CompanyId.Length > 0) return "already held by a company";
+        if (VentureSystem.ConsentRefusal(w, b) is { } unwilling) return unwilling;
         if (_ventures.Def(b.Kind) == null) return "no such venture";
         if (companyId.Length > 0)
         {
@@ -324,9 +325,12 @@ public sealed partial class CompanySystem
     public void Recontrol(World w, Company co)
     {
         if (co.Chartered) { co.ControllerId = co.MonopolyOf; return; }
-        var houses = co.Holders.Where(kv => kv.Key != Company.Public && kv.Value > 0 && w.House(kv.Key) != null).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key == co.ControllerId ? 0 : 1).ThenBy(kv => kv.Key, StringComparer.Ordinal).ToList();
+        // a house votes its own shares, and those of its people who stand with its head (docs/WEALTH.md "A venture of one's own")
+        var houses = co.Holders.Where(kv => kv.Key != Company.Public && kv.Value > 0 && w.House(kv.Key) != null).Select(kv => new KeyValuePair<string, int>(kv.Key, VotesOf(w, co, kv.Key)))
+            .OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key == co.ControllerId ? 0 : 1).ThenBy(kv => kv.Key, StringComparer.Ordinal).ToList();
         if (houses.Count == 0) return;
-        string now = houses.FirstOrDefault(kv => kv.Value * 2 > co.Shares).Key ?? (co.HeldBy(co.ControllerId) * 2 > co.Shares || (co.HeldBy(co.ControllerId) > 0 && co.HeldBy(co.ControllerId) >= houses[0].Value) ? co.ControllerId : houses[0].Key);
+        int sitting = co.HeldBy(co.ControllerId) > 0 ? VotesOf(w, co, co.ControllerId) : 0;
+        string now = houses.FirstOrDefault(kv => kv.Value * 2 > co.Shares).Key ?? (sitting * 2 > co.Shares || (sitting > 0 && sitting >= houses[0].Value) ? co.ControllerId : houses[0].Key);
         if (now == co.ControllerId) return;
         string was = co.ControllerId; co.ControllerId = now;
         foreach (var b in VenturesOf(w, co)) b.OwnerId = now;

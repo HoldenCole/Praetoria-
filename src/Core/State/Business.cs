@@ -33,6 +33,9 @@ public sealed class Business
     /// <summary>The turn until which an offer of it stands (0 = never offered): a steward waits for the answer, and does not offer the same house twice.</summary>
     /// <summary>The member of the house who founded it with their own money, or a stake they asked for (docs/AMBITIONS.md).</summary>
     public string FounderId { get; set; } = "";
+    /// <summary>The member of the owning house whose own it is (docs/WEALTH.md "A venture of one's own"): what it earns is theirs,
+    /// it is not sold without them, and it goes as they leave it. "" while it is simply the house's.</summary>
+    public string HeldById { get; set; } = "";
 
     public int OfferedUntil { get; set; }
 

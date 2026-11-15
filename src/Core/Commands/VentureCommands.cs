@@ -18,6 +18,7 @@ public sealed class SellVentureCommand : ICommand
         if (actor?.Alive != true || house == null || b == null || _ventures.Catalog.Def(b.Kind) == null) return "no such venture";
         if (b.OwnerId != house.Id) return "not yours";
         if (b.CompanyId.Length > 0) return "held by a company: sell its shares instead";
+        if (VentureSystem.ConsentRefusal(w, b) is { } unwilling) return unwilling;
         if (_to.Length == 0 || _to == Best) return null;
         if (w.House(_to) == null) return "no such house";
         return _ventures.Bid(w, _to, b) > 0 ? null : $"{w.House(_to)!.Name} will not buy it";
@@ -144,3 +145,16 @@ public sealed class PropVentureCommand : ICommand
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx) { var w = ctx.World; _ventures.Prop(w, w.House(w.Char(ActorId)!.HouseId)!, w.Business(_id)!); }
 }
+
+/// <summary>Settle a venture on one of the house, or on yourself: it is that person's own (docs/WEALTH.md "A venture of one's own").</summary>
+public sealed class SettleVentureCommand : ICommand
+{
+    private readonly string _id, _on; private readonly VentureSystem _ventures;
+    public SettleVentureCommand(string actorId, string businessId, string onId, VentureSystem ventures) { ActorId = actorId; _id = businessId; _on = onId; _ventures = ventures; }
+    public string ActorId { get; }
+    public string Describe() => $"settle {_id} on {_on}";
+    public string? Refusal(CommandContext ctx) => _ventures.SettleRefusal(ctx.World, ctx.World.Char(ActorId), ctx.World.Business(_id), ctx.World.Char(_on));
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; _ventures.Settle(w, w.Char(ActorId)!, w.Business(_id)!, w.Char(_on)!); }
+}
+

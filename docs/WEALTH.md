@@ -255,11 +255,47 @@ Found while building it, and mapped (W10): a venture is still the house's, and t
 founder's head; no world is a person's; shares in a person's name carry no vote, even alongside their house's; and
 only the people of your house hold any, since nobody else has a purse (X1).
 
+### A venture of one's own, and a voice for one's shares (W10, 2026-11-15)
+
+**A venture can be a person's own**, not the house's.
+
+- **Settled.** The head can settle any venture the house owns outright on a grown member of the house, or on
+  themselves. It cannot be taken back. The person thinks 12 better of the head.
+- **Founded with their own money.** A relative who founds a venture out of their own purse owns it from the day it
+  stands. One founded with a stake the head granted is the house's, with a founder's stake as before.
+- **What it earns is theirs.** Each year its earnings are paid over from the treasury to their purse, as far as the
+  treasury goes. This replaces the founder's stake for that venture.
+- **It is not sold over their head.** Selling it, listing it as a company, or letting the steward sell it needs the
+  holder to think 20 or better of the head. If it is sold, the price is theirs.
+- **It goes as they leave it.** The head's own goes to whoever the will gives half or more of the purse, otherwise
+  to the heir. When anyone else dies, or leaves the house, theirs is the house's again. Wound up, what is left is
+  theirs.
+
+**A founder has a part of the price.** When the head sells a venture one of the house founded and does not own, a
+fifth of the price goes to the founder's purse, and they think 10 worse of the head for it: 4 if it was already
+losing money.
+
+**Shares in a person's name vote with their house.** A house votes its own shares in a company and those its people
+hold in their own names, so long as the house holds at least one share itself. The head's own always count. Anyone
+else's count while they think no ill of the head (0 or better). One who does think ill keeps the shares and the
+dividend and withholds the vote; the purses list says so.
+
+Measured over sixty runs of sixty years, with no player giving orders: 29 ventures were a relative's own at the end,
+all founded with their own money, and 928 credits were paid over to their holders. No founder's stake was paid: in
+those runs every venture a relative founded was their own.
+
+Not seen in play: the soak's player never settled a venture and never sold one a relative had founded, so both rest
+on tests. Settling was done by hand in the browser (`tools/browser/settle.js`): the card then reads "Livia Crane's
+own" and the purses list "Has 1 venture of their own".
+
+Found while building it, and mapped (W12): no world is a person's, which is the owner's to decide; and a person who
+owns a venture never sells it or enlarges it themselves.
+
 ## Not in this piece
 
 - **Only your house has purses.** Everyone else in the Reach still has only their house's treasury.
 - ~~A purse holds credits only.~~ Closed in part (W1): a person holds shares in their own name, and a founder draws a stake from
-  what they founded. No venture and no world is a person's outright; see "A purse that holds more than credits" (W10).
+  what they founded. A venture can now be a person's own (W10, above). No world is: that is W12.
 - ~~Dowries still come from the treasury.~~ Closed: from the head's purse if they say so, and from the bride's own first.
 - An heirloom can be entailed. A world or a venture cannot: any of them can still be sold by the head.
 - ~~An heirloom is one of four kinds, and none is ever made, won or given by another house.~~ Closed (W8): see "New things". What is left is W9.

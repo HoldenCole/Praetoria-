@@ -28,7 +28,7 @@
 
         @if (cs != null && cs.Open)
         {
-            <div class="hh-head"><b>Shares of your own</b> <span class="muted small">Bought out of your purse, in your name. What they pay goes into your purse, and they go by your will. They are not the house's: they give it no say in a company, and what is taken from the house does not take them. One person may hold a tenth of a company.</span></div>
+            <div class="hh-head"><b>Shares of your own</b> <span class="muted small">Bought out of your purse, in your name. What they pay goes into your purse, and they go by your will. They are not the house's, and what is taken from the house does not take them. They vote with the house's own shares, if it has any. One person may hold a tenth of a company.</span></div>
             @if (myShares.Count == 0) { <div class="muted small">You hold none in your own name.</div> }
             @foreach (var (co, n) in myShares)
             {
@@ -191,7 +191,9 @@
     {
         var held = CompanySystem.HeldPersonally(w, c.Id); int stake = AmbitionSystem.StakesOf(w, c).Sum(x => x.Stake);
         string shares = held.Count > 0 ? $" Holds {held.Sum(h => h.Shares)} share{(held.Sum(h => h.Shares) == 1 ? "" : "s")} of their own, worth {CompanySystem.PersonalWorth(w, c.Id)}." : "";
-        return shares + (stake > 0 ? $" Draws {stake} a year from what they founded." : "");
+        if (held.Count > 0 && !CompanySystem.VotesWithHouse(w, c)) shares += " They do not vote them with the house.";
+        var own = w.BusinessesOf(c.HouseId).Where(b => VentureSystem.HolderOf(w, b)?.Id == c.Id).ToList();
+        return shares + (own.Count > 0 ? $" Has {own.Count} venture{(own.Count == 1 ? "" : "s")} of their own." : "") + (stake > 0 ? $" Draws {stake} a year from what they founded." : "");
     }
     private static string MadeTip(string kind) => kind == WealthSystem.Library
         ? "A library of your own house: everyone in it who has set themselves a study learns it a little faster. It is yours, and the house's after you."

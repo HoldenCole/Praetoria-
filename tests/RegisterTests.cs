@@ -891,4 +891,84 @@ public class RegisterTests
         Assert.True(w.HasFlag(WealthSystem.SendBackFlag)); theirs.Treasury.Credits = 0; w.Turn++; WealthSystem.Tick(w);
         Assert.DoesNotContain(w.Heirlooms, h => h.Id.StartsWith("gift_")); Assert.Equal(1, w.Counter(WealthSystem.SentBackKey)); Assert.False(w.HasFlag(WealthSystem.SendBackFlag));
     }
+
+    // ---------------- W10: a venture of one's own, and a vote for shares in a person's name ----------------
+
+    private static Business Paying(TurnController tc, World w, House mine, int skip = 0)
+    {
+        var vs = tc.Ventures!; var sys = w.Galaxy!.System(w.HoldingsOf(mine.Id).First(h => h.IsPlanet).SystemId)!; int seen = 0;
+        foreach (var def in Content.Businesses.Defs.Where(d => !d.Lender).OrderBy(d => d.Id, StringComparer.Ordinal))
+        {
+            if (w.Businesses.ContainsKey(FoundBusinessCommand.IdFor(mine.Id, def.Id, sys.Id))) continue;
+            var b = FoundBusinessCommand.Open(w, mine, def, sys); b.Founded = w.Turn - 5;
+            if (vs.Earnings(w, b) > 0 && seen++ >= skip) return b;
+            w.Businesses.Remove(b.Id);
+        }
+        throw new Xunit.Sdk.XunitException("no venture pays on the house's own world");
+    }
+
+    [Fact]
+    public void W10_A_venture_settled_on_one_of_the_house_is_theirs_what_it_earns_the_say_in_selling_it_and_its_price()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Alone(w, mine, me); var vs = tc.Ventures!; var k = Blood(w, me, Kin(w, mine, me, "holder")); var other = Kin(w, mine, me, "other");
+        var child = Kin(w, mine, me, "child"); child.Age = 10; var b = Paying(tc, w, mine); b.FounderId = k.Id; mine.Treasury.Credits = 300;
+        Assert.Equal("only the head of the house can settle it", vs.SettleRefusal(w, k, b, k)); Assert.Equal("not a grown member of your house", vs.SettleRefusal(w, me, b, child));
+        Assert.Single(AmbitionSystem.StakesOf(w, k)); int regard = w.Relationship(k.Id, me.Id).Disposition;
+        Assert.True(Do(w, new SettleVentureCommand(me.Id, b.Id, k.Id, vs)));
+        Assert.Equal(k.Id, b.HeldById); Assert.Same(k, VentureSystem.HolderOf(w, b)); Assert.Equal(regard + VentureSystem.SettleRegard, w.Relationship(k.Id, me.Id).Disposition); Assert.Equal(1, w.Counter(VentureSystem.SettledCounter));
+        Assert.Contains("own", vs.SettleRefusal(w, me, b, other)); Assert.Equal("it is theirs already", vs.SettleRefusal(w, me, b, k));
+        // everything it earns is paid over to them, in place of a founder's stake
+        Assert.Empty(AmbitionSystem.StakesOf(w, k)); int earns = vs.Earnings(w, b), purse = k.Purse, treasury = mine.Treasury.Credits;
+        vs.PayHolders(w); Assert.Equal(purse + earns, k.Purse); Assert.Equal(treasury - earns, mine.Treasury.Credits); Assert.Equal(earns, w.Counter(VentureSystem.HeldIncomeCounter));
+        // it is not sold or listed over their head
+        w.Relationship(k.Id, me.Id).Disposition = VentureSystem.ConsentAt - 1;
+        Assert.Contains("will not agree", new SellVentureCommand(me.Id, b.Id, "", vs).Refusal(ctx)); Assert.Contains("will not agree", tc.Companies!.IncorporateRefusal(w, mine.Id, b, ""));
+        // with their leave it is sold, and the price is theirs
+        w.Relationship(k.Id, me.Id).Disposition = VentureSystem.ConsentAt; purse = k.Purse; treasury = mine.Treasury.Credits; int price = vs.MarketPrice(w, b);
+        Assert.True(Do(w, new SellVentureCommand(me.Id, b.Id, "", vs))); Assert.Null(w.Business(b.Id)); Assert.Equal(purse + price, k.Purse); Assert.Equal(treasury, mine.Treasury.Credits);
+        // a holder who dies or leaves: it is the house's again
+        var b2 = Paying(tc, w, mine); vs.Settle(w, me, b2, other); other.Alive = false; vs.PayHolders(w); Assert.Equal("", b2.HeldById);
+    }
+
+    [Fact]
+    public void W10_A_founder_has_a_part_of_the_price_and_a_venture_of_ones_own_goes_as_it_is_left()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Alone(w, mine, me); var vs = tc.Ventures!; var f = Blood(w, me, Kin(w, mine, me, "founder")); mine.Treasury.Credits = 300;
+        // sold by the head: a fifth of the price is the founder's, and they mind it going; less if it was failing
+        var b = Paying(tc, w, mine); b.FounderId = f.Id; int price = vs.MarketPrice(w, b), cut = price * VentureSystem.FounderCutPct / 100, purse = f.Purse, treasury = mine.Treasury.Credits, regard = w.Relationship(f.Id, me.Id).Disposition;
+        Assert.True(Do(w, new SellVentureCommand(me.Id, b.Id, "", vs)));
+        Assert.Equal(purse + cut, f.Purse); Assert.Equal(treasury + price - cut, mine.Treasury.Credits); Assert.Equal(regard - VentureSystem.SoldOverRegard, w.Relationship(f.Id, me.Id).Disposition); Assert.Equal(cut, w.Counter(VentureSystem.FounderCutCounter));
+        var failing = Paying(tc, w, mine); failing.FounderId = f.Id; failing.LosingYears = 1; regard = w.Relationship(f.Id, me.Id).Disposition;
+        Assert.True(Do(w, new SellVentureCommand(me.Id, failing.Id, "", vs))); Assert.Equal(regard - VentureSystem.SoldFailingRegard, w.Relationship(f.Id, me.Id).Disposition);
+
+        // founded with their own money, it is their own from the day it stands
+        var theirs = Paying(tc, w, mine); w.Founders[theirs.Id] = f.Id; w.WorldCounters[VentureSystem.OwnMoneyPrefix + theirs.Id] = 1;
+        w.Turn++; tc.Ambitions.Tick(w, tc.Executor, ctx); Assert.Equal(f.Id, theirs.FounderId); Assert.Equal(f.Id, theirs.HeldById);
+        // founded with the house's stake, it is the house's, with a founder's stake
+        var houses = Paying(tc, w, mine, 1); w.Founders[houses.Id] = f.Id; w.Turn++; tc.Ambitions.Tick(w, tc.Executor, ctx); Assert.Equal(f.Id, houses.FounderId); Assert.Equal("", houses.HeldById);
+
+        // one of the house dies: their own venture is the house's again
+        f.Alive = false; WealthSystem.Lapse(w, f); Assert.Equal("", theirs.HeldById);
+        // the head's own goes by the will: to the one remembered if they have half or more, else to the heir
+        var heir = Blood(w, me, Kin(w, mine, me, "heir")); var friend = Kin(w, mine, me, "friend"); var mineOwn = Paying(tc, w, mine, 2);
+        Assert.True(Do(w, new SettleVentureCommand(me.Id, mineOwn.Id, me.Id, vs))); Assert.Null(VentureSystem.ConsentRefusal(w, mineOwn));
+        me.Will = new Will { LegateeId = friend.Id, SharePct = 50 }; me.Alive = false; WealthSystem.Inherit(w, me, heir); Assert.Equal(friend.Id, mineOwn.HeldById);
+    }
+
+    [Fact]
+    public void W10_Shares_in_a_persons_name_vote_with_their_house_while_they_stand_with_its_head()
+    {
+        var (tc, w, me, mine, _) = Start(); Alone(w, mine, me); var cs = tc.Companies!; var (rival, _) = Another(w, mine); var k = Blood(w, me, Kin(w, mine, me, "holder"));
+        var co = new Company { Id = "co_votes", Name = "The Voting Company", Shares = 100, ControllerId = rival.Id, FounderId = rival.Id };
+        co.Holders[rival.Id] = 35; co.Holders[mine.Id] = 30; co.Holders[Company.PersonKey(k.Id)] = 10; co.Holders[Company.Public] = 25; w.Companies.Add(co);
+        // standing with the head, their ten are added to the house's thirty: it directs the company
+        w.Relationship(k.Id, me.Id).Disposition = 10; Assert.True(CompanySystem.VotesWithHouse(w, k)); Assert.Equal(40, CompanySystem.VotesOf(w, co, mine.Id)); Assert.Equal(35, CompanySystem.VotesOf(w, co, rival.Id));
+        cs.Recontrol(w, co); Assert.Equal(mine.Id, co.ControllerId);
+        // thinking ill of the head, they keep their shares and their dividend and withhold their voice
+        w.Relationship(k.Id, me.Id).Disposition = -5; Assert.False(CompanySystem.VotesWithHouse(w, k)); Assert.Equal(30, CompanySystem.VotesOf(w, co, mine.Id));
+        cs.Recontrol(w, co); Assert.Equal(rival.Id, co.ControllerId); Assert.Equal(10, co.HeldBy(Company.PersonKey(k.Id)));
+        // the head's own always vote; and a house with no share of its own has no voice for anyone's to be added to
+        co.Holders[Company.PersonKey(me.Id)] = 8; co.Holders[Company.Public] = 17; Assert.Equal(38, CompanySystem.VotesOf(w, co, mine.Id)); cs.Recontrol(w, co); Assert.Equal(mine.Id, co.ControllerId);
+        co.Holders.Remove(mine.Id); co.Holders[Company.Public] = 47; Assert.Equal(0, CompanySystem.VotesOf(w, co, mine.Id)); cs.Recontrol(w, co); Assert.Equal(rival.Id, co.ControllerId);
+    }
 }

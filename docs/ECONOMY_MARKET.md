@@ -289,7 +289,8 @@ A holder of a company is a house, the public float, or now a person (docs/WEALTH
 credits"; docs/GAPS.md W1). A person buys out of their own purse at the price a house pays, may hold a tenth of a
 company, is paid their dividend into their purse, and is paid out like a house when a company is wound up. A
 person's shares are out of the float but carry no vote: who directs a company is still reckoned among houses only,
-and a company no house holds is still wound up, with its private holders paid. What is left is W10.
+and a company no house holds is still wound up, with its private holders paid. (Since W10 a person's shares vote
+with their house's own, while they think no ill of its head: docs/WEALTH.md, "A venture of one's own".)
 
 ## 13. A failing venture, beyond its owner and beyond one cause (2026-11-15)
 

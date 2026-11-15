@@ -55,6 +55,7 @@ public sealed partial class CompanySystem
         who.Purse -= q.Credits; PayLevy(w, who.HouseId, q.Levy);
         co.Holders[Company.Public] = co.HeldBy(Company.Public) - n; co.Holders[key] = co.HeldBy(key) + n; co.Flow += n;
         w.WorldCounters[SharesTradedCounter] = w.Counter(SharesTradedCounter) + n; Count(w, PrivateBoughtKey, n);
+        Recontrol(w, co);   // their voice is added to their house's, if they stand with it
         return true;
     }
 
@@ -65,7 +66,24 @@ public sealed partial class CompanySystem
         co.Holders[key] = co.HeldBy(key) - n; if (co.Holders[key] <= 0) co.Holders.Remove(key);
         co.Holders[Company.Public] = co.HeldBy(Company.Public) + n; co.Flow -= n;
         w.WorldCounters[SharesTradedCounter] = w.Counter(SharesTradedCounter) + n; Count(w, PrivateSoldKey, n);
+        Recontrol(w, co);
         return true;
+    }
+
+    /// <summary>Does this person's holding vote with their house? The head's own does. Anyone else's does while they think no
+    /// ill of the head; one who does keeps their shares and their dividends, and withholds their voice.</summary>
+    public static bool VotesWithHouse(World w, Character c)
+    {
+        var house = w.House(c.HouseId); var head = house != null ? Economy.HeadOf(w, house) : null; if (!c.Alive || head == null) return false;
+        return head.Id == c.Id || (w.GetRelationship(c.Id, head.Id)?.Disposition ?? 0) >= 0;
+    }
+    /// <summary>The shares a house can vote in a company: its own, and those its people hold in their own names and vote with it.
+    /// A house with no share of its own has no voice for them to add to.</summary>
+    public static int VotesOf(World w, Company co, string houseId)
+    {
+        int own = co.HeldBy(houseId); if (own <= 0) return 0;
+        foreach (var kv in co.Holders) if (IsPerson(kv.Key) && kv.Value > 0 && w.Char(kv.Key[Company.PersonPrefix.Length..]) is { } c && c.HouseId == houseId && VotesWithHouse(w, c)) own += kv.Value;
+        return own;
     }
 
     /// <summary>Pay a holder what a company owes them: a house into its treasury, a person into their purse.</summary>

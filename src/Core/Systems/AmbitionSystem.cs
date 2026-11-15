@@ -202,6 +202,7 @@ public sealed class AmbitionSystem
         if (fromPurse) { who.Purse -= cost; house.Treasury.Credits += cost; }
         if (!executor.TryExecute(new FoundBusinessCommand(who.Id, def.Id, sys, _ventures, _holdings, _titles), ctx))
         { if (fromPurse) { who.Purse += cost; house.Treasury.Credits -= cost; } return false; }
+        if (fromPurse) w.WorldCounters[VentureSystem.OwnMoneyPrefix + FoundBusinessCommand.IdFor(house.Id, def.Id, sys)] = 1;
         w.Founders[FoundBusinessCommand.IdFor(house.Id, def.Id, sys)] = who.Id; who.Pursuit!.Note = $"Founded {def.Name}."; who.Flags.Add(FounderChar); Mark(w, FoundedFlag); LifeSystem.Note(w, who, "venture", $"Founded {def.Name} for the house.");
         if (who.Pursuit.Goal == "restore_house_fortunes") who.Pursuit.Given += cost;   // what they built for the house is what they gave it
         w.Log($"{who.Name} founds {def.Name} for {house.Name}{(fromPurse ? " with their own money" : " with the house's stake")}.");
@@ -228,7 +229,12 @@ public sealed class AmbitionSystem
         if (house.NamedHeirId.Length > 0 && (w.Char(house.NamedHeirId) is not { Alive: true } nh || nh.HouseId != house.Id || nh.Id == p.Id)) house.NamedHeirId = "";
         // ventures begun by one of the house, once they stand, carry the founder's name
         foreach (var b in w.BusinessesOf(house.Id).Where(b => b.FounderId.Length == 0).ToList())
-            if (w.Founders.TryGetValue(b.Id, out var fid)) { b.FounderId = fid; w.Founders.Remove(b.Id); }
+            if (w.Founders.TryGetValue(b.Id, out var fid))
+            {
+                b.FounderId = fid; w.Founders.Remove(b.Id);
+                // founded with their own money, it is their own (docs/WEALTH.md "A venture of one's own")
+                if (w.WorldCounters.Remove(VentureSystem.OwnMoneyPrefix + b.Id) && w.Char(fid) is { Alive: true } own && own.HouseId == house.Id) b.HeldById = fid;
+            }
         if (w.FamilyAutonomy <= 0) return;
 
         var members = Members(w, house); var heir = DynastySystem.FindHeir(w, p);
@@ -387,7 +393,7 @@ public sealed class AmbitionSystem
         // whoever founded a venture has a stake in it: a share of what it earns is theirs, whatever they wanted it for (docs/WEALTH.md)
         foreach (var b in w.BusinessesOf(house.Id).Where(b => b.FounderId.Length > 0))
         {
-            var f = w.Char(b.FounderId); if (f is not { Alive: true } || f.HouseId != house.Id) continue;
+            var f = w.Char(b.FounderId); if (f is not { Alive: true } || f.HouseId != house.Id || b.HeldById.Length > 0) continue;   // one that is someone's own pays its holder everything instead
             int share = FounderStake(b); if (house.Treasury.Credits >= share) { house.Treasury.Credits -= share; f.Purse += share; w.WorldCounters[FounderStakesKey] = w.Counter(FounderStakesKey) + share; }
         }
     }
@@ -424,5 +430,5 @@ public sealed class AmbitionSystem
     public static int FounderStake(Business b) => Math.Max(1, b.Level);
     /// <summary>The ventures someone founded that their house still has, and what each pays them.</summary>
     public static List<(Business Venture, int Stake)> StakesOf(World w, Character c) =>
-        w.BusinessesOf(c.HouseId).Where(b => b.FounderId == c.Id).OrderBy(b => b.Id, StringComparer.Ordinal).Select(b => (b, FounderStake(b))).ToList();
+        w.BusinessesOf(c.HouseId).Where(b => b.FounderId == c.Id && b.HeldById.Length == 0).OrderBy(b => b.Id, StringComparer.Ordinal).Select(b => (b, FounderStake(b))).ToList();
 }

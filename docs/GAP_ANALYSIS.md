@@ -1934,3 +1934,29 @@ lost one, so the "send it home" and "buy it home" buttons were not seen; nor was
 
 **Left, and mapped.** A gift is always plate and never asks a favour; nothing but a standard is taken in a war
 (W11).
+
+## 63. A venture of one's own, and a voice for one's shares — 2026-11-15
+
+**W10.** Two of the three things in the row are built (docs/WEALTH.md, "A venture of one's own"). A venture can be
+a person's own, by the head's settling it or by their founding it with their own money: its earnings, the say in
+selling it, its price and where it goes at their death are theirs. A founder who does not own the venture has a
+fifth of the price when it is sold. And shares held in a person's name vote with their house while they stand with
+its head. The third, a world held by a person, is left to the owner as W12.
+
+**Measured.** The Republic probe (60 runs of 60 years, nobody giving orders): 29 ventures were a relative's own at
+the end, 928 credits paid over to holders, no founder's stakes (every venture a relative founded there was their
+own). The Republic stood in all 60; the great war was fought in 41 runs (41); 23 states broke away (23); trust in
+the magistrates averaged 48 to 61 by start and was low in 14 runs (15); 498 ventures were wound up (469). The soak
+(33 runs, a save and load in each) passes with no drift. Survival: 0 of 10 on every start.
+
+**Not seen in play.** The soak's player has the command to settle a venture and never gave it in 33 runs, and
+never sold a venture a relative had founded. Settling, consent, the price, the will and the vote are each proved by
+a test.
+
+**Seen in the browser.** On the New Man start the house's trading company was settled on a relative from the
+Exchange: the card read "Livia Crane's own" and the purses list "Has 1 venture of their own", with no errors.
+
+733 tests (three new).
+
+**Left, and mapped.** No world is a person's: the owner's question (W12). A person who owns a venture does nothing
+with it themselves.
