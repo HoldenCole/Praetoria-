@@ -28,6 +28,9 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('panel: ' + (/NaN|undefined|Exception|@\(/.test(text) ? 'SUSPICIOUS TEXT' : 'ok') + ' · ' + await head());
   console.log('took: ' + (await press('take 5') || 'could not')); await page.waitForTimeout(200);
   console.log('allowance: ' + (await press('generous') || 'could not')); await page.waitForTimeout(200);
+  // a thing made to order: enough into the purse for a shrine, then have one made (docs/WEALTH.md "New things")
+  for (let i = 0; i < 7; i++) { await press('take 5'); await page.waitForTimeout(300); }
+  console.log('made to order: ' + (await press('A shrine') || 'could not: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => e.innerText.trim().startsWith('A shrine')); return b ? b.title : 'no button'; }))); await page.waitForTimeout(300);
   console.log('heirlooms: ' + await page.evaluate(() => { const col = [...document.querySelectorAll('.panel.wealth .hh-head')].find(e => e.innerText.startsWith('Heirlooms')); let n = col ? col.nextElementSibling : null; const out = []; while (n && !n.classList.contains('hh-head')) { out.push(n.innerText.replace(/\s+/g, ' ').slice(0, 80)); n = n.nextElementSibling; } return out.join(' || '); }));
   console.log('legatee picked: ' + await page.evaluate(() => { const row = [...document.querySelectorAll('.panel.wealth .suit-acts')].find(e => e.innerText.includes('Of your purse')); const bs = row ? [...row.querySelectorAll('button')] : []; const i = bs.findIndex(b => b.innerText.trim() === 'all'); const b = bs[i + 1]; if (b) b.click(); return b ? b.innerText : 'nobody to name'; }));
   await page.waitForTimeout(200); console.log('will: ' + (await press('half') || 'not set')); await page.waitForTimeout(200);
@@ -35,6 +38,10 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('now: ' + await head()); await page.screenshot({ path: shots + '/wealth-begin.png' });
   for (let y = 0; y < years; y++) { await endTurn(); await rail('House'); await tab('Purses'); await page.waitForTimeout(300); }
   console.log('after ' + years + ' years: ' + await head());
+  // the treasury of a poor start does not hold a shrine at once: try again with the years' income
+  for (let i = 0; i < 6; i++) { await press('take 5'); await page.waitForTimeout(300); }
+  console.log('made to order, later: ' + (await press('A shrine') || 'could not: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => e.innerText.trim().startsWith('A shrine')); return b ? b.title : 'no button'; }))); await page.waitForTimeout(400);
+  console.log('heirlooms now: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .suit')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 200)).filter(t => /worth/.test(t)).join(' || ')));
   console.log('their purses: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .purse-row')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 90)).join(' || ')));
   await page.evaluate(() => { const el = document.querySelector('.panel.wealth'); if (el) el.scrollIntoView(); }); await page.waitForTimeout(300);
   const box = await page.evaluate(() => { const r = document.querySelector('.panel.wealth').getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1400) }; });

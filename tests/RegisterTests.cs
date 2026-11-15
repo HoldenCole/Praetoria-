@@ -615,4 +615,90 @@ public class RegisterTests
         Assert.Contains(w.LivingCharacters(), c => c.HouseId != mine.Id && c.PatronId.Length > 0);
         Assert.True(w.Counter(LadderSystem.PatronsCounter) > 0); Assert.True(w.Counter(LadderSystem.SpokenCounter) > 0);
     }
+
+    // ---------------- W8: a house comes by new things ----------------
+
+    [Fact]
+    public void W8_A_person_has_a_shrine_or_a_library_made_out_of_their_own_purse_and_other_houses_do_too()
+    {
+        var (_, w, me, mine, _) = Start(); w.Heirlooms.Clear(); me.Purse = 10;
+        Assert.Contains("purse", WealthSystem.CommissionRefusal(w, me, WealthSystem.Shrine)); Assert.False(Do(w, new WealthCommand(me.Id, WealthCommand.Commission, "", WealthSystem.Shrine)));
+        Assert.Equal("nobody can make that to order", WealthSystem.CommissionRefusal(w, me, "signet"));
+        me.Purse = 70; int before = mine.Treasury.Credits;
+        Assert.True(Do(w, new WealthCommand(me.Id, WealthCommand.Commission, "", WealthSystem.Shrine)));
+        var shrine = Assert.Single(w.Heirlooms); Assert.Equal(70 - WealthSystem.ShrineCost, me.Purse); Assert.Equal(before, mine.Treasury.Credits);
+        Assert.Equal(me.Id, shrine.HolderId); Assert.Equal(mine.Id, shrine.OfHouseId); Assert.True(shrine.Value < WealthSystem.ShrineCost); Assert.False(shrine.Entailed);
+        Assert.Contains("already", WealthSystem.CommissionRefusal(w, me, WealthSystem.Shrine));
+        Assert.True(Do(w, new WealthCommand(me.Id, WealthCommand.Commission, "", WealthSystem.Library))); Assert.True(WealthSystem.HasLibrary(w, mine.Id)); Assert.Equal(70 - WealthSystem.ShrineCost - WealthSystem.LibraryCost, me.Purse);
+        Assert.Equal(2, w.Counter(WealthSystem.CommissionedKey));
+
+        // the shrine: the commons think a point better of the house each year, up to a ceiling
+        w.WorldCounters[PolicySystem.ApprovalKey(w, mine.Id, "commons")] = 0; WealthSystem.Tick(w); Assert.Equal(1, PolicySystem.Approval(w, mine.Id, "commons"));
+        w.WorldCounters[PolicySystem.ApprovalKey(w, mine.Id, "commons")] = WealthSystem.ShrineCeiling; WealthSystem.Tick(w); Assert.Equal(WealthSystem.ShrineCeiling, PolicySystem.Approval(w, mine.Id, "commons"));
+        Assert.Contains("commons", WealthSystem.Does(w, shrine));
+
+        // other houses, rich enough, have things made in their own time; a poor one never does
+        var rich = w.Houses.Values.Where(h => h.Id != mine.Id && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var poor = rich[0]; rich.RemoveAt(0); w.Heirlooms.RemoveAll(h => h.OfHouseId != mine.Id);
+        for (int y = 0; y < 80; y++) { w.Turn++; foreach (var h in rich) h.Treasury.Credits = 300; poor.Treasury.Credits = 10; WealthSystem.Tick(w); }
+        Assert.Contains(w.Heirlooms, h => h.OfHouseId != mine.Id && h.Id.StartsWith("made_")); Assert.DoesNotContain(w.Heirlooms, h => h.OfHouseId == poor.Id);
+        Assert.All(w.Heirlooms.Where(h => h.Id.StartsWith("made_")).GroupBy(h => h.OfHouseId + h.Kind), g => Assert.Single(g));
+    }
+
+    [Fact]
+    public void W8_Whoever_commanded_sometimes_brings_a_standard_home_and_it_does_its_work_on_a_flagship()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me); w.Heirlooms.Clear(); var k = Blood(w, me, Kin(w, mine, me, "admiral")); k.CareerTrack = "military";
+        var foe = w.Houses.Values.Where(h => h.Id != mine.Id && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).First(); string at = w.Galaxy!.Capital;
+        Assert.Null(WealthSystem.StandardWon(w, mine.Id, PirateSystem.HouseId, at, new[] { k })); Assert.Null(WealthSystem.StandardWon(w, mine.Id, foe.Id, at, Array.Empty<Character>()));
+        Heirloom? won = null; int battles = 0;
+        while (won == null && battles < 200) { w.Turn++; battles++; won = WealthSystem.StandardWon(w, mine.Id, foe.Id, at, new[] { k }); }
+        Assert.NotNull(won); Assert.True(battles > 1, "not every battle yields one");
+        Assert.Equal(WealthSystem.Standard, won!.Kind); Assert.Equal(k.Id, won.HolderId); Assert.Equal(mine.Id, won.OfHouseId); Assert.Equal(foe.Id, won.FromHouseId); Assert.Contains("standard taken at", won.Name);
+        Assert.True(w.HasFlag(WealthSystem.StandardWonFlag)); Assert.Contains(WealthSystem.WonStandardChar, k.Flags); Assert.Contains(k.Life!.Deeds, d => d.Text.Contains("standard"));
+        Fires(w, "a_standard_comes_home");
+
+        // in a hall it does nothing; on a flagship the fleet grows more loyal, up to a ceiling
+        Assert.Contains("Does nothing", WealthSystem.Does(w, won));
+        var fleet = new Fleet { Id = "t_fleet", Name = "the test fleet", OwnerId = mine.Id, AdmiralId = k.Id, Loyalty = 50, SystemId = at }; w.Fleets[fleet.Id] = fleet;
+        Assert.Contains("more loyal", WealthSystem.Does(w, won)); WealthSystem.Tick(w); Assert.Equal(51, fleet.Loyalty);
+        fleet.Loyalty = WealthSystem.StandardCeiling; WealthSystem.Tick(w); Assert.Equal(WealthSystem.StandardCeiling, fleet.Loyalty);
+
+        // a house keeps no more than two
+        for (int i = 0; i < 400; i++) { w.Turn++; WealthSystem.StandardWon(w, mine.Id, foe.Id, at, new[] { k }); }
+        Assert.Equal(WealthSystem.StandardsAHouse, w.Heirlooms.Count(h => h.Kind == WealthSystem.Standard && h.OfHouseId == mine.Id)); Assert.Equal(WealthSystem.StandardsAHouse, w.Counter(WealthSystem.StandardsKey));
+    }
+
+    [Fact]
+    public void W8_Another_house_sends_plate_at_a_wedding_and_selling_it_is_an_answer()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me); w.Heirlooms.Clear(); if (w.Turn < 1) w.Turn = 1;
+        var theirs = w.Houses.Values.Where(h => h.Id != mine.Id && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null).OrderBy(h => h.Id, StringComparer.Ordinal).First(); var giver = Economy.HeadOf(w, theirs)!;
+        Heirloom? plate = null; Character? groom = null; int weddings = 0;
+        for (int i = 0; i < 60 && plate == null; i++)
+        {
+            weddings++; groom = Blood(w, me, Kin(w, mine, me, "groom" + i)); var bride = new Character { Id = "bride" + i, Name = "Test bride " + i, HouseId = theirs.Id, Age = 24, Sex = "female" }; w.Characters[bride.Id] = bride;
+            Assert.Null(WealthSystem.WeddingGift(w, groom, bride, 0) is { } x && x.FromHouseId == mine.Id ? x : null);   // nothing is ever sent in the player's name
+            plate = WealthSystem.WeddingGift(w, bride, groom, 0);
+        }
+        Assert.NotNull(plate); Assert.True(weddings > 1, "not every wedding brings one");
+        Assert.Equal(WealthSystem.Plate, plate!.Kind); Assert.Equal(groom!.Id, plate.HolderId); Assert.Equal(mine.Id, plate.OfHouseId); Assert.Equal(theirs.Id, plate.FromHouseId);
+        Assert.True(w.HasFlag(WealthSystem.WeddingGiftFlag)); Assert.Contains(WealthSystem.GaveGiftChar, giver.Flags); Assert.Equal(1, w.Counter(WealthSystem.WeddingGiftsKey));
+        Fires(w, "plate_for_the_wedding");
+
+        // it keeps the two in mind of each other, up to a point
+        w.Relationship(groom.Id, giver.Id).Disposition = 0; w.Relationship(giver.Id, groom.Id).Disposition = 0; WealthSystem.Tick(w);
+        Assert.Equal(1, w.Relationship(groom.Id, giver.Id).Disposition); Assert.Equal(1, w.Relationship(giver.Id, groom.Id).Disposition);
+        w.Relationship(giver.Id, groom.Id).Disposition = WealthSystem.PlateCeiling; WealthSystem.Tick(w); Assert.Equal(WealthSystem.PlateCeiling, w.Relationship(giver.Id, groom.Id).Disposition);
+        Assert.Contains(theirs.Name, WealthSystem.Does(w, plate));
+
+        // given on to the head, and sold: the house that sent it hears
+        WealthSystem.Give(w, groom, plate, me); w.Relationship(giver.Id, me.Id).Disposition = 10; int purse = me.Purse;
+        Assert.True(Do(w, new WealthCommand(me.Id, WealthCommand.Sell, plate.Id, ""))); Assert.Equal(purse + WealthSystem.PlateValue, me.Purse);
+        Assert.Equal(10 - WealthSystem.SoldGiftRegard, w.Relationship(giver.Id, me.Id).Disposition); Assert.Equal(1, w.Counter(WealthSystem.SoldKey)); Assert.Empty(w.Heirlooms);
+
+        // a wedding within one house brings nothing, and nor does one before the game begins
+        var cousin = new Character { Id = "cousin", Name = "Test cousin", HouseId = mine.Id, Age = 24, Sex = "female" }; w.Characters[cousin.Id] = cousin;
+        Assert.Null(WealthSystem.WeddingGift(w, cousin, groom, 0));
+    }
 }

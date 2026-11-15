@@ -558,6 +558,7 @@ public sealed class FleetSystem
                     if (!w.AtWar(a, b) || StrengthAt(w, a, systemId) == 0 || StrengthAt(w, b, systemId) == 0) continue;
                     var report = Battle(w, rng, systemId, a, b);
                     LastBattles.Add(report);
+                    WealthSystem.StandardWon(w, report.Winner, report.Winner == a ? b : a, systemId, Admirals(w, report.Winner, systemId));   // sometimes a standard comes home (docs/WEALTH.md)
                     w.WorldCounters[BattlesCounter] = w.Counter(BattlesCounter) + 1;
                     if (w.House(report.Winner) is { } victor && victor.Id != PirateSystem.HouseId) victor.Glory = Math.Min(12, victor.Glory + 1);   // a victory is talked about (docs/REPUBLIC.md stage 3)
                     var scored = w.Wars.FirstOrDefault(x => x.Between(a, b)); if (scored != null) { scored.AddScore(report.Winner, 2); scored.LastBattleTurn = w.Turn; }   // raiders have no war to score

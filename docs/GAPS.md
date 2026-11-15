@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (twenty-fifth pass: ventures that fail; A6 closed, A7 mapped).
+Last updated 2026-11-15 (twenty-sixth pass: things a house comes by; W8 closed, W9 mapped).
 
 ## The worklist
 
@@ -18,7 +18,7 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | W8, W1 | Heirlooms that are made and won; a purse that holds more than credits | next |
+| 1 | W1 | A purse that holds more than credits | next |
 
 **No small gap is left that is not the owner's.** What remains is a cycle or more each, and is worked in the order above.
 
@@ -103,7 +103,7 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 |---|---|---|---|
 | A7 | A venture fails for one reason, three years without a profit, and only its owner can do anything about it. Other houses never carry or sell one that is failing; a company's venture is never judged; a failure costs the house the money and nothing else (no creditors, no people put out of work, no name for bad business); and a founder cannot be given a second start. | M | The economy |
 | W1 | A purse holds credits only: no shares, ventures or worlds held personally. | M | |
-| W8 | An heirloom is one of four kinds with one fixed effect, and no house ever comes by a new one: nothing is commissioned, won, or given by another house. | M | |
+| W9 | A standard lost is never fought for or asked back, and the house that lost it thinks no worse of whoever flies it. A relative never has anything made with their own money: only the head does, and the heads of other houses. A gift between houses comes only at a wedding, never to mend a quarrel or to ask a favour. | M | |
 | E1 | Only your own character goes to the Academy. | M | |
 | E3 | No nature is formed by an upbringing; no trait is lost. | M | |
 | H2 | Wards are not hostages. | M | |
@@ -186,3 +186,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | J5 | A junior's standing with the one above them is kept for the player's house only, and the one above does one thing with it: speaks for them once at each rank. No patron who takes them along to a new post, and no falling out. | 2026-11-15 | A senior who thinks well of a junior and has had three good years of them takes them up: a patron, above them wherever either is posted. When the patron rises the junior is taken along (their trade learned faster, 3 credits). A junior the one above has come to think ill of falls out with them: the patron is lost, the years count for nothing, and that senior is not above them again. The juniors of every house of the Reach have it, by a reckoning of good and bad years. In sixty runs: 1,769 taken up, 988 taken along, 117 fallings out, 2,431 spoken for. The Republic stood in all sixty. J6 is what is left. |
 | L10 | Public trust is one number for the whole Reach. It does not tell a region's courts, or one office's name, from another's. | 2026-11-15 | Every point that moves the Reach's trust is also set against the office whose business it was and the region where it was felt. An office's name is what a scandal costs at the count for that office. A region that does not believe the magistrates holds a point less closely to the Reach each year; one that does, a point closer. A wrong is felt twice over where it was done; honest dealing mends a name and does not lift it. In sixty runs an office's name stood 5 or more under the Reach's in 6 to 7% of office-years and over it in 7 to 12%; a region believed the magistrates 5 or more less than the Reach in 17 to 29% of region-years. The Republic stood in all sixty. L13 is what is left. |
 | A6 | A venture never fails, so a founder's failure is never marked. | 2026-11-15 | A venture a house owns outright that earns nothing or loses money three years running is wound up: half its salvage comes back and it is gone. The owner is warned a year before, and can put money in to wipe the count out, or sell. If one of the house founded it, that is a failure of their own, written into their life and counted against what they want. In sixty runs 1,063 ventures were wound up (about eighteen a run, of some hundred and twenty standing); a year without a profit was 1 to 3% of venture-years. The Republic stood in all sixty. A7 is what is left. |
+| W8 | An heirloom is one of four kinds with one fixed effect, and no house ever comes by a new one: nothing is commissioned, won, or given by another house. | 2026-11-15 | Three new kinds, each come by its own way. A shrine (or a library) is made to order out of a person's own purse, one to a house: the commons think a point better of the house each year. A standard is taken in about one victory in four by whoever commanded, and is theirs: flown from their flagship, that fleet grows a point more loyal each year. Plate is sent by the other house at about one wedding in twelve, to the one who married: holder and sender think a point better of each other each year, and selling it is taken badly. Other houses have things made too. In sixty runs 209 were made, 99 standards taken and 401 gifts sent; 30% of houses ended holding something they were not born with. The Republic stood in all sixty. What is left is W9. |

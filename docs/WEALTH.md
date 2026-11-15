@@ -164,6 +164,35 @@ half their rank a year, and an allowance one more; the proud spent it and the re
 twelve a relative lent the head five, and is owed it. Purses are still small (two to four credits beside that loan),
 which is as it should be for people living on an allowance; they are no longer empty.
 
+### New things (W8, 2026-11-15)
+
+A house had what it was born with and nothing more. Now a thing can be come by in three ways, and each is a kind of
+its own.
+
+| Kind | How it is come by | What it does |
+|---|---|---|
+| **Shrine** | Made to order, out of a person's own purse: 24 credits. One to a house. | The commons think a point better of its holder's house each year, while they think less than 40 of it. |
+| **Library** | Made to order the same way: 36 credits. One to a house. | What a library always did: everyone of the house who has set a study learns it a little faster. |
+| **Standard** | Taken in a battle. About one victory in four over another house brings one home, and it belongs to whoever commanded, not to the house. A house keeps two at most. Raiders fly nothing worth taking. | Flown from the flagship of whoever holds it, that fleet is a point more loyal each year, up to 90. In a hall it does nothing. |
+| **Plate** | Sent by the other house at a wedding between two houses, about one wedding in twelve: to the bride if a dowry came with her, to the groom if none did. It is that person's own. | Its holder and the head of the house that sent it think a point better of each other each year, up to 40. |
+
+- A thing made to order is worth two thirds of what it cost, so having one made and selling it loses money.
+- **Selling plate** is an answer to whoever sent it: the head of that house thinks 12 worse of the seller.
+- **Other houses** have things made too: a house with 80 credits or more does so about once in eighty years, out of its
+  treasury, since its head has no purse the game keeps.
+- **Nothing is sent in your name.** When one of yours marries into another house, no plate goes unless you give
+  something yourself. The panel now offers the heads of the three houses of best standing as people to give a thing to.
+- Two events: one of yours brings a standard home (let them keep it, have it carried through the forum, or say
+  little); plate arrives for a wedding (write, send something back, or take it as due).
+
+Measured over sixty runs of sixty years: 209 things were made to order, 99 standards were taken and 401 gifts of
+plate were sent; at the end 575 of 1,936 houses (30%) held something they were not born with. Two earlier settings
+were tried and dropped: at the first, three houses in four ended with something new, which made none of it worth
+noticing.
+
+Found while building it, and mapped (W9): a standard lost is never fought for or asked back; a relative never has
+anything made with their own money; and a gift between houses comes only at a wedding.
+
 ## Not in this piece
 
 - **Only your house has purses.** Everyone else in the Reach still has only their house's treasury.
@@ -171,6 +200,6 @@ which is as it should be for people living on an allowance; they are no longer e
   the Exchange or found a venture with their own money.
 - ~~Dowries still come from the treasury.~~ Closed: from the head's purse if they say so, and from the bride's own first.
 - An heirloom can be entailed. A world or a venture cannot: any of them can still be sold by the head.
-- An heirloom is one of four kinds, each with one effect, and none is ever made, won or given by another house (docs/GAPS.md W8).
+- ~~An heirloom is one of four kinds, and none is ever made, won or given by another house.~~ Closed (W8): see "New things". What is left is W9.
 - Two of the five events (the will is read, sold out of the family) were not seen to fire in the soak.
 - The numbers are first guesses.

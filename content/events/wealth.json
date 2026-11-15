@@ -753,6 +753,194 @@
           ]
         }
       ]
+    },
+    {
+      "id": "a_standard_comes_home",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "won_a_standard",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "standard_won",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "it_is_theirs",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that {kin.name} had taken it and {kin.name} should keep it. It flies from their flagship now."
+            }
+          ]
+        },
+        {
+          "id": "show_it_in_the_forum",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "The standard was carried through the forum before it went back aboard. {self.name} paid for the procession, and the house's name was on every mouth for a week."
+            }
+          ]
+        },
+        {
+          "id": "say_little_of_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that a battle won was a duty done. {kin.name} had hoped for more than that."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "plate_for_the_wedding",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "giver",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "giver",
+              "flag": "gave_wedding_plate",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "wedding_gift_given",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "write_and_thank_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "giver",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote to {giver.name} in their own hand. It cost nothing, and it was noticed."
+            }
+          ]
+        },
+        {
+          "id": "send_something_back",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "giver",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "giver",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a gift back to {giver.name} worth a little more than the plate. Both houses understood what that meant."
+            }
+          ]
+        },
+        {
+          "id": "take_it_as_due",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "giver",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the plate put away and said nothing to {giver.name}. A gift unanswered is remembered longer than one refused."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

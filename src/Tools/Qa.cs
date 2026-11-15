@@ -168,7 +168,7 @@ internal static class Qa
     }
 
     private static readonly IRng NoRng = new SplitMix64Rng(0);
-    private static readonly string[] CaesarKeys = { "triumphs_voted", "recalls_voted", "civil_wars", "republics_ended", "caesars_broken", "polities_founded", "polities_recognised", "polities_dissolved", "free_marches", "free_states", "camps_stirred", "censures_stirred", "wars_over_words", "motions_held_over", "chair_spoke", "casting_votes", "ventures_failed", "ventures_propped" };
+    private static readonly string[] CaesarKeys = { "triumphs_voted", "recalls_voted", "civil_wars", "republics_ended", "caesars_broken", "polities_founded", "polities_recognised", "polities_dissolved", "free_marches", "free_states", "camps_stirred", "censures_stirred", "wars_over_words", "motions_held_over", "chair_spoke", "casting_votes", "ventures_failed", "ventures_propped", "heirlooms_commissioned", "standards_won", "wedding_gifts", "heirlooms_sold" };
 
     /// <summary>One soak run. The player picks a random affordable choice (or skips one in five) from a decision stream seeded
     /// off the world seed, so a replay repeats the same decisions.</summary>
@@ -399,6 +399,7 @@ internal static class Qa
         {   // wealth: the allowance, the head's purse, debts, the will, heirlooms
             if (decisions.NextInt(0, 6) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Allowance, "", WealthSystem.Allowances[decisions.NextInt(0, 3)]));
             if (decisions.NextInt(0, 12) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Inheritance, "", decisions.NextInt(0, 2) == 0 ? WealthSystem.Entail : WealthSystem.Portions));
+            if (decisions.NextInt(0, 10) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Commission, "", WealthSystem.Commissions[decisions.NextInt(0, WealthSystem.Commissions.Length)]));
             if (decisions.NextInt(0, 4) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Move, "", (decisions.NextInt(0, 2) == 0 ? 5 : -5).ToString()));
             var grownKin = WealthSystem.Members(w, house).Where(k => k.Id != p.Id).ToList();
             foreach (var k in grownKin.Where(k => k.Purse < 0)) cands.Add(new WealthCommand(p.Id, WealthCommand.Settle, k.Id, decisions.NextInt(0, 2) == 0 ? "purse" : "treasury"));

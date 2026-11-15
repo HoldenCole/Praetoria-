@@ -1816,3 +1816,35 @@ script plays to a year in which one of the player's ventures is losing.
 venture, a company's venture is never judged, a failure costs money and nothing else, and a founder gets no second
 start (A7).
 
+## 59. Things a house comes by — 2026-11-15
+
+**W8.** A house had the signet, sword, library or estate it was born with, and never anything else. Now there are
+three more kinds, and each is come by in its own way (docs/WEALTH.md, "New things"): a shrine or a library is made
+to order out of a person's own purse; a standard is taken in a battle by whoever commanded and is theirs; plate is
+sent by the other house at a wedding, to the one who married. Each does one thing of its own: the commons' regard,
+a fleet's loyalty, the regard between two people of two houses. Other houses come by them as the player's does.
+
+**Tuned by measurement.** The first setting gave three houses in four something new by the end of sixty years; the
+second, one in two. The third, kept, gives about one in three. A flaw was found on the way: the chance was taken
+from the low bits of a hash of two people's names, and names that differ only by a number share those bits, so a
+test of sixty weddings saw no gift at all. The hash is now divided before it is used.
+
+**Measured after.** The Republic probe (60 runs of 60 years): 209 things made to order, 99 standards taken, 401
+gifts of plate; 575 of 1,936 houses (30%) held something new at the end. The Republic stood in all 60; the great
+war was fought in 49 runs (48); 30 states broke away (32); trust in the magistrates averaged 47 to 62 by start and
+was low in 15 runs (15); 1,039 ventures were wound up (1,063). The soak (33 runs, a save and load in each) passes
+with no drift. Survival: 0 of 10 on every start.
+
+**Seen in the browser.** On the Old Lion start the treasury did not hold a shrine's price at once, and the button
+said so; six years on, the money was moved to the purse, the shrine was made, and it appeared in the panel as the
+head's own with what it does. `tools/browser/wealth.js` now does this.
+
+**Not seen in play.** The event for one of yours bringing a standard home did not fire in the soak: its player's
+relatives seldom command a winning fleet. It is proved by a test. The event for wedding plate fired once. Nothing
+was sold in the soak, so the sender's answer to a gift sold is proved by a test only. A standard on a flagship and a
+gift to another house's head were not looked at in the browser.
+
+718 tests (three new).
+
+**Left, and mapped.** A standard lost is never fought for or asked back; a relative never has anything made; a gift
+between houses comes only at a wedding (W9).

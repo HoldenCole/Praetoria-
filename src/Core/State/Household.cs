@@ -40,11 +40,13 @@ public sealed class Heirloom
 {
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
-    /// <summary>signet, sword, library or estate.</summary>
+    /// <summary>signet, sword, library or estate, handed down; shrine, standard or plate, come by since (docs/WEALTH.md "New things").</summary>
     public string Kind { get; set; } = "";
     public string HolderId { get; set; } = "";
     /// <summary>The house it has always belonged to. Selling it out of that house is felt.</summary>
     public string OfHouseId { get; set; } = "";
+    /// <summary>The house it came from, if it came from one: whose standard it was, or who sent the plate.</summary>
+    public string FromHouseId { get; set; } = "";
     /// <summary>What it would fetch.</summary>
     public int Value { get; set; }
     /// <summary>Entailed: it goes with the house to whoever has it, and cannot be sold, given or willed away (docs/WEALTH.md).</summary>

@@ -89,6 +89,26 @@
         "say_it_was_yours_to_do": "Say that it was yours to do.",
         "promise_to_restore_it": "Give your word that it will be made again."
       }
+    },
+    {
+      "id": "a_standard_comes_home",
+      "title": "A Standard Comes Home",
+      "body": "{kin.name} won the battle and came away with the other side's standard. It is theirs: they took it, and the fleet saw them take it. What the head of the house says about it will be repeated.",
+      "choices": {
+        "it_is_theirs": "It is theirs. Let it fly from their flagship.",
+        "show_it_in_the_forum": "Have it carried through the forum first.",
+        "say_little_of_it": "A battle won is a duty done."
+      }
+    },
+    {
+      "id": "plate_for_the_wedding",
+      "title": "Plate For The Wedding",
+      "body": "{giver.name} has sent plate for the wedding: good work, with both houses' marks on it. It belongs to the one who married, not to the house. A gift like this asks for an answer, and the answer will be weighed.",
+      "choices": {
+        "write_and_thank_them": "Write and thank them.",
+        "send_something_back": "Send something back, worth a little more.",
+        "take_it_as_due": "Take it as no more than was due."
+      }
     }
   ]
 }

@@ -392,6 +392,7 @@ public static class CourtshipSystem
         bool first = string.CompareOrdinal(a.Id, b.Id) < 0;
         var m = new Marriage { A = first ? a.Id : b.Id, B = first ? b.Id : a.Id, Since = w.Turn, Kind = kind, ChildrenTo = childrenTo, Dowry = paid, DowryFrom = paid > 0 ? bride.HouseId : "", Warmth = StartWarmth(w, a, b, kind, favour) };
         w.Marriages.RemoveAll(x => x.Has(a.Id) || x.Has(b.Id)); w.Marriages.Add(m);
+        if (log) WealthSystem.WeddingGift(w, bride, groom, paid);   // the other house sometimes sends plate (docs/WEALTH.md)
         // every other suit for either hand is over
         w.Courtships.RemoveAll(c => c.SuitorId == a.Id || c.SuitorId == b.Id || c.TargetId == a.Id || c.TargetId == b.Id);
         foreach (var c in w.Courtships.Where(c => c.RivalId == a.Id || c.RivalId == b.Id)) { c.RivalId = ""; c.RivalStanding = 0; }

@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **Things a house comes by** (docs/WEALTH.md, "New things"; docs/GAPS.md W8). Three new kinds of thing to hand
+  down. A shrine or a library can be made to order out of your own purse. A standard is sometimes taken in a battle
+  by whoever commanded, and is theirs: flown from their flagship, the fleet grows more loyal. Another house
+  sometimes sends plate at a wedding, to the one who married: the two think better of each other while it is kept,
+  and selling it is taken badly. Other houses come by all three as yours does. You can also give a thing to the head
+  of another house. Two events.
 - **A venture can fail** (docs/ECONOMY_MARKET.md, section 11; docs/GAPS.md A6). A venture that earns nothing or loses
   money three years running is wound up: half its salvage comes back. You are warned a year before, on the venture's
   card and in the alerts, and can put money in to give it three more years, or sell it. If one of your house founded

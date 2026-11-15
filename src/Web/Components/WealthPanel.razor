@@ -4,6 +4,7 @@
 @{
     var w = G.World!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!;
     var members = WealthSystem.Members(w, house).Where(c => c.Id != pid).OrderBy(c => c.Purse).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+    var heads = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).Select(h => Economy.HeadOf(w, h)).Where(c => c is { Alive: true }).Select(c => c!).Take(3).ToList();
     var mine = WealthSystem.HeldBy(w, pid); var others = w.Heirlooms.Where(h => h.HolderId != pid && w.Char(h.HolderId)?.HouseId == house.Id).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
     var heir = DynastySystem.FindHeir(w, p); var will = p.Will; var legatee = will != null && will.LegateeId.Length > 0 ? w.Char(will.LegateeId) : null;
     var people = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age >= 6).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
@@ -81,6 +82,10 @@
     <div>
         <div class="hh-head"><b>Heirlooms</b> <span class="muted small">They belong to a person, not to the house, unless the head entails them. Each does something for whoever holds it.</span></div>
         @if (mine.Count == 0 && others.Count == 0) { <div class="muted small">Nothing has been handed down in this house. A new name has to make its own.</div> }
+        <div class="suit-acts"><span class="muted small">Have one made, out of your own purse</span>
+            @foreach (var kind in WealthSystem.Commissions) { string k = kind; var no = new WealthCommand(pid, WealthCommand.Commission, string.Empty, k).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? MadeTip(k))" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Commission, string.Empty, k))">A @k · @WealthSystem.CommissionCost(k)</button> }
+            <span class="muted small">A standard is taken in a battle by whoever commanded. Plate comes from another house at a wedding.</span>
+        </div>
         @foreach (var item in mine)
         {
             string iid = item.Id; var left = will != null && will.Items.TryGetValue(item.Id, out var toId) ? w.Char(toId) : null;
@@ -104,6 +109,7 @@
                 </div>
                 <div class="suit-acts"><span class="muted small">Give it now to</span>
                     @foreach (var c in people.Take(6)) { string cid = c.Id; <button class="opt inline tiny" title="they will not forget it" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, cid))">@First(c.Name)</button> }
+                    @foreach (var hd in heads) { string hid = hd.Id; <button class="opt inline tiny" title="@($"A gift to the head of {w.House(hd.HouseId)?.Name}. They will think much better of you for it, and it is theirs for good.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, hid))">@First(hd.Name) of @(w.House(hd.HouseId)?.Name.Replace("House ", ""))</button> }
                     @if (_confirm == iid) { <button class="opt inline tiny veto" @onclick="() => { _confirm = null; G.Execute(new WealthCommand(pid, WealthCommand.Sell, iid, string.Empty)); }">Yes, sell it</button> <button class="opt inline tiny" @onclick="() => _confirm = null">No</button> }
                     else { <button class="opt inline tiny" title="@(item.OfHouseId == house.Id ? "The family has always had it: the house loses standing and your blood kin resent it." : "")" @onclick="() => _confirm = iid">Sell · @item.Value</button> }
                 </div>
@@ -141,6 +147,9 @@
     private const string InterestTip = "The same loan with a fifth on top. It is business, and they take it as business.";
     private const string BorrowTip = "Out of their own purse into yours. They will not ask for it. Left six years unpaid, they mind it.";
     private const string RepayTip = "As far as your purse goes.";
+    private static string MadeTip(string kind) => kind == WealthSystem.Library
+        ? "A library of your own house: everyone in it who has set themselves a study learns it a little faster. It is yours, and the house's after you."
+        : $"A shrine in your house's name: the commons think a point better of the house each year, while they think less than {WealthSystem.ShrineCeiling} of it. It is yours, and the house's after you.";
     private const string EntailTip = "It goes with the house from now on, to whoever has it, and cannot be sold, given or willed away. The old families approve.";
     private const string BreakTip = "Done in a court. The house loses standing, the old families think the worse of it, and your blood kin do not forget why.";
     private const string Treasury = "treasury", Purse = "purse", Zero = "0", LoanSum = "10";
