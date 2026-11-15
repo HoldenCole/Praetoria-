@@ -1291,9 +1291,9 @@ B4, B9 and B10 from the worklist, by the owner's order.
 - **It was forgotten before the end of the saga in 6 runs**, all on the start where it comes earliest, and stood at 6
   to 26 in a hundred of the way toward another. **No run reached a second war inside sixty years.** That is as
   designed: a second war is for sagas that run longer. It is proved by a scripted test, not seen in play.
-- 10 states broke away and were recognised, all by partition at the war's end. **No house went over to one by
-  itself** with a passive player: it needs a house holding worlds inside a state and thinking well of its ruler, which
-  a passive saga does not produce. Proved by a scripted test.
+- 11 states broke away and were recognised, all by partition at the war's end. **One house went over to one of them
+  by itself**, in one run. It needs a house holding worlds inside a state and thinking well of its ruler, which a
+  passive saga seldom produces. The rule is also proved by a scripted test.
 
 645 tests, 350 events. The soak's player joins states and stirs the camps; the soak passes at four seeds.
 

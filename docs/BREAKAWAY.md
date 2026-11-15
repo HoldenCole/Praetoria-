@@ -246,7 +246,7 @@ Twelve, in `content/events/breakaway.json`: *They Come Back For It*, *Back In Th
 ### Measured again, 2026-11-15
 
 Sixty Republic runs of sixty years, a passive player: the Republic stood in all 60; the great war broke out in 36; it
-was forgotten before the saga's end in 6 and no run reached a second; 10 states were recognised, all by partition; no
+was forgotten before the saga's end in 6 and no run reached a second; 11 states were recognised, all by partition; one
 house went over to a state by itself. Joining, the second war and stirring are each proved by a scripted test.
 
 ## The next stage: forms of government (the owner's direction, not built)
