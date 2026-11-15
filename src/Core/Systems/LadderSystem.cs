@@ -24,7 +24,7 @@ public static partial class LadderSystem
     public const string StandingFlag = "standing_for_office", MagistrateFlag = "is_magistrate", AedileFlag = "is_aedile";
     public const string ElectedChar = "newly_elected", StandingChar = "standing_for_office";
     public const string BlamedFlag = "kin_blames_the_head", BlamesChar = "blames_the_head"; public const int BlameRegard = 10;
-    private static readonly string[] DeedFlags = { HeldMineFlag, CastingFlag, HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag, TrustFellFlag, TrustRestoredFlag, JuniorCaughtFlag, SpokenForFlag, ChairFlag, ProsecutionWonFlag, ProsecutionLostFlag, BribeRefusedFlag, BribeOutFlag, KinAcquittedFlag };
+    private static readonly string[] DeedFlags = { PatronFlag, FellOutFlag, TakenAlongFlag, HeldMineFlag, CastingFlag, HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag, TrustFellFlag, TrustRestoredFlag, JuniorCaughtFlag, SpokenForFlag, ChairFlag, ProsecutionWonFlag, ProsecutionLostFlag, BribeRefusedFlag, BribeOutFlag, KinAcquittedFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -576,6 +576,9 @@ public static partial class LadderSystem
         foreach (var c in w.Characters.Values) { if (!w.HasFlag(ElectedFlag) && !w.HasFlag(KinElectedFlag)) c.Flags.Remove(ElectedChar); c.Flags.Remove(StandingChar); }
         if (!w.HasFlag(ExposedFlag) && !w.HasFlag(KinExposedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(ExposedChar);
         if (!w.HasFlag(SpokenForFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(SpokenForChar);
+        if (!w.HasFlag(PatronFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(PatronChar);
+        if (!w.HasFlag(FellOutFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(FellOutChar);
+        if (!w.HasFlag(TakenAlongFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(TakenAlongChar);
         if (!w.HasFlag(BlamedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(BlamesChar);
         if (!Active(w, offices)) { w.Magistrates.Clear(); w.Candidacies.Clear(); w.OfficeWork.Clear(); w.OfficeRecord.Clear(); return; }
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null;
@@ -588,7 +591,7 @@ public static partial class LadderSystem
             m.HouseId = c.HouseId;
             if (offices.Rung(m.OfficeId) is { Stipend: > 0 } rung && house != null && c.HouseId == house.Id) c.Purse += rung.Stipend;
         }
-        Business(w, offices); Duties(w, offices, policy); Courts(w, offices);
+        Business(w, offices); Duties(w, offices, policy); Courts(w, offices); Patrons(w);
         if (p is not { Alive: true } || house == null) return;
         if (BusinessOf(w, p.Id) != null) w.WorldFlags.Add(BusinessFlag);
         if (DutyOf(w, p.Id, Hearing, Appeal) != null) w.WorldFlags.Add(BenchFlag);

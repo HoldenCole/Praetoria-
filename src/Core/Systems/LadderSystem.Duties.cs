@@ -58,16 +58,18 @@ public static partial class LadderSystem
     {
         var house = w.House(c.HouseId); string patron = house?.PatronId ?? "", chair = RegionSystem.CapitalHolder(w)?.Id ?? "";
         int Near(Fleet f) => f.OwnerId == c.HouseId ? 0 : f.OwnerId == patron ? 1 : 2;
-        return w.Fleets.Values.Where(f => f.AdmiralId != c.Id && f.Strength > 0 && (f.OwnerId == c.HouseId || (patron.Length > 0 && f.OwnerId == patron) || (chair.Length > 0 && f.OwnerId == chair && PolitySystem.InReach(w, c.HouseId))))
-            .OrderBy(Near).ThenByDescending(f => w.Char(f.AdmiralId) is { Alive: true }).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+        string taken = PatronOf(w, c)?.Id ?? "";   // one who has been taken up serves where their patron commands
+        return w.Fleets.Values.Where(f => f.AdmiralId != c.Id && f.Strength > 0 && (f.OwnerId == c.HouseId || (patron.Length > 0 && f.OwnerId == patron) || (chair.Length > 0 && f.OwnerId == chair && PolitySystem.InReach(w, c.HouseId)) || (taken.Length > 0 && f.AdmiralId == taken)))
+            .OrderByDescending(f => taken.Length > 0 && f.AdmiralId == taken).ThenBy(Near).ThenByDescending(f => w.Char(f.AdmiralId) is { Alive: true }).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
     }
     /// <summary>The one above a junior, by name, and the same one year after year while they live and keep their place: the judge
     /// an advocate appears before, a clerk's senior, a junior officer's captain. One of their own house if it has one.</summary>
     public static Character? Above(World w, Character c)
     {
         string kind = JuniorKind(w, c); if (kind.Length == 0) return null;
+        if (PatronOf(w, c) is { } patron) return patron;   // a patron is above them wherever either is posted
         if (kind == Watch) return ShipOf(w, c) is { } ship && w.Char(ship.AdmiralId) is { Alive: true } captain ? captain : null;
-        return w.LivingCharacters().Where(x => x.Id != c.Id && (kind == Brief ? OnTheBench(x) : AtADesk(x)) && PolitySystem.InReach(w, x.HouseId))
+        return w.LivingCharacters().Where(x => x.Id != c.Id && (kind == Brief ? OnTheBench(x) : AtADesk(x)) && PolitySystem.InReach(w, x.HouseId) && !FellOut(c, x))
             .OrderByDescending(x => x.HouseId == c.HouseId).ThenBy(x => Hash(c.Id + ":above:" + x.Id)).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
     }
     /// <summary>What the one above them thinks of them: the whole of a junior's standing.</summary>
@@ -83,11 +85,16 @@ public static partial class LadderSystem
     /// each rank, and goes up a step sooner than the years alone would have taken them: never faster than the service allows anybody.</summary>
     private static void SpokenFor(World w, OfficeBusiness b, Character who)
     {
-        if (w.Char(b.SubjectId) is not { Alive: true } above || (w.GetRelationship(above.Id, who.Id)?.Disposition ?? 0) < StandingAt) return;
+        if (w.Char(b.SubjectId) is not { Alive: true } above || above.Id == who.Id) return;
+        Patronage(w, above, who); Speak(w, above, who);
+    }
+    private static void Speak(World w, Character above, Character who)
+    {
+        if ((w.GetRelationship(above.Id, who.Id)?.Disposition ?? 0) < StandingAt) return;
         if (w.Counter(UnderKey(who.Id, above.Id)) < SpokenAfter) return;   // it is the work they have seen, not the name
         if (who.CareerRank >= (who.Age - DynastySystem.AgeOfMajority) / DynastySystem.YearsPerRank) return;
         who.Life ??= new Life(); if (!who.Life.Marks.Add("spoken_for:" + who.CareerRank)) return;
-        who.CareerRank++; LifeSystem.Note(w, who, "office", $"Was spoken for by {above.Name}, and went up a step.");
+        who.CareerRank++; Bump(w, SpokenCounter); LifeSystem.Note(w, who, "office", $"Was spoken for by {above.Name}, and went up a step.");
         if (who.HouseId == w.Protagonist?.HouseId)
         {
             w.Log($"{above.Name} speaks for {who.Name}, who goes up a step in the service sooner than the years alone would have taken them.");
@@ -537,6 +544,9 @@ public static partial class LadderSystem
         int regard = w.GetRelationship(above.Id, who.Id)?.Disposition ?? 0; bool kin = above.HouseId == who.HouseId;
         string thinks = regard >= StandingAt ? "thinks well of you" : regard >= 5 ? "has begun to notice you" : regard <= -10 ? "thinks little of you" : "does not yet know your name";
         string whose = kin ? "of your own house" : "of " + (w.House(above.HouseId)?.Name ?? "another house");
+        if (who.PatronId == above.Id) thinks = "has taken you up: where they go, you go, and when they rise you are taken along";
+        else if (regard >= StandingAt && above.CareerRank > who.CareerRank) thinks += $" ({Math.Min(SpokenAfter, w.Counter(UnderKey(who.Id, above.Id)))} of the {SpokenAfter} good years it takes to be taken up)";
+        else if (regard <= FallOutAt + 8 && regard > FallOutAt) thinks += ", and is close to having done with you";
         return b.Kind switch
         {
             Brief => $" It will be heard by {above.Name}, {whose}, who {thinks}.",

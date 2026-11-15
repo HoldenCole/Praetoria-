@@ -1720,3 +1720,40 @@ on every start.
 **Left, and mapped.** Only the player stirs. No other house sets two houses against each other, so in a game where
 the player leaves the camps alone this never happens; and the war is an ordinary war with no aim of its own (B17).
 
+## 56. Patrons, and what bringing every house into a rule does — 2026-11-15
+
+**J5.** The one above a junior did one thing with what they thought of them, and only for the player's house. Now a
+senior takes a junior up after three good years and a regard of 20, is above them from then on wherever either is
+posted, and takes them along when they rise. A junior the one above has come to think ill of falls out with them.
+And the juniors of every house of the Reach have somebody above them and a standing with them, by a reckoning of
+good and bad years in place of the choices the player's people make (docs/LADDER.md, "A patron, and a falling out").
+
+**Measured.** The Republic probe (60 runs of 60 years): 1,769 juniors were taken up by a patron, 988 were taken
+along when the patron rose, 117 fell out with the one above them, and 2,431 were spoken for and went up a step. The
+soak (33 runs, a save and load in each) passes with no drift; all three new events fired in it. Survival: 0 of 10 on
+every start.
+
+**What else moved, and it should be said.** Bringing some hundred and fifty people a run into a rule that had held a
+handful changes more than the rule. Against the last section, with nothing else altered:
+
+| | Before | After |
+|---|---|---|
+| The Republic stood | 60 of 60 | 60 of 60 |
+| The great war was fought | in 47 runs | in 47 runs |
+| States that broke away | 22 (6 of them free marches) | 33 (10 free marches) |
+| Trust in the magistrates, by start | 50 to 63 | 48 to 62 |
+| Runs in which trust fell under 35 | 5 | 14 |
+| Another house's general reached the first rank | in 8 runs | in 12 runs |
+
+The likeliest cause is rank. A junior who is spoken for goes up a step sooner (never faster than the service allows
+anybody), and 2,431 such steps in sixty runs is some forty a run. More people of rank means more generals of the
+first rank, more who qualify for a bench or an office, and more houses that count for something where they live. The
+owner's rule holds: the Republic stood in every run. But the Reach is a livelier and less trusting place than it was
+this morning, and that came from this change and not from a decision to make it so. If it is too much, the place to
+turn it down is the reckoning (four good years in six), not the rule.
+
+711 tests (two new).
+
+**Left, and mapped.** A patron takes a junior along and speaks for them, and that is all: a junior cannot seek one
+out, a patron asks nothing back, and a patron's enemies are not the junior's (J6).
+

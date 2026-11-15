@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Patrons** (docs/LADDER.md; docs/GAPS.md J5). A senior who thinks well of a junior and has had three good years'
+  work of them takes them up: they are that junior's patron wherever either is posted, and when the patron rises the
+  junior is taken along. A junior the one above has come to think ill of falls out with them, loses a patron, and is
+  not under that senior again. The juniors of every house have it, not only yours. Three events for the head of a
+  house whose own people are taken up, taken along, or fall out.
 - **A war over what was said** (docs/BREAKAWAY.md; docs/GAPS.md B15). A house that has been stirred against another,
   already thought very ill of it and is no weaker in ships now goes to war with it; a censure used to be as far as it
   went. If the money that paid for the talk was yours, an event says so.
@@ -195,6 +200,8 @@
 - **The Senate's sword commands the Reach's own fleets** for as long as the civil war lasts.
 
 ### Changed
+- Other houses' juniors are now spoken for by their seniors as yours are, so their people rise in rank a little
+  sooner than they did. Measured effects are in docs/GAP_ANALYSIS.md, section 56.
 - A house that had declared a free march, and a rebel world's new house, no longer sit in the Senate or stand for
   office: they have left the Reach.
 - A Speaker who gives an enemy no day now holds over whatever that house has moved. Balancing the books banks half the

@@ -248,6 +248,36 @@
         "use_the_year": "Use the year to whip it.",
         "let_it_be_known": "Let it be known in the squares."
       }
+    },
+    {
+      "id": "one_of_yours_is_taken_up",
+      "title": "One of Yours Is Taken Up",
+      "body": "{kin.name} has a patron. A senior in the service has had three years' work of them, found nothing to fault, and taken them up: from now on they are that senior's, wherever either is posted, and when the patron rises they will be taken along. It was {kin.name}'s own doing. Nobody asked the house.",
+      "choices": {
+        "be_glad_of_it": "Tell them it was well done.",
+        "warn_them_whose_they_are": "Remind them whose name they carry.",
+        "send_the_patron_a_gift": "Send the patron something."
+      }
+    },
+    {
+      "id": "one_of_yours_falls_out",
+      "title": "One of Yours Falls Out",
+      "body": "{kin.name} and the senior above them are no longer speaking. Whatever had been built there, the years of work that had been seen and remembered, counts for nothing now, and that senior will not be over them again. If there was a patron, there is not one any more.",
+      "choices": {
+        "hear_their_side": "Hear their side of it.",
+        "tell_them_to_mend_it": "Tell them to go back and mend it.",
+        "speak_to_someone_else_for_them": "Speak to somebody else for them."
+      }
+    },
+    {
+      "id": "one_of_yours_is_taken_along",
+      "title": "One of Yours Is Taken Along",
+      "body": "{kin.name}'s patron has risen, and has taken {kin.name} along to the new post. It is a place nearer to where things are decided, it pays a little, and there is more to learn there than where they were.",
+      "choices": {
+        "see_them_off": "See them off.",
+        "ask_what_they_hear": "Ask them to write home about what they hear.",
+        "let_them_go_their_way": "Let them go their own way."
+      }
     }
   ]
 }

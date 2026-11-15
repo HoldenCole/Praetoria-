@@ -265,8 +265,41 @@ wins cases they would have lost (15 in a hundred); each such win is seen, and co
 order think 2 worse a year of every house in office, beside the commons' 3; while they are trusted (75 or more) each
 thinks 1 better.
 
-Left, and mapped: this is kept for the player's house only, and the one above has no further use for a junior (J5);
-trust is still one number for the whole Reach (L10).
+Left, and mapped: trust is still one number for the whole Reach (L10). What the one above does with a junior beyond
+speaking for them is the next section.
+
+## A patron, and a falling out
+
+Closed off the register on 2026-11-15 (docs/GAPS.md J5).
+
+**Taken up.** A senior who thinks 20 or better of a junior, has had three good years' work of them and outranks them
+takes them up. From then on that senior is the junior's **patron**, and is the one above them wherever either is
+posted: a kinsman who comes to sit at a desk does not take the patron's place, and a junior officer serves in the
+fleet their patron commands. One patron at a time.
+
+**Taken along.** When a patron rises (a step in rank, a magistracy, an office of the Reach) their people go with
+them to the new post: the junior learns their own trade faster for it that year (law, administration or tactics) and
+is paid 3 credits for the place. Once for each rise.
+
+**A falling out.** When the one above has come to think −20 or worse of a junior who has worked under them, the two
+fall out. A patron is lost. The years under that senior count for nothing. And that senior will not be above the
+junior again: somebody else has to notice their work. It happens once with any one senior. The usual road to it is
+the junior's own: a padded account that is found costs 8, a side taken for money 2.
+
+**A patron ends** when they die, retire or leave the Reach.
+
+**Other houses' juniors.** This was kept for the player's house only. The juniors of every house of the Reach now
+have somebody above them and a standing with them. They make no choices, so their year is reckoned: four years in
+six their work is seen and found good (regard +3, to 40 at the most, and a good year counted), one in six nothing is
+noticed, one in six it goes badly (−6). They are taken up, taken along, fall out and are spoken for by the same
+rules.
+
+On the Senate screen, a junior's year says who is above them and where they stand: how many of the three good years
+they have, that they have been taken up, or that the senior is close to having done with them. Three events tell the
+head of a house when one of their own is taken up, taken along, or falls out.
+
+Left, and mapped: a patron does nothing for a junior but take them along and speak for them. A junior cannot seek
+one out or choose between two, a patron asks nothing back, and a patron's enemies are not the junior's (J6).
 
 ## Committees
 

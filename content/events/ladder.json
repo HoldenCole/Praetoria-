@@ -1961,6 +1961,290 @@
           ]
         }
       ]
+    },
+    {
+      "id": "one_of_yours_is_taken_up",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "has_a_patron",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_has_a_patron",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "be_glad_of_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} it was well done, and meant it. A patron outside the house is a door the house could not have opened."
+            }
+          ]
+        },
+        {
+          "id": "warn_them_whose_they_are",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} reminded {kin.name} which name they carried, and that a patron's quarrels are not the house's. {kin.name} said they knew. They had not needed telling."
+            }
+          ]
+        },
+        {
+          "id": "send_the_patron_a_gift",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent something to the one who had taken {kin.name} up: not thanks, which would have been presuming, but notice that the house had noticed."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "one_of_yours_falls_out",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "fell_out_above",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_fell_out_above",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "hear_their_side",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sat and heard all of it from {kin.name}, start to finish. Most of it was pride and some of it was a real wrong. It helped to have said it to somebody."
+            }
+          ]
+        },
+        {
+          "id": "tell_them_to_mend_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustStress",
+              "role": "kin",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} to go back and mend it, whoever was in the wrong. {kin.name} went. It was not mended, and they had been made to ask."
+            }
+          ]
+        },
+        {
+          "id": "speak_to_someone_else_for_them",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spoke to somebody else in the service on {kin.name}'s behalf. A name can be put before another senior. The years under the first one cannot be given back."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "one_of_yours_is_taken_along",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "taken_along",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_taken_along",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "see_them_off",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} saw {kin.name} off to the new post. It was further from home and nearer to things, which is what a patron who rises is for."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_they_hear",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {kin.name} to write home about what was said in the new place. {kin.name} wrote. The letters were careful, and useful, and a little cooler than before."
+            }
+          ]
+        },
+        {
+          "id": "let_them_go_their_way",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {kin.name} go without a word of advice. They were rising by somebody else's hand, and doing it well enough."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

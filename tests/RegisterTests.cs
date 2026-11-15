@@ -557,4 +557,62 @@ public class RegisterTests
         w.Relationship(e.Id, me.Id).Disposition = 40; e.Health = 10; Assert.Contains("unwell", LifeSystem.AskElderRefusal(w, me, LifeSystem.AskPeace));
         e.Alive = false; Assert.Contains("no elder", LifeSystem.AskElderRefusal(w, me, LifeSystem.AskPeace)); Assert.Contains("no such thing", LifeSystem.AskElderRefusal(w, me, "sing"));
     }
+
+    // ---------------- J5: a patron, and a falling out ----------------
+
+    private static void Year(World w, Character junior, Character senior, string choice, int n)
+    {
+        var b = new OfficeBusiness { Id = $"ledgers_j5_{n}", RungId = LadderSystem.Ledgers, HolderId = junior.Id, Kind = LadderSystem.Ledgers, Turn = w.Turn, SubjectId = senior.Id }; w.OfficeWork.Add(b);
+        LadderSystem.DecideDuty(w, Content.Offices, Content.Policies, junior, LadderSystem.Ledgers, choice);
+    }
+
+    [Fact]
+    public void J5_A_senior_takes_a_junior_up_takes_them_along_when_they_rise_and_can_fall_out_with_them()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me);
+        var clerk = Blood(w, me, Kin(w, mine, me, "clerk")); clerk.CareerTrack = "stewardship"; clerk.CareerRank = 0; clerk.Age = 40;
+        var senior = LadderSystem.Above(w, clerk)!; w.Relationship(senior.Id, clerk.Id).Disposition = 0;
+        // four good years: well thought of, and not yet taken up
+        for (int y = 1; y <= 4; y++) Year(w, clerk, senior, LadderSystem.Useful, y);
+        Assert.Equal("", clerk.PatronId); Assert.Contains("begun to notice", LadderSystem.AboveSays(w, w.OfficeWork.Last()));
+        // the fifth: the senior thinks well of them and has had the years of them
+        Year(w, clerk, senior, LadderSystem.Useful, 5);
+        Assert.Equal(senior.Id, clerk.PatronId); Assert.Equal(1, w.Counter(LadderSystem.PatronsCounter)); Assert.True(w.HasFlag(LadderSystem.PatronFlag)); Assert.Contains(LadderSystem.PatronChar, clerk.Flags);
+        Assert.Contains(clerk.Life!.Deeds, d => d.Text.Contains("taken up")); Assert.Contains("taken you up", LadderSystem.AboveSays(w, w.OfficeWork.Last()));
+        Fires(w, "one_of_yours_is_taken_up");
+        // a patron is above them wherever either is posted: a kinsman at a desk does not take the patron's place
+        var uncle = Kin(w, mine, me, "uncle"); uncle.CareerTrack = "stewardship"; uncle.CareerRank = LadderSystem.DeskRank;
+        Assert.Equal(senior.Id, LadderSystem.Above(w, clerk)!.Id);
+        // the patron rises, and takes them along
+        int purse = clerk.Purse, administration = clerk.Skill("administration"); senior.CareerRank++;
+        w.Turn++; LadderSystem.Tick(w, Content.Offices, Content.Policies);
+        Assert.Equal(1, w.Counter(LadderSystem.TakenAlongCounter)); Assert.True(clerk.Purse >= purse + LadderSystem.TakenAlongCredits); Assert.True(clerk.Skill("administration") >= administration);
+        Assert.True(w.HasFlag(LadderSystem.TakenAlongFlag)); Assert.Contains(clerk.Life.Deeds, d => d.Text.Contains("to a new post"));
+        Fires(w, "one_of_yours_is_taken_along");
+        // not again until they rise again
+        w.Turn++; LadderSystem.Tick(w, Content.Offices, Content.Policies); Assert.Equal(1, w.Counter(LadderSystem.TakenAlongCounter));
+        // the senior comes to think ill of them: a falling out, and the patron is lost
+        w.Relationship(senior.Id, clerk.Id).Disposition = LadderSystem.FallOutAt - 5; w.OfficeWork.RemoveAll(b => b.HolderId == clerk.Id);
+        Year(w, clerk, senior, LadderSystem.Diligent, 9);
+        Assert.Equal("", clerk.PatronId); Assert.True(LadderSystem.FellOut(clerk, senior)); Assert.Equal(1, w.Counter(LadderSystem.FallingsOutCounter));
+        Assert.True(w.HasFlag(LadderSystem.FellOutFlag)); Assert.Equal(0, w.Counter(LadderSystem.UnderKey(clerk.Id, senior.Id)));
+        Assert.NotEqual(senior.Id, LadderSystem.Above(w, clerk)?.Id);   // that one will not be above them again
+        Fires(w, "one_of_yours_falls_out");
+        // it happens once: they are not fallen out with twice
+        Year(w, clerk, senior, LadderSystem.Diligent, 10); Assert.Equal(1, w.Counter(LadderSystem.FallingsOutCounter));
+    }
+
+    [Fact]
+    public void J5_A_patron_who_dies_is_no_patron_and_the_juniors_of_other_houses_are_taken_up_too()
+    {
+        var (_, w, me, mine, _) = Start();
+        var junior = Kin(w, mine, me, "junior"); junior.CareerTrack = "law"; junior.CareerRank = 0; junior.Age = 30;
+        var judge = LadderSystem.Above(w, junior)!; junior.PatronId = judge.Id; Assert.Equal(judge.Id, LadderSystem.PatronOf(w, junior)!.Id);
+        judge.Alive = false; Assert.Null(LadderSystem.PatronOf(w, junior));
+        w.Turn++; LadderSystem.Tick(w, Content.Offices, Content.Policies); Assert.Equal("", junior.PatronId);
+        // years pass: the reckoning of other houses' juniors gives some of them patrons, steps and quarrels
+        for (int y = 0; y < 16; y++) { w.Turn++; LadderSystem.Tick(w, Content.Offices, Content.Policies); }
+        Assert.Contains(w.LivingCharacters(), c => c.HouseId != mine.Id && c.PatronId.Length > 0);
+        Assert.True(w.Counter(LadderSystem.PatronsCounter) > 0); Assert.True(w.Counter(LadderSystem.SpokenCounter) > 0);
+    }
 }

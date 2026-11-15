@@ -53,6 +53,9 @@ public sealed class Character
     /// <summary>What this person is doing about their ambition (docs/AMBITIONS.md). Kept for the people of the player's house.</summary>
     public Pursuit? Pursuit { get; set; }
 
+    /// <summary>The senior who has taken this person up (docs/LADDER.md, "A patron, and a falling out"), or "" if nobody has.</summary>
+    public string PatronId { get; set; } = "";
+
     // ---- personal wealth (docs/WEALTH.md)
     /// <summary>This person's own money, apart from their house's treasury. Negative is debt.</summary>
     public int Purse { get; set; }

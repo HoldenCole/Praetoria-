@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (twenty-second pass: wars over what is said; B15 closed, B17 mapped).
+Last updated 2026-11-15 (twenty-third pass: patrons; J5 closed, J6 mapped).
 
 ## The worklist
 
@@ -18,7 +18,7 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | J5, L10 | A junior's patron; trust by region and office | next |
+| 1 | L10 | Trust by region and office | next |
 | 2 | A6, W8, W1 | Ventures that fail; heirlooms that are made and won; a purse that holds more than credits | next |
 
 **No small gap is left that is not the owner's.** What remains is a cycle or more each, and is worked in the order above.
@@ -66,7 +66,7 @@ These recur across systems. Closing one properly closes several lines below, so 
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|
-| J5 | A junior's standing with the one above them is kept for the player's house only, and the one above does one thing with it: speaks for them once at each rank. No patron who takes them along to a new post, and no falling out. | M | X1 |
+| J6 | A patron takes a junior along and speaks for them, and that is all. A junior cannot seek a patron out or choose between two; a patron asks nothing back (a vote, a silence, a favour for their house); and a patron's enemies are not the junior's. | M | X1 |
 | O3 | The chair acts on one motion a year and the Treasurer's budget is three choices read against figures. The Treasurer does not set each head of the budget; the consuls do not summon or dismiss the Senate; nothing is debated; and a tied Senate, which the casting vote now settles, did not arise once in sixty measured runs. | M | The Senate |
 
 ## The Caesar road (docs/CAESAR.md)
@@ -184,3 +184,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | O2 | The charge of an office of the Reach is one decision a year from three. A consul does not preside over anything, the Treasurer's budget has no figures, and the Speaker's order of business does not touch the motions actually on the docket. | 2026-11-15 | The Speaker holds one motion a year over to the next (a motion once), and giving an enemy no day holds over what that house has moved. The presiding consul speaks from the chair on one motion a year and the houses lean with it, and a tied Senate goes as the presiding consul voted. The Treasurer's budget is drawn from the state of the Reach (what was assessed, what the lawless lanes lost, what the hulls, the lanes and the loose regions call for) and the three choices are sums read against it. Other houses' officers use all of it. In sixty runs a Speaker held a motion over 9 times and a consul spoke from the chair 155 times; no vote tied. O3 is what is left. |
 | B5 | The older free march (a rim house renouncing the capital) and free holds (a rebel world) are their own rules and should become breakaway states. | 2026-11-15 | A free march takes its region out as a state, in the form its house chooses, on the terms of any declaration but without waiting for three worlds in five; the Reach lets it go or sends the fleets. A rebel world that breaks from its holder is a free state from its first day: outside the Reach, with no seat and no office; its old holder may buy it back or take it; after three years the Reach names it in a treaty; the Senate does not go back for one world and it does not push the Reach toward a great war. In sixty runs: 6 free marches, 111 free states of which 24 were taken back. The Republic stood in all sixty. B16 is what is left. |
 | B15 | Other houses do not go to war with one another over what is said of them: a censure is as far as stirring a house against another goes. | 2026-11-15 | A house stirred against another, that thinks −50 or worse of it, has at least as many hulls, has no war already and is not bound to it by marriage, goes to war with it: one such war a year, never against the capital's holder, never moved for the player. If the money was the player's an event says so. In the soak (33 runs, whose player stirs) two wars began this way and the event fired; in the probe, whose player does nothing, none did, and nothing else moved. B17 is what is left. |
+| J5 | A junior's standing with the one above them is kept for the player's house only, and the one above does one thing with it: speaks for them once at each rank. No patron who takes them along to a new post, and no falling out. | 2026-11-15 | A senior who thinks well of a junior and has had three good years of them takes them up: a patron, above them wherever either is posted. When the patron rises the junior is taken along (their trade learned faster, 3 credits). A junior the one above has come to think ill of falls out with them: the patron is lost, the years count for nothing, and that senior is not above them again. The juniors of every house of the Reach have it, by a reckoning of good and bad years. In sixty runs: 1,769 taken up, 988 taken along, 117 fallings out, 2,431 spoken for. The Republic stood in all sixty. J6 is what is left. |
