@@ -243,6 +243,12 @@ Twelve, in `content/events/breakaway.json`: *They Come Back For It*, *Back In Th
 - In the browser The Old Lion's house, which holds two of the three worlds of its region, declared a kingdom in the
   first year. The Reach sent four houses; three years on the kingdom had lost a world and was behind. No errors.
 
+### Measured again, 2026-11-15
+
+Sixty Republic runs of sixty years, a passive player: the Republic stood in all 60; the great war broke out in 36; it
+was forgotten before the saga's end in 6 and no run reached a second; 10 states were recognised, all by partition; no
+house went over to a state by itself. Joining, the second war and stirring are each proved by a scripted test.
+
 ## The next stage: forms of government (the owner's direction, not built)
 
 Set by the owner on 2026-11-14 in answer to the sketch that stood here. It is planned work, held in docs/GAPS.md as

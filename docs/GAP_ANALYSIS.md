@@ -1272,3 +1272,35 @@ owed, the dowry custom, a refusal to study and a teacher set.
 Found: a relative who came to have the house still "owed its head" what the dead head had lent them. Cleared.
 Left: W6 (loans only run from the head down) and E6 (asking has no bargaining).
 
+## 44. The breakaway items — 2026-11-15
+
+B4, B9 and B10 from the worklist, by the owner's order.
+
+- **Joining a state that exists (B4).** A house of the Reach goes over to a recognised state as it stands, or takes a
+  bordering region into it. The Reach lets the region go or calls the treaty broken and comes for the whole state.
+  Other houses go over by themselves when they think well of the ruler and ill of the capital.
+- **A second great war (B9).** Fifteen years after one ends it is forgotten; the clock and the verdict are cleared and
+  the Reach can come to another. Each finished war is kept on a permanent record.
+- **Stirring the camps (B10).** A house can raise the pressure on purpose for three years, at a price and a risk.
+
+**Measured** (`praetoria caesar --scenario all --seeds 10`, sixty Republic runs of sixty years, a passive player):
+
+- The Republic stood in all 60.
+- The great war broke out in 36 of 60 (it was 24 of 36 when last measured, on fewer seeds: about the same share). It
+  still begins between year 28 and 50 and runs 10 to 16 years.
+- **It was forgotten before the end of the saga in 6 runs**, all on the start where it comes earliest, and stood at 6
+  to 26 in a hundred of the way toward another. **No run reached a second war inside sixty years.** That is as
+  designed: a second war is for sagas that run longer. It is proved by a scripted test, not seen in play.
+- 10 states broke away and were recognised, all by partition at the war's end. **No house went over to one by
+  itself** with a passive player: it needs a house holding worlds inside a state and thinking well of its ruler, which
+  a passive saga does not produce. Proved by a scripted test.
+
+645 tests, 350 events. The soak's player joins states and stirs the camps; the soak passes at four seeds.
+
+**Found.** The probe read a finished war from flags that are now cleared when the war is forgotten, and so reported
+those runs as having had no war. Each war is now written to a permanent record, which the probe and the panel read.
+
+**Left** (in the register): a state at war cannot be joined, a state cannot itself reach for a region, and a house
+cannot leave a state on its own (B11); stirring names no target (B12). Two of the three new events did not fire in the
+soak (a house coming over to the player's state, the treaty called broken); both have scripted tests (X4).
+
