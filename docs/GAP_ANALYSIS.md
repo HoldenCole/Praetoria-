@@ -1775,7 +1775,7 @@ where an office's runs back every year.
 **After.** The Republic probe (60 runs of 60 years): an office's name stood 5 or more under the Reach's in 6 to 7%
 of office-years and 5 or more over in 7 to 12%. A region believed the magistrates 5 or more less than the Reach in
 17 to 29% of region-years, and under 35 in 0 to 23% depending on the start. The Republic stood in all 60 runs; the
-great war was fought in 47; 33 states broke away; trust in the magistrates averaged 48 to 61 by start: all as in
+great war was fought in 47; 33 states broke away; trust in the magistrates averaged 48 to 63 by start: all as in
 the last section. The soak (33 runs, a save and load in each) passes with no drift. Survival: 0 of 10 on every
 start.
 

@@ -19,7 +19,13 @@ namespace Praetoria.Core.Systems;
 public static class FactionSystem
 {
     /// <summary>The laws, for reading a house's positions against a party's (set by TurnController).</summary>
+    /// <summary>The laws, for a world that no controller has claimed (a test that builds its own chamber). A world a controller
+    /// runs has its own, set with <see cref="Use"/>: one shared catalogue for every world was a race between tests that ran side
+    /// by side with different content, and a test of the parties failed on it once in CI.</summary>
     public static Data.PolicyCatalog Policies { get; set; } = Data.PolicyCatalog.Empty;
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, Data.PolicyCatalog> ByWorld = new();
+    public static void Use(World w, Data.PolicyCatalog policies) => ByWorld.AddOrUpdate(w, policies);
+    private static Data.PolicyCatalog LawsOf(World w) => ByWorld.TryGetValue(w, out var p) ? p : Policies;
     public const int SwitchEvery = 10, SwitchMargin = 2;
 
     /// <summary>Seat every house with the party its laws best fit (docs/REPUBLIC.md): the four parties of content, each with at least two members.</summary>
@@ -49,9 +55,9 @@ public static class FactionSystem
         int score = 0;
         foreach (var (law, opt) in f.Laws)
         {
-            var def = Policies.Law(law); if (def == null) continue;
+            var def = LawsOf(w).Law(law); if (def == null) continue;
             if (def.Scope == "senate") continue;   // the Senate's laws belong to no house
-            if (PolicySystem.OptionId(w, Policies, houseId, law) == opt) score += 2;
+            if (PolicySystem.OptionId(w, LawsOf(w), houseId, law) == opt) score += 2;
         }
         foreach (var e in f.Estates) if (PolicySystem.Approval(w, houseId, e) >= 10) score += 1;
         uint hash = 2166136261; foreach (var ch in houseId + "|" + f.Id) hash = (hash ^ ch) * 16777619;
@@ -131,7 +137,7 @@ public static class FactionSystem
         int n = w.Counter("factions_formed") + 1; w.WorldCounters["factions_formed"] = n;
         var f = new Faction { Id = $"faction_{n}", LeaderHouseId = leaderId, FormedTurn = w.Turn, Accent = Presentation.Palette.Party(4 + n - 1) };
         f.Members.Add(leaderId); foreach (var m in members) if (!f.Members.Contains(m)) f.Members.Add(m);
-        foreach (var law in Policies.Laws.Where(l => !l.Reach && PolicySystem.HoldsScope(w, leaderId, l.Scope))) { var o = PolicySystem.OptionId(w, Policies, leaderId, law.Id); if (o != law.DefaultOption.Id) f.Laws[law.Id] = o; }   // the founder's own law is the platform
+        foreach (var law in LawsOf(w).Laws.Where(l => !l.Reach && PolicySystem.HoldsScope(w, leaderId, l.Scope))) { var o = PolicySystem.OptionId(w, LawsOf(w), leaderId, law.Id); if (o != law.DefaultOption.Id) f.Laws[law.Id] = o; }   // the founder's own law is the platform
         foreach (var old in w.Factions.Where(x => x.Members.Contains(leaderId) || members.Any(x.Members.Contains)).ToList()) { old.Members.Remove(leaderId); foreach (var m in members) old.Members.Remove(m); }   // they leave their old benches
         f.Name = NameFor(w, f);
         w.Factions.Add(f);

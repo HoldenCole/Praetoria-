@@ -34,7 +34,7 @@ public class FactionTests
     public void FourParties_AreSeated_ByEveryHousesLaws_AndNoBenchFormsOfItself()
     {
         var (w, senate, _) = Chamber();
-        FactionSystem.Policies = Content.Policies;
+        FactionSystem.Use(w, Content.Policies);
         PolicySystem.Enact(w, Content.Policies, "drake", "levies", "conscription"); PolicySystem.Enact(w, Content.Policies, "drake", "household_guard", "doubled");   // a Sword house
         PolicySystem.Enact(w, Content.Policies, "sato", "tariffs", "free_trade"); PolicySystem.Enact(w, Content.Policies, "sato", "labour", "guild_rights");         // a Factors house
         FactionSystem.Seed(w, Content.Parties, id => senate.Weight(w, id));
@@ -105,7 +105,7 @@ public class FactionTests
     [Fact]
     public void AFoundedBench_BreaksUnderTwo_AContentParty_Persists_AndAHouseCrossesTheFloorWhenItsLawsDrift()
     {
-        var (w, senate, _) = Chamber(); FactionSystem.Policies = Content.Policies;
+        var (w, senate, _) = Chamber(); FactionSystem.Use(w, Content.Policies);
         var f = FactionSystem.Form(w, "aurelian", new[] { "drake", "sato" }, "vega");
         Assert.Equal("#C9D1DC", f.Accent);                                                            // the fifth colour: silver, for a founded party
         f.Members.Remove("drake"); f.Members.Remove("sato");

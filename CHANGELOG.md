@@ -231,6 +231,10 @@
   out, and a section for positions with nothing to do. 51 open, 37 closed.
 
 ### Fixed
+- **A test that failed once in CI, at its cause.** The parties kept one shared copy of the laws for every world, so
+  two tests running side by side with different content could overwrite each other's, and a house that should have
+  crossed the floor did not. Each world a controller runs now has its own. Found from a red CI run on a commit that
+  touched only two screens.
 - The Exchange's Buy and Sell buttons ran off the edge of the goods table at laptop width.
 - On the family tree, one who had married into the house was drawn in the first row, with the founders.
 - **"Your standing" on the Senate screen could not be read on a laptop**: five panels were squeezed into strips with
