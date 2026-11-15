@@ -758,7 +758,16 @@ details.orders { margin-top: .3rem; border-top: 1px dotted var(--line); padding-
 .keep .res-cell > span { grid-column: 1 / -1; font-size: .68rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .keep .res-cell small { text-align: right; white-space: nowrap; }
 .person .p-who { flex: 1 1 calc(100% - 44px); min-width: 0; } .dash .wealth-row .bar { grid-column: auto; } .person .p-what { display: block; font-size: .74rem; color: var(--muted); } .person .p-what i { font-style: normal; } .person .p-what i.good { color: #9fdcb6; } .person .p-what i.bad { color: #f0937f; }
 .senate2-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-@media (max-width: 1100px) { .deck2-grid, .keep2-grid, .senate2-grid { grid-template-columns: minmax(0, 1fr); } }
+.chancery2-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+.sheet2-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+.es-row { display: grid; grid-template-columns: minmax(130px, 170px) minmax(0, 1fr) 84px; align-items: center; column-gap: .7rem; padding: .4rem .2rem .45rem; border-bottom: 1px dotted var(--line); }
+.es-row .es-who { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; } .es-row .es-who b { font-size: .95rem; } .es-row .es-bar.big { margin: 0; }
+.es-row .es-val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; } .es-row .es-val b { font-size: 1rem; } .es-row .es-val i { font-style: normal; font-size: .7rem; margin-left: .35rem; color: var(--muted); } .es-row .es-val i.up { color: #9fdcb6; } .es-row .es-val i.down { color: #f0937f; }
+.es-row .es-note { grid-column: 1 / -1; font-size: .76rem; color: var(--ink2); margin-top: .2rem; } .es-row .es-note .good { color: #9fdcb6; } .es-row .es-note .warn { color: #f0937f; } .es-row.hostile b { color: #f0a090; } .es-row.loyal b { color: var(--brass2); }
+.es-key { margin-top: .5rem; display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .45rem; } .es-key .k { display: inline-block; width: 14px; height: 8px; border-radius: 2px; } .es-key .k.fill { background: var(--good); } .es-key .k.target { width: 2px; height: 12px; background: var(--ink); }
+.es-key .k.loyal { background: var(--brass2); opacity: .35; } .es-key .k.hostile { background: var(--warn); opacity: .35; }
+table.reach-table td { font-size: .78rem; } table.reach-table td:first-child { white-space: nowrap; }
+@media (max-width: 1100px) { .deck2-grid, .keep2-grid, .senate2-grid, .chancery2-grid, .sheet2-grid { grid-template-columns: minmax(0, 1fr); } }
 .plot .nlabel.far { fill: #6f7890; font-size: 11px; } .plot .fleet .fl { font-size: 13px; } .plot .flabel { font-size: 13px; }
 .deck .row .opt, .deck details.orders .opt { white-space: nowrap; } .deck .fcard .row { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .4rem; margin: .25rem 0; }
 .plot .nlabel { font-size: 11px; } .plot .nlabel.mine { font-size: 13px; } .plot .nlabel.far { font-size: 9.5px; } .plot .fleet .fl { font-size: 11px; } .plot .flabel { font-size: 10.5px; }

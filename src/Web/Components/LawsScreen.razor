@@ -9,41 +9,102 @@
     if (PolicySystem.HoldsScope(w, house.Id, "chair")) positions.Add("the chair"); if (PolicySystem.HoldsScope(w, house.Id, "emperor")) positions.Add("the throne"); if (PolicySystem.HoldsScope(w, house.Id, "bench")) positions.Add("leader of a bench");
     foreach (var o in OfficeSystem.HeldBy(w, house.Id)) positions.Add(c.Offices.Def(o.OfficeId)?.Name ?? o.OfficeId);
     int offCustom = w.Laws.TryGetValue(house.Id, out var set) ? set.Count(kv => c.Policies.Law(kv.Key) is { } ld && ld.DefaultOption.Id != kv.Value) : 0;
+
+    // The picture (docs/DASHBOARDS.md): which estates are with the house and which against, where the laws are taking them, and what can be changed.
+    var est = ch?.Estates ?? (IReadOnlyList<EstateCard>)Array.Empty<EstateCard>();
+    var hostile = est.Where(e => e.Mood == "hostile").OrderBy(e => e.Approval).ToList(); var loyalOnes = est.Where(e => e.Mood == "loyal").OrderByDescending(e => e.Approval).ToList();
+    var sliding = est.Where(e => e.Mood != "hostile" && e.Target <= PolicySystem.Hostile).OrderBy(e => e.Target).FirstOrDefault();
+    var rising = est.Where(e => e.Mood != "loyal" && e.Target >= PolicySystem.Loyal).OrderByDescending(e => e.Target).FirstOrDefault();
+    var warmest = est.OrderByDescending(e => e.Approval).FirstOrDefault(); var coldest = est.OrderBy(e => e.Approval).FirstOrDefault();
+    var petitioning = est.FirstOrDefault(e => e.Petition != null);
+    int pool = ch?.InfluencePool ?? 0, changeable = held.Count(l => l.CooldownLeft == 0 && l.Cost <= pool), settled = held.Count(l => l.CooldownLeft > 0);
+    int byAct = ch?.Reach?.Count(r => r.Act) ?? 0, reachLaws = ch?.Reach?.Count ?? 0;
+    static string Signed(int n) => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.Abs(n);
+    static string Plain(string name) => name.StartsWith("The ") ? "the " + name[4..] : name;
+    string story, storyTone;
+    if (ch == null) { story = "No laws in this age."; storyTone = ""; }
+    else if (hostile.Count > 0) { var h0 = hostile[0]; story = $"{h0.Name} are hostile to the house ({Signed(h0.Approval)}){(hostile.Count > 1 ? $", and {hostile.Count - 1} more with them" : "")}. It costs you: {h0.Effects}.{(h0.Wants != null ? $" They would warm to: {h0.Wants}." : "")}"; storyTone = "bad"; }
+    else if (sliding != null) { story = $"The laws are taking {Plain(sliding.Name)} toward hostility: they stand at {Signed(sliding.Approval)} and are drifting to {Signed(sliding.Target)}; below {Signed(PolicySystem.Hostile)} they turn on the house.{(sliding.Wants != null ? $" They would warm to: {sliding.Wants}." : "")}"; storyTone = "warn"; }
+    else if (petitioning != null) { story = $"{petitioning.Name} are {petitioning.Petition}. How the chamber answers moves their regard in every house."; storyTone = "warn"; }
+    else if (loyalOnes.Count > 0) { story = $"{string.Join(" and ", loyalOnes.Take(2).Select(e => e.Name))} {(loyalOnes.Count == 1 ? "are" : "are both")} loyal to the house: {loyalOnes[0].Effects}. No estate is hostile."; storyTone = "good"; }
+    else if (rising != null) { story = $"No estate is loyal yet and none is hostile. The laws are bringing {Plain(rising.Name)} round: they stand at {Signed(rising.Approval)} and are drifting to {Signed(rising.Target)}; at {Signed(PolicySystem.Loyal)} they are loyal."; storyTone = ""; }
+    else if (warmest != null) { story = $"No estate is loyal to the house and none is hostile. {warmest.Name} are nearest, at {Signed(warmest.Approval)} of the {Signed(PolicySystem.Loyal)} that makes an estate loyal.{(warmest.Wants != null ? $" They would warm to: {warmest.Wants}." : "")}"; storyTone = ""; }
+    else { story = "There are no estates to please or offend."; storyTone = ""; }
 }
 <div class="dash chancery" style="--accent:@house.AccentColor">
-    <header class="dash-head">
+    <header class="dash-head picture">
         <div class="dh-title"><Icon Name="influence" Size="18" /> <b>The Chancery of @house.Name</b> <span class="muted">@string.Join(" · ", positions)</span></div>
-        <div class="dh-stats">
-            <div class="stat"><span>Laws in your gift</span><b>@held.Count <i class="muted">@offCustom off the custom</i></b></div>
-            <div class="stat"><span>Influence this turn</span><b>@(ch?.InfluencePool ?? 0)</b></div>
-            <div class="stat @((ch?.Estates.Count(e => e.Mood == "hostile") ?? 0) > 0 ? "warn" : "")"><span>Hostile estates</span><b>@(ch?.Estates.Count(e => e.Mood == "hostile") ?? 0)</b></div>
-            <div class="stat"><span>Loyal estates</span><b>@(ch?.Estates.Count(e => e.Mood == "loyal") ?? 0)</b></div>
-            <div class="stat"><span>Acts of the Senate</span><b>@w.Counter("acts_passed")</b></div>
+        <p class="headline @storyTone">@story</p>
+        @if (ch != null)
+        {
+        <div class="tiles">
+            <Tile Label="Loyal estates" Value="@($"{loyalOnes.Count} of {est.Count}")" Tone="@(hostile.Count > 0 ? "bad" : loyalOnes.Count > 0 ? "good" : "")"
+                  Note="@($"{(hostile.Count == 0 ? "none" : hostile.Count.ToString())} hostile · loyal at {Signed(PolicySystem.Loyal)}, hostile at {Signed(PolicySystem.Hostile)}")" Title="An estate's regard for the house runs from −100 to +100. A loyal estate gives something every year; a hostile one costs something." />
+            @if (warmest != null)
+            {
+                <Tile Label="Warmest" Value="@($"{warmest.Name.Replace("The ", "")} {Signed(warmest.Approval)}")" Share="@(Math.Clamp(100 * warmest.Approval / PolicySystem.Loyal, 0, 100))" Tone="@(warmest.Mood == "loyal" ? "good" : "")"
+                      Note="@(warmest.Mood == "loyal" ? "loyal" : warmest.Target != warmest.Approval ? $"drifting to {Signed(warmest.Target)} · loyal at {Signed(PolicySystem.Loyal)}" : $"holding · loyal at {Signed(PolicySystem.Loyal)}")" Title="@warmest.Effects" />
+            }
+            @if (coldest != null && coldest.Id != warmest?.Id)
+            {
+                <Tile Label="Coldest" Value="@($"{coldest.Name.Replace("The ", "")} {Signed(coldest.Approval)}")" Tone="@(coldest.Mood == "hostile" ? "bad" : coldest.Target <= PolicySystem.Hostile ? "warn" : "")"
+                      Note="@(coldest.Mood == "hostile" ? "hostile" : coldest.Target != coldest.Approval ? $"drifting to {Signed(coldest.Target)} · hostile at {Signed(PolicySystem.Hostile)}" : $"holding · hostile at {Signed(PolicySystem.Hostile)}")" Title="@coldest.Effects" />
+            }
+            <Tile Label="Influence to spend" Value="@pool.ToString()" Tone="@(pool == 0 ? "warn" : "")"
+                  Note="@(held.Count == 0 ? "no law is in your gift" : changeable == 0 ? (pool == 0 ? "none: no law can be changed this year" : "no law is free to be changed this year") : $"enough to change {changeable} of your {held.Count} laws this year")" Title="Changing a law costs influence, and a law changed is settled for some years." />
+            <Tile Label="Laws in your gift" Value="@held.Count.ToString()" Note="@($"{offCustom} off the custom{(settled > 0 ? $" · {settled} settled" : "")}{(notHeld.Count > 0 ? $" · {notHeld.Count} beyond your gift" : "")}")" Title="What your positions let you set. A law off the custom is one you, or the holder before you, have changed." />
+            <Tile Label="The law of the Reach" Value="@($"{reachLaws} laws")" Note="@(byAct == 0 ? "none set by an Act of the Senate" : $"{byAct} set by an Act of the Senate")" Title="These bind every house. One changes only by an Act carried in the chamber." />
         </div>
+        }
     </header>
 
     @if (ch == null) { <section class="panel"><div class="muted">No laws in this age.</div></section> }
     else
     {
-        <div class="dash-grid chancery-grid">
+        <div class="dash-grid chancery2-grid">
+            <div class="deck-col">
             <section class="panel">
-                <h3><Icon Name="houses" Size="13" /> The estates <span class="muted">who likes what you do · regard from −100 to +100</span></h3>
-                <div class="estate-board">
-                    @foreach (var e in ch.Estates)
+                <h3><Icon Name="houses" Size="13" /> The estates <span class="muted">regard from −100 to +100 · hover one for what it gives, what it costs and what the laws say to it</span></h3>
+                <div class="es-rows">
+                    @foreach (var e in ch.Estates.OrderByDescending(x => x.Approval))
                     {
-                        <div class="estate @e.Mood" title="@e.Description">
-                            <div class="es-head"><b>@e.Name</b> <span class="mood @e.Mood">@e.Mood</span> <span class="muted small">@(e.Approval >= 0 ? "+" : "")@e.Approval@(e.Target != e.Approval ? $" → {(e.Target >= 0 ? "+" : "")}{e.Target}" : "")@(e.HostileIn > 0 ? $" · hostile in {e.HostileIn} house(s) of the Reach" : "")</span></div>
+                        <div class="es-row @e.Mood" title="@($"{e.Description} {(e.Mood is "loyal" or "hostile" ? "It " + (e.Mood == "loyal" ? "gives" : "costs") + ": " + e.Effects : e.Effects)}. Laws say: {e.LawsSay}.")">
+                            <div class="es-who"><b>@e.Name</b>@if (e.Mood != "indifferent") { <span class="mood @e.Mood">@e.Mood</span> }</div>
                             <div class="es-bar big"><i class="zero"></i><i class="fill @(e.Approval >= 0 ? "pos" : "neg")" style="left:@(e.Approval >= 0 ? 50 : 50 + e.Approval / 2)%; width:@(Math.Abs(e.Approval) / 2)%"></i><i class="target" style="left:@(50 + e.Target / 2)%" title="where the laws are taking them"></i><i class="band loyal"></i><i class="band hostile"></i></div>
-                            <div class="muted small">@e.Effects</div>
-                            <div class="muted small">Laws say: @e.LawsSay</div>
-                            @if (e.Wants != null && e.Approval < PolicySystem.Loyal) { <div class="small wants">They would warm to: @e.Wants</div> }
-                            @if (e.Petition != null) { <div class="small petition">⚖ @e.Petition</div> }
-                            else if (e.HostileIn >= SenateSystem.PetitionMinHouses) { <div class="muted small">a petition to the Senate is near</div> }
+                            <div class="es-val"><b>@Signed(e.Approval)</b>@if (e.Target != e.Approval) { <i class="@(e.Target > e.Approval ? "up" : "down")">@(e.Target > e.Approval ? "▲" : "▼") @Signed(e.Target)</i> }</div>
+                            <div class="es-note">
+                                @if (e.Mood == "loyal") { <span class="good">gives the house: @e.Effects</span> }
+                                else if (e.Mood == "hostile") { <span class="warn">costs the house: @e.Effects</span> @if (e.Wants != null) { <span> · would warm to: @e.Wants</span> } }
+                                else if (e.Wants != null) { <span>would warm to: @e.Wants</span> }
+                                else { <span>no law in your gift would move them</span> }
+                                @if (e.HostileIn > 0) { <span class="muted"> · hostile in @e.HostileIn house(s) of the Reach</span> }
+                                @if (e.Petition != null) { <span class="petition"> · ⚖ @e.Petition</span> } else if (e.HostileIn >= SenateSystem.PetitionMinHouses) { <span class="muted"> · a petition to the Senate is near</span> }
+                            </div>
                         </div>
                     }
                 </div>
+                <div class="es-key muted small"><i class="k fill"></i> their regard now <i class="k target"></i> where the laws are taking it <i class="k loyal"></i> loyal <i class="k hostile"></i> hostile</div>
             </section>
-
+            @if (ch.Reach is { Count: > 0 } reach)
+            {
+                <section class="panel">
+                    <h3><Icon Name="galaxy" Size="13" /> The law of the Reach <span class="muted">binds every house</span></h3>
+                    <table class="near reach-table">
+                        <thead><tr><th>Law</th><th>Stands at</th><th>What it does</th><th>Set by</th></tr></thead>
+                        <tbody>
+                        @foreach (var r in reach)
+                        {
+                            <tr title="@(r.Act && r.CooldownLeft > 0 ? $"settled: {r.CooldownLeft} year(s) before the chamber will hear it again" : "")">
+                                <td><b>@r.Name</b></td><td class="@(r.Mine ? "good" : "")">@r.OptionName.ToLowerInvariant()</td><td class="muted">@r.Effects</td><td class="muted">@r.SetBy@(r.Act && r.CooldownLeft > 0 ? $" · settled {r.CooldownLeft}y" : "")</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                    <div class="muted small">A law of the Senate changes only by an Act carried in the chamber — move one from the Senate, under "Move a motion".</div>
+                </section>
+            }
+            </div>
+            <div class="deck-col">
             <section class="panel">
                 <h3><Icon Name="throne" Size="13" /> The laws in your gift <span class="muted">click a law to see its options</span></h3>
                 @foreach (var cat in held.GroupBy(l => l.Category).OrderBy(g => g.Key, StringComparer.Ordinal))
@@ -75,27 +136,14 @@
                     </div>
                 }
             </section>
-
-            <aside class="dash-side">
-                @if (ch.Reach is { Count: > 0 } reach)
-                {
-                    <section class="panel">
-                        <h3><Icon Name="galaxy" Size="13" /> The law of the Reach <span class="muted">binds every house</span></h3>
-                        @foreach (var r in reach)
-                        {
-                            <div class="small reach-line @(r.Act ? "act" : "")"><b>@r.Name</b> — <span class="@(r.Mine ? "pos" : "")">@r.OptionName.ToLowerInvariant()</span><div class="muted">@r.Effects · @r.SetBy@(r.Act && r.CooldownLeft > 0 ? $" · settled, {r.CooldownLeft} turn(s) before the chamber will hear it again" : "")</div></div>
-                        }
-                        <div class="muted small">A law of the Senate changes only by an Act carried in the chamber — move one from the Senate, under "Move a motion".</div>
-                    </section>
-                }
-                @if (notHeld.Count > 0)
-                {
-                    <section class="panel">
-                        <h3><Icon Name="throne" Size="13" /> Beyond your gift <span class="muted">@notHeld.Count</span></h3>
-                        @foreach (var l in notHeld) { <div class="small reach-line"><b>@l.Name</b> — @l.Options.First(o => o.InForce).Name.ToLowerInvariant()<div class="muted">@l.ScopeName may set it</div></div> }
-                    </section>
-                }
-            </aside>
+            @if (notHeld.Count > 0)
+            {
+                <section class="panel">
+                    <h3><Icon Name="throne" Size="13" /> Beyond your gift <span class="muted">@notHeld.Count</span></h3>
+                    @foreach (var l in notHeld) { <div class="small reach-line"><b>@l.Name</b> — @l.Options.First(o => o.InForce).Name.ToLowerInvariant()<div class="muted">@l.ScopeName may set it</div></div> }
+                </section>
+            }
+            </div>
         </div>
     }
 </div>

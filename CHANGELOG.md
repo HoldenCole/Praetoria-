@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **The Laws screen, rebuilt** (docs/DASHBOARDS.md). One sentence on the estates: who is hostile and what it costs,
+  who the laws are driving away, or who is nearest to loyalty and the one change of law that would bring them nearer.
+  Six tiles with what each figure is read against. One estate to a row: a bar from −100 to +100 with a mark where the
+  laws are taking it, and one line on what it gives, costs or wants. The law of the Reach is a table.
+- **The You screen, rebuilt**. One sentence on what you are and what state you are in. Six tiles: rank on its ladder,
+  health against what your age allows, renown and the next name it earns, strain, your best skill against its
+  ceiling, where you command from. One display of skills in place of two. Two columns that scroll, in place of a grid
+  that cut its panels off.
 - **The Senate screen, rebuilt** (docs/DASHBOARDS.md). It opens with one sentence: a motion against you and how it
   will go, or what is before the chamber, or that nothing is, with your seats, your bench's and how far that is from a
   majority. Six tiles: your seats, ranked; your bench against a majority; the order paper and how it leans; the

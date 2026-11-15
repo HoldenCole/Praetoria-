@@ -126,8 +126,8 @@ And the owner's own limit on all of it: not overwhelming. The test of a screen i
 | 1 | Military | Rebuilt whole: see below | done, this pass |
 | 2 | House | The ledger and the worlds first; the household, purses and learning behind tabs | done: see below |
 | 3 | Senate | What is before the chamber and how it will go, first; an empty order paper that says what could be moved | done: see below |
-| 4 | Laws | One estate per row with a bar; laws as a grid of current positions; the essay on hover | next |
-| 5 | You | One skills display, not two; the life as a timeline; ties as a list that is short when it is empty | next |
+| 4 | Laws | One estate per row with a bar; laws as a grid of current positions; the essay on hover | done: see below |
+| 5 | You | One skills display, not two; the life as a timeline; ties as a list that is short when it is empty | done: see below |
 | 6 | Chronicle | Full width; the bars labelled; a year's summary line | next |
 | 7 | Dynasty | A tree that can be read; the heir and the line first | next |
 | 8 | Exchange | The fixed essay behind a hover; projects' empty state | next |
@@ -201,6 +201,38 @@ hundred pixels tall with its own scroll bar. None of them could be read on a lap
 - **An alert opens the tab it is about.** "Your year in the Senate is not yet spent" opens the duties; a vacant
   office opens the offices; a petition to join the household opens the household. `audit.js` presses each alert and
   prints where it landed.
+
+## The Laws, rebuilt
+
+- **Headline** (1), by priority: an estate hostile, what that costs and what would warm it; an estate the laws are
+  taking toward hostility; an estate petitioning the Senate; the estates that are loyal and what they give; and
+  otherwise which estate is nearest to loyalty, how far off, and the one change of law that would bring it nearer.
+- **Six tiles** (2, 3): how many estates are loyal and hostile, with the marks; the warmest and the coldest, each with
+  where the laws are taking it; the influence there is to spend and how many laws that would change this year; the
+  laws in your gift and how many are off the custom; the law of the Reach and how much of it is by Act.
+- **One estate to a row** (2, 7): its name, a bar from −100 to +100 with the loyal and hostile ends shaded and a mark
+  where the laws are taking it, the figure and which way it is moving, and one line: what it gives if loyal, what it
+  costs if hostile, or what would warm it. What it would give and what the laws say to it are a hover (5). A key
+  under the rows says what the bar's marks are.
+- **The law of the Reach is a table**: the law, where it stands, what that does, who set it.
+- Two columns in place of three: the estates and the Reach's law; the laws in your gift and those beyond it.
+
+## You, rebuilt
+
+The same squeeze as the House and the Senate: five panels in a grid as tall as the window, each cut off.
+
+- **Headline** (1), by priority: broken by strain; ill, wounded or ailing; the strain telling; and otherwise what you
+  are, how old, in what health, how well known, what you are best at and against what ceiling, and what you want.
+- **Six tiles** (2): rank, with its place on the ladder and the next rung; health against what a body of your age
+  can have; renown, with the next name it earns and at what figure; strain against the mark at which it tells; your
+  best skill against its ceiling; where you command from, with the valour won.
+- **One skills display** (the audit's fault): the radar chart is gone, since the bars beside it said the same and
+  also showed each skill's ceiling.
+- **Two columns that scroll**, in place of a grid that cut its panels off: the person and the life; learning, blood
+  and bonds.
+- **Empty states** (9): no old friends and no old enemies is one entry that says how one is made, in place of two
+  entries and a paragraph. "Your story so far: nothing written yet" is not shown at all while it is empty; what you
+  have done is in the life.
 
 ## Sources
 
