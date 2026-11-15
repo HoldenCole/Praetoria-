@@ -1621,7 +1621,7 @@ once there are five of them. Details in docs/LADDER.md.
 committee) passes with no drift. Survival: 0 of 10 on every start. The Republic probe: the Republic stood in all 60
 runs; the figures are the same as the last section's to the digit (the great war in 43, 15 states, 629 charged and
 436 convicted, trust 53 to 64), which is as it should be: the probe's player is passive and never takes the seat, and
-nothing here moves unless a senator does the work. The new event (taking the chair) did not fire in the soak: six years of the same choice is more than its random player gives anything. It has a scripted test (X4).
+nothing here moves unless a senator does the work. In the soak a chair was taken at least once (its flag was raised), but the event that follows was not drawn in any of the 33 runs. It has a scripted test (X4).
 
 698 tests (four new).
 
