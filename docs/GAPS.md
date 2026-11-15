@@ -70,7 +70,7 @@ These recur across systems. Closing one properly closes several lines below, so 
 
 ## The Caesar road (docs/CAESAR.md)
 
-A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victory teaches only up to the ceiling): over 50 Republic runs another house's general was of the first rank in 2, passed all three gates in 1, and none marched. Before E4 it was first rank in 15 of 60. That is rarer than before and worth watching: see C9.
+A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victory teaches only up to the ceiling): over 60 Republic runs (measured again 2026-11-15) another house's general was of the first rank in 8, passed all three gates in 1, and none marched. Before E4 it was first rank in 15 of 60. That is rarer than before and worth watching: see C9.
 
 | Id | Gap | Size | Leans on |
 |---|---|---|---|

@@ -1304,3 +1304,44 @@ those runs as having had no war. Each war is now written to a permanent record, 
 cannot leave a state on its own (B11); stirring names no target (B12). Two of the three new events did not fire in the
 soak (a house coming over to the player's state, the treaty called broken); both have scripted tests (X4).
 
+## 45. What public trust does — 2026-11-15
+
+L7 from the worklist, by the owner's order: trust in the magistrates should move elections, the estates and standing,
+not only the troubles of the Reach.
+
+**Built.** A scandal in office lies on a house for ten years and costs its candidates votes at every count, for the
+ladder and the consulship, twice as many when trust is under 50. Below 35 the commons turn on every house in office
+and the house that holds the capital loses standing; at 75 office is honoured. Events when it collapses and when it is
+believed again. What a person of the player's house does to an estate now lasts.
+
+**The measurement changed the work.** Before any of that could matter, the probe was taught to report trust, and it
+showed the number did not behave: over sixty Republic sagas it averaged about 80, was at 75 or more in three years of
+four, and **never once fell below 35**, while some house was under a scandal nine years in ten. Three causes:
+
+1. Catching a thief raised trust by more than the theft and the exposure lowered it.
+2. Every magistrate who dealt straight added a point, eight or ten a year, against a drift of one.
+3. Two things dragged it down for the wrong reason, found by tracing one start year by year: a passive player's
+   unheard bench cost the whole Reach a point a year, and aediles too poor to pay for the works were counted as
+   choosing to do nothing.
+
+Now routine honesty only mends trust (a point a year in all, up to 60), something notable is needed to lift it past
+that, a caught thief no longer outweighs the theft, an empty bench or desk costs its own house, and poverty is not
+held against the magistrates.
+
+**Measured after** (`praetoria caesar --scenario all --seeds 10`, sixty Republic runs of sixty years):
+
+- Trust averages 55 to 62 by start. It is honoured (75 or more) in 5 to 13% of years.
+- **It falls below 35 in 8 runs of 60**, for 1 to 4% of the years on the starts where it happens.
+- Some house is under a scandal in about nine years of ten: there is always one somewhere, which is what makes the
+  ten-year cost at the count matter.
+- The Republic stood in all 60. The great war broke out in 40 (it was 36). The Republic was troubled a little more
+  often on two starts, because "the magistrates are for sale" is now sometimes true.
+- Another house's general was of the first rank in 8 runs and passed all three gates in 1; none marched.
+
+648 tests, 352 events. Both new events fired in the soak unaided. Survival: 0 or 1 of 10 per start.
+
+**Also found.** `tools/browser/ladder.js` had been broken since its default start was changed: a comment had swallowed
+the line that set the number of years. Fixed.
+
+**Left**: trust is one number for the whole Reach, and only the commons react to it (L9).
+
