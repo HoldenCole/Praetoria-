@@ -127,3 +127,20 @@ public sealed class AbandonProjectCommand : ICommand
         w.Log($"{house.Name} abandons {p.Name}.");
     }
 }
+
+/// <summary>Put money into a venture that has stopped paying (docs/ECONOMY_MARKET.md, "A venture can fail"): its losing years are
+/// wiped out, and it has three more to come right.</summary>
+public sealed class PropVentureCommand : ICommand
+{
+    private readonly string _id; private readonly VentureSystem _ventures;
+    public PropVentureCommand(string actorId, string businessId, VentureSystem ventures) { ActorId = actorId; _id = businessId; _ventures = ventures; }
+    public string ActorId { get; }
+    public string Describe() => $"prop up {_id}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        return actor?.Alive != true ? "nobody to do it" : _ventures.PropRefusal(w, house, w.Business(_id));
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; _ventures.Prop(w, w.House(w.Char(ActorId)!.HouseId)!, w.Business(_id)!); }
+}

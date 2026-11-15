@@ -113,5 +113,6 @@ shown with how many of the house are with them and how many against.
 - **Only your house.** Nobody in any other house pursues an ambition this way.
 - ~~Standing for office is not theirs to do.~~ Closed by the ladder of offices (docs/LADDER.md): one who wants to rise
   and be heard, or to be first, now puts their own name down for quaestor, aedile or praetor.
-- A venture cannot fail, so that failure is never marked (docs/GAPS.md A6).
+- ~~A venture cannot fail, so that failure is never marked.~~ Closed: a venture that goes three years without a
+  profit is wound up, and its founder has failed at it (docs/ECONOMY_MARKET.md, section 11).
 - The numbers are first guesses.

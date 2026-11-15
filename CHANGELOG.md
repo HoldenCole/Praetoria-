@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- **A venture can fail** (docs/ECONOMY_MARKET.md, section 11; docs/GAPS.md A6). A venture that earns nothing or loses
+  money three years running is wound up: half its salvage comes back. You are warned a year before, on the venture's
+  card and in the alerts, and can put money in to give it three more years, or sell it. If one of your house founded
+  it, that failure is written into their life. An event for the doors being shut.
 - **Trust told apart by office and by region** (docs/LADDER.md; docs/GAPS.md L10). What a magistrate does is set
   against their own office's name and against the belief of the region where it was felt, as well as against the
   Reach's trust. A scandal costs a house double at the count for an office whose own name is low. A region that does

@@ -168,7 +168,7 @@ internal static class Qa
     }
 
     private static readonly IRng NoRng = new SplitMix64Rng(0);
-    private static readonly string[] CaesarKeys = { "triumphs_voted", "recalls_voted", "civil_wars", "republics_ended", "caesars_broken", "polities_founded", "polities_recognised", "polities_dissolved", "free_marches", "free_states", "camps_stirred", "censures_stirred", "wars_over_words", "motions_held_over", "chair_spoke", "casting_votes" };
+    private static readonly string[] CaesarKeys = { "triumphs_voted", "recalls_voted", "civil_wars", "republics_ended", "caesars_broken", "polities_founded", "polities_recognised", "polities_dissolved", "free_marches", "free_states", "camps_stirred", "censures_stirred", "wars_over_words", "motions_held_over", "chair_spoke", "casting_votes", "ventures_failed", "ventures_propped" };
 
     /// <summary>One soak run. The player picks a random affordable choice (or skips one in five) from a decision stream seeded
     /// off the world seed, so a replay repeats the same decisions.</summary>
@@ -276,7 +276,7 @@ internal static class Qa
             foreach (var sys in g.Systems.Values.Where(s => s.Belt > 0).OrderBy(s => s.Id, StringComparer.Ordinal)) cands.Add(new StakeClaimCommand(p.Id, sys.Id, content.Holdings, bc));
             foreach (var h in w.Holdings.Values.Where(h => h.FormerOwnerId == house.Id).OrderBy(h => h.Id, StringComparer.Ordinal)) cands.Add(new ReclaimFreeholdCommand(p.Id, h.Id));
         }
-        foreach (var b in w.BusinessesOf(house.Id).OrderBy(b => b.Id, StringComparer.Ordinal)) { cands.Add(new ExpandBusinessCommand(p.Id, b.Id, bc)); if (tc.Ventures != null && decisions.NextInt(0, 6) == 0) cands.Add(new SellVentureCommand(p.Id, b.Id, decisions.NextInt(0, 2) == 0 ? "" : SellVentureCommand.Best, tc.Ventures)); }
+        foreach (var b in w.BusinessesOf(house.Id).OrderBy(b => b.Id, StringComparer.Ordinal)) { cands.Add(new ExpandBusinessCommand(p.Id, b.Id, bc)); if (tc.Ventures != null && decisions.NextInt(0, 6) == 0) cands.Add(new SellVentureCommand(p.Id, b.Id, decisions.NextInt(0, 2) == 0 ? "" : SellVentureCommand.Best, tc.Ventures)); if (tc.Ventures != null && b.LosingYears > 0 && decisions.NextInt(0, 2) == 0) cands.Add(new PropVentureCommand(p.Id, b.Id, tc.Ventures)); }
         if (tc.Ventures != null)
         {
             var theirs = w.Businesses.Values.Where(b => b.OwnerId != house.Id).OrderBy(b => b.Id, StringComparer.Ordinal).ToList();

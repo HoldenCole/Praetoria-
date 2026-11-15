@@ -25,6 +25,8 @@
     if (w.HasFlag("nation_freed")) alerts.Add(("info", "A tributary's treaty is done; its tribute stops", "military"));
     foreach (var f in w.WorldFlags.Where(f => f.StartsWith("price_spike:")).Take(2)) { var gd = G.Content!.Market.Good(f["price_spike:".Length..]); var gs = w.Market?.Good(gd?.Id ?? ""); if (gd != null && gs != null) alerts.Add(("info", $"{gd.Name} dear on the Exchange: {gs.Cause}", "exchange")); }
     if (w.HasFlag("market_crash")) alerts.Add(("warn", "The Exchange has fallen a tenth in a year", "exchange"));
+    if (w.HasFlag(Praetoria.Core.Systems.VentureSystem.FailingFlag)) alerts.Add(("warn", "A venture of yours has gone two years without a profit: one more and it is wound up", "exchange"));
+    if (w.HasFlag(Praetoria.Core.Systems.VentureSystem.FailedFlag)) alerts.Add(("warn", "A venture of yours has failed and been wound up", "exchange"));
     if (w.HasFlag("takeover_of_mine")) alerts.Add(("warn", "Another house has taken control of a company you directed", "exchange"));
     if (w.HasFlag("stake_in_mine")) alerts.Add(("info", "A rival holds a tenth or more of a company you direct", "exchange"));
     if (w.HasFlag("dividend_cut")) alerts.Add(("info", "A company you hold has passed its dividend", "exchange"));

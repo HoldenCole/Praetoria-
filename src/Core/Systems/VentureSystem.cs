@@ -174,10 +174,66 @@ public sealed class VentureSystem
             .OrderBy(x => Holder(w, x.b) == buyerId ? 0 : 1).ThenBy(x => (double)x.ask.price / x.earn).ThenBy(x => x.b.Id, StringComparer.Ordinal).Select(x => x.b).FirstOrDefault();
     }
 
-    /// <summary>Offers lapse after their year; an offer whose venture is gone or sold goes with it.</summary>
+    // ---------------- a venture can fail (docs/ECONOMY_MARKET.md, "A venture can fail") ----------------
+
+    public const int FailsAfter = 3, WoundUpPct = 50, PropFloor = 4;
+    public const string FailingFlag = "venture_failing", FailedFlag = "venture_failed", FounderFailedChar = "founded_what_failed";
+    public const string FailedCounter = "ventures_failed", LossYearsCounter = "venture_loss_years", VentureYearsCounter = "venture_years", ProppedCounter = "ventures_propped";
+    /// <summary>What is left when a failed venture is wound up: half its salvage. The rest goes to those it owed.</summary>
+    public int WoundUp(Business b) => Salvage(b) * WoundUpPct / 100;
+    /// <summary>What it costs to carry a losing venture: its losses made good twice over, and something for each level of it.</summary>
+    public int PropCost(World w, Business b) => Math.Max(PropFloor, 2 * b.Level + 2 * Math.Max(0, -Earnings(w, b)));
+    public string? PropRefusal(World w, House? house, Business? b)
+    {
+        if (house == null || b == null || b.OwnerId != house.Id) return "not a venture of yours";
+        if (b.CompanyId.Length > 0) return "it is a company's, and the company carries it";
+        if (b.LosingYears == 0) return "it is paying its way";
+        return house.Treasury.Credits < PropCost(w, b) ? $"needs {PropCost(w, b)} credits" : null;
+    }
+    /// <summary>The house puts money in: the losing years are wiped out, and it has three more to come right.</summary>
+    public void Prop(World w, House house, Business b)
+    {
+        int cost = PropCost(w, b); house.Treasury.Credits -= cost; b.LosingYears = 0; w.WorldCounters[ProppedCounter] = w.Counter(ProppedCounter) + 1;
+        w.Log($"{house.Name} puts {cost} credits into the {b.Name} to keep it going.");
+    }
+    /// <summary>The year's reckoning of every venture a house owns outright: a year in which it earned nothing or lost money counts
+    /// against it, and a year of profit wipes the count out. Three such years running and it is wound up: the house gets half its
+    /// salvage, and whoever of the house founded it has failed at something of their own.</summary>
+    private void Reckon(World w)
+    {
+        var mine = w.Protagonist?.HouseId;
+        foreach (var c in w.Characters.Values) c.Flags.Remove(FounderFailedChar);
+        foreach (var b in w.Businesses.Values.Where(b => b.CompanyId.Length == 0 && w.House(b.OwnerId) != null && _ventures.Def(b.Kind) != null).OrderBy(b => b.Id, StringComparer.Ordinal).ToList())
+        {
+            if (w.Turn - b.Founded < 1) continue;   // its first year is not judged
+            w.WorldCounters[VentureYearsCounter] = w.Counter(VentureYearsCounter) + 1;
+            if (Earnings(w, b) > 0) { b.LosingYears = 0; continue; }
+            b.LosingYears++; w.WorldCounters[LossYearsCounter] = w.Counter(LossYearsCounter) + 1;
+            if (b.LosingYears < FailsAfter) { if (b.OwnerId == mine && b.LosingYears == FailsAfter - 1) w.WorldFlags.Add(FailingFlag); continue; }
+            Fail(w, b, mine);
+        }
+    }
+    private void Fail(World w, Business b, string? mine)
+    {
+        var owner = w.House(b.OwnerId)!; int left = WoundUp(b); owner.Treasury.Credits += left; w.Businesses.Remove(b.Id);
+        foreach (var o in w.Offers.Where(o => o.BusinessId == b.Id).ToList()) w.Offers.Remove(o);
+        w.WorldCounters[FailedCounter] = w.Counter(FailedCounter) + 1;
+        var founder = b.FounderId.Length > 0 ? w.Char(b.FounderId) : null;
+        bool theirs = founder is { Alive: true } && founder.HouseId == owner.Id;
+        if (theirs) AmbitionSystem.Setback(w, founder!, $"The {b.Name}, which they founded, failed and was wound up.");
+        if (owner.Id == mine)
+        {
+            w.WorldFlags.Add(FailedFlag); if (theirs && founder!.Id != w.ProtagonistId) founder.Flags.Add(FounderFailedChar);
+            w.Log($"The {b.Name} has earned nothing for {FailsAfter} years and is wound up. {left} credits come back to {owner.Name}{(theirs ? $"; it was {founder!.Name} who founded it" : "")}.");
+        }
+        else if (b.SystemId.Length > 0 && w.PlanetHolder(b.SystemId) == mine) w.Log($"The {b.Name} of {owner.Name}, on a world of yours, is wound up after {FailsAfter} years without a profit.");
+    }
+
+    /// <summary>Offers lapse after their year; an offer whose venture is gone or sold goes with it. Then every venture is reckoned.</summary>
     public void Tick(World w)
     {
-        w.WorldFlags.Remove(OfferedFlag); w.WorldFlags.Remove(BoughtFlag); w.WorldFlags.Remove(RefusedFirstFlag);
+        w.WorldFlags.Remove(OfferedFlag); w.WorldFlags.Remove(BoughtFlag); w.WorldFlags.Remove(RefusedFirstFlag); w.WorldFlags.Remove(FailingFlag); w.WorldFlags.Remove(FailedFlag);
+        Reckon(w);
         foreach (var o in w.Offers.ToList())
             if (o.Expires < w.Turn || w.Business(o.BusinessId) is not { } b || b.OwnerId != o.FromHouseId) w.Offers.Remove(o);
         if (w.Offers.Any(o => o.ToHouseId == w.Protagonist?.HouseId)) w.WorldFlags.Add(OfferedFlag);

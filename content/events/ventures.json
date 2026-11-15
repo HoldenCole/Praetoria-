@@ -160,6 +160,41 @@
           ]
         }
       ]
+    },
+    {
+      "id": "a_venture_fails",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "venture_failed", "value": true } ],
+      "choices": [
+        {
+          "id": "pay_its_people_off",
+          "requires": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 4 } ],
+          "effects": [
+            { "type": "adjustResource", "resource": "credits", "delta": -4 },
+            { "type": "adjustLegitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} saw that everybody who had worked for it was paid what they were owed before the doors were shut. It cost a little. It was noticed on the world where the doors were." }
+          ]
+        },
+        {
+          "id": "take_the_loss_and_say_nothing",
+          "effects": [
+            { "type": "adjustStress", "role": "self", "delta": 2 },
+            { "type": "log", "text": "{self.name} wrote the loss into the house's books in one line and did not speak of it again. Money that is gone is gone." }
+          ]
+        },
+        {
+          "id": "find_out_whose_fault_it_was",
+          "requires": [ { "type": "resource", "resource": "influence", "op": "gte", "value": 1 } ],
+          "effects": [
+            { "type": "adjustResource", "resource": "influence", "delta": -1 },
+            { "type": "adjustResource", "resource": "credits", "delta": 2 },
+            { "type": "adjustStress", "role": "self", "delta": 1 },
+            { "type": "log", "text": "{self.name} had the books gone through. Some of it was the times and some of it was a factor who had been paying himself first. A little came back, and a name was struck off a list." }
+          ]
+        }
+      ]
     }
   ]
 }

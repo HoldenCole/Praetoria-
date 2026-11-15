@@ -258,3 +258,28 @@ traded, the index between 56 and 230, nought to two crashes and one to four boom
 - Rival houses almost never complete a takeover of each other; a player can. They defend their own majority well.
 - Goods the Reach overproduces (materials, rare earths, exotics) sit below their usual price most years.
 - A player's company keeps its cash until told otherwise; a steward's pays it out when it has nothing to build.
+
+## 11. A venture can fail (2026-11-15)
+
+Closed off the register (docs/GAPS.md A6). A venture was an asset that could be sold, enlarged or taken, and could
+never go wrong. Now every venture a house owns outright is reckoned at the start of each year.
+
+- **A year without a profit** is one in which it earned nothing or lost money at that year's prices. Its first year
+  is not judged. A year of profit wipes the count out.
+- **Two such years running**, and the owner is warned (an alert, and the venture's card says so).
+- **Three**, and it is wound up. The house gets half its salvage, which is a quarter of what it cost; the rest goes to
+  those it owed. The venture is gone.
+- **Carrying it.** The owner can put money in: twice its yearly loss and 2 credits for each level of it, 4 at the
+  least. The losing years are wiped out and it has three more to come right. Or it can be sold, as before.
+- **The founder.** If one of the owner's own house founded it (docs/AMBITIONS.md), that is a failure of their own: it
+  is written into their life, it tells on them, and it counts against what they want. Three failures and a person
+  gives the thing up.
+
+A venture stops paying for the reasons its earnings already answer to: a world brought low, lawless lanes, an
+embargo, a war with the world's holder, prices that have turned. Nothing new was invented to make it fail. A venture
+held by a company is the company's affair and is not judged here.
+
+Measured before the rule was fixed (ten runs of one start): 3% of venture-years went without a profit, and the
+unprofitable ones stayed so, which is what makes three years the right length: about twenty ventures a run are wound
+up over sixty years, of some hundred and ten standing at the end.
+

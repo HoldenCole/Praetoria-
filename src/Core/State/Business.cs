@@ -35,4 +35,8 @@ public sealed class Business
     public string FounderId { get; set; } = "";
 
     public int OfferedUntil { get; set; }
+
+    /// <summary>The years running in which it has earned nothing or lost money (docs/ECONOMY_MARKET.md, "A venture can fail").
+    /// Three, and it is wound up.</summary>
+    public int LosingYears { get; set; }
 }

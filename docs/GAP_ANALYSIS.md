@@ -1788,3 +1788,31 @@ load; no script plays to a year in which an office or a region stands apart, so 
 from a quaestor who robbed it. Nobody can set out to mend a name. A region's belief does one thing, to its
 allegiance (L13).
 
+## 58. A venture can fail — 2026-11-15
+
+**A6.** A venture could be sold, enlarged or taken, and could never go wrong. Now one that a house owns outright and
+that earns nothing or loses money three years running is wound up: the house gets half its salvage, the venture is
+gone, and whoever of the house founded it has failed at something of their own (docs/ECONOMY_MARKET.md, section 11).
+The owner is warned a year before and can put money in or sell.
+
+**Measured first.** Before the length was fixed, ten runs of one start were counted: 3% of venture-years went
+without a profit, and the unprofitable ventures stayed unprofitable. Three years was kept.
+
+**Measured after.** The Republic probe (60 runs of 60 years): 1,063 ventures were wound up, about eighteen a run, of
+some hundred and twenty standing at the end of each; a year without a profit was 1 to 3% of venture-years by start.
+The Republic stood in all 60; the great war was fought in 48 runs (47); 32 states broke away (33); trust in the
+magistrates averaged 47 to 62 by start and was low in 15 runs (14). The soak (33 runs, a save and load in each)
+passes with no drift, and the event for a failed venture fired in it. Survival: 0 of 10 on every start.
+
+**Not seen in play.** The soak's player never put money into a failing venture: it has the command, but its own
+ventures seldom lose three years running. Carrying a venture is proved by a test.
+
+715 tests (two new).
+
+**Not looked at in the browser.** The venture card's warning and its button compile and the Exchange loads; no
+script plays to a year in which one of the player's ventures is losing.
+
+**Left, and mapped.** One cause of failure, and only the owner can act: other houses never carry or sell a failing
+venture, a company's venture is never judged, a failure costs money and nothing else, and a founder gets no second
+start (A7).
+

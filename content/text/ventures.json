@@ -47,6 +47,16 @@
         "endow": "Endow a hospital, a chapel and a bridge, and let the chroniclers spell the name correctly.",
         "hoard": "Buy nothing the house does not need. Say nothing it does not have to."
       }
+    },
+    {
+      "id": "a_venture_fails",
+      "title": "The Doors Are Shut",
+      "body": "One of the house's ventures has gone three years without earning anything, and it has been wound up. What could be sold was sold. Half of that went to the people it owed, and the rest has come back to the treasury. The yard, the office, the name over the door: all of it is somebody else's now, or nobody's.",
+      "choices": {
+        "pay_its_people_off": "See its people paid before the doors shut.",
+        "take_the_loss_and_say_nothing": "Take the loss and say nothing.",
+        "find_out_whose_fault_it_was": "Find out whose fault it was."
+      }
     }
   ]
 }

@@ -188,4 +188,76 @@ public class VentureTests
         Assert.NotNull(model.Assets); Assert.All(model.Ventures!, o => Assert.True(o.BuildTurns >= 1 && o.Payback.Length > 0));
         Assert.All(model.Assets!.ForSale, f => Assert.True(f.Ask > 0 || f.Refusal != null));
     }
+
+    // ---------------- a venture can fail (docs/GAPS.md A6) ----------------
+
+    /// <summary>A venture of the player's house on their own world, in a year so bad that it earns nothing: a ruined world, lawless lanes, an embargo.</summary>
+    private static Business Losing(World w, VentureSystem vs, string founderId = "")
+    {
+        var barony = w.Holding("barony")!; barony.Prosperity = 0; RegionSystem.StateOf(w, "rim").Lawlessness = 100; w.WorldCounters["embargo:vega"] = w.Turn + 50;
+        foreach (var def in Content.Businesses.Defs.OrderBy(d => d.Id, StringComparer.Ordinal))
+        {
+            var b = Put(w, "losing", "vega", def.Id, "tessaly"); b.Founded = w.Turn - 5; b.FounderId = founderId;
+            if (vs.Earnings(w, b) <= 0) return b;
+            w.Businesses.Remove("losing");
+        }
+        throw new Xunit.Sdk.XunitException("no kind of venture earns nothing even on a ruined, lawless, embargoed world");
+    }
+    private static void Fires(World w, string eventId)
+    {
+        var me = w.Protagonist!; w.House(me.HouseId)!.Treasury.Credits = 100; w.House(me.HouseId)!.Treasury.Influence = 9; w.PoolsFor(me.Id).Influence = 9;
+        var engine = new Praetoria.Core.Events.EventEngine(Content, WorldBuilder.RngFor(w));
+        var found = engine.GatherEligible(w).FirstOrDefault(e => e.def.Id == eventId);
+        Assert.True(found.def != null, $"{eventId} is not eligible");
+        foreach (var c in found.def!.Choices)
+        {
+            var again = engine.GatherEligible(w).FirstOrDefault(e => e.def.Id == eventId); if (again.def == null) break;
+            engine.Resolve(new Praetoria.Core.Events.FiredEvent(again.def, again.binding), w, c.Id);
+        }
+    }
+
+    [Fact]
+    public void A_venture_that_earns_nothing_three_years_running_is_wound_up_and_its_founder_has_failed_at_it()
+    {
+        var (w, _, vs) = Reach(); var mine = w.House("vega")!;
+        var kin = new Character { Id = "kin", Name = "Test Kin", HouseId = "vega", Age = 30, Alive = true }; w.Characters["kin"] = kin; mine.Members.Add("kin");
+        var b = Losing(w, vs, "kin"); Assert.True(vs.Earnings(w, b) <= 0);
+        vs.Tick(w); Assert.Equal(1, b.LosingYears); Assert.False(w.HasFlag(VentureSystem.FailingFlag)); Assert.Equal(1, w.Counter(VentureSystem.LossYearsCounter));
+        w.Turn++; vs.Tick(w); Assert.Equal(2, b.LosingYears); Assert.True(w.HasFlag(VentureSystem.FailingFlag));   // a year's warning
+        int credits = mine.Treasury.Credits, back = vs.WoundUp(b); Assert.Equal(vs.Salvage(b) * VentureSystem.WoundUpPct / 100, back);
+        w.Turn++; vs.Tick(w);
+        Assert.Null(w.Business("losing")); Assert.Equal(credits + back, mine.Treasury.Credits); Assert.Equal(1, w.Counter(VentureSystem.FailedCounter));
+        Assert.True(w.HasFlag(VentureSystem.FailedFlag)); Assert.False(w.HasFlag(VentureSystem.FailingFlag));
+        // whoever of the house founded it has failed at something of their own, and it is written of them
+        Assert.Contains(VentureSystem.FounderFailedChar, kin.Flags); Assert.True(w.HasFlag(AmbitionSystem.FailedFlag));
+        Assert.Contains(kin.Life!.Deeds, d => d.Text.Contains("failed and was wound up"));
+        Assert.Contains(w.History, h => h.Text.Contains("is wound up") && h.Text.Contains("Test Kin"));
+        Fires(w, "a_venture_fails");
+        // the news is a year's
+        w.Turn++; vs.Tick(w); Assert.False(w.HasFlag(VentureSystem.FailedFlag)); Assert.DoesNotContain(VentureSystem.FounderFailedChar, kin.Flags);
+    }
+
+    [Fact]
+    public void Money_put_in_or_a_year_of_profit_wipes_out_the_losing_years_and_a_new_or_a_companys_venture_is_not_judged()
+    {
+        var (w, _, vs) = Reach(); var mine = w.House("vega")!; var ctx = Ctx(w);
+        var b = Losing(w, vs); vs.Tick(w); w.Turn++; vs.Tick(w); Assert.Equal(2, b.LosingYears);
+        // the house carries it
+        int cost = vs.PropCost(w, b); Assert.True(cost >= VentureSystem.PropFloor);
+        mine.Treasury.Credits = cost - 1; Assert.Contains("credits", new PropVentureCommand("self", b.Id, vs).Refusal(ctx));
+        mine.Treasury.Credits = cost + 10; new PropVentureCommand("self", b.Id, vs).Execute(ctx);
+        Assert.Equal(0, b.LosingYears); Assert.Equal(10, mine.Treasury.Credits); Assert.Equal(1, w.Counter(VentureSystem.ProppedCounter));
+        Assert.Contains("paying its way", new PropVentureCommand("self", b.Id, vs).Refusal(ctx));
+        // three more years to come right: it is not wound up the year after
+        w.Turn++; vs.Tick(w); Assert.NotNull(w.Business("losing")); Assert.Equal(1, b.LosingYears);
+        // a year of profit wipes the count out
+        w.Holding("barony")!.Prosperity = 80; RegionSystem.StateOf(w, "rim").Lawlessness = 0; w.WorldCounters.Remove("embargo:vega");
+        var good = Content.Businesses.Defs.OrderBy(d => d.Id, StringComparer.Ordinal).Select(d => { var x = Put(w, "good_" + d.Id, "vega", d.Id, "tessaly"); x.Founded = w.Turn - 5; return x; }).First(x => vs.Earnings(w, x) > 0);
+        good.LosingYears = 2; w.Turn++; vs.Tick(w); Assert.Equal(0, good.LosingYears);
+        // its first year is not judged, and a company's venture is the company's affair
+        w.WorldCounters["embargo:vega"] = w.Turn + 50; w.Holding("barony")!.Prosperity = 0; RegionSystem.StateOf(w, "rim").Lawlessness = 100;
+        var fresh = Put(w, "fresh", "vega", b.Kind, "tessaly"); fresh.Founded = w.Turn + 1; var held = Put(w, "held", "vega", b.Kind, "tessaly"); held.Founded = w.Turn - 5; held.CompanyId = "co_1";
+        w.Turn++; vs.Tick(w); Assert.Equal(0, fresh.LosingYears); Assert.Equal(0, held.LosingYears);
+        Assert.Contains("company", vs.PropRefusal(w, mine, held));
+    }
 }
