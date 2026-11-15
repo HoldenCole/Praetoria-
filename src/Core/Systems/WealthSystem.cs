@@ -25,7 +25,7 @@ public static partial class WealthSystem
     // deeds
     public const string KinGaveFlag = "kin_gave_to_the_house", WillReadFlag = "will_read", WillContestedFlag = "will_contested", HeirloomSoldFlag = "heirloom_sold", HeirloomGivenFlag = "heirloom_given", DebtScandalFlag = "debt_scandal";
     public const string InDebtChar = "in_debt", GaveChar = "gave_to_the_house", LegateeChar = "remembered_in_the_will";
-    private static readonly string[] DeedFlags = { KinGaveFlag, WillReadFlag, WillContestedFlag, HeirloomSoldFlag, HeirloomGivenFlag, DebtScandalFlag, LoanRepaidFlag, LoanSouredFlag, KinLentFlag, HeadOwesFlag, EntailBrokenFlag, StandardWonFlag, WeddingGiftFlag, StandardAskedFlag, KinMadeFlag, MendFlag };
+    private static readonly string[] DeedFlags = { KinGaveFlag, WillReadFlag, WillContestedFlag, HeirloomSoldFlag, HeirloomGivenFlag, DebtScandalFlag, LoanRepaidFlag, LoanSouredFlag, KinLentFlag, HeadOwesFlag, EntailBrokenFlag, StandardWonFlag, WeddingGiftFlag, StandardAskedFlag, KinMadeFlag, MendFlag, PlunderedFlag, AsksFavourFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -73,7 +73,9 @@ public static partial class WealthSystem
 
     public static void Give(World w, Character giver, Heirloom item, Character to)
     {
-        if (item.Kind == Standard && item.FromHouseId.Length > 0 && to.HouseId == item.FromHouseId) { ReturnStandard(w, item, giver, to, 0); Mark(w, HeirloomGivenFlag); return; }   // it goes home
+        if (IsSpoil(item) && to.HouseId == item.FromHouseId) { ReturnStandard(w, item, giver, to, 0); Mark(w, HeirloomGivenFlag); return; }   // it goes home
+        // given to the head of another house, a thing is a favour asked: that house owes one (docs/WEALTH.md "A gift that asks")
+        if (to.HouseId != giver.HouseId && w.House(to.HouseId) is { } theirs && Economy.HeadOf(w, theirs)?.Id == to.Id && giver.HouseId == w.Protagonist?.HouseId) Owe(w, theirs.Id, giver.HouseId);
         item.HolderId = to.Id; Regard(w, to, giver, to.HouseId == giver.HouseId ? 15 : 20);
         if (giver.Will != null) giver.Will.Items.Remove(item.Id);
         if (to.HouseId != item.OfHouseId && w.House(item.OfHouseId) is { } of && of.Id == giver.HouseId) of.Legitimacy -= 1;
@@ -121,6 +123,11 @@ public static partial class WealthSystem
     public static string Does(World w, Heirloom item)
     {
         var holder = w.Char(item.HolderId); var of = w.House(item.OfHouseId); bool home = holder != null && holder.HouseId == item.OfHouseId;
+        string taken = IsSpoil(item) && w.House(item.FromHouseId) is { } lostBy && lostBy.Id != holder?.HouseId ? $" {lostBy.Name} has not forgotten whose it was." : "";
+        return taken.Length > 0 && item.Kind == "signet" ? "A trophy: a signet does nothing off the hand of the head of its own house." + taken : DoesAlone(w, item, holder, of, home) + taken;
+    }
+    private static string DoesAlone(World w, Heirloom item, Character? holder, House? of, bool home)
+    {
         return item.Kind switch
         {
             "signet" => home && of != null && Economy.HeadOf(w, of)?.Id == holder!.Id ? $"On the head's hand, the house's name mends a point a year while its standing is under {SignetMendsBelow}." : "Does nothing off the hand of the head of its own house.",
@@ -128,7 +135,8 @@ public static partial class WealthSystem
             "library" => "Everyone of its holder's house who has set themselves a study learns it a little faster.",
             "estate" => "Brings its holder 2 credits a year.",
             Shrine => $"The commons think a point better of its holder's house each year, while they think less than {ShrineCeiling} of it.",
-            Standard => (holder != null && FlagshipOf(w, holder.Id) != null ? $"Flown from a flagship, the fleet under it is a point more loyal each year, up to {StandardCeiling}." : "Does nothing in a hall: it wants flying from the flagship of whoever holds it.") + (w.House(item.FromHouseId) is { } lostBy && lostBy.Id != holder?.HouseId ? $" {lostBy.Name} has not forgotten whose it was." : ""),
+            Standard => (holder != null && FlagshipOf(w, holder.Id) != null ? $"Flown from a flagship, the fleet under it is a point more loyal each year, up to {StandardCeiling}." : "Does nothing in a hall: it wants flying from the flagship of whoever holds it."),
+            Orrery => (holder?.Study.Length > 0 ? "Its holder learns what they have set themselves to study a point faster each year." : "Does nothing for one who studies nothing.") + (w.House(item.FromHouseId) is { } sentBy && holder != null && FavourOwed(w, holder.HouseId, sentBy.Id) ? $" It came from {sentBy.Name}, which has a favour to call in for it." : ""),
             Plate => w.House(item.FromHouseId) is { } from && from.Id != holder?.HouseId ? $"A gift from {from.Name}: its holder and the head of that house think a point better of each other each year, up to {PlateCeiling}. Selling it would be taken badly." : "A gift that has come back to the house that gave it. It does nothing here.",
             _ => ""
         };
@@ -149,11 +157,13 @@ public static partial class WealthSystem
                 if (of!.Id == w.Protagonist?.HouseId) w.Log($"{item.Name} is entailed, and goes to {head.Name} with the house.");
             }
             if (holder?.Alive != true) continue;
+            // the house a thing was taken from does not forget who has it
+            if (IsSpoil(item) && w.House(item.FromHouseId) is { } lostBy && lostBy.Id != holder.HouseId && Economy.HeadOf(w, lostBy) is { Alive: true } theirHead) Regard(w, theirHead, holder, -1, floor: StandardGrudgeFloor);
             if (item.Kind == "signet" && of != null && head?.Id == holder.Id && of.Legitimacy < SignetMendsBelow) of.Legitimacy += 1;
             else if (item.Kind == "sword" && holder.CareerTrack == "military") EducationSystem.Gain(w, holder, "discipline", SwordPoints);
             else MadeThings(w, item, holder);
         }
-        OthersCommission(w); StandardsAsked(w); GiftsToMend(w);
+        OthersCommission(w); StandardsAsked(w); GiftsToMend(w); GiftsThatAsk(w);
     }
 
     /// <summary>Sell it. The money is the seller's own. Selling something the family has always had is noticed and resented.</summary>
@@ -353,7 +363,7 @@ public static partial class WealthSystem
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
         Heirlooms(w);
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null; if (p is not { Alive: true } || house == null) return;
-        foreach (var c in w.Characters.Values) { if (!w.HasFlag(KinGaveFlag)) c.Flags.Remove(GaveChar); if (!w.HasFlag(WillReadFlag)) c.Flags.Remove(LegateeChar); if (!w.HasFlag(KinLentFlag)) c.Flags.Remove(KinLentChar); if (!w.HasFlag(StandardWonFlag)) c.Flags.Remove(WonStandardChar); if (!w.HasFlag(WeddingGiftFlag)) c.Flags.Remove(GaveGiftChar); if (!w.HasFlag(StandardAskedFlag)) c.Flags.Remove(AsksChar); if (!w.HasFlag(KinMadeFlag)) c.Flags.Remove(KinMadeChar); if (!w.HasFlag(MendFlag)) c.Flags.Remove(MendChar); }
+        foreach (var c in w.Characters.Values) { if (!w.HasFlag(KinGaveFlag)) c.Flags.Remove(GaveChar); if (!w.HasFlag(WillReadFlag)) c.Flags.Remove(LegateeChar); if (!w.HasFlag(KinLentFlag)) c.Flags.Remove(KinLentChar); if (!w.HasFlag(StandardWonFlag)) c.Flags.Remove(WonStandardChar); if (!w.HasFlag(WeddingGiftFlag)) c.Flags.Remove(GaveGiftChar); if (!w.HasFlag(StandardAskedFlag)) c.Flags.Remove(AsksChar); if (!w.HasFlag(KinMadeFlag)) c.Flags.Remove(KinMadeChar); if (!w.HasFlag(MendFlag)) c.Flags.Remove(MendChar); if (!w.HasFlag(AsksFavourFlag)) c.Flags.Remove(AsksFavourChar); }
         // the dead keep nothing; a holder who is gone or has left loses nothing, but the dead's things come home
         foreach (var dead in w.Characters.Values.Where(c => !c.Alive && (c.Purse != 0 || w.Heirlooms.Any(h => h.HolderId == c.Id) || CompanySystem.HeldPersonally(w, c.Id).Count > 0 || w.Businesses.Values.Any(b => b.HeldById == c.Id))).OrderBy(c => c.Id, StringComparer.Ordinal).ToList()) Lapse(w, dead);
 

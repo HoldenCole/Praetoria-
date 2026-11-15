@@ -226,7 +226,47 @@ gifts were sent to mend a quarrel, between four and five a run. Houses holding s
 36% at the end (30% before this). The first setting for gifts, one year in twelve, put that at 41% and was cut.
 
 Found while building it, and mapped (W11): a gift is always plate and is never sent to ask a favour; nothing but a
-standard is ever taken in a war.
+standard is ever taken in a war. Both were closed the same day: see the next section.
+
+### Plunder, and a gift that asks (W11, 2026-11-15)
+
+**Things are carried off when a world is stormed.**
+
+- Whoever governed the world for the beaten house can lose a signet, a sword, a library or a standard: the most
+  valuable of them, in about one storming in two. If that was the house's last world, its head's things are at risk
+  too. Land and a shrine stay where they are; plate and an orrery are not touched.
+- The commander who took the world has it. An entail does not bring it back. The house that lost it loses a point of
+  standing.
+- **Everything said of a taken standard is now true of any taken thing**: the house it was taken from resents whoever
+  holds it, has it back at once by winning a battle against them or storming a world of theirs, buys it home at
+  peace for three times its worth, and asks the player for it. A thing that is not a standard goes back to the head
+  of its house, under its own name. A signet in the wrong hands does nothing: it is a trophy.
+- **A house that is broken** and folded into another gives up its signet to that house's head.
+- An event when something of yours is carried off.
+
+**A gift can ask a favour, and it is not plate.**
+
+- **An orrery** is a new kind of thing. Its holder learns whatever they have set themselves to study a point faster
+  each year.
+- **Sent to ask.** A head with a motion before the Senate and 60 credits sends one, in about one such year in ten,
+  to the head of the weightiest house that is neither friend nor enemy (−10 to 19). Kept, it is **a favour owed**.
+- **A favour owed is a vote leaned.** A house that owes the proposer a favour leans two further for the motion, and
+  the favour is spent when it is voted.
+- **You can ask one.** Any thing you give to the head of another house puts that house in your debt for one favour,
+  spent on the next motion you bring. The panel lists who owes you and whom you owe.
+- **You are judged by your vote.** If you keep an orrery and vote for the motion, the sender thinks 5 better of you;
+  vote any other way and they think 15 worse. The event offers three answers: keep it and remember, keep it and say
+  it buys nothing (they think 5 worse, and nothing is owed), or send it back.
+
+Measured over sixty runs of sixty years: 47 things were carried off when a world fell, and 68 taken things
+(standards among them) were still held at the end by the house that took them. 40 gifts asked a favour, and all 40
+favours were spent on a vote. Houses holding something they were not born with: 36%, as before.
+
+Not seen in play: no broken house surrendered a signet in the probe or the soak, so that rests on a test. In the
+browser the shrine was given to another head and the panel read "Owe you a favour: House Aurelian".
+
+Found while building it, and mapped (W13): a favour is one thing, a lean on one vote; and other houses never refuse
+or return a gift.
 
 ### A purse that holds more than credits (W1, 2026-11-15)
 

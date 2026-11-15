@@ -115,7 +115,7 @@ public sealed class SenateSystem
         int toProposer = Disp(head, proposerHead), toTarget = Disp(head, targetHead);
         var proposerHouseForSway = w.House(m.ProposerHouseId);
         int lean = toProposer >= 20 ? 1 : toProposer <= -20 ? -1 : 0;
-        lean += OldTie(w, def, m, head, houseId) + LadderSystem.CommitteeLean(w, def.Interest, m.ProposerHouseId, houseId) + LadderSystem.ChairLeanOf(w, m, houseId);
+        lean += OldTie(w, def, m, head, houseId) + LadderSystem.CommitteeLean(w, def.Interest, m.ProposerHouseId, houseId) + LadderSystem.ChairLeanOf(w, m, houseId) + WealthSystem.FavourLean(w, houseId, m.ProposerHouseId);
         // sway (docs/REPUBLIC.md stage 3): a house leans with whoever it depends on — its patron, its creditor, the house whose fuel
         // its fleets burn — for what that house wants, and against what is aimed at it
         if (proposerHouseForSway != null && proposerHouseForSway.Id != houseId) lean += Math.Min(2, OrderSystem.Sway(w, h, proposerHouseForSway).lean);
@@ -312,6 +312,7 @@ public sealed class SenateSystem
             w.Log(with ? $"{client.Name} votes as {patron.Name} wished. It is noted." : $"{client.Name} votes against the wishes of its patron, {patron.Name}. It is noted.");
         }
         foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId)) if (!m.Votes.ContainsKey(h.Id)) m.Votes[h.Id] = Math.Sign(Lean(w, m, h.Id));   // the rivals declare
+        WealthSystem.FavoursCalled(w, m);   // a favour owed to the proposer is spent on this vote (docs/WEALTH.md "A gift that asks")
         var (f, a) = Tally(w, m);
         Character? casting = null; bool byChair = f == a && f > 0 && LadderSystem.CastingVote(w, m, out casting);   // a tied Senate goes as the presiding consul voted
         m.ForWeight = f; m.AgainstWeight = a; m.Passed = f > a || byChair; m.Resolved = true; m.ResolvedTurn = w.Turn;

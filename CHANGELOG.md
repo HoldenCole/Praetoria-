@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **Plunder, and a gift that asks** (docs/WEALTH.md; docs/GAPS.md W11). When a world is stormed, its governor's
+  signet, sword, library or standard may be carried off by the commander. Anything taken is resented, can be
+  retaken in battle or bought home, and may be asked for, as a standard already could. A new kind of thing, an
+  orrery, makes its holder study faster; a head with a motion before the Senate sometimes sends you one, and if
+  you keep it you are judged by how you vote. Giving a thing to another head puts their house in your debt for a
+  favour, spent on your next motion. The purses panel lists favours owed. Two events.
 - **Bills at the peace, and foreclosure** (docs/ECONOMY_MARKET.md, section 14; docs/GAPS.md A8). A venture sacked in
   a war is billed to whoever took the world and paid when peace is made, unless the claimant was beaten. A company
   that cannot carry a failing venture sells it rather than close it, if its board minds the books. A house that

@@ -50,6 +50,7 @@ public static class HouseSystem
     /// <summary>Fold a house into another: characters, fleets (as levies) and ventures pass; a positive treasury passes, a negative one is forgiven.</summary>
     public static void Fold(World w, House house, House into, string line)
     {
+        WealthSystem.Broken(w, house, into);   // its signet goes to whoever has the house now (docs/WEALTH.md)
         foreach (var c in w.Characters.Values.Where(c => c.HouseId == house.Id)) { c.HouseId = into.Id; if (!into.Members.Contains(c.Id)) into.Members.Add(c.Id); }
         foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id)) { f.OwnerId = into.Id; f.Name = f.Name.Replace("Militia", "Levy").Replace("Guard", "Levy"); }
         foreach (var b in w.Businesses.Values.Where(b => b.OwnerId == house.Id)) b.OwnerId = into.Id;

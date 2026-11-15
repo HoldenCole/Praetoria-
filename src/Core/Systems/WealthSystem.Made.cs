@@ -69,11 +69,13 @@ public static partial class WealthSystem
         if (house == null || beaten == null || winnerId == PirateSystem.HouseId || loserId == PirateSystem.HouseId || admirals.Count == 0) return null;
         string where = w.Galaxy?.System(systemId)?.Name ?? systemId;
         // a standard of the winner's that the beaten house flies is what the day was for: it comes home
-        var lost = w.Heirlooms.Where(h => h.Kind == Standard && h.FromHouseId == winnerId && w.Char(h.HolderId) is { } hc && hc.HouseId == loserId).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+        var lost = w.Heirlooms.Where(h => IsSpoil(h) && h.FromHouseId == winnerId && w.Char(h.HolderId) is { } hc && hc.HouseId == loserId).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
         if (lost != null)
         {
-            lost.HolderId = admirals[0].Id; lost.OfHouseId = winnerId; lost.FromHouseId = ""; lost.Entailed = false; lost.Name = $"the {Bare(house)} standard, lost and retaken at {where}"; Count(w, RetakenKey);
-            LifeSystem.Note(w, admirals[0], "victory", $"Retook the house's standard at {where}.");
+            // a standard is whoever retook it's; anything else that was the house's goes back to its head
+            var home = lost.Kind == Standard ? admirals[0] : Economy.HeadOf(w, house) is { Alive: true } hd ? hd : admirals[0];
+            lost.HolderId = home.Id; lost.OfHouseId = winnerId; lost.FromHouseId = ""; lost.Entailed = false; if (lost.Kind == Standard) lost.Name = $"the {Bare(house)} standard, lost and retaken at {where}"; Count(w, RetakenKey);
+            LifeSystem.Note(w, admirals[0], "victory", lost.Kind == Standard ? $"Retook the house's standard at {where}." : $"Retook {lost.Name} at {where}.");
             if (winnerId == w.Protagonist?.HouseId) w.Log($"{admirals[0].Name} retakes {lost.Name}.");
             return lost;
         }
@@ -121,12 +123,8 @@ public static partial class WealthSystem
     private static void MadeThings(World w, Heirloom item, Character holder)
     {
         if (item.Kind == Shrine) { if (PolicySystem.Approval(w, holder.HouseId, "commons") < ShrineCeiling) PolicySystem.Sway(w, holder.HouseId, "commons", 1); }
-        else if (item.Kind == Standard)
-        {
-            if (FlagshipOf(w, holder.Id) is { } f && f.Loyalty < StandardCeiling) f.Loyalty += 1;
-            // the house it was taken from does not forget who flies it
-            if (w.House(item.FromHouseId) is { } lostBy && lostBy.Id != holder.HouseId && Economy.HeadOf(w, lostBy) is { Alive: true } theirHead) Regard(w, theirHead, holder, -1, floor: StandardGrudgeFloor);
-        }
+        else if (item.Kind == Standard) { if (FlagshipOf(w, holder.Id) is { } f && f.Loyalty < StandardCeiling) f.Loyalty += 1; }
+        else if (item.Kind == Orrery) { if (holder.Study.Length > 0) EducationSystem.Gain(w, holder, holder.Study, 1); }
         else if (item.Kind == Plate && w.House(item.FromHouseId) is { } from && from.Id != holder.HouseId && Economy.HeadOf(w, from) is { Alive: true } giver)
         { Regard(w, holder, giver, 1, ceiling: PlateCeiling); Regard(w, giver, holder, 1, ceiling: PlateCeiling); }
     }
@@ -155,17 +153,17 @@ public static partial class WealthSystem
     public static void ReturnStandard(World w, Heirloom item, Character? from, Character to, int paid)
     {
         var home = w.House(to.HouseId); item.HolderId = to.Id; item.OfHouseId = to.HouseId; item.FromHouseId = ""; item.Entailed = false;
-        item.Name = $"the {(home != null ? Bare(home) : "old")} standard, come home"; if (from?.Will != null) from.Will.Items.Remove(item.Id);
+        if (item.Kind == Standard) item.Name = $"the {(home != null ? Bare(home) : "old")} standard, come home"; if (from?.Will != null) from.Will.Items.Remove(item.Id);
         Regard(w, to, from, paid > 0 ? RansomRegard : ReturnRegard); Count(w, paid > 0 ? RansomedKey : ReturnedKey); w.WorldCounters.Remove(AskedKey(item.Id));
         if (from?.HouseId == w.Protagonist?.HouseId || to.HouseId == w.Protagonist?.HouseId)
-            w.Log(paid > 0 ? $"{item.Name}: {to.Name} pays {paid} credits and has it back." : $"{from?.Name} sends {to.Name} their standard back, and asks nothing for it.");
+            w.Log(paid > 0 ? $"{item.Name}: {to.Name} pays {paid} credits and has it back." : $"{from?.Name} sends {to.Name} {(item.Kind == Standard ? "their standard" : item.Name)} back, and asks nothing for it.");
     }
 
     /// <summary>Your house's standard is flown by another. Its holder's house will sell it home if its head can bear you; at war
     /// there is only one way to have it back.</summary>
     public static string? RansomRefusal(World w, Character? me, Heirloom? item)
     {
-        if (me?.Alive != true || item == null || item.Kind != Standard || item.FromHouseId != me.HouseId) return "not a standard of your house";
+        if (me?.Alive != true || item == null || !IsSpoil(item) || item.FromHouseId != me.HouseId) return "not a thing taken from your house";
         var holder = w.Char(item.HolderId); var theirs = holder != null ? w.House(holder.HouseId) : null; if (holder?.Alive != true || theirs == null || theirs.Id == me.HouseId) return "nobody else holds it";
         if (w.AtWar(me.HouseId, theirs.Id)) return "you are at war with them: it is taken back in battle or not at all";
         var head = Economy.HeadOf(w, theirs); if (head != null && (w.GetRelationship(head.Id, me.Id)?.Disposition ?? 0) < RansomWillNot) return $"{head.Name} will not hear of it";
@@ -181,7 +179,7 @@ public static partial class WealthSystem
     private static void AnswerStandards(World w)
     {
         bool given = w.WorldFlags.Remove(GivenBackFlag), sold = w.WorldFlags.Remove(RansomAgreedFlag); string? mine = w.Protagonist?.HouseId; if (!given && !sold || mine == null) return;
-        var item = w.Heirlooms.Where(h => h.Kind == Standard && w.Counter(AskedKey(h.Id)) > 0 && w.Char(h.HolderId)?.HouseId == mine && w.House(h.FromHouseId) != null)
+        var item = w.Heirlooms.Where(h => IsSpoil(h) && w.Counter(AskedKey(h.Id)) > 0 && w.Char(h.HolderId)?.HouseId == mine && w.House(h.FromHouseId) != null)
             .OrderByDescending(h => w.Counter(AskedKey(h.Id))).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
         var theirs = item != null ? w.House(item.FromHouseId) : null; var head = theirs != null ? Economy.HeadOf(w, theirs) : null; if (item == null || head?.Alive != true) return;
         var holder = w.Char(item.HolderId)!; int price = sold ? Math.Min(RansomPrice(item), Math.Max(0, theirs!.Treasury.Credits)) : 0;
@@ -194,7 +192,7 @@ public static partial class WealthSystem
     private static void StandardsAsked(World w)
     {
         string? mine = w.Protagonist?.HouseId;
-        foreach (var item in w.Heirlooms.Where(h => h.Kind == Standard && h.FromHouseId.Length > 0).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        foreach (var item in w.Heirlooms.Where(IsSpoil).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             var holder = w.Char(item.HolderId); var from = w.House(item.FromHouseId); var head = from != null ? Economy.HeadOf(w, from) : null;
             if (holder?.Alive != true || head?.Alive != true || holder.HouseId == from!.Id || w.AtWar(holder.HouseId, from.Id) || from.Id == mine) continue;
@@ -230,7 +228,7 @@ public static partial class WealthSystem
     {
         string? mine = w.Protagonist?.HouseId;
         if (w.WorldFlags.Remove(SendBackFlag) && mine != null && w.Heirlooms.Where(h => h.Id.StartsWith("gift_", StringComparison.Ordinal) && w.Char(h.HolderId)?.HouseId == mine).OrderByDescending(h => h.Id.Length).ThenByDescending(h => h.Id, StringComparer.Ordinal).FirstOrDefault(h => w.House(h.FromHouseId) != null) is { } back)
-        { w.Heirlooms.Remove(back); Count(w, SentBackKey); }
+        { w.Heirlooms.Remove(back); Count(w, SentBackKey); w.WorldCounters.Remove(FavourKey(mine, back.FromHouseId)); }
         foreach (var a in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != mine && h.Treasury.Credits >= MendAt).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             var head = Economy.HeadOf(w, a); if (head?.Alive != true || Hash($"{a.Id}:{w.Turn}:mend") / 7 % MendOneIn != 0) continue;
@@ -242,6 +240,96 @@ public static partial class WealthSystem
             w.Heirlooms.Add(new Heirloom { Id = $"gift_{a.Id}_{to.HouseId}_{w.Turn:D4}", Name = $"the {Bare(a)} gift", Kind = Plate, HolderId = to.Id, OfHouseId = to.HouseId, FromHouseId = a.Id, Value = PlateValue });
             Regard(w, to, head, MendRegard); Regard(w, head, to, MendRegard); Count(w, MendKey);
             if (to.HouseId == mine) { Mark(w, MendFlag); head.Flags.Add(MendChar); w.Log($"{head.Name} of {a.Name} sends you a gift, unasked. There has been ill feeling, and this is meant to end it."); }
+        }
+    }
+
+    // ---------------- plunder that is not a standard, and a gift that asks a favour (docs/WEALTH.md, W11) ----------------
+
+    public const string Orrery = "orrery";
+    public static readonly string[] CarriedOff = { "signet", "sword", Library, Standard };
+    public const int PlunderOneIn = 2, PlunderLegitimacy = 1, FavourLeanBy = 2, FavourOneIn = 10, FavourFrom = -10, FavourTo = 19, FavourCost = 18, FavourRegard = 4, FavourKept = 5, FavourBroken = 15, OrreryValue = 18;
+    public const string PlunderedKey = "heirlooms_plundered", SurrenderedKey = "signets_surrendered", FavourGiftsKey = "favour_gifts", FavoursOwedKey = "favours_owed", FavoursCalledKey = "favours_called", FavoursKeptKey = "favours_kept", FavoursBrokenKey = "favours_broken";
+    public const string PlunderedFlag = "heirloom_plundered", AsksFavourFlag = "gift_that_asks", AsksFavourChar = "asks_a_favour", DeclineFlag = "favour_declined";
+    public const string FavourPrefix = "favour:";
+
+    /// <summary>A thing held by someone other than the house it was taken from in war. (Plate and an orrery carry the name of
+    /// whoever gave them, which is another matter.)</summary>
+    public static bool IsSpoil(Heirloom h) => h.FromHouseId.Length > 0 && h.Kind != Plate && h.Kind != Orrery;
+
+    /// <summary>A world is stormed. Whoever governed it for the beaten house, and its head if that was its last world, may
+    /// lose something that can be carried: a signet, a sword, a library, a standard. The commander has it. A thing that had
+    /// been taken from the stormers' own house comes home instead, for certain.</summary>
+    public static Heirloom? Plunder(World w, string loserId, string takerId, Holding world, IReadOnlyList<Character> admirals)
+    {
+        var loser = w.House(loserId); var takers = w.House(takerId); if (loser == null || takers == null || loserId == PirateSystem.HouseId || takerId == PirateSystem.HouseId) return null;
+        var from = new List<string>(); if (w.Char(world.GovernorId) is { Alive: true } gov && gov.HouseId == loserId) from.Add(gov.Id);
+        if (!w.HoldingsOf(loserId).Any(h => h.IsPlanet) && Economy.HeadOf(w, loser) is { Alive: true } lh && !from.Contains(lh.Id)) from.Add(lh.Id);
+        var things = w.Heirlooms.Where(h => from.Contains(h.HolderId) && CarriedOff.Contains(h.Kind)).OrderByDescending(h => h.Value).ThenBy(h => h.Id, StringComparer.Ordinal).ToList(); if (things.Count == 0) return null;
+        var commander = admirals.FirstOrDefault() ?? Economy.HeadOf(w, takers); if (commander?.Alive != true) return null; string? mine = w.Protagonist?.HouseId;
+        if (things.FirstOrDefault(h => h.FromHouseId == takerId) is { } ours)
+        {
+            var was = w.Char(ours.HolderId); var home = ours.Kind == Standard ? commander : Economy.HeadOf(w, takers) is { Alive: true } th ? th : commander;
+            ours.HolderId = home.Id; ours.OfHouseId = takerId; ours.FromHouseId = ""; ours.Entailed = false; if (was?.Will != null) was.Will.Items.Remove(ours.Id); Count(w, RetakenKey);
+            if (takerId == mine) w.Log($"{ours.Name} is found on {world.Name} and comes home."); return ours;
+        }
+        var item = things[0]; if (Hash($"{item.Id}:{w.Turn}:{takerId}:plunder") / 7 % PlunderOneIn != 0) return null;
+        var holder = w.Char(item.HolderId); if (holder?.Will != null) holder.Will.Items.Remove(item.Id);
+        item.HolderId = commander.Id; item.Entailed = false; if (item.FromHouseId.Length == 0) item.FromHouseId = loserId;   // one already taken from a third house is still that house's to want back
+        if (item.Kind == Standard) item.OfHouseId = takerId;
+        loser.Legitimacy -= PlunderLegitimacy; Count(w, PlunderedKey); LifeSystem.Note(w, commander, "victory", $"Carried {item.Name} off from {world.Name}.");
+        if (loserId == mine) { Mark(w, PlunderedFlag); w.Log($"{world.Name} falls, and {commander.Name} of {takers.Name} carries off {item.Name}."); }
+        else if (takerId == mine) w.Log($"{commander.Name} carries off {item.Name} from {world.Name}. {loser.Name} will want it back.");
+        return item;
+    }
+
+    /// <summary>A house is broken and folded into another: its signet goes to the head of the house that has it now.</summary>
+    public static void Broken(World w, House house, House into)
+    {
+        var head = Economy.HeadOf(w, into); if (head?.Alive != true) return;
+        foreach (var signet in w.Heirlooms.Where(h => h.Kind == "signet" && h.OfHouseId == house.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
+        { signet.HolderId = head.Id; signet.Entailed = false; signet.FromHouseId = ""; Count(w, SurrenderedKey); }
+    }
+
+    public static string FavourKey(string owerHouseId, string toHouseId) => $"{FavourPrefix}{owerHouseId}>{toHouseId}";
+    public static bool FavourOwed(World w, string owerHouseId, string toHouseId) => w.Counter(FavourKey(owerHouseId, toHouseId)) > 0;
+    /// <summary>A house that owes the proposer a favour leans its way: the favour is what the gift was for.</summary>
+    public static int FavourLean(World w, string houseId, string proposerHouseId) => houseId != proposerHouseId && houseId != w.Protagonist?.HouseId && FavourOwed(w, houseId, proposerHouseId) ? FavourLeanBy : 0;
+    private static void Owe(World w, string owerHouseId, string toHouseId) { if (!FavourOwed(w, owerHouseId, toHouseId)) { w.WorldCounters[FavourKey(owerHouseId, toHouseId)] = Math.Max(1, w.Turn); Count(w, FavoursOwedKey); } }
+    public static List<House> OweMe(World w, string houseId) => w.Houses.Values.Where(h => FavourOwed(w, h.Id, houseId)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+    public static List<House> IOwe(World w, string houseId) => w.Houses.Values.Where(h => FavourOwed(w, houseId, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+
+    /// <summary>A motion is voted. Every favour owed to its proposer is spent on it. The player, who votes as they please, is
+    /// judged by how they voted: for it, the favour is kept; anything else, and it is remembered that they took the gift.</summary>
+    public static void FavoursCalled(World w, Motion m)
+    {
+        string? mine = w.Protagonist?.HouseId; var proposer = w.House(m.ProposerHouseId); if (proposer == null) return;
+        foreach (var key in w.WorldCounters.Keys.Where(k => k.StartsWith(FavourPrefix, StringComparison.Ordinal) && k.EndsWith(">" + proposer.Id, StringComparison.Ordinal)).OrderBy(k => k, StringComparer.Ordinal).ToList())
+        {
+            string ower = key[FavourPrefix.Length..^(proposer.Id.Length + 1)]; w.WorldCounters.Remove(key); Count(w, FavoursCalledKey);
+            if (ower != mine) continue;
+            var theirs = Economy.HeadOf(w, proposer); var me = w.Protagonist; bool kept = m.Votes.TryGetValue(mine!, out int cast) && cast > 0;
+            Regard(w, theirs, me, kept ? FavourKept : -FavourBroken); Count(w, kept ? FavoursKeptKey : FavoursBrokenKey);
+            w.Log(kept ? $"{proposer.Name} asked a favour with its gift, and you voted for its motion. The account is even." : $"{proposer.Name} asked a favour with its gift, and you did not vote for its motion. {theirs?.Name ?? "Its head"} will remember who kept the gift.");
+        }
+    }
+
+    /// <summary>A head with a motion before the Senate sometimes sends an orrery to the head of a weighty house that is not
+    /// yet a friend. Kept, it is a favour owed: that house leans for the motion. Sent to the player, it asks for an answer.</summary>
+    private static void GiftsThatAsk(World w)
+    {
+        string? mine = w.Protagonist?.HouseId;
+        if (w.WorldFlags.Remove(DeclineFlag) && mine != null) foreach (var h in IOwe(w, mine).Where(h => Economy.HeadOf(w, h) is { } hd && hd.Flags.Contains(AsksFavourChar))) w.WorldCounters.Remove(FavourKey(mine, h.Id));
+        foreach (var a in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != mine && h.Treasury.Credits >= MendAt).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        {
+            var head = Economy.HeadOf(w, a); if (head?.Alive != true || !w.Motions.Any(m => m.Open && m.ProposerHouseId == a.Id)) continue;
+            if (Hash($"{a.Id}:{w.Turn}:favour") / 7 % FavourOneIn != 0) continue;
+            var to = w.Houses.Values.Where(b => b.Id != a.Id && b.Id != PirateSystem.HouseId && !w.AtWar(a.Id, b.Id) && !FavourOwed(w, b.Id, a.Id)).Select(b => (b, c: Economy.HeadOf(w, b))).Where(x => x.c is { Alive: true })
+                .Where(x => (w.GetRelationship(head.Id, x.c!.Id)?.Disposition ?? 0) is >= FavourFrom and <= FavourTo).OrderByDescending(x => x.b.Legitimacy).ThenBy(x => x.b.Id, StringComparer.Ordinal).Select(x => x.c!).FirstOrDefault();
+            if (to == null || w.Heirlooms.Any(h => h.Kind == Orrery && h.FromHouseId == a.Id && h.OfHouseId == to.HouseId)) continue;
+            a.Treasury.Credits -= FavourCost;
+            w.Heirlooms.Add(new Heirloom { Id = $"gift_{a.Id}_{to.HouseId}_{w.Turn:D4}o", Name = $"the {Bare(a)} orrery", Kind = Orrery, HolderId = to.Id, OfHouseId = to.HouseId, FromHouseId = a.Id, Value = OrreryValue });
+            Regard(w, to, head, FavourRegard); Regard(w, head, to, FavourRegard); Owe(w, to.HouseId, a.Id); Count(w, FavourGiftsKey);
+            if (to.HouseId == mine) { Mark(w, AsksFavourFlag); head.Flags.Add(AsksFavourChar); w.Log($"{head.Name} of {a.Name} sends you an orrery. {a.Name} has a motion before the Senate."); }
         }
     }
 }

@@ -1986,3 +1986,27 @@ event and the name for bad business already on the Exchange.
 736 tests (three new).
 
 **Left, and mapped.** Foreclosure takes a venture and nothing else; a bill at the peace is for ventures only (A9).
+
+## 65. Plunder, and a gift that asks — 2026-11-15
+
+**W11.** Both halves are built (docs/WEALTH.md, "Plunder, and a gift that asks"). A stormed world's governor can
+lose a signet, a sword, a library or a standard to the commander, and everything W9 gave a taken standard (the
+grudge, retaking, buying home, asking) now holds for any taken thing. A gift can be an orrery sent to ask a
+favour; a favour owed leans a house two points on the proposer's next motion; the player asks one by giving, and is
+judged by their vote when they keep one.
+
+**Measured.** The Republic probe (60 runs of 60 years): 47 things carried off, 68 taken things still held at the
+end, 40 gifts that asked a favour and 40 favours spent on a vote. Houses holding something they were not born with:
+36% (36%). The Republic stood in all 60; the great war was fought in 41 runs (40); 24 states broke away (23); trust
+in the magistrates averaged 47 to 61 by start and was low in 14 runs (14). The soak (33 runs, a save and load in
+each) passes with no drift: 21 things carried off, 24 favour gifts, and its player kept one favour and broke one.
+Both new events fired. Survival: 0 of 10 on every start.
+
+**Not seen in play.** No broken house surrendered a signet. It is proved by a test.
+
+**Seen in the browser.** The shrine was given to the head of another house and the purses panel then read "Owe you
+a favour: House Aurelian". A thing carried off, and an orrery arriving, were not seen there.
+
+739 tests (three new).
+
+**Left, and mapped.** A favour is a lean on one vote and nothing else; other houses never refuse a gift (W13).

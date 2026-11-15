@@ -48,6 +48,10 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('own shares, bought: ' + offer);
   console.log('own shares, held: ' + await page.evaluate(() => { const col = [...document.querySelectorAll('.panel.wealth .hh-head')].find(e => e.innerText.startsWith('Shares of your own')); let n = col ? col.nextElementSibling : null; const out = []; while (n && !n.classList.contains('hh-head')) { if (n.classList.contains('purse-row') || n.classList.contains('muted')) out.push(n.innerText.replace(/\s+/g, ' ').slice(0, 160)); n = n.nextElementSibling; } return out.join(' || ') || 'NO SECTION'; }));
   console.log('heirlooms now: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .suit')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 200)).filter(t => /worth/.test(t)).join(' || ')));
+  // a thing given to the head of another house is a favour asked (docs/WEALTH.md "A gift that asks")
+  const gave = await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth .suit .suit-acts button')].find(e => !e.disabled && / of /.test(e.innerText) && !/Sell|Send it home/.test(e.innerText)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ') : 'nobody to give it to'; });
+  await page.waitForTimeout(400);
+  console.log('gave the shrine to: ' + gave + ' · ' + await page.evaluate(() => { const el = [...document.querySelectorAll('.panel.wealth .muted.small')].find(e => e.innerText.includes('Owe you a favour')); return el ? el.innerText.replace(/\s+/g, ' ') : 'no favours line'; }));
   console.log('their purses: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .purse-row:not(.own-share)')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 90)).join(' || ')));
   await page.evaluate(() => { const el = document.querySelector('.panel.wealth'); if (el) el.scrollIntoView(); }); await page.waitForTimeout(300);
   const box = await page.evaluate(() => { const r = document.querySelector('.panel.wealth').getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1400) }; });

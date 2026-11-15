@@ -149,6 +149,26 @@
         "answer_in_kind": "Answer in kind, to the credit.",
         "send_it_back": "Send it back."
       }
+    },
+    {
+      "id": "a_thing_of_the_house_is_carried_off",
+      "title": "Carried Off",
+      "body": "The world fell, and with it something of the house's own: taken from the governor's hall by the commander who stormed it, and kept. It is theirs now by the only title a war gives. The house that has it will be thought of accordingly, and so will the house that lost it.",
+      "choices": {
+        "swear_to_have_it_back": "It will come home, if it takes a fleet.",
+        "it_can_be_bought": "What is taken in a war is sold in a peace.",
+        "a_thing_is_a_thing": "A house is its people, not its plate."
+      }
+    },
+    {
+      "id": "a_gift_that_asks_a_favour",
+      "title": "A Gift That Asks",
+      "body": "{giver.name} has sent an orrery: brass and glass, the Reach in miniature, the work of a year. There is no letter with it beyond compliments. There is also a motion of {giver.name}'s before the Senate, and nobody sends a thing like this for nothing. Keep it, and you will be expected to vote for it.",
+      "choices": {
+        "keep_it_and_remember": "Keep it, and remember what it is for.",
+        "keep_it_and_promise_nothing": "Keep it, and say plainly that it buys nothing.",
+        "send_it_back": "Send it back unopened."
+      }
     }
   ]
 }

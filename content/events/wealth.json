@@ -1308,6 +1308,157 @@
           ]
         }
       ]
+    },
+    {
+      "id": "a_thing_of_the_house_is_carried_off",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "heirloom_plundered",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "swear_to_have_it_back",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said, before the household, that it would come home if it took a fleet to fetch it. The house heard it, and so will the one who has it."
+            }
+          ]
+        },
+        {
+          "id": "it_can_be_bought",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that what is taken in a war is sold in a peace, and had the price worked out. It was not a popular thing to say in the hall that night."
+            }
+          ]
+        },
+        {
+          "id": "a_thing_is_a_thing",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said the house was its people and not its plate. The older members of the family looked at the empty place on the wall and said nothing."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_gift_that_asks_a_favour",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "giver",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "giver",
+              "flag": "asks_a_favour",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "gift_that_asks",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "keep_it_and_remember",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "giver",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the orrery set up in the study and wrote {giver.name} a line of thanks. Both of them know what it is for."
+            }
+          ]
+        },
+        {
+          "id": "keep_it_and_promise_nothing",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "favour_declined"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "giver",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked {giver.name} for a handsome gift and added, in the same letter, that the house's vote was not to be had that way. The orrery stayed."
+            }
+          ]
+        },
+        {
+          "id": "send_it_back",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "gift_sent_back"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "giver",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent it back with the seals unbroken. Nobody can say the house was bought, and {giver.name} will not try it twice."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

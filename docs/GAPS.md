@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-15 (thirty-first pass: bills at the peace and foreclosure; A8 closed, A9 mapped).
+Last updated 2026-11-15 (thirty-second pass: plunder and favours; W11 closed, W13 mapped).
 
 ## The worklist
 
@@ -18,7 +18,7 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | W11 | Gifts that ask a favour, and plunder that is not a standard | next |
+| 1 | A9, W13 | What these passes left: foreclosure that takes more than a venture; a favour that is more than one vote | next |
 
 **No small gap is left that is not the owner's.** What remains is a cycle or more each.
 
@@ -103,7 +103,7 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 |---|---|---|---|
 | A9 | Foreclosure takes the least of a house's ventures and nothing else: never a world or a thing handed down, and the house has no say in which goes. A bill at the peace is for sacked ventures only: nothing is claimed for a world laid waste or a fleet lost. Other houses' founders get no second start because other houses have no founders (X1). | M | The economy, X1 |
 | W12 | No world is a person's own: a world is always the house's, and only its governor is a person. And a person who owns a venture never sells it, enlarges it or leaves the house with it: the head still does everything but take it away. | M | **The owner's:** is a world ever a person's rather than the house's, and what becomes of it on the map when they die or leave? |
-| W11 | A gift between houses is always plate, and is sent at a wedding or to mend a quarrel: never to ask a favour, and never asked for. Nothing but a standard is ever taken in a war: no heirloom is carried off when a world falls or a house is broken. | M | |
+| W13 | A favour owed is one thing: two points of lean on one vote. It is never called in for a marriage, a command, a loan or silence, and it never lapses. Other houses never refuse a gift or send one back; only the player does. No broken house gave up a signet in sixty runs: a house is seldom folded while it still has one. | M | |
 | E1 | Only your own character goes to the Academy. | M | |
 | E3 | No nature is formed by an upbringing; no trait is lost. | M | |
 | H2 | Wards are not hostages. | M | |
@@ -192,3 +192,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | W9 | A standard lost is never fought for or asked back, and the house that lost it thinks no worse of whoever flies it. A relative never has anything made with their own money. A gift between houses comes only at a wedding. | 2026-11-15 | The house a standard was taken from resents whoever flies it, retakes it at once if it beats them in battle, buys it home at peace for three times its worth, and asks the player for its own (an event: send it home, name a price, or keep it). A relative with the money has a shrine or a library made in their own name. A head who thinks ill of another, short of hatred, sometimes sends plate to mend it; sent to the player it can be answered or sent back. In sixty runs 86 standards were taken, 23 retaken, 26 bought home; relatives had 71 things made; 269 gifts were sent. The Republic stood in all sixty. What is left is W11. |
 | W10 | A venture is the house's even when one of its people founded it: the founder draws a stake, but the head can sell it over their head and they have no say. No world is a person's. Shares in a person's own name carry no vote in the company, even alongside their house's. | 2026-11-15 | A venture can be a person's own: settled on them by the head, or founded with their own money. What it earns is paid over to them, it is not sold or listed unless they think 20 or better of the head, its price is theirs, and it goes by the will. A founder who does not own what they founded has a fifth of its price when it is sold, and minds. Shares in a person's name vote with their house while they think no ill of its head. In sixty runs 29 ventures were a relative's own at the end and 928 credits were paid over. The Republic stood in all sixty. Worlds are W12, and the owner's. |
 | A8 | A sacked venture is gone for good: it is never claimed at the peace or rebuilt. A company only carries or closes a failing venture, and never sells it. Other houses give no founder a second start. In sixty runs nothing was paid to creditors out of a failure. | 2026-11-15 | What is sacked is billed to whoever took the world, 10 credits a level, and paid at the peace unless the claimant was beaten. A company whose board minds its books sells a failing venture rather than close it. A house that owes on a loan with nothing in the treasury, is 20 under, or has been overdrawn two years running is foreclosed on: its least venture goes to its lender or is sold, and what is owed is paid first; what is a person's own is never taken. In sixty runs 3,059 credits were paid at a peace, companies sold 10, and 26 ventures were foreclosed on. The Republic stood in all sixty. Second starts in other houses are X1's. What is left is A9. |
+| W11 | A gift between houses is always plate, and is sent at a wedding or to mend a quarrel: never to ask a favour, and never asked for. Nothing but a standard is ever taken in a war. | 2026-11-15 | When a world is stormed its governor's signet, sword, library or standard may be carried off by the commander; anything so taken is resented, retaken in battle, bought home or asked for, as a standard already was. A broken house gives up its signet. A head with a motion before the Senate sends an orrery (a new kind: its holder studies faster) to ask a favour; a favour owed is two points of lean on the proposer's next motion; the player asks one by giving a thing to another head, and is judged by their vote when they keep a gift. In sixty runs 47 things were carried off and 40 favours asked and spent. The Republic stood in all sixty. What is left is W13. |

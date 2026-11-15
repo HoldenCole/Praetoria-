@@ -850,7 +850,7 @@ public class RegisterTests
         w.Wars.Remove(war); int treasury = theirs.Treasury.Credits;
         Assert.True(Do(w, new WealthCommand(me.Id, WealthCommand.Ransom, lost.Id, "")));
         Assert.Equal(me.Id, lost.HolderId); Assert.Equal(mine.Id, lost.OfHouseId); Assert.Equal("", lost.FromHouseId); Assert.Equal(5, me.Purse); Assert.Equal(treasury + price, theirs.Treasury.Credits);
-        Assert.Equal("not a standard of your house", WealthSystem.RansomRefusal(w, me, lost));
+        Assert.Equal("not a thing taken from your house", WealthSystem.RansomRefusal(w, me, lost));
 
         // beaten in battle, the house that flies it gives it up to whoever commanded
         var again = Taken(w, head, mine, "taken_again"); var k = Blood(w, me, Kin(w, mine, me, "admiral"));
@@ -970,5 +970,73 @@ public class RegisterTests
         // the head's own always vote; and a house with no share of its own has no voice for anyone's to be added to
         co.Holders[Company.PersonKey(me.Id)] = 8; co.Holders[Company.Public] = 17; Assert.Equal(38, CompanySystem.VotesOf(w, co, mine.Id)); cs.Recontrol(w, co); Assert.Equal(mine.Id, co.ControllerId);
         co.Holders.Remove(mine.Id); co.Holders[Company.Public] = 47; Assert.Equal(0, CompanySystem.VotesOf(w, co, mine.Id)); cs.Recontrol(w, co); Assert.Equal(rival.Id, co.ControllerId);
+    }
+
+    // ---------------- W11: plunder that is not a standard, and a gift that asks a favour ----------------
+
+    [Fact]
+    public void W11_When_a_world_is_stormed_its_governors_things_may_be_carried_off_and_the_house_wants_them_back()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me); w.Heirlooms.Clear(); var (theirs, head) = Another(w, mine); var admiral = new Character { Id = "their_admiral", Name = "Test Admiral", HouseId = theirs.Id, Age = 40 }; w.Characters[admiral.Id] = admiral;
+        var world = w.HoldingsOf(mine.Id).First(h => h.IsPlanet); world.GovernorId = me.Id; int legit = mine.Legitimacy;
+        var estate = Item(w, me, mine, "estate"); Assert.Null(WealthSystem.Plunder(w, mine.Id, theirs.Id, world, new[] { admiral }));   // land is not carried off
+        var sword = new Heirloom { Id = "sword0", Name = "the test sword", Kind = "sword", HolderId = me.Id, OfHouseId = mine.Id, Value = 30, Entailed = true }; w.Heirlooms.Add(sword);
+        Heirloom? taken = null; int stormings = 0; while (taken == null && stormings++ < 40) { w.Turn++; taken = WealthSystem.Plunder(w, mine.Id, theirs.Id, world, new[] { admiral }); }
+        Assert.Same(sword, taken); Assert.True(stormings > 1, "not every storming"); Assert.Equal(admiral.Id, sword.HolderId); Assert.Equal(mine.Id, sword.FromHouseId); Assert.Equal(mine.Id, sword.OfHouseId); Assert.False(sword.Entailed);
+        Assert.Equal(legit - WealthSystem.PlunderLegitimacy, mine.Legitimacy); Assert.True(WealthSystem.IsSpoil(sword)); Assert.True(w.HasFlag(WealthSystem.PlunderedFlag)); Assert.Equal(1, w.Counter(WealthSystem.PlunderedKey));
+        Fires(w, "a_thing_of_the_house_is_carried_off");
+        // it is held against whoever has it, it does not snap back by its old entail, and it can be bought home like a standard
+        w.Relationship(me.Id, admiral.Id).Disposition = 0; w.Turn++; WealthSystem.Tick(w); Assert.Equal(admiral.Id, sword.HolderId); Assert.Equal(-1, w.Relationship(me.Id, admiral.Id).Disposition);
+        Assert.Contains("has not forgotten", WealthSystem.Does(w, sword)); me.Purse = 500; Assert.True(Do(w, new WealthCommand(me.Id, WealthCommand.Ransom, sword.Id, "")));
+        Assert.Equal(me.Id, sword.HolderId); Assert.Equal("", sword.FromHouseId); Assert.Equal("the test sword", sword.Name); Assert.False(WealthSystem.IsSpoil(sword));
+
+        // a thing that was taken from the stormers' own house comes home for certain, to their head
+        var theirSignet = new Heirloom { Id = "sig", Name = "their signet", Kind = "signet", HolderId = me.Id, OfHouseId = theirs.Id, FromHouseId = theirs.Id, Value = 20 }; w.Heirlooms.Add(theirSignet);
+        Assert.Contains("trophy", WealthSystem.Does(w, theirSignet));
+        Assert.Same(theirSignet, WealthSystem.Plunder(w, mine.Id, theirs.Id, world, new[] { admiral })); Assert.Equal(head.Id, theirSignet.HolderId); Assert.Equal("", theirSignet.FromHouseId);
+
+        // a house that is broken and folded into another gives up its signet to that house's head
+        var (third, thirdHead) = Another(w, mine, 1); var last = new Heirloom { Id = "last", Name = "the last signet", Kind = "signet", HolderId = thirdHead.Id, OfHouseId = third.Id, Value = 20, Entailed = true }; w.Heirlooms.Add(last);
+        WealthSystem.Broken(w, third, mine); Assert.Equal(me.Id, last.HolderId); Assert.False(last.Entailed); Assert.Equal(1, w.Counter(WealthSystem.SurrenderedKey));
+    }
+
+    [Fact]
+    public void W11_A_thing_given_to_another_head_is_a_favour_owed_and_it_is_spent_on_your_next_motion()
+    {
+        var (tc, w, me, mine, _) = Start(); Alone(w, mine, me); w.Heirlooms.Clear(); var (theirs, head) = Another(w, mine); var item = Item(w, me, mine, "sword");
+        Assert.False(WealthSystem.FavourOwed(w, theirs.Id, mine.Id)); Assert.True(Do(w, new WealthCommand(me.Id, WealthCommand.Give, item.Id, head.Id)));
+        Assert.True(WealthSystem.FavourOwed(w, theirs.Id, mine.Id)); Assert.Contains(theirs, WealthSystem.OweMe(w, mine.Id)); Assert.Equal(1, w.Counter(WealthSystem.FavoursOwedKey));
+        // on a motion of yours that house leans two further your way; on anyone else's, not at all
+        var kind = Content.Motions.Defs.OrderBy(d => d.Id, StringComparer.Ordinal).First(d => d.Target != "house");
+        var m = new Motion { Id = "m_test", Kind = kind.Id, ProposerHouseId = mine.Id, ProposedTurn = w.Turn }; w.Motions.Add(m);
+        int with = tc.Senate.RawLean(w, m, theirs.Id); w.WorldCounters.Remove(WealthSystem.FavourKey(theirs.Id, mine.Id)); int without = tc.Senate.RawLean(w, m, theirs.Id);
+        Assert.Equal(without + WealthSystem.FavourLeanBy, with);
+        // when the motion is voted the favour is spent
+        w.WorldCounters[WealthSystem.FavourKey(theirs.Id, mine.Id)] = w.Turn; WealthSystem.FavoursCalled(w, m);
+        Assert.False(WealthSystem.FavourOwed(w, theirs.Id, mine.Id)); Assert.Equal(1, w.Counter(WealthSystem.FavoursCalledKey));
+    }
+
+    [Fact]
+    public void W11_A_head_with_a_motion_sends_an_orrery_and_whoever_keeps_it_is_judged_by_their_vote()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me); w.Heirlooms.Clear(); w.Motions.Clear(); var (theirs, head) = Another(w, mine);
+        var kind = Content.Motions.Defs.OrderBy(d => d.Id, StringComparer.Ordinal).First(d => d.Target != "house"); int years = 0;
+        var m = new Motion { Id = "m_theirs", Kind = kind.Id, ProposerHouseId = theirs.Id, ProposedTurn = w.Turn }; w.Motions.Add(m); mine.Legitimacy = 99;   // the weightiest house is asked first
+        while (!w.HasFlag(WealthSystem.AsksFavourFlag) && years++ < 200) { w.Turn++; foreach (var h in w.Houses.Values) h.Treasury.Credits = 0; theirs.Treasury.Credits = 200; w.Relationship(head.Id, me.Id).Disposition = 0; WealthSystem.Tick(w); }
+        Assert.True(w.HasFlag(WealthSystem.AsksFavourFlag)); Assert.True(years > 1, "not at once");
+        var orrery = Assert.Single(w.Heirlooms, h => h.Kind == WealthSystem.Orrery); Assert.Equal(me.Id, orrery.HolderId); Assert.Equal(theirs.Id, orrery.FromHouseId); Assert.False(WealthSystem.IsSpoil(orrery));
+        Assert.True(WealthSystem.FavourOwed(w, mine.Id, theirs.Id)); Assert.Contains(theirs, WealthSystem.IOwe(w, mine.Id)); Assert.Contains("favour to call in", WealthSystem.Does(w, orrery));
+        // it teaches whoever holds it what they have set themselves to study
+        me.Study = "law"; me.Skills["law"] = 1; me.Learning["law"] = 0; w.Turn++; theirs.Treasury.Credits = 0; WealthSystem.Tick(w);
+        Assert.True(me.Skill("law") > 1 || me.Learning.GetValueOrDefault("law") >= 1, "the orrery taught nothing");
+        // kept, and voted against: it is remembered. Kept, and voted for: the account is even
+        w.Relationship(head.Id, me.Id).Disposition = 0; m.Votes[mine.Id] = -1; WealthSystem.FavoursCalled(w, m);
+        Assert.Equal(-WealthSystem.FavourBroken, w.Relationship(head.Id, me.Id).Disposition); Assert.Equal(1, w.Counter(WealthSystem.FavoursBrokenKey)); Assert.False(WealthSystem.FavourOwed(w, mine.Id, theirs.Id));
+        w.WorldCounters[WealthSystem.FavourKey(mine.Id, theirs.Id)] = w.Turn; w.Relationship(head.Id, me.Id).Disposition = 0; m.Votes[mine.Id] = 1; WealthSystem.FavoursCalled(w, m);
+        Assert.Equal(WealthSystem.FavourKept, w.Relationship(head.Id, me.Id).Disposition); Assert.Equal(1, w.Counter(WealthSystem.FavoursKeptKey));
+        // the event, whose last answer sends it back: the favour goes with it
+        w.WorldCounters[WealthSystem.FavourKey(mine.Id, theirs.Id)] = w.Turn; head.Flags.Add(WealthSystem.AsksFavourChar); w.WorldFlags.Add(WealthSystem.AsksFavourFlag); w.WorldCounters["mark:" + WealthSystem.AsksFavourFlag] = w.Turn;
+        Fires(w, "a_gift_that_asks_a_favour"); w.Turn++; WealthSystem.Tick(w);
+        Assert.DoesNotContain(w.Heirlooms, h => h.Kind == WealthSystem.Orrery); Assert.False(WealthSystem.FavourOwed(w, mine.Id, theirs.Id));
     }
 }
