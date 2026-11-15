@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-14 (ninth pass: the family items; W2, W4, E2 and H1 closed).
+Last updated 2026-11-15 (tenth pass: the breakaway items; B4, B9 and B10 closed).
 
 ## The worklist: small gaps to fill now
 
@@ -17,13 +17,13 @@ position (magistrate, justice, senator) must have something to do. Worked from t
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | B4, B9, B10 | Joining a state that exists; a second great war; raising the pressure as well as lowering it | next |
-| 2 | L7 | Public trust in the magistrates moves elections and the estates, not only the troubles of the Reach | next |
-| 3 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune | next |
-| 4 | J3 | The lowest ranks: an Advocate pleads before a bench, a Lieutenant and a Clerk have a year's work | next |
-| 5 | A2, A4, A5 | Restoring the house from an allowance; ambitions formed by an upbringing; ventures that fail | next |
+| 1 | L7 | Public trust in the magistrates moves elections and the estates, not only the troubles of the Reach | next |
+| 2 | C9 | Decide whether the first gate asks too much of other houses' generals; probe and tune | next |
+| 3 | J3 | The lowest ranks: an Advocate pleads before a bench, a Lieutenant and a Clerk have a year's work | next |
+| 4 | A2, A4, A5 | Restoring the house from an allowance; ambitions formed by an upbringing; ventures that fail | next |
+| 5 | B6, B8, B11, B12 | A new Caesar's own temper; more ways to work on a house; leaving a state; stirring with a target | next |
 
-Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1 (see the bottom table).
+Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10 (see the bottom table).
 
 ## The same gap in many places
 
@@ -42,13 +42,12 @@ These recur across systems. Closing one properly closes several lines below, so 
 |---|---|---|---|
 | B2 | A state's border means nothing for trade, the lanes or the Exchange. Its region is named on the map but not drawn as a different country. | M | Nations on the map |
 | B3 | A state makes no agreements of its own: no trade treaty, no alliance, no envoys. It does not make war as a state. | M | B1 |
-| B4 | A state is one region. Regions and houses cannot join one that exists. | S | B3 |
+| B11 | A state at war cannot be joined; a state cannot itself reach for a region; and a house cannot leave a state for the Reach or for another state on its own. | S | G7 |
+| B12 | Stirring the camps is one act with one price. It names no target: a house cannot set two particular houses against each other. | S | |
 | B5 | The older free march (a rim house renouncing the capital) and free holds (a rebel world) are their own rules and should become breakaway states. | M | |
 | B6 | Under a throne the Reach's temper is one number. A new Caesar should have his own. | S | Politics under a throne |
 | B7 | Standing alone weighs fuel, the treasury and strategic monopolies. It does not weigh food, manpower or the goods of the market. | M | The economy |
 | B8 | Working on a house is a word or a gift. No promise of a place in the new state, no marriage to bind it, no threat. | S | B1 |
-| B9 | Only one great war in a saga. After it ends, pressure builds toward nothing. | S | |
-| B10 | The player cannot deliberately raise the pressure toward a great war, only lower it by mending what is wrong. | S | |
 
 ## Forms of government (the owner's direction, docs/BREAKAWAY.md "The next stage")
 
@@ -78,7 +77,7 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 | C2 | A general does not defect with his crews, and crews do not follow a dead commander's heir. | M | |
 | C4 | No proscription, amnesty or negotiated end. | M | |
 | C6 | A relative who is the general cannot cross against the head's wishes. | S | The one-person rule |
-| C7 | The player cannot make the times, only meet them. | M | B10 |
+| C7 | The player cannot make the times a Caesar needs, only meet them. (Stirring the camps raises the pressure toward the great war, which is one of the things that counts afterwards; nothing troubles the Republic directly.) | M | |
 | C8 | Nothing here under a throne: no triumph by the throne's gift, no guard. | L | Politics under a throne |
 | C9 | With skill ceilings holding in battle, a commander of the first rank is now very rare among other houses (2 runs of 50). The gate may ask too much of them: `GateTactics` and `GateVictories` want a probe and a decision. | S | X3 |
 
@@ -160,3 +159,6 @@ look-and-feel pass is planned and not begun, there is no sound.
 | W4 | You could not give or lend to a relative. | 2026-11-14 | A sum given once a year; a loan paid back by thirds, that sours after six years unpaid and can be forgiven. W6 is what is left. |
 | E2 | You could not ask a relative to study, or one to teach another. | 2026-11-14 | The head asks; they agree or refuse by loyalty, regard and their bent. One of the house can be asked to take another under their wing. E6 is what is left. |
 | H1 | Kin did not find mentors for themselves. | 2026-11-14 | A young relative in a service finds a senior of that service who is well disposed, in the house first, without being told. Their mentor teaches as the head's does. |
+| B4 | A state was one region, and nobody could join one that existed. | 2026-11-15 | A house of the Reach goes over to a recognised state as it stands, or takes a bordering region into it; the Reach lets the region go or calls the treaty broken and comes for the whole state. Other houses go over by themselves. B11 is what is left. |
+| B9 | Only one great war in a saga. | 2026-11-15 | Fifteen years after a great war it is forgotten: its clock and verdict are cleared and the Reach can come to another, named the Second, the Third. Each finished war is kept on the record. |
+| B10 | The player could not raise the pressure toward a great war. | 2026-11-15 | Stir the camps: three years of added pressure for influence and credits, and one time in three the capital hears whose money it was. B12 is what is left. |

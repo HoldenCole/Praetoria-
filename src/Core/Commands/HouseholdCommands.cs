@@ -331,7 +331,8 @@ public sealed class CaesarCommand : ICommand
 /// own, or (in the great war) lets it be known that a partition would be accepted.</summary>
 public sealed class SecessionCommand : ICommand
 {
-    public const string Declare = "declare", SeekPartition = "seek_partition", Rejoin = "rejoin";
+    public const string Declare = "declare", SeekPartition = "seek_partition", Rejoin = "rejoin", Join = "join", Stir = "stir";
+    private static readonly Dictionary<string, int> StirCost = new() { [Pool.Influence] = PolitySystem.StirInfluence };
     private readonly string _what, _regionId, _form; private readonly PolitySystem _polities;
     public SecessionCommand(string actorId, string what, string regionId, string form, PolitySystem polities) { ActorId = actorId; _what = what; _regionId = regionId; _form = form; _polities = polities; }
     public string ActorId { get; }
@@ -344,6 +345,8 @@ public sealed class SecessionCommand : ICommand
         {
             Declare => _polities.DeclareRefusal(w, house, _regionId, _form),
             Rejoin => _polities.RejoinRefusal(w, house),
+            Join => _polities.AccedeRefusal(w, house, w.Polities.FirstOrDefault(p => p.Id == _form), _regionId),   // the state travels in the form slot
+            Stir => _polities.StirRefusal(w, house) ?? (ctx.PoolsOf(ActorId).CanAfford(StirCost) ? null : "no influence"),
             SeekPartition => !CaesarSystem.GreatWar(w) ? "the Reach is not in its great war" : w.HasFlag(GreatCrisisSystem.PartitionWishFlag) ? "it is already known" : !PolitySystem.InReach(w, house.Id) ? "the house has left the Reach" : null,
             _ => "no such thing"
         };
@@ -354,6 +357,8 @@ public sealed class SecessionCommand : ICommand
         var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!;
         if (_what == Declare) _polities.Declare(w, house, _regionId, _form);
         else if (_what == Rejoin) _polities.Rejoin(w, PolitySystem.Of(w, house.Id)!);
+        else if (_what == Join) _polities.Accede(w, house, w.Polities.First(p => p.Id == _form), _regionId);
+        else if (_what == Stir) { ctx.PoolsOf(ActorId).Spend(StirCost); _polities.Stir(w, house); }
         else { w.WorldFlags.Add(GreatCrisisSystem.PartitionWishFlag); w.Log($"{house.Name} lets it be known that it would take a region of its own as the price of peace."); }
     }
 }

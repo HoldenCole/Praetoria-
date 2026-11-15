@@ -26,9 +26,10 @@ public sealed class PolitySystem
     public const string IndependentFlag = "independent", WarFlag = "war_of_independence", PossibleFlag = "breakaway_possible", RefuseFlag = "may_refuse_the_throne";
     // true for a year after the deed
     public const string DeclaredFlag = "declared_independence", LetGoFlag = "let_go_by_the_reach", WonFlag = "independence_won", LostFlag = "independence_lost",
-        OtherBreaksFlag = "a_state_breaks_away", PartitionFlag = "the_reach_is_partitioned";
+        OtherBreaksFlag = "a_state_breaks_away", PartitionFlag = "the_reach_is_partitioned", JoinedFlag = "joined_a_state", JoinedOursFlag = "a_house_joins_our_state", BreachFlag = "treaty_broken_by_accession", StirredFlag = "camps_stirred";
+    public const string StirKey = "camps_stirred_until"; public const int StirYears = 3, StirInfluence = 3, StirCredits = 12, AccedeRegard = 0, GoesOverRegard = 30;
     private static readonly string[] YearFlags = { IndependentFlag, WarFlag, PossibleFlag, RefuseFlag };
-    private static readonly string[] DeedFlags = { DeclaredFlag, LetGoFlag, WonFlag, LostFlag, OtherBreaksFlag, PartitionFlag, ReportedFlag, WonOverFlag, ReconquestFlag, RejoinedFlag };
+    private static readonly string[] DeedFlags = { DeclaredFlag, LetGoFlag, WonFlag, LostFlag, OtherBreaksFlag, PartitionFlag, ReportedFlag, WonOverFlag, ReconquestFlag, RejoinedFlag, JoinedFlag, JoinedOursFlag, BreachFlag, StirredFlag };
     public const string CivilWarEndedKey = "civil_war_ended";
     public static string OpposedKey(string houseId) => "opposed_the_throne:" + houseId;
 
@@ -260,17 +261,102 @@ public sealed class PolitySystem
             w.Log($"The Reach does not answer with a fleet: {(why.Count > 0 ? why[0] : "it has not the will")}.");
             Recognise(w, p, letGo: true);
         }
-        else
-        {
-            p.WarSince = w.Turn;
-            p.Foes = w.Houses.Values.Where(h => Real(h) && InReach(w, h.Id) && h.Id != chair?.Id && FleetSystem.StrengthOf(w, h.Id) > 0)
-                .OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).Take(3).Select(h => h.Id).ToList();
-            if (chair != null && InReach(w, chair.Id)) p.Foes.Insert(0, chair.Id);
-            foreach (var foe in p.Foes) _fleets.DeclareWar(w, foe, house.Id);
-            for (int i = 0; i < backers.Count && p.Foes.Count > 0; i++) _fleets.DeclareWar(w, p.Foes[i % p.Foes.Count], backers[i].Id);
-            w.Log($"The Reach will not have it. {string.Join(", ", p.Foes.Select(id => w.House(id)?.Name ?? id))} are sent to bring {region.Name} back.");
-        }
+        else SendTheFleets(w, p, house, backers, region.Name);
         return p;
+    }
+
+    /// <summary>The Reach goes to war to bring a state, or a region that has gone over to one, back.</summary>
+    private void SendTheFleets(World w, Polity p, House leader, IReadOnlyList<House> others, string regionName)
+    {
+        var chair = RegionSystem.CapitalHolder(w); p.WarSince = w.Turn; p.Recognised = 0;
+        p.Foes = w.Houses.Values.Where(h => Real(h) && InReach(w, h.Id) && h.Id != chair?.Id && FleetSystem.StrengthOf(w, h.Id) > 0)
+            .OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).Take(3).Select(h => h.Id).ToList();
+        if (chair != null && InReach(w, chair.Id)) p.Foes.Insert(0, chair.Id);
+        foreach (var foe in p.Foes) _fleets.DeclareWar(w, foe, leader.Id);
+        for (int i = 0; i < others.Count && p.Foes.Count > 0; i++) if (others[i].Id != leader.Id) _fleets.DeclareWar(w, p.Foes[i % p.Foes.Count], others[i].Id);
+        w.Log($"The Reach will not have it. {string.Join(", ", p.Foes.Select(id => w.House(id)?.Name ?? id))} are sent to bring {regionName} back.");
+    }
+
+    private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
+
+    // ---------------- joining a state that exists (docs/BREAKAWAY.md) ----------------
+
+    /// <summary>Do two regions touch: is there a lane from a system of one to a system of the other?</summary>
+    public static bool Borders(World w, string regionA, string regionB) => w.Galaxy != null && regionA != regionB && w.Galaxy.Lanes.Any(l =>
+        (w.Galaxy.System(l.A)?.RegionId, w.Galaxy.System(l.B)?.RegionId) is var (a, b) && ((a == regionA && b == regionB) || (a == regionB && b == regionA)));
+
+    /// <summary>May this house of the Reach go over to this state? With no region named, it goes over as it stands, and must hold a
+    /// world in one of the state's regions. With a region named, it takes the region with it: the region must border the state, and
+    /// the house must control it as it would to declare it independent.</summary>
+    public string? AccedeRefusal(World w, House? house, Polity? p, string regionId = "")
+    {
+        if (house == null || !Real(house) || p == null || !w.Polities.Contains(p)) return "no such state";
+        if (!InReach(w, house.Id)) return "the house has already left the Reach";
+        if (p.Recognised == 0) return $"{p.Name} is still fighting to exist: there is nothing yet to join";
+        if (RegionSystem.CapitalHolder(w)?.Id == house.Id) return "the house holds the capital: it cannot leave what it sits at the head of";
+        if (w.CivilWar?.HouseId == house.Id) return "the house is marching on the capital";
+        var ruler = w.House(p.HeadHouseId); if (ruler == null) return "the state has no ruler to treat with";
+        if (Regard(w, ruler, house) < AccedeRegard) return $"{ruler.Name}, which rules {p.Name}, will not have you (regard {Regard(w, ruler, house)}, needs {AccedeRegard})";
+        if (regionId.Length == 0)
+            return p.Regions.SelectMany(r => Worlds(w, r)).Any(x => x.OwnerId == house.Id) ? null : $"the house holds no world in {p.Name}";
+        var region = w.Galaxy?.Region(regionId); if (region == null) return "no such region";
+        if (OfRegion(w, regionId) != null) return $"{region.Name} has already left the Reach";
+        if (w.Galaxy!.System(w.Galaxy.Capital)?.RegionId == regionId) return "the capital's own region cannot leave the Reach";
+        if (!p.Regions.Any(r => Borders(w, r, regionId))) return $"{region.Name} does not border {p.Name}";
+        var (own, with, total, _) = Control(w, house, regionId);
+        if (total == 0 || own == 0) return $"the house holds no world of {region.Name}";
+        if (own * 100 < OwnShare * total) return $"the house holds {own} of the {total} worlds of {region.Name}, and must hold a quarter";
+        return with * 100 < ControlShare * total ? $"with the houses that would follow, {with} of the {total} worlds of {region.Name} would go: it takes three in five" : null;
+    }
+
+    /// <summary>The house goes over to the state. Alone, the Reach loses a house and resents it. With a region, the Reach either
+    /// lets it go or calls it a breach of the treaty and comes for the whole state. True if it came to war.</summary>
+    public bool Accede(World w, House house, Polity p, string regionId = "")
+    {
+        var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w); var region = regionId.Length > 0 ? w.Galaxy!.Region(regionId) : null;
+        var backers = region != null ? Control(w, house, regionId).backers : new List<House>(); int temper = region != null ? Temper(w, house, regionId).temper : 0;
+        Leave(w, house, p); foreach (var b in backers) Leave(w, b, p);
+        foreach (var h in backers.Prepend(house)) foreach (var war in w.Wars.Where(x => x.Involves(h.Id)).ToList()) _fleets.MakePeace(w, war.HouseA, war.HouseB, terms: false);
+        if (w.CivilWar is { } cw) foreach (var h in backers.Prepend(house)) { cw.With.Remove(h.Id); cw.Against.Remove(h.Id); cw.Declared.Remove(h.Id); }
+        if (chair != null && Systems.Economy.HeadOf(w, chair) is { } ch && Systems.Economy.HeadOf(w, house) is { } hh) { var r = w.Relationship(ch.Id, hh.Id); r.Disposition = Math.Clamp(r.Disposition - (region != null ? 30 : 20), -100, 100); }
+        if (w.House(p.HeadHouseId) is { } ruler) { var a = Systems.Economy.HeadOf(w, ruler); var b = Systems.Economy.HeadOf(w, house); if (a != null && b != null && a.Id != b.Id) { var r = w.Relationship(a.Id, b.Id); r.Disposition = Math.Clamp(r.Disposition + 10, -100, 100); } }
+        w.WorldCounters["polities_joined"] = w.Counter("polities_joined") + 1;
+        if (house.Id == mine) Mark(w, JoinedFlag); else if (p.Members.Contains(mine ?? "")) Mark(w, JoinedOursFlag);
+        if (region == null) { w.Log($"{house.Name} goes over to {p.Name}. It has no seat in the Senate from today."); return false; }
+        p.Regions.Add(regionId);
+        w.Log($"{house.Name} takes {region.Name} out of the Reach and into {p.Name}." + (backers.Count > 0 ? $" {string.Join(", ", backers.Select(b => b.Name))} go with it." : ""));
+        if (temper <= 0) { w.Log("The Reach does not answer with a fleet. The treaty stands, and the maps are redrawn."); return false; }
+        // the Reach calls it a breach of the treaty, and what it named in that treaty is at war with it again
+        p.Temper = temper; p.TreatyUntil = 0; Mark(w, BreachFlag);
+        w.Log($"The Reach calls it a breach of the treaty. {char.ToUpperInvariant(p.Name[0])}{p.Name[1..]} is at war for its life again.");
+        SendTheFleets(w, p, w.House(p.HeadHouseId) ?? house, p.Members.Select(id => w.House(id)).Where(h => h != null).Select(h => h!).ToList(), region.Name);
+        return true;
+    }
+
+    // ---------------- stirring the camps (docs/BREAKAWAY.md, what brings the great war) ----------------
+
+    public static bool Stirring(World w) => w.Counter(StirKey) >= w.Turn && w.Counter(StirKey) > 0;
+    public string? StirRefusal(World w, House? house)
+    {
+        if (house == null || !Real(house)) return "no such house";
+        if (!InReach(w, house.Id)) return "the house has left the Reach, and its quarrels";
+        if (GreatCrisisSystem.AtWar(w)) return "the war has come: there is nothing left to stir";
+        if (w.HasFlag(GreatCrisisSystem.ResolvedFlag)) return "the Reach has had its war, and will not be stirred to another for years";
+        if (Stirring(w)) return $"the camps are being stirred already (until year {w.Counter(StirKey)})";
+        return house.Treasury.Credits < StirCredits ? $"it takes {StirCredits} credits, to the right people" : null;
+    }
+    /// <summary>The house sets the great houses against one another on purpose: money and words in the right places, for three years.
+    /// It pushes the Reach toward its great war. One time in three the capital hears whose money it was.</summary>
+    public bool Stir(World w, House house)
+    {
+        var mine = w.Protagonist?.HouseId; house.Treasury.Credits -= StirCredits; w.WorldCounters[StirKey] = w.Turn + StirYears; w.WorldCounters["camps_stirred"] = w.Counter("camps_stirred") + 1;
+        if (house.Id == mine) Mark(w, StirredFlag);
+        w.Log($"Money moves, and letters. For {StirYears} years the great houses will hear worse of one another than they did.");
+        var chair = RegionSystem.CapitalHolder(w); bool heard = chair != null && chair.Id != house.Id && Hash($"stir:{house.Id}:{w.Turn}") % 3 == 0;
+        if (!heard) return false;
+        if (Systems.Economy.HeadOf(w, chair!) is { } ch && Systems.Economy.HeadOf(w, house) is { } hh) { var r = w.Relationship(ch.Id, hh.Id); r.Disposition = Math.Clamp(r.Disposition - 15, -100, 100); }
+        house.Legitimacy = Math.Clamp(house.Legitimacy - 3, 0, 100); if (house.Id == mine) Mark(w, ReportedFlag);
+        w.Log($"{chair!.Name} learns whose money it was. {house.Name} is spoken of in the capital as a house that wants a war."); return true;
     }
 
     private void Peace(World w, Polity p)
@@ -435,6 +521,17 @@ public sealed class PolitySystem
                 w.Log(lead >= WinLead ? $"{p.Name} has beaten what the Reach sent against it." : $"After {years} years the Reach has no more will to bring {p.Name} back.");
                 Recognise(w, p);
             }
+        }
+
+        // A house of the Reach that holds worlds inside a recognised state, thinks well of its ruler and ill of the capital, goes over
+        // to it of its own accord: one a year at the most (docs/BREAKAWAY.md). The player's house is never moved for them.
+        var chairNow = RegionSystem.CapitalHolder(w);
+        foreach (var p in w.Polities.Where(p => p.Recognised > 0).OrderBy(p => p.Id, StringComparer.Ordinal).ToList())
+        {
+            var ruler = w.House(p.HeadHouseId); if (ruler == null) continue;
+            var goer = w.Houses.Values.Where(h => h.Id != mine && AccedeRefusal(w, h, p) == null && Regard(w, h, ruler) >= GoesOverRegard && (chairNow == null || Regard(w, h, chairNow) <= 0) && Hash($"goes_over:{h.Id}:{w.Turn}") % 4 == 0)
+                .OrderByDescending(h => Regard(w, h, ruler)).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (goer != null) { Accede(w, goer, p); break; }
         }
 
         // those who fought a general who is now on the throne need not kneel: one of them that holds a region may take it out

@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **Join a state that exists.** A house of the Reach can go over to a recognised state as it stands, or take a
+  bordering region into it. The Reach lets the region go, or calls the treaty broken and comes for the whole state.
+  Houses that think well of a state's ruler and ill of the capital go over by themselves.
+- **A second great war.** Fifteen years after a great war ends it is forgotten, and what is wrong with the Reach can
+  bring another: the Second War of the Reach, then the Third. Every finished war is kept on the record.
+- **Stir the camps.** A house can push the Reach toward its great war on purpose, for influence and credits, at the
+  risk of the capital hearing whose money it was. Three events.
 - **The work of office.** A quaestor, an aedile and a praetor each have business every year, and what they do with it
   counts. The quaestor closes the Reach's accounts (straight, or with money found for a lawless region, or to their
   own house's good). The aedile sees to the works from their own purse (the lanes, grain, or nothing). The praetor
@@ -49,7 +56,7 @@
 - **A victory teaches its commander only what they have it in them to learn.** It used to add a step whatever the
   skill's ceiling. Measured: a rival general of the first rank is rarer than before (docs/CAESAR.md, docs/GAPS.md C9).
 - The gap register (docs/GAPS.md) has a worklist at its top, a section for forms of government as the owner set them
-  out, and a section for positions with nothing to do. 56 open, 26 closed.
+  out, and a section for positions with nothing to do. 55 open, 29 closed.
 
 ### Fixed
 - **A save could drift from an unbroken run** when a magistrate's relief, a senator's speech for a region or an

@@ -1,5 +1,5 @@
 {
-  "//": "BREAKING AWAY (docs/BREAKAWAY.md). Reads war_of_independence, may_refuse_the_throne (each year); declared_independence, let_go_by_the_reach, independence_won, independence_lost, a_state_breaks_away, the_reach_is_partitioned, sedition_reported, house_won_over, reconquest_begun, rejoined_the_reach (deeds). What is decided is decided on the Senate screen's standing view.",
+  "//": "BREAKING AWAY (docs/BREAKAWAY.md). Reads war_of_independence, may_refuse_the_throne (each year); declared_independence, let_go_by_the_reach, independence_won, independence_lost, a_state_breaks_away, the_reach_is_partitioned, sedition_reported, house_won_over, reconquest_begun, rejoined_the_reach (deeds). What is decided is decided on the Senate screen's standing view. Joining a state and a second great war: a_house_joins_our_state, treaty_broken_by_accession, joined_a_state and camps_stirred (deeds); great_war_forgotten (a year).",
   "events": [
     {
       "id": "the_declaration",
@@ -793,6 +793,236 @@
             {
               "type": "log",
               "text": "{self.name} walked the capital's galleries that evening wondering what the years outside had been for. Nobody who was asked had an answer either."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_house_comes_over",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "a_house_joins_our_state",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "welcome_them_openly",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} received them before the whole court of the state. The capital will have had a full account of it within the month, which was partly the point."
+            }
+          ]
+        },
+        {
+          "id": "welcome_them_quietly",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took their oath in a small room. A state that grows quietly gives the Reach less to answer."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_they_want_for_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked what they hoped to gain by coming. It was a fair question. It was also remembered as the first thing they were asked."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_treaty_is_called_broken",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "treaty_broken_by_accession",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_by_the_new_region",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that a world which chose the state would be defended like any other. It was the only answer that would hold the state together, and it means the war."
+            }
+          ]
+        },
+        {
+          "id": "send_to_the_capital_for_terms",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent to ask what the Reach wanted. The answer was the region. The envoy came home; the fleets did not."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "say_nothing_and_arm",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} made no statement at all, and spent the week with the yards."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_war_nobody_remembers",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_war_forgotten",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_what_it_cost",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} read out the names of the worlds that were burned, and how many hulls came home. The chamber was quiet. Whether it was listening is another matter."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "let_them_learn_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing. Each generation is told, and each believes it is being told about somebody else."
+            }
+          ]
+        },
+        {
+          "id": "see_what_can_be_made_of_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} noted who had cheered, and who paid them. A house that knows which way the young are leaning has something to sell."
             }
           ]
         }

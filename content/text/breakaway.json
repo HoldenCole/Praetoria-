@@ -119,6 +119,36 @@
         "say_why_you_came_back": "Say why you came back.",
         "ask_what_it_was_for": "Ask yourself what it was for."
       }
+    },
+    {
+      "id": "a_house_comes_over",
+      "title": "A House Comes Over",
+      "body": "A house of the Reach has left its seat in the Senate and come over to the state, of its own will. It holds worlds here already; now it holds them under the state's law and not the capital's. The capital has one voice fewer and one more grievance, and the state has a house it did not have to fight for.",
+      "choices": {
+        "welcome_them_openly": "Welcome them openly.",
+        "welcome_them_quietly": "Welcome them, and say little of it abroad.",
+        "ask_what_they_want_for_it": "Ask what they expect for it."
+      }
+    },
+    {
+      "id": "the_treaty_is_called_broken",
+      "title": "The Treaty Is Called Broken",
+      "body": "A region has gone over to the state, and the Reach has answered that the treaty named one region and not two. Its fleets are on the lanes again. Everything the state won is being fought for a second time, for the sake of what it has just been given.",
+      "choices": {
+        "stand_by_the_new_region": "Say that the state stands by every world in it.",
+        "send_to_the_capital_for_terms": "Send to the capital, to hear what it would take.",
+        "say_nothing_and_arm": "Say nothing, and arm."
+      }
+    },
+    {
+      "id": "the_war_nobody_remembers",
+      "title": "The War Nobody Remembers",
+      "body": "The last of those who commanded in the great war are dead or very old. The young officers have read about it. In the Senate a man who was not born when it ended said this week that the Reach has grown soft with peace, and nobody old enough to answer him was in the chamber.",
+      "choices": {
+        "say_what_it_cost": "Say, in the Senate, what it cost.",
+        "let_them_learn_it": "Let them learn it the way everyone does.",
+        "see_what_can_be_made_of_it": "Consider what a house might make of such a mood."
+      }
     }
   ]
 }

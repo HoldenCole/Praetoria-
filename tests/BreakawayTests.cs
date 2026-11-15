@@ -328,4 +328,150 @@ public class BreakawayTests
             }
         }
     }
+
+    // ---------------- joining a state, stirring the camps, a second great war (docs/GAPS.md B4, B10, B9) ----------------
+
+    /// <summary>Gives the house this many hundredths of a named region's worlds, and none of the rest.</summary>
+    private static void Hold(World w, House h, string regionId, int percent)
+    {
+        var worlds = Worlds(w, regionId); int take = (int)Math.Ceiling(worlds.Count * percent / 100.0);
+        foreach (var x in worlds.Where(x => x.OwnerId == h.Id)) x.OwnerId = "nobody_" + x.Id;
+        foreach (var x in worlds.Take(take)) x.OwnerId = h.Id;
+    }
+    private static House Other(World w, House mine, int n = 0) => w.Houses.Values.Where(h => h.Id != mine.Id && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null && h.Id != RegionSystem.CapitalHolder(w)?.Id)
+        .OrderBy(h => h.Id, StringComparer.Ordinal).Skip(n).First();
+    private static void Regard(World w, House of, House toward, int value) => w.Relationship(Economy.HeadOf(w, of)!.Id, Economy.HeadOf(w, toward)!.Id).Disposition = value;
+    /// <summary>Another house's state, recognised: a weary Reach let it go.</summary>
+    private static Polity StateOf(TurnController tc, World w, House founder, out string region)
+    {
+        region = Give(w, founder, 70, Ring.Rim); w.WorldCounters[CaesarSystem.GreatWarEndedKey] = w.Turn;
+        Assert.Null(tc.Polities.DeclareRefusal(w, founder, region, PolitySystem.Republic));
+        var p = tc.Polities.Declare(w, founder, region, PolitySystem.Republic); if (p.Recognised == 0) tc.Polities.Recognise(w, p);   // let go, or fought for and named in a treaty: either way it is a state
+        Assert.True(p.Recognised > 0); return p;
+    }
+
+    [Fact]
+    public void A_house_may_go_over_to_a_state_that_exists()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Sound(w); var founder = Other(w, mine); var p = StateOf(tc, w, founder, out string region);
+        foreach (var x in Worlds(w, region).Where(x => x.OwnerId == mine.Id)) x.OwnerId = "nobody_" + x.Id;
+        Assert.Contains("holds no world", tc.Polities.AccedeRefusal(w, mine, p));
+        Worlds(w, region).Last().OwnerId = mine.Id;
+        Regard(w, founder, mine, -10); Assert.Contains("will not have you", tc.Polities.AccedeRefusal(w, mine, p));
+        Regard(w, founder, mine, 10); int weight = tc.Senate.Weight(w, mine.Id); Assert.True(weight > 0);
+        Assert.True(tc.Executor.TryExecute(new SecessionCommand(me.Id, SecessionCommand.Join, "", p.Id, tc.Polities), ctx));
+        Assert.Equal(p.Id, mine.PolityId); Assert.Contains(mine.Id, p.Members); Assert.False(PolitySystem.InReach(w, mine.Id)); Assert.Equal(0, tc.Senate.Weight(w, mine.Id));
+        Assert.True(w.HasFlag(PolitySystem.JoinedFlag)); Assert.True(p.Recognised > 0); Assert.Single(p.Regions); Assert.DoesNotContain(w.Wars, x => x.Involves(mine.Id));
+        Assert.NotNull(tc.Polities.AccedeRefusal(w, mine, p));                                       // once
+        var back = SaveSystem.Deserialize(SaveSystem.Serialize(w)); Assert.Equal(p.Id, back.House(mine.Id)!.PolityId);
+        // a state still fighting to exist cannot be joined
+        var (tc2, w2, _, mine2, _) = Start(); Sound(w2); var f2 = Other(w2, mine2); string r2 = Give(w2, f2, 70, Ring.Rim);
+        var fighting = tc2.Polities.Declare(w2, f2, r2, PolitySystem.Republic);
+        if (fighting.Recognised == 0) Assert.Contains("still fighting", tc2.Polities.AccedeRefusal(w2, mine2, fighting));
+    }
+
+    [Fact]
+    public void A_bordering_region_may_be_taken_into_a_state_and_the_reach_lets_it_go_or_calls_the_treaty_broken()
+    {
+        bool letGo = false, fought = false; string trace = "";
+        foreach (bool weary in new[] { true, false })
+        {
+            var (tc, w, me, mine, ctx) = Start(); Sound(w); var founder = Other(w, mine); var p = StateOf(tc, w, founder, out string region);
+            string capitalRegion = w.Galaxy!.System(w.Galaxy.Capital)!.RegionId;
+            var next = w.Galaxy.Regions.Where(r => r.Id != capitalRegion && PolitySystem.Borders(w, r.Id, region) && Worlds(w, r.Id).Count >= 2).OrderByDescending(r => r.Ring == Ring.Rim).ThenBy(r => r.Id, StringComparer.Ordinal).FirstOrDefault();   // the rim is a long way to send a fleet
+            var far = w.Galaxy.Regions.FirstOrDefault(r => r.Id != capitalRegion && r.Id != region && !PolitySystem.Borders(w, r.Id, region) && Worlds(w, r.Id).Count >= 2);
+            if (next == null) continue;                                                              // (every region of the shipped galaxy has a neighbour; a custom one might not)
+            Regard(w, founder, mine, 20);
+            if (far != null) { Hold(w, mine, far.Id, 80); Assert.Contains("does not border", tc.Polities.AccedeRefusal(w, mine, p, far.Id)); Hold(w, mine, far.Id, 0); }
+            Hold(w, mine, next.Id, 10); Assert.NotNull(tc.Polities.AccedeRefusal(w, mine, p, next.Id));   // a foothold is not control
+            Hold(w, mine, next.Id, 80); Assert.Null(tc.Polities.AccedeRefusal(w, mine, p, next.Id));
+            // a weary Reach facing a fleet that is a match for what it could send lets it go; a rested one facing no fleet at all does not
+            if (weary) w.Fleets["armada"] = new Fleet { Id = "armada", Name = "Armada", OwnerId = mine.Id, SystemId = w.Galaxy.Capital, HomeSystemId = w.Galaxy.Capital, Strength = 400 };
+            else { Sound(w); foreach (var x in w.Polities) x.Since = w.Turn - 30; foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == mine.Id)) f.Strength = 0; }
+            int temper = tc.Polities.Temper(w, mine, next.Id).temper; trace += $" [{(weary ? "weary" : "rested")}: {next.Id} temper {temper}: {string.Join("; ", tc.Polities.Temper(w, mine, next.Id).why)}]";
+            Assert.True(tc.Executor.TryExecute(new SecessionCommand(me.Id, SecessionCommand.Join, next.Id, p.Id, tc.Polities), ctx));
+            Assert.Contains(next.Id, p.Regions); Assert.Equal(2, p.Regions.Count); Assert.Equal(p.Id, mine.PolityId); Assert.Equal(p, PolitySystem.OfRegion(w, next.Id));
+            if (temper <= 0) letGo = true; else fought = true;
+            if (temper <= 0) { Assert.True(p.Recognised > 0); Assert.False(w.HasFlag(PolitySystem.BreachFlag)); Assert.DoesNotContain(w.Wars, x => x.Involves(mine.Id)); }
+            else
+            {
+                Assert.Equal(0, p.Recognised); Assert.Equal(w.Turn, p.WarSince); Assert.True(w.HasFlag(PolitySystem.BreachFlag)); Assert.NotEmpty(p.Foes);
+                Assert.Contains(w.Wars, x => x.Involves(founder.Id)); Assert.Contains(w.History, l => l.Text.Contains("breach of the treaty"));
+                mine.Treasury.Credits = 100; w.PoolsFor(me.Id).Influence = 9; Fires(w, "the_treaty_is_called_broken");
+            }
+        }
+        Assert.True(letGo, "a weary Reach never let the region go:" + trace); Assert.True(fought, "a rested Reach never fought for the region:" + trace);
+    }
+
+    [Fact]
+    public void A_house_of_the_reach_that_thinks_well_of_a_states_ruler_goes_over_by_itself()
+    {
+        var (tc, w, me, mine, _) = Start(); Sound(w); string region = Give(w, mine, 70, Ring.Rim); w.WorldCounters[CaesarSystem.GreatWarEndedKey] = w.Turn;
+        var p = tc.Polities.Declare(w, mine, region, PolitySystem.Kingdom); Assert.True(p.Recognised > 0);
+        var goer = w.Houses.Values.Where(h => PolitySystem.InReach(w, h.Id) && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null && h.Id != RegionSystem.CapitalHolder(w)?.Id).OrderBy(h => h.Id, StringComparer.Ordinal).First();
+        Worlds(w, region).Last().OwnerId = goer.Id; var chair = RegionSystem.CapitalHolder(w);
+        bool went = false;
+        for (int y = 0; y < 24 && !went; y++)
+        {
+            w.Turn++; Regard(w, goer, mine, 50); Regard(w, mine, goer, 20); if (chair != null) Regard(w, goer, chair, -20);
+            tc.Polities.Tick(w); went = p.Members.Contains(goer.Id);
+        }
+        Assert.True(went, "in twenty-four years it never went over"); Assert.False(PolitySystem.InReach(w, goer.Id)); Assert.True(w.HasFlag(PolitySystem.JoinedOursFlag));
+        mine.Treasury.Credits = 100; w.PoolsFor(me.Id).Influence = 9; Fires(w, "a_house_comes_over");
+        // one that does not think well of the ruler stays where it is
+        var stays = w.Houses.Values.Where(h => PolitySystem.InReach(w, h.Id) && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null && h.Id != chair?.Id).OrderBy(h => h.Id, StringComparer.Ordinal).First();
+        var spare = Worlds(w, region).FirstOrDefault(x => x.OwnerId == mine.Id && Worlds(w, region).Count(y => y.OwnerId == mine.Id) > 1);
+        if (spare != null) { spare.OwnerId = stays.Id; for (int y = 0; y < 12; y++) { w.Turn++; Regard(w, stays, mine, 5); tc.Polities.Tick(w); } Assert.True(PolitySystem.InReach(w, stays.Id)); }
+    }
+
+    [Fact]
+    public void Stirring_the_camps_pushes_the_reach_toward_its_great_war_and_may_be_found_out()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Sound(w); mine.Treasury.Credits = 5; w.PoolsFor(me.Id).Influence = 9;
+        Assert.Contains("credits", new SecessionCommand(me.Id, SecessionCommand.Stir, "", "", tc.Polities).Refusal(ctx));
+        mine.Treasury.Credits = 60; int before = GreatCrisisSystem.Pressure(w).Sum(x => x.points);
+        Assert.True(tc.Executor.TryExecute(new SecessionCommand(me.Id, SecessionCommand.Stir, "", "", tc.Polities), ctx));
+        Assert.Equal(60 - PolitySystem.StirCredits, mine.Treasury.Credits); Assert.Equal(9 - PolitySystem.StirInfluence, w.PoolsFor(me.Id).Influence); Assert.True(PolitySystem.Stirring(w)); Assert.True(w.HasFlag(PolitySystem.StirredFlag));
+        Assert.Equal(before + GreatCrisisSystem.StirPoints, GreatCrisisSystem.Pressure(w).Sum(x => x.points)); Assert.Contains(GreatCrisisSystem.Pressure(w), x => x.what.Contains("money"));
+        Assert.Contains("already", new SecessionCommand(me.Id, SecessionCommand.Stir, "", "", tc.Polities).Refusal(ctx));
+        w.Turn += PolitySystem.StirYears + 1; Assert.False(PolitySystem.Stirring(w)); Assert.Equal(before, GreatCrisisSystem.Pressure(w).Sum(x => x.points));
+        // sooner or later the capital hears whose money it was
+        var chair = RegionSystem.CapitalHolder(w); bool heard = false;
+        if (chair != null && chair.Id != mine.Id)
+        {
+            for (int y = 0; y < 30 && !heard; y++) { w.Turn++; w.WorldCounters.Remove(PolitySystem.StirKey); mine.Treasury.Credits = 60; mine.Legitimacy = 50; Regard(w, chair, mine, 0); heard = tc.Polities.Stir(w, mine); }
+            Assert.True(heard); Assert.Equal(47, mine.Legitimacy); Assert.Equal(-15, w.Relationship(Economy.HeadOf(w, chair)!.Id, me.Id).Disposition); Assert.True(w.HasFlag(PolitySystem.ReportedFlag));
+        }
+        // nothing to stir once the war has come, or just after it
+        w.WorldCounters.Remove(PolitySystem.StirKey); w.WorldCounters[GreatCrisisSystem.BeganKey] = w.Turn; Assert.Contains("war has come", tc.Polities.StirRefusal(w, mine));
+        w.WorldFlags.Add(GreatCrisisSystem.ResolvedFlag); Assert.Contains("had its war", tc.Polities.StirRefusal(w, mine));
+    }
+
+    [Fact]
+    public void A_generation_on_the_reach_can_come_to_a_second_great_war()
+    {
+        var (tc, w, me, mine, _) = Start(); Sound(w); var sys = new GreatCrisisSystem(Content.GreatCrisis, tc.Fleets) { Polities = tc.Polities }; var rng = TestContent.Rng();
+        Assert.Equal("The War of the Reach", GreatCrisisSystem.WarName(w));
+        sys.FormBlocs(w); sys.BlocWar(w); Assert.True(GreatCrisisSystem.AtWar(w)); w.Turn += GreatCrisisSystem.MinWarYears; sys.Resolve(w);
+        Assert.True(w.HasFlag(GreatCrisisSystem.ResolvedFlag)); Assert.Equal(1, w.Counter(GreatCrisisSystem.WarsCounter)); Assert.Equal(GreatCrisisSystem.PeaceYears, GreatCrisisSystem.PeaceLeft(w));
+        Assert.Contains(w.History, l => l.Text.StartsWith("The War of the Reach ends"));
+        // while it is remembered, nothing brings another
+        w.WorldCounters["coalition_pressure"] = 40;
+        for (int y = 0; y < GreatCrisisSystem.PeaceYears - 1; y++) { w.Turn++; sys.Tick(w, rng); }
+        Assert.True(w.HasFlag(GreatCrisisSystem.ResolvedFlag)); Assert.Equal(1, GreatCrisisSystem.PeaceLeft(w)); Assert.False(GreatCrisisSystem.AtWar(w));
+        // a generation on it is forgotten, and the Reach starts again from nothing
+        w.Turn++; w.WorldCounters.Remove("coalition_pressure"); sys.Tick(w, rng);
+        Assert.False(w.HasFlag(GreatCrisisSystem.ResolvedFlag)); Assert.True(w.HasFlag(GreatCrisisSystem.RearmedFlag)); Assert.Equal(0, w.Counter(GreatCrisisSystem.ClockCounter));
+        Assert.False(w.WorldCounters.ContainsKey(GreatCrisisSystem.BeganKey)); Assert.DoesNotContain(w.WorldFlags, f => f.StartsWith("great_crisis:")); Assert.Equal(0, sys.Nearness(w));
+        Assert.Equal("The Second War of the Reach", GreatCrisisSystem.WarName(w)); Assert.Equal(1, w.Counter(GreatCrisisSystem.WarsCounter));
+        mine.Treasury.Credits = 100; w.PoolsFor(me.Id).Influence = 9; Fires(w, "the_war_nobody_remembers");
+        var back = SaveSystem.Deserialize(SaveSystem.Serialize(w)); Assert.Equal(1, back.Counter(GreatCrisisSystem.WarsCounter)); Assert.False(back.HasFlag(GreatCrisisSystem.ResolvedFlag));
+        // and what is wrong with the Reach can bring another
+        w.WorldCounters["coalition_pressure"] = 40; bool again = false;
+        for (int y = 0; y < 120 && !again; y++) { w.Turn++; sys.Tick(w, rng); again = GreatCrisisSystem.AtWar(w); }
+        Assert.True(again, "a hundred and twenty years of pressure and no second war"); Assert.False(w.HasFlag(GreatCrisisSystem.RearmedFlag));
+        w.Turn += GreatCrisisSystem.MinWarYears; sys.Resolve(w);
+        Assert.Equal(2, w.Counter(GreatCrisisSystem.WarsCounter)); Assert.Contains(w.History, l => l.Text.StartsWith("The Second War of the Reach ends"));
+        var past = GreatCrisisSystem.Past(w); Assert.Equal(2, past.Count); Assert.All(past, x => { Assert.True(x.years >= GreatCrisisSystem.MinWarYears); Assert.NotEqual("", x.how); }); Assert.True(past[1].began > past[0].began);
+    }
 }

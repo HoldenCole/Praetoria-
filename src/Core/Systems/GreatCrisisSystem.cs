@@ -32,7 +32,30 @@ public sealed class GreatCrisisSystem
     /// <summary>Has the war itself begun, and not yet ended? (The houses sort into blocs before it, and may stand down again.)</summary>
     public static bool AtWar(World w) => w.WorldCounters.ContainsKey(BeganKey) && !w.HasFlag(ResolvedFlag);
     public const int TroublePoints = 7, WarPoints = 3, WarPointsCap = 12, OvershadowPoints = 6, MarchPoints = 8, BreakawayPoints = 4, BreakawayYears = 8, EasesBy = 6;
-    public const string EasedCounter = "great_crisis_eased";
+    public const string EasedCounter = "great_crisis_eased", WarsCounter = "great_wars", RearmedFlag = "great_war_forgotten";
+    /// <summary>What deliberate stirring adds to the pressure, and how long after a great war before the Reach can come to another.</summary>
+    public const int StirPoints = 6, PeaceYears = 15;
+    public static string BeganOf(int nth) => "great_war_began:" + nth;
+    public static string EndedOf(int nth) => "great_war_ended:" + nth;
+    public static string HowOf(int nth, string ending) => $"great_war_how:{nth}:{ending}";
+    /// <summary>The great wars the Reach has fought and finished: when each began, how long it ran and how it ended.</summary>
+    public static List<(int began, int years, string how)> Past(World w) => Enumerable.Range(1, w.Counter(WarsCounter)).Select(n =>
+        (w.Counter(BeganOf(n)), w.Counter(EndedOf(n)) - w.Counter(BeganOf(n)), w.WorldFlags.FirstOrDefault(f => f.StartsWith($"great_war_how:{n}:"))?[$"great_war_how:{n}:".Length..] ?? "")).ToList();
+    /// <summary>What this war is called: there may be more than one in a long saga.</summary>
+    public static string WarName(World w) => w.Counter(WarsCounter) switch { 0 => "The War of the Reach", 1 => "The Second War of the Reach", 2 => "The Third War of the Reach", _ => "Another War of the Reach" };
+    /// <summary>Has the Reach had a great war and not yet forgotten it?</summary>
+    public static int PeaceLeft(World w) => w.HasFlag(ResolvedFlag) ? Math.Max(0, PeaceYears - (w.Turn - w.Counter(CaesarSystem.GreatWarEndedKey))) : 0;
+
+    /// <summary>A generation on, the war is something people were told about. Its clock, its stages and its verdict are cleared, and
+    /// what is wrong with the Reach can bring another.</summary>
+    private void Rearm(World w)
+    {
+        foreach (var f in w.WorldFlags.Where(f => f.StartsWith("great_crisis:")).ToList()) w.WorldFlags.Remove(f);
+        w.WorldCounters.Remove(ClockCounter); w.WorldCounters.Remove(StageCounter); w.WorldCounters.Remove(BeganKey); w.WorldCounters.Remove(StartHullsKey);
+        foreach (var h in w.Houses.Values) h.Bloc = "";
+        w.WorldFlags.Add(RearmedFlag); w.WorldCounters["mark:" + RearmedFlag] = w.Turn;
+        w.Log("A generation has grown up that did not fight the last great war. What it cost is something they have been told, not something they know.");
+    }
 
     /// <summary>What is pushing the Reach toward its great war this year, and by how much. Nothing on this list, and the clock runs
     /// back. The war comes out of what is happening, not out of the calendar.</summary>
@@ -47,6 +70,7 @@ public sealed class GreatCrisisSystem
         if (w.Counter("seizures") > 0) list.Add(("worlds have been taken by force", Math.Min(5, w.Counter("seizures"))));
         if (w.CivilWar != null) list.Add(("a general is marching on the capital", MarchPoints));
         if (w.Polities.Any(p => w.Turn - p.Since <= BreakawayYears)) list.Add(("a region has lately left the Reach", BreakawayPoints));
+        if (PolitySystem.Stirring(w)) list.Add(("somebody's money is setting the great houses against one another", StirPoints));
         return list;
     }
     /// <summary>How near the Reach is to its great war, in hundredths of the way (100 = the war).</summary>
@@ -106,6 +130,8 @@ public sealed class GreatCrisisSystem
     /// <summary>Advance the clock and enter any stage it crosses. Call once per turn (after the economy and fleets).</summary>
     public void Tick(World w, IRng rng)
     {
+        if (w.HasFlag(RearmedFlag) && w.Counter("mark:" + RearmedFlag) < w.Turn - 1) { w.WorldFlags.Remove(RearmedFlag); w.WorldCounters.Remove("mark:" + RearmedFlag); }
+        if (_def != null && w.HasFlag(ResolvedFlag) && PeaceLeft(w) == 0 && w.WorldCounters.ContainsKey(CaesarSystem.GreatWarEndedKey)) Rearm(w);
         if (_def == null || w.HasFlag(ResolvedFlag) || w.Turn < _def.StartTurn) return;
         double intensity = _def.IntensityOf(w.CrisisIntensity);
         if (intensity <= 0) return;
@@ -232,29 +258,31 @@ public sealed class GreatCrisisSystem
             h.Legitimacy = Math.Min(100, h.Legitimacy + legitimacy); h.Glory = Math.Min(12, h.Glory + glory);
             if (Progression.Title.RankOf(h.Title) < 4) h.Title = Progression.Title.Duke;
         }
-        string after = years > 0 ? $" after {years} years" : "";
-        if (victor == null) w.Log($"The War of the Reach ends{after}. Nobody is left to say who won it.");
+        string after = years > 0 ? $" after {years} years" : ""; string name = WarName(w); int nth = w.Counter(WarsCounter) + 1; w.WorldCounters[WarsCounter] = nth;
+        // what is kept of it for good, after its flags are cleared a generation on: when it began, when it ended, and how
+        w.WorldCounters[BeganOf(nth)] = w.Counter(BeganKey); w.WorldCounters[EndedOf(nth)] = w.Turn; w.WorldFlags.Add(HowOf(nth, ending));
+        if (victor == null) w.Log($"{name} ends{after}. Nobody is left to say who won it.");
         else if (ending == Crushed)
         {
             Raise(victor, 15, 5); w.WorldFlags.Add("great_crisis:victor"); w.WorldFlags.Add("great_crisis:crushed"); w.WorldCounters[CaesarSystem.ReachWonKey(victor.Id)] = w.Turn;
             if (victor.Id == player) w.WorldFlags.Add("great_crisis:player_holds_the_reach");
-            w.Log($"The War of the Reach ends{after}. All resistance is crushed: {victor.Name} holds the capital and there is no fleet left that would dispute it. The Senate still sits, because {victor.Name} lets it.");
+            w.Log($"{name} ends{after}. All resistance is crushed: {victor.Name} holds the capital and there is no fleet left that would dispute it. The Senate still sits, because {victor.Name} lets it.");
         }
         else if (ending == PartitionEnd && refuge is { } r && Polities != null)
         {
             Raise(victor, 10, 4); w.WorldFlags.Add("great_crisis:victor"); w.WorldFlags.Add("great_crisis:partition");
-            w.Log($"The War of the Reach ends{after}. {victor.Name} holds the field, and cannot reach what is left of the other side.");
+            w.Log($"{name} ends{after}. {victor.Name} holds the field, and cannot reach what is left of the other side.");
             Polities.Partition(w, r.leader, r.regionId, losers);
         }
         else if (ending == Held)
         {
             Raise(victor, 10, 4); w.WorldFlags.Add("great_crisis:victor"); if (victor.Id == player) w.WorldFlags.Add("great_crisis:player_holds_the_reach");
-            w.Log($"The War of the Reach ends with {victor.Name} holding the field and the capital. The Senate still sits. Whether it goes on sitting is now a question people ask aloud.");
+            w.Log($"{name} ends with {victor.Name} holding the field and the capital. The Senate still sits. Whether it goes on sitting is now a question people ask aloud.");
         }
         else
         {
             w.WorldFlags.Add("great_crisis:stalemate"); w.WorldCounters["stalemates"] = w.Counter("stalemates") + 1; Raise(victor, 10, 0);
-            w.Log($"The War of the Reach ends in exhaustion{after}. {victor.Name} holds the field but {(decisive ? "not the capital" : "not decisively enough")}; the fleets go home and nobody calls it a victory.");
+            w.Log($"{name} ends in exhaustion{after}. {victor.Name} holds the field but {(decisive ? "not the capital" : "not decisively enough")}; the fleets go home and nobody calls it a victory.");
         }
         w.WorldFlags.Remove(PartitionWishFlag);
         foreach (var h in w.Houses.Values) h.Bloc = "";

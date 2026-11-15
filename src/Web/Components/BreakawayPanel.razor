@@ -10,7 +10,11 @@
         + (warYears < GreatCrisisSystem.MinWarYears ? "" : ending == null ? "As things stand it goes on." : "As things stand it would end " + EndingSays(ending) + ".");
     string? noPartition = greatWar && own == null ? new SecessionCommand(pid, SecessionCommand.SeekPartition, "", "", ps).Refusal(G.Ctx) : "not now";
     var pressure = GreatCrisisSystem.Pressure(w); int near = gc.Nearness(w); bool warOver = w.HasFlag(GreatCrisisSystem.ResolvedFlag);
-    string peace = warOver ? "The War of the Reach has been fought. " : greatWar ? "" : near == 0 && pressure.Count == 0 ? "The Reach is at peace with itself, and nothing is pushing it toward a great war. "
+    var pastWars = GreatCrisisSystem.Past(w); string pastLine = pastWars.Count == 0 ? "" : "Great wars fought: " + string.Join("; ", pastWars.Select((x, i) => (i == 0 ? "the first" : i == 1 ? "the second" : "another") + " from year " + x.began + ", " + x.years + " years, ended " + EndingSays(x.how))) + ".";
+    int peaceLeft = GreatCrisisSystem.PeaceLeft(w); int wars = w.Counter(GreatCrisisSystem.WarsCounter);
+    string? noStir = new SecessionCommand(pid, SecessionCommand.Stir, "", "", ps).Refusal(G.Ctx); bool stirring = PolitySystem.Stirring(w);
+    string stirLine = stirring ? "Somebody's money is setting the great houses against one another, until year " + w.Counter(PolitySystem.StirKey) + "." : "";
+    string peace = warOver ? "The Reach has fought its great war" + (wars > 1 ? " (" + wars + " of them now)" : "") + ". For " + peaceLeft + " more year(s) nobody will be stirred to another; after that it is something people were told about, and what is wrong with the Reach can bring one again. " : greatWar ? "" : near == 0 && pressure.Count == 0 ? "The Reach is at peace with itself, and nothing is pushing it toward a great war. "
         : (near < 15 ? "The Reach is quiet" : near < 50 ? "The Reach is uneasy" : "The houses are counting each other's fleets") + " (" + near + " in a hundred of the way to a great war). "
           + (pressure.Count == 0 ? "Nothing is pushing it that way this year, and it is easing." : "What is pushing it: " + string.Join("; ", pressure.Select(x => x.what)) + ". Put those right and it recedes.");
     string treatyLine = own == null || own.Recognised == 0 ? "" : "The Reach named it in a treaty in year " + own.Recognised + ". "
@@ -37,6 +41,14 @@
 <section class="panel breakaway">
     <h3><Icon Name="galaxy" Size="13" /> Breaking away</h3>
     @if (peace.Length > 0) { <div class="ac-fact"><span>The peace of the Reach</span><p>@peace</p></div> }
+    @if (pastLine.Length > 0) { <div class="muted small">@pastLine</div> }
+    @if (own == null && !greatWar)
+    {
+        <div class="suit-acts">
+            <button class="opt inline tiny" disabled="@(noStir != null)" title="@(noStir ?? StirTip)" @onclick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.Stir, string.Empty, string.Empty, ps))">Stir the camps · @PolitySystem.StirInfluence influence, @PolitySystem.StirCredits credits</button>
+            @if (stirLine.Length > 0) { <span class="muted small">@stirLine</span> }
+        </div>
+    }
     @if (own != null)
     {
         <div class="small">@ownLine</div>
@@ -80,6 +92,15 @@
                         <button class="opt inline tiny" disabled="@(noGift != null)" title="@(noGift ?? GiftTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps))">A gift · @PolitySystem.GiftCredits credits</button>
                     </div>
                 }
+                @foreach (var st in others.Where(o => o.Recognised > 0 && o.Regions.Any(x => PolitySystem.Borders(w, x, rid))))
+                {
+                    string stid = st.Id; string? noTake = new SecessionCommand(pid, SecessionCommand.Join, rid, stid, ps).Refusal(G.Ctx); string takeLabel = "Take " + r.Name + " into " + st.Name; string key = rid + ">" + stid;
+                    <div class="suit-acts">
+                        @if (_confirm == key) { <button class="opt inline veto" @onclick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Join, rid, stid, ps)); }">Yes: @takeLabel</button> <button class="opt inline" @onclick="() => _confirm = string.Empty">No</button> }
+                        else { <button class="opt inline" disabled="@(noTake != null)" title="@(noTake ?? TakeTip)" @onclick="() => _confirm = key">@takeLabel</button> }
+                        @if (noTake != null) { <span class="muted small">@Cap(noTake).</span> }
+                    </div>
+                }
                 <div class="suit-acts">
                     @if (_confirm == rid) { <button class="opt inline veto" @onclick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Declare, rid, _form, ps)); }">Yes: declare @PolitySystem.NameFor(_form, r.Name)</button> <button class="opt inline" @onclick="() => _confirm = string.Empty">No</button> }
                     else { <button class="opt inline" disabled="@(no != null)" title="@(no ?? DeclareTip)" @onclick="() => _confirm = rid">Declare independence</button> }
@@ -103,6 +124,15 @@
             string line = Cap(o.Name) + ", " + PolitySystem.FormName(o.Form) + " under " + (w.House(o.HeadHouseId)?.Name ?? o.HeadHouseId) + ", since year " + o.Since
                 + (o.Recognised == 0 ? ", still fighting for it" : w.Turn < o.TreatyUntil ? ", under treaty until year " + o.TreatyUntil : ", its treaty run out") + ". A motion to go back for it is moved on the Senate screen.";
             <div class="small">@line</div>
+            @if (own == null)
+            {
+                string oid = o.Id; string? noGo = new SecessionCommand(pid, SecessionCommand.Join, string.Empty, oid, ps).Refusal(G.Ctx); string goKey = "go>" + oid;
+                <div class="suit-acts">
+                    @if (_confirm == goKey) { <button class="opt inline veto" @onclick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Join, string.Empty, oid, ps)); }">Yes: go over to @o.Name</button> <button class="opt inline" @onclick="() => _confirm = string.Empty">No</button> }
+                    else { <button class="opt inline tiny" disabled="@(noGo != null)" title="@(noGo ?? GoOverTip)" @onclick="() => _confirm = goKey">Go over to it</button> }
+                    @if (noGo != null) { <span class="muted small">@Cap(noGo).</span> }
+                </div>
+            }
         }
     }
 </section>
@@ -115,6 +145,9 @@
     private const string WordTip = "Their regard for you rises. At 25 they give their word to go with the region. A house that is the capital's creature and no friend of yours will report it.";
     private const string GiftTip = "Their regard for you rises more than a word buys, and more still if they are poor. The same risk.";
     private const string DeclareTip = "The house leaves the Senate, its offices and its party, and takes the region and the houses that would follow. If the Reach will fight, it is war until it tires, is beaten, or takes the region back.";
+    private const string StirTip = "Money and letters in the right places, for three years. It pushes the Reach toward its great war. One time in three the capital hears whose money it was: it thinks 15 the less of you, and your house loses standing.";
+    private const string TakeTip = "Your house and those that would follow leave the Senate and take the region into that state. If the Reach has the will to fight for it, it calls the treaty broken and comes for the whole state.";
+    private const string GoOverTip = "Your house leaves the Senate, its offices and its party and becomes a house of that state, under its ruler. The capital will not forgive it.";
     private const string PartitionTip = "If your side cannot win the great war but holds a region, the peace will leave it to you as a state of your own. Without this the war goes on and your house stays in the Reach.";
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private static string Ordinal(int n) => n + (n % 100 is >= 11 and <= 13 ? "th" : (n % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" });

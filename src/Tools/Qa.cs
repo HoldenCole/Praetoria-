@@ -322,6 +322,13 @@ internal static class Qa
             if (decisions.NextInt(0, 12) == 0) foreach (var rg in PolitySystem.RegionsOf(w, house).Take(2)) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Declare, rg.Id, PolitySystem.Forms[decisions.NextInt(0, PolitySystem.Forms.Length)], tc.Polities));
             if (decisions.NextInt(0, 6) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.SeekPartition, "", "", tc.Polities));
             if (decisions.NextInt(0, 20) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Rejoin, "", "", tc.Polities));
+            // joining a state that exists, alone or with a region; and setting the great houses against one another
+            foreach (var st in w.Polities.Where(x => x.Recognised > 0).OrderBy(x => x.Id, StringComparer.Ordinal))
+            {
+                if (decisions.NextInt(0, 8) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Join, "", st.Id, tc.Polities));
+                if (decisions.NextInt(0, 8) == 0) foreach (var rg in PolitySystem.RegionsOf(w, house).Take(2)) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Join, rg.Id, st.Id, tc.Polities));
+            }
+            if (decisions.NextInt(0, 15) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Stir, "", "", tc.Polities));
         }
         {   // the Caesar road: answer a recall, cross the line, declare in another's war, pay the crews
             if (decisions.NextInt(0, 2) == 0) cands.Add(new CaesarCommand(p.Id, CaesarCommand.Obey, "", tc.Caesar));

@@ -111,6 +111,30 @@ It has no fixed end. You may declare with one ship and fight for as long as you 
 - **On the map.** The state's name is on its region on the galaxy map, in the region list and on the Worlds screen,
   with whether it is still fighting for it.
 
+## Joining a state that exists
+
+A state is not closed. A house of the Reach may go over to one that the Reach has recognised, in two ways. Either
+way its ruler must be willing (regard of 0 or better for your house), and the house leaves the Senate, its offices and
+its party as it would by declaring.
+
+- **Go over as you stand.** The house must hold a world inside the state. It becomes a house of the state, under its
+  ruler. The capital's holder thinks 20 the less of you. No war comes of one house leaving.
+- **Take a region into it.** The region must border the state (a lane runs from one to the other) and the house must
+  control it exactly as it would to declare it independent: a quarter of its worlds itself, three in five with those
+  who would follow. The capital thinks 30 the less of you. Then the Reach's temper is weighed as for any region:
+  - no will to fight, and **the treaty stands**: the state is two regions, and the maps are redrawn;
+  - the will to fight, and **the Reach calls it a breach of the treaty**: the whole state is at war for its life
+    again, on the same rules as a war of independence. There is an event for a house of that state.
+
+A state still fighting to exist cannot be joined: there is nothing yet to join.
+
+**Other houses do it too.** A house of the Reach that holds worlds inside a recognised state, thinks well of its ruler
+(regard 30) and no better than nothing of the capital's holder, goes over of its own accord, about one year in four,
+one house a year at the most. If the state is yours, you are told. The player's own house is never moved for them.
+
+Where: the breakaway panel. "Go over to it" sits under each state in the list; "Take *region* into *state*" sits in a
+region's block when a recognised state borders it.
+
 ## Refusing a throne
 
 When a general has marched on the capital and won (docs/CAESAR.md), every house that declared for the Senate is
@@ -137,6 +161,10 @@ with its causes ("the peace of the Reach"). Each year the pressure is the sum of
 | A region has left the Reach in the last eight years | 4 |
 
 - At 40 there are rumblings. At 150 the houses sort into two camps. At 300 it is war.
+- **A house can push it on purpose.** "Stir the camps" (3 influence, 12 credits): money and letters in the right
+  places, and for three years "somebody's money is setting the great houses against one another" adds 6 to the
+  pressure. One time in three the capital hears whose money it was: its holder thinks 15 the less of you and your house
+  loses 3 legitimacy. It cannot be done once the war has come, or while the last one is remembered.
 - **With nothing wrong, the pressure runs back** by 6 a year. If it falls well below where the camps formed, **the
   houses stand down** and the camps dissolve.
 - So mending what is wrong (relief to a lawless region, a peace imposed on warring houses, a recognised capital) is
@@ -163,6 +191,14 @@ with its causes ("the peace of the Reach"). Each year the pressure is the sum of
   goes on.
 - Nobody is given a throne by it (docs/PROCESS.md: the Republic stands unless the player ends it).
 - The Republic is shaken for fifteen years afterwards, and the Reach is weary for eight.
+
+### After it: a second great war
+
+The Reach does not have one great war and then none for ever. **Fifteen years after a great war ends it is something
+people were told about.** Its clock, its camps and its verdict are cleared, there is an event, and what is wrong with
+the Reach can bring another, from nothing, by the same rules. It is called the Second War of the Reach, then the
+Third. Each finished war is kept on the record (when it began, how long it ran, how it ended). In a sixty-year saga
+the first war usually ends too late for a second to be fought; in a longer one it can be.
 
 ## Events
 
@@ -247,9 +283,9 @@ This is the first stage of a large piece. What it leaves is in docs/GAPS.md (B1 
 - **A state's border.** It has no meaning for trade, lanes or the
   Exchange.
 - **A state's own dealings.** It makes no trade treaty or alliance, sends no envoys, and does not make war as a state.
-- **More than one region,** and regions joining a state that already exists.
+- **A state at war cannot be joined,** and a state cannot itself reach for a region: only a house of the Reach can
+  bring one in.
 - **The older free march** (a rim house that renounces the capital) is still its own small rule and should become
   one of these.
 - Standing alone does not weigh food, manpower or the goods of the market. Working on a house is only a word or a gift.
-- There is one great war in a saga, and the player can lower the pressure toward it but not raise it.
 - Under a throne the Reach's temper is one number. A new Caesar should have his own.
