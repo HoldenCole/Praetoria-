@@ -1797,6 +1797,77 @@
           ]
         }
       ]
+    },
+    {
+      "id": "the_chair_of_the_committee",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "committee_chair",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "run_it_by_the_book",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "public_trust",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} ran the committee by its own rules: papers circulated a week ahead, every house heard in turn. It was slower. Nobody could say afterwards that they had not been heard."
+            }
+          ]
+        },
+        {
+          "id": "use_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be understood that the committee's time was the chair's to give. Business that suited the house came on early. The rest waited, and learned whom to ask."
+            }
+          ]
+        },
+        {
+          "id": "share_the_work",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the younger members the drafting and kept only the last word. They were flattered to be given it, which is cheaper than being grateful and lasts about as long."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

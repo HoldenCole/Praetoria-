@@ -1606,3 +1606,30 @@ credits find their way to your house". Three, not the old eight, because that ye
 
 **Left, and mapped.** The facts are figures drawn by lot. Nobody gives evidence, nothing is found out, and a trial is
 still one decision (L11).
+
+## 52. The Senate's committees — 2026-11-15
+
+**L8.** A senator's year was one of three things, with nothing carried from one year to the next but a count of
+absences. There are now three standing committees (the Purse, the Fleet, the Laws). Every house sits on one. A
+senator can spend the year on the committee's work, and each such year raises their standing with it: at 3 the
+committee's other houses lean toward what the house moves on the committee's own business; the highest standing at 6
+or more has the chair, and is heard. A year missed costs a point. A senator can move to another committee and starts
+at the bottom of its table. The years sat and missed are kept, and count for or against a senator at any election
+once there are five of them. Details in docs/LADDER.md.
+
+**Measured.** The soak (33 runs, with a save and load in each; its player now does the committee's work and changes
+committee) passes with no drift. Survival: 0 of 10 on every start. The Republic probe: the Republic stood in all 60
+runs; the figures are the same as the last section's to the digit (the great war in 43, 15 states, 629 charged and
+436 convicted, trust 53 to 64), which is as it should be: the probe's player is passive and never takes the seat, and
+nothing here moves unless a senator does the work. The new event (taking the chair) did not fire in the soak: six years of the same choice is more than its random player gives anything. It has a scripted test (X4).
+
+698 tests (four new).
+
+**Seen in the browser.** The Old Lion: "You sit on the Committee of the Fleet (wars, commands, recalls and
+triumphs), with 9 other houses. Your standing with it is 0 of 10. At 3 its houses begin to lean your way on its
+business. Nobody has standing enough to chair it." The committee's work was chosen, a move made to the Purse, and
+after a year there the panel read "Your standing with it is 1 of 10".
+
+**Left, and mapped.** A committee has work to be done and no business of its own to decide: it reports nothing,
+examines nobody, holds no inquiry. Only the player's house has a standing that is earned; the others' is reckoned
+from their head's rank (L12).

@@ -24,7 +24,7 @@ public static partial class LadderSystem
     public const string StandingFlag = "standing_for_office", MagistrateFlag = "is_magistrate", AedileFlag = "is_aedile";
     public const string ElectedChar = "newly_elected", StandingChar = "standing_for_office";
     public const string BlamedFlag = "kin_blames_the_head", BlamesChar = "blames_the_head"; public const int BlameRegard = 10;
-    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag, TrustFellFlag, TrustRestoredFlag, JuniorCaughtFlag, SpokenForFlag, ProsecutionWonFlag, ProsecutionLostFlag, BribeRefusedFlag, BribeOutFlag, KinAcquittedFlag };
+    private static readonly string[] DeedFlags = { HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag, TrustFellFlag, TrustRestoredFlag, JuniorCaughtFlag, SpokenForFlag, ChairFlag, ProsecutionWonFlag, ProsecutionLostFlag, BribeRefusedFlag, BribeOutFlag, KinAcquittedFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -115,7 +115,7 @@ public static partial class LadderSystem
     /// <summary>The count: each house's weight to a candidate, and each candidate's own merit, backing and canvass.</summary>
     public static Dictionary<string, int> Tally(World w, OfficeCatalog offices, RungDef rung, List<Character> candidates, Func<string, int> weight)
     {
-        var tally = candidates.ToDictionary(c => c.Id, c => Merit(c) + TrustVotes(w, c) + LifeSystem.TieVotes(w, c.HouseId) + (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id && cd.RungId == rung.Id)?.Backing ?? 0) + w.Counter(OrderSystem.CanvassKey(c.HouseId)));
+        var tally = candidates.ToDictionary(c => c.Id, c => Merit(c) + TrustVotes(w, c) + LifeSystem.TieVotes(w, c.HouseId) + AttendanceVotes(w, c) + (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id && cd.RungId == rung.Id)?.Backing ?? 0) + w.Counter(OrderSystem.CanvassKey(c.HouseId)));
         if (candidates.Count == 0) return tally;
         foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
         {

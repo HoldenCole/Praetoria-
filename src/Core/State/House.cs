@@ -74,6 +74,9 @@ public sealed class House
     public string Origin { get; set; } = "";
     /// <summary>The house whose client this one is, or "".</summary>
     public string PatronId { get; set; } = "";
+    /// <summary>The committee of the Senate the head has chosen to sit on (docs/LADDER.md, "Committees"); empty for the one that
+    /// fits the head's own service.</summary>
+    public string Committee { get; set; } = "";
     /// <summary>Enrolled in the Senate by the census: a seat bought with the purse, not held by land or the bench.</summary>
     public bool Enrolled { get; set; }
     /// <summary>Victories that are still talked about: battles won, triumphs. Fades slowly.</summary>

@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **The Senate has committees.** The Purse, the Fleet and the Laws. Every house sits on one. A senator can spend the
+  year on the committee's work, and each such year raises their standing with it: at three the committee's other
+  houses lean toward what your house moves on the committee's own business, and the highest standing takes the chair.
+  A year missed costs a point. You can move to another committee, and start at the bottom of its table. One event.
+- **An attendance record.** The years you sat and the years you missed are kept, and count for or against you at any
+  election once there are five of them.
 - **A case has facts.** What it is about, how many credits turn on it, and whether the law is plain, arguable or
   doubtful. The plainer the law, the more a ruling against it costs; where it is doubtful a ruling either way can be
   defended, and is neither appealed nor kept on the record. A praetor can also **bring the two houses to terms**.

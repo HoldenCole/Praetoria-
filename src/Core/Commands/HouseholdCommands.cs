@@ -256,6 +256,18 @@ public sealed class LifeCommand : ICommand
     }
 }
 
+/// <summary>Take a place on another of the Senate's committees (docs/LADDER.md, "Committees").</summary>
+public sealed class CommitteeCommand : ICommand
+{
+    private readonly string _committee;
+    public CommitteeCommand(string actorId, string committee) { ActorId = actorId; _committee = committee; }
+    public string ActorId { get; }
+    public string Describe() => $"committee {_committee}";
+    public string? Refusal(CommandContext ctx) => LadderSystem.ChangeCommitteeRefusal(ctx.World, ctx.World.Char(ActorId), _committee);
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) => LadderSystem.ChangeCommittee(ctx.World, ctx.World.Char(ActorId)!, _committee);
+}
+
 /// <summary>The courts (docs/LADDER.md). <see cref="Prosecute"/>: bring a charge against a former magistrate for something on the
 /// record (the deed's id). <see cref="Buy"/>: offer a sitting praetor a sum (the praetor's id).</summary>
 public sealed class ProsecutionCommand : ICommand

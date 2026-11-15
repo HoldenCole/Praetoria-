@@ -28,7 +28,7 @@
     string rank = c.Careers.RankName(p.CareerTrack, p.CareerRank, w.Era) ?? "";
     string benchTitle = bench == null ? "" : bench.Kind == LadderSystem.Appeal ? "Your bench: an appeal" : "Your bench: a hearing";
     string benchSays = bench == null ? "" : LadderSystem.DutySays(w, policy, bench);
-    string seatSays = seat == null ? "" : LadderSystem.DutySays(w, policy, seat);
+    string seatSays = seat == null ? "" : LadderSystem.DutySays(w, policy, seat); bool inReach = PolitySystem.InReach(w, p.HouseId);
     string absentLine = absent <= 0 ? "" : absent == 1 ? "You did nothing with your seat last year." : "You have done nothing with your seat for " + absent + " years. At " + LadderSystem.AbsentYears + " it is remarked on.";
     int latest = w.OfficeWork.Count == 0 ? -1 : w.OfficeWork.Max(b => b.Turn);
     var kin = w.OfficeWork.Where(b => b.Turn == latest && b.HolderId != pid && b.Choice.Length > 0 && b.Choice != "left" && (b.Kind == LadderSystem.Hearing || b.Kind == LadderSystem.Appeal))
@@ -78,9 +78,17 @@
                 </div>
             }
             @if (absentLine.Length > 0) { <div class="small bad">@absentLine</div> }
+            <div class="muted small committee-line">@LadderSystem.CommitteeSays(w, w.House(p.HouseId)!) @LadderSystem.AttendanceSays(w, p)</div>
+            <div class="suit-acts"><span class="muted small">Sit instead on</span>
+                @foreach (var cm in LadderSystem.Committees.Where(x => x != LadderSystem.CommitteeOf(w, w.House(p.HouseId)!)))
+                {
+                    string cid = cm; var noMove = new CommitteeCommand(pid, cid).Refusal(G.Ctx);
+                    <button class="opt inline tiny" disabled="@(noMove != null)" title="@(noMove ?? MoveTip)" @onclick="() => G.Execute(new CommitteeCommand(pid, cid))">@LadderSystem.CommitteeName(cm)</button>
+                }
+            </div>
         </div>
     }
-    else if (!holdsCharge) { <div class="muted small">@(sat ? SeatDone : SeatNotYet)</div> }
+    else if (!holdsCharge) { <div class="muted small">@(sat ? SeatDone : SeatNotYet) @(inReach ? LadderSystem.CommitteeSays(w, w.House(p.HouseId)!) + " " + LadderSystem.AttendanceSays(w, p) : "")</div> }
     @if (bench != null)
     {
         <div class="rung-row duty-bench">
@@ -130,6 +138,7 @@
 </section>
 
 @code {
+    private const string MoveTip = "You take a place at the bottom of its table: your standing starts again from nothing, and you may not move again for five years.";
     private const string ChargeDone = "The year's charge of your office is carried. It is your year in the Senate too.";
     private const string SeatDone = "Your year in the Senate is spent.";
     private const string SeatNotYet = "The Senate has not yet sat. Your year in it begins at the turn of the year.";
@@ -153,7 +162,7 @@
         LadderSystem.Watches => "Stand your watches", LadderSystem.Volunteer => "Volunteer for the patrol", LadderSystem.Mess => "Make friends in the mess",
         LadderSystem.Assess => "Assess it fairly", LadderSystem.Press => "Press the collection", LadderSystem.Skim => "Keep a share",
         LadderSystem.Drill => "Drill the crews", LadderSystem.Patrol => "Patrol the home lanes", LadderSystem.Board => "Sit on a board of inquiry",
-        LadderSystem.Audit => "Read the accounts", LadderSystem.SpeakRegion => "Speak for your region", LadderSystem.Whip => "Work your bench", _ => choice
+        LadderSystem.Audit => "Read the accounts", LadderSystem.SpeakRegion => "Speak for your region", LadderSystem.Whip => "Work your bench", LadderSystem.CommitteeWork => "Do the committee's work", _ => choice
     };
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);

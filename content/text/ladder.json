@@ -228,6 +228,16 @@
         "say_it_was_a_test": "Let it be said that it was a test of the bench.",
         "own_it_and_be_done": "Own it, and say no more."
       }
+    },
+    {
+      "id": "the_chair_of_the_committee",
+      "title": "The Chair of the Committee",
+      "body": "After enough years of turning up, reading the papers and being right about small things, {self.name} has the chair. Nothing in the law gives a committee's chair any power at all. The chair decides what is discussed, in what order, and when the sitting ends.",
+      "choices": {
+        "run_it_by_the_book": "Run it by its own rules.",
+        "use_it": "Use it.",
+        "share_the_work": "Share out the work, and keep the last word."
+      }
     }
   ]
 }

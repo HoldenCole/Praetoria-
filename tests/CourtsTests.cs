@@ -239,4 +239,81 @@ public class CourtsTests
         LadderSystem.Decide(w, Offices, ae, LadderSystem.Both);
         Assert.Equal(40 - LadderSystem.WorksCredits * 2, aeHouse.Treasury.Credits); Assert.Equal(60 - LadderSystem.ReliefBy, RegionSystem.StateOf(w, region).Lawlessness); Assert.Equal(Math.Min(100, legit + 3), aeHouse.Legitimacy);
     }
+
+    // ---------------- L8: the Senate's committees ----------------
+
+    private static OfficeBusiness SeatOf(World w, Character me)
+    {
+        w.OfficeWork.RemoveAll(b => b.HolderId == me.Id && b.Kind == LadderSystem.SeatKind);
+        var seat = new OfficeBusiness { Id = $"seat_{w.Turn}_{me.Id}", RungId = "senate", HolderId = me.Id, Kind = LadderSystem.SeatKind, Turn = w.Turn }; w.OfficeWork.Add(seat); return seat;
+    }
+
+    [Fact]
+    public void A_house_sits_on_the_committee_that_fits_its_heads_service_unless_the_head_chooses_another()
+    {
+        var (tc, w, me, mine, ctx) = Start(); me.CareerTrack = "military"; mine.Committee = "";
+        Assert.Equal(LadderSystem.FleetCommittee, LadderSystem.CommitteeOf(w, mine)); me.CareerTrack = "law"; Assert.Equal(LadderSystem.Laws, LadderSystem.CommitteeOf(w, mine));
+        me.CareerTrack = "stewardship"; Assert.Equal(LadderSystem.Purse, LadderSystem.CommitteeOf(w, mine));
+        foreach (var cm in LadderSystem.Committees) Assert.NotEmpty(LadderSystem.CommitteeMembers(w, cm));   // every committee has somebody on it
+        Assert.Equal(Others(w, mine).Count + 1, LadderSystem.Committees.Sum(cm => LadderSystem.CommitteeMembers(w, cm).Count));   // and every house is on exactly one
+        // moving: to the bottom of the new table, and not again for five years
+        w.WorldCounters[LadderSystem.StandingKey(mine.Id)] = 7;
+        Assert.True(tc.Executor.TryExecute(new CommitteeCommand(me.Id, LadderSystem.Laws), ctx)); Assert.Equal(LadderSystem.Laws, LadderSystem.CommitteeOf(w, mine)); Assert.Equal(0, LadderSystem.CommitteeStanding(w, mine));
+        Assert.Contains("not long ago", LadderSystem.ChangeCommitteeRefusal(w, me, LadderSystem.Purse)); Assert.Contains("already", LadderSystem.ChangeCommitteeRefusal(w, me, LadderSystem.Laws));
+        w.Turn += LadderSystem.ChangeEvery; Assert.Null(LadderSystem.ChangeCommitteeRefusal(w, me, LadderSystem.Purse)); Assert.Contains("no such", LadderSystem.ChangeCommitteeRefusal(w, me, "dinners"));
+    }
+
+    [Fact]
+    public void A_year_of_the_committees_work_raises_a_senators_standing_and_the_highest_standing_has_the_chair()
+    {
+        var (tc, w, me, mine, ctx) = Start(); mine.Committee = LadderSystem.Laws; w.WorldCounters.Remove(LadderSystem.StandingKey(mine.Id));
+        foreach (var h in LadderSystem.CommitteeMembers(w, LadderSystem.Laws).Where(h => h.Id != mine.Id)) { Economy.HeadOf(w, h)!.CareerRank = 2; h.SphereInfluence["senate"] = 0; }   // nobody else has standing enough to chair
+        Assert.Null(LadderSystem.ChairOf(w, LadderSystem.Laws)); me.Skills["law"] = 0; me.Learning.Clear();
+        for (int year = 1; year <= LadderSystem.ChairAt; year++)
+        {
+            w.Turn++; SeatOf(w, me); int influence = w.PoolsFor(me.Id).Influence;
+            Assert.True(tc.Executor.TryExecute(new DutyCommand(me.Id, LadderSystem.SeatKind, LadderSystem.CommitteeWork, Offices, Content.Policies), ctx));
+            Assert.Equal(year, LadderSystem.CommitteeStanding(w, mine)); Assert.Equal(year, LadderSystem.Attendance(w, me).sat);
+            bool chair = LadderSystem.ChairOf(w, LadderSystem.Laws)?.Id == mine.Id; Assert.Equal(year >= LadderSystem.ChairAt, chair);
+            if (chair) Assert.Equal(influence + 1, w.PoolsFor(me.Id).Influence);   // the chair is heard
+        }
+        Assert.True(me.Skill("law") > 0 || me.Learning.GetValueOrDefault("law") > 0); Assert.True(w.HasFlag(LadderSystem.ChairFlag)); Assert.Contains("You have the chair", LadderSystem.CommitteeSays(w, mine));
+        Fires(w, "the_chair_of_the_committee");
+        // a year not attended costs a point of it, and is written down
+        w.Turn++; SeatOf(w, me); w.Turn++; LadderSystem.Tick(w, Offices, Content.Policies);
+        Assert.Equal(LadderSystem.ChairAt - 1, LadderSystem.CommitteeStanding(w, mine)); Assert.Equal(1, LadderSystem.Attendance(w, me).missed);
+        // another way of spending the year is attendance, but not committee work
+        SeatOf(w, me); int standing = LadderSystem.CommitteeStanding(w, mine); int sat = LadderSystem.Attendance(w, me).sat;
+        Assert.True(tc.Executor.TryExecute(new DutyCommand(me.Id, LadderSystem.SeatKind, LadderSystem.Audit, Offices, Content.Policies), ctx));
+        Assert.Equal(standing, LadderSystem.CommitteeStanding(w, mine)); Assert.Equal(sat + 1, LadderSystem.Attendance(w, me).sat);
+    }
+
+    [Fact]
+    public void Standing_with_a_committee_carries_its_other_houses_on_its_own_business_and_only_on_that()
+    {
+        var (_, w, me, mine, _) = Start(); mine.Committee = LadderSystem.Purse; var fellow = LadderSystem.CommitteeMembers(w, LadderSystem.Purse).First(h => h.Id != mine.Id);
+        var outsider = Others(w, mine).First(h => LadderSystem.CommitteeOf(w, h) != LadderSystem.Purse);
+        foreach (var h in LadderSystem.CommitteeMembers(w, LadderSystem.Purse).Where(h => h.Id != mine.Id)) { Economy.HeadOf(w, h)!.CareerRank = 1; h.SphereInfluence["treasury"] = 0; }
+        w.WorldCounters[LadderSystem.StandingKey(mine.Id)] = LadderSystem.HeardAt - 1; Assert.Equal(0, LadderSystem.CommitteeLean(w, "levy", mine.Id, fellow.Id));
+        w.WorldCounters[LadderSystem.StandingKey(mine.Id)] = LadderSystem.HeardAt; Assert.Equal(1, LadderSystem.CommitteeLean(w, "levy", mine.Id, fellow.Id));
+        Assert.Equal(0, LadderSystem.CommitteeLean(w, "censure", mine.Id, fellow.Id));     // not the purse's business
+        Assert.Equal(0, LadderSystem.CommitteeLean(w, "levy", mine.Id, outsider.Id));      // not of the committee
+        Assert.Equal(0, LadderSystem.CommitteeLean(w, "levy", fellow.Id, outsider.Id));    // and it is the player's standing, nobody else's
+        w.WorldCounters[LadderSystem.StandingKey(mine.Id)] = LadderSystem.ChairAt; Assert.Equal(2, LadderSystem.CommitteeLean(w, "levy", mine.Id, fellow.Id));   // from the chair
+        Assert.True(LadderSystem.IsBusinessOf(LadderSystem.FleetCommittee, "triumph")); Assert.True(LadderSystem.IsBusinessOf(LadderSystem.Laws, "act")); Assert.False(LadderSystem.IsBusinessOf(LadderSystem.Laws, "levy"));
+    }
+
+    [Fact]
+    public void The_years_a_senator_sat_and_missed_are_kept_and_count_at_the_count()
+    {
+        var (_, w, me, mine, _) = Start(); w.WorldCounters[LadderSystem.SatKey(me.Id)] = 3; w.WorldCounters[LadderSystem.MissedKey(me.Id)] = 1;
+        Assert.Equal(0, LadderSystem.AttendanceVotes(w, me));                               // four years is no record yet
+        w.WorldCounters[LadderSystem.SatKey(me.Id)] = 9; Assert.Equal(2, LadderSystem.AttendanceVotes(w, me)); Assert.Contains("9 of 10", LadderSystem.AttendanceSays(w, me));
+        w.WorldCounters[LadderSystem.SatKey(me.Id)] = 3; w.WorldCounters[LadderSystem.MissedKey(me.Id)] = 7; Assert.Equal(-2, LadderSystem.AttendanceVotes(w, me));
+        w.WorldCounters[LadderSystem.SatKey(me.Id)] = 6; w.WorldCounters[LadderSystem.MissedKey(me.Id)] = 4; Assert.Equal(0, LadderSystem.AttendanceVotes(w, me));
+        // and it is counted when they stand
+        var rung = Offices.Rung("quaestor")!; var rival = w.LivingCharacters().First(c => c.HouseId != mine.Id && c.Age >= 25 && w.House(c.HouseId) != null);
+        int Count() => LadderSystem.Tally(w, Offices, rung, new List<Character> { me, rival }, _ => 1)[me.Id];
+        int middling = Count(); w.WorldCounters[LadderSystem.SatKey(me.Id)] = 10; w.WorldCounters[LadderSystem.MissedKey(me.Id)] = 0; Assert.Equal(middling + 2, Count());
+    }
 }

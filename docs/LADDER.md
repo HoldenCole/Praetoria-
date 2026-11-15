@@ -245,6 +245,40 @@ thinks 1 better.
 Left, and mapped: this is kept for the player's house only, and the one above has no further use for a junior (J5);
 trust is still one number for the whole Reach (L10).
 
+## Committees
+
+Built 2026-11-15 (docs/GAPS.md L8). A senator's year was one of three things with nothing carried from one year to
+the next but a count of absences.
+
+**Three standing committees**: the Purse (levies, relief, rescues), the Fleet (wars, commands, recalls, triumphs,
+peace) and the Laws (censures, recognitions, Acts, embargoes, break-ups). Every house of the Reach sits on one: the
+one that fits its head's own service, unless the head takes a place on another. Moving puts a senator at the bottom
+of the new table, and cannot be done again for five years.
+
+**A fourth way to spend the year: the committee's work.** It raises the senator's standing with the committee by a
+point (ten at most), teaches its business (economics, logistics or law), and does the Reach a little good in the
+committee's own line: a little more of the levy reaches the capital's purse and the merchants think better of the
+house; the Reach's own fleets are readier and the officers think better of it; or the magistrates' order thinks
+better of it and the Reach's trust in its magistrates is mended a point.
+
+**What standing does.**
+
+| Standing | |
+|---|---|
+| 3 | On the committee's own business, the other houses of the committee lean one toward what the senator's house moves. |
+| 6, and the highest on the committee | The chair. They lean two. Each year of the committee's work from the chair gives a point of influence, and the house is heard a point more in the committee's sphere. |
+
+A year not attended costs a point of standing. Reading the accounts, speaking for a region or working the bench is
+attendance, and leaves standing where it was. Another house's standing is reckoned from its head's rank and how much
+the house is heard in the committee's sphere, so a chair has to be taken from someone.
+
+**The record.** The years a senator sat and the years they missed are kept. Once there are five of them, one who
+was there four years in five has 2 votes for it at any count, for an office of the ladder or for the consulship; one
+who was there two years in five or fewer loses 2.
+
+Left, and mapped: a committee has no business of its own to decide, only work to be done; and only the player's
+house has a standing that is earned (L12).
+
 ## The facts of the year's business
 
 Built 2026-11-15 (docs/GAPS.md L5). The work of an elected office was one decision from three with nothing behind

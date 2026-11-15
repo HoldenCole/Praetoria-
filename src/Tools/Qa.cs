@@ -376,6 +376,7 @@ internal static class Qa
                 else if (pick == 4) cands.Add(new EducationCommand(p.Id, EducationCommand.Ask, kin.Id, EducationSystem.All[decisions.NextInt(0, EducationSystem.All.Length)]));
                 else cands.Add(new EducationCommand(p.Id, EducationCommand.Teach, kin.Id, grownKin[decisions.NextInt(0, grownKin.Count)].Id));
             }
+            if (decisions.NextInt(0, 12) == 0) cands.Add(new CommitteeCommand(p.Id, LadderSystem.Committees[decisions.NextInt(0, 3)]));
             // the courts (docs/LADDER.md): a charge against a former magistrate, and now and then an offer to a sitting praetor
             if (LadderSystem.Active(w, content.Offices) && decisions.NextInt(0, 3) == 0)
             {

@@ -112,7 +112,7 @@ public static partial class LadderSystem
     public static OfficeBusiness? DutyOf(World w, string characterId, params string[] kinds) => w.OfficeWork.FirstOrDefault(b => b.HolderId == characterId && b.Choice.Length == 0 && kinds.Contains(b.Kind));
     public static string[] DutyChoices(string kind) => kind == Hearing ? new[] { Law, ForHouse, ForEstate } : kind == Appeal ? new[] { Overturn, SendBack, Uphold } : kind == Desk ? new[] { Assess, Press, Skim }
         : kind == Posting ? new[] { Drill, Patrol, Board } : kind == Brief ? new[] { Plead, RichClient, PoorClient } : kind == Ledgers ? new[] { Diligent, Useful, Pad }
-        : kind == Watch ? new[] { Watches, Volunteer, Mess } : new[] { Audit, SpeakRegion, Whip };
+        : kind == Watch ? new[] { Watches, Volunteer, Mess } : new[] { Audit, SpeakRegion, Whip, CommitteeWork };
     private static bool Took(OfficeBusiness b) => b.Choice is Favour or Gift;
     private static string EstateName(PolicyCatalog? policy, string id) => policy?.Estates.FirstOrDefault(e => e.Id == id)?.Name ?? "the petitioners";
 
@@ -278,6 +278,8 @@ public static partial class LadderSystem
             Fair => "Keep the order of business fair. Every bench's leader thinks a little better of you, and so does the Reach.",
             Own => "Bring your own bench's business forward. You gain influence and its leader is obliged; the other benches' leaders are not pleased.",
             Silence => b.HouseA.Length > 0 ? $"Give {w.House(b.HouseA)?.Name} no day in the Senate. They will hate you for it; those who hate them will not." : "You have no enemy worth the trouble.",
+            CommitteeWork => w.Char(b.HolderId) is { } sen && w.House(sen.HouseId) is { } senHouse ? $"Do the work of {CommitteeName(CommitteeOf(w, senHouse))}. Your standing with it rises a point; you learn its business, and it does the Reach a little good."
+                : "Do the committee's work.",
             Whip => f == null ? "Your house sits on no bench." : f.LeaderHouseId == w.Char(b.HolderId)?.HouseId ? $"Hold {f.Name} together: every house on your bench thinks a little better of you." : $"Work for {f.Name}: its leader is obliged to you, and you gain a little influence.",
             _ => ""
         };
@@ -484,8 +486,9 @@ public static partial class LadderSystem
             }
             default:
             {
-                w.WorldCounters.Remove(AbsentKey);
-                if (choice == Audit)
+                w.WorldCounters.Remove(AbsentKey); Sat(w, who);
+                if (choice == CommitteeWork) { if (house != null) CommitteeYear(w, who, house); }
+                else if (choice == Audit)
                 {
                     var found = w.OfficeWork.Where(x => x.Turn == b.Turn && Took(x) && !x.Seen && Seat(w, x.HolderId) != null && w.Char(x.HolderId) is { } t && t.HouseId != who.HouseId).OrderBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
                     if (found != null && Hash(found.Id + ":audit:" + who.Id) % 2 == 0)
@@ -569,6 +572,7 @@ public static partial class LadderSystem
             b.Choice = "left";
             if (b.Kind == SeatKind)
             {
+                if (w.Char(b.HolderId) is { } absentee) Missed(w, absentee);
                 int years = w.Counter(AbsentKey) + 1; w.WorldCounters[AbsentKey] = years;
                 if (years >= AbsentYears && house != null)
                 {
