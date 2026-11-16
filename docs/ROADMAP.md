@@ -17,7 +17,7 @@ deterministic and saves and loads.
 |---|---|
 | Automated tests | 744 |
 | Events with text | 382 in 34 files |
-| Open gaps (docs/GAPS.md) | 56: 7 small, 41 a cycle, 8 several cycles. Fourteen of them were mapped by the full QA of 2026-11-16 (docs/QA.md). 73 closed so far (`./tools/gaps.sh`) |
+| Open gaps (docs/GAPS.md) | 58: 8 small, 42 a cycle, 8 several cycles. Sixteen of them came from the full QA of 2026-11-16 (docs/QA.md). 74 closed so far (`./tools/gaps.sh`) |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
@@ -85,7 +85,7 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
 **The world**
 1. Nations are off the map: numbers and expeditions, no territory.
 2. Anomalies, archaeology and a source of exotics are designed but not built.
-3. 132 of 382 events never fire under the random test player (docs/QA.md, section 1; it was about 60 of 261). Checked: every flag they wait for is one the engine
+3. 92 of 382 events never fire under the soak's four players: one random, three with an end in view (docs/QA.md; it was 132 under the random one alone). Checked: every flag they wait for is one the engine
    can raise, so none is dead; they need a player who gets into those situations (a triumph, a takeover, a revolt).
 
 **The person and the family**

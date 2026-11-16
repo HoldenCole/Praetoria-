@@ -9,6 +9,7 @@ using Praetoria.Tools;
 //   demo      [--seed N]                                         scripted run that proves the cascade
 //   validate                                                     lint the content set (CI gate)
 //   qa        [--scenario id|all] [--seeds N] [--turns N]        soak with a randomised player: invariants, save/load, coverage
+//   roads     [--scenario id|all] [--seeds N] [--turns N]        three players with an end in view: how far each gets, what refuses them
 //   perf      [--scenario id|all] [--turns N]                    where a turn's milliseconds go
 //   caesar    [--scenario id|all] [--seeds N]                    how far generals get on the Caesar road in sixty years
 //   survive   [--scenario id|all] [--seeds N]                    how often a passive player's line ends, and when it weds
@@ -37,6 +38,7 @@ try
         "epilogue" => Commands.EpilogueOf(opts),
         "simulate" => Commands.Simulate(opts),
         "qa"       => Qa.Run(opts),
+        "roads"    => Scripted.Run(opts),
         "perf"     => Probes.PerfRun(opts),
         "survive"  => Probes.Survive(opts),
         "balance"  => Probes.Balance(opts),
@@ -91,6 +93,7 @@ static int Help()
     Console.WriteLine("  epilogue --load file           the saga epilogue of a saved game");
     Console.WriteLine("  simulate [--scenario id|all] [--seeds N] [--turns N]   balance soak: aggregate stats over many seeds");
     Console.WriteLine("  qa       [--scenario id|all] [--seeds N] [--turns N]   QA soak: randomised play, determinism, save/load, coverage");
+    Console.WriteLine("  roads    [--scenario id|all] [--seeds N] [--turns N]   three players with an end in view (general, seceder, courtier): how far each gets, and what refuses them");
     Console.WriteLine("  turn [--seed N] [--turns N]   full Briefing→Action→Resolve cycle with pools + NPCs");
     Console.WriteLine("  economy [--seed N] [--turns N] domain economy: holdings accrue, invest in buildings");
     Console.WriteLine("  crisis [--seed N]              crisis gate/cascade/damper demonstration");

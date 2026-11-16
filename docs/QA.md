@@ -210,3 +210,67 @@ Twelve rows in the register wait on an answer. None is new except the last two.
 4. **Split the purses tab** (Q7).
 5. **Decide the Godot client** (Q8). Everything else about it follows from the answer.
 6. **Loosen the great war's clock** (Q5), once the owner has said whether fixed lengths were meant.
+
+## Players with an end in view (Q2, built the same day)
+
+The first thing on the list above is built: `src/Tools/Scripted.cs`, run with `praetoria roads`.
+
+**How it works.** Each of three players has a road: an ordered list of the steps it wants. Every turn it is shown
+every command the soak could offer, takes the wanted ones in order, then does one ordinary thing so that the house
+is kept as a house. When a wanted step is refused it writes down the reason, in the game's own words. It never gives
+a command that would take it off its road (the general does not sue for peace or obey a recall; the courtier does not
+go to war).
+
+| Player | Its road |
+|---|---|
+| The general | Command a fleet, win a name with it, be wronged by the Senate, march |
+| The seceder | Work a region, take it out of the Reach, keep it |
+| The courtier | Marry, hold office, lead a bench, make the house's money work |
+
+**How far each got**, over 24 games (eight starts, three seeds, sixty years):
+
+| The general | Games | The seceder | Games | The courtier | Games |
+|---|---|---|---|---|---|
+| Commands a fleet | 13 | Holds a world | 21 | The head is wed | 24 |
+| Wins a battle | 5 | Declares, or joins a state | 16 | Holds a magistracy | 18 |
+| Voted a triumph or a recall | 1 | Fights a war of independence | 16 | Holds an office of the Reach | 17 |
+| Crosses the line | 0 | It ends: won, let go or lost | 11 | Sits on a bench | 24 |
+| The march ends | 0 | | | A venture is a person's own | 23 |
+
+**What it changes.** In the soak, which now plays each road once on every start beside its random player:
+
+| | Random player alone | With the three roads |
+|---|---|---|
+| Events fired, of 382 | 250 | 290 |
+| Events never fired | 132 | 92 |
+| Kinds of command that landed, of 94 | 62 | 71 |
+| Flags content waits on that no game raised | 90 | 67 |
+
+Of the 132 events the random player never reached, a road fired 55 across the 72 games: 9 of 15 in breakaway, 5 of
+10 in wealth and in rings, 4 of 6 in the ladder. The roads replay identically, and a short run of them is now a step
+in CI.
+
+**What the general found.** This is the result that matters, and it is about the game, not the script.
+
+- **A house without land cannot get a fleet.** In 11 of 24 games nobody of the house ever commanded one, for 557
+  years of refusal in all. The reasons, in the game's words: "cannot afford it" (ships, 531 years); "needs a world of
+  your own" (a venture, 529); "no house has a world to spare" and "the Senate will not entrust a world to a house of
+  so little standing" (a world, 700). A new man cannot rise to a command by service. Marius could.
+- **A triumph is moved only by rank.** "The Senate hears a Prefect, or a Judge": 582 years.
+- **Where there is a fleet, the crews are the gate.** "N hulls would follow, and it takes N": 225 years. Donatives
+  cost more than the house had in 168.
+- **The one march that happened ended in nothing.** In the first run of the general a march began in year 19 and
+  was "swallowed by a larger war" nine years later: one line in the chronicle, no event, no flag, nothing decided.
+  That is also the civil war with no recorded ending that the probe showed (Q12).
+
+So the Caesar road is not only shut to other houses' generals (Q1). For half the starts it is shut to the player.
+
+**What the seceder and the courtier found.** Less. A third of the seceder's games never declare: "the capital's own
+region cannot leave the Reach", or the houses that would follow fall short of three worlds in five. The courtier is
+refused mostly by things working as meant ("already wed", "they have held it").
+
+**Not done.** These three do not cover everything the random player misses. Still never landed by any player:
+Assassinate, Foster, SeekAlly, Recall, SetSuccessionLaw, ProclaimImperium, Veto, MergeFleets and about fifteen
+others. 92 events still never fire, 12 of the 15 in caesar.json among them. A fourth road (the intriguer) and a
+general who starts with land would be the next two.
+

@@ -8,6 +8,8 @@ dotnet build Praetoria.sln --no-restore -c Release
 dotnet run --project src/Tools -c Release --no-build -- validate
 python3 validate_praetoria.py
 dotnet test Praetoria.sln --no-build -c Release
+# three players with an end in view, one start: catches a road that throws (docs/QA.md Q2). About twenty seconds.
+dotnet run --project src/Tools -c Release --no-build -- roads --scenario the_old_lion --seeds 1 --turns 60 > /dev/null
 dotnet build src/Game/Praetoria.Game.csproj -c Release
 dotnet publish src/Web/Praetoria.Web.csproj -c Release -o "${TMPDIR:-/tmp}/praetoria-web-ci"
 echo "CI steps passed."

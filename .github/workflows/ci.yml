@@ -35,6 +35,10 @@ jobs:
       - name: Test
         run: dotnet test Praetoria.sln --no-build -c Release --verbosity normal
 
+      # Three players with an end in view (a general, a seceder, a courtier), one start: fails if a road throws.
+      - name: Roads (players with an end in view)
+        run: dotnet run --project src/Tools -c Release --no-build -- roads --scenario the_old_lion --seeds 1 --turns 60
+
       # The Godot presentation layer compiles against the Godot.NET.Sdk NuGet package without an editor,
       # so CI keeps it building; it cannot run it (no display, no Godot runtime).
       - name: Build Godot layer (compile check)

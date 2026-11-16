@@ -134,6 +134,11 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
 
 ## Reachability: never-fired events
 
+`praetoria roads` plays three players with an end in view (a general, a seceder, a courtier: docs/QA.md) and says how
+far each got and what refused it. The soak plays each once per start and counts what they reach with its random
+player's, so "never fired" means none of the four reached it. When a row is measured, read the roads as well as the
+probe: a feature the probe never shows may need a player, and this is where one is.
+
 `praetoria qa` prints two complementary sections. *Events that never fired* lists events no run selected; *Flags
 content reads that no run ever raised* lists the `worldFlag` triggers the engine never set at any BeginTurn of any run
 (flags are sampled every turn, so one-turn flags count). An event in the first list whose flag is **not** in the second

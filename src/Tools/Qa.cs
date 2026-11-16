@@ -70,6 +70,32 @@ internal static class Qa
             }
         }
 
+        // ---- Players with an end in view (Scripted.cs): each road once on every start a player may choose. What they fire and
+        // take is counted with the random player's, so "never fired" means that none of the four reached it. ----
+        var roadLines = new List<string>(); int randomEvents = fired.Count, randomCommands = taken.Keys.Count(k => k.StartsWith("cmd/", StringComparison.Ordinal));
+        if (o.Scenario is "academy_crucible" or "all")
+        {
+            var starts = Scripted.Starts(contentRoot);
+            foreach (var roadId in Scripted.RoadIds)
+            {
+                var reached = new Dictionary<string, int>(); int games = 0, ended = 0;
+                foreach (var sid in starts)
+                {
+                    string label = $"{sid} seed 1, the {roadId}";
+                    try
+                    {
+                        var a = Scripted.Play(contentRoot, content, roadId, sid, 1, turns, o, fired, taken, FlagsEveryTurn); games++; if (a.LineEnded) ended++;
+                        foreach (var m in a.ReachedIn.Keys) reached[m] = reached.GetValueOrDefault(m) + 1;
+                        var b = Scripted.Play(contentRoot, content, roadId, sid, 1, turns, o);
+                        if (Canonical(a.World!) != Canonical(b.World!)) failures.Add($"{label}: NON-DETERMINISTIC — world differs on replay");
+                    }
+                    catch (Exception ex) { failures.Add($"{label}: EXCEPTION {ex.GetType().Name}: {ex.Message}\n      {FirstFrame(ex)}"); }
+                }
+                roadLines.Add($"  the {roadId}, {games} games (the line ended in {ended}): " + string.Join(" · ", Scripted.MilestonesOf(roadId).Select(m => $"{m} {reached.GetValueOrDefault(m)}")));
+            }
+            flagsSeen.UnionWith(FlagsEveryTurn);
+        }
+
         // ---- Report ----
         var never = content.Events.Where(e => !fired.ContainsKey(e.Id)).Select(e => e.Id).OrderBy(x => x, StringComparer.Ordinal).ToList();
         var rare = fired.Where(kv => kv.Value <= Math.Max(1, runs / 10)).OrderBy(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).ToList();
@@ -78,6 +104,11 @@ internal static class Qa
         Console.WriteLine($"The Caesar road over {runs} runs: {string.Join(" · ", CaesarKeys.Select(k => $"{k.Replace('_', ' ')} {caesar.GetValueOrDefault(k)}"))}{(fell.Count > 0 ? " · fell in: " + string.Join(", ", fell) : "")}");
         Console.WriteLine($"Runs: {runs} · dynasties ended: {deaths.Count} · events fired: {fired.Values.Sum()} ({fired.Count}/{content.Events.Count} distinct)");
         if (deaths.Count > 0) Console.WriteLine("  ended: " + string.Join(", ", deaths));
+        if (roadLines.Count > 0)
+        {
+            Console.WriteLine($"Players with an end in view (how many games reached each step). The random player alone fired {randomEvents} events and landed {randomCommands} kinds of command; with these, {fired.Count} and {taken.Keys.Count(k => k.StartsWith("cmd/", StringComparison.Ordinal))}.");
+            foreach (var line in roadLines) Console.WriteLine(line);
+        }
 
         Section("Events that never fired", never);
         Section($"Rarely fired (≤ {Math.Max(1, runs / 10)} across all runs)", rare.Select(kv => $"{kv.Key} ×{kv.Value}"));
@@ -108,7 +139,7 @@ internal static class Qa
 
     /// <summary>A save with every string set sorted: flag sets are HashSets, whose slot order legitimately changes when a flag is
     /// removed and re-added after a reload, and nothing in the engine reads them in order.</summary>
-    private static string Canonical(World world)
+    internal static string Canonical(World world)
     {
         var node = System.Text.Json.Nodes.JsonNode.Parse(SaveSystem.Serialize(world))!;
         SortStringArrays(node);
@@ -223,9 +254,25 @@ internal static class Qa
     /// resumed save draw the same list.</summary>
     private static void Act(TurnController tc, World w, ContentDatabase content, IRng decisions, Dictionary<string, int>? taken)
     {
-        var p = w.Protagonist; if (p is not { Alive: true }) return;
-        var house = w.House(p.HouseId); if (house == null) return;
+        var cands = Candidates(tc, w, content, decisions); if (cands.Count == 0) return;
         var ctx = new CommandContext(w, WorldBuilder.RngFor(w));
+        int done = 0;
+        for (int tries = 0; tries < 4 && cands.Count > 0 && done < 2; tries++)
+        {
+            int i = decisions.NextInt(0, cands.Count); var c = cands[i]; cands.RemoveAt(i);
+            if (!tc.Executor.TryExecute(c, ctx)) continue;
+            done++;
+            if (taken != null) { string key = "cmd/" + c.GetType().Name.Replace("Command", ""); taken[key] = taken.GetValueOrDefault(key) + 1; }
+        }
+    }
+
+    /// <summary>Every command the protagonist might give this turn, built in id order. The draws on <paramref name="decisions"/>
+    /// only choose which of the rarer ones are offered and which target each takes; the scripted players (Scripted.cs) call it
+    /// with a stream that offers them all.</summary>
+    internal static List<ICommand> Candidates(TurnController tc, World w, ContentDatabase content, IRng decisions)
+    {
+        var p = w.Protagonist; if (p is not { Alive: true }) return new List<ICommand>();
+        var house = w.House(p.HouseId); if (house == null) return new List<ICommand>();
         var g = w.Galaxy; var bc = content.Businesses;
         var cands = new List<ICommand>();
         string Ord(string a) => a;
@@ -478,14 +525,7 @@ internal static class Qa
             if (match.Count > 0) cands.Add(new ProposeMarriageCommand(p.Id, p.Id, match[decisions.NextInt(0, match.Count)].Id, content.Titles));
         }
 
-        int done = 0;
-        for (int tries = 0; tries < 4 && cands.Count > 0 && done < 2; tries++)
-        {
-            int i = decisions.NextInt(0, cands.Count); var c = cands[i]; cands.RemoveAt(i);
-            if (!tc.Executor.TryExecute(c, ctx)) continue;
-            done++;
-            if (taken != null) { string key = "cmd/" + c.GetType().Name.Replace("Command", ""); taken[key] = taken.GetValueOrDefault(key) + 1; }
-        }
+        return cands;
     }
 
     private static void CheckText(FiredEvent fired, ContentDatabase content, World world, HashSet<string> tokens)

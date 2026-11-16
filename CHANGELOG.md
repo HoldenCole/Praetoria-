@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added (tools)
+- **Players with an end in view** (docs/QA.md; docs/GAPS.md Q2). `praetoria roads` plays a general, a seceder and a
+  courtier, each taking the steps of its road in order, and reports how far each got and what refused it, in the
+  game's own words. The soak now plays each once per start and counts their coverage with its random player's, and a
+  short run is a step in CI.
+
 ### Fixed
 - **Found by the full QA** (docs/QA.md). The Dynasty screen no longer scrolls sideways on a phone. A raid on your
   world is a year's news and no longer remembered for ever. The build has no warnings. The README and the roadmap
