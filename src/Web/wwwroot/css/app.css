@@ -675,7 +675,7 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .suit b.good { color: var(--good); } .suit b.bad, .suit .small.bad { color: var(--warn); }
 .suit-head { margin-bottom: .2rem; }
 table.prospects button { white-space: nowrap; } table.prospects td, table.prospects th { padding: .18rem .4rem; font-size: .82rem; } table.prospects td.num { text-align: right; font-variant-numeric: tabular-nums; } table.prospects td.good { color: var(--good); } table.prospects td.bad { color: var(--warn); }
-@media (max-width: 700px) { .suit .gauge { grid-template-columns: 6.5rem 1fr 30px; } table.prospects th:nth-child(3), table.prospects td:nth-child(3) { display: none; } }
+@media (max-width: 700px) { table.prospects { min-width: 0; display: block; overflow-x: auto; } .suit .gauge { grid-template-columns: 6.5rem 1fr 30px; } table.prospects th:nth-child(3), table.prospects td:nth-child(3) { display: none; } }
 
 /* ---- the household: found family and delegated duties (docs/HOUSEHOLD.md) ---- */
 .panel.cursus, .panel.breakaway { margin-top: .8rem; max-width: 980px; }

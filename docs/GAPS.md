@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-16 (thirty-fourth pass: favours called in and gifts refused; W13 closed, W14 mapped).
+Last updated 2026-11-16 (the full QA, docs/QA.md: fourteen rows mapped, none closed).
 
 ## The worklist
 
@@ -18,12 +18,15 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | A10, W14 | What these passes left: things put out of a creditor's reach, and a world redeemed; favours that other houses call in | next |
+| 1 | Q2, Q3, Q9 | From the full QA (docs/QA.md): a player that plays toward an end; the 26 events that should have fired; a soak that says why a line ended | next |
+| 2 | Q7 | Split the purses tab | |
+| 3 | A10, W14 | What the last passes left: things put out of a creditor's reach; favours that other houses call in | |
 
 **No small gap is left that is not the owner's.** What remains is a cycle or more each.
 
 **Waiting on the owner** (each row says what it turns on): C9 and C6 (the Caesar road), M4 (where a spouse lives),
-B13 and G1 to G7 (the forms of government).
+W12 (a world held by a person), B13 and G1 to G7 (the forms of government), and from the full QA Q1 (how rare a
+Caesar is meant to be) and Q8 (the Godot client).
 
 Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3, then A2 and A4, then B6, B8, B11 and B12, then B14, J4, L9, F5, F6, A5, E6, W6, W3, W5, E5, H3 and M1, then W7, H5, E7, F7 and M6, then L2, then L5, then L8 (see the bottom table).
 
@@ -112,6 +115,25 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 | M3 | A spouse does nothing: no counsel, no running the house in your absence. | M | |
 | M4 | A spouse stays in their own house. | S | **The owner's:** does a spouse come to live in the house, and which of the two moves? |
 | M5 | No affection outside courtship. | M | |
+
+## Found by the full QA (docs/QA.md, 2026-11-16)
+
+| Id | Gap | Size | Leans on |
+|---|---|---|---|
+| Q1 | A Caesar among the other houses is not rare but absent. In sixty unattended games a general was loved in 48, of the first rank in 11, both in 1; one civil war began and none is recorded as ended; no throne was taken. | L | **The owner's:** the rule is no more than one in ten. Is none in sixty what was meant? (C9 asks the same of the gate.) |
+| Q2 | The test player cannot reach a third of the game. 21 commands it is offered never once succeed (Caesar, Secession, SeizeThrone, Veto, Chair, Canvass, FoundFaction, ProposeMarriage, SettleVenture and others) and 11 are never offered (Assassinate, Foster, SeekAlly, Recall, SetSuccessionLaw and others). It needs players that play toward an end: a general, a seceder, a courtier. | M | |
+| Q3 | 132 of 382 events never fired in 33 soak games. For 26 of them the flag was raised and the event still never fired; seven have a weight of 35 to 40 (the_wound, the_heir_is_named, far_ahead_of_their_years, one_of_yours_is_removed, the_accounts_do_not_add_up, two_of_yours_want_one_thing, the_elder_makes_peace). A role may not be binding. | M | |
+| Q4 | Eighteen counters for things built since 14 November are zero in all sixty unattended games: a casting vote, a stirred censure, a war over words, a house leaving a state, a second great war, a founder's stake and part, a second start, a venture settled, a company carrying a venture, a world taken for debt, a thing sold, a standard sent home, a signet surrendered, a favour lapsed. Each rests on a test alone. | M | Q2 |
+| Q5 | The great war keeps a clock: all twelve that ended in exhaustion lasted exactly 16 years, sixteen of eighteen partitions and crushings exactly 10. One start fights it in ten games of ten, two in four of ten. | M | |
+| Q6 | Nothing shrinks. 7,152 ventures stood at the end against 511 wound up; 2,988 shares were bought in a person's name against 68 sold; a venture loses money in 1 to 3 years in a hundred. | M | The economy |
+| Q7 | The purses tab holds ten sections, 627 words and 38 buttons in one panel, explains itself in paragraphs, and has no headline or tiles. Nine passes added to it. | M | docs/DASHBOARDS.md |
+| Q8 | The Godot client uses 21 of the engine's 94 commands, has no screen for anything built since 7 November, and has never been run. | L | **The owner's:** bring it level, freeze it, or retire it? |
+| Q9 | The tools hide what they would find. The soak does not say why a line ended; its list of oddities shows the first forty and one run's "negative treasury" lines fill it; the probe skips both throne-era starts and cuts its percentages instead of rounding them. | S | |
+| Q10 | CI runs none of the 17 browser scripts, the soak, the probe or gaps.sh. The counts in the roadmap are kept by hand, and the README had drifted a dozen ways before this pass. | M | |
+| Q11 | Code that each pass made worse: src/Tools/Probes.cs line 122 is 3,940 characters and 66 statements; Qa.Act is 266 lines; tests/RegisterTests.cs is 1,087 lines and named for a worklist, not for what it tests. | M | |
+| Q12 | Two probe figures do not add up and were not run down: one start shows five states broken away, three recognised and three brought back; and the one civil war in sixty games has no ending recorded. | S | |
+| Q13 | A passive player's line never ends (0 of 80 games). A random player's ends in 1 to 7 of 33, always between years 34 and 57 and mostly in starts that open with one person. The cause is not known; foreclosure was tested and is not it. | M | Q9 |
+| Q14 | Never checked: keyboard use, contrast, a screen reader, a slow connection. The client is 22 MB to download. Under a throne three tabs are more than half empty. | M | |
 
 ## Older, from docs/ROADMAP.md section 3
 

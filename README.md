@@ -2,7 +2,7 @@
 
 ## ▶ [Play it in your browser](https://holdencole.github.io/Praetoria-/)
 
-No install. The whole game — the office you furnish, the galaxy of six regions and eighteen worlds, the house, the
+No install. The whole game — the office you furnish, the galaxy of ten regions and thirty-one systems, the house, the
 navy, the dynasty, the other houses, the chronicle, saves in your browser — runs as a WebAssembly build of the same
 engine the tests run. Every push to `main` rebuilds it onto the `gh-pages` branch
 ([`pages.yml`](.github/workflows/pages.yml)). If the link 404s, Pages needs switching on once: Settings → Pages →
@@ -21,17 +21,18 @@ bloodline — toward the throne of a fractured human galaxy. Your character will
 built headless and tested — ships, admirals, sieges, wars with score and terms, named heirs who come of age,
 succession laws, fostering, assassination, marriage, honors, megastructures, the throne, **the Great Crisis** (a
 clocked galaxy-war that sorts the houses into blocs; it shakes the Republic but does not end it), family with wills of their own,
-advisors who speak from intel, and the saga epilogue — and the Godot layer (creation, Court, Galaxy, dynasty tree)
-renders all of it. A balance simulation (`praetoria simulate`) drives tuning. The browser client is the playable build and is
+advisors who speak from intel, and the saga epilogue — and a Godot layer (creation, Court, Galaxy, dynasty tree)
+renders the first of it (it is about fifty changes behind the browser client: see `docs/QA.md`). A balance simulation (`praetoria simulate`) drives tuning. The browser client is the playable build and is
 driven through a headless browser for QA every session (`docs/WEB_CLIENT.md`). The Godot layer compiles against the Godot SDK and is
-- [`docs/GALAXY.md`](docs/GALAXY.md) — the galaxy: three rings, the capital, allegiance and lawlessness, risings, free holds and free marches.
-- [`docs/ECONOMY.md`](docs/ECONOMY.md) — the economy: the ledger, prosperity, belts and claims, ventures and charters, loans, house wealth.
-- [`docs/SENATE.md`](docs/SENATE.md) — the Senate as a place of action: motions, weights, whipping, what rivals move and why.
-- [`docs/POLITICS.md`](docs/POLITICS.md) — laws by position, their effects, and the six estates that approve or resent them.
 wired to the same Core, but Godot's .NET build cannot target the web and it has **not yet been run in a Godot editor** —
 treat it as the future desktop shell. See
 [What's built](#whats-built-the-current-state), [What's not](#whats-not-built-the-gaps),
 [`docs/MILESTONE_3_NOTES.md`](docs/MILESTONE_3_NOTES.md) and [`docs/RELEASE_0.5.md`](docs/RELEASE_0.5.md).
+
+- [`docs/GALAXY.md`](docs/GALAXY.md) — the galaxy: three rings, the capital, allegiance and lawlessness, risings, free holds and free marches.
+- [`docs/ECONOMY.md`](docs/ECONOMY.md) — the economy: the ledger, prosperity, belts and claims, ventures and charters, loans, house wealth.
+- [`docs/SENATE.md`](docs/SENATE.md) — the Senate as a place of action: motions, weights, whipping, what rivals move and why.
+- [`docs/POLITICS.md`](docs/POLITICS.md) — laws by position, their effects, and the six estates that approve or resent them.
 
 This README is the front door. If you are new — a programmer, a writer, or just curious — it should
 leave you knowing what the game *is*, how it's designed, exactly what exists today, what doesn't, and
@@ -254,10 +255,10 @@ three orders of the Republic (`REPUBLIC`).
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 608 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
+**Verification:** 744 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
 round-trip that must reproduce an uninterrupted run; both content validators clean; every start auto-plays sixty turns
 across several seeds with a randomised player. The content counts in the table above are from the first release; the
-current ones (261 events, 9 scenarios, 31 systems) are in `docs/ROADMAP.md`.
+current ones (382 events, 11 scenarios, 31 systems) are in `docs/ROADMAP.md`.
 
 Per-milestone detail, with the acceptance proof for each: [`MILESTONE_1`](docs/MILESTONE_1_NOTES.md)
 (engine) · [`MILESTONE_2`](docs/MILESTONE_2_NOTES.md) (turn loop) · [`MILESTONE_4`](docs/MILESTONE_4_NOTES.md)
@@ -275,13 +276,13 @@ if it's listed, it does not exist yet.
 The current, ranked list of gaps is **[`docs/ROADMAP.md`](docs/ROADMAP.md) section 3**, and the dated log behind it
 is `docs/GAP_ANALYSIS.md`. In short:
 
-- **The Republic**: the player cannot yet make or mend the times a Caesar needs; a magistrate has no work to do in office; the state gives
+- **The Republic**: the player cannot yet make or mend the times a Caesar needs; the state gives
   commerce no contracts.
 - **The economy**: rival houses do not take each other over; some goods are in permanent glut.
 - **The Imperium**: government under a throne is simple next to the Republic.
 - **The world**: nations beyond the Reach are off the map; anomalies and archaeology are not built.
 - **Presentation**: no sound; portraits all wear one uniform; the character sheet is thin; phone layout unchecked.
-- **Housekeeping**: browser checks are run by hand; the Godot desktop shell compiles and has never been run.
+- **Housekeeping**: browser checks are scripted (`tools/browser`) but no CI runs them; the Godot desktop shell compiles, has never been run, and lags the browser client badly (`docs/QA.md`).
 
 ---
 
@@ -361,7 +362,7 @@ dotnet run --project src/Tools -- play --auto --scenario the_risen_officer --bac
 # The balance simulation (docs/PROCESS.md QA): many seeds, aggregate stats per scenario
 dotnet run --project src/Tools -- simulate --scenario all --seeds 10 --turns 50
 
-# The test suite (243 tests, incl. a 40-turn whole-stack soak and a save/load round-trip)
+# The test suite (744 tests, incl. whole-stack soaks and a save/load round-trip)
 dotnet test
 
 # The Godot UI (needs Godot 4.3 with .NET): open project.godot in the editor and press Play.

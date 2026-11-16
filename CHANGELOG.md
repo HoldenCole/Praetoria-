@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+- **Found by the full QA** (docs/QA.md). The Dynasty screen no longer scrolls sideways on a phone. A raid on your
+  world is a year's news and no longer remembered for ever. The build has no warnings. The README and the roadmap
+  give the right counts again.
+
 ### Added
 - **A favour called in or forgotten, and a gift refused** (docs/WEALTH.md; docs/GAPS.md W13). A house that owes
   you a favour can be asked for 15 credits or for its consent to a match, from the purses panel; left alone the

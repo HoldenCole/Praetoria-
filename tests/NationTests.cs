@@ -88,7 +88,7 @@ public class NationTests
         Assert.False(f.IsAway); Assert.Equal("tessaly", f.SystemId);
         if (plunder > 0) { Assert.Contains(w.History, h => h.Text.Contains($"with {plunder} credits of plunder")); Assert.True(w.House("vega")!.Treasury.Credits > credits - 40); }   // paid in, less the voyage's upkeep
         if (plunder > 0) Assert.True(n.Strength < before);
-        Assert.True(w.History.Any(h => h.Text.Contains("comes home from The Outer Compact")));
+        Assert.Contains(w.History, h => h.Text.Contains("comes home from The Outer Compact"));
     }
 
     [Fact]
@@ -134,12 +134,12 @@ public class NationTests
         var w = Seeded(); var fs = Fleets(); var ns = Nations(fs); var barony = w.Holding("barony")!; int unrest = barony.Unrest;
         foreach (var n in w.Nations) if (n.Id != "vashti") n.Disposition = 50;   // only the khans are sour
         int turns = 0; while (w.Counter(NationSystem.RaidsCounter) == 0 && turns++ < 60) { w.Turn++; ns.Tick(w); }
-        Assert.True(w.Counter(NationSystem.RaidsCounter) >= 1); Assert.True(w.History.Any(h => h.Text.Contains("Raiders of The Vashti Khanates fall on")));
+        Assert.True(w.Counter(NationSystem.RaidsCounter) >= 1); Assert.Contains(w.History, h => h.Text.Contains("Raiders of The Vashti Khanates fall on"));
         Assert.True(barony.Unrest > unrest || w.Holding("corwin_world")!.Unrest > 0 || w.Holding("prime_seat")!.Unrest > 0);
         // a fleet of three in orbit over the only rim world turns the next raid back
         var w2 = Seeded(); var ns2 = Nations(Fleets()); foreach (var n in w2.Nations) if (n.Id != "vashti") n.Disposition = 50; At(w2, "guard", "vega", "tessaly", 3);
         turns = 0; while (!w2.History.Any(h => h.Text.Contains("Raiders of The Vashti Khanates")) && turns++ < 60) { w2.Turn++; ns2.Tick(w2); }
-        Assert.True(w2.History.Any(h => h.Text.Contains("they turn back"))); Assert.Equal(0, w2.Counter(NationSystem.RaidsCounter));
+        Assert.Contains(w2.History, h => h.Text.Contains("they turn back")); Assert.Equal(0, w2.Counter(NationSystem.RaidsCounter));
     }
 
     [Fact]

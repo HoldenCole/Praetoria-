@@ -134,7 +134,7 @@ public class HouseholdTests
     public void A_marshal_keeps_the_fleets_fuelled_and_a_duty_lapses_with_its_holder()
     {
         var (tc, w, me, mine) = Start(); var m = Person(w, mine, "marshal_kin", 35); m.Name = "Able Marshal"; m.Skills["logistics"] = 2; w.Relationship(m.Id, me.Id).Disposition = 40;
-        Assert.True(w.Fleets.Values.Any(f => f.OwnerId == mine.Id)); mine.Treasury.Helium3 = 0; mine.Treasury.Credits = 500;
+        Assert.Contains(w.Fleets.Values, f => f.OwnerId == mine.Id); mine.Treasury.Helium3 = 0; mine.Treasury.Credits = 500;
         Assert.True(Do(w, new DelegateCommand(me.Id, HouseholdSystem.Marshal, m.Id, 20)));
         tc.EndTurn(); Assert.Contains("fuel", mine.Duty(HouseholdSystem.Marshal)!.LastReport); Assert.True(w.HasFlag(HouseholdSystem.DelegatedFlag));
         tc.BeginTurn(); m.Alive = false; tc.EndTurn(); Assert.Null(mine.Duty(HouseholdSystem.Marshal));

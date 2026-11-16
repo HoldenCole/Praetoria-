@@ -2060,3 +2060,12 @@ and the money one was greyed with its reason: that house had not the money to gi
 
 **Left, and mapped.** Other houses never call a favour in for anything but a vote, and a favour is never passed on
 (W14).
+
+## 68. The full QA — 2026-11-16
+
+Written up on its own page: docs/QA.md. In one line: nothing is broken that a player would meet, and a third of
+what has been built is not reached by play, the test player or the unattended world. Seven small defects were fixed
+in the pass (a screen that scrolled sideways on a phone, a raid remembered for ever, five analyser warnings, a stale
+README and roadmap, a probe that printed zeros for starts it skips, a row missing from the owner's list). Fourteen
+rows were added to the register (Q1 to Q14) and none closed. 744 tests.
+

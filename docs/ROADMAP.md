@@ -1,6 +1,6 @@
 # Praetoria roadmap
 
-As of 2026-11-13. This page is the summary: what is built, what is missing, what comes next, and ideas for later.
+As of 2026-11-16 (counts and the list below checked by the full QA, docs/QA.md). This page is the summary: what is built, what is missing, what comes next, and ideas for later.
 The dated log of every pass, with measurements, is `docs/GAP_ANALYSIS.md`. Each system has its own design doc, linked
 below. Update this page at the end of every cycle.
 
@@ -17,11 +17,11 @@ deterministic and saves and loads.
 |---|---|
 | Automated tests | 744 |
 | Events with text | 382 in 34 files |
-| Open gaps (docs/GAPS.md) | 42: 5 small (four of them the owner's to decide, the fifth the standing one about events the soak does not reach), 31 a cycle, 6 several cycles. 73 closed so far (`./tools/gaps.sh`) |
+| Open gaps (docs/GAPS.md) | 56: 7 small, 41 a cycle, 8 several cycles. Fourteen of them were mapped by the full QA of 2026-11-16 (docs/QA.md). 73 closed so far (`./tools/gaps.sh`) |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
-| Senate motions / offices | 12 / 5 |
+| Senate motions / offices | 15 / 5 |
 | Ventures / goods | 14 / 6 |
 | Nations beyond the Reach | 5 |
 | Academy lessons | 9 |
@@ -62,7 +62,7 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
 **The Republic**
 1. The player cannot make or mend the times. A Caesar needs a troubled Republic (docs/CAESAR.md), and nothing yet lets
    a house deliberately trouble it, or steady it to stop a rival. A rival Caesar is rare by the owner's rule, not a gap.
-2. A magistrate has nothing to do in office. The ladder (docs/LADDER.md) is climbed, paid and counted, but a praetor hears no cases and a quaestor keeps no accounts.
+2. ~~A magistrate has nothing to do in office.~~ Closed 2026-11-14 (docs/GAPS.md L1, J1, J2): every rung has a year's work.
 3. Commerce gets nothing from the state: no tax-farming, no contracts to supply the fleet.
 4. A patron notices how a client votes, but never asks for anything else: no loan to a third house, no marriage, no
    standing for an office in the patron's interest.
@@ -85,7 +85,7 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
 **The world**
 1. Nations are off the map: numbers and expeditions, no territory.
 2. Anomalies, archaeology and a source of exotics are designed but not built.
-3. About 60 of 261 events never fire under the random test player. Checked: every flag they wait for is one the engine
+3. 132 of 382 events never fire under the random test player (docs/QA.md, section 1; it was about 60 of 261). Checked: every flag they wait for is one the engine
    can raise, so none is dead; they need a player who gets into those situations (a triumph, a takeover, a revolt).
 
 **The person and the family**
@@ -95,8 +95,8 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
    greater house; otherwise the father's). It is never negotiated: no marriage contract says whose the children are.
 3. Skills are learned now (docs/EDUCATION.md). Still missing: the Academy for anyone but you, asking a relative to study
    or teach, and any check of what slower skills do to battles and offices over a long run.
-4. Purses, allowances, heirlooms and wills are built for the player's house (docs/WEALTH.md). A purse still holds only
-   credits, and nobody outside the player's house has one.
+4. Purses, allowances, heirlooms and wills are built for the player's house (docs/WEALTH.md). A purse now holds shares
+   as well as credits (W1), and a venture can be a person's own (W10). Nobody outside the player's house has one.
 5. Only houses can be patrons. A person cannot take a protégé, be a ward, or be adopted, and a house of one has no way
    to join a larger one.
 

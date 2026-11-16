@@ -368,6 +368,7 @@ public class DepthCycleTests
         PirateSystem.WriteFlags(w); Assert.True(w.HasFlag("pirates_near"));
         rs.Lawlessness = 10; w.Turn = 7; pirates.Tick(w);
         Assert.DoesNotContain(w.Fleets.Values, f => f.OwnerId == PirateSystem.HouseId);
+        Assert.False(w.HasFlag("raided"));   // the news of a raid is a year's, not for ever
     }
 
     [Fact]

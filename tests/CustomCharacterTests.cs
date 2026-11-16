@@ -85,7 +85,7 @@ public class CustomCharacterTests
         var fleet = Assert.Single(w.Fleets.Values.Where(f => f.OwnerId == house.Id)); Assert.Equal(24, fleet.Strength); Assert.Equal(6, fleet.Ships["cruiser"]);
         Assert.Equal("House Magna", house.Name); Assert.Equal(1200, house.Treasury.Credits); Assert.Contains(CharacterWorkshop.FreeFlag, w.WorldFlags);
         Assert.Equal(2, w.BusinessesOf(house.Id).Count()); Assert.True(OrderSystem.Tier(house, OrderSystem.Arms) >= 2);
-        Play(tc, 25); Assert.False(w.Houses.Values.Any(h => double.IsNaN(h.Wealth)));
+        Play(tc, 25); Assert.DoesNotContain(w.Houses.Values, h => double.IsNaN(h.Wealth));
     }
 
     [Fact]
