@@ -196,7 +196,7 @@ public sealed class VentureSystem
     /// <summary>The head settles a venture on one of the house: it is that person's own from now on.</summary>
     public void Settle(World w, Character head, Business b, Character on)
     {
-        b.HeldById = on.Id; Bump(w, SettledCounter);
+        b.HeldById = on.Id; Bump(w, SettledCounter); if (w.House(head.HouseId) is { } hs && hs.PledgedId == b.Id) hs.PledgedId = "";   // what is someone's own is no longer the house's to pledge
         if (on.Id != head.Id) { var r = w.Relationship(on.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition + SettleRegard, -100, 100); LifeSystem.Note(w, on, "venture", $"Was given the {b.Name} as their own."); }
         w.Log(on.Id == head.Id ? $"{head.Name} takes the {b.Name} as their own, apart from the house." : $"{head.Name} settles the {b.Name} on {on.Name}. It is theirs: what it earns, and the say in selling it.");
     }
@@ -259,6 +259,15 @@ public sealed class VentureSystem
             if (ours) w.Log($"By the peace, {payer.Name} pays {claimant.Name} {pay} credits for the ventures sacked in the war{(pay < claim ? $", of {claim} claimed" : "")}.");
         }
     }
+    public const int SiegeClaimATurn = 3; public const string SiegeClaimsCounter = "siege_claims";
+    /// <summary>A blockade that is lifted without the world falling has cost its holder something, and that is written down
+    /// against whoever laid it, with what was sacked: paid at the peace by the same rule.</summary>
+    public static void SiegeLifted(World w, Siege siege)
+    {
+        var world = w.Holding(siege.HoldingId); if (world == null || siege.Turns <= 0 || world.OwnerId == siege.BesiegerId || !w.AtWar(world.OwnerId, siege.BesiegerId)) return;
+        int bill = SiegeClaimATurn * siege.Turns; Bump(w, ClaimKey(world.OwnerId, siege.BesiegerId), bill); Bump(w, SiegeClaimsCounter, bill);
+    }
+
     /// <summary>A bill with no war behind it is not presented: the war ended some other way.</summary>
     private static void LapseClaims(World w)
     {
@@ -286,6 +295,56 @@ public sealed class VentureSystem
 
     /// <summary>A house that owes on a loan and has nothing, or whose treasury is <see cref="ForecloseAt"/> or worse, or which has
     /// been overdrawn <see cref="OverdrawnYears"/> years running, is foreclosed on: its lender takes the least of its ventures against the debt, or it is sold to pay what is owed. What is someone's own is not the house's to lose. The house has a name for bad business.</summary>
+    public const int ThingAfterYears = 3;
+    public const string ThingsForeclosedCounter = "things_foreclosed", WorldsForeclosedCounter = "worlds_foreclosed", PledgedCounter = "pledges_made";
+    /// <summary>A thing handed down that the house's creditors can take: one of its people holds it, and it is not entailed.
+    /// An entail is what keeps a thing from them.</summary>
+    public static bool Takeable(World w, Heirloom t, House house) => !t.Entailed && w.Char(t.HolderId) is { Alive: true } c && c.HouseId == house.Id && Economy.HeadOf(w, house)?.Id == c.Id;
+
+    public string? PledgeRefusal(World w, Character? head, string id)
+    {
+        var house = head != null ? w.House(head.HouseId) : null; if (head?.Alive != true || house == null || Economy.HeadOf(w, house)?.Id != head.Id) return "only the head of the house can pledge what is the house's";
+        if (id.Length == 0) return house.PledgedId.Length == 0 ? "nothing is pledged" : null;
+        if (house.PledgedId == id) return "it is pledged already";
+        if (w.Business(id) is { } b) return b.OwnerId != house.Id ? "not a venture of yours" : b.CompanyId.Length > 0 ? "it is a company's" : HolderOf(w, b) != null ? "it is someone's own, and not the house's to pledge" : null;
+        if (w.Heirlooms.FirstOrDefault(t => t.Id == id) is { } thing) return Takeable(w, thing, house) ? null : thing.Entailed ? "it is entailed: no creditor can take it" : "it is not yours to pledge";
+        return "no such thing";
+    }
+    public void Pledge(World w, Character head, string id) { var house = w.House(head.HouseId)!; house.PledgedId = id; if (id.Length > 0) Bump(w, PledgedCounter); w.Log(id.Length == 0 ? $"{head.Name} withdraws the pledge: the creditors may take what they like." : $"{head.Name} names what the house's creditors are to take first, if it comes to that."); }
+
+    /// <summary>With no venture left to take, the creditors take a thing handed down: the one pledged, else the least of what the
+    /// head holds unentailed. Only after <see cref="ThingAfterYears"/> years overdrawn, a loan unpaid, or a treasury far under.</summary>
+    private bool ForecloseThing(World w, House house, string? mine)
+    {
+        bool pressed = house.Debt > 0 && house.Treasury.Credits < 0 || house.Treasury.Credits <= ForecloseAt || w.Counter(OverdrawnKey(house.Id)) >= ThingAfterYears; if (!pressed) return true;   // not yet: nothing more is taken this year
+        var thing = w.Heirlooms.Where(t => Takeable(w, t, house)).OrderBy(t => t.Id == house.PledgedId ? 0 : 1).ThenBy(t => t.Value).ThenBy(t => t.Id, StringComparer.Ordinal).FirstOrDefault();
+        if (thing == null) return false;
+        int price = thing.Value, owed = Math.Min(house.Debt, price), overdrawn = Math.Min(price - owed, Math.Max(0, -house.Treasury.Credits)); var lender = w.House(house.LenderId); var keeper = lender != null && lender.Id != house.Id ? Economy.HeadOf(w, lender) : null;
+        bool takes = keeper is { Alive: true } && lender!.Treasury.Credits >= price - owed;
+        house.Debt -= owed; if (house.Debt == 0) house.LenderId = ""; house.Treasury.Credits += price - owed; Bump(w, CreditorsCounter, owed + overdrawn); Bump(w, ThingsForeclosedCounter);
+        w.WorldCounters[BadNameKey(house.Id)] = w.Turn + BadNameYears; if (house.PledgedId == thing.Id) house.PledgedId = "";
+        if (w.Char(thing.HolderId)?.Will is { } will) will.Items.Remove(thing.Id);
+        if (takes) { lender!.Treasury.Credits -= price - owed; thing.HolderId = keeper!.Id; thing.OfHouseId = lender.Id; thing.FromHouseId = ""; } else w.Heirlooms.Remove(thing);
+        if (house.Id == mine) { w.WorldFlags.Add(ForeclosedFlag); w.Log($"The house owes money and has no venture left to give. {(takes ? lender!.Name + " takes" : "Its creditors sell")} {thing.Name}: {owed + overdrawn} credits of what is owed are paid."); }
+        else if (takes && lender!.Id == mine) w.Log($"{house.Name} cannot pay what it owes you, and has no venture left. {thing.Name} is yours.");
+        return true;
+    }
+
+    /// <summary>Last of all a world: only against a loan from a named house, never a house's last world or the capital. The whole
+    /// loan is written off for it.</summary>
+    private bool ForecloseWorld(World w, House house, string? mine)
+    {
+        var lender = w.House(house.LenderId); if (house.Debt <= 0 || house.Treasury.Credits >= 0 || lender == null || lender.Id == house.Id || w.AtWar(lender.Id, house.Id)) return false;
+        var worlds = w.HoldingsOf(house.Id).Where(h => h.IsPlanet).ToList(); if (worlds.Count < 2) return false;
+        var world = worlds.Where(h => !(w.Galaxy is { Capital.Length: > 0 } g && g.Capital == h.SystemId)).OrderBy(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault(); if (world == null) return false;
+        Bump(w, CreditorsCounter, house.Debt); Bump(w, WorldsForeclosedCounter); house.Debt = 0; house.LenderId = ""; w.WorldCounters[BadNameKey(house.Id)] = w.Turn + BadNameYears;
+        world.FormerOwnerId = house.Id; world.OwnerId = lender.Id; world.Unrest = Math.Min(100, world.Unrest + 10); if (Economy.HeadOf(w, lender) is { } gov) world.GovernorId = gov.Id;
+        if (house.Id == mine) { w.WorldFlags.Add(ForeclosedFlag); w.Log($"The house owes {lender.Name} money and has nothing else to give. {world.Name} passes to {lender.Name}, and the loan is written off."); }
+        else if (lender.Id == mine) w.Log($"{house.Name} cannot pay what it owes you and has nothing else to give. {world.Name} is yours, and the loan is written off.");
+        else w.Log($"{house.Name} cannot pay {lender.Name}, and {world.Name} passes to its creditor.");
+        return true;
+    }
+
     private void Foreclose(World w, string? mine)
     {
         foreach (var h in w.Houses.Values.Where(h => h.Treasury.Credits >= 0)) w.WorldCounters.Remove(OverdrawnKey(h.Id));
@@ -296,8 +355,13 @@ public sealed class VentureSystem
         }
         foreach (var house in w.Houses.Values.Where(h => (h.Debt > 0 && h.Treasury.Credits < 0 || h.Treasury.Credits <= ForecloseAt || w.Counter(OverdrawnKey(h.Id)) >= OverdrawnYears) && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
-            var b = w.BusinessesOf(house.Id).Where(x => x.CompanyId.Length == 0 && HolderOf(w, x) == null && _ventures.Def(x.Kind) != null).OrderBy(x => MarketPrice(w, x)).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
-            if (b == null) continue;
+            bool Free(Business x) => x.CompanyId.Length == 0 && HolderOf(w, x) == null && _ventures.Def(x.Kind) != null;
+            // what the head has pledged goes first; otherwise the least of its ventures; with none, a thing handed down; last, a world
+            var b = w.Business(house.PledgedId) is { } named && named.OwnerId == house.Id && Free(named) ? named
+                : w.Heirlooms.Any(t => t.Id == house.PledgedId && Takeable(w, t, house)) ? null
+                : w.BusinessesOf(house.Id).Where(Free).OrderBy(x => MarketPrice(w, x)).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
+            if (b == null) { if (!ForecloseThing(w, house, mine)) ForecloseWorld(w, house, mine); continue; }
+            if (house.PledgedId == b.Id) house.PledgedId = "";
             int price = MarketPrice(w, b), owed = Math.Min(house.Debt, price); var lender = w.House(house.LenderId);
             bool takes = lender != null && lender.Id != house.Id && !w.AtWar(lender.Id, house.Id) && lender.Treasury.Credits >= price - owed
                 && !w.Businesses.Values.Any(o => o.OwnerId == lender.Id && o.Kind == b.Kind && o.SystemId == b.SystemId);

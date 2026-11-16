@@ -158,3 +158,16 @@ public sealed class SettleVentureCommand : ICommand
     public void Execute(CommandContext ctx) { var w = ctx.World; _ventures.Settle(w, w.Char(ActorId)!, w.Business(_id)!, w.Char(_on)!); }
 }
 
+/// <summary>Name what the house's creditors are to take first if it is foreclosed on: a venture or a thing; "" withdraws it
+/// (docs/ECONOMY_MARKET.md, section 15).</summary>
+public sealed class PledgeCommand : ICommand
+{
+    private readonly string _id; private readonly VentureSystem _ventures;
+    public PledgeCommand(string actorId, string id, VentureSystem ventures) { ActorId = actorId; _id = id; _ventures = ventures; }
+    public string ActorId { get; }
+    public string Describe() => _id.Length == 0 ? "withdraw the pledge" : $"pledge {_id}";
+    public string? Refusal(CommandContext ctx) => _ventures.PledgeRefusal(ctx.World, ctx.World.Char(ActorId), _id);
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) => _ventures.Pledge(ctx.World, ctx.World.Char(ActorId)!, _id);
+}
+

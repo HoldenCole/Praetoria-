@@ -349,3 +349,30 @@ rule (a loan unpaid, or 20 under) never once applied and two years overdrawn was
 
 Found while building it, and mapped (A9): foreclosure takes a venture and nothing else, and the house has no say in
 which; a bill at the peace is for ventures only.
+
+## 15. A pledge, foreclosure beyond a venture, and a bill for a blockade (2026-11-16)
+
+Closed off the register (docs/GAPS.md A9).
+
+- **A pledge.** The head can name what the house's creditors are to take first if it is foreclosed on: any venture
+  the house owns outright, or any thing the head holds that is not entailed. They take that and leave the rest,
+  though it be worth more. The button is on the venture's card and on the thing in the purses panel. A pledge can be
+  withdrawn, and is spent when it is taken. Without one the creditors take the least of the ventures, as before.
+- **A thing handed down.** A house with no venture left to give loses a thing instead: the one pledged, else the
+  least valuable the head holds. This waits a year longer than a venture does (three years overdrawn, or a loan
+  unpaid, or 20 under). **An entailed thing is never taken**: that is what an entail is for. Against a loan from a
+  named house the thing goes to that house's head as their own; otherwise it is sold.
+- **A world, last of all.** Only against a loan from a named house, only when there is neither a venture nor a thing
+  to take, never a house's last world and never the capital. The least peopled world passes to the lender and the
+  whole loan is written off.
+- **A bill for a blockade.** A blockade that is lifted without the world falling, or still stands when peace is
+  made, is written down against whoever laid it: 3 credits for each year it stood. It is paid at the peace with the
+  bill for what was sacked, by the same rule. A fleet lost is not billed: the tribute the beaten side pays at a
+  peace already answers to how the fighting went.
+
+Measured over sixty runs of sixty years: creditors took 27 ventures and 46 things, and no world; 780 credits were
+billed for blockades that failed, and 4,192 paid at a peace in all (3,059 before blockades were billed). In the soak
+a world was foreclosed on once, and its player made four pledges.
+
+Found while building it, and mapped (A10): only the head's own things are at risk, never a relative's; other houses
+never pledge; and a world taken for a debt is never redeemed.

@@ -480,6 +480,8 @@ public sealed class FleetSystem
     {
         var war = w.Wars.FirstOrDefault(x => x.Between(a, b));
         if (war == null) return;
+        // blockades still standing end with the war, and what they cost is billed with the rest
+        foreach (var s in w.Sieges.Values.Where(s => war.Involves(s.BesiegerId) && war.Involves(w.Holding(s.HoldingId)?.OwnerId ?? "")).OrderBy(s => s.HoldingId, StringComparer.Ordinal).ToList()) VentureSystem.SiegeLifted(w, s);
         w.Wars.Remove(war);
         VentureSystem.SettleClaims(w, war, CessionLead);   // the bills for what was sacked are presented (docs/ECONOMY_MARKET.md, section 14)
         if (terms)
@@ -799,7 +801,7 @@ public sealed class FleetSystem
                 : w.EnemiesOf(h.OwnerId).FirstOrDefault(e => StrengthAt(w, e, h.SystemId) > 0);
             if (besieger == null)
             {
-                if (w.Sieges.Remove(h.Id)) w.Log($"The blockade of {h.Name} is lifted.");
+                if (w.Sieges.TryGetValue(h.Id, out var lifted)) { VentureSystem.SiegeLifted(w, lifted); w.Sieges.Remove(h.Id); w.Log($"The blockade of {h.Name} is lifted."); }   // what it cost is written down for the peace
                 continue;
             }
             if (!w.Sieges.TryGetValue(h.Id, out var siege) || siege.BesiegerId != besieger)

@@ -142,7 +142,8 @@
                 }
                 else
                 {
-                <div class="suit-acts"><button class="opt inline tiny" disabled="@(noEntail != null)" title="@(noEntail ?? EntailTip)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.EntailItem, iid, string.Empty))">Entail it</button></div>
+                <div class="suit-acts"><button class="opt inline tiny" disabled="@(noEntail != null)" title="@(noEntail ?? EntailTip)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.EntailItem, iid, string.Empty))">Entail it</button>
+                    @if (G.Turn?.Ventures is { } pv) { bool pledged = house.PledgedId == iid; var noPledge = pv.PledgeRefusal(w, p, pledged ? string.Empty : iid); <button class="opt inline tiny @(pledged ? "here" : "")" disabled="@(noPledge != null)" title="@(noPledge ?? (pledged ? "Withdraw it." : "If the house is foreclosed on, its creditors take this first. A thing that is entailed can never be taken; one that is not can be, once there is no venture left."))" @onclick="() => G.Execute(new PledgeCommand(pid, pledged ? string.Empty : iid, pv))">@(pledged ? "Pledged to the creditors" : "Pledge it")</button> }</div>
                 <div class="suit-acts"><span class="muted small">Leave it to</span>
                     <button class="opt inline tiny @(left == null ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Bequeath, iid, string.Empty))">the heir</button>
                     @foreach (var c in people.Take(6)) { string cid = c.Id; <button class="opt inline tiny @(left?.Id == c.Id ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Bequeath, iid, cid))">@First(c.Name)</button> }

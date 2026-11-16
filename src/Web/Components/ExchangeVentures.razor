@@ -32,6 +32,11 @@
                     <div class="row small">
                         @if (its != null) { <span class="pill" title="What it earns is paid over to them each year, it is not sold or listed unless they agree, and it goes as they leave it.">@(its.Id == pid ? "your own, apart from the house" : its.Name + "'s own")</span> }
                         else if (own.FounderId.Length > 0 && w.Char(own.FounderId) is { Alive: true } fo && fo.Id != pid) { <span class="muted">Founded by @fo.Name: a fifth of its price is theirs if it is sold, and they will mind.</span> }
+                        @if (its == null)
+                        {
+                            bool pledged = w.House(w.Protagonist!.HouseId)!.PledgedId == bid0; var noPledge = vs.PledgeRefusal(w, w.Protagonist, pledged ? string.Empty : bid0);
+                            <button class="opt inline tiny @(pledged ? "here" : "")" disabled="@(noPledge != null)" title="@(noPledge ?? (pledged ? "Withdraw it: the creditors take the least of your ventures, as they would have." : "If the house is foreclosed on, its creditors take this first, and leave the rest. Otherwise they take the least of your ventures."))" @onclick="() => G.Execute(new PledgeCommand(pid, pledged ? string.Empty : bid0, vs))">@(pledged ? "Pledged to the creditors" : "Pledge it")</button>
+                        }
                         @if (its == null || its.Id == pid)
                         {
                             <span class="muted">Settle it on</span>

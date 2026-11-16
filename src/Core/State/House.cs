@@ -85,6 +85,9 @@ public sealed class House
     public List<string> Corners { get; set; } = new();
     /// <summary>Someone the head has named to succeed them, ahead of whoever the succession law would give (docs/AMBITIONS.md).</summary>
     public string NamedHeirId { get; set; } = "";
+    /// <summary>What the head has said its creditors are to take first if it comes to that: a venture's id or a thing's
+    /// (docs/ECONOMY_MARKET.md, section 15). "" leaves it to them.</summary>
+    public string PledgedId { get; set; } = "";
     /// <summary>What the house gives its grown members a year (docs/WEALTH.md): mean, customary or generous.</summary>
     public string Allowance { get; set; } = "customary";
     /// <summary>What happens to the treasury when the head dies: "entail" (the heir takes all) or "portions" (each other grown

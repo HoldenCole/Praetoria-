@@ -406,4 +406,60 @@ public class VentureTests
         var b5 = Put(w, "fifth", "vega", kinds[1], "mid1"); Year(b5, 5); Year(b5, -1); Assert.NotNull(w.Business("fifth")); Year(b5, -1);
         Assert.Null(w.Business("fifth")); Assert.Equal(4, w.Counter(VentureSystem.ForeclosedCounter));
     }
+
+    // ---------------- a pledge, foreclosure beyond a venture, a bill for a blockade (docs/GAPS.md A9) ----------------
+
+    [Fact]
+    public void A9_The_head_names_what_the_creditors_take_first_and_they_take_that_and_leave_the_rest()
+    {
+        var (w, _, vs) = Reach(); var mine = w.House("vega")!; var me = w.Protagonist!; var ctx = Ctx(w); string[] kinds = Content.Businesses.Defs.Where(d => !d.Lender).OrderBy(d => d.Id, StringComparer.Ordinal).Select(d => d.Id).Take(2).ToArray();
+        var small = Put(w, "small", "vega", kinds[0], "tessaly"); var big = Put(w, "big", "vega", kinds[1], "tessaly", level: 3); small.Founded = big.Founded = w.Turn + 50;
+        Assert.True(vs.MarketPrice(w, big) > vs.MarketPrice(w, small));
+        Assert.Equal("no such thing", vs.PledgeRefusal(w, me, "nothing")); Assert.Equal("nothing is pledged", vs.PledgeRefusal(w, me, ""));
+        var theirs = Put(w, "theirs", "corwin", kinds[0], "mid1"); Assert.Equal("not a venture of yours", vs.PledgeRefusal(w, me, theirs.Id));
+        new PledgeCommand(me.Id, big.Id, vs).Execute(ctx); Assert.Equal(big.Id, mine.PledgedId); Assert.Equal("it is pledged already", vs.PledgeRefusal(w, me, big.Id)); Assert.Equal(1, w.Counter(VentureSystem.PledgedCounter));
+        // foreclosed on: the pledged one goes, though it is worth more, and the pledge is spent
+        mine.Treasury.Credits = VentureSystem.ForecloseAt; w.Turn++; vs.Tick(w);
+        Assert.Null(w.Business("big")); Assert.NotNull(w.Business("small")); Assert.Equal("", mine.PledgedId); Assert.Equal(1, w.Counter(VentureSystem.ForeclosedCounter));
+        // the pledge can be withdrawn; and what is someone's own cannot be pledged by the house
+        new PledgeCommand(me.Id, small.Id, vs).Execute(ctx); new PledgeCommand(me.Id, "", vs).Execute(ctx); Assert.Equal("", mine.PledgedId);
+        var kin = new Character { Id = "kin", Name = "Test Kin", HouseId = "vega", Age = 30, Alive = true }; w.Characters["kin"] = kin; mine.Members.Add("kin"); small.HeldById = "kin";
+        Assert.Contains("someone's own", vs.PledgeRefusal(w, me, small.Id));
+    }
+
+    [Fact]
+    public void A9_With_no_venture_left_the_creditors_take_a_thing_that_is_not_entailed_and_at_the_last_a_world()
+    {
+        var (w, _, vs) = Reach(); var mine = w.House("vega")!; var me = w.Protagonist!; var lender = w.House("aurelian")!; var lenderHead = w.Char("aurelian_head")!;
+        var entailed = new Heirloom { Id = "old", Name = "the old signet", Kind = "signet", HolderId = me.Id, OfHouseId = "vega", Value = 40, Entailed = true };
+        var plate = new Heirloom { Id = "plate", Name = "the plate", Kind = "plate", HolderId = me.Id, OfHouseId = "vega", Value = 14 }; var sword = new Heirloom { Id = "sword", Name = "the sword", Kind = "sword", HolderId = me.Id, OfHouseId = "vega", Value = 30 };
+        w.Heirlooms.AddRange(new[] { entailed, plate, sword }); Assert.Contains("entailed", vs.PledgeRefusal(w, me, entailed.Id)); Assert.Null(vs.PledgeRefusal(w, me, sword.Id));
+        // overdrawn two years with no venture: nothing is taken yet; the third year, the least of what is not entailed is sold
+        mine.Treasury.Credits = -1; w.Turn++; vs.Tick(w); mine.Treasury.Credits = -1; w.Turn++; vs.Tick(w); Assert.Equal(3, w.Heirlooms.Count); Assert.Equal(0, w.Counter(VentureSystem.ThingsForeclosedCounter));
+        mine.Treasury.Credits = -1; w.Turn++; vs.Tick(w);
+        Assert.DoesNotContain(plate, w.Heirlooms); Assert.Contains(sword, w.Heirlooms); Assert.Contains(entailed, w.Heirlooms); Assert.Equal(-1 + 14, mine.Treasury.Credits); Assert.Equal(1, w.Counter(VentureSystem.ThingsForeclosedCounter));
+        Assert.True(VentureSystem.BadName(w, "vega")); Assert.True(w.HasFlag(VentureSystem.ForeclosedFlag));
+        // against a loan from a named house, the thing goes to that house's head as their own
+        mine.Debt = 10; mine.LenderId = "aurelian"; mine.Treasury.Credits = -1; int theirs = lender.Treasury.Credits; w.Turn++; vs.Tick(w);
+        Assert.Equal(lenderHead.Id, sword.HolderId); Assert.Equal("aurelian", sword.OfHouseId); Assert.Equal(0, mine.Debt); Assert.Equal(-1 + 30 - 10, mine.Treasury.Credits); Assert.Equal(theirs - 20, lender.Treasury.Credits);
+        // an entail is what keeps a thing from them: with only that left, and a loan from a named house, a world goes, but never the last
+        w.Holdings["second"] = new Holding { Id = "second", OwnerId = "vega", Name = "Second", Specialization = "agri", SystemId = "empty", Population = 3 };
+        mine.Debt = 10; mine.LenderId = "aurelian"; mine.Treasury.Credits = -1; w.Turn++; vs.Tick(w);
+        Assert.Contains(entailed, w.Heirlooms); Assert.Equal(me.Id, entailed.HolderId); Assert.Equal("aurelian", w.Holding("second")!.OwnerId); Assert.Equal("vega", w.Holding("second")!.FormerOwnerId); Assert.Equal(0, mine.Debt); Assert.Equal(1, w.Counter(VentureSystem.WorldsForeclosedCounter));
+        mine.Debt = 10; mine.LenderId = "aurelian"; mine.Treasury.Credits = -1; w.Turn++; vs.Tick(w); Assert.Equal("vega", w.Holding("barony")!.OwnerId); Assert.Equal(10, mine.Debt); Assert.Equal(1, w.Counter(VentureSystem.WorldsForeclosedCounter));
+    }
+
+    [Fact]
+    public void A9_A_blockade_that_is_lifted_is_billed_to_whoever_laid_it_and_paid_at_the_peace()
+    {
+        var (w, _, _) = Reach(); var war = new War { HouseA = "vega", HouseB = "corwin" }; w.Wars.Add(war);
+        var siege = new Siege { HoldingId = "barony", BesiegerId = "corwin", Turns = 4, Required = 9 };
+        VentureSystem.SiegeLifted(w, siege); int bill = 4 * VentureSystem.SiegeClaimATurn; Assert.Equal(bill, w.Counter(VentureSystem.ClaimKey("vega", "corwin"))); Assert.Equal(bill, w.Counter(VentureSystem.SiegeClaimsCounter));
+        // a blockade still standing when peace is made is billed with the rest, and the whole is paid
+        w.Sieges["barony"] = new Siege { HoldingId = "barony", BesiegerId = "corwin", Turns = 2, Required = 9 }; int mine = w.House("vega")!.Treasury.Credits; w.House("corwin")!.Treasury.Credits = 500;
+        new FleetSystem(Content.Fleets, Content.Holdings).MakePeace(w, "vega", "corwin");
+        Assert.Empty(w.Wars); Assert.Empty(w.Sieges); Assert.Equal(mine + bill + 2 * VentureSystem.SiegeClaimATurn, w.House("vega")!.Treasury.Credits); Assert.Equal(0, w.Counter(VentureSystem.ClaimKey("vega", "corwin")));
+        // no war, no bill: a siege laid by nobody's enemy is nothing to claim for
+        VentureSystem.SiegeLifted(w, new Siege { HoldingId = "barony", BesiegerId = "aurelian", Turns = 5 }); Assert.Equal(0, w.Counter(VentureSystem.ClaimKey("vega", "aurelian")));
+    }
 }

@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- **A pledge, and foreclosure beyond a venture** (docs/ECONOMY_MARKET.md, section 15; docs/GAPS.md A9). You can
+  name what your creditors take first if the house is foreclosed on: a venture, or a thing you hold that is not
+  entailed. With no venture left they take a thing, though never an entailed one, and at the last a world against a
+  loan from a named house. A blockade that fails is billed to whoever laid it and paid at the peace.
 - **Plunder, and a gift that asks** (docs/WEALTH.md; docs/GAPS.md W11). When a world is stormed, its governor's
   signet, sword, library or standard may be carried off by the commander. Anything taken is resented, can be
   retaken in battle or bought home, and may be asked for, as a standard already could. A new kind of thing, an

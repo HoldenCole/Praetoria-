@@ -2010,3 +2010,29 @@ a favour: House Aurelian". A thing carried off, and an orrery arriving, were not
 739 tests (three new).
 
 **Left, and mapped.** A favour is a lean on one vote and nothing else; other houses never refuse a gift (W13).
+
+## 66. A pledge, foreclosure beyond a venture, and a bill for a blockade — 2026-11-16
+
+**A9.** All of the row that can be built is built (docs/ECONOMY_MARKET.md, section 15). The head names what the
+creditors take first. With no venture left they take an unentailed thing, and at the last a world against a named
+lender's loan. A blockade that fails is billed at the peace. A bill for a fleet lost was not added: the tribute a
+peace carries already follows the score of the fighting, and a second charge for the same thing would be double.
+
+**Measured.** The Republic probe (60 runs of 60 years): 27 ventures and 46 things taken by creditors, no world;
+780 credits billed for blockades; 4,192 paid at a peace (3,059), 66 struck out. The Republic stood in all 60; the
+great war was fought in 42 runs (41); 23 states broke away (24); trust in the magistrates averaged 46 to 62 by
+start and was low in 14 runs (14). Survival: 0 of 10 on every start.
+
+**The soak ran on a later build than the probe.** A browser check showed that settling a pledged venture on a
+relative left the pledge standing. One line now clears it. The probe had already run; it gives no orders, so
+nothing in it can pledge or settle and its figures are unaffected. The soak (33 runs, a save and load in each) was
+stopped and run again on the final build: it passes with no drift, with 34 ventures, 31 things and one world taken,
+and four pledges by its player.
+
+**Seen in the browser.** On the New Man start the house's trading company was pledged: its button then read
+"Pledged to the creditors". A thing or a world being taken was not seen there.
+
+742 tests (three new).
+
+**Left, and mapped.** Only the head's own things are at risk; other houses never pledge; a world taken is never
+redeemed (A10).
