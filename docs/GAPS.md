@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-16 (thirty-third pass: pledges and deeper foreclosure; A9 closed, A10 mapped).
+Last updated 2026-11-16 (thirty-fourth pass: favours called in and gifts refused; W13 closed, W14 mapped).
 
 ## The worklist
 
@@ -18,7 +18,7 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 
 | Order | Id | What | State |
 |---|---|---|---|
-| 1 | W13 | A favour that is more than one vote, and gifts other houses refuse | next |
+| 1 | A10, W14 | What these passes left: things put out of a creditor's reach, and a world redeemed; favours that other houses call in | next |
 
 **No small gap is left that is not the owner's.** What remains is a cycle or more each.
 
@@ -103,7 +103,7 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 |---|---|---|---|
 | A10 | Creditors take only what the head holds: a thing in a relative's hands is safe, so a head can put things out of reach by giving them away. Other houses never pledge anything. A world taken for a debt is never redeemed, and no world was taken in sixty runs of the probe: a loan from a named house is rare. | M | The economy, X1 |
 | W12 | No world is a person's own: a world is always the house's, and only its governor is a person. And a person who owns a venture never sells it, enlarges it or leaves the house with it: the head still does everything but take it away. | M | **The owner's:** is a world ever a person's rather than the house's, and what becomes of it on the map when they die or leave? |
-| W13 | A favour owed is one thing: two points of lean on one vote. It is never called in for a marriage, a command, a loan or silence, and it never lapses. Other houses never refuse a gift or send one back; only the player does. No broken house gave up a signet in sixty runs: a house is seldom folded while it still has one. | M | |
+| W14 | Only the player calls a favour in for money or a match: other houses spend theirs on a vote and nothing else. A favour is never passed to a third house, bargained with, or refused when it is called. In the soak none was called in for money or a match. No broken house gave up a signet in play. | M | X1 |
 | E1 | Only your own character goes to the Academy. | M | |
 | E3 | No nature is formed by an upbringing; no trait is lost. | M | |
 | H2 | Wards are not hostages. | M | |
@@ -194,3 +194,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | A8 | A sacked venture is gone for good: it is never claimed at the peace or rebuilt. A company only carries or closes a failing venture, and never sells it. Other houses give no founder a second start. In sixty runs nothing was paid to creditors out of a failure. | 2026-11-15 | What is sacked is billed to whoever took the world, 10 credits a level, and paid at the peace unless the claimant was beaten. A company whose board minds its books sells a failing venture rather than close it. A house that owes on a loan with nothing in the treasury, is 20 under, or has been overdrawn two years running is foreclosed on: its least venture goes to its lender or is sold, and what is owed is paid first; what is a person's own is never taken. In sixty runs 3,059 credits were paid at a peace, companies sold 10, and 26 ventures were foreclosed on. The Republic stood in all sixty. Second starts in other houses are X1's. What is left is A9. |
 | W11 | A gift between houses is always plate, and is sent at a wedding or to mend a quarrel: never to ask a favour, and never asked for. Nothing but a standard is ever taken in a war. | 2026-11-15 | When a world is stormed its governor's signet, sword, library or standard may be carried off by the commander; anything so taken is resented, retaken in battle, bought home or asked for, as a standard already was. A broken house gives up its signet. A head with a motion before the Senate sends an orrery (a new kind: its holder studies faster) to ask a favour; a favour owed is two points of lean on the proposer's next motion; the player asks one by giving a thing to another head, and is judged by their vote when they keep a gift. In sixty runs 47 things were carried off and 40 favours asked and spent. The Republic stood in all sixty. What is left is W13. |
 | A9 | Foreclosure takes the least of a house's ventures and nothing else: never a world or a thing handed down, and the house has no say in which goes. A bill at the peace is for sacked ventures only. | 2026-11-16 | The head can pledge a venture or an unentailed thing: the creditors take that first and leave the rest. With no venture left they take a thing (never an entailed one), a year later than they would a venture; last of all, against a loan from a named house, a world that is neither the house's last nor the capital. A blockade that fails is billed at 3 credits a year and paid at the peace. In sixty runs creditors took 27 ventures and 46 things and no world; 780 credits were billed for blockades. The Republic stood in all sixty. A fleet lost is left to the tribute a peace already carries. What is left is A10. |
+| W13 | A favour owed is one thing: two points of lean on one vote. It is never called in for anything else, and it never lapses. Other houses never refuse a gift or send one back. | 2026-11-16 | A favour owed to the player can be called in for 15 credits or for the family's consent to a match between the two houses, and any favour is forgotten after eight years uncalled. A head sent a gift refuses it if they think ill enough of the sender (−35 for plate, −15 for an orrery), and the head of another house will take nothing from the player at −40 or at war. In sixty runs 44 gifts were refused and 256 taken. The Republic stood in all sixty. Calling a favour in for money or a match was not seen in play and rests on tests. What is left is W14. |

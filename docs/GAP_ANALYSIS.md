@@ -2036,3 +2036,27 @@ and four pledges by its player.
 
 **Left, and mapped.** Only the head's own things are at risk; other houses never pledge; a world taken is never
 redeemed (A10).
+
+## 67. A favour called in or forgotten, and a gift refused — 2026-11-16
+
+**W13.** Built (docs/WEALTH.md, "A favour called in or forgotten, and a gift refused"): a favour owed to the player
+can be asked for money or for consent to a match; any favour lapses after eight years; and a head who thinks ill
+enough of the sender refuses a gift, as the player always could.
+
+**Measured.** The Republic probe (60 runs of 60 years): 44 gifts refused and 256 taken; 27 favours owed and 27
+spent on a vote, none lapsed. Houses holding something they were not born with: 34% (36%). The Republic stood in
+all 60; the great war was fought in 42 runs (42); 23 states broke away (23); trust in the magistrates averaged 47
+to 61 by start and was low in 14 runs (14). The soak (33 runs, a save and load in each) passes with no drift: 19
+gifts refused, one favour lapsed. Survival: 0 of 10 on every start.
+
+**Not seen in play.** No favour was called in for money or a match: the probe gives no orders, and the soak's
+player was seldom owed one. A favour asked by a house with a motion open is spent within the year, so lapsing is
+rare too. All three are proved by tests.
+
+**Seen in the browser.** After the shrine was given to the head of House Aurelian the panel showed both buttons,
+and the money one was greyed with its reason: that house had not the money to give.
+
+744 tests (two new).
+
+**Left, and mapped.** Other houses never call a favour in for anything but a vote, and a favour is never passed on
+(W14).

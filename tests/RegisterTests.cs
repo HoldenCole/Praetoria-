@@ -1039,4 +1039,49 @@ public class RegisterTests
         Fires(w, "a_gift_that_asks_a_favour"); w.Turn++; WealthSystem.Tick(w);
         Assert.DoesNotContain(w.Heirlooms, h => h.Kind == WealthSystem.Orrery); Assert.False(WealthSystem.FavourOwed(w, mine.Id, theirs.Id));
     }
+
+    // ---------------- W13: a favour called in or forgotten, and a gift refused ----------------
+
+    [Fact]
+    public void W13_A_favour_is_called_in_for_money_or_a_match_and_is_forgotten_if_it_is_never_called()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me); w.Heirlooms.Clear(); w.Courtships.Clear(); var (theirs, head) = Another(w, mine); var k = Blood(w, me, Kin(w, mine, me, "suitor")); w.Turn = 20;
+        Assert.Equal("they owe you nothing", WealthSystem.CallRefusal(w, me, theirs, WealthSystem.ForMoney));
+        w.WorldCounters[WealthSystem.FavourKey(theirs.Id, mine.Id)] = w.Turn; Assert.Contains("only the head", WealthSystem.CallRefusal(w, k, theirs, WealthSystem.ForMoney));
+        theirs.Treasury.Credits = 5; Assert.Contains("not the money", WealthSystem.CallRefusal(w, me, theirs, WealthSystem.ForMoney));
+        theirs.Treasury.Credits = 100; int had = mine.Treasury.Credits; Assert.True(Do(w, new WealthCommand(me.Id, WealthCommand.Favour, theirs.Id, WealthSystem.ForMoney)));
+        Assert.Equal(had + WealthSystem.FavourCredits, mine.Treasury.Credits); Assert.Equal(100 - WealthSystem.FavourCredits, theirs.Treasury.Credits); Assert.False(WealthSystem.FavourOwed(w, theirs.Id, mine.Id)); Assert.Equal(1, w.Counter(WealthSystem.FavoursForMoneyKey));
+        Assert.False(Do(w, new WealthCommand(me.Id, WealthCommand.Favour, theirs.Id, WealthSystem.ForMoney)));
+        // for the family's consent to a match between the two houses
+        w.WorldCounters[WealthSystem.FavourKey(theirs.Id, mine.Id)] = w.Turn; Assert.Contains("no suit", WealthSystem.CallRefusal(w, me, theirs, WealthSystem.ForMatch));
+        var bride = new Character { Id = "their_daughter", Name = "Test Daughter", HouseId = theirs.Id, Age = 22, Sex = "female" }; w.Characters[bride.Id] = bride;
+        var suit = new Courtship { Id = "court_test", SuitorId = k.Id, TargetId = bride.Id, Since = w.Turn, Favour = 30, Consent = 30 }; w.Courtships.Add(suit);
+        Assert.True(Do(w, new WealthCommand(me.Id, WealthCommand.Favour, theirs.Id, WealthSystem.ForMatch))); Assert.Equal(30 + WealthSystem.FavourConsent, suit.Consent); Assert.Equal(1, w.Counter(WealthSystem.FavoursForMatchKey)); Assert.False(WealthSystem.FavourOwed(w, theirs.Id, mine.Id));
+        // uncalled for eight years, it is forgotten: owed to you, and owed by you
+        w.Courtships.Clear(); w.WorldCounters[WealthSystem.FavourKey(theirs.Id, mine.Id)] = w.Turn; w.WorldCounters[WealthSystem.FavourKey(mine.Id, theirs.Id)] = w.Turn;
+        for (int y = 1; y < WealthSystem.FavourYears; y++) { w.Turn++; foreach (var h in w.Houses.Values) h.Treasury.Credits = 0; WealthSystem.Tick(w); }
+        Assert.True(WealthSystem.FavourOwed(w, theirs.Id, mine.Id)); Assert.True(WealthSystem.FavourOwed(w, mine.Id, theirs.Id));
+        w.Turn++; WealthSystem.Tick(w); Assert.False(WealthSystem.FavourOwed(w, theirs.Id, mine.Id)); Assert.False(WealthSystem.FavourOwed(w, mine.Id, theirs.Id)); Assert.Equal(2, w.Counter(WealthSystem.FavoursLapsedKey));
+        Assert.Contains(w.History, h => h.Text.Contains("gone too long uncalled"));
+    }
+
+    [Fact]
+    public void W13_A_head_who_thinks_ill_enough_of_the_sender_will_not_take_a_gift()
+    {
+        var (_, w, me, mine, _) = Start(); Alone(w, mine, me); w.Heirlooms.Clear(); var (theirs, head) = Another(w, mine); var item = Item(w, me, mine, "sword");
+        // from you: not from one they think very ill of, and not in a war; but what was theirs is always taken back
+        w.Relationship(head.Id, me.Id).Disposition = WealthSystem.RefuseGiftAt; Assert.Contains("will take nothing from you", WealthSystem.GiveRefusal(w, me, item, head)); Assert.False(Do(w, new WealthCommand(me.Id, WealthCommand.Give, item.Id, head.Id)));
+        w.Relationship(head.Id, me.Id).Disposition = 0; Assert.Null(WealthSystem.GiveRefusal(w, me, item, head));
+        var war = new War { HouseA = mine.Id, HouseB = theirs.Id }; w.Wars.Add(war); Assert.Contains("at war", WealthSystem.GiveRefusal(w, me, item, head));
+        var spoil = Taken(w, me, theirs, "spoil"); w.Relationship(head.Id, me.Id).Disposition = -90; Assert.Null(WealthSystem.GiveRefusal(w, me, spoil, head)); w.Wars.Remove(war);
+        // between two other houses: a gift meant to mend a quarrel is sent back by a head who will not have it mended
+        var (third, thirdHead) = Another(w, mine, 1); int years = 0;
+        while (w.Counter(WealthSystem.GiftsRefusedKey) == 0 && years++ < 300)
+        {
+            w.Turn++; foreach (var h in w.Houses.Values) h.Treasury.Credits = 0; theirs.Treasury.Credits = 200;
+            w.Relationship(head.Id, thirdHead.Id).Disposition = -30; w.Relationship(thirdHead.Id, head.Id).Disposition = WealthSystem.RefuseMendAt - 10; WealthSystem.Tick(w);
+        }
+        Assert.Equal(1, w.Counter(WealthSystem.GiftsRefusedKey)); Assert.DoesNotContain(w.Heirlooms, h => h.Id.StartsWith("gift_")); Assert.Equal(0, w.Counter(WealthSystem.MendKey));
+        Assert.Equal(-30 - WealthSystem.RefusedRegard, w.Relationship(head.Id, thirdHead.Id).Disposition); Assert.Equal(200, theirs.Treasury.Credits);
+    }
 }

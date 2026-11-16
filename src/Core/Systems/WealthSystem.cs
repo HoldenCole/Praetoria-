@@ -68,6 +68,7 @@ public static partial class WealthSystem
         if (giver?.Alive != true || item == null || item.HolderId != giver.Id) return "not yours to give";
         if (to?.Alive != true || to.Id == giver.Id) return "no such person";
         if (item.Entailed) return "it is entailed: it goes with the house";
+        if (TakesRefusal(w, giver, item, to) is { } unwilling) return unwilling;
         return to.Age >= 6 ? null : "too young to be given it";
     }
 
@@ -163,7 +164,7 @@ public static partial class WealthSystem
             else if (item.Kind == "sword" && holder.CareerTrack == "military") EducationSystem.Gain(w, holder, "discipline", SwordPoints);
             else MadeThings(w, item, holder);
         }
-        OthersCommission(w); StandardsAsked(w); GiftsToMend(w); GiftsThatAsk(w);
+        OthersCommission(w); StandardsAsked(w); GiftsToMend(w); GiftsThatAsk(w); LapseFavours(w);
     }
 
     /// <summary>Sell it. The money is the seller's own. Selling something the family has always had is noticed and resented.</summary>

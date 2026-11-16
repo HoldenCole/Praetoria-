@@ -122,7 +122,14 @@
         @if (oweMe.Count + favoursIOwe.Count > 0)
         {
             <div class="muted small">
-                @if (oweMe.Count > 0) { <span title="A thing given to the head of another house is a favour asked. That house leans your way on the next motion you bring, and the favour is spent."><b>Owe you a favour:</b> @string.Join(", ", oweMe.Select(h => h.Name)). </span> }
+                @if (oweMe.Count > 0) { <span title="A thing given to the head of another house is a favour asked. That house leans your way on the next motion you bring, and the favour is spent. Or call it in now for something else. Uncalled, it is forgotten after eight years."><b>Owe you a favour:</b> </span>
+                    @foreach (var oh in oweMe)
+                    {
+                        string ohid = oh.Id; var noMoney = new WealthCommand(pid, WealthCommand.Favour, ohid, WealthSystem.ForMoney).Refusal(G.Ctx); var noMatch = new WealthCommand(pid, WealthCommand.Favour, ohid, WealthSystem.ForMatch).Refusal(G.Ctx);
+                        <span>@oh.Name </span>
+                        <button class="opt inline tiny" disabled="@(noMoney != null)" title="@(noMoney ?? "They pay it into the treasury, and owe you nothing more.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Favour, ohid, WealthSystem.ForMoney))">Call it in for @WealthSystem.FavourCredits credits</button>
+                        <button class="opt inline tiny" disabled="@(noMatch != null)" title="@(noMatch ?? "The family looks more kindly on the suit between your house and theirs.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Favour, ohid, WealthSystem.ForMatch))">for their consent to the match</button>
+                    } }
                 @if (favoursIOwe.Count > 0) { <span title="You kept a gift that asked a favour. Vote for that house's next motion and the account is even; vote otherwise and its head will remember who kept the gift."><b>You owe a favour to:</b> @string.Join(", ", favoursIOwe.Select(h => h.Name)).</span> }
             </div>
         }
@@ -151,7 +158,7 @@
                 <div class="suit-acts"><span class="muted small">Give it now to</span>
                     @foreach (var c in people.Take(6)) { string cid = c.Id; <button class="opt inline tiny" title="they will not forget it" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, cid))">@First(c.Name)</button> }
                     @if (WealthSystem.IsSpoil(item) && w.House(item.FromHouseId) is { } lostBy && Economy.HeadOf(w, lostBy) is { Alive: true } theirHead) { string thid = theirHead.Id; <button class="opt inline tiny" title="@($"It was {lostBy.Name}'s. Sent home with nothing asked, {theirHead.Name} will think much better of you. While you keep it, they think a little worse of you each year.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, thid))">Send it home to @lostBy.Name.Replace("House ", "")</button> }
-                    @foreach (var hd in heads) { string hid = hd.Id; <button class="opt inline tiny" title="@($"A gift to the head of {w.House(hd.HouseId)?.Name}. They will think much better of you for it, it is theirs for good, and their house owes you a favour: it leans your way on the next motion you bring.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, hid))">@First(hd.Name) of @(w.House(hd.HouseId)?.Name.Replace("House ", ""))</button> }
+                    @foreach (var hd in heads) { string hid = hd.Id; var wont = new WealthCommand(pid, WealthCommand.Give, iid, hid).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(wont != null)" title="@(wont ?? $"A gift to the head of {w.House(hd.HouseId)?.Name}. They will think much better of you for it, it is theirs for good, and their house owes you a favour: it leans your way on the next motion you bring.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, hid))">@First(hd.Name) of @(w.House(hd.HouseId)?.Name.Replace("House ", ""))</button> }
                     @if (_confirm == iid) { <button class="opt inline tiny veto" @onclick="() => { _confirm = null; G.Execute(new WealthCommand(pid, WealthCommand.Sell, iid, string.Empty)); }">Yes, sell it</button> <button class="opt inline tiny" @onclick="() => _confirm = null">No</button> }
                     else { <button class="opt inline tiny" title="@(item.OfHouseId == house.Id ? "The family has always had it: the house loses standing and your blood kin resent it." : "")" @onclick="() => _confirm = iid">Sell · @item.Value</button> }
                 </div>

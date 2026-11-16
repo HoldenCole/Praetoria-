@@ -236,6 +236,7 @@ public static partial class WealthSystem
             var to = w.Houses.Values.Where(b => b.Id != a.Id && b.Id != PirateSystem.HouseId && !w.AtWar(a.Id, b.Id)).Select(b => Economy.HeadOf(w, b)).Where(c => c is { Alive: true }).Select(c => (c: c!, r: w.GetRelationship(head.Id, c!.Id)?.Disposition ?? 0))
                 .Where(x => x.r >= MendFrom && x.r <= MendTo).OrderBy(x => x.r).ThenBy(x => x.c.Id, StringComparer.Ordinal).Select(x => x.c).FirstOrDefault();
             if (to == null || w.Heirlooms.Any(h => h.Kind == Plate && h.FromHouseId == a.Id && h.OfHouseId == to.HouseId)) continue;
+            if (Refuses(w, to, head, RefuseMendAt, mine)) continue;   // sent back unopened: the quarrel is worse for the asking
             a.Treasury.Credits -= PlateValue;
             w.Heirlooms.Add(new Heirloom { Id = $"gift_{a.Id}_{to.HouseId}_{w.Turn:D4}", Name = $"the {Bare(a)} gift", Kind = Plate, HolderId = to.Id, OfHouseId = to.HouseId, FromHouseId = a.Id, Value = PlateValue });
             Regard(w, to, head, MendRegard); Regard(w, head, to, MendRegard); Count(w, MendKey);
@@ -326,10 +327,68 @@ public static partial class WealthSystem
             var to = w.Houses.Values.Where(b => b.Id != a.Id && b.Id != PirateSystem.HouseId && !w.AtWar(a.Id, b.Id) && !FavourOwed(w, b.Id, a.Id)).Select(b => (b, c: Economy.HeadOf(w, b))).Where(x => x.c is { Alive: true })
                 .Where(x => (w.GetRelationship(head.Id, x.c!.Id)?.Disposition ?? 0) is >= FavourFrom and <= FavourTo).OrderByDescending(x => x.b.Legitimacy).ThenBy(x => x.b.Id, StringComparer.Ordinal).Select(x => x.c!).FirstOrDefault();
             if (to == null || w.Heirlooms.Any(h => h.Kind == Orrery && h.FromHouseId == a.Id && h.OfHouseId == to.HouseId)) continue;
+            if (Refuses(w, to, head, RefuseFavourAt, mine)) continue;   // they will not be put under an obligation to this house
             a.Treasury.Credits -= FavourCost;
             w.Heirlooms.Add(new Heirloom { Id = $"gift_{a.Id}_{to.HouseId}_{w.Turn:D4}o", Name = $"the {Bare(a)} orrery", Kind = Orrery, HolderId = to.Id, OfHouseId = to.HouseId, FromHouseId = a.Id, Value = OrreryValue });
             Regard(w, to, head, FavourRegard); Regard(w, head, to, FavourRegard); Owe(w, to.HouseId, a.Id); Count(w, FavourGiftsKey);
             if (to.HouseId == mine) { Mark(w, AsksFavourFlag); head.Flags.Add(AsksFavourChar); w.Log($"{head.Name} of {a.Name} sends you an orrery. {a.Name} has a motion before the Senate."); }
+        }
+    }
+
+    // ---------------- a favour called in, a favour that lapses, a gift refused (docs/WEALTH.md, W13) ----------------
+
+    public const int FavourYears = 8, FavourConsent = 20, FavourCredits = 15, RefuseMendAt = -35, RefuseFavourAt = -15, RefuseGiftAt = -40, RefusedRegard = 6;
+    public const string ForMoney = "money", ForMatch = "match";
+    public const string FavoursLapsedKey = "favours_lapsed", FavoursForMoneyKey = "favours_for_money", FavoursForMatchKey = "favours_for_a_match", GiftsRefusedKey = "gifts_refused";
+
+    /// <summary>A head who thinks ill enough of whoever sent it will not take the gift. Nothing changes hands, and the sender
+    /// thinks the worse of them for it. The player is asked, never answered for.</summary>
+    private static bool Refuses(World w, Character to, Character giver, int at, string? mine)
+    {
+        if (to.HouseId == mine || (w.GetRelationship(to.Id, giver.Id)?.Disposition ?? 0) > at) return false;
+        Regard(w, giver, to, -RefusedRegard); Count(w, GiftsRefusedKey); return true;
+    }
+    /// <summary>Will the head of another house take a thing from this giver? Not one they think very ill of, nor an enemy at war.
+    /// A thing that was theirs to begin with is always taken back.</summary>
+    public static string? TakesRefusal(World w, Character giver, Heirloom item, Character to)
+    {
+        if (to.HouseId == giver.HouseId || IsSpoil(item) && item.FromHouseId == to.HouseId) return null;
+        if (w.AtWar(giver.HouseId, to.HouseId)) return $"{to.Name} is at war with you, and will take nothing";
+        return (w.GetRelationship(to.Id, giver.Id)?.Disposition ?? 0) <= RefuseGiftAt ? $"{to.Name} will take nothing from you" : null;
+    }
+
+    /// <summary>The suit between the two houses that a favour could move: one of the caller's people courting one of theirs.</summary>
+    public static Courtship? SuitBetween(World w, string myHouseId, string theirHouseId) =>
+        w.Courtships.Where(c => w.Char(c.SuitorId) is { Alive: true } s && w.Char(c.TargetId) is { Alive: true } t && (s.HouseId == myHouseId && t.HouseId == theirHouseId || s.HouseId == theirHouseId && t.HouseId == myHouseId))
+            .OrderBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+
+    /// <summary>A favour owed is spent on the next vote if nothing else is asked. It can be asked for something else instead:
+    /// money, or the family's consent to a match between the two houses.</summary>
+    public static string? CallRefusal(World w, Character? me, House? theirs, string what)
+    {
+        var mine = me != null ? w.House(me.HouseId) : null; if (me?.Alive != true || mine == null || Economy.HeadOf(w, mine)?.Id != me.Id) return "only the head of a house calls in what it is owed";
+        if (theirs == null || !FavourOwed(w, theirs.Id, mine.Id)) return "they owe you nothing";
+        if (what == ForMoney) return theirs.Treasury.Credits >= FavourCredits ? null : "they have not the money to give";
+        if (what == ForMatch) return SuitBetween(w, mine.Id, theirs.Id) != null ? null : "there is no suit between your house and theirs";
+        return "no such thing to ask";
+    }
+    public static void Call(World w, Character me, House theirs, string what)
+    {
+        var mine = w.House(me.HouseId)!; w.WorldCounters.Remove(FavourKey(theirs.Id, mine.Id));
+        if (what == ForMoney) { theirs.Treasury.Credits -= FavourCredits; mine.Treasury.Credits += FavourCredits; Count(w, FavoursForMoneyKey); w.Log($"{me.Name} calls in what {theirs.Name} owes: {FavourCredits} credits, paid without a word."); }
+        else { var suit = SuitBetween(w, mine.Id, theirs.Id)!; suit.Consent = Math.Clamp(suit.Consent + FavourConsent, 0, 100); Count(w, FavoursForMatchKey); w.Log($"{me.Name} calls in what {theirs.Name} owes: the family looks more kindly on the match."); }
+    }
+
+    /// <summary>A favour nobody has called in is forgotten after <see cref="FavourYears"/> years.</summary>
+    private static void LapseFavours(World w)
+    {
+        string? mine = w.Protagonist?.HouseId;
+        foreach (var key in w.WorldCounters.Keys.Where(k => k.StartsWith(FavourPrefix, StringComparison.Ordinal)).OrderBy(k => k, StringComparer.Ordinal).ToList())
+        {
+            if (w.Turn - w.Counter(key) < FavourYears) continue; w.WorldCounters.Remove(key); Count(w, FavoursLapsedKey);
+            var parts = key[FavourPrefix.Length..].Split('>'); if (parts.Length != 2 || mine == null) continue;
+            if (parts[1] == mine && w.House(parts[0]) is { } ower) w.Log($"What {ower.Name} owed you has gone too long uncalled, and is forgotten.");
+            else if (parts[0] == mine && w.House(parts[1]) is { } owed) w.Log($"What you owed {owed.Name} for its gift is no longer spoken of.");
         }
     }
 }

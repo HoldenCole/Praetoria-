@@ -144,7 +144,7 @@ public sealed class EducationCommand : ICommand
 /// <see cref="Sell"/>: an heirloom.</summary>
 public sealed class WealthCommand : ICommand
 {
-    public const string Allowance = "allowance", Inheritance = "inheritance", Move = "move", Settle = "settle", Will = "will", Bequeath = "bequeath", Give = "give", Sell = "sell", Gift = "gift", Lend = "lend", Forgive = "forgive", Dowries = "dowries", EntailItem = "entail_item", BreakEntail = "break_entail", LendAtInterest = "lend_interest", Borrow = "borrow", Repay = "repay", Commission = "commission", Ransom = "ransom";
+    public const string Allowance = "allowance", Inheritance = "inheritance", Move = "move", Settle = "settle", Will = "will", Bequeath = "bequeath", Give = "give", Sell = "sell", Gift = "gift", Lend = "lend", Forgive = "forgive", Dowries = "dowries", EntailItem = "entail_item", BreakEntail = "break_entail", LendAtInterest = "lend_interest", Borrow = "borrow", Repay = "repay", Commission = "commission", Ransom = "ransom", Favour = "favour";
     private readonly string _what, _targetId, _value;
     public WealthCommand(string actorId, string what, string targetId, string value) { ActorId = actorId; _what = what; _targetId = targetId; _value = value; }
     public string ActorId { get; }
@@ -171,6 +171,7 @@ public sealed class WealthCommand : ICommand
             case Dowries: return _value is "purse" or "treasury" ? null : "no such custom";
             case Commission: return WealthSystem.CommissionRefusal(w, me, _value);
             case Ransom: return WealthSystem.RansomRefusal(w, me, item);
+            case Favour: return WealthSystem.CallRefusal(w, me, w.House(_targetId), _value);
             default: return "no such thing";
         }
     }
@@ -198,6 +199,7 @@ public sealed class WealthCommand : ICommand
             case Dowries: house.DowryFromPurse = _value == "purse"; break;
             case Commission: WealthSystem.Commission(w, me, _value); break;
             case Ransom: WealthSystem.Ransom(w, me, item!); break;
+            case Favour: WealthSystem.Call(w, me, w.House(_targetId)!, _value); break;
         }
     }
 }

@@ -52,6 +52,10 @@ require('fs').mkdirSync(shots, { recursive: true });
   const gave = await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth .suit .suit-acts button')].find(e => !e.disabled && / of /.test(e.innerText) && !/Sell|Send it home/.test(e.innerText)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ') : 'nobody to give it to'; });
   await page.waitForTimeout(400);
   console.log('gave the shrine to: ' + gave + ' · ' + await page.evaluate(() => { const el = [...document.querySelectorAll('.panel.wealth .muted.small')].find(e => e.innerText.includes('Owe you a favour')); return el ? el.innerText.replace(/\s+/g, ' ') : 'no favours line'; }));
+  // the favour that gift bought is called in for money (docs/WEALTH.md "A favour called in")
+  const called = await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => e.innerText.includes('Call it in for')); if (b && !b.disabled) b.click(); return b ? (b.disabled ? 'cannot: ' + b.title : b.innerText.replace(/\s+/g, ' ')) : 'no button'; });
+  await page.waitForTimeout(400);
+  console.log('called the favour in: ' + called + ' · favours line now: ' + await page.evaluate(() => { const el = [...document.querySelectorAll('.panel.wealth .muted.small')].find(e => e.innerText.includes('Owe you a favour')); return el ? 'still shown' : 'gone'; }));
   console.log('their purses: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .purse-row:not(.own-share)')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 90)).join(' || ')));
   await page.evaluate(() => { const el = document.querySelector('.panel.wealth'); if (el) el.scrollIntoView(); }); await page.waitForTimeout(300);
   const box = await page.evaluate(() => { const r = document.querySelector('.panel.wealth').getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1400) }; });

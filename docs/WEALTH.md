@@ -266,7 +266,38 @@ Not seen in play: no broken house surrendered a signet in the probe or the soak,
 browser the shrine was given to another head and the panel read "Owe you a favour: House Aurelian".
 
 Found while building it, and mapped (W13): a favour is one thing, a lean on one vote; and other houses never refuse
-or return a gift.
+or return a gift. Both were closed the next day: see the next section.
+
+### A favour called in or forgotten, and a gift refused (W13, 2026-11-16)
+
+**A favour owed to you can be asked for something other than a vote.** From the purses panel, beside the house
+that owes it:
+
+- **Money:** 15 credits, paid into your treasury, if they have it.
+- **A match:** the family's consent to a suit between your house and theirs rises by 20.
+- Left alone, it is spent on the next motion you bring, as before.
+
+**A favour is forgotten after eight years** if nobody calls it in: what is owed to you, and what you owe.
+
+**A gift can be refused.**
+
+- A head sent plate to mend a quarrel sends it back if they think −35 or worse of the sender. Nothing changes hands,
+  and the sender thinks 6 worse of them.
+- A head sent an orrery to ask a favour refuses it at −15 or worse: they will not be put under an obligation to that
+  house.
+- **The head of another house will take nothing from you** if they think −40 or worse of you, or are at war with
+  you. The buttons say so. A thing that was taken from their house is always taken back.
+
+Measured over sixty runs of sixty years: 44 gifts were refused and 256 taken, about one in seven; 27 favours were
+owed and all 27 were spent on a vote. Houses holding something they were not born with: 34%.
+
+Not seen in play: no favour was called in for money or a match, in the probe (which gives no orders) or the soak,
+and only one lapsed, since a favour asked by a house with a motion open is spent within the year. Both rest on
+tests. In the browser, after a gift to House Aurelian, the panel offered both ways to call the favour in and
+refused the money one because that house had none.
+
+Found while building it, and mapped (W14): only the player calls a favour in for anything but a vote; a favour is
+never passed on or bargained with.
 
 ### A purse that holds more than credits (W1, 2026-11-15)
 

@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **A favour called in or forgotten, and a gift refused** (docs/WEALTH.md; docs/GAPS.md W13). A house that owes
+  you a favour can be asked for 15 credits or for its consent to a match, from the purses panel; left alone the
+  favour is still spent on your next motion. A favour nobody calls in is forgotten after eight years. Heads of
+  other houses now refuse a gift from someone they think ill enough of, and will take nothing from you if they
+  think very ill of you or are at war with you.
 - **A pledge, and foreclosure beyond a venture** (docs/ECONOMY_MARKET.md, section 15; docs/GAPS.md A9). You can
   name what your creditors take first if the house is foreclosed on: a venture, or a thing you hold that is not
   entailed. With no venture left they take a thing, though never an entailed one, and at the last a world against a
