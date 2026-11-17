@@ -1,12 +1,15 @@
 # Playing a known story
 
-Written 2026-11-17. The question: if someone sits down to play Darrow, Reinhard von Lohengramm, Yang Wen-li, Nero,
-Palpatine or Paul Atreides, how far does the game carry them, and where does it stop?
+Written 2026-11-17. The question: if someone sits down to play Darrow, Nero au Augustus, Reinhard von Lohengramm, Yang
+Wen-li, Palpatine or Paul Atreides, how far does the game carry them, and where does it stop? (The first pass read
+"Nero" as the Roman emperor. The owner meant Nero au Augustus of Red Rising; both are here, the emperor as "being
+emperor".)
 
 Each story was cut into its beats, and each beat was checked against the engine: is there a command, an event or a
 start that lets the player do it. **Yes** means it can be done today. **Partly** means something like it can be done
 and what is missing is named. **No** means there is no road. The verdicts come from reading the code and content, and
-from playing the nearest start where a claim needed proof. The gaps this found are rows R1 to R15 in docs/GAPS.md.
+from playing the nearest start where a claim needed proof. The gaps this found are rows R1 to R18 in docs/GAPS.md.
+The owner's answers of 2026-11-17 are at the foot of the page.
 
 ## In short
 
@@ -15,7 +18,8 @@ from playing the nearest start where a claim needed proof. The gaps this found a
 | Darrow (Red Rising) | 2 | 4 | 4 | After the Institute. No false identity, no service in a greater house, no rising |
 | Reinhard von Lohengramm | 1 | 7 | 3 | At the first command. Under a throne nobody is given a fleet |
 | Yang Wen-li | 0 | 2 | 0 | Close. The recall and the choice to obey are built; the Empire he defends against is not |
-| Nero (being emperor) | 0 | 7 | 4 | On the throne. An emperor has three acts and cannot fall |
+| Nero au Augustus | 3 | 6 | 2 | At the bargain. You cannot put someone else on a throne, or be paid for it |
+| Being emperor (the Roman Nero) | 0 | 7 | 4 | On the throne. An emperor has three acts and cannot fall |
 | Palpatine | 2 | 2 | 3 | At the consulship. No emergency powers, no hidden hand |
 | Paul Atreides | 0 | 5 | 1 | After the fall. A landless heir has no road back |
 
@@ -63,6 +67,29 @@ character with the Academy year.
 | Leads the low orders in a rising | No | The people do not rise for anyone (G6) |
 | Topples the throne, founds a republic, is later recalled by it | Partly | Taking the throne makes you Emperor. A throne cannot be put down for a Republic (R9, G2) |
 
+## Nero au Augustus
+
+As the owner put it: born into a famous noble house; the house wiped out; made a deal to overthrow a dictator and
+install a new one; got a great position for it; plotted and carried out revenge on a rival house. Nearest starts:
+`the_fallen_house` for the beginning, `the_old_lion` or a custom duke for the middle.
+
+| Beat | Verdict | What is there, what is missing |
+|---|---|---|
+| Born into a great house | Yes | `the_old_lion` is a duke, `the_circling_heir` a count; a custom character can be a count, or an archduke in free mode. A custom character always heads a new house, never a child of an existing one |
+| The house is all but destroyed for a failed rebellion, and he survives as its heir | Partly | `the_fallen_house`: a baron with one world, one hull and two credits. The fall is only in the start's notes: no cause, no ruler who ordered it, no dead, no claim on what was lost (R17). In play no house is ever purged (C4) |
+| Makes a bargain with a claimant to bring down the ruler and seat them | Partly | In the Republic you can declare for a general who has crossed, and your fleets fight for him. Nothing is asked or promised first, and it needs another house's Caesar, which is nearly absent (Q1). Under a throne there is no road at all: no other house ever tries for it, and you cannot back one that would (R16) |
+| Is given a great position for it | No | A general's backers get a little standing and regard and a flag nothing reads. No world, office or title is given. Under a throne "the Emperor holds every office", and his only gift is a company's monopoly (R16, R1) |
+| Governs a region under the sovereign | Partly | Your own worlds, governors of your own blood, the tithe, fleets, private war, the Senate. Nothing is held from the throne, and a region is only an allegiance and a lawlessness figure (C8, R6) |
+| A long hatred of one house | Partly | Regard between persons, old enemies who vote against you, a rival named at creation. All of it is between persons and dies with them: a house has no enemy (R4) |
+| Plots and carries out his revenge | Partly | An assassin (any adult of another house; odds from 5 to 90 in a hundred by skill), war in either era with no leave needed, sieges, a world ceded at the peace, censure, embargo, a takeover of their companies. No charge can be laid against a house, and the house you strike does nothing in answer (R4, C4) |
+| Takes a gifted nobody into his household | Yes | A protégé, sworn, with the head as mentor; adoption puts them in the line. No named second (R14) |
+| Sends his children through the Institute, judges them by it, and disowns one | Partly | An upbringing, a tutor, and naming an heir over the lawful one. Only the player goes to the Institute (E1), and nobody can be disowned (R18) |
+| Rebels against the sovereign he made | Yes | Declaring independence under a throne, or seizing it with a fleet over the capital. The sovereign is never one he seated |
+| Killed by the son he cast out | No | Kin defy and defect. They cannot strike at the head: an assassin must be of another house, other houses' knives spare the head, and no event kills the player (R18) |
+
+**What would do most for this story:** the bargain (R16) with a throne that can be lost (R5), since one cannot be seated
+unless another can fall; blood between houses (R4); and kin who act (R18).
+
 ## Reinhard von Lohengramm and Yang Wen-li
 
 Nearest starts: `the_imperial_court` for Reinhard, `the_risen_officer` or `the_new_man` in the Republic for Yang.
@@ -83,7 +110,7 @@ Nearest starts: `the_imperial_court` for Reinhard, `the_risen_officer` or `the_n
 | *Yang:* recalled by his government and obeys | Partly, nearly yes | The recall motion, the choice to obey, the Senate's sword |
 | *Yang:* holds a corridor against an empire | Partly | Chokepoints and fortress worlds. Foreign powers raid; they do not invade (R10) |
 
-## Nero, or being emperor
+## Being emperor (the Roman Nero)
 
 No start puts the player on a throne or next in line. The quickest proper route is a custom Republic character in
 free mode who holds the capital and proclaims in about the second year.
@@ -147,3 +174,14 @@ Two rows touch what the owner has set aside (the forms of government, G1 to G7) 
 (R8) and a throne put down for a Republic (R9). The rising that Darrow leads is G6 itself. Two more are new systems and
 wait on the rule that none is begun until the worklist is short: a rival state on the map (R10), and castes and a faith
 (R13).
+
+## The owner's answers, 2026-11-17
+
+- **The Institute:** how well you did is to be remembered, and winning most of all. Built the same day
+  (docs/ACADEMY.md, "What is remembered").
+- **The blood feud (R4):** yes.
+- **Emergency powers (R8):** yes.
+- **A throne that can be lost (R5):** yes.
+- **More to do as emperor and as the heir (R6, R7):** yes, as a later expansion.
+- **A faith and castes (R13):** not for now.
+- Not yet answered: a throne put down for a Republic (R9), and a rival state on the map (R10).

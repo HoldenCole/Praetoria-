@@ -2083,3 +2083,37 @@ Lion in two years. `ProgressionSystem.NextTitle` now stops below the throne; one
 
 **Mapped.** Fifteen rows, R1 to R15. R8 and R9 are forms of government and R10 and R13 are new systems, so those four
 wait on the owner with G1 to G7. Nothing else was built in this pass: it was a reading of the game, not a change to it.
+
+## 70. The Institute remembered, and Nero au Augustus — 2026-11-17
+
+**The owner's answers.** "Nero" was Nero au Augustus, and is now on docs/ROLEPLAY.md (3 beats can be played, 6 partly,
+2 not; rows R16 to R18). Yes to the blood feud (R4), emergency powers (R8) and a throne that can be lost (R5); more to
+do as emperor and as the heir (R6, R7) is a later expansion; a faith and castes (R13) are not for now; and how well
+you did at the Institute is to be remembered, winning most of all.
+
+**Built: the Institute remembered** (docs/ACADEMY.md, "What is remembered"). Laurels on the player and on every
+classmate, read by renown, elections, the first posting and promotion, a fleet's crews and command cap, the year's
+regard for one another, and six later events.
+
+**Found while measuring.** The Institute was not a contest. Answering every report with its first choice, the player
+won it as captain in 30 years of 30 and was first of the year in 30 of 30; answering with the last choice, still won
+in 27. The rival Standards finished on the same strength in every game and the classmates on the same scores: nothing
+in the year took its dice from the world. Fixed: each year has its own dice, each rival Standard a captain worth
+nothing, a little or a good deal, and classmates score more.
+
+**Measured** (30 years each way).
+
+| How the cadet answers | Won as captain | First of the year | Honours | Near the bottom | Own banner taken |
+|---|---|---|---|---|---|
+| Boldly | 10 | 13 | 22 | 0 | 9 |
+| By guile | 14 | 0 | 4 | 15 | 5 |
+| Carelessly | 0 | 0 | 0 | 30 | 14 |
+
+In the Republic's Academy the bold cadet is first of the year in 15 of 30. The soak (33 runs, a save and load in
+each) passes with no drift; four lines ended (5 to 7 before); 289 of 388 events fired. Of the six new events five
+fired; `second_of_the_year` did not. Survival: 0 of 10 on every start.
+
+749 tests (four new).
+
+**Left, and mapped.** Only the player's own year is remembered (E1). Nothing under a throne offers the year's captain a
+place or a command (R1).

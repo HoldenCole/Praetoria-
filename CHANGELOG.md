@@ -2,10 +2,23 @@
 
 ## [Unreleased]
 
+### Added
+- **The Institute remembered** (docs/ACADEMY.md, "What is remembered"; docs/GAPS.md R14a). How you did in your year
+  is written on you for life: won as the year's captain, first of the year, in the ranks that won, honours, or
+  near the bottom. Classmates carry theirs too. It counts toward renown and elections, the captain is commissioned
+  a rung up and leads more hulls with steadier crews, the year thinks better or worse of you for what you did to
+  it, and six later events recall it. The life panel shows it.
+
+### Changed
+- **The Institute is a contest.** It was won in 30 years of 30 and was the same year in every game. Each year now
+  has its own dice, each rival Standard a captain of its own, and classmates score more. A bold cadet wins it as
+  captain about one year in three; a careless one never leads.
+
 ### Added (docs)
 - **Playing a known story** (docs/ROLEPLAY.md). Darrow, Reinhard von Lohengramm, Yang Wen-li, Nero, Palpatine and
   Paul Atreides, each cut into beats and each beat checked against the engine: what can be done today, what can
-  partly be done, and what has no road. Fifteen gaps mapped from it (docs/GAPS.md, R1 to R15).
+  partly be done, and what has no road. Nero au Augustus added the same day, with the owner's answers. Eighteen
+  gaps mapped from it (docs/GAPS.md, R1 to R18).
 
 ### Added (tools)
 - **Players with an end in view** (docs/QA.md; docs/GAPS.md Q2). `praetoria roads` plays a general, a seceder and a

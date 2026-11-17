@@ -91,7 +91,7 @@ public static partial class LadderSystem
     public static RungDef? Next(World w, OfficeCatalog offices, Character c) => offices.Rungs.Reverse().FirstOrDefault(r => Bar(w, offices, c, r) == null);
 
     /// <summary>What a candidate brings of their own: how they speak, how they are liked, how far they have risen, what they have done.</summary>
-    public static int Merit(Character c) => c.Skill("oratory") * 2 + c.Skill("charisma") * 2 + c.CareerRank * 2 + LifeSystem.Renown(c) / 6;
+    public static int Merit(Character c) => c.Skill("oratory") * 2 + c.Skill("charisma") * 2 + c.CareerRank * 2 + LifeSystem.Renown(c) / 6 + AcademySystem.Laurels(c);
 
     /// <summary>Everyone standing for a rung: from each other house its best qualified person, about two houses in three; from the
     /// player's house those who have said they will stand.</summary>

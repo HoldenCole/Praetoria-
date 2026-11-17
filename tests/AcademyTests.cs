@@ -167,6 +167,119 @@ public class AcademyTests
         Assert.True(dead >= 1);
     }
 
+    private static bool Eligible(World w, string eventId)
+    {
+        var me = w.Protagonist!; w.House(me.HouseId)!.Treasury.Credits = 100; w.PoolsFor(me.Id).Influence = 9;
+        return new EventEngine(Content, WorldBuilder.RngFor(w)).GatherEligible(w).Any(e => e.def.Id == eventId);
+    }
+
+    [Fact]
+    public void TheInstitute_IsAContest_NoTwoYearsAreTheSame_AndItIsNotWonByEveryone()
+    {
+        // measured over 30 years a bold cadet won it as captain in 10 and passed out first in 13; a careless one never led and was always near the bottom
+        int captain = 0, first = 0, fallen = 0, n = 0; var mine = new HashSet<string>(); var victors = new HashSet<string>(); var tops = new HashSet<int>();
+        for (ulong seed = 1; seed <= 16; seed++)
+        {
+            var (w, tc) = Start("the_institute", seed); PlayYear(w, tc); var a = w.Academy!; var p = w.Protagonist!; n++;
+            if (AcademySystem.Primus(p)) captain++; if (p.Flags.Contains(AcademySystem.FirstFlag)) first++; if (w.HasFlag(AcademySystem.StandardFallenFlag)) fallen++;
+            mine.Add(a.StandardOf[p.Id]); victors.Add(a.Victor); tops.Add(a.Scores.Values.Max());
+            // a cadet whose banner was taken does not wear the laurel of the Standard they finished under
+            if (w.HasFlag(AcademySystem.StandardFallenFlag)) Assert.DoesNotContain(AcademySystem.WonInstituteFlag, p.Flags);
+        }
+        Assert.InRange(captain, 2, n - 4); Assert.InRange(first, 2, n - 3); Assert.True(fallen >= 1);
+        Assert.True(victors.Count >= 3 && tops.Count >= 4);
+        // the careless cadet: never the year's captain, and the board remembers where they passed out
+        int low = 0;
+        for (ulong seed = 1; seed <= 8; seed++)
+        {
+            var (w, tc) = Start("the_institute", seed);
+            for (int guard = 0; w.InAcademy && guard < 10; guard++)
+            {
+                foreach (var item in tc.BeginTurn()) if (tc.Offer(item).LastOrDefault(o => o.Available) is { } pick) tc.Resolve(item, pick.Choice.Id);
+                tc.EndTurn();
+            }
+            Assert.False(AcademySystem.Primus(w.Protagonist)); if (w.Protagonist!.Flags.Contains(AcademySystem.PassedLowFlag)) low++;
+        }
+        Assert.True(low >= 6);
+    }
+
+    [Fact]
+    public void TheInstitute_IsRemembered_OnEveryoneWhoWasInIt()
+    {
+        // whoever held the last banner, the year is written on the people who were in it: one captain, laurels for those who began
+        // under the winning Standard and for nobody whose banner was taken, an order of merit for the classmates too
+        int captains = 0;
+        foreach (ulong seed in new ulong[] { 1, 2, 3, 4, 5, 6 })
+        {
+            var (w, tc) = Start("the_institute", seed); PlayYear(w, tc); var a = w.Academy!; var p = w.Protagonist!;
+            var year = a.Cohort.Select(id => w.Char(id)).Where(c => c is { Alive: true }).Select(c => c!).Append(p).ToList();
+            Assert.NotEqual("", a.Victor);
+            Assert.Single(year, c => c.Flags.Contains(AcademySystem.PrimusFlag));
+            var primus = year.Single(c => c.Flags.Contains(AcademySystem.PrimusFlag));
+            Assert.True(primus.Flags.Contains(AcademySystem.WonInstituteFlag) && primus.CareerRank >= AcademySystem.PrimusRank);
+            Assert.DoesNotContain(year, c => c.Flags.Contains(AcademySystem.LostBannerFlag) && c.Flags.Contains(AcademySystem.WonInstituteFlag));
+            Assert.Contains(year, c => c.Flags.Contains(AcademySystem.FirstFlag));
+            Assert.Equal(w.HasFlag(AcademySystem.WonInstituteFlag), p.Flags.Contains(AcademySystem.WonInstituteFlag));
+            Assert.Equal(AcademySystem.Laurels(p), w.Counter(AcademySystem.LaurelsKey));
+            Assert.Contains(p.Life!.Deeds, d => d.Kind is "laurel" or "honours" or "passed");
+            if (primus == p) captains++;
+        }
+        Assert.InRange(captains, 0, 5);
+    }
+
+    [Fact]
+    public void WinningTheInstituteAsItsCaptain_CountsForLife_AndCountsMostOfAll()
+    {
+        var (w, tc) = Start("the_institute"); var before = new Dictionary<string, int>(); World? plain = null;
+        { var (w0, tc0) = Start("the_institute"); PlayYear(w0, tc0); plain = w0; }
+        PlayYear(w, tc, _ =>
+        {
+            var a0 = w.Academy!; w.WorldCounters[AcademySystem.CaptainKey] = 1; a0.StandardStrength[a0.Standard] = 999;
+            foreach (var id in a0.Cohort) before[id] = w.GetRelationship(id, w.ProtagonistId)?.Disposition ?? 0;
+        });
+        var a = w.Academy!; var p = w.Protagonist!;
+        Assert.Equal(a.Standard, a.Victor); Assert.True(AcademySystem.Primus(p)); Assert.Equal(AcademySystem.PrimusRank, p.CareerRank);
+        Assert.InRange(AcademySystem.Laurels(p), AcademySystem.PrimusLaurels, 5);
+        Assert.Contains(p.Life!.Deeds, d => d.Kind == "primus");
+        Assert.Contains("won the Institute as its captain", AcademySystem.LaurelsName(p));
+        // more than first of the year alone would be: winning counts most
+        var first = new Character { Id = "x", Flags = { AcademySystem.FirstFlag } }; var ranks = new Character { Id = "y", Flags = { AcademySystem.WonInstituteFlag } }; var honours = new Character { Id = "z", Flags = { AcademySystem.HonoursFlag } };
+        Assert.True(AcademySystem.PrimusLaurels > AcademySystem.Laurels(first) && AcademySystem.Laurels(first) > AcademySystem.Laurels(ranks) && AcademySystem.Laurels(ranks) == AcademySystem.Laurels(honours) && AcademySystem.Laurels(new Character { Id = "n" }) == 0);
+        // it is read: a name people have heard, a rung in an election, crews that will follow, and more hulls than the rank allows
+        var same = new Character { Id = "same", CareerTrack = p.CareerTrack, CareerRank = p.CareerRank };
+        Assert.Equal(AcademySystem.Laurels(p) * AcademySystem.RenownPerLaurel, LifeSystem.Renown(p) - p.CareerRank * 5 - p.Life.Deeds.Sum(d => d.Kind is "primus" or "banner" or "laurel" or "honours" or "passed" ? 0 : 1));
+        Assert.True(LifeSystem.Renown(p) > LifeSystem.Renown(same));
+        Assert.True(LadderSystem.Merit(p) - LadderSystem.Merit(new Character { Id = "m", CareerRank = p.CareerRank, Skills = new(p.Skills), Life = p.Life }) >= AcademySystem.Laurels(p));
+        var fleets = new FleetSystem(Content.Fleets, Content.Holdings); p.CareerTrack = "military"; same.CareerTrack = "military";
+        Assert.Equal(Content.Fleets.CommandCapPerRank, fleets.CommandCap(p) - fleets.CommandCap(same));
+        // the year remembers what was done to it and with it
+        var followed = a.Cohort.Select(id => w.Char(id)!).Where(c => c.Alive && c.Flags.Contains(AcademySystem.WonInstituteFlag)).ToList();
+        var taken = a.Cohort.Select(id => w.Char(id)!).Where(c => c.Alive && c.Flags.Contains(AcademySystem.LostToYouFlag)).ToList();
+        Assert.NotEmpty(followed); Assert.NotEmpty(taken);
+        int respect = p.Flags.Contains(AcademySystem.FirstFlag) ? AcademySystem.RespectForFirst : 0;
+        foreach (var c in followed.Where(c => !c.Flags.Contains(AcademySystem.SecondFlag))) Assert.Equal(AcademySystem.FollowedYou + respect, w.GetRelationship(c.Id, p.Id)!.Disposition - before[c.Id]);
+        foreach (var c in taken.Where(c => !c.Flags.Contains(AcademySystem.SecondFlag))) Assert.Equal(AcademySystem.YouTookTheirBanner + respect, w.GetRelationship(c.Id, p.Id)!.Disposition - before[c.Id]);
+        // and years on it comes back
+        w.Turn = 8;
+        Assert.True(Eligible(w, "the_year_sends_for_its_first")); Assert.True(Eligible(w, "the_banner_you_took")); Assert.True(Eligible(w, "the_ranks_that_won"));
+        Assert.False(Eligible(w, "the_captain_calls_the_year"));
+        // the same year without the win: somebody else is its captain, and calls on it
+        var q = plain!.Protagonist!; plain.Turn = 8;
+        if (!AcademySystem.Primus(q)) { Assert.True(Eligible(plain, "the_captain_calls_the_year")); Assert.True(LifeSystem.Renown(p) > LifeSystem.Renown(q)); }
+    }
+
+    [Fact]
+    public void InTheRepublic_TheOrderOfMeritIsRemembered_AndThereIsNoBannerToWin()
+    {
+        var (w, tc) = Start("the_academy"); PlayYear(w, tc); var a = w.Academy!; var p = w.Protagonist!;
+        var year = a.Cohort.Select(id => w.Char(id)!).Where(c => c.Alive).Append(p).ToList();
+        Assert.Equal("", a.Victor); Assert.DoesNotContain(year, c => c.Flags.Contains(AcademySystem.PrimusFlag) || c.Flags.Contains(AcademySystem.WonInstituteFlag));
+        Assert.Contains(year, c => c.Flags.Contains(AcademySystem.FirstFlag)); Assert.Contains(year, c => c.Flags.Contains(AcademySystem.HonoursFlag));
+        Assert.InRange(AcademySystem.Laurels(p), 0, AcademySystem.FirstLaurels);
+        // a cadet who passed out near the bottom hears of it from someone above them
+        p.Flags.Add(AcademySystem.PassedLowFlag); w.Turn = 5; Assert.True(Eligible(w, "where_you_passed_out"));
+    }
+
     [Fact]
     public void TheTutorialChoice_IsRemembered_AndASavedYearResumes()
     {

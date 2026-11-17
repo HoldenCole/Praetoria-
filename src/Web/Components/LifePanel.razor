@@ -19,6 +19,13 @@
         <div class="gauge" title="Age lowers what it can be (the mark). Wounds, illness and great strain lower it. Rest and time restore it. It bears on how long you live."><span>Health</span><i><b style="width:@p.Health%" class="@(p.Health >= 80 ? "high" : p.Health < LifeSystem.Sound ? "low" : "")"></b><u style="left:@cap%"></u></i><em>@p.Health</em></div>
         <div class="gauge" title="What you are apart from your house: how far you rose and what you did."><span>Renown</span><i><b style="width:@renown%" class="@(renown >= 45 ? "high" : "")"></b></i><em>@renown</em></div>
     </div>
+    @if (w.Academy is { Graduated: true } year)
+    {
+        string laurels = AcademySystem.LaurelsName(p); int got = AcademySystem.Laurels(p);
+        <div class="small academy-line" title="How you did in your year is remembered for life. Winning the Institute as its captain counts most, then first of the year, then the ranks that won, then honours. It counts toward your renown (@(got * AcademySystem.RenownPerLaurel) of it), toward an election, and with your classmates.@(AcademySystem.Primus(p) ? " As the year's captain you were commissioned a rung up, crews follow you, and you may lead more hulls than your rank allows." : "")">
+            <b>@(year.IsImperium ? "The Institute" : "The Academy")</b> · passed out @AcademySystem.Ordinal(year.Place) of @year.Of@(laurels.Length > 0 ? " · " + laurels : "")
+        </div>
+    }
     <div class="muted small">You are <b class="@(p.Health < LifeSystem.Sound ? "bad" : "")">@LifeSystem.HealthName(p.Health)</b>@(p.Flags.Contains(LifeSystem.IllChar) ? ", and ill" : "")@(p.Flags.Contains(LifeSystem.WoundedChar) ? ", and carrying a wound" : "")@(life is { Wounds: > 0 } ? $" · wounded {life.Wounds} time(s)" : "") · at @p.Age you can be no better than @cap.@(p.Health < LifeSystem.Frail ? " The frail lay their commands down, and do not live long." : "")</div>
     <div class="suit-acts">
         <button class="opt inline" disabled="@(rest != null)" title="@(rest ?? "health +8, strain −10")" @onclick="() => G.Execute(new LifeCommand(pid, LifeCommand.Rest))">A season away · @LifeSystem.RestInfluence influence</button>

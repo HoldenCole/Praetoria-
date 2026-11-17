@@ -86,7 +86,9 @@ public static class LifeSystem
     private static int Weight(string kind) => kind switch
     {
         "head" => 10, "victory" => 8, "office" => 8, "fulfilled" => 6, "mastery" => 5, "adopted" => 5, "love" => 5, "wound" => 4, "venture" => 4, "retired" => 4,
-        "rank" => 3, "wed" => 3, "took_in" => 3, "child" => 2, "friend" => 2, "failure" => -3, _ => 1
+        "rank" => 3, "wed" => 3, "took_in" => 3, "child" => 2, "friend" => 2, "failure" => -3,
+        "primus" or "banner" or "laurel" or "honours" or "passed" => 0,   // the Academy counts through AcademySystem.Laurels, for those whose lives are not written down too
+        _ => 1
     };
 
     /// <summary>Write something into the record of a life, if it is one of the lives that are kept.</summary>
@@ -99,7 +101,7 @@ public static class LifeSystem
     private static bool Once(Character c, string mark) { c.Life ??= new Life(); return c.Life.Marks.Add(mark); }
 
     /// <summary>What a person is, apart from their house: how far they rose and what they did. 0 to 100.</summary>
-    public static int Renown(Character c) => Math.Clamp(c.CareerRank * 5 + (c.Life?.Deeds.Sum(d => Weight(d.Kind)) ?? 0), 0, 100);
+    public static int Renown(Character c) => Math.Clamp(c.CareerRank * 5 + (c.Life?.Deeds.Sum(d => Weight(d.Kind)) ?? 0) + AcademySystem.Laurels(c) * AcademySystem.RenownPerLaurel, 0, 100);
     public static string RenownName(int renown) => renown >= 70 ? "known across the Reach" : renown >= 45 ? "a name people know" : renown >= 25 ? "known in their own circle" : renown >= 10 ? "little known" : "unknown";
 
     /// <summary>The name they are known by, if their life has earned one.</summary>

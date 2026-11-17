@@ -99,7 +99,7 @@ public sealed class DynastySystem
         foreach (var c in world.Characters.Values.Where(c => c.Alive && c.Id != world.ProtagonistId && c.Age >= CareerStartAge && c.CareerTrack.Length > 0).OrderBy(c => c.Id, StringComparer.Ordinal))
         {
             int top = tracks?.ById(c.CareerTrack)?.Ranks.Count - 1 ?? 4; if (c.CareerRank >= top) continue;
-            if (c.CareerRank >= (c.Age - AgeOfMajority) / YearsPerRank) continue;                  // no admirals at twenty-two
+            if (c.CareerRank >= (c.Age - AgeOfMajority) / YearsPerRank + (AcademySystem.Laurels(c) >= 2 ? 1 : 0)) continue;   // no admirals at twenty-two; the best of a year are a rung ahead of it
             var house = world.House(c.HouseId); bool head = house != null && Economy.HeadOf(world, house)?.Id == c.Id;
             uint hash = 2166136261; foreach (var ch in c.Id) hash = (hash ^ ch) * 16777619;
             int period = head ? HeadPromotionYears : PromotionYears;

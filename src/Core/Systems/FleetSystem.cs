@@ -260,6 +260,7 @@ public sealed class FleetSystem
             int officers = PolicySystem.Approval(w, f.OwnerId, "officers");
             if (officers <= PolicySystem.Hostile) d -= 2; else if (officers >= PolicySystem.Loyal) d += 1;
             if (f.AdmiralId.Length > 0 && w.Char(f.AdmiralId) is { Alive: true } adm && adm.Flags.Contains(FrontFlag)) d += 1;   // crews love a commander who shares the line
+            if (f.AdmiralId.Length > 0 && w.Char(f.AdmiralId) is { Alive: true } known && AcademySystem.Primus(known)) d += 1;   // and have heard of one who won the Institute
             f.Loyalty = Math.Clamp(f.Loyalty + d, 0, 100);
             if (f.Loyalty < _rules.LoyaltyMutiny && f.Strength > 1)
             {
@@ -271,7 +272,7 @@ public sealed class FleetSystem
     }
 
     /// <summary>The hulls a commander may lead without strain: the base plus the rank's allowance on the military track (any other track, the base alone).</summary>
-    public int CommandCap(Character? c) => c == null ? int.MaxValue : _rules.CommandCapBase + (c.CareerTrack == "military" ? c.CareerRank : 0) * _rules.CommandCapPerRank;
+    public int CommandCap(Character? c) => c == null ? int.MaxValue : _rules.CommandCapBase + (c.CareerTrack == "military" ? c.CareerRank : 0) * _rules.CommandCapPerRank + (AcademySystem.Primus(c) ? _rules.CommandCapPerRank : 0);
 
     /// <summary>The dominant stance of a house's fleets in a system: the largest fleet's.</summary>
     public static string StanceAt(World w, string houseId, string systemId) =>

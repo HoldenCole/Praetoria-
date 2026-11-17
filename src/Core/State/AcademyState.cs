@@ -38,6 +38,10 @@ public sealed class AcademyState
     public Dictionary<string, int> StandardStrength { get; set; } = new();
     /// <summary>Standards whose banners have been taken, in order.</summary>
     public List<string> Fallen { get; set; } = new();
+    /// <summary>The Standard that held the last banner, set when the war ends.</summary>
+    public string Victor { get; set; } = "";
+    /// <summary>Fixed at muster from the world's own dice, so no two years are the same year.</summary>
+    public ulong Salt { get; set; }
 
     // ---- the outcome ----
     public bool Graduated { get; set; }

@@ -13,9 +13,9 @@ namespace Praetoria.Core.Systems;
 /// rivalry is friendly and nobody is hurt. The Imperium's Institute is a war: cadets are sorted into Standards that take each other's
 /// banners, the strong command the weak, and some cadets do not come back.</para>
 /// </summary>
-public sealed class AcademySystem
+public sealed partial class AcademySystem
 {
-    public const int EntryAge = 16, CohortSize = 11, EventsPerTerm = 3, StandingWeight = 2, StudyBase = 3, StudySkillCap = 3, ClassmateBase = 5, ClassmateSpread = 5;
+    public const int EntryAge = 16, CohortSize = 11, EventsPerTerm = 3, StandingWeight = 2, StudyBase = 3, StudySkillCap = 3, ClassmateBase = 5, ClassmateSpread = 6, InstituteBase = 6, InstituteSpread = 9, StandardSpread = 4, LeadSpread = 4;
     public const string GraduatedFlag = "academy_graduated", FirstFlag = "first_of_the_year", HonoursFlag = "graduated_with_honours", StandardFallenFlag = "standard_fallen", WonInstituteFlag = "won_the_institute";
     public const string StandingKey = "standing", EdgeKey = "standard_edge", CaptainKey = "standard_captain";
     public static readonly string[] Tracks = { "military", "stewardship", "law" };
@@ -37,7 +37,7 @@ public sealed class AcademySystem
     /// before another's are doubled), the senior officer of the Reach is its instructor, and under the Imperium the cadets are sorted.</summary>
     public void Muster(World w)
     {
-        var a = w.Academy!; var p = w.Protagonist!;
+        var a = w.Academy!; var p = w.Protagonist!; a.Salt = w.RngState;
         var young = w.LivingCharacters().Where(c => c.Id != p.Id && c.Age >= 15 && c.Age <= 19).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
         var picked = new List<Character>();
         // a round a house: the great houses' children first (by title rank), no house twice until every house has sent one
@@ -64,7 +64,7 @@ public sealed class AcademySystem
         if (a.IsImperium && _cat.Standards.Count > 0)
         {
             var all = a.Cohort.Prepend(p.Id).ToList();
-            for (int i = 0; i < all.Count; i++) a.StandardOf[all[i]] = _cat.Standards[(int)((Hash("sort:" + all[i]) + (uint)i) % (uint)_cat.Standards.Count)].Id;
+            for (int i = 0; i < all.Count; i++) a.StandardOf[all[i]] = _cat.Standards[(int)((Hash($"sort:{a.Salt}:{all[i]}") / 7 + (uint)i) % (uint)_cat.Standards.Count)].Id;
             a.Standard = a.StandardOf[p.Id];
             foreach (var s in _cat.Standards) a.StandardStrength[s.Id] = a.StandardOf.Values.Count(x => x == s.Id) * 2;
             w.Log($"The Institute sorts its cadets under {_cat.Standards.Count} Standards. {p.Name} stands under {_cat.Standard(a.Standard)?.Name ?? a.Standard}.");
@@ -106,7 +106,7 @@ public sealed class AcademySystem
         foreach (var id in a.Cohort)
         {
             var c = w.Char(id); if (c is not { Alive: true }) continue;
-            a.Scores[id] = a.Scores.GetValueOrDefault(id) + ClassmateBase + (int)(Hash($"term:{a.Term}:{id}") % ClassmateSpread) + (c.AptitudeTraits.Contains("Brilliant") ? 1 : 0);
+            a.Scores[id] = a.Scores.GetValueOrDefault(id) + (a.IsImperium ? InstituteBase : ClassmateBase) + (int)(Hash($"term:{a.Salt}:{a.Term}:{id}") / 7 % (a.IsImperium ? InstituteSpread : ClassmateSpread)) + (c.AptitudeTraits.Contains("Brilliant") ? 1 : 0);
             // a classmate learns too: one point a term in what they are already best at, or the subject the hash hands them
             var skill = c.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value).ThenBy(k => k.Key, StringComparer.Ordinal).Select(k => k.Key).FirstOrDefault()
                         ?? (_cat.Subjects.Count > 0 ? _cat.Subjects[(int)(Hash("apt:" + id) % (uint)_cat.Subjects.Count)].Skill : "discipline");
@@ -133,14 +133,18 @@ public sealed class AcademySystem
     {
         var a = w.Academy!; var p = w.Protagonist!;
         foreach (var s in a.StandardStrength.Keys.OrderBy(k => k, StringComparer.Ordinal).ToList())
-            if (!a.Fallen.Contains(s)) a.StandardStrength[s] += (int)(Hash($"std:{a.Term}:{s}") % 3) + (s == a.Standard ? w.Counter(EdgeKey) + w.Counter(CaptainKey) : 0);
+            if (!a.Fallen.Contains(s)) a.StandardStrength[s] += (int)(Hash($"std:{a.Salt}:{a.Term}:{s}") / 7 % StandardSpread) + (s == a.Standard ? w.Counter(EdgeKey) + w.Counter(CaptainKey) : Lead(a, s));
         w.WorldCounters.Remove(EdgeKey);
         var standing = a.StandardStrength.Where(k => !a.Fallen.Contains(k.Key)).OrderByDescending(k => k.Value).ThenBy(k => k.Key, StringComparer.Ordinal).Select(k => k.Key).ToList();
         if (a.Term is 2 or 3 && standing.Count > 2)
         {
             string victor = standing[0], loser = standing[^1];
             a.Fallen.Add(loser);
-            foreach (var id in a.StandardOf.Where(k => k.Value == loser).Select(k => k.Key).ToList()) a.StandardOf[id] = victor;
+            foreach (var id in a.StandardOf.Where(k => k.Value == loser).Select(k => k.Key).ToList())
+            {
+                a.StandardOf[id] = victor;
+                if (w.Char(id) is { } fallen && id != p.Id) { fallen.Flags.Add(LostBannerFlag); if (victor == a.Standard) fallen.Flags.Add(LostToYouFlag); }
+            }
             a.StandardStrength[victor] += a.StandardStrength[loser] / 2;
             w.Log($"{_cat.Standard(victor)?.Name ?? victor} takes the banner of {_cat.Standard(loser)?.Name ?? loser}; its cadets serve the victor now.");
             if (loser == a.Standard)
@@ -161,12 +165,18 @@ public sealed class AcademySystem
                 DynastySystem.Die(w, lost.Id);
             }
         }
-        if (a.Term >= a.Terms && standing.Count > 0 && standing[0] == a.Standard)
+        if (a.Term >= a.Terms && standing.Count > 0) a.Victor = standing[0];
+        if (a.Term >= a.Terms && standing.Count > 0 && standing[0] == a.Standard && w.WorldFlags.Contains(StandardFallenFlag))
+            w.Log($"{_cat.Standard(a.Standard)?.Name ?? a.Standard} holds the last banner. {p.Name} finished the year in its ranks, and began it under another.");
+        else if (a.Term >= a.Terms && standing.Count > 0 && standing[0] == a.Standard)
         {
             w.WorldFlags.Add(WonInstituteFlag); w.WorldCounters[StandingKey] = w.Counter(StandingKey) + (w.Counter(CaptainKey) > 0 ? 5 : 2);
             w.Log($"{_cat.Standard(a.Standard)?.Name ?? a.Standard} holds the last banner. The Institute is {(w.Counter(CaptainKey) > 0 ? $"{p.Name}'s" : "won, and " + p.Name + " stood in the ranks that won it")}.");
         }
     }
+
+    /// <summary>What a rival Standard's own captain is worth to it each term: nothing, a little, or a good deal. Fixed for the year.</summary>
+    public static int Lead(AcademyState a, string standard) => (int)(Hash($"lead:{a.Salt}:{standard}") / 7 % LeadSpread);
 
     /// <summary>The service the board would choose: the track of the subjects the cadet earned most marks in; the house's own if they read nothing.</summary>
     public string RecommendedService(World w)
@@ -191,6 +201,7 @@ public sealed class AcademySystem
         foreach (var id in a.Cohort)
             if (w.Char(id) is { Alive: true } c && c.CareerRank == 0) { if (!Tracks.Contains(c.CareerTrack)) c.CareerTrack = Tracks[(int)(Hash("svc:" + id) % (uint)Tracks.Length)]; c.CareerRank = 1; }
         a.Active = false; a.Graduated = true;
+        Remember(w);
         w.WorldFlags.Add(GraduatedFlag);
         w.WorldCounters["academy_place"] = a.Place;
         w.Log($"{p.Name} passes out of {_cat.Register(a.Register).Name} {Ordinal(a.Place)} of {a.Of}{(p.Flags.Contains(FirstFlag) ? ", first of the year" : p.Flags.Contains(HonoursFlag) ? ", with honours" : "")}, and is commissioned into the service.");

@@ -64,6 +64,49 @@ me* (`SetTutorialCommand`; the browser remembers a previous graduation and offer
 The screen has no rail and no world screens. It closes with a passing-out card: place, service, friends made, and
 those who will remember you otherwise. A player who took the full course is not shown the old primer.
 
+## What is remembered
+
+How a cadet did is written on them for life, and the better they did the more it counts (the owner's direction,
+2026-11-17; docs/GAPS.md R14). `AcademySystem.Remember` runs at passing out.
+
+| What | Who | Laurels |
+|---|---|---|
+| Won the Institute as its captain (the year's *primus*) | One person a year: the player if they led the Standard that held the last banner, otherwise the best cadet who began under it | 3 |
+| First of the year | Whoever tops the order of merit | 2 |
+| Stood in the ranks that won | Everyone who began under the winning Standard. A cadet whose banner was taken does not wear it, though they finished the year in the winner's ranks | 1 |
+| Passed out with honours | The top third | 1 |
+
+Winning and merit add: a captain who is also first of the year has five. Classmates are placed and marked exactly as
+the player is. A cadet in the bottom third is remembered for that too.
+
+**What reads it.**
+- Renown: three for each laurel, for anyone, whether or not their life is written down. Renown already counts in
+  elections, with a family weighing a suitor, and with people deciding whether to join a household.
+- An election on the ladder of offices: one more for each laurel, directly.
+- The first posting: the year's captain is commissioned a rung above the rest of the year. Anyone with two laurels or
+  more is promoted a rung ahead of their age for the rest of their career.
+- A fleet: crews are steadier under a captain of the Institute, and such a commander leads one rank's allowance of
+  hulls more than their rank gives.
+- The year itself: classmates who won under you think better of you (more if you led them), those whose banner your
+  Standard took think worse (more if you led it), and the cadet you beat to first place does not forget.
+- Six later events (`content/events/academy_remembered.json`): the Institute sends for its first; the cadet whose
+  banner you took; one who stood in the ranks with you; the one who came second; the year's captain calling on the
+  year, when it was not you; and a senior who has looked up where you passed out.
+
+**It is a contest now.** Measuring this found the Institute was not one: the player's Standard won in 30 years of 30,
+the player was first of the year in 30 of 30, and every year was the same year (the classmates' scores and the rival
+Standards' strength did not change from game to game). Each year now takes its dice from the world, each rival
+Standard has a captain of its own worth nothing, a little or a good deal, and classmates score more. Over 30 years:
+
+| How the cadet answers | Won as captain | First of the year | Honours | Near the bottom | Own banner taken |
+|---|---|---|---|---|---|
+| Boldly (the first choice) | 10 | 13 | 22 | 0 | 9 |
+| By guile (the middle choice) | 14 | 0 | 4 | 15 | 5 |
+| Carelessly (the last choice) | 0 | 0 | 0 | 30 | 14 |
+
+The bold cadet gathers standing for themselves; the one who works by guile gathers strength for the Standard. In the
+Republic's Academy, where there is no banner, the bold cadet is first of the year in 15 years of 30.
+
 ## Files
 `src/Core/State/AcademyState.cs`, `Systems/AcademySystem.cs`, `Commands/AcademyCommands.cs`, `Data/AcademyCatalog.cs`,
 `Presentation/AcademyProjection.cs`; `content/academy/academy.json`, `content/events/academy_republic.json`,
@@ -71,6 +114,9 @@ those who will remember you otherwise. A player who took the full course is not 
 `src/Web/Components/AcademyScreen.razor` and the Academy shell in `Pages/Index.razor`.
 
 ## Not yet
+- Only the player's own year is remembered. Other people's children do not go through an Institute year of their
+  own, so a rival of forty has no laurels (E1).
+- Nothing under a throne yet offers the year's captain a place in a great household or a command (R1).
 - When the Republic falls in play, the next generation's heir does not yet go to the Institute: heirs still begin in
   the world. The Academy runs only at the start of a run.
 - Five Institute chain events (the oath, the blooding, the humiliated returns, the marked man, the frame unravels) need
