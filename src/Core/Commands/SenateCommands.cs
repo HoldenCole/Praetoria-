@@ -50,6 +50,8 @@ public sealed class ProposeMotionCommand : ICommand
             if (def.Interest == "triumph" && (_senate.Caesar == null ? "no such motion" : _senate.Caesar.TriumphRefusal(w, t)) is { } noTriumph) return noTriumph;
             if (def.Interest == "reconquest" && (_senate.Polities == null ? "no such motion" : _senate.Polities.ReconquestRefusal(w, t)) is { } noReconquest) return noReconquest;
             if (def.Interest == "recall" && (_senate.Caesar == null ? "no such motion" : _senate.Caesar.RecallRefusal(w, t)) is { } noRecall) return noRecall;
+            if (def.Interest == "emergency" && EmergencySystem.GrantRefusal(w, t, _senate.Offices) is { } noPowers) return noPowers;
+            if (def.Interest == "for_life" && EmergencySystem.ForLifeRefusal(w, t) is { } noLife) return noLife;
         }
         else if (def.Target == "region") { if (w.Galaxy?.Regions.Any(r => r.Id == _targetId) != true) return "no such region"; }
         else if (def.Target == "nation")
@@ -247,7 +249,7 @@ public sealed class VetoCommand : ICommand
         if (!ElectionSystem.IsConsul(w, _offices, house.Id)) return "only a consul may veto";
         var m = w.Motions.FirstOrDefault(x => x.Id == _motionId); if (m == null || !m.Open) return "no such motion before the Senate";
         if (m.ProposerHouseId == house.Id) return "not your own motion";
-        if (!ElectionSystem.MayVeto(w, _offices, house.Id)) return "the veto is spent this term";
+        if (!ElectionSystem.MayVeto(w, _offices, house.Id)) return w.Emergency == null ? "the veto is spent this term" : EmergencySystem.Holds(w, house.Id) ? "you have struck one motion this year" : "the emergency powers have set your veto aside";
         return null;
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;

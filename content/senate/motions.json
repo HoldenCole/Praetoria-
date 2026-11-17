@@ -37,6 +37,10 @@
       "description": "{proposer} moves that the Reach go back for the state that {target} rules, and bring its region home." },
     { "id": "embargo", "name": "Embargo", "target": "house", "interest": "embargo", "proposeInfluence": 3,
       "description": "{proposer} moves that the Senate close the exchanges of the Reach to {target} for eight years.",
-      "embargoTurns": 8 }
+      "embargoTurns": 8 },
+    { "id": "emergency", "name": "Emergency powers", "target": "house", "interest": "emergency", "proposeInfluence": 3, "targetSelfAllowed": true,
+      "description": "{proposer} moves that, the Reach being in danger, the consul of {target} be given the Senate's emergency powers for three years." },
+    { "id": "for_life", "name": "The powers for life", "target": "house", "interest": "for_life", "proposeInfluence": 4, "targetSelfAllowed": true,
+      "description": "{proposer} moves that the consul of {target} hold the emergency powers for life." }
   ]
 }

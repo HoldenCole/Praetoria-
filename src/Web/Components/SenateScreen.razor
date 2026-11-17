@@ -1,3 +1,4 @@
+@using Praetoria.Core.Commands
 @using Praetoria.Core.Systems
 @inject GameClient G
 @{
@@ -327,6 +328,32 @@
                         <div class="small">@if (o.HolderHouse != null) { <Sigil HouseId="@o.HolderHouseId" Accent="@o.HolderAccent" Size="12" /> <span>@o.HolderName of @o.HolderHouse</span> <span class="muted">since turn @o.Since</span> } else { <span class="muted">vacant until the election</span> }</div>
                     </div>
                 }
+                @{
+                    var em = w.Emergency; string? danger = EmergencySystem.Danger(w); var emHolder = em != null ? w.Char(em.HolderId) : null; bool emMine = em != null && em.HolderId == pid;
+                    string? askNo = new ProposeMotionCommand(pid, "emergency", house.Id, senate).Refusal(G.Ctx), lifeNo = new ProposeMotionCommand(pid, "for_life", house.Id, senate).Refusal(G.Ctx);
+                    string? levyNo = new EmergencyCommand(pid, EmergencyCommand.Levy).Refusal(G.Ctx), layNo = new EmergencyCommand(pid, EmergencyCommand.LayDown).Refusal(G.Ctx);
+                }
+                @if (em != null)
+                {
+                    <div class="off-card emergency @(emMine ? "mine" : "")" title="While the powers run the other consul has no veto, the holder may strike one motion a year, the Senate leans toward what the holder moves, the houses can be levied without a vote, and no election is held. They are to be laid down when the term is up or the danger is past.">
+                        <div class="of-head"><b>Emergency powers</b> <span class="muted small">voted for @em.Cause · @(em.Due ? (em.KeptYears > 0 ? $"kept {em.KeptYears} year(s) past leave" : "due to be laid down") : $"until year {em.Until}")@(em.Renewals > 0 ? $" · extended {em.Renewals} time(s)" : "")</span></div>
+                        <div class="small">@(emHolder?.Name ?? "A consul") of @(w.House(em.HouseId)?.Name) holds them, since year @em.Since.@(emMine && em.Due ? $" Each year you keep them costs the Reach's trust, your house's standing and every head's regard; after {EmergencySystem.KeptMax} the Senate takes them." : "")</div>
+                        @if (emMine)
+                        {
+                            <div class="suit-acts">
+                                <button class="opt inline" disabled="@(layNo != null)" title="@(layNo ?? $"Give them back. Your house gains {EmergencySystem.LaidDownStanding} standing (two more if it is before they are due), the Reach trusts its magistrates more, and every head thinks better of you. Nothing is gained if you have kept them past leave.")" @onclick="() => G.Execute(new EmergencyCommand(pid, EmergencyCommand.LayDown))">Lay them down</button>
+                                <button class="opt inline" disabled="@(levyNo != null)" title="@(levyNo ?? $"Every other house pays up to {EmergencySystem.LevyCredits} credits to yours, without a vote. Each head thinks the worse of you, and the Reach a little less of its magistrates. Once a year.")" @onclick="() => G.Execute(new EmergencyCommand(pid, EmergencyCommand.Levy))">Levy on the houses</button>
+                                <button class="opt inline" disabled="@(askNo != null)" title="@(askNo ?? "Put it to the Senate that the powers run three years more. Each time you ask, the houses are slower to agree.")" @onclick='() => MoveSelf("emergency")'>Ask for more time</button>
+                                <button class="opt inline veto" disabled="@(lifeNo != null)" title="@(lifeNo ?? "Put it to the Senate that you hold them for life. If it carries, the Republic ends by its own vote and you rule. If it fails, the Senate ends the powers in the same breath and your house is disgraced.")" @onclick='() => MoveSelf("for_life")'>Ask for them for life</button>
+                            </div>
+                        }
+                    </div>
+                }
+                else if (danger != null)
+                {
+                    <div class="muted small">The Reach is in danger: @danger. The Senate may be asked to give a consul its emergency powers for @EmergencySystem.Years years.
+                        @if (el.AmConsul) { <button class="opt inline" disabled="@(askNo != null)" title="@(askNo ?? "Put it to the Senate. The graver the danger the readier it is; a consul it fears is refused.")" @onclick='() => MoveSelf("emergency")'>Ask for them</button> }</div>
+                }
                 <h4>The nominees as they stand</h4>
                 @foreach (var n in el.Nominees) { <div class="nominee"><i class="party-dot" style="background:@n.PartyAccent"></i><Sigil HouseId="@n.HouseId" Accent="@n.Accent" Size="13" /> <span><b>@n.HouseName</b> <span class="muted small">for @n.Party</span></span><b class="tally-n">@n.Tally</b>@{ var nid = n.HouseId; var canvassNo = G.Turn!.Orders.CanvassRefusal(w, house, nid, el.Nominees.Select(x => x.HouseId)); }<button class="opt inline tiny" disabled="@(canvassNo != null)" title="@(canvassNo ?? "largesse in the candidate's name: one more vote's weight at the election")" @onclick="() => Canvass(nid)">Canvass · @OrderSystem.CanvassCredits</button></div> }
                 @if (el.Nominees.Count == 0) { <div class="muted small">No house of standing has a candidate yet.</div> }
@@ -365,6 +392,7 @@
     private void MoveAct(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, "", G.Turn!.Senate, lawId: _law.GetValueOrDefault(kind) ?? "", optionId: _lawOpt.GetValueOrDefault(kind) ?? ""));
     private bool CanMove(MotionProposal pr) => !string.IsNullOrEmpty(_target.GetValueOrDefault(pr.KindId)) && (!pr.NeedsOffice || !string.IsNullOrEmpty(_office.GetValueOrDefault(pr.KindId)))
         && (pr.Refusal == null || pr.Refusal == "not against yourself" || pr.Refusal == "already before the Senate" || pr.Refusal.StartsWith("no one of") || pr.Refusal.EndsWith("holds it already"));
+    private void MoveSelf(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, G.World.Protagonist!.HouseId, G.Turn!.Senate));
     private void MoveNone(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, "", G.Turn!.Senate));
     private void MoveTarget(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, _target.GetValueOrDefault(kind) ?? "", G.Turn!.Senate, _office.GetValueOrDefault(kind) ?? ""));
 

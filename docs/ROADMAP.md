@@ -15,9 +15,9 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 761 |
-| Events with text | 395 in 36 files |
-| Open gaps (docs/GAPS.md) | 76: 11 small, 54 a cycle, 11 several cycles. Sixteen came from the full QA of 2026-11-16 (docs/QA.md) and nineteen from playing known stories against the game on 2026-11-17 (docs/ROLEPLAY.md). 76 closed so far (`./tools/gaps.sh`) |
+| Automated tests | 770 |
+| Events with text | 403 in 37 files |
+| Open gaps (docs/GAPS.md) | 76: 11 small, 54 a cycle, 11 several cycles (R8 closed, R20 mapped). Sixteen came from the full QA of 2026-11-16 (docs/QA.md) and twenty from playing known stories against the game on 2026-11-17 (docs/ROLEPLAY.md). 77 closed so far (`./tools/gaps.sh`) |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |

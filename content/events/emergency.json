@@ -1,0 +1,502 @@
+{
+  "//": "EMERGENCY POWERS (docs/EMERGENCY.md; docs/GAPS.md R8). Fired by EmergencySystem's year flags: emergency_granted (with emergency_mine or not), emergency_due and emergency_kept (the player holds them), emergency_levied (the player's house paid), emergency_laid_down / emergency_laid_down_mine, emergency_stripped. the_term_is_up and a_year_past_leave can set emergency_answer_lay, which EmergencySystem.Tick carries out at the year's end; the same can be done from the Senate screen.",
+  "events": [
+    {
+      "id": "emergency_powers_voted",
+      "tier": "setpiece",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "holder",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "holder",
+              "flag": "holds_emergency_powers",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "emergency_granted",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "emergency_mine",
+          "value": false
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_with_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "holder",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said in the Senate that {holder.name} of {holder.house} had been given a hard thing to carry and should be helped to carry it. {holder.name} will remember who said so first."
+            }
+          ]
+        },
+        {
+          "id": "warn_the_senate",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "holder",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said in the Senate that powers given for three years have a way of being wanted for a fourth. It was heard in silence. {holder.name} of {holder.house} was in the room."
+            }
+          ]
+        },
+        {
+          "id": "keep_counsel",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} voted as the house voted and said nothing on the floor. There will be time to see what {holder.name} does with them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_powers_are_yours",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "emergency_granted",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "emergency_mine",
+          "value": true
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "swear_to_lay_them_down",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the powers and swore, before the Senate could ask, to lay them down on the day the danger was past. It was written into the record. Records are kept."
+            }
+          ]
+        },
+        {
+          "id": "take_them_and_say_nothing",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the powers the Senate had voted and thanked it briefly. Nothing was said about when they would be given back. Several senators noticed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_term_is_up",
+      "tier": "setpiece",
+      "weight": 70,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "emergency_due",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "emergency_mine",
+          "value": true
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "lay_them_down",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "emergency_answer_lay",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent word to the Senate that the powers would be laid down at the year's end, and began to clear the desk."
+            }
+          ]
+        },
+        {
+          "id": "not_yet",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "The day came on which {self.name} was to lay down the powers. {self.name} let it go by. There is still work to do, and it is always possible to believe that."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_year_past_leave",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "emergency_kept",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "emergency_mine",
+          "value": true
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "face_them_down",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A delegation of the Senate came to ask {self.name} when the powers would be returned. {self.name} received them standing, with officers in the room, and they left without an answer."
+            }
+          ]
+        },
+        {
+          "id": "give_way",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "emergency_answer_lay",
+              "value": true
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "A delegation of the Senate came to ask {self.name} when the powers would be returned. {self.name} told them: at the year's end. It was later than it should have been, and it will be remembered as late."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_levy_without_a_vote",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "holder",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "holder",
+              "flag": "holds_emergency_powers",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "emergency_levied",
+          "value": true
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_and_say_so",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "holder",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{holder.name}'s collectors came with the emergency powers for their warrant and no vote behind them. {self.name} paid, and let it be known the house had paid gladly."
+            }
+          ]
+        },
+        {
+          "id": "pay_and_protest",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "holder",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{holder.name}'s collectors came with no vote behind them. {self.name} paid, and entered a protest in the Senate's record that money had been taken from a house of the Reach without the Reach's consent."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_powers_laid_down",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "holder",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "holder",
+              "flag": "laid_down_the_powers",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "emergency_laid_down",
+          "value": true
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "honour_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "holder",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{holder.name} of {holder.house} came down to the Senate floor as a consul among two, the powers given back unasked. {self.name} was among those who rose."
+            }
+          ]
+        },
+        {
+          "id": "note_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{holder.name} of {holder.house} gave the powers back. {self.name} noted that it could be done, and that it had been."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "you_laid_them_down",
+      "tier": "setpiece",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "emergency_laid_down_mine",
+          "value": true
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "go_home",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} laid down the powers, walked out of the Senate with one attendant, and went home. People who had been afraid for three years stood in the street and watched it happen."
+            }
+          ]
+        },
+        {
+          "id": "stay_and_serve",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} laid down the powers and took the consul's chair again the next morning, beside the colleague whose veto had been set aside, as if the years between had been a recess."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stripped_of_the_powers",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "emergency_stripped",
+          "value": true
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "accept_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "The Senate ended the powers itself. {self.name} did not contest it. What is left is the chair, a damaged name, and whatever the fleets think."
+            }
+          ]
+        },
+        {
+          "id": "remember_who_voted",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Senate ended the powers itself. {self.name} asked for the roll of the vote and read it twice."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

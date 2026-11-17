@@ -17,7 +17,14 @@ public static class ElectionSystem
     public const int Every = 10, StandInfluence = 2;
     public static readonly string[] TurnFlags = { "election_held", "consul_elected", "consul_lost", "vetoed_mine" };
     public static string StandFlag(string houseId) => "stands_for_consul:" + houseId;
-    public static bool Due(World w) => w.Turn > 0 && w.Turn % Every == 0 && w.Era != "imperium";
+    public const string OwedKey = "election_owed";
+    /// <summary>Every tenth year, or the year after emergency powers under which one fell due are laid down. Never while they run.</summary>
+    public static bool Due(World w)
+    {
+        if (w.Turn <= 0 || w.Era == "imperium") return false;
+        if (w.Emergency is { } e) { if (w.Turn % Every == 0) e.SkippedElection = true; return false; }
+        return w.Turn % Every == 0 || w.Counter(OwedKey) > 0;
+    }
     public static int NextIn(World w) => w.Turn % Every == 0 ? Every : Every - w.Turn % Every;
     public static IEnumerable<OfficeDef> ConsulOffices(OfficeCatalog offices) => offices.Defs.Where(d => d.Elected).OrderByDescending(d => d.Weight).ThenBy(d => d.Id, StringComparer.Ordinal);
     public static bool IsConsul(World w, OfficeCatalog offices, string houseId) => ConsulOffices(offices).Any(d => OfficeSystem.Holds(w, houseId, d.Id));
@@ -63,7 +70,7 @@ public static class ElectionSystem
     public static void Hold(World w, OfficeCatalog offices, Func<string, int> weight)
     {
         var consuls = ConsulOffices(offices).ToList(); if (consuls.Count == 0) return;
-        var mine = w.Protagonist?.HouseId;
+        var mine = w.Protagonist?.HouseId; w.WorldCounters.Remove(OwedKey);
         var nominees = Nominees(w, offices, weight); var tally = Tally(w, offices, weight, nominees);
         var winners = tally.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(consuls.Count).ToList();
         foreach (var d in consuls) if (OfficeSystem.Holding(w, d.Id) is { } old) { if (old.HouseId == mine) w.WorldFlags.Add("consul_lost"); OfficeSystem.Strip(w, d, "the term ends", false); }
@@ -81,13 +88,14 @@ public static class ElectionSystem
     }
 
     /// <summary>A consul's veto: the motion is struck before the vote. Once a term.</summary>
-    public static bool MayVeto(World w, OfficeCatalog offices, string houseId) =>
+    public static bool MayVeto(World w, OfficeCatalog offices, string houseId) => EmergencySystem.MayVeto(w, houseId) ??
         ConsulOffices(offices).Any(d => d.Veto && OfficeSystem.Holds(w, houseId, d.Id)) && w.Counter("veto_used:" + houseId) != TermStart(w, offices, houseId);
     /// <summary>A term's mark: the turn the chair was taken plus one, so a veto is remembered against the term it was spent in.</summary>
     public static int TermStart(World w, OfficeCatalog offices, string houseId) => ConsulOffices(offices).Select(d => OfficeSystem.Holding(w, d.Id)).FirstOrDefault(h => h?.HouseId == houseId)?.SinceTurn + 1 ?? int.MaxValue;
     public static void Veto(World w, OfficeCatalog offices, string houseId, Motion m)
     {
         m.Resolved = true; m.Passed = false; m.ResolvedTurn = w.Turn; m.Vetoed = true; m.VetoedBy = houseId;
+        if (w.Emergency != null) { EmergencySystem.Vetoed(w, houseId); w.WorldCounters["vetoes"] = w.Counter("vetoes") + 1; if (m.ProposerHouseId == w.Protagonist?.HouseId) w.WorldFlags.Add("vetoed_mine"); return; }
         w.WorldCounters["veto_used:" + houseId] = TermStart(w, offices, houseId); w.WorldCounters["vetoes"] = w.Counter("vetoes") + 1;
         if (m.ProposerHouseId == w.Protagonist?.HouseId) w.WorldFlags.Add("vetoed_mine");
     }

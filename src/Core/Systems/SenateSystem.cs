@@ -115,7 +115,7 @@ public sealed class SenateSystem
         int toProposer = Disp(head, proposerHead), toTarget = Disp(head, targetHead);
         var proposerHouseForSway = w.House(m.ProposerHouseId);
         int lean = toProposer >= 20 ? 1 : toProposer <= -20 ? -1 : 0;
-        lean += OldTie(w, def, m, head, houseId) + LadderSystem.CommitteeLean(w, def.Interest, m.ProposerHouseId, houseId) + LadderSystem.ChairLeanOf(w, m, houseId) + WealthSystem.FavourLean(w, houseId, m.ProposerHouseId) + FeudSystem.Lean(w, houseId, m.ProposerHouseId);
+        lean += OldTie(w, def, m, head, houseId) + LadderSystem.CommitteeLean(w, def.Interest, m.ProposerHouseId, houseId) + LadderSystem.ChairLeanOf(w, m, houseId) + WealthSystem.FavourLean(w, houseId, m.ProposerHouseId) + FeudSystem.Lean(w, houseId, m.ProposerHouseId) + (houseId != m.ProposerHouseId ? EmergencySystem.HolderLean(w, m.ProposerHouseId) : 0);
         // sway (docs/REPUBLIC.md stage 3): a house leans with whoever it depends on — its patron, its creditor, the house whose fuel
         // its fleets burn — for what that house wants, and against what is aimed at it
         if (proposerHouseForSway != null && proposerHouseForSway.Id != houseId) lean += Math.Min(2, OrderSystem.Sway(w, h, proposerHouseForSway).lean);
@@ -182,6 +182,12 @@ public sealed class SenateSystem
                 break;
             case "recall":
                 if (Caesar != null && targetHouse != null) lean += Caesar.RecallLean(w, h, targetHouse, toTarget);
+                break;
+            case "emergency":
+                if (targetHouse != null) lean += EmergencySystem.GrantLean(w, h, targetHouse, toTarget);
+                break;
+            case "for_life":
+                if (targetHouse != null) lean += EmergencySystem.ForLifeLean(w, h, targetHouse, toTarget);
                 break;
             case "reconquest":
                 if (Polities != null && targetHouse != null) lean += Polities.ReconquestLean(w, h, targetHouse, toTarget);
@@ -341,6 +347,8 @@ public sealed class SenateSystem
             {
                 if (def.Interest == "triumph") Caesar?.TriumphVoted(w, spared, w.House(m.ProposerHouseId), passed: false);
                 if (def.Interest == "recall") Caesar?.RecallVoted(w, spared, w.House(m.ProposerHouseId), passed: false);
+                if (def.Interest == "emergency") EmergencySystem.GrantVoted(w, spared, w.House(m.ProposerHouseId), _offices, passed: false);
+                if (def.Interest == "for_life") EmergencySystem.ForLifeVoted(w, spared, passed: false);
             }
             w.Log($"The Senate throws it out, {a} to {f}: {text}");
         }
@@ -429,6 +437,8 @@ public sealed class SenateSystem
         }
         if (def.Interest == "triumph" && target != null) Caesar?.TriumphVoted(w, target, proposer, passed: true);
         if (def.Interest == "recall" && target != null) Caesar?.RecallVoted(w, target, proposer, passed: true);
+        if (def.Interest == "emergency" && target != null) EmergencySystem.GrantVoted(w, target, proposer, _offices, passed: true);
+        if (def.Interest == "for_life" && target != null) EmergencySystem.ForLifeVoted(w, target, passed: true);
         if (def.Interest == "reconquest" && target != null && Polities != null && PolitySystem.Of(w, target.Id) is { Recognised: > 0 } state) Polities.Reconquer(w, state);
         if (def.Target == "nation") NationSystem.DeclareWar(w, Nations, m.TargetId, m.ProposerHouseId);
         if (def.Peace && target != null && _fleets != null)
@@ -530,6 +540,9 @@ public sealed class SenateSystem
                 int ours = FleetSystem.StrengthOf(w, seat.Id) + w.Houses.Values.Where(h => h.Id != seat.Id && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id)).Select(h => FleetSystem.StrengthOf(w, h.Id)).OrderByDescending(x => x).Take(3).Sum();
                 if (ours >= 2 * Math.Max(1, theirs) && !p.Leverage && !Stale(w, seat.Id, "reconquest", p.HeadHouseId)) { Add(w, seat.Id, "reconquest", p.HeadHouseId); return true; }
             }
+        if (!w.IsImperium && _motions.Def("emergency") != null && !w.Motions.Any(m => m.Open && m.Kind == "emergency")
+            && EmergencySystem.WouldMove(w, _offices, h => h.Id != mine && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null) is { } powers && !Stale(w, powers.mover.Id, "emergency", powers.target.Id))
+        { Add(w, powers.mover.Id, "emergency", powers.target.Id); w.WorldCounters[EmergencySystem.MovedKey] = w.Counter(EmergencySystem.MovedKey) + 1; return true; }
         if (Caesar == null || w.IsImperium || w.CivilWar != null) return false;
         bool Can(House h) => h.Id != mine && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null;
         if (_motions.Def("triumph") != null && !w.Motions.Any(m => m.Open && m.Kind == "triumph"))

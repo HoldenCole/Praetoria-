@@ -249,6 +249,7 @@ public sealed class TurnController
         using (Perf.Time("end:polities")) { _polities.Tick(World); }   // wars of independence won, lost or still fought; who may break away (docs/BREAKAWAY.md) — RNG-free   // crews and their commanders, recalls answered, the civil war if there is one (docs/CAESAR.md) — RNG-free
         using (Perf.Time("end:ladder")) { LadderSystem.Tick(World, _content.Offices, _content.Policies); }   // seats lapse, magistrates are paid, the house's people put their names down (docs/LADDER.md) — RNG-free
         using (Perf.Time("end:life")) { LifeSystem.Tick(World, _content); }   // health, the record of each life, ties that have lasted (docs/LIFE.md) — RNG-free
+        using (Perf.Time("end:emergency")) { EmergencySystem.Tick(World, _content.Offices); }   // emergency powers: due, laid down, kept or taken away (docs/EMERGENCY.md) — RNG-free
         using (Perf.Time("end:feud")) { FeudSystem.Tick(World); }   // blood between houses: asked for, answered, or let lie (docs/FEUD.md) — RNG-free
         using (Perf.Time("end:wealth")) { WealthSystem.Tick(World); _companies?.PrivateHolders(World); }   // allowances are paid, and people do as they like with their own money (docs/WEALTH.md) — RNG-free
         using (Perf.Time("end:education")) { EducationSystem.Tick(World); }   // everyone learns by what they do and what they study; children are brought up (docs/EDUCATION.md) — RNG-free

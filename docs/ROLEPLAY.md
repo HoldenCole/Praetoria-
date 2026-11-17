@@ -20,7 +20,7 @@ The owner's answers of 2026-11-17 are at the foot of the page.
 | Yang Wen-li | 0 | 2 | 0 | Close. The recall and the choice to obey are built; the Empire he defends against is not |
 | Nero au Augustus | 3 | 6 | 2 | At the bargain. You cannot put someone else on a throne, or be paid for it |
 | Being emperor (the Roman Nero) | 0 | 7 | 4 | On the throne. An emperor has three acts and cannot fall |
-| Palpatine | 2 | 2 | 3 | At the consulship. No emergency powers, no hidden hand |
+| Palpatine | 3 | 2 | 2 | After the powers for life. No hidden hand, and nothing to rule with |
 | Paul Atreides | 0 | 5 | 1 | After the fall. A landless heir has no road back |
 
 **The game is good at getting to power and thin at four things these stories turn on:**
@@ -138,9 +138,9 @@ Nearest start: `the_new_man` or `the_old_lion`.
 | A minor senator's rise | Yes | The ladder, canvassing, clients, factions, favours |
 | A crisis he made himself | Partly | Stirring a secession, traced one time in three. Starting a crisis is something only the other houses' rules do (R2) |
 | Elected to the chair | Yes | Consul at forty after a praetorship; there are two |
-| Voted emergency powers, and keeps them | No | No such motion; a term cannot be extended (R8) |
+| Voted emergency powers, and keeps them | Yes | Built 2026-11-17 (docs/EMERGENCY.md): voted in a danger, extended, kept, and put to the Senate for life |
 | Commands both sides of the war | No | No hidden hand (R2) |
-| Destroys an order and is declared emperor | Partly | Proclaiming is a gate of legitimacy, not a vote of the Senate. No proscription (R8, C4) |
+| Destroys an order and is declared emperor | Partly | The Senate can now vote him the powers for life, and that ends the Republic. No proscription (C4) |
 | Rules through governors and dissolves the Senate | No | (C8, R6) |
 
 ## Paul Atreides
@@ -180,7 +180,7 @@ wait on the rule that none is begun until the worklist is short: a rival state o
 - **The Institute:** how well you did is to be remembered, and winning most of all. Built the same day
   (docs/ACADEMY.md, "What is remembered").
 - **The blood feud (R4):** yes. Built the same day (docs/FEUD.md), with duels.
-- **Emergency powers (R8):** yes.
+- **Emergency powers (R8):** yes. Built the same day (docs/EMERGENCY.md).
 - **A throne that can be lost (R5):** yes.
 - **More to do as emperor and as the heir (R6, R7):** yes, as a later expansion.
 - **A faith and castes (R13):** not for now.

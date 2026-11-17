@@ -255,10 +255,10 @@ three orders of the Republic (`REPUBLIC`).
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 761 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
+**Verification:** 770 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
 round-trip that must reproduce an uninterrupted run; both content validators clean; every start auto-plays sixty turns
 across several seeds with a randomised player. The content counts in the table above are from the first release; the
-current ones (395 events, 11 scenarios, 31 systems) are in `docs/ROADMAP.md`.
+current ones (403 events, 11 scenarios, 31 systems) are in `docs/ROADMAP.md`.
 
 Per-milestone detail, with the acceptance proof for each: [`MILESTONE_1`](docs/MILESTONE_1_NOTES.md)
 (engine) · [`MILESTONE_2`](docs/MILESTONE_2_NOTES.md) (turn loop) · [`MILESTONE_4`](docs/MILESTONE_4_NOTES.md)
@@ -362,7 +362,7 @@ dotnet run --project src/Tools -- play --auto --scenario the_risen_officer --bac
 # The balance simulation (docs/PROCESS.md QA): many seeds, aggregate stats per scenario
 dotnet run --project src/Tools -- simulate --scenario all --seeds 10 --turns 50
 
-# The test suite (761 tests, incl. whole-stack soaks and a save/load round-trip)
+# The test suite (770 tests, incl. whole-stack soaks and a save/load round-trip)
 dotnet test
 
 # The Godot UI (needs Godot 4.3 with .NET): open project.godot in the editor and press Play.

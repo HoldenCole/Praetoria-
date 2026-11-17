@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **Emergency powers** (docs/EMERGENCY.md; docs/GAPS.md R8). When the Reach is in danger (the great war, a civil
+  war, a state broken away and unrecognised, a war beyond the borders) the Senate may vote a sitting consul its
+  emergency powers for three years: the other consul's veto is set aside, the holder may strike a motion every
+  year, the Senate leans toward what the holder moves, the houses can be levied without a vote, and no election is
+  held. They are to be laid down when the term is up or the danger past. You may ask for more time, or keep them at
+  a cost each year until the Senate takes them, and after a first term you may put it to the Senate that you hold
+  them for life: carried, the Republic ends by its own vote; refused, you are stripped of them. Other houses move
+  it for their own consuls, who use them and always lay them down. The Senate screen shows all of it.
 - **Blood between houses** (docs/FEUD.md; docs/GAPS.md R4). A killing binds the dead person's house to answer it.
   The debt is the house's and outlives the people. It begins with a knife that is traced, the death in battle of a
   head or a head's near blood, or a killing by hand in an event; while it stands the two houses vote against each

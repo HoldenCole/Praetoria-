@@ -107,6 +107,8 @@ public sealed class World
     public List<Recall> Recalls { get; set; } = new();
     /// <summary>The civil war, while a general marches on the capital (docs/CAESAR.md).</summary>
     public CivilWar? CivilWar { get; set; }
+    /// <summary>The Senate's emergency powers, while a consul holds them (docs/EMERGENCY.md).</summary>
+    public EmergencyPowers? Emergency { get; set; }
     /// <summary>Venture id → the member of the house who began it, kept from the founding until the venture stands (docs/AMBITIONS.md).</summary>
     public Dictionary<string, string> Founders { get; set; } = new();
     /// <summary>Things a person owns that are worth leaving to someone (docs/WEALTH.md).</summary>

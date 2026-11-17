@@ -2158,3 +2158,35 @@ me by name, and the offer of the price greyed out with its reason: the house had
 
 **Left, and mapped.** A marriage or a mediator cannot end a feud, nobody takes a side, and a relative called out
 cannot be forbidden or stood in for (R19). A knife that is not traced leaves nothing behind (R2).
+
+## 72. Emergency powers — 2026-11-17
+
+Built on the owner's word (docs/EMERGENCY.md; R8 closed). The Senate lends a consul powers for three years when the
+Reach is in danger, and they are laid down, extended, kept, stripped, or, for the player alone, asked for life.
+
+**Found while measuring.** As first built the Senate gave them whenever it was asked: 55 of 60 motions carried, three
+times a game, and a consul held them seven or eight years of every sixty. The Reach is "in danger" two years in five,
+mostly from wars at its edge. So no Senate likes to do it now (two points against, to begin with), other houses move
+it a third as often for a lesser danger as for a war for the Reach itself, and it cannot be moved again for twelve
+years.
+
+**Measured.** The probe (60 runs of 60 years): the Reach in danger 39% of years; the powers moved 116 times, voted 53
+(in 40 runs) and refused 58; 168 years held, 43 levies; 37 laid down and the rest lapsed with the holder or still
+running; none kept and none stripped, since no house but the player's keeps them; and the Republic stood in all 60. The
+great war was fought in 43 runs (43); 20 states broke away (22); 146 debts of blood (143); trust in the magistrates
+averaged 49 to 60 by start and was low in 13 runs (11). The soak (33 runs, a save and load in each) passes with no
+drift: 40 moved, 24 voted, 16 refused, 19 levies, 16 laid down; two lines ended (4); 300 of 403 events fired (302 of
+395) and 71 kinds of command landed (72). Survival: 1 line of 80, the same one as before (The Risen Officer, seed 4).
+
+**Not seen in play.** The soak's player was never voted the powers, so five of the eight events did not fire (the
+powers yours, the term up, a year past leave, laid down by you, stripped) and nothing was kept or asked for life. All
+of it is proved by tests, including a motion for life moved by the player and carried on the Senate's own count.
+
+**Seen in the browser** (`tools/browser/emergency.js`). On The Old Lion the consulship panel said in year 15: "The
+Reach is in danger: a state in arms against the Reach. The Senate may be asked to give a consul its emergency powers
+for 3 years." No consul was voted them in the 45 years of that game, so the holder's strip was not seen on screen.
+
+770 tests (nine new).
+
+**Left, and mapped.** The Senate cannot revoke them early; the holder commands no fleets by them and decrees nothing;
+no other house manufactures the danger or keeps the powers (R20).
