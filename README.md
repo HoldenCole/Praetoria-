@@ -218,6 +218,9 @@ three orders of the Republic (`REPUBLIC`).
 | **The household** | §18 | ✅ | Found family (wards, protégés, companions, adoption), a mentor, and duties (steward, marshal) the head can hand to any member of the house. Kin act for themselves. See `docs/HOUSEHOLD.md`. |
 | **Education and skills** | §13, §14 | ✅ | A ceiling in every skill; learning by doing, study and teaching, each step dearer than the last; children brought up toward their bent. See `docs/EDUCATION.md`. |
 | **Personal wealth** | §14, §17 | ✅ | A purse for every grown member of the house, the allowance, debts, heirlooms, a will, and the estate kept whole or shared out. See `docs/WEALTH.md`. |
+| **Blood between houses** | §14 | ✅ | A killing binds the dead person's house: the debt outlives the people and ends by blood, a duel, a price, or being let lie. Other houses carry theirs too. See `docs/FEUD.md`. |
+| **Emergency powers** | §10 | ✅ | In a danger the Senate may vote a consul its powers for three years: laid down, extended, kept, or asked of the Senate for life, which ends the Republic by its own vote. See `docs/EMERGENCY.md`. |
+| **A throne that can be lost** | §10 | 📋 | Planned in four stages, not begun. See `docs/THRONE.md`. |
 | **Ambitions** | §18 | ✅ | The people of the house pursue what they want by themselves and ask the head for help now and then; a named heir. See `docs/AMBITIONS.md`. |
 | **A life of one's own** | §14, §18 | ✅ | Health and wounds, a record of deeds, renown and a name, old friends and enemies, retirement, funerals. See `docs/LIFE.md`. |
 | **Breaking away** | §10, §19 | ✅ (first stage) | A house that controls a region founds its own state; the Reach lets it go or fights a war of independence; the great war ends by crushing, partition or exhaustion. See `docs/BREAKAWAY.md`. |

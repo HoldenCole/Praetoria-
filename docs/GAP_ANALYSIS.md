@@ -2190,3 +2190,10 @@ for 3 years." No consul was voted them in the 45 years of that game, so the hold
 
 **Left, and mapped.** The Senate cannot revoke them early; the holder commands no fleets by them and decrees nothing;
 no other house manufactures the danger or keeps the powers (R20).
+
+## 73. A throne that can be lost: planned — 2026-11-17
+
+The fourth thing the owner said yes to is several cycles, so it is planned before it is built (docs/THRONE.md). Four
+stages: the hold on a throne and a pretender who acts when it is weak; a succession that can be contested; the Guard;
+and what a fallen emperor can do. Five assumptions are written down to be corrected, the first of them that a player's
+throne can be lost to another house's doing and not only to the player's own mistakes. Nothing is built.

@@ -181,7 +181,7 @@ wait on the rule that none is begun until the worklist is short: a rival state o
   (docs/ACADEMY.md, "What is remembered").
 - **The blood feud (R4):** yes. Built the same day (docs/FEUD.md), with duels.
 - **Emergency powers (R8):** yes. Built the same day (docs/EMERGENCY.md).
-- **A throne that can be lost (R5):** yes.
+- **A throne that can be lost (R5):** yes. Planned in four stages (docs/THRONE.md); not begun.
 - **More to do as emperor and as the heir (R6, R7):** yes, as a later expansion.
 - **A faith and castes (R13):** not for now.
 - Not yet answered: a throne put down for a Republic (R9), and a rival state on the map (R10).

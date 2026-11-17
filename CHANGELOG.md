@@ -36,6 +36,8 @@
   captain about one year in three; a careless one never leads.
 
 ### Added (docs)
+- **A throne that can be lost: the plan** (docs/THRONE.md; docs/GAPS.md R5). Four stages, what each rests on, and
+  the five things assumed.
 - **Playing a known story** (docs/ROLEPLAY.md). Darrow, Reinhard von Lohengramm, Yang Wen-li, Nero, Palpatine and
   Paul Atreides, each cut into beats and each beat checked against the engine: what can be done today, what can
   partly be done, and what has no road. Nero au Augustus added the same day, with the owner's answers. Eighteen
