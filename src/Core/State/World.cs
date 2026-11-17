@@ -111,6 +111,8 @@ public sealed class World
     public Dictionary<string, string> Founders { get; set; } = new();
     /// <summary>Things a person owns that are worth leaving to someone (docs/WEALTH.md).</summary>
     public List<Heirloom> Heirlooms { get; set; } = new();
+    /// <summary>Blood owed between houses, standing and ended (docs/FEUD.md).</summary>
+    public List<BloodFeud> Feuds { get; set; } = new();
     /// <summary>Courtships under way and suits not yet answered (docs/MARRIAGE.md).</summary>
     public List<Courtship> Courtships { get; set; } = new();
     /// <summary>Every marriage, with its terms and its warmth (docs/MARRIAGE.md).</summary>

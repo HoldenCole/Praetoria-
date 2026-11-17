@@ -179,7 +179,7 @@ wait on the rule that none is begun until the worklist is short: a rival state o
 
 - **The Institute:** how well you did is to be remembered, and winning most of all. Built the same day
   (docs/ACADEMY.md, "What is remembered").
-- **The blood feud (R4):** yes.
+- **The blood feud (R4):** yes. Built the same day (docs/FEUD.md), with duels.
 - **Emergency powers (R8):** yes.
 - **A throne that can be lost (R5):** yes.
 - **More to do as emperor and as the heir (R6, R7):** yes, as a later expansion.

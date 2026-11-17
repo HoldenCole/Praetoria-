@@ -2117,3 +2117,44 @@ fired; `second_of_the_year` did not. Survival: 0 of 10 on every start.
 
 **Left, and mapped.** Only the player's own year is remembered (E1). Nothing under a throne offers the year's captain a
 place or a command (R1).
+
+## 71. Blood between houses — 2026-11-17
+
+Built on the owner's word (docs/FEUD.md; R4 closed, F3 half closed). One death, one debt, held by the dead person's
+house against a person to blame; ended by blood, a duel, a price, or being let lie.
+
+**Found while measuring.**
+- With the rules in and nothing else changed, ten unattended games held four feuds, all of them the player's own
+  (kin killed in an event). No house but the player's ever killed anyone outside a battle, and no commander who died
+  in battle was a head or a head's near blood. So hard-natured heads now send a knife at a house they hate.
+- With a war counted as cause there were five feuds a game and eight knives. A war alone is no longer cause.
+- A house whose challenge was refused challenged again every time it acted, for ever. Nobody is called out twice now;
+  after a refusal what comes is a knife.
+- A price was almost never paid, because a house had to hold the sum twice over. It pays now with half as much
+  again, or if the house asking is no weaker, or if its head is a just or honourable one.
+
+**Measured.** The probe (60 runs of 60 years): 143 debts begun in 58 runs (a knife 64, a death in battle 41, by hand
+38); ended on the field 37 (22 deaths: the rule is four in ten, and the dice were checked fair over two thousand
+trials), in blood 21 (once the wrong blood), bought off 14, let lie 56 (30 of them the probe's own player, who gives
+no orders), 9 standing; the field refused 15 times; 145 knives sent between other houses. The Republic stood in all
+60; the great war was fought in 43 runs (42); 22 states broke away (23); trust in the magistrates averaged 48 to 60 by
+start and was low in 11 runs (14). The soak (33 runs, a save and load in each) passes with no drift: 66 debts begun,
+20 ended on the field, 10 in blood, 5 bought off, 21 let lie; four lines ended (4); 302 of 395 events fired (289 of
+388) and 72 kinds of command landed (70).
+
+**Survival: 1 line of 80 ended. It was 0.** The Risen Officer, seed 4: the only child of the house was killed at 18
+in an event that was there before this pass, and the head died at 57 with nobody to follow. The feud rules recorded
+the death and did not cause it, but this pass reshuffled the dice and this is what they landed on.
+
+**Not seen in play.** Three of the seven events did not fire in the soak: the price asked, called out, and after the
+field. Each needs the player's house to owe blood or to fight, and the soak's player seldom kills and is seldom
+traced. All three are proved by tests, and the panel was driven in the browser.
+
+**Seen in the browser** (`tools/browser/feud.js`). On The Old Lion an accident arranged in the second year was laid
+at my door: the You screen showed "Blood between houses, 1 held against you", who was dead, that it was held against
+me by name, and the offer of the price greyed out with its reason: the house had not the 60 credits.
+
+761 tests (twelve new).
+
+**Left, and mapped.** A marriage or a mediator cannot end a feud, nobody takes a side, and a relative called out
+cannot be forbidden or stood in for (R19). A knife that is not traced leaves nothing behind (R2).

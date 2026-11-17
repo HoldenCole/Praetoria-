@@ -254,11 +254,16 @@ public sealed class SetTitleEffect : IEffect
 public sealed class KillEffect : IEffect
 {
     public string Role { get; }
-    public KillEffect(string role) => Role = role;
+    /// <summary>The role whose hand it was, if anyone's: the dead person's house then holds it against them (docs/FEUD.md).
+    /// JSON: { "type": "kill", "role": "rival", "by": "self" }.</summary>
+    public string By { get; }
+    public KillEffect(string role, string by = "") { Role = role; By = by; }
     public void Apply(EvalContext ctx)
     {
-        if (ctx.Binding.TryGet(Role, out var id))
-            Systems.DynastySystem.Die(ctx.World, id);
+        if (!ctx.Binding.TryGet(Role, out var id)) return;
+        if (By.Length > 0 && ctx.Binding.TryGet(By, out var killerId) && ctx.World.Char(id) is { Alive: true } victim && ctx.World.Char(killerId) is { } killer)
+            Systems.FeudSystem.Blood(ctx.World, victim, killer.HouseId, killer.Id, "hand");
+        Systems.DynastySystem.Die(ctx.World, id);
     }
 }
 

@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **Blood between houses** (docs/FEUD.md; docs/GAPS.md R4). A killing binds the dead person's house to answer it.
+  The debt is the house's and outlives the people. It begins with a knife that is traced, the death in battle of a
+  head or a head's near blood, or a killing by hand in an event; while it stands the two houses vote against each
+  other and will not marry; and it ends by blood, by a duel, by a price, or by being let lie at a cost in
+  standing. Other houses carry and end theirs by their head's nature, and ask you before they act against you.
+  A panel on the You screen shows what is owed to you and held against you, with your odds on the field.
+- **Duels.** The head of a house, or a kinsman who would go, may call out the one held to blame for a death.
+  Whoever falls, it ends there.
 - **The Institute remembered** (docs/ACADEMY.md, "What is remembered"; docs/GAPS.md R14a). How you did in your year
   is written on you for life: won as the year's captain, first of the year, in the ranks that won, honours, or
   near the bottom. Classmates carry theirs too. It counts toward renown and elections, the captain is commissioned
@@ -10,6 +18,11 @@
   it, and six later events recall it. The life panel shows it.
 
 ### Changed
+- **Other houses use the knife on each other.** A cruel, ruthless or vengeful head who cannot abide another
+  house's head now and then sends a hired hand at its ablest adult: never its head, never its last adult, never
+  your house, and no more than once in twenty years. Until now no house but yours ever killed outside a war.
+- A successful assassination is no longer always unexplained: one time in three the trail is found, and a house
+  that already has cause needs no proof.
 - **The Institute is a contest.** It was won in 30 years of 30 and was the same year in every game. Each year now
   has its own dice, each rival Standard a captain of its own, and classmates score more. A bold cadet wins it as
   captain about one year in three; a careless one never leads.

@@ -1755,7 +1755,8 @@
           "effects": [
             {
               "type": "kill",
-              "role": "enemy"
+              "role": "enemy",
+              "by": "self"
             },
             {
               "type": "adjustStress",

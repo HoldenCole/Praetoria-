@@ -115,7 +115,7 @@ public sealed class SenateSystem
         int toProposer = Disp(head, proposerHead), toTarget = Disp(head, targetHead);
         var proposerHouseForSway = w.House(m.ProposerHouseId);
         int lean = toProposer >= 20 ? 1 : toProposer <= -20 ? -1 : 0;
-        lean += OldTie(w, def, m, head, houseId) + LadderSystem.CommitteeLean(w, def.Interest, m.ProposerHouseId, houseId) + LadderSystem.ChairLeanOf(w, m, houseId) + WealthSystem.FavourLean(w, houseId, m.ProposerHouseId);
+        lean += OldTie(w, def, m, head, houseId) + LadderSystem.CommitteeLean(w, def.Interest, m.ProposerHouseId, houseId) + LadderSystem.ChairLeanOf(w, m, houseId) + WealthSystem.FavourLean(w, houseId, m.ProposerHouseId) + FeudSystem.Lean(w, houseId, m.ProposerHouseId);
         // sway (docs/REPUBLIC.md stage 3): a house leans with whoever it depends on — its patron, its creditor, the house whose fuel
         // its fleets burn — for what that house wants, and against what is aimed at it
         if (proposerHouseForSway != null && proposerHouseForSway.Id != houseId) lean += Math.Min(2, OrderSystem.Sway(w, h, proposerHouseForSway).lean);

@@ -18,6 +18,8 @@ public sealed class NpcAi
     /// (GDD §16 "crises have authors") — through the same command bus the player uses.</summary>
     /// <summary>Turns between an NPC house's attempts on the player's heirs.</summary>
     public const int HeirHuntCooldown = 6;
+    /// <summary>A hard head's knife between other houses: how ill they must think of the other head, how long before another, and how soon they look again.</summary>
+    public const int KnifeHatred = -60, KnifeCooldown = 20, KnifeRetry = 4;
 
     /// <summary>Catalogs the fleet AI consults (optional; without them NPCs raise the default class, unled).</summary>
     public ShipClassCatalog? ShipClasses { get; init; }
@@ -277,6 +279,21 @@ public sealed class NpcAi
                 var heir = world.LivingCharacters().Where(c => c.HouseId == playerHouse && c.Id != player.Id && !c.Flags.Contains(DynastySystem.HiddenFlag))
                                 .OrderBy(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (heir != null && executor.TryExecute(new AssassinateCommand(head.Id, heir.Id), ctx)) { world.WorldCounters[cooldownKey] = world.Turn + HeirHuntCooldown; continue; }
+            }
+
+            // a hard head with a hatred does not wait for a war: now and then a knife for the ablest of a house whose head they cannot
+            // abide, or with which there is blood already. War alone is not cause: that is settled with fleets. Other houses only (the player's heirs are hunted above, and only at war), never a
+            // house's head, and never its last adult. What follows is the dead person's house's to answer (docs/FEUD.md).
+            string knifeKey = $"knife_cooldown:{house.Id}";
+            if (world.Counter(knifeKey) <= world.Turn && (head.NatureTraits.Contains("Cruel") || head.NatureTraits.Contains("Ruthless") || head.NatureTraits.Contains("Vengeful")))
+            {
+                world.WorldCounters[knifeKey] = world.Turn + KnifeRetry;
+                var hated = world.Houses.Values.Where(o => o.Id != house.Id && o.Id != playerHouse && o.Id != PirateSystem.HouseId)
+                    .Select(o => (o, oh: Economy.HeadOf(world, o))).Where(x => x.oh != null && (FeudSystem.Between(world, house.Id, x.o.Id) || (world.GetRelationship(head.Id, x.oh!.Id)?.Disposition ?? 0) <= KnifeHatred))
+                    .OrderBy(x => world.GetRelationship(head.Id, x.oh!.Id)?.Disposition ?? 0).ThenBy(x => x.o.Id, StringComparer.Ordinal).Select(x => (x.o, x.oh)).FirstOrDefault();
+                var mark = hated.o == null ? null : world.LivingCharacters().Where(c => c.HouseId == hated.o.Id && c.Id != hated.oh!.Id && c.Age >= DynastySystem.AgeOfMajority && !c.Flags.Contains(DynastySystem.HiddenFlag))
+                    .OrderByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (mark != null && executor.TryExecute(new AssassinateCommand(head.Id, mark.Id), ctx)) { world.WorldCounters[knifeKey] = world.Turn + KnifeCooldown; world.WorldCounters["knives_between_houses"] = world.Counter("knives_between_houses") + 1; continue; }
             }
 
             // marriage: an unmarried adult of the house courts the best-disposed eligible match anywhere

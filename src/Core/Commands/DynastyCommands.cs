@@ -144,7 +144,10 @@ public sealed class AssassinateCommand : ICommand
         double roll = ctx.Rng.NextDouble();
         if (roll < Odds(w, actor, t))
         {
-            w.Log($"{t.Name} of {w.House(t.HouseId)?.Name} dies suddenly. Nothing is proven.");
+            // a death is not always unexplained: one time in three the trail is found, and a house that already has cause needs no proof (docs/FEUD.md)
+            bool traced = FeudSystem.Traced(w, t, actor);
+            w.Log($"{t.Name} of {w.House(t.HouseId)?.Name} dies suddenly. {(traced ? $"Nobody in {w.House(t.HouseId)?.Name} doubts whose hand it was." : "Nothing is proven.")}");
+            if (traced) FeudSystem.Blood(w, t, actor.HouseId, actor.Id, "knife");
             DynastySystem.Die(w, t.Id);
             if (player) w.WorldCounters["corruption"] = w.Counter("corruption") + 1;
         }

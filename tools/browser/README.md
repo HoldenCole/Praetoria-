@@ -29,6 +29,7 @@ Playwright with Chromium must be installed where you run the script. `PRAETORIA_
 | `node settle.js "The New Man"` | A venture of one's own: pledges the house's first venture to its creditors and settles it on one of the house from the Exchange, then reports the card and the purses list. |
 | `node turntime.js "The Old Lion" 30` | How long the page takes to load, to reach the first turn, and to end a turn early and late in a game. |
 | `node saveload.js "The Old Lion"` | Saves, reloads the page and continues: the turn and the top bar must come back as they were left. |
+| `node feud.js "The Old Lion"` | Blood between houses: arranges accidents from the Houses screen until one is laid at your door, then reads the panel on the You screen and tries what it offers. |
 | `node wealth.js "The Old Lion" 4` | Purses, heirlooms and the will on the House screen: moves money, sets the allowance, writes a will and the estate's custom, has a shrine made once the purse holds its price, buys a share in the head's own name, gives the shrine to another head, reads the favour owed and tries to call it in, then reports the family's purses. |
 | `node ambitions.js "The Old Lion" 9` | Watches what the people of the house are after for some years, granting the first thing asked and refusing the second. |
 | `node life.js "The Old Lion" 8` | A life: reads the Life panel, lays the house down if the head may, plays some years, and reads the new head's record and what was said of the dead. |

@@ -65,7 +65,7 @@
         story = $"At war with {war0.EnemyName} since year {war0.Since}. The score stands {sa} to {sb}; they have about {war0.EnemyHulls} hull(s) to your {ours}." + (war0.TheyAreSuing ? " They are suing for peace." : "") + (m.Wars.Count > 1 ? $" And {m.Wars.Count - 1} other war(s)." : "");
         storyTone = sa >= sb ? "warn" : "bad";
     }
-    else if (anyDanger && danger.j.d <= 2) { story = $"{Who(danger.f)}: {danger.f.Strength} hull(s) {JumpWord(danger.j.d)} {danger.j.from}. You have {ours}."; storyTone = "warn"; }
+    else if (anyDanger && danger.j.d <= 2) { story = $"{Who(danger.f!)}: {danger.f!.Strength} hull(s) {JumpWord(danger.j.d)} {danger.j.from}. You have {ours}."; storyTone = "warn"; }
     else { story = $"At peace. Your {ours} hull(s) make the {Ordinal(navyRank)} navy of {navies}" + (anyDanger ? $"; the nearest hostile sail is {danger.j.d} jumps off." : "; nothing hostile sails within three jumps of your worlds."); storyTone = "good"; }
     if (!dry && m.Fleets.Count > 0 && firstBattle == null && (avgLoyal < 40 || avgSupply < 50 || avgReady < 50)) { story += avgLoyal < 40 ? " The crews are wavering." : avgSupply < 50 ? " The fleets are short of supply." : " The fleets are not ready to fight."; }
     string condition = m.Fleets.Count == 0 ? "No fleet" : avgLoyal < 30 ? "Will not sail" : avgSupply < 40 ? "Short of supply" : avgReady < 50 ? "Not ready" : avgLoyal < 50 ? "Wavering" : "Ready";
@@ -87,8 +87,8 @@
                   Note="@(dry ? "no fleet may sail" : fuelBurn == 0 ? "nothing is burning it" : $"{he3} in the tanks · {fuelBurn} burned a year")" Title="Fleets burn helium-3 every year. With none, readiness falls and nothing sails." />
             <Tile Label="Upkeep" Value="@(upkeep + " a year")" Share="@upkeepPct" Tone="@(net < 0 ? "bad" : upkeepPct > 50 ? "warn" : "")"
                   Note="@((upkeep > gross ? $"more than the {gross} the house takes in before it" : $"{upkeepPct}% of the {gross} the house takes in before it") + (net < 0 ? " · the house is losing money" : ""))" Title="What the fleets cost in credits each year, against the house's income before they are paid." />
-            <Tile Label="Nearest danger" Value="@(anyDanger ? danger.f.Strength + (danger.f.Strength == 1 ? " hull" : " hulls") : "None near")" Tone="@(!anyDanger ? "good" : danger.j.d <= 1 ? "bad" : "warn")"
-                  Note="@(anyDanger ? $"{Who(danger.f)} · {JumpWord(danger.j.d)} {danger.j.from}" : "nothing hostile within three jumps")" Title="The nearest fleet of raiders or of a house you are at war with, counted in jumps from the nearest world of yours." />
+            <Tile Label="Nearest danger" Value="@(anyDanger ? danger.f!.Strength + (danger.f!.Strength == 1 ? " hull" : " hulls") : "None near")" Tone="@(!anyDanger ? "good" : danger.j.d <= 1 ? "bad" : "warn")"
+                  Note="@(anyDanger ? $"{Who(danger.f!)} · {JumpWord(danger.j.d)} {danger.j.from}" : "nothing hostile within three jumps")" Title="The nearest fleet of raiders or of a house you are at war with, counted in jumps from the nearest world of yours." />
             <Tile Label="Wars" Value="@(m.Wars.Count == 0 ? "Peace" : m.Wars.Count == 1 ? m.Wars[0].EnemyName : m.Wars.Count + " wars")" Tone="@(m.Wars.Count == 0 ? "good" : "bad")"
                   Note="@(m.Wars.Count > 0 ? string.Join(" · ", m.Wars.Take(2).Select(x => { var wr = w.Wars.First(q => q.Between(house.Id, x.EnemyHouseId)); return $"{wr.Score(house.Id)} to {wr.Score(x.EnemyHouseId)}"; })) : coldest != null ? $"{coldest.Name} thinks worst of you ({RegardOf(coldest.Id):+0;-0;0})" : "nobody to fight")"
                   Title="The wars your house is in and how each stands. At peace, the house whose head thinks worst of yours." />

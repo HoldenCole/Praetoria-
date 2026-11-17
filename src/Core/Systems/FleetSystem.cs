@@ -618,7 +618,7 @@ public sealed class FleetSystem
             if (winnerAdmirals.Concat(loserAdmirals).Any(c => c.Id == w.ProtagonistId && c.Flags.Contains(FrontFlag))) w.WorldFlags.Add("fought_at_the_front");
         }
         CaesarSystem.Victory(w, winner, loser, systemId);   // the crews take to the one who led them; a victory to his name (docs/CAESAR.md)
-        AdmiralOutcomes(w, rng, winnerAdmirals, loserAdmirals);
+        AdmiralOutcomes(w, rng, winnerAdmirals, loserAdmirals, winner);
         Retreat(w, loser, systemId);
 
         var sys = w.Galaxy!.System(systemId)?.Name ?? systemId;
@@ -634,7 +634,7 @@ public sealed class FleetSystem
 
     /// <summary>The victor's admiral learns (tactics, then gunnery); the loser's is wounded — or, on a seeded roll, killed
     /// (GDD §5 "losing a Fleet Admiral means the heir starts as a green cadet"; a dead protagonist triggers succession).</summary>
-    internal void AdmiralOutcomes(World w, IRng rng, List<Character> winners, List<Character> losers)
+    public void AdmiralOutcomes(World w, IRng rng, List<Character> winners, List<Character> losers, string winnerHouseId = "")
     {
         foreach (var c in winners)
         {
@@ -662,6 +662,9 @@ public sealed class FleetSystem
             if (rng.NextDouble() < death)
             {
                 w.Log($"{c.Name} goes down with the line.");
+                // war is forgotten at the peace, but not the death of a head or of a head's near blood (docs/FEUD.md)
+                string killers = winnerHouseId.Length > 0 ? winnerHouseId : winners.FirstOrDefault()?.HouseId ?? "";
+                if (killers.Length > 0 && FeudSystem.BattleDeathBinds(w, c)) FeudSystem.Blood(w, c, killers, winners.OrderByDescending(a => a.CareerRank).ThenBy(a => a.Id, StringComparer.Ordinal).FirstOrDefault()?.Id, "battle");
                 DynastySystem.Die(w, c.Id);
             }
             else

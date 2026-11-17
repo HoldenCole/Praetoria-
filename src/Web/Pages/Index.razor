@@ -146,10 +146,9 @@ else
     private string _screen = "office";
     /// <summary>The rail in the role register's order (GDD Art Direction): the Office, then the career's screens, then the rest.</summary>
     private IEnumerable<(string id, string glyph, string label)> Rail() => G.World == null ? Screens : RoleTheme.OrderScreens(RoleTheme.Of(G.World), Screens, s => s.id);
-    private bool _screenChosen;
     private bool _hasAutosave, _epilogueDismissed, _savedFlash;
     /// <summary>The Academy: this browser has graduated before (so the short course is offered first); the year just ended (so the passing-out card shows).</summary>
-    private bool _beenBefore, _passingOut, _wasInAcademy;
+    private bool _beenBefore, _passingOut;
     private BriefingCard? _openReport;
     private SuccessionRecord? _succession; private bool _primer, _primerChecked;
     private string? _lastProtagonist;

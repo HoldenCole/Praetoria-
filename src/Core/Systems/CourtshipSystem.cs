@@ -68,6 +68,7 @@ public static class CourtshipSystem
         if (s.Age < BetrothalAge || t.Age < BetrothalAge) return "too young even to be promised";
         if (DynastySystem.Spouse(w, s) != null || DynastySystem.Spouse(w, t) != null) return "already wed";
         if (w.AtWar(s.HouseId, t.HouseId)) return "not while your houses are at war";
+        if (FeudSystem.Between(w, s.HouseId, t.HouseId)) return "there is blood between your houses";
         if (s.Flags.Contains(DynastySystem.HiddenFlag) || t.Flags.Contains(DynastySystem.HiddenFlag)) return "they cannot be found";
         if (Promised(w, s.Id) || Promised(w, t.Id)) return "already promised";
         if (Math.Abs(s.Age - t.Age) > 30) return "too many years between them";
