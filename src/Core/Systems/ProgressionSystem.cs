@@ -35,10 +35,13 @@ public sealed class ProgressionSystem
         return t == null ? 0 : Math.Max(0, t.LegitimacyRequirement - h!.Legitimacy);
     }
 
+    /// <summary>The next rung a house can climb to by seizing, petitioning or claiming. The throne is not one of them: it is
+    /// taken by proclamation or by a fleet over the capital (<see cref="ThroneSystem"/>), which change the era and depose
+    /// whoever sat there. Without this the title could be had with none of that (docs/ROLEPLAY.md).</summary>
     public TitleDef? NextTitle(World w, string houseId)
     {
-        var h = w.House(houseId);
-        return h == null ? null : _titles.Next(h.Title);
+        var h = w.House(houseId); var next = h == null ? null : _titles.Next(h.Title);
+        return next?.Id == Title.Emperor ? null : next;
     }
 
     // ---- the three rise paths (GDD §13) ----
@@ -54,7 +57,7 @@ public sealed class ProgressionSystem
     {
         var c = w.Char(actorId)!;
         var h = w.House(c.HouseId)!;
-        var next = _titles.Next(h.Title)!;
+        var next = NextTitle(w, h.Id)!;
         h.Title = next.Id;                                       // legitimacy UNCHANGED → instability
         w.WorldCounters["seizures"] = w.Counter("seizures") + 1; // every seizure spikes rival fear (§7)
         w.Log($"{c.Name} SEIZES the {(w.IsImperium ? "title" : "rank")} of {next.NameIn(w.Era)} by force.");
@@ -72,7 +75,7 @@ public sealed class ProgressionSystem
     {
         var c = w.Char(actorId)!;
         var h = w.House(c.HouseId)!;
-        var next = _titles.Next(h.Title)!;
+        var next = NextTitle(w, h.Id)!;
         h.Title = next.Id;
         h.Legitimacy += 5;                                       // arrives clean, with standing
         w.Log($"{c.Name} is GRANTED the {(w.IsImperium ? "title" : "rank")} of {next.NameIn(w.Era)}.");
@@ -90,7 +93,7 @@ public sealed class ProgressionSystem
     {
         var c = w.Char(actorId)!;
         var h = w.House(c.HouseId)!;
-        var next = _titles.Next(h.Title)!;
+        var next = NextTitle(w, h.Id)!;
         h.Title = next.Id;
         h.Claims.Remove(next.Id);
         h.Legitimacy += 12;                                     // bloodline launders the claim

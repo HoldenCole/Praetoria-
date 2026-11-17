@@ -2069,3 +2069,17 @@ in the pass (a screen that scrolled sideways on a phone, a raid remembered for e
 README and roadmap, a probe that printed zeros for starts it skips, a row missing from the owner's list). Fourteen
 rows were added to the register (Q1 to Q14) and none closed. 744 tests.
 
+## 69. Six known stories played against the game — 2026-11-17
+
+Written up on its own page: docs/ROLEPLAY.md. Darrow, Reinhard von Lohengramm, Yang Wen-li, Nero, Palpatine and Paul
+Atreides were each cut into their beats (47 in all) and each beat was checked against the engine. Five beats can be
+played today, 27 partly and 15 not at all; the page has the count by story. In one line: the game is good at
+getting to power, and thin at life under a throne (C8), at rising by service (Q15, R1), at anything hidden (R2) and
+at losing (R3, R5, R11).
+
+**One defect found and fixed.** The title ladder's last rung was the throne, so seizing a title could make a house
+"emperor" in a Republic that carried on: no proclamation, no change of era, nobody deposed. Reproduced on The Old
+Lion in two years. `ProgressionSystem.NextTitle` now stops below the throne; one new test, 745 in all.
+
+**Mapped.** Fifteen rows, R1 to R15. R8 and R9 are forms of government and R10 and R13 are new systems, so those four
+wait on the owner with G1 to G7. Nothing else was built in this pass: it was a reading of the game, not a change to it.

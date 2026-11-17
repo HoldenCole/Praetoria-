@@ -8,7 +8,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 - A gap is closed when it is built, tested and measured, and it then moves to the bottom table with the date.
 - `tools/gaps.sh` counts what is open. The count is printed in docs/ROADMAP.md, section 1.
 
-Last updated 2026-11-16 (players with an end in view: Q2 closed, Q15 and Q16 mapped).
+Last updated 2026-11-17 (six known stories played against the game: R1 to R15 mapped, docs/ROLEPLAY.md).
 
 ## The worklist
 
@@ -21,12 +21,14 @@ asking; do the small and obvious ones; skip, and list, what is the owner's to de
 | 1 | Q15, Q3, Q9 | From the full QA (docs/QA.md): a way to a fleet for a house without land; the events that should have fired; a soak that says why a line ended | next |
 | 2 | Q7 | Split the purses tab | |
 | 3 | A10, W14 | What the last passes left: things put out of a creditor's reach; favours that other houses call in | |
+| 4 | R1, R14, R7 | From the known stories (docs/ROLEPLAY.md): a command by service (with Q15); the small things that make a story owned; a start as the heir to a throne | |
 
 **No small gap is left that is not the owner's.** What remains is a cycle or more each.
 
 **Waiting on the owner** (each row says what it turns on): C9 and C6 (the Caesar road), M4 (where a spouse lives),
-W12 (a world held by a person), B13 and G1 to G7 (the forms of government), and from the full QA Q1 (how rare a
-Caesar is meant to be) and Q8 (the Godot client).
+W12 (a world held by a person), B13 and G1 to G7 (the forms of government), from the full QA Q1 (how rare a
+Caesar is meant to be) and Q8 (the Godot client), and from the known stories R8 and R9 (they are forms of
+government), R10 and R13 (they are new systems).
 
 Closed from this list on 2026-11-14: L1, L4, F2, F4, C3, C5, E4, then J1 and S1, then O1, then J2, then A1 and A3, then W2, W4, E2 and H1, then (2026-11-15) B4, B9 and B10, then L7, then J3, then A2 and A4, then B6, B8, B11 and B12, then B14, J4, L9, F5, F6, A5, E6, W6, W3, W5, E5, H3 and M1, then W7, H5, E7, F7 and M6, then L2, then L5, then L8 (see the bottom table).
 
@@ -136,6 +138,30 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 | Q12 | Two probe figures do not add up and were not run down: one start shows five states broken away, three recognised and three brought back; and the one civil war in sixty games has no ending recorded (found since: it was swallowed by the great war, which leaves no mark; see Q16). | S | |
 | Q13 | A passive player's line never ends (0 of 80 games). A random player's ends in 1 to 7 of 33, always between years 34 and 57 and mostly in starts that open with one person. The cause is not known; foreclosure was tested and is not it. | M | Q9 |
 | Q14 | Never checked: keyboard use, contrast, a screen reader, a slow connection. The client is 22 MB to download. Under a throne three tabs are more than half empty. | M | |
+
+## Found by playing known stories (docs/ROLEPLAY.md, 2026-11-17)
+
+Darrow, Reinhard von Lohengramm, Yang Wen-li, Nero, Palpatine and Paul Atreides, each cut into beats and each beat
+checked against the engine. Rows already in the register that the stories also ran into are not repeated here: Q15,
+C8, C4, F3, G2, G6, J6, M2, M3, M5.
+
+| Id | Gap | Size | Leans on |
+|---|---|---|---|
+| R1 | Nobody rises by service. A person cannot serve in another house's household or command another house's ships, the state gives a command only to an office-holder, and under a throne no command is given at all. Darrow under his lord, Reinhard under his emperor and a landless heir with a borrowed fleet have no road. | M | Q15, J6, C8 |
+| R2 | Nothing is hidden. There is no false identity, no secret allegiance and no hand behind a crisis that can later come out. Stirring a breakaway (traced one time in three) is the only hidden act; starting a crisis is in the other houses' rules and not the player's. | M | |
+| R3 | Nobody is taken prisoner: not in battle, not at a fallen world, not by treachery. So nobody is held, ransomed, exchanged or escapes. | M | H2 |
+| R4 | A killing between houses does not bind the kin. There is no blood feud: no duty to answer it, no price to end it, no shame in letting it lie. | M | F3 |
+| R5 | A throne cannot be lost. Nobody deposes a player who is emperor; there is no guard to buy or fear, no pretender, no contested succession; an emperor of another house who is killed is succeeded by his heir without a word. The `deposed` flag is read by nothing. | L | C8, Q1, G7 |
+| R6 | An emperor has three acts of his own: set the Imperial Edict, grant a monopoly, proscribe a house's shares. No treason trial, no world confiscated, no exile, no death ordered, no coinage debased, no games given by the throne, no governors appointed, no Senate dismissed. `marked_for_death` is set by events and read by no rule. | M | C4, C8 |
+| R7 | The only way onto a throne is to take it. No start has the player as emperor or as the heir; nobody is adopted into the ruling house, made regent for a child emperor, or comes to the throne by marrying its heiress (a match with her gives a claim that leads nowhere). | M | R5. The start alone is small |
+| R8 | The Republic is ended by a gate of standing, not by an act of the Senate. No emergency powers are voted, no term is extended, and a proclamation is not put to the house. | M | G2, G3. **The owner's:** it is a form of government, planned and not to be built yet |
+| R9 | A throne cannot be put down for a Republic by the one who took it. | M | G2. **The owner's:** as R8 |
+| R10 | Foreign powers are numbers and expeditions. There is no rival state with worlds, fleets and named commanders to conquer, or to hold a corridor against. | L | **The owner's:** a new system, and none is begun until the worklist is short |
+| R11 | A house that has lost every world goes on, and has no road back: it cannot raise a force, be sheltered by anyone, or press a claim to what was taken. | M | R1, Q15 |
+| R12 | Kin at court bring nothing. A relative married to the ruler, or in the ruler's favour, opens no door for their house, and a ruler takes one spouse and no favourite. | M | M2, M5 |
+| R13 | Nobody is born below the houses. There are no castes or orders a person is born into and barred by, no peoples of a world to be taken in by, and no faith with believers to follow anyone. | L | G6. **The owner's:** as R10 |
+| R14 | Small things that would make a story the player's own: no named second-in-command; a sworn friend's death changes one relationship and nothing else; a house cannot take a new name in play; winning the Institute is remembered by nothing. | S | |
+| R15 | A good cannot be withheld. The holder of a resource cannot stop its sale to press the state or a rival, and no good comes from one world only. | M | |
 
 ## Older, from docs/ROADMAP.md section 3
 

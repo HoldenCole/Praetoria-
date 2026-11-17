@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added (docs)
+- **Playing a known story** (docs/ROLEPLAY.md). Darrow, Reinhard von Lohengramm, Yang Wen-li, Nero, Palpatine and
+  Paul Atreides, each cut into beats and each beat checked against the engine: what can be done today, what can
+  partly be done, and what has no road. Fifteen gaps mapped from it (docs/GAPS.md, R1 to R15).
+
 ### Added (tools)
 - **Players with an end in view** (docs/QA.md; docs/GAPS.md Q2). `praetoria roads` plays a general, a seceder and a
   courtier, each taking the steps of its road in order, and reports how far each got and what refused it, in the
@@ -9,6 +14,9 @@
   short run is a step in CI.
 
 ### Fixed
+- **The throne is not a rung of the title ladder** (docs/ROLEPLAY.md). Seizing, petitioning for or claiming a title
+  could carry a house from archduke to emperor in a Republic that went on as before: no proclamation, nobody
+  deposed. The ladder now stops below the throne, which is taken by proclamation or by a fleet over the capital.
 - **Found by the full QA** (docs/QA.md). The Dynasty screen no longer scrolls sideways on a phone. A raid on your
   world is a year's news and no longer remembered for ever. The build has no warnings. The README and the roadmap
   give the right counts again.

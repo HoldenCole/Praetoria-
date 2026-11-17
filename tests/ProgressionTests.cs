@@ -53,6 +53,18 @@ public class ProgressionTests
     }
 
     [Fact]
+    public void TheThrone_IsNotARungOfTheLadder_ItIsNeverSeizedPetitionedOrClaimedAsATitle()
+    {
+        // the real ladder ends duke, archduke, emperor. A house at the rung below the throne can go no higher by any of the three
+        // rise paths: the throne is taken by proclamation or by a fleet over the capital, which change the era and depose whoever sat there
+        var titles = Praetoria.Core.Data.ContentLoader.LoadFromDirectory(Praetoria.Core.Data.ContentLocator.FindContentDir()).Titles; var prog = new ProgressionSystem(titles);
+        var w = PWorld("duke", 99, rank: 3); Assert.True(prog.CanSeize(w, "marcus")); prog.Seize(w, "marcus"); Assert.Equal("archduke", w.House("vega")!.Title);
+        w.House("vega")!.Claims.Add(Title.Emperor);
+        Assert.Null(prog.NextTitle(w, "vega")); Assert.False(prog.CanSeize(w, "marcus")); Assert.False(prog.CanPetition(w, "marcus")); Assert.False(prog.CanClaimByBlood(w, "marcus"));
+        Assert.Equal("archduke", w.House("vega")!.Title); Assert.False(w.IsImperium);
+    }
+
+    [Fact]
     public void Military_SeizesTitle_IgnoringLegitimacy_SpikingFear()
     {
         var w = PWorld("baron", 28, rank: 3);

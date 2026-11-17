@@ -1,6 +1,6 @@
 # Praetoria roadmap
 
-As of 2026-11-16 (counts and the list below checked by the full QA, docs/QA.md). This page is the summary: what is built, what is missing, what comes next, and ideas for later.
+As of 2026-11-17 (counts and the list below checked by the full QA of 2026-11-16, docs/QA.md). This page is the summary: what is built, what is missing, what comes next, and ideas for later.
 The dated log of every pass, with measurements, is `docs/GAP_ANALYSIS.md`. Each system has its own design doc, linked
 below. Update this page at the end of every cycle.
 
@@ -15,9 +15,9 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 744 |
+| Automated tests | 745 |
 | Events with text | 382 in 34 files |
-| Open gaps (docs/GAPS.md) | 58: 8 small, 42 a cycle, 8 several cycles. Sixteen of them came from the full QA of 2026-11-16 (docs/QA.md). 74 closed so far (`./tools/gaps.sh`) |
+| Open gaps (docs/GAPS.md) | 73: 9 small, 53 a cycle, 11 several cycles. Sixteen came from the full QA of 2026-11-16 (docs/QA.md) and fifteen from playing six known stories against the game on 2026-11-17 (docs/ROLEPLAY.md). 74 closed so far (`./tools/gaps.sh`) |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
