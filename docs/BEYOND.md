@@ -1,8 +1,11 @@
 # The powers beyond the Reach, on the map: the plan
 
 Written 2026-11-18 at the owner's asking ("let's work on the off-map stuff as well; at least a good plan for it";
-docs/GAPS.md R10). **Stage 0 was built the same day** (see "Stage 0 as built"); stages 1 to 4 are a plan. The rules
-as they stand are in docs/FOREIGN_NATIONS.md.
+docs/GAPS.md R10). **Stage 0 was built the same day** (see "Stage 0 as built"). Later that day the owner said: "let's
+focus on adding in nations, then we can figure out the details. Add in the khanate first." **The Vashti Khanates are
+on the map**: stages 1 and 2, for that one nation (see "The Vashti Khanates on the map, as built"). The other four
+nations are as stage 0 left them. Stages 3 and 4 are a plan. The older rules, which still hold for the four, are in
+docs/FOREIGN_NATIONS.md.
 
 ## What was true before stage 0
 
@@ -49,7 +52,7 @@ Everything here uses what is on the map already.
   only the raiders. They are moved onto one question asked in one place, so that a foreign house can exist later
   without sitting in the Senate, the marriage market or the Exchange by accident. *Not done in stage 0: see below.*
 
-### 1. Their fleets on the map (one or two cycles)
+### 1. Their fleets on the map (built for the Khanates)
 
 - First, the safe question above: it is needed the moment a nation owns a fleet on the map, and not before.
 
@@ -63,7 +66,7 @@ Everything here uses what is on the map already.
 - The Reach answers with what it has: the houses nearest, the consuls' fleets, emergency powers (a war beyond the
   borders is already a danger the Senate can vote them for).
 
-### 2. Their side of the border (several cycles; one nation first)
+### 2. Their side of the border (built for the Khanates, the pilot)
 
 - **Space beyond the march**: for a nation, two to four systems of its own (a border world, a heartland, a capital),
   in a fourth ring. One nation is done first as the pilot, start to finish, before any other.
@@ -146,6 +149,110 @@ posted a fleet to one 54 times) and 45 were turned back at the world; 81 wars vo
 82 of their commanders killed; 643 rulers succeeded, about two to a nation in sixty years; rulers at the end were
 grasping 114, warlike 88, mild 60, wary 38. The full account is docs/GAP_ANALYSIS.md, section 75.
 
+## The Vashti Khanates on the map, as built
+
+**Where.** A fourth ring, **beyond**, holds one region: the Vashti Steppe, three systems west of the rim. The Long
+Grass is one lane beyond both The Anvil and The Veil (the Khanates' march). Tul Aimag and Khal Orda lie behind it.
+The map is 34 systems, 45 lanes and 11 regions now.
+
+| World | System | What it is |
+|---|---|---|
+| The Long Grass Camps | The Long Grass | the border world, where the host stands at peace |
+| The Wells of Tul | Tul Aimag | the heartland |
+| The Great Camp | Khal Orda | a fortress, and the capital: the Khan of Khans sits here |
+
+**What holds it.** A house, "The Vashti Khanates", that is **not a house of the Reach**. It holds worlds and fleets
+and can be fought. It has no seat in the Senate, no party, no office, no marriages, no place on the Exchange, and no
+house of the Reach can declare a private war on it. The code asks one question for this, `World.Outsider`, in the 111
+places that used to leave out only the raiders. The Reach's own rules do not run in the Steppe: no allegiance to the
+capital, no raider nests, no part in the great crisis.
+
+**Its people.** The Khan of Khans and the Noyan are persons on the map now. The Khan commands the guard at the
+capital and governs the Khanates' worlds; the Noyan commands the host. Either can be killed in a battle, and is then
+followed by the stage 0 rules. They are still not people of the Reach's own life: nobody can court, bribe or meet
+them, and no event casts them.
+
+**Its fleets.** The Khanates' strength, 14, is hulls: half in the guard, which stays with the ruler, half in the
+host. Hulls lost are lost; two grow back every five years while the capital is held. A host that is lost is raised
+again from the guard when the guard has hulls to spare.
+
+**War.** War is still the Senate's to vote. While it lasts **every house of the Reach is at war with the Khanates**,
+with no war record for each pair. Fleets reach them by the lanes; the off-map expedition is refused for them.
+
+- **Their host** comes through the march and sits over the nearest world of the Reach, within three lanes of its
+  border world, whose defenders it outnumbers. It is slow at walls: a siege takes it two years longer than it takes
+  a fleet of the Reach. **One world a season**: when the world falls the host goes home with it, and comes out again
+  when it is rested and supplied. It needs supply in the Reach like any fleet.
+- **A world they take is theirs** until a house of the Reach frees it or the peace is made.
+- **A world freed goes home to the house it was taken from**, whichever house freed it. The house that freed it
+  gains a point of standing and the credit toward the triumph.
+- **Against their fleets the houses of the Reach fight as one**: one battle a year in a system, led by the strongest
+  house there, with the guns of the others behind it. The losses are the leader's.
+- **Other houses go to the war.** A house whose own world is taken or sat over goes to it. A house of the war party,
+  a serving officer's, or one holding a consulship or the Admiralty goes to drive the host out, and after that to
+  take the Khanates' own worlds, the weakest held first. Each goes when what the Reach could bring to that system
+  (its own fleet, those there or bound there, and the rested fleets of other such houses within six lanes) matches
+  what is there, or is a quarter more beyond the march.
+
+**The tally.** The war ends as before, when one side leads by six.
+
+| What | For the Reach | For the Khanates |
+|---|---|---|
+| A battle | 2 for beating their fleet | 1 for beating a fleet of the Reach |
+| A world | 3 for freeing one of the Reach's, 3 for taking one of theirs | 3 for taking one of the Reach's |
+| Their capital | ends the war at once | |
+
+**The peace.**
+- **The Reach wins**: they pay tribute for twenty years as before; what they still hold of the Reach's goes home;
+  what the Reach took of theirs it keeps.
+- **The Reach loses** (the chair buys peace), or the war gutters out after twelve quiet years: **what they hold of
+  the Reach's is ceded**, and what the Reach took of theirs is given up. A ceded world can be taken back in the next
+  war.
+
+**Easy to take, impossible to hold.** A world of the Khanates' own held by a house of the Reach rises and is theirs
+again after three years without a fleet of three hulls over it. While they pay tribute it keeps quiet.
+
+**Their capital, and their end.** Taking the Great Camp during a war ends the war; the Khan sits at another world
+afterward. A nation with no world left **is no more**: its fleets scatter, its people are gone, it raids nobody, and
+no war can be voted on it.
+
+**An older game.** A save from before this is brought forward at its next year: the Khanates are placed if their
+systems are on the map and nobody holds them, and a fleet away on the old kind of expedition against them is called
+home.
+
+**On the screen.** The map shows the Steppe, its worlds in the Khanates' gold, and their two fleets. On the Military
+screen the Khanates' card says "on the map" and shows where the Khan sits, what they hold, where each fleet is and
+where it is bound, which worlds of the Reach they hold and whose, and which of their own are in the Reach's hands
+and how many years those have gone without a garrison. Ten reports (`content/events/nations.json`): the host through
+the march; a world of the Reach taken; your own world taken; a world freed for you; you freed a world; their host
+beaten; ceded at the peace; the camps restless; the camps rise; their capital falls.
+
+**Measured** over sixty unattended games of sixty years (six starts under the Republic, ten each).
+
+| | |
+|---|---|
+| Wars with the Khanates | 46 |
+| Won by the Reach, lost, still being fought at the end | 36, 8, 2 |
+| Their host through the march | 63 times |
+| Fleets of the Reach sent against them | 469 |
+| Battles on the map | 169; the Reach won 67 |
+| Worlds of the Reach they took | 25: 17 freed by a house of the Reach, 1 given back at a won peace, 7 ceded at a lost one; 3 in their hands at the end |
+| Their own worlds taken by the Reach | 77; 43 rose again |
+| Their capital taken; the nation ended | never, in 60 games |
+| At the end, on average | 13.8 hulls and 2.5 worlds |
+| The Republic | stood in all 60 |
+
+Half of the lost wars were in one start (the Academy). The full account is docs/GAP_ANALYSIS.md, section 76.
+
+**What this left out of stages 1 and 2.**
+- **Their raids are still rolled, not sailed.** At peace a raid lands by the stage 0 rule; no fleet crosses the map.
+- **The Khanates never begin a war.** Only the Senate does.
+- **Their worlds make nothing.** Their house is kept from going hungry by rule; it has no economy.
+- **No other house has taken the capital** in sixty games. A player can.
+- **The houses that stand behind the leader in a battle take no losses and no share of the credit.**
+- **The map does not mark a march or a border**, and the rings are drawn for the Reach alone.
+- **What a house takes in the Steppe is held as a world of that house**, not as a province. That is stage 3.
+
 ### Not in this plan
 
 The threat from beyond the galaxy's edge (the design's late crisis), and anomalies and archaeology. Both want the map
@@ -153,16 +260,25 @@ to have an edge, which stage 2 gives it.
 
 ## What is yours to decide
 
-Stage 1 can be built on the answers assumed below. Stage 2 should not begin without them.
+The Khanates were built on the assumptions below, as the owner asked ("then we can figure out the details"). Each
+can be changed without rebuilding the rest.
 
-1. **How many come onto the map.** All five, or the nearer three with the Outer Compact and the Hollow Crown left as
-   far powers that trade and send embassies. I would bring on three, one at a time. The map grows by about a third
-   for three nations and by a half for five.
-2. **Whether the Reach can lose worlds for good.** I have assumed yes: a rim world can be occupied in a war and ceded
-   in a bad peace, and taken back in the next.
-3. **Whether the player's own house can be conquered.** I have assumed its worlds can be, and that the house goes on
-   landless as a fallen house does now.
-4. **Which nation is first in stage 2.** I would take the Vashti Khanates: nearest, hostile, and raiders already.
+1. **How many come onto the map.** One is on. I would bring on two more, one at a time: the Free Cities of Thessar
+   (rich, lightly armed, a different kind of war) and the Ardent Concord (the strong neighbour). The Outer Compact
+   and the Hollow Crown would stay far powers. Each nation adds three or four systems.
+2. **Whether the Reach can lose worlds for good.** Built as yes: a world is ceded at a lost peace and can be taken
+   back in the next war. In sixty games seven were ceded.
+3. **Whether the player's own house can be conquered.** Built as yes: the host takes the player's worlds like
+   anyone's, a freed world comes home, and a house that loses its last world goes on landless.
+4. **Which nation is first.** The Khanates, as the owner said.
+
+New, from building it:
+
+5. **Should the Khanates ever begin a war**, or only raid until the Senate votes one? Now only the Senate does.
+6. **How hard should they be?** Now the Reach wins about four wars in five, and no other house ever takes their
+   capital. "Easy to beat in a season; impossible to hold" is what the numbers say, and they can be moved.
+7. **Who should hold what is taken from them?** Now the house whose fleet took it, for as long as it keeps a fleet
+   there. A province held for the Reach under an appointed governor is stage 3.
 
 ## What it opens
 

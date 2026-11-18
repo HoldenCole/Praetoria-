@@ -43,7 +43,7 @@ public static partial class LadderSystem
         return head?.CareerTrack switch { "stewardship" => Purse, "military" => FleetCommittee, "law" => Laws, _ => Committees[(int)(Hash(house.Id + ":committee") % 3)] };
     }
     public static List<House> CommitteeMembers(World w, string committee) =>
-        w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null && CommitteeOf(w, h) == committee).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        w.Houses.Values.Where(h => !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null && CommitteeOf(w, h) == committee).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
 
     /// <summary>A house's standing with its committee, nought to ten. The player's is what their years of its work have made it;
     /// another house's is reckoned from its head's rank and how much the house is heard in the committee's sphere.</summary>

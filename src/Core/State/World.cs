@@ -60,9 +60,25 @@ public sealed class World
     public List<War> Wars { get; set; } = new();
 
     /// <summary>Two houses are at war when a war stands between them — or when either is the lawless (raiders fight everyone).</summary>
-    public bool AtWar(string a, string b) => a != b && (a == "pirates" || b == "pirates" || Wars.Any(w => w.Between(a, b)));
-    public IEnumerable<string> EnemiesOf(string houseId) =>
-        Wars.Where(w => w.Involves(houseId)).Select(w => w.Other(houseId)).OrderBy(h => h, StringComparer.Ordinal);
+    public bool AtWar(string a, string b) => a != b && (a == "pirates" || b == "pirates" || Wars.Any(w => w.Between(a, b)) || NationWar(a, b) || NationWar(b, a));
+    public IEnumerable<string> EnemiesOf(string houseId)
+    {
+        var list = Wars.Where(w => w.Involves(houseId)).Select(w => w.Other(houseId));
+        // a nation on the map that the Reach is at war with is the enemy of every house of the Reach, and they of it, without a war for each pair (docs/BEYOND.md)
+        if (NationOfHouse(houseId) is { AtWar: true }) list = list.Concat(Houses.Values.Where(h => OfTheReach(h.Id)).Select(h => h.Id));
+        else if (OfTheReach(houseId)) list = list.Concat(Nations.Where(n => n.AtWar && n.OnMap).Select(n => n.HouseId));
+        return list.Distinct().OrderBy(h => h, StringComparer.Ordinal);
+    }
+    /// <summary>The nation a house stands for on the map, if it is one's.</summary>
+    public Nation? NationOfHouse(string houseId) { foreach (var n in Nations) if (n.HouseId.Length > 0 && n.HouseId == houseId) return n; return null; }
+    /// <summary>A house that is on the map and not of the Reach's world: a nation's. It has no seat, no vote and no place in the Reach's markets of marriage and office.</summary>
+    public bool Foreign(string houseId) => State.Nation.IsHouse(houseId);
+    /// <summary>Not a house of the Reach at all: the raiders, or the house that stands for a nation on the map. Such a house holds worlds
+    /// and fleets and can be fought; it has no seat, no party, no marriages and no place on the Exchange.</summary>
+    public static bool Outsider(string? houseId) => houseId == "pirates" || (houseId != null && State.Nation.IsHouse(houseId));
+    /// <summary>A house of the Reach: not the raiders, not a nation's, and not gone into a state of its own.</summary>
+    public bool OfTheReach(string houseId) => houseId != "pirates" && !Foreign(houseId) && House(houseId) is { PolityId.Length: 0 };
+    private bool NationWar(string nationHouse, string other) => NationOfHouse(nationHouse) is { AtWar: true } && OfTheReach(other);
 
     /// <summary>The protagonist house's reported picture of rival fleets, keyed by fleet id (GDD §19 mixed visibility).</summary>
     public Dictionary<string, FleetIntel> Intel { get; set; } = new();
@@ -273,10 +289,14 @@ public sealed class World
             if (r.FromId == id) yield return r;
     }
 
+    /// <summary>The living people of a nation on the map: its ruler and the commander of its fleets. They can be met in battle and killed;
+    /// they take no part in the Reach's own life, and LivingCharacters leaves them out.</summary>
+    public IEnumerable<Character> Foreigners() { foreach (var c in Characters.Values) if (c.Alive && State.Nation.IsHouse(c.HouseId)) yield return c; }
+
     public IEnumerable<Character> LivingCharacters()
     {
         foreach (var c in Characters.Values)
-            if (c.Alive) yield return c;
+            if (c.Alive && !State.Nation.IsHouse(c.HouseId)) yield return c;   // a nation's ruler and commander are people, but not of the Reach: see Foreigners
     }
 
     public void Log(string text, string? eventId = null) =>

@@ -33,7 +33,7 @@ public static class Palette
     public static void AssignHouses(World w)
     {
         var mine = w.Protagonist?.HouseId;
-        var ordered = w.Houses.Values.Where(h => h.Id != Systems.PirateSystem.HouseId).OrderBy(h => h.Id == mine ? 0 : 1).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var ordered = w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id == mine ? 0 : 1).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
         for (int i = 0; i < ordered.Count; i++) ordered[i].AccentColor = House(i);
     }
 

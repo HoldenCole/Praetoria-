@@ -24,7 +24,7 @@ public class OrderTests
     public void Every_house_is_measured_in_three_orders_and_has_a_calling_and_an_origin()
     {
         var (tc, w, mine) = Start();
-        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId))
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)))
         {
             Assert.Equal(3, h.Orders.Count); Assert.Contains(h.Origin, new[] { "old", "new" });
             foreach (var o in OrderSystem.All) { var (score, parts) = tc.Orders.Measure(w, h, o); Assert.Equal(h.Order(o), score); Assert.Equal(Math.Min(100, parts.Sum(p => p.points)), score); Assert.InRange(score, 0, 100); }
@@ -160,7 +160,7 @@ public class OrderTests
         Assert.True(w.IsImperium); mine.Orders[OrderSystem.Commerce] = 50; mine.Treasury.Credits = 500;
         Assert.Contains("throne", os.EnrollRefusal(w, mine, false));
         Assert.False(Do(w, new ClientCommand(w.ProtagonistId, ClientCommand.Take, other.Id, os)));
-        Assert.All(w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId), h => Assert.Equal(3, h.Orders.Count));   // the orders are still measured
+        Assert.All(w.Houses.Values.Where(h => !World.Outsider(h.Id)), h => Assert.Equal(3, h.Orders.Count));   // the orders are still measured
     }
 
     [Fact]

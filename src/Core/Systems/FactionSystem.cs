@@ -34,7 +34,7 @@ public static class FactionSystem
         if (parties.IsEmpty || w.Factions.Count > 0) return;
         foreach (var d in parties.Defs)
             w.Factions.Add(new Faction { Id = d.Id, Name = d.Name, PartyId = d.Id, Accent = d.Accent, Description = d.Description, Estates = d.Estates.ToList(), Laws = d.Laws.ToDictionary(k => k.Key, k => k.Value), Platform = d.Motions.ToDictionary(k => k.Key, k => k.Value), FormedTurn = w.Turn });
-        var houses = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var houses = w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
         foreach (var h in houses) Best(w, h.Id)!.Members.Add(h.Id);
         // no party sits empty: a thin party takes the best-fitting house from the fullest
         foreach (var f in w.Factions.Where(f => f.Members.Count < 2).ToList())
@@ -77,7 +77,7 @@ public static class FactionSystem
     /// <summary>After a motion is decided: every pair that declared draws closer or apart; each bench's platform remembers the kind.</summary>
     public static void RecordVotes(World w, Motion m, string kind)
     {
-        var declared = m.Votes.Where(kv => kv.Value != 0 && kv.Key != PirateSystem.HouseId && w.Houses.ContainsKey(kv.Key)).OrderBy(kv => kv.Key, StringComparer.Ordinal).ToList();
+        var declared = m.Votes.Where(kv => kv.Value != 0 && !World.Outsider(kv.Key) && w.Houses.ContainsKey(kv.Key)).OrderBy(kv => kv.Key, StringComparer.Ordinal).ToList();
         for (int i = 0; i < declared.Count; i++)
             for (int j = i + 1; j < declared.Count; j++)
                 AddAffinity(w, declared[i].Key, declared[j].Key, declared[i].Value == declared[j].Value ? 1 : -1);
@@ -112,12 +112,12 @@ public static class FactionSystem
             }
         }
         // 2. a house with no party takes its seat with the one its laws fit (the player chooses for themselves), one a turn
-        var free = w.Houses.Values.Where(h => h.Id != mine && h.Id != PirateSystem.HouseId && Of(w, h.Id) == null).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+        var free = w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id) && Of(w, h.Id) == null).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
         if (free != null && Best(w, free.Id) is { } fit) { fit.Members.Add(free.Id); w.Log($"{free.Name} takes its seat with {fit.Name}."); }
         // 3. every tenth turn one house whose laws have drifted crosses the floor to the party that fits them better
         if (w.Turn > 0 && w.Turn % SwitchEvery == 0)
         {
-            var mover = w.Houses.Values.Where(h => h.Id != mine && h.Id != PirateSystem.HouseId && Of(w, h.Id) is { PartyId.Length: > 0 } cur && Best(w, h.Id) is { } best && best != cur && Fit(w, h.Id, best) >= Fit(w, h.Id, cur) + SwitchMargin * 4 && cur.Members.Count > 2)
+            var mover = w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id) && Of(w, h.Id) is { PartyId.Length: > 0 } cur && Best(w, h.Id) is { } best && best != cur && Fit(w, h.Id, best) >= Fit(w, h.Id, cur) + SwitchMargin * 4 && cur.Members.Count > 2)
                 .OrderByDescending(h => Fit(w, h.Id, Best(w, h.Id)!) - Fit(w, h.Id, Of(w, h.Id)!)).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
             if (mover != null) { var cur = Of(w, mover.Id)!; var best = Best(w, mover.Id)!; cur.Members.Remove(mover.Id); best.Members.Add(mover.Id); w.Log($"{mover.Name} crosses the floor from {cur.Name} to {best.Name}."); if (cur.LeaderHouseId == mover.Id) cur.LeaderHouseId = cur.Members.OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault() ?? ""; }
         }

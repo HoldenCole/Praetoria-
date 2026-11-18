@@ -45,7 +45,7 @@ public sealed partial class AcademySystem
             picked.AddRange(round.Select(x => x.c).OrderByDescending(c => Progression.Title.RankOf(w.House(c.HouseId)?.Title ?? "")).ThenBy(c => c.Id, StringComparer.Ordinal));
         // a thin year is filled from the houses that sent no one: each enrols a son or daughter of sixteen to eighteen, a real member of the
         // house from now on (the greatest houses first), so the year is the Reach in miniature
-        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != p.HouseId && picked.All(c => c.HouseId != h.Id) && w.LivingCharacters().Any(c => c.HouseId == h.Id))
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != p.HouseId && picked.All(c => c.HouseId != h.Id) && w.LivingCharacters().Any(c => c.HouseId == h.Id))
                      .OrderByDescending(h => Progression.Title.RankOf(h.Title)).ThenBy(h => h.Id, StringComparer.Ordinal))
         {
             if (picked.Count >= CohortSize) break;

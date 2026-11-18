@@ -885,6 +885,486 @@
           ]
         }
       ]
+    },
+    {
+      "id": "the_host_is_through_the_march",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_host_sails",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "send_word",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "Word came that their host was through the march. {self.name} wrote that night to every house with a world near it, offering what was known of its numbers and its road. Some of them had not heard yet."
+            }
+          ]
+        },
+        {
+          "id": "see_to_our_own",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "Word came that their host was through the march. {self.name} looked to the house's own orbits first, and let the houses nearer the march look to theirs."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_world_of_the_reach_is_taken",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "reach_world_occupied",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "speak_for_its_house",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A world of the Reach was in foreign hands, and its house was asking who would help. {self.name} said in the Senate that a world taken from one house was taken from all of them, and was remembered for saying it."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A world of the Reach was in foreign hands. {self.name} said nothing in public. It was another house's world, and another house's garrison that had not been there."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "our_world_is_taken",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "our_world_occupied",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "appeal_to_the_senate",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "Their host took a world of the house's own. {self.name} stood in the Senate and asked the Reach to remember whose war this was. A world they hold is held until someone frees it or the peace is made."
+            }
+          ]
+        },
+        {
+          "id": "swear_to_take_it_back",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "Their host took a world of the house's own. {self.name} swore before the household that it would be taken back by the house's own fleet, and that nobody else would be asked."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_world_freed_for_us",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "world_freed_for_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "thank_them_handsomely",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -10
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "Another house's fleet freed the world that had been taken, and it came home to the house. {self.name} sent the commander a gift and the thanks of the house, in public, where it would be heard."
+            }
+          ]
+        },
+        {
+          "id": "take_it_as_owed",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "Another house's fleet freed the world that had been taken, and it came home to the house. {self.name} took it as what one house of the Reach owes another, and said so. The other house had expected more."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "we_freed_a_world",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "world_freed_by_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "hand_it_back_with_grace",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet freed a world they had taken, and it went home to the house it was taken from. {self.name} asked nothing for it. A thing like that is repeated."
+            }
+          ]
+        },
+        {
+          "id": "ask_the_cost_of_the_fleet",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet freed a world they had taken, and it went home to the house it was taken from. {self.name} sent that house the bill for the fuel and the hulls. It was paid, without a word."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "their_host_is_beaten",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "host_beaten_by_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "give_the_crews_their_due",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet met their host and beat it. {self.name} paid the crews a bounty out of the house's own purse before the Senate had finished congratulating itself."
+            }
+          ]
+        },
+        {
+          "id": "let_the_reach_know",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet met their host and beat it. {self.name} saw to it that the Reach knew whose colours had been in front."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ceded_at_the_peace",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "reach_world_ceded",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_it_a_shame",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The peace was made, and a world of the Reach stayed in foreign hands. {self.name} called it a shame in the Senate, and named no one. Everyone knew who was meant."
+            }
+          ]
+        },
+        {
+          "id": "say_it_will_be_taken_back",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The peace was made, and a world of the Reach stayed in foreign hands. {self.name} said that a world ceded in one war is taken back in the next, and meant to be there for it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_camps_are_restless",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "steppe_world_restless",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "order_a_fleet_there",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The world the house holds beyond the march was restless: no fleet had stood over it. {self.name} gave orders for hulls to be sent. Three, at the least, or it would not hold."
+            }
+          ]
+        },
+        {
+          "id": "let_it_go_if_it_goes",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The world the house holds beyond the march was restless: no fleet had stood over it. {self.name} would not tie a squadron to a camp on the grass. If it went, it went."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_camps_rise",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "steppe_world_lost",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "shrug_it_off",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The world the house held beyond the march is theirs again. {self.name} said it had been easy to take and was never going to be easy to keep, and turned to other business."
+            }
+          ]
+        },
+        {
+          "id": "take_it_hard",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The world the house held beyond the march is theirs again. {self.name} took it hard, and the house's officers were asked, one after another, where the garrison had been."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "their_capital_falls",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_capital_taken",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "mark_the_day",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The world where their ruler sat was taken by a fleet of the Reach. {self.name} had the day marked in the house's own records, whoever's fleet it had been."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_comes_after",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The world where their ruler sat was taken by a fleet of the Reach. {self.name} asked in the Senate who would hold it, and with what, and for how long. Nobody had an answer ready."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

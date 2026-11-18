@@ -78,7 +78,7 @@ public sealed class NpcAi
     private void Posture(World world, House house, Character head, FleetRules rules, CommandExecutor executor, CommandContext ctx)
     {
         var enemies = world.EnemiesOf(house.Id).ToList();
-        Expedition(world, house, head, rules, executor, ctx, enemies.Count);
+        Expedition(world, house, head, rules, executor, ctx, enemies.Count(e => !World.Outsider(e)));   // a war with a nation is not a war at home
         int ours = FleetSystem.StrengthOf(world, house.Id), theirs = enemies.Count == 0 ? 0 : enemies.Max(e => FleetSystem.StrengthOf(world, e));
         foreach (var f in world.Fleets.Values.Where(f => f.OwnerId == house.Id).OrderBy(f => f.Id, StringComparer.Ordinal))
         {
@@ -106,6 +106,7 @@ public sealed class NpcAi
     private void Expedition(World world, House house, Character head, FleetRules rules, CommandExecutor executor, CommandContext ctx, int enemiesAtHome)
     {
         if (Nations == null || Nations.IsEmpty || enemiesAtHome > 0 || NationSystem.AtWar(world) is not { } war) return;
+        if (world.Nation(war.Id) is { OnMap: true } onMap && Nations.Def(war.Id) is { } nd) { March(world, house, head, onMap, nd, rules, executor, ctx); return; }
         if (world.Fleets.Values.Any(f => f.OwnerId == house.Id && f.IsAway)) return;
         bool hawk = FactionSystem.Of(world, house.Id)?.PartyId == "sword" || (head.CareerTrack == "military" && head.CareerRank >= 2) || OfficeSystem.HeldBy(world, house.Id).Any(o => o.OfficeId is "consul_senior" or "consul_junior" or "admiral");
         if (!hawk) return;
@@ -115,6 +116,43 @@ public sealed class NpcAi
         if (fleet == null) return;
         if (world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.IsAway).Sum(f => f.Strength) - fleet.Strength < 1 && world.HoldingsOf(house.Id).Count(h => h.IsPlanet) > 1) return;   // leave something at home
         executor.TryExecute(new SendExpeditionCommand(head.Id, fleet.Id, war.Id, rules, Nations), ctx);
+    }
+
+    /// <summary>A war with a nation that is on the map (docs/BEYOND.md): a house whose world they hold or sit over goes to it with what it
+    /// has, if that is enough; a house of the war party, a serving officer's or one that holds a great office of arms goes to drive their
+    /// host out of the Reach, and after that to take the worlds beyond the march, the weakest held first. One fleet a year, the largest
+    /// rested one, and never the last hull at home.</summary>
+    private void March(World world, House house, Character head, Nation n, NationDef d, FleetRules rules, CommandExecutor executor, CommandContext ctx)
+    {
+        var g = world.Galaxy; if (g == null) return;
+        string them = n.HouseId;
+        bool hawk = FactionSystem.Of(world, house.Id)?.PartyId == "sword" || (head.CareerTrack == "military" && head.CareerRank >= 2) || OfficeSystem.HeldBy(world, house.Id).Any(o => o.OfficeId is "consul_senior" or "consul_junior" or "admiral");
+        var mineHeld = world.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && ((h.OwnerId == them && h.FormerOwnerId == house.Id) || (h.OwnerId == house.Id && FleetSystem.StrengthAt(world, them, h.SystemId) > 0))).Select(h => h.SystemId).ToHashSet();
+        if (!hawk && mineHeld.Count == 0) return;
+        var fleet = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && !f.IsAway && f.Readiness >= 60 && f.Strength >= 2 && !world.HoldingsOf(house.Id).Any(h => h.InRebellion))
+            .OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+        if (fleet == null) return;
+        // already where the war is: over a world of theirs, or facing their fleet
+        if (world.PlanetHolder(fleet.SystemId) == them || FleetSystem.StrengthAt(world, them, fleet.SystemId) > 0) return;
+        int Hops(string sys) => g.Hops(fleet.SystemId, sys) is var hp && hp > 0 ? hp : 99;
+        // what the Reach could bring: this fleet, those already there or bound for it, and the rested fleets of the other houses that would
+        // go, within six lanes. Inside the Reach that must match what is there; beyond the march it must be a quarter more.
+        bool Would(string hid) => world.House(hid) is { } o && (FactionSystem.Of(world, hid)?.PartyId == "sword" || Economy.HeadOf(world, o) is { CareerTrack: "military", CareerRank: >= 2 } || OfficeSystem.HeldBy(world, hid).Any(x => x.OfficeId is "consul_senior" or "consul_junior" or "admiral"));
+        int Pledged(string sys) => fleet.Strength + world.Fleets.Values.Where(f => f.Id != fleet.Id && world.OfTheReach(f.OwnerId) && !f.IsAway && (f.Moving ? f.DestinationId == sys
+            : f.SystemId == sys || (f.Readiness >= 60 && f.Strength >= 2 && f.OwnerId != world.Protagonist?.HouseId && g.Hops(f.SystemId, sys) is > 0 and <= 6 && Would(f.OwnerId)))).Sum(f => f.Strength);
+        bool CanTake(string sys) { int there = FleetSystem.StrengthAt(world, them, sys); return there == 0 || (g.RingOf(sys) == Galaxy.Ring.Beyond ? Pledged(sys) * 4 >= there * 5 : Pledged(sys) >= there); }
+        // first what is the house's own, then their fleets and holdings inside the Reach, then their own worlds
+        string? target = mineHeld.Where(CanTake).OrderBy(Hops).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault();
+        if (target == null && hawk)
+            target = world.Fleets.Values.Where(f => f.OwnerId == them && !f.Moving && g.RingOf(f.SystemId) != Galaxy.Ring.Beyond).Select(f => f.SystemId)
+                .Concat(world.Holdings.Values.Where(h => h.IsPlanet && h.OwnerId == them && h.SystemId.Length > 0 && g.RingOf(h.SystemId) != Galaxy.Ring.Beyond).Select(h => h.SystemId)).Distinct()
+                .Where(CanTake).OrderBy(Hops).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault();
+        if (target == null && hawk && fleet.Strength >= Math.Max(3, n.Strength / 4)
+            && (world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.IsAway).Sum(f => f.Strength) - fleet.Strength >= 1 || world.HoldingsOf(house.Id).Count(h => h.IsPlanet) <= 1))
+            target = world.Holdings.Values.Where(h => h.IsPlanet && h.OwnerId == them && h.SystemId.Length > 0).Select(h => h.SystemId).Distinct()
+                .Where(CanTake).OrderBy(Hops).ThenBy(sys => FleetSystem.StrengthAt(world, them, sys)).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault();
+        if (target == null || target == fleet.SystemId || Hops(target) >= 99) return;
+        if (executor.TryExecute(new MoveFleetCommand(head.Id, fleet.Id, target, rules), ctx)) world.WorldCounters["fleets_sent_against_nations"] = world.Counter("fleets_sent_against_nations") + 1;
     }
 
     private void Sail(List<Character> npcs, FleetRules rules, CommandExecutor executor, CommandContext ctx)
@@ -215,7 +253,7 @@ public sealed class NpcAi
             }
 
             // against any enemy (GAP §7 "wars are bloodless"): hold the chokepoint between home and the enemy if it is unguarded, else strike the enemy's weakest world
-            var enemy = world.EnemiesOf(house.Id).Where(e => e != playerHouse && e != PirateSystem.HouseId).OrderBy(e => e, StringComparer.Ordinal).FirstOrDefault();
+            var enemy = world.EnemiesOf(house.Id).Where(e => e != playerHouse && !World.Outsider(e)).OrderBy(e => e, StringComparer.Ordinal).FirstOrDefault();
             var home = world.HoldingsOf(house.Id).Where(h => h.SystemId.Length > 0).OrderByDescending(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault()?.SystemId;
             if (enemy != null && home != null)
             {
@@ -305,7 +343,7 @@ public sealed class NpcAi
             if (world.Counter(knifeKey) <= world.Turn && (head.NatureTraits.Contains("Cruel") || head.NatureTraits.Contains("Ruthless") || head.NatureTraits.Contains("Vengeful")))
             {
                 world.WorldCounters[knifeKey] = world.Turn + KnifeRetry;
-                var hated = world.Houses.Values.Where(o => o.Id != house.Id && o.Id != playerHouse && o.Id != PirateSystem.HouseId)
+                var hated = world.Houses.Values.Where(o => o.Id != house.Id && o.Id != playerHouse && !World.Outsider(o.Id))
                     .Select(o => (o, oh: Economy.HeadOf(world, o))).Where(x => x.oh != null && (FeudSystem.Between(world, house.Id, x.o.Id) || (world.GetRelationship(head.Id, x.oh!.Id)?.Disposition ?? 0) <= KnifeHatred))
                     .OrderBy(x => world.GetRelationship(head.Id, x.oh!.Id)?.Disposition ?? 0).ThenBy(x => x.o.Id, StringComparer.Ordinal).Select(x => (x.o, x.oh)).FirstOrDefault();
                 var mark = hated.o == null ? null : world.LivingCharacters().Where(c => c.HouseId == hated.o.Id && c.Id != hated.oh!.Id && c.Age >= DynastySystem.AgeOfMajority && !c.Flags.Contains(DynastySystem.HiddenFlag))
@@ -445,7 +483,7 @@ public sealed class NpcAi
     private void Refuel(List<Character> npcs, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
     {
         var world = ctx.World;
-        foreach (var house in world.Houses.Values.Where(h => h.Id != world.Protagonist?.HouseId && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var house in world.Houses.Values.Where(h => h.Id != world.Protagonist?.HouseId && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             int hulls = world.Fleets.Values.Where(f => f.OwnerId == house.Id).Sum(f => f.Strength);
             if (hulls == 0 && !world.HoldingsOf(house.Id).Any(h => h.SystemId.Length > 0)) continue;   // nothing to fuel and nowhere to lay a keel
@@ -493,7 +531,7 @@ public sealed class NpcAi
         if (world.IsImperium && ThroneSystem.Emperor(world)?.Id == house.Id && Economy.HeadOf(world, house) is { } throne)
         {
             int Regard(House o) => Economy.HeadOf(world, o) is { } oh ? world.GetRelationship(throne.Id, oh.Id)?.Disposition ?? 0 : 0;
-            var others = world.Houses.Values.Where(o => o.Id != house.Id && o.Id != PirateSystem.HouseId).OrderByDescending(Regard).ThenBy(o => o.Id, StringComparer.Ordinal).ToList();
+            var others = world.Houses.Values.Where(o => o.Id != house.Id && !World.Outsider(o.Id)).OrderByDescending(Regard).ThenBy(o => o.Id, StringComparer.Ordinal).ToList();
             var free = world.Companies.Where(c => c.Chartered && c.MonopolyOf.Length == 0).OrderBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
             if (free != null && h % 7 == 3 && others.FirstOrDefault(o => Regard(o) >= 20 && world.Companies.All(c => c.MonopolyOf != o.Id)) is { } favourite)
                 executor.TryExecute(new ThroneExchangeCommand(steward.Id, ThroneExchangeCommand.GrantAct, free.Id, favourite.Id, cs, Policies ?? PolicyCatalog.Empty), ctx);

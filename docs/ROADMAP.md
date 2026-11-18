@@ -15,11 +15,11 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 783 |
-| Events with text | 412 in 38 files |
-| Open gaps (docs/GAPS.md) | 76: 11 small, 54 a cycle, 11 several cycles (R8 closed, R20 mapped). Sixteen came from the full QA of 2026-11-16 (docs/QA.md) and twenty from playing known stories against the game on 2026-11-17 (docs/ROLEPLAY.md). 79 closed so far (`./tools/gaps.sh`) |
+| Automated tests | 794 |
+| Events with text | 422 in 38 files |
+| Open gaps (docs/GAPS.md) | 84: 15 small, 57 a cycle, 12 several cycles (R10b closed; N1 to N8 mapped while putting the Khanates on the map). Sixteen came from the full QA of 2026-11-16 (docs/QA.md) and twenty from playing known stories against the game on 2026-11-17 (docs/ROLEPLAY.md). 80 closed so far (`./tools/gaps.sh`) |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
-| Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
+| Galaxy | 34 systems, 45 lanes, 10 regions of the Reach and the Vashti Steppe beyond the rim, 31 standing houses and one nation on the map |
 | Laws / estates / parties | 22 / 6 / 4 |
 | Senate motions / offices | 15 / 5 |
 | Ventures / goods | 14 / 6 |
@@ -36,7 +36,7 @@ deterministic and saves and loads.
 | Domain and galaxy | Holdings, buildings, population, unrest, governors, regions, rings, raiders, free holds, a way back for a landless house | `GALAXY`, `ECONOMY` |
 | Strategic resources | Helium-3 fuel, rare earths, isotopes; deposits; fuel bills | `ECONOMY` |
 | War | Fleets, ship classes, stances, loadouts, command styles, loyalty, supply, campaigns, sieges, peace terms | `MILITARY` |
-| Nations beyond the Reach | Five off-map nations; war by Senate motion; expeditions; tribute; raids | `FOREIGN_NATIONS` |
+| Nations beyond the Reach | The Vashti Khanates on the map (worlds, fleets, a war fought by the lanes, occupation and the peace); four off-map nations; war by Senate motion; expeditions; tribute; raids | `BEYOND`, `FOREIGN_NATIONS` |
 | The Senate | Motions, votes by weight, lobbying, offices, parties, the consulship and its veto, Acts, estates' petitions | `SENATE`, `REPUBLIC` |
 | Laws and estates | 22 laws by position, six estates with opinions, Reach-wide Acts | `POLITICS` |
 | The three orders | Standing in the Senate, Arms and Commerce; callings; old and new names; sway; patrons and clients; a seat by the census; canvassing | `REPUBLIC` |
@@ -84,8 +84,9 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
    pretender when its hold fails (docs/THRONE.md, stage 1); a succession fought over is stage 2.
 
 **The world**
-1. Nations are off the map: numbers and expeditions, no territory. Each has a march on the rim and a named ruler and
-   commander now (docs/BEYOND.md, stage 0); putting their fleets and worlds on the map is planned in four more stages.
+1. One nation, the Vashti Khanates, is on the map (docs/BEYOND.md); the other four are numbers and expeditions with a
+   march on the rim and a named ruler and commander. What the Khanates left is N1 to N8 in docs/GAPS.md; which nation
+   comes on next is the owner's.
 2. Anomalies, archaeology and a source of exotics are designed but not built.
 3. 92 of 382 events never fire under the soak's four players: one random, three with an end in view (docs/QA.md; it was 132 under the random one alone). Checked: every flag they wait for is one the engine
    can raise, so none is dead; they need a player who gets into those situations (a triumph, a takeover, a revolt).

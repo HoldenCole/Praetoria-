@@ -10,6 +10,10 @@
     "aurelian": {
       "male":   ["Augustin", "Claudian", "Decimus", "Flavian", "Hadrian", "Lucius", "Maximian", "Octavian", "Priscus", "Septimus", "Valerian", "Vespasian"],
       "female": ["Aurelia", "Claudia", "Domitia", "Flavia", "Justina", "Lucilla", "Marcella", "Octavia", "Placidia", "Sabina", "Valeria", "Vibia"]
+    },
+    "vashti": {
+      "male":   ["Temur", "Jochi", "Batu", "Kublai", "Berke", "Subedei", "Arik", "Mongke", "Toghrul", "Chagan", "Esen", "Nogai"],
+      "female": ["Borte", "Sorgha", "Altani", "Mandu", "Checheg", "Oyun", "Khulan", "Toregene", "Saran", "Narantu", "Odval", "Tsetseg"]
     }
   }
 }

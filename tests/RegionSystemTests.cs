@@ -172,7 +172,8 @@ public class RegionSystemTests
         for (int t = 0; t < 12 && !w.IsDynastyDead; t++) { foreach (var i in tc.BeginTurn()) { var c = tc.Offer(i).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(i, c.Choice.Id); } tc.EndTurn(); }
         Assert.True(RegionSystem.StateOf(w, "ashen_verge").Lawlessness > RegionSystem.StateOf(w, "imperial_core").Lawlessness);
         Assert.True(RegionSystem.StateOf(w, "imperial_core").Allegiance > RegionSystem.StateOf(w, "pale_reaches").Allegiance);
-        Assert.True(GalaxyProjection.Regions(w).All(r => r.Ring is Ring.Core or Ring.Middle or Ring.Rim));
+        Assert.True(GalaxyProjection.Regions(w).All(r => r.Ring is Ring.Core or Ring.Middle or Ring.Rim or Ring.Beyond));
+        Assert.Single(g.Regions, r => r.Ring == Ring.Beyond); Assert.Equal(10, g.ReachRegions.Count());   // the space of the Khanates is on the map and is not the Reach
         Assert.NotNull(GalaxyProjection.Rings(w));
     }
 

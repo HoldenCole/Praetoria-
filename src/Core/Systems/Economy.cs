@@ -258,7 +258,7 @@ public sealed class Economy
 
         // interest flows to lenders out of this turn's instalments, so snapshot who is paying before anyone's debt moves
         var paying = world.Houses.Values.Where(h => h.Debt > 0).Select(h => h.Id).ToHashSet();
-        foreach (var house in world.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var house in world.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var holdings = world.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
             if (holdings.Count == 0 && !world.BusinessesOf(house.Id).Any() && house.Debt == 0 && !world.Businesses.Values.Any(b => world.PlanetHolder(b.SystemId) == house.Id) && !world.Houses.Values.Any(h => h.LenderId == house.Id && paying.Contains(h.Id))) continue;

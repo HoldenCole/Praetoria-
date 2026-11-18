@@ -72,7 +72,7 @@ public static class FeudSystem
     public static BloodFeud? Blood(World w, Character victim, string killerHouseId, string? killerId, string how)
     {
         if (victim.HouseId == killerHouseId || w.House(victim.HouseId) == null || w.House(killerHouseId) == null) return null;
-        if (victim.HouseId == PirateSystem.HouseId || killerHouseId == PirateSystem.HouseId) return null;
+        if (World.Outsider(victim.HouseId) || World.Outsider(killerHouseId)) return null;
         var answered = w.Feuds.Where(f => f.Open && f.WrongedId == killerHouseId && f.OwingId == victim.HouseId).OrderBy(f => f.Since).ThenBy(f => f.Id, StringComparer.Ordinal).ToList();
         var due = answered.FirstOrDefault(f => Blamed(w, f)?.Id == victim.Id) ?? answered.FirstOrDefault();
         if (due != null)

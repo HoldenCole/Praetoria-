@@ -52,10 +52,10 @@ public sealed class PolitySystem
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static bool Within(World w, string key, int years) => w.WorldCounters.TryGetValue(key, out int t) && w.Turn - t <= years;
-    private static bool Real(House h) => h.Id != PirateSystem.HouseId;
+    private static bool Real(House h) => !World.Outsider(h.Id);
 
     /// <summary>Is this house still of the Reach: in its Senate, under its laws, in its wars?</summary>
-    public static bool InReach(World w, string houseId) => w.House(houseId) is { PolityId.Length: 0 };
+    public static bool InReach(World w, string houseId) => w.House(houseId) is { PolityId.Length: 0 } && !w.Foreign(houseId);
     public static Polity? Of(World w, string houseId) => w.House(houseId) is { PolityId.Length: > 0 } h ? w.Polities.FirstOrDefault(p => p.Id == h.PolityId) : null;
     public static Polity? OfRegion(World w, string regionId) => w.Polities.FirstOrDefault(p => p.Regions.Contains(regionId));
 
@@ -120,7 +120,7 @@ public sealed class PolitySystem
     }
 
     /// <summary>A house of the Reach a state's ruler might court: one that holds a world in the state's regions, or in a region that borders them.</summary>
-    public static bool Courtable(World w, Polity p, House target) => Real(target) && InReach(w, target.Id) && w.Galaxy != null && w.Galaxy.Regions.Any(r =>
+    public static bool Courtable(World w, Polity p, House target) => Real(target) && InReach(w, target.Id) && w.Galaxy != null && w.Galaxy.ReachRegions.Any(r =>
         (p.Regions.Contains(r.Id) || p.Regions.Any(x => Borders(w, x, r.Id))) && Worlds(w, r.Id).Any(x => x.OwnerId == target.Id));
 
     /// <summary>The head sounds out a house of the region: a word, or a gift. One that thinks well enough of the house afterwards gives
@@ -170,7 +170,7 @@ public sealed class PolitySystem
             if (h.Buildings.Any(b => _holdings.Building(b)?.RequiresDeposit == resource)) set.Add(h.OwnerId);
         }
         foreach (var b in w.Businesses.Values) if (_ventures.Def(b.Kind)?.RequiresDeposit == resource && g.System(b.SystemId)?.Deposit(resource) is > 0) set.Add(b.OwnerId);
-        set.RemoveWhere(id => id == PirateSystem.HouseId || !InReach(w, id));
+        set.RemoveWhere(id => World.Outsider(id) || !InReach(w, id));
         return set;
     }
 
@@ -214,7 +214,7 @@ public sealed class PolitySystem
 
     /// <summary>Regions the house holds a world in, the most held first.</summary>
     public static List<Region> RegionsOf(World w, House house) =>
-        w.Galaxy == null ? new() : w.Galaxy.Regions.Where(r => Worlds(w, r.Id).Any(h => h.OwnerId == house.Id)).OrderByDescending(r => Worlds(w, r.Id).Count(h => h.OwnerId == house.Id)).ThenBy(r => r.Id, StringComparer.Ordinal).ToList();
+        w.Galaxy == null ? new() : w.Galaxy.ReachRegions.Where(r => Worlds(w, r.Id).Any(h => h.OwnerId == house.Id)).OrderByDescending(r => Worlds(w, r.Id).Count(h => h.OwnerId == house.Id)).ThenBy(r => r.Id, StringComparer.Ordinal).ToList();
 
     // ---------------- the Reach's temper ----------------
 
@@ -724,7 +724,7 @@ public sealed class PolitySystem
             if (goer != null) { Accede(w, goer, p); break; }
             // and one that controls a region on the state's border, thinks very well of its ruler and ill of the capital, may bring the region
             if (w.Galaxy == null) continue;
-            foreach (var r in w.Galaxy.Regions.Where(r => p.Regions.Any(x => Borders(w, x, r.Id))).OrderBy(r => r.Id, StringComparer.Ordinal))
+            foreach (var r in w.Galaxy.ReachRegions.Where(r => p.Regions.Any(x => Borders(w, x, r.Id))).OrderBy(r => r.Id, StringComparer.Ordinal))
             {
                 var bringer = w.Houses.Values.Where(h => h.Id != mine && AccedeRefusal(w, h, p, r.Id) == null && Regard(w, h, ruler) >= GoesOverRegard + 10 && (chairNow == null || Regard(w, h, chairNow) <= -10) && Hash($"brings:{h.Id}:{r.Id}:{w.Turn}") % 6 == 0)
                     .OrderByDescending(h => Regard(w, h, ruler)).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();

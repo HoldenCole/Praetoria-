@@ -111,7 +111,7 @@ public static partial class LadderSystem
     private static string? Loosest(World w) => w.Regions.Where(kv => kv.Value.Allegiance < 60).OrderBy(kv => kv.Value.Allegiance).ThenBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => kv.Key).FirstOrDefault();
     private static string? MostLawless(World w) => w.Regions.Where(kv => kv.Value.Lawlessness >= 20).OrderByDescending(kv => kv.Value.Lawlessness).ThenBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => kv.Key).FirstOrDefault();
     /// <summary>The house a Speaker would keep off the floor: the one whose head and the Speaker's think worst of each other.</summary>
-    private static House? Enemy(World w, House? of) => of == null ? null : w.Houses.Values.Where(h => h.Id != of.Id && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null)
+    private static House? Enemy(World w, House? of) => of == null ? null : w.Houses.Values.Where(h => h.Id != of.Id && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null)
         .Select(h => (h, bad: Regard(w, of, h) + Regard(w, h, of))).Where(x => x.bad <= -30).OrderBy(x => x.bad).ThenBy(x => x.h.Id, StringComparer.Ordinal).Select(x => x.h).FirstOrDefault();
 
     /// <summary>One who sits on the bench by their career: a Judge, a Justice, a High Justice.</summary>
@@ -158,7 +158,7 @@ public static partial class LadderSystem
 
         // 2. a hearing for each of the house's people on the bench who has no appeal before them and is not a sitting praetor
         var estates = policy?.Estates.OrderBy(e => e.Id, StringComparer.Ordinal).ToList() ?? new();
-        var others = w.Houses.Values.Where(h => h.Id != mine.Id && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var others = w.Houses.Values.Where(h => h.Id != mine.Id && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
         if (estates.Count > 0 && others.Count > 0 && PolitySystem.InReach(w, mine.Id))
             foreach (var j in w.LivingCharacters().Where(c => c.HouseId == mine.Id && OnTheBench(c) && !busy.Contains(c.Id) && Seat(w, c.Id)?.OfficeId != Praetor).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
             {

@@ -278,7 +278,7 @@ internal static class Qa
         string Ord(string a) => a;
         var worlds = w.HoldingsOf(house.Id).Where(h => h.IsPlanet).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
         var fleets = w.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Office && !f.IsAway).OrderBy(f => f.Id, StringComparer.Ordinal).ToList();
-        var others = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var others = w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
         var members = house.Members.Where(id => w.Char(id)?.Alive == true && id != p.Id).OrderBy(Ord, StringComparer.Ordinal).ToList();
 
         cands.Add(new TrainCommand(p.Id, Skills[decisions.NextInt(0, Skills.Length)]));
@@ -335,7 +335,7 @@ internal static class Qa
         foreach (var gd in content.Market.Goods) { cands.Add(new BuyGoodCommand(p.Id, gd.Id, 1 + decisions.NextInt(0, 4), content.Trade)); cands.Add(new SellGoodCommand(p.Id, gd.Id, 1 + decisions.NextInt(0, 4), content.Trade)); }
         {   // the three orders: the census, patrons and clients, the voters
             var os = tc.Orders; cands.Add(new EnrollCommand(p.Id, os, content.Titles)); cands.Add(new ClientCommand(p.Id, ClientCommand.Leave, "", os));
-            foreach (var o in w.Houses.Values.Where(o => o.Id != house.Id && o.Id != PirateSystem.HouseId).OrderBy(o => o.Id, StringComparer.Ordinal))
+            foreach (var o in w.Houses.Values.Where(o => o.Id != house.Id && !World.Outsider(o.Id)).OrderBy(o => o.Id, StringComparer.Ordinal))
             {
                 if (decisions.NextInt(0, 8) == 0) cands.Add(new ClientCommand(p.Id, ClientCommand.Take, o.Id, os));
                 if (decisions.NextInt(0, 12) == 0) cands.Add(new ClientCommand(p.Id, ClientCommand.Seek, o.Id, os));
@@ -377,7 +377,7 @@ internal static class Qa
             }
             if (decisions.NextInt(0, 15) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Stir, "", "", tc.Polities));
             // the rest of it: stirring against one house, leaving a state, a promise or a threat to a house of the region
-            var reachHouses = w.Houses.Values.Where(x => x.Id != house.Id && x.Id != PirateSystem.HouseId && PolitySystem.InReach(w, x.Id)).OrderBy(x => x.Id, StringComparer.Ordinal).ToList();
+            var reachHouses = w.Houses.Values.Where(x => x.Id != house.Id && !World.Outsider(x.Id) && PolitySystem.InReach(w, x.Id)).OrderBy(x => x.Id, StringComparer.Ordinal).ToList();
             if (reachHouses.Count > 0 && decisions.NextInt(0, 20) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Stir, reachHouses[decisions.NextInt(0, reachHouses.Count)].Id, "", tc.Polities));
             if (decisions.NextInt(0, 25) == 0) cands.Add(new SecessionCommand(p.Id, SecessionCommand.Leave, "", "", tc.Polities));
             foreach (var nb in PolitySystem.Neighbours(w, house).Take(3))
@@ -467,7 +467,7 @@ internal static class Qa
             if (decisions.NextInt(0, 6) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Allowance, "", WealthSystem.Allowances[decisions.NextInt(0, 3)]));
             if (decisions.NextInt(0, 12) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Inheritance, "", decisions.NextInt(0, 2) == 0 ? WealthSystem.Entail : WealthSystem.Portions));
             foreach (var oh in WealthSystem.OweMe(w, house.Id)) if (decisions.NextInt(0, 4) == 0) cands.Add(new WealthCommand(p.Id, WealthCommand.Favour, oh.Id, decisions.NextInt(0, 2) == 0 ? WealthSystem.ForMoney : WealthSystem.ForMatch));
-            if (decisions.NextInt(0, 20) == 0 && WealthSystem.HeldBy(w, p.Id).FirstOrDefault(x => !x.Entailed) is { } toGive && w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).Select(h => Economy.HeadOf(w, h)).Where(c => c != null).Skip(decisions.NextInt(0, 6)).FirstOrDefault() is { } toHead) cands.Add(new WealthCommand(p.Id, WealthCommand.Give, toGive.Id, toHead.Id));
+            if (decisions.NextInt(0, 20) == 0 && WealthSystem.HeldBy(w, p.Id).FirstOrDefault(x => !x.Entailed) is { } toGive && w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).Select(h => Economy.HeadOf(w, h)).Where(c => c != null).Skip(decisions.NextInt(0, 6)).FirstOrDefault() is { } toHead) cands.Add(new WealthCommand(p.Id, WealthCommand.Give, toGive.Id, toHead.Id));
             if (tc.Ventures is { } vsp && decisions.NextInt(0, 12) == 0) { var mineB = w.BusinessesOf(house.Id).Where(x => x.CompanyId.Length == 0).OrderBy(x => x.Id, StringComparer.Ordinal).ToList(); var mineT = WealthSystem.HeldBy(w, p.Id); int pick = decisions.NextInt(0, mineB.Count + mineT.Count + 1); cands.Add(new PledgeCommand(p.Id, pick < mineB.Count ? mineB[pick].Id : pick < mineB.Count + mineT.Count ? mineT[pick - mineB.Count].Id : "", vsp)); }
             if (tc.Ventures is { } vsx && decisions.NextInt(0, 15) == 0 && w.BusinessesOf(house.Id).Where(x => x.CompanyId.Length == 0 && x.HeldById.Length == 0).OrderBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault() is { } toSettle)
             { var on = WealthSystem.Members(w, house); if (on.Count > 0) cands.Add(new SettleVentureCommand(p.Id, toSettle.Id, on[decisions.NextInt(0, on.Count)].Id, vsx)); }
@@ -500,7 +500,7 @@ internal static class Qa
         {
             foreach (var b in w.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0).OrderBy(b => b.Id, StringComparer.Ordinal)) if (decisions.NextInt(0, 5) == 0) cands.Add(new IncorporateCommand(p.Id, b.Id, CompanySystem.ControlledBy(w, house.Id).FirstOrDefault()?.Id ?? "", cx));
             cands.Add(new BuyBondCommand(p.Id, cx)); cands.Add(new SteadyMarketCommand(p.Id, cx));
-            if (w.IsImperium && w.Companies.FirstOrDefault(c => c.Chartered) is { } great && w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).Skip(decisions.NextInt(0, 5)).FirstOrDefault() is { } other) { cands.Add(new ThroneExchangeCommand(p.Id, ThroneExchangeCommand.GrantAct, great.Id, other.Id, cx, content.Policies)); cands.Add(new ThroneExchangeCommand(p.Id, ThroneExchangeCommand.SeizeAct, "", other.Id, cx, content.Policies)); }
+            if (w.IsImperium && w.Companies.FirstOrDefault(c => c.Chartered) is { } great && w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).Skip(decisions.NextInt(0, 5)).FirstOrDefault() is { } other) { cands.Add(new ThroneExchangeCommand(p.Id, ThroneExchangeCommand.GrantAct, great.Id, other.Id, cx, content.Policies)); cands.Add(new ThroneExchangeCommand(p.Id, ThroneExchangeCommand.SeizeAct, "", other.Id, cx, content.Policies)); }
             foreach (var co in w.Companies.OrderBy(c => c.Id, StringComparer.Ordinal))
             {
                 if (decisions.NextInt(0, 4) == 0) cands.Add(new BuySharesCommand(p.Id, co.Id, 1 + decisions.NextInt(0, 12), cx));
@@ -512,7 +512,7 @@ internal static class Qa
         foreach (var def in tc.Senate.Motions.Defs)
         {
             if (def.Id == "petition") continue;   // only an estate brings one
-            string target = def.Target == "house" && others.Count > 0 ? others[decisions.NextInt(0, others.Count)].Id : def.Target == "region" && g != null && g.Regions.Count > 0 ? g.Regions[decisions.NextInt(0, g.Regions.Count)].Id : "";
+            string target = def.Target == "house" && others.Count > 0 ? others[decisions.NextInt(0, others.Count)].Id : def.Target == "region" && g != null && g.ReachRegions.Any() ? g.ReachRegions.ToList()[decisions.NextInt(0, g.ReachRegions.Count())].Id : "";
             if (def.Target == "house" && def.TargetSelfAllowed && decisions.NextInt(0, 2) == 0) target = house.Id;
             if (def.Target == "nation") { var ns = content.Nations.Defs.ToList(); if (ns.Count == 0) continue; target = ns[decisions.NextInt(0, ns.Count)].Id; }
             if (def.Law)

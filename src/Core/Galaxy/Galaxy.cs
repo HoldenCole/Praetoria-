@@ -60,7 +60,9 @@ public sealed class Region
 public static class Ring
 {
     public const string Core = "core", Middle = "middle", Rim = "rim";
-    public static readonly string[] All = { Core, Middle, Rim };
+    /// <summary>Not of the Reach: the space of a nation beyond the rim (docs/BEYOND.md). The Reach's own rules do not run there.</summary>
+    public const string Beyond = "beyond";
+    public static readonly string[] All = { Core, Middle, Rim, Beyond };
 }
 
 /// <summary>How a ring behaves (GDD §19): what it does to prosperity and unrest on its worlds, how fast lawlessness grows,
@@ -110,6 +112,9 @@ public sealed class Galaxy
 
     public StarSystem? System(string id) => Systems.TryGetValue(id, out var s) ? s : null;
     public Region? Region(string id) => Regions.FirstOrDefault(r => r.Id == id);
+    /// <summary>The regions of the Reach itself: everything but the space of a foreign nation, where the Reach's own rules (allegiance to the
+    /// capital, raider nests, the great crisis, the standing of the magistrates) do not run.</summary>
+    public IEnumerable<Region> ReachRegions => Regions.Where(r => r.Ring != Ring.Beyond);
     public IEnumerable<StarSystem> SystemsIn(string regionId) => Systems.Values.Where(s => s.RegionId == regionId).OrderBy(s => s.Id, StringComparer.Ordinal);
     /// <summary>A system's culture: its own if set, else its region's, else "reach".</summary>
     public string CultureOf(string systemId) { var s = System(systemId); if (s == null) return "reach"; if (s.Culture.Length > 0) return s.Culture; return Region(s.RegionId)?.Culture ?? "reach"; }

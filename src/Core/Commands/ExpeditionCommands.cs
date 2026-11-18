@@ -18,6 +18,7 @@ public sealed class SendExpeditionCommand : ICommand
         var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
         if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
         var d = _nations.Def(_nationId); var n = w.Nation(_nationId); if (d == null || n == null) return "no such nation";
+        if (n.OnMap) return $"{d.Name} is on the map: a fleet sails there by the lanes";
         if (!n.AtWar) return $"the Reach is not at war with {d.Name}";
         if (f.IsAway) return "already beyond the Reach";
         if (f.Moving) return "under way";

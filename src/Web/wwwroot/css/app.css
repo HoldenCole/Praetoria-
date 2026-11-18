@@ -345,7 +345,7 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 
 /* ===== the rings ===== */
 .ring { font-family: var(--display); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; padding: .02rem .36rem; border-radius: 2px; border: 1px solid var(--line2); vertical-align: middle; }
-.ring.core { color: #ffe8a3; border-color: var(--brass2); } .ring.middle { color: var(--brass2); } .ring.rim { color: #e08a5f; border-color: #6a3b2e; }
+.ring.core { color: #ffe8a3; border-color: var(--brass2); } .ring.middle { color: var(--brass2); } .ring.rim { color: #e08a5f; border-color: #6a3b2e; } .ring.beyond { color: #C9A227; border-color: #6b5a1c; }
 .ring-head { display: flex; align-items: center; gap: .4rem; margin: .5rem 0 .2rem; } .region-row .rstats { margin-left: auto; font-size: .78rem; white-space: nowrap; color: var(--muted); } .region-row .rstats .warn { color: #e07a5f; } .region-row.free b { color: #e08a5f; }
 .region-label.ring-rim .rs { color: #d9a085; } .region-label.ring-core .rs { color: #ffe8a3; } .region-label.free .rn { color: #e08a5f; }
 

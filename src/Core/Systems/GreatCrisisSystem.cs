@@ -64,7 +64,7 @@ public sealed class GreatCrisisSystem
         var list = new List<(string, int)>();
         foreach (var t in CaesarSystem.Wrong(w).Where(t => !t.Contains("at war with each other"))) list.Add((t, TroublePoints));
         if (w.Wars.Count > 0) list.Add(($"{w.Wars.Count} war(s) between houses", Math.Min(WarPointsCap, w.Wars.Count * WarPoints)));
-        var hulls = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id)).Select(h => (h, n: FleetSystem.StrengthOf(w, h.Id))).OrderByDescending(x => x.n).ThenBy(x => x.h.Id, StringComparer.Ordinal).Take(2).ToList();
+        var hulls = w.Houses.Values.Where(h => !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id)).Select(h => (h, n: FleetSystem.StrengthOf(w, h.Id))).OrderByDescending(x => x.n).ThenBy(x => x.h.Id, StringComparer.Ordinal).Take(2).ToList();
         if (hulls.Count == 2 && hulls[0].n >= 6 && hulls[0].n >= 2 * Math.Max(1, hulls[1].n)) list.Add(($"{hulls[0].h.Name} overshadows every other house in arms", OvershadowPoints));
         if (w.Counter("coalition_pressure") > 0) list.Add(("the houses are drawing together against one of their number", w.Counter("coalition_pressure")));
         if (w.Counter("seizures") > 0) list.Add(("worlds have been taken by force", Math.Min(5, w.Counter("seizures"))));
@@ -93,7 +93,7 @@ public sealed class GreatCrisisSystem
     private (string regionId, House leader)? Refuge(World w, string bloc)
     {
         if (w.Galaxy == null || Polities == null) return null; string capitalRegion = w.Galaxy.System(w.Galaxy.Capital)?.RegionId ?? "";
-        foreach (var r in w.Galaxy.Regions.Where(r => r.Id != capitalRegion && PolitySystem.OfRegion(w, r.Id) == null).OrderBy(r => r.Id, StringComparer.Ordinal))
+        foreach (var r in w.Galaxy.ReachRegions.Where(r => r.Id != capitalRegion && PolitySystem.OfRegion(w, r.Id) == null).OrderBy(r => r.Id, StringComparer.Ordinal))
         {
             var worlds = w.Holdings.Values.Where(h => h.IsPlanet && w.Galaxy.System(h.SystemId)?.RegionId == r.Id).ToList(); if (worlds.Count == 0) continue;
             var theirs = worlds.Where(h => w.House(h.OwnerId)?.Bloc == bloc).ToList();

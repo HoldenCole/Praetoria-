@@ -25,7 +25,7 @@ public static class HouseSystem
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("house_fell:")).ToList()) w.WorldFlags.Remove(f);   // last turn's news
         foreach (var house in w.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
-            if (house.Id == mine || house.Id == PirateSystem.HouseId) continue;
+            if (house.Id == mine || World.Outsider(house.Id)) continue;
             bool landed = w.HoldingsOf(house.Id).Any(h => h.IsPlanet);
             string key = "landless_since:" + house.Id;
             if (landed) { w.WorldCounters.Remove(key); continue; }
@@ -34,13 +34,13 @@ public static class HouseSystem
             if (!living && !anything) { Strike(w, house, $"The name of {house.Name} passes out of the rolls of the Reach; no one is left to carry it."); continue; }
             if (house.Bloc == RegionSystem.FreeholdsBloc)
             {
-                var taker = w.Holdings.Values.Where(h => h.IsPlanet && h.FormerOwnerId == house.Id).Select(h => w.House(h.OwnerId)).FirstOrDefault(x => x != null && x.Id != house.Id && x.Id != PirateSystem.HouseId);
+                var taker = w.Holdings.Values.Where(h => h.IsPlanet && h.FormerOwnerId == house.Id).Select(h => w.House(h.OwnerId)).FirstOrDefault(x => x != null && x.Id != house.Id && !World.Outsider(x.Id));
                 if (taker != null) { Fold(w, house, taker, $"{house.Name} is no more: its people and its guard pass to {taker.Name}, who holds the world they rose for."); continue; }
             }
             if (!w.WorldCounters.ContainsKey(key)) { w.WorldCounters[key] = w.Turn; continue; }
             if (w.Turn - w.Counter(key) < ServiceTurns) continue;
             if (house.Treasury.Credits >= 0 || anything) continue;   // a landless name with coin, a venture or a hull still has a game to play
-            var patron = w.Houses.Values.Where(x => x.Id != house.Id && x.Id != PirateSystem.HouseId && x.Bloc != RegionSystem.FreeholdsBloc && w.HoldingsOf(x.Id).Any(h => h.IsPlanet))
+            var patron = w.Houses.Values.Where(x => x.Id != house.Id && !World.Outsider(x.Id) && x.Bloc != RegionSystem.FreeholdsBloc && w.HoldingsOf(x.Id).Any(h => h.IsPlanet))
                 .OrderByDescending(x => x.Culture == house.Culture ? 1 : 0).ThenByDescending(x => x.Treasury.Credits).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
             if (patron == null) continue;
             Fold(w, house, patron, $"{house.Name}, landless and without coin these {ServiceTurns} years, enters the service of {patron.Name}. Its debts are written off and its name is struck from the rolls of the independent houses.");

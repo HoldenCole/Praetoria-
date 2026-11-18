@@ -130,7 +130,7 @@ public static partial class LadderSystem
     /// <summary>Draw up the year's figures from the state of the Reach, and keep them with the charge so that what is read is what is decided.</summary>
     private static void DrawBudget(World w, OfficeBusiness b)
     {
-        var landed = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && w.HoldingsOf(h.Id).Any(x => x.IsPlanet)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var landed = w.Houses.Values.Where(h => !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && w.HoldingsOf(h.Id).Any(x => x.IsPlanet)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
         int assessed = landed.Count * LevyEach;
         int lost = landed.Count(h => HomeRegion(w, h.Id) is { Length: > 0 } r && RegionSystem.StateOf(w, r).Lawlessness >= LostAt) * LevyEach;
         int fleet = w.Fleets.Values.Where(f => f.Office).Sum(f => f.Strength);

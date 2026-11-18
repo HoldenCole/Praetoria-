@@ -65,7 +65,7 @@ public static partial class LadderSystem
     public static void TrustApart(World w)
     {
         if (w.Galaxy != null)
-            foreach (var r in w.Galaxy.Regions.OrderBy(r => r.Id, StringComparer.Ordinal))
+            foreach (var r in w.Galaxy.ReachRegions.OrderBy(r => r.Id, StringComparer.Ordinal))
             {
                 if (!w.WorldCounters.ContainsKey(RegionTrustKey(r.Id))) continue;   // a region with no figure of its own goes as the Reach goes, which is reckoned elsewhere
                 int t = RegionTrust(w, r.Id); var state = RegionSystem.StateOf(w, r.Id);
@@ -85,7 +85,7 @@ public static partial class LadderSystem
         int t = Trust(w); var parts = new List<string>();
         foreach (var o in TrustOffices) { int d = w.Counter(OfficeTrustKey(o)); if (Math.Abs(d) >= 5) parts.Add($"{OfficeTrustName(o)} are trusted {(d < 0 ? "less" : "more")} than the rest ({OfficeTrust(w, o)} against {t})".Replace("the Treasurer are", "the Treasurer is").Replace("the Speaker are", "the Speaker is").Replace("the administration are", "the administration is")); }
         if (w.Galaxy != null)
-            foreach (var r in w.Galaxy.Regions.OrderBy(r => r.Id, StringComparer.Ordinal)) { int d = w.Counter(RegionTrustKey(r.Id)); if (Math.Abs(d) >= 5) parts.Add($"{r.Name} believes the magistrates {(d < 0 ? "less" : "more")} than the Reach does ({RegionTrust(w, r.Id)})"); }
+            foreach (var r in w.Galaxy.ReachRegions.OrderBy(r => r.Id, StringComparer.Ordinal)) { int d = w.Counter(RegionTrustKey(r.Id)); if (Math.Abs(d) >= 5) parts.Add($"{r.Name} believes the magistrates {(d < 0 ? "less" : "more")} than the Reach does ({RegionTrust(w, r.Id)})"); }
         return parts.Count == 0 ? "" : char.ToUpperInvariant(parts[0][0]) + string.Join("; ", parts)[1..] + ".";
     }
 }

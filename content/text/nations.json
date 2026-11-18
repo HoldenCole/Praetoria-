@@ -128,6 +128,96 @@
         "honour_the_dead": "Send the body home under a flag of truce.",
         "take_the_name": "Let the Reach know whose fleet did it."
       }
+    },
+    {
+      "id": "the_host_is_through_the_march",
+      "title": "The Host Is Through the March",
+      "body": "Their host has come through the march and is bound for a world of the Reach. It will sit over that world until the world falls, which takes it longer than it would take a fleet of the Reach, and then it will go home with what it took. The houses that mean to stop it have that long.",
+      "choices": {
+        "send_word": "Write to the houses near the march with what is known.",
+        "see_to_our_own": "Look to our own orbits first."
+      }
+    },
+    {
+      "id": "a_world_of_the_reach_is_taken",
+      "title": "A World of the Reach Is Taken",
+      "body": "Their host has taken a world of the Reach. It is theirs until a house of the Reach frees it, or until the peace: if the Reach wins the war the world goes home, and if not it is ceded. Its house is asking who will help.",
+      "choices": {
+        "speak_for_its_house": "Say in the Senate that it was taken from all of us.",
+        "say_nothing": "Say nothing. It was not our world."
+      }
+    },
+    {
+      "id": "our_world_is_taken",
+      "title": "Our World Is Taken",
+      "body": "Their host has taken a world of your own house. It is theirs until a fleet of the Reach frees it, yours or another's, or until the peace. If the war is lost it will be ceded.",
+      "choices": {
+        "appeal_to_the_senate": "Ask the Senate to remember whose war this is.",
+        "swear_to_take_it_back": "Swear the house will take it back itself."
+      }
+    },
+    {
+      "id": "a_world_freed_for_us",
+      "title": "A World Freed for Us",
+      "body": "Another house's fleet has driven them off the world they took from you, and it is yours again. That house asked for nothing. It will remember what you say now.",
+      "choices": {
+        "thank_them_handsomely": "Send a gift and thank them where it will be heard.",
+        "take_it_as_owed": "Take it as one house's due from another."
+      }
+    },
+    {
+      "id": "we_freed_a_world",
+      "title": "We Freed a World",
+      "body": "Your fleet has freed a world they had taken from another house. It has gone home to that house, as a freed world does. What you ask for it is yours to decide.",
+      "choices": {
+        "hand_it_back_with_grace": "Ask nothing for it.",
+        "ask_the_cost_of_the_fleet": "Send them the bill for the fuel and the hulls."
+      }
+    },
+    {
+      "id": "their_host_is_beaten",
+      "title": "Their Host Is Beaten",
+      "body": "Your fleet has met their host and beaten it. That counts for more in the tally of the war than anything short of taking a world, and it will be talked about.",
+      "choices": {
+        "give_the_crews_their_due": "Pay the crews a bounty from the house's purse.",
+        "let_the_reach_know": "See that the Reach knows whose colours led."
+      }
+    },
+    {
+      "id": "ceded_at_the_peace",
+      "title": "Ceded at the Peace",
+      "body": "The war is over and it was not won. A world of the Reach that they held when the peace was made stays theirs. It can be taken back, but only in another war.",
+      "choices": {
+        "call_it_a_shame": "Call it a shame in the Senate, and name no one.",
+        "say_it_will_be_taken_back": "Say it will be taken back in the next."
+      }
+    },
+    {
+      "id": "the_camps_are_restless",
+      "title": "The Camps Are Restless",
+      "body": "The world your house holds beyond the march is restless. No fleet of yours has stood over it this year. Three years without three hulls in its orbit and it will rise and be theirs again, unless they are paying the Reach tribute.",
+      "choices": {
+        "order_a_fleet_there": "Order hulls sent there.",
+        "let_it_go_if_it_goes": "Let it go, if it goes."
+      }
+    },
+    {
+      "id": "the_camps_rise",
+      "title": "The Camps Rise",
+      "body": "The world your house held beyond the march has risen. No fleet stood over it for three years, and it is theirs again without a battle.",
+      "choices": {
+        "shrug_it_off": "It was never going to be easy to keep.",
+        "take_it_hard": "Ask where the garrison was."
+      }
+    },
+    {
+      "id": "their_capital_falls",
+      "title": "Their Capital Falls",
+      "body": "A fleet of the Reach has taken the world where their ruler sat. If there is a war, that ends it. Their ruler sits somewhere else now, and the world itself will need a fleet over it to be kept.",
+      "choices": {
+        "mark_the_day": "Have the day marked.",
+        "ask_what_comes_after": "Ask the Senate who will hold it, and with what."
+      }
     }
   ]
 }

@@ -46,7 +46,7 @@ public sealed class VentureSystem
     public int Bid(World w, string buyerId, Business b)
     {
         var buyer = w.House(buyerId); var seller = w.House(b.OwnerId);
-        if (buyer == null || seller == null || buyerId == b.OwnerId || buyerId == PirateSystem.HouseId || b.CompanyId.Length > 0) return 0;
+        if (buyer == null || seller == null || buyerId == b.OwnerId || World.Outsider(buyerId) || b.CompanyId.Length > 0) return 0;
         if (w.AtWar(buyerId, b.OwnerId)) return 0;
         if (w.Businesses.Values.Any(o => o.OwnerId == buyerId && o.Kind == b.Kind && o.SystemId == b.SystemId)) return 0;   // one of a kind a system
         bool holder = Holder(w, b) == buyerId;
@@ -348,12 +348,12 @@ public sealed class VentureSystem
     private void Foreclose(World w, string? mine)
     {
         foreach (var h in w.Houses.Values.Where(h => h.Treasury.Credits >= 0)) w.WorldCounters.Remove(OverdrawnKey(h.Id));
-        foreach (var h in w.Houses.Values.Where(h => h.Treasury.Credits < 0 && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        foreach (var h in w.Houses.Values.Where(h => h.Treasury.Credits < 0 && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             Bump(w, OverdrawnKey(h.Id)); Bump(w, OverdrawnYearsCounter);
             if (h.Id == mine && w.Counter(OverdrawnKey(h.Id)) == OverdrawnYears - 1 && w.BusinessesOf(h.Id).Any(x => x.CompanyId.Length == 0 && HolderOf(w, x) == null)) w.Log("The house is overdrawn. If it still is next year, those it owes will take one of its ventures."); if (h.Treasury.Credits <= ForecloseAt) Bump(w, DeepOverdrawnYearsCounter); if (w.BusinessesOf(h.Id).Any(x => x.CompanyId.Length == 0)) Bump(w, OverdrawnWithVentureCounter);
         }
-        foreach (var house in w.Houses.Values.Where(h => (h.Debt > 0 && h.Treasury.Credits < 0 || h.Treasury.Credits <= ForecloseAt || w.Counter(OverdrawnKey(h.Id)) >= OverdrawnYears) && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        foreach (var house in w.Houses.Values.Where(h => (h.Debt > 0 && h.Treasury.Credits < 0 || h.Treasury.Credits <= ForecloseAt || w.Counter(OverdrawnKey(h.Id)) >= OverdrawnYears) && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             bool Free(Business x) => x.CompanyId.Length == 0 && HolderOf(w, x) == null && _ventures.Def(x.Kind) != null;
             // what the head has pledged goes first; otherwise the least of its ventures; with none, a thing handed down; last, a world
@@ -445,7 +445,7 @@ public sealed class VentureSystem
     /// let it go. The player is never sold to unasked.</summary>
     private void OthersAct(World w, Business b, string? mine)
     {
-        var owner = w.House(b.OwnerId); if (owner == null || owner.Id == PirateSystem.HouseId) return; var head = Economy.HeadOf(w, owner);
+        var owner = w.House(b.OwnerId); if (owner == null || World.Outsider(owner.Id)) return; var head = Economy.HeadOf(w, owner);
         bool minds = (head?.Skill("economics") ?? 0) >= 2 || FactionSystem.Of(w, owner.Id)?.PartyId == "factors" || Hash($"{b.Id}:{w.Turn}:minds") % 3 == 0;
         if (!minds) return;
         int cost = PropCost(w, b);

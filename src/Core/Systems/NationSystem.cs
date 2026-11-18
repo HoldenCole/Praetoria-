@@ -11,7 +11,7 @@ namespace Praetoria.Core.Systems;
 /// and come home with plunder, valour and fewer hulls; a war ends when either side's score passes the nation's threshold (the Reach subdues it
 /// and takes tribute for twenty turns, or the chair buys peace), or when twelve turns pass without a battle.
 /// </summary>
-public sealed class NationSystem
+public sealed partial class NationSystem
 {
     public const int SubduedTurns = 20, FightTurns = 4, ExhaustionTurns = 12, RegenEvery = 5, RaidEvery = 6, RaidUnrest = 8, RaidCredits = 5, RaidMinGap = 4;
     public const double NationPowerPerStrength = 1.0, NationReserve = 1.25, WinStrengthLoss = 0.4, WinHullLoss = 0.15, LossHullLoss = 0.3;
@@ -41,7 +41,7 @@ public sealed class NationSystem
     {
         foreach (var d in catalog.Defs.OrderBy(d => d.Id, StringComparer.Ordinal))
             if (w.Nation(d.Id) == null) w.Nations.Add(new Nation { Id = d.Id, Strength = d.Strength, Disposition = d.Disposition });
-        foreach (var n in w.Nations) if (catalog.Def(n.Id) is { } def) People(w, n, def);
+        foreach (var n in w.Nations) if (catalog.Def(n.Id) is { } def) { People(w, n, def); Place(w, n, def); }
     }
 
     // ---- a face (docs/BEYOND.md, stage 0): a ruler and a commander of the fleets, with names of the nation's own ----
@@ -76,6 +76,13 @@ public sealed class NationSystem
         People(w, n, d); var r = n.Ruler!; r.Age++; if (n.Commander is { } c) c.Age++;
         if (n.Commander is { Age: >= 66 } old) { w.Log($"{Styled(d, old, false)} of {d.Name} lays down the command, old."); n.Commander = NewCommander(w, n, d); }
         if (r.Age < RulerOldAge || Hash($"reign:{n.Salt}:{n.Id}:{w.Turn}") / 7 % (uint)Math.Max(2, 80 - r.Age) != 0) return;
+        Succeed(w, n, d, killed: false);
+    }
+
+    /// <summary>The ruler is dead, of age or by someone's hand, and is followed.</summary>
+    private static void Succeed(World w, Nation n, NationDef d, bool killed)
+    {
+        var r = n.Ruler!;
         uint hh = Hash($"heir:{n.Salt}:{n.Id}:{w.Turn}");
         bool general = n.Commander is { Skill: >= 5 } && hh / 7 % 3 == 0; var next = general ? n.Commander! : null;
         // a general who takes the chair is never mild, and is warlike as often as not
@@ -83,7 +90,7 @@ public sealed class NationSystem
         n.Ruler = ruler; int shift = ruler.Nature switch { "warlike" => -10, "mild" => 10, "grasping" => 4, _ => 0 };
         if (!n.Subdued(w.Turn)) n.Disposition = Math.Clamp(n.Disposition + shift, -100, 100);
         w.WorldCounters[SuccessionsCounter] = w.Counter(SuccessionsCounter) + 1; w.WorldFlags.Add("nation_succession");
-        w.Log($"{Styled(d, r, true)} of {d.Name} is dead at {r.Age}. {(general ? $"The commander of its fleets takes the chair: {Styled(d, ruler, true)}" : $"{Styled(d, ruler, true)} follows")}, {ruler.Nature} by nature{(shift < 0 ? ", and no friend to the Reach" : shift > 0 ? ", and easier to deal with" : "")}.");
+        w.Log($"{Styled(d, r, true)} of {d.Name} is dead{(killed ? "" : $" at {r.Age}")}. {(general ? $"The commander of its fleets takes the chair: {Styled(d, ruler, true)}" : $"{Styled(d, ruler, true)} follows")}, {ruler.Nature} by nature{(shift < 0 ? ", and no friend to the Reach" : shift > 0 ? ", and easier to deal with" : "")}.");
     }
 
     // ---- a door (docs/BEYOND.md, stage 0): the systems of the rim that face a nation ----
@@ -103,7 +110,7 @@ public sealed class NationSystem
     public static Fleet? Guard(World w, NationDef d)
     {
         var marches = Marches(w, d);
-        return w.Fleets.Values.Where(f => !f.IsAway && !f.Moving && f.OwnerId != PirateSystem.HouseId && f.Strength >= MarchGuard && marches.Contains(f.SystemId))
+        return w.Fleets.Values.Where(f => !f.IsAway && !f.Moving && !World.Outsider(f.OwnerId) && f.Strength >= MarchGuard && marches.Contains(f.SystemId))
             .OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
     }
 
@@ -118,7 +125,7 @@ public sealed class NationSystem
     /// <summary>The Senate has voted war (SenateSystem.Apply) — or a test has. One war abroad at a time.</summary>
     public static void DeclareWar(World w, NationCatalog catalog, string nationId, string proposerHouseId)
     {
-        var n = w.Nation(nationId); var d = catalog.Def(nationId); if (n == null || d == null || n.AtWar || n.Subdued(w.Turn)) return;
+        var n = w.Nation(nationId); var d = catalog.Def(nationId); if (n == null || d == null || n.AtWar || n.Fallen || n.Subdued(w.Turn)) return;
         if (AtWar(w) != null) return;
         n.AtWar = true; n.WarSince = w.Turn; n.ScoreReach = 0; n.ScoreNation = 0; n.LastBattleTurn = w.Turn; n.Wars += 1; n.Disposition = Math.Max(-100, n.Disposition - 20);
         w.WorldCounters[WarsCounter] = w.Counter(WarsCounter) + 1;
@@ -129,6 +136,7 @@ public sealed class NationSystem
     public void Tick(World w)
     {
         foreach (var f in TurnFlags) w.WorldFlags.Remove(f);
+        ClearMarks(w);
         if (w.WorldFlags.Remove("expedition_sent")) w.WorldFlags.Add("fleet_sailed_abroad");   // the player's order last turn becomes this turn's news
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("nation_subdued:") || f.StartsWith("raided_by:")).ToList()) w.WorldFlags.Remove(f);
         if (_catalog.IsEmpty) return;
@@ -136,12 +144,14 @@ public sealed class NationSystem
         var mine = w.Protagonist?.HouseId;
         foreach (var n in w.Nations.OrderBy(n => n.Id, StringComparer.Ordinal))
         {
-            var d = _catalog.Def(n.Id); if (d == null) continue;
+            var d = _catalog.Def(n.Id); if (d == null || n.Fallen) continue;
             Reign(w, n, d, mine);
+            Keep(w, n, d);
             Drift(w, n, d);
             Raid(w, n, d, mine);
             foreach (var f in Expeditions(w, n.Id).ToList()) Sail(w, n, d, f, mine);
             ResolveWar(w, n, d, mine);
+            Keep(w, n, d, afterTheWar: true);   // the peace may have moved its capital and its people
             Tribute(w, n, d, mine);
         }
         // standing flags
@@ -157,8 +167,8 @@ public sealed class NationSystem
     {
         if (w.Turn % RegenEvery == 0)
         {
-            if (d.Temper == "decaying") { if (w.Turn % (RegenEvery * 2) == 0 && n.Strength > 4) n.Strength -= 1; }
-            else if (n.Strength < d.Strength) n.Strength = Math.Min(d.Strength, n.Strength + Math.Max(1, d.Regen));
+            if (d.Temper == "decaying") { if (w.Turn % (RegenEvery * 2) == 0 && n.Strength > 4 && !n.OnMap) n.Strength -= 1; }
+            else if (n.Strength < d.Strength && !n.OnMap) n.Strength = Math.Min(d.Strength, n.Strength + Math.Max(1, d.Regen));
         }
         if (n.AtWar) n.Disposition = Math.Max(-80, n.Disposition - 2);
         else if (n.Subdued(w.Turn)) { }
@@ -191,11 +201,11 @@ public sealed class NationSystem
             return;
         }
         var rim = marches.Count > 0
-            ? w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && h.OwnerId != PirateSystem.HouseId && marches.Select(m => w.Galaxy.Hops(m, h.SystemId)).Where(x => x >= 0).DefaultIfEmpty(99).Min() <= RaidReach)
+            ? w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && !World.Outsider(h.OwnerId) && marches.Select(m => w.Galaxy.Hops(m, h.SystemId)).Where(x => x >= 0).DefaultIfEmpty(99).Min() <= RaidReach)
                 .OrderBy(h => marches.Select(m => w.Galaxy.Hops(m, h.SystemId)).Where(x => x >= 0).DefaultIfEmpty(99).Min()).ThenBy(h => h.Id, StringComparer.Ordinal).Take(5).ToList()
             : new List<Holding>();
-        if (rim.Count == 0) rim = w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && h.OwnerId != PirateSystem.HouseId && w.Galaxy.RingOf(h.SystemId) == Galaxy.Ring.Rim).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
-        if (rim.Count == 0) rim = w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && h.OwnerId != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        if (rim.Count == 0) rim = w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && !World.Outsider(h.OwnerId) && w.Galaxy.RingOf(h.SystemId) == Galaxy.Ring.Rim).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        if (rim.Count == 0) rim = w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && !World.Outsider(h.OwnerId)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
         if (rim.Count == 0) return;
         var target = rim[(int)(Hash($"raidat:{n.Id}:{w.Turn}") % (uint)rim.Count)];
         if (FleetSystem.StrengthAt(w, target.OwnerId, target.SystemId) >= 3) { n.LastRaidTurn = w.Turn; w.WorldCounters[RaidsRepelledCounter] = w.Counter(RaidsRepelledCounter) + 1; w.Log($"Raiders of {d.Name}{led} come for {target.Name} and find the fleet of {w.House(target.OwnerId)?.Name} in orbit; they turn back."); return; }
@@ -342,9 +352,9 @@ public sealed class NationSystem
         var chair = RegionSystem.CapitalHolder(w);
         if (n.ScoreReach - n.ScoreNation >= d.Threshold || n.Strength <= 0)
         {
-            n.SubduedUntil = w.Turn + SubduedTurns; n.Disposition = Math.Min(100, n.Disposition + 10); n.Strength = Math.Max(2, n.Strength);
+            n.SubduedUntil = w.Turn + SubduedTurns; n.Disposition = Math.Min(100, n.Disposition + 10); if (!n.OnMap) n.Strength = Math.Max(2, n.Strength);
             w.WorldCounters[SubduedCounter] = w.Counter(SubduedCounter) + 1; w.WorldFlags.Add("nation_subdued"); w.WorldFlags.Add("nation_subdued:" + n.Id);
-            var top = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderByDescending(h => w.Counter(WinsKey(h.Id, n.Id))).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault(h => w.Counter(WinsKey(h.Id, n.Id)) > 0);
+            var top = w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderByDescending(h => w.Counter(WinsKey(h.Id, n.Id))).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault(h => w.Counter(WinsKey(h.Id, n.Id)) > 0);
             if (top != null)
             {
 top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legitimacy + LegitimacyTriumph); top.SphereInfluence["senate"] = top.SphereInfluence.GetValueOrDefault("senate") + InfluenceTriumph;
@@ -353,6 +363,8 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
                 w.Log($"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years. The triumph is {top.Name}'s, whose fleets won it.");
             }
             else w.Log($"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years.");
+            if (n.OnMap) w.WorldCounters[SubduedCounter + ":map"] = w.Counter(SubduedCounter + ":map") + 1;
+            PeaceOnMap(w, n, d, reachWon: true);
             EndWar(w, n, d);
         }
         else if (n.ScoreNation - n.ScoreReach >= d.Threshold)
@@ -361,12 +373,16 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
             w.WorldCounters[LostCounter] = w.Counter(LostCounter) + 1; w.WorldFlags.Add("war_lost_abroad");
             if (chair != null) { chair.Treasury.Credits -= d.Tribute * 3; chair.Legitimacy = Math.Max(0, chair.Legitimacy - LegitimacyDefeat); }
             w.Log($"The war with {d.Name} is lost: the chair{(chair != null ? $" of {chair.Name}" : "")} buys peace for {d.Tribute * 3} credits, and the Reach is shamed.");
+            if (n.OnMap) w.WorldCounters["wars_lost_to_nations_on_map"] = w.Counter("wars_lost_to_nations_on_map") + 1;
+            PeaceOnMap(w, n, d, reachWon: false);
             EndWar(w, n, d);
         }
         else if (w.Turn - Math.Max(n.WarSince, n.LastBattleTurn) >= ExhaustionTurns)
         {
             w.WorldFlags.Add("foreign_peace");
             w.Log($"The war with {d.Name} gutters out: no fleet has met theirs in {ExhaustionTurns} years, and both sides let it lie.");
+            if (n.OnMap) w.WorldCounters["wars_guttered_on_map"] = w.Counter("wars_guttered_on_map") + 1;
+            PeaceOnMap(w, n, d, reachWon: false);   // each keeps what it holds
             EndWar(w, n, d);
         }
     }

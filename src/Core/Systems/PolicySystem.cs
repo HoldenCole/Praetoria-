@@ -35,7 +35,7 @@ public static class PolicySystem
     public static void ApplyCultures(World w, PolicyCatalog cat)
     {
         if (cat.IsEmpty) return;
-        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId))
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)))
         {
             if (!cat.Cultures.TryGetValue(h.Culture, out var set)) continue;
             foreach (var (lawId, optionId) in set)
@@ -137,7 +137,7 @@ public static class PolicySystem
             if (!holds) continue;
             var o = Option(w, cat, houseId, law.Id); if (o != null) foreach (var (k, v) in o.Effects) t.Base[k] = t.Base.GetValueOrDefault(k) + v;
         }
-        if (houseId != PirateSystem.HouseId)   // the estates' regard, for every house
+        if (!World.Outsider(houseId))   // the estates' regard, for every house
             foreach (var e in cat.Estates)
             {
                 int a = Approval(w, houseId, e.Id);
@@ -200,13 +200,13 @@ public static class PolicySystem
         if (cat.IsEmpty) return;
         var mine = w.Protagonist?.HouseId; if (mine == null) return; var house = w.House(mine); if (house == null) return;
         // every house's estates drift toward what its laws say (rivals have no offsets: events speak only to the player)
-        foreach (var h in w.Houses.Values.Where(h => h.Id != mine && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var h in w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
             foreach (var e in cat.Estates)
             {
                 string key = ApprovalKey(w, h.Id, e.Id); int a = w.Counter(key); int diff = Math.Clamp(LawOpinion(w, cat, h.Id, e.Id), -100, 100) - a;
                 if (diff != 0) w.WorldCounters[key] = Math.Clamp(a + Math.Sign(diff) * Math.Min(DriftStep, Math.Abs(diff)), -100, 100);
             }
-        w.WorldCounters["rivals_with_hostile_commons"] = w.Houses.Values.Count(h => h.Id != mine && h.Id != PirateSystem.HouseId && Approval(w, h.Id, "commons") <= Hostile);
+        w.WorldCounters["rivals_with_hostile_commons"] = w.Houses.Values.Count(h => h.Id != mine && !World.Outsider(h.Id) && Approval(w, h.Id, "commons") <= Hostile);
         // keep the tithe in step with the law for every house that chose one
         foreach (var (hid, set) in w.Laws) foreach (var law in cat.Laws.Where(l => l.TaxPolicy)) if (set.TryGetValue(law.Id, out var o) && w.House(hid) is { } hh) hh.TaxPolicy = o;
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("estate_loyal:") || f.StartsWith("estate_hostile:") || f.StartsWith("law:")).ToList()) w.WorldFlags.Remove(f);

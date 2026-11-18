@@ -89,7 +89,7 @@ public static class AcademyProjection
                 head != null ? content.Careers.RankName(head.CareerTrack, head.CareerRank, w.Era) ?? "" : "", party?.Name ?? "no party", party?.Accent ?? "#888", senate.Weight(w, h.Id), Worlds(h.Id), Hulls(h.Id),
                 head != null && h.Id != house.Id ? w.GetRelationship(head.Id, p.Id)?.Disposition ?? 0 : 0, chair?.Id == h.Id, h.Id == house.Id);
         }
-        var great = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != house.Id).OrderByDescending(h => senate.Weight(w, h.Id)).ThenByDescending(h => Progression.Title.RankOf(h.Title)).ThenBy(h => h.Id, StringComparer.Ordinal).Take(7).Select(HouseLine).ToList();
+        var great = w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != house.Id).OrderByDescending(h => senate.Weight(w, h.Id)).ThenByDescending(h => Progression.Title.RankOf(h.Title)).ThenBy(h => h.Id, StringComparer.Ordinal).Take(7).Select(HouseLine).ToList();
         var yours = new List<AcademyFact>
         {
             new("Rank", $"{content.Titles.NameOf(house.Title, w.Era)}, legitimacy {house.Legitimacy}. {senate.Weight(w, house.Id)} seat{(senate.Weight(w, house.Id) == 1 ? "" : "s")} in the Senate."),

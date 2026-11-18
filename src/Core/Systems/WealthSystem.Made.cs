@@ -51,7 +51,7 @@ public static partial class WealthSystem
     private static void OthersCommission(World w)
     {
         string? mine = w.Protagonist?.HouseId;
-        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != mine && h.Treasury.Credits >= OthersCommissionAt).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != mine && h.Treasury.Credits >= OthersCommissionAt).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             var head = Economy.HeadOf(w, h); if (head?.Alive != true) continue;
             uint x = Hash($"{h.Id}:{w.Turn}:commission") / 7; if (x % OthersCommissionOneIn != 0) continue;   // the low bits of the hash follow the id too closely to be used bare
@@ -66,7 +66,7 @@ public static partial class WealthSystem
     public static Heirloom? StandardWon(World w, string winnerId, string loserId, string systemId, IReadOnlyList<Character> admirals)
     {
         var house = w.House(winnerId); var beaten = w.House(loserId);
-        if (house == null || beaten == null || winnerId == PirateSystem.HouseId || loserId == PirateSystem.HouseId || admirals.Count == 0) return null;
+        if (house == null || beaten == null || World.Outsider(winnerId) || World.Outsider(loserId) || admirals.Count == 0) return null;
         string where = w.Galaxy?.System(systemId)?.Name ?? systemId;
         // a standard of the winner's that the beaten house flies is what the day was for: it comes home
         var lost = w.Heirlooms.Where(h => IsSpoil(h) && h.FromHouseId == winnerId && w.Char(h.HolderId) is { } hc && hc.HouseId == loserId).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
@@ -101,7 +101,7 @@ public static partial class WealthSystem
     {
         if (w.Turn <= 0 || bride.HouseId == groom.HouseId) return null;
         var to = dowryPaid > 0 ? bride : groom; var fromHouse = w.House(dowryPaid > 0 ? groom.HouseId : bride.HouseId); var toHouse = w.House(to.HouseId);
-        if (fromHouse == null || toHouse == null || fromHouse.Id == PirateSystem.HouseId || toHouse.Id == PirateSystem.HouseId || fromHouse.Id == w.Protagonist?.HouseId) return null;
+        if (fromHouse == null || toHouse == null || World.Outsider(fromHouse.Id) || World.Outsider(toHouse.Id) || fromHouse.Id == w.Protagonist?.HouseId) return null;
         var giver = Economy.HeadOf(w, fromHouse); if (giver?.Alive != true) return null;
         if (Hash($"{bride.Id}:{groom.Id}:plate") / 7 % PlateOneIn != 0) return null;
         string id = $"plate_{bride.Id}_{groom.Id}"; if (w.Heirlooms.Any(h => h.Id == id)) return null;
@@ -229,11 +229,11 @@ public static partial class WealthSystem
         string? mine = w.Protagonist?.HouseId;
         if (w.WorldFlags.Remove(SendBackFlag) && mine != null && w.Heirlooms.Where(h => h.Id.StartsWith("gift_", StringComparison.Ordinal) && w.Char(h.HolderId)?.HouseId == mine).OrderByDescending(h => h.Id.Length).ThenByDescending(h => h.Id, StringComparer.Ordinal).FirstOrDefault(h => w.House(h.FromHouseId) != null) is { } back)
         { w.Heirlooms.Remove(back); Count(w, SentBackKey); w.WorldCounters.Remove(FavourKey(mine, back.FromHouseId)); }
-        foreach (var a in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != mine && h.Treasury.Credits >= MendAt).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        foreach (var a in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != mine && h.Treasury.Credits >= MendAt).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             var head = Economy.HeadOf(w, a); if (head?.Alive != true || Hash($"{a.Id}:{w.Turn}:mend") / 7 % MendOneIn != 0) continue;
             // whoever they think worst of, of those they could still make it up with
-            var to = w.Houses.Values.Where(b => b.Id != a.Id && b.Id != PirateSystem.HouseId && !w.AtWar(a.Id, b.Id)).Select(b => Economy.HeadOf(w, b)).Where(c => c is { Alive: true }).Select(c => (c: c!, r: w.GetRelationship(head.Id, c!.Id)?.Disposition ?? 0))
+            var to = w.Houses.Values.Where(b => b.Id != a.Id && !World.Outsider(b.Id) && !w.AtWar(a.Id, b.Id)).Select(b => Economy.HeadOf(w, b)).Where(c => c is { Alive: true }).Select(c => (c: c!, r: w.GetRelationship(head.Id, c!.Id)?.Disposition ?? 0))
                 .Where(x => x.r >= MendFrom && x.r <= MendTo).OrderBy(x => x.r).ThenBy(x => x.c.Id, StringComparer.Ordinal).Select(x => x.c).FirstOrDefault();
             if (to == null || w.Heirlooms.Any(h => h.Kind == Plate && h.FromHouseId == a.Id && h.OfHouseId == to.HouseId)) continue;
             if (Refuses(w, to, head, RefuseMendAt, mine)) continue;   // sent back unopened: the quarrel is worse for the asking
@@ -262,7 +262,7 @@ public static partial class WealthSystem
     /// been taken from the stormers' own house comes home instead, for certain.</summary>
     public static Heirloom? Plunder(World w, string loserId, string takerId, Holding world, IReadOnlyList<Character> admirals)
     {
-        var loser = w.House(loserId); var takers = w.House(takerId); if (loser == null || takers == null || loserId == PirateSystem.HouseId || takerId == PirateSystem.HouseId) return null;
+        var loser = w.House(loserId); var takers = w.House(takerId); if (loser == null || takers == null || World.Outsider(loserId) || World.Outsider(takerId)) return null;
         var from = new List<string>(); if (w.Char(world.GovernorId) is { Alive: true } gov && gov.HouseId == loserId) from.Add(gov.Id);
         if (!w.HoldingsOf(loserId).Any(h => h.IsPlanet) && Economy.HeadOf(w, loser) is { Alive: true } lh && !from.Contains(lh.Id)) from.Add(lh.Id);
         var things = w.Heirlooms.Where(h => from.Contains(h.HolderId) && CarriedOff.Contains(h.Kind)).OrderByDescending(h => h.Value).ThenBy(h => h.Id, StringComparer.Ordinal).ToList(); if (things.Count == 0) return null;
@@ -320,11 +320,11 @@ public static partial class WealthSystem
     {
         string? mine = w.Protagonist?.HouseId;
         if (w.WorldFlags.Remove(DeclineFlag) && mine != null) foreach (var h in IOwe(w, mine).Where(h => Economy.HeadOf(w, h) is { } hd && hd.Flags.Contains(AsksFavourChar))) w.WorldCounters.Remove(FavourKey(mine, h.Id));
-        foreach (var a in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != mine && h.Treasury.Credits >= MendAt).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        foreach (var a in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != mine && h.Treasury.Credits >= MendAt).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             var head = Economy.HeadOf(w, a); if (head?.Alive != true || !w.Motions.Any(m => m.Open && m.ProposerHouseId == a.Id)) continue;
             if (Hash($"{a.Id}:{w.Turn}:favour") / 7 % FavourOneIn != 0) continue;
-            var to = w.Houses.Values.Where(b => b.Id != a.Id && b.Id != PirateSystem.HouseId && !w.AtWar(a.Id, b.Id) && !FavourOwed(w, b.Id, a.Id)).Select(b => (b, c: Economy.HeadOf(w, b))).Where(x => x.c is { Alive: true })
+            var to = w.Houses.Values.Where(b => b.Id != a.Id && !World.Outsider(b.Id) && !w.AtWar(a.Id, b.Id) && !FavourOwed(w, b.Id, a.Id)).Select(b => (b, c: Economy.HeadOf(w, b))).Where(x => x.c is { Alive: true })
                 .Where(x => (w.GetRelationship(head.Id, x.c!.Id)?.Disposition ?? 0) is >= FavourFrom and <= FavourTo).OrderByDescending(x => x.b.Legitimacy).ThenBy(x => x.b.Id, StringComparer.Ordinal).Select(x => x.c!).FirstOrDefault();
             if (to == null || w.Heirlooms.Any(h => h.Kind == Orrery && h.FromHouseId == a.Id && h.OfHouseId == to.HouseId)) continue;
             if (Refuses(w, to, head, RefuseFavourAt, mine)) continue;   // they will not be put under an obligation to this house

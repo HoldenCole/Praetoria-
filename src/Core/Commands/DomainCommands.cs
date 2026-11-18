@@ -202,7 +202,7 @@ public sealed class PetitionFiefCommand : ICommand
         int Spare(House h) => w.HoldingsOf(h.Id).Count(x => x.IsPlanet);
         var court = Systems.RegionSystem.CapitalHolder(w);
         if (court != null && court.Id != houseId && !w.AtWar(houseId, court.Id) && Spare(court) >= 2) return court;
-        return w.Houses.Values.Where(h => h.Id != houseId && h.Id != Systems.PirateSystem.HouseId && h.Bloc != Systems.RegionSystem.FreeholdsBloc && !w.AtWar(houseId, h.Id) && Spare(h) >= 2)
+        return w.Houses.Values.Where(h => h.Id != houseId && !World.Outsider(h.Id) && h.Bloc != Systems.RegionSystem.FreeholdsBloc && !w.AtWar(houseId, h.Id) && Spare(h) >= 2)
             .OrderByDescending(Spare).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;

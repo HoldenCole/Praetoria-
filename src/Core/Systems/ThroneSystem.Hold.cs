@@ -34,7 +34,7 @@ public static partial class ThroneSystem
         var parts = new List<(string, int)>(); var e = Emperor(w); if (e == null) return parts;
         var head = Economy.HeadOf(w, e);
         parts.Add(("the standing of the house", (e.Legitimacy - 50) / 2));
-        int all = Math.Max(1, w.Fleets.Values.Where(f => f.OwnerId != PirateSystem.HouseId).Sum(f => f.Strength)), share = Hulls(w, e.Id) * 100 / all;
+        int all = Math.Max(1, w.Fleets.Values.Where(f => !World.Outsider(f.OwnerId)).Sum(f => f.Strength)), share = Hulls(w, e.Id) * 100 / all;
         parts.Add(($"{share} in a hundred of the Reach's hulls", share >= 40 ? 15 : share >= 25 ? 8 : share >= 15 ? 0 : share >= 8 ? -10 : -15));
         string? capital = w.Galaxy is { Capital.Length: > 0 } g ? w.PlanetHolder(g.Capital) : e.Id;
         if (capital == e.Id) parts.Add(("holds the capital", 10)); else if (capital != null) parts.Add(("the capital is in another's hands", -15));
@@ -78,7 +78,7 @@ public static partial class ThroneSystem
         void War(string a, string b) { if (w.AtWar(a, b)) return; fleets.DeclareWar(w, a, b); r.Wars.Add(a + "|" + b); }
         w.Log($"{head?.Name ?? house.Name} of {house.Name} RAISES A STANDARD AGAINST THE THRONE. {e.Name}'s hold is {HoldName(r.HoldThen)}, and the houses of the Reach must choose.");
         War(house.Id, e.Id);
-        foreach (var h in w.Houses.Values.Where(h => h.Id != house.Id && h.Id != e.Id && h.Id != mine && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        foreach (var h in w.Houses.Values.Where(h => h.Id != house.Id && h.Id != e.Id && h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             var hh = Economy.HeadOf(w, h); if (hh == null) continue;
             int lean = SideLean(w, h, house, e);
@@ -173,7 +173,7 @@ public static partial class ThroneSystem
         if (e == null)
         {
             // an empty throne is filled: by the pretender if there is one, and otherwise by the strongest house of rank or with a claim
-            var heir = w.Rising != null ? w.House(w.Rising.HouseId) : w.Houses.Values.Where(h => h.Id != mine && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null
+            var heir = w.Rising != null ? w.House(w.Rising.HouseId) : w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null
                     && (titles.RankOf(h.Title) >= titles.RankOf(Title.Duke) || h.Claims.Contains(Title.Emperor)))
                 .OrderByDescending(h => Hulls(w, h.Id)).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
             if (heir == null) return;
@@ -202,7 +202,7 @@ public static partial class ThroneSystem
         if (hold >= RiseAt) { w.WorldCounters.Remove(WeakYearsKey); return; }
         Bump(w, WeakYearsKey); if (w.Counter(WeakYearsKey) < WeakYears) return;
         var throne = Economy.HeadOf(w, e);
-        var riser = w.Houses.Values.Where(h => h.Id != mine && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && RiseRefusal(w, h, titles) == null
+        var riser = w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && RiseRefusal(w, h, titles) == null
                 && (h.Claims.Contains(Title.Emperor) || Regard(w, Economy.HeadOf(w, h), throne) <= 10))
             .OrderByDescending(h => Hulls(w, h.Id)).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
         if (riser != null) Rise(w, riser, fleets);

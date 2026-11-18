@@ -42,14 +42,14 @@ public sealed class MarketSystem
         return w.Market;
     }
 
-    private static int Total(World w, string good) => w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).Sum(h => Math.Max(0, h.Treasury.Get(good)));
+    private static int Total(World w, string good) => w.Houses.Values.Where(h => !World.Outsider(h.Id)).Sum(h => Math.Max(0, h.Treasury.Get(good)));
 
     /// <summary>What every house produced and needs of each good this turn, from its ledger.</summary>
     private Dictionary<string, (double produced, double needed)> Ledgers(World w)
     {
         var sums = _trade.Market.Goods.ToDictionary(g => g.Id, _ => (produced: 0.0, needed: 0.0));
         if (_economy == null) return sums;
-        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
             foreach (var line in _economy.Compute(w, h.Id, _fleets).Lines)
                 foreach (var g in _trade.Market.Goods)
                 {

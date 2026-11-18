@@ -2296,3 +2296,67 @@ The page was not wider than the screen and there were no errors.
 **Left, and mapped.** A march is named on the Military screen and not marked on the map. A nation's people cannot be
 met, married, bribed or captured. The safe question for "which houses are of the Reach" was moved to stage 1, where
 it is first needed (R10).
+
+## 76. The Vashti Khanates on the map — 2026-11-18
+
+The owner: "let's focus on adding in nations, then we can figure out the details. Add in the khanate first." Built
+the same day on the assumptions written in docs/BEYOND.md (R10b closed; N1 to N8 mapped). The rules are in
+docs/BEYOND.md, "The Vashti Khanates on the map, as built".
+
+**What it took.**
+- **A place.** A fourth ring and one region, the Vashti Steppe: three systems and five lanes west of The Anvil and
+  The Veil. 34 systems, 45 lanes, 11 regions.
+- **One question for "is this house of the Reach".** 111 places left out only the raiders' house. They now ask
+  `World.Outsider`, which is true of the raiders and of the house that stands for a nation. A nation's house is named
+  for the nation, so the question needs no world in hand. `LivingCharacters` leaves a nation's ruler and commander
+  out, so nothing in the Reach's own life can pick them up by accident; `Foreigners` lists them.
+- **The Reach's rules kept out of the Steppe.** Allegiance, raider nests, the great crisis and the regional standing
+  of the magistrates walk `ReachRegions`, and no region state is kept for a region beyond the rim.
+- **War in the form the raiders have.** `World.AtWar` and `EnemiesOf` answer for a nation at war without a war
+  record for each pair of houses.
+
+**Found while measuring, and changed.**
+
+| What the first runs showed | What was done |
+|---|---|
+| The host walked from world to world taking each in two years. The Reach won 4 battles of 40 and ceded 11 worlds in ten games | A siege takes a host two years longer. One world a season: it goes home with what it took. It needs supply |
+| A house that freed a neighbour's world kept it | A world freed goes home to the house it was taken from |
+| Squadrons of one to three hulls were fed to a host of ten, one house at a time | The houses of the Reach fight a nation's fleet as one. A house goes when what the Reach could bring matches what is there |
+| A squadron swatted counted as much as a host beaten | It counts one; a host beaten counts two |
+| The Reach held half the Khanates' worlds at the end of every game | A world of theirs rises after three years without a fleet over it |
+| The battles the Khanates won were not counted (a comment had swallowed the line) | Fixed; a test now reads the count |
+| Hulls grew back, and ungarrisoned years ran, twice a year | The yearly rules run once; a test counts the years |
+| The soak crashed in every start: its random player picked a region by an index into the wrong list | Fixed in the tool |
+| Stations and claims were counted as worlds ceded | Only worlds are counted |
+
+**Measured** (60 unattended games of 60 years; the player gives no orders).
+
+| | |
+|---|---|
+| Wars with the Khanates | 46: the Reach won 36, lost 8, 2 still being fought |
+| Their host through the march | 63 times |
+| Fleets of the Reach sent against them | 469 |
+| Battles on the map | 169; the Reach won 67 |
+| Worlds of the Reach taken | 25: 17 freed, 1 given back at a won peace, 7 ceded; 3 in their hands at the end |
+| Their own worlds taken | 77; 43 rose again |
+| Their capital taken; the nation ended | 0; 0 |
+| The Republic fell | 0 of 60 |
+
+By start, wars won and lost: the Academy 7 and 4; the Circling Heir 8 and 1; the Fallen House 7 and 0; the New Man
+3 and 1; the Old Lion 7 and 1; the Risen Officer 4 and 1.
+
+**Checked beside it.** The throne probe (20 games as written, 20 with the player crowned): 16 pretenders as written,
+3 thrones taken; nothing in it changed in kind. The soak: 33 games, no failures, 309 of 422 events fired. Four lines
+ended under its random player, against two in the last two soaks; the survival check (a player who gives no orders,
+80 games) lost none. Of the ten new reports, three fired often, two once each, and five (the ones that need the
+player's own fleet or world in the war) never fired for a player who does not go to it.
+
+**In the browser.** The Galaxy screen shows the Steppe west of the Western Marches and lists it under "beyond". The
+Military screen's card for the Khanates reads "on the map", with where the Khan sits, what they hold and where both
+fleets are. No errors; nothing wider than the screen.
+
+794 tests (eleven new, `tests/KhanateTests.cs`).
+
+**Left, and mapped.** N1 (their raids are still rolled), N2 (they never begin a war), N3 (how hard they should be),
+N4 (no economy), N5 (the houses behind the leader), N6 (the map marks no march or border), N7 (the Senate directs
+nothing), N8 (what is taken is a house's, not a province). R10 keeps the other four nations.

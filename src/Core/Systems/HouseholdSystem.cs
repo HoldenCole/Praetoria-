@@ -94,7 +94,7 @@ public sealed class HouseholdSystem
         if (head?.Alive != true || person?.Alive != true) return "no such person";
         var ours = w.House(head.HouseId); if (ours == null) return "no house";
         if (person.HouseId == ours.Id) return "already of your house";
-        if (person.HouseId == PirateSystem.HouseId) return "not from among the raiders";
+        if (World.Outsider(person.HouseId)) return "not from among the raiders";
         if (person.Flags.Contains(DynastySystem.HiddenFlag)) return "they cannot be found";
         if (w.AtWar(ours.Id, person.HouseId)) return "not while your houses are at war";
         if (kind == Ward ? person.Age >= Adult : person.Age < Adult) return kind == Ward ? "a ward is a child" : "they are a child: take them as a ward";
@@ -361,7 +361,7 @@ public sealed class HouseholdSystem
         house.Petitions.RemoveAll(pe => w.Char(pe.PersonId) is not { Alive: true } c || c.HouseId == house.Id || w.Turn - pe.Since >= PetitionYears || TakeInRefusal(w, p, c, pe.As) != null);
         if (house.Petitions.Count == 0 && Found(w, house.Id).Count < Room(house) && Hash(house.Id + ":door:" + w.Turn) % 100 < 14)
         {
-            var asker = w.LivingCharacters().Where(c => c.HouseId != house.Id && c.HouseId != PirateSystem.HouseId && c.Age >= 6 && DynastySystem.Spouse(w, c) == null)
+            var asker = w.LivingCharacters().Where(c => c.HouseId != house.Id && !World.Outsider(c.HouseId) && c.Age >= 6 && DynastySystem.Spouse(w, c) == null)
                 .Select(c => (c, kind: c.Age < Adult ? Ward : c.CareerTrack == p.CareerTrack && p.CareerRank > c.CareerRank ? Protege : Companion))
                 .Where(x => TakeInRefusal(w, p, x.c, x.kind) == null && Willing(w, p, x.c, x.kind).score >= WillingAt + 10)
                 .OrderByDescending(x => Willing(w, p, x.c, x.kind).score + x.c.Skills.Values.Sum()).ThenBy(x => x.c.Id, StringComparer.Ordinal).FirstOrDefault();

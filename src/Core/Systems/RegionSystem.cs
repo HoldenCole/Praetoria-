@@ -33,7 +33,9 @@ public sealed class RegionSystem
     public static RegionState StateOf(World w, string regionId)
     {
         if (w.Regions.TryGetValue(regionId, out var s)) return s;
-        var region = w.Galaxy?.Region(regionId); var rules = w.Galaxy?.RulesFor(region?.Ring ?? Ring.Middle) ?? RingRules.Default(Ring.Middle);
+        var region = w.Galaxy?.Region(regionId);
+        if (region?.Ring == Ring.Beyond) return new RegionState { Allegiance = 50, Lawlessness = 0 };   // a nation's own space: the Reach's allegiance and its lawlessness are not reckoned there, and nothing is kept (docs/BEYOND.md)
+        var rules = w.Galaxy?.RulesFor(region?.Ring ?? Ring.Middle) ?? RingRules.Default(Ring.Middle);
         return w.Regions[regionId] = new RegionState { Allegiance = Math.Clamp(50 + rules.Allegiance, 0, 100), Lawlessness = rules.LawlessnessStart };
     }
 
@@ -62,7 +64,7 @@ public sealed class RegionSystem
     {
         var g = w.Galaxy; if (g == null) return;
         var capital = CapitalHolder(w);
-        foreach (var region in g.Regions.OrderBy(r => r.Id, StringComparer.Ordinal))
+        foreach (var region in g.ReachRegions.OrderBy(r => r.Id, StringComparer.Ordinal))
         {
             var rules = g.RulesFor(region.Ring); var state = StateOf(w, region.Id);
             var systems = g.SystemsIn(region.Id).ToList();
@@ -130,7 +132,7 @@ public sealed class RegionSystem
             if (w.Char(h.GovernorId) is not { Alive: true } seated || seated.HouseId == h.FormerOwnerId) h.GovernorId = "";
         foreach (var h in w.Holdings.Values.Where(h => h.IsPlanet && h.GovernorId.Length > 0 && !h.InRebellion).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
-            var house = w.House(h.OwnerId); var gov = w.Char(h.GovernorId); if (house == null || gov is not { Alive: true } || house.Id == PirateSystem.HouseId) continue;
+            var house = w.House(h.OwnerId); var gov = w.Char(h.GovernorId); if (house == null || gov is not { Alive: true } || World.Outsider(house.Id)) continue;
             if (gov.Id == w.ProtagonistId) continue;   // the player's own character does nothing the player did not choose
             var head = Economy.HeadOf(w, house); if (head == null || gov.Id == head.Id) continue;
             if (!gov.NatureTraits.Contains("Ambitious") || (w.GetRelationship(gov.Id, head.Id)?.Disposition ?? 0) > RevoltDisposition) continue;
@@ -245,7 +247,7 @@ public sealed class RegionSystem
         if (w.Holdings.Values.Any(h => h.FormerOwnerId == mine && w.House(h.OwnerId)?.Bloc == FreeholdsBloc)) w.WorldFlags.Add("freehold_of_ours");
         var seat = worlds.OrderByDescending(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
         if (seat != null) w.WorldFlags.Add("ring:" + g.RingOf(seat.SystemId));
-        foreach (var region in g.Regions)
+        foreach (var region in g.ReachRegions)
         {
             var rw = w.Holdings.Values.Where(h => h.IsPlanet && g.System(h.SystemId)?.RegionId == region.Id).ToList(); if (rw.Count == 0) continue;
             var dominant = rw.GroupBy(h => h.OwnerId).OrderByDescending(x => x.Count()).ThenBy(x => x.Key, StringComparer.Ordinal).First().Key;

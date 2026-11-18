@@ -196,7 +196,7 @@ public static class CharacterWorkshop
                 if (!lim.AnyWorld && g.Capital == s) no.Add("the capital is not given away in a standard start");
             }
             foreach (var v in c.Ventures) if (g?.System(v.System) == null) no.Add($"no such system as '{v.System}'");
-            foreach (var id in new[] { c.PatronId, c.FriendId, c.RivalId }.Where(x => x.Length > 0)) if (baseWorld.House(id) == null || id == HouseId || id == PirateSystem.HouseId) no.Add($"no such house as '{id}'");
+            foreach (var id in new[] { c.PatronId, c.FriendId, c.RivalId }.Where(x => x.Length > 0)) if (baseWorld.House(id) == null || id == HouseId || World.Outsider(id)) no.Add($"no such house as '{id}'");
         }
         var (total, _) = Cost(c, content);
         if (c.Mode == CustomCharacter.Standard && total > lim.Budget) no.Add($"{total} points is over the standard budget of {lim.Budget}");

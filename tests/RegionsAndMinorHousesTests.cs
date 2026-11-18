@@ -2,6 +2,7 @@ using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.Galaxy;
 using Praetoria.Core.State;
+using Praetoria.Core.Systems;
 using Xunit;
 
 namespace Praetoria.Tests;
@@ -14,7 +15,9 @@ public class RegionsAndMinorHousesTests
     {
         var root = ContentLocator.FindContentDir();
         var content = ContentLoader.LoadFromDirectory(root);
-        return (content, WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, scenario), seed));
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, scenario), seed);
+        NationSystem.Seed(w, content.Nations);   // as a saga opens: the nations that are on the map hold their worlds
+        return (content, w);
     }
 
     [Fact]
@@ -22,10 +25,10 @@ public class RegionsAndMinorHousesTests
     {
         var (_, w) = Fresh("the_circling_heir");
         var g = w.Galaxy!;
-        Assert.Equal(31, g.Systems.Count);
-        Assert.Equal(10, g.Regions.Count);
+        Assert.Equal(34, g.Systems.Count);
+        Assert.Equal(11, g.Regions.Count); Assert.Equal(10, g.ReachRegions.Count());   // ten of the Reach, and the Vashti Steppe beyond it (docs/BEYOND.md)
         foreach (var r in g.Regions) Assert.InRange(g.SystemsIn(r.Id).Count(), 3, 4);
-        Assert.Equal(2, g.Regions.Count(r => r.Ring == "core")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "middle")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "rim"));
+        Assert.Equal(2, g.Regions.Count(r => r.Ring == "core")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "middle")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "rim")); Assert.Equal(1, g.Regions.Count(r => r.Ring == "beyond"));
         Assert.All(g.Systems.Values, s => Assert.NotNull(g.Region(s.RegionId)));
         Assert.Equal("aurelian", g.CultureOf("castrum"));
         Assert.Empty(g.Problems());
@@ -76,7 +79,7 @@ public class RegionsAndMinorHousesTests
     {
         var (_, w) = Fresh("the_old_lion");
         var regions = GalaxyProjection.Regions(w);
-        Assert.Equal(10, regions.Count);
+        Assert.Equal(11, regions.Count);
         var grey = regions.Single(r => r.Id == "greywater_reach");
         Assert.Equal("castellan", grey.DominantHouseId);     // the Castellans hold two of its three worlds
         Assert.Equal(3, grey.Planets);

@@ -3,6 +3,16 @@
 ## [Unreleased]
 
 ### Added
+- **The Vashti Khanates are on the map** (docs/BEYOND.md; docs/GAPS.md R10). West of The Anvil and The Veil lies the
+  Vashti Steppe: The Long Grass, Tul Aimag and Khal Orda, where the Khan of Khans sits. The Khanates hold these
+  worlds, and their strength is two fleets: a guard that stays with the Khan and a host under the Noyan. When the
+  Senate votes war, every house is at war with them and it is fought on the map. Their host comes through the march
+  and takes a world, slowly, then goes home with it. A world they hold is theirs until a house of the Reach frees it,
+  and a freed world goes home to the house it was taken from. Against their fleets the houses of the Reach fight as
+  one. At the peace the winner keeps what it took: a lost war cedes what they hold. Their own worlds are easy to take
+  and rise again in three years without a fleet over them. Taking the Great Camp ends a war. The old expedition
+  against them is gone: you sail there by the lanes. The Galaxy and Military screens show all of it, and ten new
+  reports tell you what happens. The other four nations are as they were.
 - **A door and a face for the nations beyond the Reach** (docs/BEYOND.md, stage 0; docs/GAPS.md R10). Each nation
   has a march: one or two systems of the rim that face it. Its raids come through the march and fall on worlds
   within two lanes of it, and a fleet of three hulls standing there turns them back before they land. An

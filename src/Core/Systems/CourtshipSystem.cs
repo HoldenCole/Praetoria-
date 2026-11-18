@@ -114,7 +114,7 @@ public static class CourtshipSystem
 
     /// <summary>Everyone the suitor could court or be promised to, with where the suit would start. Best first.</summary>
     public static List<(Character person, int favour, int consent)> Prospects(World w, Character suitor) =>
-        w.LivingCharacters().Where(t => t.HouseId != suitor.HouseId && t.HouseId != PirateSystem.HouseId && Bar(w, suitor, t) == null && !w.Courtships.Any(c => c.SuitorId == suitor.Id && c.TargetId == t.Id))
+        w.LivingCharacters().Where(t => t.HouseId != suitor.HouseId && !World.Outsider(t.HouseId) && Bar(w, suitor, t) == null && !w.Courtships.Any(c => c.SuitorId == suitor.Id && c.TargetId == t.Id))
             .Select(t => (t, f: t.Age < Adult || suitor.Age < Adult ? 0 : StartFavour(w, suitor, t), k: StartConsent(w, suitor, t)))
             .OrderByDescending(x => CanBear(suitor, x.t)).ThenByDescending(x => x.f + x.k).ThenBy(x => x.t.Id, StringComparer.Ordinal).Select(x => (x.t, x.f, x.k)).ToList();
 
@@ -617,7 +617,7 @@ public static class CourtshipSystem
             }
             else if (!child && w.Turn > c.Since && Standing(w, c) < 70 && Hash(c.Id + ":rival:" + w.Turn) % 100 < 22)
             {
-                var rival = w.LivingCharacters().Where(x => x.HouseId != s.HouseId && x.HouseId != t.HouseId && x.HouseId != PirateSystem.HouseId && x.Age >= Adult && Bar(w, x, t) == null && Math.Abs(x.Age - t.Age) <= 20)
+                var rival = w.LivingCharacters().Where(x => x.HouseId != s.HouseId && x.HouseId != t.HouseId && !World.Outsider(x.HouseId) && x.Age >= Adult && Bar(w, x, t) == null && Math.Abs(x.Age - t.Age) <= 20)
                     .OrderByDescending(x => w.House(x.HouseId)?.Legitimacy ?? 0).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (rival != null) AddRival(w, c, rival);
             }
@@ -642,7 +642,7 @@ public static class CourtshipSystem
             {
                 int chance = (int)((k.Ambition == "win_a_great_love" ? 45 : 22) * w.FamilyAutonomy);
                 if (Hash(k.Id + ":heart:" + w.Turn) % 100 >= chance) continue;
-                var pick = w.LivingCharacters().Where(t => t.HouseId != mine && t.HouseId != PirateSystem.HouseId && t.Age >= Adult && Math.Abs(t.Age - k.Age) <= 15 && Bar(w, k, t) == null)
+                var pick = w.LivingCharacters().Where(t => t.HouseId != mine && !World.Outsider(t.HouseId) && t.Age >= Adult && Math.Abs(t.Age - k.Age) <= 15 && Bar(w, k, t) == null)
                     .Select(t => (t, liking: StartFavour(w, t, k), liked: StartFavour(w, k, t))).Where(x => x.liking >= 40 && x.liked >= 30)
                     .OrderByDescending(x => x.liking + x.liked).ThenBy(x => x.t.Id, StringComparer.Ordinal).Select(x => x.t).FirstOrDefault();
                 if (pick != null) Begin(w, k, pick, own: true);

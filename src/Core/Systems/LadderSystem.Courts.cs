@@ -184,7 +184,7 @@ public static partial class LadderSystem
             var parts = f.Split(':'); if (parts.Length < 3 || w.Char(parts[1]) is not { Alive: true } pr || Seat(w, pr.Id)?.OfficeId != Praetor) w.WorldFlags.Remove(f);
         }
         var mine = w.Protagonist?.HouseId;
-        foreach (var h in w.Houses.Values.Where(h => h.Id != mine && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var h in w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var head = Economy.HeadOf(w, h); if (head == null) continue;
             var d = Chargeable(w, h.Id).FirstOrDefault(x => Regard(w, h, w.House(x.HouseId)) <= ProsecuteAt && Court(w, x, h.Id) != null);

@@ -106,7 +106,8 @@ public static class GalaxyProjection
     public static MapRings? Rings(World world)
     {
         var g = world.Galaxy; if (g == null || g.Systems.Count == 0) return null;
-        double cx = g.Systems.Values.Average(s => s.X), cy = g.Systems.Values.Average(s => s.Y);
+        var reach = g.Systems.Values.Where(s => g.RingOf(s.Id) != Ring.Beyond).ToList(); if (reach.Count == 0) return null;
+        double cx = reach.Average(s => s.X), cy = reach.Average(s => s.Y);
         double R(string ring) { var xs = g.Systems.Values.Where(s => g.RingOf(s.Id) == ring).ToList(); return xs.Count == 0 ? 0 : xs.Average(s => Math.Sqrt((s.X - cx) * (s.X - cx) + (s.Y - cy) * (s.Y - cy) / 0.38)); }
         return new MapRings(cx, cy, R(Ring.Core), R(Ring.Middle), R(Ring.Rim));
     }

@@ -94,7 +94,7 @@ public sealed partial class CompanySystem
         if (NationSystem.AtWar(w) is { } n) { c += r.WarAbroadPct / 100.0; why.Add($"the war with {Nations?.Def(n.Id)?.Name ?? "a nation beyond the Reach"}"); }
         int stage = w.Counter(GreatCrisisSystem.StageCounter) + 1;
         if (w.WorldCounters.ContainsKey(GreatCrisisSystem.StageCounter) && stage > 0 && !w.WorldFlags.Contains(GreatCrisisSystem.ResolvedFlag)) { c += r.CrisisPct * Math.Min(4, stage) / 100.0; why.Add("the crisis of the age"); }
-        var houses = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).ToList();
+        var houses = w.Houses.Values.Where(h => !World.Outsider(h.Id)).ToList();
         double debt = houses.Count == 0 ? 0 : houses.Count(h => h.Debt > 0 || h.Treasury.Credits < 0) / (double)houses.Count;
         if (debt > 0.2) { c += r.DebtPct * debt / 100.0; why.Add("houses in debt"); }
         if (m.PeaceYears > 0) { c += Math.Min(r.PeaceCapPct, r.PeacePct * m.PeaceYears) / 100.0; if (m.PeaceYears >= 3) why.Add($"{m.PeaceYears} years of peace"); }
@@ -432,7 +432,7 @@ public sealed partial class CompanySystem
         if (!w.IsImperium) return "the Republic grants no monopolies";
         if (ThroneSystem.Emperor(w)?.Id != houseId) return "only the throne grants a monopoly";
         if (co == null || !co.Chartered) return "only a chartered company may be granted";
-        if (w.House(granteeId) == null || granteeId == PirateSystem.HouseId) return "no such house";
+        if (w.House(granteeId) == null || World.Outsider(granteeId)) return "no such house";
         return co.MonopolyOf == granteeId ? "it holds the grant already" : null;
     }
     /// <summary>The throne grants a great company's monopoly to a house: it directs the company, takes a rent off the top of its

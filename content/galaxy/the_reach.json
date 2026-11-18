@@ -104,6 +104,13 @@
       "culture": "palefolk",
       "ring": "rim",
       "description": "Hard winters at the end of the lanes. Knightly houses that answer to no count, and the richest, loneliest belt in the Reach."
+    },
+    {
+      "id": "vashti_steppe",
+      "name": "The Vashti Steppe",
+      "culture": "vashti",
+      "ring": "beyond",
+      "description": "Beyond the Western Marches and not of the Reach: grass-worlds and wells held by the khans of the Vashti. No law of the Senate runs here."
     }
   ],
   "systems": [
@@ -1016,6 +1023,77 @@
           "size": 2
         }
       ]
+    },
+    {
+      "id": "the_long_grass",
+      "name": "The Long Grass",
+      "x": 40,
+      "y": 905,
+      "region": "vashti_steppe",
+      "planet": "arid",
+      "description": "The first world of the steppe, a day's sail beyond the Anvil and the Veil. Whoever holds it holds the door, from either side.",
+      "bodies": [
+        {
+          "name": "The Long Grass",
+          "class": "arid",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Grass Moon",
+          "class": "barren",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "tul_aimag",
+      "name": "Tul Aimag",
+      "x": -175,
+      "y": 1085,
+      "region": "vashti_steppe",
+      "planet": "arid",
+      "description": "Wells, herds and the yards where the khans' ships are mended. Each clan keeps a camp here and none of them rules it.",
+      "bodies": [
+        {
+          "name": "Tul Aimag",
+          "class": "arid",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Tul Belt",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "khal_orda",
+      "name": "Khal Orda",
+      "x": -215,
+      "y": 790,
+      "region": "vashti_steppe",
+      "planet": "terran",
+      "description": "The great camp of the Khan of Khans. The khans unite here when someone comes for them, and nowhere else.",
+      "bodies": [
+        {
+          "name": "Orda I",
+          "class": "arid",
+          "size": 2
+        },
+        {
+          "name": "Khal Orda",
+          "class": "terran",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Orda III",
+          "class": "gas",
+          "size": 3
+        }
+      ]
     }
   ],
   "lanes": [
@@ -1178,6 +1256,26 @@
     [
       "wintermoor",
       "the_kilns"
+    ],
+    [
+      "anvil",
+      "the_long_grass"
+    ],
+    [
+      "the_veil",
+      "the_long_grass"
+    ],
+    [
+      "the_long_grass",
+      "tul_aimag"
+    ],
+    [
+      "the_long_grass",
+      "khal_orda"
+    ],
+    [
+      "tul_aimag",
+      "khal_orda"
     ]
   ]
 }

@@ -43,7 +43,7 @@ public sealed class ProposeMotionCommand : ICommand
         }
         if (def.Target == "house")
         {
-            var t = w.House(_targetId); if (t == null || _targetId == PirateSystem.HouseId) return "no such house";
+            var t = w.House(_targetId); if (t == null || World.Outsider(_targetId)) return "no such house";
             if (_targetId == house.Id && !def.TargetSelfAllowed) return "not against yourself";
             if (def.TargetMustBeAtWar && !w.Wars.Any(x => x.Involves(_targetId))) return $"{t.Name} is at peace";
             if (w.Motions.Any(m => m.Open && m.Kind == _kind && m.TargetId == _targetId)) return "already before the Senate";
@@ -58,6 +58,7 @@ public sealed class ProposeMotionCommand : ICommand
         {
             var d = _senate.Nations.Def(_targetId); var n = w.Nation(_targetId); if (d == null || n == null) return "no such nation";
             if (n.AtWar) return $"the Reach is already at war with {d.Name}";
+            if (n.Fallen) return $"{d.Name} is no more";
             if (n.Subdued(w.Turn)) return $"{d.Name} already pays tribute";
             if (NationSystem.AtWar(w) is { } other) return $"the Reach fights one war abroad at a time ({_senate.Nations.Def(other.Id)?.Name ?? other.Id})";
             if (w.Motions.Any(m => m.Open && m.Kind == _kind)) return "a war is already before the Senate";
@@ -108,7 +109,7 @@ public sealed class LobbyCommand : ICommand
         var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
         if (actor?.Alive != true || house == null) return "no house";
         var m = w.Motions.FirstOrDefault(x => x.Id == _motionId); if (m == null || !m.Open) return "no such motion before the Senate";
-        var target = w.House(_houseId); if (target == null || _houseId == house.Id || _houseId == PirateSystem.HouseId) return "no such house";
+        var target = w.House(_houseId); if (target == null || _houseId == house.Id || World.Outsider(_houseId)) return "no such house";
         if (_side == 0) return "for or against";
         if (m.Lobbied.Contains(house.Id + "→" + _houseId)) return "you have already had their ear";
         var head = Economy.HeadOf(w, target); if (head == null) return "no one to speak to";
@@ -186,7 +187,7 @@ public sealed class FoundFactionCommand : ICommand
     public string ActorId { get; }
     public string Describe() => "found a bench";
     public static List<string> Followers(World w, string houseId) =>
-        w.Houses.Values.Where(h => h.Id != houseId && h.Id != PirateSystem.HouseId && FactionSystem.Of(w, h.Id) == null && FactionSystem.Affinity(w, h.Id, houseId) >= FactionSystem.FormThreshold)
+        w.Houses.Values.Where(h => h.Id != houseId && !World.Outsider(h.Id) && FactionSystem.Of(w, h.Id) == null && FactionSystem.Affinity(w, h.Id, houseId) >= FactionSystem.FormThreshold)
             .OrderByDescending(h => FactionSystem.Affinity(w, h.Id, houseId)).ThenBy(h => h.Id, StringComparer.Ordinal).Take(4).Select(h => h.Id).ToList();
     public string? Refusal(CommandContext ctx)
     {

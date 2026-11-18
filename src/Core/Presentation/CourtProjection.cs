@@ -91,7 +91,8 @@ public sealed record FleetLine(string Id, string Name, string Where, int Strengt
 /// <summary>A nation beyond the Reach as the Reach sees it (docs/FOREIGN_NATIONS.md): its strength and regard, the war if there is one, its tribute if it pays.</summary>
 public sealed record NationCard(string Id, string Name, string Temper, string Description, string Holds, int Strength, int FullStrength, int Disposition, bool AtWar, int WarSince, int ScoreReach, int ScoreNation,
     int Threshold, int Tribute, int Wealth, int Distance, int SubduedUntil, int Wars, bool RaidedLately, int Expeditions, Option War,
-    string Ruler = "", string RulerNature = "", string Commander = "", int CommanderSkill = 0, string Marches = "", string Guard = "", int Nearest = 0);
+    string Ruler = "", string RulerNature = "", string Commander = "", int CommanderSkill = 0, string Marches = "", string Guard = "", int Nearest = 0,
+    bool OnMap = false, bool Fallen = false, string Capital = "", string Worlds = "", string Fleets = "", string Occupied = "", string Lost = "");
 /// <summary>A battle about to be joined at the turn's end: our fleets share a system with an enemy's.</summary>
 public sealed record BattleBrief(string SystemId, string SystemName, string EnemyHouseId, string EnemyName, int OurHulls, int EnemyHulls, int Confidence, string OurStance, string TheirStance, int Edge, double OurPower, double TheirPower);
 /// <summary>The campaign of the house, and the enemy worlds it could name (docs/MILITARY.md).</summary>
@@ -225,7 +226,7 @@ public static class CourtProjection
             if (house.Wealth == 0 && w.Houses.Values.All(h => h.Wealth == 0)) eco.Reckon(w);
             var table = Wealth.Ranked(w).Select(x => new WealthLine(x.house.Id, x.house.Name, x.house.AccentColor, x.wealth, Wealth.TierFor(w, x.house.Id), x.house.Id == house.Id)).ToList();
             var lender = house.LenderId.Length > 0 ? w.House(house.LenderId)?.Name : null;
-            ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Count, Wealth.TierFor(w, house.Id), house.Debt, lender, f.LoanPrincipal, f.LoanRepay, f.LoanInstalment,
+            ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Keys.Count(h => !World.Outsider(h)), Wealth.TierFor(w, house.Id), house.Debt, lender, f.LoanPrincipal, f.LoanRepay, f.LoanInstalment,
                 new Option("loan", $"Borrow {f.LoanPrincipal} credits (owe {f.LoanRepay}, {f.LoanInstalment} a turn)", new TakeLoanCommand(p.Id, bc).Refusal(ctx)),
                 new Option("repay", $"Clear the debt ({house.Debt} credits)", new RepayLoanCommand(p.Id).Refusal(ctx)), table);
             var vs = tc.Ventures;
@@ -302,13 +303,13 @@ public static class CourtProjection
                 StyleOptions: f.AdmiralId.Length > 0 ? new[] { "front", "flag", "none" }.Select(st => new Option(st, st, new SetCommandStyleCommand(p.Id, f.AdmiralId, st).Refusal(ctx))).ToList() : null,
                 Valour: f.AdmiralId.Length > 0 ? w.Counter(FleetSystem.ValourKey(f.AdmiralId)) : 0, Achilles: f.AdmiralId.Length > 0 && (w.Char(f.AdmiralId)?.Flags.Contains(FleetSystem.AchillesFlag) ?? false),
                 Away: f.Away, AwayName: f.IsAway ? content.Nations.Def(f.Away)?.Name ?? f.Away : "", AwayPhase: f.AwayPhase, AwayTurns: f.AwayTurns, Plunder: f.Plunder, ExpeditionWins: f.ExpeditionWins,
-                Expedition: abroad != null && !f.IsAway ? new Option(abroad.Id, $"Send against {content.Nations.Def(abroad.Id)?.Name ?? abroad.Id}", new SendExpeditionCommand(p.Id, f.Id, abroad.Id, content.Fleets, content.Nations).Refusal(ctx)) : null,
+                Expedition: abroad != null && !f.IsAway && !NationSystem.OnMap(w, abroad.Id) ? new Option(abroad.Id, $"Send against {content.Nations.Def(abroad.Id)?.Name ?? abroad.Id}", new SendExpeditionCommand(p.Id, f.Id, abroad.Id, content.Fleets, content.Nations).Refusal(ctx)) : null,
                 Recall: f.IsAway ? new Option(f.Id, "Recall", new RecallExpeditionCommand(p.Id, f.Id, content.Nations).Refusal(ctx)) : null)).ToList();
 
         var wars = new List<WarLine>();
         foreach (var enemy in w.EnemiesOf(house.Id))
         {
-            var war = w.Wars.First(x => x.Between(house.Id, enemy));
+            var war = w.Wars.FirstOrDefault(x => x.Between(house.Id, enemy)); if (war == null) continue;   // a war with a nation is the Reach's, and is shown with the nations
             var peace = new SueForPeaceCommand(p.Id, enemy, content.Fleets);
             bool can = peace.CanExecute(ctx);
             bool refuses = !tc.Fleets.WouldAcceptPeace(w, enemy, house.Id);
@@ -447,7 +448,7 @@ public static class CourtProjection
             var def = senate.Motions.Def(m.Kind); var proposer = w.House(m.ProposerHouseId);
             string? targetName = def?.Target == "house" ? w.House(m.TargetId)?.Name : def?.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name : null;
             var stances = new List<StanceLine>();
-            foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != house.Id).OrderByDescending(h => senate.Weight(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal))
+            foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != house.Id).OrderByDescending(h => senate.Weight(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal))
                 stances.Add(new StanceLine(h.Id, h.Name, h.AccentColor, senate.Weight(w, h.Id), senate.Stance(w, m, h.Id), m.Votes.ContainsKey(h.Id),
                     m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, 1).Refusal(ctx) : "decided", m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, 1, bribe: true).Refusal(ctx) : "decided",
                     FactionSystem.Of(w, h.Id)?.Name, FactionSystem.Leads(w, h.Id)));
@@ -459,12 +460,12 @@ public static class CourtProjection
         }
         var docket = SenateSystem.Docket(w).Select(Card).ToList();
         var history = w.Motions.Where(m => m.Resolved).OrderByDescending(m => m.ResolvedTurn).ThenBy(m => m.Id, StringComparer.Ordinal).Take(8).Select(Card).ToList();
-        var houses = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Name, StringComparer.Ordinal).Select(h => (Id: h.Id, Name: h.Name)).ToList();
-        var regions = w.Galaxy?.Regions.OrderBy(r => r.Name, StringComparer.Ordinal).Select(r => (Id: r.Id, Name: r.Name)).ToList() ?? new List<(string Id, string Name)>();
+        var houses = w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Name, StringComparer.Ordinal).Select(h => (Id: h.Id, Name: h.Name)).ToList();
+        var regions = w.Galaxy?.ReachRegions.OrderBy(r => r.Name, StringComparer.Ordinal).Select(r => (Id: r.Id, Name: r.Name)).ToList() ?? new List<(string Id, string Name)>();
         var proposals = senate.Motions.Defs.Where(d => d.Id != "petition").Select(d =>
         {
             List<(string Id, string Name)> targets = d.Target == "house" ? houses.Where(x => (x.Id != house.Id || d.TargetSelfAllowed) && (!d.TargetMustBeAtWar || w.Wars.Any(x2 => x2.Involves(x.Id)))).ToList() : d.Target == "region" ? regions
-                : d.Target == "nation" ? senate.Nations.Defs.Where(nd => w.Nation(nd.Id) is { } ns && !ns.AtWar && !ns.Subdued(w.Turn)).OrderBy(nd => nd.Name, StringComparer.Ordinal).Select(nd => (Id: nd.Id, Name: nd.Name)).ToList() : new List<(string Id, string Name)>();
+                : d.Target == "nation" ? senate.Nations.Defs.Where(nd => w.Nation(nd.Id) is { } ns && !ns.AtWar && !ns.Fallen && !ns.Subdued(w.Turn)).OrderBy(nd => nd.Name, StringComparer.Ordinal).Select(nd => (Id: nd.Id, Name: nd.Name)).ToList() : new List<(string Id, string Name)>();
             var commissionable = senate.Offices.Defs.Where(o => !o.Elected).ToList();
             if (d.Office) targets = targets.Where(x => commissionable.Any(o => OfficeSystem.Candidate(w, o, x.Id) != null)).ToList();   // only houses with someone of the rank
             string firstOffice = d.Office && commissionable.Count > 0 ? commissionable[0].Id : "";
@@ -486,7 +487,7 @@ public static class CourtProjection
             return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer} moves", "You move").Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : d.Target == "nation" ? "a nation beyond the Reach" : "").Replace("{office}", "an office").Replace("{law}", "a law of the Reach").Replace("{option}", "so set"), cost, d.Target, targets, probe, d.Office,
                 d.Office ? commissionable.Select(o => (Id: o.Id, Name: o.Name)).ToList() : null, d.Law, laws);
         }).ToList();
-        int total = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).Sum(h => senate.Weight(w, h.Id));
+        int total = w.Houses.Values.Where(h => !World.Outsider(h.Id)).Sum(h => senate.Weight(w, h.Id));
         var offices = senate.Offices.Defs.Select(o =>
         {
             var h = OfficeSystem.Holding(w, o.Id); var hh = h != null ? w.House(h.HouseId) : null; var who = h != null ? w.Char(h.CharacterId) : null;
@@ -610,7 +611,13 @@ public static class CourtProjection
                 n.Subdued(w.Turn) ? n.SubduedUntil : 0, n.Wars, NationSystem.Raided(w, d.Id, 8), NationSystem.Expeditions(w, d.Id).Count(),
                 new Option(d.Id, "Move for war", senate.Motions.Def("foreign_war") == null ? "no such motion" : new ProposeMotionCommand(p.Id, "foreign_war", d.Id, senate).Refusal(ctx)),
                 NationSystem.Styled(d, n.Ruler, true), n.Ruler?.Nature ?? "", NationSystem.Styled(d, n.Commander, false), n.Commander?.Skill ?? 0,
-                string.Join(" and ", marches.Select(m => w.Galaxy?.System(m)?.Name ?? m)), guard != null ? $"{guard.Name} of {w.House(guard.OwnerId)?.Name}" : "", nearest);
+                string.Join(" and ", marches.Select(m => w.Galaxy?.System(m)?.Name ?? m)), guard != null ? $"{guard.Name} of {w.House(guard.OwnerId)?.Name}" : "", nearest,
+                // a nation on the map (docs/BEYOND.md): where its ruler sits, what it holds, where its fleets are, what it has of the Reach's and the Reach of its
+                n.OnMap, n.Fallen, n.OnMap ? w.Galaxy?.System(n.CapitalSystemId)?.Name ?? "" : "",
+                n.OnMap ? string.Join(", ", w.HoldingsOf(n.HouseId).Where(h => h.IsPlanet && w.Galaxy?.RingOf(h.SystemId) == Galaxy.Ring.Beyond).OrderBy(h => h.Name, StringComparer.Ordinal).Select(h => h.Name)) : "",
+                n.OnMap ? string.Join(" · ", w.Fleets.Values.Where(f => f.OwnerId == n.HouseId).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).Select(f => $"{f.Name}, {f.Strength} hulls {(f.Moving ? $"bound for {w.Galaxy?.System(f.DestinationId)?.Name ?? f.DestinationId}" : $"at {w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId}")}")) : "",
+                n.OnMap ? string.Join(", ", w.HoldingsOf(n.HouseId).Where(h => h.IsPlanet && w.Galaxy?.RingOf(h.SystemId) != Galaxy.Ring.Beyond).OrderBy(h => h.Name, StringComparer.Ordinal).Select(h => h.FormerOwnerId.Length > 0 ? $"{h.Name} (of {w.House(h.FormerOwnerId)?.Name ?? h.FormerOwnerId})" : $"{h.Name} (ceded)")) : "",
+                n.OnMap ? string.Join(", ", d.Worlds.Select(x => w.Holding(x.Id)).Where(h => h != null && h.OwnerId != n.HouseId).Select(h => $"{h!.Name} ({w.House(h.OwnerId)?.Name ?? h.OwnerId}{(w.Counter(NationSystem.UnheldKey(h.Id)) > 0 ? $", {w.Counter(NationSystem.UnheldKey(h.Id))} of {NationSystem.RiseYears} years ungarrisoned" : "")})")) : "");
         }).ToList();
         var brief = new List<BattleBrief>();
         if (w.Galaxy != null)
@@ -664,7 +671,7 @@ public static class CourtProjection
                 .Select(x => $"the Reach's {x.o!.Name.ToLowerInvariant()} {(x.o.Opinions[e.Id] > 0 ? "+" : "")}{x.o.Opinions[e.Id]}"));
             var pet = w.Motions.FirstOrDefault(m => m.Open && SenateSystem.PetitionEstate(m) == e.Id);
             string? petition = pet != null ? $"petitioning the Senate: that {cat.Law(pet.LawId)?.Name.ToLowerInvariant()} be {cat.Law(pet.LawId)?.Option(pet.LawOption)?.Name.ToLowerInvariant()}" : null;
-            int hostileIn = w.Houses.Values.Count(h => h.Id != PirateSystem.HouseId && PolicySystem.Approval(w, h.Id, e.Id) <= PolicySystem.Hostile);
+            int hostileIn = w.Houses.Values.Count(h => !World.Outsider(h.Id) && PolicySystem.Approval(w, h.Id, e.Id) <= PolicySystem.Hostile);
             // what would warm them most: the single option, among the laws in the player's gift, that raises their opinion furthest over what is in force
             string? wants = null; int bestGain = 0;
             foreach (var l in cat.Laws.Where(l => !l.Reach && PolicySystem.HoldsScope(w, house.Id, l.Scope)))

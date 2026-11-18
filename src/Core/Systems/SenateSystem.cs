@@ -54,7 +54,7 @@ public sealed class SenateSystem
     public int Weight(World w, string houseId) => ReadCache.Active ? ReadCache.Get("weight:" + houseId, () => WeightNow(w, houseId)) : WeightNow(w, houseId);
     private int WeightNow(World w, string houseId)
     {
-        var h = w.House(houseId); if (h == null || houseId == PirateSystem.HouseId) return 0;
+        var h = w.House(houseId); if (h == null || World.Outsider(houseId)) return 0;
         if (!PolitySystem.InReach(w, houseId)) return 0;   // a house that has left the Reach has left its Senate (docs/BREAKAWAY.md)
         int weight = h.SphereInfluence.GetValueOrDefault("senate") + _titles.RankOf(h.Title);
         var head = Economy.HeadOf(w, h); if (head is { CareerTrack: "law" } && head.CareerRank >= ProposerLawRank) weight += 1;
@@ -262,7 +262,7 @@ public sealed class SenateSystem
     public (int forWeight, int againstWeight) Tally(World w, Motion m)
     {
         int f = 0, a = 0;
-        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId)) { int s = Stance(w, m, h.Id); if (s > 0) f += Weight(w, h.Id); else if (s < 0) a += Weight(w, h.Id); }
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id))) { int s = Stance(w, m, h.Id); if (s > 0) f += Weight(w, h.Id); else if (s < 0) a += Weight(w, h.Id); }
         return (f, a);
     }
 
@@ -317,7 +317,7 @@ public sealed class SenateSystem
             w.WorldFlags.Add(with ? ObligedPatronFlag : DefiedPatronFlag);
             w.Log(with ? $"{client.Name} votes as {patron.Name} wished. It is noted." : $"{client.Name} votes against the wishes of its patron, {patron.Name}. It is noted.");
         }
-        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId)) if (!m.Votes.ContainsKey(h.Id)) m.Votes[h.Id] = Math.Sign(Lean(w, m, h.Id));   // the rivals declare
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id))) if (!m.Votes.ContainsKey(h.Id)) m.Votes[h.Id] = Math.Sign(Lean(w, m, h.Id));   // the rivals declare
         WealthSystem.FavoursCalled(w, m);   // a favour owed to the proposer is spent on this vote (docs/WEALTH.md "A gift that asks")
         var (f, a) = Tally(w, m);
         Character? casting = null; bool byChair = f == a && f > 0 && LadderSystem.CastingVote(w, m, out casting);   // a tied Senate goes as the presiding consul voted
@@ -359,7 +359,7 @@ public sealed class SenateSystem
     private static void Answer(World w, Motion m, string estate, string? mine)
     {
         var name = estate;
-        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             bool hostile = PolicySystem.Approval(w, h.Id, estate) <= PolicySystem.Hostile;
             if (h.Id == mine) { string off = "estate_offset:" + estate; w.WorldCounters[off] = Math.Clamp(w.Counter(off) + (m.Passed ? PetitionSwing : -PetitionSpurn), -100, 100); }
@@ -375,7 +375,7 @@ public sealed class SenateSystem
     public void Petition(World w)
     {
         if (_motions.Def("petition") == null || Policies.IsEmpty || Docket(w).Count() >= DocketSize || w.Motions.Any(m => m.Open && IsPetition(m))) return;
-        var houses = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).ToList(); int need = Math.Max(PetitionMinHouses, houses.Count / 8);
+        var houses = w.Houses.Values.Where(h => !World.Outsider(h.Id)).ToList(); int need = Math.Max(PetitionMinHouses, houses.Count / 8);
         foreach (var e in Policies.Estates.OrderByDescending(e => houses.Count(h => PolicySystem.Approval(w, h.Id, e.Id) <= PolicySystem.Hostile)).ThenBy(e => e.Id, StringComparer.Ordinal))
         {
             int hostile = houses.Count(h => PolicySystem.Approval(w, h.Id, e.Id) <= PolicySystem.Hostile);
@@ -418,7 +418,7 @@ public sealed class SenateSystem
         if (def.LevyCredits > 0)
         {
             var chair = RegionSystem.CapitalHolder(w);
-            foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != chair?.Id && w.HoldingsOf(h.Id).Any(x => x.IsPlanet)).OrderBy(h => h.Id, StringComparer.Ordinal))
+            foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != chair?.Id && w.HoldingsOf(h.Id).Any(x => x.IsPlanet)).OrderBy(h => h.Id, StringComparer.Ordinal))
             {
                 int paid = Math.Min(def.LevyCredits, Math.Max(0, h.Treasury.Credits)); h.Treasury.Credits -= def.LevyCredits;
                 if (chair != null) chair.Treasury.Credits += paid;
@@ -481,7 +481,7 @@ public sealed class SenateSystem
         uint hash = 2166136261; foreach (var ch in "senate:" + w.Turn) hash = (hash ^ ch) * 16777619;
         if (hash % 3 != 0) return;
         var g = w.Galaxy;
-        foreach (var h in w.Houses.Values.Where(h => h.Id != mine && h.Id != PirateSystem.HouseId && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id))
+        foreach (var h in w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id) && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id))
                  .OrderByDescending(h => h.SphereInfluence.GetValueOrDefault("senate")).ThenByDescending(h => _titles.RankOf(h.Title)).ThenBy(h => h.Id, StringComparer.Ordinal))
         {
             var head = Economy.HeadOf(w, h); if (head == null) continue;
@@ -515,7 +515,7 @@ public sealed class SenateSystem
                 if (lawless != null && h.Treasury.Credits >= 20 && !Stale(w, h.Id, "relief", lawless)) { Add(w, h.Id, "relief", lawless); return; }
             }
             if (_motions.Def("act") != null && WantedAct(w, h) is { } act && !Stale(w, h.Id, "act", act.law.Id + ":" + act.option.Id)) { Add(w, h.Id, "act", "", lawId: act.law.Id, lawOption: act.option.Id); return; }
-            var rival = w.Houses.Values.Where(r => r.Id != h.Id && r.Id != PirateSystem.HouseId && Economy.HeadOf(w, r) is { } rh && (w.GetRelationship(head.Id, rh.Id)?.Disposition ?? 0) <= -30)
+            var rival = w.Houses.Values.Where(r => r.Id != h.Id && !World.Outsider(r.Id) && Economy.HeadOf(w, r) is { } rh && (w.GetRelationship(head.Id, rh.Id)?.Disposition ?? 0) <= -30)
                 .OrderBy(r => w.GetRelationship(head.Id, Economy.HeadOf(w, r)!.Id)!.Disposition).ThenBy(r => r.Id, StringComparer.Ordinal).FirstOrDefault();
             if (rival != null)
             {
@@ -537,17 +537,17 @@ public sealed class SenateSystem
             foreach (var p in w.Polities.Where(p => w.House(p.HeadHouseId) is { } ruler && Polities.ReconquestRefusal(w, ruler) == null).OrderBy(p => p.Id, StringComparer.Ordinal))
             {
                 int theirs = p.Members.Sum(id => FleetSystem.StrengthOf(w, id));
-                int ours = FleetSystem.StrengthOf(w, seat.Id) + w.Houses.Values.Where(h => h.Id != seat.Id && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id)).Select(h => FleetSystem.StrengthOf(w, h.Id)).OrderByDescending(x => x).Take(3).Sum();
+                int ours = FleetSystem.StrengthOf(w, seat.Id) + w.Houses.Values.Where(h => h.Id != seat.Id && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id)).Select(h => FleetSystem.StrengthOf(w, h.Id)).OrderByDescending(x => x).Take(3).Sum();
                 if (ours >= 2 * Math.Max(1, theirs) && !p.Leverage && !Stale(w, seat.Id, "reconquest", p.HeadHouseId)) { Add(w, seat.Id, "reconquest", p.HeadHouseId); return true; }
             }
         if (!w.IsImperium && _motions.Def("emergency") != null && !w.Motions.Any(m => m.Open && m.Kind == "emergency")
-            && EmergencySystem.WouldMove(w, _offices, h => h.Id != mine && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null) is { } powers && !Stale(w, powers.mover.Id, "emergency", powers.target.Id))
+            && EmergencySystem.WouldMove(w, _offices, h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null) is { } powers && !Stale(w, powers.mover.Id, "emergency", powers.target.Id))
         { Add(w, powers.mover.Id, "emergency", powers.target.Id); w.WorldCounters[EmergencySystem.MovedKey] = w.Counter(EmergencySystem.MovedKey) + 1; return true; }
         if (Caesar == null || w.IsImperium || w.CivilWar != null) return false;
-        bool Can(House h) => h.Id != mine && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null;
+        bool Can(House h) => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null;
         if (_motions.Def("triumph") != null && !w.Motions.Any(m => m.Open && m.Kind == "triumph"))
         {
-            var earned = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && Caesar.TriumphRefusal(w, h) == null).OrderByDescending(h => CaesarSystem.Laurels(w, CaesarSystem.GeneralOf(w, h)!)).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
+            var earned = w.Houses.Values.Where(h => !World.Outsider(h.Id) && Caesar.TriumphRefusal(w, h) == null).OrderByDescending(h => CaesarSystem.Laurels(w, CaesarSystem.GeneralOf(w, h)!)).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
             foreach (var t in earned)
             {
                 // the house itself, or a friend of standing if it has no voice of its own
@@ -557,7 +557,7 @@ public sealed class SenateSystem
             }
         }
         if (_motions.Def("recall") != null && !w.Motions.Any(m => m.Open && m.Kind == "recall"))
-            foreach (var t in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != RegionSystem.CapitalHolder(w)?.Id && Caesar.RecallRefusal(w, h) == null).OrderByDescending(h => CaesarSystem.Sway(w, CaesarSystem.GeneralOf(w, h)!)).ThenBy(h => h.Id, StringComparer.Ordinal))
+            foreach (var t in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != RegionSystem.CapitalHolder(w)?.Id && Caesar.RecallRefusal(w, h) == null).OrderByDescending(h => CaesarSystem.Sway(w, CaesarSystem.GeneralOf(w, h)!)).ThenBy(h => h.Id, StringComparer.Ordinal))
             {
                 var tg = CaesarSystem.GeneralOf(w, t)!; int sway = CaesarSystem.Sway(w, tg); var th = Economy.HeadOf(w, t); if (th == null) continue;
                 bool great = CaesarSystem.FirstRank(w, tg) && CaesarSystem.Loved(w, tg, t);   // a commander of the first rank, and loved: the Senate's guardians always move to have that one home
@@ -577,8 +577,8 @@ public sealed class SenateSystem
         var head = Economy.HeadOf(w, h); var party = FactionSystem.Of(w, h.Id); var raider = NationSystem.RaiderOf(w, h.Id, 8);
         bool hawk = party?.PartyId == "sword" || (head != null && head.CareerTrack == "military" && head.CareerRank >= 2) || raider != null;
         if (!hawk || w.Wars.Any(x => x.Involves(h.Id))) return null;
-        if (w.Fleets.Values.Where(f => f.OwnerId != PirateSystem.HouseId && !f.IsAway).Sum(f => f.Strength) < 6) return null;   // the Reach must have fleets to send, if not this house's own
-        return w.Nations.Where(n => !n.Subdued(w.Turn) && Nations.Def(n.Id) != null && (n.Disposition <= -30 || NationSystem.Raided(w, n.Id, 6)))
+        if (w.Fleets.Values.Where(f => !World.Outsider(f.OwnerId) && !f.IsAway).Sum(f => f.Strength) < 6) return null;   // the Reach must have fleets to send, if not this house's own
+        return w.Nations.Where(n => !n.Fallen && !n.Subdued(w.Turn) && Nations.Def(n.Id) != null && (n.Disposition <= -30 || NationSystem.Raided(w, n.Id, 6)))
             .OrderByDescending(n => n.Id == raider ? 2 : NationSystem.Raided(w, n.Id, 6) ? 1 : 0).ThenBy(n => n.Disposition).ThenBy(n => n.Id, StringComparer.Ordinal).FirstOrDefault()?.Id;
     }
 

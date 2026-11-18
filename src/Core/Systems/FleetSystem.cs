@@ -201,7 +201,7 @@ public sealed class FleetSystem
         var mine = w.Protagonist?.HouseId;
         foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal).ToList())
         {
-            if (f.OwnerId == PirateSystem.HouseId) { f.Supply = 100; continue; }   // raiders live off the lanes
+            if (f.OwnerId == PirateSystem.HouseId) { f.Supply = 100; continue; }   // raiders live off the lanes; a nation's host does not, and a season in the Reach is as long as it can stay (docs/BEYOND.md)
             if (f.IsAway) continue;   // an expedition's supply is the NationSystem's to drain
             string at = f.Moving ? f.DestinationId : f.SystemId;
             if (InSupply(w, f.OwnerId, at)) f.Supply = Math.Min(100, f.Supply + _rules.SupplyRecover);
@@ -251,7 +251,7 @@ public sealed class FleetSystem
         w.WorldFlags.Remove("fleet_mutinous"); w.WorldFlags.Remove("fleet_restive");
         foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal).ToList())
         {
-            if (f.OwnerId == PirateSystem.HouseId) continue;
+            if (World.Outsider(f.OwnerId)) continue;
             var house = w.House(f.OwnerId); if (house == null) continue;
             int d = _rules.LoyaltyDrift;
             if (house.Treasury.Credits < 0) d -= _rules.LoyaltyUnpaid;
@@ -295,7 +295,7 @@ public sealed class FleetSystem
     public int FuelBill(World w, string houseId) => FuelBillFor(w, houseId, _rules.FuelHullsPerUnit);
     public static int FuelBillFor(World w, string houseId, int hullsPerUnit)
     {
-        if (houseId == PirateSystem.HouseId) return 0;
+        if (World.Outsider(houseId)) return 0;
         int hulls = w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Office).Sum(f => f.Strength);   // the state's bunkers fuel the office fleets
         return hulls < 2 ? 0 : (hulls + hullsPerUnit - 1) / Math.Max(1, hullsPerUnit);
     }
@@ -448,7 +448,7 @@ public sealed class FleetSystem
         foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal))
         {
             if (f.OwnerId == house) continue;
-            bool seen = watched.Contains(f.SystemId) || (f.Moving && watched.Contains(f.DestinationId)) || f.OwnerId == PirateSystem.HouseId;   // raiders are talked about on every lane
+            bool seen = watched.Contains(f.SystemId) || (f.Moving && watched.Contains(f.DestinationId)) || World.Outsider(f.OwnerId);   // raiders are talked about on every lane
             if (seen)
                 w.Intel[f.Id] = new FleetIntel { FleetId = f.Id, SystemId = f.SystemId, Strength = f.Strength,
                     Confidence = ownSystems.Contains(f.SystemId) ? _rules.ConfidenceInTerritory : _rules.ConfidenceAdjacent, TurnObserved = w.Turn };
@@ -550,8 +550,8 @@ public sealed class FleetSystem
     public void ResolveBattles(World w, IRng rng)
     {
         LastBattles.Clear();
-        if (w.Wars.Count == 0 || w.Galaxy == null) return;
-        var player = w.Protagonist?.HouseId;
+        if ((w.Wars.Count == 0 && !w.Nations.Any(n => n.AtWar && n.OnMap)) || w.Galaxy == null) return;   // a war with a nation on the map is fought on it (docs/BEYOND.md)
+        var player = w.Protagonist?.HouseId; var met = new HashSet<string>();
 
         foreach (var systemId in w.Fleets.Values.Where(f => !f.Moving && !f.IsAway).Select(f => f.SystemId).Distinct().OrderBy(s => s, StringComparer.Ordinal).ToList())
         {
@@ -561,11 +561,20 @@ public sealed class FleetSystem
                 {
                     string a = houses[i], b = houses[j];
                     if (!w.AtWar(a, b) || StrengthAt(w, a, systemId) == 0 || StrengthAt(w, b, systemId) == 0) continue;
+                    // against a power from outside the houses of the Reach stand together (docs/BEYOND.md): one battle a year in a system, led
+                    // by the strongest house there, with the others' guns behind it
+                    if (w.Foreign(a) || w.Foreign(b))
+                    {
+                        string them = w.Foreign(a) ? a : b;
+                        if (!met.Add(systemId + "|" + them)) continue;
+                        string lead = houses.Where(h => h != them && w.AtWar(h, them) && StrengthAt(w, h, systemId) > 0).OrderByDescending(h => StrengthAt(w, h, systemId)).ThenBy(h => h, StringComparer.Ordinal).First();
+                        if (string.CompareOrdinal(lead, them) < 0) { a = lead; b = them; } else { a = them; b = lead; }
+                    }
                     var report = Battle(w, rng, systemId, a, b);
                     LastBattles.Add(report);
                     WealthSystem.StandardWon(w, report.Winner, report.Winner == a ? b : a, systemId, Admirals(w, report.Winner, systemId));   // sometimes a standard comes home (docs/WEALTH.md)
                     w.WorldCounters[BattlesCounter] = w.Counter(BattlesCounter) + 1;
-                    if (w.House(report.Winner) is { } victor && victor.Id != PirateSystem.HouseId) victor.Glory = Math.Min(12, victor.Glory + 1);   // a victory is talked about (docs/REPUBLIC.md stage 3)
+                    if (w.House(report.Winner) is { } victor && !World.Outsider(victor.Id)) victor.Glory = Math.Min(12, victor.Glory + 1);   // a victory is talked about (docs/REPUBLIC.md stage 3)
                     var scored = w.Wars.FirstOrDefault(x => x.Between(a, b)); if (scored != null) { scored.AddScore(report.Winner, 2); scored.LastBattleTurn = w.Turn; }   // raiders have no war to score
                     if (player != null && (a == player || b == player))
                     {
@@ -584,6 +593,10 @@ public sealed class FleetSystem
         string attacker = owner == a ? b : a, defender = owner == a ? a : b;
         double pa = Power(w, attacker, systemId, defending: false);
         double pd = Power(w, defender, systemId, defending: owner == defender);
+        // the other houses of the Reach in the system lend their guns against a power from outside; the losses are the leader's
+        double Behind(string side, string foe) => !w.Foreign(foe) ? 0 : w.Fleets.Values.Where(f => !f.Moving && !f.IsAway && f.SystemId == systemId && f.OwnerId != side && w.AtWar(f.OwnerId, foe)).Select(f => f.OwnerId).Distinct().Sum(h => Power(w, h, systemId, defending: false));
+        double la = Behind(attacker, defender), ld = Behind(defender, attacker); pa += la; pd += ld;
+        if (la + ld > 0) w.Log($"At {w.Galaxy?.System(systemId)?.Name ?? systemId} the fleets of the Reach stand together behind {w.House(la > 0 ? attacker : defender)?.Name}.");
         string sa = StanceAt(w, attacker, systemId), sd = StanceAt(w, defender, systemId); int edge = StanceEdgeOf(sa, sd);
         if (edge > 0) pa *= 1 + _rules.StanceEdge; else if (edge < 0) pd *= 1 + _rules.StanceEdge;
         foreach (var f in w.Fleets.Values.Where(f => !f.Moving && f.SystemId == systemId && (f.OwnerId == a || f.OwnerId == b) && f.Loadout == "torpedoes"))
@@ -619,6 +632,7 @@ public sealed class FleetSystem
             if (winnerAdmirals.Concat(loserAdmirals).Any(c => c.Id == w.ProtagonistId && c.Flags.Contains(FrontFlag))) w.WorldFlags.Add("fought_at_the_front");
         }
         CaesarSystem.Victory(w, winner, loser, systemId);   // the crews take to the one who led them; a victory to his name (docs/CAESAR.md)
+        NationSystem.BattleOnMap(w, winner, loser);        // and if it was fought against a nation, it counts in that war (docs/BEYOND.md)
         AdmiralOutcomes(w, rng, winnerAdmirals, loserAdmirals, winner);
         Retreat(w, loser, systemId);
 
@@ -811,7 +825,7 @@ public sealed class FleetSystem
             }
             if (!w.Sieges.TryGetValue(h.Id, out var siege) || siege.BesiegerId != besieger)
             {
-                siege = new Siege { HoldingId = h.Id, BesiegerId = besieger, Turns = 0, Required = SiegeRequired(w, h) };
+                siege = new Siege { HoldingId = h.Id, BesiegerId = besieger, Turns = 0, Required = SiegeRequired(w, h) + (w.Foreign(besieger) ? NationSystem.SiegeSlow : 0) };   // a host from beyond the rim is slow at walls (docs/BEYOND.md)
                 w.Sieges[h.Id] = siege;
                 w.Log($"{w.House(besieger)?.Name ?? besieger} lays siege to {h.Name} ({siege.Required} turns to fall).");
             }
@@ -826,11 +840,22 @@ public sealed class FleetSystem
 
     private void Conquer(World w, Holding h, string conqueror, string? player)
     {
-        string old = h.OwnerId;
+        string old = h.OwnerId, before = h.FormerOwnerId;
+        // what a nation took from a house of the Reach, and another house of the Reach takes back, goes home to the house it was taken from (docs/BEYOND.md)
+        string? freedFor = w.Foreign(old) && before.Length > 0 && w.OfTheReach(before) && w.OfTheReach(conqueror) ? before : null;
+        if (freedFor != null)
+        {
+            h.OwnerId = freedFor; h.FormerOwnerId = ""; h.Unrest = Math.Clamp(h.Unrest + _rules.ConquestUnrest / 2, 0, 100);
+            NationSystem.WorldTaken(w, h, conqueror, old, freedFor);
+            if (conqueror == player && freedFor != player) NationSystem.Mark(w, "world_freed_by_us"); if (freedFor == player && conqueror != player) NationSystem.Mark(w, "world_freed_for_us");
+            w.Log(freedFor == conqueror ? $"{w.House(conqueror)?.Name ?? conqueror} takes {h.Name} back from {w.House(old)?.Name ?? old}." : $"{w.House(conqueror)?.Name ?? conqueror} frees {h.Name} from {w.House(old)?.Name ?? old}; it is {w.House(freedFor)?.Name ?? freedFor}'s again.");
+            return;
+        }
         h.OwnerId = conqueror; h.FormerOwnerId = old;
         if (h.IsPlanet) { WealthSystem.Plunder(w, old, conqueror, h, Admirals(w, conqueror, h.SystemId)); VentureSystem.Sack(w, h.SystemId, conqueror); }   // some of the enemy's ventures there do not survive the storming (docs/ECONOMY_MARKET.md)
         h.Unrest = Math.Clamp(h.Unrest + _rules.ConquestUnrest, 0, 100);
         w.Wars.FirstOrDefault(x => x.Between(old, conqueror))?.AddScore(conqueror, 3);
+        NationSystem.WorldTaken(w, h, conqueror, old, null);
         if (conqueror == player)
         {
             w.WorldCounters[ConquestsCounter] = w.Counter(ConquestsCounter) + 1;
@@ -844,7 +869,13 @@ public sealed class FleetSystem
         // titles follow the land (GDD §13): a house stripped of its last holding falls to landless, and the
         // conqueror gains a claim to the rung it held — pressable through the Intrigue path.
         var loser = w.House(old);
-        if (loser != null && !w.HoldingsOf(old).Any() && loser.Title != "landless")
+        if (World.Outsider(old)) return;   // a nation that loses its last world is dealt with by its own rules, and leaves no rank to claim
+        if (loser != null && !w.HoldingsOf(old).Any() && loser.Title != "landless" && World.Outsider(conqueror))
+        {
+            // taken by a power from outside: the house is landless, and nobody of the Reach has a claim by it. A throne left empty is filled by the Reach (docs/THRONE.md)
+            loser.Title = "landless"; w.Log($"{loser.Name} holds nothing now: its last world is in foreign hands.");
+        }
+        else if (loser != null && !w.HoldingsOf(old).Any() && loser.Title != "landless")
         {
             string fallen = loser.Title;
             if (fallen == Progression.Title.Emperor && w.House(conqueror) is { } taker)

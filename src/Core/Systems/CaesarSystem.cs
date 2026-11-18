@@ -45,7 +45,7 @@ public sealed class CaesarSystem
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
     private static bool Within(World w, string key, int years) => w.WorldCounters.TryGetValue(key, out int t) && w.Turn - t <= years;
-    private static bool Real(House h) => h.Id != PirateSystem.HouseId;
+    private static bool Real(House h) => !World.Outsider(h.Id);
 
     /// <summary>One the Senate has had lay down a command may not take another for some years.</summary>
     public static bool Barred(World w, Character c) => w.Counter(BarredKey(c.Id)) > w.Turn;

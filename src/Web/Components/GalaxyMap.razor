@@ -88,13 +88,13 @@
         }
         else
         {
-            <section class="panel"><h2>@w.Galaxy!.Name</h2><div class="muted">@regions.Count regions · @nodes.Count worlds · @w.Houses.Count houses. Click a world or a fleet. Click one of your fleets, then a ringed world, to set its course.</div></section>
+            <section class="panel"><h2>@w.Galaxy!.Name</h2><div class="muted">@regions.Count(r => r.Ring != "beyond") regions@(regions.Any(r => r.Ring == "beyond") ? $", and {regions.Count(r => r.Ring == "beyond")} beyond the rim" : "") · @nodes.Count worlds · @w.Houses.Keys.Count(h => !Praetoria.Core.State.World.Outsider(h)) houses. Click a world or a fleet. Click one of your fleets, then a ringed world, to set its course.</div></section>
             <section class="panel">
                 <h3>Regions</h3>
-                @foreach (var ring in new[] { "core", "middle", "rim" })
+                @foreach (var ring in new[] { "core", "middle", "rim", "beyond" }.Where(x => regions.Any(r => r.Ring == x)))
                 {
-                    <div class="ring-head"><span class="ring @ring">@ring</span> <span class="muted small">@(ring == "core" ? (w.IsImperium ? "commerce and the court" : "commerce and the Senate") : ring == "rim" ? "lawless, restless, breaking away" : "leaning either way")</span></div>
-                    @foreach (var r in regions.Where(x => x.Ring == ring)) { <button class="ol-row region-row @(r.FreeMarch || r.StateName != null ? "free" : "")" @onclick="() => Focus(r.CX, r.CY)"><i class="sw" style="background:@r.AccentColor"></i> <b>@r.Name</b> <span class="muted">@(r.DominantHouseName ?? "contested")@(r.FreeMarch ? " · FREE MARCH" : "")@(r.StateName != null ? " · " + r.StateName + (r.StateAtWar ? " (fighting for it)" : "") : "") · loyalty @(100 - r.Unrest)</span><span class="rstats"><span title="allegiance to the capital">⚜ @r.Allegiance</span> <span class="@(r.Lawlessness >= 60 ? "warn" : "")" title="lawlessness">☠ @r.Lawlessness</span>@(r.Rebellions > 0 ? $" ✦ {r.Rebellions} rising" : "")</span></button> }
+                    <div class="ring-head"><span class="ring @ring">@ring</span> <span class="muted small">@(ring == "core" ? (w.IsImperium ? "commerce and the court" : "commerce and the Senate") : ring == "rim" ? "lawless, restless, breaking away" : ring == "beyond" ? "not the Reach: a nation's own space" : "leaning either way")</span></div>
+                    @foreach (var r in regions.Where(x => x.Ring == ring)) { <button class="ol-row region-row @(r.FreeMarch || r.StateName != null ? "free" : "")" @onclick="() => Focus(r.CX, r.CY)"><i class="sw" style="background:@r.AccentColor"></i> <b>@r.Name</b> <span class="muted">@(r.DominantHouseName ?? "contested")@(r.FreeMarch ? " · FREE MARCH" : "")@(r.StateName != null ? " · " + r.StateName + (r.StateAtWar ? " (fighting for it)" : "") : "") · loyalty @(100 - r.Unrest)</span>@if (ring != "beyond") { <span class="rstats"><span title="allegiance to the capital">⚜ @r.Allegiance</span> <span class="@(r.Lawlessness >= 60 ? "warn" : "")" title="lawlessness">☠ @r.Lawlessness</span>@(r.Rebellions > 0 ? $" ✦ {r.Rebellions} rising" : "")</span> }</button> }
                 }
             </section>
         }

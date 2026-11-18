@@ -310,7 +310,7 @@ public static class LifeSystem
         }
         bool Speak(int more)
         {
-            var friend = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).Select(h => Economy.HeadOf(w, h))
+            var friend = w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).Select(h => Economy.HeadOf(w, h))
                 .Where(o => o is { Alive: true } && Reg(o, e) >= 30 && Reg(o, p) < 60).OrderByDescending(o => Reg(o!, e)).ThenBy(o => o!.Id, StringComparer.Ordinal).FirstOrDefault();
             if (friend == null) return false;
             var r = w.Relationship(friend.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition + ElderSpeaks + more, -100, 100);

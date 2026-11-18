@@ -23,6 +23,18 @@ public sealed class Nation
     public int NamesUsed { get; set; }
     /// <summary>Fixed when its people are first reckoned, from the world's own dice, so that no two games have the same rulers in the same years.</summary>
     public ulong Salt { get; set; }
+    /// <summary>The house that holds the nation's worlds and fleets, once it is on the map (docs/BEYOND.md); "" while it is off it.</summary>
+    public string HouseId { get; set; } = "";
+    /// <summary>The system its ruler sits in: taking it subdues the nation.</summary>
+    public string CapitalSystemId { get; set; } = "";
+    public bool OnMap => HouseId.Length > 0;
+    /// <summary>Its last world has been taken: it raids nobody, wars with nobody, and pays nobody.</summary>
+    public bool Fallen { get; set; }
+    /// <summary>The house that holds a nation's worlds on the map is named for it, so that anything walking the houses can tell at a
+    /// glance, and without the world in hand, that it is not a house of the Reach.</summary>
+    public const string HousePrefix = "nation_";
+    public static string HouseIdFor(string nationId) => HousePrefix + nationId;
+    public static bool IsHouse(string houseId) => houseId.StartsWith(HousePrefix, StringComparison.Ordinal);
     public bool Subdued(int turn) => SubduedUntil > turn;
 }
 
@@ -39,4 +51,6 @@ public sealed class NationPerson
     public int Since { get; set; }
     public int Victories { get; set; }
     public int Defeats { get; set; }
+    /// <summary>The person of the Reach's world who stands for them, once the nation is on the map.</summary>
+    public string CharacterId { get; set; } = "";
 }

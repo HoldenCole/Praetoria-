@@ -30,7 +30,7 @@ public static class ElectionSystem
     public static bool IsConsul(World w, OfficeCatalog offices, string houseId) => ConsulOffices(offices).Any(d => OfficeSystem.Holds(w, houseId, d.Id));
     /// <summary>Eligible: a qualified member for the office, and not elected at the last election.</summary>
     public static bool Eligible(World w, OfficeCatalog offices, string houseId) =>
-        !CaesarSystem.Enemy(w, houseId) && PolitySystem.InReach(w, houseId) && (houseId != PirateSystem.HouseId && w.House(houseId) != null && ConsulOffices(offices).FirstOrDefault() is { } d && OfficeSystem.Candidate(w, d, houseId) != null && w.Turn - w.Counter("consul_term:" + houseId) >= Every * 2 - 1 || (w.Counter("consul_term:" + houseId) == 0 && houseId != PirateSystem.HouseId && w.House(houseId) != null && ConsulOffices(offices).FirstOrDefault() is { } d2 && OfficeSystem.Candidate(w, d2, houseId) != null));
+        !CaesarSystem.Enemy(w, houseId) && PolitySystem.InReach(w, houseId) && (!World.Outsider(houseId) && w.House(houseId) != null && ConsulOffices(offices).FirstOrDefault() is { } d && OfficeSystem.Candidate(w, d, houseId) != null && w.Turn - w.Counter("consul_term:" + houseId) >= Every * 2 - 1 || (w.Counter("consul_term:" + houseId) == 0 && !World.Outsider(houseId) && w.House(houseId) != null && ConsulOffices(offices).FirstOrDefault() is { } d2 && OfficeSystem.Candidate(w, d2, houseId) != null));
 
     /// <summary>The nominees as they stand: one a party (the weightiest eligible member, or the player if standing), plus the player alone if unaffiliated and standing.</summary>
     public static List<(string houseId, string? partyId)> Nominees(World w, OfficeCatalog offices, Func<string, int> weight)
@@ -50,7 +50,7 @@ public static class ElectionSystem
     public static Dictionary<string, int> Tally(World w, OfficeCatalog offices, Func<string, int> weight, List<(string houseId, string? partyId)> nominees)
     {
         var tally = nominees.ToDictionary(n => n.houseId, _ => 0);
-        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId))
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)))
         {
             var party = FactionSystem.Of(w, h.Id); string? vote = null;
             if (nominees.Any(n => n.houseId == h.Id)) vote = h.Id;

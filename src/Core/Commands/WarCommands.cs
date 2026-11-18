@@ -17,7 +17,7 @@ public sealed class DeclareWarCommand : ICommand
     {
         var w = ctx.World;
         var actor = w.Char(ActorId);
-        if (actor?.Alive != true || actor.HouseId == _targetHouseId || w.House(_targetHouseId) == null) return false;
+        if (actor?.Alive != true || actor.HouseId == _targetHouseId || w.House(_targetHouseId) == null || World.Outsider(_targetHouseId)) return false;   // war with a nation is the Senate's to vote
         if (w.AtWar(actor.HouseId, _targetHouseId)) return false;
         if (Systems.PolitySystem.TreatyBetween(w, actor.HouseId, _targetHouseId) != null) return false;   // a treaty stands (docs/BREAKAWAY.md)
         return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = _rules.DeclareWarCost });

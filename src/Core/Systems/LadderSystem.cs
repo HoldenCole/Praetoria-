@@ -56,7 +56,7 @@ public static partial class LadderSystem
         foreach (var rung in offices.Rungs.Reverse())
         {
             var houses = new HashSet<string>();
-            var fit = w.LivingCharacters().Where(c => c.HouseId != mine && c.HouseId != PirateSystem.HouseId && !taken.Contains(c.Id) && c.Age >= rung.MinAge && c.CareerRank >= rung.MinRank && c.CareerTrack.Length > 0
+            var fit = w.LivingCharacters().Where(c => c.HouseId != mine && !World.Outsider(c.HouseId) && !taken.Contains(c.Id) && c.Age >= rung.MinAge && c.CareerRank >= rung.MinRank && c.CareerTrack.Length > 0
                     && (rung.Requires.Length == 0 || c.Cursus.Contains(rung.Requires)) && (rung.Id == Praetor ? c.Cursus.Contains(Praetor) : !c.Cursus.Contains(Praetor))
                     && !c.Flags.Contains(LifeSystem.RetiredChar) && !c.Flags.Contains(DynastySystem.HiddenFlag))
                 .OrderByDescending(Merit).ThenBy(c => c.Id, StringComparer.Ordinal);
@@ -98,7 +98,7 @@ public static partial class LadderSystem
     public static List<Character> Candidates(World w, OfficeCatalog offices, RungDef rung, ISet<string>? seated = null)
     {
         var mine = w.Protagonist?.HouseId; var list = new List<Character>();
-        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != mine).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != mine).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             if (Hash(h.Id + ":stand:" + rung.Id + ":" + w.Turn / offices.LadderEvery) % 3 == 0) continue;
             // a person stands for the highest rung open to them, so a house's best is not wasted on a lower one; one who stood
@@ -117,7 +117,7 @@ public static partial class LadderSystem
     {
         var tally = candidates.ToDictionary(c => c.Id, c => Merit(c) + TrustVotes(w, c, rung.Id) + LifeSystem.TieVotes(w, c.HouseId) + AttendanceVotes(w, c) + (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id && cd.RungId == rung.Id)?.Backing ?? 0) + w.Counter(OrderSystem.CanvassKey(c.HouseId)));
         if (candidates.Count == 0) return tally;
-        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var party = FactionSystem.Of(w, h.Id); var head = Economy.HeadOf(w, h);
             int Liking(Character c) => head != null && w.House(c.HouseId) is { } ch && Economy.HeadOf(w, ch) is { } chead ? w.GetRelationship(head.Id, chead.Id)?.Disposition ?? 0 : 0;
@@ -331,7 +331,7 @@ public static partial class LadderSystem
         else
         {
             // two houses with a quarrel, neither the judge's own: those at war first, then those whose heads think worst of each other
-            var houses = w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && h.Id != seat.HouseId && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null && !taken.Contains(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+            var houses = w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != seat.HouseId && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null && !taken.Contains(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
             var last = w.OfficeWork.Where(x => x.Kind == Case && x.Turn == w.Turn - 1 && x.HouseA.Length > 0).Select(x => string.CompareOrdinal(x.HouseA, x.HouseB) < 0 ? x.HouseA + "|" + x.HouseB : x.HouseB + "|" + x.HouseA).ToHashSet();
             var pairs = new List<(House a, House b, int heat)>();
             for (int i = 0; i < houses.Count; i++) for (int j = i + 1; j < houses.Count; j++)

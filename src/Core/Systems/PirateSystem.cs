@@ -31,7 +31,7 @@ public sealed class PirateSystem
         var g = w.Galaxy; if (g == null) return;
         w.WorldFlags.Remove("raided");   // last year's news: it was set and never cleared, so one raid would have been remembered for ever
         if (w.House(HouseId) is { } lawless) lawless.Treasury = new Resources();   // the Lawless keep no ledger: hull upkeep never puts them in debt
-        var regions = g.Regions.OrderBy(r => r.Id, StringComparer.Ordinal).ToList();
+        var regions = g.ReachRegions.OrderBy(r => r.Id, StringComparer.Ordinal).ToList();
         foreach (var region in regions)
         {
             var state = RegionSystem.StateOf(w, region.Id); var systems = g.SystemsIn(region.Id).Select(s => s.Id).ToList();

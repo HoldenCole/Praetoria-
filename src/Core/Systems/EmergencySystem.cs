@@ -28,11 +28,11 @@ public static class EmergencySystem
     private static void Trust(World w, int by) => w.WorldCounters[LadderSystem.TrustKey] = Math.Clamp(LadderSystem.Trust(w) + by, 0, 100);
     private static void RegardOfAll(World w, Character whom, int by)
     {
-        foreach (var h in w.Houses.Values.Where(h => h.Id != whom.HouseId && h.Id != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var h in w.Houses.Values.Where(h => h.Id != whom.HouseId && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
             if (Economy.HeadOf(w, h) is { } head) { var r = w.Relationship(head.Id, whom.Id); r.Disposition = Math.Clamp(r.Disposition + by, -100, 100); }
     }
     private static int Hulls(World w, string houseId) => w.Fleets.Values.Where(f => f.OwnerId == houseId).Sum(f => f.Strength);
-    private static int AllHulls(World w) => Math.Max(1, w.Fleets.Values.Where(f => f.OwnerId != PirateSystem.HouseId).Sum(f => f.Strength));
+    private static int AllHulls(World w) => Math.Max(1, w.Fleets.Values.Where(f => !World.Outsider(f.OwnerId)).Sum(f => f.Strength));
 
     // ---- reading ----
 
@@ -207,7 +207,7 @@ public static class EmergencySystem
     {
         var e = w.Emergency; if (e == null) return 0; var holder = w.Char(e.HolderId); var house = w.House(e.HouseId); if (holder == null || house == null) return 0;
         int raised = 0; string? mine = w.Protagonist?.HouseId;
-        foreach (var h in w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var h in w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             int pay = Math.Clamp(h.Treasury.Credits, 0, LevyCredits); h.Treasury.Credits -= pay; raised += pay;
             if (Economy.HeadOf(w, h) is { } head) { var r = w.Relationship(head.Id, holder.Id); r.Disposition = Math.Clamp(r.Disposition + LevyRegard, -100, 100); }

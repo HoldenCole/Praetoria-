@@ -39,7 +39,7 @@ public sealed class OrderSystem
     public static string TierName(int tier) => tier switch { 3 => "dominant", 2 => "great", 1 => "notable", _ => "of no account" };
     public static int NextAt(int score) => score >= DominantAt ? 0 : score >= GreatAt ? DominantAt : score >= NotableAt ? GreatAt : NotableAt;
     public static IEnumerable<House> ClientsOf(World w, string houseId) => w.Houses.Values.Where(h => h.PatronId == houseId).OrderBy(h => h.Id, StringComparer.Ordinal);
-    private static bool Real(House h) => h.Id != PirateSystem.HouseId;
+    private static bool Real(House h) => !World.Outsider(h.Id);
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static int Regard(World w, House from, House to)
     {

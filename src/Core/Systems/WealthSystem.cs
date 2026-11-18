@@ -54,7 +54,7 @@ public static partial class WealthSystem
     public static void Seed(World w)
     {
         if (w.Counter("heirlooms_seeded") != 0) return; w.WorldCounters["heirlooms_seeded"] = 1;
-        foreach (var h in w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId && (h.Origin == "old" || Title.RankOf(h.Title) >= 3)).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id) && (h.Origin == "old" || Title.RankOf(h.Title) >= 3)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var head = Economy.HeadOf(w, h); if (head == null) continue;
             string name = h.Name.Replace("House ", ""); uint x = Hash(h.Id + ":heirloom");
