@@ -479,6 +479,7 @@ public sealed class FleetSystem
     /// world (never the capital) to the winner: wars have prizes (GAP §7).</summary>
     public void MakePeace(World w, string a, string b, bool terms)
     {
+        if (ThroneSystem.ForTheThrone(w, a, b)) return;   // a war for a throne is not ended by treaty: one of them sits on it at the end (docs/THRONE.md)
         var war = w.Wars.FirstOrDefault(x => x.Between(a, b));
         if (war == null) return;
         // blockades still standing end with the war, and what they cost is billed with the rest
@@ -846,9 +847,19 @@ public sealed class FleetSystem
         if (loser != null && !w.HoldingsOf(old).Any() && loser.Title != "landless")
         {
             string fallen = loser.Title;
-            loser.Title = "landless";
-            w.House(conqueror)?.Claims.Add(fallen);
-            w.Log($"{loser.Name}, landless, loses its {fallen} rank; {w.House(conqueror)?.Name ?? conqueror} holds a claim to it.");
+            if (fallen == Progression.Title.Emperor && w.House(conqueror) is { } taker)
+            {
+                // a throne does not stand empty: whoever takes the last world of the house that sat on it has taken it (docs/THRONE.md)
+                ThroneSystem.Enthrone(w, conqueror, seized: true, Economy.HeadOf(w, taker)?.Id);
+                loser.Title = "landless";
+                w.Log($"{loser.Name} holds nothing now but its claim.");
+            }
+            else
+            {
+                loser.Title = "landless";
+                w.House(conqueror)?.Claims.Add(fallen);
+                w.Log($"{loser.Name}, landless, loses its {fallen} rank; {w.House(conqueror)?.Name ?? conqueror} holds a claim to it.");
+            }
         }
     }
 }

@@ -189,6 +189,14 @@ public sealed class NpcAi
                 continue;
             }
 
+            // a pretender sails for the capital: the throne is taken there or not at all (docs/THRONE.md)
+            if (world.Rising is { } standard && standard.HouseId == house.Id && world.Galaxy is { Capital.Length: > 0 } gal)
+            {
+                var van = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.SystemId != gal.Capital).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (van != null && !world.Fleets.Values.Any(f => f.OwnerId == house.Id && (f.SystemId == gal.Capital && !f.Moving || f.Moving && f.DestinationId == gal.Capital) && f.Strength >= 2)
+                    && executor.TryExecute(new MoveFleetCommand(head.Id, van.Id, gal.Capital, rules), ctx)) continue;
+            }
+
             // menace: a hostile (or belligerent), rested house fleet moves on the player's seat
             if (seat != null && player != null && (atWar || disposition < -40))
             {

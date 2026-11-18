@@ -59,7 +59,7 @@ public class EndgameTests
         var (content, w) = Fresh("the_imperial_court");             // Thorne knight; Aurelian emperor with a 6-hull office fleet
         var ctx = new CommandContext(w, TestContent.Rng());
         var cmd = new SeizeThroneCommand(w.ProtagonistId, content.Titles, content.Friction);
-        Assert.Equal("a Duke at least must stand behind the fleet", cmd.Refusal(ctx));
+        Assert.Equal("a Duke at least must stand behind the fleet, or a house with a claim", cmd.Refusal(ctx));
         w.House("thorne")!.Title = "duke";
         Assert.StartsWith("your fleet must outnumber", cmd.Refusal(ctx));
         w.Fleets["fleet_thorne"] = new Fleet { Id = "fleet_thorne", Name = "Thorne Grand Fleet", OwnerId = "thorne", SystemId = "lesser_marrow", Strength = 9 };

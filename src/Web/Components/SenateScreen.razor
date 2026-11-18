@@ -58,6 +58,13 @@
             <Tile Label="Before the chamber" Value="@(motions == 0 ? "nothing" : motions == 1 ? "1 motion" : motions + " motions")" Tone="@(againstMe != null ? "bad" : "")"
                   Note="@(sen == null ? "" : motions == 0 ? (sen.MayPropose ? "you may move one" : "and you may not move one") : againstMe != null ? "one of them against you" : $"{carry} to carry, {motions - carry} to fail, as it stands")"
                   Title="Motions are voted at the year's end, by weight of seats." />
+            @if (ThroneSystem.Emperor(w) is { } sits)
+            {
+                int th = ThroneSystem.Hold(w); var up = w.Rising != null ? w.House(w.Rising.HouseId) : null;
+                <Tile Label="The throne" Value="@($"{th} · {ThroneSystem.HoldName(th)}")" Share="@th" Tone="@(th < ThroneSystem.RiseAt || up != null ? "bad" : th < ThroneSystem.ShakenAt ? "warn" : "good")"
+                      Note="@(up != null ? $"{up.Name} has raised a standard" : sits.Id == house.Id ? "your hold on it" : $"the hold of {sits.Name}")"
+                      Title="@($"How firmly the house on the throne holds it, out of 100. Below {ThroneSystem.RiseAt} for two years and a house of rank raises a standard. What it is made of is under Offices, parties and titles.")" />
+            }
             @if (elect != null)
             {
                 <Tile Label="The consulship" Value="@(elect.AmConsul ? "yours" : elect.NextIn <= 1 ? "this year" : $"in {elect.NextIn} years")" Tone="@(elect.AmConsul ? "good" : "")"
@@ -133,7 +140,26 @@
                 @if (s.Instability > 0) { <div class="kv warn"><span>Instability</span><b>@s.Instability</b></div> }
                 @if (s.Claims.Count > 0) { <div class="kv"><span>Claims held</span><b>@string.Join(", ", s.Claims.Select(cl => c.Titles.NameOf(cl, w.Era)))</b></div> }
                 @if (s.NextTitle != null) { foreach (var path in s.Paths) { <button class="opt" disabled="@(!path.Available)" title="@path.Tooltip" @onclick="() => G.Execute(PathCommand(path.Id))">@path.Label</button> } }
-                <details><summary>@(w.IsImperium ? "The throne" : "The end of the Republic") @(s.Throne.HoldsThrone ? "· yours" : s.Throne.EmperorName != null ? $"· {s.Throne.EmperorName}" : w.IsImperium ? "· empty" : "· no throne stands")</summary>
+                <details open="@w.IsImperium"><summary>@(w.IsImperium ? "The throne" : "The end of the Republic") @(s.Throne.HoldsThrone ? "· yours" : s.Throne.EmperorName != null ? $"· {s.Throne.EmperorName}" : w.IsImperium ? "· empty" : "· no throne stands")</summary>
+                    @if (ThroneSystem.Emperor(w) is { } onThrone)
+                    {
+                        int hold = ThroneSystem.Hold(w); var holdParts = ThroneSystem.HoldParts(w); var rising = w.Rising; var riser = rising != null ? w.House(rising.HouseId) : null;
+                        string? raiseNo = new ThroneCommand(pid, ThroneCommand.Raise, c.Titles, G.Turn!.Fleets).Refusal(G.Ctx), overNo = new ThroneCommand(pid, ThroneCommand.Pretender, c.Titles, G.Turn!.Fleets).Refusal(G.Ctx), byNo = new ThroneCommand(pid, ThroneCommand.Throne, c.Titles, G.Turn!.Fleets).Refusal(G.Ctx);
+                        <div class="kv @(hold < ThroneSystem.RiseAt ? "warn" : "")" title="@("Out of 100, from 50. " + string.Join(" · ", holdParts.Select(x => $"{x.what} {(x.points >= 0 ? "+" : "")}{x.points}")) + $". Below {ThroneSystem.RiseAt} for two years and a house of rank that has no love for the throne raises a standard.")"><span>The hold of @onThrone.Name</span><b>@hold · @ThroneSystem.HoldName(hold)</b></div>
+                        <div class="muted small">@string.Join(" · ", holdParts.Where(x => x.points != 0).OrderBy(x => x.points).Take(4).Select(x => $"{x.what} {(x.points >= 0 ? "+" : "")}{x.points}"))</div>
+                        @if (rising != null && riser != null)
+                        {
+                            <div class="small"><b class="warn">@riser.Name has raised a standard</b>, since year @rising.Since.@(rising.With.Count > 0 ? $" With it: {string.Join(", ", rising.With.Select(id => w.House(id)?.Name))}." : "")@(rising.Against.Count > 0 ? $" By the throne: {string.Join(", ", rising.Against.Select(id => w.House(id)?.Name))}." : "") It is broken if the war goes against it, its fleet is spent, or @ThroneSystem.PretenderYears years pass.</div>
+                            @if (overNo == null || byNo == null)
+                            {
+                                <div class="suit-acts">
+                                    <button class="opt inline" disabled="@(overNo != null)" title="@(overNo ?? $"Your house is at war with the throne. {riser.Name}'s head thinks better of you; the throne's does not forget it.")" @onclick="() => G.Execute(new ThroneCommand(pid, ThroneCommand.Pretender, c.Titles, G.Turn!.Fleets))">Go over to @riser.Name</button>
+                                    <button class="opt inline" disabled="@(byNo != null)" title="@(byNo ?? $"Your house is at war with {riser.Name}. The throne thinks better of you; {riser.Name}'s head does not forget it.")" @onclick="() => G.Execute(new ThroneCommand(pid, ThroneCommand.Throne, c.Titles, G.Turn!.Fleets))">Stand by the throne</button>
+                                </div>
+                            }
+                        }
+                        @if (!s.Throne.HoldsThrone) { <button class="opt" disabled="@(raiseNo != null)" title="@(raiseNo ?? "A war for the throne itself: it is not ended by treaty. The other houses take a side by what their heads think of you and of the one who sits there. You take the throne by the terms of a seizure; if the war goes against you, your fleet is spent, or eight years pass, you are broken.")" @onclick="() => G.Execute(new ThroneCommand(pid, ThroneCommand.Raise, c.Titles, G.Turn!.Fleets))">Raise your standard against the throne (3 influence)</button> }
+                    }
                     <button class="opt" disabled="@(s.Throne.ProclaimRefusal != null)" title="@s.Throne.ProclaimRefusal" @onclick="() => G.Execute(new ProclaimImperiumCommand(pid, c.Titles))">Proclaim the Imperium (3 influence, 2 agents)</button>
                     <button class="opt" disabled="@(s.Throne.SeizeRefusal != null)" title="@s.Throne.SeizeRefusal" @onclick="() => G.Execute(new SeizeThroneCommand(pid, c.Titles, c.Friction))">Seize the throne (2 treasury, 2 agents)</button>
                 </details>

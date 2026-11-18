@@ -15,9 +15,9 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 770 |
-| Events with text | 403 in 37 files |
-| Open gaps (docs/GAPS.md) | 76: 11 small, 54 a cycle, 11 several cycles (R8 closed, R20 mapped). Sixteen came from the full QA of 2026-11-16 (docs/QA.md) and twenty from playing known stories against the game on 2026-11-17 (docs/ROLEPLAY.md). 77 closed so far (`./tools/gaps.sh`) |
+| Automated tests | 778 |
+| Events with text | 409 in 38 files |
+| Open gaps (docs/GAPS.md) | 76: 11 small, 54 a cycle, 11 several cycles (R8 closed, R20 mapped). Sixteen came from the full QA of 2026-11-16 (docs/QA.md) and twenty from playing known stories against the game on 2026-11-17 (docs/ROLEPLAY.md). 78 closed so far (`./tools/gaps.sh`) |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 31 systems, 40 lanes, 10 regions, 31 standing houses |
 | Laws / estates / parties | 22 / 6 / 4 |
@@ -80,7 +80,8 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
 
 **The Imperium**
 1. Government under a throne is simple next to the Republic. The orders are measured there but do little.
-2. No court as a place: favour, audiences, the succession to the throne as a contest.
+2. No court as a place: favour, audiences, the succession to the throne as a contest. A throne can now be lost to a
+   pretender when its hold fails (docs/THRONE.md, stage 1); a succession fought over is stage 2.
 
 **The world**
 1. Nations are off the map: numbers and expeditions, no territory.

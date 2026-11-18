@@ -86,6 +86,47 @@ internal static class Probes
         return 0;
     }
 
+    /// <summary>throne: over --seeds runs of sixty years with a passive player, how a throne is held (docs/THRONE.md): the hold on it, how
+    /// often it is weak, pretenders risen, won and broken, and how often the throne changes houses. Each start that opens under a throne
+    /// is run twice: as it is written, and with the player's own house put on the throne in the first year, to see how long a ruler who
+    /// does nothing lasts.</summary>
+    public static int Throne(Options o)
+    {
+        var (content, scenarios) = Load(o); int seeds = Math.Max(1, Math.Min(o.Seeds, 10));
+        foreach (var sid in scenarios)
+            foreach (bool crowned in new[] { false, true })
+            {
+                var why = new Dictionary<string, int>(); var gates = new Dictionary<string, int>(); int runs = 0, risen = 0, won = 0, broken = 0, changed = 0, runsChanged = 0, weak = 0, years = 0, holdSum = 0, castDown = 0, standing = 0, lineEnded = 0; var reigns = new List<int>(); var falls = new List<string>(); bool skipped = false;
+                for (ulong seed = 1; seed <= (ulong)seeds; seed++)
+                {
+                    var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), sid), seed); if (!w.IsImperium) { skipped = true; break; }
+                    var tc = new TurnController(w, content); bool done = false; int began = 0; string first = "";
+                    for (int t = 0; t < 70 && w.Turn < 60 && !w.IsDynastyDead; t++)
+                    {
+                        PassiveTurn(tc);
+                        if (!w.InAcademy && !done)
+                        {
+                            done = true; began = w.Turn;
+                            if (crowned && w.Protagonist is { } me) ThroneSystem.Enthrone(w, me.HouseId, seized: false, me.Id);
+                            first = ThroneSystem.Emperor(w)?.Id ?? "";
+                        }
+                        tc.EndTurn();
+                    }
+                    runs++; risen += w.Counter(ThroneSystem.RisenKey); won += w.Counter(ThroneSystem.WonKey); broken += w.Counter(ThroneSystem.BrokenKey);
+                    int taken = w.Counter("thrones_taken") - (crowned ? 1 : 0); changed += taken; if (taken > 0) runsChanged++;
+                    weak += w.Counter(ThroneSystem.WeakTotalKey); years += w.Counter(ThroneSystem.HoldYearsKey); holdSum += w.Counter(ThroneSystem.HoldSumKey);
+                    if (w.Rising != null) standing++; if (w.IsDynastyDead) lineEnded++;
+                    foreach (var k in new[] { "terms", "war", "spent", "years", "other" }) why[k] = why.GetValueOrDefault(k) + w.Counter("pretender_broken_by:" + k);
+                    if (w.Rising is { } still && ThroneSystem.SeizeRefusal(w, still.HouseId, content.Titles) is { } gate) { string g = gate.Contains("outnumber") ? "outnumbered" : gate.Contains("winning") ? "not winning the war" : gate.Contains("orbit") ? "no fleet at the capital" : gate; gates[g] = gates.GetValueOrDefault(g) + 1; }
+                    if (crowned && ThroneSystem.Emperor(w)?.Id != first) { castDown++; var fall = w.History.FirstOrDefault(h => h.Text.Contains("SEIZES THE THRONE")); if (fall != null) { reigns.Add(fall.Turn - began); falls.Add($"y{fall.Turn}"); } }
+                }
+                if (skipped) { if (!crowned) Console.WriteLine($"== {sid}: skipped. This probe follows a throne, and this start opens under the Republic."); continue; }
+                Console.WriteLine($"== {sid}{(crowned ? ", the player crowned in the first year" : "")}: the hold averaged {(years > 0 ? holdSum / years : 0)} · shaken or worse in {(years > 0 ? 100 * weak / years : 0)}% of years · pretenders risen {risen}, took the throne {won}, broken {broken}, still in the field {standing} (the war went against it {why.GetValueOrDefault("war")}, fleet spent {why.GetValueOrDefault("spent")}, eight years {why.GetValueOrDefault("years")}, came to terms {why.GetValueOrDefault("terms")}, nobody left {why.GetValueOrDefault("other")}){(gates.Count > 0 ? "; those in the field lack: " + string.Join(", ", gates.Select(g => $"{g.Key} {g.Value}")) : "")} · the throne changed houses {changed} times, in {runsChanged} of {runs} runs"
+                    + (crowned ? $" · the player was cast down in {castDown} of {runs}{(falls.Count > 0 ? $" ({string.Join(", ", falls)}; after {reigns.Min()} to {reigns.Max()} years)" : "")}" : "") + $" · lines ended {lineEnded}");
+            }
+        return 0;
+    }
+
     /// <summary>caesar: over --seeds runs of sixty years with a passive player, how far the generals of the Reach get on the Caesar
     /// road (docs/CAESAR.md): battles won, the most victories and sway any one of them reached, triumphs, recalls, civil wars
     /// and how they ended.</summary>

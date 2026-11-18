@@ -50,3 +50,30 @@ public sealed class SeizeThroneCommand : ICommand
         _friction.Apply(ctx.World, actor, "conquest");
     }
 }
+
+/// <summary>A rising against the throne (docs/THRONE.md): raise your own standard (3 Influence), or take a side in another house's:
+/// go over to the pretender, or stand by the throne.</summary>
+public sealed class ThroneCommand : ICommand
+{
+    public const string Raise = "raise", Pretender = "pretender", Throne = "throne";
+    private static readonly Dictionary<string, int> CostMap = new() { [Pool.Influence] = 3 };
+    private readonly string _what; private readonly TitleCatalog _titles; private readonly FleetSystem _fleets;
+    public ThroneCommand(string actorId, string what, TitleCatalog titles, FleetSystem fleets) { ActorId = actorId; _what = what; _titles = titles; _fleets = fleets; }
+    public string ActorId { get; }
+    public string Describe() => _what == Raise ? "raise a standard against the throne" : _what == Pretender ? "go over to the pretender" : "stand by the throne";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor?.Alive == true ? w.House(actor.HouseId) : null;
+        if (house == null) return "no actor";
+        if (actor!.Id != w.ProtagonistId && Economy.HeadOf(w, house)?.Id != actor.Id) return "the head of the house decides this";
+        if (_what == Raise) return ThroneSystem.RiseRefusal(w, house, _titles) ?? (ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "not enough influence");
+        return ThroneSystem.BackRefusal(w, house, _what);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!;
+        if (_what == Raise) { ctx.PoolsOf(ActorId).Spend(CostMap); ThroneSystem.Rise(w, house, _fleets); }
+        else ThroneSystem.Back(w, house, _what, _fleets);
+    }
+}

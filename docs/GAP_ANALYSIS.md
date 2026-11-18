@@ -2197,3 +2197,58 @@ The fourth thing the owner said yes to is several cycles, so it is planned befor
 stages: the hold on a throne and a pretender who acts when it is weak; a succession that can be contested; the Guard;
 and what a fallen emperor can do. Five assumptions are written down to be corrected, the first of them that a player's
 throne can be lost to another house's doing and not only to the player's own mistakes. Nothing is built.
+
+## 74. A throne that can be lost, stage 1; and the powers beyond the Reach, planned — 2026-11-18
+
+**The owner's word.** The assumption stage 1 rests on "makes sense": a player's throne can be lost to another house's
+doing, and losing it does not end the game. And: "let's work on the off-map stuff as well; at least a good plan."
+
+**Built: the hold, and a pretender** (docs/THRONE.md, "Stage 1 as built"; R5a closed, R5 keeps stages 2 to 4).
+
+**Found while building.**
+- A house on the throne that lost its last world became landless and the throne stood empty for good. It was not
+  reachable before, because nobody attacked a throne. Whoever takes that world now takes the throne, and an empty
+  throne is filled.
+- The epilogue was written whenever any house took a throne, in words that say the player did it.
+- A rising's war was ended by the ordinary peace-making within a few years, eight times in fourteen. A war for the
+  throne is no longer ended by treaty.
+- A house with a claim but below ducal rank could rise and could never win: a seizure asked for a duke. A claim will
+  do now.
+- A seizure asked the taker to outnumber every house in the Reach by a quarter. Against a throne it asks now that the
+  throne's own fleet be outmatched.
+
+**Measured.** `praetoria throne`, 10 games of 60 years for each start under a throne, each played as written and with
+the player's house crowned in the first year:
+
+| | As written (20 games) | A knight's house crowned (20 games) |
+|---|---|---|
+| The hold, on average | 59 to 62 | 27 to 34 |
+| Shaken or worse | 26 to 33% of years | 61 to 76% of years |
+| Pretenders risen | 32 | 86 |
+| Took the throne | 3, in 3 games | 15 |
+| Broken | 21 (14 by the eight years) | 46 (39 by the eight years) |
+| The player cast down | | 20 of 20, after 5 to 12 years |
+
+Most pretenders fail by running out of years without winning the war by five. Under the Republic nothing moved: the
+probe's sixty games give the same figures as before to the unit (the Republic stood in all 60; 146 debts of blood;
+emergency powers voted 53 times). The soak (33 runs, a save and load in each) passes with no drift: 11 pretenders, 1
+throne taken, 8 broken; two lines ended (2); 307 of 409 events fired (300 of 403) and 71 kinds of command landed (71).
+Survival: 1 line of 80, the same one as before.
+
+**Not seen in play.** Three of the six events need the player on a throne, which the soak's player never is: the hold
+shaken, a standard against you, cast down. All three are proved by tests, as is the whole fall of a player's throne.
+
+**Seen in the browser** (`tools/browser/throne.js`). On The Imperial Court the Senate screen's tile read "The throne
+100 · firm, the hold of House Aurelian", and the throne's block listed what the hold is made of (standing +22, 30 in
+a hundred of the hulls +8, the capital +10, twenty years +10) with the three buttons greyed and their reasons: a
+duke at least or a house with a claim. Nobody raised a standard in the 30 years of that game.
+
+778 tests (eight new).
+
+**Planned: the powers beyond the Reach** (docs/BEYOND.md). Five stages: a door on the rim, named rulers and
+commanders and a probe line, on the map as it is; their fleets on the map; their side of the border; provinces; their
+politics. Four questions are the owner's before the second stage. Nothing is built.
+
+**Left, and mapped.** Sides in a rising are taken by regard and blood only, and houses that go over fight their own
+wars and not one campaign. A succession is not contested, there is no guard, and a fallen emperor has nowhere to go
+(R5, stages 2 to 4).

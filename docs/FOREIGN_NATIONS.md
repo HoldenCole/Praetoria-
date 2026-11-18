@@ -3,7 +3,8 @@
 Owner's direction (2026-11-09): the playable Reach is one nation. **Other nations** exist beyond it and serve as the
 **targets of wars** — in the LOTGH mould, where after the Imperium one strong nation fights on, and in the Roman mould,
 where a republic of many parties conquers many nations, large and small. **For now they are not on the map.** A later
-expansion puts them there: conquest, contested border regions, new holdings to take.
+expansion puts them there: conquest, contested border regions, new holdings to take. That expansion is planned in
+five stages in docs/BEYOND.md (2026-11-18).
 
 ## Off-map first (what this means for the engine)
 - A `Nation` catalogue (`content/nations/*.json`): name, culture, strength (an abstract fleet count that drifts),

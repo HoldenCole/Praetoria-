@@ -11,7 +11,7 @@ namespace Praetoria.Core.Systems;
 /// new Emperor, the galaxy's fear peaks, and the <c>imperium_proclaimed</c> / <c>throne_seized</c> flags fire the
 /// proclamation set-piece. A seized throne keeps the house's legitimacy where it was: the §13 powder keg.
 /// </summary>
-public static class ThroneSystem
+public static partial class ThroneSystem
 {
     public const string ProclaimedFlag = "imperium_proclaimed";
     public const string SeizedFlag = "throne_seized";
@@ -53,11 +53,17 @@ public static class ThroneSystem
         var h = w.House(houseId);
         if (h == null) return "no house";
         if (h.Title == Title.Emperor) return "you already hold the throne";
-        if (titles.RankOf(h.Title) < titles.RankOf(Title.Duke)) return $"a {Title.StyleOf(Title.Duke, w.Era)} at least must stand behind the fleet";
+        if (titles.RankOf(h.Title) < titles.RankOf(Title.Duke) && !h.Claims.Contains(Title.Emperor)) return $"a {Title.StyleOf(Title.Duke, w.Era)} at least must stand behind the fleet, or a house with a claim";
         int mine = FleetSystem.StrengthOf(w, houseId);
         int strongestRival = w.Houses.Values.Where(x => x.Id != houseId).Select(x => FleetSystem.StrengthOf(w, x.Id)).DefaultIfEmpty(0).Max();
-        if (mine == 0 || mine < (int)Math.Ceiling(strongestRival * 1.25)) return "your fleet must outnumber every rival's by a quarter";
         var emperor = Emperor(w);
+        // against a throne it is the throne's own fleet that must be outmatched: by a quarter while its hold is good, and at all once it is shaken (docs/THRONE.md)
+        if (emperor != null)
+        {
+            int theirs = FleetSystem.StrengthOf(w, emperor.Id); bool shaken = Hold(w) < ShakenAt;
+            if (mine == 0 || mine < (shaken ? theirs + 1 : (int)Math.Ceiling(theirs * 1.25))) return shaken ? $"your fleet must outnumber {emperor.Name}'s" : $"your fleet must outnumber {emperor.Name}'s by a quarter";
+        }
+        else if (mine == 0 || mine < (int)Math.Ceiling(strongestRival * 1.25)) return "your fleet must outnumber every rival's by a quarter";
         if (emperor != null)
         {
             var war = w.Wars.FirstOrDefault(x => x.Between(houseId, emperor.Id));
@@ -74,13 +80,14 @@ public static class ThroneSystem
         var former = Emperor(w);
         if (former != null && former.Id != houseId)
         {
-            former.Title = Title.Archduke;
+            former.Title = Title.Archduke; former.Claims.Add(Title.Emperor);   // cast down a rung, and with a claim to what was taken (docs/THRONE.md)
+            if (former.Id == w.Protagonist?.HouseId) Mark(w, CastDownFlag);
             string by = Economy.HeadOf(w, h)?.Id ?? w.ProtagonistId;
             foreach (var c in w.LivingCharacters().Where(c => c.HouseId == former.Id)) { c.Flags.Add(DeposedFlag); if (c.Id != by) w.Relationship(c.Id, by).Disposition = -100; }
             w.Wars.RemoveAll(x => x.Between(houseId, former.Id));
             FleetSystem.RefreshWarFlags(w);
         }
-        h.Title = Title.Emperor; w.WorldCounters[SinceKey] = w.Turn;
+        h.Title = Title.Emperor; w.WorldCounters[SinceKey] = w.Turn; w.WorldCounters[HowKey] = seized ? 1 : 0; w.WorldCounters.Remove(WeakYearsKey);
         h.Claims.Remove(Title.Emperor);
         bool flipped = w.Era != "imperium";
         w.Era = "imperium";

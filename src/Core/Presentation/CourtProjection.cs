@@ -377,7 +377,8 @@ public static class CourtProjection
 
         var sieges = w.Sieges.Values.OrderBy(s => s.HoldingId, StringComparer.Ordinal)
             .Select(s => new SiegeLine(w.Holding(s.HoldingId)?.Name ?? s.HoldingId, w.House(s.BesiegerId)?.Name ?? s.BesiegerId, s.Turns, s.Required, w.Holding(s.HoldingId)?.OwnerId == house.Id)).ToList();
-        string? epilogue = w.IsDynastyDead || w.HasFlag(ThroneSystem.ProclaimedFlag) || w.HasFlag(ThroneSystem.SeizedFlag) ? Epilogue.Generate(w, content) : null;
+        // the story is told when the line ends, or while the player's own house sits a throne it took: not because some other house took one (docs/THRONE.md)
+        string? epilogue = w.IsDynastyDead || (w.HasFlag(ThroneSystem.ProclaimedFlag) || w.HasFlag(ThroneSystem.SeizedFlag)) && ThroneSystem.Emperor(w)?.Id == house.Id ? Epilogue.Generate(w, content) : null;
         var advisors = AdvisorReports.Build(w, content);
         GreatCrisisCard? great = null;
         if (content.GreatCrisis is { } gc)

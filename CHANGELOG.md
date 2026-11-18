@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **A throne that can be lost, stage 1** (docs/THRONE.md; docs/GAPS.md R5). Whoever sits a throne has a hold on it,
+  out of 100, made of things you can see: standing, hulls, the capital, years, how it was taken. Two years of a
+  failing hold and a house of rank raises a standard: a war for the throne that no treaty ends. The other houses
+  go over, stand by the throne or stand aside, and you are asked. The pretender takes the throne on the terms of
+  a seizure, or is broken. The house cast down drops a rung, keeps a claim, and plays on. This applies to you if
+  you are the one on it. You may raise your own standard. The Senate screen shows the hold and the rising.
 - **Emergency powers** (docs/EMERGENCY.md; docs/GAPS.md R8). When the Reach is in danger (the great war, a civil
   war, a state broken away and unrecognised, a war beyond the borders) the Senate may vote a sitting consul its
   emergency powers for three years: the other consul's veto is set aside, the holder may strike a motion every
@@ -26,6 +32,9 @@
   it, and six later events recall it. The life panel shows it.
 
 ### Changed
+- **Seizing a throne asks you to outmatch the throne's own fleet**, by a quarter while its hold is good and at all
+  once it is shaken. It used to ask you to outnumber every house in the Reach. A claim will do in place of ducal
+  rank.
 - **Other houses use the knife on each other.** A cruel, ruthless or vengeful head who cannot abide another
   house's head now and then sends a hired hand at its ablest adult: never its head, never its last adult, never
   your house, and no more than once in twenty years. Until now no house but yours ever killed outside a war.
@@ -36,6 +45,8 @@
   captain about one year in three; a careless one never leads.
 
 ### Added (docs)
+- **The powers beyond the Reach, on the map: the plan** (docs/BEYOND.md; docs/GAPS.md R10). Five stages, from a
+  door on the rim and named commanders to provinces and foreign courts, with four questions for the owner.
 - **A throne that can be lost: the plan** (docs/THRONE.md; docs/GAPS.md R5). Four stages, what each rests on, and
   the five things assumed.
 - **Playing a known story** (docs/ROLEPLAY.md). Darrow, Reinhard von Lohengramm, Yang Wen-li, Nero, Palpatine and
@@ -44,12 +55,17 @@
   gaps mapped from it (docs/GAPS.md, R1 to R18).
 
 ### Added (tools)
+- `praetoria throne` plays each start that opens under a throne twice, as written and with the player's house
+  crowned in the first year, and says how the hold fared and how pretenders did.
 - **Players with an end in view** (docs/QA.md; docs/GAPS.md Q2). `praetoria roads` plays a general, a seceder and a
   courtier, each taking the steps of its road in order, and reports how far each got and what refused it, in the
   game's own words. The soak now plays each once per start and counts their coverage with its random player's, and a
   short run is a step in CI.
 
 ### Fixed
+- **A throne no longer stands empty.** A house on the throne that lost its last world became landless and nobody
+  took its place. Whoever takes that world has now taken the throne.
+- **The epilogue is the player's own.** It was written whenever any house took a throne, as if you had.
 - **The throne is not a rung of the title ladder** (docs/ROLEPLAY.md). Seizing, petitioning for or claiming a title
   could carry a house from archduke to emperor in a Republic that went on as before: no proclamation, nobody
   deposed. The ladder now stops below the throne, which is taken by proclamation or by a fleet over the capital.

@@ -16,10 +16,10 @@ The owner's answers of 2026-11-17 are at the foot of the page.
 | Story | Yes | Partly | No | Where it stops |
 |---|---|---|---|---|
 | Darrow (Red Rising) | 2 | 4 | 4 | After the Institute. No false identity, no service in a greater house, no rising |
-| Reinhard von Lohengramm | 1 | 7 | 3 | At the first command. Under a throne nobody is given a fleet |
+| Reinhard von Lohengramm | 1 | 8 | 2 | At the first command. Under a throne nobody is given a fleet |
 | Yang Wen-li | 0 | 2 | 0 | Close. The recall and the choice to obey are built; the Empire he defends against is not |
 | Nero au Augustus | 3 | 6 | 2 | At the bargain. You cannot put someone else on a throne, or be paid for it |
-| Being emperor (the Roman Nero) | 0 | 7 | 4 | On the throne. An emperor has three acts and cannot fall |
+| Being emperor (the Roman Nero) | 0 | 8 | 3 | On the throne. An emperor has three acts of his own, though he can now fall |
 | Palpatine | 3 | 2 | 2 | After the powers for life. No hidden hand, and nothing to rule with |
 | Paul Atreides | 0 | 5 | 1 | After the fall. A landless heir has no road back |
 
@@ -102,7 +102,7 @@ Nearest starts: `the_imperial_court` for Reinhard, `the_risen_officer` or `the_n
 | Rises by winning battles | Partly | Stance, loadout and doctrine are set and the battle resolves. Under a throne there is no state command to be given (R1) |
 | Gathers a circle of admirals | Partly | The household holds two plus your rank. One fleet to a system |
 | Raised in title and takes a new name | Partly | A title by petition. A house cannot be renamed in play (R14) |
-| The emperor dies and the succession is fought over | No | The heir inherits, uncontested (R5) |
+| The emperor dies and the succession is fought over | Partly | A weak throne brings a pretender and a war for it (docs/THRONE.md, stage 1). A death does not yet bring one by itself: that is stage 2 (R5) |
 | Regent for a child emperor, then takes the throne | Partly | The throne can be seized. You cannot be regent over someone else's (R7) |
 | Reforms the state | Partly | One law is the emperor's to set (R6) |
 | Conquers the rival state | No | Foreign powers are numbers, not places (R10) |
@@ -125,8 +125,8 @@ free mode who holds the capital and proclaims in about the second year.
 | The fire, and a palace on the ruins | Partly | Megastructures only |
 | Treason trials and confiscations | Partly | An edict proscribes and shares can be seized. No trial, no world confiscated, and nobody conspires against you (C4, R6) |
 | Debases the coinage | No | (R6) |
-| The provinces revolt and he is declared an enemy | Partly | Worlds revolt and regions break away. Nobody can take the throne from the player (R5, Q1) |
-| Flight, death, and a year of pretenders | No | The heir inherits. The `deposed` flag is read by nothing (R5) |
+| The provinces revolt and he is declared an enemy | Partly | Worlds revolt, regions break away, and a house of rank now raises a standard when the hold fails (docs/THRONE.md). No Senate or guard declares him anything (R5) |
+| Flight, death, and a year of pretenders | Partly | A player cast down plays on with a claim, and a throne taken by force is weak in its turn. Nowhere to flee to, and no succession fought over (R5, stages 2 and 4) |
 | The year's work of ruling | Partly | Three acts of his own: set the Imperial Edict, grant a monopoly, proscribe a house's shares |
 
 ## Palpatine
@@ -181,7 +181,10 @@ wait on the rule that none is begun until the worklist is short: a rival state o
   (docs/ACADEMY.md, "What is remembered").
 - **The blood feud (R4):** yes. Built the same day (docs/FEUD.md), with duels.
 - **Emergency powers (R8):** yes. Built the same day (docs/EMERGENCY.md).
-- **A throne that can be lost (R5):** yes. Planned in four stages (docs/THRONE.md); not begun.
+- **A throne that can be lost (R5):** yes. Planned in four stages (docs/THRONE.md). Stage 1, the hold and a
+  pretender, was built on 2026-11-18 after the owner confirmed what it rests on.
 - **More to do as emperor and as the heir (R6, R7):** yes, as a later expansion.
 - **A faith and castes (R13):** not for now.
-- Not yet answered: a throne put down for a Republic (R9), and a rival state on the map (R10).
+- **The powers beyond the Reach (R10):** on 2026-11-18, "let's work on the off-map stuff as well; at least a good
+  plan for it". Planned in five stages (docs/BEYOND.md), with four questions for the owner.
+- Not yet answered: a throne put down for a Republic (R9).

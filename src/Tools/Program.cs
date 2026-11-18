@@ -12,6 +12,7 @@ using Praetoria.Tools;
 //   roads     [--scenario id|all] [--seeds N] [--turns N]        three players with an end in view: how far each gets, what refuses them
 //   perf      [--scenario id|all] [--turns N]                    where a turn's milliseconds go
 //   caesar    [--scenario id|all] [--seeds N]                    how far generals get on the Caesar road in sixty years
+//   throne    [--scenario id|all] [--seeds N]                    how a throne is held: the hold, pretenders, and how often it changes houses
 //   survive   [--scenario id|all] [--seeds N]                    how often a passive player's line ends, and when it weds
 //   balance   [--scenario id|all] [--seeds N]                    prices, production, the Exchange and the orders after sixty years
 // The whole simulation runs here without Godot — the Milestone-1 rule.
@@ -43,6 +44,7 @@ try
         "survive"  => Probes.Survive(opts),
         "balance"  => Probes.Balance(opts),
         "caesar"   => Probes.Caesar(opts),
+        "throne"   => Probes.Throne(opts),
         _ => Unknown(command)
     };
 }
