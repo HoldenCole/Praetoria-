@@ -49,7 +49,7 @@ internal static class Qa
                     var (worldA, histA) = Soak(contentRoot, content, sid, (ulong)seed, turns, o, fired, taken, tokens, oddities, label);
                     foreach (var f in worldA.WorldFlags) flagsSeen.Add(f);
                     flagsSeen.UnionWith(FlagsEveryTurn);
-                    if (worldA.IsDynastyDead) deaths.Add($"{label} (turn {worldA.Turn})");
+                    if (worldA.IsDynastyDead) deaths.Add($"{label} (turn {worldA.Turn}): {WhyItEnded(worldA)}");
 
                     // Determinism: the same seed and the same player decisions must reproduce the chronicle byte for byte.
                     var (worldB, histB) = Soak(contentRoot, content, sid, (ulong)seed, turns, o, null, null, null, null, label);
@@ -103,7 +103,7 @@ internal static class Qa
 
         Console.WriteLine($"The Caesar road over {runs} runs: {string.Join(" · ", CaesarKeys.Select(k => $"{k.Replace('_', ' ')} {caesar.GetValueOrDefault(k)}"))}{(fell.Count > 0 ? " · fell in: " + string.Join(", ", fell) : "")}");
         Console.WriteLine($"Runs: {runs} · dynasties ended: {deaths.Count} · events fired: {fired.Values.Sum()} ({fired.Count}/{content.Events.Count} distinct)");
-        if (deaths.Count > 0) Console.WriteLine("  ended: " + string.Join(", ", deaths));
+        if (deaths.Count > 0) Console.WriteLine("  ended:\n    " + string.Join("\n    ", deaths));
         if (roadLines.Count > 0)
         {
             Console.WriteLine($"Players with an end in view (how many games reached each step). The random player alone fired {randomEvents} events and landed {randomCommands} kinds of command; with these, {fired.Count} and {taken.Keys.Count(k => k.StartsWith("cmd/", StringComparison.Ordinal))}.");
@@ -139,6 +139,16 @@ internal static class Qa
 
     /// <summary>A save with every string set sorted: flag sets are HashSets, whose slot order legitimately changes when a flag is
     /// removed and re-added after a reload, and nothing in the engine reads them in order.</summary>
+    /// <summary>Why a line ended, as far as the chronicle says: the last deaths in the player's house, newest last (docs/GAPS.md Q3).</summary>
+    internal static string WhyItEnded(World w)
+    {
+        var p = w.Protagonist; if (p == null) return "no one left";
+        string family = p.Name.Contains(' ') ? p.Name[(p.Name.LastIndexOf(' ') + 1)..] : p.Name;
+        string[] ends = { " dies at ", " is killed", " is executed", " is slain", " does not come back" };
+        var last = w.History.Where(l => l.Text.Contains(family) && ends.Any(e => l.Text.Contains(e))).TakeLast(3).Select(l => $"T{l.Turn} {(l.Text.Length > 110 ? l.Text[..110] + "…" : l.Text)}").ToList();
+        return last.Count == 0 ? "the chronicle does not say" : string.Join(" | ", last);
+    }
+
     internal static string Canonical(World world)
     {
         var node = System.Text.Json.Nodes.JsonNode.Parse(SaveSystem.Serialize(world))!;
@@ -602,6 +612,38 @@ internal static class Qa
             if (!world.Houses.ContainsKey(w.HouseA) || !world.Houses.ContainsKey(w.HouseB)) oddities.Add($"{label} t{world.Turn}: war between missing houses {w.HouseA}/{w.HouseB}");
         var p = world.Protagonist;
         if (p != null && !p.Alive && !world.IsDynastyDead) oddities.Add($"{label} t{world.Turn}: protagonist {p.Name} is dead but the dynasty lives");
+    }
+
+    /// <summary>`praetoria drift --scenario id --seed N --turns T`: plays one game straight through and once more saved and resumed at the
+    /// half-way point, and reports the first year the two differ, with what differs. For finding state that is not saved, or a rule
+    /// whose outcome depends on the order things happen to sit in memory.</summary>
+    public static int Drift(Options o)
+    {
+        string root = ContentLocator.FindContentDir(); var content = ContentLoader.LoadFromDirectory(root); string sid = o.Scenario; ulong seed = o.Seed; int turns = Math.Max(4, o.Turns), half = turns / 2;
+        World Fresh() { var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, sid), seed); w.Difficulty = o.Difficulty; w.CrisisIntensity = o.Intensity; w.FamilyAutonomy = o.Autonomy; return w; }
+        var straight = new List<(string state, string news)>(); var resumed = new List<(string state, string news)>();
+        string News(World w) => string.Join("\n        ", w.History.Where(l => l.Turn >= w.Turn - 1).Select(l => $"T{l.Turn}: {(l.Text.Length > 200 ? l.Text[..200] : l.Text)}").TakeLast(40));
+        {
+            var w = Fresh(); var tc = new TurnController(w, content); var decisions = new SplitMix64Rng(seed * 7919 + 17);
+            for (int t = 0; t < turns && !w.IsDynastyDead; t++) { PlayTurn(tc, w, content, decisions, null, null, null, ""); straight.Add((Canonical(w), News(w))); }
+        }
+        {
+            var w = Fresh(); var tc = new TurnController(w, content); var decisions = new SplitMix64Rng(seed * 7919 + 17); int t = 0;
+            for (; t < half && !w.IsDynastyDead; t++) { PlayTurn(tc, w, content, decisions, null, null, null, ""); resumed.Add((Canonical(w), News(w))); }
+            tc.SyncRng(); var back = SaveSystem.Deserialize(SaveSystem.Serialize(w)); var tc2 = new TurnController(back, content);
+            Console.WriteLine($"saved after year {t}; the saved world reads the same as the one it was saved from: {Canonical(back) == Canonical(w)}");
+            for (; t < turns && !back.IsDynastyDead; t++) { PlayTurn(tc2, back, content, decisions, null, null, null, ""); resumed.Add((Canonical(back), News(back))); }
+        }
+        for (int i = 0; i < Math.Min(straight.Count, resumed.Count); i++)
+        {
+            if (straight[i].state == resumed[i].state) continue;
+            Console.WriteLine($"first difference after year {i + 1} (saved after {half}):");
+            string a = straight[i].state, b = resumed[i].state; int at = 0; while (at < a.Length && at < b.Length && a[at] == b[at]) at++;
+            int from = Math.Max(0, at - 700); Console.WriteLine("  straight: …" + a.Substring(from, Math.Min(1000, a.Length - from))); Console.WriteLine("  resumed:  …" + b.Substring(from, Math.Min(1000, b.Length - from)));
+            Console.WriteLine("  the year's news, straight:\n        " + straight[i].news); Console.WriteLine("  the year's news, resumed:\n        " + resumed[i].news);
+            return 1;
+        }
+        Console.WriteLine($"no difference in {Math.Min(straight.Count, resumed.Count)} years."); return 0;
     }
 
     private static World SoakWithRoundTrip(string contentRoot, ContentDatabase content, string sid, ulong seed, int turns, Options o)

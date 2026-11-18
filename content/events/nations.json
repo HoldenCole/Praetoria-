@@ -897,6 +897,14 @@
           "type": "worldFlag",
           "flag": "nation_host_sails",
           "value": true
+        },
+        {
+          "type": "not",
+          "of": {
+            "type": "worldFlag",
+            "flag": "nation_host_sails:concord",
+            "value": true
+          }
         }
       ],
       "choices": [
@@ -1728,6 +1736,167 @@
             {
               "type": "log",
               "text": "The Senate had voted a war on the Free Cities and nobody had fought it. The Cities paid to be rid of it. {self.name} said in the Senate that a Reach which votes a war and then sells it has taught its neighbours what its wars are worth."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_concord_crosses_the_gate",
+      "tier": "setpiece",
+      "weight": 80,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_strikes:concord",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_the_houses_to_the_east",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The Ardent Concord made war on the Reach while the Reach was fighting itself. {self.name} stood in the Senate and said that whatever the houses owed each other could wait; what they owed the Valmont Anvils could not. Some of them listened."
+            }
+          ]
+        },
+        {
+          "id": "say_it_was_always_coming",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "The Ardent Concord made war on the Reach while the Reach was fighting itself. {self.name} had said for years that a council of admirals does not keep a fleet that size to look at, and took no pleasure in having been right."
+            }
+          ]
+        },
+        {
+          "id": "look_to_our_own_quarrel",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The Ardent Concord made war on the Reach while the Reach was fighting itself. {self.name} had a quarrel nearer home, and left the east to the houses that live there."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_concord_comes_back",
+      "tier": "setpiece",
+      "weight": 80,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_comes_back:concord",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_hold_what_was_won",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Ardent Concord made war to take back a world it had lost. {self.name} said in the Senate that a world taken from the Concord was the only argument the Concord had ever answered, and that it should be held."
+            }
+          ]
+        },
+        {
+          "id": "say_it_was_never_worth_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Ardent Concord made war to take back a world it had lost. {self.name} said the house that took it had bought the whole Reach a war for one forge-world, and asked who had been consulted."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "two_fleets_through_the_marches",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_host_sails:concord",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "send_what_is_known",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Concord's divisions were through the Gate. They do not go home with one world: they stay, and take the next. {self.name} sent every house east of the core what was known of their numbers and their roads."
+            }
+          ]
+        },
+        {
+          "id": "keep_our_fleet_where_it_is",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The Concord's divisions were through the Gate. {self.name} kept the house's fleet where it was. A fleet that goes east alone meets two divisions, one after the other."
             }
           ]
         }

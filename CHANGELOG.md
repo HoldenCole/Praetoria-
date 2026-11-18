@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **The Ardent Concord is on the map** (docs/BEYOND.md; docs/GAPS.md R10). East of the Valmont Anvils and Ironhold
+  lies the Ardent Gate, the only way in, and behind it the Brandt Yards, the Marrek Foundries and Concordia, where
+  the First Admiral sits. It is the strong neighbour: 26 hulls, a home fleet and two divisions. It begins wars
+  itself: when the Reach is divided by the great war, a civil war, a state in arms against it or a standard raised
+  against a throne; or to take back a world of its own that a house of the Reach holds. Its two divisions come
+  through its two marches and fight a campaign: each takes a world, slowly, and then the next. A war it began is
+  every house's to answer. What it takes it keeps until it is beaten, and its own worlds do not rise: it comes back
+  for them. Three new reports, and its card on the Military screen says what it is.
 - **The Free Cities of Thessar are on the map** (docs/BEYOND.md; docs/GAPS.md R10). South-east of Wintermoor and
   Brackwater lies the Thessaran Shore: Port Meront, Pellas, and Thessar, where the Speaker of the Cities sits. They
   are a different neighbour from the Khanates: they would rather buy than fight. Their squadron stays at home
@@ -58,6 +66,14 @@
   it, and six later events recall it. The life panel shows it.
 
 ### Changed
+- **The soak says why a line ended**: the last deaths in the player's house, for each game that ended.
+- **A saved game resumes the same when a house is made after the save.** The houses declared their votes in the
+  order they happened to be held in memory, and a house leans with its bench's leader when the leader's vote is
+  already cast. A house made after a save could vote before its leader in one game and after it in the same game
+  resumed. The leaders of the benches now declare first and the rest by name. Found by the soak when the Concord's
+  wars made more worlds change hands; `praetoria drift` is the tool that found the year and the vote.
+- **A ransom answer is read by the nation that offered it.** With more than one nation on the map, whichever was
+  reckoned first cleared your answer before the Free Cities saw it. Found when the third nation went on.
 - **Against a nation on the map, the other houses gather before they attack.** A defended world beyond the march
   is no longer attacked one squadron at a time: the fleets go to the nearest march, wait, and go in together when
   those standing there are a quarter more than what holds the world. Against the Khanates the Reach now wins 45 in

@@ -1,7 +1,16 @@
 {
   "//": "FOREIGN NATIONS (docs/FOREIGN_NATIONS.md; the owner's direction). The Reach is one nation; these are the others, beyond the rim and off the map for now: the targets of its wars, in the mould of LOTGH's one strong neighbour and Rome's many. Each has a strength (hulls the Reach's expeditions must beat), a temper (aggressive nations raid the rim when their regard falls; mercantile ones trade and forgive; decaying ones crumble), a wealth (plunder a victory brings home), a distance (turns an expedition sails before it fights), a disposition toward the Reach, what it holds that the Reach wants, and the tribute it pays when subdued. The Senate makes war by motion; houses send expeditions; score beyond `threshold` subdues the nation for twenty turns. `exports` are what a nation ships into the Reach's markets a turn while at peace and not hostile (docs/ECONOMY_MARKET.md): war or a regard of -30 closes its ports, and a subdued nation ships double.",
   "nations": [
-    { "id": "concord", "marches": ["valmont_anvils", "ironhold"], "depth": 2, "rulerTitle": "First Admiral", "commanderTitle": "Admiral", "names": ["Soren Halvard", "Ilse Marrek", "Tomas Brandt", "Katrin Voss", "Anders Kell", "Maren Stahl", "Viktor Lund", "Elsa Rhen", "Henrik Dahl", "Sigrid Ormann", "Lukas Varn", "Greta Holm"], "exports": { "materials": 4, "helium3": 2 }, "name": "The Ardent Concord", "culture": "concordant", "temper": "aggressive", "strength": 26, "regen": 2, "wealth": 6, "distance": 3, "disposition": -25, "tribute": 6, "threshold": 10,
+    { "id": "concord",
+      "house": { "name": "The Ardent Concord", "accent": "#D7263D", "title": "duke", "legitimacy": 70 },
+      "worlds": [
+        { "id": "concordia_seat", "system": "concordia", "name": "Concordia", "specialization": "fortress", "population": 56, "capital": true },
+        { "id": "brandt_yards", "system": "brandt", "name": "The Brandt Yards", "specialization": "forge_world", "population": 38 },
+        { "id": "marrek_foundries", "system": "marrek", "name": "The Marrek Foundries", "specialization": "forge_world", "population": 34 },
+        { "id": "ardent_gate_fortress", "system": "ardent_gate", "name": "The Gate Fortress", "specialization": "fortress", "population": 18 }
+      ],
+      "holdYears": 0, "hosts": 2, "strikes": true, "campaigns": true, "hostName": "The Concord Line", "guardName": "The Home Fleet of Concordia",
+      "marches": ["valmont_anvils", "ironhold"], "depth": 2, "rulerTitle": "First Admiral", "commanderTitle": "Admiral", "names": ["Soren Halvard", "Ilse Marrek", "Tomas Brandt", "Katrin Voss", "Anders Kell", "Maren Stahl", "Viktor Lund", "Elsa Rhen", "Henrik Dahl", "Sigrid Ormann", "Lukas Varn", "Greta Holm"], "exports": { "materials": 4, "helium3": 2 }, "name": "The Ardent Concord", "culture": "concordant", "temper": "aggressive", "strength": 26, "regen": 2, "wealth": 6, "distance": 3, "disposition": -25, "tribute": 6, "threshold": 10,
       "holds": "the Ardent gate and three forge-worlds",
       "description": "The one strong neighbour: a unified state under a council of admirals, with a fleet the size of half the Reach's and a habit of raiding the rim when the Reach looks divided. Beating it would make a general's name for a generation." },
     { "id": "thessar",

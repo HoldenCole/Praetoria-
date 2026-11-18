@@ -290,6 +290,34 @@
         "call_it_good_business": "Good business on both sides.",
         "call_it_a_war_unfought": "Say what a war voted and sold is worth."
       }
+    },
+    {
+      "id": "the_concord_crosses_the_gate",
+      "title": "The Concord Crosses the Gate",
+      "body": "The Ardent Concord has made war on the Reach. Nobody voted it: the Council of Admirals saw the Reach divided and gave the order. Every house is at war with it. Two divisions will come through the Valmont Anvils and Ironhold, and they will not go home with one world.",
+      "choices": {
+        "call_the_houses_to_the_east": "Say the houses' quarrels can wait.",
+        "say_it_was_always_coming": "It was always coming.",
+        "look_to_our_own_quarrel": "We have a quarrel nearer home."
+      }
+    },
+    {
+      "id": "the_concord_comes_back",
+      "title": "The Concord Comes Back for Its Own",
+      "body": "A house of the Reach holds a world that was the Concord's, and the Concord has made war to take it back. Its worlds do not rise of themselves as the Khanates' camps do. The Concord comes for them, with everything it has.",
+      "choices": {
+        "say_hold_what_was_won": "Say it should be held.",
+        "say_it_was_never_worth_it": "Ask who was consulted."
+      }
+    },
+    {
+      "id": "two_fleets_through_the_marches",
+      "title": "Two Fleets Through the Marches",
+      "body": "The Concord's divisions are through the Ardent Gate and into the Reach. They fight a campaign: each takes a world, slowly, and then the next, for as long as it is supplied and unbeaten. A division is driven home by beating it.",
+      "choices": {
+        "send_what_is_known": "Send the eastern houses what is known.",
+        "keep_our_fleet_where_it_is": "Keep our fleet where it is."
+      }
     }
   ]
 }

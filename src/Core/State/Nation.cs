@@ -34,6 +34,10 @@ public sealed class Nation
     public int Wealth { get; set; }
     /// <summary>How its fleets fight on the map, hull for hull, by its temper: a hundred is a fleet of the Reach's. 0 until it is first reckoned.</summary>
     public int Mettle { get; set; }
+    /// <summary>Whether the nation began the war now being fought (then every house defends, not only those that wanted a war).</summary>
+    public bool BeganIt { get; set; }
+    /// <summary>The year its last war ended; 0 if it has had none.</summary>
+    public int LastWarEnd { get; set; }
     /// <summary>The house that holds a nation's worlds on the map is named for it, so that anything walking the houses can tell at a
     /// glance, and without the world in hand, that it is not a house of the Reach.</summary>
     public const string HousePrefix = "nation_";

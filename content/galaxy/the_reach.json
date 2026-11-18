@@ -118,6 +118,13 @@
       "culture": "thessaran",
       "ring": "beyond",
       "description": "Beyond the Pale Reaches and not of the Reach: three sea-worlds and the cities on them, each with its own council, its own harbour and its own price for everything."
+    },
+    {
+      "id": "ardent_concord",
+      "name": "The Ardent Concord",
+      "culture": "concordant",
+      "ring": "beyond",
+      "description": "Beyond the Valmont Anvils and not of the Reach: a gate and three forge-worlds under one council of admirals. The only neighbour with a fleet to match the Reach's, and the only one that has ever thought of using it."
     }
   ],
   "systems": [
@@ -1172,6 +1179,104 @@
           "size": 2
         }
       ]
+    },
+    {
+      "id": "ardent_gate",
+      "name": "The Ardent Gate",
+      "x": 2705,
+      "y": 825,
+      "region": "ardent_concord",
+      "planet": "barren",
+      "description": "The one way in. A fortress-world a lane beyond the Valmont Anvils and Ironhold, and the anchorage where the Concord's fleets lie when they are not in the Reach.",
+      "bodies": [
+        {
+          "name": "The Ardent Gate",
+          "class": "barren",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "The Outer Battery",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "The Inner Battery",
+          "class": "barren",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "brandt",
+      "name": "Brandt",
+      "x": 2935,
+      "y": 690,
+      "region": "ardent_concord",
+      "planet": "forge",
+      "description": "Hull-yards from pole to pole. Every keel the Concord has laid in a century was laid here.",
+      "bodies": [
+        {
+          "name": "Brandt",
+          "class": "forge",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "The Slips",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "marrek",
+      "name": "Marrek",
+      "x": 2950,
+      "y": 965,
+      "region": "ardent_concord",
+      "planet": "forge",
+      "description": "Foundries and the mines that feed them. The Concord's admirals are drawn from its yards as often as from its academies.",
+      "bodies": [
+        {
+          "name": "Marrek",
+          "class": "forge",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Marrek Minor",
+          "class": "barren",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "concordia",
+      "name": "Concordia",
+      "x": 3175,
+      "y": 825,
+      "region": "ardent_concord",
+      "planet": "terran",
+      "description": "The seat of the Council of Admirals: one table, one vote each, and the First Admiral's chair at the head of it.",
+      "bodies": [
+        {
+          "name": "Concordia",
+          "class": "terran",
+          "size": 4,
+          "primary": true
+        },
+        {
+          "name": "The Roads",
+          "class": "gas",
+          "size": 2
+        },
+        {
+          "name": "Flagstaff",
+          "class": "barren",
+          "size": 1
+        }
+      ]
     }
   ],
   "lanes": [
@@ -1374,6 +1479,30 @@
     [
       "pellas",
       "thessar"
+    ],
+    [
+      "valmont_anvils",
+      "ardent_gate"
+    ],
+    [
+      "ironhold",
+      "ardent_gate"
+    ],
+    [
+      "ardent_gate",
+      "brandt"
+    ],
+    [
+      "ardent_gate",
+      "marrek"
+    ],
+    [
+      "brandt",
+      "concordia"
+    ],
+    [
+      "marrek",
+      "concordia"
     ]
   ]
 }

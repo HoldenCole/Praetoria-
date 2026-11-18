@@ -18,6 +18,10 @@
     "thessaran": {
       "male":   ["Lysander", "Nikanor", "Demos", "Philo", "Arist", "Stavro", "Kleon", "Theron", "Evander", "Milo", "Pelias", "Zenon"],
       "female": ["Thais", "Xanthe", "Ione", "Kleio", "Melita", "Dione", "Eirene", "Phaedra", "Kallista", "Myrto", "Lyra", "Agathe"]
+    },
+    "concordant": {
+      "male":   ["Soren", "Tomas", "Anders", "Viktor", "Henrik", "Lukas", "Emil", "Kaspar", "Rolf", "Stellan", "Jorn", "Axel"],
+      "female": ["Ilse", "Katrin", "Maren", "Elsa", "Sigrid", "Greta", "Astrid", "Liv", "Freya", "Ingrid", "Runa", "Solveig"]
     }
   }
 }

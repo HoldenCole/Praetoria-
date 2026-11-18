@@ -127,7 +127,7 @@ public sealed partial class NationSystem
     {
         var n = w.Nation(nationId); var d = catalog.Def(nationId); if (n == null || d == null || n.AtWar || n.Fallen || n.Subdued(w.Turn)) return;
         if (AtWar(w) != null) return;
-        n.AtWar = true; n.WarSince = w.Turn; n.ScoreReach = 0; n.ScoreNation = 0; n.LastBattleTurn = w.Turn; n.Wars += 1; n.Disposition = Math.Max(-100, n.Disposition - 20);
+        n.AtWar = true; n.BeganIt = false; n.WarSince = w.Turn; n.ScoreReach = 0; n.ScoreNation = 0; n.LastBattleTurn = w.Turn; n.Wars += 1; n.Disposition = Math.Max(-100, n.Disposition - 20);
         w.WorldCounters[WarsCounter] = w.Counter(WarsCounter) + 1;
         w.WorldFlags.Add("foreign_war"); w.WorldFlags.Add("foreign_war_declared"); w.WorldFlags.Add("foreign_war:" + nationId);
         w.Log($"The Reach is at war with {d.Name}, on the motion of {w.House(proposerHouseId)?.Name ?? proposerHouseId}. The fleets that sail against it must beat {n.Strength} hulls; a score of {SuesAt(n, d)} subdues it.");
@@ -152,8 +152,10 @@ public sealed partial class NationSystem
             foreach (var f in Expeditions(w, n.Id).ToList()) Sail(w, n, d, f, mine);
             ResolveWar(w, n, d, mine);
             Keep(w, n, d, afterTheWar: true);   // the peace may have moved its capital and its people
+            Strike(w, n, d);                       // a nation that begins wars may begin one (docs/BEYOND.md, the Ardent Concord)
             Tribute(w, n, d, mine);
         }
+        w.WorldFlags.Remove("ransom_answer_take"); w.WorldFlags.Remove("ransom_answer_keep");   // the player's answer to a ransom has been read by whichever nation offered it
         // standing flags
         foreach (var f in new[] { "foreign_war", "expedition_away", "nation_tributary" }) w.WorldFlags.Remove(f);
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("foreign_war:")).ToList()) w.WorldFlags.Remove(f);
@@ -416,7 +418,7 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
     /// <summary>The war is over, however it ended: the scores are struck and every expedition against the nation turns for home.</summary>
     private static void EndWar(World w, Nation n, NationDef d)
     {
-        n.AtWar = false; w.WorldCounters.Remove(UnpressedKey(n));
+        n.AtWar = false; n.BeganIt = false; n.LastWarEnd = w.Turn; w.WorldCounters.Remove(UnpressedKey(n));
         foreach (var h in w.Houses.Keys.ToList()) w.WorldCounters.Remove(WinsKey(h, n.Id));
         foreach (var f in Expeditions(w, n.Id).ToList()) GoHome(w, f, d, "is recalled: the war is over");
     }

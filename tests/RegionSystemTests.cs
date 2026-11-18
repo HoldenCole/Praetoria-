@@ -173,7 +173,7 @@ public class RegionSystemTests
         Assert.True(RegionSystem.StateOf(w, "ashen_verge").Lawlessness > RegionSystem.StateOf(w, "imperial_core").Lawlessness);
         Assert.True(RegionSystem.StateOf(w, "imperial_core").Allegiance > RegionSystem.StateOf(w, "pale_reaches").Allegiance);
         Assert.True(GalaxyProjection.Regions(w).All(r => r.Ring is Ring.Core or Ring.Middle or Ring.Rim or Ring.Beyond));
-        Assert.Equal(2, g.Regions.Count(r => r.Ring == Ring.Beyond)); Assert.Equal(10, g.ReachRegions.Count());   // the space of the Khanates and of the Free Cities is on the map and is not the Reach
+        Assert.Equal(3, g.Regions.Count(r => r.Ring == Ring.Beyond)); Assert.Equal(10, g.ReachRegions.Count());   // the space of the three nations on the map is not the Reach
         Assert.NotNull(GalaxyProjection.Rings(w));
     }
 

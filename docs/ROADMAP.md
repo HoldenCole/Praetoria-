@@ -15,11 +15,11 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 805 |
-| Events with text | 430 in 38 files |
-| Open gaps (docs/GAPS.md) | 88: 17 small, 59 a cycle, 12 several cycles (R10b and R10c closed; N1 to N12 mapped while putting the Khanates and the Free Cities on the map). Sixteen came from the full QA of 2026-11-16 (docs/QA.md) and twenty from playing known stories against the game on 2026-11-17 (docs/ROLEPLAY.md). 81 closed so far (`./tools/gaps.sh`) |
+| Automated tests | 811 |
+| Events with text | 433 in 38 files |
+| Open gaps (docs/GAPS.md) | 90: 19 small, 59 a cycle, 12 several cycles (R10b, R10c, R10d and Q13 closed; N1 to N15 mapped while putting three nations on the map). Sixteen came from the full QA of 2026-11-16 (docs/QA.md) and twenty from playing known stories against the game on 2026-11-17 (docs/ROLEPLAY.md). 83 closed so far (`./tools/gaps.sh`) |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
-| Galaxy | 37 systems, 50 lanes, 10 regions of the Reach and two beyond the rim (the Vashti Steppe, the Thessaran Shore), 31 standing houses and two nations on the map |
+| Galaxy | 41 systems, 56 lanes, 10 regions of the Reach and three beyond the rim (the Vashti Steppe, the Thessaran Shore, the Ardent Concord), 31 standing houses and three nations on the map |
 | Laws / estates / parties | 22 / 6 / 4 |
 | Senate motions / offices | 17 / 5 |
 | Ventures / goods | 14 / 6 |
@@ -36,7 +36,7 @@ deterministic and saves and loads.
 | Domain and galaxy | Holdings, buildings, population, unrest, governors, regions, rings, raiders, free holds, a way back for a landless house | `GALAXY`, `ECONOMY` |
 | Strategic resources | Helium-3 fuel, rare earths, isotopes; deposits; fuel bills | `ECONOMY` |
 | War | Fleets, ship classes, stances, loadouts, command styles, loyalty, supply, campaigns, sieges, peace terms | `MILITARY` |
-| Nations beyond the Reach | The Vashti Khanates and the Free Cities of Thessar on the map (worlds, fleets, a war fought by the lanes, occupation and the peace; the Cities buy rather than fight); three off-map nations; war by Senate motion; expeditions; tribute; raids | `BEYOND`, `FOREIGN_NATIONS` |
+| Nations beyond the Reach | The Vashti Khanates, the Free Cities of Thessar and the Ardent Concord on the map (worlds, fleets, a war fought by the lanes, occupation and the peace; the Cities buy rather than fight; the Concord begins wars and fights a campaign); two off-map nations; war by Senate motion; expeditions; tribute; raids | `BEYOND`, `FOREIGN_NATIONS` |
 | The Senate | Motions, votes by weight, lobbying, offices, parties, the consulship and its veto, Acts, estates' petitions | `SENATE`, `REPUBLIC` |
 | Laws and estates | 22 laws by position, six estates with opinions, Reach-wide Acts | `POLITICS` |
 | The three orders | Standing in the Senate, Arms and Commerce; callings; old and new names; sway; patrons and clients; a seat by the census; canvassing | `REPUBLIC` |
@@ -84,9 +84,9 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
    pretender when its hold fails (docs/THRONE.md, stage 1); a succession fought over is stage 2.
 
 **The world**
-1. Two nations, the Vashti Khanates and the Free Cities of Thessar, are on the map (docs/BEYOND.md); the other three
-   are numbers and expeditions with a march on the rim and a named ruler and commander. What the two left is N1 to
-   N12 in docs/GAPS.md; whether a third comes on is the owner's.
+1. Three nations (the Vashti Khanates, the Free Cities of Thessar, the Ardent Concord) are on the map
+   (docs/BEYOND.md); the Outer Compact and the Hollow Crown are numbers and expeditions with a march on the rim and a
+   named ruler and commander. What the three left is N1 to N15 in docs/GAPS.md; twelve decisions are the owner's.
 2. Anomalies, archaeology and a source of exotics are designed but not built.
 3. 92 of 382 events never fire under the soak's four players: one random, three with an end in view (docs/QA.md; it was 132 under the random one alone). Checked: every flag they wait for is one the engine
    can raise, so none is dead; they need a player who gets into those situations (a triumph, a takeover, a revolt).

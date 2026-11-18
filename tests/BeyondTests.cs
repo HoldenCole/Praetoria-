@@ -55,12 +55,13 @@ public class BeyondTests
         Assert.True(NationSystem.OutTurns(w, khans, "ironhold") > NationSystem.OutTurns(w, khans, "anvil"));
         Assert.Equal(concord.Depth, NationSystem.OutTurns(w, concord, "ironhold"));                                                         // and the Concord's door is there
         // the order to sail uses it
-        // (against a nation still off the map: the Khanates are on it now, and are sailed to by the lanes)
-        NationSystem.DeclareWar(w, Content.Nations, "concord", mine.Id); var f = Post(w, "exp", mine.Id, "anvil", 8); w.PoolsFor(me.Id).Treasury = 2; mine.Treasury.Credits = 500; mine.Treasury.Helium3 = 60;
+        // (against a nation still off the map: the Khanates, the Free Cities and the Concord are on it now, and are sailed to by the lanes)
+        var compact = Content.Nations.Def("compact")!; NationSystem.DeclareWar(w, Content.Nations, "compact", mine.Id); var f = Post(w, "exp", mine.Id, "anvil", 8); w.PoolsFor(me.Id).Treasury = 2; mine.Treasury.Credits = 500; mine.Treasury.Helium3 = 60;
         var ctx = new CommandContext(w, TestContent.Rng());
         Assert.Contains("by the lanes", new SendExpeditionCommand(me.Id, "exp", "vashti", Content.Fleets, Content.Nations).Refusal(ctx));
-        var send = new SendExpeditionCommand(me.Id, "exp", "concord", Content.Fleets, Content.Nations);
-        Assert.Null(send.Refusal(ctx)); send.Execute(ctx); Assert.Equal(NationSystem.OutTurns(w, concord, "anvil"), f.AwayTurns); Assert.True(f.AwayTurns > concord.Depth);
+        Assert.Contains("by the lanes", new SendExpeditionCommand(me.Id, "exp", "concord", Content.Fleets, Content.Nations).Refusal(ctx));
+        var send = new SendExpeditionCommand(me.Id, "exp", "compact", Content.Fleets, Content.Nations);
+        Assert.Null(send.Refusal(ctx)); send.Execute(ctx); Assert.Equal(NationSystem.OutTurns(w, compact, "anvil"), f.AwayTurns); Assert.True(f.AwayTurns > compact.Depth);
         // with no march on the map, the old figure
         var bare = new NationDef { Id = "x", Distance = 3 }; Assert.Equal(3, NationSystem.OutTurns(w, bare, "anvil"));
     }

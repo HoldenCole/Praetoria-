@@ -5,8 +5,10 @@ docs/GAPS.md R10). **Stage 0 was built the same day** (see "Stage 0 as built"). 
 focus on adding in nations, then we can figure out the details. Add in the khanate first." **The Vashti Khanates are
 on the map**: stages 1 and 2, for that one nation (see "The Vashti Khanates on the map, as built"). Then: "Add the
 Free Cities of Thessar next." **The Free Cities are on the map** too, and are a different kind of neighbour (see "The
-Free Cities of Thessar on the map, as built"). The other three nations are as stage 0 left them. Stages 3 and 4 are a
-plan. The older rules, which still hold for the three, are in docs/FOREIGN_NATIONS.md.
+Free Cities of Thessar on the map, as built"). Then: "Add the Ardent Concord next." **The Ardent Concord is on the
+map**, and is the strong one (see "The Ardent Concord on the map, as built"). The other two nations, the Outer Compact
+and the Hollow Crown, are as stage 0 left them. Stages 3 and 4 are a plan. The older rules, which still hold for
+those two, are in docs/FOREIGN_NATIONS.md. Everything that is the owner's to decide is in one list at the end.
 
 ## What was true before stage 0
 
@@ -53,7 +55,7 @@ Everything here uses what is on the map already.
   only the raiders. They are moved onto one question asked in one place, so that a foreign house can exist later
   without sitting in the Senate, the marriage market or the Exchange by accident. *Not done in stage 0: see below.*
 
-### 1. Their fleets on the map (built for the Khanates and the Free Cities)
+### 1. Their fleets on the map (built for the Khanates, the Free Cities and the Concord)
 
 - First, the safe question above: it is needed the moment a nation owns a fleet on the map, and not before.
 
@@ -67,7 +69,7 @@ Everything here uses what is on the map already.
 - The Reach answers with what it has: the houses nearest, the consuls' fleets, emergency powers (a war beyond the
   borders is already a danger the Senate can vote them for).
 
-### 2. Their side of the border (built for the Khanates, the pilot, and the Free Cities)
+### 2. Their side of the border (built for the Khanates, the pilot; then the Free Cities and the Concord)
 
 - **Space beyond the march**: for a nation, two to four systems of its own (a border world, a heartland, a capital),
   in a fourth ring. One nation is done first as the pilot, start to finish, before any other.
@@ -346,6 +348,91 @@ the Reach taken, 19 freed and 4 ceded. The full account is docs/GAP_ANALYSIS.md,
 - **Their trade is the old kind**: goods arrive on the Reach's exchanges. No lane, no convoy, and nothing for the
   houses that hold Wintermoor and Brackwater.
 
+## The Ardent Concord on the map, as built
+
+Built 2026-11-18 on the owner's word. The third nation on the map, and the strong one: a unified state under a
+council of admirals, with a fleet nearly as large as the other two nations' together.
+
+**Where.** A third region beyond the rim, east of the Valmont Anvils. The Ardent Gate is one lane beyond both the
+Valmont Anvils and Ironhold (the Concord's march) and is the only way in. The map is 41 systems, 56 lanes and 13
+regions.
+
+| World | System | What it is |
+|---|---|---|
+| The Gate Fortress | The Ardent Gate | a fortress, and the anchorage where its divisions lie at peace |
+| The Brandt Yards | Brandt | a forge-world |
+| The Marrek Foundries | Marrek | a forge-world |
+| Concordia | Concordia | a fortress, and the capital: the First Admiral sits here |
+
+**What it has.** A strength of 26: the Home Fleet of Concordia (8 hulls) and the Concord Line in two divisions of 9.
+Its fleets fight hull for hull as the Reach's do. One commander: he leads the first division, and the second sails
+without him.
+
+**How it differs from the other two.**
+
+| | The Khanates | The Free Cities | The Ardent Concord |
+|---|---|---|---|
+| Who begins a war | the Senate | the Senate | the Senate, **or the Concord** |
+| In a war its fleet | one host, one world a season, then home | stays at home | **two divisions through two marches, that stay in the field** |
+| What it takes | it holds until freed or the peace | (it takes nothing) | it holds until freed or the peace |
+| A world of its own in the Reach's hands | rises in 3 years without a fleet | is bought back; shuts its gates in 6 | **does not rise: the Concord makes war to take it back** |
+| It sues for peace | when the Reach leads by 6 | by 3 | by 10 |
+
+- **It begins wars.** When the Reach is divided (the great war, a civil war, a state in arms against the Reach, or a
+  standard raised against a throne) and the Concord thinks ill of it (a regard of -10 or worse), it makes war. One
+  year in three while that holds.
+- **It comes back for its own.** If a house of the Reach holds a world of the Concord's, it makes war to take it
+  back, divided Reach or not, whatever it thinks of the Reach.
+- **When it may not.** While it pays tribute; with under three-quarters of its strength; within twenty-five years of
+  its last war (one invasion a generation); or while another war beyond the Reach is being fought.
+- **A war it began is every house's to answer.** Every house, not only those that wanted a war, will go to drive its
+  divisions out of the Reach. Carrying the war beyond the Gate is still for the war party, serving officers and the
+  great offices of arms.
+- **A campaign, not a raid.** A division that takes a world makes for the next, within three lanes of the Gate. It
+  goes home when it is short of supply or is beaten. The two divisions do not make for the same world.
+- **The peace is the same as the Khanates'**: if the Reach wins it pays tribute for twenty years and what it holds
+  goes home; if the Reach loses, what it holds is ceded.
+
+**On the screen.** The Galaxy screen lists the Concord under "beyond". Its card on the Military screen says in a line
+that it begins wars and why, and lists all three fleets. Three reports: the Concord crosses the Gate; the Concord
+comes back for its own; two fleets through the marches.
+
+**Measured** over sixty unattended games of sixty years (six starts under the Republic, ten each), with all three
+nations on the map.
+
+| | The Ardent Concord | The Vashti Khanates | The Free Cities |
+|---|---|---|---|
+| Wars | 84 | 24 | 1 |
+| Begun by the nation | 63 (4 to take back a world) | none | none |
+| Won by the Reach; lost; still being fought | 41; 24; 19 | 9; 2; 13 | 0; 0; 1 |
+| Battles; won by the Reach | 876; 383 | 59; 24 | 3; 1 |
+| Worlds of the Reach taken | 150 | 10 | 1 |
+| Freed by a house of the Reach | 95 | 8 | 1 |
+| Ceded at a lost peace | 47 | 1 | 0 |
+| In its hands at the end | 16 | 2 | 0 |
+| Its own worlds taken | 58 | 21 (12 rose again) | 0 |
+| Plunder taken from it | 2,994 credits | 264 credits | 9 credits |
+| Its capital taken; the nation ended | never | never | never |
+
+- **The Republic stood in all 60.**
+- **The Concord is at war with the Reach about once or twice in a game**: one war begun by it, and the Senate votes
+  one on it in one game in three. The Reach wins five in eight of those that are decided.
+- **It costs the Reach worlds.** Two and a half are taken in a game, and nearly two-thirds of those are freed again.
+  47 were ceded in sixty games, 20 of them in one start (the Fallen House, where the Reach lost nine wars of
+  eighteen).
+- **A game has about twice as many battles as before the Concord** (about 24, where it was 11), and the Reach is "in
+  danger" in three years of five, where it was one in two. No civil war followed, and no general marched.
+- **With the Concord taking the one war the Reach fights at a time**, the Khanates' wars fell from 37 to 24.
+
+The full account is docs/GAP_ANALYSIS.md, section 78.
+
+**What this left out.**
+- **Nothing warns of a strike.** No report of its fleets gathering at the Gate, no envoy, no demand first.
+- **Only the Reach's own divisions count.** A war with the Khanates, or the Reach's fleets being away, does not
+  tempt it; and it cannot strike while another war beyond the Reach is being fought.
+- **The second division has no commander of its own.**
+- **It makes no treaty but tribute or cession**: no truce, no border agreed, no hostages.
+
 ### Not in this plan
 
 The threat from beyond the galaxy's edge (the design's late crisis), and anomalies and archaeology. Both want the map
@@ -353,31 +440,50 @@ to have an edge, which stage 2 gives it.
 
 ## What is yours to decide
 
-The Khanates were built on the assumptions below, as the owner asked ("then we can figure out the details"). Each
-can be changed without rebuilding the rest.
+Three nations were built on assumptions, as the owner asked ("then we can figure out the details"; "after we add the
+nations you give me a list of things to decide"). This is that list. Each item says what is built now, what I would
+do, and what turns on it. Each can be changed without rebuilding the rest.
 
-1. **How many come onto the map.** Two are on. I would bring on one more, the Ardent Concord (the strong
-   neighbour), and leave the Outer Compact and the Hollow Crown as far powers. Each nation adds three systems.
-2. **Whether the Reach can lose worlds for good.** Built as yes: a world is ceded at a lost peace and can be taken
-   back in the next war. In sixty games seven were ceded.
-3. **Whether the player's own house can be conquered.** Built as yes: the host takes the player's worlds like
-   anyone's, a freed world comes home, and a house that loses its last world goes on landless.
-4. **Which nation is first.** The Khanates, as the owner said.
+**The map**
 
-New, from building it:
+1. **Do the last two nations come onto the map?** The Outer Compact (small, far, defensive, sitting on isotopes) and
+   the Hollow Crown (an old empire in decay, rich, weak) are still off it. *I would leave them as far powers for
+   now*: three neighbours on three sides is a full border, and the fourth side (the south and south-west) is where
+   they would go if you want them.
+2. **Can the Reach lose worlds for good?** Built as yes: a world a nation holds at a lost peace is ceded, and can be
+   taken back in the next war.
+3. **Can the player's own house be conquered?** Built as yes: its worlds are taken like anyone's, a freed world
+   comes home, and a house with no world left goes on landless.
 
-5. **Should the Khanates ever begin a war**, or only raid until the Senate votes one? Now only the Senate does.
-6. **How hard should they be?** Now the Reach wins about four wars in five, and no other house ever takes their
-   capital. "Easy to beat in a season; impossible to hold" is what the numbers say, and they can be moved.
-7. **Who should hold what is taken from them?** Now the house whose fleet took it, for as long as it keeps a fleet
-   there. A province held for the Reach under an appointed governor is stage 3.
+**War**
 
-New, from the Free Cities:
+4. **Should a nation begin a war?** Built: the Concord does (when the Reach is divided, or to take back its own);
+   the Khanates and the Free Cities never do. *I would leave the Khanates as raiders*, but it is one switch in the
+   content if you want them to strike too.
+5. **How hard should each be, and how much war do you want?** The measured figures are in each nation's section. In
+   short: the Reach wins about four wars in five against the Khanates; wars with the Free Cities are won or bought
+   off; against the Concord it wins five in eight, and the rest cost it worlds. The Concord doubled the battles in
+   a game. No house but the player's has ever taken a nation's capital. Each of these is a number or two in the
+   content.
+6. **Should any house but yours make war on the Free Cities?** Built: none does. They are friendly and do not raid,
+   and a war for plunder is almost never moved. Say how often you want the war party to go looking for one.
+7. **Should the Senate direct a war it votes?** Built: it votes and directs nothing. Houses go by their own lights.
+   A command given to a person (your R1) would start here.
 
-8. **Should any house but yours make war on the Cities?** Now none does: they are friendly and do not raid, so
-   the Senate has no quarrel with them, and a war for plunder is almost never moved. If you want the war party to
-   go looking for one, say how often.
-9. **Is a ransom the right end for a city?** Now the Cities buy back what they lost, and other houses always sell.
+**What is taken**
+
+8. **Who holds what is taken from a nation?** Built: the house whose fleet took it, while it keeps a fleet there. A
+   province held for the Reach under an appointed governor is stage 3 of this plan.
+9. **Is a ransom the right end for a city of the Free Cities?** Built: the Cities buy back what they lost, other
+   houses always sell, and you may refuse.
+10. **Should a nation's worlds make anything?** Built: no. A nation's house is kept from going hungry by rule, and
+    its worlds pay nothing to whoever takes them beyond the plunder.
+
+**Their people, and later**
+
+11. **Should their rulers and commanders be people you can deal with?** Built: they command fleets and can be
+    killed, and nothing else. Envoys, marriage, bribery, capture and refuge are stage 4.
+12. **Should nations deal with each other?** Built: no. They never fight, ally or trade among themselves.
 
 ## What it opens
 

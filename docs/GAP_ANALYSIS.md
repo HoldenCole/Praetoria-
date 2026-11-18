@@ -2425,3 +2425,71 @@ fleets. No errors; nothing wider than the screen.
 
 **Left, and mapped.** N9 (no house but the player's makes war on the Cities), N10 (the ransom is answered through a
 report, at a fixed price), N11 (the Cities buy only two things), N12 (their trade is not on the map).
+
+## 78. The Ardent Concord on the map — 2026-11-18
+
+The owner: "Add the Ardent Concord next. After we add the nations you give me a list of things to decide." Built the
+same day (R10d closed; N13 to N15 mapped). The rules are in docs/BEYOND.md, "The Ardent Concord on the map, as
+built"; the list is at the end of that document.
+
+**The aim** was the third kind of neighbour. The Khanates raid and go home. The Free Cities buy. The Concord is the
+strong, unified state: it begins wars itself, it invades on two lines, and it stays.
+
+**What it took beyond content.** Four switches a nation's definition can set, so any nation can be made this way:
+how many hosts it sends (`hosts`), whether it begins wars (`strikes`), whether its hosts stay in the field
+(`campaigns`), and how long a world of its own stays held without a fleet (`holdYears`, 0 for never rises). A host's
+"home with what it took" is kept for each fleet, where it was kept for the nation, so one division taking a world
+does not send the other home. A war the nation began is marked, and every house will go to drive it out of the
+Reach.
+
+**Found by the soak, and older than the Concord.** Three Imperium games in thirty-three did not resume the same from a
+save. The cause was in the Senate: the houses declared their votes in the order they happened to be held in memory,
+and a house leans with its bench's leader when the leader's vote is already cast. A house made after the save (a
+free hold, here) sat in a different place in the resumed game and voted on the other side of its leader. The
+Concord's wars did not cause it; they made worlds change hands more, which made and folded more free holds. The
+leaders of the benches now declare first, then the rest by name. A new tool, `praetoria drift`, plays one game
+straight and once resumed and reports the first year they differ; it gave the year and the vote. All three games
+resume the same now.
+
+**Found on the way.** The player's answer to a ransom was cleared at the end of each nation's yearly reckoning. With
+two nations on the map the Free Cities happened to be reckoned first; with three, the Concord was, and the answer
+was gone before the Cities read it. Two tests caught it. The answer is cleared once, after all the nations.
+
+**Found while measuring, and changed.**
+
+| What the runs showed | What was done |
+|---|---|
+| With twelve years between its wars the Concord began 73 in sixty games and was at war for much of every game | Twenty-five years between its wars: one invasion a generation. It began 63: its wars are long, so the rest was already near the limit |
+| Everything else held: no crash, no civil war, no general marched, the Republic stood | Left as measured, and the weight of it put to the owner (decision 5) |
+
+**Measured** (60 unattended games of 60 years; the player gives no orders).
+
+| | The Ardent Concord | The Vashti Khanates | The Free Cities |
+|---|---|---|---|
+| Wars | 84 (63 begun by it) | 24 | 1 |
+| Won by the Reach; lost | 41; 24 | 9; 2 | 0; 0 |
+| Battles; won by the Reach | 876; 383 | 59; 24 | 3; 1 |
+| Worlds of the Reach taken; freed; ceded | 150; 95; 47 | 10; 8; 1 | 1; 1; 0 |
+| Its own worlds taken | 58 | 21 | 0 |
+
+By start, the Concord's wars, those the Reach lost, and worlds ceded: the Academy 14, 3, 6; the Circling Heir 12,
+3, 3; the Fallen House 18, 9, 20; the New Man 14, 4, 7; the Old Lion 14, 4, 9; the Risen Officer 12, 1, 2.
+
+Battles in a game went from about 11 to about 24, and the years the Reach is "in danger" from one in two to three
+in five. The Republic fell in none of the sixty.
+
+**Checked beside it.** The throne probe ran clean (as written, 18 pretenders in 20 games and 4 thrones taken; a
+standard raised against a throne is one of the things that divides the Reach). The soak: 33 games, no failures, 312 of 433
+events fired. Five lines ended under its random player, where two to four is usual; the soak now says why, and in
+each the head of a one-person house died of age with no heir (Q13, closed: not the Concord, and not a fault). The
+survival check (a player who gives no orders, 80 games) lost one, the same start it has lost before.
+
+**In the browser.** The Galaxy screen shows all three regions beyond the rim. The Concord's card on the Military
+screen says that it begins wars and why, and lists its home fleet and both divisions. No errors; nothing wider than
+the screen.
+
+811 tests (six new, `tests/ConcordTests.cs`).
+
+**Left, and mapped.** N13 (nothing warns of a strike), N14 (one commander however many fleets), N15 (it strikes only
+when the Reach is divided by its own quarrels; one war beyond the Reach at a time). Twelve decisions for the owner
+are listed at the end of docs/BEYOND.md.

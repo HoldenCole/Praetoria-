@@ -32,7 +32,7 @@ Playwright with Chromium must be installed where you run the script. `PRAETORIA_
 | `node feud.js "The Old Lion"` | Blood between houses: arranges accidents from the Houses screen until one is laid at your door, then reads the panel on the You screen and tries what it offers. |
 | `node emergency.js "The Old Lion" 45` | Emergency powers: plays year by year reading the consulship panel on the Senate screen, until the Reach is in danger and then until a consul is voted the powers. |
 | `node throne.js "The Imperial Court" 30` | The hold on a throne: reads the tile and the throne's block on the Senate screen (what the hold is made of, the buttons and why they are refused), then plays on until a standard is raised. |
-| `node khanate.js "The Old Lion"` | The nations on the map: a picture of the whole Galaxy screen with the Vashti Steppe and the Thessaran Shore beyond the rim, then the card of each on the Military screen (where its ruler sits, what it holds, where its fleets are, what kind of neighbour it is). |
+| `node khanate.js "The Old Lion"` | The nations on the map: a picture of the whole Galaxy screen with the Vashti Steppe, the Thessaran Shore and the Ardent Concord beyond the rim, then the card of each on the Military screen (where its ruler sits, what it holds, where its fleets are, what kind of neighbour it is). |
 | `node beyond.js "The Old Lion"` | Beyond the Reach on the Military screen: each nation's ruler, the commander of its fleets, its march and whether a fleet holds it, and how far out an expedition would sail. |
 | `node wealth.js "The Old Lion" 4` | Purses, heirlooms and the will on the House screen: moves money, sets the allowance, writes a will and the estate's custom, has a shrine made once the purse holds its price, buys a share in the head's own name, gives the shrine to another head, reads the favour owed and tries to call it in, then reports the family's purses. |
 | `node ambitions.js "The Old Lion" 9` | Watches what the people of the house are after for some years, granting the first thing asked and refusing the second. |
@@ -59,6 +59,7 @@ These run without a browser, from the tools project:
 | Command | What it measures |
 |---|---|
 | `praetoria perf --scenario the_old_lion` | Native milliseconds a turn by system. |
+| `praetoria drift --scenario the_institute --seed 1 --turns 60` | When the soak reports that a saved game did not resume the same: plays that one game straight and once saved and resumed, and says the first year they differ and what differs. |
 | `praetoria survive --scenario all --seeds 12` | How often a passive player's line ends, and when the head weds and has a child. |
 | `praetoria balance --scenario the_fallen_house --seeds 2` | Prices, production against use, the Exchange and the three orders after sixty years. |
 | `praetoria qa --scenario all --seeds 3 --turns 60` | The soak: invariants, save and load, which events and commands were reached. |

@@ -318,7 +318,11 @@ public sealed class SenateSystem
             w.WorldFlags.Add(with ? ObligedPatronFlag : DefiedPatronFlag);
             w.Log(with ? $"{client.Name} votes as {patron.Name} wished. It is noted." : $"{client.Name} votes against the wishes of its patron, {patron.Name}. It is noted.");
         }
-        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id))) if (!m.Votes.ContainsKey(h.Id)) m.Votes[h.Id] = Math.Sign(Lean(w, m, h.Id));   // the rivals declare
+        // the rivals declare: the leaders of the benches first, then the rest by name. The order is fixed because a house leans with its
+        // leader's vote when that is already cast; taken in the order the houses happen to be held, a house made after a save could vote
+        // before its leader in one game and after in the same game resumed
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => FactionSystem.Of(w, h.Id)?.LeaderHouseId == h.Id ? 0 : 1).ThenBy(h => h.Id, StringComparer.Ordinal).ToList())
+            if (!m.Votes.ContainsKey(h.Id)) m.Votes[h.Id] = Math.Sign(Lean(w, m, h.Id));
         WealthSystem.FavoursCalled(w, m);   // a favour owed to the proposer is spent on this vote (docs/WEALTH.md "A gift that asks")
         var (f, a) = Tally(w, m);
         Character? casting = null; bool byChair = f == a && f > 0 && LadderSystem.CastingVote(w, m, out casting);   // a tied Senate goes as the presiding consul voted

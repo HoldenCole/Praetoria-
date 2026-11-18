@@ -128,7 +128,8 @@ public sealed class NpcAi
         string them = n.HouseId;
         bool hawk = FactionSystem.Of(world, house.Id)?.PartyId == "sword" || (head.CareerTrack == "military" && head.CareerRank >= 2) || OfficeSystem.HeldBy(world, house.Id).Any(o => o.OfficeId is "consul_senior" or "consul_junior" or "admiral");
         var mineHeld = world.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && ((h.OwnerId == them && h.FormerOwnerId == house.Id) || (h.OwnerId == house.Id && FleetSystem.StrengthAt(world, them, h.SystemId) > 0))).Select(h => h.SystemId).ToHashSet();
-        if (!hawk && mineHeld.Count == 0) return;
+        bool defends = hawk || n.BeganIt;   // a war the nation began is every house's to answer inside the Reach; carrying it beyond the march is still for those who want a war
+        if (!defends && mineHeld.Count == 0) return;
         var fleet = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && !f.IsAway && f.Readiness >= 60 && f.Strength >= 2 && !world.HoldingsOf(house.Id).Any(h => h.InRebellion))
             .OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
         if (fleet == null) return;
@@ -137,13 +138,13 @@ public sealed class NpcAi
         int Hops(string sys) => g.Hops(fleet.SystemId, sys) is var hp && hp > 0 ? hp : 99;
         // what the Reach could bring: this fleet, those already there or bound for it, and the rested fleets of the other houses that would
         // go, within six lanes. Inside the Reach that must match what is there; beyond the march it must be a quarter more.
-        bool Would(string hid) => world.House(hid) is { } o && (FactionSystem.Of(world, hid)?.PartyId == "sword" || Economy.HeadOf(world, o) is { CareerTrack: "military", CareerRank: >= 2 } || OfficeSystem.HeldBy(world, hid).Any(x => x.OfficeId is "consul_senior" or "consul_junior" or "admiral"));
+        bool Would(string hid) => world.House(hid) is { } o && (n.BeganIt || FactionSystem.Of(world, hid)?.PartyId == "sword" || Economy.HeadOf(world, o) is { CareerTrack: "military", CareerRank: >= 2 } || OfficeSystem.HeldBy(world, hid).Any(x => x.OfficeId is "consul_senior" or "consul_junior" or "admiral"));
         int Pledged(string sys) => fleet.Strength + world.Fleets.Values.Where(f => f.Id != fleet.Id && world.OfTheReach(f.OwnerId) && !f.IsAway && (f.Moving ? f.DestinationId == sys
             : f.SystemId == sys || (f.Readiness >= 60 && f.Strength >= 2 && f.OwnerId != world.Protagonist?.HouseId && g.Hops(f.SystemId, sys) is > 0 and <= 6 && Would(f.OwnerId)))).Sum(f => f.Strength);
         bool CanTake(string sys) { int there = FleetSystem.StrengthAt(world, them, sys); return there == 0 || (g.RingOf(sys) == Galaxy.Ring.Beyond ? Pledged(sys) * 400 >= there * 5 * Math.Max(50, n.Mettle) : Pledged(sys) * 100 >= there * Math.Max(50, n.Mettle)); }   // hull for hull they fight by their temper
         // first what is the house's own, then their fleets and holdings inside the Reach, then their own worlds
         string? target = mineHeld.Where(CanTake).OrderBy(Hops).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault();
-        if (target == null && hawk)
+        if (target == null && defends)
             target = world.Fleets.Values.Where(f => f.OwnerId == them && !f.Moving && g.RingOf(f.SystemId) != Galaxy.Ring.Beyond).Select(f => f.SystemId)
                 .Concat(world.Holdings.Values.Where(h => h.IsPlanet && h.OwnerId == them && h.SystemId.Length > 0 && g.RingOf(h.SystemId) != Galaxy.Ring.Beyond).Select(h => h.SystemId)).Distinct()
                 .Where(CanTake).OrderBy(Hops).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault();
