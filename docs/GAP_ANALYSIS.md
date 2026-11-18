@@ -2360,3 +2360,68 @@ fleets are. No errors; nothing wider than the screen.
 **Left, and mapped.** N1 (their raids are still rolled), N2 (they never begin a war), N3 (how hard they should be),
 N4 (no economy), N5 (the houses behind the leader), N6 (the map marks no march or border), N7 (the Senate directs
 nothing), N8 (what is taken is a house's, not a province). R10 keeps the other four nations.
+
+## 77. The Free Cities of Thessar on the map — 2026-11-18
+
+The owner: "Add the Free Cities of Thessar next." Built the same day (R10c closed; N9 to N12 mapped). The rules are
+in docs/BEYOND.md, "The Free Cities of Thessar on the map, as built".
+
+**The aim** was a second nation that is not the first one again. The Khanates are an aggressor whose host comes
+through the march. The Cities are rich, friendly and lightly armed, and would rather buy than fight: they stay at
+home, hire when attacked, sue early, buy their cities back, pay tribute only while watched, and buy off a war
+nobody presses.
+
+**What it took beyond content.**
+- **The on-map rules for any number of nations.** Counters and the year's report flags are kept for each nation
+  ("key:nation") as well as for the Reach. "A nation's own space" is the systems of its own worlds, where the
+  Khanates' code said "the fourth ring": with two nations beyond the rim that would have sent the Khan's host
+  after a fleet off the Shore.
+- **A nation's fleets fight by its temper**, as they did off the map: a mercantile nation at four-fifths, a
+  defensive one at five-quarters.
+- **Three things added for both nations**: plunder for a fleet beaten and a world taken; the other houses gather at
+  the march before attacking a defended world; and "fit the whole map" allows for a narrow panel.
+
+**Found while measuring, and changed.**
+
+| What the runs showed | What was done |
+|---|---|
+| The Cities won 42 battles of 56: their fleets sat behind their walls and the Reach's squadrons arrived one at a time | Houses gather at the nearest march and go in together when they are a quarter more than what holds the world. For the Khanates too: the Reach's share of battles won went from 40 to 45 in a hundred |
+| The weaker fighting value by itself changed almost nothing | Kept, as the off-map figure; the gathering was the cause |
+| With gathering, 53 forced wars of 119 guttered out after twelve years, fleets waiting at the march | The Cities buy off a war nobody is fighting |
+| Bought off after four quiet years, 113 wars of 134 ended before a fleet of the Reach had reached the Shore | The four years run only while nobody presses them: no fleet of three hulls at their march, over their cities, or on its way. A war that is pressed and not fought is bought off at twelve |
+| No house moved a war for plunder, though most houses have under 40 credits | Left, and mapped (N9). The houses that would move it are rarely the ones whose turn it is to move anything |
+
+**Measured.** Sixty unattended games as they come, and sixty with the Senate's war on the Cities made for it in year
+8 and every twenty years after. Sixty years each; the player gives no orders.
+
+| | The Cities, war made for the Senate | The Khanates, left to themselves |
+|---|---|---|
+| Wars | 124 | 37 |
+| Won by the Reach; lost | 50; 10 | 28; 4 |
+| Bought off | 58 | not their way |
+| Battles; won by the Reach | 193; 67 | 143; 65 |
+| Their fleet through the march | 37 times | 55 times |
+| Worlds of the Reach taken; freed; ceded | 17; 6; 8 | 26; 19; 4 |
+| Their worlds taken | 49: 42 bought back, none rose | 57: 38 rose again |
+| Plunder | 1,485 credits | 716 credits |
+| Hulls hired | 155 | none |
+| Tribute stopped unwatched | 34 times | never |
+| Their capital taken; the nation ended | 0; 0 | 0; 0 |
+| The Republic fell | 0 of 60 | 0 of 60 |
+
+Left to themselves: no war with the Cities in any of the sixty games, and none moved.
+
+**Checked beside it.** The throne probe ran clean (as written, 37 pretenders in 20 games and 6 thrones taken). The
+soak: 33 games, no failures, 310 of 430 events fired, two lines ended under its random player. The survival check
+(a player who gives no orders, 80 games) lost none.
+None of the Cities' eight reports fired in a soak, because no war with them happens there; the ransom is tested
+through a real game's turns instead (`TheRansom_IsAskedByAReport_AndTheAnswerIsCarriedOut_InARealGame`).
+
+**In the browser.** The Galaxy screen shows both regions beyond the rim and lists them under "beyond". The Cities'
+card on the Military screen reads "on the map", says in a line what kind of neighbour they are, and lists both
+fleets. No errors; nothing wider than the screen.
+
+805 tests (eleven new, `tests/ThessarTests.cs`).
+
+**Left, and mapped.** N9 (no house but the player's makes war on the Cities), N10 (the ransom is answered through a
+report, at a fixed price), N11 (the Cities buy only two things), N12 (their trade is not on the map).

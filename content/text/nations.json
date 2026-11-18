@@ -218,6 +218,78 @@
         "mark_the_day": "Have the day marked.",
         "ask_what_comes_after": "Ask the Senate who will hold it, and with what."
       }
+    },
+    {
+      "id": "the_cities_are_hiring",
+      "title": "The Cities Are Hiring",
+      "body": "The Free Cities do not keep a great fleet. Attacked, they buy one: a hull comes into their harbours every year for as long as the war lasts and they hold Thessar. A war with them that is not won quickly is fought against more ships each year.",
+      "choices": {
+        "say_strike_now": "Say the time to go is now.",
+        "let_them_spend": "Let them spend."
+      }
+    },
+    {
+      "id": "the_cities_offer_a_ransom",
+      "title": "The Cities Offer a Ransom",
+      "body": "The war is over and the Cities are paying tribute. They want their city back, the one your house holds, and they have named a price. The offer stands for two years. Take it and the city goes home; refuse and it is yours for as long as you keep a fleet over it, and the Cities will remember.",
+      "choices": {
+        "take_the_money": "Take the money.",
+        "keep_the_city": "Keep the city."
+      }
+    },
+    {
+      "id": "a_city_is_bought_back",
+      "title": "A City Is Bought Back",
+      "body": "A city of the Shore that a house of the Reach took in the war has been bought back by the Cities. The house has its money and the city has its harbour. This is how the Cities end a war they have lost.",
+      "choices": {
+        "call_it_their_way_of_war": "It is their way of war.",
+        "say_it_should_have_been_kept": "Say it should have been kept."
+      }
+    },
+    {
+      "id": "the_cities_stop_paying",
+      "title": "The Cities Stop Paying",
+      "body": "The Free Cities have stopped their tribute. They pay while a fleet of the Reach stands at their march or over their worlds, and for three years none has. Nothing in the treaty has changed; the ships went home.",
+      "choices": {
+        "move_for_a_fleet_at_the_march": "Say what the tribute costs: a squadron at the march.",
+        "shrug": "It was always going to happen."
+      }
+    },
+    {
+      "id": "the_plunder_of_a_city",
+      "title": "The Plunder of a City",
+      "body": "Your fleet has taken a city of the Shore. Its counting-houses were full, as they always are, and what was in them is aboard your ships. The crews are waiting to hear whose it is.",
+      "choices": {
+        "share_it_with_the_crews": "Pay a share to every crew.",
+        "keep_it_for_the_house": "Enter it all in the house's books."
+      }
+    },
+    {
+      "id": "the_city_is_restless",
+      "title": "The City Is Restless",
+      "body": "The city your house holds on the Thessaran Shore is restless. No fleet of yours has stood over it this year. Six years without three hulls in its orbit and its council will shut the gates, unless the Cities are paying the Reach tribute.",
+      "choices": {
+        "order_a_squadron_there": "Order a squadron there.",
+        "let_it_be": "Let it be for now."
+      }
+    },
+    {
+      "id": "the_city_shuts_its_gates",
+      "title": "The City Shuts Its Gates",
+      "body": "The city your house held on the Shore has gone back to the Cities. No fleet stood over it for six years. Its council voted, and that was all it took.",
+      "choices": {
+        "shrug_it_off": "A fair account of a merchant's loyalty.",
+        "take_it_hard": "Ask where the squadron was."
+      }
+    },
+    {
+      "id": "the_cities_buy_their_peace",
+      "title": "The Cities Buy Their Peace",
+      "body": "The Senate voted a war on the Free Cities and it was not fought: no fleet met another, and for years nobody pressed them. The Cities have paid the house that holds the capital to end it. What each side took goes home, their cities for a ransom, and they owe no tribute.",
+      "choices": {
+        "call_it_good_business": "Good business on both sides.",
+        "call_it_a_war_unfought": "Say what a war voted and sold is worth."
+      }
     }
   ]
 }

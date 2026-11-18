@@ -3,9 +3,10 @@
 Written 2026-11-18 at the owner's asking ("let's work on the off-map stuff as well; at least a good plan for it";
 docs/GAPS.md R10). **Stage 0 was built the same day** (see "Stage 0 as built"). Later that day the owner said: "let's
 focus on adding in nations, then we can figure out the details. Add in the khanate first." **The Vashti Khanates are
-on the map**: stages 1 and 2, for that one nation (see "The Vashti Khanates on the map, as built"). The other four
-nations are as stage 0 left them. Stages 3 and 4 are a plan. The older rules, which still hold for the four, are in
-docs/FOREIGN_NATIONS.md.
+on the map**: stages 1 and 2, for that one nation (see "The Vashti Khanates on the map, as built"). Then: "Add the
+Free Cities of Thessar next." **The Free Cities are on the map** too, and are a different kind of neighbour (see "The
+Free Cities of Thessar on the map, as built"). The other three nations are as stage 0 left them. Stages 3 and 4 are a
+plan. The older rules, which still hold for the three, are in docs/FOREIGN_NATIONS.md.
 
 ## What was true before stage 0
 
@@ -52,7 +53,7 @@ Everything here uses what is on the map already.
   only the raiders. They are moved onto one question asked in one place, so that a foreign house can exist later
   without sitting in the Senate, the marriage market or the Exchange by accident. *Not done in stage 0: see below.*
 
-### 1. Their fleets on the map (built for the Khanates)
+### 1. Their fleets on the map (built for the Khanates and the Free Cities)
 
 - First, the safe question above: it is needed the moment a nation owns a fleet on the map, and not before.
 
@@ -66,7 +67,7 @@ Everything here uses what is on the map already.
 - The Reach answers with what it has: the houses nearest, the consuls' fleets, emergency powers (a war beyond the
   borders is already a danger the Senate can vote them for).
 
-### 2. Their side of the border (built for the Khanates, the pilot)
+### 2. Their side of the border (built for the Khanates, the pilot, and the Free Cities)
 
 - **Space beyond the march**: for a nation, two to four systems of its own (a border world, a heartland, a capital),
   in a fourth ring. One nation is done first as the pilot, start to finish, before any other.
@@ -193,6 +194,11 @@ with no war record for each pair. Fleets reach them by the lanes; the off-map ex
   take the Khanates' own worlds, the weakest held first. Each goes when what the Reach could bring to that system
   (its own fleet, those there or bound there, and the rested fleets of other such houses within six lanes) matches
   what is there, or is a quarter more beyond the march.
+- **They gather first.** A defended world beyond the march is not attacked one squadron at a time. The fleets go to
+  the march nearest it, wait there, and go in together in the year those standing at the march are a quarter more
+  than what holds the world. (Added with the Free Cities, for both nations.)
+- **Beating them pays.** The house that beats a nation's fleet takes the nation's wealth in credits (4 for the
+  Khanates), and twice that for taking one of its worlds. (Added with the Free Cities, for both nations.)
 
 **The tally.** The war ends as before, when one side leads by six.
 
@@ -244,6 +250,9 @@ beaten; ceded at the peace; the camps restless; the camps rise; their capital fa
 
 Half of the lost wars were in one start (the Academy). The full account is docs/GAP_ANALYSIS.md, section 76.
 
+(Measured again with the Free Cities on the map and the houses gathering at the march: see the Free Cities'
+section below.)
+
 **What this left out of stages 1 and 2.**
 - **Their raids are still rolled, not sailed.** At peace a raid lands by the stage 0 rule; no fleet crosses the map.
 - **The Khanates never begin a war.** Only the Senate does.
@@ -252,6 +261,90 @@ Half of the lost wars were in one start (the Academy). The full account is docs/
 - **The houses that stand behind the leader in a battle take no losses and no share of the credit.**
 - **The map does not mark a march or a border**, and the rings are drawn for the Reach alone.
 - **What a house takes in the Steppe is held as a world of that house**, not as a province. That is stage 3.
+
+## The Free Cities of Thessar on the map, as built
+
+Built 2026-11-18 on the owner's word. The second nation on the map, and made to be unlike the first: the Cities
+**would rather buy than fight**.
+
+**Where.** A second region beyond the rim, the Thessaran Shore, south-east of the Pale Reaches. Port Meront is one
+lane beyond both Wintermoor and Brackwater (the Cities' march). The map is 37 systems, 50 lanes and 12 regions.
+
+| City | System | What it is |
+|---|---|---|
+| Port Meront | Port Meront | the nearest city, where the squadron lies |
+| Pellas | Pellas | the refiners' city |
+| Thessar | Thessar | the first city and the capital: the Speaker of the Cities sits here |
+
+**What they have.** A house that is not of the Reach, as the Khanates have. A strength of 12: the Harbour Guard of
+Thessar and the Thessaran Squadron, six hulls each. Hull for hull their fleets fight at four-fifths of a fleet of the
+Reach's, the figure a mercantile nation had off the map. They are friendly (their regard starts at +10 and rises),
+they do not raid, and they sell rare earths, exotics and materials into the Reach's exchanges while there is peace.
+
+**How they differ from the Khanates.**
+
+| | The Vashti Khanates | The Free Cities of Thessar |
+|---|---|---|
+| In a war their fleet | comes through the march and takes a world a season | stays at home, unless a warlike Speaker rules |
+| Hulls lost | grow back two every five years | are replaced by hire: one a year while the war lasts |
+| They sue for peace | when the Reach leads by 6 | when the Reach leads by 3 |
+| A world of theirs the Reach took | is the taker's while a fleet stands over it | is bought back at the peace for 36 credits |
+| Tribute | is paid for twenty years | is paid only while a fleet of the Reach is watching |
+| A war nobody fights | gutters out after twelve years | is bought off: after four years if nobody presses them, after twelve if a fleet waits at their march |
+| A world of theirs held without a fleet | rises in 3 years | shuts its gates in 6 |
+| Beating their fleet; taking a world | pays 4 credits; 8 | pays 9 credits; 18 |
+
+- **The ransom.** When the Cities lose a war, each city a house of the Reach holds is bought back: the house is paid
+  and the city goes home. If the house is yours you are asked, by a report each year for two years. Take the money and
+  the city goes home. Keep the city and the Cities think ten points the worse of the Reach, and the city needs a fleet
+  over it. Say nothing and the offer lapses.
+- **Tribute while watched.** They pay while a fleet of three hulls or more stands at Wintermoor or Brackwater, or over
+  one of their cities. Three years unwatched and they stop: they are free again, and a war can be voted again. The
+  house that holds the capital, which takes the tribute, posts a fleet at the march when it has one to spare.
+- **A peace bought.** The Cities do not let a war lie. Four years running with no battle and nobody pressing them (no
+  fleet of the Reach of three hulls at their march, over their cities, or on its way), and they pay the house that
+  holds the capital four years' tribute (20 credits) to end it. A fleet at the march keeps the war alive; twelve
+  years without a battle and they buy it off all the same. What each side took goes home, their cities for the
+  ransom, and no tribute follows.
+- **A war for plunder.** A house that wants a war and has under 40 credits may name the Cities when no nation has
+  given the Reach a better reason, and a house short of money leans a point toward a war on a rich neighbour.
+
+**On the screen.** The Galaxy screen lists the Shore under "beyond" and the whole map fits the panel whatever its
+shape. The Cities' card on the Military screen says what kind of neighbour they are in a line, shows a ransom on
+offer and until when, and says whether the tribute is watched. Eight reports: the Cities are hiring; the Cities
+offer a ransom; a city is bought back; the Cities stop paying; the Cities buy their peace; the plunder of a city; the
+city is restless; the city shuts its gates.
+
+**Measured.** Left to themselves the houses of the Reach made no war on the Cities: none was moved in sixty
+unattended games of sixty years. So the figures below are from sixty more games in which the Senate's war on the
+Cities was made for it, in year 8 and every twenty years after (`FORCE_WAR=thessar:8 praetoria caesar`). The player
+gives no orders in either set.
+
+| | |
+|---|---|
+| Wars with the Cities | 124 |
+| Won by the Reach; lost; bought off; still being fought at the end | 50; 10; 58; 6 |
+| Battles | 193; the Reach won 67 |
+| Their squadron through the march (a warlike Speaker) | 37 times |
+| Worlds of the Reach they took | 17: 6 freed, 1 given back at a won peace, 8 ceded at a lost one |
+| Cities taken by houses of the Reach | 49; 42 bought back, none rose, the rest were still held |
+| Plunder taken | 1,485 credits |
+| Hulls hired | 155 |
+| Tribute stopped because nobody was watching | 34 times |
+| Thessar taken; the Cities ended | never |
+| The Republic | stood in all 60 |
+
+In the sixty games left to themselves the Khanates were as before, and a little easier for the Reach now that its
+houses gather before they attack: 37 wars, 28 won and 4 lost; 143 battles, of which the Reach won 65; 26 worlds of
+the Reach taken, 19 freed and 4 ceded. The full account is docs/GAP_ANALYSIS.md, section 77.
+
+**What this left out.**
+- **No house but yours moves a war on the Cities.** See the figures above.
+- **The ransom is answered through a report**, not from the card.
+- **The Cities buy nothing else**: not a peace before any fighting, not a house's vote in the Senate, not the
+  Khanates' swords against the Reach.
+- **Their trade is the old kind**: goods arrive on the Reach's exchanges. No lane, no convoy, and nothing for the
+  houses that hold Wintermoor and Brackwater.
 
 ### Not in this plan
 
@@ -263,9 +356,8 @@ to have an edge, which stage 2 gives it.
 The Khanates were built on the assumptions below, as the owner asked ("then we can figure out the details"). Each
 can be changed without rebuilding the rest.
 
-1. **How many come onto the map.** One is on. I would bring on two more, one at a time: the Free Cities of Thessar
-   (rich, lightly armed, a different kind of war) and the Ardent Concord (the strong neighbour). The Outer Compact
-   and the Hollow Crown would stay far powers. Each nation adds three or four systems.
+1. **How many come onto the map.** Two are on. I would bring on one more, the Ardent Concord (the strong
+   neighbour), and leave the Outer Compact and the Hollow Crown as far powers. Each nation adds three systems.
 2. **Whether the Reach can lose worlds for good.** Built as yes: a world is ceded at a lost peace and can be taken
    back in the next war. In sixty games seven were ceded.
 3. **Whether the player's own house can be conquered.** Built as yes: the host takes the player's worlds like
@@ -279,6 +371,13 @@ New, from building it:
    capital. "Easy to beat in a season; impossible to hold" is what the numbers say, and they can be moved.
 7. **Who should hold what is taken from them?** Now the house whose fleet took it, for as long as it keeps a fleet
    there. A province held for the Reach under an appointed governor is stage 3.
+
+New, from the Free Cities:
+
+8. **Should any house but yours make war on the Cities?** Now none does: they are friendly and do not raid, so
+   the Senate has no quarrel with them, and a war for plunder is almost never moved. If you want the war party to
+   go looking for one, say how often.
+9. **Is a ransom the right end for a city?** Now the Cities buy back what they lost, and other houses always sell.
 
 ## What it opens
 

@@ -4,7 +4,15 @@
     { "id": "concord", "marches": ["valmont_anvils", "ironhold"], "depth": 2, "rulerTitle": "First Admiral", "commanderTitle": "Admiral", "names": ["Soren Halvard", "Ilse Marrek", "Tomas Brandt", "Katrin Voss", "Anders Kell", "Maren Stahl", "Viktor Lund", "Elsa Rhen", "Henrik Dahl", "Sigrid Ormann", "Lukas Varn", "Greta Holm"], "exports": { "materials": 4, "helium3": 2 }, "name": "The Ardent Concord", "culture": "concordant", "temper": "aggressive", "strength": 26, "regen": 2, "wealth": 6, "distance": 3, "disposition": -25, "tribute": 6, "threshold": 10,
       "holds": "the Ardent gate and three forge-worlds",
       "description": "The one strong neighbour: a unified state under a council of admirals, with a fleet the size of half the Reach's and a habit of raiding the rim when the Reach looks divided. Beating it would make a general's name for a generation." },
-    { "id": "thessar", "marches": ["wintermoor", "brackwater"], "depth": 1, "rulerTitle": "Speaker of the Cities", "commanderTitle": "Captain-General", "names": ["Lysander Aphos", "Thais Meront", "Nikanor Dray", "Xanthe Pellas", "Demos Kyre", "Ione Sarant", "Philo Madras", "Kleio Venn", "Arist Tolman", "Melita Orsk", "Stavro Lenn", "Dione Caras"], "exports": { "rare_earths": 2, "exotics": 1, "materials": 3 }, "name": "The Free Cities of Thessar", "culture": "thessaran", "temper": "mercantile", "strength": 12, "regen": 1, "wealth": 9, "distance": 2, "disposition": 10, "tribute": 5, "threshold": 6,
+    { "id": "thessar",
+      "house": { "name": "The Free Cities of Thessar", "accent": "#2EC4B6", "title": "count", "legitimacy": 60 },
+      "worlds": [
+        { "id": "thessar_city", "system": "thessar", "name": "Thessar", "specialization": "trade_hub", "population": 48, "capital": true },
+        { "id": "pellas_city", "system": "pellas", "name": "Pellas", "specialization": "forge_world", "population": 30 },
+        { "id": "port_meront_city", "system": "port_meront", "name": "Port Meront", "specialization": "trade_hub", "population": 26 }
+      ],
+      "holdYears": 6, "hostName": "The Thessaran Squadron", "guardName": "The Harbour Guard of Thessar",
+      "marches": ["wintermoor", "brackwater"], "depth": 1, "rulerTitle": "Speaker of the Cities", "commanderTitle": "Captain-General", "names": ["Lysander Aphos", "Thais Meront", "Nikanor Dray", "Xanthe Pellas", "Demos Kyre", "Ione Sarant", "Philo Madras", "Kleio Venn", "Arist Tolman", "Melita Orsk", "Stavro Lenn", "Dione Caras"], "exports": { "rare_earths": 2, "exotics": 1, "materials": 3 }, "name": "The Free Cities of Thessar", "culture": "thessaran", "temper": "mercantile", "strength": 12, "regen": 1, "wealth": 9, "distance": 2, "disposition": 10, "tribute": 5, "threshold": 6,
       "holds": "the richest exchanges beyond the rim and a belt of rare earths",
       "description": "A league of trading cities that would rather buy than fight. Rich, lightly armed, quick to pay tribute and quicker to stop when the fleets go home." },
     { "id": "vashti",

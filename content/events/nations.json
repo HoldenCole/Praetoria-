@@ -1238,7 +1238,7 @@
       "when": [
         {
           "type": "worldFlag",
-          "flag": "steppe_world_restless",
+          "flag": "steppe_world_restless:vashti",
           "value": true
         }
       ],
@@ -1282,7 +1282,7 @@
       "when": [
         {
           "type": "worldFlag",
-          "flag": "steppe_world_lost",
+          "flag": "steppe_world_lost:vashti",
           "value": true
         }
       ],
@@ -1361,6 +1361,373 @@
             {
               "type": "log",
               "text": "The world where their ruler sat was taken by a fleet of the Reach. {self.name} asked in the Senate who would hold it, and with what, and for how long. Nobody had an answer ready."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_cities_are_hiring",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_hires:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_strike_now",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Free Cities were hiring: a hull a year into their harbours for as long as the war lasted. {self.name} said in the Senate that every year's delay was a ship the Reach would have to sink, and that the time to go was now."
+            }
+          ]
+        },
+        {
+          "id": "let_them_spend",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The Free Cities were hiring: a hull a year into their harbours for as long as the war lasted. {self.name} thought sellswords fought like men who meant to be paid again, and let the Cities spend."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_cities_offer_a_ransom",
+      "tier": "setpiece",
+      "weight": 90,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "ransom_offered:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_the_money",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "ransom_answer_take",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "The Free Cities offered a price for the city the house held. {self.name} took it. A city on the Shore needs a squadron over it for ever; the money needs nothing."
+            }
+          ]
+        },
+        {
+          "id": "keep_the_city",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "ransom_answer_keep",
+              "value": true
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Free Cities offered a price for the city the house held. {self.name} sent the envoy home. What the house's fleet had taken, the house would keep, and the Cities could learn what that cost them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_city_is_bought_back",
+      "tier": "situation",
+      "weight": 25,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "city_ransomed:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_it_their_way_of_war",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A city of the Shore that a house of the Reach had taken was bought back for coin, and the house was glad of it. {self.name} remarked that the Cities lost their wars the way they did everything else, at a price they had worked out beforehand."
+            }
+          ]
+        },
+        {
+          "id": "say_it_should_have_been_kept",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A city of the Shore that a house of the Reach had taken was bought back for coin. {self.name} said in the Senate that what the Reach's fleets take should stay taken, and that a house which sells its conquests has only hired itself out."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_cities_stop_paying",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "tribute_stopped:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "move_for_a_fleet_at_the_march",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Free Cities stopped paying. No fleet of the Reach had stood at their march in three years, and they had counted. {self.name} said the Reach had been taught the price of tribute: a squadron at Wintermoor, every year, for as long as it wanted the money."
+            }
+          ]
+        },
+        {
+          "id": "shrug",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Free Cities stopped paying. No fleet of the Reach had stood at their march in three years, and they had counted. {self.name} had never expected otherwise."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_plunder_of_a_city",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "world_plundered_by_us:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "share_it_with_the_crews",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet took a city of the Shore, and what was in its counting-houses. {self.name} had a share paid out to every crew before the ships left orbit. They would follow that flag again."
+            }
+          ]
+        },
+        {
+          "id": "keep_it_for_the_house",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet took a city of the Shore, and what was in its counting-houses. {self.name} had it all entered in the house's books, to the last strongbox. The crews noticed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_city_is_restless",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "steppe_world_restless:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "order_a_squadron_there",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The city the house holds on the Shore was restless: no fleet had stood over it. {self.name} gave orders for a squadron. A city of merchants keeps faith with whoever is in its sky."
+            }
+          ]
+        },
+        {
+          "id": "let_it_be",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The city the house holds on the Shore was restless: no fleet had stood over it. {self.name} let it be. It would take the council years to find its courage, and the squadron was wanted elsewhere."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_city_shuts_its_gates",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "steppe_world_lost:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "shrug_it_off",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The city the house held on the Shore is the Cities' again. Its council voted, shut the harbour to the house's factors, and sent the garrison's pay home with them. {self.name} called it a fair account of a merchant's loyalty."
+            }
+          ]
+        },
+        {
+          "id": "take_it_hard",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The city the house held on the Shore is the Cities' again. {self.name} took it hard: six years, and nobody had thought to keep a squadron there."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_cities_buy_their_peace",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_bought_peace:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_it_good_business",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Senate had voted a war on the Free Cities and nobody had fought it. The Cities paid to be rid of it. {self.name} called it good business on both sides: the Reach had its money and had lost no ships getting it."
+            }
+          ]
+        },
+        {
+          "id": "call_it_a_war_unfought",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Senate had voted a war on the Free Cities and nobody had fought it. The Cities paid to be rid of it. {self.name} said in the Senate that a Reach which votes a war and then sells it has taught its neighbours what its wars are worth."
             }
           ]
         }

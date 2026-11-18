@@ -700,6 +700,7 @@ public sealed class FleetSystem
         if (defending) p *= 1 + _rules.DefenderBonus + Defense(w, systemId, houseId);
         p *= 1 + FlagFactor(w, houseId);
         if (CampaignTarget(w, houseId) is { } target && w.Galaxy != null && (target == systemId || w.Galaxy.Hops(target, systemId) is > 0 and var cd && cd <= _rules.CampaignRange)) p *= 1 + _rules.CampaignBonus;
+        if (w.NationOfHouse(houseId) is { Mettle: > 0 } nation) p *= nation.Mettle / 100.0;   // a nation's fleets fight by its temper, as they did off the map (docs/BEYOND.md)
         return p;
     }
 
@@ -847,7 +848,7 @@ public sealed class FleetSystem
         {
             h.OwnerId = freedFor; h.FormerOwnerId = ""; h.Unrest = Math.Clamp(h.Unrest + _rules.ConquestUnrest / 2, 0, 100);
             NationSystem.WorldTaken(w, h, conqueror, old, freedFor);
-            if (conqueror == player && freedFor != player) NationSystem.Mark(w, "world_freed_by_us"); if (freedFor == player && conqueror != player) NationSystem.Mark(w, "world_freed_for_us");
+            if (conqueror == player && freedFor != player) NationSystem.Mark(w, "world_freed_by_us", w.NationOfHouse(old)); if (freedFor == player && conqueror != player) NationSystem.Mark(w, "world_freed_for_us", w.NationOfHouse(old));
             w.Log(freedFor == conqueror ? $"{w.House(conqueror)?.Name ?? conqueror} takes {h.Name} back from {w.House(old)?.Name ?? old}." : $"{w.House(conqueror)?.Name ?? conqueror} frees {h.Name} from {w.House(old)?.Name ?? old}; it is {w.House(freedFor)?.Name ?? freedFor}'s again.");
             return;
         }

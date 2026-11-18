@@ -130,7 +130,7 @@ public sealed partial class NationSystem
         n.AtWar = true; n.WarSince = w.Turn; n.ScoreReach = 0; n.ScoreNation = 0; n.LastBattleTurn = w.Turn; n.Wars += 1; n.Disposition = Math.Max(-100, n.Disposition - 20);
         w.WorldCounters[WarsCounter] = w.Counter(WarsCounter) + 1;
         w.WorldFlags.Add("foreign_war"); w.WorldFlags.Add("foreign_war_declared"); w.WorldFlags.Add("foreign_war:" + nationId);
-        w.Log($"The Reach is at war with {d.Name}, on the motion of {w.House(proposerHouseId)?.Name ?? proposerHouseId}. The fleets that sail against it must beat {n.Strength} hulls; a score of {d.Threshold} subdues it.");
+        w.Log($"The Reach is at war with {d.Name}, on the motion of {w.House(proposerHouseId)?.Name ?? proposerHouseId}. The fleets that sail against it must beat {n.Strength} hulls; a score of {SuesAt(n, d)} subdues it.");
     }
 
     public void Tick(World w)
@@ -350,7 +350,7 @@ public sealed partial class NationSystem
     {
         if (!n.AtWar) return;
         var chair = RegionSystem.CapitalHolder(w);
-        if (n.ScoreReach - n.ScoreNation >= d.Threshold || n.Strength <= 0)
+        if (n.ScoreReach - n.ScoreNation >= SuesAt(n, d) || n.Strength <= 0)
         {
             n.SubduedUntil = w.Turn + SubduedTurns; n.Disposition = Math.Min(100, n.Disposition + 10); if (!n.OnMap) n.Strength = Math.Max(2, n.Strength);
             w.WorldCounters[SubduedCounter] = w.Counter(SubduedCounter) + 1; w.WorldFlags.Add("nation_subdued"); w.WorldFlags.Add("nation_subdued:" + n.Id);
@@ -363,7 +363,7 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
                 w.Log($"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years. The triumph is {top.Name}'s, whose fleets won it.");
             }
             else w.Log($"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years.");
-            if (n.OnMap) w.WorldCounters[SubduedCounter + ":map"] = w.Counter(SubduedCounter + ":map") + 1;
+            if (n.OnMap) Bump(w, WonCounter, n);
             PeaceOnMap(w, n, d, reachWon: true);
             EndWar(w, n, d);
         }
@@ -373,24 +373,50 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
             w.WorldCounters[LostCounter] = w.Counter(LostCounter) + 1; w.WorldFlags.Add("war_lost_abroad");
             if (chair != null) { chair.Treasury.Credits -= d.Tribute * 3; chair.Legitimacy = Math.Max(0, chair.Legitimacy - LegitimacyDefeat); }
             w.Log($"The war with {d.Name} is lost: the chair{(chair != null ? $" of {chair.Name}" : "")} buys peace for {d.Tribute * 3} credits, and the Reach is shamed.");
-            if (n.OnMap) w.WorldCounters["wars_lost_to_nations_on_map"] = w.Counter("wars_lost_to_nations_on_map") + 1;
+            if (n.OnMap) Bump(w, LostOnMapCounter, n);
             PeaceOnMap(w, n, d, reachWon: false);
+            EndWar(w, n, d);
+        }
+        else if (n.OnMap && Buys(d) && BuysOff(w, n, d))
+        {
+            // a nation that would rather buy than fight does not let a war lie: four years with nobody pressing it, or twelve with no
+            // battle, and it buys its peace. The house that holds the capital is paid; what each side took goes home (their cities for a
+            // ransom); no tribute follows
+            int sum = d.Tribute * BoughtPeaceTributes; if (chair != null) chair.Treasury.Credits += sum;
+            n.Disposition = Math.Min(100, n.Disposition + 5); Bump(w, BoughtPeaceCounter, n); Mark(w, "nation_bought_peace", n);
+            w.Log($"{d.Name} buys its peace: {sum} credits to {(chair != null ? chair.Name : "the Reach")}, and a war that nobody was fighting is over.");
+            PeaceOnMap(w, n, d, reachWon: true);
             EndWar(w, n, d);
         }
         else if (w.Turn - Math.Max(n.WarSince, n.LastBattleTurn) >= ExhaustionTurns)
         {
             w.WorldFlags.Add("foreign_peace");
             w.Log($"The war with {d.Name} gutters out: no fleet has met theirs in {ExhaustionTurns} years, and both sides let it lie.");
-            if (n.OnMap) w.WorldCounters["wars_guttered_on_map"] = w.Counter("wars_guttered_on_map") + 1;
+            if (n.OnMap) Bump(w, GutteredCounter, n);
             PeaceOnMap(w, n, d, reachWon: false);   // each keeps what it holds
             EndWar(w, n, d);
         }
     }
 
+    /// <summary>Whether a nation that buys ends this war for money this year. It does when no battle has been fought in twelve years; or
+    /// when, for four years running, there has been no battle and nobody has pressed it: no fleet of the Reach of three hulls or more at
+    /// its march, over its worlds, or on its way to either. A fleet standing at the march keeps the war alive.</summary>
+    private static bool BuysOff(World w, Nation n, NationDef d)
+    {
+        int quiet = w.Turn - Math.Max(n.WarSince, n.LastBattleTurn); string key = UnpressedKey(n);
+        if (quiet >= ExhaustionTurns) return true;
+        var own = d.Worlds.Select(x => x.System).ToHashSet(); var marches = Marches(w, d);
+        bool pressed = Watched(w, d) || w.Fleets.Values.Any(f => f.Moving && !f.IsAway && w.OfTheReach(f.OwnerId) && f.Strength >= MarchGuard && (own.Contains(f.DestinationId) || marches.Contains(f.DestinationId)));
+        if (pressed || quiet == 0) { w.WorldCounters.Remove(key); return false; }
+        int years = w.Counter(key) + 1; w.WorldCounters[key] = years;
+        return years >= BuysPeaceAfter;
+    }
+    private static string UnpressedKey(Nation n) => "unpressed_years:" + n.Id;
+
     /// <summary>The war is over, however it ended: the scores are struck and every expedition against the nation turns for home.</summary>
     private static void EndWar(World w, Nation n, NationDef d)
     {
-        n.AtWar = false;
+        n.AtWar = false; w.WorldCounters.Remove(UnpressedKey(n));
         foreach (var h in w.Houses.Keys.ToList()) w.WorldCounters.Remove(WinsKey(h, n.Id));
         foreach (var f in Expeditions(w, n.Id).ToList()) GoHome(w, f, d, "is recalled: the war is over");
     }

@@ -14,6 +14,10 @@
     "vashti": {
       "male":   ["Temur", "Jochi", "Batu", "Kublai", "Berke", "Subedei", "Arik", "Mongke", "Toghrul", "Chagan", "Esen", "Nogai"],
       "female": ["Borte", "Sorgha", "Altani", "Mandu", "Checheg", "Oyun", "Khulan", "Toregene", "Saran", "Narantu", "Odval", "Tsetseg"]
+    },
+    "thessaran": {
+      "male":   ["Lysander", "Nikanor", "Demos", "Philo", "Arist", "Stavro", "Kleon", "Theron", "Evander", "Milo", "Pelias", "Zenon"],
+      "female": ["Thais", "Xanthe", "Ione", "Kleio", "Melita", "Dione", "Eirene", "Phaedra", "Kallista", "Myrto", "Lyra", "Agathe"]
     }
   }
 }

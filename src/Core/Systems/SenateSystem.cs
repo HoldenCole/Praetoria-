@@ -223,6 +223,7 @@ public sealed class SenateSystem
         if (n.Disposition <= -30) lean += 1;
         if (NationSystem.Raided(w, nationId, 8)) lean += 1;
         if (d.Temper == "mercantile") lean -= 1;
+        if (n.OnMap && d.Wealth >= RichAt && h.Treasury.Credits < PlunderWant) lean += 1;   // a house short of money remembers what a rich neighbour is worth
         if (n.Subdued(w.Turn) || NationSystem.AtWar(w) != null) lean -= 3;
         if (Economy.HeadOf(w, h) is { } head && head.CareerTrack == "military" && head.CareerRank >= 2) lean += 1;
         return lean;
@@ -492,7 +493,7 @@ public sealed class SenateSystem
                 Add(w, h.Id, "censure", talkedOf.Id); w.WorldCounters["censures_stirred"] = w.Counter("censures_stirred") + 1;
                 w.Log($"{h.Name} moves a censure of {talkedOf.Name}. It has heard a great deal about that house lately, and has believed it."); return;
             }
-            if (_motions.Def("foreign_war") != null && WantedWar(w, h) is { } nation && !Stale(w, h.Id, "foreign_war", nation)) { Add(w, h.Id, "foreign_war", nation); return; }
+            if (_motions.Def("foreign_war") != null && WantedWar(w, h) is { } nation && !Stale(w, h.Id, "foreign_war", nation)) { Add(w, h.Id, "foreign_war", nation); w.WorldCounters["foreign_war_moved:" + nation] = w.Counter("foreign_war_moved:" + nation) + 1; return; }
             if (_motions.Def("commission") != null)
                 foreach (var office in _offices.Defs.Where(o => !o.Elected).OrderBy(o => o.Id, StringComparer.Ordinal))
                 {
@@ -571,6 +572,7 @@ public sealed class SenateSystem
 
     /// <summary>A war a house would move (docs/FOREIGN_NATIONS.md): a Sword house, one whose head is a Commander or better, or one whose world was raided lately — while the Reach has hulls to send —
     /// names the nation it most wants to fight — one that raided the rim lately or whose regard has sunk — when the Reach fights no other.</summary>
+    public const int PlunderWant = 40, RichAt = 8;
     public string? WantedWar(World w, House h)
     {
         if (Nations.IsEmpty || NationSystem.AtWar(w) != null || w.Motions.Any(m => m.Open && m.Kind == "foreign_war")) return null;
@@ -578,7 +580,10 @@ public sealed class SenateSystem
         bool hawk = party?.PartyId == "sword" || (head != null && head.CareerTrack == "military" && head.CareerRank >= 2) || raider != null;
         if (!hawk || w.Wars.Any(x => x.Involves(h.Id))) return null;
         if (w.Fleets.Values.Where(f => !World.Outsider(f.OwnerId) && !f.IsAway).Sum(f => f.Strength) < 6) return null;   // the Reach must have fleets to send, if not this house's own
-        return w.Nations.Where(n => !n.Fallen && !n.Subdued(w.Turn) && Nations.Def(n.Id) != null && (n.Disposition <= -30 || NationSystem.Raided(w, n.Id, 6)))
+        // a war for plunder (docs/BEYOND.md, the Free Cities): a house that wants a war and is short of money will name a rich neighbour on
+        // the map that would rather buy than fight, when no nation has given the Reach a better reason (those are named first, below)
+        bool greedy = h.Treasury.Credits < PlunderWant;
+        return w.Nations.Where(n => !n.Fallen && !n.Subdued(w.Turn) && Nations.Def(n.Id) is { } nd && (n.Disposition <= -30 || NationSystem.Raided(w, n.Id, 6) || (greedy && n.OnMap && NationSystem.Buys(nd) && nd.Wealth >= RichAt)))
             .OrderByDescending(n => n.Id == raider ? 2 : NationSystem.Raided(w, n.Id, 6) ? 1 : 0).ThenBy(n => n.Disposition).ThenBy(n => n.Id, StringComparer.Ordinal).FirstOrDefault()?.Id;
     }
 

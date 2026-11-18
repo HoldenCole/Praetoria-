@@ -30,6 +30,10 @@ public sealed class Nation
     public bool OnMap => HouseId.Length > 0;
     /// <summary>Its last world has been taken: it raids nobody, wars with nobody, and pays nobody.</summary>
     public bool Fallen { get; set; }
+    /// <summary>What a victory over it is worth in plunder (from its definition; kept here so the fleets can pay it without the catalogue).</summary>
+    public int Wealth { get; set; }
+    /// <summary>How its fleets fight on the map, hull for hull, by its temper: a hundred is a fleet of the Reach's. 0 until it is first reckoned.</summary>
+    public int Mettle { get; set; }
     /// <summary>The house that holds a nation's worlds on the map is named for it, so that anything walking the houses can tell at a
     /// glance, and without the world in hand, that it is not a house of the Reach.</summary>
     public const string HousePrefix = "nation_";

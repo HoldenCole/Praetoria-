@@ -1,6 +1,6 @@
-// The Vashti Khanates on the map (docs/BEYOND.md): takes a picture of the whole map, where the Vashti Steppe lies beyond The Anvil and
-// The Veil with the Khanates' three worlds and two fleets on it, then reads the Khanates' card on the Military screen ("Beyond the
-// Reach"): where their ruler sits, what they hold, where their fleets are.
+// The nations on the map (docs/BEYOND.md): takes a picture of the whole Galaxy screen, where the Vashti Steppe lies beyond The Anvil and
+// The Veil and the Thessaran Shore beyond Wintermoor and Brackwater, then reads the card of each on the Military screen ("Beyond the
+// Reach"): where its ruler sits, what it holds, where its fleets are, and what kind of neighbour it is.
 //
 //   node khanate.js ["Start title"]
 //
@@ -20,13 +20,15 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.evaluate(() => { const el = [...document.querySelectorAll('.rail-btn')].find(e => /^galaxy$/i.test(e.innerText.trim())); if (el) el.click(); }); await page.waitForTimeout(2500);
   await page.evaluate(() => { const b = document.querySelector('button[title="Fit the whole Reach"]'); if (b) b.click(); }); await page.waitForTimeout(3000);
   await page.screenshot({ path: shots + "/khanate-map.png", timeout: 240000 });
-  const labels = await page.evaluate(() => document.body.innerText.match(/Khal Orda|Tul Aimag|The Long Grass|Vashti Steppe/g) || []);
+  const labels = await page.evaluate(() => document.body.innerText.match(/Vashti Steppe|Thessaran Shore/g) || []);
   console.log('named on the map screen: ' + [...new Set(labels)].join(', '));
   await page.evaluate(() => { const el = [...document.querySelectorAll('.rail-btn')].find(e => /^military$/i.test(e.innerText.trim())); if (el) el.click(); }); await page.waitForTimeout(500);
   await page.evaluate(() => { const t = [...document.querySelectorAll('.ex-tabs .rung')].find(e => /beyond the reach/i.test(e.innerText)); if (t) t.click(); }); await page.waitForTimeout(600);
-  const rows = await page.evaluate(() => [...document.querySelectorAll('.panel.abroad .nation')].map(n => n.innerText.replace(/\s+/g, ' ').slice(0, 520)));
-  const khans = rows.find(r => /vashti/i.test(r)); console.log(khans ? '· ' + khans : 'the Khanates are not shown');
-  console.log('on the map: ' + /on the map/i.test(khans || '') + ' · sits at Khal Orda: ' + /sits at\s*khal orda/i.test(khans || '') + ' · fleets listed: ' + /its fleets/i.test(khans || ''));
+  const rows = await page.evaluate(() => [...document.querySelectorAll('.panel.abroad .nation')].map(n => n.innerText.replace(/\s+/g, ' ').slice(0, 1100)));
+  for (const [name, seat] of [['vashti', 'khal orda'], ['thessar', 'thessar']]) {
+    const row = rows.find(r => new RegExp(name, 'i').test(r)); console.log(row ? '· ' + row : name + ' is not shown');
+    console.log('  on the map: ' + /on the map/i.test(row || '') + ' · sits at ' + seat + ': ' + new RegExp('sits at\\s*' + seat, 'i').test(row || '') + ' · fleets listed: ' + /its fleets/i.test(row || ''));
+  }
   const el = await page.$('.panel.abroad'); if (el) { await el.scrollIntoViewIfNeeded(); await el.screenshot({ path: shots + '/khanate-card.png' }); }
   console.log('wider than the screen: ' + await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2));
   console.log('errors: ' + errors.length + (errors.length ? ' · ' + errors.slice(0, 3).join(' | ') : '')); await browser.close();

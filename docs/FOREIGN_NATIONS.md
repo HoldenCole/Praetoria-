@@ -6,10 +6,11 @@ where a republic of many parties conquers many nations, large and small. **For n
 expansion puts them there: conquest, contested border regions, new holdings to take. That expansion is planned in
 five stages in docs/BEYOND.md (2026-11-18).
 
-**The Vashti Khanates are on the map** (2026-11-18, on the owner's word). What this document says about expeditions,
-abstract battles and strength as one number no longer holds for them: they have worlds, fleets and persons, and a
-war with them is fought by the ordinary rules. See "The Vashti Khanates on the map, as built" in docs/BEYOND.md.
-The other four nations are as described here.
+**The Vashti Khanates and the Free Cities of Thessar are on the map** (2026-11-18, on the owner's word). What this
+document says about expeditions, abstract battles and strength as one number no longer holds for them: they have
+worlds, fleets and persons, and a war with them is fought by the ordinary rules. See "The Vashti Khanates on the
+map, as built" and "The Free Cities of Thessar on the map, as built" in docs/BEYOND.md. The other three nations are
+as described here.
 
 ## Off-map first (what this means for the engine)
 - A `Nation` catalogue (`content/nations/*.json`): name, culture, strength (an abstract fleet count that drifts),

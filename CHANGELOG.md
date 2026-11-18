@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+- **The Free Cities of Thessar are on the map** (docs/BEYOND.md; docs/GAPS.md R10). South-east of Wintermoor and
+  Brackwater lies the Thessaran Shore: Port Meront, Pellas, and Thessar, where the Speaker of the Cities sits. They
+  are a different neighbour from the Khanates: they would rather buy than fight. Their squadron stays at home
+  unless a warlike Speaker rules. Attacked, they hire a hull a year. They sue for peace at half the usual tally.
+  When they lose, they buy their cities back from the houses that took them, 36 credits a city, and if the house is
+  yours you are asked: the money, or the city. They pay tribute only while a fleet of the Reach stands at their
+  march or over their cities; three years unwatched and they stop. A war nobody fights for four years they buy
+  off. Beating their fleet pays 9 credits and taking a city 18. Hull for hull they fight at four-fifths of a fleet
+  of the Reach's. Eight new reports, and their card on the Military screen says what kind of neighbour they are.
 - **The Vashti Khanates are on the map** (docs/BEYOND.md; docs/GAPS.md R10). West of The Anvil and The Veil lies the
   Vashti Steppe: The Long Grass, Tul Aimag and Khal Orda, where the Khan of Khans sits. The Khanates hold these
   worlds, and their strength is two fleets: a guard that stays with the Khan and a host under the Noyan. When the
@@ -49,6 +58,14 @@
   it, and six later events recall it. The life panel shows it.
 
 ### Changed
+- **Against a nation on the map, the other houses gather before they attack.** A defended world beyond the march
+  is no longer attacked one squadron at a time: the fleets go to the nearest march, wait, and go in together when
+  those standing there are a quarter more than what holds the world. Against the Khanates the Reach now wins 45 in
+  a hundred of its battles, where it won 40.
+- **Beating a nation's fleet on the map pays plunder**, and taking one of its worlds pays twice as much: 4 and 8
+  credits from the Khanates, 9 and 18 from the Free Cities.
+- **The Galaxy screen's "fit the whole map" allows for a narrow panel**, so the nations beyond the rim are in the
+  picture whatever the shape of the window.
 - **Raids from beyond the rim fall near the raider's march**, not on any world of the rim by lot. A house that has
   been raided posts a fleet there.
 - **Seizing a throne asks you to outmatch the throne's own fleet**, by a quarter while its hold is good and at all

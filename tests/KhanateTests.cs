@@ -47,13 +47,13 @@ public class KhanateTests
         Assert.True(World.Outsider(Hid)); Assert.True(w.Foreign(Hid)); Assert.False(w.OfTheReach(Hid)); Assert.False(PolitySystem.InReach(w, Hid)); Assert.True(w.OfTheReach(mine.Id));
         var ruler = w.Char(n.Ruler!.CharacterId)!; var commander = w.Char(n.Commander!.CharacterId)!;
         Assert.Equal(n.Ruler.Name, ruler.Name); Assert.Contains(NationSystem.RulerChar, ruler.Flags); Assert.Contains(NationSystem.CommanderChar, commander.Flags);
-        Assert.DoesNotContain(w.LivingCharacters(), c => c.HouseId == Hid); Assert.Equal(2, w.Foreigners().Count()); Assert.Null(Economy.HeadOf(w, house));
+        Assert.DoesNotContain(w.LivingCharacters(), c => c.HouseId == Hid); Assert.Equal(2, w.Foreigners().Count(c => c.HouseId == Hid)); Assert.Null(Economy.HeadOf(w, house));
         // its strength is two fleets: the guard at the capital under the ruler, the host at the border under the commander
         Assert.Equal(d.Strength, Guard(w).Strength + Host(w).Strength); Assert.Equal(n.Strength, d.Strength);
         Assert.Equal("khal_orda", Guard(w).SystemId); Assert.Equal(ruler.Id, Guard(w).AdmiralId); Assert.Equal("the_long_grass", Host(w).SystemId); Assert.Equal(commander.Id, Host(w).AdmiralId);
         // placing it twice changes nothing, and the nations with no worlds on this map stay off it
         NationSystem.Seed(w, Content.Nations); Assert.Equal(3, w.HoldingsOf(Hid).Count()); Assert.Equal(2, w.Fleets.Values.Count(f => f.OwnerId == Hid));
-        Assert.All(w.Nations.Where(x => x.Id != "vashti"), x => Assert.False(x.OnMap));
+        Assert.All(w.Nations, x => Assert.Equal(Content.Nations.Def(x.Id)!.House != null, x.OnMap));
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public class KhanateTests
         string before = n.Commander!.Name; w.Char(n.Commander.CharacterId)!.Alive = false; w.Turn++; ns.Tick(w);
         Assert.NotEqual(before, n.Commander!.Name); Assert.True(w.Char(n.Commander.CharacterId)!.Alive); Assert.True(w.Counter(NationSystem.CommandersFallenCounter) >= 1);
         Assert.Equal(n.Commander.CharacterId, Host(w).AdmiralId);
-        Assert.Equal(1, w.Foreigners().Count(c => c.Flags.Contains(NationSystem.RulerChar))); Assert.Equal(1, w.Foreigners().Count(c => c.Flags.Contains(NationSystem.CommanderChar)));
+        Assert.Equal(1, w.Foreigners().Count(c => c.HouseId == Hid && c.Flags.Contains(NationSystem.RulerChar))); Assert.Equal(1, w.Foreigners().Count(c => c.HouseId == Hid && c.Flags.Contains(NationSystem.CommanderChar)));
         _ = noyan;
     }
 
@@ -186,7 +186,7 @@ public class KhanateTests
         foreach (var h in w.HoldingsOf(Hid).Where(h => h.Id != veil.Id).ToList()) { h.OwnerId = mine.Id; h.FormerOwnerId = Hid; }
         veil.OwnerId = was;                                                                                     // and the one it took is freed
         w.Turn++; ns.Tick(w);
-        Assert.True(n.Fallen); Assert.False(n.AtWar); Assert.Equal(0, n.Strength); Assert.Empty(w.Fleets.Values.Where(f => f.OwnerId == Hid)); Assert.Empty(w.Foreigners());
+        Assert.True(n.Fallen); Assert.False(n.AtWar); Assert.Equal(0, n.Strength); Assert.Empty(w.Fleets.Values.Where(f => f.OwnerId == Hid)); Assert.DoesNotContain(w.Foreigners(), c => c.HouseId == Hid);
         Assert.Equal(1, w.Counter(NationSystem.FallenCounter)); Assert.True(w.HasFlag(NationSystem.FallenFlag));
         for (int y = 0; y < 8; y++) { w.Turn++; ns.Tick(w); }                                                   // it does nothing more, and its worlds do not rise
         Assert.All(new[] { "khal_orda_camp", "tul_aimag_wells", "long_grass_camp" }, id => Assert.Equal(mine.Id, w.Holding(id)!.OwnerId));

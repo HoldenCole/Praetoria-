@@ -32,6 +32,11 @@ public sealed class NationDef
     /// <summary>On the map (docs/BEYOND.md): the house that stands for the nation, and the worlds it holds. Empty for a nation still off it.</summary>
     public NationHouse? House { get; init; }
     public IReadOnlyList<NationWorld> Worlds { get; init; } = Array.Empty<NationWorld>();
+    /// <summary>How many years a world of the nation's own, held by a house of the Reach, stays quiet without a fleet over it before it rises.</summary>
+    public int HoldYears { get; init; } = 3;
+    /// <summary>What its two fleets are called; "" for the plain names.</summary>
+    public string HostName { get; init; } = "";
+    public string GuardName { get; init; } = "";
 }
 
 public sealed record NationHouse(string Id, string Name, string Accent, string Title, int Legitimacy);
@@ -63,6 +68,7 @@ public sealed class NationCatalog
                         Marches = Strings(el, "marches"), Depth = ConditionParser.Int(el, "depth", Math.Max(1, ConditionParser.Int(el, "distance", 2) - 1)),
                         House = el.TryGetProperty("house", out var hs) && hs.ValueKind == JsonValueKind.Object ? new NationHouse(ConditionParser.OptStr(hs, "id", ""), ConditionParser.OptStr(hs, "name", ConditionParser.Str(el, "name")), ConditionParser.OptStr(hs, "accent", "#C9A227"), ConditionParser.OptStr(hs, "title", "duke"), ConditionParser.Int(hs, "legitimacy", 50)) : null,
                         Worlds = el.TryGetProperty("worlds", out var ws) && ws.ValueKind == JsonValueKind.Array ? ws.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.Object).Select(x => new NationWorld(ConditionParser.Str(x, "id"), ConditionParser.Str(x, "system"), ConditionParser.OptStr(x, "name", ConditionParser.Str(x, "id")), ConditionParser.OptStr(x, "specialization", "frontier_colony"), ConditionParser.Int(x, "population", 15), ConditionParser.Bool(x, "capital", false))).ToList() : new List<NationWorld>(),
+                        HoldYears = Math.Max(1, ConditionParser.Int(el, "holdYears", 3)), HostName = ConditionParser.OptStr(el, "hostName", ""), GuardName = ConditionParser.OptStr(el, "guardName", ""),
                         RulerTitle = ConditionParser.OptStr(el, "rulerTitle", "ruler"), CommanderTitle = ConditionParser.OptStr(el, "commanderTitle", "commander"), Names = Strings(el, "names"),
                         Exports = el.TryGetProperty("exports", out var ex) && ex.ValueKind == JsonValueKind.Object ? ex.EnumerateObject().Where(p => p.Value.ValueKind == JsonValueKind.Number).ToDictionary(p => p.Name, p => p.Value.GetInt32()) : new Dictionary<string, int>()
                     });

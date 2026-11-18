@@ -92,7 +92,8 @@ public sealed record FleetLine(string Id, string Name, string Where, int Strengt
 public sealed record NationCard(string Id, string Name, string Temper, string Description, string Holds, int Strength, int FullStrength, int Disposition, bool AtWar, int WarSince, int ScoreReach, int ScoreNation,
     int Threshold, int Tribute, int Wealth, int Distance, int SubduedUntil, int Wars, bool RaidedLately, int Expeditions, Option War,
     string Ruler = "", string RulerNature = "", string Commander = "", int CommanderSkill = 0, string Marches = "", string Guard = "", int Nearest = 0,
-    bool OnMap = false, bool Fallen = false, string Capital = "", string Worlds = "", string Fleets = "", string Occupied = "", string Lost = "");
+    bool OnMap = false, bool Fallen = false, string Capital = "", string Worlds = "", string Fleets = "", string Occupied = "", string Lost = "",
+    int HoldYears = 3, string Manner = "", string Ransom = "", string Watch = "");
 /// <summary>A battle about to be joined at the turn's end: our fleets share a system with an enemy's.</summary>
 public sealed record BattleBrief(string SystemId, string SystemName, string EnemyHouseId, string EnemyName, int OurHulls, int EnemyHulls, int Confidence, string OurStance, string TheirStance, int Edge, double OurPower, double TheirPower);
 /// <summary>The campaign of the house, and the enemy worlds it could name (docs/MILITARY.md).</summary>
@@ -607,7 +608,7 @@ public static class CourtProjection
             var n = w.Nation(d.Id)!;
             NationSystem.People(w, n, d); var guard = NationSystem.Guard(w, d);
             var marches = NationSystem.Marches(w, d); int nearest = w.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.IsAway && f.SystemId.Length > 0).Select(f => NationSystem.OutTurns(w, d, f.SystemId)).DefaultIfEmpty(NationSystem.OutTurns(w, d, "")).Min();
-            return new NationCard(d.Id, d.Name, d.Temper, d.Description, d.Holds, n.Strength, d.Strength, n.Disposition, n.AtWar, n.WarSince, n.ScoreReach, n.ScoreNation, d.Threshold, d.Tribute, d.Wealth, marches.Count > 0 ? d.Depth : d.Distance,
+            return new NationCard(d.Id, d.Name, d.Temper, d.Description, d.Holds, n.Strength, d.Strength, n.Disposition, n.AtWar, n.WarSince, n.ScoreReach, n.ScoreNation, NationSystem.SuesAt(n, d), d.Tribute, d.Wealth, marches.Count > 0 ? d.Depth : d.Distance,
                 n.Subdued(w.Turn) ? n.SubduedUntil : 0, n.Wars, NationSystem.Raided(w, d.Id, 8), NationSystem.Expeditions(w, d.Id).Count(),
                 new Option(d.Id, "Move for war", senate.Motions.Def("foreign_war") == null ? "no such motion" : new ProposeMotionCommand(p.Id, "foreign_war", d.Id, senate).Refusal(ctx)),
                 NationSystem.Styled(d, n.Ruler, true), n.Ruler?.Nature ?? "", NationSystem.Styled(d, n.Commander, false), n.Commander?.Skill ?? 0,
@@ -617,7 +618,13 @@ public static class CourtProjection
                 n.OnMap ? string.Join(", ", w.HoldingsOf(n.HouseId).Where(h => h.IsPlanet && w.Galaxy?.RingOf(h.SystemId) == Galaxy.Ring.Beyond).OrderBy(h => h.Name, StringComparer.Ordinal).Select(h => h.Name)) : "",
                 n.OnMap ? string.Join(" · ", w.Fleets.Values.Where(f => f.OwnerId == n.HouseId).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).Select(f => $"{f.Name}, {f.Strength} hulls {(f.Moving ? $"bound for {w.Galaxy?.System(f.DestinationId)?.Name ?? f.DestinationId}" : $"at {w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId}")}")) : "",
                 n.OnMap ? string.Join(", ", w.HoldingsOf(n.HouseId).Where(h => h.IsPlanet && w.Galaxy?.RingOf(h.SystemId) != Galaxy.Ring.Beyond).OrderBy(h => h.Name, StringComparer.Ordinal).Select(h => h.FormerOwnerId.Length > 0 ? $"{h.Name} (of {w.House(h.FormerOwnerId)?.Name ?? h.FormerOwnerId})" : $"{h.Name} (ceded)")) : "",
-                n.OnMap ? string.Join(", ", d.Worlds.Select(x => w.Holding(x.Id)).Where(h => h != null && h.OwnerId != n.HouseId).Select(h => $"{h!.Name} ({w.House(h.OwnerId)?.Name ?? h.OwnerId}{(w.Counter(NationSystem.UnheldKey(h.Id)) > 0 ? $", {w.Counter(NationSystem.UnheldKey(h.Id))} of {NationSystem.RiseYears} years ungarrisoned" : "")})")) : "");
+                n.OnMap ? string.Join(", ", d.Worlds.Select(x => w.Holding(x.Id)).Where(h => h != null && h.OwnerId != n.HouseId).Select(h => $"{h!.Name} ({w.House(h.OwnerId)?.Name ?? h.OwnerId}{(w.Counter(NationSystem.UnheldKey(h.Id)) > 0 ? $", {w.Counter(NationSystem.UnheldKey(h.Id))} of {d.HoldYears} years ungarrisoned" : "")})")) : "",
+                d.HoldYears,
+                // the manner of a nation on the map: what kind of neighbour it is, in a line
+                !n.OnMap || n.Fallen ? "" : NationSystem.Buys(d) ? $"Would rather buy than fight. It sues at {NationSystem.SuesAt(n, d)}, half the usual tally; hires a hull a year while attacked; buys back the worlds it lost when it loses a war, for {NationSystem.RansomPerWealth * d.Wealth} credits each; pays tribute only while watched; and buys off a war nobody presses.{(NationSystem.ComesOut(n, d) ? " Its ruler is warlike: its squadron will come through the march." : " Its squadron stays at home.")} A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
+                    : $"{(NationSystem.ComesOut(n, d) ? "Its host comes through the march in a war." : "Its host stays at home.")} A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}.",
+                n.OnMap ? string.Join(", ", d.Worlds.Where(x => w.Counter(NationSystem.RansomKey(x.Id)) > 0).Select(x => $"{NationSystem.RansomPerWealth * d.Wealth} credits for {x.Name}, until T{w.Counter(NationSystem.RansomKey(x.Id)) + NationSystem.RansomWaits}")) : "",
+                n.OnMap && NationSystem.Buys(d) && n.Subdued(w.Turn) ? (NationSystem.Watched(w, d) ? "watched: the tribute comes" : $"not watched: {w.Counter(NationSystem.UnwatchedKeyOf(n))} of {NationSystem.UnwatchedYears} years, then it stops paying") : "");
         }).ToList();
         var brief = new List<BattleBrief>();
         if (w.Galaxy != null)

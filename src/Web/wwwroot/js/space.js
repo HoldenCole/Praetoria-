@@ -269,7 +269,8 @@ export class Galaxy {
     if (before) { const after = this.planePoint(px, py); if (after) { this.target.x += before.x - after.x; this.target.y += before.y - after.y; this.updateCamera(); } }
   }
   home() { if (this.home) { this.target.copy(this.home.t); this.distance = this.home.d; this.updateCamera(); } }
-  fit() { if (this.fitView) { this.target.copy(this.fitView.t); this.distance = this.fitView.d; this.updateCamera(); } }
+  // the whole map, whatever the shape of the panel: a narrow panel stands further back so the outermost systems (the nations beyond the rim) are in it
+  fit() { if (!this.fitView) return; const b = this.bounds, a = this.camera.aspect || 1.3; this.target.copy(this.fitView.t); this.distance = b ? Math.max((b.maxX - b.minX) * 1.22 * Math.max(1, 1.3 / a), (b.maxY - b.minY) * 1.7) + 240 : this.fitView.d; this.updateCamera(); }
   // the minimap: the whole Reach in a corner, the viewport drawn on it, click to travel
   setMinimap(canvas) { this.mini = canvas; if (!canvas) return; canvas.addEventListener('pointerdown', e => { if (!this.bounds) return; const r = canvas.getBoundingClientRect(); const m = this.miniMap(); const x = (e.clientX - r.left) / r.width * canvas.width, y = (e.clientY - r.top) / r.height * canvas.height; this.target.set(m.minX + (x - m.ox) / m.k, m.maxY - (y - m.oy) / m.k, 0); this.updateCamera(); }); }
   miniMap() { const b = this.bounds, pad = 70; const w = this.mini.width, h = this.mini.height; const kx = (w - 12) / (b.maxX - b.minX + pad * 2), ky = (h - 12) / (b.maxY - b.minY + pad * 2); const k = Math.min(kx, ky); const ox = (w - (b.maxX - b.minX + pad * 2) * k) / 2 + pad * k, oy = (h - (b.maxY - b.minY + pad * 2) * k) / 2 + pad * k; return { k, ox, oy, minX: b.minX, maxY: b.maxY }; }

@@ -140,7 +140,7 @@ public sealed class NpcAi
         bool Would(string hid) => world.House(hid) is { } o && (FactionSystem.Of(world, hid)?.PartyId == "sword" || Economy.HeadOf(world, o) is { CareerTrack: "military", CareerRank: >= 2 } || OfficeSystem.HeldBy(world, hid).Any(x => x.OfficeId is "consul_senior" or "consul_junior" or "admiral"));
         int Pledged(string sys) => fleet.Strength + world.Fleets.Values.Where(f => f.Id != fleet.Id && world.OfTheReach(f.OwnerId) && !f.IsAway && (f.Moving ? f.DestinationId == sys
             : f.SystemId == sys || (f.Readiness >= 60 && f.Strength >= 2 && f.OwnerId != world.Protagonist?.HouseId && g.Hops(f.SystemId, sys) is > 0 and <= 6 && Would(f.OwnerId)))).Sum(f => f.Strength);
-        bool CanTake(string sys) { int there = FleetSystem.StrengthAt(world, them, sys); return there == 0 || (g.RingOf(sys) == Galaxy.Ring.Beyond ? Pledged(sys) * 4 >= there * 5 : Pledged(sys) >= there); }
+        bool CanTake(string sys) { int there = FleetSystem.StrengthAt(world, them, sys); return there == 0 || (g.RingOf(sys) == Galaxy.Ring.Beyond ? Pledged(sys) * 400 >= there * 5 * Math.Max(50, n.Mettle) : Pledged(sys) * 100 >= there * Math.Max(50, n.Mettle)); }   // hull for hull they fight by their temper
         // first what is the house's own, then their fleets and holdings inside the Reach, then their own worlds
         string? target = mineHeld.Where(CanTake).OrderBy(Hops).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault();
         if (target == null && hawk)
@@ -151,8 +151,17 @@ public sealed class NpcAi
             && (world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.IsAway).Sum(f => f.Strength) - fleet.Strength >= 1 || world.HoldingsOf(house.Id).Count(h => h.IsPlanet) <= 1))
             target = world.Holdings.Values.Where(h => h.IsPlanet && h.OwnerId == them && h.SystemId.Length > 0).Select(h => h.SystemId).Distinct()
                 .Where(CanTake).OrderBy(Hops).ThenBy(sys => FleetSystem.StrengthAt(world, them, sys)).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault();
+        // a defended world beyond the march is not gone at piecemeal: the fleets gather at the march nearest it, and go in together in
+        // the year those standing there are a quarter more than what holds it
+        if (target != null && g.RingOf(target) == Galaxy.Ring.Beyond && FleetSystem.StrengthAt(world, them, target) is > 0 and var holds
+            && NationSystem.Marches(world, d).OrderBy(m => g.Hops(m, target) is var hp && hp > 0 ? hp : 99).ThenBy(m => m, StringComparer.Ordinal).FirstOrDefault() is { } stage)
+        {
+            int gathered = world.Fleets.Values.Where(f => world.OfTheReach(f.OwnerId) && !f.IsAway && f.Strength >= 2 && (f.Moving ? f.DestinationId == target : f.SystemId == stage)).Sum(f => f.Strength);
+            if (fleet.SystemId != stage) target = stage;
+            else if (gathered * 400 < holds * 5 * Math.Max(50, n.Mettle)) { world.WorldCounters["fleets_waiting_at_a_march"] = world.Counter("fleets_waiting_at_a_march") + 1; return; }
+        }
         if (target == null || target == fleet.SystemId || Hops(target) >= 99) return;
-        if (executor.TryExecute(new MoveFleetCommand(head.Id, fleet.Id, target, rules), ctx)) world.WorldCounters["fleets_sent_against_nations"] = world.Counter("fleets_sent_against_nations") + 1;
+        if (executor.TryExecute(new MoveFleetCommand(head.Id, fleet.Id, target, rules), ctx)) { world.WorldCounters[NationSystem.SentCounter] = world.Counter(NationSystem.SentCounter) + 1; world.WorldCounters[NationSystem.SentCounter + ":" + n.Id] = world.Counter(NationSystem.SentCounter + ":" + n.Id) + 1; }
     }
 
     private void Sail(List<Character> npcs, FleetRules rules, CommandExecutor executor, CommandContext ctx)
@@ -212,6 +221,18 @@ public sealed class NpcAi
                 var post = hearth == null ? null : march.OrderBy(m => world.Galaxy!.Hops(hearth, m) is var hops && hops >= 0 ? hops : 99).ThenBy(m => m, StringComparer.Ordinal).FirstOrDefault();
                 var warden = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && !f.IsAway && f.Strength >= NationSystem.MarchGuard && f.SystemId != post).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (post != null && warden != null && executor.TryExecute(new MoveFleetCommand(head.Id, warden.Id, post, rules), ctx)) { world.WorldCounters["marches_garrisoned"] = world.Counter("marches_garrisoned") + 1; continue; }
+            }
+
+            // a nation that pays only while it is watched (docs/BEYOND.md, the Free Cities): the house that holds the capital, which takes
+            // the tribute, keeps a fleet at its march
+            if (Nations != null && RegionSystem.CapitalHolder(world)?.Id == house.Id && world.Wars.All(x => !x.Involves(house.Id))
+                && world.Nations.Where(x => x.OnMap && x.Subdued(world.Turn)).Select(x => Nations.Def(x.Id)).FirstOrDefault(x => x != null && NationSystem.Buys(x) && NationSystem.Guard(world, x) == null) is { } payer)
+            {
+                var hearth = world.HoldingsOf(house.Id).Where(h => h.SystemId.Length > 0).Select(h => h.SystemId).FirstOrDefault();
+                var post = hearth == null ? null : NationSystem.Marches(world, payer).OrderBy(m => world.Galaxy!.Hops(hearth, m) is var hops && hops >= 0 ? hops : 99).ThenBy(m => m, StringComparer.Ordinal).FirstOrDefault();
+                var watch = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && !f.IsAway && f.Strength >= NationSystem.MarchGuard && f.SystemId != post).OrderBy(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (post != null && watch != null && world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.IsAway).Sum(f => f.Strength) - watch.Strength >= 2
+                    && executor.TryExecute(new MoveFleetCommand(head.Id, watch.Id, post, rules), ctx)) { world.WorldCounters["marches_watched_for_tribute"] = world.Counter("marches_watched_for_tribute") + 1; continue; }
             }
 
             // raiders near home are hunted (GAP §6): a fleet of two or more sails on raiders sitting within a lane of a world of the house's

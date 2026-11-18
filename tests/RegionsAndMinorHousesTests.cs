@@ -25,10 +25,10 @@ public class RegionsAndMinorHousesTests
     {
         var (_, w) = Fresh("the_circling_heir");
         var g = w.Galaxy!;
-        Assert.Equal(34, g.Systems.Count);
-        Assert.Equal(11, g.Regions.Count); Assert.Equal(10, g.ReachRegions.Count());   // ten of the Reach, and the Vashti Steppe beyond it (docs/BEYOND.md)
+        Assert.Equal(37, g.Systems.Count);
+        Assert.Equal(12, g.Regions.Count); Assert.Equal(10, g.ReachRegions.Count());   // ten of the Reach; the Vashti Steppe and the Thessaran Shore beyond it (docs/BEYOND.md)
         foreach (var r in g.Regions) Assert.InRange(g.SystemsIn(r.Id).Count(), 3, 4);
-        Assert.Equal(2, g.Regions.Count(r => r.Ring == "core")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "middle")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "rim")); Assert.Equal(1, g.Regions.Count(r => r.Ring == "beyond"));
+        Assert.Equal(2, g.Regions.Count(r => r.Ring == "core")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "middle")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "rim")); Assert.Equal(2, g.Regions.Count(r => r.Ring == "beyond"));
         Assert.All(g.Systems.Values, s => Assert.NotNull(g.Region(s.RegionId)));
         Assert.Equal("aurelian", g.CultureOf("castrum"));
         Assert.Empty(g.Problems());
@@ -79,7 +79,7 @@ public class RegionsAndMinorHousesTests
     {
         var (_, w) = Fresh("the_old_lion");
         var regions = GalaxyProjection.Regions(w);
-        Assert.Equal(11, regions.Count);
+        Assert.Equal(12, regions.Count);
         var grey = regions.Single(r => r.Id == "greywater_reach");
         Assert.Equal("castellan", grey.DominantHouseId);     // the Castellans hold two of its three worlds
         Assert.Equal(3, grey.Planets);

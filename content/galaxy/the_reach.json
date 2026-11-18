@@ -111,6 +111,13 @@
       "culture": "vashti",
       "ring": "beyond",
       "description": "Beyond the Western Marches and not of the Reach: grass-worlds and wells held by the khans of the Vashti. No law of the Senate runs here."
+    },
+    {
+      "id": "thessaran_shore",
+      "name": "The Thessaran Shore",
+      "culture": "thessaran",
+      "ring": "beyond",
+      "description": "Beyond the Pale Reaches and not of the Reach: three sea-worlds and the cities on them, each with its own council, its own harbour and its own price for everything."
     }
   ],
   "systems": [
@@ -1094,6 +1101,77 @@
           "size": 3
         }
       ]
+    },
+    {
+      "id": "port_meront",
+      "name": "Port Meront",
+      "x": 2185,
+      "y": 1500,
+      "region": "thessaran_shore",
+      "planet": "ocean",
+      "description": "The nearest of the Free Cities, a day's sail beyond Wintermoor and Brackwater. Every cargo that crosses between the Reach and the Shore is weighed here, and taxed.",
+      "bodies": [
+        {
+          "name": "Port Meront",
+          "class": "ocean",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "The Customs Moon",
+          "class": "barren",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "pellas",
+      "name": "Pellas",
+      "x": 2425,
+      "y": 1590,
+      "region": "thessaran_shore",
+      "planet": "terran",
+      "description": "Rare earths from the belt, refined and sold by the hundredweight. The city's council is its refiners' guild, and votes like one.",
+      "bodies": [
+        {
+          "name": "Pellas",
+          "class": "terran",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "The Pellan Belt",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "thessar",
+      "name": "Thessar",
+      "x": 2295,
+      "y": 1725,
+      "region": "thessaran_shore",
+      "planet": "ocean",
+      "description": "The first city and the richest: the great exchange, the Speaker's chair, and harbours that have never been closed to anyone who could pay.",
+      "bodies": [
+        {
+          "name": "Thessar",
+          "class": "ocean",
+          "size": 4,
+          "primary": true
+        },
+        {
+          "name": "The Lantern",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "Old Harbour",
+          "class": "gas",
+          "size": 2
+        }
+      ]
     }
   ],
   "lanes": [
@@ -1276,6 +1354,26 @@
     [
       "tul_aimag",
       "khal_orda"
+    ],
+    [
+      "wintermoor",
+      "port_meront"
+    ],
+    [
+      "brackwater",
+      "port_meront"
+    ],
+    [
+      "port_meront",
+      "pellas"
+    ],
+    [
+      "port_meront",
+      "thessar"
+    ],
+    [
+      "pellas",
+      "thessar"
     ]
   ]
 }
