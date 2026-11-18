@@ -720,6 +720,171 @@
           ]
         }
       ]
+    },
+    {
+      "id": "met_at_the_march",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "raid_met_at_the_march",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "keep_the_station",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the fleet on station at the march and sent the crews their pay early. The raiders had come expecting an open door. Word of what they found will cross the border faster than they did."
+            }
+          ]
+        },
+        {
+          "id": "make_it_known",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} saw to it that the Senate heard whose fleet had turned the raiders back at the march, and whose worlds had slept through it."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The raiders came through the march and found {self.name}'s fleet there. They left. Nothing was said about it; it is what the fleet is there for."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_new_hand_beyond_the_rim",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_succession",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "send_an_envoy",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A nation beyond the rim has a new ruler. {self.name} sent an envoy with a gift and instructions to listen. A new ruler remembers who came first, and what they wanted."
+            }
+          ]
+        },
+        {
+          "id": "watch_the_march",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A nation beyond the rim has a new ruler. {self.name} had the captains at the march told to keep their watches doubled until it was clear what kind."
+            }
+          ]
+        },
+        {
+          "id": "let_it_pass",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A ruler beyond the rim is dead and another sits in the chair. {self.name} read the dispatch and turned to the next."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "their_commander_falls",
+      "tier": "setpiece",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_commander_fallen",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "honour_the_dead",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The commander of their fleets was killed in the rout. {self.name} had the body sent home across the border under a flag of truce, with its arms. It was noticed on both sides."
+            }
+          ]
+        },
+        {
+          "id": "take_the_name",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The commander of their fleets was killed in the rout, and {self.name} let the Reach know whose fleet had done it. A dead general with a name is worth more than a beaten fleet without one."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

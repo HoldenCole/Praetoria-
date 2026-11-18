@@ -32,10 +32,11 @@ public sealed class SendExpeditionCommand : ICommand
     {
         var w = ctx.World; var actor = w.Char(ActorId)!; var f = w.Fleets[_fleetId]; var d = _nations.Def(_nationId)!;
         ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Treasury] = 1 });
-        f.Away = _nationId; f.AwayPhase = "out"; f.AwayTurns = d.Distance; f.HomeSystemId = f.SystemId; f.SystemId = ""; f.DestinationId = ""; f.Eta = 0; f.Plunder = 0; f.ExpeditionWins = 0;
+        int years = NationSystem.OutTurns(w, d, f.SystemId);
+        f.Away = _nationId; f.AwayPhase = "out"; f.AwayTurns = years; f.HomeSystemId = f.SystemId; f.SystemId = ""; f.DestinationId = ""; f.Eta = 0; f.Plunder = 0; f.ExpeditionWins = 0;
         w.WorldCounters[NationSystem.ExpeditionsCounter] = w.Counter(NationSystem.ExpeditionsCounter) + 1;
         if (actor.HouseId == w.Protagonist?.HouseId) w.WorldFlags.Add("expedition_sent");
-        w.Log($"{f.Name} sails beyond the Reach against {d.Name}: {d.Distance} year{(d.Distance == 1 ? "" : "s")} out, with {f.Strength} hulls{(f.AdmiralId.Length > 0 && w.Char(f.AdmiralId) is { } c ? $" under {c.Name}" : "")}.");
+        w.Log($"{f.Name} sails beyond the Reach against {d.Name}: {years} year{(years == 1 ? "" : "s")} out, with {f.Strength} hulls{(f.AdmiralId.Length > 0 && w.Char(f.AdmiralId) is { } c ? $" under {c.Name}" : "")}.");
     }
 }
 

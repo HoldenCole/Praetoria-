@@ -108,7 +108,7 @@ Nearest starts: `the_imperial_court` for Reinhard, `the_risen_officer` or `the_n
 | Conquers the rival state | No | Foreign powers are numbers, not places (R10) |
 | Dies young and leaves a regency | Partly | Illness and a regency. The regent is nobody in particular |
 | *Yang:* recalled by his government and obeys | Partly, nearly yes | The recall motion, the choice to obey, the Senate's sword |
-| *Yang:* holds a corridor against an empire | Partly | Chokepoints and fortress worlds. Foreign powers raid; they do not invade (R10) |
+| *Yang:* holds a corridor against an empire | Partly | Each nation now comes through a march on the rim, and a fleet standing there turns its raids back (docs/BEYOND.md, stage 0). They raid; they do not yet invade (R10) |
 
 ## Being emperor (the Roman Nero)
 

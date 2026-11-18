@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **A door and a face for the nations beyond the Reach** (docs/BEYOND.md, stage 0; docs/GAPS.md R10). Each nation
+  has a march: one or two systems of the rim that face it. Its raids come through the march and fall on worlds
+  within two lanes of it, and a fleet of three hulls standing there turns them back before they land. An
+  expedition's voyage is the lanes from your fleet to the march plus the nation's depth beyond it, so a fleet
+  posted at the march sails soonest. Each nation has a ruler and a commander of its fleets, with titles and names
+  of its own: the commander's skill counts in a battle, and one who is routed may be killed; the ruler's nature
+  moves the nation's regard for the Reach, and rulers die and are followed. The Military screen shows all of it.
 - **A throne that can be lost, stage 1** (docs/THRONE.md; docs/GAPS.md R5). Whoever sits a throne has a hold on it,
   out of 100, made of things you can see: standing, hulls, the capital, years, how it was taken. Two years of a
   failing hold and a house of rank raises a standard: a war for the throne that no treaty ends. The other houses
@@ -32,6 +39,8 @@
   it, and six later events recall it. The life panel shows it.
 
 ### Changed
+- **Raids from beyond the rim fall near the raider's march**, not on any world of the rim by lot. A house that has
+  been raided posts a fleet there.
 - **Seizing a throne asks you to outmatch the throne's own fleet**, by a quarter while its hold is good and at all
   once it is shaken. It used to ask you to outnumber every house in the Reach. A claim will do in place of ducal
   rank.

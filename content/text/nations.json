@@ -99,6 +99,35 @@
         "move_to_build_with_it": "Move that it lay down hulls and lanes.",
         "say_nothing": "Let the chair keep it."
       }
+    },
+    {
+      "id": "met_at_the_march",
+      "title": "Met at the March",
+      "body": "Raiders came through the march this year and found your fleet standing there. They did not try it. No world of the rim was touched, and most of the houses whose worlds they would have been do not yet know why.",
+      "choices": {
+        "keep_the_station": "Keep the station, and pay the crews early.",
+        "make_it_known": "Let the Senate hear whose fleet it was.",
+        "say_nothing": "Say nothing. It is what the fleet is for."
+      }
+    },
+    {
+      "id": "a_new_hand_beyond_the_rim",
+      "title": "A New Hand Beyond the Rim",
+      "body": "One of the nations beyond the Reach has a new ruler. What kind is in the dispatches: the warlike sour toward the Reach; the wary raid only when the quarrel is real; the grasping raid for twice the cargo; the mild are easier to deal with. Sometimes it is the commander of their fleets who takes the chair, and those are never mild.",
+      "choices": {
+        "send_an_envoy": "Send an envoy with a gift.",
+        "watch_the_march": "Double the watch at the march.",
+        "let_it_pass": "Read the dispatch and turn to the next."
+      }
+    },
+    {
+      "id": "their_commander_falls",
+      "title": "Their Commander Falls",
+      "body": "Your fleet has beaten theirs in their own space, and the commander of their fleets was killed in the rout. Whoever follows will be new to it. For a while the border will be quieter than it has been.",
+      "choices": {
+        "honour_the_dead": "Send the body home under a flag of truce.",
+        "take_the_name": "Let the Reach know whose fleet did it."
+      }
     }
   ]
 }

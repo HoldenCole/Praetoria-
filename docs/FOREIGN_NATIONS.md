@@ -76,3 +76,15 @@ puts the nations' systems beyond the rim and turns expeditions into ordinary mov
 ## Order of work
 Military depth stages 1–3 (tactics, command, loyalty, supply, campaigns) → the Republic's parties and consuls → foreign
 nations off-map (expeditions as campaigns) → the Caesar → the map expansion.
+
+## Built (2026-11-18) — a door and a face (docs/BEYOND.md, stage 0)
+- **A march for each nation**: one or two systems of the rim that face it (`marches` in the catalogue), and its
+  years beyond them (`depth`). Raids come through the march and fall within two lanes of it. A fleet of three hulls
+  standing at the march turns a raid back before it lands (`NationSystem.Guard`). An expedition's voyage is the
+  depth plus a year for every three lanes from the fleet to the march (`NationSystem.OutTurns`). A house that was
+  raided posts a fleet at the march.
+- **A ruler and a commander for each nation** (`NationPerson`; titles and names in the catalogue). The commander's
+  skill moves what the nation's fleets are worth in a battle; a routed commander may be killed. The ruler's nature
+  (warlike, wary, grasping, mild) moves the nation's regard and its raids; rulers die and are followed, sometimes by
+  the commander.
+- Three reports, the Military screen's rows, a line in the probe, `tests/BeyondTests.cs`, `tools/browser/beyond.js`.

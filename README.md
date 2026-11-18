@@ -221,7 +221,7 @@ three orders of the Republic (`REPUBLIC`).
 | **Blood between houses** | §14 | ✅ | A killing binds the dead person's house: the debt outlives the people and ends by blood, a duel, a price, or being let lie. Other houses carry theirs too. See `docs/FEUD.md`. |
 | **Emergency powers** | §10 | ✅ | In a danger the Senate may vote a consul its powers for three years: laid down, extended, kept, or asked of the Senate for life, which ends the Republic by its own vote. See `docs/EMERGENCY.md`. |
 | **A throne that can be lost** | §10 | 🚧 | Stage 1 of four: a hold on the throne that can be read, a pretender who rises when it fails, sides taken, and a house cast down that plays on with a claim. See `docs/THRONE.md`. |
-| **The powers beyond the Reach, on the map** | §19 | 📋 | Planned in five stages, not begun. See `docs/BEYOND.md`. |
+| **The powers beyond the Reach, on the map** | §19 | 🚧 | Stage 0 of five: each nation has a march on the rim that its raids come through and a fleet can hold, and a named ruler and commander who count and who die. See `docs/BEYOND.md`. |
 | **Ambitions** | §18 | ✅ | The people of the house pursue what they want by themselves and ask the head for help now and then; a named heir. See `docs/AMBITIONS.md`. |
 | **A life of one's own** | §14, §18 | ✅ | Health and wounds, a record of deeds, renown and a name, old friends and enemies, retirement, funerals. See `docs/LIFE.md`. |
 | **Breaking away** | §10, §19 | ✅ (first stage) | A house that controls a region founds its own state; the Reach lets it go or fights a war of independence; the great war ends by crushing, partition or exhaustion. See `docs/BREAKAWAY.md`. |
@@ -259,10 +259,10 @@ three orders of the Republic (`REPUBLIC`).
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 778 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
+**Verification:** 783 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
 round-trip that must reproduce an uninterrupted run; both content validators clean; every start auto-plays sixty turns
 across several seeds with a randomised player. The content counts in the table above are from the first release; the
-current ones (409 events, 11 scenarios, 31 systems) are in `docs/ROADMAP.md`.
+current ones (412 events, 11 scenarios, 31 systems) are in `docs/ROADMAP.md`.
 
 Per-milestone detail, with the acceptance proof for each: [`MILESTONE_1`](docs/MILESTONE_1_NOTES.md)
 (engine) · [`MILESTONE_2`](docs/MILESTONE_2_NOTES.md) (turn loop) · [`MILESTONE_4`](docs/MILESTONE_4_NOTES.md)
@@ -366,7 +366,7 @@ dotnet run --project src/Tools -- play --auto --scenario the_risen_officer --bac
 # The balance simulation (docs/PROCESS.md QA): many seeds, aggregate stats per scenario
 dotnet run --project src/Tools -- simulate --scenario all --seeds 10 --turns 50
 
-# The test suite (778 tests, incl. whole-stack soaks and a save/load round-trip)
+# The test suite (783 tests, incl. whole-stack soaks and a save/load round-trip)
 dotnet test
 
 # The Godot UI (needs Godot 4.3 with .NET): open project.godot in the editor and press Play.

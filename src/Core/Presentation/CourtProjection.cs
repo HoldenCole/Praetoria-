@@ -90,7 +90,8 @@ public sealed record FleetLine(string Id, string Name, string Where, int Strengt
     string Away = "", string AwayName = "", string AwayPhase = "", int AwayTurns = 0, int Plunder = 0, int ExpeditionWins = 0, Option? Expedition = null, Option? Recall = null);
 /// <summary>A nation beyond the Reach as the Reach sees it (docs/FOREIGN_NATIONS.md): its strength and regard, the war if there is one, its tribute if it pays.</summary>
 public sealed record NationCard(string Id, string Name, string Temper, string Description, string Holds, int Strength, int FullStrength, int Disposition, bool AtWar, int WarSince, int ScoreReach, int ScoreNation,
-    int Threshold, int Tribute, int Wealth, int Distance, int SubduedUntil, int Wars, bool RaidedLately, int Expeditions, Option War);
+    int Threshold, int Tribute, int Wealth, int Distance, int SubduedUntil, int Wars, bool RaidedLately, int Expeditions, Option War,
+    string Ruler = "", string RulerNature = "", string Commander = "", int CommanderSkill = 0, string Marches = "", string Guard = "", int Nearest = 0);
 /// <summary>A battle about to be joined at the turn's end: our fleets share a system with an enemy's.</summary>
 public sealed record BattleBrief(string SystemId, string SystemName, string EnemyHouseId, string EnemyName, int OurHulls, int EnemyHulls, int Confidence, string OurStance, string TheirStance, int Edge, double OurPower, double TheirPower);
 /// <summary>The campaign of the house, and the enemy worlds it could name (docs/MILITARY.md).</summary>
@@ -603,9 +604,13 @@ public static class CourtProjection
         var abroad = nations.Defs.Where(d => w.Nation(d.Id) != null).OrderByDescending(d => w.Nation(d.Id)!.AtWar).ThenByDescending(d => d.Strength).ThenBy(d => d.Name, StringComparer.Ordinal).Select(d =>
         {
             var n = w.Nation(d.Id)!;
-            return new NationCard(d.Id, d.Name, d.Temper, d.Description, d.Holds, n.Strength, d.Strength, n.Disposition, n.AtWar, n.WarSince, n.ScoreReach, n.ScoreNation, d.Threshold, d.Tribute, d.Wealth, d.Distance,
+            NationSystem.People(w, n, d); var guard = NationSystem.Guard(w, d);
+            var marches = NationSystem.Marches(w, d); int nearest = w.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.IsAway && f.SystemId.Length > 0).Select(f => NationSystem.OutTurns(w, d, f.SystemId)).DefaultIfEmpty(NationSystem.OutTurns(w, d, "")).Min();
+            return new NationCard(d.Id, d.Name, d.Temper, d.Description, d.Holds, n.Strength, d.Strength, n.Disposition, n.AtWar, n.WarSince, n.ScoreReach, n.ScoreNation, d.Threshold, d.Tribute, d.Wealth, marches.Count > 0 ? d.Depth : d.Distance,
                 n.Subdued(w.Turn) ? n.SubduedUntil : 0, n.Wars, NationSystem.Raided(w, d.Id, 8), NationSystem.Expeditions(w, d.Id).Count(),
-                new Option(d.Id, "Move for war", senate.Motions.Def("foreign_war") == null ? "no such motion" : new ProposeMotionCommand(p.Id, "foreign_war", d.Id, senate).Refusal(ctx)));
+                new Option(d.Id, "Move for war", senate.Motions.Def("foreign_war") == null ? "no such motion" : new ProposeMotionCommand(p.Id, "foreign_war", d.Id, senate).Refusal(ctx)),
+                NationSystem.Styled(d, n.Ruler, true), n.Ruler?.Nature ?? "", NationSystem.Styled(d, n.Commander, false), n.Commander?.Skill ?? 0,
+                string.Join(" and ", marches.Select(m => w.Galaxy?.System(m)?.Name ?? m)), guard != null ? $"{guard.Name} of {w.House(guard.OwnerId)?.Name}" : "", nearest);
         }).ToList();
         var brief = new List<BattleBrief>();
         if (w.Galaxy != null)

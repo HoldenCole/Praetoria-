@@ -21,6 +21,14 @@ public sealed class NationDef
     public int Threshold { get; init; } = 6;
     /// <summary>What the nation ships into the Reach's markets a turn while at peace and not hostile (good id → units); twice as much while subdued.</summary>
     public IReadOnlyDictionary<string, int> Exports { get; init; } = new Dictionary<string, int>();
+    /// <summary>The systems of the rim that face the nation: its march (docs/BEYOND.md). Raids come through them and an expedition leaves by them.</summary>
+    public IReadOnlyList<string> Marches { get; init; } = Array.Empty<string>();
+    /// <summary>Years an expedition sails beyond the march before it fights.</summary>
+    public int Depth { get; init; } = 1;
+    /// <summary>What its ruler and the commander of its fleets are called, and the names its people bear.</summary>
+    public string RulerTitle { get; init; } = "ruler";
+    public string CommanderTitle { get; init; } = "commander";
+    public IReadOnlyList<string> Names { get; init; } = Array.Empty<string>();
 }
 
 public sealed class NationCatalog
@@ -46,8 +54,12 @@ public sealed class NationCatalog
                         Description = ConditionParser.OptStr(el, "description", ""), Holds = ConditionParser.OptStr(el, "holds", ""),
                         Strength = ConditionParser.Int(el, "strength", 10), Regen = ConditionParser.Int(el, "regen", 1), Wealth = ConditionParser.Int(el, "wealth", 5), Distance = ConditionParser.Int(el, "distance", 2),
                         Disposition = ConditionParser.Int(el, "disposition", 0), Tribute = ConditionParser.Int(el, "tribute", 4), Threshold = ConditionParser.Int(el, "threshold", 6),
+                        Marches = Strings(el, "marches"), Depth = ConditionParser.Int(el, "depth", Math.Max(1, ConditionParser.Int(el, "distance", 2) - 1)),
+                        RulerTitle = ConditionParser.OptStr(el, "rulerTitle", "ruler"), CommanderTitle = ConditionParser.OptStr(el, "commanderTitle", "commander"), Names = Strings(el, "names"),
                         Exports = el.TryGetProperty("exports", out var ex) && ex.ValueKind == JsonValueKind.Object ? ex.EnumerateObject().Where(p => p.Value.ValueKind == JsonValueKind.Number).ToDictionary(p => p.Name, p => p.Value.GetInt32()) : new Dictionary<string, int>()
                     });
         return new NationCatalog(defs);
     }
+    private static List<string> Strings(JsonElement el, string key) =>
+        el.TryGetProperty(key, out var a) && a.ValueKind == JsonValueKind.Array ? a.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString()!).ToList() : new List<string>();
 }

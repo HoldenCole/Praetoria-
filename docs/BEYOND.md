@@ -1,9 +1,10 @@
 # The powers beyond the Reach, on the map: the plan
 
 Written 2026-11-18 at the owner's asking ("let's work on the off-map stuff as well; at least a good plan for it";
-docs/GAPS.md R10). Nothing on this page is built yet. What exists today is docs/FOREIGN_NATIONS.md.
+docs/GAPS.md R10). **Stage 0 was built the same day** (see "Stage 0 as built"); stages 1 to 4 are a plan. The rules
+as they stand are in docs/FOREIGN_NATIONS.md.
 
-## What is true today
+## What was true before stage 0
 
 Five nations are defined: the Ardent Concord, the Free Cities of Thessar, the Vashti Khanates, the Outer Compact and
 the Hollow Crown. Each is a handful of numbers (strength, temper, wealth, distance, regard for the Reach). They are
@@ -31,7 +32,7 @@ it does today.
 
 ## The stages
 
-### 0. A door, a face, and a figure (one cycle; no new system)
+### 0. A door, a face, and a figure (built: see "Stage 0 as built" below)
 
 Everything here uses what is on the map already.
 
@@ -46,9 +47,11 @@ Everything here uses what is on the map already.
 - **A figure.** A line in the probe: raids, where they fell, wars voted, expeditions sent and how they ended, tribute.
 - **A safe way to ask "which houses are of the Reach".** About 45 places in the code walk every house and leave out
   only the raiders. They are moved onto one question asked in one place, so that a foreign house can exist later
-  without sitting in the Senate, the marriage market or the Exchange by accident.
+  without sitting in the Senate, the marriage market or the Exchange by accident. *Not done in stage 0: see below.*
 
 ### 1. Their fleets on the map (one or two cycles)
+
+- First, the safe question above: it is needed the moment a nation owns a fleet on the map, and not before.
 
 - A nation at war, or raiding in strength, sends **a real fleet through its march**: it moves along lanes, fights by
   the ordinary battle rules, and besieges. Its hulls are drawn from the nation's strength, and what it loses on the
@@ -89,17 +92,68 @@ Everything here uses what is on the map already.
   a nation backs a pretender or a breakaway for a price.
 - Nations at war with each other, and the Reach choosing a side.
 
+## Stage 0 as built
+
+**A door.** Each nation has a march: one or two systems of the rim that face it.
+
+| Nation | Its march | Years beyond it |
+|---|---|---|
+| The Ardent Concord | The Valmont Anvils and Ironhold (east) | 2 |
+| The Free Cities of Thessar | Wintermoor and Brackwater (south-east) | 1 |
+| The Vashti Khanates | The Anvil and The Veil (west) | 1 |
+| The Outer Compact | Sorrow (south) | 3 |
+| The Hollow Crown | Last Harbour and Hollow Reach (south-west) | 2 |
+
+- **Raids come through the march** and fall on a world within two lanes of it. Before, a raid picked any world of
+  the rim by lot.
+- **A fleet of three hulls or more standing at the march turns a raid back** before it lands, and its commander has
+  the name of it. The older rule still holds behind it: three hulls in orbit over the world itself turn a raid back
+  there.
+- **An expedition's voyage** is the nation's years beyond its march, and a year more for every three lanes between
+  where the fleet lies and the march. A fleet posted at the march sails soonest.
+- **Other houses use the door.** A house raided from beyond the rim in the last eight years, at peace and with a
+  fleet of three to spare, posts it at that nation's march.
+
+**A face.** Each nation has a ruler and a commander of its fleets, with titles and names of its own (a First Admiral
+and Admirals, a Khan of Khans and Noyans, an Autokrator and a Grand Domestic).
+
+- **The commander's skill counts**, 1 to 9: every point over four makes the nation's fleets fight six in a hundred
+  harder, and every point under as much less. A commander who beats an expedition learns from it. One whose fleet is
+  routed is killed one time in four, the victor has the name of it, and someone new and greener takes the command.
+- **The ruler's nature leans on the nation's regard for the Reach.** The warlike sour it; the wary raid only in a
+  real quarrel; the grasping raid for twice the cargo; the mild sweeten it. Half the time a nation gets the kind of
+  ruler its temper makes, and otherwise anyone.
+- **Rulers die and are followed.** One time in three, if the commander is any good, it is the commander who takes
+  the chair, and such a ruler is never mild. The nation's regard moves at once with the new ruler.
+- They are not yet people of the Reach's world: they cannot be married, bribed, met or captured. That needs the
+  safe question of stage 1.
+
+**A figure.** The probe prints a line for the nations: raids that landed, were turned back at the world, were met at
+the march; wars, expeditions and battles; commanders killed; rulers succeeded.
+
+**On the screen.** "Beyond the Reach" on the Military screen shows, for each nation, who rules it and of what
+nature, who commands its fleets and how well, its march and whether a fleet holds it, and how many years out an
+expedition would be from your nearest fleet. Three reports (`content/events/nations.json`): met at the march, a new
+hand beyond the rim, their commander falls.
+
+**What stage 0 left out of its own plan.** The safe question for "which houses are of the Reach" was not built. It
+turned out not to be needed while a nation's people are not characters of the Reach's world, and moving 45 places
+for nothing to depend on was risk without a use. It is the first thing in stage 1. The map does not yet mark a
+march: the Military screen names it.
+
+**Measured** over sixty unattended games of sixty years: 521 raids landed, 170 were met at a march (other houses
+posted a fleet to one 54 times) and 45 were turned back at the world; 81 wars voted, 250 expeditions, 550 battles;
+82 of their commanders killed; 643 rulers succeeded, about two to a nation in sixty years; rulers at the end were
+grasping 114, warlike 88, mild 60, wary 38. The full account is docs/GAP_ANALYSIS.md, section 75.
+
 ### Not in this plan
 
 The threat from beyond the galaxy's edge (the design's late crisis), and anomalies and archaeology. Both want the map
 to have an edge, which stage 2 gives it.
 
-## What I would do, and what is yours to decide
+## What is yours to decide
 
-**I would build stage 0 next.** It needs no new system, it makes every nation a neighbour at once, and it gives the
-corridor to hold.
-
-Yours:
+Stage 1 can be built on the answers assumed below. Stage 2 should not begin without them.
 
 1. **How many come onto the map.** All five, or the nearer three with the Outer Compact and the Hollow Crown left as
    far powers that trade and send embassies. I would bring on three, one at a time. The map grows by about a third

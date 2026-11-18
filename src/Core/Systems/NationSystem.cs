@@ -17,10 +17,14 @@ public sealed class NationSystem
     public const double NationPowerPerStrength = 1.0, NationReserve = 1.25, WinStrengthLoss = 0.4, WinHullLoss = 0.15, LossHullLoss = 0.3;
     public const int ScorePerBattle = 2, ExpeditionSupplyDrain = 10, ReadinessWin = 15, ReadinessLoss = 30, LegitimacyTriumph = 8, InfluenceTriumph = 4, LegitimacyDefeat = 6;
     /// <summary>One-turn flags this system raises in BeginTurn, cleared at the top of its next Tick.</summary>
-    public static readonly string[] TurnFlags = { "fleet_sailed_abroad", "expedition_returned", "expedition_lost", "expedition_victory", "expedition_defeat", "nation_subdued", "triumph", "war_lost_abroad", "raided_by_nation", "foreign_peace", "nation_freed" };
+    public static readonly string[] TurnFlags = { "fleet_sailed_abroad", "expedition_returned", "expedition_lost", "expedition_victory", "expedition_defeat", "nation_subdued", "triumph", "war_lost_abroad", "raided_by_nation", "foreign_peace", "nation_freed" , "raid_met_at_the_march", "nation_succession", "nation_commander_fallen" };
     /// <summary>One-turn flags raised in EndTurn (by the Senate's vote or the player's order), cleared with the Senate's at the top of the next EndTurn so the next turn's events see them.</summary>
     public static readonly string[] SenateTurnFlags = { "foreign_war_declared" };
     public const string WarsCounter = "foreign_wars", ExpeditionsCounter = "expeditions", BattlesCounter = "foreign_battles", SubduedCounter = "nations_subdued", TributeCounter = "tribute_received", RaidsCounter = "foreign_raids", LostCounter = "foreign_wars_lost";
+    public const string RaidsMetCounter = "raids_met_at_the_march", RaidsRepelledCounter = "raids_turned_back", CommandersFallenCounter = "nation_commanders_fallen", SuccessionsCounter = "nation_rulers_succeeded";
+    public const int RaidReach = 2, MarchGuard = 3, HopsPerYear = 3, CommanderDeathPct = 25, RulerOldAge = 58;
+    public const double PerSkill = 0.06;
+    public static readonly string[] Natures = { "warlike", "wary", "grasping", "mild" };
     public static string WinsKey(string houseId, string nationId) => $"expedition_wins:{houseId}:{nationId}";
     public static string RaidedKey(string houseId) => "raided_turn:" + houseId;
     public static string RaidedByKey(string houseId) => "raided_by:" + houseId;
@@ -37,6 +41,70 @@ public sealed class NationSystem
     {
         foreach (var d in catalog.Defs.OrderBy(d => d.Id, StringComparer.Ordinal))
             if (w.Nation(d.Id) == null) w.Nations.Add(new Nation { Id = d.Id, Strength = d.Strength, Disposition = d.Disposition });
+        foreach (var n in w.Nations) if (catalog.Def(n.Id) is { } def) People(w, n, def);
+    }
+
+    // ---- a face (docs/BEYOND.md, stage 0): a ruler and a commander of the fleets, with names of the nation's own ----
+
+    private static string NextName(Nation n, NationDef d) => d.Names.Count == 0 ? $"the {d.RulerTitle} of {d.Name}" : d.Names[n.NamesUsed++ % d.Names.Count];
+    private static NationPerson NewRuler(World w, Nation n, NationDef d, string? nature = null)
+    {
+        uint h = Hash($"ruler:{n.Salt}:{n.Id}:{n.NamesUsed}:{w.Turn}");
+        // half the time the kind of ruler its temper makes; otherwise anyone
+        string given = nature ?? (h / 7 % 2 == 0 ? d.Temper switch { "aggressive" => "warlike", "mercantile" => "grasping", "decaying" => "mild", _ => "wary" } : Natures[(int)(h / 31 % (uint)Natures.Length)]);
+        return new NationPerson { Name = NextName(n, d), Age = 36 + (int)(h / 101 % 20), Nature = given, Since = w.Turn };
+    }
+    private static NationPerson NewCommander(World w, Nation n, NationDef d)
+    {
+        uint h = Hash($"commander:{n.Salt}:{n.Id}:{n.NamesUsed}:{w.Turn}");
+        return new NationPerson { Name = NextName(n, d), Age = 28 + (int)(h / 101 % 22), Skill = 2 + (int)(h / 7 % 5) + (d.Temper == "defensive" ? 1 : 0), Since = w.Turn };
+    }
+    /// <summary>Make sure the nation has a ruler and a commander: at the start of a run, and for a save made before they had any.</summary>
+    public static void People(World w, Nation n, NationDef d)
+    {
+        if (n.Salt == 0) { n.Salt = (w.RngState ^ Hash("salt:" + n.Id)) | 1; n.NamesUsed = (int)(n.Salt / 7 % (ulong)Math.Max(1, d.Names.Count)); }
+        n.Ruler ??= NewRuler(w, n, d); n.Commander ??= NewCommander(w, n, d);
+    }
+    /// <summary>What the commander of a nation's fleets is worth to them in a battle: six in a hundred for every point of skill over four, and as much less under it.</summary>
+    public static double CommanderFactor(NationPerson? c) => c == null ? 1.0 : 1 + (c.Skill - 4) * PerSkill;
+    public static string Styled(NationDef d, NationPerson? person, bool ruler) => person == null ? "" : $"{(ruler ? d.RulerTitle : d.CommanderTitle)} {person.Name}";
+
+    /// <summary>Rulers age and die. The commander of the fleets takes the chair one time in three, if they are any good; otherwise someone new.
+    /// A new ruler has a nature of their own, and the nation's regard for the Reach moves with it at once.</summary>
+    private static void Reign(World w, Nation n, NationDef d, string? mine)
+    {
+        People(w, n, d); var r = n.Ruler!; r.Age++; if (n.Commander is { } c) c.Age++;
+        if (n.Commander is { Age: >= 66 } old) { w.Log($"{Styled(d, old, false)} of {d.Name} lays down the command, old."); n.Commander = NewCommander(w, n, d); }
+        if (r.Age < RulerOldAge || Hash($"reign:{n.Salt}:{n.Id}:{w.Turn}") / 7 % (uint)Math.Max(2, 80 - r.Age) != 0) return;
+        uint hh = Hash($"heir:{n.Salt}:{n.Id}:{w.Turn}");
+        bool general = n.Commander is { Skill: >= 5 } && hh / 7 % 3 == 0; var next = general ? n.Commander! : null;
+        // a general who takes the chair is never mild, and is warlike as often as not
+        var ruler = NewRuler(w, n, d, general ? (hh / 31 % 2 == 0 ? "warlike" : hh / 101 % 2 == 0 ? "wary" : "grasping") : null); if (next != null) { n.NamesUsed--; ruler.Name = next.Name; ruler.Age = next.Age; n.Commander = NewCommander(w, n, d); }
+        n.Ruler = ruler; int shift = ruler.Nature switch { "warlike" => -10, "mild" => 10, "grasping" => 4, _ => 0 };
+        if (!n.Subdued(w.Turn)) n.Disposition = Math.Clamp(n.Disposition + shift, -100, 100);
+        w.WorldCounters[SuccessionsCounter] = w.Counter(SuccessionsCounter) + 1; w.WorldFlags.Add("nation_succession");
+        w.Log($"{Styled(d, r, true)} of {d.Name} is dead at {r.Age}. {(general ? $"The commander of its fleets takes the chair: {Styled(d, ruler, true)}" : $"{Styled(d, ruler, true)} follows")}, {ruler.Nature} by nature{(shift < 0 ? ", and no friend to the Reach" : shift > 0 ? ", and easier to deal with" : "")}.");
+    }
+
+    // ---- a door (docs/BEYOND.md, stage 0): the systems of the rim that face a nation ----
+
+    /// <summary>The nation's march: the rim systems that face it, as far as they are on this map.</summary>
+    public static List<string> Marches(World w, NationDef d) => w.Galaxy == null ? new List<string>() : d.Marches.Where(id => w.Galaxy.System(id) != null).ToList();
+    /// <summary>Lanes from a system to the nearest of the nation's march systems; 0 with no map or no march.</summary>
+    public static int HopsToMarch(World w, NationDef d, string fromSystemId)
+    {
+        var marches = Marches(w, d); if (marches.Count == 0 || w.Galaxy == null || fromSystemId.Length == 0) return 0;
+        return marches.Select(m => w.Galaxy.Hops(fromSystemId, m)).Where(h => h >= 0).DefaultIfEmpty(0).Min();
+    }
+    /// <summary>Years an expedition sails before it fights: the nation's depth beyond its march, and a year for every three lanes between
+    /// where the fleet lies and the march. A fleet posted at the march is nearest. With no march on the map, the old figure.</summary>
+    public static int OutTurns(World w, NationDef d, string fromSystemId) => Marches(w, d).Count == 0 ? d.Distance : d.Depth + (HopsToMarch(w, d, fromSystemId) + HopsPerYear - 1) / HopsPerYear;
+    /// <summary>A fleet of the Reach standing guard at the nation's march: three hulls at least, in port and not the raiders'.</summary>
+    public static Fleet? Guard(World w, NationDef d)
+    {
+        var marches = Marches(w, d);
+        return w.Fleets.Values.Where(f => !f.IsAway && !f.Moving && f.OwnerId != PirateSystem.HouseId && f.Strength >= MarchGuard && marches.Contains(f.SystemId))
+            .OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
     }
 
     public static Nation? AtWar(World w) => w.Nations.Where(n => n.AtWar).OrderBy(n => n.Id, StringComparer.Ordinal).FirstOrDefault();
@@ -69,6 +137,7 @@ public sealed class NationSystem
         foreach (var n in w.Nations.OrderBy(n => n.Id, StringComparer.Ordinal))
         {
             var d = _catalog.Def(n.Id); if (d == null) continue;
+            Reign(w, n, d, mine);
             Drift(w, n, d);
             Raid(w, n, d, mine);
             foreach (var f in Expeditions(w, n.Id).ToList()) Sail(w, n, d, f, mine);
@@ -98,6 +167,8 @@ public sealed class NationSystem
             if (d.Temper == "aggressive" && n.Disposition > -60) n.Disposition -= 1;
             else if (d.Temper == "mercantile" && n.Disposition < 30) n.Disposition += 1;
             else if (d.Temper != "aggressive" && n.Disposition < d.Disposition) n.Disposition += 1;
+            // and the one who rules it leans on the scale: the warlike sour it, the mild sweeten it
+            if (n.Ruler?.Nature == "warlike" && n.Disposition > -60) n.Disposition -= 1; else if (n.Ruler?.Nature == "mild" && n.Disposition < 30) n.Disposition += 1;
         }
     }
 
@@ -107,19 +178,37 @@ public sealed class NationSystem
     {
         if (d.Temper is not ("aggressive" or "decaying") || n.Disposition > -20 || n.Subdued(w.Turn) || w.Galaxy == null) return;
         if (w.Turn - n.LastRaidTurn < RaidMinGap || Hash($"raid:{n.Id}:{w.Turn}:{n.Disposition}:{w.Holdings.Count}") % RaidEvery != 0) return;
-        var rim = w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && h.OwnerId != PirateSystem.HouseId && w.Galaxy.RingOf(h.SystemId) == Galaxy.Ring.Rim).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        if (n.Ruler?.Nature == "wary" && n.Disposition > -40) return;   // a wary ruler raids only when the quarrel is real
+        var marches = Marches(w, d); var leader = n.Commander; string led = leader != null ? $" under {Styled(d, leader, false)}" : "";
+        // they come through their march, and a fleet standing there meets them before they reach a world (docs/BEYOND.md)
+        if (marches.Count > 0 && Guard(w, d) is { } guard)
+        {
+            n.LastRaidTurn = w.Turn; w.WorldCounters[RaidsMetCounter] = w.Counter(RaidsMetCounter) + 1; if (leader != null) leader.Defeats++;
+            string at = w.Galaxy.System(guard.SystemId)?.Name ?? guard.SystemId;
+            w.Log($"Raiders of {d.Name}{led} come through {at} and find {guard.Name} waiting. They are turned back at the march.");
+            if (guard.AdmiralId.Length > 0 && w.Char(guard.AdmiralId) is { Alive: true } warden) LifeSystem.Note(w, warden, "victory", $"Turned back raiders of {d.Name} at {at}.");
+            if (guard.OwnerId == mine) w.WorldFlags.Add("raid_met_at_the_march");
+            return;
+        }
+        var rim = marches.Count > 0
+            ? w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && h.OwnerId != PirateSystem.HouseId && marches.Select(m => w.Galaxy.Hops(m, h.SystemId)).Where(x => x >= 0).DefaultIfEmpty(99).Min() <= RaidReach)
+                .OrderBy(h => marches.Select(m => w.Galaxy.Hops(m, h.SystemId)).Where(x => x >= 0).DefaultIfEmpty(99).Min()).ThenBy(h => h.Id, StringComparer.Ordinal).Take(5).ToList()
+            : new List<Holding>();
+        if (rim.Count == 0) rim = w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && h.OwnerId != PirateSystem.HouseId && w.Galaxy.RingOf(h.SystemId) == Galaxy.Ring.Rim).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
         if (rim.Count == 0) rim = w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && h.OwnerId != PirateSystem.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
         if (rim.Count == 0) return;
         var target = rim[(int)(Hash($"raidat:{n.Id}:{w.Turn}") % (uint)rim.Count)];
-        if (FleetSystem.StrengthAt(w, target.OwnerId, target.SystemId) >= 3) { n.LastRaidTurn = w.Turn; w.Log($"Raiders of {d.Name} come for {target.Name} and find the fleet of {w.House(target.OwnerId)?.Name} in orbit; they turn back."); return; }
+        if (FleetSystem.StrengthAt(w, target.OwnerId, target.SystemId) >= 3) { n.LastRaidTurn = w.Turn; w.WorldCounters[RaidsRepelledCounter] = w.Counter(RaidsRepelledCounter) + 1; w.Log($"Raiders of {d.Name}{led} come for {target.Name} and find the fleet of {w.House(target.OwnerId)?.Name} in orbit; they turn back."); return; }
         n.LastRaidTurn = w.Turn;
         target.Unrest = Math.Min(100, target.Unrest + RaidUnrest);
-        if (w.House(target.OwnerId) is { } owner) owner.Treasury.Credits -= Math.Min(RaidCredits, Math.Max(0, owner.Treasury.Credits));
+        int take = RaidCredits * (n.Ruler?.Nature == "grasping" ? 2 : 1);   // a grasping ruler's raiders come for the cargo
+        if (w.House(target.OwnerId) is { } owner) owner.Treasury.Credits -= Math.Min(take, Math.Max(0, owner.Treasury.Credits));
         w.WorldCounters[RaidsCounter] = w.Counter(RaidsCounter) + 1;
         if (n.AtWar) n.ScoreNation += 1;
         w.WorldCounters[RaidedKey(target.OwnerId)] = w.Turn; w.WorldCounters[RaidedByKey(target.OwnerId)] = w.Nations.IndexOf(n);
         if (target.OwnerId == mine) { w.WorldFlags.Add("raided_by_nation"); w.WorldFlags.Add("raided_by:" + n.Id); }
-        w.Log($"Raiders of {d.Name} fall on {target.Name}: cargo and crews taken, the world in uproar.{(n.AtWar ? " The war's tally turns a point their way." : "")}");
+        if (leader != null) leader.Victories++;
+        w.Log($"Raiders of {d.Name} fall on {target.Name}{led}: cargo and crews taken, the world in uproar.{(n.AtWar ? " The war's tally turns a point their way." : "")}");
     }
 
     /// <summary>One turn of an expedition: sailing out, fighting in the nation's space, or sailing home.</summary>
@@ -159,14 +248,15 @@ public sealed class NationSystem
                 }
                 break;
             default:
-                f.AwayPhase = "out"; f.AwayTurns = d.Distance; break;
+                f.AwayPhase = "out"; f.AwayTurns = OutTurns(w, d, f.HomeSystemId); break;
         }
     }
 
     private static void GoHome(World w, Fleet f, NationDef d, string why)
     {
         if (f.AwayPhase == "home") return;
-        f.AwayPhase = "home"; f.AwayTurns = d.Distance; w.Log($"{f.Name} {why}: {d.Distance} year{(d.Distance == 1 ? "" : "s")} out from the Reach.");
+        int back = OutTurns(w, d, f.HomeSystemId);
+        f.AwayPhase = "home"; f.AwayTurns = back; w.Log($"{f.Name} {why}: {back} year{(back == 1 ? "" : "s")} out from the Reach.");
     }
 
     /// <summary>The abstract battle: the fleet's own power (the real math — hulls, readiness, admiral, veterancy, stance, supply, the flag) against
@@ -178,7 +268,8 @@ public sealed class NationSystem
         double pw = _fleets.PowerOf(w, f, defending: false) * (1 + _fleets.FlagFactor(w, f.OwnerId));
         int committed = Math.Min(n.Strength, Math.Max(2, (int)Math.Ceiling(f.Strength * NationReserve)));
         double temper = d.Temper switch { "defensive" => 1.25, "mercantile" => 0.8, "decaying" => 0.85, _ => 1.0 };
-        double pn = committed * NationPowerPerStrength * temper;
+        var theirs = n.Commander; string under = theirs != null ? $" under {Styled(d, theirs, false)}" : "";
+        double pn = committed * NationPowerPerStrength * temper * CommanderFactor(theirs);   // who leads them counts
         double pWin = pw / Math.Max(0.001, pw + pn);
         bool win = Roll($"abroad:{n.Id}:{f.Id}:{w.Turn}") < pWin;
         n.LastBattleTurn = w.Turn; w.WorldCounters[BattlesCounter] = w.Counter(BattlesCounter) + 1;
@@ -191,7 +282,18 @@ public sealed class NationSystem
             n.ScoreReach += ScorePerBattle; f.Plunder += d.Wealth; f.ExpeditionWins += 1;
             w.WorldCounters[WinsKey(house.Id, n.Id)] = w.Counter(WinsKey(house.Id, n.Id)) + 1;
             f.Readiness = Math.Max(0, f.Readiness - ReadinessWin); f.Veterancy = Math.Min(_fleets.Rules.VeterancyMax, f.Veterancy + 1); f.Loyalty = Math.Min(100, f.Loyalty + _fleets.Rules.LoyaltyWin);
-            w.Log($"{f.Name} beats the fleets of {d.Name} in their own space: {committed} hulls met, {lost} of ours lost, {d.Wealth} credits taken. The tally stands {n.ScoreReach} to {n.ScoreNation}.");
+            if (theirs != null)
+            {
+                theirs.Defeats++;
+                if ((int)(Hash($"theirfall:{n.Id}:{f.Id}:{w.Turn}") / 7 % 100) < CommanderDeathPct)
+                {
+                    w.Log($"{Styled(d, theirs, false)} of {d.Name} is killed in the rout.{(commander != null ? $" {commander.Name} has the name of it." : "")}");
+                    if (commander != null) LifeSystem.Note(w, commander, "victory", $"Beat {Styled(d, theirs, false)} of {d.Name} beyond the Reach, who died in the rout.");
+                    w.WorldCounters[CommandersFallenCounter] = w.Counter(CommandersFallenCounter) + 1; if (f.OwnerId == mine) w.WorldFlags.Add("nation_commander_fallen");
+                    n.Commander = NewCommander(w, n, d);
+                }
+            }
+            w.Log($"{f.Name} beats the fleets of {d.Name}{under} in their own space: {committed} hulls met, {lost} of ours lost, {d.Wealth} credits taken. The tally stands {n.ScoreReach} to {n.ScoreNation}.");
             if (f.OwnerId == mine) w.WorldFlags.Add("expedition_victory");
             CaesarSystem.ExpeditionVictory(w, f, commander);
             if (commander != null)
@@ -215,7 +317,8 @@ public sealed class NationSystem
             for (int i = 0; i < lost && f.Strength > 1; i++) FleetSystem.ShedHull(w, f);
             n.ScoreNation += ScorePerBattle;
             f.Readiness = Math.Max(0, f.Readiness - ReadinessLoss); f.Loyalty = Math.Max(0, f.Loyalty - _fleets.Rules.LoyaltyLoss);
-            w.Log($"{f.Name} is beaten in the space of {d.Name}: {lost} hull{(lost == 1 ? "" : "s")} lost against {committed}. The tally stands {n.ScoreReach} to {n.ScoreNation}.");
+            if (theirs != null) { theirs.Victories++; theirs.Skill = Math.Min(9, theirs.Skill + 1); }
+            w.Log($"{f.Name} is beaten in the space of {d.Name}{(theirs != null ? $" by {Styled(d, theirs, false)}" : "")}: {lost} hull{(lost == 1 ? "" : "s")} lost against {committed}. The tally stands {n.ScoreReach} to {n.ScoreNation}.");
             if (f.OwnerId == mine) w.WorldFlags.Add("expedition_defeat");
             if (commander != null)
             {

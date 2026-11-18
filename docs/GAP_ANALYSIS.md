@@ -2252,3 +2252,47 @@ politics. Four questions are the owner's before the second stage. Nothing is bui
 **Left, and mapped.** Sides in a rising are taken by regard and blood only, and houses that go over fight their own
 wars and not one campaign. A succession is not contested, there is no guard, and a fallen emperor has nowhere to go
 (R5, stages 2 to 4).
+
+## 75. The powers beyond the Reach, stage 0: a door and a face — 2026-11-18
+
+Built the same day it was planned (docs/BEYOND.md, "Stage 0 as built"; R10a closed, R10 keeps stages 1 to 4). It
+needed no new system: marches are systems already on the map, and a nation's people are names, ages, a skill and a
+nature held on the nation.
+
+**Found while measuring.**
+- As first built, every game had the same rulers dying in the same years: a nation's dice took nothing from the
+  world. It is the flaw the Institute had. Each nation's people are salted from the world's own dice now.
+- Nearly six rulers in ten ended up warlike, because a commander who took the chair was always warlike and did so
+  half the time. One time in three now, and never mild but not always warlike.
+- Other houses almost never held a march (41 raids met in 60 games). A house that has been raided now posts a fleet
+  there (170).
+- "Grasping" did nothing. A grasping ruler's raiders take twice the cargo.
+
+**Measured.** The probe (60 runs of 60 years): 521 raids landed, 170 met at a march (a fleet posted to one 54
+times), 45 turned back at the world; 81 wars voted, 250 expeditions, 550 battles, 23 nations subdued; 82 of their
+commanders killed; 643 rulers succeeded; rulers at the end grasping 114, warlike 88, mild 60, wary 38. The soak (33
+runs, a save and load in each) passes with no drift: 129 raids met at a march, 59 commanders killed, 291 rulers
+succeeded; three lines ended (2); 312 of 412 events fired (307 of 409) and 70 kinds of command landed (71). Survival:
+0 of 80 (1).
+
+**The Republic fell once.** In one game of the sixty (The Fallen House, year 53) a general of another house passed
+all three gates of the Caesar road, marched, and took the throne. In every earlier measurement the Republic stood in
+all sixty. Nothing in this pass touches the Caesar road; the dice were reshuffled and a general in that game had
+nine victories to their name. It is inside the owner's rule (another house's Caesar no more than once in ten games)
+and it bears on Q1, which the owner has still to answer. The other figures: the great war fought in 41 runs (43); 20
+states broke away (20); 140 debts of blood (146); emergency powers voted 47 times of 96 (53 of 116); trust in the
+magistrates averaged 46 to 62 by start and was low in 11 runs (13).
+
+**Not seen in play.** "Met at the march" did not fire in the soak: it needs the player's own fleet to be the one
+standing there, and the soak's player never posted one. It is proved by a test.
+
+**Seen in the browser** (`tools/browser/beyond.js`). On The Old Lion the Military screen's "Beyond the Reach" showed
+five rows, among them: "The Vashti Khanates · Khan of Khans Temur Vash, warlike by nature · the fleets under Noyan
+Borte Khal, skill 3 of 9 · Its march: The Anvil and The Veil · 2 year(s) out from your nearest fleet · unguarded".
+The page was not wider than the screen and there were no errors.
+
+783 tests (five new).
+
+**Left, and mapped.** A march is named on the Military screen and not marked on the map. A nation's people cannot be
+met, married, bribed or captured. The safe question for "which houses are of the Reach" was moved to stage 1, where
+it is first needed (R10).

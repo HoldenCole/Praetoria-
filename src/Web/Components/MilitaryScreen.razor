@@ -108,7 +108,7 @@
             @if (nations.Count > 0)
             {
                 <section class="panel abroad">
-                    <h3><Icon Name="galaxy" Size="13" /> Beyond the Reach <span class="muted">the nations off the map · the Senate makes war; houses send fleets</span></h3>
+                    <h3><Icon Name="galaxy" Size="13" /> Beyond the Reach <span class="muted">each nation comes through its march on the rim · the Senate makes war; houses send fleets</span></h3>
                     @if (warAbroad != null)
                     {
                         int tot = Math.Max(1, warAbroad.ScoreReach + warAbroad.ScoreNation);
@@ -120,7 +120,9 @@
                     @foreach (var n in nations)
                     {
                         <div class="nation @(n.AtWar ? "war" : n.SubduedUntil > 0 ? "tributary" : "")" title="@n.Description">
-                            <div class="nrow"><b>@n.Name</b> <span class="muted small">@n.Temper · @n.Distance year(s) out · holds @n.Holds</span></div>
+                            <div class="nrow"><b>@n.Name</b> <span class="muted small">@n.Temper · holds @n.Holds</span></div>
+                            @if (n.Ruler.Length > 0) { <div class="nrow small" title="The one who rules it leans on its regard for the Reach: the warlike sour it, the wary raid only in a real quarrel, the grasping raid for twice the cargo, the mild sweeten it. Rulers die and are followed, sometimes by the commander of the fleets. Every point of the commander's skill over four makes its fleets fight six in a hundred harder, and every point under, as much less; a commander who beats you learns from it, and one who is routed may be killed."><span><b>@n.Ruler</b>, @n.RulerNature by nature</span><span class="muted"> · the fleets under <b>@n.Commander</b>, skill @n.CommanderSkill of 9</span></div> }
+                            @if (n.Marches.Length > 0) { <div class="nrow small" title="Its raids come through these systems and fall on worlds within two lanes of them. A fleet of three hulls or more standing at the march turns a raid back before it lands. An expedition's voyage is the nation's depth beyond the march, and a year for every three lanes between the fleet and the march."><span class="muted">Its march:</span> <b>@n.Marches</b><span class="muted"> · @(n.Nearest) year(s) out from your nearest fleet</span>@if (n.Guard.Length > 0) { <span class="pill small good">held by @n.Guard</span> } else { <span class="pill small">unguarded</span> }</div> }
                             <div class="nrow"><span class="muted small">strength</span><span class="mbar"><i style="width:@(100 * n.Strength / maxStr)%; background:@(n.AtWar ? "#E63946" : n.SubduedUntil > 0 ? "#2EC27E" : "#C9D1DC")"></i></span><b>@n.Strength</b>
                                 <span class="pill small @(n.Disposition <= -30 ? "warn" : n.Disposition >= 20 ? "good" : "")" title="their regard for the Reach">@(n.Disposition >= 0 ? "+" : "")@n.Disposition</span>
                                 @if (n.AtWar) { <span class="pill small warn">at war</span> } else if (n.SubduedUntil > 0) { <span class="pill small good">pays @n.Tribute/turn until T@(n.SubduedUntil)</span> } @if (n.RaidedLately) { <span class="pill small warn">raiding the rim</span> }@if (n.Wars > 0 && !n.AtWar) { <span class="pill small">@n.Wars war(s) fought</span> }

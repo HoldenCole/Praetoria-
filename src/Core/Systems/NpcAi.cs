@@ -167,6 +167,15 @@ public sealed class NpcAi
                 if (world.AtWar(house.Id, stolen.OwnerId) && enemyAt != null && executor.TryExecute(new MoveFleetCommand(head.Id, enemyAt.Id, stolen.SystemId, rules), ctx)) continue;
             }
 
+            // raided from beyond the rim lately: post a fleet at that nation's march, where the next raid can be met before it lands (docs/BEYOND.md)
+            if (Nations != null && NationSystem.RaiderOf(world, house.Id, 8) is { } raider && Nations.Def(raider) is { } rd && NationSystem.Guard(world, rd) == null && world.Wars.All(x => !x.Involves(house.Id)))
+            {
+                var march = NationSystem.Marches(world, rd); var hearth = world.HoldingsOf(house.Id).Where(h => h.SystemId.Length > 0).Select(h => h.SystemId).FirstOrDefault();
+                var post = hearth == null ? null : march.OrderBy(m => world.Galaxy!.Hops(hearth, m) is var hops && hops >= 0 ? hops : 99).ThenBy(m => m, StringComparer.Ordinal).FirstOrDefault();
+                var warden = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && !f.IsAway && f.Strength >= NationSystem.MarchGuard && f.SystemId != post).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (post != null && warden != null && executor.TryExecute(new MoveFleetCommand(head.Id, warden.Id, post, rules), ctx)) { world.WorldCounters["marches_garrisoned"] = world.Counter("marches_garrisoned") + 1; continue; }
+            }
+
             // raiders near home are hunted (GAP §6): a fleet of two or more sails on raiders sitting within a lane of a world of the house's
             var nearHome = world.HoldingsOf(house.Id).Where(h => h.SystemId.Length > 0).SelectMany(h => world.Galaxy!.Neighbors(h.SystemId).Append(h.SystemId)).ToHashSet();
             var raiders = world.Fleets.Values.Where(f => f.OwnerId == PirateSystem.HouseId && !f.Moving && nearHome.Contains(f.SystemId)).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
