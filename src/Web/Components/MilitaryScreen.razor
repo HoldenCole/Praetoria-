@@ -132,7 +132,7 @@
                                 @if (n.Orders != null && n.OnMap && !n.Fallen)
                                 {
                                     <div class="nrow small">
-                                        @foreach (var o in n.Orders.Where(o => o.Refusal == null || o.Id is "own_war" && !n.AtWar && n.SubduedUntil == 0))
+                                        @foreach (var o in n.Orders.Where(o => o.Refusal == null || o.Id is "own_war" && !n.AtWar && n.SubduedUntil == 0 || o.Id.StartsWith("terms_") && o.Refusal != "not your war" && o.Refusal != "not offered"))
                                         {
                                             var oo = o;
                                             <button class="opt inline tiny" disabled="@(oo.Refusal != null)" title="@(oo.Refusal ?? OrderHint(oo.Id))" @onclick="() => Order(n.Id, oo.Id)">@oo.Label</button>
@@ -346,6 +346,7 @@
         "obey" => "your fleets come home, and the peace the Senate voted is kept",
         "defy" => "the war becomes your house's own: it costs your name at once and every year, and the Senate may recall your general",
         "raid" => "raiding fleets sack a world of a nation's in a season and leave it; fleets that take and hold besiege it and keep it",
+        "terms_tribute" or "terms_territory" or "terms_white" or "terms_ceded" or "terms_paid" => "your own war, so your own peace: no vote. They agree to terms the war score allows",
         "client" => "when yours is the house that wins the war, and the nation is beaten decisively: a client keeps its ruler and its worlds and pays the Reach and your house every year; otherwise it pays tribute for twenty years and you keep what you took",
         _ => ""
     };
@@ -359,6 +360,7 @@
             case "obey": G.Execute(new AnswerPeaceCommand(me, true)); break;
             case "defy": G.Execute(new AnswerPeaceCommand(me, false)); break;
             case "raid": G.Execute(new RaidPostureCommand(me, !G.World!.HasFlag(NationSystem.PlayerRaidsFlag))); break;
+            case "terms_tribute": case "terms_territory": case "terms_white": case "terms_ceded": case "terms_paid": G.Execute(new NegotiateCommand(me, nationId, id["terms_".Length..], G.Content!.Nations)); break;
             case "client": G.Execute(new PeacePostureCommand(me, !G.World!.HasFlag(NationSystem.PlayerClientsFlag))); break;
         }
     }

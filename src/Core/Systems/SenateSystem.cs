@@ -242,7 +242,8 @@ public sealed class SenateSystem
         int years = w.Turn - n.WarSince; bool factors = party?.PartyId == "factors";
         if (n.BeganIt && Invaded(w, n) && years < 10) return null;   // nobody moves to cede worlds to an invader until the war is ten years old
         bool wants = n.WarOf.Length > 0 ? years >= (factors ? 2 : 4)   // a house's own war is left to run a while: raiding the border is an old habit
-            : (years >= 5 && n.ScoreReach <= n.ScoreNation) || (factors && years >= 3 && n.ScoreReach - n.ScoreNation < 3);
+            : (years >= 5 && n.ScoreReach <= n.ScoreNation) || (factors && years >= 3 && n.ScoreReach - n.ScoreNation < 3)
+              || (years >= 3 && Nations.Def(n.Id) is { } nd && NationSystem.Best(n, nd) == "tribute");   // they would pay now: why fight on
         return wants ? n.Id : null;
     }
     /// <summary>Whether the nation holds a world of the Reach's that it took in this war.</summary>

@@ -259,10 +259,10 @@ three orders of the Republic (`REPUBLIC`).
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 835 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
+**Verification:** 838 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
 round-trip that must reproduce an uninterrupted run; both content validators clean; every start auto-plays sixty turns
 across several seeds with a randomised player. The content counts in the table above are from the first release; the
-current ones (453 events, 11 scenarios, 50 systems) are in `docs/ROADMAP.md`.
+current ones (454 events, 11 scenarios, 50 systems) are in `docs/ROADMAP.md`.
 
 Per-milestone detail, with the acceptance proof for each: [`MILESTONE_1`](docs/MILESTONE_1_NOTES.md)
 (engine) · [`MILESTONE_2`](docs/MILESTONE_2_NOTES.md) (turn loop) · [`MILESTONE_4`](docs/MILESTONE_4_NOTES.md)
@@ -284,7 +284,7 @@ is `docs/GAP_ANALYSIS.md`. In short:
   commerce no contracts.
 - **The economy**: rival houses do not take each other over; some goods are in permanent glut.
 - **The Imperium**: government under a throne is simple next to the Republic.
-- **The world**: all five nations beyond the Reach are on the map (the Vashti Khanates, the Free Cities of Thessar, the Ardent Concord, the Outer Compact, the Hollow Crown), each game's are of different strength, a nation can attack under a great ruler, houses raid them, the Senate votes war and peace and can be defied at a cost that depends on the general's name, and a war ends in one of six kinds of peace (a client state among them); what they hold is not governed once taken, their rulers cannot be dealt with as people, and the map is one screen where a far larger one is wanted; anomalies and archaeology are not built.
+- **The world**: all five nations beyond the Reach are on the map (the Vashti Khanates, the Free Cities of Thessar, the Ardent Concord, the Outer Compact, the Hollow Crown), each game's are of different strength, a nation can attack under a great ruler, houses raid them, the Senate votes war and peace and can be defied at a cost that depends on the general's name, and a peace is won outright or negotiated on terms set by the war score (a client state among the kinds); what they hold is not governed once taken, their rulers cannot be dealt with as people, and the map is one screen where a far larger one is wanted; anomalies and archaeology are not built.
 - **Presentation**: no sound; portraits all wear one uniform; the character sheet is thin; phone layout unchecked.
 - **Housekeeping**: browser checks are scripted (`tools/browser`) but no CI runs them; the Godot desktop shell compiles, has never been run, and lags the browser client badly (`docs/QA.md`).
 
@@ -366,7 +366,7 @@ dotnet run --project src/Tools -- play --auto --scenario the_risen_officer --bac
 # The balance simulation (docs/PROCESS.md QA): many seeds, aggregate stats per scenario
 dotnet run --project src/Tools -- simulate --scenario all --seeds 10 --turns 50
 
-# The test suite (835 tests, incl. whole-stack soaks and a save/load round-trip)
+# The test suite (838 tests, incl. whole-stack soaks and a save/load round-trip)
 dotnet test
 
 # The Godot UI (needs Godot 4.3 with .NET): open project.godot in the editor and press Play.

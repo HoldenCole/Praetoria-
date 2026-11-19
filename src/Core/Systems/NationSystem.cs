@@ -405,6 +405,7 @@ public sealed partial class NationSystem
     {
         if (!n.AtWar) return;
         if (Peace(w, n, d, mine)) return;   // the Senate's peace, if one is voted (docs/BEYOND.md, "Whose war")
+        if (Parley(w, n, d, mine)) return;   // a house in a war of its own makes its own peace
         var chair = RegionSystem.CapitalHolder(w);
         if (n.ScoreReach - n.ScoreNation >= SuesAt(n, d) || n.Strength <= 0)
         {
@@ -414,6 +415,7 @@ public sealed partial class NationSystem
             bool client = Client(w, n, d, top, mine);
             if (client) { n.Vassal = true; n.PatronId = top?.Id ?? ""; n.SubduedUntil = 0; Bump(w, ClientCounter, n); Mark(w, "nation_client", n); }
             else n.SubduedUntil = w.Turn + SubduedTurns;
+            n.TreatyWith = n.WarOf;   // a house that won its own war is the one that is paid
             n.LastPeace = client ? "client" : n.OnMap && d.Worlds.Any(x => w.Holding(x.Id) is { } hx && hx.OwnerId != n.HouseId) ? "territory" : "tribute"; Bump(w, PeaceKindCounter + ":" + n.LastPeace, n);
             n.Disposition = Math.Min(100, n.Disposition + 10); if (!n.OnMap) n.Strength = Math.Max(2, n.Strength);
             w.WorldCounters[SubduedCounter] = w.Counter(SubduedCounter) + 1; w.WorldFlags.Add("nation_subdued"); w.WorldFlags.Add("nation_subdued:" + n.Id);
@@ -437,7 +439,7 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
             // a nation that holds worlds of the Reach's keeps them, and is bought off once; one that holds none is paid tribute for ten years
             bool pays = n.OnMap && !Holds(w, n);
             if (chair != null) { if (!pays) chair.Treasury.Credits -= d.Tribute * 3; chair.Legitimacy = Math.Max(0, chair.Legitimacy - LegitimacyDefeat); }
-            if (pays) { n.PaidUntil = w.Turn + PaidYears; Mark(w, "reach_pays_tribute", n); }
+            if (pays) { n.PaidUntil = w.Turn + PaidYears; n.TreatyWith = n.WarOf; Mark(w, "reach_pays_tribute", n); }
             n.LastPeace = pays ? "paid" : n.OnMap ? "ceded" : "bought"; Bump(w, PeaceKindCounter + ":" + n.LastPeace, n);
             w.Log(pays ? $"The war with {d.Name} is lost. They hold nothing of the Reach's to keep, so the Reach pays: {d.Tribute} credits a year for {PaidYears} years, from the chair{(chair != null ? $" of {chair.Name}" : "")}, and the Reach is shamed."
                 : $"The war with {d.Name} is lost: the chair{(chair != null ? $" of {chair.Name}" : "")} buys peace for {d.Tribute * 3} credits, and the Reach is shamed.");
@@ -463,7 +465,7 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
             w.WorldFlags.Add("foreign_peace");
             w.Log($"The war with {d.Name} gutters out: no fleet has met theirs in {ExhaustionTurns} years, and both sides let it lie.");
             if (n.OnMap) Bump(w, GutteredCounter, n);
-            Unforced(w, n, d);   // nobody won it: whoever is ahead keeps what it holds, and level, everything goes home
+            Unforced(w, n, d, negotiated: false);   // nobody won it and nobody negotiated: each side keeps what the score gives it, and nobody pays
             EndWar(w, n, d);
         }
     }
@@ -494,7 +496,8 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
 
     private static void Tribute(World w, Nation n, NationDef d, string? mine)
     {
-        var payer = RegionSystem.CapitalHolder(w);
+        var with = n.TreatyWith.Length > 0 && w.OfTheReach(n.TreatyWith) ? w.House(n.TreatyWith) : null;   // the house whose own war it was, if it was one's
+        var payer = with ?? RegionSystem.CapitalHolder(w);
         if (n.PaidUntil > 0 && !n.AtWar)
         {   // the Reach pays this nation: what a lost war cost when there was nothing to cede
             if (n.PaidUntil <= w.Turn) { n.PaidUntil = 0; w.Log($"The Reach pays {d.Name} its last tribute. The treaty is done."); }
@@ -503,7 +506,7 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
         if (n.Vassal) { Clientage(w, n, d); return; }
         if (n.SubduedUntil == w.Turn) { n.Disposition = d.Disposition; w.WorldFlags.Add("nation_freed"); w.Log($"{d.Name} pays its last tribute; the treaty is done and its envoys go home."); return; }
         if (!n.Subdued(w.Turn)) return;
-        var chair = RegionSystem.CapitalHolder(w); if (chair == null) return;
+        var chair = with ?? RegionSystem.CapitalHolder(w); if (chair == null) return;
         chair.Treasury.Credits += d.Tribute; w.WorldCounters[TributeCounter] = w.Counter(TributeCounter) + d.Tribute;
     }
 }

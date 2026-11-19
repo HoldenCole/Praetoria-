@@ -45,6 +45,23 @@ public sealed class RaidPostureCommand : ICommand
     }
 }
 
+/// <summary>Make peace in a war that is the house's own, on terms the war score allows (docs/BEYOND.md, "Negotiated or won").</summary>
+public sealed class NegotiateCommand : ICommand
+{
+    private readonly string _nationId, _terms; private readonly NationCatalog _nations;
+    public NegotiateCommand(string actorId, string nationId, string terms, NationCatalog nations) { ActorId = actorId; _nationId = nationId; _terms = terms; _nations = nations; }
+    public string ActorId { get; }
+    public string Describe() => $"make peace with {_nationId}: {_terms}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to treat with them";
+        var house = w.House(actor.HouseId); if (house == null || Economy.HeadOf(w, house)?.Id != actor.Id) return "only the head of a house makes its peace";
+        return NationSystem.NegotiateRefusal(w, _nations, house, _nationId, _terms);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) => NationSystem.Negotiate(ctx.World, _nations, _nationId, ctx.World.Char(ActorId)!.HouseId, _terms);
+}
+
 /// <summary>What the player's house wants of a nation it has beaten decisively: to keep what it took, or to make the nation a client.</summary>
 public sealed class PeacePostureCommand : ICommand
 {

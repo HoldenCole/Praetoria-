@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **Negotiated or won** (docs/BEYOND.md; the owner: "Peace can be negotiated or won. Depends on war score."). Every
+  war with a nation has a war score from -100 to +100. At the ends the peace is won or lost. Between, it is
+  negotiated, and the terms step up with the score: a white peace near level, keeping what you hold from +25,
+  tribute for ten years from +60, and the same the other way when the war goes badly. A warlike ruler asks more for
+  the same terms, and one of the great more still. The Senate's peace takes the best terms on offer. In a war of
+  your own you make your own peace from the nation's card, with no vote, and tribute is paid to your house. The
+  card shows the score, the terms now and what the next step wants.
 - **Kinds of peace** (docs/BEYOND.md, "Kinds of peace, how often they come, and whose fleet it is"; the owner's
   answers to decisions 16 to 19). A war with a nation ends one of six ways, by how it ended and what each side
   holds. Beaten decisively, a nation can be made a **client**: it keeps its ruler and its worlds and pays the chair

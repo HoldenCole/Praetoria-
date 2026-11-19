@@ -14,7 +14,7 @@ namespace Praetoria.Core.Systems;
 public sealed partial class NationSystem
 {
     public const int SackRest = 6, ScoreSack = 2, SackUnrest = 10, PrivateRegard = 15, PrivateLeast = 3, DefySway = 50, DefyYears = 6, PeaceRegard = 5;
-    public const int WhiteBand = 2, PaidYears = 10, ClientBreakOneIn = 12, ClientBreakDivided = 3;
+    public const int PaidYears = 10, ClientBreakOneIn = 12, ClientBreakDivided = 3;
     public const string PlayerClientsFlag = "we_make_clients";
     public const string ClientCounter = "nations_made_clients", ClientLostCounter = "clients_broke_away", PaidCounter = "tribute_paid_to_nations", PeaceKindCounter = "peace_kind";
     public const string PlayerRaidsFlag = "we_raid_beyond", PeaceObeyFlag = "peace_answer_obey", PeaceDefyFlag = "peace_answer_defy";
@@ -213,27 +213,109 @@ public sealed partial class NationSystem
     public static bool Decisive(World w, Nation n, NationDef d) =>
         n.OnMap && ((w.PlanetHolder(n.CapitalSystemId) is { } seat && w.OfTheReach(seat)) || n.ScoreReach - n.ScoreNation >= 2 * SuesAt(n, d) || n.Strength * 4 <= Full(n, d));
 
-    /// <summary>A peace nobody forced (the Senate voted it, or the war guttered out): by the tally. Two or more ahead, the Reach keeps
-    /// what it holds; two or more behind, they keep what they hold; closer than that it is a white peace, and everything goes home.
-    /// Nobody pays tribute.</summary>
-    private static void Unforced(World w, Nation n, NationDef d)
+    // ---- negotiated or won (the owner: "Peace can be negotiated or won. Depends on war score") ----
+
+    public const int TermsTerritory = 25, TermsTribute = 60, TermsYears = 10, TermsPaidYears = 5, ParleyAfter = 4;
+    public const string NegotiatedCounter = "peaces_negotiated", ParleyCounter = "own_wars_negotiated";
+    /// <summary>The terms a peace can be negotiated on, worst for the Reach first.</summary>
+    public static readonly string[] Terms = { "paid", "ceded", "white", "territory", "tribute" };
+
+    /// <summary>The war score, from a hundred against the Reach to a hundred for it: how far the tally is toward the lead that ends the
+    /// war. At a hundred they sue and the peace is won; at a hundred against, the Reach is beaten. Between, a peace is negotiated.</summary>
+    public static int WarScore(Nation n, NationDef d)
     {
         int lead = n.ScoreReach - n.ScoreNation;
-        if (lead >= WhiteBand) { n.LastPeace = "territory"; w.Log($"The Reach is ahead: each house keeps what it holds of {d.Name}'s, and what {d.Name} holds of the Reach's goes home. Nobody pays tribute."); PeaceOnMap(w, n, d, reachWon: true); }
-        else if (lead <= -WhiteBand) { n.LastPeace = "ceded"; w.Log($"{d.Name} is ahead: what it holds of the Reach's is ceded, and what the Reach holds of its worlds is given up. Nobody pays tribute."); PeaceOnMap(w, n, d, reachWon: false); }
-        else { n.LastPeace = "white"; Mark(w, "white_peace", n); w.Log($"Neither side is ahead: a white peace with {d.Name}. Every world goes back to whoever had it before the war, and nobody pays anybody."); PeaceOnMap(w, n, d, reachWon: true, allBack: true); }
-        Bump(w, PeaceKindCounter + ":" + n.LastPeace, n);
+        return Math.Clamp(lead >= 0 ? lead * 100 / Math.Max(1, SuesAt(n, d)) : lead * 100 / Math.Max(1, d.Threshold), -100, 100);
+    }
+    /// <summary>How much more a ruler wants before agreeing: one of the great a quarter of the scale, a warlike ruler fifteen points.</summary>
+    public static int Stubborn(Nation n) => Great(n) ? 25 : n.Ruler?.Nature == "warlike" ? 15 : 0;
+    /// <summary>The war score at which the nation agrees to these terms.</summary>
+    public static int Needs(Nation n, string terms) => terms switch
+    {
+        "tribute" => TermsTribute + Stubborn(n),             // they pay for ten years, and the Reach keeps what it holds
+        "territory" => TermsTerritory + Stubborn(n),         // the Reach keeps what it holds
+        "white" => 1 - TermsTerritory + Stubborn(n),         // everything goes home
+        "ceded" => 1 - TermsTribute + Stubborn(n),           // they keep what they hold
+        _ => -100                                            // they keep what they hold, and are paid for five years
+    };
+    /// <summary>The best terms the nation will agree to at this war score. A war that gutters out is not negotiated: it gets no tribute either way.</summary>
+    public static string Best(Nation n, NationDef d, bool negotiated = true)
+    {
+        int score = WarScore(n, d); string best = Terms.Last(t => Needs(n, t) <= score);
+        return negotiated ? best : best == "tribute" ? "territory" : best == "paid" ? "ceded" : best;
+    }
+    public static string TermsName(string terms) => terms switch
+    {
+        "tribute" => $"they pay tribute for {TermsYears} years and the Reach keeps what it holds", "territory" => "the Reach keeps what it holds, and has its own back",
+        "white" => "a white peace: everything goes home", "ceded" => "they keep what they hold", _ => $"they keep what they hold and are paid tribute for {TermsPaidYears} years"
+    };
+
+    /// <summary>A peace is made on these terms. <paramref name="with"/>: the house whose own war it was, which is paid or pays instead of the chair.</summary>
+    private static void Settle(World w, Nation n, NationDef d, string terms, string with)
+    {
+        n.LastPeace = terms; n.TreatyWith = with; Bump(w, PeaceKindCounter + ":" + terms, n);
+        string who = with.Length > 0 ? w.House(with)?.Name ?? "the house whose war it was" : "the Reach";
+        switch (terms)
+        {
+            case "tribute": n.SubduedUntil = w.Turn + TermsYears; w.Log($"Terms with {d.Name}: it pays {who} {d.Tribute} credits a year for {TermsYears} years; each house keeps what it holds of its worlds, and what it holds of the Reach's goes home."); PeaceOnMap(w, n, d, reachWon: true); break;
+            case "territory": w.Log($"Terms with {d.Name}: each house keeps what it holds of its worlds, and what it holds of the Reach's goes home. Nobody pays tribute."); PeaceOnMap(w, n, d, reachWon: true); break;
+            case "white": Mark(w, "white_peace", n); w.Log($"A white peace with {d.Name}: every world goes back to whoever had it before the war, and nobody pays anybody."); PeaceOnMap(w, n, d, reachWon: true, allBack: true); break;
+            case "ceded": w.Log($"Terms with {d.Name}: what it holds of the Reach's is ceded, and what the Reach holds of its worlds is given up. Nobody pays tribute."); PeaceOnMap(w, n, d, reachWon: false); break;
+            default: n.PaidUntil = w.Turn + TermsPaidYears; Mark(w, "reach_pays_tribute", n); w.Log($"Terms with {d.Name}: what it holds of the Reach's is ceded, and {who} pays it {d.Tribute} credits a year for {TermsPaidYears} years."); PeaceOnMap(w, n, d, reachWon: false); break;
+        }
     }
 
-    /// <summary>What a peace would be if the war ended this year, in a line: for the nation's card.</summary>
+    /// <summary>A peace nobody forced: the Senate voted it and it is negotiated, on the best terms the war score allows; or the war
+    /// guttered out, and each side keeps what the score gives it with no tribute either way.</summary>
+    private static void Unforced(World w, Nation n, NationDef d, bool negotiated = true)
+    {
+        if (negotiated) Bump(w, NegotiatedCounter, n);
+        Settle(w, n, d, Best(n, d, negotiated), n.WarOf);
+    }
+
+    public static string? NegotiateRefusal(World w, NationCatalog catalog, House? house, string nationId, string terms) => NegotiateRefusal(w, w.Nation(nationId), catalog.Def(nationId), house, terms);
+    private static string? NegotiateRefusal(World w, Nation? n, NationDef? d, House? house, string terms)
+    {
+        if (n == null || d == null) return "no such nation";
+        if (house == null || !n.AtWar) return $"you are not at war with {d.Name}";
+        if (n.WarOf != house.Id) return n.WarOf.Length > 0 ? "it is another house's war" : "it is the Reach's war: its peace is the Senate's to vote";
+        if (!Terms.Contains(terms)) return "no such terms";
+        int score = WarScore(n, d), needs = Needs(n, terms);
+        return score >= needs ? null : $"they will not hear of it: the war score is {score:+0;-0;0}, and that wants {needs:+0;-0;0}";
+    }
+
+    /// <summary>A house makes its own peace in its own war, on terms the war score allows. No vote: it was never the Senate's war. If
+    /// the Senate had voted peace and the house fought on, this ends that too.</summary>
+    public static void Negotiate(World w, NationCatalog catalog, string nationId, string houseId, string terms) => Negotiate(w, w.Nation(nationId), catalog.Def(nationId), houseId, terms);
+    private static void Negotiate(World w, Nation? n, NationDef? d, string houseId, string terms)
+    {
+        var house = w.House(houseId); if (n == null || d == null || NegotiateRefusal(w, n, d, house, terms) != null) return;
+        Bump(w, NegotiatedCounter, n); Bump(w, ParleyCounter, n); Mark(w, houseId == w.Protagonist?.HouseId ? "peace_negotiated_by_us" : "peace_negotiated", n); w.WorldFlags.Add("foreign_peace");
+        n.Disposition = Math.Min(100, n.Disposition + PeaceRegard);
+        w.Log($"{house!.Name} makes its own peace with {d.Name}.");
+        Settle(w, n, d, terms, houseId); EndWar(w, n, d);
+    }
+
+    /// <summary>Another house, in a war of its own, makes its own peace: at once when tribute is on the table or the war is going
+    /// against it; after four years, on whatever the score allows. True if the war ended.</summary>
+    private static bool Parley(World w, Nation n, NationDef d, string? mine)
+    {
+        if (n.WarOf.Length == 0 || n.WarOf == mine || n.PeaceVoted > 0) return false;
+        string best = Best(n, d); int score = WarScore(n, d);
+        if (best != "tribute" && score > -TermsTerritory && w.Turn - n.WarSince < ParleyAfter) return false;
+        Negotiate(w, n, d, n.WarOf, best); return !n.AtWar;
+    }
+
+    /// <summary>The war score and what it buys, in a line or two: for the nation's card.</summary>
     public static string PeaceNow(World w, Nation n, NationDef d, string? mine)
     {
         if (!n.AtWar) return "";
-        int lead = n.ScoreReach - n.ScoreNation; int sues = SuesAt(n, d);
-        string win = n.OnMap && Decisive(w, n, d) ? "it would be made a client if the house that won it wants one" : $"at {sues} ahead it sues, and pays tribute for {SubduedTurns} years{(n.OnMap ? "; beaten decisively (its capital taken, twice that tally, or three hulls in four gone) it can be made a client" : "")}";
-        string lose = n.OnMap ? (Holds(w, n) ? $"at {d.Threshold} behind the war is lost and what it holds is ceded" : $"at {d.Threshold} behind the war is lost and the Reach pays it tribute for {PaidYears} years") : $"at {d.Threshold} behind the chair buys peace";
-        string voted = lead >= WhiteBand ? "the Reach would keep what it holds" : lead <= -WhiteBand ? "it would keep what it holds" : "it would be a white peace: everything goes home";
-        return $"The tally is {n.ScoreReach} to {n.ScoreNation}. A peace voted now: {voted}. Fought to the end: {win}; {lose}.";
+        int score = WarScore(n, d); string best = Best(n, d); int sues = SuesAt(n, d);
+        string next = Terms.SkipWhile(t => t != best).Skip(1).FirstOrDefault() is { } better ? $" At {Needs(n, better):+0;-0;0}: {TermsName(better)}." : "";
+        string stubborn = Stubborn(n) > 0 ? $" ({(Great(n) ? "One of the great" : "A warlike ruler")} asks {Stubborn(n)} points more.)" : "";
+        string win = n.OnMap && Decisive(w, n, d) ? "it can be made a client" : $"it sues, and pays tribute for {SubduedTurns} years{(n.OnMap ? ", or is made a client if it is beaten decisively" : "")}";
+        string lose = n.OnMap ? (Holds(w, n) ? "the war is lost and what it holds is ceded" : $"the war is lost and the Reach pays it tribute for {PaidYears} years") : "the chair buys peace";
+        return $"War score {score:+0;-0;0} (the tally is {n.ScoreReach} to {n.ScoreNation}; {sues} ahead wins it, {d.Threshold} behind loses it). Negotiated now: {TermsName(best)}.{next}{stubborn} Won at +100: {win}. Lost at -100: {lose}.";
     }
 
     /// <summary>A client's year: it pays the chair, and half as much again to its patron. It throws the treaty off under one of the

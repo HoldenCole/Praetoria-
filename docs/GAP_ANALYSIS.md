@@ -2669,3 +2669,43 @@ peace". The order to make clients flips when pressed. No errors; nothing wider t
 
 **Left, and mapped.** N22 (nobody negotiates a peace), N26 (a client owes money and nothing else; the Reach is never
 the client; other houses almost never make one). Two more decisions for the owner, 20 and 21.
+
+## 82. Negotiated or won — 2026-11-19
+
+The owner, on decision 21: "Peace can be negotiated or won. Depends on war score." Built the same day (R10h closed;
+N22 rewritten). The rules are in docs/BEYOND.md, "Negotiated or won".
+
+**What it is.** The tally a war already kept becomes a war score from -100 to +100. The ends are the peaces built in
+§81, won or lost. Between them a peace is negotiated, on a ladder of five terms that step up with the score. A
+stubborn ruler asks more. The Senate's voted peace takes the best terms on offer. A house in a war of its own makes
+its own peace, with no vote, and is the one that is paid.
+
+**What it took.** The three bands the Senate's peace was read from became the ladder. A treaty of tribute gained a
+second party: the house whose own war it was, paid in place of the chair. A war that gutters out was kept apart: it
+is not negotiated, so it carries no tribute either way.
+
+**Measured** (60 unattended games of 60 years; the player gives no orders). 82 peaces negotiated, 39 won outright,
+21 lost outright. Houses ended 36 wars of their own themselves: 10 on the Khanates, 19 on the Hollow Crown, 7 on the
+Free Cities. The Senate negotiated its way out of 8 wars with the Concord at -60 or worse, paying tribute for five
+years. Battles, danger, recalls (20 voted) and civil wars (2, both put down) are as in §81. The Republic fell in
+none of 120 games (60 free, 60 with a war forced on the Khanates).
+
+**Seen in the figures, and mapped.** A house that raids the Hollow Crown on its own account mostly achieves nothing:
+21 wars, 4 worlds sacked, 15 white peaces after four years. One house's fleet does not muster what the Bronze Gate
+wants. That is N18, rewritten with the figure.
+
+**Checked beside it.** The soak: 33 games, each saved and resumed, no failures, 313 of 454 events fired; eight
+lines ended under its random player, each a small house whose last member died. The survival check (a player who
+gives no orders, 80 games) lost none.
+
+**In the browser** (`tools/browser/whosewar.js`). In a war of the player's own, the nation's card reads "War score 0 (the tally is 0
+to 0; 5 ahead wins it, 5 behind loses it). Negotiated now: a white peace: everything goes home. At +25: the Reach
+keeps what it holds". It offers three terms; asking for tribute is refused with "they will not hear of it: the war
+score is 0, and that wants +60". Terms that concede are offered only when the score is against the player. No
+errors; nothing wider than the screen.
+
+838 tests (three new in `tests/WhoseWarTests.cs`).
+
+**Left, and mapped.** N22: the terms are a ladder and not a bargain. Nobody asks for a named world, a sum, a hostage
+or a marriage; the nation never opens the talking; and in the Reach's war the player cannot ask the Senate to hold
+out for more.

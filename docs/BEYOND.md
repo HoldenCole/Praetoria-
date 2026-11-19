@@ -10,7 +10,8 @@ map**, and is the strong one (see "The Ardent Concord on the map, as built"). Th
 Hollow Crown next." **All five nations are on the map** (see "The Outer Compact and the Hollow Crown on the map, as
 built"). Then the owner answered the first seven decisions, on the map and on war, and they are **built** (see "Whose
 war, and how it is fought"). Then the owner answered the four that building those raised (16 to 19), and those are
-**built** too (see "Kinds of peace, how often they come, and whose fleet it is"). Stages 3 and 4 are a plan. The older rules in docs/FOREIGN_NATIONS.md (expeditions that leave the map) are
+**built** too (see "Kinds of peace, how often they come, and whose fleet it is"), and then decision 21: a peace is
+negotiated or won, by the war score (see "Negotiated or won"). Stages 3 and 4 are a plan. The older rules in docs/FOREIGN_NATIONS.md (expeditions that leave the map) are
 kept in the engine for a map drawn without a nation's worlds, and no shipped nation uses them. Everything that is the
 owner's to decide is in one list at the end.
 
@@ -788,6 +789,86 @@ What defying the Senate costs depends on who commands for the house. It is read 
   years.
 - **Two settings.** How well the nations fight, and how much the other houses help, are not settings.
 
+## Negotiated or won
+
+Built 2026-11-19 on the owner's answer to decision 21: "Peace can be negotiated or won. Depends on war score."
+
+### The war score
+
+Every war with a nation has a score from -100 to +100. It is how far the tally stands toward the lead that ends the
+war: +100 when the Reach is ahead by what makes them sue, -100 when it is behind by what beats it. A nation's card
+shows it, with the tally it comes from.
+
+### Won
+
+At **+100** the peace is won, and dictated: tribute for twenty years, the houses keep what they took, or the nation
+is made a client if it is beaten decisively. At **-100** the war is lost: what they hold is ceded, or the Reach pays
+them for ten years. These are the kinds of peace built before, unchanged.
+
+### Negotiated
+
+Anywhere between, a peace can be negotiated, and the terms that can be had step up with the score.
+
+| War score | Terms the nation agrees to |
+|---|---|
+| +60 or more | They pay tribute for ten years, and the Reach keeps what it holds |
+| +25 or more | The Reach keeps what it holds, and has its own back |
+| -24 to +24 | A white peace: everything goes home |
+| -25 or less | They keep what they hold |
+| -60 or less | They keep what they hold, and are paid tribute for five years |
+
+- **A stubborn ruler asks more.** A warlike ruler wants fifteen points more for the same terms; one of the great,
+  twenty-five. So a Great Khan at +30 will give a white peace and no more.
+- **The Senate's peace is negotiated.** When it votes peace and the fleets come home, the Reach gets the best terms
+  the score allows that year.
+- **A house in a war of its own makes its own peace.** No vote: it was never the Senate's war. You choose the terms
+  from a nation's card, and they agree or will not hear of it; the card says what score each wants. If they pay
+  tribute they pay **your house**, not the chair. This also ends a war you fought on against a voted peace.
+- **Other houses do the same** in their own wars: at once when tribute is on the table or the war is going against
+  them, and after four years on whatever the score allows.
+- **A house that wins its own war outright** is the one that is paid the twenty years' tribute.
+- **A war that gutters out is not negotiated.** Each side keeps what the score gives it, and nobody pays.
+- The Senate's benches move a peace once tribute is on the table and the war is three years old: they would pay
+  now, so why fight on. The war party still votes against.
+
+### Measured
+
+60 unattended games of 60 years; the player gives no orders.
+
+| | Concord | Khanates | Hollow Crown | Free Cities | Compact |
+|---|---|---|---|---|---|
+| Wars | 86 | 45 | 26 | 11 | 5 |
+| Won outright by the Reach; lost outright | 22; 14 | 13; 6 | 1; 1 | 1; 0 | 2; 0 |
+| Peaces negotiated | 33 | 19 | 21 | 7 | 2 |
+| of them, by a house for itself | 0 | 10 | 19 | 7 | 0 |
+| Negotiated or won: tribute to the Reach | 20 | 12 | 3 | 1 | 0 |
+| the Reach kept worlds | 8 | 8 | 2 | 0 | 3 |
+| white | 8 | 5 | 15 | 7 | 0 |
+| worlds ceded | 25 | 13 | 3 | 0 | 0 |
+| the Reach paid tribute | 8 | 0 | 0 | 0 | 1 |
+
+- **About half of all wars now end at a table.** 82 peaces were negotiated in sixty games against 39 won outright
+  and 21 lost outright.
+- **Houses end their own wars themselves**: 36 times. Most of those were white. A house that raids the Hollow Crown
+  alone usually cannot get past its gate, waits four years, and goes home with nothing: 21 such wars, 4 worlds
+  sacked.
+- **The Senate pays to get out of a war it is losing badly.** Eight times it negotiated at -60 or worse against the
+  Concord, ceding what was held and paying tribute for five years, where fighting on to -100 would have cost as much
+  or more.
+- Battles, danger, recalls and civil wars are as in the run before (about 22 a game; three years in five; 20
+  recalls voted; two civil wars, both put down). The Republic stood in all sixty. The soak passes and the
+  survival check lost none of 80.
+
+With a war voted on the Khanates every twenty years (60 games): 118 wars; 33 won outright, 16 lost outright, 56
+negotiated. Of all their peaces, 37 had them paying tribute, 23 had the Reach paying it, 26 ceded worlds and 14 were
+white.
+
+**What this left out.**
+- **The terms are a ladder, not a table.** Nobody asks for one named world, a sum of their own choosing, a hostage
+  or a marriage; and the nation never opens the talking.
+- **You negotiate only your own war.** In the Reach's war the Senate's peace takes the best terms on offer; you
+  cannot ask it to hold out for more, or settle for less.
+
 ## What is yours to decide
 
 Three nations were built on assumptions, as the owner asked ("then we can figure out the details"; "after we add the
@@ -875,8 +956,8 @@ do, and what turns on it. Each can be changed without rebuilding the rest.
 
 20. **Whose client is a client?** Built: the Reach's, with the house that won the war as its patron, paid half as
     much again. Other houses always make a client when they can; yours does when you say so.
-21. **Should a peace be negotiated?** Built: no. The kind of peace is decided by the tally and by who holds what.
-    Asking for a named world, a sum or a hostage would be the next step.
+21. **Should a peace be negotiated?** *Answered 2026-11-19:* "Peace can be negotiated or won. Depends on war score."
+    **Built**: the war score, terms that step up with it, and a house's own peace in its own war.
 
 ## What it opens
 

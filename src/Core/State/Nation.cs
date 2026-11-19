@@ -19,6 +19,8 @@ public sealed class Nation
     public string PatronId { get; set; } = "";
     /// <summary>The year until which the Reach pays this nation tribute, after a war lost with nothing to cede; 0 when it pays none.</summary>
     public int PaidUntil { get; set; }
+    /// <summary>The house a treaty of tribute is with, when the war was that house's own: it is paid (or pays) instead of the chair. "" for the Reach.</summary>
+    public string TreatyWith { get; set; } = "";
     /// <summary>How its last war ended: "client", "tribute", "territory", "white", "ceded", "paid", "bought". "" if it has had none.</summary>
     public string LastPeace { get; set; } = "";
     public int Disposition { get; set; }

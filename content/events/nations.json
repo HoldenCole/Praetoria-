@@ -2820,6 +2820,50 @@
           ]
         }
       ]
+    },
+    {
+      "id": "terms_of_our_own",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "peace_negotiated_by_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "tell_the_senate",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house had made its own peace beyond the rim, on its own terms. {self.name} had the terms read to the Senate before anyone could ask what they were. The war had not been the Senate's, and neither was the treaty; but it is as well to be the one who tells them."
+            }
+          ]
+        },
+        {
+          "id": "tell_nobody",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The house had made its own peace beyond the rim, on its own terms. {self.name} told the Senate nothing. It had voted no war, and was owed no account of the peace."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

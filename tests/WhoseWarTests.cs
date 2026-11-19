@@ -370,6 +370,66 @@ public class WhoseWarTests
         _ = caesar; _ = fleet;
     }
 
+    // ---- the owner, 2026-11-19: "Peace can be negotiated or won. Depends on war score." ----
+
+    [Fact]
+    public void TheWarScore_IsHowFarTheTallyIsTowardWinning_AndItSaysWhatTermsCanBeHad()
+    {
+        var (w, _, _, _, mine, other) = Start(); var n = w.Nation("vashti")!; var d = Content.Nations.Def("vashti")!; NationSystem.DeclareWar(w, Content.Nations, "vashti", other.Id);
+        int sues = NationSystem.SuesAt(n, d);
+        Assert.Equal(0, NationSystem.WarScore(n, d)); Assert.Equal("white", NationSystem.Best(n, d));
+        n.ScoreReach = sues; Assert.Equal(100, NationSystem.WarScore(n, d)); n.ScoreReach = 3 * sues; Assert.Equal(100, NationSystem.WarScore(n, d));
+        n.ScoreReach = 0; n.ScoreNation = d.Threshold; Assert.Equal(-100, NationSystem.WarScore(n, d)); Assert.Equal("paid", NationSystem.Best(n, d));
+        // the terms step up with the score: white, then keep what is held, then tribute
+        n.ScoreNation = 0; n.ScoreReach = 2; int score = NationSystem.WarScore(n, d); Assert.InRange(score, NationSystem.TermsTerritory, NationSystem.TermsTribute - 1); Assert.Equal("territory", NationSystem.Best(n, d));
+        n.ScoreReach = sues - 1; Assert.True(NationSystem.WarScore(n, d) >= NationSystem.TermsTribute); Assert.Equal("tribute", NationSystem.Best(n, d));
+        n.ScoreReach = 0; n.ScoreNation = 2; Assert.Equal("ceded", NationSystem.Best(n, d));
+        // a war that gutters out is not negotiated: no tribute either way
+        n.ScoreNation = 0; n.ScoreReach = sues - 1; Assert.Equal("territory", NationSystem.Best(n, d, negotiated: false));
+        // a warlike ruler asks fifteen points more for the same terms, and one of the great twenty-five
+        n.ScoreReach = 2; n.Ruler!.Nature = "warlike"; Assert.Equal(15, NationSystem.Stubborn(n)); Assert.Equal(NationSystem.TermsTerritory + 15, NationSystem.Needs(n, "territory")); Assert.Equal("white", NationSystem.Best(n, d));
+        n.Ruler.Great = true; Assert.Equal(25, NationSystem.Stubborn(n)); Assert.Equal(NationSystem.TermsTribute + 25, NationSystem.Needs(n, "tribute"));
+        Assert.Contains("War score", NationSystem.PeaceNow(w, n, d, mine.Id)); Assert.Contains("One of the great asks 25 points more", NationSystem.PeaceNow(w, n, d, mine.Id));
+    }
+
+    [Fact]
+    public void APeaceTheSenateVotes_IsNegotiated_AtAGoodScoreTheyPayTribute()
+    {
+        var (w, ns, _, _, _, other) = Start(); var n = w.Nation("vashti")!; var d = Content.Nations.Def("vashti")!; var chair = RegionSystem.CapitalHolder(w)!;
+        NationSystem.DeclareWar(w, Content.Nations, "vashti", other.Id); HomeFleets(w, Khans, "khal_orda"); n.ScoreReach = NationSystem.SuesAt(n, d) - 1;
+        NationSystem.VotePeace(w, Content.Nations, "vashti", other.Id); int purse = chair.Treasury.Credits;
+        Year(w, ns);
+        Assert.False(n.AtWar); Assert.Equal("tribute", n.LastPeace); Assert.Equal("", n.TreatyWith); Assert.True(n.Subdued(w.Turn)); Assert.InRange(n.SubduedUntil, w.Turn + NationSystem.TermsYears - 1, w.Turn + NationSystem.TermsYears);
+        Assert.True(chair.Treasury.Credits >= purse + d.Tribute); Assert.True(w.Counter(NationSystem.NegotiatedCounter + ":vashti") == 1);
+    }
+
+    [Fact]
+    public void InAWarOfItsOwn_AHouseMakesItsOwnPeace_OnWhatTheScoreAllows_AndIsTheOneThatIsPaid()
+    {
+        var (w, ns, _, me, mine, other) = Start(); var n = w.Nation("vashti")!; var d = Content.Nations.Def("vashti")!; var ctx = new CommandContext(w, TestContent.Rng()); var chair = RegionSystem.CapitalHolder(w)!;
+        // the Reach's war is the Senate's to end
+        NationSystem.DeclareWar(w, Content.Nations, "vashti", other.Id);
+        Assert.Contains("the Senate's to vote", new NegotiateCommand(me.Id, "vashti", "white", Content.Nations).Refusal(ctx));
+        // a house's own war is its own to end
+        var (w2, ns2, _, me2, mine2, _) = Start(); var n2 = w2.Nation("vashti")!; var ctx2 = new CommandContext(w2, TestContent.Rng()); var chair2 = RegionSystem.CapitalHolder(w2)!;
+        Post(w2, "mine", mine2.Id, "anvil", 4); new RaidNationCommand(me2.Id, "vashti", Content.Nations).Execute(ctx2); HomeFleets(w2, Khans, "khal_orda"); Assert.Equal(mine2.Id, n2.WarOf);
+        Assert.Null(new NegotiateCommand(me2.Id, "vashti", "white", Content.Nations).Refusal(ctx2));
+        Assert.Contains("will not hear of it", new NegotiateCommand(me2.Id, "vashti", "tribute", Content.Nations).Refusal(ctx2));
+        n2.ScoreReach = NationSystem.SuesAt(n2, d) - 1;
+        var terms = new NegotiateCommand(me2.Id, "vashti", "tribute", Content.Nations); Assert.Null(terms.Refusal(ctx2)); terms.Execute(ctx2);
+        Assert.False(n2.AtWar); Assert.Equal("tribute", n2.LastPeace); Assert.Equal(mine2.Id, n2.TreatyWith); Assert.True(n2.Subdued(w2.Turn)); Assert.True(w2.HasFlag("peace_negotiated_by_us:vashti")); Assert.Equal(1, w2.Counter(NationSystem.ParleyCounter + ":vashti"));
+        int myPurse = mine2.Treasury.Credits, chairPurse = chair2.Treasury.Credits; bool same = chair2.Id == mine2.Id;
+        Year(w2, ns2);
+        Assert.Equal(myPurse + d.Tribute, mine2.Treasury.Credits); if (!same) Assert.Equal(chairPurse, chair2.Treasury.Credits);   // the house is paid, not the chair
+        // another house, in a war of its own, takes tribute when it is on the table, and whatever it can get after four years
+        var (w3, ns3, _, _, _, other3) = Start(); var n3 = w3.Nation("vashti")!;
+        Post(w3, "theirs", other3.Id, "anvil", 4); NationSystem.PrivateWar(w3, Content.Nations, "vashti", other3.Id); HomeFleets(w3, Khans, "khal_orda");
+        Year(w3, ns3); Assert.True(n3.AtWar);
+        for (int y = 0; y < NationSystem.ParleyAfter + 1 && n3.AtWar; y++) { n3.LastBattleTurn = w3.Turn; Year(w3, ns3); }
+        Assert.False(n3.AtWar); Assert.Equal("white", n3.LastPeace); Assert.Equal(1, w3.Counter(NationSystem.ParleyCounter + ":vashti"));
+        _ = ns; _ = mine; _ = chair;
+    }
+
     [Fact]
     public void AHouseWhoseLandsAreAllConquered_IsNotConquered_ItLivesWhileOneOfItLives()
     {

@@ -499,6 +499,15 @@
         "warn_the_senate": "Tell the Senate.",
         "watch_sorrow": "Set a watch on Sorrow."
       }
+    },
+    {
+      "id": "terms_of_our_own",
+      "title": "Terms of Our Own",
+      "body": "Your war beyond the rim is over, and you ended it yourself. No vote began it and none was needed to end it: they agreed to the terms the war had earned. If they pay tribute, they pay it to your house, not to the Reach.",
+      "choices": {
+        "tell_the_senate": "Have the terms read to the Senate.",
+        "tell_nobody": "Tell nobody."
+      }
     }
   ]
 }
