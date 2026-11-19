@@ -19,7 +19,7 @@ public class KhanateTests
 
     private static (World w, NationSystem ns, FleetSystem fs, Character me, House mine, Nation n, NationDef d) Start(int seed = 7)
     {
-        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), (ulong)seed);
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), (ulong)seed); w.BeyondVaries = false;
         var fs = new FleetSystem(Content.Fleets, Content.Holdings, Content.ShipClasses, Content.Friction); var ns = new NationSystem(Content.Nations, fs);
         NationSystem.Seed(w, Content.Nations);
         foreach (var x in w.Nations) { x.Disposition = 50; if (x.Ruler != null) { x.Ruler.Nature = "mild"; x.Ruler.Age = 30; } }   // nobody raids, nobody dies of age, while a test is looking at something else
@@ -102,8 +102,8 @@ public class KhanateTests
         Assert.Equal(1, w.Counter(NationSystem.FreedCounter)); Assert.Equal(NationSystem.ScorePerWorld, n.ScoreReach); Assert.Equal(standing + 1, liberator.Legitimacy);
         Assert.Equal(2, w.Counter(NationSystem.WinsKey(liberator.Id, "vashti")));                             // and it counts toward whose triumph it will be
         Assert.Contains(w.History, l => l.Text.Contains("frees") && l.Text.Contains("again"));
-        // a world of their own taken is the taker's
-        var camp = w.Holding("long_grass_camp")!; ClearOrbit(w, "the_long_grass"); foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == Hid).ToList()) f.SystemId = "khal_orda";
+        // a world of their own taken is the taker's, in a war they began (in one the Senate voted, another house sacks it and goes home: tests/WhoseWarTests.cs)
+        n.BeganIt = true; var camp = w.Holding("long_grass_camp")!; ClearOrbit(w, "the_long_grass"); foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == Hid).ToList()) f.SystemId = "khal_orda";
         Post(w, "strike", liberator.Id, "the_long_grass", 4); Take(w, fs, camp);
         Assert.Equal(liberator.Id, camp.OwnerId); Assert.Equal(Hid, camp.FormerOwnerId); Assert.Equal(1, w.Counter(NationSystem.WorldsTakenCounter)); Assert.Equal(2 * NationSystem.ScorePerWorld, n.ScoreReach);
     }
@@ -197,7 +197,7 @@ public class KhanateTests
     [Fact]
     public void TheReachsOwnLife_GoesOnWithoutThem()
     {
-        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 11);
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 11); w.BeyondVaries = false;
         var tc = new TurnController(w, Content); var d = Content.Nations.Def("vashti")!;
         Assert.True(w.Nation("vashti")!.OnMap);                                                                 // a saga opens with them on the map
         for (int t = 0; t < 25 && !w.IsDynastyDead; t++) { foreach (var i in tc.BeginTurn()) { var c = tc.Offer(i).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(i, c.Choice.Id); } tc.EndTurn(); }

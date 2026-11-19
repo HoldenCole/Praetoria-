@@ -824,9 +824,12 @@ public sealed class FleetSystem
                 if (w.Sieges.TryGetValue(h.Id, out var lifted)) { VentureSystem.SiegeLifted(w, lifted); w.Sieges.Remove(h.Id); w.Log($"The blockade of {h.Name} is lifted."); }   // what it cost is written down for the peace
                 continue;
             }
+            // a house that raids a nation sacks its world and goes home (docs/BEYOND.md, "Whose war"): a season's work, and not again for years
+            bool sack = NationSystem.Sacks(w, h, besieger);
+            if (sack && NationSystem.Sacked(w, h)) { w.Sieges.Remove(h.Id); continue; }
             if (!w.Sieges.TryGetValue(h.Id, out var siege) || siege.BesiegerId != besieger)
             {
-                siege = new Siege { HoldingId = h.Id, BesiegerId = besieger, Turns = 0, Required = SiegeRequired(w, h) + (w.Foreign(besieger) ? NationSystem.SiegeSlow : 0) + (w.NationOfHouse(h.OwnerId)?.Walls ?? 0) };   // a host from beyond the rim is slow at walls (docs/BEYOND.md)
+                siege = new Siege { HoldingId = h.Id, BesiegerId = besieger, Turns = 0, Required = sack ? NationSystem.SackTurns(w, h) : SiegeRequired(w, h) + (w.Foreign(besieger) ? NationSystem.SiegeSlow : 0) + (w.NationOfHouse(h.OwnerId)?.Walls ?? 0) };   // a host from beyond the rim is slow at walls (docs/BEYOND.md)
                 w.Sieges[h.Id] = siege;
                 w.Log($"{w.House(besieger)?.Name ?? besieger} lays siege to {h.Name} ({siege.Required} turns to fall).");
             }
@@ -834,7 +837,7 @@ public sealed class FleetSystem
             if (siege.Turns < siege.Required) continue;
 
             w.Sieges.Remove(h.Id);
-            Conquer(w, h, besieger, player);
+            if (sack) NationSystem.Sack(w, h, besieger); else Conquer(w, h, besieger, player);
         }
         RefreshSiegeFlag(w);
     }

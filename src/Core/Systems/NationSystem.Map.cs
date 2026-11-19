@@ -20,6 +20,7 @@ public sealed partial class NationSystem
     /// <summary>What happened on the map this year, for the reports. Some of it is raised by the fleets before this system's own tick, so
     /// these are not cleared with <see cref="TurnFlags"/>: each is stamped with its year and struck out at the tick of the year after.</summary>
     public static readonly string[] MapFlags = { "nation_host_sails", "reach_world_occupied", "our_world_occupied", "world_freed_by_us", "world_freed_for_us", "reach_world_ceded", "steppe_world_restless", "steppe_world_lost", "steppe_world_rose", CapitalTakenFlag, FallenFlag, "host_beaten_by_us",
+        "great_ruler_raised", "great_ruler_dead", "great_ruler_strikes", "world_sacked", "world_sacked_by_us", "private_war", "private_war_by_us", "peace_awaits_us", "peace_defied", "peace_defied_by_us", "peace_made",
         "nation_hires", "ransom_offered", "city_ransomed", "tribute_stopped", "world_plundered_by_us", "nation_bought_peace", "nation_strikes", "nation_comes_back", "world_yields_to_us", "nation_decays", "treasure_taken", "treasure_taken_by_us" };
     /// <summary>Raise a year's flag, and the same flag for the nation it is about ("flag:nation"), so a report can be written for one nation.</summary>
     public static void Mark(World w, string flag, Nation? n = null)
@@ -48,7 +49,7 @@ public sealed partial class NationSystem
     public static int SuesAt(Nation n, NationDef d) => n.OnMap && Buys(d) ? (d.Threshold + 1) / 2 : d.Threshold;
     /// <summary>Whether its host comes through the march in a war: the aggressive always; any other only under a warlike ruler; and a
     /// nation whose definition says never, never.</summary>
-    public static bool ComesOut(Nation n, NationDef d) => d.Sorties != "never" && (d.Sorties == "always" || d.Temper == "aggressive" || n.Ruler?.Nature == "warlike");
+    public static bool ComesOut(Nation n, NationDef d) => d.Sorties != "never" && (d.Sorties == "always" || d.Temper == "aggressive" || n.Ruler?.Nature == "warlike" || Great(n));
     /// <summary>How a nation's fleets fight hull for hull, in hundredths: the same figures its temper gave it off the map.</summary>
     public static int MettleOf(NationDef d) => d.Mettle > 0 ? d.Mettle : d.Temper switch { "defensive" => 125, "mercantile" => 80, "decaying" => 85, _ => 100 };
     private static HashSet<string> Own(NationDef d) => d.Worlds.Select(x => x.System).ToHashSet();
@@ -177,7 +178,7 @@ public sealed partial class NationSystem
             }
         }
         // an empire in decay strikes a hull from its lists every ten years, down to a remnant
-        if (!afterTheWar && d.Temper == "decaying" && w.Turn % (RegenEvery * 2) == 0)
+        if (!afterTheWar && d.Temper == "decaying" && !Great(n) && w.Turn % (RegenEvery * 2) == 0)
         {
             var largest = w.Fleets.Values.Where(f => f.OwnerId == house.Id).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
             if (largest != null && w.Fleets.Values.Where(f => f.OwnerId == house.Id).Sum(f => f.Strength) > DecayFloor)
@@ -204,17 +205,18 @@ public sealed partial class NationSystem
         // strength is hulls, and it grows back at home while the nation holds its capital
         int hulls = fleets.Sum(f => f.Strength);
         bool hires = Buys(d) && n.AtWar;   // attacked, it pays for hulls: one a year while the war lasts
-        if (!afterTheWar && w.PlanetHolder(n.CapitalSystemId) == house.Id && (hires || w.Turn % RegenEvery == 0) && hulls < d.Strength && d.Temper != "decaying")
+        bool great = Great(n); int cap = Cap(n, d);   // one of the great musters every year, half as many hulls again, and an empire in decay stops decaying
+        if (!afterTheWar && w.PlanetHolder(n.CapitalSystemId) == house.Id && (hires || great || w.Turn % RegenEvery == 0) && hulls < cap && (d.Temper != "decaying" || great))
         {
-            int add = hires ? 1 : Math.Min(Math.Max(1, d.Regen), d.Strength - hulls); string cls = _fleets.Rules.DefaultClass;
+            int add = hires ? 1 : Math.Min(Math.Max(1, d.Regen), cap - hulls); string cls = _fleets.Rules.DefaultClass;
             if (hires) { Bump(w, HiredCounter, n); if (w.Counter(HiredKey(n)) != n.WarSince + 1) { w.WorldCounters[HiredKey(n)] = n.WarSince + 1; Mark(w, "nation_hires", n); w.Log($"{d.Name} is hiring: sellswords' hulls are coming into its harbours, and will for as long as the war lasts."); } }
             var refit = hosts.Where(f => !f.Moving && w.PlanetHolder(f.SystemId) == house.Id).OrderBy(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();   // the weakest host that is at home
-            var to = guard == null ? null : refit != null && guard.Strength >= GuardShare(d, d.Strength) ? refit : guard;
+            var to = guard == null ? null : refit != null && guard.Strength >= GuardShare(d, cap) ? refit : guard;
             if (to == null) Raise(w, GuardId(n), GuardName(d, w.Galaxy?.System(n.CapitalSystemId)?.Name ?? "the capital"), house.Id, n.CapitalSystemId, add, n.Ruler.CharacterId, cls);
             else { if (to.Ships.Count == 0) to.Ships[cls] = to.Strength; to.Ships[cls] = to.Ships.GetValueOrDefault(cls) + add; to.Recount(); }
-            if (hosts.Count < d.Hosts && guard != null && guard.Strength > GuardShare(d, d.Strength) + HostLeast)
+            if (hosts.Count < d.Hosts && guard != null && guard.Strength > GuardShare(d, cap) + HostLeast)
             {   // a host was lost: when the guard has hulls to spare, a new one is raised from it
-                int give = guard.Strength - GuardShare(d, d.Strength); if (guard.Ships.Count == 0) guard.Ships[cls] = guard.Strength;
+                int give = guard.Strength - GuardShare(d, cap); if (guard.Ships.Count == 0) guard.Ships[cls] = guard.Strength;
                 guard.Ships[cls] = Math.Max(0, guard.Ships.GetValueOrDefault(cls) - give); guard.Recount();
                 Raise(w, $"{house.Id}_host_{w.Turn}", HostName(d, hosts.Count), house.Id, guard.SystemId, give, hosts.Count == 0 ? n.Commander.CharacterId : "", cls);
             }
@@ -257,15 +259,17 @@ public sealed partial class NationSystem
     /// strength, has fought within twenty-five years (one invasion a generation), or another war beyond the Reach is being fought. One year in three when it may.</summary>
     private void Strike(World w, Nation n, NationDef d)
     {
-        if (!d.Strikes || !n.OnMap || n.Fallen || n.AtWar || n.Subdued(w.Turn) || AtWar(w) != null) return;
-        if (n.LastWarEnd > 0 && w.Turn - n.LastWarEnd < StrikeRest) return;
-        if (n.Strength * 100 < d.Strength * StrikeFit) return;
+        if (!Begins(n, d) || !n.OnMap || n.Fallen || n.AtWar || n.Subdued(w.Turn) || AtWar(w) != null) return;
+        bool great = Great(n);   // one of the great needs no quarrel in the Reach: three years to gather the host, eight between wars
+        if (n.LastWarEnd > 0 && w.Turn - n.LastWarEnd < (great ? GreatRest : StrikeRest)) return;
+        if (great && w.Turn - n.Ruler!.GreatSince < GreatGathers) return;
+        if (n.Strength * 100 < Cap(n, d) * StrikeFit) return;
         var lost = d.Worlds.Select(x => w.Holding(x.Id)).FirstOrDefault(h => h != null && h.OwnerId != n.HouseId && w.OfTheReach(h.OwnerId));
-        string? why = lost != null ? $"to take back {lost.Name}" : n.Disposition <= StrikeRegard && Divided(w) is { } rift ? $"while the Reach is divided by {rift}" : null;
-        if (why == null || Hash($"strike:{n.Salt}:{n.Id}:{w.Turn}") / 7 % StrikeOneIn != 0) return;
-        n.AtWar = true; n.BeganIt = true; n.WarSince = w.Turn; n.ScoreReach = 0; n.ScoreNation = 0; n.LastBattleTurn = w.Turn; n.Wars += 1; n.Disposition = Math.Max(-100, n.Disposition - 10);
+        string? why = lost != null ? $"to take back {lost.Name}" : great ? "to take what it can hold" : n.Disposition <= StrikeRegard && Divided(w) is { } rift ? $"while the Reach is divided by {rift}" : null;
+        if (why == null || Hash($"strike:{n.Salt}:{n.Id}:{w.Turn}") / 7 % (uint)(great ? 2 : StrikeOneIn) != 0) return;
+        n.AtWar = true; n.BeganIt = true; n.WarOf = ""; n.Defied = false; n.PeaceVoted = 0; n.WarSince = w.Turn; n.ScoreReach = 0; n.ScoreNation = 0; n.LastBattleTurn = w.Turn; n.Wars += 1; n.Disposition = Math.Max(-100, n.Disposition - 10);
         w.WorldCounters[WarsCounter] = w.Counter(WarsCounter) + 1; Bump(w, StruckCounter, n); if (lost != null) Bump(w, RevancheCounter, n);
-        w.WorldFlags.Add("foreign_war"); w.WorldFlags.Add("foreign_war:" + n.Id); Mark(w, lost != null ? "nation_comes_back" : "nation_strikes", n);
+        w.WorldFlags.Add("foreign_war"); w.WorldFlags.Add("foreign_war:" + n.Id); Mark(w, lost != null ? "nation_comes_back" : "nation_strikes", n); if (great) Mark(w, "great_ruler_strikes", n);
         w.Log($"{d.Name} makes war on the Reach, {why}. {Styled(d, n.Ruler, true)} has given the order, and its fleets are at {w.Galaxy?.System(Border(w, n, d))?.Name ?? "its border"}.");
     }
 
@@ -417,23 +421,23 @@ public sealed partial class NationSystem
         bool atHome = host.SystemId == home;
         if (w.Counter(SortieKey(host)) > 0)
         {   // a raider goes home with what it took, and comes out again next year if it is fit to; a host on campaign stays in the field
-            if (d.Campaigns || atHome) w.WorldCounters.Remove(SortieKey(host)); else return home;
-            if (!d.Campaigns) return null;
+            if (Stays(n, d) || atHome) w.WorldCounters.Remove(SortieKey(host)); else return home;
+            if (!Stays(n, d)) return null;
         }
         // a season in the Reach is as long as it can stay: short of supply it goes home, and it does not come out again until it is rested and fed
         if (!n.AtWar || host.Strength < HostLeast || host.Supply < HostSpent || (atHome && (host.Readiness < HostRested || host.Supply < HostSupplied))) return host.SystemId == home ? null : home;
         // sitting over a world of the Reach it has not yet taken: it stays until the world falls or it is driven off
         var own = Own(d); bool comesOut = ComesOut(n, d);
-        if (w.Holdings.Values.Any(h => h.IsPlanet && h.SystemId == host.SystemId && w.OfTheReach(h.OwnerId) && (comesOut || own.Contains(h.SystemId)))) return null;
+        if (w.Holdings.Values.Any(h => h.IsPlanet && h.SystemId == host.SystemId && Foe(w, n, h.OwnerId) && (comesOut || own.Contains(h.SystemId)))) return null;
         // an enemy fleet in its own space that it can beat is met first
         // (all of its fleets that are there or could come count: a nation that turns out its guard meets an invader with both)
         int together = d.Sorties == "never" ? w.Fleets.Values.Where(f => f.OwnerId == n.HouseId).Sum(f => f.Strength) : host.Strength;
-        var intruder = w.Fleets.Values.Where(f => !f.Moving && !f.IsAway && w.OfTheReach(f.OwnerId) && own.Contains(f.SystemId) && FleetSystem.StrengthAt(w, f.OwnerId, f.SystemId) <= together)
+        var intruder = w.Fleets.Values.Where(f => !f.Moving && !f.IsAway && Foe(w, n, f.OwnerId) && own.Contains(f.SystemId) && FleetSystem.StrengthAt(w, f.OwnerId, f.SystemId) <= together)
             .OrderBy(f => w.Galaxy.Hops(host.SystemId, f.SystemId) is var hp && hp >= 0 ? hp : 99).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
         if (intruder != null) return intruder.SystemId == host.SystemId ? null : intruder.SystemId;
         // else the nearest world held by the Reach, within reach of the march, whose defenders it outnumbers; the smallest first among equals.
         // A nation that does not come out goes only for worlds of its own
-        var target = w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && w.OfTheReach(h.OwnerId) && (comesOut || own.Contains(h.SystemId)) && taken?.Contains(h.SystemId) != true && w.Galaxy.Hops(home, h.SystemId) is >= 0 and <= HostReach
+        var target = w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && Foe(w, n, h.OwnerId) && (comesOut || own.Contains(h.SystemId)) && taken?.Contains(h.SystemId) != true && w.Galaxy.Hops(home, h.SystemId) is var reach && reach >= 0 && reach <= HostReach + (Great(n) ? GreatReach : 0)
                 && FleetSystem.StrengthAt(w, h.OwnerId, h.SystemId) < host.Strength)
             .OrderBy(h => w.Galaxy.Hops(host.SystemId, h.SystemId) is var hp && hp >= 0 ? hp : 99).ThenBy(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
         return target == null ? (host.SystemId == home ? null : home) : target.SystemId == host.SystemId ? null : target.SystemId;

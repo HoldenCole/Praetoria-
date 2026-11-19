@@ -2554,3 +2554,61 @@ errors; nothing wider than the screen.
 **Left, and mapped.** N16 (the Long Dark is a distance and nothing else; the isotopes are a figure), N17 (the
 Crown's court is two people, and ending it makes nobody heir to anything), N18 (no house but the player's goes for
 either), N19 (a nation that is ended leaves nothing behind). Three more decisions for the owner, 13 to 15.
+
+## 80. Whose war it is: the owner's answers on the map and on war — 2026-11-19
+
+The owner answered decisions 1 to 7 of docs/BEYOND.md ("we will just do the map and war for now"). They are quoted
+in that list and built the same day (R10f closed, with N2, N3, N7 and N9; N20 to N25 mapped). The rules are in
+docs/BEYOND.md, "Whose war, and how it is fought".
+
+**What the answers were, in a line each.** Leave the map as it is for now; a far larger one later. The Reach can
+lose worlds, they show as conquered, and can be retaken. A house's lands can be conquered; the house lives while one
+of it does. Nations should attack, and the Khanates should raid until they get a Great Khan. How hard a nation is
+should differ by the game, with sliders later, and luck always. Other houses make raiding wars, and conquer only
+when the nation attacked first. The Senate votes war and peace and directs nothing; a general may not listen, at
+the risk of going against the Republic.
+
+**What it took.**
+
+- *Whose war.* A war with a nation was a fact about the whole Reach. It now has an owner: nobody (the Reach's war) or
+  one house. Who is whose enemy is asked in one place (`World.AtWar`), so the fleets, the sieges and the houses' own
+  orders followed without being told.
+- *A sack.* A siege that ends in something other than a change of owner: paid, counted, and the world left.
+- *A motion with an answer.* The peace vote ends nothing by itself. It is the first motion whose effect waits on
+  what somebody outside the chamber does, which is what "directs nothing" means.
+- *A great ruler.* One flag on a ruler, read wherever the Concord's switches were read (begins wars, stays in the
+  field), so any nation can be given one in content.
+- *A game's own dice for its neighbours.* One number per nation, fixed at the start.
+
+**Found while measuring, and changed.**
+
+| What the runs showed | What was done |
+|---|---|
+| The Senate voted peace on every house's own war within a year or two: of 32, none ran long enough to matter | A house's own war is left four years before anyone moves a peace (two for the Factors), and it leans the benches less |
+| The Senate voted peace while an invader held worlds of the Reach, and ceded them | Nobody moves a peace in a war the nation began, while it holds a world of the Reach, until the war is ten years old; and the benches lean against it |
+| No house ever refused a peace, in 120 games | Refusing asked for a general with a name; most houses' fleets have no admiral of the house. The head of the house decides when there is none |
+| Two games a seed apart had neighbours a hull apart | The dice for a nation's strength are hashed, not read off the seed |
+
+**Measured** (60 unattended games of 60 years; the player gives no orders). The Concord: 95 wars, 73 begun by it;
+won 26, lost 23, 26 ended by a voted peace; 76 worlds ceded. The Khanates: 51 wars, 18 begun under 24 Great Khans
+(3 acclaimed); 37 of their worlds sacked and 14 taken; won 15, lost 8; 12 worlds ceded. The Hollow Crown: 19 wars,
+8 begun under a Basileus, 11 made by houses on their own account; 8 worlds sacked. The Free Cities: 4 houses' own
+wars, none of which reached them. The Compact: none. Peace voted 54 times, made 53; one general did not listen.
+About 22 battles a game. The Republic fell in none of 180 games (60 free, and 60 each with a war forced on the
+Khanates and on the Crown).
+
+**Checked beside it.** The soak: 33 games, each saved and resumed, no failures, 312 of 447 events fired; six lines
+ended under its random player, each a small house whose last member died. The survival check (a player who gives no
+orders, 80 games) lost none. The throne probe ran clean (17 pretenders in 20 games, one throne taken).
+
+**In the browser** (`tools/browser/whosewar.js`). The new-game screen offers the setting. A nation's card offers the
+orders, and after "Make war on your own account" reads "House Castellan's own war: the Senate voted nothing, and no
+other house is at war". The alert and the war panel say the same. The mark for a conquered world is drawn; that
+picture is staged, since no world is conquered when a game begins. No errors; nothing wider than the screen.
+
+829 tests (eleven new, `tests/WhoseWarTests.cs`).
+
+**Left, and mapped.** N20 (the far larger map the owner wants), N21 (raiding is one order for all fleets; a house's
+own war takes the one place for a war beyond the Reach), N22 (a voted peace has no terms), N23 (defiance costs
+standing and a recall, and nothing else), N24 (one slider, for strength only), N25 (nothing leads up to a great
+ruler). Four more decisions for the owner, 16 to 19.

@@ -3,6 +3,25 @@
 ## [Unreleased]
 
 ### Added
+- **Whose war it is** (docs/BEYOND.md, "Whose war"; the owner's answers on the map and on war). The Senate votes a
+  war and directs nothing, so three things are new. A house may make war on a nation on its own account, with no
+  vote: only that house is at war. The Senate may vote peace beyond the Reach: those in the field are told and
+  answer. And a general may not listen: the war is his house's own then, it costs the house 6 standing at once and 2
+  a year, and the Senate may recall him whatever his name is worth.
+- **Houses raid.** In a war the nation did not begin, another house sacks a world of the nation's in a season and
+  goes home: paid as for a world taken, the world still theirs, not worth sacking again for six years. It takes
+  worlds only when the nation attacked first. Your own fleets take and hold until you order them to raid.
+- **A nation can attack, under a great ruler.** The Khanates are raiders until a Great Khan is raised: one accession
+  in eight, or a warlike Khan acclaimed after beating the Reach. Then they muster half as many hulls again, begin
+  their own wars and stay in the field, taking world after world. The Hollow Crown can have a Basileus, who stops
+  its decay.
+- **No two games have the same neighbours.** Each nation's strength is fixed when a game begins, a fifth either way.
+  A new-game setting, "The powers beyond", makes them gentle, as written or harsh.
+- **A conquered world is marked on the map**: a broken ring in the holder's colour, with a line on the world's card.
+- One new motion (Peace Beyond the Reach), three orders on a nation's card, eight reports.
+
+- In a war the Senate voted, houses other than yours no longer take a nation's worlds: they sack them (a change to
+  what was built on 2026-11-18).
 - **The Outer Compact and the Hollow Crown are on the map**, so all five nations are (docs/BEYOND.md; docs/GAPS.md
   R10). The Compact lies south of Sorrow, past the Long Dark, an empty system no house can hold: Pike's Landing, the
   Wrenn Seams, the Mallow Fields and the Wardenry. It never leaves home. Invaded, its guard and militia turn out

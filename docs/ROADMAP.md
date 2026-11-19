@@ -15,9 +15,9 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 818 |
-| Events with text | 439 in 38 files |
-| Open gaps (docs/GAPS.md) | 94: 21 small, 61 a cycle, 12 several cycles (R10b to R10e and Q13 closed; N1 to N19 mapped while putting the five nations on the map). Sixteen came from the full QA of 2026-11-16 (docs/QA.md) and twenty from playing known stories against the game on 2026-11-17 (docs/ROLEPLAY.md). 83 closed so far (`./tools/gaps.sh`) |
+| Automated tests | 829 |
+| Events with text | 447 in 38 files |
+| Open gaps (docs/GAPS.md) | 96: 22 small, 61 a cycle, 13 several cycles (R10b to R10f and Q13 closed; N1 to N25 mapped while putting the five nations on the map and building the owner's answers on war). Sixteen came from the full QA of 2026-11-16 (docs/QA.md) and twenty from playing known stories against the game on 2026-11-17 (docs/ROLEPLAY.md). 83 closed so far (`./tools/gaps.sh`) |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 50 systems, 69 lanes, 10 regions of the Reach and five beyond the rim (the Vashti Steppe, the Thessaran Shore, the Ardent Concord, the Outer Compact, the Hollow Crown), 31 standing houses and five nations on the map |
 | Laws / estates / parties | 22 / 6 / 4 |
@@ -36,7 +36,7 @@ deterministic and saves and loads.
 | Domain and galaxy | Holdings, buildings, population, unrest, governors, regions, rings, raiders, free holds, a way back for a landless house | `GALAXY`, `ECONOMY` |
 | Strategic resources | Helium-3 fuel, rare earths, isotopes; deposits; fuel bills | `ECONOMY` |
 | War | Fleets, ship classes, stances, loadouts, command styles, loyalty, supply, campaigns, sieges, peace terms | `MILITARY` |
-| Nations beyond the Reach | All five on the map (worlds, fleets, a war fought by the lanes, occupation and the peace): the Khanates raid; the Free Cities buy rather than fight; the Concord begins wars and fights a campaign; the Outer Compact is far, never leaves home and sits on isotopes; the Hollow Crown decays, does not come back, and can be ended for its vaults; war by Senate motion; expeditions; tribute; raids | `BEYOND`, `FOREIGN_NATIONS` |
+| Nations beyond the Reach | All five on the map (worlds, fleets, a war fought by the lanes, occupation and the peace): the Khanates raid; the Free Cities buy rather than fight; the Concord begins wars and fights a campaign; the Outer Compact is far, never leaves home and sits on isotopes; the Hollow Crown decays, does not come back, and can be ended for its vaults. Each game's nations differ in strength; a great ruler (a Great Khan) makes a nation attack; houses raid, and take worlds only when attacked first; a house may make war on its own account; the Senate votes peace and a general may not listen; war by Senate motion; expeditions; tribute; raids | `BEYOND`, `FOREIGN_NATIONS` |
 | The Senate | Motions, votes by weight, lobbying, offices, parties, the consulship and its veto, Acts, estates' petitions | `SENATE`, `REPUBLIC` |
 | Laws and estates | 22 laws by position, six estates with opinions, Reach-wide Acts | `POLITICS` |
 | The three orders | Standing in the Senate, Arms and Commerce; callings; old and new names; sway; patrons and clients; a seat by the census; canvassing | `REPUBLIC` |
@@ -84,9 +84,10 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
    pretender when its hold fails (docs/THRONE.md, stage 1); a succession fought over is stage 2.
 
 **The world**
-1. All five nations are on the map (docs/BEYOND.md). What that left is N1 to N19 in docs/GAPS.md: what is taken is
-   not governed, a nation's rulers cannot be dealt with as people, and no house but the player's goes for a capital.
-   Fifteen decisions are the owner's.
+1. All five nations are on the map, and the owner's answers on the map and on war are built (docs/BEYOND.md, "Whose
+   war"). What is left is N1 to N25 in docs/GAPS.md: what is taken is not governed, a nation's rulers cannot be dealt
+   with as people, a voted peace has no terms, and the map is one screen where the owner wants a far larger one
+   (N20). Decisions 8 to 19 are the owner's.
 2. Anomalies, archaeology and a source of exotics are designed but not built.
 3. 92 of 382 events never fire under the soak's four players: one random, three with an end in view (docs/QA.md; it was 132 under the random one alone). Checked: every flag they wait for is one the engine
    can raise, so none is dead; they need a player who gets into those situations (a triumph, a takeover, a revolt).
@@ -187,6 +188,7 @@ the only real constraint on sequence. Each line is roughly one cycle of work (bu
 | Work | What it delivers | Ties to |
 |---|---|---|
 | **Nations on the map, stages 3 and 4** | The five are on the map with territory, borders and fronts (built). Left: governing what is taken, and their courts as people (docs/BEYOND.md). | Needed before *The Threat From Beyond* (section 6). |
+| **A far larger map** | The owner's: a map that fills the screen and is scrolled across, with room in every nation's space to be conquered world by world (N20). | Wants a plan first: every system is drawn by hand today. |
 | **Sound, balance, content** | Audio, a balance pass across sixty-year runs, and events for whatever the soak shows never fires. | Best done after the person-and-family group, which will add many events. |
 
 **Presentation and the first hour**

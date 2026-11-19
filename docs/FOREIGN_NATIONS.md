@@ -10,7 +10,8 @@ five stages in docs/BEYOND.md (2026-11-18).
 document says about expeditions, abstract battles and strength as one number no longer holds for them: they have
 worlds, fleets and persons, and a war with them is fought by the ordinary rules. See "The Vashti Khanates on the
 map, as built" and the sections after it in docs/BEYOND.md. What is described below is kept in the engine for a map
-drawn without a nation's worlds; no shipped nation is fought this way now.
+drawn without a nation's worlds; no shipped nation is fought this way now. Who may begin a war, who may end one, and how the
+houses fight it were changed again on 2026-11-19 by the owner's answers: see "Whose war, and how it is fought" in docs/BEYOND.md.
 
 ## Off-map first (what this means for the engine)
 - A `Nation` catalogue (`content/nations/*.json`): name, culture, strength (an abstract fleet count that drifts),

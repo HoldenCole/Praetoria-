@@ -198,7 +198,7 @@ details > summary::before { content: "▸ "; color: var(--brass3); } details[ope
 .fleet { cursor: pointer; } .fleet-label { fill: #e8e2d3; font-size: 9px; font-family: var(--sans); pointer-events: none; } .fleet.selected path { filter: drop-shadow(0 0 4px #ffe8a3); }
 .course { stroke: #e6c77a; stroke-width: 1; stroke-dasharray: 3 3; opacity: .7; }
 .map-tools { position: absolute; right: .6rem; top: .6rem; display: flex; flex-direction: column; gap: .25rem; } .map-tools .btn { width: 2rem; padding: .2rem; justify-content: center; }
-.legend { position: absolute; left: .6rem; bottom: .5rem; display: flex; flex-wrap: wrap; gap: .8rem; font-size: .74rem; color: var(--ink2); background: rgba(5, 7, 12, .8); padding: .3rem .6rem; border-radius: 3px; border: 1px solid var(--line); max-width: calc(100% - 1.2rem); }
+.legend { position: absolute; left: .6rem; bottom: .5rem; display: flex; flex-wrap: wrap; gap: .8rem; font-size: .74rem; color: var(--ink2); background: rgba(5, 7, 12, .8); padding: .3rem .6rem; border-radius: 3px; border: 1px solid var(--line); max-width: calc(100% - 1.8rem - 220px); }   /* (it stops short of the minimap, and wraps) */
 .legend .hint { color: var(--brass2); }
 .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: .3rem; vertical-align: middle; background: #888; }
 .sw.own { background: var(--brass); } .sw.intel { background: #5a6a8a; } .sw.siege { background: var(--warn); } .sw.front { background: #a03c2c; } .sw.station { background: #c9bca8; }
@@ -352,6 +352,7 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 /* ===== systems, bodies, chokepoints ===== */
 .bodies { display: flex; flex-wrap: wrap; gap: .4rem .7rem; margin: .3rem 0 .5rem; } .bodies .body { display: inline-flex; align-items: center; gap: .3rem; font-size: .78rem; color: var(--muted); } .bodies .body.primary { color: var(--ink); font-weight: 600; } .bodies .body .sprite { width: auto; height: auto; max-width: 40px; }
 .sw.ck { background: none; border: 1px solid var(--brass2); transform: rotate(45deg); width: 8px; height: 8px; }
+.sw.conq { background: none; border: 2px dashed var(--warn); border-radius: 50%; width: 9px; height: 9px; }
 
 /* ===== the map as a map: quiet lanes, a corner of the Reach at a time, a minimap ===== */
 .minimap { position: absolute; right: .6rem; bottom: 3.2rem; z-index: 7; width: 220px; height: 132px; border: 1px solid var(--brass3); border-radius: 3px; background: rgba(6,8,14,.85); box-shadow: 0 6px 20px rgba(0,0,0,.6); cursor: pointer; }

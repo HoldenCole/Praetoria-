@@ -105,7 +105,8 @@ public sealed class NpcAi
     /// three hulls or more against the nation the Reach is at war with — if it is whole, supplied and willing (the command refuses otherwise).</summary>
     private void Expedition(World world, House house, Character head, FleetRules rules, CommandExecutor executor, CommandContext ctx, int enemiesAtHome)
     {
-        if (Nations == null || Nations.IsEmpty || enemiesAtHome > 0 || NationSystem.AtWar(world) is not { } war) return;
+        if (Nations == null || Nations.IsEmpty || enemiesAtHome > 0) return;
+        if (NationSystem.AtWar(world) is not { } war) { OwnWar(world, house, head, executor, ctx); return; }
         if (world.Nation(war.Id) is { OnMap: true } onMap && Nations.Def(war.Id) is { } nd) { March(world, house, head, onMap, nd, rules, executor, ctx); return; }
         if (world.Fleets.Values.Any(f => f.OwnerId == house.Id && f.IsAway)) return;
         bool hawk = FactionSystem.Of(world, house.Id)?.PartyId == "sword" || (head.CareerTrack == "military" && head.CareerRank >= 2) || OfficeSystem.HeldBy(world, house.Id).Any(o => o.OfficeId is "consul_senior" or "consul_junior" or "admiral");
@@ -118,6 +119,28 @@ public sealed class NpcAi
         executor.TryExecute(new SendExpeditionCommand(head.Id, fleet.Id, war.Id, rules, Nations), ctx);
     }
 
+    public const int OwnWarOneIn = 8, OwnWarPurse = 60, OwnWarReach = 4;
+    /// <summary>A house makes war on a nation on its own account (docs/BEYOND.md, "Whose war"): a raiding war, with no vote. A house of the
+    /// war party or under a serving officer, short of money, at peace at home, with a rested fleet of a third of the nation's strength,
+    /// and a world within four lanes of its march, goes for a neighbour that is rich, that raids, or that it has cause to hate. One year
+    /// in eight when it may. Never against one that pays the Reach tribute.</summary>
+    private void OwnWar(World world, House house, Character head, CommandExecutor executor, CommandContext ctx)
+    {
+        if (Nations == null || world.Galaxy == null || house.Id == world.Protagonist?.HouseId || world.Wars.Any(x => x.Involves(house.Id)) || house.Treasury.Credits >= OwnWarPurse) return;
+        bool hawk = FactionSystem.Of(world, house.Id)?.PartyId == "sword" || (head.CareerTrack == "military" && head.CareerRank >= 2);
+        if (!hawk) return;
+        uint roll = 2166136261; foreach (var ch in $"ownwar:{house.Id}:{world.Turn}") roll = (roll ^ ch) * 16777619;
+        if (roll / 7 % OwnWarOneIn != 0) return;
+        int best = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.IsAway && !f.Moving && !f.Office && f.Readiness >= 60).Select(f => f.Strength).DefaultIfEmpty(0).Max();
+        var near = world.HoldingsOf(house.Id).Where(h => h.SystemId.Length > 0).Select(h => h.SystemId).Distinct().ToList();
+        var pick = world.Nations.Where(n => n.OnMap && !n.Fallen && !n.Subdued(world.Turn) && Nations.Def(n.Id) is { } nd
+                && (nd.Wealth >= SenateSystem.RichAt || n.Disposition <= -30 || NationSystem.RaiderOf(world, house.Id, 8) == n.Id)
+                && best >= Math.Max(NationSystem.PrivateLeast, n.Strength / 3)
+                && NationSystem.Marches(world, nd).Any(m => near.Any(s => world.Galaxy.Hops(s, m) is >= 0 and <= OwnWarReach)))
+            .OrderByDescending(n => NationSystem.RaiderOf(world, house.Id, 8) == n.Id).ThenByDescending(n => Nations.Def(n.Id)!.Wealth).ThenBy(n => n.Id, StringComparer.Ordinal).FirstOrDefault();
+        if (pick != null) executor.TryExecute(new RaidNationCommand(head.Id, pick.Id, Nations), ctx);
+    }
+
     /// <summary>A war with a nation that is on the map (docs/BEYOND.md): a house whose world they hold or sit over goes to it with what it
     /// has, if that is enough; a house of the war party, a serving officer's or one that holds a great office of arms goes to drive their
     /// host out of the Reach, and after that to take the worlds beyond the march, the weakest held first. One fleet a year, the largest
@@ -126,7 +149,10 @@ public sealed class NpcAi
     {
         var g = world.Galaxy; if (g == null) return;
         string them = n.HouseId;
-        bool hawk = FactionSystem.Of(world, house.Id)?.PartyId == "sword" || (head.CareerTrack == "military" && head.CareerRank >= 2) || OfficeSystem.HeldBy(world, house.Id).Any(o => o.OfficeId is "consul_senior" or "consul_junior" or "admiral");
+        if (n.WarOf.Length > 0 && n.WarOf != house.Id) return;   // one house's own war is nobody else's (docs/BEYOND.md, "Whose war")
+        bool raids = NationSystem.RaidsOnly(world, n, house.Id);   // in a war the nation did not begin, a house sacks and goes home
+        bool Spent(string sys) => raids && g.RingOf(sys) == Galaxy.Ring.Beyond && FleetSystem.StrengthAt(world, them, sys) == 0 && world.Holdings.Values.Where(h => h.IsPlanet && h.SystemId == sys && h.OwnerId == them).All(h => NationSystem.Sacked(world, h));
+        bool hawk = n.WarOf == house.Id || FactionSystem.Of(world, house.Id)?.PartyId == "sword" || (head.CareerTrack == "military" && head.CareerRank >= 2) || OfficeSystem.HeldBy(world, house.Id).Any(o => o.OfficeId is "consul_senior" or "consul_junior" or "admiral");
         var mineHeld = world.Holdings.Values.Where(h => h.IsPlanet && h.SystemId.Length > 0 && ((h.OwnerId == them && h.FormerOwnerId == house.Id) || (h.OwnerId == house.Id && FleetSystem.StrengthAt(world, them, h.SystemId) > 0))).Select(h => h.SystemId).ToHashSet();
         bool defends = hawk || n.BeganIt;   // a war the nation began is every house's to answer inside the Reach; carrying it beyond the march is still for those who want a war
         if (!defends && mineHeld.Count == 0) return;
@@ -134,7 +160,7 @@ public sealed class NpcAi
             .OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
         if (fleet == null) return;
         // already where the war is: over a world of theirs, or facing their fleet
-        if (world.PlanetHolder(fleet.SystemId) == them || FleetSystem.StrengthAt(world, them, fleet.SystemId) > 0) return;
+        if ((world.PlanetHolder(fleet.SystemId) == them && !Spent(fleet.SystemId)) || FleetSystem.StrengthAt(world, them, fleet.SystemId) > 0) return;
         int Hops(string sys) => g.Hops(fleet.SystemId, sys) is var hp && hp > 0 ? hp : 99;
         // what the Reach could bring: this fleet, those already there or bound for it, and the rested fleets of the other houses that would
         // go, within six lanes. Inside the Reach that must match what is there; beyond the march it must be a quarter more.
@@ -151,7 +177,7 @@ public sealed class NpcAi
         if (target == null && hawk && fleet.Strength >= Math.Max(3, n.Strength / 4)
             && (world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.IsAway).Sum(f => f.Strength) - fleet.Strength >= 1 || world.HoldingsOf(house.Id).Count(h => h.IsPlanet) <= 1))
             target = world.Holdings.Values.Where(h => h.IsPlanet && h.OwnerId == them && h.SystemId.Length > 0).Select(h => h.SystemId).Distinct()
-                .Where(CanTake).OrderBy(Hops).ThenBy(sys => FleetSystem.StrengthAt(world, them, sys)).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault();
+                .Where(sys => !Spent(sys)).Where(CanTake).OrderBy(Hops).ThenBy(sys => FleetSystem.StrengthAt(world, them, sys)).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault();
         // a defended world beyond the march is not gone at piecemeal: the fleets gather at the march nearest it, and go in together in
         // the year those standing there are a quarter more than what holds it
         if (target != null && g.RingOf(target) == Galaxy.Ring.Beyond && FleetSystem.StrengthAt(world, them, target) is > 0 and var holds
@@ -163,6 +189,9 @@ public sealed class NpcAi
             if (fleet.SystemId != stage) target = stage;
             else if (gathered * 800 < holds * 5 * walls * Math.Max(50, n.Mettle)) { world.WorldCounters["fleets_waiting_at_a_march"] = world.Counter("fleets_waiting_at_a_march") + 1; return; }
         }
+        // a raider with nothing left worth sacking goes home with what it has
+        if (target == null && raids && g.RingOf(fleet.SystemId) == Galaxy.Ring.Beyond)
+            target = world.HoldingsOf(house.Id).Where(h => h.SystemId.Length > 0).Select(h => h.SystemId).Distinct().OrderBy(Hops).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault() ?? NationSystem.Marches(world, d).FirstOrDefault();
         if (target == null || target == fleet.SystemId || Hops(target) >= 99) return;
         if (executor.TryExecute(new MoveFleetCommand(head.Id, fleet.Id, target, rules), ctx)) { world.WorldCounters[NationSystem.SentCounter] = world.Counter(NationSystem.SentCounter) + 1; world.WorldCounters[NationSystem.SentCounter + ":" + n.Id] = world.Counter(NationSystem.SentCounter + ":" + n.Id) + 1; }
     }

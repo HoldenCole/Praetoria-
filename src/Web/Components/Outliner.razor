@@ -13,7 +13,9 @@
     if (w.HasFlag("fuel_short")) alerts.Add(("warn", "The tanks are dry — the fleet cannot sail", "military"));
     string NationName(string prefix) => w.WorldFlags.Where(f => f.StartsWith(prefix)).Select(f => G.Content!.Nations.Def(f[prefix.Length..])?.Name ?? f[prefix.Length..]).FirstOrDefault() ?? "a nation beyond the Reach";
     if (w.HasFlag("foreign_war_declared")) alerts.Add(("warn", $"The Senate has made war on {NationName("foreign_war:")} — fleets may be sent", "military"));
+    else if (w.HasFlag("foreign_war") && NationSystem.AtWar(w) is { WarOf.Length: > 0 } own) alerts.Add((own.Defied ? "warn" : "info", own.WarOf == w.Protagonist?.HouseId ? $"Your house is at war with {NationName("foreign_war:")} on its own account{(own.Defied ? ", against a peace the Senate voted" : ": the Senate voted nothing")}" : $"{w.House(own.WarOf)?.Name ?? own.WarOf} is at war with {NationName("foreign_war:")} on its own account{(own.Defied ? ", against a peace the Senate voted" : "")}: no other house is", "military"));
     else if (w.HasFlag("foreign_war")) alerts.Add(("info", $"The Reach is at war with {NationName("foreign_war:")}{(w.HasFlag("expedition_away") ? " — your fleet is in their space" : " — send a fleet, or let others win the triumph")}", "military"));
+    if (w.HasFlag("peace_awaits_us")) alerts.Add(("warn", "The Senate has voted peace beyond the Reach, and waits on your answer: come home, or fight on", "military"));
     if (w.HasFlag("expedition_victory")) alerts.Add(("good", "Your fleet beat them in their own space", "military"));
     if (w.HasFlag("expedition_defeat")) alerts.Add(("warn", "Your fleet was beaten beyond the Reach", "military"));
     if (w.HasFlag("expedition_lost")) alerts.Add(("warn", "Your expedition is broken and limping home", "military"));

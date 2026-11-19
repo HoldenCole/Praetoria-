@@ -19,7 +19,7 @@ public sealed partial class NationSystem
     /// <summary>One-turn flags this system raises in BeginTurn, cleared at the top of its next Tick.</summary>
     public static readonly string[] TurnFlags = { "fleet_sailed_abroad", "expedition_returned", "expedition_lost", "expedition_victory", "expedition_defeat", "nation_subdued", "triumph", "war_lost_abroad", "raided_by_nation", "foreign_peace", "nation_freed" , "raid_met_at_the_march", "nation_succession", "nation_commander_fallen" };
     /// <summary>One-turn flags raised in EndTurn (by the Senate's vote or the player's order), cleared with the Senate's at the top of the next EndTurn so the next turn's events see them.</summary>
-    public static readonly string[] SenateTurnFlags = { "foreign_war_declared" };
+    public static readonly string[] SenateTurnFlags = { "foreign_war_declared", "peace_voted", "peace_voted_on_us" };
     public const string WarsCounter = "foreign_wars", ExpeditionsCounter = "expeditions", BattlesCounter = "foreign_battles", SubduedCounter = "nations_subdued", TributeCounter = "tribute_received", RaidsCounter = "foreign_raids", LostCounter = "foreign_wars_lost";
     public const string RaidsMetCounter = "raids_met_at_the_march", RaidsRepelledCounter = "raids_turned_back", CommandersFallenCounter = "nation_commanders_fallen", SuccessionsCounter = "nation_rulers_succeeded";
     public const int RaidReach = 2, MarchGuard = 3, HopsPerYear = 3, CommanderDeathPct = 25, RulerOldAge = 58;
@@ -40,11 +40,40 @@ public sealed partial class NationSystem
     public static void Seed(World w, NationCatalog catalog)
     {
         foreach (var d in catalog.Defs.OrderBy(d => d.Id, StringComparer.Ordinal))
-            if (w.Nation(d.Id) == null) w.Nations.Add(new Nation { Id = d.Id, Strength = d.Strength, Disposition = d.Disposition });
+            if (w.Nation(d.Id) == null)
+            {   // how strong it is in this game is fixed here, once: by the game's dice and by the setting chosen at the start
+                var made = new Nation { Id = d.Id, Strength = d.Strength, Disposition = d.Disposition }; w.Nations.Add(made);
+                People(w, made, d); made.Might = MightFor(w, made); made.Strength = Full(made, d);
+            }
         foreach (var n in w.Nations) if (catalog.Def(n.Id) is { } def) { People(w, n, def); Place(w, n, def); }
     }
 
     // ---- a face (docs/BEYOND.md, stage 0): a ruler and a commander of the fleets, with names of the nation's own ----
+
+    public const int MightSpread = 20, GreatGathers = 3, GreatRest = 8, GreatMight = 150, GreatReach = 2;
+    public const string GreatCounter = "great_rulers_raised", GreatAcclaimedCounter = "great_rulers_acclaimed";
+    /// <summary>A nation's strength in this game, in a hundred of what is written: the setting (gentle 80, harsh 125) and, where games vary, twenty either way by the nation's own dice.</summary>
+    public static int MightFor(World w, Nation n)
+    {
+        int scale = w.Beyond switch { "gentle" => 80, "harsh" => 125, _ => 100 };
+        int vary = w.BeyondVaries ? 100 - MightSpread + (int)(Hash($"might:{n.Salt}:{n.Id}") / 7 % (uint)(2 * MightSpread + 1)) : 100;   // (hashed: two games a seed apart are not neighbours a hull apart)
+        return Math.Max(40, scale * vary / 100);
+    }
+    /// <summary>Its full strength in this game, in hulls.</summary>
+    public static int Full(Nation n, NationDef d) => Math.Max(2, (d.Strength * (n.Might > 0 ? n.Might : 100) + 50) / 100);
+    /// <summary>Whether one of the great rules it: the nation is one host, begins wars itself, and comes to conquer (docs/BEYOND.md).</summary>
+    public static bool Great(Nation n) => n.Ruler?.Great == true;
+    /// <summary>The hulls it musters: its full strength, and half as much again under one of the great.</summary>
+    public static int Cap(Nation n, NationDef d) => Great(n) ? Full(n, d) * GreatMight / 100 : Full(n, d);
+    public static bool Begins(Nation n, NationDef d) => d.Strikes || Great(n);
+    public static bool Stays(Nation n, NationDef d) => d.Campaigns || Great(n);
+    /// <summary>A ruler becomes one of the great: by birth to the chair (a roll at the accession) or by acclamation after a war won.</summary>
+    private static void MakeGreat(World w, Nation n, NationDef d, NationPerson ruler, bool acclaimed)
+    {
+        ruler.Great = true; ruler.GreatSince = w.Turn; ruler.Nature = "warlike";
+        Bump(w, GreatCounter, n); if (acclaimed) Bump(w, GreatAcclaimedCounter, n); Mark(w, "great_ruler_raised", n);
+        w.Log($"{d.Name} has a {d.GreatTitle}: {ruler.Name}{(acclaimed ? ", acclaimed after the war" : "")}. What were raiders and rivals are one host now, and it will not go home with one world.");
+    }
 
     private static string NextName(Nation n, NationDef d) => d.Names.Count == 0 ? $"the {d.RulerTitle} of {d.Name}" : d.Names[n.NamesUsed++ % d.Names.Count];
     private static NationPerson NewRuler(World w, Nation n, NationDef d, string? nature = null)
@@ -67,7 +96,7 @@ public sealed partial class NationSystem
     }
     /// <summary>What the commander of a nation's fleets is worth to them in a battle: six in a hundred for every point of skill over four, and as much less under it.</summary>
     public static double CommanderFactor(NationPerson? c) => c == null ? 1.0 : 1 + (c.Skill - 4) * PerSkill;
-    public static string Styled(NationDef d, NationPerson? person, bool ruler) => person == null ? "" : $"{(ruler ? d.RulerTitle : d.CommanderTitle)} {person.Name}";
+    public static string Styled(NationDef d, NationPerson? person, bool ruler) => person == null ? "" : $"{(ruler ? (person.Great && d.GreatTitle.Length > 0 ? d.GreatTitle : d.RulerTitle) : d.CommanderTitle)} {person.Name}";
 
     /// <summary>Rulers age and die. The commander of the fleets takes the chair one time in three, if they are any good; otherwise someone new.
     /// A new ruler has a nature of their own, and the nation's regard for the Reach moves with it at once.</summary>
@@ -87,7 +116,10 @@ public sealed partial class NationSystem
         bool general = n.Commander is { Skill: >= 5 } && hh / 7 % 3 == 0; var next = general ? n.Commander! : null;
         // a general who takes the chair is never mild, and is warlike as often as not
         var ruler = NewRuler(w, n, d, general ? (hh / 31 % 2 == 0 ? "warlike" : hh / 101 % 2 == 0 ? "wary" : "grasping") : null); if (next != null) { n.NamesUsed--; ruler.Name = next.Name; ruler.Age = next.Age; n.Commander = NewCommander(w, n, d); }
-        n.Ruler = ruler; int shift = ruler.Nature switch { "warlike" => -10, "mild" => 10, "grasping" => 4, _ => 0 };
+        bool great = d.GreatOneIn > 0 && d.GreatTitle.Length > 0 && d.Sorties != "never" && hh / 211 % (uint)d.GreatOneIn == 0;
+        if (r.Great) Mark(w, "great_ruler_dead", n);
+        n.Ruler = ruler; if (great) MakeGreat(w, n, d, ruler, acclaimed: false);
+        int shift = ruler.Nature switch { "warlike" => -10, "mild" => 10, "grasping" => 4, _ => 0 };
         if (!n.Subdued(w.Turn)) n.Disposition = Math.Clamp(n.Disposition + shift, -100, 100);
         w.WorldCounters[SuccessionsCounter] = w.Counter(SuccessionsCounter) + 1; w.WorldFlags.Add("nation_succession");
         w.Log($"{Styled(d, r, true)} of {d.Name} is dead{(killed ? "" : $" at {r.Age}")}. {(general ? $"The commander of its fleets takes the chair: {Styled(d, ruler, true)}" : $"{Styled(d, ruler, true)} follows")}, {ruler.Nature} by nature{(shift < 0 ? ", and no friend to the Reach" : shift > 0 ? ", and easier to deal with" : "")}.");
@@ -125,9 +157,17 @@ public sealed partial class NationSystem
     /// <summary>The Senate has voted war (SenateSystem.Apply) — or a test has. One war abroad at a time.</summary>
     public static void DeclareWar(World w, NationCatalog catalog, string nationId, string proposerHouseId)
     {
-        var n = w.Nation(nationId); var d = catalog.Def(nationId); if (n == null || d == null || n.AtWar || n.Fallen || n.Subdued(w.Turn)) return;
+        var n = w.Nation(nationId); var d = catalog.Def(nationId); if (n == null || d == null || n.Fallen || n.Subdued(w.Turn)) return;
+        if (n.AtWar)
+        {   // a war one house was fighting on its own account becomes the Reach's: every house is at war with the nation now
+            if (n.WarOf.Length == 0) return;
+            string was = n.WarOf; n.WarOf = ""; n.Defied = false; n.PeaceVoted = 0;
+            w.WorldFlags.Add("foreign_war"); w.WorldFlags.Add("foreign_war_declared"); w.WorldFlags.Add("foreign_war:" + nationId);
+            w.Log($"The Senate makes the war with {d.Name} its own, on the motion of {w.House(proposerHouseId)?.Name ?? proposerHouseId}. It was {w.House(was)?.Name ?? was}'s war; it is the Reach's now.");
+            return;
+        }
         if (AtWar(w) != null) return;
-        n.AtWar = true; n.BeganIt = false; n.WarSince = w.Turn; n.ScoreReach = 0; n.ScoreNation = 0; n.LastBattleTurn = w.Turn; n.Wars += 1; n.Disposition = Math.Max(-100, n.Disposition - 20);
+        n.AtWar = true; n.BeganIt = false; n.WarOf = ""; n.Defied = false; n.PeaceVoted = 0; n.WarSince = w.Turn; n.ScoreReach = 0; n.ScoreNation = 0; n.LastBattleTurn = w.Turn; n.Wars += 1; n.Disposition = Math.Max(-100, n.Disposition - 20);
         w.WorldCounters[WarsCounter] = w.Counter(WarsCounter) + 1;
         w.WorldFlags.Add("foreign_war"); w.WorldFlags.Add("foreign_war_declared"); w.WorldFlags.Add("foreign_war:" + nationId);
         w.Log($"The Reach is at war with {d.Name}, on the motion of {w.House(proposerHouseId)?.Name ?? proposerHouseId}. The fleets that sail against it must beat {n.Strength} hulls; a score of {SuesAt(n, d)} subdues it.");
@@ -155,7 +195,7 @@ public sealed partial class NationSystem
             Strike(w, n, d);                       // a nation that begins wars may begin one (docs/BEYOND.md, the Ardent Concord)
             Tribute(w, n, d, mine);
         }
-        w.WorldFlags.Remove("ransom_answer_take"); w.WorldFlags.Remove("ransom_answer_keep");   // the player's answer to a ransom has been read by whichever nation offered it
+        w.WorldFlags.Remove("ransom_answer_take"); w.WorldFlags.Remove("ransom_answer_keep"); w.WorldFlags.Remove(PeaceObeyFlag); w.WorldFlags.Remove(PeaceDefyFlag);   // the player's answer to a ransom has been read by whichever nation offered it
         // standing flags
         foreach (var f in new[] { "foreign_war", "expedition_away", "nation_tributary" }) w.WorldFlags.Remove(f);
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("foreign_war:")).ToList()) w.WorldFlags.Remove(f);
@@ -170,7 +210,7 @@ public sealed partial class NationSystem
         if (w.Turn % RegenEvery == 0)
         {
             if (d.Temper == "decaying") { if (w.Turn % (RegenEvery * 2) == 0 && n.Strength > 4 && !n.OnMap) n.Strength -= 1; }
-            else if (n.Strength < d.Strength && !n.OnMap) n.Strength = Math.Min(d.Strength, n.Strength + Math.Max(1, d.Regen));
+            else if (n.Strength < Full(n, d) && !n.OnMap) n.Strength = Math.Min(Full(n, d), n.Strength + Math.Max(1, d.Regen));
         }
         if (n.AtWar) n.Disposition = Math.Max(-80, n.Disposition - 2);
         else if (n.Subdued(w.Turn)) { }
@@ -351,6 +391,7 @@ public sealed partial class NationSystem
     private static void ResolveWar(World w, Nation n, NationDef d, string? mine)
     {
         if (!n.AtWar) return;
+        if (Peace(w, n, d, mine)) return;   // the Senate's peace, if one is voted (docs/BEYOND.md, "Whose war")
         var chair = RegionSystem.CapitalHolder(w);
         if (n.ScoreReach - n.ScoreNation >= SuesAt(n, d) || n.Strength <= 0)
         {
@@ -376,6 +417,8 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
             if (chair != null) { chair.Treasury.Credits -= d.Tribute * 3; chair.Legitimacy = Math.Max(0, chair.Legitimacy - LegitimacyDefeat); }
             w.Log($"The war with {d.Name} is lost: the chair{(chair != null ? $" of {chair.Name}" : "")} buys peace for {d.Tribute * 3} credits, and the Reach is shamed.");
             if (n.OnMap) Bump(w, LostOnMapCounter, n);
+            // a warlike ruler who has beaten the Reach is acclaimed: the next time they come, they come to stay
+            if (n.OnMap && d.GreatOneIn > 0 && d.GreatTitle.Length > 0 && d.Sorties != "never" && n.Ruler is { Nature: "warlike", Great: false } victor) MakeGreat(w, n, d, victor, acclaimed: true);
             PeaceOnMap(w, n, d, reachWon: false);
             EndWar(w, n, d);
         }
@@ -419,6 +462,7 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
     private static void EndWar(World w, Nation n, NationDef d)
     {
         n.AtWar = false; n.BeganIt = false; n.LastWarEnd = w.Turn; w.WorldCounters.Remove(UnpressedKey(n));
+        if (n.WarOf.Length > 0) w.WorldCounters.Remove(DefiedSinceKey(n.WarOf)); n.WarOf = ""; n.Defied = false; n.PeaceVoted = 0; w.WorldCounters.Remove(ComeHomeKey(n));
         foreach (var h in w.Houses.Keys.ToList()) w.WorldCounters.Remove(WinsKey(h, n.Id));
         foreach (var f in Expeditions(w, n.Id).ToList()) GoHome(w, f, d, "is recalled: the war is over");
     }

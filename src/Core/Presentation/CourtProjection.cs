@@ -93,7 +93,7 @@ public sealed record NationCard(string Id, string Name, string Temper, string De
     int Threshold, int Tribute, int Wealth, int Distance, int SubduedUntil, int Wars, bool RaidedLately, int Expeditions, Option War,
     string Ruler = "", string RulerNature = "", string Commander = "", int CommanderSkill = 0, string Marches = "", string Guard = "", int Nearest = 0,
     bool OnMap = false, bool Fallen = false, string Capital = "", string Worlds = "", string Fleets = "", string Occupied = "", string Lost = "",
-    int HoldYears = 3, string Manner = "", string Ransom = "", string Watch = "");
+    int HoldYears = 3, string Manner = "", string Ransom = "", string Watch = "", string WhoseWar = "", IReadOnlyList<Option>? Orders = null);
 /// <summary>A battle about to be joined at the turn's end: our fleets share a system with an enemy's.</summary>
 public sealed record BattleBrief(string SystemId, string SystemName, string EnemyHouseId, string EnemyName, int OurHulls, int EnemyHulls, int Confidence, string OurStance, string TheirStance, int Edge, double OurPower, double TheirPower);
 /// <summary>The campaign of the house, and the enemy worlds it could name (docs/MILITARY.md).</summary>
@@ -466,7 +466,7 @@ public static class CourtProjection
         var proposals = senate.Motions.Defs.Where(d => d.Id != "petition").Select(d =>
         {
             List<(string Id, string Name)> targets = d.Target == "house" ? houses.Where(x => (x.Id != house.Id || d.TargetSelfAllowed) && (!d.TargetMustBeAtWar || w.Wars.Any(x2 => x2.Involves(x.Id)))).ToList() : d.Target == "region" ? regions
-                : d.Target == "nation" ? senate.Nations.Defs.Where(nd => w.Nation(nd.Id) is { } ns && !ns.AtWar && !ns.Fallen && !ns.Subdued(w.Turn)).OrderBy(nd => nd.Name, StringComparer.Ordinal).Select(nd => (Id: nd.Id, Name: nd.Name)).ToList() : new List<(string Id, string Name)>();
+                : d.Target == "nation" ? senate.Nations.Defs.Where(nd => w.Nation(nd.Id) is { } ns && (d.Interest == "foreign_peace" ? NationSystem.PeaceRefusal(w, senate.Nations, nd.Id) == null : (!ns.AtWar || ns.WarOf.Length > 0) && !ns.Fallen && !ns.Subdued(w.Turn))).OrderBy(nd => nd.Name, StringComparer.Ordinal).Select(nd => (Id: nd.Id, Name: nd.Name)).ToList() : new List<(string Id, string Name)>();
             var commissionable = senate.Offices.Defs.Where(o => !o.Elected).ToList();
             if (d.Office) targets = targets.Where(x => commissionable.Any(o => OfficeSystem.Candidate(w, o, x.Id) != null)).ToList();   // only houses with someone of the rank
             string firstOffice = d.Office && commissionable.Count > 0 ? commissionable[0].Id : "";
@@ -600,6 +600,10 @@ public static class CourtProjection
         return new MarketCard(goods, own, SenateSystem.Embargoed(w, house.Id), own ? t.Market.Rules.SpreadPct : t.Market.Rules.CaravanSpreadPct);
     }
 
+    /// <summary>One of the great rules this nation: what that changes, in a line.</summary>
+    private static string GreatLine(Nation n, NationDef d) => !NationSystem.Great(n) ? ""
+        : $"{NationSystem.Styled(d, n.Ruler, true)} has made it one host: it begins wars itself, three years after the acclamation and every {NationSystem.GreatRest} after a war; its host stays in the field and takes world after world, {NationSystem.GreatReach} lanes deeper; it musters {NationSystem.Cap(n, d)} hulls, half as many again. ";
+
     private static MilitaryCard BuildMilitary(World w, Character p, House house, FleetSystem fs, FleetRules rules, CommandContext ctx, NationCatalog nations, SenateSystem senate)
     {
         using var perf_ = Perf.Time("proj:BuildMilitary");
@@ -608,7 +612,7 @@ public static class CourtProjection
             var n = w.Nation(d.Id)!;
             NationSystem.People(w, n, d); var guard = NationSystem.Guard(w, d);
             var marches = NationSystem.Marches(w, d); int nearest = w.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.IsAway && f.SystemId.Length > 0).Select(f => NationSystem.OutTurns(w, d, f.SystemId)).DefaultIfEmpty(NationSystem.OutTurns(w, d, "")).Min();
-            return new NationCard(d.Id, d.Name, d.Temper, d.Description, d.Holds, n.Strength, d.Strength, n.Disposition, n.AtWar, n.WarSince, n.ScoreReach, n.ScoreNation, NationSystem.SuesAt(n, d), d.Tribute, d.Wealth, marches.Count > 0 ? d.Depth : d.Distance,
+            return new NationCard(d.Id, d.Name, d.Temper, d.Description, d.Holds, n.Strength, NationSystem.Cap(n, d), n.Disposition, n.AtWar, n.WarSince, n.ScoreReach, n.ScoreNation, NationSystem.SuesAt(n, d), d.Tribute, d.Wealth, marches.Count > 0 ? d.Depth : d.Distance,
                 n.Subdued(w.Turn) ? n.SubduedUntil : 0, n.Wars, NationSystem.Raided(w, d.Id, 8), NationSystem.Expeditions(w, d.Id).Count(),
                 new Option(d.Id, "Move for war", senate.Motions.Def("foreign_war") == null ? "no such motion" : new ProposeMotionCommand(p.Id, "foreign_war", d.Id, senate).Refusal(ctx)),
                 NationSystem.Styled(d, n.Ruler, true), n.Ruler?.Nature ?? "", NationSystem.Styled(d, n.Commander, false), n.Commander?.Skill ?? 0,
@@ -621,13 +625,26 @@ public static class CourtProjection
                 n.OnMap ? string.Join(", ", d.Worlds.Select(x => w.Holding(x.Id)).Where(h => h != null && h.OwnerId != n.HouseId).Select(h => $"{h!.Name} ({w.House(h.OwnerId)?.Name ?? h.OwnerId}{(w.Counter(NationSystem.UnheldKey(h.Id)) > 0 ? $", {w.Counter(NationSystem.UnheldKey(h.Id))} of {d.HoldYears} years ungarrisoned" : "")})")) : "",
                 d.HoldYears,
                 // the manner of a nation on the map: what kind of neighbour it is, in a line
-                !n.OnMap || n.Fallen ? "" : NationSystem.Buys(d) ? $"Would rather buy than fight. It sues at {NationSystem.SuesAt(n, d)}, half the usual tally; hires a hull a year while attacked; buys back the worlds it lost when it loses a war, for {NationSystem.RansomPerWealth * d.Wealth} credits each; pays tribute only while watched; and buys off a war nobody presses.{(NationSystem.ComesOut(n, d) ? " Its ruler is warlike: its squadron will come through the march." : " Its squadron stays at home.")} A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
+                !n.OnMap || n.Fallen ? "" : GreatLine(n, d) + (NationSystem.Buys(d) ? $"Would rather buy than fight. It sues at {NationSystem.SuesAt(n, d)}, half the usual tally; hires a hull a year while attacked; buys back the worlds it lost when it loses a war, for {NationSystem.RansomPerWealth * d.Wealth} credits each; pays tribute only while watched; and buys off a war nobody presses.{(NationSystem.ComesOut(n, d) ? " Its ruler is warlike: its squadron will come through the march." : " Its squadron stays at home.")} A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
                     : d.Strikes ? $"Begins wars itself: when the Reach is divided and it has no love for it, or to take back a world of its own. {(d.Hosts > 1 ? $"{d.Hosts} fleets come through its marches" : "Its fleet comes through its march")}{(d.Campaigns ? " and stay in the field, taking world after world" : "")}. What it takes it keeps until it is beaten; its own worlds do not rise, it comes back for them. A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
                     : d.Sorties == "never" ? $"Fights only when invaded: its fleets never leave home. Hull for hull they fight at {NationSystem.MettleOf(d)} in a hundred of a fleet of the Reach's{(d.Walls > 0 ? $", and its worlds take {d.Walls} years longer to reduce" : "")}. {(d.Yields.Count > 0 ? $"Each of its worlds gives the house that holds it {string.Join(" and ", d.Yields.OrderBy(k => k.Key, StringComparer.Ordinal).Select(k => $"{k.Value} {k.Key}"))} a year. " : "")}A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
                     : d.Temper == "decaying" ? $"An empire in decay: it strikes a hull from its lists every ten years, replaces none, and does not come back for a world it loses. Its fleets fight at {NationSystem.MettleOf(d)} in a hundred of a fleet of the Reach's. {(n.Treasure > 0 ? $"Its capital holds {n.Treasure} credits{(n.Regalia.Length > 0 ? $" and {n.Regalia}" : "")} for whoever takes it first. " : "Its vaults have been opened. ")}{(NationSystem.ComesOut(n, d) ? "Its ruler is warlike: its fleet will come through the march. " : "")}A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
-                    : $"{(NationSystem.ComesOut(n, d) ? "Its host comes through the march in a war, takes one world, and goes home with it." : "Its host stays at home.")} A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}.",
+                    : $"{(NationSystem.Great(n) ? "" : NationSystem.ComesOut(n, d) ? "Its host comes through the march in a war, takes one world, and goes home with it. " : "Its host stays at home. ")}{(d.GreatOneIn > 0 && !NationSystem.Great(n) ? $"Raiders, until a {d.GreatTitle} is raised over them: then they come to conquer. " : "")}A fleet of its beaten pays {d.Wealth} credits, a world taken or sacked {NationSystem.PlunderPerWorld * d.Wealth}."),
                 n.OnMap ? string.Join(", ", d.Worlds.Where(x => w.Counter(NationSystem.RansomKey(x.Id)) > 0).Select(x => $"{NationSystem.RansomPerWealth * d.Wealth} credits for {x.Name}, until T{w.Counter(NationSystem.RansomKey(x.Id)) + NationSystem.RansomWaits}")) : "",
-                n.OnMap && NationSystem.Buys(d) && n.Subdued(w.Turn) ? (NationSystem.Watched(w, d) ? "watched: the tribute comes" : $"not watched: {w.Counter(NationSystem.UnwatchedKeyOf(n))} of {NationSystem.UnwatchedYears} years, then it stops paying") : "");
+                n.OnMap && NationSystem.Buys(d) && n.Subdued(w.Turn) ? (NationSystem.Watched(w, d) ? "watched: the tribute comes" : $"not watched: {w.Counter(NationSystem.UnwatchedKeyOf(n))} of {NationSystem.UnwatchedYears} years, then it stops paying") : "",
+                // whose war it is (docs/BEYOND.md, "Whose war"), and what the player may do about it without waiting on anyone
+                !n.AtWar ? "" : n.Defied ? $"{w.House(n.WarOf)?.Name ?? n.WarOf}'s war, against a peace the Senate voted: it costs that house {NationSystem.DefyYearly} standing a year"
+                    : n.PeaceVoted > 0 ? "The Senate has voted peace: those in the field are answering"
+                    : n.WarOf.Length > 0 ? $"{w.House(n.WarOf)?.Name ?? n.WarOf}'s own war: the Senate voted nothing, and no other house is at war"
+                    : n.BeganIt ? "The Reach's war: they began it, and every house may take what it can" : "The Reach's war, voted by the Senate: other houses raid and take nothing",
+                new List<Option>
+                {
+                    new Option("peace", "Move for peace", senate.Motions.Def("foreign_peace") == null ? "no such motion" : new ProposeMotionCommand(p.Id, "foreign_peace", d.Id, senate).Refusal(ctx)),
+                    new Option("own_war", "Make war on your own account", new RaidNationCommand(p.Id, d.Id, nations).Refusal(ctx)),
+                    new Option("obey", "Come home: keep the Senate's peace", !n.AtWar || !(n.PeaceVoted > 0 || n.Defied) ? "no peace is voted" : new AnswerPeaceCommand(p.Id, true).Refusal(ctx)),
+                    new Option("defy", "Fight on, against the Senate's word", !n.AtWar || n.PeaceVoted <= 0 ? "no peace is voted" : new AnswerPeaceCommand(p.Id, false).Refusal(ctx)),
+                    new Option("raid", w.HasFlag(NationSystem.PlayerRaidsFlag) ? "Your fleets raid: order them to take and hold" : "Your fleets take and hold: order them to raid", !n.OnMap ? "not on the map" : null),
+                });
         }).ToList();
         var brief = new List<BattleBrief>();
         if (w.Galaxy != null)

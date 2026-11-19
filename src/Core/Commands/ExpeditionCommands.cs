@@ -6,6 +6,68 @@ namespace Praetoria.Core.Commands;
 
 /// <summary>Send a fleet against a nation the Reach is at war with (docs/FOREIGN_NATIONS.md): it leaves the map, sails the nation's distance,
 /// fights a season of abstract battles and comes home. One treasury action; the fleet must be whole, supplied and willing.</summary>
+/// <summary>Make war on a nation on the house's own account, without the Senate's leave (docs/BEYOND.md, "Whose war"). Only this house is
+/// at war with it. The Senate may vote that it stop.</summary>
+public sealed class RaidNationCommand : ICommand
+{
+    private readonly string _nationId; private readonly NationCatalog _nations;
+    public RaidNationCommand(string actorId, string nationId, NationCatalog nations) { ActorId = actorId; _nationId = nationId; _nations = nations; }
+    public string ActorId { get; }
+    public string Describe() => $"make war on {_nationId} without the Senate's leave";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        var house = w.House(actor.HouseId); if (house == null || Economy.HeadOf(w, house)?.Id != actor.Id) return "only the head of a house makes its wars";
+        return NationSystem.PrivateWarRefusal(w, _nations, house, _nationId);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) => NationSystem.PrivateWar(ctx.World, _nations, _nationId, ctx.World.Char(ActorId)!.HouseId);
+}
+
+/// <summary>Whether the player's fleets raid a nation's worlds (sack them and go home) or take them.</summary>
+public sealed class RaidPostureCommand : ICommand
+{
+    private readonly bool _raid;
+    public RaidPostureCommand(string actorId, bool raid) { ActorId = actorId; _raid = raid; }
+    public string ActorId { get; }
+    public string Describe() => _raid ? "raid beyond the rim, and take nothing" : "take and hold beyond the rim";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        if (actor.Id != w.ProtagonistId) return "the order is yours to give";
+        return w.HasFlag(NationSystem.PlayerRaidsFlag) == _raid ? "that is the order already" : null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        if (_raid) ctx.World.WorldFlags.Add(NationSystem.PlayerRaidsFlag); else ctx.World.WorldFlags.Remove(NationSystem.PlayerRaidsFlag);
+        ctx.World.Log(_raid ? "Your fleets beyond the rim are to sack and come home: no world of a nation's is to be held." : "Your fleets beyond the rim are to take what they can and hold it.");
+    }
+}
+
+/// <summary>The player's answer when the Senate votes peace and their fleets are in the field: come home, or fight on.</summary>
+public sealed class AnswerPeaceCommand : ICommand
+{
+    private readonly bool _obey;
+    public AnswerPeaceCommand(string actorId, bool obey) { ActorId = actorId; _obey = obey; }
+    public string ActorId { get; }
+    public string Describe() => _obey ? "keep the Senate's peace" : "fight on against the Senate's word";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        var house = w.House(actor.HouseId); if (house == null || actor.Id != w.ProtagonistId) return "the answer is yours to give";
+        bool awaited = w.Nations.Any(n => n.AtWar && n.PeaceVoted > 0 && NationSystem.Foe(w, n, house.Id)), defying = NationSystem.DefiedBy(w, house.Id) != null;
+        if (_obey) return awaited || defying ? null : "the Senate has voted no peace that waits on you";
+        return awaited ? null : "the Senate has voted no peace that waits on you";
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; w.WorldFlags.Remove(_obey ? NationSystem.PeaceDefyFlag : NationSystem.PeaceObeyFlag); w.WorldFlags.Add(_obey ? NationSystem.PeaceObeyFlag : NationSystem.PeaceDefyFlag);
+        w.Log(_obey ? "Your fleets beyond the rim are told to come home: the Senate has voted, and your house will keep its word." : "Your answer is sent to the Senate: the war is not finished, and your fleets are not coming home.");
+    }
+}
+
 public sealed class SendExpeditionCommand : ICommand
 {
     public const int MinHulls = 2, MinSupply = 50;

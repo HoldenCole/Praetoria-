@@ -6,6 +6,9 @@ public sealed class Nation
 {
     public string Id { get; set; } = "";
     public int Strength { get; set; }
+    /// <summary>How strong this nation is in this game, in a hundred of what is written for it: fixed when it is first reckoned, from the
+    /// game's own dice and the setting chosen at the start (docs/BEYOND.md). 0 in a save made before it varied, which reads as a hundred.</summary>
+    public int Might { get; set; }
     public int Disposition { get; set; }
     public bool AtWar { get; set; }
     public int WarSince { get; set; }
@@ -43,6 +46,14 @@ public sealed class Nation
     /// <summary>The name of the thing in its vaults, until the vaults are opened.</summary>
     public string Regalia { get; set; } = "";
     public bool BeganIt { get; set; }
+    /// <summary>Whose war it is (docs/BEYOND.md, "Whose war"). "" is the Reach's: voted by the Senate or begun by the nation, and every
+    /// house is at war with it. A house's id is that house's own war: begun without the Senate's leave, or fought on after the Senate
+    /// voted peace. Then only that house is at war with the nation.</summary>
+    public string WarOf { get; set; } = "";
+    /// <summary>The Senate voted peace in this war, and the house whose war it now is did not listen.</summary>
+    public bool Defied { get; set; }
+    /// <summary>The year the Senate voted peace, while those in the field are being told; 0 when no peace is voted.</summary>
+    public int PeaceVoted { get; set; }
     /// <summary>The year its last war ended; 0 if it has had none.</summary>
     public int LastWarEnd { get; set; }
     /// <summary>The house that holds a nation's worlds on the map is named for it, so that anything walking the houses can tell at a
@@ -64,6 +75,9 @@ public sealed class NationPerson
     /// <summary>A ruler's nature: "warlike", "wary", "grasping" or "mild". A commander's is not used.</summary>
     public string Nature { get; set; } = "";
     public int Since { get; set; }
+    /// <summary>A ruler of the kind that unites a nation and leads it to conquest (docs/BEYOND.md, the Great Khan), and since when.</summary>
+    public bool Great { get; set; }
+    public int GreatSince { get; set; }
     public int Victories { get; set; }
     public int Defeats { get; set; }
     /// <summary>The person of the Reach's world who stands for them, once the nation is on the map.</summary>

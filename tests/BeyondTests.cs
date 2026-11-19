@@ -15,7 +15,7 @@ public class BeyondTests
     private static readonly ContentDatabase Content = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir());
     private static (World w, NationSystem ns, FleetSystem fs, Character me, House mine) Start(int seed = 7)
     {
-        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), (ulong)seed);
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), (ulong)seed); w.BeyondVaries = false;
         var fs = new FleetSystem(Content.Fleets, Content.Holdings, Content.ShipClasses, Content.Friction); var ns = new NationSystem(Content.Nations, fs);
         NationSystem.Seed(w, Content.Nations);
         return (w, ns, fs, w.Protagonist!, w.House(w.Protagonist!.HouseId)!);

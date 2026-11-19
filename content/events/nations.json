@@ -2189,6 +2189,368 @@
           ]
         }
       ]
+    },
+    {
+      "id": "a_great_khan",
+      "tier": "situation",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_ruler_raised:vashti",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "warn_the_senate",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A Great Khan had been raised over the Vashti. {self.name} told the Senate what that meant: not a raid, the next time, but a host that would stay. Some of the benches listened."
+            }
+          ]
+        },
+        {
+          "id": "see_to_the_house",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A Great Khan had been raised over the Vashti. {self.name} said nothing in the Senate and had the house's own fleets counted. Whoever the host came for, it would not find this house asleep."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_great_khan_comes",
+      "tier": "situation",
+      "weight": 70,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_ruler_strikes:vashti",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_every_house",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Great Khan's host was through the march, and nobody had voted a war. {self.name} stood in the Senate and said that a war the Khan began was every house's to answer, and named the houses that had fleets and had not sent them."
+            }
+          ]
+        },
+        {
+          "id": "hold_what_is_ours",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Great Khan's host was through the march. {self.name} sent no speeches to the Senate: the house's fleets were ordered to its own worlds, and the Reach could look to the rest."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_great_khan_is_dead",
+      "tier": "ambient",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_ruler_dead:vashti",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "mark_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Great Khan was dead, and the khans who had ridden behind him were khans again, each with his own camp. {self.name} had it noted. What the host had taken it still held; but nobody was holding the host."
+            }
+          ]
+        },
+        {
+          "id": "give_thanks",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The Great Khan was dead. {self.name} slept better than in some years. They would raid again, and go home again, and that could be lived with."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_basileus",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_ruler_raised:hollow_crown",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "warn_the_senate",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Hollow Crown had a ruler who meant to be an emperor. {self.name} told the Senate that an old empire with one good ruler is not an old empire for as long as the ruler lives."
+            }
+          ]
+        },
+        {
+          "id": "wait_him_out",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Hollow Crown had a ruler who meant to be an emperor. {self.name} judged that emperors die and debts do not, and advised nobody of anything."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_senate_votes_peace",
+      "tier": "setpiece",
+      "weight": 95,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "peace_awaits_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "come_home",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "peace_answer_obey",
+              "value": true
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Senate had voted peace, and {self.name}'s fleets were beyond the rim with the war unfinished. The order went out to come home. The Senate cannot command a fleet; it was obeyed all the same."
+            }
+          ]
+        },
+        {
+          "id": "fight_on",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "peace_answer_defy",
+              "value": true
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The Senate had voted peace, and {self.name}'s fleets were beyond the rim with the war unfinished. The answer sent back was that the war was not finished. From that day it was the house's own war, against the Senate's word."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_general_does_not_listen",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "peace_defied",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "speak_for_recall",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Senate had voted peace and a general had not come home. {self.name} said in the chamber what everyone was thinking: a fleet that does not answer the Senate answers to one man, and the Reach has seen where that road goes."
+            }
+          ]
+        },
+        {
+          "id": "let_him_win_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Senate had voted peace and a general had not come home. {self.name} said nothing against him. If he won, there would be plunder and a quiet border; if he lost, it would be his house that paid."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_house_makes_its_own_war",
+      "tier": "ambient",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "private_war",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_it_piracy",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A house of the Reach had made war beyond the rim with no vote of the Senate. {self.name} called it what it was: a raid for money under a house's colours, which the whole Reach would answer for if it went wrong."
+            }
+          ]
+        },
+        {
+          "id": "wish_them_luck",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A house of the Reach had made war beyond the rim with no vote of the Senate. {self.name} noted that the border has always been raided from both sides, and that the Senate has never yet stopped a raid by disapproving of it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_sack",
+      "tier": "ambient",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "world_sacked_by_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "share_it_out",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet had sacked a world beyond the rim and come away with what it could carry. {self.name} had a share of it given to the crews before the house's clerks had finished counting."
+            }
+          ]
+        },
+        {
+          "id": "bank_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The house's fleet had sacked a world beyond the rim and come away with what it could carry. {self.name} had it counted, and banked."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -198,6 +198,9 @@ public sealed class SenateSystem
             case "foreign_war":
                 lean += ForeignWarLean(w, h, m.TargetId);
                 break;
+            case "foreign_peace":
+                lean += ForeignPeaceLean(w, h, m.TargetId);
+                break;
             case "peace":
                 if (houseId == m.TargetId) lean += 3;
                 else if (w.AtWar(houseId, m.TargetId)) { var war = w.Wars.FirstOrDefault(x => x.Between(houseId, m.TargetId)); lean += war != null && war.Lead(houseId) < 0 ? 1 : -3; }
@@ -209,6 +212,41 @@ public sealed class SenateSystem
         lean += m.Lobby.GetValueOrDefault(houseId);
         return lean;
     }
+
+    /// <summary>How a house leans on a peace with a nation (docs/BEYOND.md, "Whose war"). The Factors want their trade back and the Sword
+    /// its war. One house's own war is nobody else's quarrel. A war going badly, or a long one, is worth ending; one going well is not.
+    /// A house whose world the nation holds will not vote a peace that cedes it, and will vote one that brings it home.</summary>
+    public int ForeignPeaceLean(World w, House h, string nationId)
+    {
+        var n = w.Nation(nationId); if (n == null) return 0;
+        if (n.WarOf == h.Id) return -4;
+        int lean = 0; var party = FactionSystem.Of(w, h.Id);
+        if (party?.PartyId == "sword") lean -= 2; else if (party?.PartyId == "factors") lean += 2;
+        if (n.WarOf.Length > 0) lean += 1;
+        int lead = n.ScoreReach - n.ScoreNation;
+        if (n.BeganIt && Invaded(w, n)) lean -= 2;   // no peace with an invader that leaves it holding what it took
+        if (lead < 0) lean += 1; else if (lead >= 3) lean -= 1;
+        if (w.Turn - n.WarSince >= 8) lean += 1;
+        if (w.Holdings.Values.Any(x => x.IsPlanet && x.OwnerId == n.HouseId && x.FormerOwnerId == h.Id)) lean += lead >= 0 ? 2 : -3;
+        if (Economy.HeadOf(w, h) is { } head && head.CareerTrack == "military" && head.CareerRank >= 2) lean -= 1;
+        return lean;
+    }
+
+    /// <summary>A peace a house would move: one that is not of the war party, when another house is fighting a war of its own beyond the
+    /// Reach, or the Reach's war has run five years and is not being won, or (a house of the Factors) three years.</summary>
+    public string? WantedPeace(World w, House h)
+    {
+        if (Nations.IsEmpty || NationSystem.AtWar(w) is not { } n || NationSystem.PeaceRefusal(w, Nations, n.Id) != null || w.Motions.Any(m => m.Open && m.Kind == "foreign_peace")) return null;
+        var head = Economy.HeadOf(w, h); var party = FactionSystem.Of(w, h.Id);
+        if (n.WarOf == h.Id || party?.PartyId == "sword" || (head != null && head.CareerTrack == "military" && head.CareerRank >= 2)) return null;
+        int years = w.Turn - n.WarSince; bool factors = party?.PartyId == "factors";
+        if (n.BeganIt && Invaded(w, n) && years < 10) return null;   // nobody moves to cede worlds to an invader until the war is ten years old
+        bool wants = n.WarOf.Length > 0 ? years >= (factors ? 2 : 4)   // a house's own war is left to run a while: raiding the border is an old habit
+            : (years >= 5 && n.ScoreReach <= n.ScoreNation) || (factors && years >= 3 && n.ScoreReach - n.ScoreNation < 3);
+        return wants ? n.Id : null;
+    }
+    /// <summary>Whether the nation holds a world of the Reach's that it took in this war.</summary>
+    private static bool Invaded(World w, Nation n) => w.Holdings.Values.Any(x => x.IsPlanet && x.OwnerId == n.HouseId && x.FormerOwnerId.Length > 0 && w.OfTheReach(x.FormerOwnerId));
 
     /// <summary>How a house leans on a war beyond the Reach (docs/FOREIGN_NATIONS.md): the Sword party wants it, the Factors fear for their trade;
     /// a house with fleets to send sees glory, a house at war at home sees none; a nation that raids is hated; one already paying tribute is left be.</summary>
@@ -445,7 +483,7 @@ public sealed class SenateSystem
         if (def.Interest == "emergency" && target != null) EmergencySystem.GrantVoted(w, target, proposer, _offices, passed: true);
         if (def.Interest == "for_life" && target != null) EmergencySystem.ForLifeVoted(w, target, passed: true);
         if (def.Interest == "reconquest" && target != null && Polities != null && PolitySystem.Of(w, target.Id) is { Recognised: > 0 } state) Polities.Reconquer(w, state);
-        if (def.Target == "nation") NationSystem.DeclareWar(w, Nations, m.TargetId, m.ProposerHouseId);
+        if (def.Target == "nation") { if (def.Interest == "foreign_peace") NationSystem.VotePeace(w, Nations, m.TargetId, m.ProposerHouseId); else NationSystem.DeclareWar(w, Nations, m.TargetId, m.ProposerHouseId); }
         if (def.Peace && target != null && _fleets != null)
             foreach (var enemy in w.EnemiesOf(target.Id).ToList()) _fleets.MakePeace(w, target.Id, enemy, terms: false);
         if (def.Office && target != null && _offices.Def(m.OfficeId) is { } office)
@@ -497,6 +535,7 @@ public sealed class SenateSystem
                 Add(w, h.Id, "censure", talkedOf.Id); w.WorldCounters["censures_stirred"] = w.Counter("censures_stirred") + 1;
                 w.Log($"{h.Name} moves a censure of {talkedOf.Name}. It has heard a great deal about that house lately, and has believed it."); return;
             }
+            if (_motions.Def("foreign_peace") != null && WantedPeace(w, h) is { } quiet && !Stale(w, h.Id, "foreign_peace", quiet)) { Add(w, h.Id, "foreign_peace", quiet); w.WorldCounters["foreign_peace_moved"] = w.Counter("foreign_peace_moved") + 1; return; }
             if (_motions.Def("foreign_war") != null && WantedWar(w, h) is { } nation && !Stale(w, h.Id, "foreign_war", nation)) { Add(w, h.Id, "foreign_war", nation); w.WorldCounters["foreign_war_moved:" + nation] = w.Counter("foreign_war_moved:" + nation) + 1; return; }
             if (_motions.Def("commission") != null)
                 foreach (var office in _offices.Defs.Where(o => !o.Elected).OrderBy(o => o.Id, StringComparer.Ordinal))
@@ -566,8 +605,9 @@ public sealed class SenateSystem
             {
                 var tg = CaesarSystem.GeneralOf(w, t)!; int sway = CaesarSystem.Sway(w, tg); var th = Economy.HeadOf(w, t); if (th == null) continue;
                 bool great = CaesarSystem.FirstRank(w, tg) && CaesarSystem.Loved(w, tg, t);   // a commander of the first rank, and loved: the Senate's guardians always move to have that one home
+                bool defies = NationSystem.DefiedBy(w, t.Id) != null;   // a general who fights on against a peace the Senate voted: the chair and the consuls move to have that one home
                 var mover = w.Houses.Values.Where(h => h.Id != t.Id && Can(h) && !Stale(w, h.Id, "recall", t.Id)
-                        && ((w.GetRelationship(Economy.HeadOf(w, h)!.Id, th.Id)?.Disposition ?? 0) <= -30 || ((sway >= CaesarSystem.AlarmSway || great) && (RegionSystem.CapitalHolder(w)?.Id == h.Id || ElectionSystem.IsConsul(w, _offices, h.Id)))))
+                        && ((w.GetRelationship(Economy.HeadOf(w, h)!.Id, th.Id)?.Disposition ?? 0) <= -30 || ((sway >= CaesarSystem.AlarmSway || great || defies) && (RegionSystem.CapitalHolder(w)?.Id == h.Id || ElectionSystem.IsConsul(w, _offices, h.Id)))))
                     .OrderByDescending(h => h.SphereInfluence.GetValueOrDefault("senate")).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (mover != null) { Add(w, mover.Id, "recall", t.Id); w.WorldCounters["recalls_moved"] = w.Counter("recalls_moved") + 1; return true; }
             }
@@ -579,7 +619,7 @@ public sealed class SenateSystem
     public const int PlunderWant = 40, RichAt = 8;
     public string? WantedWar(World w, House h)
     {
-        if (Nations.IsEmpty || NationSystem.AtWar(w) != null || w.Motions.Any(m => m.Open && m.Kind == "foreign_war")) return null;
+        if (Nations.IsEmpty || NationSystem.AtWar(w) != null || w.Motions.Any(m => m.Open && m.Kind == "foreign_war")) return null;   // (a house's own war is left to that house: nobody moves to make it the Reach's but the player)
         var head = Economy.HeadOf(w, h); var party = FactionSystem.Of(w, h.Id); var raider = NationSystem.RaiderOf(w, h.Id, 8);
         bool hawk = party?.PartyId == "sword" || (head != null && head.CareerTrack == "military" && head.CareerRank >= 2) || raider != null;
         if (!hawk || w.Wars.Any(x => x.Involves(h.Id))) return null;

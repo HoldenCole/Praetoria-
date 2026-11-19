@@ -17,7 +17,7 @@ public class ConcordTests
 
     private static (World w, NationSystem ns, FleetSystem fs, Character me, House mine, Nation n, NationDef d) Start(int seed = 7)
     {
-        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), (ulong)seed);
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), (ulong)seed); w.BeyondVaries = false;
         var fs = new FleetSystem(Content.Fleets, Content.Holdings, Content.ShipClasses, Content.Friction); var ns = new NationSystem(Content.Nations, fs);
         NationSystem.Seed(w, Content.Nations);
         foreach (var x in w.Nations) { x.Disposition = 50; if (x.Ruler != null) { x.Ruler.Nature = "mild"; x.Ruler.Age = 30; } }   // nobody raids or dies of age while a test looks at something else
@@ -127,7 +127,7 @@ public class ConcordTests
     [Fact]
     public void TheReachsOwnLife_GoesOnWithoutThem()
     {
-        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 17); var tc = new TurnController(w, Content); var d = Content.Nations.Def("concord")!;
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 17); w.BeyondVaries = false; var tc = new TurnController(w, Content); var d = Content.Nations.Def("concord")!;
         Assert.True(w.Nation("concord")!.OnMap);
         for (int t = 0; t < 25 && !w.IsDynastyDead; t++) { foreach (var i in tc.BeginTurn()) { var c = tc.Offer(i).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(i, c.Choice.Id); } tc.EndTurn(); }
         var n = w.Nation("concord")!;

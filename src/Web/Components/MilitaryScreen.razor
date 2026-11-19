@@ -115,7 +115,7 @@
                         <div class="war abroad-war"><div><b>War with @warAbroad.Name</b> <span class="muted">since turn @warAbroad.WarSince · @(warAbroad.OnMap ? "fought on the map" : warAbroad.Expeditions + " fleet(s) of the Reach in their space") · they hold @warAbroad.Strength hull(s)</span></div>
                             <div class="tally"><span class="for" style="width:@(100 * warAbroad.ScoreReach / tot)%"></span><span class="against" style="width:@(100 * warAbroad.ScoreNation / tot)%"></span></div>
                             <div class="kv"><span>The tally</span><b>@warAbroad.ScoreReach : @warAbroad.ScoreNation <i class="muted">· @warAbroad.Threshold clear subdues them; @warAbroad.Threshold the other way and the chair buys peace</i></b></div>
-                            @if (warAbroad.OnMap) { <div class="muted small">Every house of the Reach is at war with them. Sail to their worlds by the lanes. Their host beaten counts two; a world of the Reach freed, or one of theirs taken, three; their capital, @warAbroad.Capital, ends it. A squadron of the Reach beaten counts one for them and a world occupied three. The house that does most takes the triumph.</div> }
+                            @if (warAbroad.OnMap) { <div class="muted small">@(G.World!.Nation(warAbroad.Id) is { WarOf.Length: > 0 } own ? $"Only {G.World!.House(own.WarOf)?.Name ?? own.WarOf} is at war with them: no other house's fleets will fight theirs, and theirs come only for that house." : "Every house of the Reach is at war with them.") Sail to their worlds by the lanes. A fleet that raids sacks a world in a season and leaves it; one that takes and holds besieges it. Their host beaten counts two; a world of the Reach freed, or one of theirs taken, three; their capital, @warAbroad.Capital, ends it. A squadron of the Reach beaten counts one for them and a world occupied three. The house that does most takes the triumph.</div> }
                             else { <div class="muted small">Each victory abroad brings @warAbroad.Wealth credits of plunder home and a point of valour to a commander at the front; the house whose fleets win most takes the triumph.</div> }</div>
                     }
                     @foreach (var n in nations)
@@ -128,6 +128,17 @@
                             {
                                 <div class="nrow small" title="Taking the world its ruler sits at ends a war with it. @(n.HoldYears > 0 ? $"A world of its own held by a house of the Reach rises again after {n.HoldYears} years without a fleet of three hulls over it, unless the nation is paying tribute." : "A world of its own held by a house of the Reach does not rise: the nation makes war to take it back.")"><span class="muted">Sits at</span> <b>@n.Capital</b><span class="muted"> · holds</span> @n.Worlds</div>
                                 @if (n.Manner.Length > 0) { <div class="nrow small muted">@n.Manner</div> }
+                                @if (n.WhoseWar.Length > 0) { <div class="nrow small warn" title="The Senate votes a war and a peace and directs no fleet. A house may make war on its own account, and may fight on after a peace is voted, at a cost to its name."><span class="muted">Whose war:</span> @n.WhoseWar</div> }
+                                @if (n.Orders != null && n.OnMap && !n.Fallen)
+                                {
+                                    <div class="nrow small">
+                                        @foreach (var o in n.Orders.Where(o => o.Refusal == null || o.Id is "own_war" && !n.AtWar && n.SubduedUntil == 0))
+                                        {
+                                            var oo = o;
+                                            <button class="opt inline tiny" disabled="@(oo.Refusal != null)" title="@(oo.Refusal ?? OrderHint(oo.Id))" @onclick="() => Order(n.Id, oo.Id)">@oo.Label</button>
+                                        }
+                                    </div>
+                                }
                                 @if (n.Fleets.Length > 0) { <div class="nrow small" title="The guard stays with the ruler. The host comes through the march when there is war, takes one world, and goes home with it; it stays home when it is short of supply or not rested."><span class="muted">Its fleets:</span> @n.Fleets</div> }
                                 @if (n.Occupied.Length > 0) { <div class="nrow small warn" title="Held until a house of the Reach frees it or the peace is made. If the Reach wins the war it goes home; if not, it is ceded."><span class="muted">Holds of the Reach's:</span> <b>@n.Occupied</b></div> }
                                 @if (n.Ransom.Length > 0) { <div class="nrow small good" title="A report asks you each year the offer stands: take the money and the world goes home, or keep it."><span class="muted">It offers</span> <b>@n.Ransom</b></div> }
@@ -328,6 +339,27 @@
     private static string JumpWord(int d) => d == 0 ? "at" : d == 1 ? "one jump from" : d + " jumps from";
     private void SetCampaign(ChangeEventArgs e) => _campaign = e.Value?.ToString() ?? "";
     private void MoveWar(string nationId) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, "foreign_war", nationId, G.Turn!.Senate));
+    private static string OrderHint(string id) => id switch
+    {
+        "peace" => "move in the Senate that the Reach make peace with them (2 influence)",
+        "own_war" => "make war on them without a vote: only your house is at war with them, and the Senate may vote that you stop",
+        "obey" => "your fleets come home, and the peace the Senate voted is kept",
+        "defy" => "the war becomes your house's own: it costs your name at once and every year, and the Senate may recall your general",
+        "raid" => "raiding fleets sack a world of a nation's in a season and leave it; fleets that take and hold besiege it and keep it",
+        _ => ""
+    };
+    private void Order(string nationId, string id)
+    {
+        var me = G.World!.ProtagonistId;
+        switch (id)
+        {
+            case "peace": G.Execute(new ProposeMotionCommand(me, "foreign_peace", nationId, G.Turn!.Senate)); break;
+            case "own_war": G.Execute(new RaidNationCommand(me, nationId, G.Content!.Nations)); break;
+            case "obey": G.Execute(new AnswerPeaceCommand(me, true)); break;
+            case "defy": G.Execute(new AnswerPeaceCommand(me, false)); break;
+            case "raid": G.Execute(new RaidPostureCommand(me, !G.World!.HasFlag(NationSystem.PlayerRaidsFlag))); break;
+        }
+    }
     private static string AwayWord(string phase) => phase switch { "fighting" => "fighting", "home" => "homeward", _ => "outward" };
     private static string StanceHelp(string s) => s switch { "press" => "the charge: +15% power, more losses; beats the skirmish, beaten by the line", "skirmish" => "harass and evade: −10% power, far fewer losses; beats the line, beaten by the press", "boarding" => "the press with prize crews: on victory, 2 manpower take a hull per four the enemy lost", _ => "the line: steady; beats the press, beaten by the skirmish" };
     private static string StyleHelp(string s) => s switch { "front" => "+10% to this fleet, the crews' love, a point of valour a victory — and twice the risk of dying with the line", "flag" => "every fleet of the house +3% per point of tactics; never lost with the line; needs the rank of Commander", _ => "the captains fight the ships" };

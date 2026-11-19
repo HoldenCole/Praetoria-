@@ -18,7 +18,7 @@ public class ThessarTests
 
     private static (World w, NationSystem ns, FleetSystem fs, Character me, House mine, Nation n, NationDef d) Start(int seed = 7)
     {
-        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), (ulong)seed);
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), (ulong)seed); w.BeyondVaries = false;
         var fs = new FleetSystem(Content.Fleets, Content.Holdings, Content.ShipClasses, Content.Friction); var ns = new NationSystem(Content.Nations, fs);
         NationSystem.Seed(w, Content.Nations);
         foreach (var x in w.Nations) { x.Disposition = 50; if (x.Ruler != null) { x.Ruler.Nature = "mild"; x.Ruler.Age = 30; } }   // nobody raids, nobody dies of age, and no Speaker is warlike unless a test says so
@@ -127,7 +127,7 @@ public class ThessarTests
     [Fact]
     public void TheRansom_IsAskedByAReport_AndTheAnswerIsCarriedOut_InARealGame()
     {
-        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 7); var tc = new TurnController(w, Content);
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 7); w.BeyondVaries = false; var tc = new TurnController(w, Content);
         var mine = w.House(w.Protagonist!.HouseId)!; var n = w.Nation("thessar")!; var d = Content.Nations.Def("thessar")!; int sum = NationSystem.RansomPerWealth * d.Wealth;
         NationSystem.DeclareWar(w, Content.Nations, "thessar", mine.Id); Hold(w, "pellas_city", mine.Id); Post(w, "g", mine.Id, "pellas", 4); n.ScoreReach = NationSystem.SuesAt(n, d);
         bool asked = false; int before = 0;
@@ -197,7 +197,7 @@ public class ThessarTests
     [Fact]
     public void AHouseShortOfMoney_ThatWantsAWar_NamesTheCities_WhenNobodyHasGivenABetterReason()
     {
-        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 7); var tc = new TurnController(w, Content);
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 7); w.BeyondVaries = false; var tc = new TurnController(w, Content);
         var mine = w.House(w.Protagonist!.HouseId)!; var h = Other(w, mine); var head = Economy.HeadOf(w, h)!; head.CareerTrack = "military"; head.CareerRank = 3;
         foreach (var x in w.Wars.ToList()) w.Wars.Remove(x);
         foreach (var x in w.Nations) x.Disposition = 20;                                                      // nobody hostile, nobody raiding
@@ -215,7 +215,7 @@ public class ThessarTests
     [Fact]
     public void TheReachsOwnLife_GoesOnWithoutThem_AndAnOlderGameIsBroughtForward()
     {
-        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 13);
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 13); w.BeyondVaries = false;
         // an older game: the Khanates on the map already, the Cities not yet
         NationSystem.Seed(w, Content.Nations); var n = w.Nation("thessar")!;
         foreach (var h in w.HoldingsOf(Hid).ToList()) w.Holdings.Remove(h.Id); foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == Hid).ToList()) w.Fleets.Remove(f.Id);

@@ -17,7 +17,7 @@ public class NationTests
     private static NationSystem Nations(FleetSystem fs) => new(Content.Nations, fs);
     private static SenateSystem Senate(FleetSystem fs) => new(Content.Motions, Content.Titles, fs, Content.Offices) { Policies = Content.Policies, Nations = Content.Nations };
     private static Fleet At(World w, string id, string owner, string sys, int hulls, string admiral = "") { var f = new Fleet { Id = id, Name = id, OwnerId = owner, SystemId = sys, Strength = hulls, AdmiralId = admiral }; w.Fleets[id] = f; return f; }
-    private static World Seeded(int unrest = 0) { var w = Rings(unrest); w.Turn = 1; NationSystem.Seed(w, Content.Nations); return w; }
+    private static World Seeded(int unrest = 0) { var w = Rings(unrest); w.Turn = 1; w.BeyondVaries = false; NationSystem.Seed(w, Content.Nations); return w; }
 
     [Fact]
     public void TheNationsLoad_AndAreSeededIntoTheWorld()

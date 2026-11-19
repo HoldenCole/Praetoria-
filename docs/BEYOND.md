@@ -8,7 +8,8 @@ Free Cities of Thessar next." **The Free Cities are on the map** too, and are a 
 Free Cities of Thessar on the map, as built"). Then: "Add the Ardent Concord next." **The Ardent Concord is on the
 map**, and is the strong one (see "The Ardent Concord on the map, as built"). Then: "Add the Outer Compact and the
 Hollow Crown next." **All five nations are on the map** (see "The Outer Compact and the Hollow Crown on the map, as
-built"). Stages 3 and 4 are a plan. The older rules in docs/FOREIGN_NATIONS.md (expeditions that leave the map) are
+built"). Then the owner answered the first seven decisions, on the map and on war, and they are **built** (see "Whose
+war, and how it is fought"). Stages 3 and 4 are a plan. The older rules in docs/FOREIGN_NATIONS.md (expeditions that leave the map) are
 kept in the engine for a map drawn without a nation's worlds, and no shipped nation uses them. Everything that is the
 owner's to decide is in one list at the end.
 
@@ -557,6 +558,132 @@ wins about as many wars as it loses, and cedes a world in about one war in three
 The threat from beyond the galaxy's edge (the design's late crisis), and anomalies and archaeology. Both want the map
 to have an edge, which stage 2 gives it.
 
+## Whose war, and how it is fought
+
+Built 2026-11-19 from the owner's answers to decisions 1 to 7. What was said is quoted in the list at the end; this is
+what it became.
+
+### No two games have the same neighbours
+
+- **Each nation's strength is fixed when a game begins**, from that game's dice: between four-fifths and six-fifths
+  of what is written for it. The Khanates are 11 to 17 hulls, the Concord 21 to 31.
+- **A setting on the new-game screen, "The powers beyond"**: gentle (a fifth weaker), as written, or harsh (a quarter
+  stronger). It multiplies with the dice. Luck stays in every battle whatever is chosen.
+- This is one slider, and it moves strength only. More are wanted later (decision 5).
+
+### A nation can attack: the great ruler
+
+The Concord already began its own wars. Now any nation whose definition names a great title can, under such a ruler.
+
+- **The Khanates are raiders until a Great Khan is raised.** A Khan of Khans, however he hates the Reach, begins no
+  war: his host comes through the march when the Senate has voted one, takes a world, and goes home.
+- **A Great Khan comes two ways.** One accession in eight raises one. And a warlike Khan who beats the Reach in a war
+  is acclaimed.
+- **What changes under him.** The khanates are one host: half as many hulls again, mustered every year. He begins
+  wars himself, three years after he is raised and eight years after any war. His host stays in the field and takes
+  world after world, two lanes deeper than a raid goes. Because he began it, every house answers, and any house may
+  take worlds of the Steppe and keep them.
+- **When he dies** his successor is a Khan of Khans again, unless another is raised. What the host took it still
+  holds.
+- **The Hollow Crown has the same door**: one accession in twelve gives it a Basileus, under whom it stops decaying,
+  builds, and makes war for what it lost.
+- **The Free Cities and the Outer Compact never begin a war**: one buys, the other never leaves home. That is one
+  line of content each if it should change.
+- A report warns when a great ruler is raised, another when he strikes, another when he dies.
+
+### Houses raid; they conquer only when the nation attacked first
+
+- **In a war the nation did not begin**, a house of the Reach other than yours **sacks** a world of the nation's and
+  goes home. A sack takes a season (longer behind the Compact's walls), pays what taking the world would, counts two
+  in the war where taking counts three, and leaves the world the nation's. It is not worth sacking again for six
+  years.
+- **In a war the nation began**, the same house takes the world and holds it.
+- **Your house does as you order.** It takes and holds until you tell it to raid; the order is on every nation's
+  card.
+- A world of the Reach's that a nation holds is never sacked: it is freed.
+
+### Whose war it is
+
+The Senate votes a war and directs nothing: no fleet is ordered anywhere and nobody is given the command. Three
+things follow from that, and all three are built.
+
+1. **A house may make war on its own account.** No vote. Only that house is at war with the nation: nobody else's
+   fleets fight, and the nation's come only for that house. It needs a fleet of three hulls, the nation must not be
+   paying the Reach tribute, and there is still one war beyond the Reach at a time. Other houses do this too: a
+   house of the war party, short of money, with a fleet and a world near the march, one year in eight.
+2. **The Senate may vote peace**, with any nation the Reach or a house is at war with. It ends nothing by itself:
+   those carrying the war (the house whose war it is, or any house with a fleet in the nation's space) are told and
+   have a year to answer. If they come home the peace is made: whoever is ahead keeps what they hold, nobody pays
+   tribute, nobody triumphs.
+3. **A general may not listen.** You are asked by a report: come home, or fight on. Another house fights on when its
+   general has a great name, or the war is its own and its head is ambitious, ruthless or proud; and only while the
+   war is not being lost. Then it is that house's war alone. It costs the house 6 standing at once and 2 every year.
+   The Senate may vote to recall its general whatever his name is worth, and the chair and the consuls move it. A
+   recall refused is the road the Republic already knows (docs/CAESAR.md). The house comes home when it is losing,
+   when it has nothing left to fight with, after six years, or when you say so.
+
+The Senate may also make a house's own war the Reach's, by voting war on that nation.
+
+**How the benches lean on a peace.** The Factors for, the Sword against. One house's own war is nobody else's
+quarrel. A war going badly or a long one is worth ending. Nobody moves to cede worlds to an invader until the war is
+ten years old. A house whose world the nation holds votes for a peace that brings it home and against one that cedes
+it.
+
+### On the map
+
+- **A conquered world is marked**: a broken ring in the holder's colour, on the Galaxy screen and in its legend. It
+  is drawn for a world of the Reach's that a nation has taken or been ceded, and for a world of a nation's that a
+  house holds. The world's card says which, and whether freeing it gives it back.
+- **A house whose lands are all conquered is not conquered.** It goes on while one of it lives, with its fleets, its
+  purse and its seat. This was so already; it is tested now.
+- **The map is as it was.** The owner wants a far larger one later, filling the screen and scrolled across, for the
+  day the nations are conquered in earnest. That is N20 in docs/GAPS.md, and is not begun.
+
+### Measured
+
+60 unattended games of 60 years each; the player gives no orders, so every figure is what the other houses and the
+nations do with these rules.
+
+| | Concord | Khanates | Hollow Crown | Free Cities | Compact |
+|---|---|---|---|---|---|
+| Wars | 95 | 51 | 19 | 4 | 0 |
+| Begun by the nation | 73 | 18 | 8 | 0 | 0 |
+| Made by a house on its own account | 0 | 3 | 11 | 4 | 0 |
+| Won by the Reach; lost | 26; 23 | 15; 8 | 5; 2 | 0; 0 | |
+| Ended by a peace the Senate voted | 26 | 16 | 9 | 2 | |
+| Great rulers raised | | 24 (3 acclaimed) | 9 | | |
+| Its worlds sacked; taken | 8; 43 | 37; 14 | 8; 1 | 0; 0 | |
+| Worlds of the Reach ceded to it | 76 | 12 | 5 | 0 | |
+
+- **A Great Khan was raised in about one game in three**, and began 18 wars. The Reach lost 8 wars to the Khanates
+  and ceded 12 worlds, five of them still theirs at the end.
+- **Houses raid.** 45 worlds of the Khanates and the Crown were sacked. The 57 that were taken were nearly all taken
+  in wars the nation began (the Concord's, and a Great Khan's).
+- **Houses make their own wars**: 18 in sixty games, mostly on the Hollow Crown, which is rich and weak. The four on
+  the Free Cities came to nothing: two were bought off and two stopped by the Senate before a fleet arrived.
+- **The Senate voted peace 54 times and the peace was made 53 times.** One general did not listen, and came home.
+- **The cost of the peace vote**: worlds ceded to the Concord rose from 55 to 76. The Senate now ends some wars it
+  is losing, and whoever is ahead keeps what they hold. That is decision 18.
+- **No house goes for the Compact**, and no house has taken any nation's capital.
+- About 22 battles a game (24 before: raids fight less than sieges). The Reach is "in danger" in three years in
+  five, as before. The Republic stood in all 60.
+
+With a war voted on the Khanates every twenty years (60 games): 119 wars; 84 of their worlds sacked and 41 taken;
+the Reach won 35 and lost 21, and 49 ended in a voted peace; 16 warlike Khans were acclaimed after winning, which is
+decision 16. The same on the Hollow Crown: 128 wars; 52 sacked, 20 taken; won 29, lost 13, 67 ended in a voted
+peace; its capital was never taken.
+
+**What this left out.**
+- **Raiding is one order for all your fleets**, not one fleet's stance.
+- **One war beyond the Reach at a time** still: a house's own raid holds the place the Senate's war or a nation's
+  strike would have.
+- **A voted peace has no terms.** Whoever is ahead keeps what they hold. Nobody negotiates a world, a sum or a
+  hostage.
+- **Defiance costs standing and risks a recall.** It is not a crime anyone is tried for, and it does not make a
+  house an enemy of the Reach.
+- **A nation does not tell one house from another** when it answers: in the Reach's war it comes for the nearest
+  world, whoever raided it.
+
 ## What is yours to decide
 
 Three nations were built on assumptions, as the owner asked ("then we can figure out the details"; "after we add the
@@ -565,30 +692,36 @@ do, and what turns on it. Each can be changed without rebuilding the rest.
 
 **The map**
 
-1. **All five nations are on the map** (decided by the owner, 2026-11-19). What remains of this question: the old
-   kind of war, an expedition that leaves the map, is used by no shipped nation now. *I would keep it in the engine*
-   for a map drawn without a nation's worlds, and take its button off the screens.
-2. **Can the Reach lose worlds for good?** Built as yes: a world a nation holds at a lost peace is ceded, and can be
-   taken back in the next war.
-3. **Can the player's own house be conquered?** Built as yes: its worlds are taken like anyone's, a freed world
-   comes home, and a house with no world left goes on landless.
+1. **The map.** *Answered 2026-11-19:* "for now we can leave the other nations off screen and their interactions
+   will be done, but eventually we need to expand the map to make it very large ... where it takes up the entire
+   screen and you have to scroll around to see everything. Because eventually you are going to want to conquer the
+   other nations and that would show up on the map." **Kept as built**: the five nations stay where they are and
+   work. The large scrolled map is N20, not begun. (I read "off screen" as "no more map work now"; if you meant the
+   nations should come off the map again, say so and it is a content change.)
+2. **Can the Reach lose worlds?** *Answered:* "Yes ... and those would show up as conquered on the map and then you
+   can conquer them again just like any kind of grand strategy game." **Built**: lost and retaken as before, and now
+   marked on the map.
+3. **Can your house be conquered?** *Answered:* "the lands and assets your house controls can be conquered, but your
+   house itself is not conquered because it is still alive as long as a member is still alive. And then of course
+   you can control things outside of the conquered area." **Built as that, and tested.**
 
 **War**
 
-4. **Should a nation begin a war?** Built: the Concord does (when the Reach is divided, or to take back its own);
-   the Khanates and the Free Cities never do. *I would leave the Khanates as raiders*, but it is one switch in the
-   content if you want them to strike too.
-5. **How hard should each be, and how much war do you want?** The measured figures are in each nation's section. In
-   short, from the last run of sixty games: against the Khanates the Reach wins about as many wars as it loses (it
-   looked like four in five earlier; see the note in the last section); wars with the Free Cities are won or bought
-   off; against the Concord it wins as many as it loses, and the lost ones cost it worlds; the Compact beats off
-   more than half of what is sent at it; the Crown loses its worlds and keeps its capital. The Concord doubled the
-   battles in a game. No house but the player's has ever taken a nation's capital. Each of these is a number or two in the
-   content.
-6. **Should any house but yours make war on the Free Cities?** Built: none does. They are friendly and do not raid,
-   and a war for plunder is almost never moved. Say how often you want the war party to go looking for one.
-7. **Should the Senate direct a war it votes?** Built: it votes and directs nothing. Houses go by their own lights.
-   A command given to a person (your R1) would start here.
+4. **Should a nation begin a war?** *Answered:* "other nations should be able to attack and I think the khanates
+   should start as raiders and then they can try to take over just like if they get some sort of great khan."
+   **Built**: the great ruler (above). The Khanates and the Hollow Crown can have one; the Concord strikes as
+   before; the Free Cities and the Compact never do.
+5. **How hard should each be?** *Answered:* "a bit of RNG because it'll be different each game, but we eventually
+   do need some difficulty sliders in there. And just like real war, even if you have it on easy or hard, there
+   were still a bit of randomness and luck to it." **Built**: each nation's strength varies by the game, and one
+   setting scales them. More sliders are not built (N24).
+6. **Should other houses make war on a nation?** *Answered:* "other houses can declare war but more like raiding
+   wars, and they would only conquer something if an opposing nation attacks them first and start a war." **Built**:
+   houses make war on their own account and sack; they take worlds only in a war the nation began.
+7. **Should the Senate direct a war?** *Answered:* "The Senate should not direct a war. They can vote on it and they
+   can even vote to try to have peace, but then a general or somebody can choose not to listen to them, but that
+   runs the risk of going against the republic." **Built**: the peace vote, the answer, and what not listening
+   costs.
 
 **What is taken**
 
@@ -615,6 +748,16 @@ do, and what turns on it. Each can be changed without rebuilding the rest.
     comes with it: taking the Crown makes you rich, and heir to nothing.
 15. **Should anyone but you go for the Compact or the Crown?** Built: as with the Free Cities, almost never. The
     measured figures are in their section.
+
+**From building your answers** (each is a number in the content or one rule)
+
+16. **How often should a Great Khan come?** Built: one accession in eight, which is a Great Khan in about one game
+    in three; and any warlike Khan who beats the Reach is acclaimed.
+17. **Should the Free Cities or the Outer Compact ever attack?** Built: never.
+18. **What should a voted peace cost?** Built: nothing. Whoever is ahead keeps what they hold. Worlds ceded to the
+    Concord rose from 55 to 76 in sixty games, because the Senate now ends some wars it is losing.
+19. **How much should defying the Senate cost?** Built: 6 standing, 2 a year, and a recall the Senate can always
+    vote. Other houses defied once in sixty games.
 
 ## What it opens
 

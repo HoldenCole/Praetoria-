@@ -25,6 +25,8 @@
       "description": "{proposer} petition the Senate: that {law} be {option} throughout the Reach. If the chamber turns them away, every house they already distrust will feel it." },
     { "id": "foreign_war", "name": "War Beyond the Reach", "target": "nation", "interest": "foreign_war", "proposeInfluence": 3,
       "description": "{proposer} moves that the Reach make war upon {target}, and that every house with a fleet send it." },
+    { "id": "foreign_peace", "name": "Peace Beyond the Reach", "target": "nation", "interest": "foreign_peace", "proposeInfluence": 2,
+      "description": "{proposer} moves that the Reach make peace with {target}, and that every fleet beyond the rim be told to come home." },
     { "id": "breakup", "name": "Breaking of a Company", "target": "house", "interest": "breakup", "proposeInfluence": 3, "breakup": true,
       "description": "{proposer} moves that the Senate break up the greatest company {target} directs: its ventures sold off, its holders paid what the sale fetches." },
     { "id": "rescue", "name": "Rescue of the Exchange", "target": "none", "interest": "rescue", "proposeInfluence": 3, "rescue": true,

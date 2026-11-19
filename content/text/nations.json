@@ -373,6 +373,78 @@
         "say_what_it_will_cost": "Tell the Senate what lies between.",
         "say_the_fields_are_worth_it": "Say the fields are worth it."
       }
+    },
+    {
+      "id": "a_great_khan",
+      "title": "A Great Khan",
+      "body": "Word from the Steppe: the khanates have raised one man over all of them, and call him Great Khan. Until now they raided: one world, and home with it. A Great Khan musters half as many hulls again, begins his own wars, and keeps what his host takes, world after world. He will need about three years to gather it.",
+      "choices": {
+        "warn_the_senate": "Tell the Senate what is coming.",
+        "see_to_the_house": "See to your own fleets."
+      }
+    },
+    {
+      "id": "the_great_khan_comes",
+      "title": "The Host Comes to Stay",
+      "body": "The Great Khan has made war on the Reach. Nobody voted it: he began it. His host does not go home with one world this time. It stays in the field and takes the next, and the next, until it is beaten. Because he began it, any house may take worlds of the Steppe in answer, and keep them.",
+      "choices": {
+        "call_every_house": "Call on every house to answer it.",
+        "hold_what_is_ours": "Hold what is yours."
+      }
+    },
+    {
+      "id": "the_great_khan_is_dead",
+      "title": "The Great Khan Is Dead",
+      "body": "The Great Khan of the Vashti is dead. Whoever follows him is a Khan of Khans, first among raiders, unless the khanates raise another. Their host goes home with one world again.",
+      "choices": {
+        "mark_it": "Have it noted.",
+        "give_thanks": "Give thanks."
+      }
+    },
+    {
+      "id": "a_basileus",
+      "title": "A Basileus at Porphyra",
+      "body": "The Hollow Crown has a ruler who has taken the old title, Basileus, and means it. Under him the Crown stops striking hulls from its lists and builds them; it will make war to take back what it has lost, and its fleet will not sit at home. It lasts as long as he does.",
+      "choices": {
+        "warn_the_senate": "Tell the Senate.",
+        "wait_him_out": "Wait him out."
+      }
+    },
+    {
+      "id": "the_senate_votes_peace",
+      "title": "The Senate Votes Peace",
+      "body": "The Senate has voted peace beyond the Reach, and your fleets are in the field. It can order no fleet home: it has told you, and waits for your answer. Come home and the peace is made. Fight on and the war is your house's own: no other house is at war, your house's standing falls at once and every year it lasts, and the Senate may vote to recall whoever commands for you.",
+      "choices": {
+        "come_home": "Come home.",
+        "fight_on": "Fight on, against the Senate's word."
+      }
+    },
+    {
+      "id": "a_general_does_not_listen",
+      "title": "A General Does Not Listen",
+      "body": "The Senate voted peace, and one house fights on. It is that house's war now and nobody else's. It costs the house its standing every year, and the Senate may vote to recall its general, whatever his name is worth.",
+      "choices": {
+        "speak_for_recall": "Say he should be recalled.",
+        "let_him_win_it": "Let him win it if he can."
+      }
+    },
+    {
+      "id": "a_house_makes_its_own_war",
+      "title": "A War Nobody Voted",
+      "body": "A house of the Reach has made war on a neighbour beyond the rim on its own account. The Senate voted nothing. Only that house is at war: it will sack what it can and come home. The Senate may vote that it stop, and it may or may not listen.",
+      "choices": {
+        "call_it_piracy": "Call it what it is.",
+        "wish_them_luck": "Wish them luck."
+      }
+    },
+    {
+      "id": "the_sack",
+      "title": "The Sack",
+      "body": "Your fleet has sacked a world beyond the rim. It took a season. The world is still theirs, and will not be worth sacking again for six years; what it held is yours, and it counts in the war.",
+      "choices": {
+        "share_it_out": "Share it with the crews.",
+        "bank_it": "Bank it."
+      }
     }
   ]
 }

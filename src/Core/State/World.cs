@@ -39,6 +39,11 @@ public sealed class World
     /// <summary>GDD §20 "crisis intensity": off / low / default / dominant — how fast the Great Crisis clock runs.</summary>
     public string CrisisIntensity { get; set; } = "default";
 
+    /// <summary>How strong the nations beyond the Reach are in this game: "gentle", "default" or "harsh" (docs/BEYOND.md).</summary>
+    public string Beyond { get; set; } = "default";
+    /// <summary>Whether each nation's strength is varied by this game's dice, so no two games have the same neighbours.</summary>
+    public bool BeyondVaries { get; set; } = true;
+
     /// <summary>The character the player currently inhabits — bound to the "self" role every event.</summary>
     public string ProtagonistId { get; set; } = "";
 
@@ -65,8 +70,9 @@ public sealed class World
     {
         var list = Wars.Where(w => w.Involves(houseId)).Select(w => w.Other(houseId));
         // a nation on the map that the Reach is at war with is the enemy of every house of the Reach, and they of it, without a war for each pair (docs/BEYOND.md)
-        if (NationOfHouse(houseId) is { AtWar: true }) list = list.Concat(Houses.Values.Where(h => OfTheReach(h.Id)).Select(h => h.Id));
-        else if (OfTheReach(houseId)) list = list.Concat(Nations.Where(n => n.AtWar && n.OnMap).Select(n => n.HouseId));
+        // (unless the war is one house's own: then only that house and the nation are enemies)
+        if (NationOfHouse(houseId) is { AtWar: true } theirs) list = list.Concat(Houses.Values.Where(h => OfTheReach(h.Id) && (theirs.WarOf.Length == 0 || theirs.WarOf == h.Id)).Select(h => h.Id));
+        else if (OfTheReach(houseId)) list = list.Concat(Nations.Where(n => n.AtWar && n.OnMap && (n.WarOf.Length == 0 || n.WarOf == houseId)).Select(n => n.HouseId));
         return list.Distinct().OrderBy(h => h, StringComparer.Ordinal);
     }
     /// <summary>The nation a house stands for on the map, if it is one's.</summary>
@@ -78,7 +84,7 @@ public sealed class World
     public static bool Outsider(string? houseId) => houseId == "pirates" || (houseId != null && State.Nation.IsHouse(houseId));
     /// <summary>A house of the Reach: not the raiders, not a nation's, and not gone into a state of its own.</summary>
     public bool OfTheReach(string houseId) => houseId != "pirates" && !Foreign(houseId) && House(houseId) is { PolityId.Length: 0 };
-    private bool NationWar(string nationHouse, string other) => NationOfHouse(nationHouse) is { AtWar: true } && OfTheReach(other);
+    private bool NationWar(string nationHouse, string other) => NationOfHouse(nationHouse) is { AtWar: true } n && OfTheReach(other) && (n.WarOf.Length == 0 || n.WarOf == other);
 
     /// <summary>The protagonist house's reported picture of rival fleets, keyed by fleet id (GDD §19 mixed visibility).</summary>
     public Dictionary<string, FleetIntel> Intel { get; set; } = new();

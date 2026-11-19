@@ -223,6 +223,7 @@ public sealed class CaesarSystem
         var g = GeneralOf(w, target); if (g == null) return $"nobody of {target.Name} commands a fleet";
         if (w.Recalls.Any(r => r.HouseId == target.Id)) return $"{g.Name} is under recall already";
         int s = Sway(w, g);
+        if (NationSystem.DefiedBy(w, target.Id) != null) return null;   // fighting on against a peace the Senate voted is cause enough, whatever the name
         return s >= RecallSway ? null : $"{g.Name} has not the sway to trouble the Senate ({s} of {RecallSway})";
     }
 
@@ -238,6 +239,7 @@ public sealed class CaesarSystem
         if (sway >= 70) lean += 1;
         if (FleetSystem.StrengthOf(w, target.Id) > 2 * Math.Max(1, FleetSystem.StrengthOf(w, h.Id))) lean -= 1;                // and some do not dare
         if (h.PatronId == target.Id) lean -= 2;
+        if (NationSystem.DefiedBy(w, target.Id) != null) lean += 3;   // the Senate voted peace and was not listened to
         return lean;
     }
 
@@ -265,6 +267,7 @@ public sealed class CaesarSystem
         w.WorldCounters[BarredKey(g.Id)] = w.Turn + BarredYears; g.Stress = Math.Min(100, g.Stress + 10);
         house.Legitimacy = Math.Clamp(house.Legitimacy + (late ? -6 : 4), 0, 100);
         LifeSystem.Note(w, g, "recall", "Was recalled by the Senate, and came home.");
+        NationSystem.CameHome(w, house.Id);   // and if the house was fighting on against a peace the Senate voted, that war is over
         if (ordered && g.Id != w.ProtagonistId && w.Protagonist is { } head && CourtshipSystem.Wilful(g)) { var r = w.Relationship(g.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition - 15, -100, 100); }
         if (house.Id == mine) Mark(w, ObeyedFlag);
         w.Log(late ? $"The Senate's officers take the command from {g.Name} of {house.Name}, who had not answered the recall. It is not forgotten."
