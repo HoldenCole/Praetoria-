@@ -604,6 +604,14 @@ public static class CourtProjection
     private static string GreatLine(Nation n, NationDef d) => !NationSystem.Great(n) ? ""
         : $"{NationSystem.Styled(d, n.Ruler, true)} has made it one host: it begins wars itself, three years after the acclamation and every {NationSystem.GreatRest} after a war; its host stays in the field and takes world after world, {NationSystem.GreatReach} lanes deeper; it musters {NationSystem.Cap(n, d)} hulls, half as many again. ";
 
+    /// <summary>What one of the great would make of this nation, and how often one comes in this game.</summary>
+    private static string GreatHint(Nation n, NationDef d) => d.GreatOneIn <= 0 || d.GreatTitle.Length == 0 || NationSystem.Great(n) ? ""
+        : $" Under a {d.GreatTitle} it would begin its own wars and come to conquer: one is raised at about one accession in {Math.Max(2, NationSystem.ByBoldness(n, d.GreatOneIn))}, or acclaimed when a warlike ruler beats the Reach.";
+    /// <summary>A treaty that stands between the Reach and this nation: a client's, or the tribute the Reach pays it.</summary>
+    private static string TreatyLine(World w, Nation n, NationDef d) =>
+        n.Vassal ? $" A client of the Reach{(w.House(n.PatronId) is { } patron ? $", under {patron.Name}" : "")}: it pays {d.Tribute} credits a year to the chair{(w.House(n.PatronId) != null ? $" and {NationSystem.ClientShare(d)} to its patron" : "")}, raids nobody and wars with nobody, until a warlike ruler with its fleets rebuilt throws the treaty off."
+        : n.PaidUntil > w.Turn ? $" The Reach pays it {d.Tribute} credits a year until T{n.PaidUntil}: the price of a war lost." : "";
+
     private static MilitaryCard BuildMilitary(World w, Character p, House house, FleetSystem fs, FleetRules rules, CommandContext ctx, NationCatalog nations, SenateSystem senate)
     {
         using var perf_ = Perf.Time("proj:BuildMilitary");
@@ -629,20 +637,21 @@ public static class CourtProjection
                     : d.Strikes ? $"Begins wars itself: when the Reach is divided and it has no love for it, or to take back a world of its own. {(d.Hosts > 1 ? $"{d.Hosts} fleets come through its marches" : "Its fleet comes through its march")}{(d.Campaigns ? " and stay in the field, taking world after world" : "")}. What it takes it keeps until it is beaten; its own worlds do not rise, it comes back for them. A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
                     : d.Sorties == "never" ? $"Fights only when invaded: its fleets never leave home. Hull for hull they fight at {NationSystem.MettleOf(d)} in a hundred of a fleet of the Reach's{(d.Walls > 0 ? $", and its worlds take {d.Walls} years longer to reduce" : "")}. {(d.Yields.Count > 0 ? $"Each of its worlds gives the house that holds it {string.Join(" and ", d.Yields.OrderBy(k => k.Key, StringComparer.Ordinal).Select(k => $"{k.Value} {k.Key}"))} a year. " : "")}A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
                     : d.Temper == "decaying" ? $"An empire in decay: it strikes a hull from its lists every ten years, replaces none, and does not come back for a world it loses. Its fleets fight at {NationSystem.MettleOf(d)} in a hundred of a fleet of the Reach's. {(n.Treasure > 0 ? $"Its capital holds {n.Treasure} credits{(n.Regalia.Length > 0 ? $" and {n.Regalia}" : "")} for whoever takes it first. " : "Its vaults have been opened. ")}{(NationSystem.ComesOut(n, d) ? "Its ruler is warlike: its fleet will come through the march. " : "")}A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
-                    : $"{(NationSystem.Great(n) ? "" : NationSystem.ComesOut(n, d) ? "Its host comes through the march in a war, takes one world, and goes home with it. " : "Its host stays at home. ")}{(d.GreatOneIn > 0 && !NationSystem.Great(n) ? $"Raiders, until a {d.GreatTitle} is raised over them: then they come to conquer. " : "")}A fleet of its beaten pays {d.Wealth} credits, a world taken or sacked {NationSystem.PlunderPerWorld * d.Wealth}."),
+                    : $"{(NationSystem.Great(n) ? "" : NationSystem.ComesOut(n, d) ? "Its host comes through the march in a war, takes one world, and goes home with it. " : "Its host stays at home. ")}A fleet of its beaten pays {d.Wealth} credits, a world taken or sacked {NationSystem.PlunderPerWorld * d.Wealth}.") + GreatHint(n, d) + TreatyLine(w, n, d),
                 n.OnMap ? string.Join(", ", d.Worlds.Where(x => w.Counter(NationSystem.RansomKey(x.Id)) > 0).Select(x => $"{NationSystem.RansomPerWealth * d.Wealth} credits for {x.Name}, until T{w.Counter(NationSystem.RansomKey(x.Id)) + NationSystem.RansomWaits}")) : "",
                 n.OnMap && NationSystem.Buys(d) && n.Subdued(w.Turn) ? (NationSystem.Watched(w, d) ? "watched: the tribute comes" : $"not watched: {w.Counter(NationSystem.UnwatchedKeyOf(n))} of {NationSystem.UnwatchedYears} years, then it stops paying") : "",
                 // whose war it is (docs/BEYOND.md, "Whose war"), and what the player may do about it without waiting on anyone
-                !n.AtWar ? "" : n.Defied ? $"{w.House(n.WarOf)?.Name ?? n.WarOf}'s war, against a peace the Senate voted: it costs that house {NationSystem.DefyYearly} standing a year"
+                !n.AtWar ? "" : (n.Defied ? $"{w.House(n.WarOf)?.Name ?? n.WarOf}'s war, against a peace the Senate voted: it costs that house {NationSystem.DefyYearlyCost(NationSystem.Leeway(w, w.House(n.WarOf)))} standing a year"
                     : n.PeaceVoted > 0 ? "The Senate has voted peace: those in the field are answering"
                     : n.WarOf.Length > 0 ? $"{w.House(n.WarOf)?.Name ?? n.WarOf}'s own war: the Senate voted nothing, and no other house is at war"
-                    : n.BeganIt ? "The Reach's war: they began it, and every house may take what it can" : "The Reach's war, voted by the Senate: other houses raid and take nothing",
+                    : n.BeganIt ? "The Reach's war: they began it, and every house may take what it can" : "The Reach's war, voted by the Senate: other houses raid and take nothing") + ". " + NationSystem.PeaceNow(w, n, d, house.Id),
                 new List<Option>
                 {
                     new Option("peace", "Move for peace", senate.Motions.Def("foreign_peace") == null ? "no such motion" : new ProposeMotionCommand(p.Id, "foreign_peace", d.Id, senate).Refusal(ctx)),
                     new Option("own_war", "Make war on your own account", new RaidNationCommand(p.Id, d.Id, nations).Refusal(ctx)),
                     new Option("obey", "Come home: keep the Senate's peace", !n.AtWar || !(n.PeaceVoted > 0 || n.Defied) ? "no peace is voted" : new AnswerPeaceCommand(p.Id, true).Refusal(ctx)),
-                    new Option("defy", "Fight on, against the Senate's word", !n.AtWar || n.PeaceVoted <= 0 ? "no peace is voted" : new AnswerPeaceCommand(p.Id, false).Refusal(ctx)),
+                    new Option("defy", $"Fight on, against the Senate's word ({NationSystem.DefyCost(NationSystem.Leeway(w, house))} standing now, {NationSystem.DefyYearlyCost(NationSystem.Leeway(w, house))} a year: your commander is {NationSystem.LeewayName(NationSystem.Leeway(w, house))})", !n.AtWar || n.PeaceVoted <= 0 ? "no peace is voted" : new AnswerPeaceCommand(p.Id, false).Refusal(ctx)),
+                    new Option("client", w.HasFlag(NationSystem.PlayerClientsFlag) ? "Beaten decisively, you would make it a client: say you would keep what you take" : "Beaten decisively, you would keep what you take: say you would make it a client", !n.OnMap ? "not on the map" : null),
                     new Option("raid", w.HasFlag(NationSystem.PlayerRaidsFlag) ? "Your fleets raid: order them to take and hold" : "Your fleets take and hold: order them to raid", !n.OnMap ? "not on the map" : null),
                 });
         }).ToList();

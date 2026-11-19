@@ -45,6 +45,27 @@ public sealed class RaidPostureCommand : ICommand
     }
 }
 
+/// <summary>What the player's house wants of a nation it has beaten decisively: to keep what it took, or to make the nation a client.</summary>
+public sealed class PeacePostureCommand : ICommand
+{
+    private readonly bool _client;
+    public PeacePostureCommand(string actorId, bool client) { ActorId = actorId; _client = client; }
+    public string ActorId { get; }
+    public string Describe() => _client ? "make clients of the nations you beat" : "keep what you take of the nations you beat";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        if (actor.Id != w.ProtagonistId) return "the choice is yours to make";
+        return w.HasFlag(NationSystem.PlayerClientsFlag) == _client ? "that is your word already" : null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        if (_client) ctx.World.WorldFlags.Add(NationSystem.PlayerClientsFlag); else ctx.World.WorldFlags.Remove(NationSystem.PlayerClientsFlag);
+        ctx.World.Log(_client ? "Your word is given: a nation your fleets beat decisively is to be left its ruler and its worlds, and made a client of the Reach and of your house." : "Your word is given: what your fleets take of a nation, your house keeps.");
+    }
+}
+
 /// <summary>The player's answer when the Senate votes peace and their fleets are in the field: come home, or fight on.</summary>
 public sealed class AnswerPeaceCommand : ICommand
 {

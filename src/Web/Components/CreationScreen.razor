@@ -58,6 +58,13 @@
                         <option value="harsh">Harsh: a quarter stronger</option>
                     </select>
                 </label>
+                <label>How often they attack
+                    <select @bind="_aggression">
+                        <option value="seldom">Seldom: wars from beyond are rare</option>
+                        <option value="default">As written</option>
+                        <option value="often">Often: great rulers and invasions come sooner</option>
+                    </select>
+                </label>
                 <label>Crisis intensity
                     <select @bind="_intensity">
                         <option value="off">Off — no Great Crisis</option>
@@ -156,7 +163,7 @@
     private string _scenario = "";
     private string _protagonistName = "";
     private int _seed = 1;
-    private string _mode = "ironman", _intensity = "default", _beyond = "default";
+    private string _mode = "ironman", _intensity = "default", _beyond = "default", _aggression = "default";
     private string _difficulty = "1", _autonomy = "1";
     private string _name = "", _sex = "", _track = "", _ambition = "", _background = "";
     private readonly List<string> _nature = new(), _aptitude = new();
@@ -228,7 +235,7 @@
             try
             {
                 G.StartCustom(_spec, (ulong)Math.Max(1, _seed), _mode, double.Parse(_difficulty, System.Globalization.CultureInfo.InvariantCulture), _intensity,
-                    double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture), _beyond);
+                    double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture), _beyond, _aggression);
             }
             catch (Exception ex) { _error = ex.Message; }
             return;
@@ -246,7 +253,7 @@
         {
             G.Start(_scenario, (ulong)Math.Max(1, _seed), creation, _mode,
                 double.Parse(_difficulty, System.Globalization.CultureInfo.InvariantCulture), _intensity,
-                double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture), _beyond);
+                double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture), _beyond, _aggression);
         }
         catch (Exception ex) { _error = ex.Message; }
     }

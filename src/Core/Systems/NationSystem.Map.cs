@@ -20,7 +20,7 @@ public sealed partial class NationSystem
     /// <summary>What happened on the map this year, for the reports. Some of it is raised by the fleets before this system's own tick, so
     /// these are not cleared with <see cref="TurnFlags"/>: each is stamped with its year and struck out at the tick of the year after.</summary>
     public static readonly string[] MapFlags = { "nation_host_sails", "reach_world_occupied", "our_world_occupied", "world_freed_by_us", "world_freed_for_us", "reach_world_ceded", "steppe_world_restless", "steppe_world_lost", "steppe_world_rose", CapitalTakenFlag, FallenFlag, "host_beaten_by_us",
-        "great_ruler_raised", "great_ruler_dead", "great_ruler_strikes", "world_sacked", "world_sacked_by_us", "private_war", "private_war_by_us", "peace_awaits_us", "peace_defied", "peace_defied_by_us", "peace_made",
+        "nation_client", "client_breaks", "reach_pays_tribute", "white_peace", "great_ruler_raised", "great_ruler_dead", "great_ruler_strikes", "world_sacked", "world_sacked_by_us", "private_war", "private_war_by_us", "peace_awaits_us", "peace_defied", "peace_defied_by_us", "peace_made",
         "nation_hires", "ransom_offered", "city_ransomed", "tribute_stopped", "world_plundered_by_us", "nation_bought_peace", "nation_strikes", "nation_comes_back", "world_yields_to_us", "nation_decays", "treasure_taken", "treasure_taken_by_us" };
     /// <summary>Raise a year's flag, and the same flag for the nation it is about ("flag:nation"), so a report can be written for one nation.</summary>
     public static void Mark(World w, string flag, Nation? n = null)
@@ -49,7 +49,7 @@ public sealed partial class NationSystem
     public static int SuesAt(Nation n, NationDef d) => n.OnMap && Buys(d) ? (d.Threshold + 1) / 2 : d.Threshold;
     /// <summary>Whether its host comes through the march in a war: the aggressive always; any other only under a warlike ruler; and a
     /// nation whose definition says never, never.</summary>
-    public static bool ComesOut(Nation n, NationDef d) => d.Sorties != "never" && (d.Sorties == "always" || d.Temper == "aggressive" || n.Ruler?.Nature == "warlike" || Great(n));
+    public static bool ComesOut(Nation n, NationDef d) => Great(n) || (d.Sorties != "never" && (d.Sorties == "always" || d.Temper == "aggressive" || n.Ruler?.Nature == "warlike"));   // (one of the great leads out even a nation that never leaves home)
     /// <summary>How a nation's fleets fight hull for hull, in hundredths: the same figures its temper gave it off the map.</summary>
     public static int MettleOf(NationDef d) => d.Mettle > 0 ? d.Mettle : d.Temper switch { "defensive" => 125, "mercantile" => 80, "decaying" => 85, _ => 100 };
     private static HashSet<string> Own(NationDef d) => d.Worlds.Select(x => x.System).ToHashSet();
@@ -232,7 +232,7 @@ public sealed partial class NationSystem
         {
             // a nation that never leaves home turns out everything it has when it is invaded: its guard meets an intruder in its own space
             // beside the militia, and goes back to the capital when there is none
-            bool turnsOut = IsGuard(n, f) && d.Sorties == "never" && n.AtWar;
+            bool turnsOut = IsGuard(n, f) && d.Sorties == "never" && n.AtWar && !Great(n);
             string? to = turnsOut ? HostOrder(w, n, d, f, null, n.CapitalSystemId) : IsGuard(n, f) ? (f.SystemId == n.CapitalSystemId ? null : n.CapitalSystemId) : HostOrder(w, n, d, f, bound);
             if (!IsGuard(n, f)) bound.Add(to ?? f.SystemId);
             if (to == null || to == f.SystemId) continue;
@@ -259,9 +259,9 @@ public sealed partial class NationSystem
     /// strength, has fought within twenty-five years (one invasion a generation), or another war beyond the Reach is being fought. One year in three when it may.</summary>
     private void Strike(World w, Nation n, NationDef d)
     {
-        if (!Begins(n, d) || !n.OnMap || n.Fallen || n.AtWar || n.Subdued(w.Turn) || AtWar(w) != null) return;
+        if (!Begins(n, d) || !n.OnMap || n.Fallen || n.AtWar || n.Subdued(w.Turn) || n.PaidUntil > w.Turn || AtWar(w) != null) return;
         bool great = Great(n);   // one of the great needs no quarrel in the Reach: three years to gather the host, eight between wars
-        if (n.LastWarEnd > 0 && w.Turn - n.LastWarEnd < (great ? GreatRest : StrikeRest)) return;
+        if (n.LastWarEnd > 0 && w.Turn - n.LastWarEnd < ByBoldness(n, great ? GreatRest : StrikeRest)) return;   // the bold rest less between their wars
         if (great && w.Turn - n.Ruler!.GreatSince < GreatGathers) return;
         if (n.Strength * 100 < Cap(n, d) * StrikeFit) return;
         var lost = d.Worlds.Select(x => w.Holding(x.Id)).FirstOrDefault(h => h != null && h.OwnerId != n.HouseId && w.OfTheReach(h.OwnerId));
@@ -384,25 +384,26 @@ public sealed partial class NationSystem
 
     /// <summary>The war with a nation on the map is over. If the Reach won, the worlds the nation took go back to the houses they were taken
     /// from. If the nation won, it keeps them. What the Reach took of the nation's it keeps either way. The nation's fleets go home.</summary>
-    private static void PeaceOnMap(World w, Nation n, NationDef d, bool reachWon)
+    /// <param name="allBack">Everything goes home, both ways: a white peace, or a client left what is its own.</param>
+    private static void PeaceOnMap(World w, Nation n, NationDef d, bool reachWon, bool allBack = false)
     {
         if (!n.OnMap) return;
         foreach (var h in w.Holdings.Values.Where(h => h.OwnerId == n.HouseId && h.FormerOwnerId.Length > 0 && w.OfTheReach(h.FormerOwnerId) && !d.Worlds.Any(x => x.Id == h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
-            if (!reachWon) { w.Log($"{h.Name} is ceded to {d.Name} at the peace."); h.FormerOwnerId = ""; if (h.IsPlanet) { Bump(w, WorldsCededCounter, n); Mark(w, "reach_world_ceded", n); } continue; }
+            if (!reachWon && !allBack) { w.Log($"{h.Name} is ceded to {d.Name} at the peace."); h.FormerOwnerId = ""; if (h.IsPlanet) { Bump(w, WorldsCededCounter, n); Mark(w, "reach_world_ceded", n); } continue; }
             string back = h.FormerOwnerId; h.OwnerId = back; h.FormerOwnerId = ""; h.Unrest = Math.Min(100, h.Unrest + 5);
             if (h.IsPlanet) Bump(w, WorldsReturnedCounter, n); w.Log($"{h.Name} is given back to {w.House(back)?.Name} at the peace.");
         }
         // a nation that would rather buy than fight buys its worlds back at a peace it lost: the houses that hold them are paid, and the
         // player is asked (the offer waits two years)
-        if (reachWon && Buys(d)) foreach (var x in d.Worlds)
+        if (reachWon && !allBack && Buys(d)) foreach (var x in d.Worlds)
             if (w.Holding(x.Id) is { } held && held.OwnerId != n.HouseId && w.OfTheReach(held.OwnerId))
             {
                 if (held.OwnerId == w.Protagonist?.HouseId) { w.WorldCounters[RansomKey(x.Id)] = w.Turn; Mark(w, "ransom_offered", n); w.Log($"{d.Name} offers {RansomPerWealth * d.Wealth} credits for {held.Name}, to have it back."); }
                 else Ransom(w, n, d, held);
             }
         // and if the nation won, what the Reach took of its own worlds is given up
-        if (!reachWon) foreach (var x in d.Worlds)
+        if (!reachWon || allBack) foreach (var x in d.Worlds)
             if (w.Holding(x.Id) is { } hw && hw.OwnerId != n.HouseId && w.OfTheReach(hw.OwnerId))
             {
                 string was = hw.OwnerId; hw.OwnerId = n.HouseId; hw.FormerOwnerId = ""; hw.GovernorId = n.Ruler?.CharacterId ?? ""; Bump(w, GivenUpCounter, n);

@@ -43,7 +43,7 @@ public sealed partial class NationSystem
             if (w.Nation(d.Id) == null)
             {   // how strong it is in this game is fixed here, once: by the game's dice and by the setting chosen at the start
                 var made = new Nation { Id = d.Id, Strength = d.Strength, Disposition = d.Disposition }; w.Nations.Add(made);
-                People(w, made, d); made.Might = MightFor(w, made); made.Strength = Full(made, d);
+                People(w, made, d); made.Might = MightFor(w, made); made.Boldness = BoldnessFor(w, made); made.Strength = Full(made, d);
             }
         foreach (var n in w.Nations) if (catalog.Def(n.Id) is { } def) { People(w, n, def); Place(w, n, def); }
     }
@@ -59,6 +59,18 @@ public sealed partial class NationSystem
         int vary = w.BeyondVaries ? 100 - MightSpread + (int)(Hash($"might:{n.Salt}:{n.Id}") / 7 % (uint)(2 * MightSpread + 1)) : 100;   // (hashed: two games a seed apart are not neighbours a hull apart)
         return Math.Max(40, scale * vary / 100);
     }
+    public const int BoldSpreadLow = 70, BoldSpreadHigh = 140;
+    /// <summary>How readily a nation attacks in this game, in a hundred: the setting (seldom 60, often 160) and, where games vary, between
+    /// seven-tenths and seven-fifths by the nation's own dice. So a Great Khan is likelier in one game than the next.</summary>
+    public static int BoldnessFor(World w, Nation n)
+    {
+        int scale = w.BeyondAggression switch { "seldom" => 60, "often" => 160, _ => 100 };
+        int vary = w.BeyondVaries ? BoldSpreadLow + (int)(Hash($"bold:{n.Salt}:{n.Id}") / 7 % (uint)(BoldSpreadHigh - BoldSpreadLow + 1)) : 100;
+        return Math.Max(30, scale * vary / 100);
+    }
+    public static int Bold(Nation n) => n.Boldness > 0 ? n.Boldness : 100;
+    /// <summary>A number of years, or the long side of some odds, as this nation's boldness makes it: shorter for the bold, never under one.</summary>
+    public static int ByBoldness(Nation n, int years) => Math.Max(1, (years * 100 + Bold(n) / 2) / Bold(n));
     /// <summary>Its full strength in this game, in hulls.</summary>
     public static int Full(Nation n, NationDef d) => Math.Max(2, (d.Strength * (n.Might > 0 ? n.Might : 100) + 50) / 100);
     /// <summary>Whether one of the great rules it: the nation is one host, begins wars itself, and comes to conquer (docs/BEYOND.md).</summary>
@@ -116,7 +128,7 @@ public sealed partial class NationSystem
         bool general = n.Commander is { Skill: >= 5 } && hh / 7 % 3 == 0; var next = general ? n.Commander! : null;
         // a general who takes the chair is never mild, and is warlike as often as not
         var ruler = NewRuler(w, n, d, general ? (hh / 31 % 2 == 0 ? "warlike" : hh / 101 % 2 == 0 ? "wary" : "grasping") : null); if (next != null) { n.NamesUsed--; ruler.Name = next.Name; ruler.Age = next.Age; n.Commander = NewCommander(w, n, d); }
-        bool great = d.GreatOneIn > 0 && d.GreatTitle.Length > 0 && d.Sorties != "never" && hh / 211 % (uint)d.GreatOneIn == 0;
+        bool great = d.GreatOneIn > 0 && d.GreatTitle.Length > 0 && hh / 211 % (uint)Math.Max(2, ByBoldness(n, d.GreatOneIn)) == 0;
         if (r.Great) Mark(w, "great_ruler_dead", n);
         n.Ruler = ruler; if (great) MakeGreat(w, n, d, ruler, acclaimed: false);
         int shift = ruler.Nature switch { "warlike" => -10, "mild" => 10, "grasping" => 4, _ => 0 };
@@ -167,6 +179,7 @@ public sealed partial class NationSystem
             return;
         }
         if (AtWar(w) != null) return;
+        n.PaidUntil = 0;   // a war voted on a nation the Reach was paying ends the payments
         n.AtWar = true; n.BeganIt = false; n.WarOf = ""; n.Defied = false; n.PeaceVoted = 0; n.WarSince = w.Turn; n.ScoreReach = 0; n.ScoreNation = 0; n.LastBattleTurn = w.Turn; n.Wars += 1; n.Disposition = Math.Max(-100, n.Disposition - 20);
         w.WorldCounters[WarsCounter] = w.Counter(WarsCounter) + 1;
         w.WorldFlags.Add("foreign_war"); w.WorldFlags.Add("foreign_war_declared"); w.WorldFlags.Add("foreign_war:" + nationId);
@@ -228,8 +241,8 @@ public sealed partial class NationSystem
     /// holder; at war the raid also scores against the Reach.</summary>
     private static void Raid(World w, Nation n, NationDef d, string? mine)
     {
-        if (d.Temper is not ("aggressive" or "decaying") || n.Disposition > -20 || n.Subdued(w.Turn) || w.Galaxy == null) return;
-        if (w.Turn - n.LastRaidTurn < RaidMinGap || Hash($"raid:{n.Id}:{w.Turn}:{n.Disposition}:{w.Holdings.Count}") % RaidEvery != 0) return;
+        if (d.Temper is not ("aggressive" or "decaying") || n.Disposition > -20 || n.Subdued(w.Turn) || n.PaidUntil > w.Turn || w.Galaxy == null) return;
+        if (w.Turn - n.LastRaidTurn < RaidMinGap || Hash($"raid:{n.Id}:{w.Turn}:{n.Disposition}:{w.Holdings.Count}") % (uint)ByBoldness(n, RaidEvery) != 0) return;
         if (n.Ruler?.Nature == "wary" && n.Disposition > -40) return;   // a wary ruler raids only when the quarrel is real
         var marches = Marches(w, d); var leader = n.Commander; string led = leader != null ? $" under {Styled(d, leader, false)}" : "";
         // they come through their march, and a fleet standing there meets them before they reach a world (docs/BEYOND.md)
@@ -395,40 +408,52 @@ public sealed partial class NationSystem
         var chair = RegionSystem.CapitalHolder(w);
         if (n.ScoreReach - n.ScoreNation >= SuesAt(n, d) || n.Strength <= 0)
         {
-            n.SubduedUntil = w.Turn + SubduedTurns; n.Disposition = Math.Min(100, n.Disposition + 10); if (!n.OnMap) n.Strength = Math.Max(2, n.Strength);
-            w.WorldCounters[SubduedCounter] = w.Counter(SubduedCounter) + 1; w.WorldFlags.Add("nation_subdued"); w.WorldFlags.Add("nation_subdued:" + n.Id);
             var top = w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderByDescending(h => w.Counter(WinsKey(h.Id, n.Id))).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault(h => w.Counter(WinsKey(h.Id, n.Id)) > 0);
+            // what kind of peace it is depends on what the war achieved (docs/BEYOND.md, "Kinds of peace"): beaten decisively, it is made a
+            // client; otherwise it pays tribute for twenty years, and the houses keep what they took of it
+            bool client = Client(w, n, d, top, mine);
+            if (client) { n.Vassal = true; n.PatronId = top?.Id ?? ""; n.SubduedUntil = 0; Bump(w, ClientCounter, n); Mark(w, "nation_client", n); }
+            else n.SubduedUntil = w.Turn + SubduedTurns;
+            n.LastPeace = client ? "client" : n.OnMap && d.Worlds.Any(x => w.Holding(x.Id) is { } hx && hx.OwnerId != n.HouseId) ? "territory" : "tribute"; Bump(w, PeaceKindCounter + ":" + n.LastPeace, n);
+            n.Disposition = Math.Min(100, n.Disposition + 10); if (!n.OnMap) n.Strength = Math.Max(2, n.Strength);
+            w.WorldCounters[SubduedCounter] = w.Counter(SubduedCounter) + 1; w.WorldFlags.Add("nation_subdued"); w.WorldFlags.Add("nation_subdued:" + n.Id);
             if (top != null)
             {
 top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legitimacy + LegitimacyTriumph); top.SphereInfluence["senate"] = top.SphereInfluence.GetValueOrDefault("senate") + InfluenceTriumph;
                 if (top.Id == mine) w.WorldFlags.Add("triumph");
                 CaesarSystem.Subdued(w, top);
-                w.Log($"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years. The triumph is {top.Name}'s, whose fleets won it.");
+                w.Log(client ? $"{d.Name} is beaten, and is made a client of the Reach: its ruler keeps the chair and its worlds, and pays {d.Tribute} credits a year to the Reach and {ClientShare(d)} to {top.Name}, whose fleets won it, for as long as the treaty holds. The triumph is {top.Name}'s."
+                    : $"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years. The triumph is {top.Name}'s, whose fleets won it.");
             }
-            else w.Log($"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years.");
+            else w.Log(client ? $"{d.Name} is beaten, and is made a client of the Reach: it pays {d.Tribute} credits a year for as long as the treaty holds." : $"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years.");
             if (n.OnMap) Bump(w, WonCounter, n);
-            PeaceOnMap(w, n, d, reachWon: true);
+            PeaceOnMap(w, n, d, reachWon: true, allBack: client);   // a client is left what is its own
             EndWar(w, n, d);
         }
         else if (n.ScoreNation - n.ScoreReach >= d.Threshold)
         {
             n.Disposition = Math.Max(-100, n.Disposition - 10);
             w.WorldCounters[LostCounter] = w.Counter(LostCounter) + 1; w.WorldFlags.Add("war_lost_abroad");
-            if (chair != null) { chair.Treasury.Credits -= d.Tribute * 3; chair.Legitimacy = Math.Max(0, chair.Legitimacy - LegitimacyDefeat); }
-            w.Log($"The war with {d.Name} is lost: the chair{(chair != null ? $" of {chair.Name}" : "")} buys peace for {d.Tribute * 3} credits, and the Reach is shamed.");
+            // a nation that holds worlds of the Reach's keeps them, and is bought off once; one that holds none is paid tribute for ten years
+            bool pays = n.OnMap && !Holds(w, n);
+            if (chair != null) { if (!pays) chair.Treasury.Credits -= d.Tribute * 3; chair.Legitimacy = Math.Max(0, chair.Legitimacy - LegitimacyDefeat); }
+            if (pays) { n.PaidUntil = w.Turn + PaidYears; Mark(w, "reach_pays_tribute", n); }
+            n.LastPeace = pays ? "paid" : n.OnMap ? "ceded" : "bought"; Bump(w, PeaceKindCounter + ":" + n.LastPeace, n);
+            w.Log(pays ? $"The war with {d.Name} is lost. They hold nothing of the Reach's to keep, so the Reach pays: {d.Tribute} credits a year for {PaidYears} years, from the chair{(chair != null ? $" of {chair.Name}" : "")}, and the Reach is shamed."
+                : $"The war with {d.Name} is lost: the chair{(chair != null ? $" of {chair.Name}" : "")} buys peace for {d.Tribute * 3} credits, and the Reach is shamed.");
             if (n.OnMap) Bump(w, LostOnMapCounter, n);
             // a warlike ruler who has beaten the Reach is acclaimed: the next time they come, they come to stay
-            if (n.OnMap && d.GreatOneIn > 0 && d.GreatTitle.Length > 0 && d.Sorties != "never" && n.Ruler is { Nature: "warlike", Great: false } victor) MakeGreat(w, n, d, victor, acclaimed: true);
+            if (n.OnMap && d.GreatOneIn > 0 && d.GreatTitle.Length > 0 && n.Ruler is { Nature: "warlike", Great: false } victor) MakeGreat(w, n, d, victor, acclaimed: true);
             PeaceOnMap(w, n, d, reachWon: false);
             EndWar(w, n, d);
         }
-        else if (n.OnMap && Buys(d) && BuysOff(w, n, d))
+        else if (n.OnMap && Buys(d) && !Great(n) && BuysOff(w, n, d))
         {
             // a nation that would rather buy than fight does not let a war lie: four years with nobody pressing it, or twelve with no
             // battle, and it buys its peace. The house that holds the capital is paid; what each side took goes home (their cities for a
             // ransom); no tribute follows
             int sum = d.Tribute * BoughtPeaceTributes; if (chair != null) chair.Treasury.Credits += sum;
-            n.Disposition = Math.Min(100, n.Disposition + 5); Bump(w, BoughtPeaceCounter, n); Mark(w, "nation_bought_peace", n);
+            n.Disposition = Math.Min(100, n.Disposition + 5); Bump(w, BoughtPeaceCounter, n); Mark(w, "nation_bought_peace", n); n.LastPeace = "bought";
             w.Log($"{d.Name} buys its peace: {sum} credits to {(chair != null ? chair.Name : "the Reach")}, and a war that nobody was fighting is over.");
             PeaceOnMap(w, n, d, reachWon: true);
             EndWar(w, n, d);
@@ -438,7 +463,7 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
             w.WorldFlags.Add("foreign_peace");
             w.Log($"The war with {d.Name} gutters out: no fleet has met theirs in {ExhaustionTurns} years, and both sides let it lie.");
             if (n.OnMap) Bump(w, GutteredCounter, n);
-            PeaceOnMap(w, n, d, reachWon: false);   // each keeps what it holds
+            Unforced(w, n, d);   // nobody won it: whoever is ahead keeps what it holds, and level, everything goes home
             EndWar(w, n, d);
         }
     }
@@ -469,6 +494,13 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
 
     private static void Tribute(World w, Nation n, NationDef d, string? mine)
     {
+        var payer = RegionSystem.CapitalHolder(w);
+        if (n.PaidUntil > 0 && !n.AtWar)
+        {   // the Reach pays this nation: what a lost war cost when there was nothing to cede
+            if (n.PaidUntil <= w.Turn) { n.PaidUntil = 0; w.Log($"The Reach pays {d.Name} its last tribute. The treaty is done."); }
+            else if (payer != null) { payer.Treasury.Credits -= d.Tribute; Bump(w, PaidCounter, n, d.Tribute); }
+        }
+        if (n.Vassal) { Clientage(w, n, d); return; }
         if (n.SubduedUntil == w.Turn) { n.Disposition = d.Disposition; w.WorldFlags.Add("nation_freed"); w.Log($"{d.Name} pays its last tribute; the treaty is done and its envoys go home."); return; }
         if (!n.Subdued(w.Turn)) return;
         var chair = RegionSystem.CapitalHolder(w); if (chair == null) return;

@@ -413,7 +413,7 @@
     {
       "id": "the_senate_votes_peace",
       "title": "The Senate Votes Peace",
-      "body": "The Senate has voted peace beyond the Reach, and your fleets are in the field. It can order no fleet home: it has told you, and waits for your answer. Come home and the peace is made. Fight on and the war is your house's own: no other house is at war, your house's standing falls at once and every year it lasts, and the Senate may vote to recall whoever commands for you.",
+      "body": "The Senate has voted peace beyond the Reach, and your fleets are in the field. It can order no fleet home: it has told you, and waits for your answer. Come home and the peace is made. Fight on and the war is your house's own: no other house is at war, and your house's standing falls at once and every year it lasts. How far it falls depends on who commands for you. The Senate will take a great deal from a general with battles won and crews that follow him, and little from a man it has not heard of: his crews waver, and the chair moves to recall him. The figures are on the nation's card.",
       "choices": {
         "come_home": "Come home.",
         "fight_on": "Fight on, against the Senate's word."
@@ -444,6 +444,60 @@
       "choices": {
         "share_it_out": "Share it with the crews.",
         "bank_it": "Bank it."
+      }
+    },
+    {
+      "id": "a_client_of_the_reach",
+      "title": "A Client of the Reach",
+      "body": "A nation beyond the rim has been beaten decisively, and the peace has made it a client. It keeps its ruler and its worlds. It pays the Reach every year, and half as much again to the house whose fleets won the war; it raids nobody and wars with nobody. The treaty has no end date: it lasts until a warlike ruler with rebuilt fleets throws it off, which is likeliest when the Reach is divided.",
+      "choices": {
+        "praise_the_settlement": "Praise the settlement.",
+        "ask_whose_client": "Ask whose client it really is."
+      }
+    },
+    {
+      "id": "the_client_breaks_away",
+      "title": "The Client Breaks Away",
+      "body": "A client of the Reach has thrown the treaty off. Its ruler is warlike, its fleets are rebuilt, and it pays nobody now. It is a neighbour again, with no love for the Reach, and the house that was its patron has lost what it was paid.",
+      "choices": {
+        "call_for_the_fleets": "Say the treaty must be enforced.",
+        "let_it_go": "Let it go."
+      }
+    },
+    {
+      "id": "the_reach_pays_tribute",
+      "title": "The Reach Pays Tribute",
+      "body": "The war beyond the rim is lost. They hold nothing of the Reach's to keep, so the peace is paid for: tribute, every year for ten years, out of the purse of the house that holds the capital. While it is paid they neither raid nor strike. A war voted on them ends the payments.",
+      "choices": {
+        "call_it_what_it_is": "Have the sum read out.",
+        "pay_and_rebuild": "Pay, and rebuild."
+      }
+    },
+    {
+      "id": "a_white_peace",
+      "title": "A White Peace",
+      "body": "The war beyond the rim is over, and nobody won it. With the tally level, the peace is white: every world goes back to whoever had it before the war, and nobody pays anybody.",
+      "choices": {
+        "count_the_cost": "Count what it cost.",
+        "be_glad_of_it": "Be glad of it."
+      }
+    },
+    {
+      "id": "a_navarch_at_thessar",
+      "title": "A Navarch at Thessar",
+      "body": "The Free Cities have done what they never do: put every hired hull under one captain, and called him Navarch. Under him they do not buy their peace. They hire half as many hulls again, begin their own wars and take worlds. It lasts while he rules.",
+      "choices": {
+        "warn_the_factors": "Warn the houses that trade there.",
+        "doubt_it_lasts": "Doubt it will last."
+      }
+    },
+    {
+      "id": "a_high_warden",
+      "title": "A High Warden",
+      "body": "The Outer Compact has chosen a High Warden. Its fleets have never left their own space; under him they will. They fight better, hull for hull, than any crews in the Reach, and they come through Sorrow.",
+      "choices": {
+        "warn_the_senate": "Tell the Senate.",
+        "watch_sorrow": "Set a watch on Sorrow."
       }
     }
   ]

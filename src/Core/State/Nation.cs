@@ -9,6 +9,18 @@ public sealed class Nation
     /// <summary>How strong this nation is in this game, in a hundred of what is written for it: fixed when it is first reckoned, from the
     /// game's own dice and the setting chosen at the start (docs/BEYOND.md). 0 in a save made before it varied, which reads as a hundred.</summary>
     public int Might { get; set; }
+    /// <summary>How readily it attacks in this game, in a hundred of what is written: the setting chosen at the start and the game's own
+    /// dice (docs/BEYOND.md). It shortens or lengthens the odds of a great ruler and the rest between its wars. 0 reads as a hundred.</summary>
+    public int Boldness { get; set; }
+    /// <summary>A client state of the Reach (docs/BEYOND.md, "Kinds of peace"): beaten decisively and left its own ruler, it pays the
+    /// chair and its patron every year, raids nobody and wars with nobody, until it throws the treaty off. The patron is the house
+    /// whose fleets beat it; "" if none.</summary>
+    public bool Vassal { get; set; }
+    public string PatronId { get; set; } = "";
+    /// <summary>The year until which the Reach pays this nation tribute, after a war lost with nothing to cede; 0 when it pays none.</summary>
+    public int PaidUntil { get; set; }
+    /// <summary>How its last war ended: "client", "tribute", "territory", "white", "ceded", "paid", "bought". "" if it has had none.</summary>
+    public string LastPeace { get; set; } = "";
     public int Disposition { get; set; }
     public bool AtWar { get; set; }
     public int WarSince { get; set; }
@@ -61,7 +73,7 @@ public sealed class Nation
     public const string HousePrefix = "nation_";
     public static string HouseIdFor(string nationId) => HousePrefix + nationId;
     public static bool IsHouse(string houseId) => houseId.StartsWith(HousePrefix, StringComparison.Ordinal);
-    public bool Subdued(int turn) => SubduedUntil > turn;
+    public bool Subdued(int turn) => Vassal || SubduedUntil > turn;
 }
 
 /// <summary>A person of a foreign nation: its ruler or the commander of its fleets. Not yet a character of the Reach's world: they have a

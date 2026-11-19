@@ -3,6 +3,20 @@
 ## [Unreleased]
 
 ### Added
+- **Kinds of peace** (docs/BEYOND.md, "Kinds of peace, how often they come, and whose fleet it is"; the owner's
+  answers to decisions 16 to 19). A war with a nation ends one of six ways, by how it ended and what each side
+  holds. Beaten decisively, a nation can be made a **client**: it keeps its ruler and its worlds and pays the chair
+  and its patron every year, until a warlike ruler throws the treaty off. Otherwise it pays tribute and the houses
+  keep what they took. A war the Reach loses cedes what the nation holds, or, if it holds nothing, the Reach pays
+  tribute for ten years. A peace the Senate votes goes by the tally, and with the tally close it is a **white
+  peace**: everything goes home. A nation's card says what a peace would be this year.
+- **How often they attack** is a second new-game setting, and each game's own luck: a Great Khan is likelier in one
+  game than the next. The Free Cities can raise a Navarch and the Outer Compact a High Warden, at long odds, and
+  then they attack too.
+- **What defying the Senate costs depends on whose fleet it is.** A commander nobody has heard of costs his house 8
+  standing and 3 a year, his crews waver, and the benches lean hard to recall him. A great name costs 2 and nothing,
+  his crews hold, and the benches lean against a recall. Skill counts a step. The order shows the figures first.
+- Six new reports and two new orders on a nation's card.
 - **Whose war it is** (docs/BEYOND.md, "Whose war"; the owner's answers on the map and on war). The Senate votes a
   war and directs nothing, so three things are new. A house may make war on a nation on its own account, with no
   vote: only that house is at war. The Senate may vote peace beyond the Reach: those in the field are told and

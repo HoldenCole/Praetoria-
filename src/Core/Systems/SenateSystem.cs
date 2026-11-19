@@ -605,7 +605,7 @@ public sealed class SenateSystem
             {
                 var tg = CaesarSystem.GeneralOf(w, t)!; int sway = CaesarSystem.Sway(w, tg); var th = Economy.HeadOf(w, t); if (th == null) continue;
                 bool great = CaesarSystem.FirstRank(w, tg) && CaesarSystem.Loved(w, tg, t);   // a commander of the first rank, and loved: the Senate's guardians always move to have that one home
-                bool defies = NationSystem.DefiedBy(w, t.Id) != null;   // a general who fights on against a peace the Senate voted: the chair and the consuls move to have that one home
+                bool defies = NationSystem.DefiedBy(w, t.Id) != null && NationSystem.Leeway(w, t) <= 1;   // a general who fights on against a peace the Senate voted: the chair and the consuls move to have him home, unless his name gives them pause
                 var mover = w.Houses.Values.Where(h => h.Id != t.Id && Can(h) && !Stale(w, h.Id, "recall", t.Id)
                         && ((w.GetRelationship(Economy.HeadOf(w, h)!.Id, th.Id)?.Disposition ?? 0) <= -30 || ((sway >= CaesarSystem.AlarmSway || great || defies) && (RegionSystem.CapitalHolder(w)?.Id == h.Id || ElectionSystem.IsConsul(w, _offices, h.Id)))))
                     .OrderByDescending(h => h.SphereInfluence.GetValueOrDefault("senate")).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();

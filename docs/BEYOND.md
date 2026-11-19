@@ -9,7 +9,8 @@ Free Cities of Thessar on the map, as built"). Then: "Add the Ardent Concord nex
 map**, and is the strong one (see "The Ardent Concord on the map, as built"). Then: "Add the Outer Compact and the
 Hollow Crown next." **All five nations are on the map** (see "The Outer Compact and the Hollow Crown on the map, as
 built"). Then the owner answered the first seven decisions, on the map and on war, and they are **built** (see "Whose
-war, and how it is fought"). Stages 3 and 4 are a plan. The older rules in docs/FOREIGN_NATIONS.md (expeditions that leave the map) are
+war, and how it is fought"). Then the owner answered the four that building those raised (16 to 19), and those are
+**built** too (see "Kinds of peace, how often they come, and whose fleet it is"). Stages 3 and 4 are a plan. The older rules in docs/FOREIGN_NATIONS.md (expeditions that leave the map) are
 kept in the engine for a map drawn without a nation's worlds, and no shipped nation uses them. Everything that is the
 owner's to decide is in one list at the end.
 
@@ -684,6 +685,109 @@ peace; its capital was never taken.
 - **A nation does not tell one house from another** when it answers: in the Reach's war it comes for the nearest
   world, whoever raided it.
 
+## Kinds of peace, how often they come, and whose fleet it is
+
+Built 2026-11-19 from the owner's answers to decisions 16 to 19, which are quoted in the list at the end.
+
+### How often they attack
+
+- **A second setting on the new-game screen, "How often they attack"**: seldom, as written, or often. It is the
+  nations' aggressiveness, apart from their strength.
+- **And each game's own luck.** Every nation's boldness is fixed when a game begins, between seven-tenths and
+  seven-fifths of what the setting gives. So a Great Khan is likelier in one game than the next: written as one
+  accession in eight, it is anywhere from one in six to one in eleven, and with the setting at its ends one in five
+  or one in thirteen. A nation's card says what it is in this game.
+- Boldness moves three things: the odds of a great ruler, the rest a nation takes between its wars (the Concord's
+  twenty-five years, a great ruler's eight), and how often the raiders raid.
+- **The Free Cities and the Outer Compact can attack now, and seldom do.** The Cities may put every hired hull under
+  a **Navarch** (one accession in twenty); the Compact may choose a **High Warden** (one in twenty-four), who leads
+  out the fleets that never left home. Under either the nation does what a Great Khan's does: musters half as many
+  hulls again, begins its own wars, and stays in the field. A Navarch does not buy his peace.
+
+### What kind of peace it is
+
+A war with a nation ends one of six ways. Which one depends on how it ended and what each side holds.
+
+| The war ends | What each side holds | The peace |
+|---|---|---|
+| They sue (the Reach is ahead by what makes them sue) | They are beaten decisively, and the house that won it wants a client | **A client.** They keep their ruler and every world of their own. They pay the chair every year and half as much again to their patron, the house whose fleets won it. No end date |
+| They sue | Otherwise | **Tribute**, twenty years to the chair. Houses keep what they took: **territory** |
+| The Reach is beaten | They hold worlds of the Reach's | **Ceded.** They keep them, and the chair buys the peace once |
+| The Reach is beaten | They hold nothing | **The Reach pays tribute**, ten years, from the chair. While it is paid they neither raid nor strike |
+| The Senate votes peace, or the war gutters out | Two or more ahead on the tally | Whoever is ahead keeps what they hold. Nobody pays |
+| The Senate votes peace, or the war gutters out | Closer than two | **A white peace.** Every world goes back to whoever had it before the war. Nobody pays |
+
+- **Decisively** means: their capital is in the Reach's hands, or the tally is twice what makes them sue, or three
+  in four of their hulls are gone.
+- **A client is your choice when the war is yours.** Other houses always make one when they can. Your house keeps
+  what it took unless you have said you would make clients; the order is on every nation's card.
+- **A client can break away.** One of the great throws the treaty off at once. A warlike ruler with the fleets
+  rebuilt does so one year in twelve, or one in three while the Reach is divided. A mild or wary ruler keeps it.
+- **A nation's card says what a peace would be this year**: voted now, and fought to the end either way.
+
+### Whose fleet it is
+
+What defying the Senate costs depends on who commands for the house. It is read off the Caesar road
+(docs/CAESAR.md): a commander's sway is his battles won, the crews that follow him, his triumphs and his rank.
+
+| The commander | Sway | Standing lost at once; a year | His crews | The benches, on recalling him |
+|---|---|---|---|---|
+| Nobody the Senate has heard of | under 25 | 8; 3 | waver: 12 loyalty at once, 6 a year | lean hard for it (+4) |
+| A known commander | 25 | 6; 2 | waver less | lean for it (+2) |
+| A name the Senate knows | 45 | 4; 1 | waver a little | do not lean |
+| A great name | 65 | 2; 0 | hold | lean against it (-2) |
+
+- **Skill counts a step.** A commander with seven or more in tactics is treated one row better than his name.
+- **A house with nobody of its own in command** is on the top row.
+- **The chair and the consuls move a recall** only against the top two rows. A name gives them pause.
+- **Crews devoted to their commander do not waver**, whoever he is.
+- Other houses refuse a peace when their commander is on the bottom two rows; or when the war is their own and he is
+  at least known, or their head is ambitious, ruthless or proud.
+- The "Fight on" order on a nation's card shows the two figures and which row your commander is on, before you
+  choose.
+
+### Measured
+
+60 unattended games of 60 years; the player gives no orders.
+
+| | Concord | Khanates | Hollow Crown | Free Cities | Compact |
+|---|---|---|---|---|---|
+| Wars | 75 | 35 | 23 | 8 | 4 |
+| Begun by the nation | 63 | 6 | 5 | 3 | 4 |
+| Great rulers raised | | 14 | 11 | 6 | 6 |
+| Peace: tribute to the Reach | 19 | 9 | 5 | 0 | 0 |
+| Peace: the Reach kept worlds | 9 | 3 | 4 | 0 | 1 |
+| Peace: white | 4 | 8 | 7 | 4 | 1 |
+| Peace: worlds ceded | 26 | 7 | 3 | 0 | 2 |
+| Peace: the Reach paid tribute | 0 | 1 | 0 | 0 | 0 |
+| Made a client | 0 | 0 | 1 | 0 | 0 |
+| Worlds of the Reach ceded to it | 38 | 5 | 3 | 0 | 0 |
+
+- **The Free Cities attacked in three games and the Compact in four**, of sixty: a Navarch or a High Warden came in
+  about one game in ten each.
+- **A Great Khan came in fewer games than before** (14 against 24): that is the luck, which now differs by game.
+- **Worlds ceded to the Concord halved** (38 against 76). A peace voted with the tally close is white now, and gives
+  nothing up.
+- **A client was made once**, and the Reach paid tribute once. Other houses raid and go home, so they are rarely
+  decisive, and a nation that wins usually holds something to keep. Both kinds are mostly yours to bring about.
+- **Three generals did not listen** (one before).
+- About 22 battles a game, and the Reach "in danger" in three years in five, as before. The Republic stood in all
+  sixty. The soak passes and the survival check lost none of 80.
+- **More war makes more Caesars.** The Senate voted 25 recalls (8 before) and two civil wars began, both put down:
+  the Republic fell in none. The same sixty games with every nation at its written boldness gave 11 recalls and no
+  civil war, so the rise is the per-game luck: a game with bold neighbours has more battles, more commanders with
+  names, and more of them recalled. Two in sixty is inside the rule (the Republic stands unless you end it; another
+  house's Caesar at most once in ten games). The setting "How often they attack" moves it either way.
+
+**What this left out.**
+- **Nobody negotiates.** The kind of peace is read off the tally and the map. No world is asked for by name, no sum
+  is haggled, no hostage or marriage seals it.
+- **A client owes money and nothing else.** It sends no fleet when the Reach is at war, and its ruler is nobody its
+  patron can call on.
+- **The Reach is never the client.** A house cannot be made a nation's vassal, and the Reach's tribute ends in ten
+  years.
+- **Two settings.** How well the nations fight, and how much the other houses help, are not settings.
+
 ## What is yours to decide
 
 Three nations were built on assumptions, as the owner asked ("then we can figure out the details"; "after we add the
@@ -751,13 +855,28 @@ do, and what turns on it. Each can be changed without rebuilding the rest.
 
 **From building your answers** (each is a number in the content or one rule)
 
-16. **How often should a Great Khan come?** Built: one accession in eight, which is a Great Khan in about one game
-    in three; and any warlike Khan who beats the Reach is acclaimed.
-17. **Should the Free Cities or the Outer Compact ever attack?** Built: never.
-18. **What should a voted peace cost?** Built: nothing. Whoever is ahead keeps what they hold. Worlds ceded to the
-    Concord rose from 55 to 76 in sixty games, because the Senate now ends some wars it is losing.
-19. **How much should defying the Senate cost?** Built: 6 standing, 2 a year, and a recall the Senate can always
-    vote. Other houses defied once in sixty games.
+16. **How often should a Great Khan come?** *Answered 2026-11-19:* "the great khan showing up potentially every three
+    games or so is fine. There could probably be some randomness to it." **Built**: the odds differ by the game.
+17. **Should the Free Cities or the Outer Compact ever attack?** *Answered:* "I do think that the free cities or the
+    compact should attack, but those are less likely to attack. There should also be a slider kind of like how
+    Stellaris has it or it talks about AI aggressiveness." **Built**: a Navarch and a High Warden, at long odds; and
+    the setting "How often they attack".
+18. **What should a voted peace cost?** *Answered:* "there are different ways for peace to be done ... where you pay
+    tribute or it is where you keep the territory or even where they become a vassal state. It really depends on the
+    war and what is achieved in the war." **Built**: six kinds of peace, by how the war ended and what each side
+    holds.
+19. **How much should defying the Senate cost?** *Answered:* "if you are a well-known general and you are very good,
+    then you probably have more leeway to defy the Senate and they are less likely to recall you. If you are not
+    well known in general, then it probably cost you more and your chance of success is a lot lower. Your attributes
+    and your fame will impact how much the Senate pushes you on things." **Built**: the table under "Whose fleet it
+    is".
+
+**From building those**
+
+20. **Whose client is a client?** Built: the Reach's, with the house that won the war as its patron, paid half as
+    much again. Other houses always make a client when they can; yours does when you say so.
+21. **Should a peace be negotiated?** Built: no. The kind of peace is decided by the tally and by who holds what.
+    Asking for a named world, a sum or a hostage would be the next step.
 
 ## What it opens
 

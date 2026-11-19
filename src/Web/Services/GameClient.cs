@@ -68,12 +68,12 @@ public sealed class GameClient
     public Scenario Scenario(string id) => ScenarioLoader.LoadFromContent(ContentRoot, id);
 
     /// <summary>Start a run: build the world, apply character creation, open the first turn's briefing.</summary>
-    public void Start(string scenarioId, ulong seed, CreationOptions creation, string mode, double difficulty, string intensity, double autonomy, string beyond = "default")
+    public void Start(string scenarioId, ulong seed, CreationOptions creation, string mode, double difficulty, string intensity, double autonomy, string beyond = "default", string aggression = "default")
     {
         var content = Content ?? throw new InvalidOperationException("Content not loaded.");
         Changing();
         var world = WorldBuilder.FromScenario(Scenario(scenarioId), seed);
-        world.Mode = mode; world.Difficulty = difficulty; world.CrisisIntensity = intensity; world.FamilyAutonomy = autonomy; world.Beyond = beyond;
+        world.Mode = mode; world.Difficulty = difficulty; world.CrisisIntensity = intensity; world.FamilyAutonomy = autonomy; world.Beyond = beyond; world.BeyondAggression = aggression;
         if (!creation.IsEmpty) CharacterCreation.Apply(world, content, creation);
         ScenarioId = scenarioId; Seed = seed;
         Turn = new TurnController(world, content);
@@ -94,12 +94,12 @@ public sealed class GameClient
     }
 
     /// <summary>Start a run with a character of the player's own making.</summary>
-    public void StartCustom(CustomCharacter spec, ulong seed, string mode, double difficulty, string intensity, double autonomy, string beyond = "default")
+    public void StartCustom(CustomCharacter spec, ulong seed, string mode, double difficulty, string intensity, double autonomy, string beyond = "default", string aggression = "default")
     {
         var content = Content ?? throw new InvalidOperationException("Content not loaded.");
         Changing();
         var world = WorldBuilder.FromScenario(Scenario(CharacterWorkshop.BaseFor(spec)), seed);
-        world.Mode = mode; world.Difficulty = difficulty; world.CrisisIntensity = intensity; world.FamilyAutonomy = autonomy; world.Beyond = beyond;
+        world.Mode = mode; world.Difficulty = difficulty; world.CrisisIntensity = intensity; world.FamilyAutonomy = autonomy; world.Beyond = beyond; world.BeyondAggression = aggression;
         CharacterWorkshop.Apply(world, content, spec);
         ScenarioId = "a character of your own"; Seed = seed;
         Turn = new TurnController(world, content);

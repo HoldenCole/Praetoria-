@@ -68,8 +68,8 @@ public class WhoseWarTests
         for (int y = 0; y < 20 && !n.AtWar; y++) Year(w, ns);
         Assert.True(n.AtWar); Assert.True(n.BeganIt); Assert.Equal("", n.WarOf); Assert.Equal(1, w.Counter(NationSystem.StruckCounter + ":vashti"));
         Assert.True(Hulls(w, Khans) > d.Strength);
-        // the Compact never has one, whoever follows whom
-        Assert.Equal(0, Content.Nations.Def("compact")!.GreatOneIn);
+        // the Free Cities and the Compact can have one too, at longer odds; the Concord, which strikes anyway, has none
+        Assert.True(Content.Nations.Def("thessar")!.GreatOneIn > d.GreatOneIn); Assert.True(Content.Nations.Def("compact")!.GreatOneIn > d.GreatOneIn); Assert.Equal(0, Content.Nations.Def("concord")!.GreatOneIn);
     }
 
     [Fact]
@@ -162,13 +162,13 @@ public class WhoseWarTests
         var defy = new AnswerPeaceCommand(me.Id, false); Assert.Null(defy.Refusal(ctx)); defy.Execute(ctx);
         Year(w, ns);
         Assert.True(n.AtWar); Assert.True(n.Defied); Assert.Equal(mine.Id, n.WarOf); Assert.Equal(0, n.PeaceVoted);
-        Assert.Equal(standing - NationSystem.DefyLegitimacy, mine.Legitimacy); Assert.True(w.HasFlag("peace_defied_by_us:vashti")); Assert.Equal(1, w.Counter(NationSystem.DefiedCounter + ":vashti"));
+        int leeway = NationSystem.Leeway(w, mine); Assert.Equal(standing - NationSystem.DefyCost(leeway), mine.Legitimacy); Assert.True(w.HasFlag("peace_defied_by_us:vashti")); Assert.Equal(1, w.Counter(NationSystem.DefiedCounter + ":vashti"));
         Assert.True(w.AtWar(mine.Id, Khans)); Assert.False(w.AtWar(other.Id, Khans));                              // everyone else has their peace
         Assert.Same(n, NationSystem.DefiedBy(w, mine.Id)); Assert.Contains("does not listen", NationSystem.PeaceRefusal(w, Content.Nations, "vashti"));
         // the Senate may have him home, whatever his name is worth
         Assert.Null(new CaesarSystem(fs, Content.Offices).RecallRefusal(w, mine));
         Year(w, ns);
-        Assert.True(n.AtWar); Assert.Equal(standing - NationSystem.DefyLegitimacy - NationSystem.DefyYearly, mine.Legitimacy);   // and every year it goes on
+        Assert.True(n.AtWar); Assert.Equal(standing - NationSystem.DefyCost(leeway) - NationSystem.DefyYearlyCost(leeway), mine.Legitimacy);   // and every year it goes on
         var home = new AnswerPeaceCommand(me.Id, true); Assert.Null(home.Refusal(ctx)); home.Execute(ctx);
         Year(w, ns);
         Assert.False(n.AtWar); Assert.False(n.Defied); Assert.Equal("", n.WarOf); Assert.Null(NationSystem.DefiedBy(w, mine.Id)); Assert.Equal(1, w.Counter(NationSystem.CameHomeCounter + ":vashti"));
@@ -232,6 +232,142 @@ public class WhoseWarTests
         }
         Assert.True(asked, "the report was never offered while the peace waited on the player");
         Assert.True(n.AtWar); Assert.True(n.Defied); Assert.Equal(mine.Id, n.WarOf); Assert.True(w.Counter(NationSystem.DefiedCounter + ":vashti") == 1);
+    }
+
+    // ---- the owner's answers of 2026-11-19 to decisions 16 to 19 ----
+
+    [Fact]
+    public void HowOftenTheyAttack_IsASetting_AndEachGamesOwnLuck()
+    {
+        var d = Content.Nations.Def("vashti")!;
+        Assert.Equal(100, Start().w.Nation("vashti")!.Boldness);                                                  // pinned: as written
+        var seldom = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 7); seldom.BeyondVaries = false; seldom.BeyondAggression = "seldom"; NationSystem.Seed(seldom, Content.Nations);
+        var often = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 7); often.BeyondVaries = false; often.BeyondAggression = "often"; NationSystem.Seed(often, Content.Nations);
+        var meek = seldom.Nation("vashti")!; var bold = often.Nation("vashti")!;
+        Assert.Equal(60, meek.Boldness); Assert.Equal(160, bold.Boldness);
+        // a Great Khan at one accession in thirteen, or one in five, where it is written as one in eight; and the rest between wars moves with it
+        Assert.Equal(13, NationSystem.ByBoldness(meek, d.GreatOneIn)); Assert.Equal(5, NationSystem.ByBoldness(bold, d.GreatOneIn)); Assert.Equal(d.GreatOneIn, NationSystem.ByBoldness(Start().w.Nation("vashti")!, d.GreatOneIn));
+        Assert.True(NationSystem.ByBoldness(bold, NationSystem.StrikeRest) < NationSystem.StrikeRest); Assert.True(NationSystem.ByBoldness(meek, NationSystem.StrikeRest) > NationSystem.StrikeRest);
+        // and where games vary, no two have the same: between seven-tenths and seven-fifths
+        var seen = new HashSet<int>();
+        for (int seed = 1; seed <= 12; seed++) { var n = Start(seed, varies: true).w.Nation("vashti")!; Assert.InRange(n.Boldness, NationSystem.BoldSpreadLow, NationSystem.BoldSpreadHigh); seen.Add(n.Boldness); }
+        Assert.True(seen.Count >= 4, string.Join(", ", seen));
+    }
+
+    [Fact]
+    public void EvenTheCompact_ComesOut_UnderAHighWarden()
+    {
+        var (w, ns, _, _, _, _) = Start(); var n = w.Nation("compact")!; var d = Content.Nations.Def("compact")!;
+        Assert.Equal("never", d.Sorties); Assert.Equal("High Warden", d.GreatTitle); Assert.False(NationSystem.ComesOut(n, d)); Assert.False(NationSystem.Begins(n, d));
+        n.Ruler!.Great = true; n.Ruler.GreatSince = w.Turn; n.Ruler.Nature = "warlike";
+        Assert.True(NationSystem.ComesOut(n, d)); Assert.True(NationSystem.Begins(n, d)); Assert.StartsWith("High Warden", NationSystem.Styled(d, n.Ruler, true));
+        for (int y = 0; y < 25 && !n.AtWar; y++) Year(w, ns);
+        Assert.True(n.AtWar); Assert.True(n.BeganIt);
+        var cities = w.Nation("thessar")!; var cd = Content.Nations.Def("thessar")!; Assert.Equal("Navarch", cd.GreatTitle); Assert.False(NationSystem.Begins(cities, cd));
+    }
+
+    [Fact]
+    public void APeaceNobodyForced_GoesByTheTally_AndLevelItIsAWhitePeace()
+    {
+        // level: everything goes home, both ways
+        var (w, ns, _, _, mine, other) = Start(); var n = w.Nation("vashti")!; NationSystem.DeclareWar(w, Content.Nations, "vashti", other.Id); HomeFleets(w, Khans, "khal_orda");
+        var camp = w.Holding("long_grass_camp")!; camp.OwnerId = other.Id; camp.FormerOwnerId = Khans; Post(w, "g", other.Id, camp.SystemId, 4);
+        var lost = w.HoldingsOf(mine.Id).First(h => h.IsPlanet); lost.OwnerId = Khans; lost.FormerOwnerId = mine.Id;
+        n.ScoreReach = 3; n.ScoreNation = 2;
+        Assert.Contains("white peace", NationSystem.PeaceNow(w, n, Content.Nations.Def("vashti")!, mine.Id));
+        NationSystem.VotePeace(w, Content.Nations, "vashti", other.Id); foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == other.Id).ToList()) w.Fleets.Remove(f.Id);
+        Year(w, ns);
+        Assert.False(n.AtWar); Assert.Equal("white", n.LastPeace); Assert.Equal(Khans, camp.OwnerId); Assert.Equal(mine.Id, lost.OwnerId); Assert.Equal(0, n.SubduedUntil); Assert.True(w.HasFlag("white_peace:vashti"));
+        // two ahead: the Reach keeps what it holds, and has its own back
+        var (w2, ns2, _, _, mine2, other2) = Start(); var n2 = w2.Nation("vashti")!; NationSystem.DeclareWar(w2, Content.Nations, "vashti", other2.Id); HomeFleets(w2, Khans, "khal_orda");
+        var camp2 = w2.Holding("long_grass_camp")!; camp2.OwnerId = mine2.Id; camp2.FormerOwnerId = Khans; n2.ScoreReach = 4; n2.ScoreNation = 2;
+        NationSystem.VotePeace(w2, Content.Nations, "vashti", other2.Id); w2.WorldFlags.Add(NationSystem.PeaceObeyFlag); Year(w2, ns2); if (n2.AtWar) { w2.WorldFlags.Add(NationSystem.PeaceObeyFlag); Year(w2, ns2); }
+        Assert.False(n2.AtWar); Assert.Equal("territory", n2.LastPeace); Assert.Equal(mine2.Id, camp2.OwnerId);
+        // two behind: they keep what they hold
+        var (w3, ns3, _, _, mine3, other3) = Start(); var n3 = w3.Nation("vashti")!; NationSystem.DeclareWar(w3, Content.Nations, "vashti", other3.Id); HomeFleets(w3, Khans, "khal_orda");
+        var lost3 = w3.HoldingsOf(mine3.Id).First(h => h.IsPlanet); lost3.OwnerId = Khans; lost3.FormerOwnerId = mine3.Id; n3.ScoreReach = 0; n3.ScoreNation = 3;
+        NationSystem.VotePeace(w3, Content.Nations, "vashti", other3.Id); Year(w3, ns3);
+        Assert.False(n3.AtWar); Assert.Equal("ceded", n3.LastPeace); Assert.Equal(Khans, lost3.OwnerId); Assert.Equal("", lost3.FormerOwnerId);
+    }
+
+    [Fact]
+    public void AWarLost_WithNothingToCede_IsPaidForInTribute_YearAfterYear()
+    {
+        var (w, ns, _, _, mine, other) = Start(); var n = w.Nation("vashti")!; var d = Content.Nations.Def("vashti")!; var chair = RegionSystem.CapitalHolder(w)!;
+        NationSystem.DeclareWar(w, Content.Nations, "vashti", other.Id); HomeFleets(w, Khans, "khal_orda"); n.ScoreNation = d.Threshold; int purse = chair.Treasury.Credits;
+        Assert.Contains("pays it tribute", NationSystem.PeaceNow(w, n, d, mine.Id));
+        Year(w, ns);
+        Assert.False(n.AtWar); Assert.Equal("paid", n.LastPeace); Assert.Equal(w.Turn + NationSystem.PaidYears, n.PaidUntil); Assert.True(w.HasFlag("reach_pays_tribute:vashti"));
+        Assert.Equal(purse - d.Tribute, chair.Treasury.Credits);                                                    // no lump: the first year's payment
+        Year(w, ns); Assert.Equal(purse - 2 * d.Tribute, chair.Treasury.Credits); Assert.Equal(2 * d.Tribute, w.Counter(NationSystem.PaidCounter + ":vashti"));
+        Assert.False(n.Subdued(w.Turn));
+        // it holds worlds of the Reach's: those are what it takes, and it is bought off once
+        var (w2, ns2, _, _, mine2, other2) = Start(); var n2 = w2.Nation("vashti")!; var chair2 = RegionSystem.CapitalHolder(w2)!;
+        NationSystem.DeclareWar(w2, Content.Nations, "vashti", other2.Id); HomeFleets(w2, Khans, "khal_orda"); n2.ScoreNation = d.Threshold; int purse2 = chair2.Treasury.Credits;
+        var lost = w2.HoldingsOf(mine2.Id).First(h => h.IsPlanet); lost.OwnerId = Khans; lost.FormerOwnerId = mine2.Id;
+        Year(w2, ns2);
+        Assert.Equal("ceded", n2.LastPeace); Assert.Equal(0, n2.PaidUntil); Assert.Equal(purse2 - 3 * d.Tribute, chair2.Treasury.Credits); Assert.Equal(Khans, lost.OwnerId);
+    }
+
+    [Fact]
+    public void BeatenDecisively_ANationIsMadeAClient_ItPaysTheChairAndItsPatron_UntilItThrowsTheTreatyOff()
+    {
+        var (w, ns, _, me, mine, other) = Start(); var n = w.Nation("vashti")!; var d = Content.Nations.Def("vashti")!; var chair = RegionSystem.CapitalHolder(w)!; var ctx = new CommandContext(w, TestContent.Rng());
+        NationSystem.DeclareWar(w, Content.Nations, "vashti", other.Id); HomeFleets(w, Khans, "khal_orda");
+        var camp = w.Holding("long_grass_camp")!; camp.OwnerId = other.Id; camp.FormerOwnerId = Khans; Post(w, "g", other.Id, camp.SystemId, 4);
+        w.WorldCounters[NationSystem.WinsKey(other.Id, "vashti")] = 3; n.ScoreReach = 2 * NationSystem.SuesAt(n, d);
+        Assert.True(NationSystem.Decisive(w, n, d)); Assert.True(NationSystem.Client(w, n, d, other, mine.Id));
+        int chairPurse = chair.Treasury.Credits, patronPurse = other.Treasury.Credits;
+        Year(w, ns);
+        Assert.False(n.AtWar); Assert.True(n.Vassal); Assert.Equal(other.Id, n.PatronId); Assert.Equal("client", n.LastPeace); Assert.True(n.Subdued(w.Turn)); Assert.True(w.HasFlag("nation_client:vashti"));
+        Assert.Equal(Khans, camp.OwnerId);                                                                          // a client is left what is its own
+        int share = NationSystem.ClientShare(d); bool same = chair.Id == other.Id;
+        Assert.Equal(patronPurse + share + (same ? d.Tribute : 0), other.Treasury.Credits); if (!same) Assert.Equal(chairPurse + d.Tribute, chair.Treasury.Credits);
+        // it raids nobody and nobody may make war on it on their own account
+        Post(w, "mine", mine.Id, "anvil", 4); Assert.Contains("tribute", new RaidNationCommand(me.Id, "vashti", Content.Nations).Refusal(ctx));
+        for (int y = 0; y < 30; y++) { Year(w, ns); Assert.True(n.Vassal); Assert.False(n.AtWar); }             // a mild ruler keeps the treaty
+        // one of the great throws it off
+        n.Ruler!.Great = true; n.Ruler.GreatSince = w.Turn; n.Ruler.Nature = "warlike"; Year(w, ns);
+        Assert.False(n.Vassal); Assert.Equal("", n.PatronId); Assert.True(w.HasFlag("client_breaks:vashti")); Assert.Equal(1, w.Counter(NationSystem.ClientLostCounter + ":vashti"));
+        // the player's house keeps what it took, unless the player has said it would make clients
+        var (w2, ns2, _, me2, mine2, _) = Start(); var n2 = w2.Nation("vashti")!; var ctx2 = new CommandContext(w2, TestContent.Rng());
+        NationSystem.DeclareWar(w2, Content.Nations, "vashti", mine2.Id); n2.ScoreReach = 2 * NationSystem.SuesAt(n2, d); w2.WorldCounters[NationSystem.WinsKey(mine2.Id, "vashti")] = 3;
+        Assert.False(NationSystem.Client(w2, n2, d, mine2, mine2.Id));
+        var word = new PeacePostureCommand(me2.Id, true); Assert.Null(word.Refusal(ctx2)); word.Execute(ctx2);
+        Assert.True(NationSystem.Client(w2, n2, d, mine2, mine2.Id)); Assert.Equal("that is your word already", new PeacePostureCommand(me2.Id, true).Refusal(ctx2));
+        HomeFleets(w2, Khans, "khal_orda"); Year(w2, ns2); Assert.True(n2.Vassal); Assert.Equal(mine2.Id, n2.PatronId);
+    }
+
+    [Fact]
+    public void WhatDefyingTheSenateCosts_DependsOnWhoseFleetItIs()
+    {
+        var (w, _, fs, me, mine, _) = Start(); var caesar = new CaesarSystem(fs, Content.Offices);
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == mine.Id).ToList()) w.Fleets.Remove(f.Id);
+        Assert.Equal(0, NationSystem.Leeway(w, mine));                                                              // nobody of the house commands anything
+        var fleet = Post(w, "mine", mine.Id, "anvil", 6, me.Id); me.CareerTrack = "civil"; me.CareerRank = 0; me.Skills["tactics"] = 3;
+        Assert.Equal(0, NationSystem.Leeway(w, mine)); Assert.Equal(8, NationSystem.DefyCost(0)); Assert.Equal(3, NationSystem.DefyYearlyCost(0)); Assert.Equal(4, NationSystem.RecallLean(w, mine));
+        // a commander of real skill counts a step better than his name
+        me.Skills["tactics"] = NationSystem.LeewaySkill; Assert.Equal(1, NationSystem.Leeway(w, mine)); me.Skills["tactics"] = 3;
+        // battles won and triumphs voted make a name
+        w.WorldCounters[CaesarSystem.VictoryKey(me.Id)] = 5; Assert.True(CaesarSystem.Sway(w, me) >= NationSystem.LeewayKnown); Assert.Equal(1, NationSystem.Leeway(w, mine));
+        w.WorldCounters[CaesarSystem.TriumphKey(me.Id)] = 2; Assert.Equal(2, NationSystem.Leeway(w, mine)); Assert.Equal(0, NationSystem.RecallLean(w, mine));
+        w.WorldCounters[CaesarSystem.TriumphKey(me.Id)] = 3; w.WorldCounters[FleetSystem.ValourKey(me.Id)] = 2; Assert.True(CaesarSystem.Sway(w, me) >= NationSystem.LeewayGreat); Assert.Equal(3, NationSystem.Leeway(w, mine));
+        Assert.Equal(2, NationSystem.DefyCost(3)); Assert.Equal(0, NationSystem.DefyYearlyCost(3)); Assert.Equal(-2, NationSystem.RecallLean(w, mine));
+        Assert.Equal("a great name", NationSystem.LeewayName(3)); Assert.Equal("nobody the Senate has heard of", NationSystem.LeewayName(0));
+        // put to it: the same defiance, by a nobody and by a great name
+        (int standing, int loyalty) Defy(bool famous)
+        {
+            var (x, xs, _, xme, xmine, xother) = Start(); var xn = x.Nation("vashti")!; var xctx = new CommandContext(x, TestContent.Rng());
+            foreach (var f in x.Fleets.Values.Where(f => f.OwnerId == xmine.Id).ToList()) x.Fleets.Remove(f.Id);
+            xme.CareerTrack = "civil"; xme.CareerRank = 0; xme.Skills["tactics"] = 3; if (famous) { x.WorldCounters[CaesarSystem.VictoryKey(xme.Id)] = 5; x.WorldCounters[CaesarSystem.TriumphKey(xme.Id)] = 3; x.WorldCounters[FleetSystem.ValourKey(xme.Id)] = 2; }
+            NationSystem.DeclareWar(x, Content.Nations, "vashti", xother.Id); HomeFleets(x, Khans, "khal_orda"); xn.ScoreReach = 2; var xf = Post(x, "mine", xmine.Id, "the_long_grass", 6, xme.Id);
+            NationSystem.VotePeace(x, Content.Nations, "vashti", xother.Id); Year(x, xs); xmine.Legitimacy = 60; new AnswerPeaceCommand(xme.Id, false).Execute(xctx); Year(x, xs);
+            Assert.True(xn.Defied); return (xmine.Legitimacy, xf.Loyalty);
+        }
+        var nobody = Defy(false); var name = Defy(true);
+        Assert.Equal(60 - 8, nobody.standing); Assert.Equal(60 - 2, name.standing);
+        Assert.True(nobody.loyalty < 80, "his crews waver"); Assert.Equal(80, name.loyalty);
+        _ = caesar; _ = fleet;
     }
 
     [Fact]

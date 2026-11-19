@@ -2612,3 +2612,60 @@ picture is staged, since no world is conquered when a game begins. No errors; no
 own war takes the one place for a war beyond the Reach), N22 (a voted peace has no terms), N23 (defiance costs
 standing and a recall, and nothing else), N24 (one slider, for strength only), N25 (nothing leads up to a great
 ruler). Four more decisions for the owner, 16 to 19.
+
+## 81. Kinds of peace, how often they come, and whose fleet it is — 2026-11-19
+
+The owner answered decisions 16 to 19 of docs/BEYOND.md. They are quoted in that list and built the same day (R10g
+closed, with N23; N26 mapped). The rules are in docs/BEYOND.md under the heading above.
+
+**What the answers were, in a line each.** A Great Khan in about one game in three is right, with some randomness to
+it. The Free Cities and the Compact should attack too, less often; and there should be a slider for how aggressive
+the nations are. A peace is of different kinds (tribute paid, territory kept, a vassal state) and which one depends
+on the war and what it achieved. What defying the Senate costs should follow the Caesar road: a well-known and able
+general has more leeway and is less likely to be recalled; an unknown one pays more and is less likely to get away
+with it.
+
+**What it took.**
+
+- *Boldness.* One more number per nation, fixed at the start from a setting and the game's dice, read wherever a
+  nation's odds or rests were written as constants.
+- *A great ruler for any nation.* The Compact's "never leaves home" gave way to a great ruler; the Free Cities' habit
+  of buying a war off does not apply to a war their Navarch began.
+- *The end of a war as a choice among kinds.* The four places a war could end (they sue, the Reach is beaten, the
+  Senate votes, it gutters out) each called one routine with one flag. They now pick a kind, and the routine has a
+  second flag: everything goes home.
+- *A client.* A nation that pays with no end date, counted as subdued everywhere that asked, with a patron and a way
+  out.
+- *Leeway.* One function from a house to a row of a table, read by the cost of defying, the crews, the benches'
+  lean on a recall, who moves a recall, and whether another house defies at all.
+
+**Found by a test.** With the player's house holding a nation's capital and nobody credited with the war, the first
+rule for clients gave the capital back: nobody was "the house that won it", so the question of what the player
+wanted was never asked. The rule now asks it whenever the player's house holds one of the nation's worlds.
+
+**Found while measuring, and kept.** Recalls voted rose from 8 to 25 in sixty games, and two civil wars began where
+there had been none. Nothing in the recall rules had changed for anyone but a general defying a peace, and three did.
+The same sixty games with every nation at its written boldness gave 11 recalls and no civil war. So it is the luck:
+where a game's neighbours are bold there are more battles, more commanders with names, and the Senate recalls more
+of them. That is what the owner's rule expects of a Republic at war, and it is inside it (two in sixty; the Republic
+fell in none). Left as measured, and said in docs/BEYOND.md.
+
+**Measured** (60 unattended games of 60 years; the player gives no orders). Wars: the Concord 75, the Khanates 35,
+the Hollow Crown 23, the Free Cities 8 (3 begun by a Navarch), the Compact 4 (all begun by a High Warden). Great
+rulers: 14, 11, 6 and 6. Peaces: 33 with tribute to the Reach, 17 where the Reach kept worlds, 24 white, 38 where
+worlds were ceded, 1 where the Reach paid tribute, 1 client. Worlds ceded to the Concord: 38 (76 before). Three
+generals did not listen. With a war voted on the Khanates every twenty years: 117 wars; 32 ended in tribute, 17
+white, 46 with worlds ceded, 5 with worlds kept.
+
+**Checked beside it.** The soak: 33 games, each saved and resumed, no failures, 307 of 453 events fired. The
+survival check lost none of 80. The throne probe ran clean (19 pretenders in 20 games, 3 thrones taken).
+
+**In the browser** (`tools/browser/whosewar.js`). The new-game screen offers both settings. A nation's card says how often its great ruler
+comes in this game ("one accession in 6" for the Khanates in the game photographed, "one in 9" for the Crown). At war
+it says whose war it is and what a peace would be now: "The tally is 0 to 0. A peace voted now: it would be a white
+peace". The order to make clients flips when pressed. No errors; nothing wider than the screen.
+
+835 tests (six new in `tests/WhoseWarTests.cs`).
+
+**Left, and mapped.** N22 (nobody negotiates a peace), N26 (a client owes money and nothing else; the Reach is never
+the client; other houses almost never make one). Two more decisions for the owner, 20 and 21.

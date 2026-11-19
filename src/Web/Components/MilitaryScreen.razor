@@ -346,6 +346,7 @@
         "obey" => "your fleets come home, and the peace the Senate voted is kept",
         "defy" => "the war becomes your house's own: it costs your name at once and every year, and the Senate may recall your general",
         "raid" => "raiding fleets sack a world of a nation's in a season and leave it; fleets that take and hold besiege it and keep it",
+        "client" => "when yours is the house that wins the war, and the nation is beaten decisively: a client keeps its ruler and its worlds and pays the Reach and your house every year; otherwise it pays tribute for twenty years and you keep what you took",
         _ => ""
     };
     private void Order(string nationId, string id)
@@ -358,6 +359,7 @@
             case "obey": G.Execute(new AnswerPeaceCommand(me, true)); break;
             case "defy": G.Execute(new AnswerPeaceCommand(me, false)); break;
             case "raid": G.Execute(new RaidPostureCommand(me, !G.World!.HasFlag(NationSystem.PlayerRaidsFlag))); break;
+            case "client": G.Execute(new PeacePostureCommand(me, !G.World!.HasFlag(NationSystem.PlayerClientsFlag))); break;
         }
     }
     private static string AwayWord(string phase) => phase switch { "fighting" => "fighting", "home" => "homeward", _ => "outward" };

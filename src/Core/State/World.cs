@@ -43,6 +43,8 @@ public sealed class World
     public string Beyond { get; set; } = "default";
     /// <summary>Whether each nation's strength is varied by this game's dice, so no two games have the same neighbours.</summary>
     public bool BeyondVaries { get; set; } = true;
+    /// <summary>How readily the nations beyond the Reach attack in this game: "seldom", "default" or "often" (docs/BEYOND.md).</summary>
+    public string BeyondAggression { get; set; } = "default";
 
     /// <summary>The character the player currently inhabits — bound to the "self" role every event.</summary>
     public string ProtagonistId { get; set; } = "";

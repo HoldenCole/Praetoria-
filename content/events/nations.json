@@ -2551,6 +2551,275 @@
           ]
         }
       ]
+    },
+    {
+      "id": "a_client_of_the_reach",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_client",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "praise_the_settlement",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A nation beyond the rim had been beaten so thoroughly that it was left its own ruler and made a client. {self.name} said in the Senate that a neighbour who pays every year is worth more than a province that must be garrisoned every year."
+            }
+          ]
+        },
+        {
+          "id": "ask_whose_client",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A nation beyond the rim had been made a client of the Reach, and of the house whose fleets had beaten it. {self.name} asked the Senate which of the two it thought the client would remember when the envoys had gone home."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_client_breaks_away",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "client_breaks",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_for_the_fleets",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A client of the Reach had sent the envoys home and stopped paying. {self.name} told the Senate that a treaty nobody enforces is a letter, and moved that it be enforced."
+            }
+          ]
+        },
+        {
+          "id": "let_it_go",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A client of the Reach had sent the envoys home and stopped paying. {self.name} judged that it had paid for longer than anyone had expected, and that the next war could wait for a better reason."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_reach_pays_tribute",
+      "tier": "situation",
+      "weight": 55,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "reach_pays_tribute",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_it_what_it_is",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Reach had lost a war beyond the rim and was paying for it by the year. {self.name} had the sum read out in the Senate at the first session, and promised to have it read out at every session until the payments stopped or a fleet stopped them."
+            }
+          ]
+        },
+        {
+          "id": "pay_and_rebuild",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Reach had lost a war beyond the rim and was paying for it by the year. {self.name} said the money bought ten years, and that ten years was long enough to build the fleet that would not lose the next one."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_white_peace",
+      "tier": "ambient",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "white_peace",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "count_the_cost",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The war beyond the rim had ended with neither side ahead: a white peace. Every world went back to whoever had held it before. {self.name} had the house's clerks add up what the years had cost, and found nothing to set against it."
+            }
+          ]
+        },
+        {
+          "id": "be_glad_of_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The war beyond the rim had ended with neither side ahead: a white peace. Every world went back to whoever had held it before. {self.name} thought there were worse ways for a war to end, and most wars found them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_navarch_at_thessar",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_ruler_raised:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "warn_the_factors",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Free Cities had given one captain every hired hull and the title of Navarch. {self.name} warned the houses that trade with Thessar that a city which pays for a fleet means to use it, and that the bill would be sent to someone."
+            }
+          ]
+        },
+        {
+          "id": "doubt_it_lasts",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Free Cities had given one captain every hired hull and the title of Navarch. {self.name} doubted the Cities would pay a Navarch's wages for long, and said so."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_high_warden",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_ruler_raised:compact",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "warn_the_senate",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Outer Compact had chosen a High Warden, and the militia that never left home was being fitted out to. {self.name} told the Senate that the Long Dark is as wide for them as for us, and that they had decided to cross it."
+            }
+          ]
+        },
+        {
+          "id": "watch_sorrow",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Outer Compact had chosen a High Warden. {self.name} sent no speech to the Senate, and a picket to Sorrow."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

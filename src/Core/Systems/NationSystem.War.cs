@@ -13,7 +13,10 @@ namespace Praetoria.Core.Systems;
 /// worlds only when the nation attacked first. The player chooses for their own house.</summary>
 public sealed partial class NationSystem
 {
-    public const int SackRest = 6, ScoreSack = 2, SackUnrest = 10, PrivateRegard = 15, PrivateLeast = 3, DefyLegitimacy = 6, DefyYearly = 2, DefySway = 50, DefyYears = 6, PeaceRegard = 5;
+    public const int SackRest = 6, ScoreSack = 2, SackUnrest = 10, PrivateRegard = 15, PrivateLeast = 3, DefySway = 50, DefyYears = 6, PeaceRegard = 5;
+    public const int WhiteBand = 2, PaidYears = 10, ClientBreakOneIn = 12, ClientBreakDivided = 3;
+    public const string PlayerClientsFlag = "we_make_clients";
+    public const string ClientCounter = "nations_made_clients", ClientLostCounter = "clients_broke_away", PaidCounter = "tribute_paid_to_nations", PeaceKindCounter = "peace_kind";
     public const string PlayerRaidsFlag = "we_raid_beyond", PeaceObeyFlag = "peace_answer_obey", PeaceDefyFlag = "peace_answer_defy";
     public const string SackedCounter = "nation_worlds_sacked", PrivateCounter = "private_wars", PeaceVotedCounter = "foreign_peace_voted", PeaceMadeCounter = "foreign_peace_made", DefiedCounter = "foreign_peace_defied", CameHomeCounter = "defiers_came_home";
     public static string SackedKey(string holdingId) => "sacked_turn:" + holdingId;
@@ -121,7 +124,7 @@ public sealed partial class NationSystem
             bool spent = dh == null || !w.OfTheReach(dh.Id) || !w.Fleets.Values.Any(f => f.OwnerId == dh.Id && !f.IsAway && f.Strength >= 2);
             bool home = dh != null && dh.Id == mine ? w.HasFlag(PeaceObeyFlag) : n.ScoreNation > n.ScoreReach || w.Turn - since >= DefyYears;
             if (spent || home) { Bump(w, CameHomeCounter, n); MakePeace(w, n, d, spent ? $"{dh?.Name ?? "The house that fought on"} has nothing left to fight it with" : $"{dh!.Name} comes home at last"); return true; }
-            dh!.Legitimacy = Math.Max(0, dh.Legitimacy - DefyYearly);
+            Defiance(w, dh!, yearly: true);
             return false;
         }
         if (n.PeaceVoted <= 0) return false;
@@ -133,7 +136,7 @@ public sealed partial class NationSystem
         defier ??= carrying.FirstOrDefault(h => h.Id != mine && n.ScoreReach >= n.ScoreNation && Defies(w, n, h));
         if (defier == null) { MakePeace(w, n, d, "The fleets come home"); return true; }
         n.WarOf = defier.Id; n.Defied = true; n.PeaceVoted = 0; w.WorldCounters[DefiedSinceKey(defier.Id)] = Math.Max(1, w.Turn);
-        defier.Legitimacy = Math.Max(0, defier.Legitimacy - DefyLegitimacy);
+        Defiance(w, defier, yearly: false);
         Bump(w, DefiedCounter, n); Mark(w, defier.Id == mine ? "peace_defied_by_us" : "peace_defied", n);
         w.Log($"{defier.Name} does not listen. The Senate has voted peace with {d.Name}, and {(CaesarSystem.GeneralOf(w, defier) is { } gg ? gg.Name : defier.Name)} fights on: it is {defier.Name}'s war now, against the Senate's word.");
         return false;
@@ -143,20 +146,111 @@ public sealed partial class NationSystem
     /// and its head is the kind who does not take an order from a chamber.</summary>
     private static bool Defies(World w, Nation n, House h)
     {
-        int sway = CaesarSystem.GeneralOf(w, h) is { } g ? CaesarSystem.Sway(w, g) : 0;
-        if (sway >= DefySway) return true;
+        int leeway = Leeway(w, h);
+        if (leeway >= 2) return true;                    // a name the Senate will think twice about
         if (n.WarOf != h.Id) return false;
-        return sway >= CaesarSystem.RecallSway || (Economy.HeadOf(w, h) is { } hd && (hd.NatureTraits.Contains("Ambitious") || hd.NatureTraits.Contains("Ruthless") || hd.NatureTraits.Contains("Proud")));
+        return leeway >= 1 || (Economy.HeadOf(w, h) is { } hd && (hd.NatureTraits.Contains("Ambitious") || hd.NatureTraits.Contains("Ruthless") || hd.NatureTraits.Contains("Proud")));
+    }
+
+    // ---- what not listening costs, by who it is that does not listen (the owner: "if you are a well-known general and you are very
+    // good, then you probably have more leeway to defy the Senate and they are less likely to recall you. If you are not well known ...
+    // it probably costs you more and your chance of success is a lot lower") ----
+
+    public const int LeewayKnown = 25, LeewayNamed = 45, LeewayGreat = 65, LeewaySkill = 7, CrewsWaver = 4;
+    public static readonly int[] DefyAtOnce = { 8, 6, 4, 2 }, DefyAYear = { 3, 2, 1, 0 }, RecallLeanFor = { 4, 2, 0, -2 };
+    /// <summary>How much the Senate will take from this house's general, 0 to 3. It is his sway on the Caesar road (battles won, crews
+    /// that follow him, triumphs, rank): 25 is a known name, 45 a name, 65 a great one. A commander of real skill counts one step
+    /// better than his name. A house with nobody of its own in command has none.</summary>
+    public static int Leeway(World w, House? h)
+    {
+        var g = CaesarSystem.GeneralOf(w, h); if (g == null) return 0;
+        int sway = CaesarSystem.Sway(w, g); int step = sway >= LeewayGreat ? 3 : sway >= LeewayNamed ? 2 : sway >= LeewayKnown ? 1 : 0;
+        return Math.Min(3, step + (g.Skill("tactics") >= LeewaySkill ? 1 : 0));
+    }
+    public static string LeewayName(int leeway) => leeway switch { 3 => "a great name", 2 => "a name the Senate knows", 1 => "a known commander", _ => "nobody the Senate has heard of" };
+    public static int DefyCost(int leeway) => DefyAtOnce[Math.Clamp(leeway, 0, 3)];
+    public static int DefyYearlyCost(int leeway) => DefyAYear[Math.Clamp(leeway, 0, 3)];
+    /// <summary>How the benches lean on recalling a general who fights on against a peace: hard against a nobody, not at all against a
+    /// name, and the other way for a great one.</summary>
+    public static int RecallLean(World w, House h) => RecallLeanFor[Math.Clamp(Leeway(w, h), 0, 3)];
+
+    /// <summary>The price of not listening, at once or for another year: the house's standing, and its crews, who did not sign on to
+    /// fight the Senate for a man nobody has heard of. Crews devoted to their commander do not waver.</summary>
+    private static void Defiance(World w, House h, bool yearly)
+    {
+        int leeway = Leeway(w, h);
+        h.Legitimacy = Math.Max(0, h.Legitimacy - (yearly ? DefyYearlyCost(leeway) : DefyCost(leeway)));
+        int waver = (3 - leeway) * CrewsWaver / (yearly ? 2 : 1);
+        if (waver > 0) foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == h.Id && !f.Office && f.Devotion < CaesarSystem.DevotedAt)) f.Loyalty = Math.Max(0, f.Loyalty - waver);
     }
 
     /// <summary>A peace the Senate voted is made. Whoever is ahead keeps what they hold; no tribute is paid and no triumph is voted.</summary>
     private static void MakePeace(World w, Nation n, NationDef d, string how)
     {
-        bool ahead = n.ScoreReach >= n.ScoreNation;
         w.WorldFlags.Add("foreign_peace"); Bump(w, PeaceMadeCounter, n); Mark(w, "peace_made", n); n.Disposition = Math.Min(100, n.Disposition + PeaceRegard);
-        w.Log($"{how}: the Senate's peace with {d.Name} is made. {(ahead ? "Each side keeps what it holds of its own, and" : "What they hold of the Reach's is ceded, what the Reach holds of theirs is given up, and")} nobody pays tribute.");
-        PeaceOnMap(w, n, d, reachWon: ahead);
+        w.Log($"{how}: the Senate's peace with {d.Name} is made.");
+        Unforced(w, n, d);
         EndWar(w, n, d);
+    }
+
+    // ---- kinds of peace (the owner: "it could be a peace where you pay tribute, or where you keep the territory, or even where they
+    // become a vassal state. It really depends on the war and what is achieved in the war") ----
+
+    /// <summary>Whether the nation holds a world of the Reach's that it took in this war.</summary>
+    public static bool Holds(World w, Nation n) => n.OnMap && w.Holdings.Values.Any(x => x.IsPlanet && x.OwnerId == n.HouseId && x.FormerOwnerId.Length > 0 && w.OfTheReach(x.FormerOwnerId));
+    public static int ClientShare(NationDef d) => Math.Max(1, d.Tribute / 2);
+
+    /// <summary>Whether a war won ends with the nation made a client. It must be beaten decisively: its capital in the Reach's hands,
+    /// or the tally at twice what makes it sue, or three in four of its hulls gone. And the house that won it must want a client: other
+    /// houses always do (they raid, and hold nothing); the player's does when the player has said so, and otherwise keeps what it took.</summary>
+    public static bool Client(World w, Nation n, NationDef d, House? top, string? mine)
+    {
+        if (!n.OnMap || n.Fallen || n.Vassal) return false;
+        // the player's house keeps what it took unless the player has said otherwise: when the war is its to win, or it holds one of the nation's worlds
+        if (mine != null && !w.HasFlag(PlayerClientsFlag) && (top?.Id == mine || d.Worlds.Any(x => w.Holding(x.Id)?.OwnerId == mine))) return false;
+        return Decisive(w, n, d);
+    }
+    public static bool Decisive(World w, Nation n, NationDef d) =>
+        n.OnMap && ((w.PlanetHolder(n.CapitalSystemId) is { } seat && w.OfTheReach(seat)) || n.ScoreReach - n.ScoreNation >= 2 * SuesAt(n, d) || n.Strength * 4 <= Full(n, d));
+
+    /// <summary>A peace nobody forced (the Senate voted it, or the war guttered out): by the tally. Two or more ahead, the Reach keeps
+    /// what it holds; two or more behind, they keep what they hold; closer than that it is a white peace, and everything goes home.
+    /// Nobody pays tribute.</summary>
+    private static void Unforced(World w, Nation n, NationDef d)
+    {
+        int lead = n.ScoreReach - n.ScoreNation;
+        if (lead >= WhiteBand) { n.LastPeace = "territory"; w.Log($"The Reach is ahead: each house keeps what it holds of {d.Name}'s, and what {d.Name} holds of the Reach's goes home. Nobody pays tribute."); PeaceOnMap(w, n, d, reachWon: true); }
+        else if (lead <= -WhiteBand) { n.LastPeace = "ceded"; w.Log($"{d.Name} is ahead: what it holds of the Reach's is ceded, and what the Reach holds of its worlds is given up. Nobody pays tribute."); PeaceOnMap(w, n, d, reachWon: false); }
+        else { n.LastPeace = "white"; Mark(w, "white_peace", n); w.Log($"Neither side is ahead: a white peace with {d.Name}. Every world goes back to whoever had it before the war, and nobody pays anybody."); PeaceOnMap(w, n, d, reachWon: true, allBack: true); }
+        Bump(w, PeaceKindCounter + ":" + n.LastPeace, n);
+    }
+
+    /// <summary>What a peace would be if the war ended this year, in a line: for the nation's card.</summary>
+    public static string PeaceNow(World w, Nation n, NationDef d, string? mine)
+    {
+        if (!n.AtWar) return "";
+        int lead = n.ScoreReach - n.ScoreNation; int sues = SuesAt(n, d);
+        string win = n.OnMap && Decisive(w, n, d) ? "it would be made a client if the house that won it wants one" : $"at {sues} ahead it sues, and pays tribute for {SubduedTurns} years{(n.OnMap ? "; beaten decisively (its capital taken, twice that tally, or three hulls in four gone) it can be made a client" : "")}";
+        string lose = n.OnMap ? (Holds(w, n) ? $"at {d.Threshold} behind the war is lost and what it holds is ceded" : $"at {d.Threshold} behind the war is lost and the Reach pays it tribute for {PaidYears} years") : $"at {d.Threshold} behind the chair buys peace";
+        string voted = lead >= WhiteBand ? "the Reach would keep what it holds" : lead <= -WhiteBand ? "it would keep what it holds" : "it would be a white peace: everything goes home";
+        return $"The tally is {n.ScoreReach} to {n.ScoreNation}. A peace voted now: {voted}. Fought to the end: {win}; {lose}.";
+    }
+
+    /// <summary>A client's year: it pays the chair, and half as much again to its patron. It throws the treaty off under one of the
+    /// great at once; under a warlike ruler with its fleets rebuilt, one year in twelve, or one in three while the Reach is divided.</summary>
+    private static void Clientage(World w, Nation n, NationDef d)
+    {
+        var chair = RegionSystem.CapitalHolder(w); var patron = n.PatronId.Length > 0 && w.OfTheReach(n.PatronId) ? w.House(n.PatronId) : null;
+        bool rebuilt = n.Strength * 100 >= Full(n, d) * StrikeFit;
+        bool breaks = Great(n) || (n.Ruler?.Nature == "warlike" && rebuilt && Hash($"client:{n.Salt}:{n.Id}:{w.Turn}") / 7 % (uint)(Divided(w) != null ? ClientBreakDivided : ByBoldness(n, ClientBreakOneIn)) == 0);
+        if (breaks)
+        {
+            n.Vassal = false; n.PatronId = ""; n.SubduedUntil = 0; n.Disposition = Math.Max(-100, n.Disposition - 20); Bump(w, ClientLostCounter, n); Mark(w, "client_breaks", n);
+            w.Log($"{d.Name} throws off the treaty: {Styled(d, n.Ruler, true)} sends the Reach's envoys home, and pays nobody. {(patron != null ? $"{patron.Name} has lost a client." : "")}");
+            return;
+        }
+        if (chair != null) { chair.Treasury.Credits += d.Tribute; w.WorldCounters[TributeCounter] = w.Counter(TributeCounter) + d.Tribute; }
+        if (patron != null) { patron.Treasury.Credits += ClientShare(d); w.WorldCounters[TributeCounter] = w.Counter(TributeCounter) + ClientShare(d); }
     }
 
     /// <summary>A house that fought on comes home (CaesarSystem.Obey, when its general lays down the command): the peace is made at the next reckoning.</summary>

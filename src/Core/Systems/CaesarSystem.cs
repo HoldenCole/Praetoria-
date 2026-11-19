@@ -239,7 +239,7 @@ public sealed class CaesarSystem
         if (sway >= 70) lean += 1;
         if (FleetSystem.StrengthOf(w, target.Id) > 2 * Math.Max(1, FleetSystem.StrengthOf(w, h.Id))) lean -= 1;                // and some do not dare
         if (h.PatronId == target.Id) lean -= 2;
-        if (NationSystem.DefiedBy(w, target.Id) != null) lean += 3;   // the Senate voted peace and was not listened to
+        if (NationSystem.DefiedBy(w, target.Id) != null) lean += NationSystem.RecallLean(w, target);   // the Senate voted peace and was not listened to: how hard it pushes depends on whose fleet it is
         return lean;
     }
 
