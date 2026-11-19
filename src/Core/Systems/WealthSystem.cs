@@ -135,6 +135,7 @@ public static partial class WealthSystem
             "sword" => holder?.CareerTrack == "military" ? "Carried in the fleet, it is something to live up to: its holder learns discipline faster." : "Does nothing on a wall: it wants carrying by someone in the fleet.",
             "library" => "Everyone of its holder's house who has set themselves a study learns it a little faster.",
             "estate" => "Brings its holder 2 credits a year.",
+            Regalia => holder != null && w.House(holder.HouseId) is { } wornBy && Economy.HeadOf(w, wornBy)?.Id == holder.Id ? $"Kept by the head of a house, the house's name mends a point a year while its standing is under {RegaliaMendsBelow}." : "Does nothing in a relative's keeping: it wants the head of a house.",
             Shrine => $"The commons think a point better of its holder's house each year, while they think less than {ShrineCeiling} of it.",
             Standard => (holder != null && FlagshipOf(w, holder.Id) != null ? $"Flown from a flagship, the fleet under it is a point more loyal each year, up to {StandardCeiling}." : "Does nothing in a hall: it wants flying from the flagship of whoever holds it."),
             Orrery => (holder?.Study.Length > 0 ? "Its holder learns what they have set themselves to study a point faster each year." : "Does nothing for one who studies nothing.") + (w.House(item.FromHouseId) is { } sentBy && holder != null && FavourOwed(w, holder.HouseId, sentBy.Id) ? $" It came from {sentBy.Name}, which has a favour to call in for it." : ""),
@@ -161,6 +162,7 @@ public static partial class WealthSystem
             // the house a thing was taken from does not forget who has it
             if (IsSpoil(item) && w.House(item.FromHouseId) is { } lostBy && lostBy.Id != holder.HouseId && Economy.HeadOf(w, lostBy) is { Alive: true } theirHead) Regard(w, theirHead, holder, -1, floor: StandardGrudgeFloor);
             if (item.Kind == "signet" && of != null && head?.Id == holder.Id && of.Legitimacy < SignetMendsBelow) of.Legitimacy += 1;
+            else if (item.Kind == Regalia) { if (w.House(holder.HouseId) is { } worn && Economy.HeadOf(w, worn)?.Id == holder.Id && worn.Legitimacy < RegaliaMendsBelow) worn.Legitimacy += 1; }
             else if (item.Kind == "sword" && holder.CareerTrack == "military") EducationSystem.Gain(w, holder, "discipline", SwordPoints);
             else MadeThings(w, item, holder);
         }

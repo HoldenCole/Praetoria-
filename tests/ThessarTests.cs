@@ -201,13 +201,15 @@ public class ThessarTests
         var mine = w.House(w.Protagonist!.HouseId)!; var h = Other(w, mine); var head = Economy.HeadOf(w, h)!; head.CareerTrack = "military"; head.CareerRank = 3;
         foreach (var x in w.Wars.ToList()) w.Wars.Remove(x);
         foreach (var x in w.Nations) x.Disposition = 20;                                                      // nobody hostile, nobody raiding
+        w.Nation("hollow_crown")!.Disposition = 40;                                                           // (the other rich neighbour, better liked: named second)
         h.Treasury.Credits = SenateSystem.PlunderWant + 50; Assert.Null(tc.Senate.WantedWar(w, h));            // a full purse wants no war with a friend
         h.Treasury.Credits = SenateSystem.PlunderWant - 10; Assert.Equal("thessar", tc.Senate.WantedWar(w, h));
         int poor = tc.Senate.ForeignWarLean(w, h, "thessar"); h.Treasury.Credits = SenateSystem.PlunderWant + 50; Assert.Equal(poor - 1, tc.Senate.ForeignWarLean(w, h, "thessar"));
         // a nation with a real quarrel is named first
         h.Treasury.Credits = SenateSystem.PlunderWant - 10; w.Nation("vashti")!.Disposition = -50; Assert.Equal("vashti", tc.Senate.WantedWar(w, h));
         // and not while the Cities pay tribute
-        w.Nation("vashti")!.Disposition = 20; w.Nation("thessar")!.SubduedUntil = w.Turn + 20; Assert.Null(tc.Senate.WantedWar(w, h));
+        w.Nation("vashti")!.Disposition = 20; w.Nation("thessar")!.SubduedUntil = w.Turn + 20; Assert.Equal("hollow_crown", tc.Senate.WantedWar(w, h));   // then the other rich neighbour
+        w.Nation("hollow_crown")!.SubduedUntil = w.Turn + 20; Assert.Null(tc.Senate.WantedWar(w, h));
     }
 
     [Fact]

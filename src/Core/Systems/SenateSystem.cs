@@ -584,10 +584,10 @@ public sealed class SenateSystem
         bool hawk = party?.PartyId == "sword" || (head != null && head.CareerTrack == "military" && head.CareerRank >= 2) || raider != null;
         if (!hawk || w.Wars.Any(x => x.Involves(h.Id))) return null;
         if (w.Fleets.Values.Where(f => !World.Outsider(f.OwnerId) && !f.IsAway).Sum(f => f.Strength) < 6) return null;   // the Reach must have fleets to send, if not this house's own
-        // a war for plunder (docs/BEYOND.md, the Free Cities): a house that wants a war and is short of money will name a rich neighbour on
-        // the map that would rather buy than fight, when no nation has given the Reach a better reason (those are named first, below)
+        // a war for plunder (docs/BEYOND.md, the Free Cities and the Hollow Crown): a house that wants a war and is short of money will
+        // name a rich neighbour on the map, when no nation has given the Reach a better reason (those are named first, below)
         bool greedy = h.Treasury.Credits < PlunderWant;
-        return w.Nations.Where(n => !n.Fallen && !n.Subdued(w.Turn) && Nations.Def(n.Id) is { } nd && (n.Disposition <= -30 || NationSystem.Raided(w, n.Id, 6) || (greedy && n.OnMap && NationSystem.Buys(nd) && nd.Wealth >= RichAt)))
+        return w.Nations.Where(n => !n.Fallen && !n.Subdued(w.Turn) && Nations.Def(n.Id) is { } nd && (n.Disposition <= -30 || NationSystem.Raided(w, n.Id, 6) || (greedy && n.OnMap && nd.Wealth >= RichAt)))
             .OrderByDescending(n => n.Id == raider ? 2 : NationSystem.Raided(w, n.Id, 6) ? 1 : 0).ThenBy(n => n.Disposition).ThenBy(n => n.Id, StringComparer.Ordinal).FirstOrDefault()?.Id;
     }
 

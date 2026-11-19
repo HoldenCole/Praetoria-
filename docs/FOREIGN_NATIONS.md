@@ -6,11 +6,11 @@ where a republic of many parties conquers many nations, large and small. **For n
 expansion puts them there: conquest, contested border regions, new holdings to take. That expansion is planned in
 five stages in docs/BEYOND.md (2026-11-18).
 
-**The Vashti Khanates, the Free Cities of Thessar and the Ardent Concord are on the map** (2026-11-18, on the owner's word). What this
+**All five nations are on the map** (2026-11-18 and 19, on the owner's word). What this
 document says about expeditions, abstract battles and strength as one number no longer holds for them: they have
 worlds, fleets and persons, and a war with them is fought by the ordinary rules. See "The Vashti Khanates on the
-map, as built", "The Free Cities of Thessar on the map, as built" and "The Ardent Concord on the map, as built" in
-docs/BEYOND.md. The other two nations, the Outer Compact and the Hollow Crown, are as described here.
+map, as built" and the sections after it in docs/BEYOND.md. What is described below is kept in the engine for a map
+drawn without a nation's worlds; no shipped nation is fought this way now.
 
 ## Off-map first (what this means for the engine)
 - A `Nation` catalogue (`content/nations/*.json`): name, culture, strength (an abstract fleet count that drifts),

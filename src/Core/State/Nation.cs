@@ -35,6 +35,13 @@ public sealed class Nation
     /// <summary>How its fleets fight on the map, hull for hull, by its temper: a hundred is a fleet of the Reach's. 0 until it is first reckoned.</summary>
     public int Mettle { get; set; }
     /// <summary>Whether the nation began the war now being fought (then every house defends, not only those that wanted a war).</summary>
+    /// <summary>Years added to a siege of a world it holds (from its definition; kept here for the fleets).</summary>
+    public int Walls { get; set; }
+    /// <summary>What is still in its capital for whoever first takes it, and the standing that goes with it. Both 0 once taken.</summary>
+    public int Treasure { get; set; }
+    public int Titles { get; set; }
+    /// <summary>The name of the thing in its vaults, until the vaults are opened.</summary>
+    public string Regalia { get; set; } = "";
     public bool BeganIt { get; set; }
     /// <summary>The year its last war ended; 0 if it has had none.</summary>
     public int LastWarEnd { get; set; }

@@ -55,8 +55,12 @@ public class BeyondTests
         Assert.True(NationSystem.OutTurns(w, khans, "ironhold") > NationSystem.OutTurns(w, khans, "anvil"));
         Assert.Equal(concord.Depth, NationSystem.OutTurns(w, concord, "ironhold"));                                                         // and the Concord's door is there
         // the order to sail uses it
-        // (against a nation still off the map: the Khanates, the Free Cities and the Concord are on it now, and are sailed to by the lanes)
-        var compact = Content.Nations.Def("compact")!; NationSystem.DeclareWar(w, Content.Nations, "compact", mine.Id); var f = Post(w, "exp", mine.Id, "anvil", 8); w.PoolsFor(me.Id).Treasury = 2; mine.Treasury.Credits = 500; mine.Treasury.Helium3 = 60;
+        // (against a nation that is off the map. Every shipped nation is on it now and is sailed to by the lanes, so the Compact is taken off
+        // it here: an older game's map, or one drawn without its worlds, still has nations of this kind)
+        var compact = Content.Nations.Def("compact")!; var off = w.Nation("compact")!;
+        foreach (var x in w.HoldingsOf(off.HouseId).ToList()) w.Holdings.Remove(x.Id); foreach (var x in w.Fleets.Values.Where(x => x.OwnerId == off.HouseId).ToList()) w.Fleets.Remove(x.Id);
+        w.Houses.Remove(off.HouseId); off.HouseId = ""; off.CapitalSystemId = ""; Assert.False(off.OnMap);
+        NationSystem.DeclareWar(w, Content.Nations, "compact", mine.Id); var f = Post(w, "exp", mine.Id, "anvil", 8); w.PoolsFor(me.Id).Treasury = 2; mine.Treasury.Credits = 500; mine.Treasury.Helium3 = 60;
         var ctx = new CommandContext(w, TestContent.Rng());
         Assert.Contains("by the lanes", new SendExpeditionCommand(me.Id, "exp", "vashti", Content.Fleets, Content.Nations).Refusal(ctx));
         Assert.Contains("by the lanes", new SendExpeditionCommand(me.Id, "exp", "concord", Content.Fleets, Content.Nations).Refusal(ctx));

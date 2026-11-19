@@ -826,7 +826,7 @@ public sealed class FleetSystem
             }
             if (!w.Sieges.TryGetValue(h.Id, out var siege) || siege.BesiegerId != besieger)
             {
-                siege = new Siege { HoldingId = h.Id, BesiegerId = besieger, Turns = 0, Required = SiegeRequired(w, h) + (w.Foreign(besieger) ? NationSystem.SiegeSlow : 0) };   // a host from beyond the rim is slow at walls (docs/BEYOND.md)
+                siege = new Siege { HoldingId = h.Id, BesiegerId = besieger, Turns = 0, Required = SiegeRequired(w, h) + (w.Foreign(besieger) ? NationSystem.SiegeSlow : 0) + (w.NationOfHouse(h.OwnerId)?.Walls ?? 0) };   // a host from beyond the rim is slow at walls (docs/BEYOND.md)
                 w.Sieges[h.Id] = siege;
                 w.Log($"{w.House(besieger)?.Name ?? besieger} lays siege to {h.Name} ({siege.Required} turns to fall).");
             }

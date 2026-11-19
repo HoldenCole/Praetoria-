@@ -1901,6 +1901,294 @@
           ]
         }
       ]
+    },
+    {
+      "id": "the_isotope_fields",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "world_yields_to_us:compact",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "work_them_hard",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The house held a world of the Outer Compact, and the fields under it. {self.name} had the refinery run in three shifts. Every arsenal in the Reach wants what comes out of that ground, and for as long as the house keeps a fleet over it, the house has it."
+            }
+          ]
+        },
+        {
+          "id": "leave_the_miners_their_ways",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house held a world of the Outer Compact, and the fields under it. {self.name} left the miners their own foremen and their own hours, and took what they dug. They had sworn an oath to each other, not to the house; it seemed wise not to test which they would keep."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_vaults_of_the_crown",
+      "tier": "setpiece",
+      "weight": 90,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "treasure_taken_by_us:hollow_crown",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "bring_it_home_in_state",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet took Porphyra and opened the vaults under the Purple Palace. {self.name} had the regalia of an empire carried through the capital on open decks, where every house could count it. Some of them counted it more than once."
+            }
+          ]
+        },
+        {
+          "id": "pay_the_fleet_first",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -20
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet took Porphyra and opened the vaults under the Purple Palace. {self.name} paid every crew a year's wages out of the first strongroom before a single chest was carried aboard. They will not forget who took them there."
+            }
+          ]
+        },
+        {
+          "id": "say_little_and_bank_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet took Porphyra and opened the vaults under the Purple Palace. {self.name} said little, had it weighed, and banked it. A house that grows that rich that fast is watched; there was no need to help the watchers."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_crown_is_broken",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "treasure_taken:hollow_crown",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "note_who_grew_rich",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "Another house's fleet took Porphyra and came home with the treasury of an empire. {self.name} made a note of how much, and of what a house can do with that much, and with the name of having done it."
+            }
+          ]
+        },
+        {
+          "id": "salute_it",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "Another house's fleet took Porphyra and came home with the treasury of an empire. {self.name} sent congratulations, and meant most of them. It was the kind of thing a general's name is made of."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "another_hull_from_the_lists",
+      "tier": "ambient",
+      "weight": 25,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_decays:hollow_crown",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "mark_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "Word came that the Hollow Crown had struck another ship from its lists: not lost, only unpaid for. {self.name} had the house's clerks keep the count. It goes one way."
+            }
+          ]
+        },
+        {
+          "id": "pity_them",
+          "effects": [
+            {
+              "type": "log",
+              "text": "Word came that the Hollow Crown had struck another ship from its lists: not lost, only unpaid for. {self.name} thought of a court still performing every ceremony of an empire, and found it hard to hate them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_last_of_the_crown",
+      "tier": "setpiece",
+      "weight": 70,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_fallen:hollow_crown",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_an_age_is_over",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The last world of the Hollow Crown was taken, and there is no Autokrator. {self.name} said in the Senate that something older than the Reach had ended, and that the Reach should mark it, having ended it."
+            }
+          ]
+        },
+        {
+          "id": "ask_who_holds_its_worlds",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The last world of the Hollow Crown was taken, and there is no Autokrator. {self.name} asked the Senate which houses now held four worlds beyond the rim, by what right, and what the rest of the Reach was owed for it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_long_dark",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "foreign_war:compact",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "foreign_war_declared",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_what_it_will_cost",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Senate had voted a war on the Outer Compact. {self.name} told it what lay between: Sorrow, which nobody holds, and the Long Dark, which nobody can; a fleet that crosses both arrives hungry at worlds dug in to receive it. The Senate had not asked."
+            }
+          ]
+        },
+        {
+          "id": "say_the_fields_are_worth_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Senate had voted a war on the Outer Compact. {self.name} said the isotopes under those four worlds would arm the Reach for a generation, and that distance was a reason to go properly, not a reason to stay."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

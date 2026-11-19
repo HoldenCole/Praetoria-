@@ -25,10 +25,10 @@ public class RegionsAndMinorHousesTests
     {
         var (_, w) = Fresh("the_circling_heir");
         var g = w.Galaxy!;
-        Assert.Equal(41, g.Systems.Count);
-        Assert.Equal(13, g.Regions.Count); Assert.Equal(10, g.ReachRegions.Count());   // ten of the Reach; the Vashti Steppe, the Thessaran Shore and the Ardent Concord beyond it (docs/BEYOND.md)
-        foreach (var r in g.Regions) Assert.InRange(g.SystemsIn(r.Id).Count(), 3, 4);
-        Assert.Equal(2, g.Regions.Count(r => r.Ring == "core")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "middle")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "rim")); Assert.Equal(3, g.Regions.Count(r => r.Ring == "beyond"));
+        Assert.Equal(50, g.Systems.Count);
+        Assert.Equal(15, g.Regions.Count); Assert.Equal(10, g.ReachRegions.Count());   // ten of the Reach, and five nations' space beyond it (docs/BEYOND.md)
+        foreach (var r in g.Regions) Assert.InRange(g.SystemsIn(r.Id).Count(), 3, r.Ring == "beyond" ? 5 : 4);   // the Compact's four worlds lie past an empty system
+        Assert.Equal(2, g.Regions.Count(r => r.Ring == "core")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "middle")); Assert.Equal(4, g.Regions.Count(r => r.Ring == "rim")); Assert.Equal(5, g.Regions.Count(r => r.Ring == "beyond"));
         Assert.All(g.Systems.Values, s => Assert.NotNull(g.Region(s.RegionId)));
         Assert.Equal("aurelian", g.CultureOf("castrum"));
         Assert.Empty(g.Problems());
@@ -45,10 +45,10 @@ public class RegionsAndMinorHousesTests
         foreach (var sys in w.Galaxy!.Systems.Keys)
         {
             var planets = w.Holdings.Values.Where(h => h.SystemId == sys && h.IsPlanet).ToList();
-            if (planets.Count == 0) { Assert.Equal("rim", w.Galaxy.RingOf(sys)); continue; }
+            if (planets.Count == 0) { Assert.True(w.Galaxy.RingOf(sys) == "rim" || sys == "the_long_dark", sys); continue; }
             Assert.Single(planets.Select(p => p.OwnerId).Distinct());
         }
-        Assert.Equal(2, w.Galaxy.Systems.Keys.Count(sys => !w.Holdings.Values.Any(h => h.SystemId == sys && h.IsPlanet)));
+        Assert.Equal(3, w.Galaxy.Systems.Keys.Count(sys => !w.Holdings.Values.Any(h => h.SystemId == sys && h.IsPlanet)));
         foreach (var h in w.Holdings.Values)
         {
             Assert.True(w.Houses.ContainsKey(h.OwnerId));
@@ -79,13 +79,13 @@ public class RegionsAndMinorHousesTests
     {
         var (_, w) = Fresh("the_old_lion");
         var regions = GalaxyProjection.Regions(w);
-        Assert.Equal(13, regions.Count);
+        Assert.Equal(15, regions.Count);
         var grey = regions.Single(r => r.Id == "greywater_reach");
         Assert.Equal("castellan", grey.DominantHouseId);     // the Castellans hold two of its three worlds
         Assert.Equal(3, grey.Planets);
         var nodes = GalaxyProjection.Nodes(w);
-        Assert.All(nodes.Where(n => n.Ring != "rim"), n => Assert.NotNull(n.OwnerHouseId));
-        Assert.Equal(2, nodes.Count(n => n.OwnerHouseId == null));
+        Assert.All(nodes.Where(n => n.Ring != "rim" && n.SystemId != "the_long_dark"), n => Assert.NotNull(n.OwnerHouseId));
+        Assert.Equal(3, nodes.Count(n => n.OwnerHouseId == null));   // two lawless worlds of the rim, and the Long Dark on the way to the Compact
         Assert.Contains(nodes, n => n.Stations > 0);
         Assert.DoesNotContain(nodes, n => n.Contested);     // stations do not contest a system
     }

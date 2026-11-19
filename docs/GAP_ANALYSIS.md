@@ -2493,3 +2493,64 @@ the screen.
 **Left, and mapped.** N13 (nothing warns of a strike), N14 (one commander however many fleets), N15 (it strikes only
 when the Reach is divided by its own quarrels; one war beyond the Reach at a time). Twelve decisions for the owner
 are listed at the end of docs/BEYOND.md.
+
+## 79. The Outer Compact and the Hollow Crown on the map — 2026-11-19
+
+The owner: "Add the Outer Compact and the Hollow Crown next." Built the same day (R10e closed; N16 to N19 mapped).
+All five nations are now on the map. The rules are in docs/BEYOND.md, "The Outer Compact and the Hollow Crown on the
+map, as built"; the owner's list at the end of that document has fifteen items.
+
+**The aim** was two neighbours the Reach has no quarrel with, each a different reason to go: a hard place a long way
+off that is worth holding (the Compact's isotopes), and an old empire that can be taken apart and ended (the Crown's
+vaults).
+
+**What it took beyond content.** Six more switches a nation's definition can set: whether its fleets ever leave
+home (`sorties`), years added to a siege of its worlds (`walls`), what each of its worlds gives a house that holds it
+(`yields`), what is in its capital for whoever takes it first (`treasure`, `titles`, `regalia`), and its own worth in
+a battle (`mettle`). A nation that never sorties turns out its guard beside its militia when invaded. A decaying
+nation strikes a hull from its lists every ten years. The regalia is a real thing: an heirloom of a new kind that
+the head of the taking house holds, and that can be sold, willed or carried off like a signet.
+
+**The map.** Nine systems and thirteen lanes: 50 systems, 69 lanes, fifteen regions. One of the nine, the Long Dark,
+is held by nobody. No route inside the Reach is shorter for the new lanes (checked for every pair of systems).
+
+**Found while measuring, and changed.**
+
+| What the runs showed | What was done |
+|---|---|
+| With its guard kept at the capital, the Compact lost 10 of 11 forced wars on one start: its militia was beaten alone | Its guard turns out beside the militia when the two together can beat the intruder. The Reach then won 33 of 78 |
+| At the mettle of its temper (85) the Crown beat the Reach in 3 of 13 forced wars on one start | Its fleets fight at 70. Fleets of the Reach gather half as much again before going in on a fortress |
+| That fortress rule made no difference that could be measured (60 games with and without) | Kept: it is the right order for an attack on walls, and costs nothing |
+| The Khanates' results moved (2 lost of 24 before; 9 of 24 now) though no rule of theirs changed | Two more runs of 60 to find a cause: without the fortress rule, and with the two new nations off the map. Both gave the same. Recorded as what the Khanates' figure really is, and N3 rewritten |
+
+**Measured** (60 unattended games of 60 years; the player gives no orders).
+
+Left alone, no war was moved on the Compact, the Crown or the Free Cities in any game, and the Crown decayed to its
+remnant (350 hulls struck off of a possible 360). With a war forced on each (60 games each):
+
+| | The Outer Compact | The Hollow Crown |
+|---|---|---|
+| Wars | 78 | 96 |
+| Won by the Reach; lost; guttered out | 33; 18; 15 | 39; 13; 35 |
+| Battles; won by the Reach | 290; 71 | 180; 91 |
+| Its worlds taken; risen again | 40; 32 | 49; 0 |
+| Its capital taken | never | never |
+| Worlds of the Reach ceded to it | 0 | 10 |
+
+The other three in the free run: the Concord 87 wars (71 begun by it), 29 won, 29 lost, 55 worlds ceded; the
+Khanates 24 wars, 8 won, 9 lost; the Free Cities none. About 24 battles a game, as before. The Republic fell in none
+of 180 games.
+
+**Checked beside it.** The throne probe ran clean. The soak: 33 games, no failures, 310 of 439 events fired; seven
+lines ended under its random player, each the head of a one-person house dying of age with no heir. The survival
+check (a player who gives no orders, 80 games) lost none.
+
+**In the browser.** The Galaxy screen draws all five regions beyond the rim and lists them. Each nation's card on the
+Military screen says where its ruler sits, what it holds, where its fleets are and what kind of neighbour it is. No
+errors; nothing wider than the screen.
+
+818 tests (seven new, `tests/OuterNationsTests.cs`).
+
+**Left, and mapped.** N16 (the Long Dark is a distance and nothing else; the isotopes are a figure), N17 (the
+Crown's court is two people, and ending it makes nobody heir to anything), N18 (no house but the player's goes for
+either), N19 (a nation that is ended leaves nothing behind). Three more decisions for the owner, 13 to 15.

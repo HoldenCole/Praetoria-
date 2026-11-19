@@ -2,7 +2,7 @@
 
 ## ▶ [Play it in your browser](https://holdencole.github.io/Praetoria-/)
 
-No install. The whole game — the office you furnish, the galaxy of ten regions and thirty-one systems, with three neighbours' ten beyond the rim, the house, the
+No install. The whole game — the office you furnish, the galaxy of ten regions and thirty-one systems, with five neighbours' nineteen beyond the rim, the house, the
 navy, the dynasty, the other houses, the chronicle, saves in your browser — runs as a WebAssembly build of the same
 engine the tests run. Every push to `main` rebuilds it onto the `gh-pages` branch
 ([`pages.yml`](.github/workflows/pages.yml)). If the link 404s, Pages needs switching on once: Settings → Pages →
@@ -259,10 +259,10 @@ three orders of the Republic (`REPUBLIC`).
 | Spheres / title rungs / career tracks | 3 / 7 / 3 | the three locked rank ladders are data in `/content/careers` |
 | Controlled vocabularies | locked v1.1 | 9 nature traits · 11 aptitude traits · 13 skills · 8 ambitions · 3 tracks with named rank ladders |
 
-**Verification:** 811 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
+**Verification:** 818 automated tests, including whole-stack soaks that assert end-to-end determinism and a save/load
 round-trip that must reproduce an uninterrupted run; both content validators clean; every start auto-plays sixty turns
 across several seeds with a randomised player. The content counts in the table above are from the first release; the
-current ones (433 events, 11 scenarios, 41 systems) are in `docs/ROADMAP.md`.
+current ones (439 events, 11 scenarios, 50 systems) are in `docs/ROADMAP.md`.
 
 Per-milestone detail, with the acceptance proof for each: [`MILESTONE_1`](docs/MILESTONE_1_NOTES.md)
 (engine) · [`MILESTONE_2`](docs/MILESTONE_2_NOTES.md) (turn loop) · [`MILESTONE_4`](docs/MILESTONE_4_NOTES.md)
@@ -284,7 +284,7 @@ is `docs/GAP_ANALYSIS.md`. In short:
   commerce no contracts.
 - **The economy**: rival houses do not take each other over; some goods are in permanent glut.
 - **The Imperium**: government under a throne is simple next to the Republic.
-- **The world**: three nations beyond the Reach (the Vashti Khanates, the Free Cities of Thessar, the Ardent Concord) are on the map and the other two are not; anomalies and archaeology are not built.
+- **The world**: all five nations beyond the Reach are on the map (the Vashti Khanates, the Free Cities of Thessar, the Ardent Concord, the Outer Compact, the Hollow Crown); what they hold is not governed once taken, and their rulers cannot be dealt with as people; anomalies and archaeology are not built.
 - **Presentation**: no sound; portraits all wear one uniform; the character sheet is thin; phone layout unchecked.
 - **Housekeeping**: browser checks are scripted (`tools/browser`) but no CI runs them; the Godot desktop shell compiles, has never been run, and lags the browser client badly (`docs/QA.md`).
 
@@ -366,7 +366,7 @@ dotnet run --project src/Tools -- play --auto --scenario the_risen_officer --bac
 # The balance simulation (docs/PROCESS.md QA): many seeds, aggregate stats per scenario
 dotnet run --project src/Tools -- simulate --scenario all --seeds 10 --turns 50
 
-# The test suite (811 tests, incl. whole-stack soaks and a save/load round-trip)
+# The test suite (818 tests, incl. whole-stack soaks and a save/load round-trip)
 dotnet test
 
 # The Godot UI (needs Godot 4.3 with .NET): open project.godot in the editor and press Play.

@@ -318,6 +318,61 @@
         "send_what_is_known": "Send the eastern houses what is known.",
         "keep_our_fleet_where_it_is": "Keep our fleet where it is."
       }
+    },
+    {
+      "id": "the_isotope_fields",
+      "title": "The Isotope Fields",
+      "body": "Your house holds a world of the Outer Compact. Its fields pay the house two isotopes every year it is held. The Compact's people keep quiet while the Compact pays tribute; after that the world rises in four years without three hulls over it.",
+      "choices": {
+        "work_them_hard": "Run the refinery in three shifts.",
+        "leave_the_miners_their_ways": "Leave the miners their own ways."
+      }
+    },
+    {
+      "id": "the_vaults_of_the_crown",
+      "title": "The Vaults of the Crown",
+      "body": "Your fleet has taken Porphyra, where the Autokrator sat, and the vaults under the Purple Palace are open. They were filled when forty worlds paid tribute. What is in them is yours, and so is the name of having taken them. It can be taken only once.",
+      "choices": {
+        "bring_it_home_in_state": "Bring it home on open decks.",
+        "pay_the_fleet_first": "Pay the fleet out of the first strongroom.",
+        "say_little_and_bank_it": "Say little, and bank it."
+      }
+    },
+    {
+      "id": "the_crown_is_broken",
+      "title": "The Crown Is Broken",
+      "body": "Another house has taken Porphyra and opened the vaults of the Hollow Crown. It comes home very rich, and with a name. The Crown still has whatever worlds it has left, and no strength to take anything back.",
+      "choices": {
+        "note_who_grew_rich": "Note who grew rich, and how rich.",
+        "salute_it": "Send congratulations."
+      }
+    },
+    {
+      "id": "another_hull_from_the_lists",
+      "title": "Another Hull from the Lists",
+      "body": "The Hollow Crown has struck a ship from its lists. It does this every ten years or so. Nothing replaces what it strikes, and what it loses in a war it does not get back.",
+      "choices": {
+        "mark_it": "Keep the count.",
+        "pity_them": "It is hard to hate them."
+      }
+    },
+    {
+      "id": "the_last_of_the_crown",
+      "title": "The Last of the Crown",
+      "body": "The Hollow Crown's last world has been taken. It has no fleet, no Autokrator and no court. Its worlds are held by the houses whose fleets took them, and no law of the Senate runs there yet.",
+      "choices": {
+        "say_an_age_is_over": "Say an age is over.",
+        "ask_who_holds_its_worlds": "Ask who holds its worlds, and by what right."
+      }
+    },
+    {
+      "id": "the_long_dark",
+      "title": "The Long Dark",
+      "body": "The Reach is at war with the Outer Compact. It is the farthest of the Reach's neighbours: past Sorrow, which no house holds, and the Long Dark, an empty system where no fleet is supplied. Its fleets never leave home, its worlds take two years longer to reduce, and hull for hull its militia fights better than the Reach's crews. Under those worlds are the richest isotope fields known.",
+      "choices": {
+        "say_what_it_will_cost": "Tell the Senate what lies between.",
+        "say_the_fields_are_worth_it": "Say the fields are worth it."
+      }
     }
   ]
 }

@@ -40,6 +40,19 @@ public sealed class NationDef
     public bool Strikes { get; init; }
     /// <summary>It fights a campaign, not a raid: its fleets stay in the field and take world after world, where a raider goes home with one.</summary>
     public bool Campaigns { get; init; }
+    /// <summary>Whether its fleets come through the march in a war: "" by its temper and its ruler, "never", or "always".</summary>
+    public string Sorties { get; init; } = "";
+    /// <summary>Years added to a siege of a world it holds: small worlds dug in.</summary>
+    public int Walls { get; init; }
+    /// <summary>What each of its own worlds gives a house of the Reach that holds it, a year: good → units.</summary>
+    public IReadOnlyDictionary<string, int> Yields { get; init; } = new Dictionary<string, int>();
+    /// <summary>Credits in its capital for whoever first takes it, and the standing that comes with them.</summary>
+    public int Treasure { get; init; }
+    public int Titles { get; init; }
+    /// <summary>A thing in its vaults that goes, with the treasure, to the head of the house that first takes its capital (docs/BEYOND.md).</summary>
+    public string Regalia { get; init; } = "";
+    /// <summary>How its fleets fight hull for hull, in hundredths of a fleet of the Reach's; 0 to take the figure its temper gives.</summary>
+    public int Mettle { get; init; }
     /// <summary>What its two fleets are called; "" for the plain names.</summary>
     public string HostName { get; init; } = "";
     public string GuardName { get; init; } = "";
@@ -74,7 +87,9 @@ public sealed class NationCatalog
                         Marches = Strings(el, "marches"), Depth = ConditionParser.Int(el, "depth", Math.Max(1, ConditionParser.Int(el, "distance", 2) - 1)),
                         House = el.TryGetProperty("house", out var hs) && hs.ValueKind == JsonValueKind.Object ? new NationHouse(ConditionParser.OptStr(hs, "id", ""), ConditionParser.OptStr(hs, "name", ConditionParser.Str(el, "name")), ConditionParser.OptStr(hs, "accent", "#C9A227"), ConditionParser.OptStr(hs, "title", "duke"), ConditionParser.Int(hs, "legitimacy", 50)) : null,
                         Worlds = el.TryGetProperty("worlds", out var ws) && ws.ValueKind == JsonValueKind.Array ? ws.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.Object).Select(x => new NationWorld(ConditionParser.Str(x, "id"), ConditionParser.Str(x, "system"), ConditionParser.OptStr(x, "name", ConditionParser.Str(x, "id")), ConditionParser.OptStr(x, "specialization", "frontier_colony"), ConditionParser.Int(x, "population", 15), ConditionParser.Bool(x, "capital", false))).ToList() : new List<NationWorld>(),
-                        HoldYears = Math.Max(0, ConditionParser.Int(el, "holdYears", 3)), Hosts = Math.Clamp(ConditionParser.Int(el, "hosts", 1), 1, 3), Strikes = el.TryGetProperty("strikes", out var stk) && stk.ValueKind == JsonValueKind.True, Campaigns = el.TryGetProperty("campaigns", out var cmp) && cmp.ValueKind == JsonValueKind.True, HostName = ConditionParser.OptStr(el, "hostName", ""), GuardName = ConditionParser.OptStr(el, "guardName", ""),
+                        HoldYears = Math.Max(0, ConditionParser.Int(el, "holdYears", 3)), Hosts = Math.Clamp(ConditionParser.Int(el, "hosts", 1), 1, 3), Strikes = el.TryGetProperty("strikes", out var stk) && stk.ValueKind == JsonValueKind.True, Campaigns = el.TryGetProperty("campaigns", out var cmp) && cmp.ValueKind == JsonValueKind.True,
+                        Sorties = ConditionParser.OptStr(el, "sorties", ""), Walls = Math.Max(0, ConditionParser.Int(el, "walls", 0)), Treasure = Math.Max(0, ConditionParser.Int(el, "treasure", 0)), Titles = Math.Max(0, ConditionParser.Int(el, "titles", 0)), Regalia = ConditionParser.OptStr(el, "regalia", ""), Mettle = Math.Max(0, ConditionParser.Int(el, "mettle", 0)),
+                        Yields = el.TryGetProperty("yields", out var yl) && yl.ValueKind == JsonValueKind.Object ? yl.EnumerateObject().Where(x => x.Value.ValueKind == JsonValueKind.Number).ToDictionary(x => x.Name, x => x.Value.GetInt32()) : new Dictionary<string, int>(), HostName = ConditionParser.OptStr(el, "hostName", ""), GuardName = ConditionParser.OptStr(el, "guardName", ""),
                         RulerTitle = ConditionParser.OptStr(el, "rulerTitle", "ruler"), CommanderTitle = ConditionParser.OptStr(el, "commanderTitle", "commander"), Names = Strings(el, "names"),
                         Exports = el.TryGetProperty("exports", out var ex) && ex.ValueKind == JsonValueKind.Object ? ex.EnumerateObject().Where(p => p.Value.ValueKind == JsonValueKind.Number).ToDictionary(p => p.Name, p => p.Value.GetInt32()) : new Dictionary<string, int>()
                     });

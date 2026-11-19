@@ -247,7 +247,7 @@ public static partial class WealthSystem
     // ---------------- plunder that is not a standard, and a gift that asks a favour (docs/WEALTH.md, W11) ----------------
 
     public const string Orrery = "orrery";
-    public static readonly string[] CarriedOff = { "signet", "sword", Library, Standard };
+    public static readonly string[] CarriedOff = { "signet", "sword", Library, Standard, Regalia };
     public const int PlunderOneIn = 2, PlunderLegitimacy = 1, FavourLeanBy = 2, FavourOneIn = 10, FavourFrom = -10, FavourTo = 19, FavourCost = 18, FavourRegard = 4, FavourKept = 5, FavourBroken = 15, OrreryValue = 18;
     public const string PlunderedKey = "heirlooms_plundered", SurrenderedKey = "signets_surrendered", FavourGiftsKey = "favour_gifts", FavoursOwedKey = "favours_owed", FavoursCalledKey = "favours_called", FavoursKeptKey = "favours_kept", FavoursBrokenKey = "favours_broken";
     public const string PlunderedFlag = "heirloom_plundered", AsksFavourFlag = "gift_that_asks", AsksFavourChar = "asks_a_favour", DeclineFlag = "favour_declined";
@@ -280,6 +280,18 @@ public static partial class WealthSystem
         loser.Legitimacy -= PlunderLegitimacy; Count(w, PlunderedKey); LifeSystem.Note(w, commander, "victory", $"Carried {item.Name} off from {world.Name}.");
         if (loserId == mine) { Mark(w, PlunderedFlag); w.Log($"{world.Name} falls, and {commander.Name} of {takers.Name} carries off {item.Name}."); }
         else if (takerId == mine) w.Log($"{commander.Name} carries off {item.Name} from {world.Name}. {loser.Name} will want it back.");
+        return item;
+    }
+
+    public const string Regalia = "regalia", RegaliaTakenKey = "regalia_taken"; public const int RegaliaValue = 40, RegaliaMendsBelow = 85;
+    /// <summary>The vaults of a fallen capital are opened (docs/BEYOND.md, the Hollow Crown): the thing in them goes to the head of
+    /// the house that took it. On a head's hand it mends the house's name a point a year; it can be sold, given, willed, and carried
+    /// off in its turn by whoever storms that house's last world.</summary>
+    public static Heirloom? TakeRegalia(World w, House taker, string name, string nationId)
+    {
+        if (name.Length == 0 || Economy.HeadOf(w, taker) is not { Alive: true } head || w.Heirlooms.Any(h => h.Id == "regalia_" + nationId)) return null;
+        var item = new Heirloom { Id = "regalia_" + nationId, Name = name, Kind = Regalia, HolderId = head.Id, OfHouseId = taker.Id, Value = RegaliaValue };
+        w.Heirlooms.Add(item); Count(w, RegaliaTakenKey); LifeSystem.Note(w, head, "victory", $"Took {name} out of the vaults of a fallen capital.");
         return item;
     }
 

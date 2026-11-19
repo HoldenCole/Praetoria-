@@ -34,10 +34,28 @@
       "marches": ["anvil", "the_veil"], "depth": 1, "rulerTitle": "Khan of Khans", "commanderTitle": "Noyan", "names": ["Temur Vash", "Borte Khal", "Jochi Arak", "Sorgha Tul", "Batu Erkin", "Altani Dzu", "Kublai Orda", "Mandu Khai", "Berke Sain", "Checheg Uul", "Subedei Narn", "Oyun Tarkh"], "exports": { "manpower": 3 }, "name": "The Vashti Khanates", "culture": "vashti", "temper": "aggressive", "strength": 14, "regen": 2, "wealth": 4, "distance": 2, "disposition": -40, "tribute": 3, "threshold": 6,
       "holds": "the lanes the raiders use, and little else worth taking",
       "description": "Horse-lords of the void: a dozen khans who raid the rim for crews and cargo and unite only when someone comes for them. Easy to beat in a season; impossible to hold." },
-    { "id": "compact", "marches": ["sorrow"], "depth": 3, "rulerTitle": "Warden of the Compact", "commanderTitle": "Marshal", "names": ["Edda Corwin", "Josen Pike", "Mirel Tasker", "Abel Wrenn", "Hester Vale", "Coln Ashby", "Ruth Mallow", "Enoch Fenn", "Sabel Crane", "Dov Harker", "Lise Thorn", "Amos Reeve"], "exports": { "isotopes": 1, "helium3": 1 }, "name": "The Outer Compact", "culture": "compact", "temper": "defensive", "strength": 8, "regen": 1, "wealth": 5, "distance": 4, "disposition": 0, "tribute": 4, "threshold": 5,
+    { "id": "compact",
+      "house": { "name": "The Outer Compact", "accent": "#7FD1AE", "title": "count", "legitimacy": 65 },
+      "worlds": [
+        { "id": "wardenry_seat", "system": "the_wardenry", "name": "The Wardenry", "specialization": "fortress", "population": 20, "capital": true },
+        { "id": "mallow_fields", "system": "mallow", "name": "The Mallow Fields", "specialization": "forge_world", "population": 12 },
+        { "id": "wrenn_seams", "system": "wrenn", "name": "The Wrenn Seams", "specialization": "forge_world", "population": 12 },
+        { "id": "pikes_landing_town", "system": "pikes_landing", "name": "Pike's Landing", "specialization": "frontier_colony", "population": 10 }
+      ],
+      "holdYears": 4, "sorties": "never", "walls": 2, "yields": { "isotopes": 2 }, "hostName": "The Compact Militia", "guardName": "The Warden's Guard",
+      "marches": ["sorrow"], "depth": 3, "rulerTitle": "Warden of the Compact", "commanderTitle": "Marshal", "names": ["Edda Corwin", "Josen Pike", "Mirel Tasker", "Abel Wrenn", "Hester Vale", "Coln Ashby", "Ruth Mallow", "Enoch Fenn", "Sabel Crane", "Dov Harker", "Lise Thorn", "Amos Reeve"], "exports": { "isotopes": 1, "helium3": 1 }, "name": "The Outer Compact", "culture": "compact", "temper": "defensive", "strength": 8, "regen": 1, "wealth": 5, "distance": 4, "disposition": 0, "tribute": 4, "threshold": 5,
       "holds": "deep deposits of isotopes under four small worlds",
       "description": "Small, far, and sitting on the isotopes every arsenal in the Reach wants. It fights only when invaded, and then well." },
-    { "id": "hollow_crown", "marches": ["last_harbour", "hollow_reach"], "depth": 2, "rulerTitle": "Autokrator", "commanderTitle": "Grand Domestic", "names": ["Manuel Kantakes", "Theodora Vrana", "Isaak Doukan", "Eudokia Laskar", "Andronik Melis", "Zoe Paleon", "Bardas Skler", "Irene Komnas", "Nikeph Botan", "Anna Dalass", "Alexi Tornik", "Helena Argyr"], "exports": { "exotics": 1, "rare_earths": 1 }, "name": "The Hollow Crown", "culture": "crownish", "temper": "decaying", "strength": 10, "regen": 0, "wealth": 8, "distance": 3, "disposition": -5, "tribute": 5, "threshold": 5,
+    { "id": "hollow_crown",
+      "house": { "name": "The Hollow Crown", "accent": "#9B5DE5", "title": "duke", "legitimacy": 45 },
+      "worlds": [
+        { "id": "porphyra_palace", "system": "porphyra", "name": "The Purple Palace", "specialization": "trade_hub", "population": 60, "capital": true },
+        { "id": "chrysopolis_mint", "system": "chrysopolis", "name": "The Mint of Chrysopolis", "specialization": "trade_hub", "population": 36 },
+        { "id": "melitene_estates", "system": "melitene", "name": "The Estates of Melitene", "specialization": "agri_world", "population": 30 },
+        { "id": "chalke_gate", "system": "chalke", "name": "The Bronze Gate", "specialization": "fortress", "population": 14 }
+      ],
+      "holdYears": 0, "treasure": 120, "titles": 8, "regalia": "the diadem of the Autokrators", "mettle": 70, "hostName": "The Tagmata", "guardName": "The Palace Guard of Porphyra",
+      "marches": ["last_harbour", "hollow_reach"], "depth": 2, "rulerTitle": "Autokrator", "commanderTitle": "Grand Domestic", "names": ["Manuel Kantakes", "Theodora Vrana", "Isaak Doukan", "Eudokia Laskar", "Andronik Melis", "Zoe Paleon", "Bardas Skler", "Irene Komnas", "Nikeph Botan", "Anna Dalass", "Alexi Tornik", "Helena Argyr"], "exports": { "exotics": 1, "rare_earths": 1 }, "name": "The Hollow Crown", "culture": "crownish", "temper": "decaying", "strength": 10, "regen": 0, "wealth": 8, "distance": 3, "disposition": -5, "tribute": 5, "threshold": 5,
       "holds": "the treasuries and titles of an empire that was",
       "description": "An old empire past its strength, all ceremony and debt. Its fleets are fewer every decade; its vaults are not. The first general to break it will come home very rich." }
   ]

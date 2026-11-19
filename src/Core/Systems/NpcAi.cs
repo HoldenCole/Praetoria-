@@ -158,8 +158,10 @@ public sealed class NpcAi
             && NationSystem.Marches(world, d).OrderBy(m => g.Hops(m, target) is var hp && hp > 0 ? hp : 99).ThenBy(m => m, StringComparer.Ordinal).FirstOrDefault() is { } stage)
         {
             int gathered = world.Fleets.Values.Where(f => world.OfTheReach(f.OwnerId) && !f.IsAway && f.Strength >= 2 && (f.Moving ? f.DestinationId == target : f.SystemId == stage)).Sum(f => f.Strength);
+            // (half as much again against a fortress: its walls fight too)
+            int walls = world.Holdings.Values.Any(h => h.IsPlanet && h.SystemId == target && h.OwnerId == them && h.Specialization == "fortress") ? 3 : 2;
             if (fleet.SystemId != stage) target = stage;
-            else if (gathered * 400 < holds * 5 * Math.Max(50, n.Mettle)) { world.WorldCounters["fleets_waiting_at_a_march"] = world.Counter("fleets_waiting_at_a_march") + 1; return; }
+            else if (gathered * 800 < holds * 5 * walls * Math.Max(50, n.Mettle)) { world.WorldCounters["fleets_waiting_at_a_march"] = world.Counter("fleets_waiting_at_a_march") + 1; return; }
         }
         if (target == null || target == fleet.SystemId || Hops(target) >= 99) return;
         if (executor.TryExecute(new MoveFleetCommand(head.Id, fleet.Id, target, rules), ctx)) { world.WorldCounters[NationSystem.SentCounter] = world.Counter(NationSystem.SentCounter) + 1; world.WorldCounters[NationSystem.SentCounter + ":" + n.Id] = world.Counter(NationSystem.SentCounter + ":" + n.Id) + 1; }

@@ -50,7 +50,7 @@ public class ConcordTests
         Assert.Contains("First Division", div[0].Name); Assert.Contains("Second Division", div[1].Name);
         Assert.True(d.Strength > Content.Nations.Def("vashti")!.Strength + Content.Nations.Def("thessar")!.Strength - 1); Assert.Equal(100, n.Mettle);
         Assert.True(d.Strikes); Assert.True(d.Campaigns); Assert.Equal(0, d.HoldYears); Assert.False(NationSystem.Buys(d)); Assert.True(NationSystem.ComesOut(n, d));
-        Assert.All(w.Nations, x => Assert.Equal(Content.Nations.Def(x.Id)!.House != null, x.OnMap)); Assert.Equal(3, w.Nations.Count(x => x.OnMap));
+        Assert.All(w.Nations, x => Assert.Equal(Content.Nations.Def(x.Id)!.House != null, x.OnMap)); Assert.Equal(5, w.Nations.Count(x => x.OnMap));
     }
 
     [Fact]

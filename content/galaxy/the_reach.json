@@ -125,6 +125,20 @@
       "culture": "concordant",
       "ring": "beyond",
       "description": "Beyond the Valmont Anvils and not of the Reach: a gate and three forge-worlds under one council of admirals. The only neighbour with a fleet to match the Reach's, and the only one that has ever thought of using it."
+    },
+    {
+      "id": "outer_compact",
+      "name": "The Outer Compact",
+      "culture": "compact",
+      "ring": "beyond",
+      "description": "Beyond Sorrow and the Long Dark, and not of the Reach: four small worlds sworn to one another over the richest isotope fields anyone has found. Far from everything, and glad of it."
+    },
+    {
+      "id": "hollow_crown",
+      "name": "The Hollow Crown",
+      "culture": "crownish",
+      "ring": "beyond",
+      "description": "Beyond the Ashen Verge and not of the Reach: what is left of an empire older than the Senate. Four worlds, a court that still keeps every office it ever had, and vaults that were filled when it ruled forty."
     }
   ],
   "systems": [
@@ -1277,6 +1291,209 @@
           "size": 1
         }
       ]
+    },
+    {
+      "id": "the_long_dark",
+      "name": "The Long Dark",
+      "x": 1560,
+      "y": 1640,
+      "region": "outer_compact",
+      "planet": "belt",
+      "description": "A dead star and a ring of rubble, two lanes from anything. Nobody holds it. Every fleet bound for the Compact crosses it, and none of them is supplied here.",
+      "bodies": [
+        {
+          "name": "The Long Dark",
+          "class": "belt",
+          "size": 2,
+          "primary": true
+        },
+        {
+          "name": "Cinder",
+          "class": "barren",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "pikes_landing",
+      "name": "Pike's Landing",
+      "x": 1420,
+      "y": 1840,
+      "region": "outer_compact",
+      "planet": "barren",
+      "description": "The first of the four worlds: a mining town under a dome and a battery older than the town.",
+      "bodies": [
+        {
+          "name": "Pike's Landing",
+          "class": "barren",
+          "size": 2,
+          "primary": true
+        },
+        {
+          "name": "The Tailings",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "wrenn",
+      "name": "Wrenn",
+      "x": 1690,
+      "y": 1850,
+      "region": "outer_compact",
+      "planet": "frozen",
+      "description": "Ice over isotope seams a mile deep. The Compact's militia drills here, in the cold, for the war it expects.",
+      "bodies": [
+        {
+          "name": "Wrenn",
+          "class": "frozen",
+          "size": 2,
+          "primary": true
+        },
+        {
+          "name": "Wrenn's Moon",
+          "class": "barren",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "mallow",
+      "name": "Mallow",
+      "x": 1390,
+      "y": 2050,
+      "region": "outer_compact",
+      "planet": "barren",
+      "description": "The deepest fields of the four. Its refinery is the reason anyone has ever come this far.",
+      "bodies": [
+        {
+          "name": "Mallow",
+          "class": "barren",
+          "size": 2,
+          "primary": true
+        },
+        {
+          "name": "The Pits",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "the_wardenry",
+      "name": "The Wardenry",
+      "x": 1650,
+      "y": 2070,
+      "region": "outer_compact",
+      "planet": "terran",
+      "description": "The one green world of the Compact, where the Warden is chosen and the oath is kept.",
+      "bodies": [
+        {
+          "name": "The Wardenry",
+          "class": "terran",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Oathstone",
+          "class": "barren",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "chalke",
+      "name": "Chalke",
+      "x": 860,
+      "y": 1650,
+      "region": "hollow_crown",
+      "planet": "barren",
+      "description": "The Bronze Gate: the frontier fortress of the Crown, a lane beyond Last Harbour and Hollow Reach. Its garrison has not been paid in full within living memory.",
+      "bodies": [
+        {
+          "name": "Chalke",
+          "class": "barren",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "The Old Wall",
+          "class": "belt",
+          "size": 2
+        }
+      ]
+    },
+    {
+      "id": "melitene",
+      "name": "Melitene",
+      "x": 640,
+      "y": 1830,
+      "region": "hollow_crown",
+      "planet": "arid",
+      "description": "Estates as large as counties, each with a title older than the Reach and a mortgage nearly as old.",
+      "bodies": [
+        {
+          "name": "Melitene",
+          "class": "arid",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "Little Melitene",
+          "class": "barren",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "chrysopolis",
+      "name": "Chrysopolis",
+      "x": 1020,
+      "y": 1870,
+      "region": "hollow_crown",
+      "planet": "terran",
+      "description": "The golden city: the mint, the treasury and the counting-houses of an empire, still open, still counting.",
+      "bodies": [
+        {
+          "name": "Chrysopolis",
+          "class": "terran",
+          "size": 3,
+          "primary": true
+        },
+        {
+          "name": "The Mint",
+          "class": "barren",
+          "size": 1
+        }
+      ]
+    },
+    {
+      "id": "porphyra",
+      "name": "Porphyra",
+      "x": 830,
+      "y": 2050,
+      "region": "hollow_crown",
+      "planet": "ocean",
+      "description": "The purple-born city, where the Autokrator sits under a dome of gold leaf and every ceremony is performed exactly as it was when forty worlds sent tribute.",
+      "bodies": [
+        {
+          "name": "Porphyra",
+          "class": "ocean",
+          "size": 4,
+          "primary": true
+        },
+        {
+          "name": "The Lamp",
+          "class": "barren",
+          "size": 1
+        },
+        {
+          "name": "The Sea of Glass",
+          "class": "gas",
+          "size": 2
+        }
+      ]
     }
   ],
   "lanes": [
@@ -1503,6 +1720,58 @@
     [
       "marrek",
       "concordia"
+    ],
+    [
+      "sorrow",
+      "the_long_dark"
+    ],
+    [
+      "the_long_dark",
+      "pikes_landing"
+    ],
+    [
+      "the_long_dark",
+      "wrenn"
+    ],
+    [
+      "pikes_landing",
+      "wrenn"
+    ],
+    [
+      "pikes_landing",
+      "mallow"
+    ],
+    [
+      "wrenn",
+      "the_wardenry"
+    ],
+    [
+      "mallow",
+      "the_wardenry"
+    ],
+    [
+      "last_harbour",
+      "chalke"
+    ],
+    [
+      "hollow_reach",
+      "chalke"
+    ],
+    [
+      "chalke",
+      "melitene"
+    ],
+    [
+      "chalke",
+      "chrysopolis"
+    ],
+    [
+      "melitene",
+      "porphyra"
+    ],
+    [
+      "chrysopolis",
+      "porphyra"
     ]
   ]
 }

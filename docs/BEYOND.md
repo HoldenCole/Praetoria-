@@ -6,9 +6,11 @@ focus on adding in nations, then we can figure out the details. Add in the khana
 on the map**: stages 1 and 2, for that one nation (see "The Vashti Khanates on the map, as built"). Then: "Add the
 Free Cities of Thessar next." **The Free Cities are on the map** too, and are a different kind of neighbour (see "The
 Free Cities of Thessar on the map, as built"). Then: "Add the Ardent Concord next." **The Ardent Concord is on the
-map**, and is the strong one (see "The Ardent Concord on the map, as built"). The other two nations, the Outer Compact
-and the Hollow Crown, are as stage 0 left them. Stages 3 and 4 are a plan. The older rules, which still hold for
-those two, are in docs/FOREIGN_NATIONS.md. Everything that is the owner's to decide is in one list at the end.
+map**, and is the strong one (see "The Ardent Concord on the map, as built"). Then: "Add the Outer Compact and the
+Hollow Crown next." **All five nations are on the map** (see "The Outer Compact and the Hollow Crown on the map, as
+built"). Stages 3 and 4 are a plan. The older rules in docs/FOREIGN_NATIONS.md (expeditions that leave the map) are
+kept in the engine for a map drawn without a nation's worlds, and no shipped nation uses them. Everything that is the
+owner's to decide is in one list at the end.
 
 ## What was true before stage 0
 
@@ -55,7 +57,7 @@ Everything here uses what is on the map already.
   only the raiders. They are moved onto one question asked in one place, so that a foreign house can exist later
   without sitting in the Senate, the marriage market or the Exchange by accident. *Not done in stage 0: see below.*
 
-### 1. Their fleets on the map (built for the Khanates, the Free Cities and the Concord)
+### 1. Their fleets on the map (built, for all five nations)
 
 - First, the safe question above: it is needed the moment a nation owns a fleet on the map, and not before.
 
@@ -69,7 +71,7 @@ Everything here uses what is on the map already.
 - The Reach answers with what it has: the houses nearest, the consuls' fleets, emergency powers (a war beyond the
   borders is already a danger the Senate can vote them for).
 
-### 2. Their side of the border (built for the Khanates, the pilot; then the Free Cities and the Concord)
+### 2. Their side of the border (built, for all five nations; the Khanates were the pilot)
 
 - **Space beyond the march**: for a nation, two to four systems of its own (a border world, a heartland, a capital),
   in a fourth ring. One nation is done first as the pilot, start to finish, before any other.
@@ -433,6 +435,123 @@ The full account is docs/GAP_ANALYSIS.md, section 78.
 - **The second division has no commander of its own.**
 - **It makes no treaty but tribute or cession**: no truce, no border agreed, no hostages.
 
+## The Outer Compact and the Hollow Crown on the map, as built
+
+Built 2026-11-19 on the owner's word. The last two nations, and the two that the Reach has no quarrel with: one a
+hard nut a long way off, one a prize waiting to be taken.
+
+### The Outer Compact
+
+**Where.** South, past Sorrow (which no house holds) and **the Long Dark**: an empty system that nobody holds or can.
+Every fleet bound for the Compact crosses it, two lanes from Sorrow to the nearest Compact world, with no supply on
+the way.
+
+| World | System | What it is |
+|---|---|---|
+| Pike's Landing | Pike's Landing | the nearest world, where the militia stands |
+| The Wrenn Seams | Wrenn | isotope fields under the ice |
+| The Mallow Fields | Mallow | the deepest fields |
+| The Wardenry | The Wardenry | a fortress, and the capital: the Warden of the Compact is chosen here |
+
+**What it has.** Eight hulls: the Warden's Guard and the Compact Militia, four each. It is friendly enough (a regard
+of 0), does not raid, and sells isotopes and helium into the Reach's exchanges at peace.
+
+- **It fights only when invaded.** Its fleets never come through the march, whoever rules.
+- **And then well.** Hull for hull its militia fights at five-quarters of a fleet of the Reach's. Invaded, the guard
+  leaves the capital to meet an intruder beside the militia, if the two together can beat it. Its worlds take two
+  years longer to reduce.
+- **What the Reach wants.** Each of its worlds gives the house that holds it **two isotopes a year**.
+- **Held, not owned.** A world of the Compact's rises in four years without a fleet of three hulls over it. While
+  the Compact pays tribute its worlds keep quiet.
+- It sues for peace when the Reach leads by 5.
+
+### The Hollow Crown
+
+**Where.** South-west of the Ashen Verge. Chalke, the Bronze Gate, is one lane beyond both Last Harbour and Hollow
+Reach (the Crown's march).
+
+| World | System | What it is |
+|---|---|---|
+| The Bronze Gate | Chalke | the frontier fortress, where the Tagmata stands |
+| The Estates of Melitene | Melitene | estates and mortgages |
+| The Mint of Chrysopolis | Chrysopolis | the treasury city |
+| The Purple Palace | Porphyra | the capital: the Autokrator sits here |
+
+**What it has.** Ten hulls at the start: the Palace Guard of Porphyra and the Tagmata, five each. Unpaid, they fight
+at seven-tenths of a fleet of the Reach's.
+
+- **It decays.** Every ten years it strikes a hull from its lists, down to a remnant of four. It replaces none: what
+  it loses in a war it has lost.
+- **It does not come back.** A world it loses stays lost. It does not rise, and the Crown makes no war for it. So it
+  is the one nation that can be taken apart world by world, and **ended**.
+- **Its vaults.** Whoever first takes the Purple Palace takes 120 credits, eight points of standing and **the diadem
+  of the Autokrators**, once. The diadem is a thing like a signet or a sword: the head of the house has it, and while
+  a head of a house keeps it that house's standing mends a point a year up to 85. It can be sold, given or willed,
+  and carried off in its turn by whoever storms that house's last world. This is besides the plunder every nation's
+  worlds pay (16 credits a world from the Crown).
+- **A war for plunder.** A house that wants a war and is short of money may name the Crown, as it may the Free
+  Cities, when no nation has given the Reach a better reason.
+- Its fleet stays at home unless a warlike Autokrator rules. It sues for peace when the Reach leads by 5.
+
+### How the five differ
+
+| | Khanates | Free Cities | Concord | Outer Compact | Hollow Crown |
+|---|---|---|---|---|---|
+| Strength | 14 | 12 | 26 | 8 | 10, falling to 4 |
+| Fights, hull for hull | as the Reach | at four-fifths | as the Reach | at five-quarters | at seven-tenths |
+| Begins a war | no | no | yes | no | no |
+| Its fleet in a war | raids: one world, then home | stays home | campaigns on two lines | never leaves home | stays home |
+| A world of its own, taken | rises in 3 years | bought back, or 6 | it makes war for it | rises in 4 years | stays taken |
+| What taking one is worth | 8 credits | 18 credits | 12 credits | 10 credits, and 2 isotopes a year | 16 credits; the capital, 120 more and the diadem |
+
+**On the screen.** The Galaxy screen lists five regions under "beyond". Each nation's card on the Military screen
+says what kind of neighbour it is. Six reports: the Long Dark (a war voted on the Compact); the isotope fields; the
+vaults of the Crown; the Crown is broken; another hull from the lists; the last of the Crown.
+
+**Measured** (60 unattended games of 60 years each; the player gives no orders).
+
+Left alone, **nobody makes war on either**. The Senate moved a war on the Compact, the Crown or the Free Cities in
+none of the 60 games. The Crown fell to its remnant of four hulls in nearly every game (350 hulls struck off, of a
+possible 360). So both are yours to go for, or to leave.
+
+With a war forced on each in year 8 and every twenty years after (60 games each):
+
+| | The Outer Compact | The Hollow Crown |
+|---|---|---|
+| Wars | 78 | 96 |
+| Won by the Reach; lost; guttered out | 33; 18; 15 | 39; 13; 35 |
+| Battles; won by the Reach | 290; 71 | 180; 91 |
+| Its worlds taken; risen again | 40; 32 | 49; 0 |
+| Its capital taken | never | never |
+| Worlds of the Reach it took; freed; ceded | 0; 0; 0 | 23; 13; 10 |
+| What the takers had of it | 1,376 isotopes, 755 credits | 1,512 credits; the vaults never opened |
+
+- **The Compact** wins three battles in four in its own space. Its worlds are taken and lost again: four in five
+  rose within the war or after it.
+- **The Crown** loses half its battles and every world taken from it stays taken, but no house pressed on to
+  Porphyra: more than a third of its wars guttered out with nobody fighting them. A warlike Autokrator sent the
+  Tagmata through the march 39 times, and the Reach lost 13 of those wars and ceded 10 worlds.
+- **No house but the player's has taken any nation's capital**, in any run. The Crown has never been ended
+  unattended. That is decision 15.
+- The Republic stood in all 180 games. The soak passes (33 games, saved and resumed, no failure).
+
+**The other three, in the same 60 free games.** The Concord: 87 wars (71 begun by it), 29 won by the Reach, 29 lost,
+55 worlds ceded. The Khanates: 24 wars, 8 won, 9 lost, 9 worlds ceded. The Free Cities: no war.
+
+**The Khanates' figures moved, and no rule moved them.** In the three runs before this one the Reach lost 2 or 3 of
+about 24 wars with the Khanates; in this one it lost 9. Nothing that touches the Khanates was changed, and no route
+inside the Reach is shorter for the new lanes (checked pair by pair). Two more runs of 60 were made to look for a
+cause: one without the rule that makes fleets gather longer before a fortress (8 won, 10 lost), and one with the
+Compact and the Crown taken back off the map (12 won, 10 lost of 34). Both gave the same. So the earlier "four wars
+in five" was one sample, and a larger map plays out differently. The honest figure for the Khanates is: the Reach
+wins about as many wars as it loses, and cedes a world in about one war in three. That is decision 5.
+
+**What this left out.**
+- **The Compact's distance is two lanes and a supply rule.** Nothing is built in the Long Dark, and no depot can be.
+- **The Crown's court is a ruler and a commander**, like every nation's. It has no factions, pretenders or
+  provinces of its own, and nobody inherits its titles.
+- **A nation that is ended leaves worlds held by houses**, with no law of the Senate over them (stage 3).
+
 ### Not in this plan
 
 The threat from beyond the galaxy's edge (the design's late crisis), and anomalies and archaeology. Both want the map
@@ -446,10 +565,9 @@ do, and what turns on it. Each can be changed without rebuilding the rest.
 
 **The map**
 
-1. **Do the last two nations come onto the map?** The Outer Compact (small, far, defensive, sitting on isotopes) and
-   the Hollow Crown (an old empire in decay, rich, weak) are still off it. *I would leave them as far powers for
-   now*: three neighbours on three sides is a full border, and the fourth side (the south and south-west) is where
-   they would go if you want them.
+1. **All five nations are on the map** (decided by the owner, 2026-11-19). What remains of this question: the old
+   kind of war, an expedition that leaves the map, is used by no shipped nation now. *I would keep it in the engine*
+   for a map drawn without a nation's worlds, and take its button off the screens.
 2. **Can the Reach lose worlds for good?** Built as yes: a world a nation holds at a lost peace is ceded, and can be
    taken back in the next war.
 3. **Can the player's own house be conquered?** Built as yes: its worlds are taken like anyone's, a freed world
@@ -461,9 +579,11 @@ do, and what turns on it. Each can be changed without rebuilding the rest.
    the Khanates and the Free Cities never do. *I would leave the Khanates as raiders*, but it is one switch in the
    content if you want them to strike too.
 5. **How hard should each be, and how much war do you want?** The measured figures are in each nation's section. In
-   short: the Reach wins about four wars in five against the Khanates; wars with the Free Cities are won or bought
-   off; against the Concord it wins five in eight, and the rest cost it worlds. The Concord doubled the battles in
-   a game. No house but the player's has ever taken a nation's capital. Each of these is a number or two in the
+   short, from the last run of sixty games: against the Khanates the Reach wins about as many wars as it loses (it
+   looked like four in five earlier; see the note in the last section); wars with the Free Cities are won or bought
+   off; against the Concord it wins as many as it loses, and the lost ones cost it worlds; the Compact beats off
+   more than half of what is sent at it; the Crown loses its worlds and keeps its capital. The Concord doubled the
+   battles in a game. No house but the player's has ever taken a nation's capital. Each of these is a number or two in the
    content.
 6. **Should any house but yours make war on the Free Cities?** Built: none does. They are friendly and do not raid,
    and a war for plunder is almost never moved. Say how often you want the war party to go looking for one.
@@ -476,14 +596,25 @@ do, and what turns on it. Each can be changed without rebuilding the rest.
    province held for the Reach under an appointed governor is stage 3 of this plan.
 9. **Is a ransom the right end for a city of the Free Cities?** Built: the Cities buy back what they lost, other
    houses always sell, and you may refuse.
-10. **Should a nation's worlds make anything?** Built: no. A nation's house is kept from going hungry by rule, and
-    its worlds pay nothing to whoever takes them beyond the plunder.
+10. **Should a nation's worlds make anything?** Built: only the Compact's, which give two isotopes a year each to the
+    house that holds them. Otherwise no: a nation's house is kept from going hungry by rule, and its worlds pay
+    nothing to whoever takes them beyond the plunder.
 
 **Their people, and later**
 
 11. **Should their rulers and commanders be people you can deal with?** Built: they command fleets and can be
     killed, and nothing else. Envoys, marriage, bribery, capture and refuge are stage 4.
 12. **Should nations deal with each other?** Built: no. They never fight, ally or trade among themselves.
+
+**From the last two**
+
+13. **Should a nation be able to end?** Built: yes, when its last world is taken. In practice only the Hollow Crown
+    can be, because it alone does not rise and does not come back. Say if the others should be endable too, or none.
+14. **Is the Crown's treasure the right prize?** Built: 120 credits, eight points of standing and the diadem (which
+    mends a house's standing while its head keeps it), once, to whoever first takes its capital. No title or claim
+    comes with it: taking the Crown makes you rich, and heir to nothing.
+15. **Should anyone but you go for the Compact or the Crown?** Built: as with the Free Cities, almost never. The
+    measured figures are in their section.
 
 ## What it opens
 

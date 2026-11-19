@@ -3,6 +3,16 @@
 ## [Unreleased]
 
 ### Added
+- **The Outer Compact and the Hollow Crown are on the map**, so all five nations are (docs/BEYOND.md; docs/GAPS.md
+  R10). The Compact lies south of Sorrow, past the Long Dark, an empty system no house can hold: Pike's Landing, the
+  Wrenn Seams, the Mallow Fields and the Wardenry. It never leaves home. Invaded, its guard and militia turn out
+  together and fight at five-quarters of a fleet of the Reach's; its worlds take two years longer to reduce and rise
+  in four. Each world of it gives the house that holds it two isotopes a year. The Hollow Crown lies south-west of
+  the Ashen Verge: the Bronze Gate, Melitene, Chrysopolis and the Purple Palace at Porphyra. It decays: a hull struck
+  from its lists every ten years, down to four. Its fleets fight at seven-tenths. A world it loses stays lost, so it
+  can be taken apart and ended. Whoever first takes Porphyra has 120 credits, eight points of standing and the
+  diadem of the Autokrators, an heirloom the head of the house keeps. A house short of money may move a war on the
+  Crown for plunder. Six new reports, and each nation's card on the Military screen says what it is.
 - **The Ardent Concord is on the map** (docs/BEYOND.md; docs/GAPS.md R10). East of the Valmont Anvils and Ironhold
   lies the Ardent Gate, the only way in, and behind it the Brandt Yards, the Marrek Foundries and Concordia, where
   the First Admiral sits. It is the strong neighbour: 26 hulls, a home fleet and two divisions. It begins wars
