@@ -5,12 +5,15 @@
 }
 <div class="win-backdrop" @onclick="OnClose">
     <div class="win event @b.Tier.ToLowerInvariant()" @onclick:stopPropagation="true">
-        <div class="win-head">
-            <span class="tier"><span class="glyph">@(b.Setpiece ? "✦" : b.Tier == "AMBIENT" ? "·" : "◆")</span> @b.Tier <span class="kicker">· @RoleTheme.Kicker(RoleTheme.Of(w))</span></span>
-            <h2>@b.Title</h2>
+        @* The painting an occasion opens on (tools/art/scenes.py), with its title set over the foot of it. *@
+        <div class="win-art" style="background-image:url('img/scenes/@(SceneArt.For(b.Item.Fired.Def.Id, b.Title)).webp')">
             <button class="win-close" @onclick="OnClose" title="Set aside (you can return to it from the outliner this turn)">✕</button>
+            <div class="win-head">
+                <span class="tier"><span class="glyph">@(b.Setpiece ? "✦" : b.Tier == "AMBIENT" ? "·" : "◆")</span> @b.Tier <span class="kicker">· @RoleTheme.Kicker(RoleTheme.Of(w))</span></span>
+                <h2>@b.Title</h2>
+            </div>
         </div>
-        <div class="win-body">
+        <div class="ev-body">
             @if (roles.Count > 0)
             {
                 <div class="win-cast">
@@ -18,7 +21,7 @@
                     {
                         var h = w.House(r.ch!.HouseId);
                         <div class="cast">
-                            <Portrait Id="@r.ch.Id" Name="@r.ch.Name" Sex="@r.ch.Sex" Age="@r.ch.Age" Alive="@r.ch.Alive" Accent="@(h?.AccentColor ?? "#888")" Size="72" />
+                            <Portrait Id="@r.ch.Id" Name="@r.ch.Name" Sex="@r.ch.Sex" Age="@r.ch.Age" Alive="@r.ch.Alive" Accent="@(h?.AccentColor ?? "#888")" Size="116" />
                             <div class="cast-name">@r.ch.Name</div>
                             <div class="cast-sub">@(h?.Name ?? "") · @r.role.Replace('_', ' ')</div>
                         </div>

@@ -37,6 +37,13 @@ public sealed class GameClient
     public event Action? Changed;
     private void Notify() => Changed?.Invoke();
 
+    /// <summary>The person whose profile is open over the screen, if any: any portrait opens it (docs/ART_DIRECTION.md).</summary>
+    public string? ProfileId { get; private set; }
+    /// <summary>The painted portraits, if the build ships any (tools/art/portraits.py).</summary>
+    public PortraitLibrary? Portraits { get; private set; }
+    public void ShowProfile(string id) { if (World?.Char(id) == null || ProfileId == id) return; ProfileId = id; Notify(); }
+    public void CloseProfile() { if (ProfileId == null) return; ProfileId = null; Notify(); }
+
     public bool Ready => Content != null;
 
     public async Task LoadAsync()
@@ -56,6 +63,7 @@ public sealed class GameClient
                 LoadedFiles++;
                 Notify();
             }
+            try { Portraits = PortraitLibrary.Parse(await _http.GetStringAsync("img/portraits/manifest.json")); } catch { Portraits = null; }   // none painted: portraits are drawn
             Content = ContentLoader.LoadFromDirectory(ContentRoot);
             ScenarioIds = Directory.EnumerateFiles(Path.Combine(ContentRoot, "scenarios"), "*.json")
                 .Select(Path.GetFileNameWithoutExtension).Where(s => s != null).Select(s => s!).Where(s => !ScenarioLoader.LoadFromContent(ContentRoot, s).Hidden)   // fixtures are for tests and tools

@@ -1,10 +1,13 @@
 @inject IJSRuntime JS
 @inject GameClient G
-@* A cameo portrait (docs/ART_DIRECTION.md §3): drawn by js/portrait.js from the character's id, sex, age and house colour, stable
-   everywhere the person appears. The <img> is filled after render by praetoriaBust.paint(), which this component calls for itself
-   so any screen may place a portrait without a paint hook of its own. *@
-<span class="portrait @(Alive ? "" : "dead") @(Age >= 60 ? "elder" : "")" style="--ring:@Accent; width:@(Size)px; height:@(Size)px" title="@Name">
-    <img @key="SpecNow" data-bust="@SpecNow" alt="@Name" width="@Size" height="@Size" />
+@* A portrait (docs/ART_DIRECTION.md, "Portraits and profiles"): drawn by js/portrait.js from the person's id, sex, age and house
+   colour, dressed for their service and rank, its face set by what they think of you; stable everywhere the person appears. Small
+   ones are the head alone, large ones the bust. Clicking one opens that person's profile. The <img> is filled after render by
+   praetoriaBust.paint(), which this component calls for itself so any screen may place a portrait without a paint hook of its own. *@
+<span class="portrait @(Alive ? "" : "dead") @(Age >= 60 ? "elder" : "") @(CanOpen ? "opens" : "") @(Size <= CloseBelow ? "close" : "")" style="--ring:@Accent; width:@(Size)px; height:@(Size)px" title="@(CanOpen ? Name + " · open their profile" : Name)"
+      @onclick="Open" @onclick:stopPropagation="CanOpen">
+    @if (Painted is { } url) { <img @key="url" class="lib" src="@url" alt="@Name" width="@Size" height="@Size" loading="lazy" /> }
+    else { <img @key="SpecNow" data-bust="@SpecNow" alt="@Name" width="@Size" height="@Size" /> }
 </span>
 
 @code {
@@ -17,13 +20,40 @@
     [Parameter] public int Size { get; set; } = 48;
     /// <summary>A face by choice, as "skin=2,hair=1,style=-1,beard=1,scar=1"; null reads the world's record for this person, if any.</summary>
     [Parameter] public string? Look { get; set; }
-    private string SpecNow => Spec(Id, Sex, Age, Accent, Alive, Look ?? G.World?.Cosmetics.GetValueOrDefault("look:" + Id));
-    public static string Spec(string id, string sex, int age, string accent, bool alive = true, string? look = null)
+    /// <summary>Whether a click opens the person's profile. Off inside the profile itself and where there is no such person yet.</summary>
+    [Parameter] public bool Opens { get; set; } = true;
+    /// <summary>Dress for someone the world does not hold yet (the creation screen): "military", "stewardship", "law".</summary>
+    [Parameter] public string? Career { get; set; }
+    /// <summary>The painted picture of this person, if the library holds one.</summary>
+    private string? Painted => PaintedUrl(G, Id, Sex, Age, Look ?? G.World?.Cosmetics.GetValueOrDefault("look:" + Id));
+    public static string? PaintedUrl(GameClient g, string id, string sex, int age, string? look = null)
     {
-        string sexNow = sex.Length > 0 ? sex : (Math.Abs(id.GetHashCode()) % 2 == 0 ? "male" : "female");
-        if (string.IsNullOrEmpty(look)) return System.Text.Json.JsonSerializer.Serialize(new { id, sex = sexNow, age, accent, alive });
-        var parts = look.Split(',').Select(x => x.Split('=')).Where(x => x.Length == 2 && int.TryParse(x[1], out _)).ToDictionary(x => x[0], x => int.Parse(x[1]));
-        return System.Text.Json.JsonSerializer.Serialize(new { id, sex = sexNow, age, accent, alive, look = new { skin = parts.GetValueOrDefault("skin", -1), hair = parts.GetValueOrDefault("hair", -1), style = parts.GetValueOrDefault("style", -1), beard = parts.GetValueOrDefault("beard", -1), scar = parts.GetValueOrDefault("scar", 0) == 1 } });
+        if (g.Portraits == null || sex.Length == 0) return null;
+        int chosen = -1; if (look != null) foreach (var part in look.Split(',')) if (part.StartsWith("face=") && int.TryParse(part[5..], out int f)) chosen = f;
+        var c = g.World?.Char(id); return g.Portraits.Url(id, sex, age, c != null && g.World!.Foreign(c.HouseId), chosen);
     }
-    protected override async Task OnAfterRenderAsync(bool first) { try { await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { } }
+    private bool CanOpen => Opens && G.World?.Char(Id) != null && G.ProfileId != Id;
+    private void Open() { if (CanOpen) G.ShowProfile(Id); }
+    private string SpecNow => Spec(G.World, Id, Sex, Age, Accent, Alive, Look ?? G.World?.Cosmetics.GetValueOrDefault("look:" + Id), Size <= CloseBelow, Career);
+    /// <summary>At or under this many pixels a portrait is the head alone.</summary>
+    public const int CloseBelow = 72;
+
+    public static string Spec(World? w, string id, string sex, int age, string accent, bool alive = true, string? look = null, bool close = false, string? career = null)
+    {
+        var spec = new Dictionary<string, object?> { ["id"] = id, ["sex"] = sex.Length > 0 ? sex : (Math.Abs(id.GetHashCode()) % 2 == 0 ? "male" : "female"), ["age"] = age, ["accent"] = accent, ["alive"] = alive };
+        if (close) spec["close"] = true;
+        if (career != null) spec["career"] = career;
+        if (w != null && ProfileProjection.Dress(w, id) is { } d)
+        {
+            spec["career"] = d.Career; spec["rank"] = d.Rank; if (d.Mood != 0) spec["mood"] = d.Mood;
+            if (d.Head) spec["head"] = true; if (d.Laurel) spec["laurel"] = true; if (d.Scar) spec["scar"] = true; if (d.Foreign) spec["foreign"] = true;
+        }
+        if (!string.IsNullOrEmpty(look))
+        {
+            var parts = look.Split(',').Select(x => x.Split('=')).Where(x => x.Length == 2 && int.TryParse(x[1], out _)).ToDictionary(x => x[0], x => int.Parse(x[1]));
+            spec["look"] = new { skin = parts.GetValueOrDefault("skin", -1), hair = parts.GetValueOrDefault("hair", -1), style = parts.GetValueOrDefault("style", -1), beard = parts.GetValueOrDefault("beard", -1), scar = parts.GetValueOrDefault("scar", 0) == 1 };
+        }
+        return System.Text.Json.JsonSerializer.Serialize(spec);
+    }
+    protected override async Task OnAfterRenderAsync(bool first) { if (Painted != null) return; try { await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { } }
 }

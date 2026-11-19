@@ -7,7 +7,7 @@
 }
 <header class="topbar" style="--accent:@house.AccentColor">
     <div class="tb-house" title="@house.Name · @(G.Content!.Titles.NameOf(house.Title, G.World!.Era))">
-        <Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="30" />
+        <span class="tb-ruler"><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="52" /><i class="tb-sigil"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="20" /></i></span>
         <div><div class="tb-name">@house.Name</div><div class="tb-sub">@(G.Content!.Titles.NameOf(house.Title, G.World!.Era)) · legitimacy @house.Legitimacy</div></div>
     </div>
     <div class="tb-res" title="@ledgerTip">

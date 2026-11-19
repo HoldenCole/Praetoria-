@@ -3,6 +3,27 @@
 ## [Unreleased]
 
 ### Added
+- **A game's interface, not a dashboard** (docs/ART_DIRECTION.md, "The shell, the windows and the art"; the owner:
+  "de-AI the UI because the amount of cards and side paneling is too much. Look at popular grand strategy games").
+  The map is now the screen and is always there. A bar runs along the top with your portrait, the house and its
+  stocks; a column of icons runs down the left; each opens one window docked beside it, over the map; the outliner
+  floats on the map at the right. Inside a window nothing is boxed: sections are split by a ruled header, what
+  was a card is an entry under a hairline, the tile grid is one strip of figures with the explanation in the
+  tooltip, pills are plain words, and buttons are square plates. Picking a world opens the map's own window.
+  Escape returns to the map. The research behind it (Crusader Kings III, Stellaris, Victoria 3, Old World and
+  others) and a table of what read as machine-made and what replaced it are in the document.
+- **Painted portraits** (the owner, of three attempts at drawing faces in code: "It's bad. … do some research into
+  tools"). `tools/art/portraits.py` paints the game's portraits with an openly licensed image model that runs
+  with no account and no key, and the client ships them. A person is one face painted at five ages, so it grows
+  old with its owner. The faces drawn in code remain only as the fallback where no picture exists. The pictures are
+  AI-generated, which a store page must say; the document sets out what a hosted model or an artist would cost.
+- **Event windows open on a painting** (`tools/art/scenes.py`, sixteen occasions chosen by what the event is about),
+  with the title over its foot, the people involved at bust size, and the choices as full-width plates. The title
+  screen has key art behind it and its scenarios as a list.
+- **A profile for everyone**: any portrait opens that person's window: who they are, their station and offices,
+  what they think of you and why, what they are like (with each trait's meaning written out), what they are
+  good at, their kin as portraits that open in turn, and what they have done. The You screen opens on your
+  portrait, and the family tree shows faces instead of initials.
 - **Negotiated or won** (docs/BEYOND.md; the owner: "Peace can be negotiated or won. Depends on war score."). Every
   war with a nation has a war score from -100 to +100. At the ends the peace is won or lost. Between, it is
   negotiated, and the terms step up with the score: a white peace near level, keeping what you hold from +25,

@@ -122,3 +122,92 @@ not to be confused — red, blue, yellow, green and silver first. `Presentation.
 - **Parties**: the benches take the first ten house colours in the order they form (`Faction.Accent`).
 - **Planet classes**: terran green over blue sea, ocean blue, arid gold, forge red, frozen white, gas tan-striped,
   belt slate, barren silver — the same colours in the SVG dots, the sprites and the Office's window planet.
+
+## The shell, the windows and the art (2026-11-19)
+
+The owner, on seeing portraits drawn in code and the dashboards as they stood: *"It's bad. … Needs to look 10x better.
+Also, going to need to de-AI the UI because the amount of cards and side paneling is too much. Look at popular grand
+strategy games to redesign the UI."* And before it: *"I want everything to look like a game you got right off Steam."*
+That is the bar. This section replaces "Sets and dashboards" above where the two disagree.
+
+### What the genre does (researched 2026-11-19)
+
+Every game looked at — Crusader Kings III, Stellaris, Victoria 3, Hearts of Iron IV, Europa Universalis IV, Imperator,
+Old World — is **map-first**: the map fills the screen, the chrome sits at its edges, and one window opens over it,
+docked to a side. Inside a window nothing is a card. CK3's realm, court and council windows are tabbed lists of rows,
+each with a portrait or a shield and a few figures. Stellaris shows a resource as an icon, a stock and a monthly
+change; the breakdown is in the tooltip. Victoria 3's diaries put ornament "around the borders and corners" only,
+warn against "too many detailed patterns", add illustration to "menus that are very text heavy", and name nested
+tooltips as what lets a window stay sparse. CK3's character window is a large portrait with spouse and heir beside
+it, a row of trait icons, a row of skills as icon and number, then tabs of portraits; its designer's stated problem
+was "Wait, who is this guy?". Event windows are a painting, the people involved, prose, and stacked full-width
+choices. Civilization VII is the warning: reviewers called its menus "drab grey slabs" once the thematic art was
+gone. Star Dynasties is a second: reviewers found its simple portraits made people hard to remember.
+
+### What made ours look machine-made, and what replaces it
+
+| the tell | the replacement |
+|---|---|
+| a page of bordered, rounded cards; cards inside cards | one window; sections split by a ruled small-caps header; entries divided by a hairline |
+| a grid of stat tiles under every heading | one strip of figures: a label and a number, hairlines between, the explanation in the tooltip |
+| pills and chips for every word | plain words; italics for a trait; a bevelled plate only for something you can press |
+| a muted subtitle under each heading | the heading alone |
+| a side rail, a content column and a side panel | the map, one docked window, and an outliner that floats on the map |
+| rounded corners, soft glows, glass | square corners, one metal, one drop shadow, a tiled grain |
+| a centred box for an event | a painting across the top, the title over its foot, large portraits, serif prose, stacked choices |
+| faces drawn by code | painted portraits (below) |
+
+### The shell
+
+- **The map is the screen.** It is always mounted and fills the window. Escape, or closing a window, returns to it.
+- **Top bar**: your portrait in a brass frame with the house's shield on its corner (it opens your profile), the
+  house and its rank, then stocks as icon, number and yearly change, the three strategic goods, the turn's pools,
+  and the era and year.
+- **Left**: one column of icons. Each opens **one window docked beside it**, over the map: 700px, or 1080px for a
+  chamber, a table or a market. The window has a metal title bar and a close button; its body scrolls as one page.
+- **Right**: the outliner, on the map, with no column behind it: reports as rows, alerts, the council, fleets,
+  holdings. It hides on a narrow screen.
+- **Picking a world or a fleet** on the map opens the map's own window in the same dock; the regions list is a
+  button among the map tools.
+- **Bottom right**: the minimap and the end of the turn.
+- A portrait anywhere opens that person's **profile**.
+
+### Portraits
+
+Portraits are painted, not drawn by code. `tools/art/portraits.py` runs an openly licensed diffusion model
+(Lykon/dreamshaper-8-lcm, of the Stable Diffusion 1.5 family; CreativeML OpenRAIL-M, whose output may be used
+commercially) and writes `src/Web/wwwroot/img/portraits/` with a manifest. It needs no account and no key, and runs
+on a CPU at about half a minute a picture.
+
+- A person is one **identity** — a face, a colouring, a way of dressing — painted at **five ages** from the same
+  seed: child, youth, adult, older, elder. The game gives each character an identity by a hash of their id, among
+  those of their sex (and of the Reach, or of a nation beyond it), and shows the picture for their age, so a face
+  grows old with its owner. Old World ships four portraits a character switched by age; this is that.
+- Small portraits (72px and under) are the same picture drawn in to the face.
+- The house's colour is the frame. Rank, office and mood are not in the picture.
+- Where the library has no picture, the old canvas painter (`js/portrait.js`) still draws one. It is the fallback
+  only, and should go when the library covers everyone.
+- The pictures are **AI-generated**. Steam's content survey asks a store page to say so, and purely AI-made images
+  are not copyrightable in the United States; the code, the writing and the selection are.
+
+What would be better, and what it costs (researched the same day): a hosted image model with reference-image
+editing (OpenAI's image models, Google's, or FLUX) holds one face across five ages far better than a shared seed
+does, can dress the same person for each career, and paints at a higher finish. A library of about 100 identities at
+five ages with career outfits is roughly 2,000 to 2,800 calls, **$40 to $140**; with event paintings and
+experiment, **$100 to $300** in all. It needs an API key from the owner. Commissioned portraits run $35 to $180 each
+before commercial rights, so the same library by hand is $17,000 and up. For UI art: game-icons.net (CC BY 3.0,
+about 4,000 SVG icons, needs a credits screen), Kenney's CC0 frame kits, ambientCG and Poly Haven textures (CC0).
+
+### The event window
+
+A painting across the top (`tools/art/scenes.py` paints sixteen occasions: an audience, the Senate, a ship's bridge,
+a battle, the Exchange, a family hall, a funeral, a court, unrest, a hall beyond the rim, a dispatch, a feast, an
+intrigue, a world, a shipyard, a triumph), chosen by what the event is about (`SceneArt.For`). The title sits over
+the foot of the painting in capitals. The people involved are shown at bust size in brass frames. The prose is
+serif. The choices are full-width plates; setting it aside is a plain line beneath.
+
+### Not done yet
+
+See docs/GAPS.md, "The look". The windows were converted by rule (what was a card is now an entry), not redesigned
+one by one: several still read as long pages and want tabs. Tooltips are the browser's own. The Academy and the
+character creation pages have not been through the pass. Traits, skills and offices are still words, not icons.

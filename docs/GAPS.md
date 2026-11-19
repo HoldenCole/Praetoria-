@@ -196,6 +196,25 @@ Found while putting the Vashti Khanates on the map.
 | N26 | A client owes money and nothing else. It sends no fleet when the Reach is at war, cannot be asked for anything, and its ruler is nobody its patron can call on. The Reach is never the client: no house is made a nation's vassal. And other houses almost never make one (once in sixty games), because they raid and are rarely decisive. | M | R10 stage 4 · **The owner's:** decision 20 |
 | N8 | What a house takes from a nation is held as a world of that house while a fleet stands over it. It is not a province held for the Reach with a governor, a garrison and a tribute. | L | **The owner's:** who should hold what is taken (stage 3) |
 
+## The look (docs/ART_DIRECTION.md, "The shell, the windows and the art", 2026-11-19)
+
+The owner's bar: it has to look like a game off Steam. The shell is map-first and the portraits are painted. What is
+still short of that:
+
+| id | gap | size | needs |
+|---|---|---|---|
+| V1 | The windows were converted by rule, not redesigned. Military, the Senate, the House and the Line are long single pages; each wants tabs and a first screen that fits without scrolling, as CK3's windows do. | M | |
+| V2 | Tooltips are the game's own now (`js/tips.js`: anything with a title), with a heading and breakdown rows, but they do not nest (a term inside a tooltip cannot be hovered in turn, as in CK3 and Victoria 3) and nothing shows on a touch screen. | M | |
+| V3 | A face is assigned by hash alone. Kin do not resemble each other, two people in one room can share a face, and the player cannot choose theirs (a `face=N` in the look is read, but nothing sets it). | M | |
+| V4 | One identity across five ages comes from a shared seed, which holds colouring and dress but lets the face drift. A hosted model with reference-image editing holds it. Needs a key and about $100 to $300 from the owner. | M | owner |
+| V5 | Dress is not by career or rank: an admiral and a magistrate can wear the same coat. Rank, office, a triumph's laurel and a wound's scar are not shown on a painted portrait. | M | V4 |
+| V6 | The pictures are AI-generated. A store page must say so (Steam's content survey), and the owner has not been asked whether that is acceptable for release or a stand-in until an artist is paid. | S | owner |
+| V7 | The Academy, the character creation pages, the primer and the seat-passing interstitial have not been through the pass. | M | |
+| V8 | Icons (game-icons.net) are used small and only on the rail and the top bar. Traits, skills, offices and the figures in a window are words; CK3 and Old World carry those as icons with a tooltip. | M | V2 |
+| V9 | The Office is a room modelled in code and is the weakest picture left in the game. It is off the default path now; it wants to be a painting, or to go. | S | owner |
+| V10 | The profile is a centred window, not docked, and what a person thinks of you has no itemised breakdown (Star Dynasties and CK3 both itemise opinion). | M | |
+| V11 | The event paintings are chosen by keyword from sixteen. An event cannot name its own picture, and the same hall shows for many occasions. | S | |
+
 ## Older, from docs/ROADMAP.md section 3
 
 Kept there in full. In short: the state gives commerce nothing (no tax-farming or contracts), callings lean to commerce,

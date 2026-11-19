@@ -1,7 +1,7 @@
 @* One figure at the top of a dashboard (docs/DASHBOARDS.md, rule 2: no number alone). A label that is a question's subject, the
    value, what it is to be read against, and a tone that says whether it is well or ill. Optional small bars for a value that is
    really three (a fleet's readiness, loyalty and supply). The tooltip carries the detail. *@
-<div class="tile @Tone" title="@Title">
+<div class="tile @Tone" title="@(Note.Length > 0 && Title.Length > 0 ? Note + "\n" + Title : Note.Length > 0 ? Note : Title)">
     <span class="t-label">@Label</span>
     <b class="t-value">@Value</b>
     @if (Bars != null)

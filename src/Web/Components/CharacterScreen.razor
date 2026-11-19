@@ -29,8 +29,16 @@
 }
 <div class="dash sheet" style="--accent:@house.AccentColor">
     <header class="dash-head picture">
-        <div class="dh-title"><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="34" /> <b>@p.Name</b> <span class="muted">@m.Character.RankName of @house.Name · @m.Character.TitleName · @p.Age years@(m.Character.Background != null ? $" · {m.Character.Background}" : "")</span></div>
-        <p class="headline @storyTone">@story</p>
+        <div class="hero">
+            <div class="hero-frame"><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="132" /></div>
+            <div class="hero-who">
+                <div class="profile-house"><i></i>@house.Name</div>
+                <h2>@p.Name</h2>
+                @if (LifeSystem.Epithet(p).Length > 0) { <div class="profile-epithet">@LifeSystem.Epithet(p)</div> }
+                <div class="profile-station">@m.Character.RankName · @m.Character.TitleName · @p.Age years@(m.Character.Background != null ? $" · {m.Character.Background}" : "")</div>
+                <p class="headline @storyTone">@story</p>
+            </div>
+        </div>
         <div class="tiles">
             <Tile Label="Rank" Value="@rankName" Share="@(maxRank > 0 ? 100 * p.CareerRank / maxRank : 0)"
                   Note="@($"{Ordinal(p.CareerRank + 1)} of {maxRank + 1} ranks in {trackName}" + (nextRank != null ? $" · next: {nextRank}" : " · the top of it"))" Title="How far you have risen in your own service. The bar is how far up its ladder you stand." />

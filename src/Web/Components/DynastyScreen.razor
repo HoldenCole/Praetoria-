@@ -46,13 +46,17 @@
         <section class="panel">
             <h3><Icon Name="dynasty" Size="13" /> The family tree <span class="muted">a row a generation · the eldest leftmost · the figure is an age · click a name</span></h3>
             <div class="tree-wrap"><svg class="tree" viewBox="@F(minX - 75) 0 @F(treeW) @(Math.Max(200, tree.rows * 120 + 30))" style="min-width:@F(Math.Min(treeW, 1400) * 0.8)px; max-width:@F(treeW)px" role="img" aria-label="the family tree">
+                <defs><clipPath id="tree-face"><circle r="25" /></clipPath></defs>
                 @foreach (var l in tree.links) { <path d="M @F(l.x1) @F(l.y1) C @F(l.x1) @F((l.y1 + l.y2) / 2), @F(l.x2) @F((l.y1 + l.y2) / 2), @F(l.x2) @F(l.y2)" class="link" /> }
                 @foreach (var s in tree.spouses) { <line x1="@F(s.x1)" y1="@F(s.y)" x2="@F(s.x2)" y2="@F(s.y)" class="wed" /> }
                 @foreach (var n in tree.nodes)
                 {
                     <g class="tn @(n.me ? "me" : "") @(n.alive ? "" : "dead") @(n.id == _focus ? "focus" : "") @(heirs.Count > 0 && heirs[0].Id == n.id ? "heir" : "")" transform="translate(@F(n.x),@F(n.y))" @onclick="() => _focus = n.id">
-                        <circle r="22" style="fill:@n.accent" /><circle r="22" class="ring" />
-                        @((MarkupString)$"<text y=\"6\" class=\"ini\">{System.Net.WebUtility.HtmlEncode(n.initials)}</text><text y=\"42\" class=\"nm\">{System.Net.WebUtility.HtmlEncode(First(n.name))}</text><text y=\"57\" class=\"sub\">{System.Net.WebUtility.HtmlEncode(n.sub)}</text>")
+                        <circle r="26" style="fill:#0b0e14;stroke:@n.accent;stroke-width:3" />
+                        @if (w.Char(n.id) is { } tc && Portrait.PaintedUrl(G, tc.Id, tc.Sex, tc.Age, w.Cosmetics.GetValueOrDefault("look:" + tc.Id)) is { } turl) { <image @key="turl" href="@turl" x="-25" y="-25" width="50" height="50" clip-path="url(#tree-face)" preserveAspectRatio="xMidYMin slice" /> }
+                        else if (w.Char(n.id) is { } td) { <image @key="n.id + td.Age" data-bust="@Portrait.Spec(w, td.Id, td.Sex, td.Age, n.accent, td.Alive, w.Cosmetics.GetValueOrDefault("look:" + td.Id), true)" x="-25" y="-25" width="50" height="50" clip-path="url(#tree-face)" /> }
+                        <circle r="29" class="ring" />
+                        @((MarkupString)$"<text y=\"46\" class=\"nm\">{System.Net.WebUtility.HtmlEncode(First(n.name))}</text><text y=\"61\" class=\"sub\">{System.Net.WebUtility.HtmlEncode(n.sub)}</text>")
                         <title>@n.name · @n.sub</title>
                     </g>
                 }

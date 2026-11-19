@@ -58,7 +58,10 @@ else if (G.World!.InAcademy && G.Academy() is { } am)
 else
 {
     var m = G.Court();
-    <div class="gs-shell" style="--accent:@m.HouseAccent" @ref="_shell" data-nebula data-era="@m.Era" data-role="@RoleTheme.Of(G.World!)">
+    @* The game shell (docs/ART_DIRECTION.md, "The shell"): the map is the screen. Everything else sits over it: a bar along the top, a
+       column of icons down the left, one window docked beside it, and an outliner on the right. *@
+    <div class="gs-shell game @(_screen == "galaxy" ? "on-map" : "in-window")" style="--accent:@m.HouseAccent" @ref="_shell" data-era="@m.Era" data-role="@RoleTheme.Of(G.World!)">
+        @if (G.World!.Galaxy != null) { <div class="map-layer"><GalaxyMap @ref="_map" OnPicked="MapPicked" /></div> }
         <TopBar OnSave="SaveLocal" OnExport="Download" OnQuit="Abandon" OnPrimer="() => _primer = true" SavedFlash="@_savedFlash" />
         <nav class="rail">
             @foreach (var (id, glyph, label) in Rail())
@@ -68,12 +71,15 @@ else
                 </button>
             }
         </nav>
-        <main class="screen">
+        @if (_screen != "galaxy")
+        {
+        <main class="screen window @(WideScreens.Contains(_screen) ? "wide" : "")" data-screen="@_screen">
+            <header class="win-bar"><h2>@(Screens.FirstOrDefault(s => s.id == _screen).label ?? _screen)</h2><button class="win-x" @onclick='() => Go("galaxy")' title="Close this window and return to the map (Esc)" aria-label="Close">×</button></header>
+            <div class="win-body">
             @switch (_screen)
             {
                 case "character": <CharacterScreen Model="m" /> break;
                 case "senate": <SenateScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "galaxy": <GalaxyMap @ref="_map" /> break;
                 case "planets": <PlanetsScreen OnFocus="FocusSystem" /> break;
                 case "house": <HouseScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
                 case "exchange": <ExchangeScreen Model="m" OnGo="Go" /> break;
@@ -84,7 +90,9 @@ else
                 case "chronicle": <ChronicleScreen /> break;
                 default: <OfficeScreen Model="m" OnOpenReport="OpenReport" /> break;
             }
+            </div>
         </main>
+        }
         <Outliner Model="m" OnOpenReport="OpenReport" OnGo="Go" />
         <div class="endturn-dock">
             @if (G.LastNotice != null) { <span class="notice">@G.LastNotice</span> }
@@ -120,6 +128,7 @@ else
         {
             <Primer OnClose="ClosePrimer" />
         }
+        <ProfileCard />
         @if (_passingOut && G.Academy() is { Graduated: true } grad)
         {
             <div class="overlay">
@@ -143,7 +152,10 @@ else
         ("office", "", "Office"), ("character", "", "You"), ("galaxy", "", "Galaxy"), ("planets", "", "Worlds"), ("senate", "", "Senate"), ("house", "", "House"), ("exchange", "", "Exchange"),
         ("laws", "", "Laws"), ("military", "", "Military"), ("dynasty", "", "Dynasty"), ("houses", "", "Houses"), ("chronicle", "", "Chronicle")
     };
-    private string _screen = "office";
+    private string _screen = "galaxy";
+    /// <summary>Screens whose window is the wide one: a chamber, a table of houses, a market.</summary>
+    private static readonly HashSet<string> WideScreens = new() { "senate", "houses", "exchange", "office", "military" };
+    private void MapPicked() { if (_screen != "galaxy") { _screen = "galaxy"; StateHasChanged(); } }
     /// <summary>The rail in the role register's order (GDD Art Direction): the Office, then the career's screens, then the rest.</summary>
     private IEnumerable<(string id, string glyph, string label)> Rail() => G.World == null ? Screens : RoleTheme.OrderScreens(RoleTheme.Of(G.World), Screens, s => s.id);
     private bool _hasAutosave, _epilogueDismissed, _savedFlash;
@@ -169,7 +181,7 @@ else
     public async Task Key(string key)
     {
         if (G.Turn == null) return;
-        if (key == "Escape") { _openReport = null; _succession = null; }
+        if (key == "Escape") { if (G.ProfileId != null) G.CloseProfile(); else if (_openReport != null || _succession != null) { _openReport = null; _succession = null; } else _screen = "galaxy"; }
         else if (key == "Enter" && _openReport == null && _succession == null) await EndTurn();
         else if (key.Length == 1 && char.IsDigit(key[0]) && G.World?.InAcademy != true) { int i = key[0] - '1'; var rail = Rail().ToList(); if (i >= 0 && i < rail.Count) _screen = rail[i].id; }
         else return;

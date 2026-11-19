@@ -19,6 +19,7 @@
             <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.zoom", _id, 1.25)' title="Zoom out">−</button>
             <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.home", _id)' title="Back to your seat">⌂</button>
             <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.fit", _id)' title="Fit the whole Reach">▣</button>
+            <button class="btn sm" @onclick="() => { _regions = !_regions; _systemId = null; }" title="The regions of the Reach">☰</button>
         </div>
         <div class="legend">
             <span><i class="sw own"></i> your fleet</span><span><i class="sw intel"></i> reported fleet (fainter = less certain)</span>
@@ -28,7 +29,9 @@
         </div>
     </div>
 
-    <aside class="map-side">
+    <aside class="map-side @(sel == null && !_regions ? "idle" : "")">
+        <header class="win-bar"><h2>@(sel != null ? "World" : "The Reach")</h2><button class="win-x" @onclick="() => { _systemId = null; _regions = false; }" title="Close" aria-label="Close">×</button></header>
+        <div class="win-body">
         @if (sel != null)
         {
             var sys = w.Galaxy!.System(sel.SystemId)!; var region = w.Galaxy.Region(sys.RegionId);
@@ -107,10 +110,14 @@
             }
             @if (!fleets.Any(f => f.IsPlayer)) { <div class="muted">No hull flies your colours. Lay one down (House → Holdings → Shipyard).</div> }
         </section>
+        </div>
     </aside>
 </div>
 
 @code {
+    /// <summary>Raised when a world or a fleet is picked on the map, so the shell can bring the map's own window forward.</summary>
+    [Parameter] public EventCallback OnPicked { get; set; }
+    private bool _regions;
     private string? _fleetId, _systemId; private ElementReference _host, _minimap; private readonly string _id = Guid.NewGuid().ToString("N");
     private DotNetObjectReference<GalaxyMap>? _self; private bool _created; private string _pendingModel = "";
     private string _lastSent = "";
@@ -134,9 +141,9 @@
         {
             if (_fleetId != null && w.Fleets.TryGetValue(_fleetId, out var f) && f.OwnerId == w.Protagonist!.HouseId && new MoveFleetCommand(w.ProtagonistId, _fleetId, id, G.Content!.Fleets).CanExecute(new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0))))
             { G.Execute(new MoveFleetCommand(w.ProtagonistId, _fleetId, id, G.Content!.Fleets)); _fleetId = null; }
-            _systemId = id;
+            _systemId = id; _ = OnPicked.InvokeAsync();
         }
-        else if (kind == "fleet") { if (w.Fleets.TryGetValue(id, out var f)) { if (f.OwnerId == w.Protagonist!.HouseId) _fleetId = _fleetId == id ? null : id; _systemId = f.SystemId; } }
+        else if (kind == "fleet") { if (w.Fleets.TryGetValue(id, out var f)) { if (f.OwnerId == w.Protagonist!.HouseId) _fleetId = _fleetId == id ? null : id; _systemId = f.SystemId; _ = OnPicked.InvokeAsync(); } }
         else { _fleetId = null; }
         StateHasChanged();
     }

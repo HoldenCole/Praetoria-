@@ -272,3 +272,19 @@ So:
   line on why.
 - The other rules still hold: measure, map new gaps in the same commit, close before you open.
 
+
+## It has to look like a game off Steam
+
+The owner, 2026-11-19, of the character portraits and then of the whole interface: "I want everything to look like a
+game you got right off Steam." And of portraits drawn in code, three versions of them: "Don't waste your time. It's
+bad. … do some research into tools." And: "de-AI the UI because the amount of cards and side paneling is too much.
+Look at popular grand strategy games."
+
+- Anything a player looks at is judged against shipped games in the genre, by putting a screenshot beside theirs.
+  "Better than it was" is not the test.
+- Art comes from art tools. Faces, scenes and textures are painted (tools/art/), not composed from shapes in code.
+  When the tool at hand cannot reach the bar, say so and name the tool that can and what it costs, rather than
+  iterating on something that cannot get there.
+- No dashboards. The map is the screen; one window opens over it; inside a window there are rows, rules and
+  figures, not cards, tiles and pills (docs/ART_DIRECTION.md, "The shell, the windows and the art").
+- Before building a screen, look at how two shipped games show the same thing.

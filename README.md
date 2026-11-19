@@ -285,7 +285,7 @@ is `docs/GAP_ANALYSIS.md`. In short:
 - **The economy**: rival houses do not take each other over; some goods are in permanent glut.
 - **The Imperium**: government under a throne is simple next to the Republic.
 - **The world**: all five nations beyond the Reach are on the map (the Vashti Khanates, the Free Cities of Thessar, the Ardent Concord, the Outer Compact, the Hollow Crown), each game's are of different strength, a nation can attack under a great ruler, houses raid them, the Senate votes war and peace and can be defied at a cost that depends on the general's name, and a peace is won outright or negotiated on terms set by the war score (a client state among the kinds); what they hold is not governed once taken, their rulers cannot be dealt with as people, and the map is one screen where a far larger one is wanted; anomalies and archaeology are not built.
-- **Presentation**: no sound; portraits all wear one uniform; the character sheet is thin; phone layout unchecked.
+- **Presentation**: no sound; the interface is map-first with docked windows and painted portraits, but the windows were converted by rule rather than redesigned one by one, tooltips are the browser's own, kin do not resemble each other, and the portraits are AI-generated stand-ins (`docs/GAPS.md`, "The look").
 - **Housekeeping**: browser checks are scripted (`tools/browser`) but no CI runs them; the Godot desktop shell compiles, has never been run, and lags the browser client badly (`docs/QA.md`).
 
 ---
