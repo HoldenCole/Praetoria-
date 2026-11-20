@@ -71,7 +71,7 @@
             @foreach (var o in assets.Offers)
             {
                 <div class="vcard offer">
-                    <div class="vc-head"><b>@o.BusinessName</b> <span class="muted small">@o.KindName@(o.SystemName != null ? $" · {o.SystemName}" : "") · from @o.FromName</span><span class="pill good">+@o.PerYear a year to you</span></div>
+                    <div class="vc-head"><b>@o.BusinessName</b> <span class="muted small">@o.KindName@(o.SystemName != null ? $" · {o.SystemName}" : "") · from @o.FromName</span><span class="pill good" title="What it yields is goods, not coin: this is what a year of it is worth at today's prices, after its keep and the charter.">worth +@o.PerYear credits a year to you at today's prices</span></div>
                     <div class="muted small">@Cap(o.Reason).</div>
                     <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AcceptVentureOfferCommand(pid, o.Id, vs))">Take it for @o.Price credits</button>
                 </div>
@@ -98,7 +98,7 @@
                     <td class="muted small">@v.SystemName</td>
                     <td class="small">@v.Cost@(v.BuildTurns > 1 ? $" · {v.First} a year" : "")</td>
                     <td class="small">@(v.BuildTurns <= 0 ? "at once" : v.BuildTurns == 1 ? "a year" : $"{v.BuildTurns} years")</td>
-                    <td><span class="@(v.PerYear > 0 ? "good" : "warn")">@(v.PerYear >= 0 ? "+" : "")@v.PerYear</span></td>
+                    <td><span class="@(v.PerYear > 0 ? "good" : "warn")" title="What it yields is goods, not coin: this is what a year of it is worth at today's prices, after its keep and the charter. Prices move.">@(v.PerYear >= 0 ? "+" : "")@v.PerYear cr worth</span></td>
                     <td class="small">@v.Payback</td>
                     <td>@{ var foundCmd = new FoundBusinessCommand(pid, v.DefId, v.SystemId, c.Businesses, c.Holdings, c.Titles, _payFrom); var foundNo = _payFrom.Length > 0 ? foundCmd.Refusal(new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0))) : null; }<button class="opt inline tiny" disabled="@(foundNo != null)" title="@foundNo" @onclick="() => G.Execute(foundCmd)">Found</button></td>
                 </tr>
@@ -120,7 +120,7 @@
                     <div class="vcard @(f.Distressed ? "distress" : "")">
                         <div class="vc-head"><Sigil HouseId="@f.OwnerId" Accent="@f.OwnerAccent" Size="14" /> <b>@f.Name</b></div>
                         <div class="muted small">@f.KindName · level @f.Level@(f.SystemName != null ? $" · {f.SystemName}" : "") · @f.OwnerName@(f.Distressed ? " · short of coin" : "")@(f.OnYourWorld ? " · works your world" : "")</div>
-                        <div class="kv"><span>To you</span><b><span class="@(f.PerYear > 0 ? "good" : "warn")">@(f.PerYear >= 0 ? "+" : "")@f.PerYear a year</span> · @(f.Payback == "never" ? "does not pay itself back at this price" : "pays back in " + f.Payback)</b></div>
+                        <div class="kv"><span>To you</span><b><span class="@(f.PerYear > 0 ? "good" : "warn")">@(f.PerYear >= 0 ? "+" : "")@f.PerYear credits' worth a year, in goods at today's prices</span> · @(f.Payback == "never" ? "does not pay itself back at this price" : "pays back in " + f.Payback)</b></div>
                         @if (vs != null) { <button class="opt inline tiny" disabled="@(f.Refusal != null)" title="@f.Refusal" @onclick="() => G.Execute(new BuyVentureCommand(pid, f.BusinessId, vs))">@(f.Ask > 0 ? $"Buy for {f.Ask}" : "Not for sale")@(f.Refusal != null && !f.Refusal.StartsWith("needs ") ? $" — {f.Refusal}" : "")</button> }
                     </div>
                 }
