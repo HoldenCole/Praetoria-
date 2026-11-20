@@ -27,6 +27,7 @@ public static class Binder
     public static Binding? TryBind(EventDef def, World world, IRng rng)
     {
         var binding = new Binding(world.ProtagonistId); string protagonistHouse = world.Protagonist?.HouseId ?? "";
+        string stewardId = world.House(protagonistHouse)?.Duty(Systems.HouseholdSystem.Steward)?.HolderId ?? "";
         var used = new HashSet<string> { world.ProtagonistId };
 
         foreach (var role in def.Roles)
@@ -42,7 +43,8 @@ public static class Binder
                 if (used.Contains(c.Id)) continue;
                 if (c.Flags.Contains(Systems.DynastySystem.HiddenFlag)) continue;   // fostered away — unreachable (GDD §14 scatter the seed)
                 if (!bindsChildren && c.Age < Systems.DynastySystem.AgeOfMajority) continue;
-                if (OutsideParts.Contains(role.Name) && c.HouseId == protagonistHouse) continue;   // nobody of the house buys from it, lends to it or comes to it as a stranger
+                if (OutsideParts.Contains(role.Name) && c.HouseId == protagonistHouse) continue;
+                if (role.Name == "steward" && c.Id != stewardId) continue;   // the steward of a report is whoever keeps the house's accounts; with nobody named there is no such report   // nobody of the house buys from it, lends to it or comes to it as a stranger
                 var trial = binding.With(role.Name, c.Id);
                 var ctx = new EvalContext(world, trial, rng);
                 if (AllHold(role.Constraints, ctx))

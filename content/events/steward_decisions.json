@@ -297,6 +297,7 @@
       "weight": 4,
       "repeatable": true,
       "when": [
+        { "type": "holding", "spec": "forge_world", "op": "gte", "value": 1 },
         {
           "type": "resource",
           "resource": "materials",
@@ -515,6 +516,7 @@
       "weight": 4,
       "repeatable": true,
       "when": [
+        { "type": "holding", "kind": "planet", "op": "gte", "value": 1 },
         {
           "type": "counter",
           "key": "unrest",
@@ -607,6 +609,7 @@
       "weight": 4,
       "repeatable": true,
       "when": [
+        { "type": "holding", "spec": "agri_world", "op": "gte", "value": 1 },
         {
           "type": "turn",
           "op": "gte",
@@ -847,6 +850,7 @@
       "weight": 3,
       "repeatable": false,
       "when": [
+        { "type": "holding", "kind": "planet", "op": "gte", "value": 1 },
         {
           "type": "counter",
           "key": "goodwill",
@@ -929,6 +933,7 @@
       "weight": 3,
       "repeatable": true,
       "when": [
+        { "type": "holding", "kind": "planet", "op": "gte", "value": 1 },
         {
           "type": "turn",
           "op": "gte",
@@ -1019,6 +1024,7 @@
       "weight": 4,
       "repeatable": true,
       "when": [
+        { "type": "holding", "kind": "planet", "op": "gte", "value": 1 },
         {
           "type": "resource",
           "resource": "manpower",
@@ -1333,6 +1339,7 @@
       "weight": 3,
       "repeatable": true,
       "when": [
+        { "type": "holding", "kind": "planet", "op": "gte", "value": 1 },
         {
           "type": "resource",
           "resource": "credits",
@@ -1425,6 +1432,7 @@
       "weight": 4,
       "repeatable": true,
       "when": [
+        { "type": "holding", "kind": "planet", "op": "gte", "value": 1 },
         {
           "type": "turn",
           "op": "gte",

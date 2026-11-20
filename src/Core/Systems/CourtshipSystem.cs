@@ -422,8 +422,11 @@ public static class CourtshipSystem
         LifeSystem.Note(w, a, kind == Love ? "love" : "wed", $"Married {b.Name} of {hb?.Name}{(kind == Love ? ", for love" : "")}."); LifeSystem.Note(w, b, kind == Love ? "love" : "wed", $"Married {a.Name} of {ha?.Name}{(kind == Love ? ", for love" : "")}.");
         if (ourWedding)
         {
-            Mark(w, JustWedFlag); if (kind == Love) { Mark(w, LoveMatchFlag); w.WorldCounters["love_matches"] = w.Counter("love_matches") + 1; }
             var p = w.Protagonist;
+            /* the wedding card is about the head's own wedding: a relative's is told, and is in the year in brief (it used to raise the card, which then spoke of the head's spouse of nineteen years) */
+            if (p != null && (p.Id == a.Id || p.Id == b.Id)) Mark(w, JustWedFlag);
+            else if (log) { var ours = a.HouseId == mine ? a : b; var theirs = ours == a ? b : a; w.Tell("good", $"{ours.Name} of your house has married {theirs.Name}{(theirs.HouseId != mine ? " of " + w.House(theirs.HouseId)?.Name : "")}.", "dynasty:marriages", ours.Id); }
+            if (kind == Love) { Mark(w, LoveMatchFlag); w.WorldCounters["love_matches"] = w.Counter("love_matches") + 1; }
             if (p != null && (p.Id == a.Id || p.Id == b.Id) && kind == Love && p.Ambition == "win_a_great_love") p.Stress = Math.Max(0, p.Stress - 15);
         }
         return m;
@@ -542,7 +545,7 @@ public static class CourtshipSystem
             w.Marriages.Add(new Marriage { A = first ? a.Id : b.Id, B = first ? b.Id : a.Id, Since = w.Turn, Kind = Arranged, Warmth = StartWarmth(w, a, b, Arranged, 0) });
             a.Flags.Add("wed"); b.Flags.Add("wed");
             w.Courtships.RemoveAll(c => c.SuitorId == a.Id || c.SuitorId == b.Id || c.TargetId == a.Id || c.TargetId == b.Id);
-            if (announce && mine != null && (a.HouseId == mine || b.HouseId == mine)) Mark(w, JustWedFlag);
+            if (announce && mine != null && (a.Id == w.ProtagonistId || b.Id == w.ProtagonistId)) Mark(w, JustWedFlag);
         }
         foreach (var m in w.Marriages.ToList())
         {

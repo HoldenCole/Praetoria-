@@ -655,4 +655,90 @@ public class PlaythroughFixTests
         Assert.Equal(acc.close - acc.open, acc.lines.Sum(l => l.By));
         Assert.Equal(-7, acc.lines[0].By); Assert.Equal(w.Counter(Praetoria.Core.Presentation.YearInBrief.LedgerKey(Resource.Credits)), acc.lines[1].By);
     }
+    [Fact]
+    public void Reports_fit_the_house_they_come_to()
+    {
+        // docs/PLAYTHROUGH.md, Medium: "cards that do not fit the house"
+        var (w, tc, house, me, ctx) = Start("the_new_man"); tc.BeginTurn();
+        var engine = new Praetoria.Core.Events.EventEngine(Content, WorldBuilder.RngFor(w));
+        house.Treasury.Materials = 5;
+        // a house with no forge-world hears nothing from "the forge-world"
+        foreach (var h in w.HoldingsOf(house.Id).ToList()) h.Specialization = "trade_hub";
+        Assert.DoesNotContain(engine.GatherEligible(w), e => e.def.Id == "the_failing_reactor");
+        if (w.HoldingsOf(house.Id).FirstOrDefault(h => h.IsPlanet) is { } world)
+        {
+            world.Specialization = "forge_world"; Assert.Contains(engine.GatherEligible(w), e => e.def.Id == "the_failing_reactor");
+        }
+        // the steward of a report is the house's steward, or there is no such report
+        w.Turn = 5; house.Duties.Clear();
+        Assert.DoesNotContain(engine.GatherEligible(w), e => e.def.Id == "the_skimming_steward");
+        // a relative's wedding does not raise the head's own wedding card
+        var (w2, tc2, house2, me2, _) = Start(); tc2.BeginTurn();
+        var bride = w2.LivingCharacters().First(c => c.Sex == "female" && c.Age is >= 18 and <= 35 && c.HouseId != house2.Id && !World.Outsider(c.HouseId) && DynastySystem.Spouse(w2, c) == null);
+        var groom = w2.LivingCharacters().First(c => c.Sex == "male" && c.Age >= 18 && c.HouseId == house2.Id && c.Id != me2.Id && DynastySystem.Spouse(w2, c) == null);
+        w2.WorldFlags.Remove(CourtshipSystem.JustWedFlag); CourtshipSystem.Wed(w2, bride, groom, CourtshipSystem.Arranged);
+        Assert.False(w2.HasFlag(CourtshipSystem.JustWedFlag));
+        Assert.Contains(w2.News, n => n.Text.Contains(groom.Name + " of your house has married " + bride.Name));
+    }
+    [Fact]
+    public void TheFirstCase_ComesToANewJudge_NotInTheThirteenthYear()
+    {
+        // docs/PLAYTHROUGH.md, Medium: "the robe is new" in the thirteenth year
+        var (w, tc, house, me, ctx) = Start("the_new_man"); tc.BeginTurn();
+        var engine = new Praetoria.Core.Events.EventEngine(Content, WorldBuilder.RngFor(w));
+        me.CareerTrack = "law"; me.CareerRank = 1; me.Skills["law"] = 3; DynastySystem.MarkRanks(w);
+        Assert.Equal(0, DynastySystem.YearsInRank(w, me));
+        Assert.Contains(engine.GatherEligible(w), e => e.def.Id == "first_case");
+        w.Turn += 13; Assert.Equal(13, DynastySystem.YearsInRank(w, me));
+        Assert.DoesNotContain(engine.GatherEligible(w), e => e.def.Id == "first_case");
+        // a step up is a new rank; someone met already grown and past the first rank has held it for years
+        me.CareerRank = 2; DynastySystem.MarkRanks(w); Assert.Equal(0, DynastySystem.YearsInRank(w, me));
+        var old = new Character { Id = "t_old", Name = "Old", HouseId = house.Id, Age = 50, Sex = "male", CareerTrack = "law", CareerRank = 3 }; w.Characters[old.Id] = old;
+        DynastySystem.MarkRanks(w); Assert.Equal(DynastySystem.SettledYears, DynastySystem.YearsInRank(w, old));
+    }
+
+    [Fact]
+    public void WhenTheHeadMayStand_ItIsTheHeadWhoIsConsul()
+    {
+        // docs/PLAYTHROUGH.md, Medium: the house's consul was the head's sister, when the head stood
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn();
+        var consul = ElectionSystem.ConsulOffices(Content.Offices).First();
+        var sister = new Character { Id = "t_sister", Name = "Sister", HouseId = house.Id, Age = 50, Sex = "female", CareerTrack = consul.Track.Length > 0 ? consul.Track : me.CareerTrack, CareerRank = 9 };
+        if (consul.Requires.Length > 0) sister.Cursus.Add(consul.Requires); w.Characters[sister.Id] = sister;
+        me.Age = Math.Max(me.Age, consul.MinAge); me.CareerRank = Math.Max(me.CareerRank, consul.MinRank); if (consul.Track.Length > 0) me.CareerTrack = consul.Track;
+        if (consul.Requires.Length > 0 && !me.Cursus.Contains(consul.Requires)) me.Cursus.Add(consul.Requires);
+        Assert.Equal(me.Id, OfficeSystem.Candidate(w, consul, house.Id)!.Id);
+        // and when the head may not, it is the relative who can, and the declaration says so
+        if (consul.Requires.Length > 0)
+        {
+            me.Cursus.Remove(consul.Requires); Assert.Equal(sister.Id, OfficeSystem.Candidate(w, consul, house.Id)!.Id);
+            Fill(ctx, me); w.WorldFlags.Remove(ElectionSystem.StandFlag(house.Id));
+            var stand = new StandForConsulCommand(me.Id, Content.Offices);
+            if (stand.Refusal(ctx) == null) { Assert.True(tc.Executor.TryExecute(stand, ctx)); Assert.Contains(w.History, l => l.Text.Contains("in the person of Sister")); }
+        }
+    }
+
+    [Fact]
+    public void ASiege_StaysWithTheHouseThatBeganIt_AndItsYearsAreNotLost()
+    {
+        // docs/PLAYTHROUGH.md, Medium: a siege you press is taken over by an ally's fleet, your years are lost, and the ally takes the world (S70)
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); var fleets = tc.Fleets;
+        var foe = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id) && w.HoldingsOf(h.Id).Any(x => x.IsPlanet));
+        var ally = w.Houses.Values.First(h => h.Id != house.Id && h.Id != foe.Id && !World.Outsider(h.Id) && string.CompareOrdinal(h.Id, house.Id) != 0);
+        var target = w.HoldingsOf(foe.Id).First(x => x.IsPlanet);
+        foreach (var f in w.Fleets.Values.ToList()) w.Fleets.Remove(f.Id);
+        w.Wars.Clear(); fleets.DeclareWar(w, house.Id, foe.Id); fleets.DeclareWar(w, ally.Id, foe.Id);
+        w.Fleets["mine"] = new Fleet { Id = "mine", Name = "Mine", OwnerId = house.Id, SystemId = target.SystemId, Strength = 6, ArrivedTurn = w.Turn };
+        fleets.ResolveConquests(w); Assert.Equal(house.Id, w.Sieges[target.Id].BesiegerId); int spent = w.Sieges[target.Id].Turns;
+        // the ally comes later, with more hulls: the siege is still the house's that began it, and it goes on
+        w.Fleets["theirs"] = new Fleet { Id = "theirs", Name = "Theirs", OwnerId = ally.Id, SystemId = target.SystemId, Strength = 30, ArrivedTurn = w.Turn + 1 };
+        Assert.Equal(house.Id, fleets.Besieger(w, target));
+        if (w.Sieges[target.Id].Required > spent + 1) { fleets.ResolveConquests(w); Assert.Equal(house.Id, w.Sieges[target.Id].BesiegerId); Assert.Equal(spent + 1, w.Sieges[target.Id].Turns); spent++; }
+        // the house sails away: the ally takes the siege up where it stood, not from nought
+        w.Fleets.Remove("mine");
+        if (w.Sieges[target.Id].Required > spent + 1) { fleets.ResolveConquests(w); Assert.Equal(ally.Id, w.Sieges[target.Id].BesiegerId); Assert.Equal(spent + 1, w.Sieges[target.Id].Turns); }
+        // two who come to an unbesieged world: the one who came first lays the siege
+        w.Sieges.Clear(); w.Fleets["mine"] = new Fleet { Id = "mine", Name = "Mine", OwnerId = house.Id, SystemId = target.SystemId, Strength = 2, ArrivedTurn = w.Turn - 1 };
+        w.Fleets["theirs"].ArrivedTurn = w.Turn; Assert.Equal(house.Id, fleets.Besieger(w, target));
+    }
 }

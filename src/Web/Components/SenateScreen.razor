@@ -397,7 +397,7 @@
                 <h4>The nominees as they stand</h4>
                 @foreach (var n in el.Nominees) { <div class="nominee"><i class="party-dot" style="background:@n.PartyAccent"></i><Sigil HouseId="@n.HouseId" Accent="@n.Accent" Size="13" /> <span><b>@n.HouseName</b> <span class="muted small">for @n.Party</span></span><b class="tally-n">@n.Tally</b>@{ var nid = n.HouseId; var canvassNo = G.Turn!.Orders.CanvassRefusal(w, house, nid, el.Nominees.Select(x => x.HouseId)); }<button class="opt inline tiny" disabled="@(canvassNo != null)" title="@(canvassNo ?? "largesse in the candidate's name: one more vote's weight at the election")" @onclick="() => Canvass(nid)">Canvass · @OrderSystem.CanvassCredits</button></div> }
                 @if (el.Nominees.Count == 0) { <div class="muted small">No house of standing has a candidate yet.</div> }
-                <button class="opt" disabled="@(el.StandRefusal != null)" title="@(el.StandRefusal ?? $"{ElectionSystem.StandInfluence} influence: your party nominates you, or you run alone")" @onclick="() => G.Execute(new StandForConsulCommand(pid, c.Offices))">@(el.Standing ? "You stand for consul" : el.AmConsul ? "You hold the consulship" : "Stand for consul")</button>
+                <button class="opt" disabled="@(el.StandRefusal != null)" title="@(el.StandRefusal ?? StandSays(c.Offices))" @onclick="() => G.Execute(new StandForConsulCommand(pid, c.Offices))">@(el.AmConsul ? ConsulIs(c.Offices) : StandWord(c.Offices, el.Standing))</button>
                 @if (el.AmConsul) { <div class="muted small">@(el.CanVeto ? "Your veto is unspent this term: strike a motion from the docket above." : "Your veto is spent this term.")</div> }
             </section>
         }
@@ -409,6 +409,24 @@
 
 
 @code {
+    /* who of the house would be consul: the head when qualified, else the relative who is, and the button says which */
+    private Praetoria.Core.State.Character? Stands(Praetoria.Core.Data.OfficeCatalog offices)
+    { var w = G.World!; var d = ElectionSystem.ConsulOffices(offices).FirstOrDefault(); return d == null ? null : OfficeSystem.Candidate(w, d, w.Protagonist!.HouseId); }
+    private string StandWord(Praetoria.Core.Data.OfficeCatalog offices, bool standing)
+    { var who = Stands(offices); bool me = who == null || who.Id == G.World!.ProtagonistId; return standing ? (me ? "You stand for consul" : $"{who!.Name} stands for consul") : me ? "Stand for consul" : $"Put {who!.Name} forward for consul"; }
+    private string StandSays(Praetoria.Core.Data.OfficeCatalog offices)
+    {
+        var who = Stands(offices); string cost = $"{ElectionSystem.StandInfluence} influence: your party nominates {(who == null || who.Id == G.World!.ProtagonistId ? "you, or you run alone" : "your house, or it runs alone")}.";
+        if (who == null || who.Id == G.World!.ProtagonistId) return cost;
+        var d = ElectionSystem.ConsulOffices(offices).First();
+        return $"{cost} You may not stand yourself: a consul must be {OfficeSystem.Wants(offices, d)}. {who.Name} of your house may, and it is {who.Name} who would be consul.";
+    }
+    private string ConsulIs(Praetoria.Core.Data.OfficeCatalog offices)
+    {
+        var w = G.World!; var mine = w.Protagonist!.HouseId;
+        var who = ElectionSystem.ConsulOffices(offices).Select(d => OfficeSystem.Holding(w, d.Id)).FirstOrDefault(h => h?.HouseId == mine);
+        return who == null || who.CharacterId == w.ProtagonistId ? "You hold the consulship" : $"{w.Char(who.CharacterId)?.Name ?? "Your house"} holds the consulship";
+    }
     private static string SphereTip(string id, string name) => id switch
     {
         "navy" => $"Weight in {name}: the ranks of your family serving in the fleet, added up, and one more while you chair the committee on the fleet.",

@@ -3,7 +3,7 @@
     {
       "id": "first_command",
       "tier": "setpiece",
-      "weight": 3,
+      "weight": 9,
       "repeatable": false,
       "roles": [
         {
@@ -19,6 +19,12 @@
         }
       ],
       "when": [
+        {
+          "type": "rankYears",
+          "role": "self",
+          "op": "lte",
+          "value": 4
+        },
         {
           "type": "track",
           "role": "self",
@@ -930,7 +936,7 @@
     {
       "id": "first_case",
       "tier": "situation",
-      "weight": 4,
+      "weight": 12,
       "repeatable": false,
       "roles": [
         {
@@ -946,6 +952,12 @@
         }
       ],
       "when": [
+        {
+          "type": "rankYears",
+          "role": "self",
+          "op": "lte",
+          "value": 4
+        },
         {
           "type": "track",
           "role": "self",

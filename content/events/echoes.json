@@ -1093,7 +1093,7 @@
     {
       "id": "the_conquered_world",
       "tier": "setpiece",
-      "weight": 5,
+      "weight": 30,
       "repeatable": true,
       "roles": [],
       "when": [

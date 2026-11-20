@@ -156,6 +156,16 @@ public sealed class RankCondition : ICondition
     }
 }
 
+/// <summary>How many years someone has held the rank they hold. JSON: { "type": "rankYears", "role": "self", "op": "lte", "value": 3 }.</summary>
+public sealed class RankYearsCondition : ICondition
+{
+    public string Role { get; }
+    public CompareOp Op { get; }
+    public int Value { get; }
+    public RankYearsCondition(string role, CompareOp op, int value) { Role = role; Op = op; Value = value; }
+    public bool Evaluate(EvalContext ctx) => ctx.Actor(Role) is { } c && Comparison.Apply(Op, Systems.DynastySystem.YearsInRank(ctx.World, c), Value);
+}
+
 /// <summary>Career-track check (GDD §13 — the three tracks are different institutions; a magistrate does
 /// not get a first fleet command). JSON: { "type": "track", "role": "self", "track": "military", "present": true }.</summary>
 public sealed class TrackCondition : ICondition
@@ -436,6 +446,21 @@ public sealed class PriceCondition : ICondition
         double then = Against == "usual" ? ctx.Content?.Trade.Market.Good(ResourceKey)?.Base ?? 0 : g.History.Count >= 2 ? g.History[^2] : 0;
         if (then <= 0) return false;
         return Comparison.Apply(Op, (int)Math.Round(100 * g.Price / then), Pct);
+    }
+}
+
+/// <summary>What the role's house holds: how many holdings, of a kind ("planet", or any) and of a specialization where one is named.
+/// A report about "the forge-world" or "the harvest" is gated on it, so it comes to a house that has one (docs/PLAYTHROUGH.md, Medium:
+/// "cards that do not fit the house"). JSON: { "type": "holding", "role": "self", "spec": "forge_world", "kind": "planet", "op": "gte", "value": 1 }.</summary>
+public sealed class HoldingCondition : ICondition
+{
+    public string Role { get; } public string Spec { get; } public string Kind { get; } public CompareOp Op { get; } public int Value { get; }
+    public HoldingCondition(string role, string spec, string kind, CompareOp op, int value) { Role = role; Spec = spec; Kind = kind; Op = op; Value = value; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role); if (c == null) return Comparison.Apply(Op, 0, Value);
+        int n = ctx.World.HoldingsOf(c.HouseId).Count(h => (Kind != "planet" || h.IsPlanet) && (Spec.Length == 0 || h.Specialization == Spec));
+        return Comparison.Apply(Op, n, Value);
     }
 }
 

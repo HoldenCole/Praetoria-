@@ -177,6 +177,7 @@ public sealed class TurnController
 
         Phase = TurnPhase.Briefing;
         _briefing.Clear();
+        DynastySystem.MarkRanks(World);   // how long each has held the rank they hold, before the year's reports are chosen
         using (Perf.Time("begin:events"))
             foreach (var fired in Engine.SelectBriefing(World, _briefingBudget))
                 _briefing.Add(new BriefingItem(fired));

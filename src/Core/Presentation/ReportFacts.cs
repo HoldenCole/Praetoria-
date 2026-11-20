@@ -51,6 +51,11 @@ public static class ReportFacts
             string me = Nm(mine);
             return w.History.LastOrDefault(h => h.Turn >= w.Turn - 1 && h.Text.StartsWith("It comes out that") && h.Text.Contains(me))?.Text ?? "";
         }
+        if (flags.Contains(FleetSystem.ConquestMadeFlag))
+        {
+            var taken = w.HoldingsOf(mine).Where(h => w.WorldCounters.ContainsKey(FleetSystem.ConqueredKey(h.Id))).OrderByDescending(h => w.Counter(FleetSystem.ConqueredKey(h.Id))).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+            return taken == null ? "" : $"The world: {taken.Name}, taken in year {w.Counter(FleetSystem.ConqueredKey(taken.Id))}{(taken.FormerOwnerId.Length > 0 ? " from " + Nm(taken.FormerOwnerId) : "")}. Its unrest stands at {taken.Unrest}, and {taken.Population} live there.";
+        }
         if (flags.Contains(FleetSystem.DeclaredOnMeFlag))
         {
             /* who, with what, why, and what they would take to stop: the terms are the ones the Military window offers */

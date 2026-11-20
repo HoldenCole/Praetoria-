@@ -25,6 +25,10 @@ public sealed class Character
     // Career ladder (GDD §13) — resets each generation. V1 tracks: military / stewardship / law.
     public string CareerTrack { get; set; } = "";
     public int CareerRank { get; set; }
+    /// <summary>The rank last seen at a year's opening (-1: never seen), and the year it was first seen at it: how long
+    /// someone has stood where they stand, so a report about a new robe does not come in its thirteenth year.</summary>
+    public int RankSeen { get; set; } = -1;
+    public int RankTurn { get; set; }
 
     // GDD §18 two trait classes.
     public HashSet<string> NatureTraits { get; set; } = new();

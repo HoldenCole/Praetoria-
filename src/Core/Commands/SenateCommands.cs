@@ -249,7 +249,8 @@ public sealed class StandForConsulCommand : ICommand
         var w = ctx.World; var actor = w.Char(ActorId)!;
         ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = ElectionSystem.StandInfluence });
         w.WorldFlags.Add(ElectionSystem.StandFlag(actor.HouseId));
-        w.Log($"{w.House(actor.HouseId)?.Name} declares for the consulship; the election is in {ElectionSystem.NextIn(w)} year(s).");
+        var who = OfficeSystem.Candidate(w, ElectionSystem.ConsulOffices(_offices).First(), actor.HouseId);
+        w.Log($"{w.House(actor.HouseId)?.Name} declares for the consulship{(who != null && who.Id != actor.Id ? $", in the person of {who.Name}" : "")}; the election is in {ElectionSystem.NextIn(w)} year(s).");
     }
 }
 

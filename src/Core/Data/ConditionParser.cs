@@ -50,6 +50,8 @@ public static class ConditionParser
                 return new TraitCondition(Str(el, "role"), Str(el, "trait"), OptStr(el, "kind", "any"), Bool(el, "present", true));
             case "rank":
                 return new RankCondition(Str(el, "role"), Op(el), Int(el, "value", 0), OptStrOrNull(el, "vsRole"));
+            case "rankYears":
+                return new RankYearsCondition(OptStr(el, "role", "self"), Op(el), Int(el, "value", 0));
             case "turn":
                 return new TurnCondition(Op(el), Int(el, "value", 0));
             case "sex":
@@ -63,6 +65,8 @@ public static class ConditionParser
                 return new FleetStrengthCondition(OptStr(el, "role", "self"), Op(el), Int(el, "value", 0));
             case "wealth":
                 return new WealthCondition(OptStr(el, "role", "self"), Op(el), Str(el, "tier"));
+            case "holding":
+                return new HoldingCondition(OptStr(el, "role", "self"), OptStr(el, "spec", ""), OptStr(el, "kind", ""), Op(el), Int(el, "value", 1));
             case "price":
                 return new PriceCondition(Str(el, "resource"), Op(el), Int(el, "pct", 100), OptStr(el, "against", "year"));
             case "deposit":

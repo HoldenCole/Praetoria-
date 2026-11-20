@@ -87,6 +87,7 @@ public sealed class FleetSystem
     public static readonly string[] Stances = { "line", "press", "skirmish", "boarding" };
     public static readonly string[] Loadouts = { "guns", "torpedoes" };
     public const string ConquestMadeFlag = "conquest_made";
+    public static string ConqueredKey(string holdingId) => "conquered:" + holdingId;
     public const string HoldingLostFlag = "holding_lost";
     public const string UnderSiegeFlag = "under_siege";          // one of the player's holdings is blockaded
     public const string WarsDeclaredCounter = "wars_declared";
@@ -146,6 +147,7 @@ public sealed class FleetSystem
         _world = w;
         LastBattles.Clear();
         foreach (var f in DepthTurnFlags) w.WorldFlags.Remove(f);
+        if (w.HasFlag(ConquestMadeFlag) && w.Counter("mark:" + ConquestMadeFlag) < w.Turn - 1) { w.WorldFlags.Remove(ConquestMadeFlag); w.WorldCounters.Remove("mark:" + ConquestMadeFlag); }   // a conquest is a report for the year it is made and the next, not for ever
         if (w.HasFlag(DeclaredOnMeFlag) && w.Counter("mark:" + DeclaredOnMeFlag) < w.Turn - 1) { w.WorldFlags.Remove(DeclaredOnMeFlag); w.WorldCounters.Remove("mark:" + DeclaredOnMeFlag); }
         if (w.Galaxy == null) { UpdateIntel(w); return; }
         Supply(w);
@@ -882,6 +884,17 @@ public sealed class FleetSystem
         _rules.SiegeTurns + (int)Math.Ceiling(2 * ((_catalog.Spec(h.Specialization)?.Defense ?? 0) + h.Buildings.Sum(b => _catalog.Building(b)?.Defense ?? 0)
             + (h.IsPlanet && SystemWorks.Any(w) ? SystemWorks.Defense(w, _catalog, h.SystemId) : 0) + (h.IsPlanet && h.Provinces.Count > 0 ? ProvinceSystem.Defense(_catalog, h) : 0)));
 
+    /// <summary>Whose siege it is when the holder has no fleet over the world: the house already pressing it while it
+    /// keeps a fleet there; else, of the holder's enemies in the sky, the one that came first (then the stronger).</summary>
+    public string? Besieger(World w, Holding h)
+    {
+        var there = w.EnemiesOf(h.OwnerId).Distinct().Where(e => StrengthAt(w, e, h.SystemId) > 0).ToList();
+        if (there.Count == 0) return null;
+        if (w.Sieges.TryGetValue(h.Id, out var s) && there.Contains(s.BesiegerId)) return s.BesiegerId;
+        int Came(string e) => w.Fleets.Values.Where(f => f.OwnerId == e && !f.Moving && f.SystemId == h.SystemId).Select(f => f.ArrivedTurn).DefaultIfEmpty(int.MaxValue).Min();
+        return there.OrderBy(Came).ThenByDescending(e => StrengthAt(w, e, h.SystemId)).ThenBy(e => e, StringComparer.Ordinal).First();
+    }
+
     /// <summary>Advance sieges: an enemy fleet alone in the sky over a holding tightens the blockade; when the clock
     /// reaches the holding's resistance it changes hands (GDD §13 Military — "take it"). A contested sky lifts the siege.</summary>
     public void ResolveConquests(World w)
@@ -891,8 +904,7 @@ public sealed class FleetSystem
 
         foreach (var h in w.Holdings.Values.Where(h => h.SystemId != "").OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
-            var besieger = StrengthAt(w, h.OwnerId, h.SystemId) > 0 ? null
-                : w.EnemiesOf(h.OwnerId).FirstOrDefault(e => StrengthAt(w, e, h.SystemId) > 0);
+            var besieger = StrengthAt(w, h.OwnerId, h.SystemId) > 0 ? null : Besieger(w, h);
             if (besieger == null)
             {
                 if (w.Sieges.TryGetValue(h.Id, out var lifted)) { VentureSystem.SiegeLifted(w, lifted); w.Sieges.Remove(h.Id); w.Log($"The blockade of {h.Name} is lifted."); }   // what it cost is written down for the peace
@@ -901,6 +913,14 @@ public sealed class FleetSystem
             // a house that raids a nation sacks its world and goes home (docs/BEYOND.md, "Whose war"): a season's work, and not again for years
             bool sack = NationSystem.Sacks(w, h, besieger);
             if (sack && NationSystem.Sacked(w, h)) { w.Sieges.Remove(h.Id); continue; }
+            if (w.Sieges.TryGetValue(h.Id, out var left) && left.BesiegerId != besieger && !sack)
+            {
+                // the house that pressed it has gone, and another at war with the holder is still in the sky: the walls are no
+                // stronger for the change of flag, so the years already spent stand (docs/PLAYTHROUGH.md: an ally's fleet took a siege over and its years were lost)
+                string was = w.House(left.BesiegerId)?.Name ?? left.BesiegerId, now = w.House(besieger)?.Name ?? besieger;
+                left.BesiegerId = besieger; w.Log($"{was} leaves the siege of {h.Name}; {now} takes it up at {left.Turns} of {left.Required}.");
+                if (besieger == player) w.Tell("good", $"{was} has left the siege of {h.Name}. It is yours now, with {left.Turns} of {left.Required} years already spent.", "galaxy:" + h.SystemId, h.Id);
+            }
             if (!w.Sieges.TryGetValue(h.Id, out var siege) || siege.BesiegerId != besieger)
             {
                 siege = new Siege { HoldingId = h.Id, BesiegerId = besieger, Turns = 0, Required = sack ? NationSystem.SackTurns(w, h) : SiegeRequired(w, h) + (w.Foreign(besieger) ? NationSystem.SiegeSlow : 0) + (w.NationOfHouse(h.OwnerId)?.Walls ?? 0) };   // a host from beyond the rim is slow at walls (docs/BEYOND.md)
@@ -937,7 +957,7 @@ public sealed class FleetSystem
         if (conqueror == player)
         {
             w.WorldCounters[ConquestsCounter] = w.Counter(ConquestsCounter) + 1;
-            w.WorldFlags.Add(ConquestMadeFlag);
+            w.WorldFlags.Add(ConquestMadeFlag); w.WorldCounters["mark:" + ConquestMadeFlag] = w.Turn; w.WorldCounters[ConqueredKey(h.Id)] = w.Turn;   // news the year it falls, and the report can say which world
             w.WorldCounters["seizures"] = w.Counter("seizures") + 1;
             _friction.Apply(w, w.Protagonist, "conquest");
         }

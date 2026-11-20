@@ -32,11 +32,13 @@ public static class OfficeSystem
         if (def.Requires.Length > 0) parts.Add($"to have been {(offices.Def(def.Requires)?.Name ?? def.Requires).ToLowerInvariant()}");
         return parts.Count == 0 ? "anyone of the house" : string.Join(", ", parts);
     }
+    /// <summary>Who of a house would hold the office. The player is one person: when the head of the player's house is
+    /// qualified it is the head who stands, whatever a relative's rank; otherwise the highest in rank who is.</summary>
     public static Character? Candidate(World w, OfficeDef def, string houseId) =>
         w.LivingCharacters().Where(c => c.HouseId == houseId && (def.Track.Length == 0 || c.CareerTrack == def.Track) && c.CareerRank >= def.MinRank
                 && c.Age >= def.MinAge && (def.Requires.Length == 0 || c.Cursus.Contains(def.Requires))   // the ladder: an age, and a rung already held (docs/LADDER.md)
                 && w.Counter(LadderSystem.BarredKey(c.Id)) <= w.Turn)   // one removed from office for taking money holds no office of the Reach until the bar is out (docs/PLAYTHROUGH.md: a convicted man was elected consul, a banned man commissioned)
-            .OrderByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+            .OrderByDescending(c => c.Id == w.ProtagonistId).ThenByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
 
     /// <summary>The house the office fleets belong to when no Admiral holds them: the chair, else no one.</summary>
     public static string? FleetsDefaultOwner(World w) => RegionSystem.CapitalHolder(w)?.Id;

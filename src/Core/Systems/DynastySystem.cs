@@ -383,6 +383,21 @@ public sealed class DynastySystem
     /// <summary>Kill a character (natural death, assassination, Bloody Event). If it was the
     /// protagonist, pass the seat to an heir — or end the dynasty. No RNG (succession is deterministic).</summary>
     /// <param name="how">How they died, in a few words, where the caller knows ("in battle at Cinder Gate", "by a knife").</param>
+    /// <summary>Someone already past the first rank and past this age when first seen has held the rank for years.</summary>
+    public const int SettledAge = 26, SettledYears = 10;
+    /// <summary>Notes, as each year opens, the year in which each of the living came to the rank they hold.</summary>
+    public static void MarkRanks(World w)
+    {
+        foreach (var c in w.LivingCharacters())
+        {
+            if (c.RankSeen == c.CareerRank) continue;
+            bool settled = c.RankSeen < 0 && c.CareerRank >= 2 && c.Age >= SettledAge;
+            c.RankTurn = settled ? w.Turn - SettledYears : w.Turn; c.RankSeen = c.CareerRank;
+        }
+    }
+    /// <summary>The years someone has held their present rank.</summary>
+    public static int YearsInRank(World w, Character c) => c.RankSeen == c.CareerRank ? w.Turn - c.RankTurn : 0;
+
     public static void Die(World world, string id, string how = "")
     {
         var c = world.Char(id);
