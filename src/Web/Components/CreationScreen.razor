@@ -9,7 +9,7 @@
         <p class="ver">@PraetoriaVersion.Current · @PraetoriaVersion.Codename</p>
         @if (HasAutosave)
         {
-            <button class="btn primary big" @onclick="OnContinue">Continue the saved saga</button>
+            <button class="btn primary big" data-continue="1" @onclick="OnContinue">Continue@(SaveLabel.Length > 0 ? ": " + SaveLabel : " the saved saga")</button>
         }
         <label class="btn ghost file">Load a save file <InputFile OnChange="OnFile" accept=".json" /></label>
     </section>
@@ -161,6 +161,8 @@
 
 @code {
     [Parameter] public bool HasAutosave { get; set; }
+    /// <summary>What the saved saga is: the house, its head and the year.</summary>
+    [Parameter] public string SaveLabel { get; set; } = "";
     [Parameter] public EventCallback OnContinue { get; set; }
     [Parameter] public EventCallback<string> OnLoadJson { get; set; }
 

@@ -22,7 +22,7 @@
 }
 else if (G.Turn == null)
 {
-    <CreationScreen HasAutosave="@_hasAutosave" OnContinue="ContinueAutosave" OnLoadJson="LoadFromJson" />
+    <CreationScreen HasAutosave="@_hasAutosave" SaveLabel="@_saveLabel" OnContinue="ContinueAutosave" OnLoadJson="LoadFromJson" />
 }
 else if (G.World!.InAcademy && G.Academy() is { } am)
 {
@@ -32,7 +32,7 @@ else if (G.World!.InAcademy && G.Academy() is { } am)
         <main class="screen">
             <AcademyScreen Academy="am" Court="m" OnOpenReport="OpenReport" OnEndTerm="EndTurn" OnSave="SaveLocal" OnQuit="Abandon" />
         </main>
-        @if (_savedFlash) { <div class="endturn-dock"><span class="notice">Saved.</span></div> }
+        @if (_savedFlash) { <div class="endturn-dock"><span class="notice">@_flashText</span></div> }
         @if (_openReport != null && m.Briefing.FirstOrDefault(b => ReferenceEquals(b.Item, _openReport.Item)) is { } card)
         {
             <EventWindow Card="card" OnClose="() => _openReport = null" OnChoose="Choose" />
@@ -96,6 +96,7 @@ else
         <Outliner Model="m" OnOpenReport="OpenReport" OnGo="Go" />
         <div class="endturn-dock">
             @if (G.LastNotice != null) { <span class="notice">@G.LastNotice</span> }
+            @if (_exportNote.Length > 0) { <span class="notice" data-export-note="1">@_exportNote</span> }
             @if (!m.DynastyDead)
             {
                 var open = m.Briefing.Count(b => !b.Resolved);
@@ -159,7 +160,7 @@ else
     private void MapPicked() { if (_screen != "galaxy") { _screen = "galaxy"; StateHasChanged(); } }
     /// <summary>The rail in the role register's order (GDD Art Direction): the Office, then the career's screens, then the rest.</summary>
     private IEnumerable<(string id, string glyph, string label)> Rail() => G.World == null ? Screens : RoleTheme.OrderScreens(RoleTheme.Of(G.World), Screens, s => s.id);
-    private bool _hasAutosave, _epilogueDismissed, _savedFlash;
+    private bool _hasAutosave, _epilogueDismissed, _savedFlash; private string _saveLabel = "", _flashText = "Saved.", _exportNote = "";
     /// <summary>The Academy: this browser has graduated before (so the short course is offered first); the year just ended (so the passing-out card shows).</summary>
     private bool _beenBefore, _passingOut;
     private BriefingCard? _openReport;
@@ -194,7 +195,7 @@ else
         G.Changed += OnChanged;
         Praetoria.Core.Diagnostics.Perf.Enabled = Nav.Uri.Contains("perf");
         await G.LoadAsync();
-        try { _hasAutosave = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey)); } catch { }
+        try { _hasAutosave = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey)); _saveLabel = await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey + ":label") ?? ""; } catch { }
         try { _beenBefore = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.academy.graduated")); } catch { }
     }
 
@@ -283,12 +284,20 @@ else
         {
             string json = G.SaveJson(); long t = System.Diagnostics.Stopwatch.GetTimestamp();
             await JS.InvokeVoidAsync("praetoria.save", GameClient.AutosaveKey, json); _hasAutosave = true;
+            // what the saved saga is, for the Continue button on the title (docs/PLAYTHROUGH.md: "Continue names the saga and the year")
+            if (G.World?.Protagonist is { } sp) { _saveLabel = (G.World.House(sp.HouseId)?.Name ?? "a house") + ", " + sp.Name + ", year " + G.World.Turn; await JS.InvokeVoidAsync("praetoria.save", GameClient.AutosaveKey + ":label", _saveLabel); }
             if (Praetoria.Core.Diagnostics.Perf.Enabled) Console.WriteLine($"PERF save call returned after {System.Diagnostics.Stopwatch.GetElapsedTime(t).TotalMilliseconds:F0} ms ({json.Length} chars)");
         }
         catch { }
     }
-    private async Task SaveLocal() { await Autosave(); _savedFlash = true; StateHasChanged(); await Task.Delay(G.ActedThisYear ? 4000 : 1500); _savedFlash = false; StateHasChanged(); }
-    private async Task Download() { try { await JS.InvokeVoidAsync("praetoria.download", $"praetoria-turn{G.World!.Turn}.json", G.SaveJson()); } catch { } }
+    private async Task SaveLocal() { await Autosave(); _flashText = "Saved."; _savedFlash = true; StateHasChanged(); await Task.Delay(G.ActedThisYear ? 4000 : 1500); _savedFlash = false; StateHasChanged(); }
+    private async Task Download()
+    {
+        string file = $"praetoria-year{G.World!.Turn}.json";
+        try { await JS.InvokeVoidAsync("praetoria.download", file, G.SaveJson()); _exportNote = "Exported as " + file + ": look in your downloads. It can be loaded again from the title screen."; }
+        catch { _exportNote = "The export could not be written."; }
+        StateHasChanged(); await Task.Delay(5000); _exportNote = ""; StateHasChanged();
+    }
     private async Task ContinueAutosave() { try { var json = await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey); if (!string.IsNullOrEmpty(json)) G.LoadJson(json); } catch { } }
     private void LoadFromJson(string json) { try { G.LoadJson(json); } catch { } }
     /// <summary>Quit asks first, and says what is kept (docs/PLAYTHROUGH.md 2).</summary>
