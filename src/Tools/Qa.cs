@@ -219,7 +219,7 @@ internal static class Qa
         Dictionary<string, int>? fired, Dictionary<string, int>? taken, HashSet<string>? tokens, List<string>? oddities, string label)
     {
         var world = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(contentRoot, sid), seed);
-        world.Difficulty = o.Difficulty; world.CrisisIntensity = o.Intensity; world.FamilyAutonomy = o.Autonomy;
+        world.Difficulty = o.Difficulty; world.CrisisIntensity = o.Intensity; world.FamilyAutonomy = o.Autonomy; Praetoria.Core.Galaxy.GalaxyGrowth.Grow(world, content, o.Size);
         var tc = new TurnController(world, content);
         var decisions = new SplitMix64Rng(seed * 7919 + 17);
         int histMark = 0;
@@ -620,7 +620,7 @@ internal static class Qa
     public static int Drift(Options o)
     {
         string root = ContentLocator.FindContentDir(); var content = ContentLoader.LoadFromDirectory(root); string sid = o.Scenario; ulong seed = o.Seed; int turns = Math.Max(4, o.Turns), half = turns / 2;
-        World Fresh() { var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, sid), seed); w.Difficulty = o.Difficulty; w.CrisisIntensity = o.Intensity; w.FamilyAutonomy = o.Autonomy; return w; }
+        World Fresh() { var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, sid), seed); w.Difficulty = o.Difficulty; w.CrisisIntensity = o.Intensity; w.FamilyAutonomy = o.Autonomy; Praetoria.Core.Galaxy.GalaxyGrowth.Grow(w, content, o.Size); return w; }
         var straight = new List<(string state, string news)>(); var resumed = new List<(string state, string news)>();
         string News(World w) => string.Join("\n        ", w.History.Where(l => l.Turn >= w.Turn - 1).Select(l => $"T{l.Turn}: {(l.Text.Length > 200 ? l.Text[..200] : l.Text)}").TakeLast(40));
         {
@@ -649,7 +649,7 @@ internal static class Qa
     private static World SoakWithRoundTrip(string contentRoot, ContentDatabase content, string sid, ulong seed, int turns, Options o)
     {
         var world = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(contentRoot, sid), seed);
-        world.Difficulty = o.Difficulty; world.CrisisIntensity = o.Intensity; world.FamilyAutonomy = o.Autonomy;
+        world.Difficulty = o.Difficulty; world.CrisisIntensity = o.Intensity; world.FamilyAutonomy = o.Autonomy; Praetoria.Core.Galaxy.GalaxyGrowth.Grow(world, content, o.Size);
         var tc = new TurnController(world, content);
         var decisions = new SplitMix64Rng(seed * 7919 + 17);
         int half = turns / 2;

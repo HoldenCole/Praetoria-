@@ -51,6 +51,11 @@
                         <option value="2">Harsh — the galaxy hunts you</option>
                     </select>
                 </label>
+                <label title="The Reach and every nation beyond it grow together: more systems, more houses, larger neighbours. A larger map makes for longer turns.">The size of the map
+                    <select @bind="_size" data-setting="size">
+                        @foreach (var sz in GrowthCatalog.Sizes) { <option value="@sz">@GrowthCatalog.SizeName(sz): @SizeNote(sz)</option> }
+                    </select>
+                </label>
                 <label>The powers beyond
                     <select @bind="_beyond">
                         <option value="gentle">Gentle: a fifth weaker</option>
@@ -163,7 +168,15 @@
     private string _scenario = "";
     private string _protagonistName = "";
     private int _seed = 1;
-    private string _mode = "ironman", _intensity = "default", _beyond = "default", _aggression = "default";
+    private string _mode = "ironman", _intensity = "default", _beyond = "default", _aggression = "default", _size = "small";
+    private int _written;
+    /// <summary>What a size of map holds: the written map's systems, more of them at each size (docs/GALAXY_SIZE.md).</summary>
+    private string SizeNote(string size)
+    {
+        if (_written == 0) _written = G.BlankWorld(false).Galaxy?.Systems.Count ?? 50;
+        int n = _written * (G.Content?.Growth.PercentOf(size) ?? 100) / 100;
+        return size == GrowthCatalog.Small ? $"the Reach as written, {n} systems" : $"about {n} systems";
+    }
     private string _difficulty = "1", _autonomy = "1";
     private string _name = "", _sex = "", _track = "", _ambition = "", _background = "";
     private readonly List<string> _nature = new(), _aptitude = new();
@@ -235,7 +248,7 @@
             try
             {
                 G.StartCustom(_spec, (ulong)Math.Max(1, _seed), _mode, double.Parse(_difficulty, System.Globalization.CultureInfo.InvariantCulture), _intensity,
-                    double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture), _beyond, _aggression);
+                    double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture), _beyond, _aggression, _size);
             }
             catch (Exception ex) { _error = ex.Message; }
             return;
@@ -253,7 +266,7 @@
         {
             G.Start(_scenario, (ulong)Math.Max(1, _seed), creation, _mode,
                 double.Parse(_difficulty, System.Globalization.CultureInfo.InvariantCulture), _intensity,
-                double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture), _beyond, _aggression);
+                double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture), _beyond, _aggression, _size);
         }
         catch (Exception ex) { _error = ex.Message; }
     }

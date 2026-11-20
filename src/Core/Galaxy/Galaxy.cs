@@ -30,6 +30,8 @@ public sealed class StarSystem
     public List<Body> Bodies { get; set; } = new();
     public Body Primary => Bodies.FirstOrDefault(b => b.IsPrimary) ?? new Body { Name = Name, Class = PlanetClass, Size = 3, IsPrimary = true };
     public string Description { get; set; } = "";
+    /// <summary>Not on the written map: added when the game was begun at a larger size (docs/GALAXY_SIZE.md).</summary>
+    public bool Grown { get; set; }
 }
 
 /// <summary>A body in a system: a world, a moon, a gas giant, a belt. Decorative except the primary, which is the world a holding sits on.</summary>
@@ -119,17 +121,25 @@ public sealed class Galaxy
     /// <summary>A system's culture: its own if set, else its region's, else "reach".</summary>
     public string CultureOf(string systemId) { var s = System(systemId); if (s == null) return "reach"; if (s.Culture.Length > 0) return s.Culture; return Region(s.RegionId)?.Culture ?? "reach"; }
 
-    /// <summary>Systems one lane away, in stable id order.</summary>
+    private Dictionary<string, string[]>? _adjacent; private int _adjacentLanes = -1;
+    private static readonly string[] NoNeighbors = Array.Empty<string>();
+
+    /// <summary>Systems one lane away, in stable id order. Kept per lane set: every search of the web asks this of every system it
+    /// passes, and on a large map (docs/GALAXY_SIZE.md) working it out afresh each time was most of a turn.</summary>
     public IEnumerable<string> Neighbors(string systemId)
     {
-        var list = new List<string>();
-        foreach (var l in Lanes)
+        if (_adjacent == null || _adjacentLanes != Lanes.Count)
         {
-            if (l.A == systemId) list.Add(l.B);
-            else if (l.B == systemId) list.Add(l.A);
+            var lists = new Dictionary<string, List<string>>();
+            foreach (var l in Lanes)
+            {
+                if (!lists.TryGetValue(l.A, out var a)) lists[l.A] = a = new List<string>(); a.Add(l.B);
+                if (!lists.TryGetValue(l.B, out var b)) lists[l.B] = b = new List<string>(); b.Add(l.A);
+            }
+            _adjacent = lists.ToDictionary(kv => kv.Key, kv => { kv.Value.Sort(StringComparer.Ordinal); return kv.Value.ToArray(); });
+            _adjacentLanes = Lanes.Count;
         }
-        list.Sort(StringComparer.Ordinal);
-        return list;
+        return _adjacent.TryGetValue(systemId, out var n) ? n : NoNeighbors;
     }
 
     /// <summary>Lane-hops between two systems by breadth-first search, or -1 if unreachable.</summary>

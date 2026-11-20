@@ -35,6 +35,8 @@ public sealed class ContentDatabase
     public NationCatalog Nations { get; }
     /// <summary>What the people of each house look like (content/ancestries/ancestries.json).</summary>
     public AncestryCatalog Ancestries { get; set; } = AncestryCatalog.Default;
+    /// <summary>How the map grows past its written size (docs/GALAXY_SIZE.md).</summary>
+    public GrowthCatalog Growth { get; set; } = GrowthCatalog.Default;
     /// <summary>The Academy: its registers, subjects, Standards and lessons (content/academy/academy.json; docs/ACADEMY.md).</summary>
     public AcademyCatalog Academy { get; }
     /// <summary>The commodity market's goods and rules (content/market/goods.json; docs/ECONOMY_MARKET.md).</summary>

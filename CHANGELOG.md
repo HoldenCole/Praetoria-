@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- **The size of the map** (docs/GALAXY_SIZE.md; the owner: "a scaler for how big the galaxy is ... the empire that you
+  are a part of, and the other empires would be bigger as well"). A setting on the new-game screen: small (the map as
+  written, 50 systems), medium (about 80), large (about 115) and extra large (about 165). A larger map is grown from the
+  written one by the game's seed: every region of the Reach and every nation beyond it gains systems, houses gain
+  worlds, new houses are raised to hold the rest, some systems are left to nobody, and the nations are stronger.
+- **Borders that tell realms apart.** Every realm has a strong border in its colour with a glow inside it, at every
+  zoom level. Your own realm's border is gold; the land of another realm is hatched in its colour.
 - **The portrait library is complete at 80 faces** (392 pictures): six men and six women of each of the six
   ancestries of the Reach and four of each for the Steppe, every one at five ages. A house no longer shares two or
   three faces among all its people.
@@ -228,6 +235,8 @@
   short run is a step in CI.
 
 ### Fixed
+- A turn is about a quarter quicker on the map as written: the head of a house is found in one pass, the year's
+  quarrels are worked out once for every bench, and a rival steward asks the cheap question first.
 - The browser scripts in `tools/browser` found the End Turn button by its text, which the game shell now shows in
   capitals, so they ended no turns. They find it by its class.
 - **A throne no longer stands empty.** A house on the throne that lost its last world became landless and nobody

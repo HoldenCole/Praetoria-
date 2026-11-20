@@ -526,7 +526,7 @@ internal static class Commands
             for (int seed = 1; seed <= o.Seeds; seed++)
             {
                 var world = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(contentRoot, sid), (ulong)seed);
-                world.Difficulty = o.Difficulty; world.CrisisIntensity = o.Intensity; world.FamilyAutonomy = o.Autonomy;
+                world.Difficulty = o.Difficulty; world.CrisisIntensity = o.Intensity; world.FamilyAutonomy = o.Autonomy; Praetoria.Core.Galaxy.GalaxyGrowth.Grow(world, content, o.Size);
                 var tc = new TurnController(world, content);
                 for (int t = 0; t < turns && !world.IsDynastyDead; t++)
                 {

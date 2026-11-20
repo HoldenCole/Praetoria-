@@ -230,7 +230,19 @@ still short of that:
 
 | V23 | The three levels of the map are the realm, the house and the system. There is no level for a party's or a bench's hold on the Reach, for a region's dominant house, or for a state's provinces, and no map modes to choose one by hand (CK3 and Stellaris have both zoom levels and modes). | M | |
 | V21 | The cells are drawn from who holds a system and nothing else. A world under siege, occupied in a war still being fought, or contested looks like any other of its holder's; a fleet's reach, a blockade and a state's border are not on the glass. Other games hatch an occupied province in the occupier's colour. | S | |
-| V22 | A cell is a fixed 200 across wherever its neighbours are far off, so a nation of four systems reads as four overlapping discs rather than one country. A hull round a holder's cells would close the gaps between them. | S | |
+| V22 | A cell reaches a fixed distance from its star, so where systems lie far apart a realm has holes in it and a notched edge. Growth fills the gaps it can (docs/GALAXY_SIZE.md); a hull round a realm's cells would close the rest. | S | |
+
+## The size of the map (docs/GALAXY_SIZE.md, 2026-11-20)
+
+| id | gap | size | needs |
+|---|---|---|---|
+| G1 | A larger map has more systems in the same regions and the same five nations. It has no new region, no new nation and no new party to the Senate: the Reach of 115 systems is governed exactly as the Reach of 31. | L | owner |
+| G2 | The workshop for a character of your own lists the written systems only. A house made there cannot be seated on a system the map grew, and the workshop does not show how large the chosen map will be. | S | |
+| G3 | A turn on the extra-large map costs about five times a turn on the small one for three times the systems. What is left is the rival stewards' search for a venture, the benches' business, the laws and the economy's accrual. | M | |
+| G4 | The houses raised to hold new worlds are made like people already written: they have no history with anyone, no feud, no patron, no marriage outside the house, no venture and no seat on a bench. | M | |
+| G5 | A system nobody holds can be reached and fought over but not settled: there is no way to found a colony on it (see the solar systems work, S-rows). | M | |
+| G6 | New systems are named from one list for the whole Reach. A region's own way of naming (the Marches, the Concourse) does not show in what the map grows there. | S | owner |
+| G7 | Borders are drawn between realms. An alliance, a truce, a war front or a client state shows in no border. | M | |
 
 ## Older, from docs/ROADMAP.md section 3
 

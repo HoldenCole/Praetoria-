@@ -155,37 +155,77 @@ export class Galaxy {
     // Lines are thin and fills are light: the map is the picture and the colour a wash over it. A system nobody holds is a pale
     // ring. Rasterised when the holding changes, not on every model.
     const PADR = 300, rx0 = this.bounds.minX - PADR, ry0 = this.bounds.minY - PADR, rw = (this.bounds.maxX - this.bounds.minX) + 2 * PADR, rh = (this.bounds.maxY - this.bounds.minY) + 2 * PADR;
-    const RW = 1536, RH = Math.max(64, Math.round(RW * rh / rw));
+    // as fine on a large map as on the small one (docs/GALAXY_SIZE.md): about 2.6 map units to a pixel, within what a texture will hold
+    const RW = Math.max(1536, Math.min(2560, Math.round(rw / 2.6))), RH = Math.max(64, Math.round(RW * rh / rw));
     const regIndex = {}; (model.regions || []).forEach((r, i) => regIndex[r.id] = i);
     const rgb = h => { const c = new THREE.Color(h || '#8fa8d8'); return [c.r * 255, c.g * 255, c.b * 255]; };
-    const sites = model.systems.map(s => ({ x: s.x, y: -s.y, r: regIndex[s.regionId] ?? -1, own: s.ownerId || '', col: rgb(s.accent), mine: !!s.isPlayer, pol: s.ownerId ? (s.polity || s.ownerId) : '', pcol: rgb(s.polityColor || s.accent) }));
-    const sig = [RW, RH, rx0 | 0, ry0 | 0].join(',') + '|' + sites.map(t => [t.x | 0, t.y | 0, t.r, t.own, t.col.map(v => v | 0).join('.'), t.mine ? 1 : 0, t.pol, t.pcol.map(v => v | 0).join('.')].join(',')).join(';');
+    const myRealm = model.playerRealm || 'reach';
+    const sites = model.systems.map(s => ({ x: s.x, y: -s.y, r: regIndex[s.regionId] ?? -1, own: s.ownerId || '', col: rgb(s.accent), mine: !!s.isPlayer, pol: s.realm ?? (s.ownerId ? (s.polity || s.ownerId) : ''), pcol: rgb(s.realmColor || s.polityColor || s.accent) }));
+    const sig = [RW, RH, rx0 | 0, ry0 | 0, myRealm].join(',') + '|' + sites.map(t => [t.x | 0, t.y | 0, t.r, t.own, t.col.map(v => v | 0).join('.'), t.mine ? 1 : 0, t.pol, t.pcol.map(v => v | 0).join('.')].join(',')).join(';');
     let layers;
     if (this.terrCache && this.terrCache.sig === sig) { layers = this.terrCache.layers; this.regionCentres = this.terrCache.centres; }
     else {
       const mk = () => { const cv = document.createElement('canvas'); cv.width = RW; cv.height = RH; const ctx = cv.getContext('2d'); const img = ctx.createImageData(RW, RH); return { cv, ctx, img, px: img.data }; };
       const F = mk(), M = mk(), N = mk(); const nReg = (model.regions || []).length; const cx = new Float64Array(nReg), cy = new Float64Array(nReg), cn = new Float64Array(nReg);
       const D0 = 5, D1 = 7, D2 = 12;   // the dark of a line between two holders
+      // Each pixel's cell (its nearest system), and how far off the nearest system is that is another system's, another holder's and
+      // another realm's: so a border is drawn where the holder or the realm changes, however many cells of the same one lie between.
+      // A system reaches only so far, so each is walked over its own patch of the picture and not over all of it.
+      const NP = RW * RH, REACH = 244, FAR = 345, upx = rw / RW, upy = rh / RH;
+      const near1 = new Int16Array(NP).fill(-1), dist1 = new Float32Array(NP).fill(1e9), dAny = new Float32Array(NP).fill(1e9), dOwn = new Float32Array(NP).fill(1e9), dPol = new Float32Array(NP).fill(1e9), nextReg = new Int16Array(NP).fill(-2);
+      const patch = (t, R, fn) => {
+        const x0 = Math.max(0, Math.floor((t.x - R - rx0) / upx)), x1 = Math.min(RW - 1, Math.ceil((t.x + R - rx0) / upx));
+        const y0 = Math.max(0, Math.floor(RH - (t.y + R - ry0) / upy)), y1 = Math.min(RH - 1, Math.ceil(RH - (t.y - R - ry0) / upy));
+        for (let y = y0; y <= y1; y++) { const wy = ry0 + (RH - .5 - y) * upy, dy = t.y - wy; for (let x = x0; x <= x1; x++) { const dx = t.x - (rx0 + (x + .5) * upx); fn(y * RW + x, Math.sqrt(dx * dx + dy * dy)); } }
+      };
+      sites.forEach((t, i) => patch(t, REACH, (p, d) => { if (d < dist1[p]) { dist1[p] = d; near1[p] = i; } }));
+      sites.forEach((t, i) => patch(t, FAR, (p, d) => {
+        const b = near1[p]; if (b < 0 || b === i) return; const o = sites[b];
+        if (d < dAny[p]) { dAny[p] = d; nextReg[p] = t.r; }
+        if (t.own !== o.own && d < dOwn[p]) dOwn[p] = d;
+        if (t.pol !== o.pol && d < dPol[p]) dPol[p] = d;
+      }));
+      const GOLD = [255, 222, 150];
+      // a line between two distances in from an edge, soft at both sides by a pixel so it does not stair-step when looked at close to
+      const band = (e, a, b) => Math.max(0, Math.min(1, (e - a) / upx + .5)) * Math.max(0, Math.min(1, (b - e) / upx + .5));
       for (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++) {
-        const wx = rx0 + (x + .5) / RW * rw, wy = ry0 + (RH - .5 - y) / RH * rh; let b1 = -1, b2 = -1, d1 = Infinity, d2 = Infinity;
-        for (let i = 0; i < sites.length; i++) { const dx = sites[i].x - wx, dy = sites[i].y - wy; const d = dx * dx + dy * dy; if (d < d1) { d2 = d1; b2 = b1; d1 = d; b1 = i; } else if (d < d2) { d2 = d; b2 = i; } }
-        if (b1 < 0) continue;
-        const dist = Math.sqrt(d1), t = sites[b1], u = b2 >= 0 ? sites[b2] : null, e = u ? (Math.sqrt(d2) - dist) / 2 : 1e9;   // e: how far inside its own cell this point lies
+        const p = y * RW + x, b1 = near1[p]; if (b1 < 0) continue;
+        const wx = rx0 + (x + .5) * upx, wy = ry0 + (RH - .5 - y) * upy, dist = dist1[p], t = sites[b1];
         const fade = dist < 236 ? 1 : dist > 244 ? 0 : 1 - (dist - 236) / 8; if (t.r >= 0 && dist < 240) { cx[t.r] += wx; cy[t.r] += wy; cn[t.r]++; }
         if (fade <= 0) continue;
-        const o = (y * RW + x) * 4, open = dist > 229 ? Math.max(0, 1 - Math.abs(dist - 234) / 4) : 0;   // the open edge of a cell: a fine line
+        const o = p * 4, edge = 236 - dist;   // edge: how far inside the open rim of its cell this point lies
+        const eAny = Math.min((dAny[p] - dist) / 2, 1e6), eOwn = Math.min((dOwn[p] - dist) / 2, edge), ePol = Math.min((dPol[p] - dist) / 2, edge);   // how far inside its cell, its holder's land and its realm
+        const open = dist > 229 ? Math.max(0, 1 - Math.abs(dist - 234) / 4) : 0;   // the open edge of a cell: a fine line
+        // the realm's border: a strong line in its colour, a glow inside it, and for a realm that is not the player's a hatching over its land
+        const home = t.pol === myRealm, lineCol = home ? [0, 1, 2].map(i => t.pcol[i] + (GOLD[i] - t.pcol[i]) * .55) : t.pcol;
+        const hatch = !home && t.pol ? (((wx - wy) % 34 + 34) % 34 < 9 ? 1 : 0) : 0;
         if (t.pol) {   // the realms
-          const same = !!u && u.pol === t.pol, glass = same ? 1 : e <= 2.6 ? 0 : Math.min(1, (e - 2.6) / 2.2), rim = Math.max(!same && e > 2.6 && e < 7.6 ? 1 - (e - 2.6) / 5 : 0, open), k = 0.5 + 0.45 * rim;
-          F.px[o] = D0 + (Math.min(255, t.pcol[0] * k) - D0) * glass; F.px[o + 1] = D1 + (Math.min(255, t.pcol[1] * k) - D1) * glass; F.px[o + 2] = D2 + (Math.min(255, t.pcol[2] * k) - D2) * glass; F.px[o + 3] = (105 + (50 + 75 * rim - 105) * glass) * fade;
+          const line = band(ePol, 2.2, 8.2), glow = ePol < 58 ? Math.pow(1 - Math.max(0, ePol - 7.5) / 50.5, 2) : 0, held = t.own ? 1 : .45;
+          const k = (home ? .52 : .6) + .12 * hatch + .4 * glow, base = (home ? 54 : 62) * held + 34 * hatch * held + 110 * glow;
+          let r = Math.min(255, t.pcol[0] * k), g = Math.min(255, t.pcol[1] * k), bl = Math.min(255, t.pcol[2] * k), a = base;
+          if (ePol < 2.2) { const dk = 1 - band(ePol, 2.2, 99); r += (D0 - r) * dk; g += (D1 - g) * dk; bl += (D2 - bl) * dk; a += (150 - a) * dk; }   // a dark hair between two realms' lines
+          if (line > 0) { r += (Math.min(255, lineCol[0] * 1.12) - r) * line; g += (Math.min(255, lineCol[1] * 1.12) - g) * line; bl += (Math.min(255, lineCol[2] * 1.12) - bl) * line; a += (238 - a) * line; }
+          F.px[o] = r; F.px[o + 1] = g; F.px[o + 2] = bl; F.px[o + 3] = a * fade;
         }
+        const realmLine = t.pol ? band(ePol, 1.6, 5.6) : 0, realmGlow = t.pol && ePol < 30 ? Math.pow(1 - Math.max(0, ePol - 5.4) / 24.6, 2) : 0;
         if (t.own) {   // the houses, and the systems
-          const same = !!u && u.own === t.own, glass = same ? 1 : e <= 2.2 ? 0 : Math.min(1, (e - 2.2) / 2.2), rim = Math.max(!same && e > 2.2 && e < 6.6 ? 1 - (e - 2.2) / 4.4 : 0, open), k = 0.48 + 0.42 * rim;
-          let r = D0 + (Math.min(255, t.col[0] * k) - D0) * glass, g = D1 + (Math.min(255, t.col[1] * k) - D1) * glass, b = D2 + (Math.min(255, t.col[2] * k) - D2) * glass, a = 100 + ((t.mine ? 54 : 40) + 66 * rim - 100) * glass;
-          if (u && u.r !== t.r && e < 2.2) { const w = (1 - e / 2.2) * .5; r += (226 - r) * w; g += (214 - g) * w; b += (186 - b) * w; a = Math.max(a, 74 * (1 - e / 2.2)); }   // a region's edge: a hairline
-          M.px[o] = r; M.px[o + 1] = g; M.px[o + 2] = b; M.px[o + 3] = a * fade;
-          const line = Math.max(u ? Math.max(0, 1 - e / 1.7) : 0, open);
-          N.px[o] = Math.min(255, t.col[0] * .95); N.px[o + 1] = Math.min(255, t.col[1] * .95); N.px[o + 2] = Math.min(255, t.col[2] * .95); N.px[o + 3] = (11 + 92 * line) * fade;
-        } else if (dist < 54) { const ring = dist > 44 ? Math.max(0, 1 - Math.abs(dist - 49) / 3) : 0; for (const L of [M, N]) { L.px[o] = 150; L.px[o + 1] = 162; L.px[o + 2] = 190; L.px[o + 3] = (dist < 47 ? 12 : 0) + ring * 76; } }   // nobody's
+          const glass = eOwn <= 2.2 ? 0 : Math.min(1, (eOwn - 2.2) / 2.2), rim = Math.max(eOwn > 2.2 && eOwn < 6.6 ? 1 - (eOwn - 2.2) / 4.4 : 0, open), k = 0.48 + 0.42 * rim;
+          let r = D0 + (Math.min(255, t.col[0] * k) - D0) * glass, g = D1 + (Math.min(255, t.col[1] * k) - D1) * glass, b = D2 + (Math.min(255, t.col[2] * k) - D2) * glass, a = 100 + ((t.mine ? 54 : 40) + 66 * rim + 16 * hatch - 100) * glass;
+          if (nextReg[p] >= -1 && nextReg[p] !== t.r && eAny < 2.2) { const w = (1 - eAny / 2.2) * .5; r += (226 - r) * w; g += (214 - g) * w; b += (186 - b) * w; a = Math.max(a, 74 * (1 - eAny / 2.2)); }   // a region's edge: a hairline
+          if (realmGlow > 0) { const w = realmGlow * .55; r += (lineCol[0] - r) * w; g += (lineCol[1] - g) * w; b += (lineCol[2] - b) * w; a = Math.max(a, a + 70 * realmGlow); }
+          if (realmLine > 0) { r += (Math.min(255, lineCol[0] * 1.08) - r) * realmLine; g += (Math.min(255, lineCol[1] * 1.08) - g) * realmLine; b += (Math.min(255, lineCol[2] * 1.08) - b) * realmLine; a += (226 - a) * realmLine; }
+          M.px[o] = r; M.px[o + 1] = g; M.px[o + 2] = b; M.px[o + 3] = Math.min(255, a) * fade;
+          const line = Math.max(eAny < 1e5 ? Math.max(0, 1 - eAny / 1.7) : 0, open);
+          let nr = Math.min(255, t.col[0] * .95), ng = Math.min(255, t.col[1] * .95), nb = Math.min(255, t.col[2] * .95), na = 11 + 92 * line + 6 * hatch;
+          if (realmLine > 0) { nr += (lineCol[0] - nr) * realmLine; ng += (lineCol[1] - ng) * realmLine; nb += (lineCol[2] - nb) * realmLine; na += (190 - na) * realmLine; }   // the realm's border is there at every distance
+          N.px[o] = nr; N.px[o + 1] = ng; N.px[o + 2] = nb; N.px[o + 3] = na * fade;
+        } else {   // nobody's: a pale ring round the star, and the realm's border where its space ends
+          const ring = dist < 54 && dist > 44 ? Math.max(0, 1 - Math.abs(dist - 49) / 3) : 0, disc = dist < 47 ? 12 : 0;
+          let r = 150, g = 162, b = 190, a = disc + ring * 76;
+          if (realmGlow > 0 && a < 60 * realmGlow) { r = lineCol[0]; g = lineCol[1]; b = lineCol[2]; a = 60 * realmGlow; }
+          if (realmLine > 0) { r += (lineCol[0] - r) * realmLine; g += (lineCol[1] - g) * realmLine; b += (lineCol[2] - b) * realmLine; a += (215 - a) * realmLine; }
+          if (a > 0) for (const L of [M, N]) { L.px[o] = r; L.px[o + 1] = g; L.px[o + 2] = b; L.px[o + 3] = a * fade; }
+        }
       }
       for (const L of [F, M, N]) L.ctx.putImageData(L.img, 0, 0);
       layers = { far: F.cv, mid: M.cv, near: N.cv };

@@ -46,6 +46,11 @@ public sealed class World
     /// <summary>How readily the nations beyond the Reach attack in this game: "seldom", "default" or "often" (docs/BEYOND.md).</summary>
     public string BeyondAggression { get; set; } = "default";
 
+    /// <summary>How big the map of this game is: "small" (the map as written), "medium", "large" or "extra_large" (docs/GALAXY_SIZE.md).</summary>
+    public string GalaxySize { get; set; } = "small";
+    /// <summary>The systems of this game's map in hundredths of the written map's: 100 for small.</summary>
+    public int GalaxyScale { get; set; } = 100;
+
     /// <summary>The character the player currently inhabits — bound to the "self" role every event.</summary>
     public string ProtagonistId { get; set; } = "";
 
@@ -207,13 +212,23 @@ public sealed class World
     public Holding? Holding(string id) => Holdings.TryGetValue(id, out var h) ? h : null;
     public Business? Business(string id) => Businesses.TryGetValue(id, out var b) ? b : null;
     public IEnumerable<Business> BusinessesOf(string houseId) => Businesses.Values.Where(b => b.OwnerId == houseId).OrderBy(b => b.Id, StringComparer.Ordinal);
-    /// <summary>The house holding the planet in a system, or null when no one does.</summary>
-    public string? PlanetHolder(string systemId)
+    private Dictionary<string, Holding>? _planets; private int _planetsOf = -1;
+    /// <summary>Forget what is remembered of which holding is each system's planet: call after holdings are removed and added in one go.</summary>
+    public void HoldingsChanged() => _planets = null;
+    /// <summary>The planet of a system, or null when it has none: the first by id. Remembered per set of holdings (a holding is added
+    /// seldom and removed only before play), because this is asked thousands of times a turn and a large map has three times the holdings.</summary>
+    public Holding? PlanetOf(string systemId)
     {
-        Holding? best = null;   // the first by id, without sorting: this is asked thousands of times a turn
-        foreach (var h in Holdings.Values) if (h.IsPlanet && h.SystemId == systemId && (best == null || string.CompareOrdinal(h.Id, best.Id) < 0)) best = h;
-        return best?.OwnerId;
+        if (_planets == null || _planetsOf != Holdings.Count)
+        {
+            _planets = new Dictionary<string, Holding>();
+            foreach (var h in Holdings.Values) if (h.IsPlanet && (!_planets.TryGetValue(h.SystemId, out var had) || string.CompareOrdinal(h.Id, had.Id) < 0)) _planets[h.SystemId] = h;
+            _planetsOf = Holdings.Count;
+        }
+        return _planets.TryGetValue(systemId, out var p) ? p : null;
     }
+    /// <summary>The house holding the planet in a system, or null when no one does.</summary>
+    public string? PlanetHolder(string systemId) => PlanetOf(systemId)?.OwnerId;
 
     /// <summary>The house treasury for a character's house, or null if either is missing.</summary>
     public Resources? TreasuryOf(string characterId)

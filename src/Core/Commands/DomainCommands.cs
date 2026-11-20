@@ -34,7 +34,9 @@ public sealed class BuildCommand : ICommand
 
     /// <summary>Why it cannot be built, or null. A building with a build time is begun, not bought: the purse need only meet the first
     /// yearly instalment (docs/ECONOMY_MARKET.md stage B).</summary>
-    public string? Refusal(CommandContext ctx)
+    public string? Refusal(CommandContext ctx) => Refusal(ctx, true);
+    /// <summary>The same, without writing out what is lacking when it is only asked whether: the rival stewards ask this of every building on every world, every year.</summary>
+    private string? Refusal(CommandContext ctx, bool explain)
     {
         var w = ctx.World; var actor = w.Char(ActorId);
         if (actor?.Alive != true) return "no one to give the order";
@@ -50,9 +52,9 @@ public sealed class BuildCommand : ICommand
         var house = w.House(actor.HouseId); if (house == null) return "no house";
         if (building.MinTitleRank > 0 && (_titles?.RankOf(house.Title) ?? 0) < building.MinTitleRank) return "needs a greater rank";   // megastructures want a seat
         var first = Systems.ProjectSystem.Split(building.Cost, building.BuildTurns).First;
-        return house.Treasury.CanAfford(first) ? null : $"needs {Presentation.CourtProjection.Bundle(first)}{(building.BuildTurns > 1 ? " to begin" : "")}";
+        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(first)}{(building.BuildTurns > 1 ? " to begin" : "")}";
     }
-    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx, false) == null;
 
     public void Execute(CommandContext ctx)
     {

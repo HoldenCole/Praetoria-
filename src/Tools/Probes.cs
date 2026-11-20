@@ -36,7 +36,7 @@ internal static class Probes
         var (content, scenarios) = Load(o); int turns = Math.Max(6, Math.Min(o.Turns, 40));
         foreach (var sid in scenarios)
         {
-            var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), sid), o.Seed); var tc = new TurnController(w, content);
+            var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), sid), o.Seed); Praetoria.Core.Galaxy.GalaxyGrowth.Grow(w, content, o.Size); var tc = new TurnController(w, content);
             PassiveTurn(tc); CourtProjection.Build(tc, content); tc.EndTurn();   // warm up
             Perf.Enabled = true; Perf.Reset(); double begin = 0, end = 0, proj = 0; var sw = new Stopwatch(); int n = 0;
             for (int t = 0; t < turns && !w.IsDynastyDead; t++, n++)
@@ -47,7 +47,7 @@ internal static class Probes
             }
             Perf.Enabled = false; n = Math.Max(1, n);
             Console.WriteLine($"== {sid}: a turn costs {(begin + end) / n:F1} ms (open the year {begin / n:F1}, resolve it {end / n:F1}); one projection {proj / n:F1} ms; {w.Houses.Count} houses");
-            foreach (var (name, ms, calls) in Perf.Report().Take(12)) Console.WriteLine($"   {name,-30} {ms / n,7:F2} ms a turn");
+            foreach (var (name, ms, calls) in Perf.Report().Take(22)) Console.WriteLine($"   {name,-30} {ms / n,7:F2} ms a turn");
             sw.Restart(); string save = SaveSystem.Serialize(w); Console.WriteLine($"   {"serialise the save",-30} {sw.Elapsed.TotalMilliseconds,7:F2} ms ({save.Length / 1024} KB)");
             Perf.Reset();
         }

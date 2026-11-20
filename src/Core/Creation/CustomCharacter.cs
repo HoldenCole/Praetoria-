@@ -244,7 +244,7 @@ public static class CharacterWorkshop
         if (!c.Face.IsDefault) w.Cosmetics["look:" + p.Id] = c.Face.Encode();
 
         // ---- what it holds: every world named is the house's from the first day
-        foreach (var old in w.Holdings.Values.Where(h => h.OwnerId == house.Id).ToList()) w.Holdings.Remove(old.Id);
+        foreach (var old in w.Holdings.Values.Where(h => h.OwnerId == house.Id).ToList()) w.Holdings.Remove(old.Id); w.HoldingsChanged();
         foreach (var old in w.Fleets.Values.Where(f => f.OwnerId == house.Id).ToList()) w.Fleets.Remove(old.Id);
         foreach (var sysId in c.Worlds)
         {
@@ -261,7 +261,7 @@ public static class CharacterWorkshop
             {
                 string spec = sys.PlanetClass switch { "forge" => "forge_world", "belt" => "mining_belt", "terran" or "ocean" => "agri_world", _ => "frontier_colony" };
                 if (content.Holdings.Spec(spec) == null) spec = content.Holdings.Specs.FirstOrDefault()?.Id ?? spec;
-                w.Holdings["custom_" + sysId] = new Holding { Id = "custom_" + sysId, OwnerId = house.Id, Name = sys.Name, Specialization = spec, SystemId = sysId, Population = 10, GovernorId = p.Id, Culture = g.CultureOf(sysId) };
+                w.Holdings["custom_" + sysId] = new Holding { Id = "custom_" + sysId, OwnerId = house.Id, Name = sys.Name, Specialization = spec, SystemId = sysId, Population = 10, GovernorId = p.Id, Culture = g.CultureOf(sysId) }; w.HoldingsChanged();
             }
         }
         string? berth = c.Worlds.FirstOrDefault() ?? c.Ventures.Select(v => v.System).FirstOrDefault();

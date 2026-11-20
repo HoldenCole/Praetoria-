@@ -52,20 +52,20 @@ public sealed class NpcAi
             .ToList();
 
         // Fuel first (a dry navy is a navy on paper), then house-level strategy (it spends the same pools), then personal jabs, then schemes.
-        if (catalog != null) Refuel(npcs, catalog, executor, ctx);
-        if (catalog is { IsEmpty: false }) Invest(npcs, catalog, executor, ctx);
-        if (fleetRules != null && world.Galaxy != null) Sail(npcs, fleetRules, executor, ctx);
+        using (Diagnostics.Perf.Time("npc:refuel")) if (catalog != null) Refuel(npcs, catalog, executor, ctx);
+        using (Diagnostics.Perf.Time("npc:invest")) if (catalog is { IsEmpty: false }) Invest(npcs, catalog, executor, ctx);
+        using (Diagnostics.Perf.Time("npc:sail")) if (fleetRules != null && world.Galaxy != null) Sail(npcs, fleetRules, executor, ctx);
 
-        Dynasty(npcs, executor, ctx);
+        using (Diagnostics.Perf.Time("npc:dynasty")) Dynasty(npcs, executor, ctx);
 
-        foreach (var npc in npcs)
+        using (Diagnostics.Perf.Time("npc:each")) foreach (var npc in npcs)
         {
             var command = ChooseAction(npc, world);
             if (command != null)
                 executor.TryExecute(command, ctx);
         }
 
-        if (crises != null) AuthorCrisis(npcs, crises, executor, ctx);
+        using (Diagnostics.Perf.Time("npc:crisis")) if (crises != null) AuthorCrisis(npcs, crises, executor, ctx);
     }
 
     /// <summary>Rival houses keep ships (GDD §3 abstracted realms): a house with a comfortable treasury lays
@@ -443,6 +443,7 @@ public sealed class NpcAi
     {
         var world = ctx.World;
         var playerHouse = world.Protagonist?.HouseId;
+        var inOrder = catalog.Buildings.OrderByDescending(b => b.Megastructure).ThenByDescending(b => b.RequiresDeposit != null).ThenBy(b => b.Id, StringComparer.Ordinal).ToList();
         foreach (var house in world.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             if (house.Id == playerHouse) continue;
@@ -471,9 +472,9 @@ public sealed class NpcAi
             // and a very rich great house raises a megastructure (its holdings' build loop below prefers them when affordable)
 
             bool built = false;
-            foreach (var holding in world.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
+            using (Diagnostics.Perf.Time("npc:build")) foreach (var holding in world.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
             {
-                foreach (var b in catalog.Buildings.OrderByDescending(b => b.Megastructure).ThenByDescending(b => b.RequiresDeposit != null).ThenBy(b => b.Id, StringComparer.Ordinal))   // work the deposit before the rest
+                foreach (var b in inOrder)   // work the deposit before the rest
                 {
                     if (b.Megastructure && house.Treasury.Credits < b.Cost.Credits * 2) continue;      // only when it can afford to show off
                     if (executor.TryExecute(new BuildCommand(steward.Id, holding.Id, b.Id, catalog, Titles), ctx)) { built = true; break; }
@@ -481,7 +482,7 @@ public sealed class NpcAi
                 if (built) break;
             }
 
-            Venture(house, steward, catalog, executor, ctx);
+            using (Diagnostics.Perf.Time("npc:venture")) Venture(house, steward, catalog, executor, ctx);
         }
     }
 
@@ -725,11 +726,11 @@ public sealed class NpcAi
                 if (!Resource.All.All(r => house.Treasury.Get(r) >= def.Cost.Get(r) + (r == Resource.Credits ? cushion : 0))) continue;
                 foreach (var sys in galaxy.Systems.Values.OrderBy(s => s.Id, StringComparer.Ordinal))
                 {
-                    if (new FoundBusinessCommand(steward.Id, def.Id, sys.Id, _ventures, catalog, Titles).Refusal(ctx) != null) continue;
                     if (def.Upkeep.Manpower > 0 && mpNet - def.Upkeep.Manpower < 1) continue;   // no men to spare: the yards come first
                     int pay = ProjectedNet(world, house, def, sys.Id) + (own.Contains(sys.Id) ? 1 : 0);
-                    if (pay <= 0) continue;
-                    if (best == null || pay > best.Value.pay) best = (def.Id, sys.Id, pay);
+                    if (pay <= 0 || (best != null && pay <= best.Value.pay)) continue;   // (what it would clear is asked first: it is cheap, and whether it may be founded is not)
+                    if (new FoundBusinessCommand(steward.Id, def.Id, sys.Id, _ventures, catalog, Titles).Refusal(ctx) != null) continue;
+                    best = (def.Id, sys.Id, pay);
                 }
             }
             if (best != null) executor.TryExecute(new FoundBusinessCommand(steward.Id, best.Value.def, best.Value.sys, _ventures, catalog, Titles), ctx);

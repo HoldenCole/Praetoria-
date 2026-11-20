@@ -23,7 +23,8 @@
         </div>
         <div class="legend">
             <span><i class="sw own"></i> your fleet</span><span><i class="sw intel"></i> reported fleet (fainter = less certain)</span>
-            <span title="Every held world is a cell in its holder's colour, with a dark line between cells and a wider one where two holders meet. A pale ring is a world nobody holds. A pale line is a region's edge."><i class="sw cell"></i> a holder's colour · <i class="sw free"></i> nobody's</span><span><i class="sw siege"></i> siege clock</span><span><i class="sw front"></i> front line</span><span><i class="sw station"></i> station</span><span><i class="sw raid"></i> raiders</span> <span class="lg" title="A world of the Reach's that a nation has taken or been ceded, or a world of a nation's that a house of the Reach holds: a broken ring in the holder's colour. It can be taken back."><i class="sw conq"></i> conquered</span> <span class="lg"><i class="sw ck"></i> chokepoint</span><span class="lg" title="³He helium-3 · RE rare earths · Iso isotopes"><i class="sw dep">³He</i> deposits</span>
+            <span title="Every held world is a cell in its holder's colour, with a dark line between cells and a wider one where two holders meet. A pale ring is a world nobody holds. A pale line is a region's edge."><i class="sw cell"></i> a holder's colour · <i class="sw free"></i> nobody's</span>
+            <span title="A bright line is where a realm ends. Your own realm's border is gold. The land of another realm is hatched in its colour."><i class="sw realm-own"></i> your realm's border · <i class="sw realm-other"></i> another realm</span><span><i class="sw siege"></i> siege clock</span><span><i class="sw front"></i> front line</span><span><i class="sw station"></i> station</span><span><i class="sw raid"></i> raiders</span> <span class="lg" title="A world of the Reach's that a nation has taken or been ceded, or a world of a nation's that a house of the Reach holds: a broken ring in the holder's colour. It can be taken back."><i class="sw conq"></i> conquered</span> <span class="lg"><i class="sw ck"></i> chokepoint</span><span class="lg" title="³He helium-3 · RE rare earths · Iso isotopes"><i class="sw dep">³He</i> deposits</span>
             @if (selectedFleet != null) { <span class="hint">@selectedFleet.Name selected — click a ringed world to set course (1 treasury)</span> }
             else { <span class="muted">drag to pan · wheel to zoom · click a world or a fleet</span> }
         </div>
@@ -163,6 +164,16 @@
     private void ClickFleet(MapFleet f) { if (f.IsPlayer) { _fleetId = _fleetId == f.FleetId ? null : f.FleetId; } _systemId = f.SystemId; }
     private async Task Focus(double x, double y) { try { await JS.InvokeVoidAsync("praetoriaSpace.focus", _id, x, y); } catch { } }
 
+    /// <summary>The realm the player's house is of: a state that has left the Reach, if its region has; else the Reach.</summary>
+    private static string PlayerRealm(World w, IReadOnlyList<MapRegion> regions)
+    {
+        var house = w.House(w.Protagonist!.HouseId); if (house == null) return "reach";
+        if (w.NationOfHouse(house.Id) is { } n) return "nation:" + n.Id;
+        var seat = w.HoldingsOf(house.Id).Where(h => h.IsPlanet).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+        var reg = seat != null && w.Galaxy?.System(seat.SystemId) is { } sys ? regions.FirstOrDefault(r => r.Id == sys.RegionId) : null;
+        return house.PolityId.Length > 0 && !string.IsNullOrEmpty(reg?.StateName) ? "state:" + reg!.StateName : "reach";
+    }
+
     private string BuildModel(World w, ContentDatabase c, IReadOnlyList<MapNode> nodes, IReadOnlyList<MapFleet> fleets, IReadOnlyList<MapRegion> regions, Fleet? selectedFleet, CommandContext ctx)
     {
         var pid = w.ProtagonistId;
@@ -177,7 +188,10 @@
             string polity = n.OwnerHouseId == null ? "" : nation != null ? "nation:" + nation.Id : !string.IsNullOrEmpty(reg?.StateName) ? "state:" + reg!.StateName : "reach";
             string polityName = nation != null ? (n.OwnerHouseName ?? "") : polity.StartsWith("state:") ? reg!.StateName! : w.Galaxy!.Name;
             string polityColor = nation != null ? n.AccentColor : polity.StartsWith("state:") ? reg!.AccentColor : "#c3cde2";   // the Reach: marble, which no house and no nation wears
-            return new { id = n.SystemId, name = n.Name, x = n.X, y = n.Y, ownerId = n.OwnerHouseId, ownerName = n.OwnerHouseName, accent = n.AccentColor, polity, polityName, polityColor, isPlayer = n.IsPlayerTerritory, contested = n.Contested,
+            // whose space a system lies in, held or not: a world nobody holds inside the Reach is still inside the Reach's border
+            string realm = polity.Length > 0 ? polity : n.Ring == Praetoria.Core.Galaxy.Ring.Beyond ? "" : !string.IsNullOrEmpty(reg?.StateName) ? "state:" + reg!.StateName : "reach";
+            string realmColor = polity.Length > 0 ? polityColor : realm.StartsWith("state:") ? reg!.AccentColor : "#c3cde2";
+            return new { id = n.SystemId, name = n.Name, x = n.X, y = n.Y, ownerId = n.OwnerHouseId, ownerName = n.OwnerHouseName, accent = n.AccentColor, polity, polityName, polityColor, realm, realmColor, isPlayer = n.IsPlayerTerritory, contested = n.Contested,
                 planetClass = n.PlanetClass, pop = n.Population, unrest = n.Unrest, stations = n.Stations, regionId = n.RegionId, governor = n.GovernorName, rebel = n.Rebellion > 0, capital = n.Capital, ring = n.Ring, chokepoint = n.Chokepoint, conquered = taken?.kind, deposits = n.Deposits == null ? "" : string.Join(" ", n.Deposits.Keys.Select(k => k == "helium3" ? "³He" : k == "rare_earths" ? "RE" : "Iso")),
                 bodies = (n.Bodies ?? Array.Empty<Body>()).Select(b => new { name = b.Name, cls = b.Class, size = b.Size, primary = b.IsPrimary }).ToList(),
                 industry = n.PlanetHoldingId != null ? c.Holdings.Spec(w.Holding(n.PlanetHoldingId)!.Specialization)?.Name : null,
@@ -195,7 +209,7 @@
         var rg = regions.Select(r => new { id = r.Id, name = r.Name, culture = r.Culture, cx = r.CX, cy = r.CY, top = r.SystemIds.Select(id => nodes.First(n => n.SystemId == id).Y).Min(), bottom = r.SystemIds.Select(id => nodes.First(n => n.SystemId == id).Y).Max(), accent = r.AccentColor, dominant = r.DominantHouseName, loyalty = 100 - r.Unrest, ring = r.Ring, allegiance = r.Allegiance, lawlessness = r.Lawlessness, free = r.FreeMarch, state = r.StateName, stateWar = r.StateAtWar }).ToList();
         var rings = GalaxyProjection.Rings(w);
         var route = selectedFleet != null && _systemId != null && _systemId != selectedFleet.SystemId ? w.Galaxy!.Path(selectedFleet.SystemId, _systemId, MoveFleetCommand.Barred(w, selectedFleet.OwnerId)) : null;
-        return System.Text.Json.JsonSerializer.Serialize(new { systems, lanes, fleets = fl, regions = rg, rings = rings == null ? null : new { cx = rings.CX, cy = rings.CY, core = rings.Core, middle = rings.Middle, rim = rings.Rim }, playerHouse = w.Protagonist!.HouseId, era = w.Era, route, selected = new { systemId = _systemId, fleetId = _fleetId } });
+        return System.Text.Json.JsonSerializer.Serialize(new { systems, lanes, fleets = fl, regions = rg, rings = rings == null ? null : new { cx = rings.CX, cy = rings.CY, core = rings.Core, middle = rings.Middle, rim = rings.Rim }, playerHouse = w.Protagonist!.HouseId, playerRealm = PlayerRealm(w, regions), era = w.Era, route, selected = new { systemId = _systemId, fleetId = _fleetId } });
     }
 
     public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaSpace.destroy", _id); } catch { } _self?.Dispose(); }

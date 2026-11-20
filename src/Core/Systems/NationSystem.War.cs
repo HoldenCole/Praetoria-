@@ -106,7 +106,7 @@ public sealed partial class NationSystem
     {
         if (!n.AtWar || !Foe(w, n, houseId)) return false;
         if (n.WarOf == houseId) return true;
-        var own = Own(d);
+        var own = Own(w, d);
         return w.Fleets.Values.Any(f => f.OwnerId == houseId && !f.IsAway && (f.Moving ? own.Contains(f.DestinationId) : own.Contains(f.SystemId)));
     }
 
@@ -207,7 +207,7 @@ public sealed partial class NationSystem
     {
         if (!n.OnMap || n.Fallen || n.Vassal) return false;
         // the player's house keeps what it took unless the player has said otherwise: when the war is its to win, or it holds one of the nation's worlds
-        if (mine != null && !w.HasFlag(PlayerClientsFlag) && (top?.Id == mine || d.Worlds.Any(x => w.Holding(x.Id)?.OwnerId == mine))) return false;
+        if (mine != null && !w.HasFlag(PlayerClientsFlag) && (top?.Id == mine || Worlds(w, d).Any(x => w.Holding(x.Id)?.OwnerId == mine))) return false;
         return Decisive(w, n, d);
     }
     public static bool Decisive(World w, Nation n, NationDef d) =>

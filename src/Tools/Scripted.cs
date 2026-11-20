@@ -201,7 +201,7 @@ internal static class Scripted
     {
         var road = Roads.First(r => r.Id == roadId); var res = new Result { Road = road.Id, Label = $"{sid} seed {seed}" };
         var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(contentRoot, sid), seed);
-        w.Difficulty = o.Difficulty; w.CrisisIntensity = o.Intensity; w.FamilyAutonomy = o.Autonomy;
+        w.Difficulty = o.Difficulty; w.CrisisIntensity = o.Intensity; w.FamilyAutonomy = o.Autonomy; Praetoria.Core.Galaxy.GalaxyGrowth.Grow(w, content, o.Size);
         var tc = new TurnController(w, content); var decisions = new SplitMix64Rng(seed * 104729 + 31);
         for (int t = 0; t < turns && !w.IsDynastyDead; t++)
         {

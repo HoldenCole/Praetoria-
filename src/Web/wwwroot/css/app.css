@@ -1011,3 +1011,7 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 .yline.event { font-family: var(--serif); font-size: .95rem; }
 .chron-controls .sel { max-width: 12rem; }
 .game .win-body .senate2-grid .panel.resolutions:empty { display: none; }
+
+/* The map's legend: a realm's border (gold for your own) and another realm's hatched land. */
+.legend .sw.realm-own { background: none; border: 0; border-top: 2px solid #ffde96; height: 0; width: 14px; border-radius: 0; box-shadow: 0 0 5px rgba(255,222,150,.7); }
+.legend .sw.realm-other { background: repeating-linear-gradient(135deg, rgba(215,38,61,.85) 0 2px, rgba(215,38,61,.25) 2px 5px); border: 1px solid #d7263d; }

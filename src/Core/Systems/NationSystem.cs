@@ -53,11 +53,14 @@ public sealed partial class NationSystem
     public const int MightSpread = 20, GreatGathers = 3, GreatRest = 8, GreatMight = 150, GreatReach = 2;
     public const string GreatCounter = "great_rulers_raised", GreatAcclaimedCounter = "great_rulers_acclaimed";
     /// <summary>A nation's strength in this game, in a hundred of what is written: the setting (gentle 80, harsh 125) and, where games vary, twenty either way by the nation's own dice.</summary>
+    /// <summary>Of what a larger map adds to the Reach, the share it adds to a nation's strength, in hundredths.</summary>
+    public const int SizeShare = 60;
     public static int MightFor(World w, Nation n)
     {
         int scale = w.Beyond switch { "gentle" => 80, "harsh" => 125, _ => 100 };
         int vary = w.BeyondVaries ? 100 - MightSpread + (int)(Hash($"might:{n.Salt}:{n.Id}") / 7 % (uint)(2 * MightSpread + 1)) : 100;   // (hashed: two games a seed apart are not neighbours a hull apart)
-        return Math.Max(40, scale * vary / 100);
+        int size = 100 + (Math.Max(100, w.GalaxyScale) - 100) * SizeShare / 100;   // a larger map has larger neighbours (docs/GALAXY_SIZE.md)
+        return Math.Max(40, scale * vary / 100 * size / 100);
     }
     public const int BoldSpreadLow = 70, BoldSpreadHigh = 140;
     /// <summary>How readily a nation attacks in this game, in a hundred: the setting (seldom 60, often 160) and, where games vary, between
@@ -416,7 +419,7 @@ public sealed partial class NationSystem
             if (client) { n.Vassal = true; n.PatronId = top?.Id ?? ""; n.SubduedUntil = 0; Bump(w, ClientCounter, n); Mark(w, "nation_client", n); }
             else n.SubduedUntil = w.Turn + SubduedTurns;
             n.TreatyWith = n.WarOf;   // a house that won its own war is the one that is paid
-            n.LastPeace = client ? "client" : n.OnMap && d.Worlds.Any(x => w.Holding(x.Id) is { } hx && hx.OwnerId != n.HouseId) ? "territory" : "tribute"; Bump(w, PeaceKindCounter + ":" + n.LastPeace, n);
+            n.LastPeace = client ? "client" : n.OnMap && Worlds(w, d).Any(x => w.Holding(x.Id) is { } hx && hx.OwnerId != n.HouseId) ? "territory" : "tribute"; Bump(w, PeaceKindCounter + ":" + n.LastPeace, n);
             n.Disposition = Math.Min(100, n.Disposition + 10); if (!n.OnMap) n.Strength = Math.Max(2, n.Strength);
             w.WorldCounters[SubduedCounter] = w.Counter(SubduedCounter) + 1; w.WorldFlags.Add("nation_subdued"); w.WorldFlags.Add("nation_subdued:" + n.Id);
             if (top != null)
@@ -477,7 +480,7 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
     {
         int quiet = w.Turn - Math.Max(n.WarSince, n.LastBattleTurn); string key = UnpressedKey(n);
         if (quiet >= ExhaustionTurns) return true;
-        var own = d.Worlds.Select(x => x.System).ToHashSet(); var marches = Marches(w, d);
+        var own = Own(w, d); var marches = Marches(w, d);
         bool pressed = Watched(w, d) || w.Fleets.Values.Any(f => f.Moving && !f.IsAway && w.OfTheReach(f.OwnerId) && f.Strength >= MarchGuard && (own.Contains(f.DestinationId) || marches.Contains(f.DestinationId)));
         if (pressed || quiet == 0) { w.WorldCounters.Remove(key); return false; }
         int years = w.Counter(key) + 1; w.WorldCounters[key] = years;

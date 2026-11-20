@@ -41,7 +41,7 @@ public sealed partial class NationSystem
     private static string UnwatchedKey(Nation n) => "unwatched_years:" + n.Id;
     public static string UnwatchedKeyOf(Nation n) => UnwatchedKey(n);
     /// <summary>Whether a fleet of the Reach of three hulls or more stands at the nation's march or over one of its worlds.</summary>
-    public static bool Watched(World w, NationDef d) { var own = Own(d); return Guard(w, d) != null || w.Fleets.Values.Any(f => !f.IsAway && !f.Moving && w.OfTheReach(f.OwnerId) && f.Strength >= MarchGuard && own.Contains(f.SystemId)); }
+    public static bool Watched(World w, NationDef d) { var own = Own(w, d); return Guard(w, d) != null || w.Fleets.Values.Any(f => !f.IsAway && !f.Moving && w.OfTheReach(f.OwnerId) && f.Strength >= MarchGuard && own.Contains(f.SystemId)); }
     private static string HiredKey(Nation n) => "hired_in_war:" + n.Id;
     /// <summary>A mercantile nation would rather buy than fight: it does not come through the march, it hires when attacked, it sues early and it buys its worlds back.</summary>
     public static bool Buys(NationDef d) => d.Temper == "mercantile";
@@ -52,7 +52,21 @@ public sealed partial class NationSystem
     public static bool ComesOut(Nation n, NationDef d) => Great(n) || (d.Sorties != "never" && (d.Sorties == "always" || d.Temper == "aggressive" || n.Ruler?.Nature == "warlike"));   // (one of the great leads out even a nation that never leaves home)
     /// <summary>How a nation's fleets fight hull for hull, in hundredths: the same figures its temper gave it off the map.</summary>
     public static int MettleOf(NationDef d) => d.Mettle > 0 ? d.Mettle : d.Temper switch { "defensive" => 125, "mercantile" => 80, "decaying" => 85, _ => 100 };
-    private static HashSet<string> Own(NationDef d) => d.Worlds.Select(x => x.System).ToHashSet();
+    private static HashSet<string> Own(World w, NationDef d) => Worlds(w, d).Select(x => x.System).ToHashSet();
+
+    /// <summary>A nation's own worlds in this game: those written for it and, where the game was begun on a larger map, a world on every
+    /// system the map grew in its space (docs/GALAXY_SIZE.md). Nothing is stored: the list follows from the map.</summary>
+    public static IReadOnlyList<NationWorld> Worlds(World w, NationDef d)
+    {
+        var g = w.Galaxy; if (g == null || w.GalaxyScale <= 100 || d.Worlds.Count == 0) return d.Worlds;
+        var regions = d.Worlds.Select(x => g.System(x.System)?.RegionId ?? "").Where(r => g.Region(r)?.Ring == Praetoria.Core.Galaxy.Ring.Beyond).ToHashSet();
+        if (regions.Count == 0) return d.Worlds;
+        string hid = Nation.HouseIdFor(d.Id);
+        var grown = g.Systems.Values.Where(s => s.Grown && regions.Contains(s.RegionId)).OrderBy(s => s.Id, StringComparer.Ordinal)
+            .Select(s => new NationWorld($"{hid}_{s.Id}", s.Id, s.Name, s.PlanetClass switch { "terran" or "ocean" => "agri_world", "forge" => "forge_world", "gas" => "orbital_yard", "belt" => "mining_belt", "barren" => "fortress", _ => "frontier_colony" },
+                14 + (int)(Hash("pop:" + s.Id) % 20), false)).ToList();
+        return grown.Count == 0 ? d.Worlds : d.Worlds.Concat(grown).ToList();
+    }
 
     public static bool OnMap(World w, string nationId) => w.Nation(nationId)?.OnMap == true;
     private static string GuardId(Nation n) => n.HouseId + "_guard";
@@ -72,8 +86,11 @@ public sealed partial class NationSystem
         w.Houses[house.Id] = house; n.HouseId = house.Id; n.Wealth = d.Wealth; n.Mettle = MettleOf(d); n.Walls = d.Walls; n.Treasure = d.Treasure; n.Titles = d.Titles; n.Regalia = d.Regalia;
         var capital = d.Worlds.FirstOrDefault(x => x.Capital) ?? d.Worlds[0]; n.CapitalSystemId = capital.System;
         var ruler = Embody(w, n, d, n.Ruler!, ruler: true); var commander = Embody(w, n, d, n.Commander!, ruler: false);
-        foreach (var x in d.Worlds)
+        foreach (var x in Worlds(w, d))
+        {
+            if (w.Holdings.ContainsKey(x.Id) || w.PlanetHolder(x.System) != null) continue;   // (only a system the map grew can be taken already; the written ones were checked above)
             w.Holdings[x.Id] = new Holding { Id = x.Id, OwnerId = house.Id, Name = x.Name, Specialization = x.Specialization, SystemId = x.System, Population = x.Population, GovernorId = ruler.Id, Culture = house.Culture };
+        }
         var marches = Marches(w, d); string border = Border(w, n, d);
         int total = Math.Max(2, n.Strength), home = GuardShare(d, total), afield = Math.Max(0, total - home);
         Raise(w, GuardId(n), GuardName(d, capital.Name), house.Id, capital.System, home, ruler.Id, defaultClass);
@@ -84,7 +101,7 @@ public sealed partial class NationSystem
         }
         foreach (var f in Expeditions(w, n.Id).ToList()) GoHome(w, f, d, "is called home");
         w.WorldFlags.Add(OnMapFlag);
-        w.Log($"Beyond {string.Join(" and ", marches.Select(m => w.Galaxy.System(m)?.Name ?? m))} lie the worlds of {d.Name}: {string.Join(", ", d.Worlds.Select(x => w.Galaxy.System(x.System)?.Name ?? x.System))}. {Styled(d, n.Ruler, true)} sits at {w.Galaxy.System(capital.System)?.Name}.");
+        w.Log($"Beyond {string.Join(" and ", marches.Select(m => w.Galaxy.System(m)?.Name ?? m))} lie the worlds of {d.Name}: {string.Join(", ", d.Worlds.Select(x => w.Galaxy.System(x.System)?.Name ?? x.System))}{(Worlds(w, d).Count > d.Worlds.Count ? $" and {Worlds(w, d).Count - d.Worlds.Count} more" : "")}. {Styled(d, n.Ruler, true)} sits at {w.Galaxy.System(capital.System)?.Name}.");
     }
 
     private static string GuardName(NationDef d, string capital) => d.GuardName.Length > 0 ? d.GuardName : $"The Guard of {capital.Replace("The ", "")}";
@@ -97,7 +114,7 @@ public sealed partial class NationSystem
     {
         var marches = Marches(w, d);
         int Far(string sys) => marches.Select(m => w.Galaxy!.Hops(m, sys)).Where(h => h >= 0).DefaultIfEmpty(99).Min();
-        var own = Own(d);
+        var own = Own(w, d);
         return w.HoldingsOf(n.HouseId).Where(h => h.IsPlanet && own.Contains(h.SystemId)).Select(h => h.SystemId).Distinct()
             .OrderBy(Far).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault() ?? n.CapitalSystemId;
     }
@@ -155,7 +172,7 @@ public sealed partial class NationSystem
 
         // a world of its own that a house of the Reach holds does not stay held without a fleet over it: easy to take, impossible to hold.
         // While the nation pays tribute its people keep quiet, and while a ransom is on offer; after that, so many years without a garrison and they rise
-        if (!afterTheWar) foreach (var x in d.Worlds)
+        if (!afterTheWar) foreach (var x in Worlds(w, d))
         {
             if (w.Holding(x.Id) is not { } hw || hw.OwnerId == house.Id || !w.OfTheReach(hw.OwnerId)) { w.WorldCounters.Remove(UnheldKey(x.Id)); continue; }
             if (d.HoldYears <= 0 || n.Subdued(w.Turn) || w.Counter(RansomKey(x.Id)) > 0 || FleetSystem.StrengthAt(w, hw.OwnerId, hw.SystemId) >= MarchGuard) { w.WorldCounters.Remove(UnheldKey(x.Id)); continue; }   // a state's worlds do not rise of themselves: it comes back for them
@@ -167,7 +184,7 @@ public sealed partial class NationSystem
         }
         if (!afterTheWar) Dealings(w, n, d);
         // what its worlds give a house of the Reach that holds them (the Compact's isotope fields), a year
-        if (!afterTheWar && d.Yields.Count > 0) foreach (var x in d.Worlds)
+        if (!afterTheWar && d.Yields.Count > 0) foreach (var x in Worlds(w, d))
         {
             if (w.Holding(x.Id) is not { } hw || hw.OwnerId == house.Id || !w.OfTheReach(hw.OwnerId) || w.House(hw.OwnerId) is not { } holder) { w.WorldCounters.Remove(YieldSinceKey(x.Id)); continue; }
             foreach (var (good, units) in d.Yields.OrderBy(k => k.Key, StringComparer.Ordinal)) { holder.Treasury.Add(good, units); Bump(w, YieldCounter, n, units); }
@@ -238,7 +255,7 @@ public sealed partial class NationSystem
             if (to == null || to == f.SystemId) continue;
             int eta = w.Galaxy!.Hops(f.SystemId, to, Commands.MoveFleetCommand.Barred(w, house.Id)); if (eta <= 0) continue;
             f.DestinationId = to; f.Eta = eta;
-            if (!IsGuard(n, f) && !Own(d).Contains(to))
+            if (!IsGuard(n, f) && !Own(w, d).Contains(to))
             {
                 Bump(w, HostsCounter, n); Mark(w, "nation_host_sails", n);
                 w.Log($"{f.Name} is through the march and bound for {w.Galaxy.System(to)?.Name ?? to}: {f.Strength} hulls{(f.AdmiralId == n.Commander.CharacterId ? $" under {Styled(d, n.Commander, false)}" : "")}.");
@@ -264,7 +281,7 @@ public sealed partial class NationSystem
         if (n.LastWarEnd > 0 && w.Turn - n.LastWarEnd < ByBoldness(n, great ? GreatRest : StrikeRest)) return;   // the bold rest less between their wars
         if (great && w.Turn - n.Ruler!.GreatSince < GreatGathers) return;
         if (n.Strength * 100 < Cap(n, d) * StrikeFit) return;
-        var lost = d.Worlds.Select(x => w.Holding(x.Id)).FirstOrDefault(h => h != null && h.OwnerId != n.HouseId && w.OfTheReach(h.OwnerId));
+        var lost = Worlds(w, d).Select(x => w.Holding(x.Id)).FirstOrDefault(h => h != null && h.OwnerId != n.HouseId && w.OfTheReach(h.OwnerId));
         string? why = lost != null ? $"to take back {lost.Name}" : great ? "to take what it can hold" : n.Disposition <= StrikeRegard && Divided(w) is { } rift ? $"while the Reach is divided by {rift}" : null;
         if (why == null || Hash($"strike:{n.Salt}:{n.Id}:{w.Turn}") / 7 % (uint)(great ? 2 : StrikeOneIn) != 0) return;
         n.AtWar = true; n.BeganIt = true; n.WarOf = ""; n.Defied = false; n.PeaceVoted = 0; n.WarSince = w.Turn; n.ScoreReach = 0; n.ScoreNation = 0; n.LastBattleTurn = w.Turn; n.Wars += 1; n.Disposition = Math.Max(-100, n.Disposition - 10);
@@ -278,7 +295,7 @@ public sealed partial class NationSystem
     private void Dealings(World w, Nation n, NationDef d)
     {
         var mine = w.Protagonist?.HouseId;
-        foreach (var x in d.Worlds)
+        foreach (var x in Worlds(w, d))
         {
             int since = w.Counter(RansomKey(x.Id)); if (since == 0) continue;
             var hw = w.Holding(x.Id);
@@ -388,7 +405,7 @@ public sealed partial class NationSystem
     private static void PeaceOnMap(World w, Nation n, NationDef d, bool reachWon, bool allBack = false)
     {
         if (!n.OnMap) return;
-        foreach (var h in w.Holdings.Values.Where(h => h.OwnerId == n.HouseId && h.FormerOwnerId.Length > 0 && w.OfTheReach(h.FormerOwnerId) && !d.Worlds.Any(x => x.Id == h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        foreach (var h in w.Holdings.Values.Where(h => h.OwnerId == n.HouseId && h.FormerOwnerId.Length > 0 && w.OfTheReach(h.FormerOwnerId) && !Worlds(w, d).Any(x => x.Id == h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             if (!reachWon && !allBack) { w.Log($"{h.Name} is ceded to {d.Name} at the peace."); h.FormerOwnerId = ""; if (h.IsPlanet) { Bump(w, WorldsCededCounter, n); Mark(w, "reach_world_ceded", n); } continue; }
             string back = h.FormerOwnerId; h.OwnerId = back; h.FormerOwnerId = ""; h.Unrest = Math.Min(100, h.Unrest + 5);
@@ -396,14 +413,14 @@ public sealed partial class NationSystem
         }
         // a nation that would rather buy than fight buys its worlds back at a peace it lost: the houses that hold them are paid, and the
         // player is asked (the offer waits two years)
-        if (reachWon && !allBack && Buys(d)) foreach (var x in d.Worlds)
+        if (reachWon && !allBack && Buys(d)) foreach (var x in Worlds(w, d))
             if (w.Holding(x.Id) is { } held && held.OwnerId != n.HouseId && w.OfTheReach(held.OwnerId))
             {
                 if (held.OwnerId == w.Protagonist?.HouseId) { w.WorldCounters[RansomKey(x.Id)] = w.Turn; Mark(w, "ransom_offered", n); w.Log($"{d.Name} offers {RansomPerWealth * d.Wealth} credits for {held.Name}, to have it back."); }
                 else Ransom(w, n, d, held);
             }
         // and if the nation won, what the Reach took of its own worlds is given up
-        if (!reachWon || allBack) foreach (var x in d.Worlds)
+        if (!reachWon || allBack) foreach (var x in Worlds(w, d))
             if (w.Holding(x.Id) is { } hw && hw.OwnerId != n.HouseId && w.OfTheReach(hw.OwnerId))
             {
                 string was = hw.OwnerId; hw.OwnerId = n.HouseId; hw.FormerOwnerId = ""; hw.GovernorId = n.Ruler?.CharacterId ?? ""; Bump(w, GivenUpCounter, n);
@@ -428,7 +445,7 @@ public sealed partial class NationSystem
         // a season in the Reach is as long as it can stay: short of supply it goes home, and it does not come out again until it is rested and fed
         if (!n.AtWar || host.Strength < HostLeast || host.Supply < HostSpent || (atHome && (host.Readiness < HostRested || host.Supply < HostSupplied))) return host.SystemId == home ? null : home;
         // sitting over a world of the Reach it has not yet taken: it stays until the world falls or it is driven off
-        var own = Own(d); bool comesOut = ComesOut(n, d);
+        var own = Own(w, d); bool comesOut = ComesOut(n, d);
         if (w.Holdings.Values.Any(h => h.IsPlanet && h.SystemId == host.SystemId && Foe(w, n, h.OwnerId) && (comesOut || own.Contains(h.SystemId)))) return null;
         // an enemy fleet in its own space that it can beat is met first
         // (all of its fleets that are there or could come count: a nation that turns out its guard meets an invader with both)

@@ -230,7 +230,12 @@ public sealed class Economy
     public static Character? HeadOf(World w, House house)
     {
         if (w.Protagonist is { } p && p.HouseId == house.Id) return p;
-        return w.LivingCharacters().Where(c => c.HouseId == house.Id).OrderByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+        if (State.Nation.IsHouse(house.Id)) return null;   // a nation's ruler is not of the Reach (World.LivingCharacters leaves its people out)
+        // one pass, nothing sorted: this is asked of every house by every other, many times a year, and a large map has many houses
+        Character? best = null;
+        foreach (var c in w.Characters.Values)
+            if (c.Alive && c.HouseId == house.Id && (best == null || c.CareerRank > best.CareerRank || (c.CareerRank == best.CareerRank && string.CompareOrdinal(c.Id, best.Id) < 0))) best = c;
+        return best;
     }
 
     /// <summary>Where a holding's prosperity is heading (GDD §17): the governor's administration, what is built, the tithe,

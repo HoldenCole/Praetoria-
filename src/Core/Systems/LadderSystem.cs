@@ -323,7 +323,23 @@ public static partial class LadderSystem
         .GroupBy(r => r).OrderByDescending(g => g.Count()).ThenBy(g => g.Key, StringComparer.Ordinal).Select(g => g.Key).FirstOrDefault();
 
     /// <summary>This year's business for a sitting magistrate.</summary>
-    private static OfficeBusiness Make(World w, OfficeHolding seat, RungDef rung, HashSet<string> taken)
+    /// <summary>The year's quarrels, worked out once for every bench: the houses a case may be between, and every pair of them with a
+    /// quarrel worth hearing (at war, or their heads thinking ill of each other), hottest first; a quarrel heard last year is left out.
+    /// Each bench used to work this out for itself, which on a large map (docs/GALAXY_SIZE.md) was a fifth of the year.</summary>
+    private static (List<House> houses, List<(House a, House b, int heat)> pairs) Quarrels(World w)
+    {
+        var houses = w.Houses.Values.Where(h => !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var last = w.OfficeWork.Where(x => x.Kind == Case && x.Turn == w.Turn - 1 && x.HouseA.Length > 0).Select(x => string.CompareOrdinal(x.HouseA, x.HouseB) < 0 ? x.HouseA + "|" + x.HouseB : x.HouseB + "|" + x.HouseA).ToHashSet();
+        var pairs = new List<(House a, House b, int heat)>();
+        for (int i = 0; i < houses.Count; i++) for (int j = i + 1; j < houses.Count; j++)
+        {
+            int heat = (w.AtWar(houses[i].Id, houses[j].Id) ? 100 : 0) - Regard(w, houses[i], houses[j]) - Regard(w, houses[j], houses[i]);
+            if (heat >= 30 && !last.Contains(houses[i].Id + "|" + houses[j].Id)) pairs.Add((houses[i], houses[j], heat));
+        }
+        return (houses, pairs.OrderByDescending(x => x.heat).ThenBy(x => x.a.Id, StringComparer.Ordinal).ThenBy(x => x.b.Id, StringComparer.Ordinal).ToList());
+    }
+
+    private static OfficeBusiness Make(World w, OfficeHolding seat, RungDef rung, HashSet<string> taken, ref (List<House> houses, List<(House a, House b, int heat)> pairs)? docket)
     {
         var b = new OfficeBusiness { Id = $"biz_{w.Turn}_{seat.CharacterId}", RungId = rung.Id, HolderId = seat.CharacterId, Kind = KindOf(rung), Turn = w.Turn };
         if (b.Kind == Accounts) { b.RegionId = (RegionSystem.CapitalHolder(w)?.Treasury.Credits ?? 0) >= ReliefCredits ? WorstRegion(w, taken) ?? "" : ""; if (b.RegionId.Length > 0) taken.Add("region:" + b.RegionId); }   // one quaestor to a region, and only if the purse has it
@@ -331,15 +347,10 @@ public static partial class LadderSystem
         else
         {
             // two houses with a quarrel, neither the judge's own: those at war first, then those whose heads think worst of each other
-            var houses = w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != seat.HouseId && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null && !taken.Contains(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
-            var last = w.OfficeWork.Where(x => x.Kind == Case && x.Turn == w.Turn - 1 && x.HouseA.Length > 0).Select(x => string.CompareOrdinal(x.HouseA, x.HouseB) < 0 ? x.HouseA + "|" + x.HouseB : x.HouseB + "|" + x.HouseA).ToHashSet();
-            var pairs = new List<(House a, House b, int heat)>();
-            for (int i = 0; i < houses.Count; i++) for (int j = i + 1; j < houses.Count; j++)
-            {
-                int heat = (w.AtWar(houses[i].Id, houses[j].Id) ? 100 : 0) - Regard(w, houses[i], houses[j]) - Regard(w, houses[j], houses[i]);
-                if (heat >= 30 && !last.Contains(houses[i].Id + "|" + houses[j].Id)) pairs.Add((houses[i], houses[j], heat));   // a quarrel heard last year is not heard again this year
-            }
-            var pick = pairs.OrderByDescending(x => x.heat).ThenBy(x => x.a.Id, StringComparer.Ordinal).ThenBy(x => x.b.Id, StringComparer.Ordinal).Take(6).ToList();
+            docket ??= Quarrels(w);
+            var houses = docket.Value.houses.Where(h => h.Id != seat.HouseId && !taken.Contains(h.Id)).ToList();
+            var pairs = docket.Value.pairs.Where(x => x.a.Id != seat.HouseId && x.b.Id != seat.HouseId && !taken.Contains(x.a.Id) && !taken.Contains(x.b.Id)).Take(6).ToList();
+            var pick = pairs;
             if (pick.Count > 0) { var x = pick[(int)(Hash(b.Id) % (uint)pick.Count)]; b.HouseA = x.a.Id; b.HouseB = x.b.Id; }
             else if (houses.Count >= 2) { int i = (int)(Hash(b.Id) % (uint)houses.Count); b.HouseA = houses[i].Id; b.HouseB = houses[(i + 1) % houses.Count].Id; }
             if (b.HouseA.Length > 0) { b.RightId = Hash(b.Id + ":right") % 2 == 0 ? b.HouseA : b.HouseB; taken.Add(b.HouseA); taken.Add(b.HouseB); }
@@ -552,23 +563,23 @@ public static partial class LadderSystem
     private static void Business(World w, OfficeCatalog offices)
     {
         var p = w.Protagonist; w.WorldCounters.TryAdd(TrustKey, TrustStart);   // written down, so that what content does to it starts from where it stands
-        CloseDuties(w);
+        using (Diagnostics.Perf.Time("ladder:close")) CloseDuties(w);
         foreach (var b in w.OfficeWork.Where(b => b.Choice.Length == 0).ToList())
         {
             b.Choice = "left"; MoveTrust(w, -1);
             if (p != null && b.HolderId == p.Id) w.Log($"The business of {p.Name}'s office went undone last year, and the clerks closed it. It was noticed.");
         }
         w.OfficeWork.RemoveAll(b => b.Turn < w.Turn - 1);
-        var taken = new HashSet<string>();
+        var taken = new HashSet<string>(); (List<House> houses, List<(House a, House b, int heat)> pairs)? docket = null;
         foreach (var seat in w.Magistrates.OrderBy(m => m.OfficeId, StringComparer.Ordinal).ThenBy(m => m.CharacterId, StringComparer.Ordinal).ToList())
         {
             var rung = offices.Rung(seat.OfficeId); var who = w.Char(seat.CharacterId); if (rung == null || who is not { Alive: true }) continue;
-            var b = Make(w, seat, rung, taken); w.OfficeWork.Add(b);
-            if (p == null || who.Id != p.Id) Decide(w, offices, who, Inclination(w, who, b));
+            OfficeBusiness b; using (Diagnostics.Perf.Time("ladder:make")) { b = Make(w, seat, rung, taken, ref docket); w.OfficeWork.Add(b); }
+            using (Diagnostics.Perf.Time("ladder:decide")) if (p == null || who.Id != p.Id) Decide(w, offices, who, Inclination(w, who, b));
         }
         // above where it starts, a good name fades a point a year; below it, nothing mends it but honest dealing (a point a year, above)
         int t = Trust(w); if (t > TrustStart) w.WorldCounters[TrustKey] = t - 1;
-        TrustYear(w); TrustApart(w);
+        using (Diagnostics.Perf.Time("ladder:trust")) { TrustYear(w); TrustApart(w); }
     }
 
     // ---------------- the year ----------------
@@ -596,7 +607,7 @@ public static partial class LadderSystem
             m.HouseId = c.HouseId;
             if (offices.Rung(m.OfficeId) is { Stipend: > 0 } rung && house != null && c.HouseId == house.Id) c.Purse += rung.Stipend;
         }
-        Business(w, offices); Duties(w, offices, policy); Courts(w, offices); Patrons(w);
+        using (Diagnostics.Perf.Time("ladder:business")) Business(w, offices); using (Diagnostics.Perf.Time("ladder:duties")) Duties(w, offices, policy); using (Diagnostics.Perf.Time("ladder:courts")) Courts(w, offices); using (Diagnostics.Perf.Time("ladder:patrons")) Patrons(w);
         if (p is not { Alive: true } || house == null) return;
         if (BusinessOf(w, p.Id) != null) w.WorldFlags.Add(BusinessFlag);
         if (DutyOf(w, p.Id, Hearing, Appeal) != null) w.WorldFlags.Add(BenchFlag);
