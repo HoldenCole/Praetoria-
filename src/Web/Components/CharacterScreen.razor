@@ -65,6 +65,7 @@
                   Note="@(Mine(LifeSystem.RenownName(renown)) + (renownNext > 0 ? $" · {LifeSystem.RenownName(renownNext)} at {renownNext}" : ""))" Title="What you are apart from your house: how far you rose and what you did." />
             <Tile Label="Strain" Value="@p.Stress.ToString()" Share="@p.Stress" Tone="@(m.Character.Broken ? "bad" : p.Stress >= 70 ? "warn" : "")"
                   Note="@(m.Character.Broken ? "broken" : p.Stress >= 70 ? "close to breaking, of 100" : p.Stress == 0 ? "none, of 100 · it tells at 70" : "of 100 · it tells at 70")" Title="What you carry. Hard choices and bad years add to it; rest takes it away." />
+            <Tile Label="Your own purse" Value="@(p.Purse + " credits")" Tone="@(p.Purse > 0 ? "good" : "")" Note="apart from the house's treasury" Title="Yours, not the house's: physicians, gifts and bribes 'of your own' are paid from it, and it goes by your will. Move coin between the two in House, under Purses and the will." />
     </div>
     <nav class="cw-tabs">
         @foreach (var (id, label) in new[] { ("life", "A life"), ("family", "Family"), ("ties", "Relations"), ("learning", "Learning"), ("record", "Record") }) { var tid = id; <button class="rung @(_tab == tid ? "here" : "")" @onclick="() => _tab = tid">@label</button> }
