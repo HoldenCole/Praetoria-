@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- **Empty sections fold away.** Military at peace is one line, not "Wars" and "The campaign" over nothing; the same
+  for an empty docket, an unwritten record and "List a venture". `tools/browser/windows.js` walks every window and
+  tab and reports which scroll and any heading left over nothing.
 - **The Senate, the Exchange and the Chronicle redesigned.** The **Senate** is a normal-width window that opens on
   the chamber, with moving a motion and the consulship as tabs of their own. The **Exchange** lists a good on one
   row, with what moves its price in a tooltip unless the good is dear, cheap or moving. The **Chronicle** has tabs

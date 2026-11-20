@@ -309,7 +309,8 @@
             @if (raidersAtLarge > 0) { <div class="small bad">Raiders on the lanes: @raidersAtLarge hull(s) in all.</div> }
         </section>
         }
-        @if (_view == "deck") {
+        @if (_view == "deck" && m.Wars.Count == 0 && m.Sieges.Count == 0) { <div class="empty-line peace">At peace: no war, no siege, no campaign. A house declares a war on the Houses window; the Senate makes war beyond the Reach.</div> }
+        @if (_view == "deck" && (m.Wars.Count > 0 || m.Sieges.Count > 0)) {
             <section class="panel">
                 <h3><Icon Name="war" Size="13" /> Wars</h3>
                 @foreach (var war in m.Wars)
@@ -320,17 +321,15 @@
                         <div class="kv"><span>War score</span><b>@a : @b</b></div>
                         <button class="opt" disabled="@(!war.PeaceAvailable)" title="@war.PeaceTooltip" @onclick="() => G.Execute(new SueForPeaceCommand(pid, war.EnemyHouseId, c.Fleets))">Sue for peace (1 influence)</button></div>
                 }
-                @if (m.Wars.Count == 0) { <div class="muted small">No war. A house declares one on the Houses screen; the Senate makes war beyond the Reach.</div> }
                 @foreach (var sg in m.Sieges) { <div class="line @(sg.Ours ? "warn" : "")"><Icon Name="siege" Size="12" /> @sg.HoldingName under siege by @sg.BesiegerName · @sg.Turns/@sg.Required@(sg.Ours ? " — ours" : "")</div> }
             </section>
         }
             @if (mil != null)
             {
-        @if (_view == "deck") {
+        @if (_view == "deck" && (mil.Campaign.TargetName != null || mil.Campaign.Targets.Count > 0)) {
                 <section class="panel">
-                    <h3><Icon Name="galaxy" Size="13" /> The campaign</h3>
+                    <h3><Icon Name="galaxy" Size="13" /> The campaign <span class="muted">an enemy's world named as the war's object for eight turns</span></h3>
                     @if (mil.Campaign.TargetName != null) { <div class="kv good"><span>Object</span><b>@mil.Campaign.TargetName · @mil.Campaign.TurnsLeft turn(s) more</b></div><div class="muted small">Fleets within two lanes of it fight at +10% and count as supplied.</div> }
-                    else if (mil.Campaign.Targets.Count == 0) { <div class="muted small">No war, no campaign. A campaign names an enemy's world as the war's object for eight turns (@mil.Campaign.Cost influence).</div> }
                     else
                     {
                         <select class="sel" @onchange="SetCampaign">

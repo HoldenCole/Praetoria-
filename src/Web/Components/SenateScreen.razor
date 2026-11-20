@@ -193,8 +193,8 @@
         <div class="deck-col">
         @if (sen == null) { <section class="panel resolutions"><div class="muted">The Senate does not sit in this age.</div></section> }
         else if (_view == "chamber") { <section class="panel resolutions">
-            <h3><Icon Name="influence" Size="13" /> Before the chamber <span class="muted">voted at the year's end · by weight of seats · a tie fails</span></h3>
-                @if (sen.Docket.Count == 0) { <div class="muted">Nothing is before the Senate this year.@(sen.MayPropose ? " What you could move is under Move a motion; one moved now is voted at the end of next year." : "")</div> }
+            @if (sen.Docket.Count > 0 || sen.History.Count > 0) { <h3><Icon Name="influence" Size="13" /> Before the chamber <span class="muted">voted at the year's end · by weight of seats · a tie fails</span></h3> }
+                @if (sen.Docket.Count == 0) { <div class="empty-line">Nothing is before the Senate this year.@(sen.MayPropose ? " What you could move is under Move a motion; one moved now is voted at the end of next year." : "")</div> }
                 @foreach (var mo in sen.Docket)
                 {
                     int total = Math.Max(1, mo.ForWeight + mo.AgainstWeight);

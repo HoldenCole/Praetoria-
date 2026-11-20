@@ -112,8 +112,8 @@
     else
     {
         <section class="panel">
-            <h3>Your story so far</h3>
-            @if (mine.Count == 0) { <div class="muted">Nothing is written of you yet. It is what will be said of you.</div> }
+            @if (mine.Count == 0) { <div class="empty-line">Nothing is written of you yet. It is what will be said of you.</div> }
+            else { <h3>Your story so far</h3> }
             @foreach (var h in mine) { <div class="line small"><span class="muted">T@(h.Turn)</span> @h.Text</div> }
         </section>
     }

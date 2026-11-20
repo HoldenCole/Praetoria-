@@ -47,6 +47,7 @@ Playwright with Chromium must be installed where you run the script. `PRAETORIA_
 | `node courts.js "The Old Lion" 14` | The courts on the Senate screen: what is on the record against former magistrates and who would hear it; plays until there is a charge to bring and brings it; makes an offer to a sitting praetor; reads what the chronicle says came of both. |
 | `node audit.js "The Old Lion" 10` | The dashboard audit (docs/DASHBOARDS.md): every screen and its tabs at 1440 by 900, a screenshot of what is on screen without scrolling, and for each how much is empty, how many numbers, charts and buttons are in view and how far the page runs. When it looks at every screen it then presses each alert and prints the screen and tab it opened. `PRAETORIA_ONLY=MILITARY,HOUSE` looks at some screens only; `PRAETORIA_W` and `PRAETORIA_H` set the size. |
 | `node workshop.js "The Heir" 3` | The character workshop: every tab, preset and mode, then a saga begun from it. Add `academy` to begin at the Academy. |
+| `node windows.js "The Old Lion" 12` | The windows, one by one: opens every window from the rail and every tab in it and photographs each (`win_<window>_<tab>.png`). Prints, for each, whether its first screen fits or how far it scrolls, and any section that is a heading over nothing but a muted line. The second argument plays that many years first; a third, `quick`, skips the photographs. |
 
 ## Reading the numbers
 

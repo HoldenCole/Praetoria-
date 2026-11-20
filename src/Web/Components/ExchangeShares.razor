@@ -121,8 +121,8 @@ else
             </section>
         }
         <section class="panel">
-            <h3><Icon Name="trade_hub" Size="13" /> List a venture <span class="muted">@cs.Rules.IncorporateInfluence influence for the charter</span></h3>
-            @if (loose.Count == 0) { <div class="muted small">The house owns no venture outright. Found or buy one on the Ventures tab.</div> }
+            @if (loose.Count == 0) { <div class="empty-line">To list a venture as a company the house must own one outright. Found or buy one on the Ventures tab.</div> }
+            else { <h3><Icon Name="trade_hub" Size="13" /> List a venture <span class="muted">@cs.Rules.IncorporateInfluence influence for the charter</span></h3> }
             @foreach (var b in loose)
             {
                 var refusal = cs.IncorporateRefusal(w, house.Id, w.Businesses.GetValueOrDefault(b.Id), string.Empty);

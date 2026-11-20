@@ -283,6 +283,10 @@ without scrolling, everything else behind tabs, rows and not cards. Every window
 | Chronicle | done | Tabs for whose record to read: all that was written, of your house, of the Reach. A year is one list, your house's lines first and marked; the span of years is chosen from a list or by clicking the timeline. |
 | Office | not yet | Still a room modelled in code (V9): the owner chooses between a painting and dropping it. |
 
+An empty section folds to one line and loses its heading (Military at peace says so in a sentence, not under "Wars"
+and "The campaign"). `tools/browser/windows.js` walks every window and every tab and prints which first screens fit,
+which scroll and by how much, and any section that is a heading over nothing.
+
 ### Not done yet
 
 See docs/GAPS.md, "The look". The windows were converted by rule (what was a card is now an entry), not redesigned
