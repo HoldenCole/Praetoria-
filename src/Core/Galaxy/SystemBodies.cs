@@ -19,7 +19,11 @@ public static class SystemBodies
     /// <summary>Fill in every system of the galaxy that has not been. Safe to call again: a furnished system is left alone.</summary>
     public static void Furnish(Galaxy g, HoldingCatalog cat)
     {
-        foreach (var sys in g.Systems.Values.OrderBy(s => s.Id, StringComparer.Ordinal)) if (!sys.Furnished) Furnish(sys, cat);
+        foreach (var sys in g.Systems.Values.OrderBy(s => s.Id, StringComparer.Ordinal))
+        {
+            if (!sys.Furnished) Furnish(sys, cat);
+            if (!sys.Bodies.Any(b => b.IsSpace)) sys.Bodies.Add(new Body { Name = "Open space", Class = Body.Space, Size = 2 });   // a system filled in before open space was a place gets it here, at the end
+        }
     }
 
     public static void Furnish(StarSystem sys, HoldingCatalog cat)
@@ -58,6 +62,8 @@ public static class SystemBodies
         if (primary.Class is not (Body.Belt or "gas")) Moons(primary, rng.NextInt(0, 3)); else if (primary.Class == "gas") Moons(primary, rng.NextInt(1, 3));
         foreach (var giant in sys.Bodies.Where(b => b.Class == "gas" && !b.IsPrimary).ToList()) if (sys.Bodies.Count < 9) Moons(giant, rng.NextInt(0, 3));
 
+        // for some a sister-world nearer in: a second living world, a desert, a furnace (each kind of body has buildings of its own: docs/BUILDINGS.md)
+        if (rng.NextInt(0, 100) < 42 && sys.Bodies.Count < 8) { string[] inner = { "terran", "ocean", "arid", "forge", "terran", "ocean" }; Add(Numbered(), inner[rng.NextInt(0, inner.Length)], 2); }
         // something far out, until the system has five things going round its sun; and for some a comet
         string[] outer = { "frozen", "gas", "barren", "frozen" };
         for (int guard = 0; Planets() < 4 + rng.NextInt(0, 2) && sys.Bodies.Count < 9 && guard < 6; guard++)
@@ -67,6 +73,7 @@ public static class SystemBodies
         }
         if (rng.NextInt(0, 100) < 38) Add($"The {bare} Comet", Body.Comet, 1);
         Add($"The Sun of {bare}", Body.Star, 3);
+        Add("Open space", Body.Space, 2);   // what is tied to no world is built here (docs/BUILDINGS.md)
 
         // what makes it unlike its neighbours: one feature, and for some a second, each on a body of a kind that can have it
         int wanted = 1 + (rng.NextInt(0, 100) < 45 ? 1 : 0); var used = new HashSet<string>();

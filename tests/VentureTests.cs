@@ -28,7 +28,7 @@ public class VentureTests
         Assert.All(v.Defs, d => { Assert.InRange(d.BuildTurns, 1, 4); Assert.Contains(d.Sector, new[] { "trade", "extraction", "arms", "shipping", "finance", "services" }); });
         Assert.Equal(2, v.Def("arsenal_concern")!.WarCredits); Assert.Equal(3, v.Def("insurance_house")!.PeaceCredits); Assert.Equal(-1, v.Def("insurance_house")!.WarCredits); Assert.Equal(2, v.Def("commodity_warehouse")!.SpikeCredits);
         var b = Content.Holdings;
-        Assert.Equal(4, b.Building("orbital_ring")!.BuildTurns); Assert.Equal(2, b.Building("helium_skimmers")!.BuildTurns);   // megastructures four, works on a deposit two
+        Assert.Equal(2, b.Building("helium_skimmers")!.BuildTurns);   // works on a deposit two (a great work is not a building: docs/BUILDINGS.md)
         Assert.All(b.Buildings, x => Assert.InRange(x.BuildTurns, 1, 4));
     }
 
@@ -179,7 +179,7 @@ public class VentureTests
         Assert.True(options.Count > free);
         for (int i = 0; i < free; i++) Assert.True(tc.Executor.TryExecute(new BuildCommand(w.ProtagonistId, holding.Id, options[i].Id, Content.Holdings, Content.Titles), new CommandContext(w, WorldBuilder.RngFor(w))));
         Assert.Equal(free, ProjectSystem.SlotsUnderway(w, holding.Id));
-        Assert.Equal("no free slot", new BuildCommand(w.ProtagonistId, holding.Id, options[free].Id, Content.Holdings, Content.Titles).Refusal(new CommandContext(w, WorldBuilder.RngFor(w))));
+        Assert.StartsWith("no free slot", new BuildCommand(w.ProtagonistId, holding.Id, options[free].Id, Content.Holdings, Content.Titles).Refusal(new CommandContext(w, WorldBuilder.RngFor(w))));
         // play some years: your buildings stand, and the rival houses' sites have opened and closed
         for (int t = 0; t < 12; t++) { foreach (var i in tc.BeginTurn()) if (tc.Offer(i).FirstOrDefault(o => o.Available) is { } c) tc.Resolve(i, c.Choice.Id); tc.EndTurn(); }
         for (int i = 0; i < free; i++) Assert.Contains(options[i].Id, holding.Buildings);

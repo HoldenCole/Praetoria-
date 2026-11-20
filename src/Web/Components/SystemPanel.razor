@@ -1,15 +1,19 @@
 @inject GameClient G
-@* A solar system, body by body (docs/SYSTEMS.md): what goes round the sun, what makes each body unlike any other, what is built on it
-   and what is being built, and, for the house that holds the system's world, what may be built there. One body is open at a time. *@
+@* A solar system, place by place (docs/SYSTEMS.md, docs/BUILDINGS.md): the sun, each world with its moons under it, and open space.
+   A row is a place: its kind, its feature, its deposit, its building slots as pips and its one site for a great work as a diamond.
+   One place is open at a time: what stands there, the buildings that suit it, and the great works its site could take.
+   With Infrastructure set, the system's own tracks instead: each a row of levels, bought one at a time. *@
 @{
     var w = G.World!; var c = G.Content!; var cat = c.Holdings; var sys = w.Galaxy!.System(SystemId); if (sys == null) return;
     var me = w.Protagonist!; var house = w.House(me.HouseId)!; var planet = w.PlanetOf(sys.Id); bool mine = planet?.OwnerId == house.Id;
     var ctx = new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0));
     if (_for != sys.Id) { _for = sys.Id; _open = -1; }
-    // the sun first, then each world with its moons under it, then the rest in the order they lie
+    // the sun first, then each world with its moons under it, then open space
     var order = new List<int>(); int sun = sys.Bodies.FindIndex(b => b.IsStar); if (sun >= 0) order.Add(sun);
-    for (int i = 0; i < sys.Bodies.Count; i++) { if (sys.Bodies[i].IsStar || sys.Bodies[i].Orbits >= 0) continue; order.Add(i); for (int m = 0; m < sys.Bodies.Count; m++) if (sys.Bodies[m].Orbits == i) order.Add(m); }
+    for (int i = 0; i < sys.Bodies.Count; i++) { if (sys.Bodies[i].IsStar || sys.Bodies[i].IsSpace || sys.Bodies[i].Orbits >= 0) continue; order.Add(i); for (int m = 0; m < sys.Bodies.Count; m++) if (sys.Bodies[m].Orbits == i) order.Add(m); }
+    int deep = sys.Bodies.FindIndex(b => b.IsSpace); if (deep >= 0) order.Add(deep);
     var colony = planet == null ? w.Projects.FirstOrDefault(p => p.Kind == Project.Colony && p.TargetId == sys.Id) : null;
+    var raising = SystemWorks.Raising(w, cat, house.Id);
 }
 <div class="sysp" data-system="@sys.Id">
     @if (planet == null)
@@ -26,68 +30,170 @@
         </div>
     }
     else if (!mine) { <div class="muted small sysp-note">Held by @(w.House(planet.OwnerId)?.Name ?? "another"). What is built here is theirs while they hold the world, and would be yours if you took it.</div> }
+
+    @if (Infrastructure)
+    {
+        <p class="sysp-desc">What the whole system rests on. It belongs to no one world: it is laid a level at a time, each dearer than the last, and the higher levels take years.</p>
+        @foreach (var t in cat.Infrastructure)
+        {
+            int level = SystemWorks.Level(w, sys.Id, t.Id); var laying = SystemWorks.Laying(w, sys.Id, t.Id); int next = level + 1; string tid = t.Id;
+            string? no = mine && level < t.MaxLevel ? new InvestInfrastructureCommand(me.Id, sys.Id, t.Id, cat).Refusal(ctx) : null;
+            <div class="sysp-work infra" data-track="@t.Id">
+                @Art(t.Id)
+                <div class="sw-text">
+                    <div class="sw-head"><b>@t.Name</b> <span class="lv" title="@($"level {level} of {t.MaxLevel}")">@for (int k = 1; k <= t.MaxLevel; k++) { <i class="@(k <= level ? "on" : laying != null && k == next ? "up" : "") @(t.SlotsAt.Contains(k) ? "slot" : "")"></i> }</span></div>
+                    <div class="muted small">@t.Description</div>
+                    <div class="sw-does">@TrackDoes(t)</div>
+                    @if (laying != null) { <div class="sw-cost"><span>Level @SystemWorks.Roman(next) is being laid: @laying.TurnsLeft year(s) more.</span></div> }
+                    else if (level >= t.MaxLevel) { <div class="sw-cost"><span>Carried as far as it goes.</span></div> }
+                    else
+                    {
+                        <div class="sw-cost"><span>Level @SystemWorks.Roman(next) · @CourtProjection.Bundle(t.CostOf(next))@(t.YearsOf(next) > 1 ? $" · {t.YearsOf(next)} years" : "")@(t.SlotsAt.Contains(next) ? (t.Opens == "world" ? " · opens a slot on the world" : " · opens a slot on every other body") : "")</span>
+                            @if (mine) { <button class="opt inline" disabled="@(no != null)" title="@(no != null ? Cap(no) : "")" @onclick="() => G.Execute(new InvestInfrastructureCommand(me.Id, sys.Id, tid, cat))">Lay it</button> }
+                        </div>
+                        @if (mine && no != null) { <div class="sw-no">@Cap(no)</div> }
+                    }
+                </div>
+            </div>
+        }
+    }
+    else
+    {
     @foreach (int i in order)
     {
-        var b = sys.Bodies[i]; var feat = b.Feature.Length > 0 ? cat.Feature(b.Feature) : null;
-        var works = SystemWorks.On(w, sys.Id, i).Select(x => cat.Work(x.DefId)).Where(d => d != null).ToList(); var rising = SystemWorks.Underway(w, sys.Id, i).ToList();
+        var b = sys.Bodies[i]; var feat = b.Feature.Length > 0 ? cat.Feature(b.Feature) : null; bool world = b.IsPrimary && planet != null;
+        var standing = SystemWorks.On(w, sys.Id, i).Select(x => cat.Work(x.DefId)).Where(d => d != null).Select(d => d!).ToList(); var rising = SystemWorks.Underway(w, sys.Id, i).ToList();
+        string? siteId = SystemWorks.Site(w, cat, sys.Id, i); var great = siteId != null ? cat.Work(siteId) : null; bool greatRising = great != null && !standing.Contains(great);
+        // the system's own world is built on through its holding: its slots are the holding's, and its buildings the specialization's
+        var hb = world ? planet!.Buildings.Select(id => cat.Building(id)).Where(x => x != null).Select(x => x!).ToList() : new List<BuildingDef>();
+        var hbRising = world ? w.Projects.Where(p => p.Kind == Project.Building && p.TargetId == planet!.Id).ToList() : new List<Project>();
+        int slots = world ? SystemWorks.WorldSlots(w, cat, planet!) : SystemWorks.Slots(w, cat, sys, i);
+        int used = world ? planet!.Buildings.Count : standing.Count(d => !d.IsMegastructure), up = world ? hbRising.Count : rising.Count(p => cat.Work(p.DefId)?.IsMegastructure != true);
         bool open = _open == i; int idx = i; int px = b.IsStar || b.IsPrimary ? 30 : b.Orbits >= 0 ? 16 : 18 + b.Size * 4;
         string sprite = $"{b.Class}|{sys.Id}{b.Name}|{px}";
-        <div class="sysp-body @(open ? "open" : "") @(b.Orbits >= 0 ? "moon" : "") @(b.IsStar ? "star" : "")" data-body="@b.Class">
+        <div class="sysp-body @(open ? "open" : "") @(b.Orbits >= 0 ? "moon" : "") @(b.IsStar ? "star" : "") @(b.IsSpace ? "space" : "")" data-body="@b.Class">
             <button class="sysp-row" @onclick="() => _open = _open == idx ? -1 : idx" title="@(feat?.Description ?? Kind(b))">
-                <img class="sprite" data-planet="@sprite" alt="" />
+                @if (b.IsSpace) { <span class="sprite deep" aria-hidden="true"></span> } else { <img class="sprite" data-planet="@sprite" alt="" /> }
                 <span class="sysp-name"><b>@b.Name</b><span class="muted">@Kind(b)@(b.IsPrimary ? " · the system's world" : "")</span></span>
                 <span class="sysp-marks">
                     @if (feat != null) { <span class="pill small feat">@feat.Name</span> }
                     @if (b.Deposit.Length > 0) { <span class="pill small dep" title="@($"A {Resource.Label(b.Deposit)} deposit: richness {sys.Deposit(b.Deposit)}")">@Resource.Label(b.Deposit) @(new string('●', sys.Deposit(b.Deposit)))</span> }
-                    <span class="sysp-slots" title="@($"{works.Count} built · {rising.Count} rising · room for {b.Slots}")">@for (int k = 0; k < b.Slots; k++) { <i class="@(k < works.Count ? "on" : k < works.Count + rising.Count ? "up" : "")"></i> }</span>
+                    <span class="sysp-slots" title="@(slots == 0 ? "No building slots: only a great work can be raised here" : $"Building slots: {used} built · {up} rising · {slots} in all")">@for (int k = 0; k < slots; k++) { <i class="@(k < used ? "on" : k < used + up ? "up" : "")"></i> }</span>
+                    <span class="sysp-site @(great == null ? "" : greatRising ? "up" : "on")" title="@(great == null ? "The site for a great work: free" : greatRising ? $"{great.Name} is rising on its site" : $"{great.Name} stands on its site")">◆</span>
                 </span>
             </button>
-            @if (works.Count > 0 || rising.Count > 0)
+            @if (!open && (standing.Count > 0 || rising.Count > 0 || hb.Count > 0 || hbRising.Count > 0))
             {
                 <div class="sysp-built">
-                    @foreach (var d in works) { <span class="built" title="@($"{d!.Description} {Does(d, sys)}")">@d!.Name</span> }
-                    @foreach (var p in rising) { <span class="built up" title="@($"{Bundle(ProjectSystem.Remaining(p))} still to pay")">@(cat.Work(p.DefId)?.Name ?? p.DefId) · @p.TurnsLeft y</span> }
+                    @foreach (var d in hb) { <span class="built" title="@BuildingDoes(d)">@d.Name</span> }
+                    @foreach (var p in hbRising) { <span class="built up">@(cat.Building(p.DefId)?.Name ?? p.DefId) · @p.TurnsLeft y</span> }
+                    @foreach (var d in standing) { <span class="built @(d.IsMegastructure ? "great" : "")" title="@($"{d.Description} {Does(d, sys)}")">@d.Name</span> }
+                    @foreach (var p in rising) { <span class="built up @(cat.Work(p.DefId)?.IsMegastructure == true ? "great" : "")" title="@($"{Bundle(ProjectSystem.Remaining(p))} still to pay")">@(cat.Work(p.DefId)?.Name ?? p.DefId) · @p.TurnsLeft y</span> }
                 </div>
             }
             @if (open)
             {
                 <div class="sysp-open">
                     @if (feat != null) { <p class="sysp-desc">@feat.Description</p> }
-                    @{ var fits = cat.Works.Where(d => SystemWorks.Suits(sys, b, d) && !works.Any(x => x!.Id == d.Id) && !rising.Any(p => p.DefId == d.Id)).OrderByDescending(d => d.Feature.Length > 0).ThenByDescending(d => d.Deposit.Length > 0).ThenBy(d => d.Cost.Credits + d.Cost.Materials).ToList(); }
-                    @if (fits.Count == 0) { <div class="muted small">@(works.Count > 0 || rising.Count > 0 ? "Everything that suits it is built or rising." : "Nothing can be built here.")</div> }
-                    @foreach (var d in fits)
+                    @if (b.IsSpace) { <p class="sysp-desc">The dark between the worlds. What is built here is tied to no body: stations on the approaches, and the greatest works of all.</p> }
+
+                    @* what stands here *@
+                    @foreach (var d in hb) { <div class="sysp-work stands">@Art(d.Id)<div class="sw-text"><div class="sw-head"><b>@d.Name</b> <span class="muted small">stands</span></div><div class="sw-does">@BuildingDoes(d)</div></div></div> }
+                    @foreach (var d in standing) { <div class="sysp-work stands @(d.IsMegastructure ? "mega" : "")">@Art(d.Id)<div class="sw-text"><div class="sw-head"><b>@d.Name</b> <span class="muted small">@(d.IsMegastructure ? "great work · stands" : "stands")</span></div><div class="sw-does">@Does(d, sys)</div></div></div> }
+                    @foreach (var p in hbRising.Concat(rising)) { <div class="sysp-work stands up">@Art(p.DefId)<div class="sw-text"><div class="sw-head"><b>@Cap(p.Name)</b> <span class="muted small">rising</span></div><div class="sw-does">@p.TurnsLeft of @p.TurnsTotal year(s) to go · @Bundle(ProjectSystem.Remaining(p)) still to pay</div></div></div> }
+
+                    @* buildings: in the slots *@
+                    @if (slots > 0)
                     {
-                        string? no = mine ? new BuildWorkCommand(me.Id, sys.Id, idx, d.Id, cat, c.Titles).Refusal(ctx) : null; string did = d.Id;
-                        <div class="sysp-work @(d.Feature.Length > 0 ? "unique" : "") @(d.IsMegastructure ? "mega" : "")">
-                            <div class="sw-head"><b>@d.Name</b> <span class="muted small">@Category(d)</span></div>
-                            <div class="muted small">@d.Description</div>
-                            <div class="sw-does">@Does(d, sys)</div>
-                            <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@(d.BuildTurns > 1 ? $" · {d.BuildTurns} years" : "")</span>
-                                @if (mine) { <button class="opt inline" disabled="@(no != null)" title="@(no != null ? Cap(no) : d.BuildTurns > 1 ? "Begun now and paid for as it rises." : "")" @onclick="() => G.Execute(new BuildWorkCommand(me.Id, sys.Id, idx, did, cat, c.Titles))">@(d.BuildTurns > 1 ? "Begin" : "Build")</button> }
-                            </div>
-                            @if (mine && no != null) { <div class="sw-no">@Cap(no)</div> }
-                        </div>
+                        <h5 class="sysp-h">Buildings <span class="muted">@(slots - used - up) of @slots slot@(slots == 1 ? "" : "s") free@(world ? " · civil works open more" : " · outworks open more")</span></h5>
+                        @if (world)
+                        {
+                            var wfits = cat.Buildings.Where(x => x.FitsSpecialization(planet!.Specialization) && !planet.Buildings.Contains(x.Id) && !hbRising.Any(p => p.DefId == x.Id) && (x.RequiresDeposit == null || sys.Deposit(x.RequiresDeposit) > 0)).OrderBy(x => x.Cost.Credits + x.Cost.Materials).ToList();
+                            @if (wfits.Count == 0) { <div class="muted small">Every building that suits this world stands.</div> }
+                            @foreach (var d in wfits)
+                            {
+                                string? no = mine ? new BuildCommand(me.Id, planet!.Id, d.Id, cat, c.Titles).Refusal(ctx) : null; string did = d.Id; string hid = planet!.Id;
+                                <div class="sysp-work">
+                                    @Art(d.Id)
+                                    <div class="sw-text">
+                                        <div class="sw-head"><b>@d.Name</b></div>
+                                        <div class="sw-does">@BuildingDoes(d)</div>
+                                        <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@(d.BuildTurns > 1 ? $" · {d.BuildTurns} years" : "")</span>
+                                            @if (mine) { <button class="opt inline" disabled="@(no != null)" title="@(no != null ? Cap(no) : "")" @onclick="() => G.Execute(new BuildCommand(me.Id, hid, did, cat, c.Titles))">@(d.BuildTurns > 1 ? "Begin" : "Build")</button> }
+                                        </div>
+                                        @if (mine && no != null) { <div class="sw-no">@Cap(no)</div> }
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            var fits = cat.Works.Where(d => !d.IsMegastructure && SystemWorks.Suits(sys, b, d) && !standing.Any(x => x.Id == d.Id) && !rising.Any(p => p.DefId == d.Id)).OrderByDescending(d => d.Deposit.Length > 0).ThenBy(d => d.Cost.Credits + d.Cost.Materials).ToList();
+                            @if (fits.Count == 0) { <div class="muted small">Every building that suits it stands.</div> }
+                            @foreach (var d in fits) { @WorkRow(d, sys, idx, mine, ctx) }
+                        }
                     }
+
+                    @* the one site: a great work *@
+                    @{ var greats = cat.Works.Where(d => d.IsMegastructure && SystemWorks.Suits(sys, b, d)).OrderByDescending(d => d.Feature.Length > 0).ThenBy(d => d.Cost.Credits + d.Cost.Materials).ToList(); }
+                    @if (greats.Count > 0 || great != null)
+                    {
+                        <h5 class="sysp-h great">Great work <span class="muted">@(great != null ? (greatRising ? "the site is taken: it is rising" : "the site is taken") : "one site, for one of these · years in the raising")</span></h5>
+                        @if (great == null)
+                        {
+                            @if (mine && raising != null) { <div class="muted small">The house is raising @raising.Name. It raises one great work at a time.</div> }
+                            @foreach (var d in greats) { @WorkRow(d, sys, idx, mine, ctx) }
+                        }
+                    }
+                    @if (slots == 0 && greats.Count == 0 && great == null) { <div class="muted small">Nothing can be built here.</div> }
                 </div>
             }
         </div>
+    }
     }
 </div>
 
 @code {
     [Parameter] public string SystemId { get; set; } = "";
+    /// <summary>Show the system's infrastructure and not its bodies.</summary>
+    [Parameter] public bool Infrastructure { get; set; }
     private int _open = -1; private string? _for;
+    /// <summary>The painting of a thing, where it has one; an empty plate of the same size where it has not.</summary>
+    private RenderFragment Art(string id) => __builder =>
+    {
+        if (G.WorkPicture(id) is { } src) { <img class="sw-art" src="@src" alt="" loading="lazy" /> } else { <span class="sw-art none" aria-hidden="true"></span> }
+    };
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private static string Bundle(Resources r) => r.IsEmpty() ? "nothing" : CourtProjection.Bundle(r);
     private static string Kind(Body b) => b.Class switch
     {
-        "star" => "the sun", "moon" => "moon", "comet" => "comet", "belt" => "asteroid belt", "gas" => "gas giant", "terran" => "living world", "ocean" => "ocean world",
+        "star" => "the sun", "space" => "tied to no world", "moon" => "moon", "comet" => "comet", "belt" => "asteroid belt", "gas" => "gas giant", "terran" => "living world", "ocean" => "ocean world",
         "arid" => "arid world", "forge" => "forge world", "frozen" => b.Size <= 1 ? "ice dwarf" : "frozen world", "barren" => b.Size <= 1 ? "rock" : "dead world", _ => b.Class
     };
-    private static string Category(WorkDef d) => d.Feature.Length > 0 ? "only here" : d.Limit == WorkDef.PerGalaxy ? "a wonder: one in the galaxy" : d.Category switch
+    private static string Category(WorkDef d) => d.Feature.Length > 0 ? "only here" : d.Limit == WorkDef.PerGalaxy ? "one in the galaxy" : d.Limit == WorkDef.PerHouse ? "one to a house" : d.Limit == WorkDef.PerSystem ? "one to a system" : d.IsMegastructure ? "great work" : d.Category switch
     {
-        WorkDef.Colony => "colony", WorkDef.Extraction => "extraction", WorkDef.Military => "military", WorkDef.Megastructure => "megastructure", WorkDef.Wonder => d.Limit == WorkDef.PerHouse ? "one to a house" : "wonder", _ => "orbital"
+        WorkDef.Colony => "colony", WorkDef.Extraction => "extraction", WorkDef.Military => "military", _ => "civil"
     };
+
+    /// <summary>One thing that could be built on a body: its picture, what it does, what it costs, and the button or why not.</summary>
+    private RenderFragment WorkRow(WorkDef d, StarSystem sys, int body, bool mine, CommandContext ctx) => __builder =>
+    {
+        var w = G.World!; var c = G.Content!; var me = w.Protagonist!; string did = d.Id; string sid = sys.Id;
+        string? no = mine ? new BuildWorkCommand(me.Id, sid, body, did, c.Holdings, c.Titles).Refusal(ctx) : null;
+        <div class="sysp-work @(d.Feature.Length > 0 ? "unique" : "") @(d.IsMegastructure ? "mega" : "")" data-work="@d.Id">
+            @Art(d.Id)
+            <div class="sw-text">
+                <div class="sw-head"><b>@d.Name</b> <span class="muted small">@Category(d)</span></div>
+                <div class="muted small">@d.Description</div>
+                <div class="sw-does">@Does(d, sys)</div>
+                <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@(d.BuildTurns > 1 ? $" · {d.BuildTurns} years" : "")</span>
+                    @if (mine) { <button class="opt inline" disabled="@(no != null)" title="@(no != null ? Cap(no) : d.BuildTurns > 1 ? "Begun now and paid for as it rises." : "")" @onclick="() => G.Execute(new BuildWorkCommand(me.Id, sid, body, did, c.Holdings, c.Titles))">@(d.IsMegastructure ? "Raise" : d.BuildTurns > 1 ? "Begin" : "Build")</button> }
+                </div>
+                @if (mine && no != null) { <div class="sw-no">@Cap(no)</div> }
+            </div>
+        </div>
+    };
+
     /// <summary>What a work does, in a line: what it brings a year, what it costs to keep, and the rest.</summary>
     private static string Does(WorkDef d, StarSystem sys)
     {
@@ -103,5 +209,29 @@
         if (d.Legitimacy > 0) parts.Add($"legitimacy +{d.Legitimacy} when finished");
         if (d.Glory > 0) parts.Add($"glory +{d.Glory}");
         return string.Join(" · ", parts);
+    }
+    private static string BuildingDoes(BuildingDef d)
+    {
+        var parts = new List<string>();
+        string perPoint = d.RequiresDeposit != null ? " for each point of the deposit" : "";
+        if (!d.Yield.IsEmpty()) parts.Add("+" + CourtProjection.Bundle(d.Yield) + " a year" + perPoint);
+        if (!d.Upkeep.IsEmpty()) parts.Add($"upkeep {CourtProjection.Bundle(d.Upkeep)}");
+        if (d.Defense > 0) parts.Add($"defence +{d.Defense:0.##}");
+        return parts.Count == 0 ? "Steadies the world." : string.Join(" · ", parts);
+    }
+    private static string TrackDoes(InfrastructureDef t)
+    {
+        var parts = new List<string>();
+        if (!t.Yield.IsEmpty()) parts.Add($"+{CourtProjection.Bundle(t.Yield)} a year");
+        if (t.Defense > 0) parts.Add($"defence +{t.Defense:0.##}");
+        if (t.Prosperity != 0) parts.Add($"prosperity +{t.Prosperity}");
+        if (t.Population != 0) parts.Add($"room for {t.Population} more people");
+        string each = parts.Count > 0 ? "Each level: " + string.Join(" · ", parts) + "." : "";
+        string slotLevels = string.Join(", ", t.SlotsAt.Select(SystemWorks.Roman)), calmLevels = string.Join(" and ", t.CalmAt.Select(SystemWorks.Roman));
+        string where = t.Opens == "world" ? "on the system's world" : "on every other body and in open space";
+        if (t.SlotsAt.Count > 0) each += " Levels " + slotLevels + " open a building slot " + where + ".";
+        if (t.CalmAt.Count > 0) each += " Levels " + calmLevels + " take a point a year off the world's unrest.";
+        if (t.DepotAt > 0) each += " From level " + SystemWorks.Roman(t.DepotAt) + " the system supplies fleets as a depot.";
+        return each.Trim();
     }
 }

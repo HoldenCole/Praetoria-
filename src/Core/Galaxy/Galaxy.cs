@@ -51,9 +51,10 @@ public sealed class Body
     /// <summary>The strategic deposit it carries, or "": the system's richness of that good is brought up here.</summary>
     public string Deposit { get; set; } = "";
     public const string Star = "star", Moon = "moon", Comet = "comet", Belt = "belt";
+    /// <summary>Not a body at all: the open space of the system, where what is tied to no world is built (docs/BUILDINGS.md).</summary>
+    public const string Space = "space";
     public bool IsStar => Class == Star;
-    /// <summary>How many works it has room for: one on the sun, a rock or a moon; two on a world or a belt; three on the system's own world or a giant.</summary>
-    public int Slots => IsStar ? 1 : Class == Belt ? 2 : Math.Clamp(Size, 1, 3);
+    public bool IsSpace => Class == Space;
 }
 
 /// <summary>A region of space: a handful of systems that share a culture and a character (GDD §19). Loyalties and houses

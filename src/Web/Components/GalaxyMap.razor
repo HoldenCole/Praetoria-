@@ -50,12 +50,15 @@
                     @if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="36" /> }
                 </div>
                 <p class="muted small">@sys.Description</p>
-                @{ int built = SystemWorks.In(w, sys.Id).Count(), rising = w.Projects.Count(p => (p.Kind == Project.Work && SystemWorks.Parse(p.TargetId).systemId == sys.Id) || (p.Kind == Project.Colony && p.TargetId == sys.Id)); }
+                @{ int laid = w.Infrastructure.TryGetValue(sys.Id, out var lvls) ? lvls.Values.Sum() : 0; }
+                @{ int built = SystemWorks.In(w, sys.Id).Count() + (planet?.Buildings.Count ?? 0), rising = w.Projects.Count(p => (p.Kind == Project.Work && SystemWorks.Parse(p.TargetId).systemId == sys.Id) || (p.Kind == Project.Colony && p.TargetId == sys.Id)); }
                 <div class="cw-tabs sys-tabs">
-                    <button class="rung @(_sideTab == "system" ? "here" : "")" @onclick='() => _sideTab = "system"'>The system · @sys.Bodies.Count(b => !b.IsStar) bodies@(built > 0 ? $" · {built} built" : "")@(rising > 0 ? $" · {rising} rising" : "")</button>
+                    <button class="rung @(_sideTab == "system" ? "here" : "")" @onclick='() => _sideTab = "system"'>The system@(built > 0 ? $" · {built} built" : "")@(rising > 0 ? $" · {rising} rising" : "")</button>
+                    <button class="rung @(_sideTab == "infra" ? "here" : "")" @onclick='() => _sideTab = "infra"'>Infrastructure@(laid > 0 ? $" · {laid}" : "")</button>
                     <button class="rung @(_sideTab == "world" ? "here" : "")" @onclick='() => _sideTab = "world"'>The world</button>
                 </div>
                 @if (_sideTab == "system") { <SystemPanel SystemId="@sys.Id" /> }
+                else if (_sideTab == "infra") { <SystemPanel SystemId="@sys.Id" Infrastructure="true" /> }
                 else
                 {
                 <div class="kv"><span>Lanes</span><b>@sel.Lanes@(sel.Chokepoint ? " · CHOKEPOINT" : "")</b></div>
@@ -177,7 +180,7 @@
     /// and whether anything is built on it. The sun is left out, so a moon's world is named by its place among what is left.</summary>
     private static object Bodies(World w, MapNode n)
     {
-        var all = (n.Bodies ?? Array.Empty<Body>()).ToList(); var kept = all.Select((b, i) => (b, i)).Where(x => !x.b.IsStar).ToList();
+        var all = (n.Bodies ?? Array.Empty<Body>()).ToList(); var kept = all.Select((b, i) => (b, i)).Where(x => !x.b.IsStar && !x.b.IsSpace).ToList();
         var place = kept.Select((x, k) => (x.i, k)).ToDictionary(x => x.i, x => x.k);
         var built = w.BodyWorks.Count == 0 ? new HashSet<int>() : SystemWorks.In(w, n.SystemId).Select(x => x.Body).ToHashSet();
         return kept.Select(x => new { name = x.b.Name, cls = x.b.Class, size = x.b.Size, primary = x.b.IsPrimary, orbits = x.b.Orbits >= 0 && place.TryGetValue(x.b.Orbits, out var at) ? at : -1, works = built.Contains(x.i) }).ToList();
@@ -214,6 +217,7 @@
                 planetClass = n.PlanetClass, pop = n.Population, unrest = n.Unrest, stations = n.Stations, regionId = n.RegionId, governor = n.GovernorName, rebel = n.Rebellion > 0, capital = n.Capital, ring = n.Ring, chokepoint = n.Chokepoint, conquered = taken?.kind, deposits = n.Deposits == null ? "" : string.Join(" ", n.Deposits.Keys.Select(k => k == "helium3" ? "³He" : k == "rare_earths" ? "RE" : "Iso")),
                 bodies = Bodies(w, n),
                 sunWorks = w.BodyWorks.Count > 0 && w.Galaxy!.System(n.SystemId) is { } sunSys && SystemWorks.In(w, n.SystemId).Any(x => x.Body >= 0 && x.Body < sunSys.Bodies.Count && sunSys.Bodies[x.Body].IsStar),
+                deepWorks = SystemWorks.Any(w) && w.Galaxy!.System(n.SystemId) is { } deepSys ? SystemWorks.In(w, n.SystemId).Count(x => x.Body >= 0 && x.Body < deepSys.Bodies.Count && deepSys.Bodies[x.Body].IsSpace) : 0,
                 industry = n.PlanetHoldingId != null ? c.Holdings.Spec(w.Holding(n.PlanetHoldingId)!.Specialization)?.Name : null,
                 siege = siege != null ? (double?)Math.Clamp(siege.Turns / (double)Math.Max(1, siege.Required), 0, 1) : null,
                 bloc = owner != null && owner.Bloc.Length > 0 ? (owner.Bloc == GreatCrisisSystem.HegemonBloc ? "hegemon" : "alliance") : null, target };

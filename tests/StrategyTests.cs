@@ -89,20 +89,23 @@ public class StrategyTests
     public void Megastructures_AreGatedByTitleRank_AndAnnounced()
     {
         var (content, w) = Fresh("the_imperial_court");               // Thorne is a knight
-        var house = w.House("thorne")!; house.Treasury.Materials = 100; house.Treasury.Credits = 100; house.Treasury.Exotics = 10;
+        var house = w.House("thorne")!; house.Treasury.Materials = 200; house.Treasury.Credits = 200; house.Treasury.Exotics = 10;
         var ctx = new CommandContext(w, TestContent.Rng());
-        var ring = new BuildCommand(w.ProtagonistId, "thorne_fief", "orbital_ring", content.Holdings, content.Titles);
-        Assert.False(ring.CanExecute(ctx));
+        // a great work is not one of a world's buildings any more (docs/BUILDINGS.md): it is raised on the world's one site
+        Assert.Null(content.Holdings.Building("orbital_ring")); var def = content.Holdings.Work("orbital_ring")!; Assert.True(def.IsMegastructure);
+        Praetoria.Core.Galaxy.SystemBodies.Furnish(w.Galaxy!, content.Holdings);
+        var seat = w.Holding("thorne_fief")!; var sys = w.Galaxy!.System(seat.SystemId)!; int world = sys.Bodies.FindIndex(x => x.IsPrimary);
+        var ring = new BuildWorkCommand(w.ProtagonistId, sys.Id, world, "orbital_ring", content.Holdings, content.Titles);
+        Assert.Equal("needs a greater rank", ring.Refusal(ctx));
         house.Title = "count";
         Assert.True(new CommandExecutor().TryExecute(ring, ctx));
-        // a megastructure is four years in the building (docs/ECONOMY_MARKET.md stage B): begun now, announced when it stands
-        var site = Assert.Single(w.Projects); Assert.Equal(4, site.TurnsTotal); Assert.False(w.HasFlag("megastructure_raised")); Assert.DoesNotContain("orbital_ring", w.Holding("thorne_fief")!.Buildings);
-        Assert.Equal("already being built", ring.Refusal(ctx));
-        for (int year = 0; year < 4; year++) { w.Turn++; ProjectSystem.Tick(w, content.Holdings, content.Businesses); }
-        Assert.Empty(w.Projects); Assert.Contains("orbital_ring", w.Holding("thorne_fief")!.Buildings);
+        // it is years in the building: begun now, announced when it stands, and it takes none of the world's slots
+        var site = Assert.Single(w.Projects); Assert.Equal(def.BuildTurns, site.TurnsTotal); Assert.False(w.HasFlag("megastructure_raised")); Assert.DoesNotContain("orbital_ring", seat.Buildings);
+        Assert.Equal("already being built here", ring.Refusal(ctx));
+        for (int year = 0; year < def.BuildTurns; year++) { w.Turn++; house.Treasury.Materials = 200; house.Treasury.Credits = 200; ProjectSystem.Tick(w, content.Holdings, content.Businesses); }
+        Assert.Empty(w.Projects); Assert.Contains(w.BodyWorks, x => x.DefId == "orbital_ring" && x.SystemId == sys.Id && x.Body == world); Assert.DoesNotContain("orbital_ring", seat.Buildings);
         Assert.True(w.HasFlag("megastructure_raised"));
         Assert.Equal(1, w.Counter("megastructures"));
-        Assert.True(content.Holdings.Building("orbital_ring")!.Megastructure);
     }
 
     [Fact]

@@ -185,7 +185,7 @@ public sealed class FleetSystem
         var g = w.Galaxy; if (g == null) return true;
         foreach (var h in w.HoldingsOf(houseId).Where(h => h.IsPlanet && h.SystemId.Length > 0))
         {
-            int range = h.Buildings.Contains("supply_depot") || (w.BodyWorks.Count > 0 && SystemWorks.Depot(w, _catalog, h.SystemId)) ? _rules.DepotRange : _rules.SupplyRange;
+            int range = h.Buildings.Contains("supply_depot") || (SystemWorks.Any(w) && SystemWorks.Depot(w, _catalog, h.SystemId)) ? _rules.DepotRange : _rules.SupplyRange;
             if (h.SystemId == systemId || g.Hops(h.SystemId, systemId) is > 0 and var d && d <= range) return true;
         }
         var target = CampaignTarget(w, houseId);
@@ -758,7 +758,7 @@ public sealed class FleetSystem
             d += _catalog.Spec(h.Specialization)?.Defense ?? 0;
             foreach (var b in h.Buildings) d += _catalog.Building(b)?.Defense ?? 0;
         }
-        if (w.BodyWorks.Count > 0 && w.PlanetHolder(systemId) == houseId) d += SystemWorks.Defense(w, _catalog, systemId);   // batteries, a fortress moon (docs/SYSTEMS.md)
+        if (SystemWorks.Any(w) && w.PlanetHolder(systemId) == houseId) d += SystemWorks.Defense(w, _catalog, systemId);   // batteries, a fortress moon (docs/SYSTEMS.md)
         return d;
     }
 
@@ -808,7 +808,7 @@ public sealed class FleetSystem
     /// <summary>Turns a blockade needs to take a holding: the base plus two per point of its defense.</summary>
     public int SiegeRequired(World w, Holding h) =>
         _rules.SiegeTurns + (int)Math.Ceiling(2 * ((_catalog.Spec(h.Specialization)?.Defense ?? 0) + h.Buildings.Sum(b => _catalog.Building(b)?.Defense ?? 0)
-            + (h.IsPlanet && w.BodyWorks.Count > 0 ? SystemWorks.Defense(w, _catalog, h.SystemId) : 0)));
+            + (h.IsPlanet && SystemWorks.Any(w) ? SystemWorks.Defense(w, _catalog, h.SystemId) : 0)));
 
     /// <summary>Advance sieges: an enemy fleet alone in the sky over a holding tightens the blockade; when the clock
     /// reaches the holding's resistance it changes hands (GDD §13 Military — "take it"). A contested sky lifts the siege.</summary>

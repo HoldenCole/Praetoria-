@@ -30,6 +30,7 @@ treat it as the future desktop shell. See
 [`docs/MILESTONE_3_NOTES.md`](docs/MILESTONE_3_NOTES.md) and [`docs/RELEASE_0.5.md`](docs/RELEASE_0.5.md).
 
 - [`docs/GALAXY.md`](docs/GALAXY.md) — the galaxy: three rings, the capital, allegiance and lawlessness, risings, free holds and free marches.
+- [`docs/BUILDINGS.md`](docs/BUILDINGS.md) — the list of everything that can be built: buildings by kind of body, great works, infrastructure, and how slots work.
 - [`docs/SYSTEMS.md`](docs/SYSTEMS.md) — solar systems: the bodies of a system, the features that make each unlike the next, the works built on them, and settling an empty system.
 - [`docs/GALAXY_SIZE.md`](docs/GALAXY_SIZE.md) — the size of the map: small, medium, large and extra large, how a larger map is grown from the written one, and the borders between realms.
 - [`docs/ECONOMY.md`](docs/ECONOMY.md) — the economy: the ledger, prosperity, belts and claims, ventures and charters, loans, house wealth.

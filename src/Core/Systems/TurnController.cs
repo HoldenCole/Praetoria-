@@ -108,7 +108,7 @@ public sealed class TurnController
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
         _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
         _senate = new SenateSystem(content.Motions, content.Titles, _fleets, content.Offices) { Policies = content.Policies, Nations = content.Nations };
-        if (world.Galaxy != null) Praetoria.Core.Galaxy.SystemBodies.Furnish(world.Galaxy, content.Holdings);   // every system its sun, moons and features, once (docs/SYSTEMS.md): a save from before them gets them here
+        if (world.Galaxy != null) { Praetoria.Core.Galaxy.SystemBodies.Furnish(world.Galaxy, content.Holdings); SystemWorks.Migrate(world, content.Holdings); }   // every system its sun, moons and features, once (docs/SYSTEMS.md): a save from before them gets them here
         _nations = new NationSystem(content.Nations, _fleets); if (world.Turn == 0) NationSystem.Seed(world, content.Nations);   // the nations beyond the Reach (docs/FOREIGN_NATIONS.md)
         if (world.Turn == 0 && world.Laws.Count == 0) PolicySystem.ApplyCultures(world, content.Policies);   // every house begins with its culture's laws (GDD §19)
         FactionSystem.Use(world, content.Policies);   // this world's laws, not every world's (see FactionSystem.Policies)

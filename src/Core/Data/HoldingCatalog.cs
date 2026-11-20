@@ -87,6 +87,32 @@ public sealed record ColonyRule(Resources Cost, int BuildTurns, int Population, 
     public static ColonyRule Default { get; } = new(new Resources { Credits = 30, Materials = 20, Manpower = 8, Influence = 2 }, 3, 6, "frontier_colony");
 }
 
+/// <summary>A track of a system's infrastructure (docs/BUILDINGS.md): the system's own, not any body's, and bought a level at a time.
+/// Level N costs N times <see cref="Cost"/> and takes <see cref="Years"/>[N-1]. Each level does <see cref="PerLevel"/>; at the levels in
+/// <see cref="SlotsAt"/> it opens a building slot on the system's world ("world") or on every other body and open space ("bodies").</summary>
+public sealed class InfrastructureDef
+{
+    public string Id { get; init; } = "";
+    public string Name { get; init; } = "";
+    public string Description { get; init; } = "";
+    public int MaxLevel { get; init; } = 5;
+    public Resources Cost { get; init; } = new();
+    public IReadOnlyList<int> Years { get; init; } = Array.Empty<int>();
+    public Resources Yield { get; init; } = new();
+    public double Defense { get; init; }
+    public int Prosperity { get; init; }
+    public int Population { get; init; }
+    public IReadOnlyList<int> SlotsAt { get; init; } = Array.Empty<int>();
+    public string Opens { get; init; } = "";
+    /// <summary>Levels at which the world's unrest falls a point a year more.</summary>
+    public IReadOnlyList<int> CalmAt { get; init; } = Array.Empty<int>();
+    /// <summary>The level from which the system supplies fleets as a depot does; 0 = never.</summary>
+    public int DepotAt { get; init; }
+    public Resources CostOf(int level) { var c = new Resources(); foreach (var r in Resource.All) c.Set(r, Cost.Get(r) * Math.Max(1, level)); return c; }
+    public int YearsOf(int level) => level >= 1 && level <= Years.Count ? Math.Max(1, Years[level - 1]) : 1;
+    public int SlotsUpTo(int level) => SlotsAt.Count(l => l <= level);
+}
+
 /// <summary>A work: what the holder of a system builds on one of its bodies (docs/SYSTEMS.md) — a colony, a mine, a base, a
 /// megastructure, or a wonder that only one feature allows. Its yearly <see cref="Yield"/> less <see cref="Upkeep"/> goes to whoever
 /// holds the system's world; the rest of what it does is in the fields. Pure data.</summary>
@@ -115,7 +141,11 @@ public sealed class WorkDef
     public Resources Upkeep { get; init; } = new();
     public int BuildTurns { get; init; }
     public int MinTitleRank { get; init; }
+    /// <summary>A great work (docs/BUILDINGS.md): it takes no building slot but the body's one site, costs far more, takes many years,
+    /// and a house raises one at a time. Everything else is a building, and goes in a slot.</summary>
     public bool IsMegastructure { get; init; }
+    /// <summary>"world" = only on the system's own world; "" = wherever its kind of body is.</summary>
+    public string On { get; init; } = "";
     public double Defense { get; init; }
     /// <summary>Supplies fleets as a supply depot does.</summary>
     public bool Depot { get; init; }
@@ -174,6 +204,11 @@ public sealed class HoldingCatalog
     public IReadOnlyList<WorkDef> Works { get; init; } = Array.Empty<WorkDef>();
     public IReadOnlyList<FeatureDef> Features { get; init; } = Array.Empty<FeatureDef>();
     public ColonyRule Colony { get; init; } = ColonyRule.Default;
+    /// <summary>Building slots by kind of body, the slots of a small rock or ice-dwarf, and the tracks of a system's infrastructure (docs/BUILDINGS.md).</summary>
+    public IReadOnlyDictionary<string, int> BodySlots { get; init; } = new Dictionary<string, int>();
+    public int SmallSlots { get; init; } = 1;
+    public IReadOnlyList<InfrastructureDef> Infrastructure { get; init; } = Array.Empty<InfrastructureDef>();
+    public InfrastructureDef? Track(string id) => Infrastructure.FirstOrDefault(t => t.Id == id);
     private Dictionary<string, WorkDef>? _works;
     public WorkDef? Work(string id) => (_works ??= Works.ToDictionary(w => w.Id)).TryGetValue(id, out var d) ? d : null;
     public FeatureDef? Feature(string id) => Features.FirstOrDefault(f => f.Id == id);

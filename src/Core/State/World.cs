@@ -118,6 +118,8 @@ public sealed class World
     public List<Project> Projects { get; set; } = new();
     /// <summary>What has been built on the bodies of the systems (docs/SYSTEMS.md).</summary>
     public List<BodyWork> BodyWorks { get; set; } = new();
+    /// <summary>The infrastructure of each system (docs/BUILDINGS.md): system id → track id → level.</summary>
+    public Dictionary<string, Dictionary<string, int>> Infrastructure { get; set; } = new();
     /// <summary>Ventures offered for sale to a named house, until they lapse.</summary>
     public List<VentureOffer> Offers { get; set; } = new();
     public IEnumerable<Project> ProjectsOf(string houseId) => Projects.Where(p => p.OwnerId == houseId);

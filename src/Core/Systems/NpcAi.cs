@@ -487,10 +487,11 @@ public sealed class NpcAi
         }
     }
 
-    /// <summary>A rival house builds on the bodies of its systems and settles what lies empty beside it (docs/SYSTEMS.md). About one year
-    /// in three, by a hash, a house with coin to spare builds the first work it can on a body of a system it holds: what works a deposit
-    /// first, then what only that body's feature allows, then the rest; a megastructure only when it could pay for it twice. About one
-    /// year in six, a house with the coin sends a colony to an empty system a lane from a world of its own. One of each a year at most.</summary>
+    /// <summary>A rival house builds on the bodies of its systems and settles what lies empty beside it (docs/SYSTEMS.md, docs/BUILDINGS.md).
+    /// About one year in three, by a hash, a house with coin to spare builds the first thing it can on a body of a system it holds:
+    /// buildings before great works, what works a deposit first; a great work only when it could pay for most of it today. About one year
+    /// in four it lays the next level of its seat's infrastructure. About one year in six, a house with the coin sends a colony to an
+    /// empty system a lane from a world of its own. One of these a year at most.</summary>
     private void Works(House house, Character steward, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
     {
         var world = ctx.World; var g = world.Galaxy; if (g == null || catalog.Works.Count == 0) return;
@@ -498,7 +499,7 @@ public sealed class NpcAi
         var seats = world.HoldingsOf(house.Id).Where(x => x.IsPlanet && !x.InRebellion && x.SystemId.Length > 0).OrderBy(x => x.Id, StringComparer.Ordinal).ToList();
         if (h % 3 == 0 && house.Treasury.Credits >= 24 && seats.Count > 0)
         {
-            _worksInOrder ??= catalog.Works.OrderByDescending(d => d.Deposit.Length > 0).ThenByDescending(d => d.Feature.Length > 0).ThenBy(d => d.IsMegastructure).ThenBy(d => d.Id, StringComparer.Ordinal).ToList();
+            _worksInOrder ??= catalog.Works.OrderBy(d => d.IsMegastructure).ThenByDescending(d => d.Deposit.Length > 0).ThenByDescending(d => d.Feature.Length > 0).ThenBy(d => d.Id, StringComparer.Ordinal).ToList();   // buildings before great works; what works a deposit first; of great works, what only this body allows
             foreach (var seat in seats)
             {
                 var sys = g.System(seat.SystemId); if (sys == null) continue;
@@ -506,11 +507,18 @@ public sealed class NpcAi
                     foreach (var def in _worksInOrder)
                     {
                         if (!SystemWorks.Suits(sys, sys.Bodies[i], def)) continue;
-                        if (house.Treasury.Credits < def.Cost.Credits * (def.IsMegastructure ? 2 : 1) + 12) continue;   // a cushion kept; a megastructure only when it can afford to show off
+                        if (def.IsMegastructure ? house.Treasury.Credits < def.Cost.Credits + 30 || house.Treasury.Materials < def.Cost.Materials / 2 : house.Treasury.Credits < def.Cost.Credits + 12) continue;   // a cushion kept; a great work only by a house that could pay for most of it today
                         if (executor.TryExecute(new BuildWorkCommand(steward.Id, sys.Id, i, def.Id, catalog, Titles), ctx)) return;
                     }
             }
         }
+        // about one year in four it lays the next level of some infrastructure at its seat: the cheapest it can, civil works first
+        if (h % 4 == 2 && house.Treasury.Credits >= 30 && seats.Count > 0)
+            foreach (var t in catalog.Infrastructure.OrderBy(t => SystemWorks.Level(world, seats[0].SystemId, t.Id)).ThenBy(t => t.Id == "civil_works" ? 0 : 1).ThenBy(t => t.Id, StringComparer.Ordinal))
+            {
+                int next = SystemWorks.Level(world, seats[0].SystemId, t.Id) + 1; if (next > t.MaxLevel || house.Treasury.Credits < t.CostOf(next).Credits + 20) continue;
+                if (executor.TryExecute(new InvestInfrastructureCommand(steward.Id, seats[0].SystemId, t.Id, catalog), ctx)) return;
+            }
         if (h % 6 == 1 && house.Treasury.Credits >= catalog.Colony.Cost.Credits + 20 && seats.Count > 0)
             foreach (var target in seats.SelectMany(x => g.Neighbors(x.SystemId)).Distinct().OrderBy(x => x, StringComparer.Ordinal))
                 if (world.PlanetOf(target) == null && executor.TryExecute(new FoundColonyCommand(steward.Id, target, catalog), ctx)) return;

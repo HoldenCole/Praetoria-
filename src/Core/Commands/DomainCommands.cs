@@ -44,7 +44,7 @@ public sealed class BuildCommand : ICommand
         if (holding == null || holding.OwnerId != actor.HouseId) return "not your holding";
         var spec = _catalog.Spec(holding.Specialization); var building = _catalog.Building(_buildingId);
         if (spec == null || building == null) return "no such building";
-        if (holding.Buildings.Count + Systems.ProjectSystem.SlotsUnderway(w, holding.Id) >= spec.Slots) return "no free slot";
+        if (holding.Buildings.Count + Systems.ProjectSystem.SlotsUnderway(w, holding.Id) >= Systems.SystemWorks.WorldSlots(w, _catalog, holding)) return holding.IsPlanet ? "no free slot: civil works open more" : "no free slot";
         if (holding.Buildings.Contains(_buildingId)) return "already built";
         if (Systems.ProjectSystem.Underway(w, actor.HouseId, Project.Building, _buildingId, holding.Id)) return "already being built";
         if (!building.FitsSpecialization(holding.Specialization)) return "does not suit this holding";

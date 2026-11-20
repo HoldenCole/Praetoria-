@@ -1,6 +1,7 @@
-// Solar systems (docs/SYSTEMS.md): picks the player's seat on the map, opens its System tab, opens a body and builds the first work
-// that can be built there; then picks a system nobody holds and reads what settling it would take. Prints every body of the seat with
-// its kind, its feature and its room, and says what was built.
+// Solar systems (docs/SYSTEMS.md, docs/BUILDINGS.md): picks the player's seat on the map and opens its System tab. Prints every place
+// in it (the sun, each world and moon, open space) with its kind, its feature, its building slots and whether its site for a great
+// work is free; opens places until one offers something that can be built now, and builds it; lays a level of infrastructure on the
+// Infrastructure tab; then picks a system nobody holds and reads what settling it would take.
 //
 //   node systems.js ["Start title"] [size: small|medium|large|extra_large]
 //
@@ -24,23 +25,35 @@ require('fs').mkdirSync(shots, { recursive: true });
   const seat = await page.evaluate(() => { const g = [...window.praetoriaSpace.galaxies.values()][0]; const s = g.model.systems.find(x => x.isPlayer); return s ? s.name : null; });
   check(!!seat, 'the player holds a system: ' + seat);
   await pick(seat);
-  const bodies = await page.evaluate(() => [...document.querySelectorAll('.sysp-body')].map(b => b.querySelector('.sysp-name b').innerText + ' [' + b.querySelector('.sysp-name .muted').innerText + ']' + [...b.querySelectorAll('.pill.feat')].map(p => ' *' + p.innerText).join('') + ' room ' + b.querySelectorAll('.sysp-slots i').length));
+  const bodies = await page.evaluate(() => [...document.querySelectorAll('.sysp-body')].map(b => b.querySelector('.sysp-name b').innerText + ' [' + b.querySelector('.sysp-name .muted').innerText + ']' + [...b.querySelectorAll('.pill.feat')].map(p => ' *' + p.innerText).join('') + ' slots ' + b.querySelectorAll('.sysp-slots i').length + (b.querySelector('.sysp-site') ? ' +site' : '')));
   check(bodies.length >= 5, bodies.length + ' bodies listed, the sun among them'); bodies.forEach(b => console.log('       ' + b));
-  check(bodies.some(b => b.includes('the sun')), 'the sun is a place of its own'); check(bodies.some(b => b.includes('*')), 'a body has a feature no other system need have');
+  check(bodies.some(b => b.includes('the sun') && b.includes('slots 0 +site')), 'the sun has no building slot, and a site for a great work');
+  check(bodies.some(b => b.includes('Open space')), 'open space is a place to build, tied to no world'); check(bodies.some(b => b.includes('*')), 'a body has a feature no other system need have');
+  check(bodies.some(b => b.includes("the system's world") && !b.includes('slots 0')), "the system's own world shows its holding's slots");
   await page.screenshot({ path: shots + '/system-seat.png' });
   // open each body until one offers something that can be built now, and build it
   const n = bodies.length; let builtName = null;
   for (let i = 0; i < n && !builtName; i++) {
     await page.evaluate(i => { const rows = [...document.querySelectorAll('.sysp-row')]; rows[i].click(); }, i); await page.waitForTimeout(500);
     const offer = await page.evaluate(() => { const w = [...document.querySelectorAll('.sysp-open .sysp-work')].find(x => { const b = x.querySelector('button.opt'); return b && !b.disabled; }); return w ? w.querySelector('.sw-head b').innerText : null; });
-    if (i === 1) await page.screenshot({ path: shots + '/system-body-open.png' });
+    if (i === 2) await page.screenshot({ path: shots + '/system-body-open.png' });
+    const pics = await page.evaluate(() => [...document.querySelectorAll('.sysp-open .sw-art')].filter(x => x.complete && x.naturalWidth > 0).length); if (pics > 0 && !global.sawArt) { global.sawArt = pics; }
     if (offer) { await page.evaluate(() => { const w = [...document.querySelectorAll('.sysp-open .sysp-work')].find(x => { const b = x.querySelector('button.opt'); return b && !b.disabled; }); w.querySelector('button.opt').click(); }); await page.waitForTimeout(1200); builtName = offer; }
     else await page.evaluate(i => { const rows = [...document.querySelectorAll('.sysp-row')]; rows[i].click(); }, i);
   }
   check(!!builtName, 'something could be built on a body of the seat: ' + builtName);
-  const standing = await page.evaluate(() => [...document.querySelectorAll('.sysp-built .built')].map(x => x.innerText));
+  const standing = await page.evaluate(() => [...document.querySelectorAll('.sysp-built .built, .sysp-work.stands .sw-head b')].map(x => x.innerText));
   check(standing.some(x => builtName && x.startsWith(builtName)), 'it shows on its body: ' + standing.join(', '));
   await page.screenshot({ path: shots + '/system-built.png' });
+  // infrastructure: the system's own, a level at a time
+  await page.evaluate(() => { const t = [...document.querySelectorAll('.sys-tabs .rung')].find(x => x.innerText.trim().toLowerCase().startsWith('infrastructure')); if (t) t.click(); }); await page.waitForTimeout(700);
+  const tracks = await page.evaluate(() => [...document.querySelectorAll('.sysp-work.infra')].map(x => x.querySelector('.sw-head b').innerText + ' ' + x.querySelectorAll('.lv i.on').length + '/' + x.querySelectorAll('.lv i').length));
+  check(tracks.length >= 4, 'infrastructure tracks: ' + tracks.join(', '));
+  const laidOk = await page.evaluate(() => { const b = [...document.querySelectorAll('.sysp-work.infra button.opt')].find(x => !x.disabled); if (b) { b.click(); return true; } return false; }); await page.waitForTimeout(1000);
+  const after = await page.evaluate(() => [...document.querySelectorAll('.sysp-work.infra')].map(x => x.querySelectorAll('.lv i.on').length + x.querySelectorAll('.lv i.up').length).reduce((a, b) => a + b, 0));
+  check(laidOk && after >= 1, 'a level of infrastructure was laid or begun');
+  await page.screenshot({ path: shots + '/system-infrastructure.png' });
+  console.log('       pictures shown beside what can be built: ' + (global.sawArt || 0) + ' (none until tools/art/works.py has been run and packed)');
   // a system nobody holds
   const empty = await page.evaluate(() => { const g = [...window.praetoriaSpace.galaxies.values()][0]; const s = g.model.systems.find(x => !x.ownerId && x.ring !== 'beyond'); return s ? s.name : null; });
   if (empty) { await pick(empty); const settle = await page.evaluate(() => { const b = document.querySelector('.sysp-settle'); return b ? b.innerText.replace(/\s+/g, ' ') : null; }); check(!!settle && settle.includes('colony'), 'an empty system (' + empty + ') says what settling it takes: ' + (settle || '').slice(0, 160)); await page.screenshot({ path: shots + '/system-empty.png' }); }

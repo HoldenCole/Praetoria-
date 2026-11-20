@@ -109,7 +109,7 @@ public sealed class Economy
             if (head != null && holding.GovernorId.Length > 0 && holding.GovernorId != head.Id && (world.GetRelationship(holding.GovernorId, head.Id)?.Disposition ?? 0) <= GovernorSkimThreshold) d.Add(Resource.Credits, -1);
             ledger.Add(holding.Name, holding.IsClaim ? "claim" : holding.IsPlanet ? "world" : "station", d);
             // what is built on the bodies of its system (docs/SYSTEMS.md): the works go with the world, and a blockade halves what gets out
-            if (holding.IsPlanet && world.BodyWorks.Count > 0 && world.PlanetOf(holding.SystemId) == holding)
+            if (holding.IsPlanet && SystemWorks.Any(world) && world.PlanetOf(holding.SystemId) == holding)
                 foreach (var (name, net) in SystemWorks.Lines(world, _catalog, holding.SystemId))
                 {
                     if (besieged) foreach (var r in Resource.All) if (net.Get(r) > 0) net.Set(r, net.Get(r) / 2);
@@ -260,7 +260,7 @@ public sealed class Economy
         if (holding.InRebellion) t -= 20;
         if (world.Galaxy != null && holding.IsPlanet && world.Galaxy.Capital == holding.SystemId) t += 5;   // the court draws trade (GDD §19)
         if (holding.IsPlanet) t += ProsperityPerVentureLevel * world.Businesses.Values.Where(b => b.SystemId == holding.SystemId).Sum(b => b.Level);
-        if (holding.IsPlanet && world.BodyWorks.Count > 0) t += SystemWorks.Prosperity(world, _catalog, holding.SystemId);   // a trade station, the garden estates (docs/SYSTEMS.md)
+        if (holding.IsPlanet && SystemWorks.Any(world)) t += SystemWorks.Prosperity(world, _catalog, holding.SystemId);   // a trade station, the garden estates (docs/SYSTEMS.md)
         return Math.Clamp(t, 0, 100);
     }
 
@@ -292,14 +292,14 @@ public sealed class Economy
                     int ringDrift = world.Galaxy != null && holding.SystemId.Length > 0 ? world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)).UnrestDrift : 0;
                     string? lawRegion = world.Galaxy?.System(holding.SystemId)?.RegionId;
                     holding.Unrest = Math.Clamp(holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0) + ringDrift + Law(world, house.Id, "unrest_drift", lawRegion) + ReachLaw(world, "unrest_drift")
-                        + (holding.IsPlanet && world.BodyWorks.Count > 0 ? SystemWorks.Unrest(world, _catalog, holding.SystemId) : 0), 0, 100);
+                        + (holding.IsPlanet && SystemWorks.Any(world) ? SystemWorks.Unrest(world, _catalog, holding.SystemId) : 0), 0, 100);
                     int growth = holding.Unrest > 50 ? spec.PopGrowth / 2 : spec.PopGrowth;      // the restless do not settle
                     growth += Law(world, house.Id, "pop_growth", lawRegion);                        // homesteads, bonded labour, the commons' regard
                     if (holding.Prosperity >= 75 && spec.PopGrowth > 0) growth += 1;             // a thriving world draws people
                     int pop = Math.Max(0, holding.Population + growth);
                     if (world.Sieges.ContainsKey(holding.Id)) pop -= Math.Max(1, pop / 20);          // a blockade starves (GDD §6)
                     if (holding.Unrest >= 80) pop -= 2;                                               // flight from a world in revolt
-                    if (spec.MaxPopulation > 0) pop = Math.Min(pop, spec.MaxPopulation + (holding.IsPlanet && world.BodyWorks.Count > 0 ? SystemWorks.Population(world, _catalog, holding.SystemId) : 0));   // colonies on its moons and sister-worlds hold more (docs/SYSTEMS.md)
+                    if (spec.MaxPopulation > 0) pop = Math.Min(pop, spec.MaxPopulation + (holding.IsPlanet && SystemWorks.Any(world) ? SystemWorks.Population(world, _catalog, holding.SystemId) : 0));   // colonies on its moons and sister-worlds hold more (docs/SYSTEMS.md)
                     holding.Population = Math.Max(0, pop);
                 }
             }

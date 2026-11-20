@@ -1036,3 +1036,18 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 .sysp-work { padding: .4rem 0; border-top: 1px dotted var(--line); } .sysp-work.unique .sw-head b { color: var(--brass2); } .sysp-work.mega .sw-head b::after { content: " ◆"; color: var(--brass3); font-size: .7em; }
 .sw-head b { font-size: .85rem; } .sw-does { font-size: .74rem; color: var(--ink); margin: .15rem 0; }
 .sw-cost { display: flex; align-items: center; justify-content: space-between; gap: .5rem; font-size: .74rem; color: var(--ink2); } .sw-no { font-size: .7rem; color: var(--warn); }
+
+/* Buildings, great works and infrastructure (docs/BUILDINGS.md): a picture beside each, slots as pips, the one site as a diamond. */
+.sysp-work { display: flex; gap: .6rem; align-items: flex-start; } .sysp-work .sw-text { flex: 1 1 auto; min-width: 0; }
+.sw-art { flex: 0 0 auto; width: 104px; height: 64px; object-fit: cover; border: 1px solid var(--line2); background: #0a0d14; }
+.sysp-work.mega .sw-art { border-color: var(--brass3); box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 0 10px rgba(201,162,74,.18); }
+.sysp-work.stands { opacity: .95; } .sysp-work.stands .sw-art { width: 72px; height: 44px; } .sysp-work.stands.up .sw-art { filter: grayscale(.7) brightness(.7); }
+.sysp-h { margin: .7rem 0 .1rem; font-family: var(--sans); font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink2); border-bottom: 1px solid var(--line2); padding-bottom: .2rem; font-weight: 600; }
+.sysp-h .muted { letter-spacing: 0; text-transform: none; font-weight: 400; margin-left: .5rem; } .sysp-h.great { color: var(--brass2); border-bottom-color: var(--brass3); }
+.sysp-site { font-size: .72rem; line-height: 1; color: transparent; -webkit-text-stroke: 1px var(--line2); margin-left: .2rem; } .sysp-site.on { color: var(--brass2); -webkit-text-stroke: 0; text-shadow: 0 0 6px rgba(255,210,120,.7); } .sysp-site.up { -webkit-text-stroke: 1px var(--brass2); }
+.sysp-built .built.great { color: #ffe1a0; border-left-color: #ffe1a0; }
+.sysp-row .sprite.deep { width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 50% 50%, rgba(140,170,230,.25), rgba(10,13,20,0) 70%), repeating-conic-gradient(from 20deg, rgba(200,215,245,.5) 0 2deg, transparent 2deg 45deg); }
+.sysp-work.infra .lv { display: inline-flex; gap: 3px; margin-left: .5rem; vertical-align: middle; } .sysp-work.infra .lv i { width: 13px; height: 6px; border: 1px solid var(--line2); display: inline-block; }
+.sysp-work.infra .lv i.on { background: var(--brass2); border-color: var(--brass2); } .sysp-work.infra .lv i.up { border-color: var(--brass2); border-style: dashed; } .sysp-work.infra .lv i.slot { border-bottom-width: 3px; }
+.sw-art.none { display: block; background: repeating-linear-gradient(135deg, rgba(255,255,255,.03) 0 6px, transparent 6px 12px), #0a0d14; }
+.sw-cost .opt { white-space: nowrap; flex: 0 0 auto; }

@@ -205,7 +205,7 @@ public static class CourtProjection
                 ships.Add(new ShipOption(h.Id, cls.Id, $"Lay down a {cls.Name.ToLowerInvariant()}  ({Bundle(cls.Cost)}) · atk {cls.Attack} / def {cls.Defense}", rc.Refusal(ctx)));
             }
             holdings.Add(new HoldingCard(h.Id, h.Name, spec?.Name ?? h.Specialization, w.Galaxy?.System(h.SystemId)?.Name,
-                h.Population, spec is { MaxPopulation: > 0 } ? spec.MaxPopulation + (h.IsPlanet && w.BodyWorks.Count > 0 ? SystemWorks.Population(w, content.Holdings, h.SystemId) : 0) : 0, h.Unrest, h.Buildings.Count, spec?.Slots ?? 0,
+                h.Population, spec is { MaxPopulation: > 0 } ? spec.MaxPopulation + (h.IsPlanet && SystemWorks.Any(w) ? SystemWorks.Population(w, content.Holdings, h.SystemId) : 0) : 0, h.Unrest, h.Buildings.Count, SystemWorks.WorldSlots(w, content.Holdings, h),
                 h.Buildings.Select(b => content.Holdings.Building(b)?.Name ?? b).ToList(), builds,
                 canRaise, $"Lay down a hull at {h.Name}  ({Bundle(content.Fleets.ShipCost)})", ships, w.Sieges.ContainsKey(h.Id),
                 h.Kind, h.GovernorId.Length > 0 ? w.Char(h.GovernorId)?.Name : null,

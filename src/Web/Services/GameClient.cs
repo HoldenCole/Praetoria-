@@ -41,6 +41,10 @@ public sealed class GameClient
     public string? ProfileId { get; private set; }
     /// <summary>The painted portraits, if the build ships any (tools/art/portraits.py).</summary>
     public PortraitLibrary? Portraits { get; private set; }
+    /// <summary>The things that have a painting (docs/BUILDINGS.md, tools/art/works.py): the ids of buildings, great works and tracks of
+    /// infrastructure with a picture in img/works. Empty when none was painted; a thing without one is shown without.</summary>
+    public HashSet<string> WorkArt { get; private set; } = new();
+    public string? WorkPicture(string id) => WorkArt.Contains(id) ? $"img/works/{id}.webp" : null;
     public void ShowProfile(string id) { if (World?.Char(id) == null || ProfileId == id) return; ProfileId = id; Notify(); }
     public void CloseProfile() { if (ProfileId == null) return; ProfileId = null; Notify(); }
 
@@ -64,6 +68,7 @@ public sealed class GameClient
                 Notify();
             }
             try { Portraits = PortraitLibrary.Parse(await _http.GetStringAsync("img/portraits/manifest.json")); } catch { Portraits = null; }   // none painted: portraits are drawn
+            try { using var wd = System.Text.Json.JsonDocument.Parse(await _http.GetStringAsync("img/works/manifest.json")); WorkArt = wd.RootElement.GetProperty("works").EnumerateArray().Select(x => x.GetString() ?? "").ToHashSet(); } catch { WorkArt = new(); }
             Content = ContentLoader.LoadFromDirectory(ContentRoot);
             ScenarioIds = Directory.EnumerateFiles(Path.Combine(ContentRoot, "scenarios"), "*.json")
                 .Select(Path.GetFileNameWithoutExtension).Where(s => s != null).Select(s => s!).Where(s => !ScenarioLoader.LoadFromContent(ContentRoot, s).Hidden)   // fixtures are for tests and tools

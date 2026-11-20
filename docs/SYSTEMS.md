@@ -31,28 +31,18 @@ a buried sea, singing ice, a garden country, a capital of the old kings, the gre
 face to its world, a hollow moon, the long comet, a flare star, a companion sun. Each is found only on the kinds of body
 it names, and each opens **one work that can be built nowhere else**.
 
-## Works (`works`)
+## What is built
 
-Whoever holds a system's world may build on every body in it. A body has room for one to three works: one on the sun, a
-rock or a moon; two on a world or a belt; three on the system's own world or a giant. There are 38:
+Whoever holds a system's world may build in it. docs/BUILDINGS.md has the whole list and the rules: **buildings** go in a
+body's slots, and each kind of body has its own; a **great work** takes a body's one site, costs far more and takes
+years; **infrastructure** is the system's own and is laid a level at a time; and **open space** is a place to build that
+is tied to no world. What any of it does is data: a yearly yield less upkeep (in the house's ledger, a line each; a
+blockade halves what gets out), defence for the system (a point of it is two more years to besiege), supply for fleets,
+where the world's prosperity heads, unrest a year, room for more people on the world, and legitimacy and glory given once
+when a great work is finished.
 
-| kind | works |
-|---|---|
-| colonies | Outpost, Domed Colony (wants an outpost there first), Cloud Habitat, Settled Sister-World |
-| extraction | Strip Mine, Belt Foundry, Skimmer Fleet, Rare-Earth Diggings, Isotope Pits, Ice Works. A work on a deposit brings up as much as the deposit is rich. |
-| military | Listening Post, Orbital Batteries, Fleet Anchorage (supplies fleets as a depot does), Fortress Moon |
-| orbital | Trade Station, Observatory |
-| megastructures and wonders | Sun Foundry (round the sun), the Mausoleum of the House (one to a house), the Lighthouse of the Lanes (one in the galaxy, at a key of the lanes) |
-| only where the feature is | the Ring Habitat, the Storm Tap, the Breaker's Yard, the Lode Works, the Great Dig, the Vault Archive, the Sunless Cities, the Ice Choir, the Garden Estates, the Old Capital Restored, the Reef Cities, the Rift Citadel, the Mantle Forge, the Moon-Port, the Hollow Arsenal, the Comet Watch, the Flare Harvesters, the Twin Crown |
-
-What a work does is data: a yearly yield less upkeep (in the house's ledger, a line a work; a blockade halves what gets
-out), defence for the system (a point of it is two more years to besiege), supply for fleets, where the world's prosperity
-heads, unrest a year, room for more people on the world, and legitimacy and glory given once when it is finished. A work
-that takes years is begun and paid for as it rises, like a building (`ProjectSystem`); the greatest take seven. Ranks gate
-the great ones as they gate megastructures on a world.
-
-**A work goes with the system.** Nothing records an owner: whoever holds the world has what was built round it, and a
-house that takes the world takes the works.
+**What is built goes with the system.** Nothing records an owner: whoever holds the world has what was built round it,
+and a house that takes the world takes it all.
 
 ## Settling
 
@@ -63,19 +53,22 @@ house, and its bodies are the house's to build on. The larger maps leave systems
 
 ## The other houses
 
-About one year in three a rival house with coin to spare builds the first work it can on a body it holds: what works a
-deposit first, then what only that body's feature allows, then the rest; a megastructure only when it could pay for it
-twice. About one year in six a house with the coin sends a colony to an empty system beside its own. In forty years of a
-medium map the houses raised eight works or more of several kinds and settled at least one system (tests).
+About one year in three a rival house with coin to spare builds the first thing it can on a body it holds: buildings
+before great works, what works a deposit first; a great work only when it could pay for most of it today. About one year in
+four it lays the next level of its seat's infrastructure, and about one in six it sends a colony to an empty system beside
+its own. In forty years of a medium map the houses raised eight buildings or more of several kinds, laid five levels of
+infrastructure or more, and settled at least one system (tests).
 
 ## On the screen
 
 - **The map** draws what goes round each sun on its own orbit and a moon beside its world. A body with something built
   on it carries a small gold light, and a ring turns round a sun that has been built on.
-- **Clicking a system** opens its System tab: the sun first, then each world with its moons under it. A row is a body:
-  its kind, its feature, its deposit, and its room as pips (filled when built, dashed when rising). Opening a row
-  shows what suits that body, the work only it allows first, each with what it does, what it costs, and why it cannot
-  be built if it cannot. A system nobody holds says what settling it takes.
+- **Clicking a system** opens its System tab: the sun first, then each world with its moons under it, then open space.
+  A row is a place: its kind, its feature, its deposit, its building slots as pips (filled when built, dashed when
+  rising) and its site for a great work as a diamond. Opening a row shows what stands there, the buildings that suit
+  it, and the great works its site could take, each with its picture, what it does, what it costs, and why it cannot
+  be built if it cannot. The Infrastructure tab has the system's tracks. A system nobody holds says what settling it
+  takes.
 - The House window's ledger has a line a work, and a world on the estate tab says how many works stand round its sun.
 
 `node tools/browser/systems.js` drives it; `tests/SystemWorksTests.cs` holds the rules.

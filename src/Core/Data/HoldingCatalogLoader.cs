@@ -30,6 +30,7 @@ public static class HoldingCatalogLoader
         var exchangeBuildings = new List<string>();
         var taxes = new List<TaxPolicy>();
         var works = new List<WorkDef>(); var features = new List<FeatureDef>(); ColonyRule colony = ColonyRule.Default;
+        var bodySlots = new Dictionary<string, int>(); int smallSlots = 1; var tracks = new List<InfrastructureDef>();
         int contiguity = 0;
 
         foreach (var file in Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories)
@@ -63,6 +64,23 @@ public static class HoldingCatalogLoader
                 if (root.TryGetProperty("features", out var fArr) && fArr.ValueKind == JsonValueKind.Array)
                     foreach (var el in fArr.EnumerateArray())
                         features.Add(new FeatureDef(ConditionParser.Str(el, "id"), ConditionParser.OptStr(el, "name", ConditionParser.Str(el, "id")), Strings(el, "bodies"), ConditionParser.Int(el, "weight", 1), ConditionParser.OptStr(el, "description", "")));
+                if (root.TryGetProperty("slots", out var sl) && sl.ValueKind == JsonValueKind.Object)
+                    foreach (var p in sl.EnumerateObject()) if (p.Value.ValueKind == JsonValueKind.Number) bodySlots[p.Name] = p.Value.GetInt32();
+                smallSlots = ConditionParser.Int(root, "smallSlots", smallSlots);
+                if (root.TryGetProperty("infrastructure", out var iArr) && iArr.ValueKind == JsonValueKind.Array)
+                    foreach (var el in iArr.EnumerateArray())
+                    {
+                        static List<int> Ints(JsonElement e, string name) => e.TryGetProperty(name, out var a) && a.ValueKind == JsonValueKind.Array ? a.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.Number).Select(x => x.GetInt32()).ToList() : new List<int>();
+                        var per = el.TryGetProperty("perLevel", out var pl) && pl.ValueKind == JsonValueKind.Object ? pl : default;
+                        tracks.Add(new InfrastructureDef
+                        {
+                            Id = ConditionParser.Str(el, "id"), Name = ConditionParser.OptStr(el, "name", ConditionParser.Str(el, "id")), Description = ConditionParser.OptStr(el, "description", ""),
+                            MaxLevel = ConditionParser.Int(el, "maxLevel", 5), Cost = ParseResources(el, "cost"), Years = Ints(el, "years"), SlotsAt = Ints(el, "slotsAt"), Opens = ConditionParser.OptStr(el, "opens", ""),
+                            CalmAt = Ints(el, "calmAt"), DepotAt = ConditionParser.Int(el, "depotAt", 0),
+                            Yield = per.ValueKind == JsonValueKind.Object ? ParseResources(per, "yield") : new Resources(), Defense = per.ValueKind == JsonValueKind.Object ? Dbl(per, "defense") : 0,
+                            Prosperity = per.ValueKind == JsonValueKind.Object ? ConditionParser.Int(per, "prosperity", 0) : 0, Population = per.ValueKind == JsonValueKind.Object ? ConditionParser.Int(per, "population", 0) : 0
+                        });
+                    }
                 if (root.TryGetProperty("colony", out var col) && col.ValueKind == JsonValueKind.Object)
                     colony = new ColonyRule(ParseResources(col, "cost"), ConditionParser.Int(col, "buildTurns", 3), ConditionParser.Int(col, "population", 6), ConditionParser.OptStr(col, "specialization", "frontier_colony"));
             }
@@ -78,7 +96,7 @@ public static class HoldingCatalogLoader
             if (w.Feature.Length > 0 && features.All(f => f.Id != w.Feature)) throw new ContentException($"Work '{w.Id}' wants a feature '{w.Feature}' that is not defined.");
             if (w.Requires.Length > 0 && works.All(o => o.Id != w.Requires)) throw new ContentException($"Work '{w.Id}' requires a work '{w.Requires}' that is not defined.");
         }
-        return new HoldingCatalog(specs, buildings, rates, exchangeBuildings, taxes, contiguity) { Works = works, Features = features, Colony = colony };
+        return new HoldingCatalog(specs, buildings, rates, exchangeBuildings, taxes, contiguity) { Works = works, Features = features, Colony = colony, BodySlots = bodySlots, SmallSlots = smallSlots, Infrastructure = tracks };
     }
 
     private static List<string> Strings(JsonElement el, string name) =>
@@ -90,7 +108,7 @@ public static class HoldingCatalogLoader
         Description = ConditionParser.OptStr(el, "description", ""), Bodies = Strings(el, "bodies"), Feature = ConditionParser.OptStr(el, "feature", ""), Deposit = ConditionParser.OptStr(el, "deposit", ""),
         Requires = ConditionParser.OptStr(el, "requires", ""), Limit = ConditionParser.OptStr(el, "limit", WorkDef.PerBody), Chokepoint = ConditionParser.Bool(el, "chokepoint", false),
         Cost = ParseResources(el, "cost"), Yield = ParseResources(el, "yield"), Upkeep = ParseResources(el, "upkeep"), BuildTurns = ConditionParser.Int(el, "buildTurns", 1),
-        MinTitleRank = ConditionParser.Int(el, "minTitleRank", 0), IsMegastructure = ConditionParser.Bool(el, "megastructure", false), Defense = Dbl(el, "defense"), Depot = ConditionParser.Bool(el, "depot", false),
+        MinTitleRank = ConditionParser.Int(el, "minTitleRank", 0), IsMegastructure = ConditionParser.Bool(el, "megastructure", false), On = ConditionParser.OptStr(el, "on", ""), Defense = Dbl(el, "defense"), Depot = ConditionParser.Bool(el, "depot", false),
         Prosperity = ConditionParser.Int(el, "prosperity", 0), Unrest = ConditionParser.Int(el, "unrest", 0), Population = ConditionParser.Int(el, "population", 0),
         Legitimacy = ConditionParser.Int(el, "legitimacy", 0), Glory = ConditionParser.Int(el, "glory", 0)
     };

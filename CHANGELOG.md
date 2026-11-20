@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+- **Buildings, great works and infrastructure** (docs/BUILDINGS.md; the owner: "separate out the mega structures from
+  the ordinary buildings ... every planetary body ... should have a certain amount of building slots"). A **building**
+  goes in a slot: every kind of body has its number of slots and buildings of its own (37 in all: smelters on a forge
+  world, tidal mills on an ocean, a prospectors' exchange in a belt). A **great work** takes a body's one site, costs
+  several times as much, takes four to twelve years, and a house raises one at a time (32: the Orbital Ring, the Great
+  Stair, the Aegis, the Dyson Lattice, and one for each feature). **Open space** is a place to build that is tied to no
+  world: a waystation, a customs cordon, minefields, the Lane Gate Anchor, the Grand Arsenal. **Infrastructure** is the
+  system's own, laid a level at a time: civil works, habitats, orbital traffic, outworks and a defence grid; civil works
+  and outworks open more building slots.
 - **Solar systems** (docs/SYSTEMS.md; the owner: "there ... should be multiple planets, asteroids and other things per
   solar system ... you should be able to do things for and with every part of your solar system"). Every system is a sun
   and what goes round it: worlds, moons, giants, a belt, a comet, four to ten bodies, with one or two of eighteen features
