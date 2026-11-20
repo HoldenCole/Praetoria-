@@ -81,6 +81,12 @@ public static class ProjectSystem
         {
             if (w.House(p.OwnerId) == null || !StillPossible(w, p)) { w.Projects.Remove(p); continue; }
             if (p.Paused) continue;
+            if (p.Hastened && p.TurnsLeft > 1 && SystemWorks.IsGreat(holdings, p) && Hasten(w, p, holdings.Rules.HastenPct))
+            {
+                p.Stalled = false;
+                if (p.TurnsLeft <= 0) { Complete(w, p, holdings, ventures); w.Projects.Remove(p); if (p.OwnerId == mine) { w.WorldFlags.Add(DoneFlag); w.WorldFlags.Add(DoneFlag + ":" + p.Kind); } }
+                continue;
+            }
             if (p.TurnsLeft > 1)
             {
                 var due = NextInstalment(p);
@@ -91,6 +97,26 @@ public static class ProjectSystem
         }
     }
 
+    /// <summary>What a hastened great work pays this year (docs/BUILDINGS.md): the instalments of the two years it does in one, and
+    /// <paramref name="pct"/> in the hundred more, which buys nothing but the speed.</summary>
+    public static (Resources due, Resources extra) HastenDue(Project p, int pct)
+    {
+        var each = Split(p.Cost, p.TurnsTotal).Yearly; var rem = Remaining(p); var due = new Resources(); var extra = new Resources();
+        int shares = (p.TurnsLeft > 1 ? 1 : 0) + (p.TurnsLeft - 1 > 1 ? 1 : 0);
+        foreach (var r in Resource.All) { int d = Math.Min(each.Get(r) * shares, rem.Get(r)); due.Set(r, d); extra.Set(r, (d * pct + 99) / 100); }
+        return (due, extra);
+    }
+    /// <summary>Two years' work in one, if the purse can stand it; if it cannot, the work goes at its ordinary pace this year.</summary>
+    private static bool Hasten(World w, Project p, int pct)
+    {
+        var house = w.House(p.OwnerId); if (house == null) return false;
+        var (due, extra) = HastenDue(p, pct); var all = due.Clone(); foreach (var r in Resource.All) all.Add(r, extra.Get(r));
+        if (!house.Treasury.CanAfford(all)) return false;
+        house.Treasury.Spend(extra); if (!Pay(w, p, due)) return false;
+        p.TurnsLeft -= 2;
+        return true;
+    }
+
     /// <summary>The site is gone: the holding changed hands, the venture was sold, the world's holder is now at war with the founder.</summary>
     private static bool StillPossible(World w, Project p) => p.Kind switch
     {
@@ -99,6 +125,8 @@ public static class ProjectSystem
         Project.Work => w.PlanetOf(SystemWorks.Parse(p.TargetId).systemId) is { } wp && wp.OwnerId == p.OwnerId,   // the system changed hands: the site is the new holder's to abandon
         Project.Colony => w.Galaxy?.System(p.TargetId) != null && w.PlanetOf(p.TargetId) == null,
         Project.Infrastructure => w.PlanetOf(p.TargetId) is { } ip && ip.OwnerId == p.OwnerId,
+        Project.Upgrade => p.TargetId.Contains('#') ? w.PlanetOf(SystemWorks.Parse(p.TargetId).systemId) is { } up && up.OwnerId == p.OwnerId && w.BodyWorks.Any(x => x.DefId == p.DefId && SystemWorks.Target(x.SystemId, x.Body) == p.TargetId)
+            : w.Holding(p.TargetId) is { } uh && uh.OwnerId == p.OwnerId && uh.Buildings.Contains(p.DefId),
         _ => w.Galaxy?.System(p.TargetId) != null
     };
 
@@ -123,7 +151,10 @@ public static class ProjectSystem
                 SystemWorks.Settle(w, holdings, house, p.TargetId);
                 break;
             case Project.Infrastructure:
-                if (holdings.Track(p.DefId) is { } track) SystemWorks.Lay(w, p.TargetId, track);
+                if (holdings.Track(p.DefId) is { } track) SystemWorks.Lay(w, holdings, p.TargetId, track);
+                break;
+            case Project.Upgrade:
+                SystemWorks.Upgrade(w, holdings, p.TargetId, p.DefId);
                 break;
         }
         w.WorldCounters["projects_done"] = w.Counter("projects_done") + 1;

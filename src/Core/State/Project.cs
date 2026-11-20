@@ -12,6 +12,8 @@ public sealed class Project
     public const string Work = "work", Colony = "colony";
     /// <summary>The next level of a track of a system's infrastructure (the track is the definition, the system the target): docs/BUILDINGS.md.</summary>
     public const string Infrastructure = "infra";
+    /// <summary>The next level of a building that stands (the building is the definition, the place "system#body" the target).</summary>
+    public const string Upgrade = "upgrade";
     public string Id { get; set; } = "";
     public string OwnerId { get; set; } = "";
     /// <summary>The company paying for it (stage C), or "" when the house pays.</summary>
@@ -28,6 +30,10 @@ public sealed class Project
     public Resources Cost { get; set; } = new();
     public Resources Paid { get; set; } = new();
     public bool Paused { get; set; }
+    /// <summary>A great work being hastened (docs/BUILDINGS.md): it goes two years in one, and each year pays both instalments and half as much again.</summary>
+    public bool Hastened { get; set; }
+    /// <summary>A great work: it is hastened by the year, never bought outright.</summary>
+    public bool Great { get; set; }
     /// <summary>Last year's instalment could not be met.</summary>
     public bool Stalled { get; set; }
     public int Started { get; set; }

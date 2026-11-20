@@ -79,7 +79,7 @@ public sealed class Economy
             {
                 int v = spec.BaseYield.Get(r) - spec.Upkeep.Get(r);
                 // a building that works a deposit brings up richness-many of what it yields (GDD §17 "not every world has everything")
-                foreach (var bid in holding.Buildings) { var b = _catalog.Building(bid); if (b != null) v += (b.RequiresDeposit == r ? b.Yield.Get(r) * Math.Max(1, depSys?.Deposit(r) ?? 0) : b.Yield.Get(r)) - b.Upkeep.Get(r); }
+                foreach (var bid in holding.Buildings) { var b = _catalog.Building(bid); if (b != null) v += ((b.RequiresDeposit == r ? b.Yield.Get(r) * Math.Max(1, depSys?.Deposit(r) ?? 0) : b.Yield.Get(r)) - b.Upkeep.Get(r)) * (holding.Upgrades.Count == 0 ? 1 : holding.LevelOf(bid)); }
                 if (r == Resource.RareEarths && holding.IsClaim) v += ((depSys?.Deposit(r) ?? 0) + 1) / 2;   // a belt claim brings up some of the rare earths the belt holds (1 at richness 1–2, 2 at 3)
                 if (r == Resource.Manpower && spec.PopManpower > 0) v += holding.Population / spec.PopManpower;
                 if (r == Resource.Credits)

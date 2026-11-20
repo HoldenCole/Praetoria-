@@ -14,4 +14,6 @@ public sealed class BodyWork
     /// <summary>The year it was finished, and the house that built it.</summary>
     public int Turn { get; set; }
     public string BuiltBy { get; set; } = "";
+    /// <summary>A building's level, 1 to 3: what it yields and costs to keep is multiplied by it. A great work has one level.</summary>
+    public int Level { get; set; } = 1;
 }

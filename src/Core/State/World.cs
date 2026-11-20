@@ -120,6 +120,10 @@ public sealed class World
     public List<BodyWork> BodyWorks { get; set; } = new();
     /// <summary>The infrastructure of each system (docs/BUILDINGS.md): system id → track id → level.</summary>
     public Dictionary<string, Dictionary<string, int>> Infrastructure { get; set; } = new();
+    /// <summary>How developed each system is, 0 to 100 (docs/BUILDINGS.md): its level is a tenth of it. The main source of building slots.</summary>
+    public Dictionary<string, int> Development { get; set; } = new();
+    /// <summary>Slots cleared for coin, by place ("system#body").</summary>
+    public Dictionary<string, int> ClearedSlots { get; set; } = new();
     /// <summary>Ventures offered for sale to a named house, until they lapse.</summary>
     public List<VentureOffer> Offers { get; set; } = new();
     public IEnumerable<Project> ProjectsOf(string houseId) => Projects.Where(p => p.OwnerId == houseId);

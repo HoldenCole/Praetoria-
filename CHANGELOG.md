@@ -3,6 +3,23 @@
 ## [Unreleased]
 
 ### Added
+- **Slots from development, rank and money** (docs/BUILDINGS.md; the owner: "three things ... determine how many slots
+  you have ... the big one and main one is development ... another one is your rank ... if you have more money, you can
+  ... pay to unlock more slots"). Every held system has a **development** from 0 to 100 that grows a point a year toward
+  what its infrastructure, people and prosperity can bear, and falls under siege or revolt. A home world gains a slot at
+  development 2, 4, 6, 8 and 10, every other place at 3, 6 and 9; the rank of the house that holds it adds up to three
+  more on the home world and two elsewhere; and ground can be **cleared for coin**, each slot dearer than the last. Ten
+  slots at the most on a home world, five anywhere else. Infrastructure no longer opens slots itself: it develops the system.
+- **Building levels.** A building can be taken to level II and III, where development allows (3 and 6): it yields and
+  costs to keep that many times over, for the building's price again and then twice it.
+- **The home world** takes its own buildings, **eight that only a home world takes** (Governor's Palace, Forum, Academy,
+  Great Temple, Barracks Quarter, Spaceport, Hospital Quarter, Mint, each with its picture), and the ordinary buildings of
+  its kind, all in one row of slots. A system that is all one house's has a slot more on it.
+- **Great works by standing.** A house raises one great work at a time; the leader of a region two; a head of state (a
+  consul, the holder of the capital, the head of a state that has left, an archduke) three; an emperor five. A great
+  work can be **hastened**: two years' work in one, for both years' shares and half as much again, every year it is
+  hastened. It is no longer bought outright.
+- Rival houses upgrade their buildings and clear ground on their seats.
 - **A picture for everything that can be built.** `tools/art/works.py` paints a small wide painting for each of the 92
   buildings, great works, tracks of infrastructure and buildings of a system's own world; the system panel shows it beside
   the thing. A test fails if anything buildable has none.

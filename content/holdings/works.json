@@ -1,5 +1,5 @@
 {
- "//": "WHAT A SOLAR SYSTEM HOLDS, AND WHAT CAN BE BUILT IN IT (docs/BUILDINGS.md, docs/SYSTEMS.md). A system is a sun, everything that goes round it, and the open space between. THREE KINDS OF THING ARE BUILT. (1) BUILDINGS go in a body's SLOTS: `slots` gives each kind of body its number (a rock or ice-dwarf of size 1 has `smallSlots`); the system's own world has its specialization's slots and its own list of buildings (buildings.json, holdings_ext.json), so a building here is for every OTHER body, and each kind of body has its own. (2) GREAT WORKS (`megastructure: true`) take no slot: every body, the sun and open space included, has ONE SITE for one great work. They cost far more, take many years, are gated by rank, and a house raises one at a time. A work with a `feature` can be raised only where that feature is. `on: world` means only the system's own world. (3) INFRASTRUCTURE is the system's own, not any body's: `infrastructure` lists the tracks, each bought a level at a time (level N costs N times `cost` and takes `years[N-1]`), each level doing `perLevel`, and at the levels named in `slotsAt` opening a building slot on `opens` (world = the system's world, bodies = every other body and open space). `features` are what make one system unlike another. `bodies` lists the kinds a work suits (terran, ocean, arid, forge, frozen, barren, gas, belt, moon, comet, star, space). `deposit` says what the body must carry. `limit`: body (default), system, house, galaxy. `yield`/`upkeep` are a year's; a work on a deposit brings up richness-many. `defense` adds to the system's; `prosperity` moves where the world's prosperity heads; `unrest` is added to its unrest every year; `population` raises the most its world can hold; `legitimacy` and `glory` are given once, when it is finished; `depot` supplies fleets. `colony` is what it takes to settle a system nobody holds.",
+ "//": "WHAT A SOLAR SYSTEM HOLDS, AND WHAT CAN BE BUILT IN IT (docs/BUILDINGS.md, docs/SYSTEMS.md). A system is a sun, everything that goes round it, and the open space between. THREE KINDS OF THING ARE BUILT. (1) BUILDINGS go in a place's SLOTS and can be upgraded. A place starts with `slots` by its kind (a rock or ice-dwarf of size 1 has `smallSlots`; the system's own world, its HOME WORLD, has its specialization's) and gains more three ways (`slotRules`): by the system's DEVELOPMENT (a slot at each level named in `developmentWorld` for the home world and `developmentBody` for every other place), by the RANK of the house that holds it (`rankWorld`, `rankBody`: title ranks), and by PAYING to clear ground (`clearCost` times the number cleared plus one, up to `clearMax`). `maxWorld` and `maxBody` are the most a place can ever show. The home world takes its own buildings (buildings.json, holdings_ext.json, and the works here with `on: world`) AND the ordinary buildings of its kind, in the same slots; `notHome` keeps a colony off it. A building's level may rise to 3; `upgradeAt` is the development level each level needs, and a level costs the building's cost times the level it leaves. (2) GREAT WORKS (`megastructure: true`) take no slot: every place, the sun and open space included, has ONE SITE for one great work. They cost far more, take many years and are gated by rank. How many a house may raise at once is `greatWorks.capacity`: one for any house, two for the leader of a region, three for a head of state (a consul, the holder of the capital, the head of a state that has left, an archduke), five for an emperor. A great work may be HASTENED: it then goes two years in one, and each year pays both instalments and `hastenPct` in the hundred more. A work with a `feature` can be raised only where that feature is. `on: world` means only the home world. (3) INFRASTRUCTURE is the system's own, not any place's: `infrastructure` lists the tracks, each bought a level at a time (level N costs N times `cost` and takes `years[N-1]`), each level doing `perLevel`. Laying a level adds `development.perLevel` to the system's development at once and raises how far it can grow. DEVELOPMENT is a figure from 0 to 100 for each system (its level is a tenth of it): it creeps up a point a year toward a ceiling (`development.ceiling` and what infrastructure, people and prosperity add), faster on a prosperous world, and falls under siege or revolt. `features` are what make one system unlike another. `bodies` lists the kinds a work suits (terran, ocean, arid, forge, frozen, barren, gas, belt, moon, comet, star, space). `deposit` says what the body must carry. `limit`: body (default), system, house, galaxy. `yield`/`upkeep` are a year's and are multiplied by the building's level; a work on a deposit brings up richness-many. `defense` adds to the system's; `prosperity` moves where the world's prosperity heads; `unrest` is added to its unrest every year; `population` raises the most its world can hold; `legitimacy` and `glory` are given once, when it is finished; `depot` supplies fleets. `colony` is what it takes to settle a system nobody holds.",
  "colony": {
   "cost": {
    "credits": 30,
@@ -26,11 +26,69 @@
   "star": 0
  },
  "smallSlots": 1,
+ "slotRules": {
+  "maxWorld": 10,
+  "maxBody": 5,
+  "developmentWorld": [
+   2,
+   4,
+   6,
+   8,
+   10
+  ],
+  "developmentBody": [
+   3,
+   6,
+   9
+  ],
+  "rankWorld": [
+   2,
+   4,
+   6
+  ],
+  "rankBody": [
+   3,
+   5
+  ],
+  "clearMax": {
+   "world": 3,
+   "body": 2
+  },
+  "clearCost": {
+   "credits": 14,
+   "materials": 10
+  },
+  "upgradeAt": [
+   0,
+   3,
+   6
+  ],
+  "undivided": 1
+ },
+ "development": {
+  "perLevel": 3,
+  "ceiling": 30,
+  "ceilingPerLevel": 4,
+  "ceilingPerPeople": 3,
+  "prosperous": 65,
+  "siege": -2,
+  "seed": 6,
+  "seedPerPeople": 2
+ },
+ "greatWorks": {
+  "capacity": {
+   "house": 1,
+   "regionLeader": 2,
+   "headOfState": 3,
+   "emperor": 5
+  },
+  "hastenPct": 50
+ },
  "infrastructure": [
   {
    "id": "civil_works",
    "name": "Civil Works",
-   "description": "Roads, power and water on the system's world. Nothing else can be built without them.",
+   "description": "Roads, power and water on the home world. The first thing a system needs before it can grow.",
    "maxLevel": 5,
    "cost": {
     "credits": 10,
@@ -45,13 +103,7 @@
    ],
    "perLevel": {
     "prosperity": 1
-   },
-   "slotsAt": [
-    1,
-    3,
-    5
-   ],
-   "opens": "world"
+   }
   },
   {
    "id": "habitats",
@@ -104,7 +156,7 @@
   {
    "id": "outworks",
    "name": "Outworks",
-   "description": "Survey, supply runs and life support for the far bodies: what it takes to build anything beyond the world itself.",
+   "description": "Survey, supply runs and life support for the far bodies: what lets the rest of the system be worked.",
    "maxLevel": 4,
    "cost": {
     "credits": 10,
@@ -120,12 +172,7 @@
     "yield": {
      "materials": 1
     }
-   },
-   "slotsAt": [
-    2,
-    4
-   ],
-   "opens": "bodies"
+   }
   },
   {
    "id": "defence_grid",
@@ -347,7 +394,8 @@
     "manpower": 1
    },
    "population": 4,
-   "description": "A few domes and a landing field: the first thing put on any rock."
+   "description": "A few domes and a landing field: the first thing put on any rock.",
+   "notHome": true
   },
   {
    "id": "domed_colony",
@@ -375,7 +423,8 @@
    },
    "population": 12,
    "prosperity": 2,
-   "description": "A town under glass. Its people are the house's people, and its sons the house's soldiers."
+   "description": "A town under glass. Its people are the house's people, and its sons the house's soldiers.",
+   "notHome": true
   },
   {
    "id": "second_world",
@@ -400,7 +449,8 @@
    },
    "population": 16,
    "prosperity": 3,
-   "description": "A second living world in the same sun's light, settled from the first."
+   "description": "A second living world in the same sun's light, settled from the first.",
+   "notHome": true
   },
   {
    "id": "terrace_farms",
@@ -738,7 +788,8 @@
     "manpower": 1
    },
    "population": 8,
-   "description": "A city that floats where the air is thick enough to hold it."
+   "description": "A city that floats where the air is thick enough to hold it.",
+   "notHome": true
   },
   {
    "id": "aerostat_refinery",
@@ -1123,6 +1174,249 @@
    "defense": 0.75,
    "prosperity": -2,
    "description": "The approaches sown with things that wait. An enemy comes in slowly; so does everyone else."
+  },
+  {
+   "id": "governors_palace",
+   "name": "Governor's Palace",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 24,
+    "materials": 14,
+    "influence": 1
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 1
+   },
+   "unrest": -1,
+   "legitimacy": 2,
+   "description": "A seat fit to govern from: audience halls, archives, a guard. The world knows where its master lives."
+  },
+  {
+   "id": "forum",
+   "name": "Forum",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 18,
+    "materials": 12
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 2,
+    "influence": 1
+   },
+   "prosperity": 3,
+   "description": "A square where the world does its business and its talking, with the house's name over the colonnade."
+  },
+  {
+   "id": "academy",
+   "name": "Academy",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 20,
+    "materials": 10,
+    "influence": 1
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "influence": 2
+   },
+   "prosperity": 2,
+   "description": "Schools of law, engineering and war. Its graduates serve the house first, and remember who taught them."
+  },
+  {
+   "id": "great_temple",
+   "name": "Great Temple",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 22,
+    "materials": 16
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 1
+   },
+   "unrest": -2,
+   "legitimacy": 1,
+   "description": "The feasts are kept here, and the house keeps them. A quiet world is a world that is prayed for."
+  },
+  {
+   "id": "barracks_quarter",
+   "name": "Barracks Quarter",
+   "category": "military",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 16,
+    "materials": 14,
+    "manpower": 2
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "manpower": 2
+   },
+   "defense": 0.25,
+   "description": "A standing garrison, its drill fields and its armouries, inside the walls."
+  },
+  {
+   "id": "spaceport",
+   "name": "Spaceport",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 20,
+    "materials": 16
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 3
+   },
+   "prosperity": 2,
+   "population": 6,
+   "description": "Pads, warehouses and a customs house on the ground. Everything the world sells leaves through it."
+  },
+  {
+   "id": "hospital",
+   "name": "Hospital Quarter",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 16,
+    "materials": 10
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "unrest": -1,
+   "population": 10,
+   "description": "Physicians, clean water and a place to be ill in. Fewer children die, and their parents know whom to thank."
+  },
+  {
+   "id": "mint",
+   "name": "Mint",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "house",
+   "minTitleRank": 3,
+   "cost": {
+    "credits": 26,
+    "materials": 16,
+    "influence": 2
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 5
+   },
+   "description": "The right to strike coin, and the building to do it in. A house has one, and guards it."
   },
   {
    "id": "orbital_ring",

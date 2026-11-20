@@ -519,6 +519,19 @@ public sealed class NpcAi
                 int next = SystemWorks.Level(world, seats[0].SystemId, t.Id) + 1; if (next > t.MaxLevel || house.Treasury.Credits < t.CostOf(next).Credits + 20) continue;
                 if (executor.TryExecute(new InvestInfrastructureCommand(steward.Id, seats[0].SystemId, t.Id, catalog), ctx)) return;
             }
+        // about one year in five it takes a building a level higher, where the system's development lets it: its seat's own first
+        if (h % 5 == 3 && house.Treasury.Credits >= 40)
+            foreach (var seat in seats)
+            {
+                foreach (var bid in seat.Buildings)
+                    if (catalog.Building(bid) is { Megastructure: false } bd && house.Treasury.Credits >= bd.Cost.Credits * seat.LevelOf(bid) + 25 && executor.TryExecute(new UpgradeBuildingCommand(steward.Id, seat.Id, bid, catalog), ctx)) return;
+                foreach (var x in SystemWorks.In(world, seat.SystemId).ToList())
+                    if (catalog.Work(x.DefId) is { IsMegastructure: false } wd && house.Treasury.Credits >= wd.Cost.Credits * Math.Max(1, x.Level) + 25 && executor.TryExecute(new UpgradeBuildingCommand(steward.Id, SystemWorks.Target(x.SystemId, x.Body), x.DefId, catalog), ctx)) return;
+            }
+        // and one year in seven a rich house with a full home world pays to clear ground on it
+        if (h % 7 == 4 && seats.Count > 0 && g.System(seats[0].SystemId) is { } home && home.Bodies.FindIndex(b => b.IsPrimary) is >= 0 and var pi
+            && SystemWorks.FreeSlots(world, catalog, home, pi) <= 0 && house.Treasury.Credits >= catalog.Rules.ClearCostOf(SystemWorks.Cleared(world, home.Id, pi)).Credits + 40
+            && executor.TryExecute(new ClearSlotCommand(steward.Id, home.Id, pi, catalog), ctx)) return;
         if (h % 6 == 1 && house.Treasury.Credits >= catalog.Colony.Cost.Credits + 20 && seats.Count > 0)
             foreach (var target in seats.SelectMany(x => g.Neighbors(x.SystemId)).Distinct().OrderBy(x => x, StringComparer.Ordinal))
                 if (world.PlanetOf(target) == null && executor.TryExecute(new FoundColonyCommand(steward.Id, target, catalog), ctx)) return;

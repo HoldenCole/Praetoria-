@@ -174,8 +174,9 @@ public class VentureTests
     {
         var root = ContentLocator.FindContentDir(); var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, "the_circling_heir"), 1); var tc = new TurnController(w, Content);
         var house = w.House(w.Protagonist!.HouseId)!; house.Treasury.Credits = 500; house.Treasury.Materials = 500;
-        var holding = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var spec = Content.Holdings.Spec(holding.Specialization)!; int free = spec.Slots - holding.Buildings.Count; Assert.True(free >= 1);
+        var holding = w.HoldingsOf(house.Id).First(h => h.IsPlanet); int free = SystemWorks.WorldSlots(w, Content.Holdings, holding) - SystemWorks.WorldSlotsUsed(w, Content.Holdings, holding); Assert.True(free >= 1);   // its kind's slots, and what development and rank have added
         var options = Content.Holdings.Buildings.Where(b => !b.Megastructure && b.RequiresDeposit == null && b.MinTitleRank == 0 && b.FitsSpecialization(holding.Specialization) && !holding.Buildings.Contains(b.Id)).OrderBy(b => b.Id, StringComparer.Ordinal).ToList();
+        free = Math.Max(1, Math.Min(free, Content.Holdings.Spec(holding.Specialization)!.Slots - holding.Buildings.Count)); for (int i = SystemWorks.WorldSlots(w, Content.Holdings, holding) - SystemWorks.WorldSlotsUsed(w, Content.Holdings, holding); i > free; i--) holding.Buildings.Add("filler_" + i);   // (leave only as many free as there are buildings to choose from, and one to be refused)
         Assert.True(options.Count > free);
         for (int i = 0; i < free; i++) Assert.True(tc.Executor.TryExecute(new BuildCommand(w.ProtagonistId, holding.Id, options[i].Id, Content.Holdings, Content.Titles), new CommandContext(w, WorldBuilder.RngFor(w))));
         Assert.Equal(free, ProjectSystem.SlotsUnderway(w, holding.Id));

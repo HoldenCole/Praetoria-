@@ -1051,3 +1051,18 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 .sysp-work.infra .lv i.on { background: var(--brass2); border-color: var(--brass2); } .sysp-work.infra .lv i.up { border-color: var(--brass2); border-style: dashed; } .sysp-work.infra .lv i.slot { border-bottom-width: 3px; }
 .sw-art.none { display: block; background: repeating-linear-gradient(135deg, rgba(255,255,255,.03) 0 6px, transparent 6px 12px), #0a0d14; }
 .sw-cost .opt { white-space: nowrap; flex: 0 0 auto; }
+
+/* development, where slots come from, levels (docs/BUILDINGS.md) */
+.sysp-dev { display: flex; align-items: center; gap: .6rem; margin: .1rem 0 .15rem; padding: .35rem .2rem; border-top: 1px solid var(--line2); border-bottom: 1px solid var(--line2); }
+.sysp-dev .dv-level { flex: 0 0 auto; width: 34px; height: 34px; display: grid; place-items: center; font-family: var(--serif); font-size: 1.25rem; color: #ffe1a0; border: 1px solid var(--brass3); border-radius: 50%; background: radial-gradient(circle at 50% 35%, rgba(201,162,74,.28), rgba(10,13,20,.2)); line-height: 1; box-shadow: 0 0 0 2px rgba(0,0,0,.5), 0 0 8px rgba(201,162,74,.25); }
+.sysp-dev .dv-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .2rem; font-size: .8rem; } .sysp-dev .dv-text .muted { font-size: .7rem; margin-left: .35rem; }
+.sysp-dev .dv-bar { position: relative; height: 6px; background: rgba(255,255,255,.07); border: 1px solid var(--line2); } .sysp-dev .dv-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--brass3), var(--brass2)); }
+.sysp-dev .dv-bar u { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #ffe1a0; box-shadow: 0 0 4px rgba(255,225,160,.8); }
+.sysp-devnote { margin: 0 0 .45rem; padding: 0 .2rem; }
+.sysp-slots i.lock { border-style: dotted; opacity: .38; }
+.sysp-body.home > .sysp-row .sysp-name b { color: #ffe1a0; }
+.sysp-parts { display: flex; flex-wrap: wrap; gap: .15rem .7rem; font-size: .7rem; color: var(--ink2); margin: .25rem 0 .3rem; } .sysp-parts b { color: var(--brass2); font-weight: 600; }
+.sysp-clear { padding: .25rem 0 .35rem; border-top: 1px dotted var(--line); }
+.sysp-sub { margin: .55rem 0 0; font-family: var(--sans); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--brass3); font-weight: 600; }
+.sw-head .lvl { display: inline-flex; gap: 2px; margin: 0 .3rem; vertical-align: middle; } .sw-head .lvl i { width: 6px; height: 9px; border: 1px solid var(--line2); display: inline-block; transform: skewX(-12deg); } .sw-head .lvl i.on { background: var(--brass2); border-color: var(--brass2); }
+.sysp-cap { margin: .2rem 0 .1rem; }

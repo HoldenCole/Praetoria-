@@ -28,7 +28,14 @@ public sealed record BusinessCard(string Id, string Name, string KindName, strin
 /// <summary>A house that would buy one of your ventures, and what it would pay.</summary>
 public sealed record VentureBid(string HouseId, string HouseName, string Accent, int Price, bool HoldsTheWorld);
 /// <summary>Something of yours under construction (docs/ECONOMY_MARKET.md stage B).</summary>
-public sealed record ProjectCard(string Id, string Name, string Kind, int TurnsLeft, int TurnsTotal, string Paid, string Remaining, string Next, bool Paused, bool Stalled, int RushCredits, string? RushRefusal, string Refund, string? CompanyName);
+public sealed record ProjectCard(string Id, string Name, string Kind, int TurnsLeft, int TurnsTotal, string Paid, string Remaining, string Next, bool Paused, bool Stalled, int RushCredits, string? RushRefusal, string Refund, string? CompanyName)
+{
+    /// <summary>A great work: it is hastened by the year, not rushed. <see cref="HastenYear"/> is what a hastened year costs, and <see cref="HastenExtra"/> how much of that buys only the speed.</summary>
+    public bool Great { get; init; }
+    public bool Hastened { get; init; }
+    public string HastenYear { get; init; } = "";
+    public string HastenExtra { get; init; } = "";
+}
 /// <summary>Another house's venture you could buy, at its asking price, and what it would earn you.</summary>
 public sealed record ForSaleCard(string BusinessId, string Name, string KindName, string OwnerId, string OwnerName, string OwnerAccent, string? SystemName, int Level, int PerYear, int Ask, string? Refusal, string Payback, bool Distressed, bool OnYourWorld);
 /// <summary>A venture offered to you, until the year is out.</summary>
@@ -434,6 +441,11 @@ public static class CourtProjection
 
     private static string BondName(Relationship? rel) => rel?.Bond is { } b && b != BondType.None ? b.ToString().ToLowerInvariant() : "";
 
+    private static string HastenYear(Project x, int pct, bool extraOnly)
+    {
+        var (due, extra) = ProjectSystem.HastenDue(x, pct); if (extraOnly) return Bundle(extra);
+        var all = due.Clone(); foreach (var r in Resource.All) all.Add(r, extra.Get(r)); return Bundle(all);
+    }
     public static string Bundle(Resources r)
     {
         var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{r.Get(k)} {Resource.Label(k)}").ToList();
@@ -526,7 +538,8 @@ public static class CourtProjection
         {
             var rush = new RushProjectCommand(p.Id, x.Id);
             return new ProjectCard(x.Id, x.Name, x.Kind, x.TurnsLeft, x.TurnsTotal, Bundle(x.Paid), Bundle(ProjectSystem.Remaining(x)), x.TurnsLeft > 1 ? Bundle(ProjectSystem.NextInstalment(x)) : "nothing more", x.Paused, x.Stalled,
-                ProjectSystem.RushPremium(w, x), rush.Refusal(ctx), Bundle(ProjectSystem.Refund(x)), x.CompanyId.Length > 0 ? w.Company(x.CompanyId)?.Name : null);
+                ProjectSystem.RushPremium(w, x), rush.Refusal(ctx), Bundle(ProjectSystem.Refund(x)), x.CompanyId.Length > 0 ? w.Company(x.CompanyId)?.Name : null)
+            { Great = x.Great, Hastened = x.Hastened, HastenYear = x.Great ? HastenYear(x, content.Holdings.Rules.HastenPct, false) : "", HastenExtra = x.Great ? HastenYear(x, content.Holdings.Rules.HastenPct, true) : "" };
         }).ToList();
         var forSale = new List<ForSaleCard>(); var offers = new List<OfferCard>();
         if (vs != null)

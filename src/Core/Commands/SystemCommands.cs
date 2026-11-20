@@ -29,7 +29,8 @@ public sealed class BuildWorkCommand : ICommand
     {
         var w = ctx.World; var actor = w.Char(ActorId)!; var house = w.House(actor.HouseId)!; var def = _catalog.Work(_workId)!; var sys = w.Galaxy!.System(_systemId)!; var b = sys.Bodies[_body];
         if (def.BuildTurns <= 1) { house.Treasury.Spend(def.Cost); SystemWorks.Raise(w, house, _systemId, _body, def); return; }
-        ProjectSystem.Start(w, house.Id, Project.Work, def.Id, SystemWorks.Target(_systemId, _body), $"{(def.Name.StartsWith("The ", StringComparison.Ordinal) ? def.Name : "the " + def.Name)} {(b.IsSpace ? "in the " + sys.Name.Replace("The ", "") + " system" : "at " + b.Name)}", def.Cost, def.BuildTurns);
+        var begun = ProjectSystem.Start(w, house.Id, Project.Work, def.Id, SystemWorks.Target(_systemId, _body), $"{(def.Name.StartsWith("The ", StringComparison.Ordinal) ? def.Name : "the " + def.Name)} {(b.IsSpace ? "in the " + sys.Name.Replace("The ", "") + " system" : "at " + b.Name)}", def.Cost, def.BuildTurns);
+        if (begun != null) begun.Great = def.IsMegastructure;
         if (def.IsMegastructure) w.Log($"{house.Name} begins {(def.Name.StartsWith("The ", StringComparison.Ordinal) ? def.Name : "the " + def.Name)} in the {sys.Name.Replace("The ", "")} system: {def.BuildTurns} years in the building.");
     }
 }
@@ -84,7 +85,87 @@ public sealed class InvestInfrastructureCommand : ICommand
     {
         var w = ctx.World; var actor = w.Char(ActorId)!; var house = w.House(actor.HouseId)!; var t = _catalog.Track(_trackId)!; var sys = w.Galaxy!.System(_systemId)!;
         int next = SystemWorks.Level(w, _systemId, t.Id) + 1; var cost = t.CostOf(next); int years = t.YearsOf(next);
-        if (years <= 1) { house.Treasury.Spend(cost); SystemWorks.Lay(w, _systemId, t); return; }
+        if (years <= 1) { house.Treasury.Spend(cost); SystemWorks.Lay(w, _catalog, _systemId, t); return; }
         ProjectSystem.Start(w, house.Id, Project.Infrastructure, t.Id, _systemId, $"{t.Name.ToLowerInvariant()} {SystemWorks.Roman(next)} at {sys.Name}", cost, years);
     }
+}
+
+/// <summary>Pay to clear ground for another building slot on a place of a system the actor's house holds (docs/BUILDINGS.md; the
+/// owner, 2026-11-20: "if you have more money, you can potentially clear obstacles or just pay to unlock more slots"). Each slot
+/// cleared on a place costs more than the last, and there is only so much ground.</summary>
+public sealed class ClearSlotCommand : ICommand
+{
+    private readonly string _systemId; private readonly int _body; private readonly HoldingCatalog _catalog;
+    public ClearSlotCommand(string actorId, string systemId, int body, HoldingCatalog catalog) { ActorId = actorId; _systemId = systemId; _body = body; _catalog = catalog; }
+    public string ActorId { get; }
+    public string Describe() => $"clear a slot on body {_body} of {_systemId}";
+
+    public string? Refusal(CommandContext ctx) => Refusal(ctx, true);
+    private string? Refusal(CommandContext ctx, bool explain)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        var house = w.House(actor.HouseId); if (house == null) return "no house";
+        return SystemWorks.ClearRefusal(w, _catalog, house, _systemId, _body, explain);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx, false) == null;
+
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId)!; var house = w.House(actor.HouseId)!; string key = SystemWorks.Target(_systemId, _body);
+        int cleared = SystemWorks.Cleared(w, _systemId, _body);
+        house.Treasury.Spend(_catalog.Rules.ClearCostOf(cleared)); w.ClearedSlots[key] = cleared + 1;
+        w.WorldCounters["slots_cleared"] = w.Counter("slots_cleared") + 1;
+    }
+}
+
+/// <summary>Take a building a level higher (docs/BUILDINGS.md): it yields, and costs to keep, as many times over as its level. How
+/// high it may go is the system's development. <c>target</c> is a holding's id for one of its own buildings, or "system#place" for a
+/// building raised on a place. The level takes as long as the building did, and is paid as it is built.</summary>
+public sealed class UpgradeBuildingCommand : ICommand
+{
+    private readonly string _target; private readonly string _defId; private readonly HoldingCatalog _catalog;
+    public UpgradeBuildingCommand(string actorId, string target, string defId, HoldingCatalog catalog) { ActorId = actorId; _target = target; _defId = defId; _catalog = catalog; }
+    public string ActorId { get; }
+    public string Describe() => $"upgrade {_defId} at {_target}";
+
+    public string? Refusal(CommandContext ctx) => Refusal(ctx, true);
+    private string? Refusal(CommandContext ctx, bool explain)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        var house = w.House(actor.HouseId); if (house == null) return "no house";
+        return SystemWorks.UpgradeRefusal(w, _catalog, house, _target, _defId, explain);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx, false) == null;
+
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId)!; var house = w.House(actor.HouseId)!;
+        string name; Resources cost; int years, level;
+        if (_target.Contains('#')) { var (sysId, body) = SystemWorks.Parse(_target); var def = _catalog.Work(_defId)!; var x = SystemWorks.On(w, sysId, body).First(o => o.DefId == _defId); level = Math.Max(1, x.Level); cost = def.Cost; years = def.BuildTurns; var sys = w.Galaxy!.System(sysId)!; name = def.Name + " " + SystemWorks.Roman(level + 1) + (sys.Bodies[body].IsSpace ? " in the " + sys.Name.Replace("The ", "") + " system" : " at " + sys.Bodies[body].Name); }
+        else { var h = w.Holding(_target)!; var def = _catalog.Building(_defId)!; level = h.LevelOf(_defId); cost = def.Cost; years = def.BuildTurns; name = def.Name + " " + SystemWorks.Roman(level + 1) + " at " + h.Name; }
+        ProjectSystem.Start(w, house.Id, Project.Upgrade, _defId, _target, name, SystemWorks.UpgradeCost(cost, level), Math.Max(1, years));
+    }
+}
+
+/// <summary>Hasten a great work, or let it go at its own pace again (docs/BUILDINGS.md; the owner, 2026-11-20: "you can pay extra to
+/// speed up the development. This would be a continuous cost over the development life cycle"). A hastened work does two years in
+/// one, and every year it is hastened pays both instalments and half as much again; a year the purse cannot stand it, it goes at its
+/// ordinary pace.</summary>
+public sealed class HastenWorkCommand : ICommand
+{
+    private readonly string _id; private readonly bool _on; private readonly HoldingCatalog _catalog;
+    public HastenWorkCommand(string actorId, string projectId, bool on, HoldingCatalog catalog) { ActorId = actorId; _id = projectId; _on = on; _catalog = catalog; }
+    public string ActorId { get; }
+    public string Describe() => $"{(_on ? "hasten" : "unhasten")} {_id}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var p = w.Projects.FirstOrDefault(x => x.Id == _id); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null || p == null || p.OwnerId != house.Id) return "no such project";
+        if (!SystemWorks.IsGreat(_catalog, p)) return "only a great work is hastened";
+        if (p.Hastened == _on) return _on ? "it is being hastened" : "it goes at its own pace";
+        if (_on && p.TurnsLeft <= 1) return "done next year as it is";
+        return null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var p = ctx.World.Projects.First(x => x.Id == _id); p.Hastened = _on; }
 }

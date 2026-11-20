@@ -54,6 +54,15 @@ WORKS = {
     "relay_beacon": "a tall lonely signal relay tower in deep space with a great lit antenna array, pulses of light, vast starfield",
     "patrol_base": "a small armoured military station in deep space with corvettes docked and one leaving, running lights, dark void",
     "minefields": "a cluster of dark metal spheres covered in long spikes, each with a small glowing red lamp, floating weightless against a black starfield, dozens receding into the distance",
+    # ---- the home world's own ----
+    "governors_palace": "a grand governor's palace of white marble with a great dome, colonnades and banners above a colony city, guards on the steps small in the distance, golden hour",
+    "forum": "a wide stone forum square ringed with colonnades in a colony city, market stalls and a crowd far off, a rostrum, statues, morning light",
+    "academy": "an academy campus of domed halls, libraries and courtyards on a hill, students in robes small in the distance, cypress trees, a ringed planet in the evening sky",
+    "great_temple": "a vast temple with a towering portico and a huge bronze door on a rocky hill, braziers burning, pilgrims climbing the long stair, dusk",
+    "barracks_quarter": "a walled military barracks quarter with drill squares, armouries and watchtowers, ranks of soldiers on parade small in the distance, banners, dawn",
+    "spaceport": "a busy spaceport on the ground, landing pads with cargo spacecraft, control tower, warehouses, cranes, floodlights, a city behind, dusk",
+    "hospital": "a large hospital quarter of white stone wards and gardens with fountains in a colony city, an aqueduct, quiet evening light",
+    "mint": "a fortified mint building of heavy stone and bronze doors, sparks from coin presses seen through tall windows, guards, stacked strongboxes, lamplight",
     # ---- great works: one to a body ----
     "orbital_ring": "a colossal ring structure encircling an entire planet seen from orbit, city lights along the ring, docks, sunrise over the limb",
     "great_stair": "a space elevator, a single immense cable rising from a city on a planet up through the clouds into orbit, climbing cars, dawn",

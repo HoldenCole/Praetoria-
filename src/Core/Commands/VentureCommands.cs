@@ -98,6 +98,7 @@ public sealed class RushProjectCommand : ICommand
         if (actor?.Alive != true || house == null || p == null || p.OwnerId != house.Id) return "no such project";
         if (p.CompanyId.Length > 0) return "the company builds at its own pace";
         if (p.TurnsLeft <= 1) return "done next year as it is";
+        if (p.Great) return "a great work is not bought outright: hasten it, and pay by the year";
         var rem = ProjectSystem.Remaining(p); int premium = ProjectSystem.RushPremium(w, p);
         var need = rem.Clone(); need.Credits += premium;
         return house.Treasury.CanAfford(need) ? null : $"needs {Presentation.CourtProjection.Bundle(need)}";

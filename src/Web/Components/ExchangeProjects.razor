@@ -19,7 +19,7 @@
         {
             int done = p.TurnsTotal - p.TurnsLeft;
             <div class="vcard @(p.Stalled ? "distress" : "")">
-                <div class="vc-head"><b>@Cap(p.Name)</b> <span class="muted small">@(p.Kind == "building" ? "building" : p.Kind == "venture" ? "new venture" : p.Kind == "work" ? "work on a body of a system" : p.Kind == "colony" ? "colony" : "enlargement")@(p.CompanyName != null ? $" · paid by {p.CompanyName}" : "")</span>
+                <div class="vc-head"><b>@Cap(p.Name)</b> <span class="muted small">@(p.Kind == "building" ? "building" : p.Kind == "venture" ? "new venture" : p.Kind == "work" ? (p.Great ? "great work" : "building in a system") : p.Kind == "colony" ? "colony" : p.Kind == "infra" ? "infrastructure" : p.Kind == "upgrade" ? "a building taken a level higher" : "enlargement")@(p.CompanyName != null ? $" · paid by {p.CompanyName}" : "")</span>
                     @if (p.Paused) { <span class="pill">paused</span> } else if (p.Stalled) { <span class="pill warn">stalled: the instalment was not met</span> } else { <span class="pill good">@p.TurnsLeft year(s) left</span> }</div>
                 <div class="gauge" title="years built"><span>Built</span><i><b style="width:@(100 * done / Math.Max(1, p.TurnsTotal))%" class="high"></b></i><em>@done/@p.TurnsTotal</em></div>
                 <div class="kv"><span>Paid</span><b>@p.Paid</b></div>
@@ -28,7 +28,15 @@
                 {
                     <div class="row small">
                         <button class="opt inline tiny" @onclick="() => G.Execute(new PauseProjectCommand(pid, p.Id))">@(p.Paused ? "Resume" : "Pause")</button>
-                        <button class="opt inline tiny" disabled="@(p.RushRefusal != null)" title="@(p.RushRefusal ?? "everything still owed now, and a quarter more: done next year")" @onclick="() => G.Execute(new RushProjectCommand(pid, p.Id))">Rush · @p.RushCredits credits over the cost</button>
+                        @if (p.Great)
+                        {
+                            bool on = p.Hastened;
+                            <button class="opt inline tiny @(on ? "on" : "")" disabled="@(p.TurnsLeft <= 1)" title="@(on ? "It goes two years in one: this year " + p.HastenYear + ", of which " + p.HastenExtra + " buys only the speed. A year the purse cannot stand it, it goes at its own pace." : "Two years' work in one, every year it is hastened: " + p.HastenYear + " a year, of which " + p.HastenExtra + " buys only the speed.")" @onclick="() => G.Execute(new HastenWorkCommand(pid, p.Id, !on, G.Content!.Holdings))">@(on ? "Hastened · stop" : "Hasten · " + p.HastenYear + " a year")</button>
+                        }
+                        else
+                        {
+                            <button class="opt inline tiny" disabled="@(p.RushRefusal != null)" title="@(p.RushRefusal ?? "everything still owed now, and a quarter more: done next year")" @onclick="() => G.Execute(new RushProjectCommand(pid, p.Id))">Rush · @p.RushCredits credits over the cost</button>
+                        }
                         <button class="opt inline tiny" title="half of what was paid comes back" @onclick="() => G.Execute(new AbandonProjectCommand(pid, p.Id))">Abandon · get back @p.Refund</button>
                     </div>
                 }
@@ -38,6 +46,7 @@
             <div class="ac-fact"><span>By the year</span><p>The cost is split evenly over the build time. The first share is paid on the day; the rest a year at a time.</p></div>
             <div class="ac-fact"><span>Stalled</span><p>A year the share cannot be met, nothing is built. It resumes when the treasury can pay.</p></div>
             <div class="ac-fact"><span>Paused</span><p>A paused site costs nothing and goes nowhere.</p></div>
+            <div class="ac-fact"><span>Great works</span><p>A great work is not bought outright. It can be hastened: two years' work in one, for both years' shares and half as much again, every year it is hastened.</p></div>
             <div class="ac-fact"><span>Rushed</span><p>Pay all that is owed and a quarter more in credits, and it is done next year.</p></div>
             <div class="ac-fact"><span>Abandoned</span><p>Half of what was paid comes back.</p></div>
             <div class="ac-fact"><span>How long</span><p>Most buildings a year; works on a deposit and the costly ones two; a megastructure four. Ventures one or two.</p></div>

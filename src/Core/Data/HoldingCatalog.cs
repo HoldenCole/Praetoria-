@@ -88,8 +88,8 @@ public sealed record ColonyRule(Resources Cost, int BuildTurns, int Population, 
 }
 
 /// <summary>A track of a system's infrastructure (docs/BUILDINGS.md): the system's own, not any body's, and bought a level at a time.
-/// Level N costs N times <see cref="Cost"/> and takes <see cref="Years"/>[N-1]. Each level does <see cref="PerLevel"/>; at the levels in
-/// <see cref="SlotsAt"/> it opens a building slot on the system's world ("world") or on every other body and open space ("bodies").</summary>
+/// Level N costs N times <see cref="Cost"/> and takes <see cref="Years"/>[N-1]. Each level does what the fields say, and adds to the
+/// system's development at once and to how far it can grow (<see cref="BuildRules"/>).</summary>
 public sealed class InfrastructureDef
 {
     public string Id { get; init; } = "";
@@ -102,15 +102,43 @@ public sealed class InfrastructureDef
     public double Defense { get; init; }
     public int Prosperity { get; init; }
     public int Population { get; init; }
-    public IReadOnlyList<int> SlotsAt { get; init; } = Array.Empty<int>();
-    public string Opens { get; init; } = "";
     /// <summary>Levels at which the world's unrest falls a point a year more.</summary>
     public IReadOnlyList<int> CalmAt { get; init; } = Array.Empty<int>();
     /// <summary>The level from which the system supplies fleets as a depot does; 0 = never.</summary>
     public int DepotAt { get; init; }
     public Resources CostOf(int level) { var c = new Resources(); foreach (var r in Resource.All) c.Set(r, Cost.Get(r) * Math.Max(1, level)); return c; }
     public int YearsOf(int level) => level >= 1 && level <= Years.Count ? Math.Max(1, Years[level - 1]) : 1;
-    public int SlotsUpTo(int level) => SlotsAt.Count(l => l <= level);
+}
+
+/// <summary>How many slots a place has, how development grows, and how many great works a house may raise at once (docs/BUILDINGS.md;
+/// the owner, 2026-11-20: "three things ... determine how many slots you have ... development ... rank ... and if you have more money,
+/// you can potentially clear obstacles or just pay to unlock more slots"). Content: works.json, `slotRules`, `development`, `greatWorks`.</summary>
+public sealed class BuildRules
+{
+    /// <summary>The most a home world, and any other place, can ever show: what the screen has room for.</summary>
+    public int MaxWorld { get; init; } = 10; public int MaxBody { get; init; } = 5;
+    /// <summary>The development levels at which a home world, and every other place, gains a slot.</summary>
+    public IReadOnlyList<int> DevelopmentWorld { get; init; } = new[] { 2, 4, 6, 8, 10 }; public IReadOnlyList<int> DevelopmentBody { get; init; } = new[] { 3, 6, 9 };
+    /// <summary>The title ranks of the holder at which a home world, and every other place, gains a slot.</summary>
+    public IReadOnlyList<int> RankWorld { get; init; } = new[] { 2, 4, 6 }; public IReadOnlyList<int> RankBody { get; init; } = new[] { 3, 5 };
+    /// <summary>How many slots may be cleared for coin on a home world and on any other place, and what the first costs (the Nth costs N times it).</summary>
+    public int ClearMaxWorld { get; init; } = 3; public int ClearMaxBody { get; init; } = 2; public Resources ClearCost { get; init; } = new() { Credits = 14, Materials = 10 };
+    /// <summary>The development level a building's first, second and third level needs.</summary>
+    public IReadOnlyList<int> UpgradeAt { get; init; } = new[] { 0, 3, 6 };
+    /// <summary>Slots more on the home world of a system no other house holds anything in.</summary>
+    public int Undivided { get; init; } = 1;
+    /// <summary>Development: what a level of infrastructure adds at once; the ceiling a bare system grows to, what each level of infrastructure
+    /// adds to it, and how many people add a point; the prosperity at which a world grows twice as fast; what a year of siege or revolt costs.</summary>
+    public int DevPerLevel { get; init; } = 3; public int DevCeiling { get; init; } = 30; public int DevCeilingPerLevel { get; init; } = 4; public int DevCeilingPerPeople { get; init; } = 3;
+    public int DevProsperous { get; init; } = 65; public int DevSiege { get; init; } = -2;
+    /// <summary>What a held system starts with: so much, and a point for every so many of its people (never more than its ceiling).</summary>
+    public int DevSeed { get; init; } = 6; public int DevSeedPerPeople { get; init; } = 2;
+    /// <summary>Great works a house may raise at once: any house, the leader of a region, a head of state, an emperor.</summary>
+    public int CapacityHouse { get; init; } = 1; public int CapacityRegionLeader { get; init; } = 2; public int CapacityHeadOfState { get; init; } = 3; public int CapacityEmperor { get; init; } = 5;
+    /// <summary>What a hastened great work pays each year beyond its two instalments, in hundredths of them.</summary>
+    public int HastenPct { get; init; } = 50;
+    public int MaxLevel => Math.Max(1, UpgradeAt.Count);
+    public Resources ClearCostOf(int already) { var c = new Resources(); foreach (var r in Resource.All) c.Set(r, ClearCost.Get(r) * (already + 1)); return c; }
 }
 
 /// <summary>A work: what the holder of a system builds on one of its bodies (docs/SYSTEMS.md) — a colony, a mine, a base, a
@@ -146,6 +174,8 @@ public sealed class WorkDef
     public bool IsMegastructure { get; init; }
     /// <summary>"world" = only on the system's own world; "" = wherever its kind of body is.</summary>
     public string On { get; init; } = "";
+    /// <summary>A building that is not for a home world, though its kind of body is right: an outpost, a colony.</summary>
+    public bool NotHome { get; init; }
     public double Defense { get; init; }
     /// <summary>Supplies fleets as a supply depot does.</summary>
     public bool Depot { get; init; }
@@ -208,6 +238,7 @@ public sealed class HoldingCatalog
     public IReadOnlyDictionary<string, int> BodySlots { get; init; } = new Dictionary<string, int>();
     public int SmallSlots { get; init; } = 1;
     public IReadOnlyList<InfrastructureDef> Infrastructure { get; init; } = Array.Empty<InfrastructureDef>();
+    public BuildRules Rules { get; init; } = new();
     public InfrastructureDef? Track(string id) => Infrastructure.FirstOrDefault(t => t.Id == id);
     private Dictionary<string, WorkDef>? _works;
     public WorkDef? Work(string id) => (_works ??= Works.ToDictionary(w => w.Id)).TryGetValue(id, out var d) ? d : null;

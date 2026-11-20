@@ -102,8 +102,10 @@ public class SystemWorksTests
         Assert.Null(Why(mine.Id, star, "sun_foundry"));
         // a domed colony wants an outpost on the same body first
         int rock = mine.Bodies.FindIndex(b => !b.IsPrimary && Cat.Work("domed_colony")!.Fits(b.Class)); if (rock >= 0) Assert.Contains("Outpost here first", Why(mine.Id, rock, "domed_colony"));
-        // a building is not for the system's own world, which is built on through its holding
-        int home = mine.Bodies.FindIndex(b => b.IsPrimary); Assert.Equal("the system's own world is built on through its holding", Why(mine.Id, home, Cat.Works.First(d => !d.IsMegastructure && d.Fits(mine.Bodies[home].Class)).Id));
+        // a colony is not for a home world, and the home world's own buildings are for nowhere else
+        int home = mine.Bodies.FindIndex(b => b.IsPrimary); var colony = Cat.Works.FirstOrDefault(d => d.NotHome && d.Requires.Length == 0 && d.Fits(mine.Bodies[home].Class));
+        if (colony != null) Assert.Equal("not for a home world", Why(mine.Id, home, colony.Id));
+        int other = mine.Bodies.FindIndex(b => !b.IsPrimary && Cat.Work("forum")!.Fits(b.Class)); if (other >= 0) Assert.Equal("only on the system's home world", Why(mine.Id, other, "forum"));
     }
 
     [Fact]
@@ -111,24 +113,26 @@ public class SystemWorksTests
     {
         var (w, tc, house, me, ctx) = Start(); var g = w.Galaxy!;
         var mine = g.System(w.HoldingsOf(house.Id).First(h => h.IsPlanet).SystemId)!; int star = mine.Bodies.FindIndex(b => b.IsStar), space = mine.Bodies.FindIndex(b => b.IsSpace);
-        // slots by kind of body: none on the sun, the catalog's number elsewhere, one on a small rock; the world is its holding's
+        // slots by kind of place, before development and rank add theirs: none on the sun, the catalog's number elsewhere, one on a moon
+        house.Title = "knight"; w.Development[mine.Id] = 0;
         Assert.Equal(0, SystemWorks.Slots(w, Cat, mine, star)); Assert.Equal(Cat.BodySlots["space"], SystemWorks.Slots(w, Cat, mine, space));
         for (int i = 0; i < mine.Bodies.Count; i++) { var b = mine.Bodies[i]; if (b.IsStar || b.IsPrimary) continue; Assert.InRange(SystemWorks.Slots(w, Cat, mine, i), 1, 3); if (b.Class == Body.Moon) Assert.Equal(1, SystemWorks.Slots(w, Cat, mine, i)); }
-        Assert.Equal(0, SystemWorks.Slots(w, Cat, mine, mine.Bodies.FindIndex(b => b.IsPrimary)));
+        house.Title = "duke";
         // the sun has no slot but it has a site: a great work is begun there, and a second is refused the site
         Assert.True(tc.Executor.TryExecute(new BuildWorkCommand(me.Id, mine.Id, star, "sun_foundry", Cat, Content.Titles), ctx));
         Assert.Empty(SystemWorks.On(w, mine.Id, star)); Assert.Single(SystemWorks.Underway(w, mine.Id, star)); Assert.Equal("sun_foundry", SystemWorks.Site(w, Cat, mine.Id, star));
         Assert.StartsWith("its site is taken", new BuildWorkCommand(me.Id, mine.Id, star, "dyson_lattice", Cat, Content.Titles).Refusal(ctx));
-        // and while it rises the house raises no other great work anywhere
-        Assert.Contains("one great work at a time", new BuildWorkCommand(me.Id, mine.Id, space, "long_cylinder", Cat, Content.Titles).Refusal(ctx));
+        // and with as many rising as its standing allows, the house begins no other great work anywhere
+        for (int n = 0; SystemWorks.Raising(w, Cat, house.Id).Count() < SystemWorks.Capacity(w, Cat, house); n++) w.Projects.Add(new Project { Id = "other_" + n, OwnerId = house.Id, Kind = Project.Work, DefId = "sun_foundry", TargetId = "elsewhere#0", Name = "another", TurnsLeft = 5, TurnsTotal = 5 });
+        Assert.Contains("at a time", new BuildWorkCommand(me.Id, mine.Id, space, "long_cylinder", Cat, Content.Titles).Refusal(ctx)); w.Projects.RemoveAll(p => p.Id.StartsWith("other_"));
         // buildings fill a body's slots and then there is no room; a great work does not take a slot
         int moon = mine.Bodies.FindIndex(b => b.Class == Body.Moon);
         if (moon >= 0)
         {
             Assert.True(tc.Executor.TryExecute(new BuildWorkCommand(me.Id, mine.Id, moon, "outpost", Cat, Content.Titles), ctx));
-            Assert.Equal(0, SystemWorks.FreeSlots(w, Cat, mine, moon)); Assert.StartsWith("no slot left here", new BuildWorkCommand(me.Id, mine.Id, moon, "strip_mine", Cat, Content.Titles).Refusal(ctx));
+            house.Title = "knight"; Assert.Equal(0, SystemWorks.FreeSlots(w, Cat, mine, moon)); Assert.StartsWith("no free slot here", new BuildWorkCommand(me.Id, mine.Id, moon, "strip_mine", Cat, Content.Titles).Refusal(ctx));
             w.Projects.Clear();   // (the great work set aside, to ask of the site alone)
-            Assert.Null(new BuildWorkCommand(me.Id, mine.Id, moon, "fortress_moon", Cat, Content.Titles).Refusal(ctx));
+            house.Title = "duke"; Assert.Null(new BuildWorkCommand(me.Id, mine.Id, moon, "fortress_moon", Cat, Content.Titles).Refusal(ctx));
         }
         // one to a system: a second fleet anchorage is refused wherever it is put
         w.Projects.Clear(); var anchorage = Cat.Work("fleet_anchorage")!; var first = Site(w, house, anchorage); Assert.NotNull(first);
@@ -157,34 +161,211 @@ public class SystemWorksTests
     }
 
     [Fact]
-    public void Infrastructure_IsLaidALevelAtATime_AndOpensSlots()
+    public void Infrastructure_IsLaidALevelAtATime_AndDevelopsTheSystem()
     {
         var (w, tc, house, me, ctx) = Start(); var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var sys = w.Galaxy!.System(seat.SystemId)!;
         var civil = Cat.Track("civil_works")!; var outworks = Cat.Track("outworks")!; var grid = Cat.Track("defence_grid")!; var eco = new Economy(Cat, Content.Businesses);
-        int slots = SystemWorks.WorldSlots(w, Cat, seat), target = eco.ProsperityTarget(w, seat), credits = house.Treasury.Credits;
-        Assert.Equal(Cat.Spec(seat.Specialization)!.Slots, slots);
-        // the first level is laid at once, costs the base, and opens a slot on the world
+        int target = eco.ProsperityTarget(w, seat), credits = house.Treasury.Credits, dev = SystemWorks.Development(w, sys.Id), top = SystemWorks.DevelopmentCeiling(w, Cat, sys.Id);
+        // the first level is laid at once, costs the base, and the system is the more developed for it: now, and in how far it can grow
         Assert.True(tc.Executor.TryExecute(new InvestInfrastructureCommand(me.Id, sys.Id, civil.Id, Cat), ctx));
         Assert.Equal(1, SystemWorks.Level(w, sys.Id, civil.Id)); Assert.Equal(credits - civil.Cost.Credits, house.Treasury.Credits);
-        Assert.Equal(slots + 1, SystemWorks.WorldSlots(w, Cat, seat)); Assert.Equal(Math.Min(100, target + civil.Prosperity), eco.ProsperityTarget(w, seat));
+        Assert.Equal(dev + Cat.Rules.DevPerLevel, SystemWorks.Development(w, sys.Id)); Assert.Equal(top + Cat.Rules.DevCeilingPerLevel, SystemWorks.DevelopmentCeiling(w, Cat, sys.Id));
+        Assert.Equal(Math.Min(100, target + civil.Prosperity), eco.ProsperityTarget(w, seat));
         // the second costs twice the first; the third takes years, and while it is laid the next is refused
         credits = house.Treasury.Credits; Assert.True(tc.Executor.TryExecute(new InvestInfrastructureCommand(me.Id, sys.Id, civil.Id, Cat), ctx)); Assert.Equal(credits - 2 * civil.Cost.Credits, house.Treasury.Credits);
         Assert.True(tc.Executor.TryExecute(new InvestInfrastructureCommand(me.Id, sys.Id, civil.Id, Cat), ctx)); Assert.Equal(2, SystemWorks.Level(w, sys.Id, civil.Id));
         Assert.Equal("the next level is being laid", new InvestInfrastructureCommand(me.Id, sys.Id, civil.Id, Cat).Refusal(ctx));
         for (int t = 0; t < 4 && SystemWorks.Level(w, sys.Id, civil.Id) < 3; t++) { house.Treasury.Credits = 400; house.Treasury.Materials = 400; Year(tc); }
-        Assert.Equal(3, SystemWorks.Level(w, sys.Id, civil.Id)); Assert.Equal(slots + 2, SystemWorks.WorldSlots(w, Cat, seat));
-        // the world's building command counts the opened slots
-        seat.Buildings.Clear(); for (int i = 0; i < slots + 2; i++) seat.Buildings.Add("filler_" + i);
-        Assert.StartsWith("no free slot", new BuildCommand(me.Id, seat.Id, "power_plant", Cat, Content.Titles).Refusal(ctx));
-        seat.Buildings.RemoveAt(0); Assert.NotEqual("no free slot: civil works open more", new BuildCommand(me.Id, seat.Id, "power_plant", Cat, Content.Titles).Refusal(ctx));
-        // outworks open a slot on every other body at their second level; the defence grid defends
-        int moon = sys.Bodies.FindIndex(b => !b.IsPrimary && !b.IsStar); int before = SystemWorks.Slots(w, Cat, sys, moon); double def0 = tc.Fleets.Defense(w, sys.Id, house.Id);
-        SystemWorks.Lay(w, sys.Id, outworks); Assert.Equal(before, SystemWorks.Slots(w, Cat, sys, moon)); SystemWorks.Lay(w, sys.Id, outworks); Assert.Equal(before + 1, SystemWorks.Slots(w, Cat, sys, moon));
-        SystemWorks.Lay(w, sys.Id, grid); SystemWorks.Lay(w, sys.Id, grid); Assert.Equal(def0 + 2 * grid.Defense, tc.Fleets.Defense(w, sys.Id, house.Id), 3);
+        Assert.Equal(3, SystemWorks.Level(w, sys.Id, civil.Id));
+        // the defence grid defends, and a track that yields is in the ledger
+        double def0 = tc.Fleets.Defense(w, sys.Id, house.Id);
+        SystemWorks.Lay(w, Cat, sys.Id, outworks); SystemWorks.Lay(w, Cat, sys.Id, grid); SystemWorks.Lay(w, Cat, sys.Id, grid); Assert.Equal(def0 + 2 * grid.Defense, tc.Fleets.Defense(w, sys.Id, house.Id), 3);
         Assert.Contains(eco.Compute(w, house.Id).Lines, l => l.Kind == "work" && l.Source.StartsWith(outworks.Name));
         // it is the holder's to lay, and no further than its last level
         var other = w.Holdings.Values.First(h => h.IsPlanet && h.OwnerId != house.Id); Assert.Equal("you do not hold this system", new InvestInfrastructureCommand(me.Id, other.SystemId, civil.Id, Cat).Refusal(ctx));
-        for (int i = 0; i < 6; i++) SystemWorks.Lay(w, sys.Id, grid); Assert.Equal(grid.MaxLevel, SystemWorks.Level(w, sys.Id, grid.Id)); Assert.Equal("it can be carried no further", new InvestInfrastructureCommand(me.Id, sys.Id, grid.Id, Cat).Refusal(ctx));
+        for (int i = 0; i < 6; i++) SystemWorks.Lay(w, Cat, sys.Id, grid); Assert.Equal(grid.MaxLevel, SystemWorks.Level(w, sys.Id, grid.Id)); Assert.Equal("it can be carried no further", new InvestInfrastructureCommand(me.Id, sys.Id, grid.Id, Cat).Refusal(ctx));
+    }
+
+    [Fact]
+    public void Slots_ComeFromDevelopment_Rank_AndGroundClearedForCoin()
+    {
+        // the owner, 2026-11-20: "three things ... determine how many slots you have ... development ... rank ... and if you have more
+        // money, you can potentially clear obstacles or just pay to unlock more slots"
+        var (w, tc, house, me, ctx) = Start(); var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var sys = w.Galaxy!.System(seat.SystemId)!; var r = Cat.Rules;
+        int home = sys.Bodies.FindIndex(b => b.IsPrimary), moon = sys.Bodies.FindIndex(b => !b.IsPrimary && !b.IsStar);
+        foreach (var h in w.Holdings.Values.Where(h => h.SystemId == sys.Id && h.OwnerId != house.Id).ToList()) h.OwnerId = house.Id;   // the whole system is the house's
+        house.Title = "knight"; w.Development[sys.Id] = 0; int baseHome = Cat.Spec(seat.Specialization)!.Slots + r.Undivided, baseMoon = SystemWorks.Slots(w, Cat, sys, moon);
+        Assert.Equal(baseHome, SystemWorks.Slots(w, Cat, sys, home)); Assert.Equal(baseHome, SystemWorks.WorldSlots(w, Cat, seat));
+        // development is the main one: every level named opens a slot, on the home world sooner and more often than elsewhere
+        for (int level = 0; level <= 10; level++)
+        {
+            w.Development[sys.Id] = level * 10;
+            Assert.Equal(Math.Min(r.MaxWorld, baseHome + r.DevelopmentWorld.Count(l => l <= level)), SystemWorks.Slots(w, Cat, sys, home));
+            Assert.Equal(Math.Min(r.MaxBody, baseMoon + r.DevelopmentBody.Count(l => l <= level)), SystemWorks.Slots(w, Cat, sys, moon));
+        }
+        Assert.True(r.DevelopmentWorld.Count >= r.RankWorld.Count && r.DevelopmentWorld.Count >= r.ClearMaxWorld, "development gives the most");
+        // rank: the higher the house that holds it, the more slots
+        w.Development[sys.Id] = 0; int last = SystemWorks.Slots(w, Cat, sys, home);
+        foreach (var title in new[] { "baron", "count", "duke", "archduke", "emperor" }) { house.Title = title; int now = SystemWorks.Slots(w, Cat, sys, home); Assert.True(now >= last, title); last = now; }
+        Assert.Equal(baseHome + r.RankWorld.Count, last); Assert.Equal(Math.Min(r.MaxBody, baseMoon + r.RankBody.Count), SystemWorks.Slots(w, Cat, sys, moon));
+        // money: ground is cleared for coin, each slot dearer than the last, and only so much of it
+        house.Title = "knight"; int credits = house.Treasury.Credits;
+        Assert.True(tc.Executor.TryExecute(new ClearSlotCommand(me.Id, sys.Id, home, Cat), ctx)); Assert.Equal(credits - r.ClearCost.Credits, house.Treasury.Credits); Assert.Equal(baseHome + 1, SystemWorks.Slots(w, Cat, sys, home));
+        credits = house.Treasury.Credits; Assert.True(tc.Executor.TryExecute(new ClearSlotCommand(me.Id, sys.Id, home, Cat), ctx)); Assert.Equal(credits - 2 * r.ClearCost.Credits, house.Treasury.Credits);
+        for (int i = 2; i < r.ClearMaxWorld; i++) Assert.True(tc.Executor.TryExecute(new ClearSlotCommand(me.Id, sys.Id, home, Cat), ctx));
+        Assert.Equal("there is no more ground to clear", new ClearSlotCommand(me.Id, sys.Id, home, Cat).Refusal(ctx)); Assert.Equal(baseHome + r.ClearMaxWorld, SystemWorks.Slots(w, Cat, sys, home));
+        Assert.StartsWith("there is no ground", new ClearSlotCommand(me.Id, sys.Id, sys.Bodies.FindIndex(b => b.IsStar), Cat).Refusal(ctx));
+        house.Treasury.Credits = 0; Assert.StartsWith("needs ", new ClearSlotCommand(me.Id, sys.Id, moon, Cat).Refusal(ctx)); house.Treasury.Credits = 400;
+        var theirs = w.Holdings.Values.First(h => h.IsPlanet && h.OwnerId != house.Id); Assert.Equal("you do not hold this system", new ClearSlotCommand(me.Id, theirs.SystemId, 1, Cat).Refusal(ctx));
+        // everything at once never shows more than the screen has room for
+        house.Title = "emperor"; w.Development[sys.Id] = 100; Assert.Equal(r.MaxWorld, SystemWorks.Slots(w, Cat, sys, home)); Assert.InRange(SystemWorks.Slots(w, Cat, sys, moon), 1, r.MaxBody);
+        Assert.Equal(SystemWorks.Slots(w, Cat, sys, home), Math.Min(r.MaxWorld, SystemWorks.SlotParts(w, Cat, sys, home).Sum(p => p.slots)));
+        // a system another house has a foot in is not all one house's: the home world has a slot the fewer
+        house.Title = "knight"; w.Development[sys.Id] = 0; int whole = SystemWorks.Slots(w, Cat, sys, home);
+        w.Holdings["foothold"] = new Holding { Id = "foothold", OwnerId = theirs.OwnerId, Name = "A Foothold", Kind = "station", Specialization = theirs.Specialization, SystemId = sys.Id }; w.HoldingsChanged();
+        Assert.Equal(whole - r.Undivided, SystemWorks.Slots(w, Cat, sys, home));
+    }
+
+    [Fact]
+    public void Development_GrowsTowardWhatTheSystemCanBear_AndFallsUnderRevolt()
+    {
+        var (w, tc, house, _, _) = Start(); var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var sys = w.Galaxy!.System(seat.SystemId)!; var r = Cat.Rules;
+        // every held system has a figure from the start, no higher than it can bear; a system nobody holds has none
+        foreach (var h in w.Holdings.Values.Where(h => h.IsPlanet && w.Galaxy!.System(h.SystemId) != null && w.PlanetOf(h.SystemId) == h)) Assert.True(SystemWorks.Development(w, h.SystemId) >= 1 && SystemWorks.Development(w, h.SystemId) <= SystemWorks.DevelopmentCeiling(w, Cat, h.SystemId), $"{h.Id} at {h.SystemId}: {SystemWorks.Development(w, h.SystemId)} of {SystemWorks.DevelopmentCeiling(w, Cat, h.SystemId)}, {h.Population} people, held by {h.OwnerId}");
+        var empty = w.Galaxy.Systems.Values.First(s => w.PlanetOf(s.Id) == null); Assert.Equal(0, SystemWorks.Development(w, empty.Id)); Assert.Equal(0, SystemWorks.DevelopmentCeiling(w, Cat, empty.Id));
+        // it creeps up a year at a time toward the ceiling, and no further
+        w.Development[sys.Id] = 5; int top = SystemWorks.DevelopmentCeiling(w, Cat, sys.Id); Assert.True(top >= r.DevCeiling);
+        SystemWorks.Tick(w, Cat); Assert.InRange(SystemWorks.Development(w, sys.Id), 6, 7);
+        w.Development[sys.Id] = top; SystemWorks.Tick(w, Cat); Assert.True(SystemWorks.Development(w, sys.Id) <= SystemWorks.DevelopmentCeiling(w, Cat, sys.Id));
+        // infrastructure and people raise the ceiling
+        SystemWorks.Lay(w, Cat, sys.Id, Cat.Track("civil_works")!); Assert.Equal(top + r.DevCeilingPerLevel, SystemWorks.DevelopmentCeiling(w, Cat, sys.Id));
+        Assert.Equal(SystemWorks.DevelopmentCeiling(w, Cat, sys.Id), SystemWorks.CeilingParts(w, Cat, sys.Id).Sum(p => p.points));
+        // a world in revolt goes backward
+        int before = SystemWorks.Development(w, sys.Id); seat.Rebellion = 1; SystemWorks.Tick(w, Cat); Assert.Equal(before + r.DevSiege, SystemWorks.Development(w, sys.Id)); seat.Rebellion = 0;
+        // the level is a tenth of it
+        w.Development[sys.Id] = 47; Assert.Equal(4, SystemWorks.DevelopmentLevel(w, sys.Id));
+    }
+
+    [Fact]
+    public void TheHomeWorld_TakesItsOwnBuildings_AndOrdinaryOnes_InTheSameSlots()
+    {
+        // the owner, 2026-11-20: "the home world of your system should have unique buildings and should also be able to build ordinary
+        // buildings ... the whole world where you actually live should have more options of things to do"
+        var (w, tc, house, me, ctx) = Start(); var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var sys = w.Galaxy!.System(seat.SystemId)!; int home = sys.Bodies.FindIndex(b => b.IsPrimary); var body = sys.Bodies[home];
+        var own = Cat.Works.Where(d => !d.IsMegastructure && d.On == "world").ToList(); Assert.True(own.Count >= 8, $"{own.Count} home-world buildings");
+        var ordinary = Cat.Works.Where(d => !d.IsMegastructure && d.On != "world" && SystemWorks.Suits(sys, body, d)).ToList(); Assert.NotEmpty(ordinary);
+        Assert.All(own, d => { Assert.True(SystemWorks.Suits(sys, body, d), d.Id); for (int i = 0; i < sys.Bodies.Count; i++) if (i != home) Assert.False(SystemWorks.Suits(sys, sys.Bodies[i], d), d.Id); });
+        // more can be built on the home world than on any other place of the system
+        int Options(int i) => Cat.Works.Count(d => SystemWorks.Suits(sys, sys.Bodies[i], d)) + (i == home ? Cat.Buildings.Count(b => b.FitsSpecialization(seat.Specialization)) : 0);
+        for (int i = 0; i < sys.Bodies.Count; i++) if (i != home) Assert.True(Options(home) > Options(i), sys.Bodies[i].Name);
+        // one of each goes up, and both are in the world's slots with the holding's own buildings
+        int used = SystemWorks.SlotsUsed(w, Cat, sys.Id, home); Assert.Equal(seat.Buildings.Count, used); w.Development[sys.Id] = 100;
+        Assert.True(tc.Executor.TryExecute(new BuildWorkCommand(me.Id, sys.Id, home, "forum", Cat, Content.Titles), ctx));
+        Assert.True(tc.Executor.TryExecute(new BuildWorkCommand(me.Id, sys.Id, home, ordinary[0].Id, Cat, Content.Titles), ctx));
+        Assert.Equal(used + 2, SystemWorks.SlotsUsed(w, Cat, sys.Id, home)); Assert.Equal(used + 2, SystemWorks.WorldSlotsUsed(w, Cat, seat));
+        Assert.Equal("one to a system", new BuildWorkCommand(me.Id, sys.Id, home, "forum", Cat, Content.Titles).Refusal(ctx) is "already being built here" or "already built here" ? "one to a system" : new BuildWorkCommand(me.Id, sys.Id, home, "forum", Cat, Content.Titles).Refusal(ctx));
+        // when the slots are full neither kind goes up, by either door
+        int free = SystemWorks.FreeSlots(w, Cat, sys, home); for (int i = 0; i < free; i++) seat.Buildings.Add("filler_" + i);
+        Assert.StartsWith("no free slot", new BuildWorkCommand(me.Id, sys.Id, home, "academy", Cat, Content.Titles).Refusal(ctx));
+        Assert.StartsWith("no free slot", new BuildCommand(me.Id, seat.Id, Cat.Buildings.First(b => b.FitsSpecialization(seat.Specialization) && !seat.Buildings.Contains(b.Id)).Id, Cat, Content.Titles).Refusal(ctx));
+        // a great work on the home world has its site, and takes no slot
+        w.Projects.RemoveAll(p => SystemWorks.IsGreat(Cat, p)); Assert.Null(new BuildWorkCommand(me.Id, sys.Id, home, "great_stair", Cat, Content.Titles).Refusal(ctx));
+    }
+
+    [Fact]
+    public void ABuilding_IsTakenHigher_AsFarAsDevelopmentAllows()
+    {
+        var (w, tc, house, me, ctx) = Start(); var r = Cat.Rules; var eco = new Economy(Cat, Content.Businesses);
+        var def = Cat.Works.First(d => !d.IsMegastructure && d.BuildTurns <= 1 && d.Deposit.Length == 0 && d.Requires.Length == 0 && !d.Yield.IsEmpty() && Site(w, house, d) != null); var at = Site(w, house, def)!.Value;
+        var sys = at.sys; var seat = w.PlanetOf(sys.Id)!;
+        Assert.True(tc.Executor.TryExecute(new BuildWorkCommand(me.Id, sys.Id, at.body, def.Id, Cat, Content.Titles), ctx)); string target = SystemWorks.Target(sys.Id, at.body);
+        Resources Line() => eco.Compute(w, house.Id).Lines.First(l => l.Kind == "work" && l.Source.StartsWith(def.Name)).Delta;
+        var one = Line().Clone();
+        // development too low: no second level
+        w.Development[sys.Id] = (r.UpgradeAt[1] * 10) - 1; Assert.Equal(1, SystemWorks.LevelAllowed(w, Cat, sys.Id)); Assert.StartsWith("needs development", new UpgradeBuildingCommand(me.Id, target, def.Id, Cat).Refusal(ctx));
+        // high enough: it is begun, paid for, and stands a level higher in a year; it yields and costs twice over
+        w.Development[sys.Id] = r.UpgradeAt[1] * 10; int credits = house.Treasury.Credits;
+        Assert.True(tc.Executor.TryExecute(new UpgradeBuildingCommand(me.Id, target, def.Id, Cat), ctx)); Assert.Equal(credits - def.Cost.Credits, house.Treasury.Credits);
+        Assert.Equal("the next level is being built", new UpgradeBuildingCommand(me.Id, target, def.Id, Cat).Refusal(ctx));
+        Year(tc); Assert.Equal(2, SystemWorks.On(w, sys.Id, at.body).First(x => x.DefId == def.Id).Level);
+        foreach (var res in Resource.All) Assert.Equal(one.Get(res) * 2, Line().Get(res));
+        // the third wants more development, and costs twice the building; there is no fourth
+        w.Development[sys.Id] = r.UpgradeAt[1] * 10; Assert.StartsWith("needs development", new UpgradeBuildingCommand(me.Id, target, def.Id, Cat).Refusal(ctx));
+        w.Development[sys.Id] = 100; house.Treasury.Credits = 400; house.Treasury.Materials = 400; credits = house.Treasury.Credits;
+        Assert.True(tc.Executor.TryExecute(new UpgradeBuildingCommand(me.Id, target, def.Id, Cat), ctx)); Assert.Equal(credits - 2 * def.Cost.Credits, house.Treasury.Credits);
+        w.Development[sys.Id] = 100; Year(tc); Assert.Equal(3, SystemWorks.On(w, sys.Id, at.body).First(x => x.DefId == def.Id).Level);
+        Assert.Equal("it can be taken no higher", new UpgradeBuildingCommand(me.Id, target, def.Id, Cat).Refusal(ctx));
+        // a world's own building rises the same way, and its line in the ledger with it
+        var mine = Cat.Buildings.First(b => seat.Buildings.Contains(b.Id) && !b.Megastructure); w.Development[sys.Id] = 100; house.Treasury.Credits = 400; house.Treasury.Materials = 400; house.Treasury.Exotics = 40;
+        Assert.True(tc.Executor.TryExecute(new UpgradeBuildingCommand(me.Id, seat.Id, mine.Id, Cat), ctx), new UpgradeBuildingCommand(me.Id, seat.Id, mine.Id, Cat).Refusal(ctx));
+        for (int t = 0; t < 5 && seat.LevelOf(mine.Id) < 2; t++) { w.Development[sys.Id] = 100; house.Treasury.Credits = 400; house.Treasury.Materials = 400; Year(tc); }
+        Assert.Equal(2, seat.LevelOf(mine.Id));
+        // a great work has no levels
+        w.BodyWorks.Add(new BodyWork { Id = "gw", SystemId = sys.Id, Body = sys.Bodies.FindIndex(b => b.IsStar), DefId = "sun_foundry" });
+        Assert.Equal("a great work has no levels", new UpgradeBuildingCommand(me.Id, SystemWorks.Target(sys.Id, sys.Bodies.FindIndex(b => b.IsStar)), "sun_foundry", Cat).Refusal(ctx));
+    }
+
+    [Fact]
+    public void AHouse_RaisesAsManyGreatWorksAtOnce_AsItsStandingAllows()
+    {
+        // the owner, 2026-11-20: "everyone unless they are much higher up can only do one great work at a time per house. But if you are
+        // the leader of a region, you can do two, and if you are higher up like a king or president, you can do three. Finally, an
+        // emperor would be able to do five at a time"
+        var (w, tc, house, me, ctx) = Start(); var r = Cat.Rules; var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var sys = w.Galaxy!.System(seat.SystemId)!;
+        Assert.Equal((1, 2, 3, 5), (r.CapacityHouse, r.CapacityRegionLeader, r.CapacityHeadOfState, r.CapacityEmperor));
+        w.Offices.RemoveAll(o => o.HouseId == house.Id); foreach (var p in w.Polities) if (p.HeadHouseId == house.Id) p.HeadHouseId = "";
+        bool capital = RegionSystem.CapitalHolder(w)?.Id == house.Id, dominant = PolicySystem.RegionsDominated(w, house.Id).Any();
+        house.Title = "baron"; if (!capital && !dominant) { Assert.Equal(SystemWorks.StandingHouse, SystemWorks.Standing(w, house)); Assert.Equal(1, SystemWorks.Capacity(w, Cat, house)); }
+        house.Title = "duke"; if (!capital) { Assert.Equal(SystemWorks.StandingRegion, SystemWorks.Standing(w, house)); Assert.Equal(2, SystemWorks.Capacity(w, Cat, house)); }
+        // a consul is a head of state, whatever the house's title
+        house.Title = "baron"; w.Offices.Add(new OfficeHolding { OfficeId = "consul_senior", HouseId = house.Id, CharacterId = me.Id }); Assert.Equal(SystemWorks.StandingState, SystemWorks.Standing(w, house)); Assert.Equal(3, SystemWorks.Capacity(w, Cat, house));
+        w.Offices.RemoveAll(o => o.HouseId == house.Id); house.Title = "archduke"; Assert.Equal(3, SystemWorks.Capacity(w, Cat, house));
+        house.Title = "emperor"; Assert.Equal(SystemWorks.StandingEmperor, SystemWorks.Standing(w, house)); Assert.Equal(5, SystemWorks.Capacity(w, Cat, house));
+        // an emperor begins five, each on a site of its own, and is refused the sixth
+        house.Treasury.Credits = 5000; house.Treasury.Materials = 5000; house.Treasury.Exotics = 500; house.Treasury.Influence = 500; house.Treasury.Manpower = 500;
+        foreach (var h in w.Holdings.Values.Where(h => h.IsPlanet)) h.OwnerId = house.Id; w.HoldingsChanged();
+        int begun = 0; string? refusal = null;
+        foreach (var def in Cat.Works.Where(d => d.IsMegastructure && d.Limit != WorkDef.PerGalaxy).OrderBy(d => d.Id, StringComparer.Ordinal))
+        {
+            if (Site(w, house, def) is not { } at) continue; var cmd = new BuildWorkCommand(me.Id, at.sys.Id, at.body, def.Id, Cat, Content.Titles);
+            if (begun < 5) { if (tc.Executor.TryExecute(cmd, ctx)) begun++; } else { refusal = cmd.Refusal(ctx); break; }
+        }
+        Assert.Equal(5, begun); Assert.Equal(5, SystemWorks.Raising(w, Cat, house.Id).Count()); Assert.NotNull(refusal); Assert.Contains("an emperor may raise 5 at a time", refusal);
+        // a house like any other, with one rising, is refused a second
+        w.Projects.RemoveRange(1, w.Projects.Count - 1); house.Title = "baron"; foreach (var h in w.Holdings.Values.Where(h => h.IsPlanet && h.Id != seat.Id && h.SystemId != SystemWorks.Parse(w.Projects[0].TargetId).systemId)) h.OwnerId = "nobody_" + h.Id; w.HoldingsChanged();
+        if (SystemWorks.Capacity(w, Cat, house) == 1)
+        {
+            var next = Cat.Works.Where(d => d.IsMegastructure && d.MinTitleRank <= 2 && d.Feature.Length == 0).Select(d => (d, at: Site(w, house, d))).First(x => x.at != null);
+            Assert.Contains("one great work at a time", new BuildWorkCommand(me.Id, next.at!.Value.sys.Id, next.at.Value.body, next.d.Id, Cat, Content.Titles).Refusal(ctx));
+        }
+    }
+
+    [Fact]
+    public void AGreatWork_IsHastened_ForACostPaidEveryYearItIsHastened()
+    {
+        // the owner, 2026-11-20: "you can pay extra to speed up the development. This would be a continuous cost over the development life cycle"
+        var (w, tc, house, me, ctx) = Start(); var sys = w.Galaxy!.System(w.HoldingsOf(house.Id).First(h => h.IsPlanet).SystemId)!; int star = sys.Bodies.FindIndex(b => b.IsStar); var def = Cat.Work("sun_foundry")!;
+        house.Treasury.Credits = 5000; house.Treasury.Materials = 5000; house.Treasury.Exotics = 500;
+        Assert.True(tc.Executor.TryExecute(new BuildWorkCommand(me.Id, sys.Id, star, def.Id, Cat, Content.Titles), ctx)); var p = w.Projects.Single(x => x.DefId == def.Id); Assert.True(p.Great);
+        // it is not bought outright
+        Assert.StartsWith("a great work is not bought outright", new RushProjectCommand(me.Id, p.Id).Refusal(ctx));
+        // hastened, a year does two years' work and pays both instalments and half as much again
+        Assert.True(tc.Executor.TryExecute(new HastenWorkCommand(me.Id, p.Id, true, Cat), ctx)); Assert.True(p.Hastened); Assert.Equal("it is being hastened", new HastenWorkCommand(me.Id, p.Id, true, Cat).Refusal(ctx));
+        var each = ProjectSystem.NextInstalment(p); var (due, extra) = ProjectSystem.HastenDue(p, Cat.Rules.HastenPct);
+        Assert.Equal(each.Credits * 2, due.Credits); Assert.Equal((due.Credits * Cat.Rules.HastenPct + 99) / 100, extra.Credits); Assert.True(extra.Credits > 0);
+        int left = p.TurnsLeft, paid = p.Paid.Credits, purse = house.Treasury.Credits, mats = house.Treasury.Materials;
+        ProjectSystem.Tick(w, Cat, Content.Businesses);
+        Assert.Equal(left - 2, p.TurnsLeft); Assert.Equal(paid + due.Credits, p.Paid.Credits); Assert.Equal(purse - due.Credits - extra.Credits, house.Treasury.Credits); Assert.Equal(mats - due.Materials - extra.Materials, house.Treasury.Materials);
+        // a year the purse cannot stand it, it goes at its own pace: one year, one instalment, no surcharge
+        left = p.TurnsLeft; house.Treasury.Credits = each.Credits; ProjectSystem.Tick(w, Cat, Content.Businesses); Assert.Equal(left - 1, p.TurnsLeft); Assert.Equal(0, house.Treasury.Credits); Assert.False(p.Stalled);
+        // hastened all the way it stands in half the years, and the whole price was paid, and more
+        house.Treasury.Credits = 5000; int years = 2; while (w.Projects.Contains(p) && years < 40) { ProjectSystem.Tick(w, Cat, Content.Businesses); years++; }
+        Assert.Contains(SystemWorks.On(w, sys.Id, star), x => x.DefId == def.Id); Assert.True(years <= def.BuildTurns / 2 + 2, $"{years} years for a work of {def.BuildTurns}");
+        Assert.True(p.Paid.Credits >= def.Cost.Credits, $"{p.Paid.Credits} of {def.Cost.Credits}");
+        // an ordinary building is not hastened
+        var plain = Cat.Works.First(d => !d.IsMegastructure && d.BuildTurns >= 2 && d.Requires.Length == 0 && d.Deposit.Length == 0 && Site(w, house, d) != null); var at = Site(w, house, plain)!.Value; w.Development[at.sys.Id] = 100;
+        Assert.True(tc.Executor.TryExecute(new BuildWorkCommand(me.Id, at.sys.Id, at.body, plain.Id, Cat, Content.Titles), ctx)); var q = w.Projects.Single(x => x.DefId == plain.Id);
+        Assert.Equal("only a great work is hastened", new HastenWorkCommand(me.Id, q.Id, true, Cat).Refusal(ctx)); Assert.False(q.Great);
     }
 
     [Fact]
@@ -294,7 +475,9 @@ public class SystemWorksTests
         Assert.True(w.Counter(SystemWorks.BuiltCounter) >= 8, $"{w.Counter(SystemWorks.BuiltCounter)} works built in forty years");
         Assert.True(w.BodyWorks.Select(x => x.DefId).Distinct().Count() >= 4, "of several kinds");
         Assert.All(w.BodyWorks, x => Assert.True(SystemWorks.Suits(w.Galaxy!.System(x.SystemId)!, w.Galaxy.System(x.SystemId)!.Bodies[x.Body], Cat.Work(x.DefId)!)));
-        Assert.All(w.Galaxy!.Systems.Values, s => { for (int i = 0; i < s.Bodies.Count; i++) Assert.True(SystemWorks.FreeSlots(w, Cat, s, i) >= 0, $"{s.Id} body {i} is over full"); });
+        Assert.All(w.Galaxy!.Systems.Values, s => { for (int i = 0; i < s.Bodies.Count; i++) Assert.InRange(SystemWorks.Slots(w, Cat, s, i), 0, s.Bodies[i].IsPrimary ? Cat.Rules.MaxWorld : Cat.Rules.MaxBody); });
+        Assert.True(w.Holdings.Values.Where(h => h.IsPlanet).All(h => w.Development.ContainsKey(h.SystemId)), "every held system has its development");
+        Assert.True(w.Counter("buildings_upgraded") >= 3, $"{w.Counter("buildings_upgraded")} buildings taken a level higher in forty years");
         Assert.True(w.Counter("infrastructure_laid") >= 5, $"{w.Counter("infrastructure_laid")} levels of infrastructure laid in forty years");
         Assert.True(w.Counter(SystemWorks.ColoniesCounter) >= 1, "nobody settled an empty system in forty years");
         var back = SaveSystem.Deserialize(SaveSystem.Serialize(w));

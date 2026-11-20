@@ -260,12 +260,15 @@ still short of that:
 
 | id | gap | size | needs |
 |---|---|---|---|
-| U1 | The system's own world has its specialization's buildings and nothing else; a sister-world of the same kind has a different list. A player sees two living worlds in one system with two sets of rules. | M | owner |
-| U2 | Slots are fixed by the kind of body. Nothing a body is (its size beyond small, its feature, its people) gives it more, and the only way to open one is two tracks of infrastructure. | S | owner |
-| U3 | A house raises one great work at a time whatever its size, and nobody else can help: no loan of labour, no Senate grant, no company to build it for a share. | M | |
 | U4 | Infrastructure never decays, is never damaged by a siege or a rising, and costs nothing to keep. | S | |
 | U5 | The pictures are one per kind of thing. The same Outpost is shown on a moon, a desert and a comet, and a great work looks finished from the day it is begun. A handful do not show their subject well after three attempts (the Sun Fields, the Deep-Sky Sensor Array, the Sun Foundry, the Twin Crown): the model at hand paints landscapes better than machinery in space. | M | |
 | U6 | The House window still lists a world's buildings its own way, without the pictures and without the system's other bodies. | S | |
+| U3 | Nobody else can help a house raise a great work: no loan of labour, no Senate grant, no company to build it for a share. | M | |
+| U7 | **Part of a world, a whole world, a whole system.** A house either holds a system's world, and builds on every place in it, or holds a lesser holding there and builds on that alone. There are no shares of a world: no quarter of a planet with a quarter of its slots, no two houses on one moon. The only difference a divided system makes is one slot on the home world. | L | owner: how a world is shared |
+| U8 | An over-full place (its development fell, its holder is of lower rank) suffers nothing: it only cannot build. Nothing falls into ruin. | S | owner |
+| U9 | Development is one figure for a system. It does not differ between the home world and a far moon, nothing can be spent on it directly but infrastructure, and no event, edict or governor's skill moves it. | M | |
+| U10 | A building's levels multiply what it does and nothing else: a level III smelter looks, and is named, like a level I. Great works have no levels and no stages while they rise. | S | |
+| U11 | Rival houses hasten nothing, and clear ground only on their seat. | S | |
 
 ## Older, from docs/ROADMAP.md section 3
 
@@ -277,6 +280,9 @@ look-and-feel pass is planned and not begun, there is no sound.
 
 | Id | Gap | Closed | How |
 |---|---|---|---|
+| U1 | The system's own world had its specialization's buildings and nothing else. | 2026-11-20 | The home world takes its own buildings, eight that only a home world takes, and the ordinary buildings of its kind, in one row of slots (docs/BUILDINGS.md, "The home world"). |
+| U2 | Slots were fixed by the kind of body; only two tracks of infrastructure opened more. | 2026-11-20 | The owner's rule: slots come from the system's development, the rank of its holder, and ground cleared for coin, capped at ten on a home world and five elsewhere; a building rises to level III as development allows. |
+| U3a | A house raised one great work at a time whatever its standing. | 2026-11-20 | The owner's rule: one for a house, two for the leader of a region, three for a head of state, five for an emperor; and a great work is hastened for a cost paid every year it is hastened. |
 | S9 | The old megastructures on a world were buildings in a world's slots. | 2026-11-20 | They are great works with sites of their own: the Orbital Ring on the world, the Dyson Lattice round the sun, the Lane Gate Anchor in open space; a world that had one in a slot has it moved (docs/BUILDINGS.md). |
 | G5 | A system nobody holds could be fought over but not settled. | 2026-11-20 | A colony is sent from a world a lane away, or under a fleet standing in the system; when it lands the world is the house's (docs/SYSTEMS.md). |
 | V12 | Territory on the map was a bright border line with nothing inside it. | 2026-11-20 | Every held system is a cell filled in its holder's colour, with a dark line between cells of one holder and a wider one, lit along its inner edge, where two holders meet. A house's worlds, the Reach and each nation read as blocks at any zoom, and on the minimap. A region's edge is a pale line. V17 (a crest over a realm at far zoom) and V14 (the map as an object) are what is left. |

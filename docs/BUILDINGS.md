@@ -9,6 +9,16 @@ just build out in space that do not have to be connected to a planetary body or 
 just invest in over time. Let's work on making a list of these kinds of things and then work on the way that building
 slots work in the game. After we have that done, let us get some artwork that matches the buildings."
 
+And on the slots, the same day: "there should be three things that determine how many slots you have so the main limiter
+will be the user interface. The big one and main one is development so the higher development the more slots [and] the more
+you can upgrade your building. And then another one is your rank ... And then, if you have more money, you can potentially
+clear obstacles or just pay to unlock more slots. I think the home world of your system should have unique buildings and
+should also be able to build ordinary buildings ... the whole world where you actually live should have more options of
+things to do and more decisions ... everyone unless they are much higher up can only do one great work at a time per house.
+But if you are the leader of a region, you can do two, and if you are higher up like a king or president, you can do three.
+Finally, an emperor would be able to do five at a time. And then you can pay extra to speed up the development. This would
+be a continuous cost over the development life cycle."
+
 This is the list, and the rules for slots. The tables are written from the content (`content/holdings/works.json`,
 `buildings.json`, `holdings_ext.json`); the figures there are the ones the game uses. docs/SYSTEMS.md says what a solar
 system is.
@@ -17,18 +27,27 @@ system is.
 
 | | where it goes | how many | cost and time |
 |---|---|---|---|
-| **A building** | a **slot** on a body, or in open space | as many as the body has slots | 14 to 42 in credits and materials; at once, or up to four years |
-| **A great work** (megastructure) | the body's one **site** | one to a body, and a house raises one at a time | 64 to 240; 4 to 12 years, paid as it rises; gated by rank |
+| **A building** | a **slot** on a place, or in open space | as many as the place has slots; each can be taken to level III | 14 to 42 in credits and materials; at once, or up to four years |
+| **A great work** (megastructure) | the place's one **site** | one to a place; a house raises one, two, three or five at a time, by its standing | 64 to 240; 4 to 12 years, paid as it rises, or half the years if hastened; gated by rank |
 | **Infrastructure** | the system itself, no body | five tracks, four or five levels each | level N costs N times the first; the higher levels take two and three years |
 
 ## How slots work
 
-- **Every body has building slots by its kind.** A slot holds one building. A great work takes no slot.
+A slot holds one building. A great work takes no slot. **Three things give a place its slots**, and the sum is capped at
+what the screen has room for: **10 on a home world, 5 anywhere else**.
 
-| place | slots | site for a great work |
+| | on the home world | on every other place | |
+|---|---|---|---|
+| **What the place starts with** | its specialization's (1 to 4) | by its kind (table below) | |
+| **1. Development** (the main one) | +1 at development 2, 4, 6, 8, 10: up to +5 | +1 at 3, 6, 9: up to +3 | the system's, 0 to 10 |
+| **2. Rank** of the house that holds it | +1 at baron, duke and emperor (title ranks 2, 4, 6): up to +3 | +1 at count and archduke (ranks 3, 5): up to +2 | goes with whoever holds the world |
+| **3. Money**: ground cleared | up to +3 | up to +2 | the Nth costs N × 14 cr, 10 mat, paid at once |
+| The whole system is one house's | +1 | | lost while another house has a holding in the system |
+
+| place | starts with | site for a great work |
 |---|---|---|
-| The sun | 0 | yes |
-| The system's own world | its specialization's (2 or 3), +1 at civil works I, III and V | yes |
+| The sun | 0, and never any | yes |
+| The home world | its specialization's | yes |
 | A living or ocean sister-world | 3 | yes |
 | An arid, forge, frozen or dead world | 2 (a small one 1) | yes |
 | A gas giant | 2 | yes |
@@ -37,15 +56,67 @@ system is.
 | A comet | 1 | yes |
 | Open space | 2 | yes |
 
-- **Outworks** (infrastructure) open one more slot on every body but the world, and in open space, at their second and
-  fourth levels. **Civil works** open one on the system's world at their first, third and fifth.
-- **The system's own world is built on through its holding**, as before: its buildings are the ones its specialization
-  allows (the last table here), and its slots are the holding's. No building from the other tables goes on it.
+On the row of a place the slots are pips: gold for a building that stands, dashed for one rising, hollow for a free slot,
+and faint dotted for the ones it could still gain. Opened, the place says where each of its slots comes from.
+
+### Development
+
+Every held system has a **development** from 0 to 100; its **level** is a tenth of it, 0 to 10.
+
+- A system starts at 6 and a point for every 2 of its people (a new colony at 6), never more than it can bear.
+- **What it can bear** is 30, and 4 for every level of infrastructure laid in it, a point for every 3 of
+  its people, and 10 on a prosperous world (prosperity 65 or more).
+- It **grows a point a year** toward that, two on a prosperous world. **Laying a level of infrastructure adds 3 at once.**
+- Under **siege or revolt it falls 2 a year**; above what it can bear it falls one.
+- Slots that development gave are not taken away from what stands: a place can be over-full, and then nothing new is
+  built there until there is room again.
+
+So the way to more slots is the old way to a richer world: infrastructure, people, prosperity, peace.
+
+### Levels
+
+A building stands at **level I, II or III**. At level N it yields N times over and costs N times to keep (and defends,
+and makes room for people, N times over). The next level **costs the building's cost times the level it leaves** (II costs
+the price again, III twice it) and takes as long as the building did, at least a year. How high a building may go is the
+system's development: **II from development 3, III from 6**. A level is slot-cheap and coin-dear: three
+levels in one slot cost four buildings and do the work of three. Great works have no levels.
+
+### The home world
+
+The system's own world, where its people live and its holder sits, has **more to build and more to decide** than any
+other place:
+
+- its **own buildings**, the ones its specialization allows (the last table here), as before;
+- **eight buildings only a home world takes** (below): a palace, a forum, an academy, a temple, a barracks, a spaceport,
+  a hospital, a mint;
+- the **ordinary buildings of its kind** of world (a forge home world takes the smelters a forge sister-world takes),
+  all but the ones that make no sense on a settled world (an outpost, a domed colony);
+- and its site for a great work, among them the three only a home world can have (the Orbital Ring, the Great Stair, the Aegis).
+
+All of them share **one row of slots**, the largest in the system. Which to spend them on is the decision.
+
+| building | what it does | cost | years | note |
+|---|---|---|---|---|
+| Governor's Palace | +1 inf · upkeep 1 cr · unrest −1/yr · legitimacy +2 once | 24 cr, 14 mat, 1 inf | 2 | one to a system |
+| Forum | +2 cr, 1 inf · upkeep 1 cr · prosperity +3 | 18 cr, 12 mat | 2 | one to a system |
+| Academy | +2 inf · upkeep 2 cr · prosperity +2 | 20 cr, 10 mat, 1 inf | 3 | one to a system |
+| Great Temple | upkeep 1 cr · unrest −2/yr · legitimacy +1 once | 22 cr, 16 mat | 3 | one to a system |
+| Barracks Quarter | +2 men · upkeep 1 cr · defence +0.25 | 16 cr, 14 mat, 2 men | 2 | one to a system |
+| Spaceport | +3 cr · upkeep 1 mat · room +6 · prosperity +2 | 20 cr, 16 mat | 2 | one to a system |
+| Hospital Quarter | upkeep 1 cr · room +10 · unrest −1/yr | 16 cr, 10 mat | 2 | one to a system |
+| Mint | +5 cr · upkeep 1 mat | 26 cr, 16 mat, 2 inf | 3 | one to a house; count or higher |
+
+**Part of a world, a whole world, a whole system.** A house that holds the world holds what is built round it. While
+another house has a holding in the system (a station, a claim) the home world has a slot the fewer; a house with only
+such a holding and not the world builds on its holding alone, with its specialization's slots. That is all the
+difference there is yet: see GAPS U7.
+
+### The rest
+
 - **Each kind of body has buildings of its own.** A forge world has smelters, an ocean has tidal mills, a belt has a
   prospectors' exchange; a few (an outpost, a strip mine, a listening post) suit several kinds.
 - **One site, one great work.** Where a body has a feature, the work only that feature allows competes for the site
   with the great works any such body could take: the ringed giant can have the Ring Habitat or the Sky Harbour, not both.
-- A house **raises one great work at a time**, wherever it is.
 - A building or a great work **goes with the system**: whoever holds its world has what was built round it.
 
 ## Buildings, by where they go
@@ -181,6 +252,21 @@ system is.
 
 ## Great works
 
+**How many at once.** A house raises as many great works at a time as its standing allows:
+
+| the house is | at a time |
+|---|---|
+| a house like any other | 1 |
+| the leader of a region: the house that dominates one, or a duke | 2 |
+| a head of state: a consul, the holder of the capital, the head of a state that has left, an archduke | 3 |
+| the emperor | 5 |
+
+**Hastening.** A great work is not bought outright (the rush that an ordinary project allows is refused it). It can be
+**hastened**: a hastened work does two years' work in one, and every year it is hastened pays both years' shares and
+50 in the hundred more, which buys nothing but the speed. It can be stopped and begun again any year. A year the
+purse cannot stand it, the work goes at its ordinary pace that year and is not stalled. Hastened from the first year, a
+work of twelve years stands in six and costs about half as much again.
+
 One to a body, on its site. All are years in the raising and wanted for the name they give as much as for what they yield.
 
 ### Any system may raise
@@ -227,19 +313,22 @@ One to a body, on its site. All are years in the raising and wanted for the name
 
 ## Infrastructure
 
-The system's own. Bought a level at a time on the Infrastructure tab; level N costs N times the first.
+The system's own. Bought a level at a time on the Infrastructure tab; level N costs N times the first. **Every level
+laid adds 3 to the system's development at once and 4 to what it can bear**: infrastructure no longer opens slots
+itself; it is how a system is developed, and development opens them.
 
 | track | levels | each level | and | first level costs | years by level |
 |---|---|---|---|---|---|
-| Civil Works | 5 | prosperity +1 | a slot on the world at 1, 3, 5 | 10 cr, 8 mat | 1, 1, 2, 2, 3 |
+| Civil Works | 5 | prosperity +1 |  | 10 cr, 8 mat | 1, 1, 2, 2, 3 |
 | Habitats | 5 | room +6 | unrest −1/yr at 3, 5 | 8 cr, 10 mat, 1 men | 1, 1, 2, 2, 3 |
 | Orbital Traffic | 5 | +1 cr | a depot from 3 | 12 cr, 6 mat | 1, 1, 2, 2, 3 |
-| Outworks | 4 | +1 mat | a slot on every other body and open space at 2, 4 | 10 cr, 12 mat | 1, 2, 2, 3 |
+| Outworks | 4 | +1 mat |  | 10 cr, 12 mat | 1, 2, 2, 3 |
 | Defence Grid | 5 | defence +0.2 |  | 10 cr, 12 mat | 1, 1, 2, 2, 3 |
 
-## The buildings of a system's own world
+## The home world's own buildings, by specialization
 
-These were in the game before and are unchanged, except that the three megastructures among them (the Orbital Ring, the Dyson
+These were in the game before. They share the home world's slots with the eight above and the ordinary buildings of its
+kind, and each can be taken to level III. They are unchanged, except that the three megastructures among them (the Orbital Ring, the Dyson
 Lattice, the Lane Gate Anchor) are great works now and no longer take a slot. A world built before the change has its ring
 moved to its site.
 
@@ -266,20 +355,23 @@ moved to its site.
 
 ## Artwork
 
-`tools/art/works.py` paints a small wide picture for every building, great work, track and world building (92 of them),
+`tools/art/works.py` paints a small wide picture for every building, great work, track and world building (100 of them),
 keyed by the id in content, with the same openly licensed model as the portraits; the panel shows it beside the thing.
 They are AI-generated (docs/ART_DIRECTION.md).
 
 ## What the owner might want to change
 
-1. **The numbers of slots.** They are in `works.json` under `slots` and are a first guess: a moon 1, a giant 2, a living
-   sister-world 3.
-2. **Whether the system's own world should take the same buildings as a sister-world.** It does not: it has its
-   specialization's list, as before.
-3. **One great work at a time for a house.** It keeps a rich house from raising five at once; it also means a duke with
-   ten systems builds no faster than a baron.
-4. **Which buildings are missing.** The list above is what could be thought of in a sitting. Anything a kind of body
-   ought to have and does not is a line of content and a line in the art script.
+1. **The figures.** All of them are in `works.json` under `slotRules`, `development` and `greatWorks`: the levels of
+   development that open a slot, the ranks that do, how much ground can be cleared and at what price, the caps of 10 and 5,
+   how fast development grows, what hastening costs.
+2. **Who counts as a head of state.** A consul, the holder of the capital, the head of a state that has left, and an
+   archduke raise three great works; a duke or the house that dominates a region raises two. In the Republic the titles
+   are offices in all but name, so the consuls are the "president" and a breakaway's head the "king".
+3. **Rank on other places.** A count's moons have a slot more than a baron's. If rank should only matter on the home
+   world, `rankBody` is the line.
+4. **What an over-full place should suffer.** Nothing now: it cannot build until there is room.
+5. **Which buildings are missing.** Anything a kind of body or a home world ought to have and does not is a line of
+   content and a line in the art script.
 
 ## Not done
 

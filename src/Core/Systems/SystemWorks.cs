@@ -11,9 +11,10 @@ namespace Praetoria.Core.Systems;
 /// system"). The holder of a system's world may build on every body in it. Three kinds of thing are built (docs/BUILDINGS.md; the owner:
 /// "separate out the mega structures from the ordinary buildings ... every planetary body ... should have a certain amount of building
 /// slots ... things that you just build out in space ... infrastructure that you can just invest in overtime"): BUILDINGS, which go in a
-/// body's slots; GREAT WORKS, of which a body has room for one, on its site, and a house raises one at a time; and INFRASTRUCTURE,
-/// which is the system's own and is bought a level at a time. The system's own world is built on through its holding
-/// (<see cref="Commands.BuildCommand"/>): its slots are its specialization's, and civil works open more. A work goes with the system:
+/// place's slots and can be taken to a higher level; GREAT WORKS, of which a place has room for one, on its site, and a house raises
+/// as many at once as its standing allows; and INFRASTRUCTURE, which is the system's own and is bought a level at a time. Slots come
+/// from the system's DEVELOPMENT, the RANK of its holder, and ground cleared for coin. The system's HOME WORLD takes its own buildings
+/// (<see cref="Commands.BuildCommand"/>) and the ordinary ones of its kind, in the same slots. A work goes with the system:
 /// whoever holds the world has what was built round it. Rules and reckoning only; the commands are in
 /// <see cref="Commands.BuildWorkCommand"/>, <see cref="Commands.InvestInfrastructureCommand"/> and <see cref="Commands.FoundColonyCommand"/>. RNG-free.
 /// </summary>
@@ -30,43 +31,206 @@ public static class SystemWorks
     /// <summary>Works being built on a body now.</summary>
     public static IEnumerable<Project> Underway(World w, string systemId, int body) { string t = Target(systemId, body); foreach (var p in w.Projects) if (p.Kind == Project.Work && p.TargetId == t) yield return p; }
 
+    // ---------------- development ----------------
+
+    /// <summary>How developed a system is, 0 to 100 (docs/BUILDINGS.md), and its level, 0 to 10: the main source of building slots and
+    /// what lets a building be taken to a higher level.</summary>
+    public static int Development(World w, string systemId) => w.Development.TryGetValue(systemId, out var v) ? v : 0;
+    public static int DevelopmentLevel(World w, string systemId) => Development(w, systemId) / 10;
+    /// <summary>How far a system's development can grow as it stands: the ground it starts with, what each level of its infrastructure
+    /// adds, its people, and ten more on a prosperous world.</summary>
+    public static int DevelopmentCeiling(World w, HoldingCatalog cat, string systemId)
+    {
+        var r = cat.Rules; var planet = w.PlanetOf(systemId); if (planet == null) return 0;
+        int levels = 0; if (w.Infrastructure.TryGetValue(systemId, out var lv)) foreach (var v in lv.Values) levels += v;
+        return Math.Clamp(r.DevCeiling + levels * r.DevCeilingPerLevel + planet.Population / r.DevCeilingPerPeople + (planet.Prosperity >= r.DevProsperous ? 10 : 0), 0, 100);
+    }
+    /// <summary>The parts of the ceiling, for the screen.</summary>
+    public static IEnumerable<(string what, int points)> CeilingParts(World w, HoldingCatalog cat, string systemId)
+    {
+        var r = cat.Rules; var planet = w.PlanetOf(systemId); if (planet == null) yield break;
+        yield return ("the ground itself", r.DevCeiling);
+        int levels = 0; if (w.Infrastructure.TryGetValue(systemId, out var lv)) foreach (var v in lv.Values) levels += v;
+        if (levels > 0) yield return (levels + (levels == 1 ? " level" : " levels") + " of infrastructure", levels * r.DevCeilingPerLevel);
+        if (planet.Population / r.DevCeilingPerPeople > 0) yield return ("its people", planet.Population / r.DevCeilingPerPeople);
+        if (planet.Prosperity >= r.DevProsperous) yield return ("a prosperous world", 10);
+    }
+    /// <summary>A held system that has no figure yet is given one: what its people have made of it so far.</summary>
+    public static void SeedDevelopment(World w, HoldingCatalog cat)
+    {
+        if (w.Galaxy == null) return; var r = cat.Rules;
+        foreach (var h in w.Holdings.Values)
+            if (h.IsPlanet && h.SystemId.Length > 0 && !w.Development.ContainsKey(h.SystemId))
+                w.Development[h.SystemId] = Math.Min(DevelopmentCeiling(w, cat, h.SystemId), r.DevSeed + h.Population / Math.Max(1, r.DevSeedPerPeople));
+    }
+    private static void Develop(World w, HoldingCatalog cat)
+    {
+        var r = cat.Rules; SeedDevelopment(w, cat);
+        HashSet<string>? besieged = null; if (w.Sieges.Count > 0) { besieged = new(); foreach (var s in w.Sieges.Values) besieged.Add(s.HoldingId); }
+        foreach (var h in w.Holdings.Values)
+        {
+            if (!h.IsPlanet || h.SystemId.Length == 0) continue;
+            int now = Development(w, h.SystemId), top = DevelopmentCeiling(w, cat, h.SystemId), next = now;
+            if (h.InRebellion || besieged?.Contains(h.Id) == true) next = now + r.DevSiege;
+            else if (now < top) next = Math.Min(top, now + (h.Prosperity >= r.DevProsperous ? 2 : 1));
+            else if (now > top) next = now - 1;
+            w.Development[h.SystemId] = Math.Clamp(next, 0, 100);
+        }
+    }
+
     // ---------------- slots, and the one site ----------------
 
-    /// <summary>The building slots of a body (docs/BUILDINGS.md): by its kind, one for a small rock or ice-dwarf, none on the sun; and one
-    /// more for each level of the system's infrastructure that opens them. The system's own world has none here: it is built on through
-    /// its holding, whose slots are <see cref="WorldSlots"/>.</summary>
+    private static int Rank(World w, string systemId) => w.PlanetHolder(systemId) is { } id && w.House(id) is { } h ? Progression.Title.RankOf(h.Title) : 0;
+    public static int Cleared(World w, string systemId, int body) => w.ClearedSlots.TryGetValue(Target(systemId, body), out var v) ? v : 0;
+    /// <summary>Whether nobody but its holder has a holding in the system: the whole of it is one house's.</summary>
+    public static bool Undivided(World w, string systemId)
+    {
+        var holder = w.PlanetHolder(systemId); if (holder == null) return false;
+        foreach (var h in w.Holdings.Values) if (h.SystemId == systemId && h.OwnerId != holder) return false;
+        return true;
+    }
+    /// <summary>Where a place's slots come from (docs/BUILDINGS.md; the owner, 2026-11-20: "three things ... determine how many slots you
+    /// have ... development ... rank ... money"): what its kind starts with, the system's development, the rank of the house that holds
+    /// it, ground cleared for coin, and on a home world one more when the whole system is one house's. The sum is capped at what the
+    /// screen has room for. The sun has none.</summary>
+    public static IEnumerable<(string what, int slots)> SlotParts(World w, HoldingCatalog cat, StarSystem sys, int body)
+    {
+        if (body < 0 || body >= sys.Bodies.Count) yield break; var b = sys.Bodies[body]; if (b.IsStar) yield break;
+        var r = cat.Rules; var planet = w.PlanetOf(sys.Id); bool home = b.IsPrimary;
+        int n;
+        if (home) n = cat.Spec(planet?.Specialization ?? "")?.Slots ?? (cat.BodySlots.TryGetValue(b.Class, out var pv) ? pv : 1);
+        else { n = cat.BodySlots.TryGetValue(b.Class, out var v) ? v : 1; if (b.Size <= 1 && b.Class is "barren" or "frozen" or "arid" or "forge") n = Math.Min(n, cat.SmallSlots); }
+        yield return (home ? "the world itself" : "the place itself", n);
+        if (planet == null) yield break;
+        int level = DevelopmentLevel(w, sys.Id), dev = (home ? r.DevelopmentWorld : r.DevelopmentBody).Count(l => l <= level); if (dev > 0) yield return ("development", dev);
+        int rank = Rank(w, sys.Id), byRank = (home ? r.RankWorld : r.RankBody).Count(l => l <= rank); if (byRank > 0) yield return ("the rank of its holder", byRank);
+        int cleared = Cleared(w, sys.Id, body); if (cleared > 0) yield return ("ground cleared", cleared);
+        if (home && r.Undivided > 0 && Undivided(w, sys.Id)) yield return ("the whole system is one house's", r.Undivided);
+    }
+    /// <summary>The building slots of a place: the sum of <see cref="SlotParts"/>, never more than the most a place can show.</summary>
     public static int Slots(World w, HoldingCatalog cat, StarSystem sys, int body)
     {
-        if (body < 0 || body >= sys.Bodies.Count) return 0; var b = sys.Bodies[body]; if (b.IsStar || b.IsPrimary) return 0;
-        int n = cat.BodySlots.TryGetValue(b.Class, out var v) ? v : 1;
-        if (b.Size <= 1 && b.Class is "barren" or "frozen" or "arid" or "forge") n = Math.Min(n, cat.SmallSlots);
-        return n + Opened(w, cat, sys.Id, "bodies");
+        if (body < 0 || body >= sys.Bodies.Count || sys.Bodies[body].IsStar) return 0;
+        int n = 0; foreach (var (_, s) in SlotParts(w, cat, sys, body)) n += s;
+        return Math.Min(n, sys.Bodies[body].IsPrimary ? cat.Rules.MaxWorld : cat.Rules.MaxBody);
     }
-    /// <summary>Slots that the system's infrastructure has opened on its world ("world") or on every other body ("bodies").</summary>
-    public static int Opened(World w, HoldingCatalog cat, string systemId, string where)
+    private static int Primary(StarSystem sys) => sys.Bodies.FindIndex(b => b.IsPrimary);
+    /// <summary>The building slots of a holding. A system's world, its home world, has the slots of <see cref="Slots"/>, and they are
+    /// shared by its own buildings and the ordinary buildings raised on it; any other holding has its specialization's.</summary>
+    public static int WorldSlots(World w, HoldingCatalog cat, Holding h)
     {
-        int n = 0; if (!w.Infrastructure.TryGetValue(systemId, out var levels)) return 0;
-        foreach (var t in cat.Infrastructure) if (t.Opens == where && levels.TryGetValue(t.Id, out var lv)) n += t.SlotsUpTo(lv);
+        if (h.IsPlanet && w.Galaxy?.System(h.SystemId) is { } sys && Primary(sys) is >= 0 and var p) return Slots(w, cat, sys, p);
+        return cat.Spec(h.Specialization)?.Slots ?? 0;
+    }
+    /// <summary>Slots of a holding that are spent: its buildings standing and rising, and on a home world the works in its slots too.</summary>
+    public static int WorldSlotsUsed(World w, HoldingCatalog cat, Holding h)
+    {
+        int n = h.Buildings.Count + ProjectSystem.SlotsUnderway(w, h.Id);
+        if (h.IsPlanet && w.Galaxy?.System(h.SystemId) is { } sys && Primary(sys) is >= 0 and var p) n += WorksIn(w, cat, sys.Id, p);
         return n;
     }
-    /// <summary>The building slots of a holding: its specialization's, and for a system's world those its civil works have opened.</summary>
-    public static int WorldSlots(World w, HoldingCatalog cat, Holding h) => (cat.Spec(h.Specialization)?.Slots ?? 0) + (h.IsPlanet && w.Infrastructure.Count > 0 ? Opened(w, cat, h.SystemId, "world") : 0);
 
     private static bool Great(HoldingCatalog cat, string defId) => cat.Work(defId)?.IsMegastructure == true;
-    /// <summary>Buildings on a body, standing and rising: what its slots are spent on. Great works are not counted; they have the site.</summary>
-    public static int SlotsUsed(World w, HoldingCatalog cat, string systemId, int body) => On(w, systemId, body).Count(x => !Great(cat, x.DefId)) + Underway(w, systemId, body).Count(p => !Great(cat, p.DefId));
-    /// <summary>Room left for buildings on a body.</summary>
+    private static int WorksIn(World w, HoldingCatalog cat, string systemId, int body) => On(w, systemId, body).Count(x => !Great(cat, x.DefId)) + Underway(w, systemId, body).Count(p => !Great(cat, p.DefId));
+    /// <summary>Buildings on a place, standing and rising: what its slots are spent on. Great works are not counted; they have the site.
+    /// On a home world the holding's own buildings are counted with them.</summary>
+    public static int SlotsUsed(World w, HoldingCatalog cat, string systemId, int body)
+    {
+        int n = WorksIn(w, cat, systemId, body);
+        if (w.Galaxy?.System(systemId) is { } sys && body >= 0 && body < sys.Bodies.Count && sys.Bodies[body].IsPrimary && w.PlanetOf(systemId) is { } h) n += h.Buildings.Count + ProjectSystem.SlotsUnderway(w, h.Id);
+        return n;
+    }
+    /// <summary>Room left for buildings on a place.</summary>
     public static int FreeSlots(World w, HoldingCatalog cat, StarSystem sys, int body) => Slots(w, cat, sys, body) - SlotsUsed(w, cat, sys.Id, body);
-    /// <summary>The great work on a body's site, standing or rising: its definition id, or null when the site is free.</summary>
+    /// <summary>The great work on a place's site, standing or rising: its definition id, or null when the site is free.</summary>
     public static string? Site(World w, HoldingCatalog cat, string systemId, int body) =>
         On(w, systemId, body).FirstOrDefault(x => Great(cat, x.DefId))?.DefId ?? Underway(w, systemId, body).FirstOrDefault(p => Great(cat, p.DefId))?.DefId;
-    /// <summary>The great work a house is raising now, if any: a house raises one at a time.</summary>
-    public static Project? Raising(World w, HoldingCatalog cat, string houseId) => w.Projects.FirstOrDefault(p => p.Kind == Project.Work && p.OwnerId == houseId && Great(cat, p.DefId));
 
-    /// <summary>Whether a work suits a body at all, whoever asks: its kind, its feature and its deposit. A building is for every body but
-    /// the system's own world (which has its holding's buildings); a great work may be for the world alone.</summary>
+    /// <summary>Why a house may not pay to clear another slot on a place, or null. The Nth slot cleared costs N times the first.</summary>
+    public static string? ClearRefusal(World w, HoldingCatalog cat, House house, string systemId, int body, bool explain = true)
+    {
+        var sys = w.Galaxy?.System(systemId); if (sys == null) return "no such system";
+        var planet = w.PlanetOf(systemId); if (planet == null) return "nobody holds this system: settle it first";
+        if (planet.OwnerId != house.Id) return "you do not hold this system";
+        if (planet.InRebellion) return "its world is in revolt";
+        if (body < 0 || body >= sys.Bodies.Count) return "no such place"; var b = sys.Bodies[body];
+        if (b.IsStar) return "there is no ground to clear on a sun";
+        var r = cat.Rules; int cleared = Cleared(w, systemId, body);
+        if (cleared >= (b.IsPrimary ? r.ClearMaxWorld : r.ClearMaxBody)) return "there is no more ground to clear";
+        if (Slots(w, cat, sys, body) >= (b.IsPrimary ? r.MaxWorld : r.MaxBody)) return "it has all the slots a place can have";
+        var cost = r.ClearCostOf(cleared);
+        return house.Treasury.CanAfford(cost) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(cost)}";
+    }
+
+    // ---------------- great works: how many at once ----------------
+
+    public const string StandingHouse = "house", StandingRegion = "region", StandingState = "state", StandingEmperor = "emperor";
+    /// <summary>What a house is, for how many great works it may raise at once (the owner, 2026-11-20: "everyone unless they are much
+    /// higher up can only do one great work at a time per house. But if you are the leader of a region, you can do two, and if you
+    /// are higher up like a king or president, you can do three. Finally, an emperor would be able to do five"): the emperor; a head
+    /// of state (a consul, the holder of the capital, the head of a state that has left, an archduke); the leader of a region (the
+    /// house that dominates one, or a duke); or a house like any other.</summary>
+    public static string Standing(World w, House house)
+    {
+        if (house.Title == Progression.Title.Emperor) return StandingEmperor;
+        int rank = Progression.Title.RankOf(house.Title);
+        if (rank >= 5 || RegionSystem.CapitalHolder(w)?.Id == house.Id) return StandingState;
+        foreach (var o in w.Offices) if (o.HouseId == house.Id && o.OfficeId.StartsWith("consul", StringComparison.Ordinal)) return StandingState;
+        foreach (var p in w.Polities) if (p.HeadHouseId == house.Id) return StandingState;
+        if (rank >= 4 || PolicySystem.RegionsDominated(w, house.Id).Any()) return StandingRegion;
+        return StandingHouse;
+    }
+    public static int Capacity(World w, HoldingCatalog cat, House house) => Standing(w, house) switch
+    { StandingEmperor => cat.Rules.CapacityEmperor, StandingState => cat.Rules.CapacityHeadOfState, StandingRegion => cat.Rules.CapacityRegionLeader, _ => cat.Rules.CapacityHouse };
+    public static string StandingLabel(string standing) => standing switch { StandingEmperor => "an emperor", StandingState => "a head of state", StandingRegion => "the leader of a region", _ => "a house" };
+    /// <summary>The great works a house is raising now.</summary>
+    public static IEnumerable<Project> Raising(World w, HoldingCatalog cat, string houseId) { foreach (var p in w.Projects) if (p.Kind == Project.Work && p.OwnerId == houseId && Great(cat, p.DefId)) yield return p; }
+    public static bool IsGreat(HoldingCatalog cat, Project p) => p.Kind == Project.Work && Great(cat, p.DefId);
+
+    // ---------------- levels: a building is taken higher ----------------
+
+    /// <summary>The highest level a building may have in a system as it stands: one for each threshold its development has reached.</summary>
+    public static int LevelAllowed(World w, HoldingCatalog cat, string systemId) { int lv = DevelopmentLevel(w, systemId); return Math.Max(1, cat.Rules.UpgradeAt.Count(t => t <= lv)); }
+    public static Project? Upgrading(World w, string target, string defId) => w.Projects.FirstOrDefault(p => p.Kind == Project.Upgrade && p.TargetId == target && p.DefId == defId);
+    /// <summary>What the next level of a building costs: its cost, times the level it leaves.</summary>
+    public static Resources UpgradeCost(Resources cost, int level) { var c = new Resources(); foreach (var r in Resource.All) c.Set(r, cost.Get(r) * Math.Max(1, level)); return c; }
+    /// <summary>Why a house may not take a building a level higher, or null. <paramref name="target"/> is a holding's id for one of its
+    /// own buildings, or "system#place" for a building raised on a place.</summary>
+    public static string? UpgradeRefusal(World w, HoldingCatalog cat, House house, string target, string defId, bool explain = true)
+    {
+        string systemId; int level; Resources cost; int years;
+        if (target.Contains('#'))
+        {
+            var (sysId, body) = Parse(target); systemId = sysId; var x = On(w, sysId, body).FirstOrDefault(o => o.DefId == defId); var def = cat.Work(defId);
+            if (x == null || def == null) return "no such building"; if (def.IsMegastructure) return "a great work has no levels";
+            if (w.PlanetHolder(sysId) != house.Id) return "you do not hold this system";
+            level = Math.Max(1, x.Level); cost = def.Cost; years = def.BuildTurns;
+        }
+        else
+        {
+            var h = w.Holding(target); var def = cat.Building(defId); if (h == null || def == null || !h.Buildings.Contains(defId)) return "no such building";
+            if (h.OwnerId != house.Id) return "not your holding"; if (def.Megastructure) return "a great work has no levels";
+            systemId = h.SystemId; level = h.LevelOf(defId); cost = def.Cost; years = def.BuildTurns;
+        }
+        if (w.PlanetOf(systemId)?.InRebellion == true) return "its world is in revolt";
+        if (level >= cat.Rules.MaxLevel) return "it can be taken no higher";
+        if (Upgrading(w, target, defId) != null) return "the next level is being built";
+        if (level >= LevelAllowed(w, cat, systemId)) return $"needs development {cat.Rules.UpgradeAt[level]} (it is {DevelopmentLevel(w, systemId)})";
+        var first = ProjectSystem.Split(UpgradeCost(cost, level), Math.Max(1, years)).First;
+        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(first)}{(years > 1 ? " to begin" : "")}";
+    }
+    /// <summary>The level is built: the building stands one higher.</summary>
+    public static void Upgrade(World w, HoldingCatalog cat, string target, string defId)
+    {
+        if (target.Contains('#')) { var (sysId, body) = Parse(target); if (On(w, sysId, body).FirstOrDefault(o => o.DefId == defId) is { } x) x.Level = Math.Min(cat.Rules.MaxLevel, Math.Max(1, x.Level) + 1); }
+        else if (w.Holding(target) is { } h && h.Buildings.Contains(defId)) h.Upgrades[defId] = Math.Min(cat.Rules.MaxLevel, h.LevelOf(defId) + 1);
+        w.WorldCounters["buildings_upgraded"] = w.Counter("buildings_upgraded") + 1;
+    }
+
+    /// <summary>Whether a work suits a place at all, whoever asks: its kind, its feature and its deposit. A work marked for the home
+    /// world is for it alone; an ordinary building goes on the home world too, in its slots, unless it is not for one (an outpost, a colony).</summary>
     public static bool Suits(StarSystem sys, Body b, WorkDef def) =>
-        def.Fits(b.Class) && (def.IsMegastructure ? def.On != "world" || b.IsPrimary : !b.IsPrimary)
+        def.Fits(b.Class) && (def.On == "world" ? b.IsPrimary : !(b.IsPrimary && def.NotHome))
         && (def.Feature.Length == 0 || b.Feature == def.Feature) && (def.Deposit.Length == 0 || (b.Deposit == def.Deposit && sys.Deposit(def.Deposit) > 0));
 
     /// <summary>Why a house may not build this work on this body, or null. <paramref name="explain"/> false skips writing out what is lacking.</summary>
@@ -80,8 +244,8 @@ public static class SystemWorks
         if (body < 0 || body >= sys.Bodies.Count) return "no such body";
         var b = sys.Bodies[body];
         if (!def.Fits(b.Class)) return $"does not suit {(b.IsStar ? "a sun" : b.IsSpace ? "open space" : Article(b.Class))}";
-        if (!def.IsMegastructure && b.IsPrimary) return "the system's own world is built on through its holding";
-        if (def.IsMegastructure && def.On == "world" && !b.IsPrimary) return "only on the system's own world";
+        if (def.On == "world" && !b.IsPrimary) return "only on the system's home world";
+        if (def.NotHome && b.IsPrimary) return "not for a home world";
         if (def.Feature.Length > 0 && b.Feature != def.Feature) return $"needs {cat.Feature(def.Feature)?.Name.ToLowerInvariant() ?? def.Feature}";
         if (def.Deposit.Length > 0 && (b.Deposit != def.Deposit || sys.Deposit(def.Deposit) == 0)) return $"needs a {Resource.Label(def.Deposit)} deposit here";
         if (def.Chokepoint && !w.Galaxy!.IsChokepoint(systemId)) return "only at a key of the lanes";
@@ -104,9 +268,10 @@ public static class SystemWorks
         if (def.IsMegastructure)
         {
             if (Site(w, cat, systemId, body) is { } there) return $"its site is taken: {cat.Work(there)?.Name ?? there}";
-            if (Raising(w, cat, house.Id) is { } rising) return $"the house is already raising {rising.Name}: one great work at a time";
+            int rising = Raising(w, cat, house.Id).Count(), may = Capacity(w, cat, house);
+            if (rising >= may) return may == 1 ? $"the house is already raising {Raising(w, cat, house.Id).First().Name}: one great work at a time" : $"the house is raising {rising} great works: {StandingLabel(Standing(w, house))} may raise {may} at a time";
         }
-        else if (FreeSlots(w, cat, sys, body) <= 0) return Slots(w, cat, sys, body) == 0 ? "nothing but a great work can be built here" : "no slot left here: outworks open more";
+        else if (FreeSlots(w, cat, sys, body) <= 0) return Slots(w, cat, sys, body) == 0 ? "nothing but a great work can be built here" : "no free slot here: development, rank and cleared ground open more";
         if (def.MinTitleRank > 0 && (titles?.RankOf(house.Title) ?? Progression.Title.RankOf(house.Title)) < def.MinTitleRank) return "needs a greater rank";
         var first = ProjectSystem.Split(def.Cost, def.BuildTurns).First;
         return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
@@ -142,8 +307,9 @@ public static class SystemWorks
         {
             var def = cat.Work(x.DefId); if (def == null) continue;
             var d = new Resources();
-            foreach (var r in Resource.All) d.Add(r, (def.Deposit == r ? def.Yield.Get(r) * Math.Max(1, sys.Deposit(r)) : def.Yield.Get(r)) - def.Upkeep.Get(r));
-            yield return ($"{def.Name} · {(x.Body >= 0 && x.Body < sys.Bodies.Count && !sys.Bodies[x.Body].IsSpace ? sys.Bodies[x.Body].Name : sys.Name)}", d);
+            int lvl = Math.Max(1, x.Level);
+            foreach (var r in Resource.All) d.Add(r, ((def.Deposit == r ? def.Yield.Get(r) * Math.Max(1, sys.Deposit(r)) : def.Yield.Get(r)) - def.Upkeep.Get(r)) * lvl);
+            yield return ($"{def.Name}{(lvl > 1 ? " " + Roman(lvl) : "")} · {(x.Body >= 0 && x.Body < sys.Bodies.Count && !sys.Bodies[x.Body].IsSpace ? sys.Bodies[x.Body].Name : sys.Name)}", d);
         }
         foreach (var (t, lv) in Levels(w, cat, systemId))
         {
@@ -158,11 +324,11 @@ public static class SystemWorks
         if (!w.Infrastructure.TryGetValue(systemId, out var levels)) yield break;
         foreach (var t in cat.Infrastructure) if (levels.TryGetValue(t.Id, out var lv) && lv > 0) yield return (t, lv);
     }
-    public static double Defense(World w, HoldingCatalog cat, string systemId) { double d = 0; foreach (var x in In(w, systemId)) d += cat.Work(x.DefId)?.Defense ?? 0; foreach (var (t, lv) in Levels(w, cat, systemId)) d += t.Defense * lv; return d; }
+    public static double Defense(World w, HoldingCatalog cat, string systemId) { double d = 0; foreach (var x in In(w, systemId)) d += (cat.Work(x.DefId)?.Defense ?? 0) * Math.Max(1, x.Level); foreach (var (t, lv) in Levels(w, cat, systemId)) d += t.Defense * lv; return d; }
     public static bool Depot(World w, HoldingCatalog cat, string systemId) { foreach (var x in In(w, systemId)) if (cat.Work(x.DefId)?.Depot == true) return true; foreach (var (t, lv) in Levels(w, cat, systemId)) if (t.DepotAt > 0 && lv >= t.DepotAt) return true; return false; }
     public static int Prosperity(World w, HoldingCatalog cat, string systemId) { int v = 0; foreach (var x in In(w, systemId)) v += cat.Work(x.DefId)?.Prosperity ?? 0; foreach (var (t, lv) in Levels(w, cat, systemId)) v += t.Prosperity * lv; return v; }
     public static int Unrest(World w, HoldingCatalog cat, string systemId) { int v = 0; foreach (var x in In(w, systemId)) v += cat.Work(x.DefId)?.Unrest ?? 0; foreach (var (t, lv) in Levels(w, cat, systemId)) v -= t.CalmAt.Count(l => l <= lv); return v; }
-    public static int Population(World w, HoldingCatalog cat, string systemId) { int v = 0; foreach (var x in In(w, systemId)) v += cat.Work(x.DefId)?.Population ?? 0; foreach (var (t, lv) in Levels(w, cat, systemId)) v += t.Population * lv; return v; }
+    public static int Population(World w, HoldingCatalog cat, string systemId) { int v = 0; foreach (var x in In(w, systemId)) v += (cat.Work(x.DefId)?.Population ?? 0) * Math.Max(1, x.Level); foreach (var (t, lv) in Levels(w, cat, systemId)) v += t.Population * lv; return v; }
 
     // ---------------- infrastructure: the system's own, a level at a time ----------------
 
@@ -180,9 +346,10 @@ public static class SystemWorks
         var first = ProjectSystem.Split(t.CostOf(level + 1), t.YearsOf(level + 1)).First;
         return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(first)}{(t.YearsOf(level + 1) > 1 ? " to begin" : "")}";
     }
-    /// <summary>A level is laid: the track stands one higher.</summary>
-    public static void Lay(World w, string systemId, InfrastructureDef t)
+    /// <summary>A level is laid: the track stands one higher, and the system is the more developed for it at once.</summary>
+    public static void Lay(World w, HoldingCatalog cat, string systemId, InfrastructureDef t)
     {
+        w.Development[systemId] = Math.Clamp(Development(w, systemId) + cat.Rules.DevPerLevel, 0, 100);
         if (!w.Infrastructure.TryGetValue(systemId, out var levels)) w.Infrastructure[systemId] = levels = new Dictionary<string, int>();
         levels[t.Id] = Math.Min(t.MaxLevel, levels.GetValueOrDefault(t.Id) + 1);
         w.WorldCounters["infrastructure_laid"] = w.Counter("infrastructure_laid") + 1;
@@ -231,15 +398,17 @@ public static class SystemWorks
         string id = "colony_" + systemId; int n = 1; while (w.Holdings.ContainsKey(id)) id = $"colony_{systemId}_{++n}";
         string bare = sys.Name.StartsWith("The ", StringComparison.Ordinal) ? sys.Name[4..] : sys.Name;
         var h = new Holding { Id = id, OwnerId = house.Id, Name = $"{bare} Colony", Specialization = spec, SystemId = systemId, Population = cat.Colony.Population, Culture = house.Culture, GovernorId = Economy.HeadOf(w, house)?.Id ?? "", Prosperity = 40 };
-        w.Holdings[id] = h; w.HoldingsChanged();
+        w.Holdings[id] = h; w.HoldingsChanged(); w.Development[systemId] = Math.Min(cat.Rules.DevSeed, DevelopmentCeiling(w, cat, systemId));
         w.WorldCounters[ColoniesCounter] = w.Counter(ColoniesCounter) + 1; if (house.Id == w.Protagonist?.HouseId) w.WorldFlags.Add(ColonyFlag);
         w.Log($"{house.Name} plants a colony at {sys.Name}: a world nobody held is held.");
         return h;
     }
 
-    /// <summary>The yearly housekeeping: the player's flags of last year are cleared, and a work whose body is gone is dropped.</summary>
-    public static void Tick(World w)
+    /// <summary>The yearly housekeeping: the player's flags of last year are cleared, a work whose body is gone is dropped, and every
+    /// held system's development moves a step toward what it can be.</summary>
+    public static void Tick(World w, HoldingCatalog cat)
     {
+        Develop(w, cat);
         w.WorldFlags.Remove(BuiltFlag); w.WorldFlags.Remove(WonderFlag); w.WorldFlags.Remove(ColonyFlag);
         if (w.Galaxy == null) return;
         w.BodyWorks.RemoveAll(x => w.Galaxy.System(x.SystemId) is not { } s || x.Body < 0 || x.Body >= s.Bodies.Count);
