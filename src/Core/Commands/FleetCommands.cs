@@ -41,8 +41,9 @@ public sealed class MoveFleetCommand : ICommand
         if (actor?.Alive != true || w.Galaxy == null) return "no one to give the order";
         if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
         if (f.Moving) return "already under way"; if (f.SystemId == _targetSystemId) return "already there";
-        if (w.Galaxy.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId)) <= 0) return "no route";
-        if (FleetSystem.Unfuelled(w, f.OwnerId)) return "the tanks are dry";
+        if (w.Galaxy.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId)) <= 0)
+            return w.Galaxy.Hops(f.SystemId, _targetSystemId) > 0 ? "no way through: an enemy's fleet holds a gate on the road, and a gate that is held must be taken first" : "no lane runs there from where the fleet lies";
+        if (FleetSystem.Unfuelled(w, f.OwnerId)) return "the tanks are dry: helium-3 is bought on the Exchange, and no fleet of the house sails without it";
         if (f.Loyalty < _rules.LoyaltyRefuse) return "the crews will not sail — loyalty " + f.Loyalty;
         return ctx.PoolsOf(ActorId).Short(new Dictionary<string, int> { [Pool.Treasury] = _rules.MovePoolCost });
     }

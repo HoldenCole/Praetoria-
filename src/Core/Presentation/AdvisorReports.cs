@@ -21,9 +21,17 @@ public static class AdvisorReports
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null;
         if (p == null || house == null) return list;
 
-        Character? Seat(string track) => w.LivingCharacters().Where(c => c.HouseId == house.Id && c.CareerTrack == track && c.Id != p.Id && c.Age >= DynastySystem.AgeOfMajority)
-            .OrderByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault()
-            ?? (p.CareerTrack == track ? p : null);
+        /* a seat at the council is whoever the head has given that work to (House, the Household: the Steward and the Marshal). Where
+           nobody has been named, it is the ablest grown relative of that service who will serve: one who defies the head does not
+           speak for the house (docs/PLAYTHROUGH.md, Easy, N40 and F73) */
+        Character? Seat(string track)
+        {
+            string duty = track == "stewardship" ? HouseholdSystem.Steward : track == "military" ? HouseholdSystem.Marshal : "";
+            if (duty.Length > 0 && house.Duty(duty) is { } d && w.Char(d.HolderId) is { Alive: true } named) return named;
+            return w.LivingCharacters().Where(c => c.HouseId == house.Id && c.CareerTrack == track && c.Id != p.Id && c.Age >= DynastySystem.AgeOfMajority && !c.Flags.Contains(FamilySystem.DefiantFlag))
+                .OrderByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault()
+                ?? (p.CareerTrack == track ? p : null);
+        }
 
         // Steward — the domain
         var steward = Seat("stewardship");

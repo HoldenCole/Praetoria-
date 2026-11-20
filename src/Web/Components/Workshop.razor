@@ -47,17 +47,17 @@
     @if (_tab == "person")
     {
         <div class="grid2">
-            <label>Name <input value="@c.Name" @onchange="e => { c.Name = Text(e); Changed(); }" placeholder="given name and family name, or leave to the dice" /></label>
+            <label>Name <input value="@c.Name" @onchange="e => { string was = Surname(c.Name); c.Name = Text(e); /* the family name follows the person's until it is set by hand */ if (c.HouseName.Length == 0 || c.HouseName == was || !_houseNamed) c.HouseName = Surname(c.Name); Changed(); }" placeholder="given name and family name, or leave to the dice" /></label>
             <label>Sex <select value="@c.Sex" @onchange="e => { c.Sex = Text(e); Changed(); }"><option value="male">male</option><option value="female">female</option></select></label>
             <label>Age <input type="number" min="@CharacterWorkshop.MinAge" max="@CharacterWorkshop.MaxAge" value="@age" disabled="@c.Academy" @onchange="e => { c.Age = Num(e, CharacterWorkshop.MinAge, CharacterWorkshop.MaxAge); Changed(); }" /></label>
             <label>Service <select value="@c.Track" @onchange="e => { c.Track = Text(e); c.Rank = Math.Min(c.Rank, content.Careers.MaxRank(c.Track) ?? 0); Changed(); }">@foreach (var t in content.Careers.Defs) { <option value="@t.Id">@t.NameIn(era)</option> }</select></label>
             <label>Rank in it <select value="@c.Rank" disabled="@c.Academy" @onchange="e => { c.Rank = Num(e, 0, 9); Changed(); }">@for (int r = 0; r <= maxRank; r++) { int rr = r; <option value="@rr">@(content.Careers.RankName(c.Track, rr, era) ?? "rank " + rr)</option> }</select></label>
             <label>Ambition <select value="@c.Ambition" @onchange="e => { c.Ambition = Text(e); Changed(); }"><option value="">none yet</option>@foreach (var a in content.Traits.Ambitions) { <option value="@a.Id">@a.Name</option> }</select></label>
         </div>
-        <h3>Nature <span class="muted">up to @lim.MaxNature · how they are, and what costs them sleep</span></h3>
-        <div class="chips">@foreach (var t in content.Traits.Nature) { var tid = t.Id; <button class="chip @(c.Nature.Contains(tid) ? "on" : "")" title="@t.Description" @onclick="() => Toggle(c.Nature, tid, lim.MaxNature)">@t.Name</button> }</div>
-        <h3>Aptitude <span class="muted">up to @lim.MaxAptitude · four points each</span></h3>
-        <div class="chips">@foreach (var t in content.Traits.Aptitude) { var tid = t.Id; <button class="chip @(c.Aptitude.Contains(tid) ? "on" : "")" title="@t.Description" @onclick="() => Toggle(c.Aptitude, tid, lim.MaxAptitude)">@t.Name</button> }</div>
+        <h3>Nature <span class="muted">up to @lim.MaxNature · how they are, and what costs them sleep@(c.Nature.Count >= lim.MaxNature ? " · you have " + lim.MaxNature + ": un-pick one to change" : "")</span></h3>
+        <div class="chips">@foreach (var t in content.Traits.Nature) { var tid = t.Id; bool nFull = !c.Nature.Contains(tid) && c.Nature.Count >= lim.MaxNature; <button class="chip @(c.Nature.Contains(tid) ? "on" : "") @(nFull ? "full" : "")" disabled="@nFull" title="@(nFull ? $"Up to {lim.MaxNature}: un-pick one first. {t.Description}" : t.Description)" @onclick="() => Toggle(c.Nature, tid, lim.MaxNature)">@t.Name</button> }</div>
+        <h3>Aptitude <span class="muted">up to @lim.MaxAptitude · four points each@(c.Aptitude.Count >= lim.MaxAptitude ? " · you have " + lim.MaxAptitude + ": un-pick one to change" : "")</span></h3>
+        <div class="chips">@foreach (var t in content.Traits.Aptitude) { var tid = t.Id; bool aFull = !c.Aptitude.Contains(tid) && c.Aptitude.Count >= lim.MaxAptitude; <button class="chip @(c.Aptitude.Contains(tid) ? "on" : "") @(aFull ? "full" : "")" disabled="@aFull" title="@(aFull ? $"Up to {lim.MaxAptitude}: un-pick one first. {t.Description}" : t.Description)" @onclick="() => Toggle(c.Aptitude, tid, lim.MaxAptitude)">@t.Name</button> }</div>
         <h3>Skills <span class="muted">0 to @lim.MaxSkill · each step costs its own number: a 3 is six points</span></h3>
         <div class="ws-skills">
             @foreach (var s in CharacterWorkshop.Skills)
@@ -118,7 +118,7 @@
     else if (_tab == "house")
     {
         <div class="grid2">
-            <label>Family name <input value="@c.HouseName" @onchange="e => { c.HouseName = Text(e); Changed(); }" placeholder="from the person's name" /></label>
+            <label title="The house is named for it. It follows the person's own family name until you write one here.">Family name <input value="@c.HouseName" @onchange="e => { c.HouseName = Text(e); _houseNamed = c.HouseName.Length > 0; Changed(); }" placeholder="from the person's name" /></label>
             <label>The name is <select value="@c.Origin" @onchange="e => { c.Origin = Text(e); Changed(); }"><option value="new">new: nobody's grandfather knew it</option><option value="old">old: it has sat in the chamber for generations</option></select></label>
             <label>Rank of the house <select value="@c.Title" @onchange="e => { c.Title = Text(e); Changed(); }">@foreach (var t in content.Titles.ByRank.Where(t => t.Rank <= lim.MaxTitleRank)) { <option value="@t.Id">@t.NameIn(era)</option> }</select></label>
             <label>Legitimacy <input type="number" min="0" max="@lim.MaxLegitimacy" value="@c.Legitimacy" @onchange="e => { c.Legitimacy = Num(e, 0, lim.MaxLegitimacy); Changed(); }" /></label>
@@ -149,9 +149,10 @@
             @foreach (var s in systems)
             {
                 var sid = s.Id; var holder = blank.PlanetHolder(sid); var hh = holder != null ? blank.House(holder) : null; bool mine = c.Worlds.Contains(sid);
-                bool allowed = free || holder == null || (blank.HoldingsOf(holder).Count(x => x.IsPlanet) >= 2 && blank.Galaxy.Capital != sid);
-                <button class="chip world @(mine ? "on" : "")" disabled="@(!mine && (!allowed || c.Worlds.Count >= lim.MaxWorlds))" title="@WorldTip(blank, s)" @onclick="() => ToggleWorld(sid, lim.MaxWorlds)">
-                    <b>@s.Name</b> <span class="muted small">@(hh != null ? hh.Name.Replace("House ", "") : "unclaimed")@(blank.Galaxy.Capital == sid ? " · capital" : "")</span></button>
+                bool beyond = blank.Galaxy.RingOf(sid) == Praetoria.Core.Galaxy.Ring.Beyond;   /* a nation's space: nobody of the Reach holds it, and it is not there for the taking */
+                bool allowed = free || (!beyond && (holder == null || (blank.HoldingsOf(holder).Count(x => x.IsPlanet) >= 2 && blank.Galaxy.Capital != sid)));
+                <button class="chip world @(mine ? "on" : "")" disabled="@(!mine && (!allowed || c.Worlds.Count >= lim.MaxWorlds))" title="@(WorldTip(blank, s) + (beyond ? " · It lies in a nation's space, beyond the Reach: to start there is to start as that nation's neighbour and its first target, outside the Senate's relief. A standard start may not take it." : ""))" @onclick="() => ToggleWorld(sid, lim.MaxWorlds)">
+                    <b>@s.Name</b> <span class="muted small">@(beyond ? "beyond the Reach: a nation's" : hh != null ? hh.Name.Replace("House ", "") : "unclaimed")@(blank.Galaxy.Capital == sid ? " · capital" : "")</span></button>
             }
         </div>
         <div class="grid2">
@@ -162,10 +163,11 @@
         {
             int k = i; var v = c.Ventures[k];
             <div class="ws-line">
-                <select value="@v.Kind" @onchange="e => { v.Kind = Text(e); Changed(); }">@foreach (var d in content.Businesses.Defs) { <option value="@d.Id">@d.Name</option> }</select>
+                <select value="@v.Kind" title="@(content.Businesses.Def(v.Kind)?.Description)" @onchange="e => { v.Kind = Text(e); Changed(); }">@foreach (var d in content.Businesses.Defs) { <option value="@d.Id" title="@d.Description">@d.Name · @CourtProjection.Bundle(d.Yield) a year</option> }</select>
                 <span class="muted">at</span>
                 <select value="@v.System" @onchange="e => { v.System = Text(e); Changed(); }">@foreach (var s in systems) { <option value="@s.Id">@s.Name</option> }</select>
                 <button class="chip tiny" @onclick="() => { c.Ventures.RemoveAt(k); Changed(); }">remove</button>
+                @if (content.Businesses.Def(v.Kind) is { } vd) { <div class="muted small" data-venture-says>@vd.Description @(CourtProjection.Bundle(vd.Yield).Length > 0 ? "Brings " + CourtProjection.Bundle(vd.Yield) + " a year at its first level." : "")@(vd.RequiresBelt ? " Needs a belt in the system." : "")@(vd.RequiresDeposit != null ? $" Needs {Resource.A(vd.RequiresDeposit)} deposit there." : "")@(vd.RequiresOwnWorld ? " Needs a world of your own there." : "")</div> }
             </div>
         }
         <button class="chip" disabled="@(c.Ventures.Count >= lim.MaxVentures)" @onclick="AddVenture">Add a venture</button>
@@ -232,7 +234,17 @@
     private static readonly string[] Hairs = { "#1a1512", "#2e2118", "#4a2f1c", "#6b4a2a", "#8a6a3a", "#b08a4a", "#d2b06a", "#3a3a3f", "#7a2a1e" };
 
     private static string WorldTip(World w, Praetoria.Core.Galaxy.StarSystem s) => s.PlanetClass + " · " + (w.Galaxy!.Regions.FirstOrDefault(r => r.Id == s.RegionId)?.Name ?? "") + (w.Galaxy.Capital == s.Id ? " · the capital" : "");
+    private bool _houseNamed; private string _sig = "";
+    private static string Surname(string name) { var parts = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries); return parts.Length > 1 ? parts[^1] : ""; }
     private void Changed() => StateHasChanged();
+    /* the button that begins the saga is the parent's, and a parent is not drawn again because a child was: when the points or the
+       problems change, say so upward, so "Begin" and the red line follow the character as it stands (docs/PLAYTHROUGH.md, Easy, N8) */
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (G.Content == null) return;
+        string sig = CharacterWorkshop.Cost(Spec, G.Content).Item1 + ":" + string.Join("|", CharacterWorkshop.Problems(Spec, G.Content, G.BlankWorld(Spec.Imperium)));
+        if (sig == _sig) return; bool first = _sig.Length == 0; _sig = sig; if (!first) await SpecChanged.InvokeAsync(Spec);
+    }
     private static string Text(ChangeEventArgs e) => e.Value?.ToString() ?? "";
     private static int Num(ChangeEventArgs e, int lo, int hi) => int.TryParse(e.Value?.ToString(), out var v) ? Math.Clamp(v, lo, hi) : lo;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];

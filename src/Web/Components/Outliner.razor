@@ -154,7 +154,8 @@
     </section>
     <section class="ol-block">
         <h4><Icon Name="claim" Size="13" /> Council</h4>
-        @foreach (var a in m.Advisors.OrderBy(a => { var o = RoleTheme.AdvisorOrder(RoleTheme.Of(w)); int i = o.ToList().IndexOf(a.Seat); return i < 0 ? 9 : i; })) { <div class="ol-adv @(a.Warning ? "warn" : "")" title="@a.Line"><b>@a.Seat</b> <span class="muted">@(a.AdvisorName ?? "vacant")</span><div class="line">@a.Line</div></div> }
+        @foreach (var a in m.Advisors.OrderBy(a => { var o = RoleTheme.AdvisorOrder(RoleTheme.Of(w)); int i = o.ToList().IndexOf(a.Seat); return i < 0 ? 9 : i; })) { string seatGo = a.Seat.ToLowerInvariant() switch { "steward" or "admiral" => "house:household", _ => "senate:duties" };
+            <button class="ol-adv @(a.Warning ? "warn" : "")" title="@(a.Line + (a.Seat.ToLowerInvariant() is "steward" or "admiral" ? " The seat is whoever you have made " + (a.Seat.ToLowerInvariant() == "steward" ? "Steward" : "Marshal") + " under House, the Household; with nobody named, the ablest relative of that service who will serve." : " The seat is the ablest relative at the law who will serve."))" @onclick="() => OnGo.InvokeAsync(seatGo)"><b>@a.Seat</b> <span class="muted">@(a.AdvisorName ?? "vacant: name one ▸")</span><div class="line">@a.Line</div></button> }
     </section>
     <section class="ol-block">
         <h4><Icon Name="fleet" Size="13" /> Fleets <span class="count">@m.Fleets.Count</span></h4>

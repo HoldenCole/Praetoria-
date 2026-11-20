@@ -64,9 +64,11 @@ else
         @if (G.World!.Galaxy != null) { <div class="map-layer"><GalaxyMap @ref="_map" OnPicked="MapPicked" /></div> }
         <TopBar OnSave="SaveLocal" OnExport="Download" OnQuit="Abandon" OnPrimer="() => _primer = true" SavedFlash="@_savedFlash" />
         <nav class="rail">
+            @{ int railAt = 0; }
             @foreach (var (id, glyph, label) in Rail())
             {
-                <button class="rail-btn @(_screen == id ? "active" : "")" title="@label" @onclick="() => Go(id)" disabled="@(id == "galaxy" && G.World!.Galaxy == null)">
+                string railKey = railAt < RailKeys.Length ? RailKeys[railAt].ToString() : ""; railAt++;
+                <button class="rail-btn @(_screen == id ? "active" : "")" title="@(label + (railKey.Length > 0 && G.World?.InAcademy != true ? $" (key {railKey})" : ""))" @onclick="() => Go(id)" disabled="@(id == "galaxy" && G.World!.Galaxy == null)">
                     <Icon Name="@(id == "character" ? "you" : id == "planets" ? "worlds" : id == "senate" ? "influence" : id == "academy" ? "military" : id == "laws" ? "throne" : id == "exchange" ? "trade_hub" : id)" Size="22" /><span class="rl">@label</span>
                 </button>
             }
@@ -100,7 +102,7 @@ else
             @if (!m.DynastyDead)
             {
                 var open = m.Briefing.Count(b => !b.Resolved);
-                <button class="btn primary endturn" @onclick="EndTurn" title="@(open > 0 ? $"{open} report(s) still unanswered — ending the turn sets them aside" : "Resolve the turn")">End Turn ▸@if (open > 0) { <span class="badge">@open</span> }</button>
+                <button class="btn primary endturn" @onclick="EndTurn" title="@((open > 0 ? $"{open} report(s) still unanswered: ending the year sets them aside. " : "The year ends and the next begins. ") + "Key: Enter.")">End Turn ▸@if (open > 0) { <span class="badge">@open</span> }</button>
             }
         </div>
 
@@ -178,14 +180,17 @@ else
         try { await JS.InvokeVoidAsync("praetoriaFx.paint"); await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }
     }
 
-    /// <summary>Keyboard: 1–9 switch screens, Enter ends the turn (when no report is open), Escape closes a window.</summary>
+    /// <summary>The keys of the rail, in its order: the first nine windows by number, then 0, - and = for the rest.</summary>
+    private const string RailKeys = "1234567890-=";
+    /// <summary>Keyboard: the rail's keys switch windows, Enter ends the turn (when no report is open), Escape closes a window, ? opens the primer.</summary>
     [JSInvokable]
     public async Task Key(string key)
     {
         if (G.Turn == null) return;
         if (key == "Escape") { if (G.ProfileId != null) G.CloseProfile(); else if (_openReport != null || _succession != null) { _openReport = null; _succession = null; } else _screen = "galaxy"; }
         else if (key == "Enter" && _openReport == null && _succession == null) await EndTurn();
-        else if (key.Length == 1 && char.IsDigit(key[0]) && G.World?.InAcademy != true) { int i = key[0] - '1'; var rail = Rail().ToList(); if (i >= 0 && i < rail.Count) _screen = rail[i].id; }
+        else if (key == "?") _primer = !_primer;
+        else if (key.Length == 1 && RailKeys.IndexOf(key[0]) is >= 0 and var i && G.World?.InAcademy != true) { var rail = Rail().ToList(); if (i < rail.Count) _screen = rail[i].id; }
         else return;
         StateHasChanged();
     }

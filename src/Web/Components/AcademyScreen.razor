@@ -2,7 +2,7 @@
 @using Praetoria.Core.Presentation
 @{
     var a = Academy; var m = Court; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
-    bool imperium = a.Register == "imperium"; bool full = a.Tutorial == "full";
+    bool imperium = a.Register == "imperium"; bool full = a.Tutorial != "brief";   /* the full course until the cadet says otherwise: one who has not answered yet is a first-timer, not an old hand */
     int open = m.Briefing.Count(b => !b.Resolved);
     var reading = a.Subjects.FirstOrDefault(s => s.Reading);
     int maxScore = Math.Max(1, a.Cohort.Count == 0 ? 1 : a.Cohort.Max(x => x.Score));
@@ -89,7 +89,7 @@
             }
             else
             {
-                <div class="muted small">You have been here before. The short course, one line a lecture; open any for the whole of it.</div>
+                <div class="muted small">The short course, as you asked: one line a lecture; open any for the whole of it.</div>
                 @foreach (var l in a.Lessons) { <details class="ac-lesson brief"><summary><b>@l.Title</b> <span class="muted">@l.Brief</span></summary>@foreach (var para in l.Paragraphs) { <p>@para</p> }</details> }
             }
 
@@ -182,6 +182,6 @@
     [Parameter] public EventCallback OnSave { get; set; }
     [Parameter] public EventCallback OnQuit { get; set; }
     private string? _focus;
-    private void ToggleTutorial() => G.Execute(new SetTutorialCommand(G.World!.ProtagonistId, G.World!.Academy!.Tutorial == "full" ? "brief" : "full"));
+    private void ToggleTutorial() => G.Execute(new SetTutorialCommand(G.World!.ProtagonistId, G.World!.Academy!.Tutorial != "brief" ? "brief" : "full"));
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 }

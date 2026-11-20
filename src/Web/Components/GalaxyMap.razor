@@ -28,7 +28,7 @@
                     else { <span>To @sel!.Name: @jumps jump(s), there in @jumps year(s). @(odds != null ? Praetoria.Core.Systems.FleetSystem.Say(odds) : "No enemy fleet is known to be there.")</span> }
                 </div>
                 <div class="order-row">
-                    @if (move != null && no == null) { <button class="btn primary sm" data-send="1" @onclick="() => Send(selectedFleet.Id, sel!.SystemId)">Send it to @sel!.Name (1 treasury action)</button> }
+                    @if (move != null && no == null) { <button class="btn primary sm" data-send="1" @onclick="() => Send(selectedFleet.Id, sel!.SystemId, jumps)">Send it to @sel!.Name (1 treasury action)</button> }
                     @if (selectedFleet.Moving) { var rc = new RecallFleetCommand(pid, selectedFleet.Id); var why = rc.Refusal(ctx); int back = RecallFleetCommand.YearsBack(selectedFleet);
                         <button class="btn sm" data-recall="1" disabled="@(why != null)" title="@(why ?? (back == 0 ? "The order was given this year: it is struck out and the fleet stays" : $"It has sailed {back} year(s): it takes as long to come back"))" @onclick="() => G.Execute(rc)">@(back == 0 ? "Strike out the order" : $"Call it back ({back} yr)")</button> }
                     <button class="btn ghost sm" data-deselect="1" @onclick="() => _fleetId = null">Let it be</button>
@@ -205,7 +205,14 @@
         return null;
     }
 
-    private void Send(string fleetId, string systemId) { var w = G.World!; if (G.Execute(new MoveFleetCommand(w.ProtagonistId, fleetId, systemId, G.Content!.Fleets))) { } }
+    /* a voyage of three years or more is asked about first: the fleet is gone that long, and calling it back takes as long as it has sailed (docs/PLAYTHROUGH.md, Easy, S62) */
+    private void Send(string fleetId, string systemId, int years = 0)
+    {
+        var w = G.World!; var cmd = new MoveFleetCommand(w.ProtagonistId, fleetId, systemId, G.Content!.Fleets);
+        if (years < 3) { G.Execute(cmd); return; }
+        string to = w.Galaxy?.System(systemId)?.Name ?? systemId, name = w.Fleets.TryGetValue(fleetId, out var f) ? f.Name : "The fleet";
+        G.Ask($"Send {name} to {to}?", $"It is {years} years there. Until it arrives it fights nowhere and guards nothing; it can be called back on the way, and coming back takes as long as it has sailed. Readiness falls a little every year under way.", "Send it", () => G.Execute(cmd));
+    }
     private void ClickFleet(MapFleet f) { if (f.IsPlayer) { _fleetId = _fleetId == f.FleetId ? null : f.FleetId; } _systemId = f.SystemId; }
     /// <summary>Bring a system forward: centred, picked, its panel open. For alerts and lists that name a place.</summary>
     public async Task Select(string systemId) { try { await JS.InvokeAsync<object>("praetoriaSpace.select", systemId, _id); } catch { } }

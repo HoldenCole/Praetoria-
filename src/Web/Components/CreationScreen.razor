@@ -56,21 +56,21 @@
                         @foreach (var sz in GrowthCatalog.Sizes) { <option value="@sz">@GrowthCatalog.SizeName(sz): @SizeNote(sz)</option> }
                     </select>
                 </label>
-                <label>The powers beyond
+                <label title="The nations that border the Reach: the Khanates, the Free Cities, the Concord, the Compact, the Crown. Each has fleets and worlds of its own on the map's rim, raids when it thinks ill of the Reach, and can be fought, bought off or subdued. This sets how strong their fleets are.">The powers beyond
                     <select @bind="_beyond">
                         <option value="gentle">Gentle: a fifth weaker</option>
                         <option value="default">As written</option>
                         <option value="harsh">Harsh: a quarter stronger</option>
                     </select>
                 </label>
-                <label>How often they attack
+                <label title="How readily a nation beyond the Reach goes from raiding to war: how often a great ruler rises among them, and how soon an invasion follows.">How often they attack
                     <select @bind="_aggression">
                         <option value="seldom">Seldom: wars from beyond are rare</option>
                         <option value="default">As written</option>
                         <option value="often">Often: great rulers and invasions come sooner</option>
                     </select>
                 </label>
-                <label>Crisis intensity
+                <label title="The Great Crisis is the war of the Reach with itself: as wars, over-mighty houses and seizures pile up, the houses sort into two blocs and fight for ten years or more. This sets how fast it comes. Off, it never does, and the game is the Republic's ordinary politics for as long as you play.">Crisis intensity
                     <select @bind="_intensity">
                         <option value="off">Off — no Great Crisis</option>
                         <option value="low">Low — a slow-burning century</option>
@@ -78,7 +78,7 @@
                         <option value="dominant">Dominant — the war comes fast</option>
                     </select>
                 </label>
-                <label>Family autonomy
+                <label title="How far your relatives go their own way. Deferential: they pursue nothing of their own, never stand for office unasked, never defy you and never elope. Wills of their own: they have ambitions, stand for office, marry for love if forbidden, and one who thinks ill enough of you defies you or goes over to a rival. A nest of schemers: the same, at half the provocation.">Family autonomy
                     <select @bind="_autonomy">
                         <option value="0">Deferential kin</option>
                         <option value="1">Wills of their own</option>
@@ -92,7 +92,7 @@
         {
         <div class="col wide">
             <h2>A character of your own</h2>
-            <Workshop Spec="_spec" SpecChanged="s => _spec = s" />
+            <Workshop Spec="_spec" SpecChanged="s => { _spec = s; _error = null; }" />
             @if (_error != null) { <p class="error">@_error</p> }
             <button class="btn primary big begin" disabled="@(CharacterWorkshop.Problems(_spec, G.Content!, G.BlankWorld(_spec.Imperium)).Count > 0)" @onclick="BeginAsked">Begin the saga ▸</button>
         </div>
@@ -114,10 +114,12 @@
                 </label>
                 <label>Ambition
                     <select @bind="_ambition"><option value="">as written</option>
-                        @foreach (var a in G.Content!.Traits.Ambitions) { <option value="@a.Id">@a.Name</option> }
+                        @foreach (var a in G.Content!.Traits.Ambitions) { <option value="@a.Id" title="@a.Description">@a.Name</option> }
                     </select>
                 </label>
             </div>
+            @if (_track != "") { <p class="hint" data-track-says>@TrackSays(_track)</p> }
+            @if (_ambition != "" && G.Content!.Traits.Ambitions.FirstOrDefault(a => a.Id == _ambition) is { } amb) { <p class="hint" data-ambition-says><b>@amb.Name.</b> @amb.Description Reports that speak to what you want come to you more often, and the You window shows how near you are.</p> }
 
             <h3>Background</h3>
             <div class="chips">
@@ -160,6 +162,14 @@
 </div>
 
 @code {
+    /* what a service is, for one who has not played: what you rise by, what it teaches, and which of the three estates it feeds */
+    private static string TrackSays(string track) => track switch
+    {
+        "military" => "The Navy. You rise by rank in the fleet; the service teaches tactics, gunnery, leadership, logistics and discipline, lets you command more hulls, and adds your rank to your house's weight in the Navy.",
+        "stewardship" => "The Administration. You rise by rank in the Reach's offices; the service teaches administration, economics and engineering, makes you the better governor and steward, and adds your rank to your house's weight in the Treasury.",
+        "law" => "The Courts. You rise by rank at the law; the service teaches law, oratory and diplomacy, opens the bench (a Judge gives a house its voice in the Senate), and adds your rank to your house's weight in the Senate.",
+        _ => "",
+    };
     /// <summary>How hard a start is, and why, so a first game is not begun on the hardest (docs/PLAYTHROUGH.md, "The front door").</summary>
     private static (string word, string tone, string why)? Hardness(string id) => id switch
     {
