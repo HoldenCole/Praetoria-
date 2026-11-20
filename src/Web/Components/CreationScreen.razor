@@ -27,7 +27,7 @@
                 {
                     var sc = _scenarios[id];
                     <button class="scenario @(!_custom && id == _scenario ? "selected" : "")" @onclick="() => Pick(id)">
-                        <div class="sc-name">@Title(id)</div>
+                        <div class="sc-name">@Title(id) @if (Hardness(id) is { } hard) { <span class="pill small @hard.tone" data-hardness="@id" title="@hard.why">@hard.word</span> }</div>
                         <div class="sc-meta">@(sc.Academy ? (sc.Era == "imperium" ? "begins at the Institute · " : "begins at the Academy · the tutorial · ") : "")@(sc.Era == "imperium" ? "the Imperium" : "the Republic") · @sc.Houses.Count houses · @sc.Characters.Count souls@(sc.Galaxy != null ? $" · {sc.Galaxy.Systems.Count} systems" : "")</div>
                         <div class="sc-desc">@Describe(sc)</div>
                     </button>
@@ -160,6 +160,19 @@
 </div>
 
 @code {
+    /// <summary>How hard a start is, and why, so a first game is not begun on the hardest (docs/PLAYTHROUGH.md, "The front door").</summary>
+    private static (string word, string tone, string why)? Hardness(string id) => id switch
+    {
+        "the_academy" => ("start here", "good", "The tutorial: a year at the Academy that teaches the screens one at a time, then a first posting with a house behind you."),
+        "the_institute" => ("the Imperium's tutorial", "good", "A year at the Institute under an Emperor, then a first posting."),
+        "the_old_lion" => ("gentle", "good", "A great house, rich and of high rank, with worlds and a fleet. The danger is the head's age: the first succession comes early."),
+        "the_circling_heir" => ("moderate", "", "Wealth and a name, and relatives who want both."),
+        "the_imperial_court" => ("moderate", "", "A minor house inside a standing empire: there is a ladder to climb and an Emperor watching."),
+        "the_fallen_house" => ("hard", "warn", "One poor world, debts, and the contempt of those who rose past you."),
+        "the_new_man" => ("hard", "warn", "No land, no rank and no seat: one trading company and a head for figures."),
+        "the_risen_officer" => ("hard", "warn", "No name and no land, only talent: almost no house wealth to fall back on."),
+        _ => null
+    };
     [Parameter] public bool HasAutosave { get; set; }
     /// <summary>What the saved saga is: the house, its head and the year.</summary>
     [Parameter] public string SaveLabel { get; set; } = "";
