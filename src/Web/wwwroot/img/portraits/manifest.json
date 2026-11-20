@@ -22,6 +22,28 @@
 "ancestry": "african",
 "sex": "female"
 },
+"faf02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "female"
+},
+"faf03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "female"
+},
 "fea00": {
 "ages": [
 "adult",
@@ -66,6 +88,28 @@
 "ancestry": "east_asian",
 "sex": "female"
 },
+"fea04": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "female"
+},
+"fea05": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "female"
+},
 "fle00": {
 "ages": [
 "adult",
@@ -88,6 +132,28 @@
 "ancestry": "levantine",
 "sex": "female"
 },
+"fle02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "female"
+},
+"fle03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "female"
+},
 "fme00": {
 "ages": [
 "adult",
@@ -99,7 +165,51 @@
 "ancestry": "mediterranean",
 "sex": "female"
 },
+"fme01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "female"
+},
+"fme02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "female"
+},
 "fno00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "female"
+},
+"fno01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "female"
+},
+"fno02": {
 "ages": [
 "adult",
 "older",
@@ -264,6 +374,28 @@
 "ancestry": "south_asian",
 "sex": "female"
 },
+"fsa02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "female"
+},
+"fsa03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "female"
+},
 "fst00": {
 "ages": [
 "adult",
@@ -285,6 +417,16 @@
 "sex": "female"
 },
 "fst02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth"
+],
+"ancestry": "steppe",
+"sex": "female"
+},
+"fst03": {
 "ages": [
 "adult",
 "older",
@@ -317,6 +459,28 @@
 "sex": "male"
 },
 "maf02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "male"
+},
+"maf03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "male"
+},
+"maf04": {
 "ages": [
 "adult",
 "older",
@@ -371,6 +535,28 @@
 "ancestry": "east_asian",
 "sex": "male"
 },
+"mea04": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "male"
+},
+"mea05": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "male"
+},
 "mle00": {
 "ages": [
 "adult",
@@ -393,6 +579,28 @@
 "ancestry": "levantine",
 "sex": "male"
 },
+"mle02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "male"
+},
+"mle03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "male"
+},
 "mme00": {
 "ages": [
 "adult",
@@ -402,6 +610,50 @@
 "child"
 ],
 "ancestry": "mediterranean",
+"sex": "male"
+},
+"mme01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "male"
+},
+"mme02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "male"
+},
+"mno00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "male"
+},
+"mno01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
 "sex": "male"
 },
 "mr00": {
@@ -548,6 +800,28 @@
 "sex": "male"
 },
 "msa01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "male"
+},
+"msa02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "male"
+},
+"msa03": {
 "ages": [
 "adult",
 "older",

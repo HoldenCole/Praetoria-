@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- **The portrait library is complete at 80 faces** (392 pictures): six men and six women of each of the six
+  ancestries of the Reach and four of each for the Steppe, every one at five ages. A house no longer shares two or
+  three faces among all its people.
 - **Empty sections fold away.** Military at peace is one line, not "Wars" and "The campaign" over nothing; the same
   for an empty docket, an unwritten record and "List a venture". `tools/browser/windows.js` walks every window and
   tab and reports which scroll and any heading left over nothing.

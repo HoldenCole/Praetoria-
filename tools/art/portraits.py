@@ -32,8 +32,8 @@ CUT_F = ["hair pinned up", "long loose hair", "hair in a braid over one shoulder
 BEARD = ["clean shaven", "clean shaven", "a short beard", "a full beard", "a moustache", "stubble"]
 DRESS = ["a dark navy high-collared officer's coat with brass buttons", "a black robe with a crimson stole and a gold chain", "a pale tunic under a deep green mantle pinned with a gold brooch",
          "a charcoal high-collared coat with silver embroidery", "a deep red mantle over a white tunic with a gold clasp", "a dark blue robe with a gold-trimmed collar"]
-RESEED = {"fr00": 1, "fr03": 1, "mr05": 1}   # identities whose first throw came out wrong (a picture frame painted into the picture): thrown again
-REDO = {"fx01_older": 2}                      # one picture of an identity thrown again, the rest of that identity kept
+RESEED = {"fr00": 1, "fr03": 1, "mr05": 1, "faf02": 1}   # identities whose first throw came out wrong (a picture frame painted into the picture): thrown again
+REDO = {"fx01_older": 2, "faf02_youth": 1}                      # one picture of an identity thrown again, the rest of that identity kept
 FOREIGN = ["furs over lamellar armour with a gold torque", "an embroidered silk robe with heavy gold jewellery", "ornate bronze scale armour with a crimson cloak", "a quilted leather coat with bone toggles and a fur collar"]
 
 # ---- ancestry (docs/ART_DIRECTION.md, "Portraits"; the game's names for these are in content/ancestries/ancestries.json) ----

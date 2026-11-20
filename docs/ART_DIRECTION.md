@@ -205,6 +205,10 @@ on a CPU at about half a minute a picture.
   with a parent on record takes after the father or the mother, by the dice of their own id; someone with none
   takes the ancestry of the house they were born to, so **whoever marries in keeps their own face** and the
   children of a mixed marriage take after one side or the other. Nothing is stored but a house's own choice.
+- **The library** is 80 faces and 392 pictures (8 MB): six men and six women of each ancestry of the Reach, four
+  and four of the Steppe, each at every age (the Steppe has no children painted). A face whose first throw came
+  out wrong (a gilt picture frame painted into the picture is the usual fault) is thrown again from another seed,
+  and the list of those is in `tools/art/portraits.py`.
 - **Ageing.** A face is painted five times from one seed, as a child, in youth, grown, in middle age and in old
   age, and the game shows the one for the person's age (under 13, under 20, under 46, under 62, and after). The
   person stays recognisable; they are not swapped for someone else.
