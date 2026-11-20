@@ -20,7 +20,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   const wtab = async name => { await page.evaluate(n => { const b = [...document.querySelectorAll('.cw-tabs .rung, .ex-tabs .rung')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()); if (b) b.click(); }, name); await page.waitForTimeout(400); };
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
   const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
-  const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => e.innerText.includes('End Turn')); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
+  const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
   const press = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.ambitions button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return !!b; }, text);
   let answered = 0, shot = false;
   for (let y = 0; y < years; y++) {

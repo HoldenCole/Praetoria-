@@ -83,10 +83,12 @@
 
     <div class="ex-tabs">
         <button class="rung @(_view == "chamber" ? "here" : "")" @onclick='() => _view = "chamber"'>The chamber@(motions > 0 ? $" · {motions}" : "")</button>
-        <button class="rung @(_view == "offices" ? "here" : "")" @onclick='() => _view = "offices"'>Offices, parties and titles</button>
-        <button class="rung @(_view == "duties" ? "here" : "") @(workWaits ? "warn" : "")" @onclick='() => _view = "duties"'>Your duties this year@(workWaits ? " · waiting" : "")</button>
-        <button class="rung @(_view == "ladder" ? "here" : "")" @onclick='() => _view = "ladder"'>The ladder and the courts</button>
-        <button class="rung @(_view == "orders" ? "here" : "")" @onclick='() => _view = "orders"'>The orders and the peace</button>
+        <button class="rung @(_view == "move" ? "here" : "")" @onclick='() => _view = "move"'>Move a motion</button>
+        @if (sen?.Election != null) { <button class="rung @(_view == "consuls" ? "here" : "")" @onclick='() => _view = "consuls"'>The consuls</button> }
+        <button class="rung @(_view == "offices" ? "here" : "")" @onclick='() => _view = "offices"'>Offices and parties</button>
+        <button class="rung @(_view == "duties" ? "here" : "") @(workWaits ? "warn" : "")" @onclick='() => _view = "duties"'>Your duties@(workWaits ? " · waiting" : "")</button>
+        <button class="rung @(_view == "ladder" ? "here" : "")" @onclick='() => _view = "ladder"'>Ladder and courts</button>
+        <button class="rung @(_view == "orders" ? "here" : "")" @onclick='() => _view = "orders"'>The orders</button>
     </div>
     @if (_view == "duties") { <div class="dash-grid deck-one"><div class="deck-col"><DutiesPanel /></div></div> }
     else if (_view == "ladder") { <div class="dash-grid deck-one"><div class="deck-col"><LadderPanel /><CourtsPanel /></div></div> }
@@ -189,12 +191,10 @@
     {
     <div class="dash-grid senate2-grid">
         <div class="deck-col">
-        <section class="panel resolutions">
+        @if (sen == null) { <section class="panel resolutions"><div class="muted">The Senate does not sit in this age.</div></section> }
+        else if (_view == "chamber") { <section class="panel resolutions">
             <h3><Icon Name="influence" Size="13" /> Before the chamber <span class="muted">voted at the year's end · by weight of seats · a tie fails</span></h3>
-            @if (sen == null) { <div class="muted">The Senate does not sit in this age.</div> }
-            else
-            {
-                @if (sen.Docket.Count == 0) { <div class="muted">Nothing is before the Senate this year.@(sen.MayPropose ? " What you could move is below; a motion moved now is voted at the end of next year." : "")</div> }
+                @if (sen.Docket.Count == 0) { <div class="muted">Nothing is before the Senate this year.@(sen.MayPropose ? " What you could move is under Move a motion; one moved now is voted at the end of next year." : "")</div> }
                 @foreach (var mo in sen.Docket)
                 {
                     int total = Math.Max(1, mo.ForWeight + mo.AgainstWeight);
@@ -240,7 +240,10 @@
                         @foreach (var h in sen.History) { <div class="muted small hist"><b class="@(h.Passed ? "good" : "warn")">@(h.Vetoed ? $"vetoed by {h.VetoedBy}" : h.Passed ? "carried" : "thrown out")</b> @(h.Vetoed ? "" : $"{h.ForWeight}–{h.AgainstWeight} · ")turn @h.ProposedTurn · @h.Text</div> }
                     </details>
                 }
-                <details class="propose" open="@(sen.Docket.Count == 0)"><summary>Move a motion @(sen.MayPropose ? "" : NoSeatLine(w))</summary>
+        </section> }
+        else if (_view == "move") { <section class="panel resolutions">
+                <h3>Move a motion</h3>
+                <div class="propose">@if (!sen.MayPropose) { <div class="muted">@NoSeatLine(w).TrimStart('·', ' ')</div> }
                     @foreach (var pr in sen.Proposals)
                     {
                         <div class="proposal">
@@ -280,11 +283,11 @@
                             }
                         </div>
                     }
-                </details>
-            }
-        </section>
+                </div>
+        </section> }
         </div>
         <div class="deck-col">
+        @if (_view == "chamber") {
         <section class="panel chamber">
             <h3><Icon Name="influence" Size="13" /> The chamber <span class="muted">@(watched != null ? $"seats coloured by their lean on: {watched.KindName}" : "each dot a seat, in its bench's colour · yours are ringed · click one for its house")</span></h3>
             <svg class="hemicycle" viewBox="0 0 1000 540" role="img" aria-label="the Senate's seats">
@@ -342,9 +345,11 @@
                 }
             </div>
         </section>
+        }
         @if (sen?.Election is { } el)
         {
             var consuls = sen.Offices?.Where(o => o.Elected).ToList() ?? new List<OfficeCard>();
+        @if (_view == "consuls") {
             <section class="panel consulship">
                 <h3><Icon Name="throne" Size="13" /> The consulship <span class="muted">elected every @el.TermTurns turns · next in @el.NextIn</span></h3>
                 @foreach (var o in consuls)
@@ -386,6 +391,7 @@
                 <button class="opt" disabled="@(el.StandRefusal != null)" title="@(el.StandRefusal ?? $"{ElectionSystem.StandInfluence} influence: your party nominates you, or you run alone")" @onclick="() => G.Execute(new StandForConsulCommand(pid, c.Offices))">@(el.Standing ? "You stand for consul" : el.AmConsul ? "You hold the consulship" : "Stand for consul")</button>
                 @if (el.AmConsul) { <div class="muted small">@(el.CanVeto ? "Your veto is unspent this term: strike a motion from the docket above." : "Your veto is spent this term.")</div> }
             </section>
+        }
         }
         </div>
     </div>

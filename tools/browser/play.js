@@ -32,7 +32,7 @@ const closeWindows = async page => { for (let i = 0; i < 8; i++) { const had = a
 const turnNo = page => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
 async function endTurn(page) {
   await closeWindows(page); const before = await turnNo(page); const started = Date.now();
-  await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => e.innerText.includes('End Turn')); if (b) b.click(); });
+  await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); });
   for (let i = 0; i < 1200; i++) { if (await turnNo(page).catch(() => -1) > before) break; await page.waitForTimeout(50); }
   await closeWindows(page); return (Date.now() - started) / 1000;
 }

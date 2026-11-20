@@ -18,7 +18,7 @@ const base = process.env.PRAETORIA_URL || 'http://localhost:8112/';
   const times = [];
   for (let i = 0; i < turns; i++) {
     await closeWindows(); const before = await turnNo(); const t = Date.now();
-    await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => e.innerText.includes('End Turn')); if (b) b.click(); });
+    await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); });
     let ok = false; for (let k = 0; k < 600; k++) { await page.waitForTimeout(50); await closeWindows(); if (await turnNo() > before) { ok = true; break; } }
     if (!ok) { console.log('stalled at turn ' + before); break; } times.push(Date.now() - t);
   }

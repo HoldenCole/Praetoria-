@@ -20,7 +20,7 @@
     string story = w.History.Count == 0 ? "Nothing is written yet. The chronicle fills as the years pass: what your house did, and what the Reach did around it."
         : ownThis.Count > 0 ? $"Year {lastYear}, of your house: {ownThis[^1].Text}{(ownThis.Count > 1 ? $" And {ownThis.Count - 1} more." : "")} Of the rest of the Reach, {thisYear.Count - ownThis.Count} thing(s) were written."
         : $"Year {lastYear}: nothing was written of your house. Of the Reach, {thisYear.Count} thing(s); the latest: {thisYear[^1].Text}";
-    var shown = turns.Select(g => (year: g.Key, all: g.Count(), lines: g.Where(h => (!_onlyNotable || h.EventId != null || Notable(h.Text)) && Kind(h.Text)).ToList())).Where(x => x.lines.Count > 0).ToList();
+    var shown = turns.Select(g => (year: g.Key, all: g.Count(), lines: g.Where(h => (!_onlyNotable || h.EventId != null || Notable(h.Text)) && Kind(h.Text) && (_whose == "all" || (_whose == "house") == Own(h))).ToList())).Where(x => x.lines.Count > 0).ToList();
     int every = last <= 20 ? 1 : last <= 60 ? 5 : 10;
 }
 <div class="dash archive" style="--accent:@house.AccentColor">
@@ -36,9 +36,13 @@
             <Tile Label="Seats passed" Value="@w.Successions.Count.ToString()" Note="@($"you are the {Ordinal(gen)} of your line to hold it")" />
         </div>
     </header>
+    <div class="cw-tabs">
+        <button class="rung @(_whose == "all" ? "here" : "")" @onclick='() => _whose = "all"'>All that was written</button>
+        <button class="rung @(_whose == "house" ? "here" : "")" @onclick='() => _whose = "house"'>Of your house@(ownAll > 0 ? $" · {ownAll}" : "")</button>
+        <button class="rung @(_whose == "reach" ? "here" : "")" @onclick='() => _whose = "reach"'>Of the Reach</button>
+    </div>
     <div class="dash-grid archive-grid">
         <section class="panel">
-            <h3><Icon Name="chronicle" Size="13" /> The years <span class="muted">a bar a year, as tall as what was written in it · click a span of years to read it</span></h3>
             <svg class="timeline" viewBox="0 0 1000 118" role="img" aria-label="the years">
                 <line x1="20" y1="80" x2="980" y2="80" class="base" />
                 @foreach (var v in volumes.Where(v => v.key != "recent")) { <rect x="@F(TX(v.from) - 2)" y="8" width="@F(Math.Max(4, TX(Math.Min(last, v.to) + 1) - TX(v.from)))" height="96" class="vol @(v.key == _volume ? "here" : "")" @onclick="() => _volume = v.key"><title>@v.label</title></rect> }
@@ -52,26 +56,18 @@
                 }
                 @((MarkupString)$"<text x=\"20\" y=\"112\" class=\"tl\">year</text><text x=\"980\" y=\"112\" class=\"tl end\">the fullest year: {maxN} entries</text>")
             </svg>
-            <div class="plot-legend tl-key"><span><i class="tk war"></i> a year with war or battle in it</span><span><i class="tk notable"></i> a notable year</span><span><i class="tk"></i> a quiet one</span><span><b class="gen">★</b> the seat of your house passed</span></div>
+            <div class="plot-legend tl-key"><span><i class="tk war"></i> war or battle</span><span><i class="tk notable"></i> a notable year</span><span><i class="tk"></i> a quiet one</span><span><b class="gen">★</b> the seat passed</span><span class="muted">click a span of years to read it</span></div>
             <div class="row small chron-controls">
-                <span class="vols">@foreach (var v in volumes) { <button class="rung @(v.key == _volume ? "here" : "")" @onclick="() => _volume = v.key">@v.label</button> }</span>
+                <select class="sel" value="@_volume" @onchange="e => _volume = e.Value?.ToString()">@foreach (var v in volumes) { <option value="@v.key" selected="@(v.key == _volume)">@v.label</option> }</select>
                 <span class="vols">@foreach (var k in new[] { "all", "war", "dynasty", "coin", "realm", "politics" }) { <button class="rung @(_kind == k ? "here" : "")" @onclick="() => _kind = k">@if (k != "all") { <i class="kd @k"></i> }@k</button> }</span>
                 <label class="inline"><input type="checkbox" @bind="_onlyNotable" /> only the notable</label>
             </div>
-            @if (shown.Count == 0) { <div class="muted">@(turns.Count == 0 ? "Nothing is written in these years yet." : "Nothing of that kind was written in these years. Choose another kind, or all.")</div> }
+            @if (shown.Count == 0) { <div class="muted">@(turns.Count == 0 ? "Nothing is written in these years yet." : _whose == "house" ? "Nothing of your house was written in these years." : "Nothing of that kind was written in these years. Choose another kind, or all.")</div> }
             @foreach (var y in shown)
             {
-                var own = y.lines.Where(Own).ToList(); var rest = y.lines.Where(h => !Own(h)).ToList();
                 <div class="year-block">
-                    <h4>Year @y.year <span class="muted">@y.all written@(y.lines.Count != y.all ? $" · {y.lines.Count} shown" : "") · @own.Count of your house</span></h4>
-                    <div class="year-cols">
-                        <div class="yc own"><div class="yc-head">Of your house</div>
-                            @if (own.Count == 0) { <div class="muted small">Nothing this year.</div> }
-                            @foreach (var h in own) { <div class="line @(h.EventId != null ? "event" : "")">@h.Text</div> }</div>
-                        <div class="yc"><div class="yc-head">Of the Reach</div>
-                            @if (rest.Count == 0) { <div class="muted small">Nothing this year.</div> }
-                            <div class="yc-lines">@foreach (var h in rest) { <div class="line @(h.EventId != null ? "event" : "")"><i class="kd @KindOf(h.Text)" title="@KindOf(h.Text)"></i>@h.Text</div> }</div></div>
-                    </div>
+                    <h4>Year @y.year <span class="muted">@y.all written@(y.lines.Count != y.all ? $" · {y.lines.Count} shown" : "")</span></h4>
+                    @foreach (var h in y.lines.OrderByDescending(Own)) { <div class="yline @(Own(h) ? "own" : "") @(h.EventId != null ? "event" : "")"><i class="kd @KindOf(h.Text)" title="@KindOf(h.Text)"></i>@h.Text</div> }
                 </div>
             }
         </section>
@@ -79,7 +75,7 @@
 </div>
 
 @code {
-    private string? _volume; private bool _onlyNotable; private string _kind = "all";
+    private string? _volume; private bool _onlyNotable; private string _kind = "all", _whose = "all";
     private static bool Notable(string t) =>
         t.Contains("war", StringComparison.OrdinalIgnoreCase) || t.Contains("dies") || t.Contains("born") || t.Contains("wed") || t.Contains("takes ") ||
         t.Contains("destroyed") || t.Contains("Crisis") || t.Contains("throne", StringComparison.OrdinalIgnoreCase) || t.Contains("succeeds") || t.Contains("desert");

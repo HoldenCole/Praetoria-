@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- **The Senate, the Exchange and the Chronicle redesigned.** The **Senate** is a normal-width window that opens on
+  the chamber, with moving a motion and the consulship as tabs of their own. The **Exchange** lists a good on one
+  row, with what moves its price in a tooltip unless the good is dear, cheap or moving. The **Chronicle** has tabs
+  for all that was written, your house, and the Reach, and a year is one list with your house's lines marked.
 - **Three more windows**: **Military** is a normal-width window with tabs for your fleets, what is near, and the
   navies, so the map stays in view; **Laws** has tabs for the estates, your laws and the law of the Reach;
   **Worlds** has tabs for worlds and regions, and picks a region from a list.
@@ -218,6 +222,8 @@
   short run is a step in CI.
 
 ### Fixed
+- The browser scripts in `tools/browser` found the End Turn button by its text, which the game shell now shows in
+  capitals, so they ended no turns. They find it by its class.
 - **A throne no longer stands empty.** A house on the throne that lost its last world became landless and nobody
   took its place. Whoever takes that world has now taken the throne.
 - **The epilogue is the player's own.** It was written whenever any house took a throne, as if you had.

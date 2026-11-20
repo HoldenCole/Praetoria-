@@ -278,8 +278,10 @@ without scrolling, everything else behind tabs, rows and not cards. Every window
 | Military | done | A normal-width window, so the map it is about stays in view. Tabs: Your fleets (with the wars and the campaign), What is near, The navies, The general and the Senate, Beyond the Reach. |
 | Laws | done | Tabs: The estates, The laws in your gift, The law of the Reach. |
 | Worlds | done | Tabs: The worlds (a region chosen from a list, not a wall of buttons), The regions. |
-| Senate, Exchange | not yet | Already tabbed; the Senate's first tab is long and the window is the wide one. |
-| Chronicle, Office | not yet | Single pages; the Office is still a room modelled in code (V9). |
+| Senate | done | A normal-width window. The chamber itself leads (the seats by party, then what is before it); moving a motion and the consulship are tabs of their own beside offices and parties, your duties, the ladder and courts, and the orders. |
+| Exchange | done | The goods table is one row a good: what moves a price is in the row's tooltip, and written under the row only when the good is dear, cheap, short or moving. Favours for coin is one line at the foot, not a panel. |
+| Chronicle | done | Tabs for whose record to read: all that was written, of your house, of the Reach. A year is one list, your house's lines first and marked; the span of years is chosen from a list or by clicking the timeline. |
+| Office | not yet | Still a room modelled in code (V9): the owner chooses between a painting and dropping it. |
 
 ### Not done yet
 

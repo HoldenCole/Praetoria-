@@ -62,20 +62,21 @@
     <div class="dash-grid deck-one">
         <div class="deck-col">
         <section class="panel">
-            <h3><Icon Name="materials" Size="13" /> Goods <span class="muted">credits a unit · the line is the last twelve years · the dash is the usual price</span></h3>
+            <h3><Icon Name="materials" Size="13" /> Goods <span class="muted">credits a unit · hover a good for what moves it</span></h3>
             @if (mk == null) { <div class="muted">No market in this age.</div> }
             else
             {
                 @if (mk.Embargoed) { <div class="flag">The Senate's embargo closes the exchanges to your house. Nothing may be bought or sold until it lifts.</div> }
                 else if (!mk.OwnMarket) { <div class="muted small">You have no market of your own and do not hold the capital: the caravaneers carry your orders at a @mk.SpreadPct% spread. A market, a free port or a patronage office narrows it to @c.Market.Rules.SpreadPct%.</div> }
                 <table class="standings goods">
-                    <thead><tr><th>Good</th><th>Price</th><th>Twelve years</th><th>Five years</th><th>In stock</th><th>You hold</th><th>Order</th><th></th></tr></thead>
+                    <thead><tr><th>Good</th><th>Price</th><th title="the last twelve years; the dash is the usual price">12 years</th><th title="the change over five years">5 yrs</th><th title="what the merchants hold">Stock</th><th title="what your house holds, and what it makes or burns a year">Held</th><th>Order</th></tr></thead>
                     <tbody>
                     @foreach (var g in mk.Goods)
                     {
                         int qty = Qty(g.Id);
                         var buy = MarketSystem.QuoteBuy(w, t, house.Id, g.Id, qty); var sell = MarketSystem.QuoteSell(w, t, house.Id, g.Id, qty);
-                        <tr class="@(g.Price >= g.Base * 1.5 ? "spike" : g.Price <= g.Base * 0.7 ? "slump" : "")">
+                        bool loud = g.Price >= g.Base * 1.5 || g.Price <= g.Base * 0.7 || g.Deficit >= 15 || g.BuyRefusal != null || Math.Abs(g.ChangePct) >= 10;
+                        <tr class="@(g.Price >= g.Base * 1.5 ? "spike" : g.Price <= g.Base * 0.7 ? "slump" : "") @(loud ? "" : "quiet")" title="@Cap(g.Cause)">
                             <td class="hn"><Icon Name="@(Icons.Paths.ContainsKey(g.Id) ? g.Id : "materials")" Size="14" /> <b>@g.Name</b>@if (g.Deficit >= 15) { <span class="pill small warn" title="the Reach needs more than it brings up and is shipped">short @g.Deficit%</span> }</td>
                             <td><b>@F2(g.Price)</b> <span class="muted small">buy @F2(g.BuyUnit) · sell @F2(g.SellUnit)</span></td>
                             <td>@((MarkupString)Spark(g))</td>
@@ -87,9 +88,8 @@
                                 @if (g.CanBuy) { <button class="opt inline tiny" disabled="@(buy.Refusal != null)" title="@(buy.Refusal ?? $"{F2(buy.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new BuyGoodCommand(pid, g.Id, qty, t))">Buy · @(buy.Credits > 0 ? buy.Credits.ToString() : "—")</button> }
                                 @if (g.CanSell) { <button class="opt inline tiny" disabled="@(sell.Refusal != null)" title="@(sell.Refusal ?? $"{F2(sell.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new SellGoodCommand(pid, g.Id, qty, t))">Sell · @(sell.Refusal == null ? sell.Credits.ToString() : "—")</button> }
                             </td>
-                            <td></td>
                         </tr>
-                        <tr class="cause"><td colspan="8"><span class="muted small">@Cap(g.Cause)@(g.BuyRefusal != null ? " · " + g.BuyRefusal : "")</span></td></tr>
+                        @if (loud) { <tr class="cause"><td colspan="7"><span class="muted small">@Cap(g.Cause)@(g.BuyRefusal != null ? " · " + g.BuyRefusal : "")</span></td></tr> }
                     }
                     </tbody>
                 </table>
@@ -99,17 +99,18 @@
                 <div class="ac-fact"><span>Raiders</span><p>Lawless lanes lose a share of everything that travels them.</p></div>
                 <div class="ac-fact"><span>The nations</span><p>Nations at peace ship goods in. War with one closes its ports; a tributary ships double.</p></div>
                 <div class="ac-fact"><span>The law</span><p>The Trade Charter taxes or frees every purchase. The Arms Market decides whether isotopes may be bought at all.</p></div>
-                <div class="ac-fact"><span>You</span><p>Buy a tenth of the stock and the market notices. Buy half and everyone pays for it next year.</p></div>
+                <div class="ac-fact"><span>You</span><p>Buy a tenth of the stock and the market notices. Buy half and everyone pays for it next year. An order moves the price against itself by its share of the merchants' stock, so a large one costs more a unit than the quote. Splitting it does not help.</p></div>
                 </details>
-                <div class="muted small">An order moves the price against itself by its share of the merchants' stock, so a large one costs more a unit than the quote and leaves next year's price higher. Splitting it does not help.</div>
             }
         </section>
 
-            <section class="panel">
-                <h3><Icon Name="influence" Size="13" /> Favours for coin</h3>
-                <div class="muted small">Influence is not a good and has no market. It is bought and sold in private, at a fixed and poor rate.</div>
-                @if (m.Standing is { } s) { foreach (var o in s.ExchangeOptions) { var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))">@o.Label</button> } }
-            </section>
+            @if (m.Standing is { } s && s.ExchangeOptions.Count > 0)
+            {
+                <div class="favours-row" title="Influence is not a good and has no market. It is bought and sold in private, at a fixed and poor rate.">
+                    <span class="fr-label"><Icon Name="influence" Size="13" /> Favours for coin</span>
+                    @foreach (var o in s.ExchangeOptions) { var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))">@o.Label</button> }
+                </div>
+            }
         </div>
     </div>
     }
