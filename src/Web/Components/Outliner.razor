@@ -47,14 +47,16 @@
     if (w.HasFlag("dividend_cut")) alerts.Add(("info", "A company you hold has passed its dividend", "exchange:shares"));
     if (w.HasFlag("bonds_offered")) alerts.Add(("info", "The Reach is selling war bonds", "exchange:shares"));
     if (w.HasFlag("shares_seized_mine")) alerts.Add(("warn", "The throne has declared your shares forfeit", "exchange:shares"));
-    if (w.HasFlag("venture_offered")) alerts.Add(("info", "A venture is offered to you — the offer stands for the year", "exchange:ventures"));
+    if (w.HasFlag("venture_offered") && (m.Assets?.Offers.Count ?? 1) > 0) alerts.Add(("info", "A venture is offered to you — the offer stands for the year", "exchange:ventures"));
     if (w.HasFlag("project_stalled")) alerts.Add(("warn", "A building site has stalled: the year's instalment was not met", "exchange:projects"));
     if (w.HasFlag("project_done")) alerts.Add(("good", "A project of yours is finished", "exchange:projects"));
     if (w.HasFlag("first_refusal_taken")) alerts.Add(("info", "The world's holder matched your price and took the venture first", "exchange:ventures"));
-    if (w.HasFlag("motion_against_me")) alerts.Add(("warn", "A motion against your house is before the Senate", "senate:chamber"));
-    else if (w.HasFlag("petition_open")) alerts.Add(("info", "An estate petitions the Senate — its regard in every house rides on the vote", "senate:chamber"));
-    else if (w.HasFlag("motion_open")) alerts.Add(("info", "A motion is before the Senate — your vote has weight", "senate:chamber"));
-    else if (w.HasFlag("act_open")) alerts.Add(("info", "An Act of the Senate is before the chamber — the law of the Reach rides on it", "senate:chamber"));
+    // an alert goes when the thing is done (docs/PLAYTHROUGH.md): these stand only while a motion is open that you have not declared on
+    var undeclared = w.Motions.Where(x => x.Open && !x.Votes.ContainsKey(house.Id)).ToList();
+    if (undeclared.Any(x => x.TargetId == house.Id && x.ProposerHouseId != house.Id)) alerts.Add(("warn", "A motion against your house is before the Senate, and you have not declared", "senate:chamber"));
+    else if (undeclared.Any(SenateSystem.IsPetition)) alerts.Add(("info", "An estate petitions the Senate, and you have not declared: its regard in every house rides on the vote", "senate:chamber"));
+    else if (undeclared.Any(x => x.Kind == "act")) alerts.Add(("info", "An Act of the Senate is before the chamber, and you have not declared: the law of the Reach rides on it", "senate:chamber"));
+    else if (undeclared.Count > 0) alerts.Add(("info", undeclared.Count == 1 ? "A motion is before the Senate, and you have not declared" : undeclared.Count + " motions are before the Senate that you have not declared on", "senate:chamber"));
     if (w.Motions.Any(x => x.Open && x.ProposedTurn < w.Turn && !x.Votes.ContainsKey(w.Protagonist!.HouseId))) alerts.Add(("warn", "A motion is decided at the end of this turn and your vote is undeclared", "senate:chamber"));
     if (w.HasFlag("election_near")) alerts.Add(("info", "The consuls are elected at the turn's end — stand, or see who the parties put up", "senate:consuls"));
     if (w.HasFlag("consul_elected")) alerts.Add(("good", "You are elected consul", "senate:consuls"));
