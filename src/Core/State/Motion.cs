@@ -30,6 +30,16 @@ public sealed class Motion
     public Dictionary<string, int> Votes { get; set; } = new();
     /// <summary>Lobbying pressure on a house: house id → signed weight added to its lean (positive toward passing).</summary>
     public Dictionary<string, int> Lobby { get; set; } = new();
+    /// <summary>Votes that were paid for: house id → signed weight added to that house's own lean. A bench does not follow a leader
+    /// who was bought, since it was not the bench that was paid (docs/PLAYTHROUGH.md 13).</summary>
+    public Dictionary<string, int> Bought { get; set; } = new();
+    /// <summary>Who paid: bought house id → the house that paid it.</summary>
+    public Dictionary<string, string> BoughtBy { get; set; } = new();
+    /// <summary>How the count stood when the year opened, before the chair spoke and the favours were called: what the player was shown.</summary>
+    public int ForecastFor { get; set; }
+    public int ForecastAgainst { get; set; }
+    /// <summary>Why the count came in far from where it stood, in words, or "".</summary>
+    public string Swing { get; set; } = "";
     /// <summary>Who has already spent influence lobbying whom this motion: "lobbyist→target".</summary>
     public HashSet<string> Lobbied { get; set; } = new();
     public bool Resolved { get; set; }

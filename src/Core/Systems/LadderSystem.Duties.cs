@@ -340,7 +340,10 @@ public static partial class LadderSystem
                     Shift(w, wronged, house, 10); Shift(w, winner, house, -8); Shift(w, bench, house, -8); MoveTrust(w, 3); Legit(1);
                     if (b.HouseA == mine && !ours) Mark(w, OverturnedForUsFlag);
                     if (ours || b.HouseA == mine || b.HouseB == mine || praetor?.HouseId == mine)
+                    {
                         w.Log($"{who.Name}, justice, overturns {praetor?.Name ?? "the praetor"}'s ruling for {winner?.Name}. {winner?.Name} pays {wronged?.Name} back, and the ruling is struck from the rolls.");
+                        if (b.HouseA == mine || b.HouseB == mine) w.Tell(b.HouseA == mine ? "good" : "warn", b.HouseA == mine ? $"{who.Name}, justice, has overturned the ruling against you: {winner?.Name} pays you back" : $"{who.Name}, justice, has overturned the ruling you won: you pay {wronged?.Name} back", "senate:ladder");
+                    }
                     if (who.Life?.Marks.Add("bench:overturn") != false) LifeSystem.Note(w, who, "office", "Sat as a justice and overturned a bent ruling.");
                 }
                 else if (choice == Uphold) { Shift(w, bench, house, 8); Shift(w, winner, house, 4); Shift(w, wronged, house, -10); MoveTrust(w, -2); }

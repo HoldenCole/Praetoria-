@@ -227,7 +227,7 @@
                                     <Sigil HouseId="@st.HouseId" Accent="@st.Accent" Size="12" /> <span class="bn" title="@(st.Faction != null ? $"{st.HouseName} · {st.Faction}{(st.FactionLeader ? " (leads)" : "")}" : st.HouseName)">@st.HouseName@(st.Faction != null ? (st.FactionLeader ? " ★" : " ·") : "")</span><span class="wt muted">@st.Weight</span>
                                     <span class="stance @(st.Stance > 0 ? "for" : st.Stance < 0 ? "against" : "")" title="@(st.Declared ? "declared" : "leaning — a whip may move it")">@(st.Stance > 0 ? "for" : st.Stance < 0 ? "against" : "abstains")@(st.Declared ? "" : "?")</span>
                                     <button class="opt inline tiny" disabled="@(st.LobbyRefusal != null)" title="@(st.LobbyRefusal ?? "1 influence: lean them your way")" @onclick="() => G.Execute(new LobbyCommand(pid, mo.Id, st.HouseId, mo.MyStance >= 0 ? 1 : -1))">whip</button>
-                                    <button class="opt inline tiny" disabled="@(st.BribeRefusal != null)" title="@(st.BribeRefusal ?? $"{SenateSystem.BribeCredits} credits: a purse weighs more")" @onclick="() => G.Execute(new LobbyCommand(pid, mo.Id, st.HouseId, mo.MyStance >= 0 ? 1 : -1, bribe: true))">bribe</button>
+                                    <button class="opt inline tiny" disabled="@(st.BribeRefusal != null)" title="@(st.BribeRefusal ?? BribeTip(st))" @onclick="() => AskBribe(mo.Id, st, mo.MyStance >= 0 ? 1 : -1)">bribe · @st.BribePrice</button>
                                 </div>
                             }
                             <div class="muted small">Whipping leans a house toward your own stance (for, unless you voted against).</div>
@@ -237,7 +237,7 @@
                 @if (sen.History.Count > 0)
                 {
                     <details open="@(sen.Docket.Count == 0)"><summary>Decided lately · @sen.History.Count</summary>
-                        @foreach (var h in sen.History) { <div class="muted small hist"><b class="@(h.Passed ? "good" : "warn")">@(h.Vetoed ? $"vetoed by {h.VetoedBy}" : h.Passed ? "carried" : "thrown out")</b> @(h.Vetoed ? "" : $"{h.ForWeight}–{h.AgainstWeight} · ")turn @h.ProposedTurn · @h.Text</div> }
+                        @foreach (var h in sen.History) { <div class="muted small hist"><b class="@(h.Passed ? "good" : "warn")">@(h.Vetoed ? $"vetoed by {h.VetoedBy}" : h.Passed ? "carried" : "thrown out")</b> @(h.Vetoed ? "" : $"{h.ForWeight}–{h.AgainstWeight} · ")turn @h.ProposedTurn · @h.Text@(h.Swing.Length > 0 ? " (" + h.Swing + ")" : "")</div> }
                     </details>
                 }
         </section> }
@@ -326,7 +326,7 @@
                         {
                             <div class="small">On @watched.KindName: <b class="@(focusStance.Stance > 0 ? "good" : focusStance.Stance < 0 ? "warn" : "")">@(focusStance.Stance > 0 ? "for" : focusStance.Stance < 0 ? "against" : "abstains")@(focusStance.Declared ? "" : " (leaning)")</b>
                                 <button class="opt inline tiny" disabled="@(focusStance.LobbyRefusal != null)" title="@(focusStance.LobbyRefusal ?? "1 influence: lean them your way")" @onclick="() => G.Execute(new LobbyCommand(pid, watched.Id, focusHouse.Id, watched.MyStance >= 0 ? 1 : -1))">whip</button>
-                                <button class="opt inline tiny" disabled="@(focusStance.BribeRefusal != null)" title="@(focusStance.BribeRefusal ?? $"{SenateSystem.BribeCredits} credits: a purse weighs more")" @onclick="() => G.Execute(new LobbyCommand(pid, watched.Id, focusHouse.Id, watched.MyStance >= 0 ? 1 : -1, bribe: true))">bribe</button></div>
+                                <button class="opt inline tiny" disabled="@(focusStance.BribeRefusal != null)" title="@(focusStance.BribeRefusal ?? BribeTip(focusStance))" @onclick="() => AskBribe(watched.Id, focusStance, watched.MyStance >= 0 ? 1 : -1)">bribe · @focusStance.BribePrice</button></div>
                         }
                         @if (cn != null) { <div class="sc-actions">@foreach (var o in cn.Actions) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => AskConn(o.Id, o.Label, cn.Id)">@o.Label</button> }</div> }
                     </div>
@@ -402,6 +402,8 @@
 @code {
     private string _view = "chamber";
     /// <summary>The tab an alert asked for, and a stamp that changes each time one asks; a stamp is used once.</summary>
+    private static string BribeTip(StanceLine st) => $"{st.BribePrice} credits from the treasury to the head of {st.HouseName}: its own vote leans your way by {SenateSystem.BribeWeight}." + (st.FactionLeader ? " It leads a bench, but the bench was not paid and does not follow a bought vote." : "") + $" One time in {SenateSystem.BribeOutOneIn} it comes out at the count: the vote is struck and your house loses {SenateSystem.BribeOutLegitimacy} legitimacy.";
+    private void AskBribe(string motionId, StanceLine st, int side) => G.Ask("Pay " + st.HouseName + " for its vote?", BribeTip(st), "Pay " + st.BribePrice, () => G.Execute(new LobbyCommand(G.World!.ProtagonistId, motionId, st.HouseId, side, bribe: true)));
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }
     private static int _seenStamp;

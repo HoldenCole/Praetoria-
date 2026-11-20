@@ -154,6 +154,7 @@ public sealed class AssassinateCommand : ICommand
         else
         {
             w.Log($"An attempt on {t.Name} fails, and the trail leads to {actor.Name} of {w.House(actor.HouseId)?.Name}.");
+            if (t.HouseId == w.Protagonist?.HouseId && actor.HouseId != t.HouseId) w.Tell("warn", $"An attempt was made on the life of {t.Name}. It failed, and the trail leads to {actor.Name} of {w.House(actor.HouseId)?.Name}", "houses", actor.HouseId);
             foreach (var c in w.LivingCharacters().Where(c => c.HouseId == t.HouseId))
             {
                 var rel = w.Relationship(c.Id, actor.Id); rel.Disposition = Math.Clamp(rel.Disposition - 40, -100, 100);

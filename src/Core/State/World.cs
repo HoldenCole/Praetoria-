@@ -128,6 +128,21 @@ public sealed class World
     public List<SeatDemand> SeatDemands { get; set; } = new();
     /// <summary>The battles fought, newest last: the last sixty are kept (docs/PLAYTHROUGH.md 10).</summary>
     public List<BattleRecord> Battles { get; set; } = new();
+    /// <summary>The rulings of the courts that touched the player's house, newest last (docs/PLAYTHROUGH.md 12).</summary>
+    public List<JudgmentRecord> Judgments { get; set; } = new();
+    /// <summary>What the player's house should be told (docs/PLAYTHROUGH.md 14), newest last. <see cref="NewsFrom"/> is where the
+    /// year now being played began: everything after it is this year's news.</summary>
+    public List<NewsItem> News { get; set; } = new();
+    public int NewsSeq { get; set; }
+    public int NewsFrom { get; set; }
+    /// <summary>Tell the player's house something. Kept eighty deep.</summary>
+    public void Tell(string tone, string text, string target, string subjectId = "")
+    {
+        News.Add(new NewsItem { Seq = ++NewsSeq, Turn = Turn, Tone = tone, Text = text, Target = target, SubjectId = subjectId });
+        if (News.Count > 80) News.RemoveRange(0, News.Count - 80);
+    }
+    /// <summary>The news of the year being played.</summary>
+    public IEnumerable<NewsItem> NewsNow() => News.Where(n => n.Seq > NewsFrom);
     /// <summary>Ventures offered for sale to a named house, until they lapse.</summary>
     public List<VentureOffer> Offers { get; set; } = new();
     public IEnumerable<Project> ProjectsOf(string houseId) => Projects.Where(p => p.OwnerId == houseId);

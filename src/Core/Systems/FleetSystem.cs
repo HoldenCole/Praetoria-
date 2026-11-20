@@ -384,6 +384,7 @@ public sealed class FleetSystem
             w.WorldCounters[IncursionsCounter] = w.Counter(IncursionsCounter) + 1;
             w.WorldFlags.Add(IncursionFlag(owner));
             w.Log($"{f.Name} of {w.House(f.OwnerId)?.Name ?? f.OwnerId} arrives at {sys?.Name ?? f.SystemId} — {w.House(owner)?.Name ?? owner}'s space.");
+            if (owner == w.Protagonist?.HouseId) w.Tell(w.AtWar(owner, f.OwnerId) ? "warn" : "info", $"{f.Name} of {w.House(f.OwnerId)?.Name ?? f.OwnerId} ({f.Strength} hull(s)) has come into your space at {sys?.Name ?? f.SystemId}" + (w.AtWar(owner, f.OwnerId) ? ": you are at war with it" : ". You are not at war with it"), "galaxy:" + f.SystemId, f.OwnerId);
         }
         else w.Log($"{f.Name} arrives at {sys?.Name ?? f.SystemId}.");
     }
@@ -470,6 +471,12 @@ public sealed class FleetSystem
         RefreshWarFlags(w);
         var who = byCharacterId != null ? w.Char(byCharacterId) : null;
         w.Log($"{(who?.Name ?? w.House(a)?.Name ?? a)} declares war on {w.House(b)?.Name ?? b}.");
+        if (b == w.Protagonist?.HouseId)
+        {
+            var theirHead = w.House(a) is { } ah ? Economy.HeadOf(w, ah) : null; int regard = theirHead != null ? w.GetRelationship(theirHead.Id, w.ProtagonistId)?.Disposition ?? 0 : 0;
+            string why = FeudSystem.Between(w, a, b) ? "there is blood between the houses" : regard <= -20 ? $"{theirHead?.Name} thinks ill of you ({regard})" : StrengthOf(w, a) > StrengthOf(w, b) * 2 ? "it has the hulls and you have not" : "it wants what you hold";
+            w.Tell("warn", $"{w.House(a)?.Name ?? a} has declared war on your house: {StrengthOf(w, a)} hull(s) to your {StrengthOf(w, b)}. Why: {why}", "military", a);
+        }
         if (who != null) _friction.Apply(w, who, "declare_war");
     }
 

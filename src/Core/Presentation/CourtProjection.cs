@@ -51,13 +51,17 @@ public sealed record ReclaimOption(string HoldingId, string HoldingName, string 
 /// <summary>The capital: who holds it, and what it gives.</summary>
 public sealed record CapitalCard(string SystemName, string? HolderId, string? HolderName, bool Mine);
 /// <summary>One house's stance on a motion: declared or predicted, with its weight and whether the player may still whip it.</summary>
-public sealed record StanceLine(string HouseId, string HouseName, string Accent, int Weight, int Stance, bool Declared, string? LobbyRefusal, string? BribeRefusal, string? Faction = null, bool FactionLeader = false);
+public sealed record StanceLine(string HouseId, string HouseName, string Accent, int Weight, int Stance, bool Declared, string? LobbyRefusal, string? BribeRefusal, string? Faction = null, bool FactionLeader = false)
+{ /// <summary>What this house's vote would cost to buy (docs/PLAYTHROUGH.md 13).</summary>
+  public int BribePrice { get; init; } }
 /// <summary>A Senate faction: its name, leader, benches, platform and record, and what the player may do about it.</summary>
 public sealed record FactionCard(string Id, string Name, string LeaderHouseId, string LeaderName, string LeaderAccent, IReadOnlyList<(string Id, string Name, string Accent)> Members, int Weight, bool Mine, bool Lead, string Platform, int Record, int Since, string? JoinRefusal,
     string Description = "", string Courts = "", string LawPlatform = "", bool Party = false);
 /// <summary>A motion on the docket or in the history.</summary>
 public sealed record MotionCard(string Id, string KindId, string KindName, string ProposerName, string ProposerAccent, string? TargetName, string Text, int ProposedTurn, bool Open, bool Passed,
-    int ForWeight, int AgainstWeight, int MyStance, bool Mine, bool AgainstMe, IReadOnlyList<StanceLine> Stances, bool Petition = false, string? VetoRefusal = null, bool Vetoed = false, string? VetoedBy = null);
+    int ForWeight, int AgainstWeight, int MyStance, bool Mine, bool AgainstMe, IReadOnlyList<StanceLine> Stances, bool Petition = false, string? VetoRefusal = null, bool Vetoed = false, string? VetoedBy = null)
+{ /// <summary>Why the count came in far from where it had stood (docs/PLAYTHROUGH.md 13), or "".</summary>
+  public string Swing { get; init; } = ""; }
 /// <summary>A motion the player could move, with its targets.</summary>
 public sealed record MotionProposal(string KindId, string KindName, string Description, int Influence, string TargetType, IReadOnlyList<(string Id, string Name)> Targets, string? Refusal, bool NeedsOffice = false, IReadOnlyList<(string Id, string Name)>? Offices = null,
     bool NeedsLaw = false, IReadOnlyList<ActLawChoice>? Laws = null);
@@ -480,12 +484,12 @@ public static class CourtProjection
             foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != house.Id).OrderByDescending(h => senate.Weight(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal))
                 stances.Add(new StanceLine(h.Id, h.Name, h.AccentColor, senate.Weight(w, h.Id), senate.Stance(w, m, h.Id), m.Votes.ContainsKey(h.Id),
                     m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, 1).Refusal(ctx) : "decided", m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, 1, bribe: true).Refusal(ctx) : "decided",
-                    FactionSystem.Of(w, h.Id)?.Name, FactionSystem.Leads(w, h.Id)));
+                    FactionSystem.Of(w, h.Id)?.Name, FactionSystem.Leads(w, h.Id)) { BribePrice = SenateSystem.BribeCost(w, h, p) });
             var (f, a) = m.Open ? senate.Tally(w, m) : (m.ForWeight, m.AgainstWeight);
             bool againstMe = m.TargetId == house.Id && def != null && (def.LegitimacyTarget < 0 || def.EmbargoTurns > 0);
             return new MotionCard(m.Id, m.Kind, def?.Name ?? m.Kind, senate.ProposerName(w, m), SenateSystem.IsPetition(m) ? SenateSystem.EstateAccent : proposer?.AccentColor ?? "#888", targetName, senate.Describe(w, m), m.ProposedTurn, m.Open, m.Passed,
                 f, a, m.Votes.GetValueOrDefault(house.Id), m.ProposerHouseId == house.Id, againstMe, stances, SenateSystem.IsPetition(m),
-                m.Open ? new VetoCommand(p.Id, m.Id, senate.Offices, senate).Refusal(ctx) : "decided", m.Vetoed, m.Vetoed ? w.House(m.VetoedBy)?.Name ?? m.VetoedBy : null);
+                m.Open ? new VetoCommand(p.Id, m.Id, senate.Offices, senate).Refusal(ctx) : "decided", m.Vetoed, m.Vetoed ? w.House(m.VetoedBy)?.Name ?? m.VetoedBy : null) { Swing = m.Swing };
         }
         var docket = SenateSystem.Docket(w).Select(Card).ToList();
         var history = w.Motions.Where(m => m.Resolved).OrderByDescending(m => m.ResolvedTurn).ThenBy(m => m.Id, StringComparer.Ordinal).Take(8).Select(Card).ToList();

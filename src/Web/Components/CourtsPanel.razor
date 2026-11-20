@@ -8,6 +8,9 @@
     int more = active ? LadderSystem.Chargeable(w, house.Id).Count - charges.Count : 0;
     var ours = active ? w.OfficeRecord.Where(d => d.HouseId == house.Id && !d.Answered && w.Char(d.CharacterId) is { Alive: true }).OrderByDescending(d => d.Turn).ThenBy(d => d.Id, StringComparer.Ordinal).ToList() : new List<OfficeDeed>();
     var bench = active ? w.Magistrates.Where(m => m.OfficeId == LadderSystem.Praetor && m.HouseId != house.Id).Select(m => w.Char(m.CharacterId)).Where(x => x is { Alive: true }).Select(x => x!).OrderBy(x => x.Id, StringComparer.Ordinal).ToList() : new List<Character>();
+    var suits = active ? LadderSystem.SuitsNaming(w, house.Id) : new List<OfficeBusiness>();
+    var rulings = w.Judgments.AsEnumerable().Reverse().Take(_allRulings ? 40 : 5).ToList();
+    var pleaders = w.LivingCharacters().Where(x => x.HouseId == house.Id && x.Age >= DynastySystem.AgeOfMajority).OrderByDescending(LadderSystem.Craft).ThenBy(x => x.Id, StringComparer.Ordinal).Take(4).ToList();
     string Nature(Character j) => j.NatureTraits.Contains("Honorable") || j.NatureTraits.Contains("Just") ? "upright" : j.NatureTraits.Contains("Ruthless") || j.NatureTraits.Contains("Cruel") || j.Ambition == "amass_a_fortune" ? "known to be for sale" : "neither upright nor for sale";
 }
 @if (active)
@@ -15,6 +18,36 @@
 <section class="panel courts">
     <h3><Icon Name="senate" Size="13" /> The courts <span class="muted">@(charges.Count + more) on the record · @bench.Count praetor@(bench.Count == 1 ? "" : "s") of other houses sitting</span></h3>
     <div class="muted small">@Intro</div>
+
+    <div class="hh-head" data-docket="1"><b>Suits that name your house</b> <span class="muted small">A suit is heard at the end of the year after it is brought. Until then you may come to terms, or send someone to plead.</span></div>
+    @if (suits.Count == 0) { <div class="muted small">No suit names your house this year.</div> }
+    @foreach (var s in suits)
+    {
+        string sid = s.Id; var other = w.House(LadderSystem.OtherIn(s, house.Id)); var judge = w.Char(s.HolderId); bool forUs = s.RightId == house.Id; int stake = LadderSystem.StakeOf(s);
+        var noSettle = new SuitCommand(pid, SuitCommand.Settle, sid).Refusal(G.Ctx); var adv = w.Char(s.AdvocateId);
+        <div class="suit court-suit @(forUs ? "" : "warn")" data-suit="@sid">
+            <b>@(other?.Name) against your house</b> <span class="muted">over @LadderSystem.MatterOf(s) · @stake credits turn on it · heard by @(judge?.Name ?? "a praetor")@(judge != null ? ", who is " + Nature(judge) : "")</span>
+            <div class="small">@LadderSystem.LawFor(w, s, house.Id) @(forUs ? $"If the praetor rules on the law, {other?.Name} pays you {stake}." : $"If the praetor rules on the law, you pay {stake}.")@(adv != null ? $" {adv.Name} is to plead it." : "")</div>
+            <div class="suit-acts">
+                <button class="opt inline tiny" data-settle="@sid" disabled="@(noSettle != null)" title="@(noSettle ?? (forUs ? $"{other?.Name} pays you {stake / 2} now and the suit is withdrawn: half, but certain, whatever the praetor is" : $"You pay {other?.Name} {stake / 2} now and the suit is withdrawn: half of what a ruling on the law would cost"))" @onclick="() => AskSettle(sid, forUs, other?.Name ?? string.Empty, stake / 2)">@(forUs ? $"Take terms · {stake / 2} to you" : $"Come to terms · pay {stake / 2}")</button>
+                @foreach (var a in pleaders)
+                {
+                    string aid = a.Id; var noPlead = new SuitCommand(pid, SuitCommand.Plead, sid, aid).Refusal(G.Ctx);
+                    <button class="opt inline tiny" data-plead="@aid" disabled="@(noPlead != null)" title="@(noPlead ?? LadderSystem.PleadSays(w, s, a))" @onclick="() => G.Execute(new SuitCommand(pid, SuitCommand.Plead, sid, aid))">Send @a.Name to plead · @LadderSystem.PleadInfluence influence</button>
+                }
+            </div>
+        </div>
+    }
+    @if (rulings.Count > 0)
+    {
+        <div class="hh-head" data-rulings="1"><b>What the courts have ruled on your house</b></div>
+        @foreach (var r in rulings)
+        {
+            bool won = r.WinnerId == house.Id; var them = w.House(won ? r.LoserId : r.WinnerId);
+            <div class="suit court-ruling @(won ? "good" : "warn")">Year @r.Turn: <b>@(won ? $"{them?.Name} paid you {r.Sum} credits" : $"you paid {them?.Name} {r.Sum} credits")</b><span class="muted">@(r.Matter.Length > 0 ? " over " + r.Matter : "") · @(r.Judge.Length > 0 ? r.Judge + ", praetor: " : "")@r.How</span></div>
+        }
+        @if (w.Judgments.Count > 5) { <button class="opt inline tiny" @onclick="() => _allRulings = !_allRulings">@(_allRulings ? "Show fewer" : "Show all " + w.Judgments.Count)</button> }
+    }
 
     <div class="hh-head"><b>On the record</b> <span class="muted small">What former magistrates of other houses did and have not answered for. A charge is heard once.</span></div>
     @if (charges.Count == 0) { <div class="muted small">Nothing stands against anybody who no longer sits. It is kept @LadderSystem.RecordYears years.</div> }
@@ -58,7 +91,10 @@
 }
 
 @code {
-    private bool _all;
+    private bool _all, _allRulings;
+    private void AskSettle(string suitId, bool forUs, string other, int half) => G.Ask(forUs ? "Take terms from " + other + "?" : "Come to terms with " + other + "?",
+        forUs ? other + " pays you " + half + " credits now and the suit is withdrawn. A ruling on the law would have paid twice that, if the praetor ruled on the law." : "You pay " + other + " " + half + " credits now and the suit is withdrawn. A ruling on the law would cost twice that.",
+        forUs ? "Take the terms" : "Pay, and end it", () => G.Execute(new SuitCommand(G.World!.ProtagonistId, SuitCommand.Settle, suitId)), "Let it be heard");
     private const string Intro = "A magistrate cannot be touched while they sit. When the term is over, what they took is still on the record, and any house may bring it before a sitting praetor. The verdict is that praetor's.";
     private const string ChargeTip = "If it is proved they may not stand for five years, their house pays and is thought the less of, and yours the better. If they are let go, your house looks the worse for bringing it. Either way their house will not forgive you.";
     private const string UprightTip = "Upright. They would refuse, and say in open court what you offered: your house would lose standing and its candidates votes.";

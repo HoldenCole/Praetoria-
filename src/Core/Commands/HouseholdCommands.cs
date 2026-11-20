@@ -303,6 +303,32 @@ public sealed class ProsecutionCommand : ICommand
     }
 }
 
+/// <summary>Answering a suit that names the house before it is heard (docs/PLAYTHROUGH.md 12). <see cref="Settle"/>: come to terms
+/// out of court, the side the law is against paying half now. <see cref="Plead"/>: send someone of the house to plead it (1 influence).</summary>
+public sealed class SuitCommand : ICommand
+{
+    public const string Settle = "settle", Plead = "plead";
+    private static readonly Dictionary<string, int> Cost = new() { [Pool.Influence] = LadderSystem.PleadInfluence };
+    private readonly string _what, _suitId, _advocateId;
+    public SuitCommand(string actorId, string what, string suitId, string advocateId = "") { ActorId = actorId; _what = what; _suitId = suitId; _advocateId = advocateId; }
+    public string ActorId { get; }
+    public string Describe() => $"{_what} the suit {_suitId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId); var b = w.OfficeWork.FirstOrDefault(x => x.Id == _suitId);
+        if (_what == Settle) return LadderSystem.SettleRefusal(w, head, b);
+        if (_what != Plead) return "no such thing";
+        return LadderSystem.PleadRefusal(w, head, b, w.Char(_advocateId)) ?? (ctx.PoolsOf(ActorId).CanAfford(Cost) ? null : "no influence left this year");
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId)!; var b = w.OfficeWork.First(x => x.Id == _suitId);
+        if (_what == Settle) { LadderSystem.SettleOut(w, head, b); return; }
+        ctx.PoolsOf(ActorId).Spend(Cost); LadderSystem.SendPleader(w, head, b, w.Char(_advocateId)!);
+    }
+}
+
 /// <summary>The ladder of offices (docs/LADDER.md). <see cref="Stand"/>: put your own name down for a rung at the next election
 /// (2 influence). <see cref="Withdraw"/> it. <see cref="Back"/>: put your weight behind yourself or someone of the house who is
 /// standing (2 influence, twice at most). <see cref="Games"/>: as aedile, give games out of your own purse.</summary>

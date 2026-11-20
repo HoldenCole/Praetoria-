@@ -176,6 +176,10 @@ public sealed class OfficeBusiness
     public string RegionId { get; set; } = "";
     /// <summary>What was decided, or "" while it waits.</summary>
     public string Choice { get; set; } = "";
+    /// <summary>A case naming the player's house, held a year before it is heard so that the house may answer it (docs/PLAYTHROUGH.md 12).</summary>
+    public bool Held { get; set; }
+    /// <summary>Who of the player's house is to plead a held case, or "".</summary>
+    public string AdvocateId { get; set; } = "";
     /// <summary>For a case: the house the ruling went for. A ruling against the law may be appealed.</summary>
     public string WinnerId { get; set; } = "";
     /// <summary>For a judge's hearing: the estate on the other side. For an appeal: nothing.</summary>

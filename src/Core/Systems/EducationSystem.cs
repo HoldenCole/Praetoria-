@@ -289,7 +289,7 @@ public static class EducationSystem
             {
                 int cost = TutorCost(c.Tutor);
                 if (mine.Treasury.Credits >= cost) mine.Treasury.Credits -= cost;
-                else { c.Tutor = 0; Mark(w, TutorDismissedFlag); w.Log($"{mine.Name} cannot pay {c.Name}'s tutor, who has gone."); }
+                else { c.Tutor = 0; Mark(w, TutorDismissedFlag); w.Log($"{mine.Name} cannot pay {c.Name}'s tutor, who has gone."); w.Tell("warn", $"{c.Name}'s tutor has gone: the treasury held {mine.Treasury.Credits} credits and the year's fee was {cost}. Another can be engaged when there is coin", "dynasty", c.Id); }
             }
 
         var admirals = w.Fleets.Values.Select(f => f.AdmiralId).Where(a => a.Length > 0).ToHashSet();

@@ -196,6 +196,8 @@
 
     private void Send(string fleetId, string systemId) { var w = G.World!; if (G.Execute(new MoveFleetCommand(w.ProtagonistId, fleetId, systemId, G.Content!.Fleets))) { } }
     private void ClickFleet(MapFleet f) { if (f.IsPlayer) { _fleetId = _fleetId == f.FleetId ? null : f.FleetId; } _systemId = f.SystemId; }
+    /// <summary>Bring a system forward: centred, picked, its panel open. For alerts and lists that name a place.</summary>
+    public async Task Select(string systemId) { try { await JS.InvokeAsync<object>("praetoriaSpace.select", systemId, _id); } catch { } }
     private async Task Focus(double x, double y) { try { await JS.InvokeVoidAsync("praetoriaSpace.focus", _id, x, y); } catch { } }
 
     /// <summary>The bodies of a system for the map: everything but the sun (which the map draws itself), each with what it goes round

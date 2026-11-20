@@ -370,8 +370,15 @@ public sealed class DynastySystem
             world.Relationship(child.Id, parent).BondStrength = 100;
         }
         world.Log($"A child, {child.Name}, is born to {father.Name} and {mother.Name}.");
+        if (world.Protagonist is { } head && child.HouseId == head.HouseId)
+        {
+            int place = Line(world, head).FindIndex(x => x.Id == child.Id) + 1;
+            world.Tell("good", $"A child is born to your house: {child.Name}, {(child.Sex == "female" ? "daughter" : "son")} of {father.Name} and {mother.Name}" + (place == 1 ? ", and now your heir" : place > 1 ? $", {Nth(place)} in the line" : ""), "dynasty", child.Id);
+        }
         LifeSystem.Note(world, mother, "child", $"{given} was born."); LifeSystem.Note(world, father, "child", $"{given} was born.");
     }
+
+    private static string Nth(int n) => n % 100 is 11 or 12 or 13 ? n + "th" : (n % 10) switch { 1 => n + "st", 2 => n + "nd", 3 => n + "rd", _ => n + "th" };
 
     /// <summary>Kill a character (natural death, assassination, Bloody Event). If it was the
     /// protagonist, pass the seat to an heir — or end the dynasty. No RNG (succession is deterministic).</summary>
@@ -381,6 +388,14 @@ public sealed class DynastySystem
         if (c is not { Alive: true }) return;
         c.Alive = false;
         world.Log($"{c.Name} dies at {c.Age}.");
+        if (world.Protagonist is { } mine && c.HouseId == mine.HouseId && c.Id != mine.Id)
+        {
+            var left = new List<string>();
+            left.AddRange(world.Holdings.Values.Where(h => h.GovernorId == c.Id).OrderBy(h => h.Id, StringComparer.Ordinal).Select(h => "the governing of " + h.Name));
+            left.AddRange(world.Fleets.Values.Where(f => f.AdmiralId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal).Select(f => "the command of " + f.Name));
+            if (world.House(mine.HouseId) is { } hh) left.AddRange(hh.Duties.Where(d => d.HolderId == c.Id).Select(d => "the place of " + d.Role));
+            world.Tell("warn", $"{c.Name} of your house has died at {c.Age}" + (left.Count > 0 ? ". Left empty: " + string.Join(", ", left) : ""), "dynasty", c.Id);
+        }
         LifeSystem.Died(world, c);   // buried and spoken over, while the house still knows whose it is (docs/LIFE.md)
 
         if (id == world.ProtagonistId) Succeed(world, c);

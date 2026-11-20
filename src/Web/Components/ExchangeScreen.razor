@@ -118,6 +118,12 @@
 
 @code {
     private string _tab = "goods";
+    // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
+    [Parameter] public string Tab { get; set; } = "";
+    [Parameter] public int TabStamp { get; set; }
+    private static int _seenStamp;
+    protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) OpenOn(Tab); } }
+    private void OpenOn(string tab) { if (tab is "goods" or "projects" or "shares" or "ventures") _tab = tab; }
     private static IEnumerable<(string id, string label, int count)> Tabs(CourtModel m)
     {
         yield return ("goods", "Goods", 0);

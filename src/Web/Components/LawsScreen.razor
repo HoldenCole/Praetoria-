@@ -161,6 +161,12 @@
 
 @code {
     private string _tab = "estates";
+    // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
+    [Parameter] public string Tab { get; set; } = "";
+    [Parameter] public int TabStamp { get; set; }
+    private static int _seenStamp;
+    protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) OpenOn(Tab); } }
+    private void OpenOn(string tab) { if (tab is "estates" or "reach" or "yours") _tab = tab; }
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string? _open;
 }

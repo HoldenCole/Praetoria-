@@ -285,6 +285,7 @@ public static class FeudSystem
             else
             {
                 w.Log($"An attempt on {target.Name} fails. It was {w.House(f.WrongedId)?.Name}'s, for {f.VictimName}.");
+                if (target.HouseId == w.Protagonist?.HouseId) w.Tell("warn", $"An attempt was made on the life of {target.Name}. It failed. It was {w.House(f.WrongedId)?.Name}'s, for {f.VictimName}: there is blood between the houses", "houses", f.WrongedId);
                 if (toPlayer) w.WorldFlags.Add("knife_turned");
             }
             return;

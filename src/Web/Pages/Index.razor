@@ -78,15 +78,15 @@ else
             <div class="win-body">
             @switch (_screen)
             {
-                case "character": <CharacterScreen Model="m" /> break;
+                case "character": <CharacterScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
                 case "senate": <SenateScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "planets": <PlanetsScreen OnFocus="FocusSystem" /> break;
+                case "planets": <PlanetsScreen OnFocus="FocusSystem" Tab="@_tab" TabStamp="_tabStamp" /> break;
                 case "house": <HouseScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "exchange": <ExchangeScreen Model="m" OnGo="Go" /> break;
-                case "laws": <LawsScreen Model="m" /> break;
+                case "exchange": <ExchangeScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
+                case "laws": <LawsScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
                 case "military": <MilitaryScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "dynasty": <DynastyScreen Model="m" /> break;
-                case "houses": <HousesScreen Model="m" /> break;
+                case "dynasty": <DynastyScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
+                case "houses": <HousesScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
                 case "chronicle": <ChronicleScreen /> break;
                 default: <OfficeScreen Model="m" OnOpenReport="OpenReport" /> break;
             }
@@ -213,7 +213,14 @@ else
 
     // "senate:duties" opens the Senate on its duties tab: an alert goes to the thing it is about, not to the screen it is somewhere on
     private string _tab = ""; private int _tabStamp;
-    private void Go(string id) { int i = id.IndexOf(':'); _screen = i < 0 ? id : id[..i]; _tab = i < 0 ? "" : id[(i + 1)..]; _tabStamp++; }
+    private void Go(string id)
+    {
+        int i = id.IndexOf(':'); string screen = i < 0 ? id : id[..i], tab = i < 0 ? "" : id[(i + 1)..];
+        if (screen == "you") screen = "character"; if (screen == "worlds") screen = "planets";
+        // a place on the map is its subject: the map comes forward on that system, with its panel open (docs/PLAYTHROUGH.md 15)
+        if (screen == "galaxy") { _screen = "galaxy"; if (tab.Length > 0) _ = _map?.Select(tab); return; }
+        _screen = screen; _tab = tab; _tabStamp++;
+    }
     private void Teach(string mode) => G.Execute(new SetTutorialCommand(G.World!.ProtagonistId, mode));
     /// <summary>The seat has passed: the heir lands on their register's home screen, so the change of life is seen at once.</summary>
     private void CloseSuccession() { _succession = null; if (G.World != null) _screen = RoleTheme.Home(RoleTheme.Of(G.World)); }
@@ -227,7 +234,7 @@ else
         try { var seen = await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.primer.seen"); if (string.IsNullOrEmpty(seen)) { _primer = true; StateHasChanged(); } } catch { }
     }
     private async Task ClosePrimer() { _primer = false; try { await JS.InvokeVoidAsync("localStorage.setItem", "praetoria.primer.seen", "1"); } catch { } }
-    private void FocusSystem(string systemId) { _screen = "galaxy"; }
+    private void FocusSystem(string systemId) { _screen = "galaxy"; if (!string.IsNullOrEmpty(systemId)) _ = _map?.Select(systemId); }
     private void OpenReport(BriefingCard card) => _openReport = card;
     private void Choose((BriefingCard card, string choiceId) pick) { G.Resolve(pick.card.Item, pick.choiceId, pick.card.Title, pick.card.Choices.FirstOrDefault(c => c.Id == pick.choiceId)?.Label ?? ""); _openReport = null; }
 

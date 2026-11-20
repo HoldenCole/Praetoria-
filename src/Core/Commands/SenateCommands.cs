@@ -121,7 +121,7 @@ public sealed class LobbyCommand : ICommand
         if (_side == 0) return "for or against";
         if (m.Lobbied.Contains(house.Id + "→" + _houseId)) return "you have already had their ear";
         var head = Economy.HeadOf(w, target); if (head == null) return "no one to speak to";
-        if (_bribe) return house.Treasury.Credits >= SenateSystem.BribeCredits ? null : $"needs {SenateSystem.BribeCredits} credits";
+        if (_bribe) { int price = SenateSystem.BribeCost(w, target, actor); return SenateSystem.BribeRefused(w, target, actor) ?? (house.Treasury.Credits >= price ? null : $"needs {price} credits (the house has {house.Treasury.Credits})"); }
         if ((w.GetRelationship(head.Id, actor.Id)?.Disposition ?? 0) < -20) return $"{head.Name} will not hear you — try coin";
         return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = 1 }) ? null : "needs 1 influence";
     }
@@ -129,8 +129,13 @@ public sealed class LobbyCommand : ICommand
     public void Execute(CommandContext ctx)
     {
         var w = ctx.World; var actor = w.Char(ActorId)!; var house = w.House(actor.HouseId)!; var m = w.Motions.First(x => x.Id == _motionId);
-        if (_bribe) house.Treasury.Credits -= SenateSystem.BribeCredits; else ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = 1 });
-        m.Lobby[_houseId] = m.Lobby.GetValueOrDefault(_houseId) + _side * (_bribe ? SenateSystem.BribeWeight : SenateSystem.LobbyWeight);
+        if (_bribe)
+        {
+            int price = SenateSystem.BribeCost(w, w.House(_houseId)!, actor); house.Treasury.Credits -= price;
+            if (Economy.HeadOf(w, w.House(_houseId)!) is { } taker) taker.Purse += price;   // it is the head who is paid, not the house's treasury
+            m.Bought[_houseId] = m.Bought.GetValueOrDefault(_houseId) + _side * SenateSystem.BribeWeight; m.BoughtBy[_houseId] = house.Id;
+        }
+        else { ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = 1 }); m.Lobby[_houseId] = m.Lobby.GetValueOrDefault(_houseId) + _side * SenateSystem.LobbyWeight; }
         m.Lobbied.Add(house.Id + "→" + _houseId);
         m.Votes.Remove(_houseId);   // a lobbied house reconsiders
         var head = Economy.HeadOf(w, w.House(_houseId)!); if (head != null && !_bribe) w.Relationship(head.Id, actor.Id).Disposition = Math.Clamp((w.GetRelationship(head.Id, actor.Id)?.Disposition ?? 0) + 2, -100, 100);

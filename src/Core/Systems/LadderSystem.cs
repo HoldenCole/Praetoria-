@@ -498,7 +498,7 @@ public static partial class LadderSystem
             {
                 if (b.HouseA.Length == 0) break;
                 var right = w.House(b.RightId); var other = w.House(b.RightId == b.HouseA ? b.HouseB : b.HouseA); b.WinnerId = b.RightId;
-                if (right != null && other != null) { int half = Math.Min(StakeOf(b) / 2, Math.Max(0, other.Treasury.Credits)); other.Treasury.Credits -= half; right.Treasury.Credits += half; }
+                if (right != null && other != null) { int half = Math.Min(StakeOf(b) / 2, Math.Max(0, other.Treasury.Credits)); other.Treasury.Credits -= half; right.Treasury.Credits += half; Judged(w, who.Name, right.Id, other.Id, half, b, "brought to terms by the praetor: half of what was asked"); }
                 Shift(w, other, house, 4); Shift(w, right, house, WeightOf(b) == Doubtful ? 4 : -3);
                 if (WeightOf(b) == Doubtful) { MoveTrust(w, 1); if (house is { Legitimacy: < 80 }) Legit(1); }
                 if (ours || b.HouseA == mine || b.HouseB == mine) w.Log($"{who.Name}, praetor, brings {right?.Name} and {other?.Name} to terms. {other?.Name} pays {StakeOf(b) / 2} credits.");
@@ -509,7 +509,7 @@ public static partial class LadderSystem
                 if (b.HouseA.Length == 0) break;
                 string winner = choice == Law ? b.RightId : choice == Friend ? TieWinner(w, b, who) ?? FriendOf(w, b, house) : BoughtWinner(w, b, who) ?? RicherOf(w, b), loser = winner == b.HouseA ? b.HouseB : b.HouseA;
                 var win = w.House(winner); var lose = w.House(loser); bool just = winner == b.RightId; b.WinnerId = winner;
-                if (win != null && lose != null) { int paid = Math.Min(StakeOf(b), Math.Max(0, lose.Treasury.Credits)); lose.Treasury.Credits -= paid; win.Treasury.Credits += paid; }
+                if (win != null && lose != null) { int paid = Math.Min(StakeOf(b), Math.Max(0, lose.Treasury.Credits)); lose.Treasury.Credits -= paid; win.Treasury.Credits += paid; Judged(w, who.Name, win.Id, lose.Id, paid, b, just ? "ruled on the law" : WeightOf(b) == Doubtful ? "ruled where the law was doubtful" : "ruled against the plain reading of the law"); }
                 Shift(w, win, house, choice == Law ? 6 : choice == Friend ? 12 : 4); Shift(w, lose, house, choice == Law ? -6 : -12);
                 if (choice == Law) { MoveTrust(w, 1); if (house is { Legitimacy: < 80 }) Legit(1); }
                 else if (choice == Friend) { if (!just) { MoveTrust(w, -BentCost(b)); if (WeightOf(b) != Doubtful) Legit(-1); } }
@@ -564,6 +564,7 @@ public static partial class LadderSystem
     {
         var p = w.Protagonist; w.WorldCounters.TryAdd(TrustKey, TrustStart);   // written down, so that what content does to it starts from where it stands
         using (Diagnostics.Perf.Time("ladder:close")) CloseDuties(w);
+        HearHeld(w, offices);   // the suits naming the player's house that waited a year (docs/PLAYTHROUGH.md 12)
         foreach (var b in w.OfficeWork.Where(b => b.Choice.Length == 0).ToList())
         {
             b.Choice = "left"; MoveTrust(w, -1);
@@ -575,7 +576,11 @@ public static partial class LadderSystem
         {
             var rung = offices.Rung(seat.OfficeId); var who = w.Char(seat.CharacterId); if (rung == null || who is not { Alive: true }) continue;
             OfficeBusiness b; using (Diagnostics.Perf.Time("ladder:make")) { b = Make(w, seat, rung, taken, ref docket); w.OfficeWork.Add(b); }
-            using (Diagnostics.Perf.Time("ladder:decide")) if (p == null || who.Id != p.Id) Decide(w, offices, who, Inclination(w, who, b));
+            using (Diagnostics.Perf.Time("ladder:decide")) if (p == null || who.Id != p.Id)
+            {
+                if (p != null && b.Kind == Case && (b.HouseA == p.HouseId || b.HouseB == p.HouseId)) HoldOver(w, who, b, p.HouseId);   // it waits a year, and the house is told
+                else Decide(w, offices, who, Inclination(w, who, b));
+            }
         }
         // above where it starts, a good name fades a point a year; below it, nothing mends it but honest dealing (a point a year, above)
         int t = Trust(w); if (t > TrustStart) w.WorldCounters[TrustKey] = t - 1;

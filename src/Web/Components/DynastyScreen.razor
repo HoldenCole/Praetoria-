@@ -155,6 +155,12 @@
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string? _focus;
     private string _tab = "tree";
+    // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
+    [Parameter] public string Tab { get; set; } = "";
+    [Parameter] public int TabStamp { get; set; }
+    private static int _seenStamp;
+    protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) OpenOn(Tab); } }
+    private void OpenOn(string tab) { int i = tab.IndexOf(':'); string t = i < 0 ? tab : tab[..i]; if (t is "tree" or "ambitions" or "dead" or "marriages" or "upbringing") _tab = t; if (i >= 0) { _tab = "tree"; _focus = tab[(i + 1)..]; } }
 
     public static List<Character> Heirs(World w, House house)
     {

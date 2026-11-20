@@ -207,4 +207,96 @@ public class PlaythroughFixTests
         move.Execute(ctx); f.Eta -= 2; Assert.Equal(2, RecallFleetCommand.YearsBack(f)); new RecallFleetCommand(me.Id, f.Id).Execute(ctx);
         Assert.True(f.Moving); Assert.Equal(home, f.DestinationId); Assert.Equal(2, f.Eta); Assert.NotNull(new RecallFleetCommand(me.Id, f.Id).Refusal(ctx));
     }
+
+    [Fact]
+    public void ASuitAgainstTheHouse_IsSaid_AndCanBeAnswered()
+    {
+        // 12: the courts fined the player every year in silence: no notice, no sum, and nothing to do about it
+        bool settled = false, heard = false;
+        for (int seed = 1; seed <= 8 && !(settled && heard); seed++)
+        {
+            var (w, tc, house, me, _) = Start("the_old_lion", seed); tc.BeginTurn();
+            for (int y = 0; y < 14 && !w.IsDynastyDead && !(settled && heard); y++)
+            {
+                me = w.Protagonist!; house = w.House(me.HouseId)!; var ctx = new CommandContext(w, TestContent.Rng());
+                foreach (var suit in LadderSystem.SuitsNaming(w, house.Id))
+                {
+                    // it is on the docket for the whole year, with who, what and how much
+                    var other = w.House(LadderSystem.OtherIn(suit, house.Id)); Assert.NotNull(other); Assert.True(LadderSystem.StakeOf(suit) > 0); Assert.NotEmpty(LadderSystem.MatterOf(suit)); Assert.NotEmpty(LadderSystem.LawFor(w, suit, house.Id));
+                    Assert.Contains(w.History, h => h.Text.Contains("brings a suit against " + house.Name));
+                    if (!settled && suit.RightId != house.Id && house.Treasury.Credits >= LadderSystem.StakeOf(suit) / 2 && Economy.HeadOf(w, house)?.Id == me.Id)
+                    {
+                        int had = house.Treasury.Credits, theirs = other!.Treasury.Credits, half = LadderSystem.StakeOf(suit) / 2;
+                        var cmd = new SuitCommand(me.Id, SuitCommand.Settle, suit.Id); Assert.Null(cmd.Refusal(ctx)); cmd.Execute(ctx);
+                        Assert.Equal(had - half, house.Treasury.Credits); Assert.Equal(theirs + half, other.Treasury.Credits); Assert.Empty(LadderSystem.SuitsNaming(w, house.Id).Where(x => x.Id == suit.Id));
+                        Assert.Contains(w.Judgments, j => j.LoserId == house.Id && j.Sum == half && j.How.Contains("settled")); settled = true;
+                    }
+                    else if (!heard && Economy.HeadOf(w, house)?.Id == me.Id)
+                    {
+                        // someone of the house can be sent to plead, for an influence
+                        Fill(ctx, me); var plead = new SuitCommand(me.Id, SuitCommand.Plead, suit.Id, me.Id); Assert.Null(plead.Refusal(ctx)); plead.Execute(ctx); Assert.Equal(me.Id, suit.AdvocateId);
+                        int rulings = w.Judgments.Count; string id = suit.Id; tc.EndTurn(); if (w.IsDynastyDead) break; tc.BeginTurn();
+                        var after = w.OfficeWork.FirstOrDefault(x => x.Id == id);
+                        // a year on it has been heard (or the praetor is gone), and a ruling that moved coin is written down
+                        Assert.True(after == null || after.Choice.Length > 0, "a held suit is heard the year after it is brought");
+                        if (after is { Choice: not LadderSystem.Lapsed } && w.Judgments.Count > rulings) { var j = w.Judgments[^1]; Assert.True(j.WinnerId == w.Protagonist!.HouseId || j.LoserId == w.Protagonist.HouseId); heard = true; }
+                        goto next;
+                    }
+                }
+                tc.EndTurn(); if (w.IsDynastyDead) break; tc.BeginTurn();
+                next: ;
+            }
+        }
+        Assert.True(settled || heard, "in eight sagas of fourteen years no suit named the player's house");
+    }
+
+    [Fact]
+    public void AVoteIsNotBoughtForFiveCredits_AndABoughtLeaderDoesNotCarryTheBench()
+    {
+        // 13: a five-credit bribe to a bench leader turned the whole bench, and a count forecast at 94 to 62 came in at 138 to nought
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); var senate = tc.Senate; Motion? m = null; Faction? bench = null;
+        for (int y = 0; y < 12 && m == null; y++)
+        {
+            foreach (var open in w.Motions.Where(x => x.Open))
+            {
+                // the forecast follows the leader as the count will: the leader's own lean, not a part of it
+                foreach (var f in w.Factions.Where(f => f.Members.Count > 1 && !open.Votes.ContainsKey(f.LeaderHouseId))) Assert.Equal(Math.Sign(senate.Lean(w, open, f.LeaderHouseId)), senate.LeaderStance(w, open, f));
+                bench ??= w.Factions.FirstOrDefault(f => f.Members.Count > 2 && f.LeaderHouseId != house.Id && !f.Members.Contains(house.Id) && open.TargetId != f.LeaderHouseId && open.ProposerHouseId != f.LeaderHouseId
+                    && SenateSystem.BribeRefused(w, w.House(f.LeaderHouseId)!, me) == null);
+                if (bench != null) { m = open; break; }
+            }
+            if (m == null) { tc.EndTurn(); tc.BeginTurn(); me = w.Protagonist!; house = w.House(me.HouseId)!; }
+        }
+        Assert.NotNull(m); Assert.NotNull(bench); var leader = w.House(bench!.LeaderHouseId)!; ctx = new CommandContext(w, TestContent.Rng());
+        int price = SenateSystem.BribeCost(w, leader, me); Assert.True(price >= SenateSystem.BribeCredits + SenateSystem.BenchLeaderBribe, "a bench's leader costs more than five credits");
+        house.Treasury.Credits = price - 1; Assert.Contains("needs " + price, new LobbyCommand(me.Id, m!.Id, leader.Id, 1, bribe: true).Refusal(ctx));
+        house.Treasury.Credits = price + 10; var taker = Economy.HeadOf(w, leader)!; int theirs = taker.Purse;
+        var members = bench.Members.Where(id => id != leader.Id && id != m.TargetId && id != m.ProposerHouseId).ToList(); var before = members.ToDictionary(id => id, id => senate.Lean(w, m, id)); int leaderBefore = senate.Lean(w, m, leader.Id);
+        int side = leaderBefore > 0 ? -1 : 1; var bribe = new LobbyCommand(me.Id, m.Id, leader.Id, side, bribe: true); Assert.Null(bribe.Refusal(ctx)); bribe.Execute(ctx);
+        Assert.Equal(10, house.Treasury.Credits); Assert.Equal(theirs + price, taker.Purse);
+        Assert.Equal(leaderBefore + side * SenateSystem.BribeWeight, senate.Lean(w, m, leader.Id));   // the purse moves the one who took it
+        foreach (var id in members) Assert.Equal(before[id], senate.Lean(w, m, id));                    // and nobody who did not
+        // the upright will not take it, and the screen is told so before the button is pressed
+        var upright = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id) && Economy.HeadOf(w, h) != null); Economy.HeadOf(w, upright)!.NatureTraits.Add("Honorable");
+        Assert.Contains("upright", new LobbyCommand(me.Id, m.Id, upright.Id, 1, bribe: true).Refusal(ctx));
+    }
+
+    [Fact]
+    public void TheHouseIsTold_WhatHappensToIt()
+    {
+        // 14: births, the death of the steward, two declarations of war, tutors leaving: all in the Chronicle and nowhere else
+        var (w, tc, house, me, _) = Start(); tc.BeginTurn();
+        var foe = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id));
+        tc.Fleets.DeclareWar(w, foe.Id, house.Id);
+        var war = Assert.Single(w.NewsNow().Where(n => n.Text.Contains("declared war on your house"))); Assert.Equal("military", war.Target); Assert.Contains("Why:", war.Text); Assert.Contains("hull(s)", war.Text);
+        var kin = w.LivingCharacters().First(c => c.HouseId == house.Id && c.Id != me.Id); var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); seat.GovernorId = kin.Id;
+        DynastySystem.Die(w, kin.Id);
+        var death = Assert.Single(w.NewsNow().Where(n => n.Text.Contains(kin.Name + " of your house has died"))); Assert.Contains("the governing of " + seat.Name, death.Text); Assert.Equal(kin.Id, death.SubjectId);
+        // nothing is told of another house's dead
+        int told = w.News.Count; DynastySystem.Die(w, w.LivingCharacters().First(c => c.HouseId == foe.Id).Id); Assert.Equal(told, w.News.Count);
+        // this year's news is this year's: after the year turns, last year's is no longer new
+        tc.EndTurn(); tc.BeginTurn(); Assert.DoesNotContain(w.NewsNow(), n => n.Seq == war.Seq || n.Seq == death.Seq);
+        // and it survives a save
+        var again = SaveSystem.Deserialize(SaveSystem.Serialize(w)); Assert.Equal(w.News.Count, again.News.Count); Assert.Equal(w.NewsFrom, again.NewsFrom);
+    }
 }

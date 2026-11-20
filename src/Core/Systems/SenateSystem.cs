@@ -87,7 +87,7 @@ public sealed class SenateSystem
         if (f != null && m.TargetId != houseId && _motions.Def(m.Kind) is { } pd) lean += Math.Sign(f.Platform.GetValueOrDefault(pd.Interest));   // the party's stance on the kind
         if (f != null && f.LeaderHouseId != houseId && m.TargetId != houseId && m.ProposerHouseId != houseId)
         {
-            int ls = FactionSystem.LeaderStance(w, m, f, id => RawLean(w, m, id));
+            int ls = LeaderStance(w, m, f);
             lean += ls * FactionSystem.Discipline + m.Lobby.GetValueOrDefault(f.LeaderHouseId) / 2;
         }
         return lean;
@@ -105,7 +105,48 @@ public sealed class SenateSystem
     }
 
     /// <summary>A house's lean by its own interests alone, before its bench is counted.</summary>
-    public int RawLean(World w, Motion m, string houseId)
+    public int RawLean(World w, Motion m, string houseId) => RawLean(w, m, houseId, true);
+    /// <summary>What a bench's leader is for, as the bench reads it: the leader's own interests and the party's line on the kind, a
+    /// persuasion counted and a purse not. The forecast and the count both read this, so that they agree (docs/PLAYTHROUGH.md 13:
+    /// a count forecast at 94 to 62 came in at 138 to nought, because the bench followed its leader one way in the forecast and
+    /// another at the count).</summary>
+    public int LeaderLean(World w, Motion m, string leaderId)
+    {
+        int lean = RawLean(w, m, leaderId, false);
+        if (FactionSystem.Of(w, leaderId) is { } f && m.TargetId != leaderId && _motions.Def(m.Kind) is { } pd) lean += Math.Sign(f.Platform.GetValueOrDefault(pd.Interest));
+        return lean;
+    }
+    /// <summary>The leader's stance a member follows: the vote the leader cast, unless that vote was paid for.</summary>
+    public int LeaderStance(World w, Motion m, Faction f) =>
+        m.Votes.TryGetValue(f.LeaderHouseId, out var v) && !m.Bought.ContainsKey(f.LeaderHouseId) ? v : Math.Sign(LeaderLean(w, m, f.LeaderHouseId));
+
+    /// <summary>What it costs to buy a house's vote on a motion: more for a house that weighs more in the Senate and stands higher,
+    /// more for one that leads a bench, more for one whose head thinks ill of the buyer.</summary>
+    public static int BribeCost(World w, House target, Character? buyer)
+    {
+        var head = Economy.HeadOf(w, target); int disp = head != null && buyer != null ? w.GetRelationship(head.Id, buyer.Id)?.Disposition ?? 0 : 0;
+        bool leads = FactionSystem.Of(w, target.Id) is { } f && f.LeaderHouseId == target.Id && f.Members.Count > 1;
+        return BribeCredits + target.SphereInfluence.GetValueOrDefault("senate") + 2 * Progression.Title.RankOf(target.Title) + (leads ? BenchLeaderBribe : 0) + Math.Max(0, -disp) / 10;
+    }
+    public const int BenchLeaderBribe = 5, BribeOutOneIn = 4, BribeOutLegitimacy = 3, BribeRefusedRegard = 5;
+    /// <summary>Why a house's head would not take the purse, or null: the upright will not, nor one who hates the buyer.</summary>
+    public static string? BribeRefused(World w, House target, Character? buyer)
+    {
+        var head = Economy.HeadOf(w, target); if (head == null) return "no one to speak to";
+        if (head.NatureTraits.Contains("Honorable") || head.NatureTraits.Contains("Just")) return $"{head.Name} is upright and would not take it";
+        int disp = buyer != null ? w.GetRelationship(head.Id, buyer.Id)?.Disposition ?? 0 : 0;
+        return disp <= -50 ? $"{head.Name} thinks too ill of you to take your coin" : null;
+    }
+    /// <summary>Whether a purse comes out at the count: one time in four, never with a head who is for sale by nature.</summary>
+    public static bool BribeComesOut(World w, Motion m, string houseId)
+    {
+        var head = w.House(houseId) is { } h ? Economy.HeadOf(w, h) : null; if (head == null) return false;
+        if (head.NatureTraits.Contains("Ruthless") || head.NatureTraits.Contains("Cruel") || head.Ambition == "amass_a_fortune") return false;
+        uint hash = 2166136261; foreach (var ch in m.Id + ":out:" + houseId) hash = (hash ^ ch) * 16777619;
+        return hash % BribeOutOneIn == 0;
+    }
+
+    public int RawLean(World w, Motion m, string houseId, bool bought)
     {
         var def = _motions.Def(m.Kind); var h = w.House(houseId); if (def == null || h == null) return 0;
         if (houseId == m.ProposerHouseId) return 3;
@@ -209,7 +250,7 @@ public sealed class SenateSystem
         }
         uint hash = 2166136261; foreach (var ch in m.Id + ":" + houseId) hash = (hash ^ ch) * 16777619;
         lean += (int)(hash % 3) - 1;
-        lean += m.Lobby.GetValueOrDefault(houseId);
+        lean += m.Lobby.GetValueOrDefault(houseId) + (bought ? m.Bought.GetValueOrDefault(houseId) : 0);
         return lean;
     }
 
@@ -320,6 +361,7 @@ public sealed class SenateSystem
         var mine = w.Protagonist?.HouseId;
         // last turn's news is cleared before this turn's is written — the offices' and the benches' too, since resolving a motion sets theirs
         foreach (var f in TurnFlags.Concat(OfficeSystem.TurnFlags).Concat(FactionSystem.TurnFlags).Concat(ElectionSystem.TurnFlags).Concat(NationSystem.SenateTurnFlags)) w.WorldFlags.Remove(f);
+        foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn)) (m.ForecastFor, m.ForecastAgainst) = Tally(w, m);   // where it stood before the chair spoke
         ElectionSystem.RivalVetoes(w, _offices, this);   // the consuls strike what strikes at them, before the vote
         LadderSystem.ChairActs(w, this);   // the Speaker orders the docket and the presiding consul speaks from the chair (docs/LADDER.md, "The chair")
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn).ToList()) Resolve(w, m, mine);
@@ -363,13 +405,28 @@ public sealed class SenateSystem
         foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => FactionSystem.Of(w, h.Id)?.LeaderHouseId == h.Id ? 0 : 1).ThenBy(h => h.Id, StringComparer.Ordinal).ToList())
             if (!m.Votes.ContainsKey(h.Id)) m.Votes[h.Id] = Math.Sign(Lean(w, m, h.Id));
         WealthSystem.FavoursCalled(w, m);   // a favour owed to the proposer is spent on this vote (docs/WEALTH.md "A gift that asks")
+        // a purse comes out one time in four: the vote it bought is struck, and the house that paid is thought the less of
+        foreach (var (boughtId, payerId) in m.BoughtBy.OrderBy(kv => kv.Key, StringComparer.Ordinal).ToList())
+        {
+            if (!BribeComesOut(w, m, boughtId)) continue;
+            m.Votes[boughtId] = 0; var payer = w.House(payerId); if (payer != null) payer.Legitimacy = Math.Clamp(payer.Legitimacy - BribeOutLegitimacy, 0, 100);
+            if (payerId == mine) w.WorldFlags.Add("bribe_out");
+            w.Log($"It comes out on the floor that {payer?.Name ?? "a house"} paid {w.House(boughtId)?.Name} for its vote. The vote is struck, and {payer?.Name} is thought the less of.");
+        }
         if (_fleets?.Catalog is { } provinceRules) ProvinceSystem.NoteVotes(w, provinceRules, m, def.Interest, def.Target == "house", mine, ObligeRegard, DefyRegard);   // the houses over those who voted take note (docs/PROVINCES.md)
         var (f, a) = Tally(w, m);
         Character? casting = null; bool byChair = f == a && f > 0 && LadderSystem.CastingVote(w, m, out casting);   // a tied Senate goes as the presiding consul voted
         m.ForWeight = f; m.AgainstWeight = a; m.Passed = f > a || byChair; m.Resolved = true; m.ResolvedTurn = w.Turn;
+        if (Math.Abs(f - m.ForecastFor) + Math.Abs(a - m.ForecastAgainst) > Math.Max(10, (f + a) / 8))
+        {
+            var why = new List<string>();
+            if (m.Chair != 0) why.Add($"{LadderSystem.Presiding(w)?.Name ?? "the presiding consul"} spoke {(m.Chair > 0 ? "for" : "against")} it from the chair");
+            if (m.BoughtBy.Keys.Any(id => m.Votes.GetValueOrDefault(id) == 0 && BribeComesOut(w, m, id))) why.Add("a purse came out on the floor");
+            m.Swing = $"it had stood at {m.ForecastFor} to {m.ForecastAgainst}" + (why.Count > 0 ? ": " + string.Join(", and ", why) : ": the houses' minds moved with the year's events and the favours called in");
+        }
         if (mine != null && FactionSystem.Of(w, mine) is { } bench && bench.LeaderHouseId != mine && m.TargetId != mine && m.Votes.GetValueOrDefault(mine) != 0)
         {
-            int expected = FactionSystem.LeaderStance(w, m, bench, id => RawLean(w, m, id));
+            int expected = LeaderStance(w, m, bench);
             if (expected != 0 && m.Votes[mine] == -expected) FactionSystem.BreakWhip(w, mine, bench);
         }
         FactionSystem.RecordVotes(w, m, m.Kind);

@@ -108,5 +108,11 @@
     [Parameter] public EventCallback<string> OnFocus { get; set; }
     private string? _focus, _region;
     private string _tab = "worlds";
+    // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
+    [Parameter] public string Tab { get; set; } = "";
+    [Parameter] public int TabStamp { get; set; }
+    private static int _seenStamp;
+    protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) OpenOn(Tab); } }
+    private void OpenOn(string tab) { if (tab is "worlds" or "regions") _tab = tab; }
     protected override async Task OnAfterRenderAsync(bool first) { try { await JS.InvokeVoidAsync("praetoriaFx.paint"); } catch { } }
 }

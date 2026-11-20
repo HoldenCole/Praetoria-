@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Fixed
+- **Found by playing, eleven to fifteen** (docs/PLAYTHROUGH.md). A suit that names the player's house waits a year on a
+  docket that says who, what and how much, and can be settled or pleaded; every ruling that moved the house's coin is kept
+  and shown. A Senate vote is priced by the house that sells it, the upright refuse, a purse can come out at the count, a
+  bought leader no longer carries the bench, and the forecast reads a bench's leader as the count does. The house is told
+  of its births, deaths, wars, departing tutors, illnesses and the fleets in its space. Alerts open their subject: a tab,
+  a person, or a system on the map.
 - **Found by playing, six to ten** (docs/PLAYTHROUGH.md). The money forecast counts what a player spends (instalments,
   hastening, tutors, allowances, the household's keep), the ledger lists it and says where the year will end, End Turn
   asks before a year that ends below nought, and the head's own purse is on the top bar. War, a demand that a house step

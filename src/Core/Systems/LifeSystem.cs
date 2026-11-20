@@ -198,7 +198,7 @@ public static class LifeSystem
             int chance = Math.Max(1, (c.Age - 30) / 4) + (c.Health < 50 ? 6 : 0);
             if (!wasIll && Hash(c.Id + ":ill:" + w.Turn) % 100 < chance)
             {
-                c.Flags.Add(IllChar); c.Health -= 12; if (ours) w.Log($"{c.Name} is ill.");
+                c.Flags.Add(IllChar); c.Health -= 12; if (ours) { w.Log($"{c.Name} is ill."); w.Tell("warn", $"{c.Name} is ill. A physician can be sent for from your own purse", "dynasty", c.Id); }
             }
             else if (wasIll)
             {

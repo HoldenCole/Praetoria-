@@ -61,8 +61,10 @@ public class SenateTests
         w.Relationship("corwin_head", "self").Disposition = -40;
         int lean0 = senate.Lean(w, m, "corwin");
         Assert.Equal("Mara will not hear you — try coin", new LobbyCommand("self", m.Id, "corwin", 1).Refusal(ctx));
+        // a purse is priced by the house that takes it: its weight in the Senate, its rank, and what its head thinks of the buyer
+        int had = w.House("vega")!.Treasury.Credits, price = SenateSystem.BribeCost(w, w.House("corwin")!, w.Char("self")); Assert.True(price > SenateSystem.BribeCredits);
         Assert.True(ex.TryExecute(new LobbyCommand("self", m.Id, "corwin", 1, bribe: true), ctx));
-        Assert.Equal(35, w.House("vega")!.Treasury.Credits); Assert.Equal(lean0 + SenateSystem.BribeWeight, senate.Lean(w, m, "corwin"));
+        Assert.Equal(had - price, w.House("vega")!.Treasury.Credits); Assert.Equal(lean0 + SenateSystem.BribeWeight, senate.Lean(w, m, "corwin"));
         Assert.Equal("you have already had their ear", new LobbyCommand("self", m.Id, "corwin", 1).Refusal(ctx));
         Assert.True(ex.TryExecute(new LobbyCommand("self", m.Id, "aurelian", -1), ctx)); Assert.Equal(3, w.Pools["self"].Influence);
         Assert.True(ex.TryExecute(new VoteCommand("self", m.Id, -1), ctx)); Assert.Equal(-1, m.Votes["vega"]);

@@ -204,6 +204,9 @@
                     </div>
                 }
                 <div class="kv @(yearEnd < 0 ? "warn" : "")" data-yearend="@yearEnd"><span>The treasury at the year's end, if nothing else is done</span><b>@yearEnd credits <i class="muted">· it holds @house.Treasury.Credits now@(w.Protagonist!.Purse > 0 ? ", and your own purse " + w.Protagonist.Purse : "")</i></b></div>
+                @foreach (var su in LadderSystem.SuitsNaming(w, house.Id)) { bool forUs = su.RightId == house.Id; <div class="kv @(forUs ? "" : "warn")" data-atrisk="@su.Id"><span>@(forUs ? "May come in from the courts" : "At risk in the courts")</span><b>@LadderSystem.StakeOf(su) credits <i class="muted">· @(w.House(LadderSystem.OtherIn(su, house.Id))?.Name)'s suit over @LadderSystem.MatterOf(su), heard at the year's end: Senate, Ladder and courts</i></b></div> }
+                @{ var lastRulings = w.Judgments.Where(j => j.Turn == w.Turn - 1).ToList(); }
+                @foreach (var jr in lastRulings) { bool won = jr.WinnerId == house.Id; <div class="kv @(won ? "good" : "warn")"><span>Last year, by order of the court</span><b>@(won ? "+" : "−")@jr.Sum credits <i class="muted">· @(won ? "from" : "to") @(w.House(won ? jr.LoserId : jr.WinnerId)?.Name)</i></b></div> }
                 @if (lg.Debt > 0) { <div class="kv warn"><span>Debt</span><b>@lg.Debt credits@(lg.LenderName != null ? $" to the bank of {lg.LenderName}" : " to the counting-houses") · @lg.LoanInstalment a turn</b></div> }
                 <div class="row">
                     @if (lg.Debt == 0) { <button class="opt inline" disabled="@(lg.Loan.Refusal != null)" title="@lg.Loan.Refusal" @onclick="() => G.Execute(new TakeLoanCommand(pid, c.Businesses))">@lg.Loan.Label</button> }
