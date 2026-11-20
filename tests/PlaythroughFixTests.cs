@@ -571,4 +571,21 @@ public class PlaythroughFixTests
         WealthSystem.Inherit(w, me, heir);
         Assert.Equal(a + 100, kin[0].Purse); Assert.Equal(b + 20, kin[1].Purse); Assert.Equal(h + 80, heir.Purse);
     }
+    [Fact]
+    public void The_year_in_brief_gathers_what_the_year_did_to_the_house()
+    {
+        // docs/PLAYTHROUGH.md, Medium: "the year in brief at the start of each year"
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn();
+        var foe = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id));
+        house.Treasury.Credits += 40;                       // spent or earned in the year: the brief says where the treasury went
+        w.Battles.Add(new BattleRecord { Turn = w.Turn, Place = "Cinder Gate", AttackerId = foe.Id, DefenderId = house.Id, WinnerId = house.Id, AttackerHulls = 5, DefenderHulls = 6, AttackerLost = 3, DefenderLost = 1 });
+        w.Judgments.Add(new JudgmentRecord { Turn = w.Turn, Judge = "Flavian Marrow", WinnerId = foe.Id, LoserId = house.Id, Sum = 7, Matter = "a boundary" });
+        tc.EndTurn(); if (!w.IsDynastyDead) tc.BeginTurn();
+        var brief = Praetoria.Core.Presentation.YearInBrief.For(w, Content);
+        Assert.Contains(brief, l => l.Kind == Praetoria.Core.Presentation.YearInBrief.War && l.Text.Contains("Cinder Gate") && l.Text.Contains("won against") && l.Target == "military:battles");
+        Assert.Contains(brief, l => l.Kind == Praetoria.Core.Presentation.YearInBrief.Courts && l.Text.Contains("against you") && l.Text.Contains("7 credits left"));
+        Assert.Contains(brief, l => l.Kind == Praetoria.Core.Presentation.YearInBrief.Money && l.Text.Contains("credits") && l.Target == "house:ledger");
+        // the lines come grouped in the order the brief names
+        var kinds = brief.Select(l => Array.IndexOf(Praetoria.Core.Presentation.YearInBrief.Order, l.Kind)).ToList(); Assert.Equal(kinds.OrderBy(k => k).ToList(), kinds);
+    }
 }

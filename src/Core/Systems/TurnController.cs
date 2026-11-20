@@ -181,6 +181,7 @@ public sealed class TurnController
             foreach (var fired in Engine.SelectBriefing(World, _briefingBudget))
                 _briefing.Add(new BriefingItem(fired));
 
+        Presentation.YearInBrief.Mark(World);   // where the treasury stands as the year opens, and how it moved over the last (the year in brief)
         Phase = TurnPhase.Action;
         SyncRng();
         return _briefing;

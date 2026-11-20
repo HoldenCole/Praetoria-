@@ -1,0 +1,35 @@
+@inject GameClient G
+@* The year in brief (docs/PLAYTHROUGH.md, Medium): what the year before did to your house, in one place, each line opening where it can be seen. *@
+@{
+    var w = G.World!; var lines = YearInBrief.For(w, G.Content!);
+    var groups = YearInBrief.Order.Select(k => (k, list: lines.Where(l => l.Kind == k).ToList())).Where(g => g.list.Count > 0).ToList();
+}
+<div class="overlay" data-year-brief>
+    <div class="epilogue primer wide brief">
+        <div class="tier"><span class="glyph">◆</span> YEAR @(w.Turn - 1) IN BRIEF</div>
+        <h2>What the year did to @(w.House(w.Protagonist!.HouseId)?.Name)</h2>
+        @if (groups.Count == 0) { <p class="epi-text">A quiet year. Nothing happened to the house that needs telling.</p> }
+        @foreach (var g in groups)
+        {
+            <div class="brief-group">
+                <h4>@g.k</h4>
+                @foreach (var l in g.list)
+                {
+                    string go = l.Target;
+                    <button class="brief-line @l.Tone" title="Open the place this can be seen" @onclick="() => OnGo.InvokeAsync(go)">@l.Text <span class="muted">▸</span></button>
+                }
+            </div>
+        }
+        <div class="row">
+            <button class="btn primary" data-brief-close @onclick="() => OnClose.InvokeAsync()">To year @w.Turn ▸</button>
+            <label class="brief-opt"><input type="checkbox" checked="@Every" @onchange="e => OnEvery.InvokeAsync(e.Value is true)" /><span>Show this at the start of every year</span></label>
+        </div>
+        <div class="muted small">It can be opened again from the year in the top bar.</div>
+    </div>
+</div>
+@code {
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<string> OnGo { get; set; }
+    [Parameter] public bool Every { get; set; } = true;
+    [Parameter] public EventCallback<bool> OnEvery { get; set; }
+}

@@ -35,7 +35,7 @@
     </div>
     <div class="tb-right">
         <div class="tb-era">@(w.Era == "imperium" ? "The Imperium" : "The Republic")</div>
-        <div class="tb-turn" title="Each turn is a year. A generation is one head of the house: when the head dies or steps down and an heir takes the seat, the next generation begins. This is year @w.Turn of the saga, under its @Nth(w.Counter("generation") + 1) head."><Icon Name="turn" Size="13" /> Year @w.Turn · @Nth(w.Counter("generation") + 1) head</div>
+        <div class="tb-turn" @onclick="OnBrief" title="Click for the last year in brief. Each turn is a year. A generation is one head of the house: when the head dies or steps down and an heir takes the seat, the next generation begins. This is year @w.Turn of the saga, under its @Nth(w.Counter("generation") + 1) head."><Icon Name="turn" Size="13" /> Year @w.Turn · @Nth(w.Counter("generation") + 1) head</div>
         <button class="btn ghost sm" title="@(G.ActedThisYear ? "The game is kept as it stood when this year began, and again each time you end a year. What you have done this year is kept when you end it." : "The game is kept in this browser as it stands now, at the start of the year, and again each time you end a year.")" @onclick="OnSave">@(SavedFlash ? (G.ActedThisYear ? "Saved: as the year began" : "Saved ✓") : "Save")</button>
         <button class="btn ghost sm" title="Download the save as a file" @onclick="OnExport">Export</button>
         <button class="btn ghost sm" title="The primer: what the screens and the pools are" @onclick="OnPrimer">?</button>
@@ -48,6 +48,7 @@
     [Parameter] public EventCallback OnExport { get; set; }
     [Parameter] public EventCallback OnQuit { get; set; }
     [Parameter] public EventCallback OnPrimer { get; set; }
+    [Parameter] public EventCallback OnBrief { get; set; }
     [Parameter] public bool SavedFlash { get; set; }
 
     private static string Nth(int n) => n % 100 is 11 or 12 or 13 ? n + "th" : (n % 10) switch { 1 => n + "st", 2 => n + "nd", 3 => n + "rd", _ => n + "th" };

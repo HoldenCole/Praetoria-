@@ -108,7 +108,7 @@ public static class ProjectSystem
             if (toHasten && Hasten(w, p, holdings.Rules.HastenPct))
             {
                 p.Stalled = false;
-                if (p.TurnsLeft <= 0) { Complete(w, p, holdings, ventures); w.Projects.Remove(p); if (p.OwnerId == mine) { w.WorldFlags.Add(DoneFlag); w.WorldFlags.Add(DoneFlag + ":" + p.Kind); } }
+                if (p.TurnsLeft <= 0) { Complete(w, p, holdings, ventures); w.Projects.Remove(p); if (p.OwnerId == mine) { w.WorldFlags.Add(DoneFlag); w.WorldFlags.Add(DoneFlag + ":" + p.Kind); Finished(w, p); } }
                 continue;
             }
             if (p.TurnsLeft > 1)
@@ -117,7 +117,7 @@ public static class ProjectSystem
                 if (!due.IsEmpty() && !Pay(w, p, due)) { p.Stalled = true; if (p.OwnerId == mine) w.WorldFlags.Add(StalledFlag); continue; }
             }
             p.Stalled = false; p.TurnsLeft -= 1;
-            if (p.TurnsLeft <= 0) { Complete(w, p, holdings, ventures); w.Projects.Remove(p); if (p.OwnerId == mine) { w.WorldFlags.Add(DoneFlag); w.WorldFlags.Add(DoneFlag + ":" + p.Kind); } }
+            if (p.TurnsLeft <= 0) { Complete(w, p, holdings, ventures); w.Projects.Remove(p); if (p.OwnerId == mine) { w.WorldFlags.Add(DoneFlag); w.WorldFlags.Add(DoneFlag + ":" + p.Kind); Finished(w, p); } }
         }
     }
 
@@ -163,6 +163,13 @@ public static class ProjectSystem
         _ => w.Galaxy?.System(p.TargetId) != null
     };
 
+    /// <summary>The player's house is told that a thing it was building is finished, with the place to look at it.</summary>
+    private static void Finished(World w, Project p)
+    {
+        string t = p.TargetId;   /* a holding, a holding@province, a system#body, a system, or a venture's id */
+        string sys = w.Holding(t.Split('@')[0])?.SystemId ?? (w.Galaxy?.System(t.Split('#')[0]) != null ? t.Split('#')[0] : w.Businesses.TryGetValue(t, out var biz) ? biz.SystemId : "");
+        w.Tell("good", $"{char.ToUpperInvariant(p.Name[0])}{p.Name[1..]} is finished.", w.Galaxy?.System(sys) != null ? "galaxy:" + sys : "exchange:projects");
+    }
     private static void Complete(World w, Project p, HoldingCatalog holdings, BusinessCatalog ventures)
     {
         var house = w.House(p.OwnerId)!;

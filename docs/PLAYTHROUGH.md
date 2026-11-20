@@ -88,6 +88,12 @@ Every line of the Easy list below has been gone through. These parts of it were 
 | Venture sites in the creator (N12) | Each type is described now. The list of fifty worlds is not cut down to the ones where that type can stand. |
 | Home button with a panel open (B36) | Seen once in a headless browser and not reproduced. The labels over the top bar are clipped. |
 
+### The Medium list, done so far
+
+| part | done |
+|---|---|
+| Telling the player what happened | **The year in brief.** As each year opens, a card says what the year before did to the house, grouped (the family, war, the Senate, the courts, works and worlds, money) and each line opening the place it can be seen: births, deaths and the seat passing, illness, weddings with their dowries, wars begun, battles with the hulls lost on each side, rulings and what they cost, the count for anyone of the house who stood, what was finished building, and where the treasury stood and stands in credits, materials, manpower and helium-3. It waits behind a succession card, closes with Enter or Esc, can be turned off (kept in the browser), and opens again from the year in the top bar. A project of yours that finishes is now told to you as well. (An outcome after every report, the battle report and the forecast before sailing, and the forecast that counts instalments and wages were done with the fifteen: 6, 8, 10 and 11.) |
+
 ## The fifteen to fix first
 
 These are not the easiest. They are the ones that lose a player's work, break the game's balance, or hide what happened.
