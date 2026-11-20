@@ -27,7 +27,7 @@ public static partial class WealthSystem
         if (!Commissions.Contains(kind)) return "nobody can make that to order";
         if (who.Age < Adult) return "too young to order it";
         if (w.Heirlooms.Any(h => h.Kind == kind && h.OfHouseId == house.Id)) return $"your house has a {kind} already";
-        return who.Purse >= CommissionCost(kind) ? null : $"your purse does not hold the {CommissionCost(kind)} credits it costs";
+        return who.Purse >= CommissionCost(kind) ? null : $"your purse holds {who.Purse} and it costs {CommissionCost(kind)}: move coin in House, under Purses and the will";
     }
 
     public static Heirloom Commission(World w, Character who, string kind)
@@ -167,7 +167,7 @@ public static partial class WealthSystem
         var holder = w.Char(item.HolderId); var theirs = holder != null ? w.House(holder.HouseId) : null; if (holder?.Alive != true || theirs == null || theirs.Id == me.HouseId) return "nobody else holds it";
         if (w.AtWar(me.HouseId, theirs.Id)) return "you are at war with them: it is taken back in battle or not at all";
         var head = Economy.HeadOf(w, theirs); if (head != null && (w.GetRelationship(head.Id, me.Id)?.Disposition ?? 0) < RansomWillNot) return $"{head.Name} will not hear of it";
-        return me.Purse >= RansomPrice(item) ? null : $"your purse does not hold the {RansomPrice(item)} credits they would ask";
+        return me.Purse >= RansomPrice(item) ? null : $"your purse holds {me.Purse} and they would ask {RansomPrice(item)}: move coin in House, under Purses and the will";
     }
     public static void Ransom(World w, Character me, Heirloom item)
     {

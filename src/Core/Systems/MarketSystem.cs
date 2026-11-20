@@ -231,7 +231,7 @@ public sealed class MarketSystem
         var d = t.Market.Good(good); var house = w.House(houseId);
         if (d == null || house == null) return new TradeQuote(0, 0, "not a thing the exchanges deal in");
         if (units <= 0) return new TradeQuote(0, 0, "nothing offered");
-        if (!d.Sell) return new TradeQuote(0, 0, $"{d.Name.ToLowerInvariant()} are not sold on the exchanges");
+        if (!d.Sell) return new TradeQuote(0, 0, $"{d.Name.ToLowerInvariant()} {(d.Name.EndsWith("s") ? "are" : "is")} not sold on the exchanges" + (d.Id == Resource.Manpower ? ": they will hire crews out to you, and will not buy yours" : ""));
         if (SenateSystem.Embargoed(w, houseId)) return new TradeQuote(0, 0, "the Senate's embargo closes the exchanges to you");
         if (house.Treasury.Get(good) < units) return new TradeQuote(0, 0, $"you hold only {house.Treasury.Get(good)}");
         var g = Of(w, t.Market).Goods[d.Id];

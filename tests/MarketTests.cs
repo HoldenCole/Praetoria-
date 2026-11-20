@@ -140,7 +140,7 @@ public class MarketTests
     public void TheMarket_IsClosedByEmbargo_TaxedByTheCharter_AndLicensedForIsotopes()
     {
         var (w, _) = Start(); var p = w.Protagonist!; var house = w.House(p.HouseId)!; var t = Content.Trade; house.Treasury.Credits = 500; house.Treasury.Manpower = 20; house.Treasury.Isotopes = 3;
-        Assert.Equal("hired crews are not sold on the exchanges", new SellGoodCommand(p.Id, "manpower", 1, t).Refusal(Ctx(w)));
+        Assert.StartsWith("manpower is not sold on the exchanges", new SellGoodCommand(p.Id, "manpower", 1, t).Refusal(Ctx(w)));
         Assert.Null(new BuyGoodCommand(p.Id, "manpower", 2, t).Refusal(Ctx(w)));
         // isotopes: sold freely, bought only under the Senate's licence
         Assert.Null(new SellGoodCommand(p.Id, "isotopes", 1, t).Refusal(Ctx(w)));

@@ -3,7 +3,7 @@
   "rules": { "sharePct": 25, "coverYears": 3, "relaxPct": 20, "shortPct": 50, "longPct": 8, "easePct": 50, "spreadPct": 10, "caravanSpreadPct": 30, "impactPct": 100, "depthPct": 100, "deficitPct": 100, "floorPct": 50, "capPct": 300, "historyKept": 12, "spikePct": 150, "slumpPct": 70 },
   "goods": [
     { "id": "materials",   "name": "Materials",    "base": 1.5, "sensitivity": 2.0, "warPct": 8,  "minDemand": 12, "minStock": 30, "buy": true,  "sell": true },
-    { "id": "manpower",    "name": "Hired crews",  "base": 2.0, "sensitivity": 2.0, "warPct": 10, "minDemand": 10, "minStock": 20, "buy": true,  "sell": false },
+    { "id": "manpower",    "name": "Manpower",  "base": 2.0, "sensitivity": 2.0, "warPct": 10, "minDemand": 10, "minStock": 20, "buy": true,  "sell": false },
     { "id": "exotics",     "name": "Exotics",      "base": 7.0, "sensitivity": 1.5, "warPct": 3,  "minDemand": 3,  "minStock": 4,  "buy": true,  "sell": true },
     { "id": "helium3",     "name": "Helium-3",     "base": 6.0, "sensitivity": 2.5, "warPct": 12, "minDemand": 8,  "minStock": 18, "buy": true,  "sell": true },
     { "id": "rare_earths", "name": "Rare earths",  "base": 9.0, "sensitivity": 2.5, "warPct": 10, "minDemand": 4,  "minStock": 8,  "buy": true,  "sell": true },
