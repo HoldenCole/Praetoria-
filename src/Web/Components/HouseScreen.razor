@@ -148,10 +148,19 @@
                         @if (h.Kind != "claim")
                         {
                             <div class="gauges">
-                                <div class="gauge" title="loyalty (100 − unrest)"><span>Loyalty</span><i><b style="width:@(100 - h.Unrest)%" class="@(h.Unrest >= 50 ? "low" : "")"></b></i><em>@(100 - h.Unrest)</em></div>
-                                <div class="gauge" title="prosperity, drifting toward @h.ProsperityTarget"><span>Prosperity</span><i><b style="width:@h.Prosperity%" class="@(h.Prosperity < 35 ? "low" : h.Prosperity >= 75 ? "high" : "")"></b><u style="left:@h.ProsperityTarget%"></u></i><em>@h.Prosperity</em></div>
+                                <div class="gauge" title="@("Loyalty is 100 less the world's unrest (" + h.Unrest + "). " + WhySays(G.Turn?.Economy?.UnrestWhy(w, w.Holding(h.Id)!), "Each year unrest moves by", "a year"))"><span>Loyalty</span><i><b style="width:@(100 - h.Unrest)%" class="@(h.Unrest >= 50 ? "low" : "")"></b></i><em>@(100 - h.Unrest)</em></div>
+                                <div class="gauge" title="@("Prosperity is " + h.Prosperity + " and settles at " + h.ProsperityTarget + ", a step nearer each year. " + WhySays(G.Turn?.Economy?.ProsperityWhy(w, w.Holding(h.Id)!), "It settles there because", "in all, held between 0 and 100"))"><span>Prosperity</span><i><b style="width:@h.Prosperity%" class="@(h.Prosperity < 35 ? "low" : h.Prosperity >= 75 ? "high" : "")"></b><u style="left:@h.ProsperityTarget%"></u></i><em>@h.Prosperity</em></div>
                                 @if (h.MaxPopulation > 0) { <div class="gauge" title="@(h.Population >= h.MaxPopulation ? "Population: the world is full. Habitats, laid on the world from the map (its system, then the body), make room for more." : "Population, and the most the world can hold. Habitats laid on the world make room for more.")"><span>Pop@(h.Population >= h.MaxPopulation ? " · full" : "")</span><i><b style="width:@(100 * h.Population / Math.Max(1, h.MaxPopulation))%"></b></i><em>@h.Population/@h.MaxPopulation</em></div> }
                             </div>
+                            <details class="why" data-why="@h.Id"><summary>Why loyalty and prosperity are what they are</summary>
+                                @{ var uw = G.Turn?.Economy?.UnrestWhy(w, w.Holding(h.Id)!) ?? new(); var pw = G.Turn?.Economy?.ProsperityWhy(w, w.Holding(h.Id)!) ?? new(); }
+                                <div class="why-col"><b>Unrest, each year</b> <span class="muted small">(loyalty is 100 less unrest: @h.Unrest now)</span>
+                                    @foreach (var x in uw) { <div class="why-line"><span>@Cap(x.what)</span><em class="@(x.by > 0 ? "bad" : "good")">@(x.by > 0 ? "+" : "−")@Math.Abs(x.by)</em></div> }
+                                    <div class="why-line sum"><span>In all</span><em>@(uw.Sum(x => x.by) > 0 ? "+" : uw.Sum(x => x.by) < 0 ? "−" : "")@Math.Abs(uw.Sum(x => x.by)) a year</em></div></div>
+                                <div class="why-col"><b>Prosperity settles at @h.ProsperityTarget</b> <span class="muted small">(@h.Prosperity now, a step nearer each year)</span>
+                                    @foreach (var x in pw) { <div class="why-line"><span>@Cap(x.what)</span><em class="@(x.by > 0 ? "good" : "bad")">@(x.by > 0 ? "+" : "−")@Math.Abs(x.by)</em></div> }
+                                    <div class="why-line sum"><span>In all</span><em>@pw.Sum(x => x.by)@(pw.Sum(x => x.by) is < 0 or > 100 ? " (held between 0 and 100)" : "")</em></div></div>
+                            </details>
                         }
                         @if (h.Belt > 0) { <div class="kv"><span>Belt</span><b>@(new string('●', h.Belt)) richness @h.Belt</b></div> }
                         <div class="kv"><span><Icon Name="governor" Size="12" /> Governor</span><b>@(h.GovernorName ?? "—") @if (h.GovernorName != null && h.GovernorDisposition < 100) { <span class="gov-chip @GovClass(h)" title="@GovTitle(h)">@GovText(h)</span> } @if (h.GovernorAdministration >= 3) { <span class="gov-chip able" title="an able administrator">able</span> }</b></div>
@@ -255,6 +264,9 @@
 
 
 @code {
+    /* a list of causes in one line, for a tooltip: "Each year unrest moves by: a solvent house −2; the tithe +1: −1 a year" */
+    private static string WhySays(List<(string what, int by)>? why, string lead, string tail) =>
+        why == null || why.Count == 0 ? "" : lead + ": " + string.Join("; ", why.Select(x => $"{x.what} {(x.by > 0 ? "+" : "−")}{Math.Abs(x.by)}")) + $". That is {(why.Sum(x => x.by) > 0 ? "+" : why.Sum(x => x.by) < 0 ? "−" : "")}{Math.Abs(why.Sum(x => x.by))} {tail}.";
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<string> OnGo { get; set; }

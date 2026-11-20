@@ -588,4 +588,21 @@ public class PlaythroughFixTests
         // the lines come grouped in the order the brief names
         var kinds = brief.Select(l => Array.IndexOf(Praetoria.Core.Presentation.YearInBrief.Order, l.Kind)).ToList(); Assert.Equal(kinds.OrderBy(k => k).ToList(), kinds);
     }
+    [Fact]
+    public void Prosperity_and_unrest_are_each_one_reckoning_shown_cause_by_cause()
+    {
+        // docs/PLAYTHROUGH.md, Medium: "why loyalty and prosperity are what they are, cause by cause"
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn();
+        var world = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var eco = tc.Economy!;
+        var why = eco.ProsperityWhy(w, world);
+        Assert.Equal(Math.Clamp(why.Sum(x => x.by), 0, 100), eco.ProsperityTarget(w, world));
+        Assert.Contains(why, x => x.what == "where any world begins" && x.by == 50);
+        // a building standing is a cause, and taking it away moves the target by exactly that
+        int before = eco.ProsperityTarget(w, world), per = why.FirstOrDefault(x => x.what.Contains("building(s) standing")).by;
+        if (world.Buildings.Count > 0 && before is > 0 and < 100) { var keep = world.Buildings.ToList(); world.Buildings.Clear(); Assert.Equal(Math.Clamp(before - per, 0, 100), eco.ProsperityTarget(w, world)); world.Buildings.AddRange(keep); }
+        // unrest: the year applies the sum of the causes shown
+        house.Treasury.Credits = 500; world.Unrest = 40; int drift = eco.UnrestWhy(w, world).Sum(x => x.by);
+        Assert.Contains(eco.UnrestWhy(w, world), x => x.what.StartsWith("a solvent house"));
+        house.Treasury.Credits = -5; Assert.Contains(eco.UnrestWhy(w, world), x => x.what == "the house is insolvent" && x.by > 0);
+    }
 }

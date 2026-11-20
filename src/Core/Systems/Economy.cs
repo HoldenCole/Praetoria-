@@ -252,21 +252,47 @@ public sealed class Economy
 
     /// <summary>Where a holding's prosperity is heading (GDD §17): the governor's administration, what is built, the tithe,
     /// unrest, a blockade, the ventures working the world.</summary>
-    public int ProsperityTarget(World world, Holding holding)
+    public int ProsperityTarget(World world, Holding holding) => Math.Clamp(ProsperityWhy(world, holding).Sum(x => x.by), 0, 100);
+
+    /// <summary>What a world's prosperity settles at, cause by cause (docs/PLAYTHROUGH.md, Medium: "why loyalty and prosperity are what
+    /// they are"). The target is the sum of these, held between 0 and 100: there is one reckoning, and the screen shows it.</summary>
+    public List<(string what, int by)> ProsperityWhy(World world, Holding holding)
     {
+        var why = new List<(string, int)>(); void Add(string what, int by) { if (by != 0) why.Add((what, by)); }
         var house = world.House(holding.OwnerId); var tax = house != null ? _catalog.Tax(house.TaxPolicy) : null;
         var governor = holding.GovernorId.Length > 0 ? world.Char(holding.GovernorId) : null;
-        int t = 50 + (governor?.Skill("administration") ?? 0) * ProsperityPerAdministration + holding.Buildings.Count * ProsperityPerBuilding - holding.Unrest / 2 - (tax?.CreditsBonus ?? 0) * 4;
-        if (house != null) t += Law(world, house.Id, "prosperity_drift", world.Galaxy?.System(holding.SystemId)?.RegionId) * 2;   // justice, settlement, the magistrates' regard
+        Add("where any world begins", 50);
+        Add(governor != null ? $"{governor.Name}'s administration ({governor.Skill("administration")})" : "the governor's administration", (governor?.Skill("administration") ?? 0) * ProsperityPerAdministration);
+        Add($"{holding.Buildings.Count} building(s) standing", holding.Buildings.Count * ProsperityPerBuilding);
+        Add($"unrest of {holding.Unrest}", -(holding.Unrest / 2));
+        Add($"the tithe ({tax?.Name ?? "customary"})", -(tax?.CreditsBonus ?? 0) * 4);
+        if (house != null) Add("the laws in force", Law(world, house.Id, "prosperity_drift", world.Galaxy?.System(holding.SystemId)?.RegionId) * 2);   // justice, settlement, the magistrates' regard
         var headOf = house != null ? HeadOf(world, house) : null;
-        if (governor != null && headOf != null && governor.Id != headOf.Id && (world.GetRelationship(governor.Id, headOf.Id)?.Disposition ?? 0) <= GovernorSabotageThreshold) t -= 10;   // a hostile governor lets the world slide
-        if (world.Sieges.ContainsKey(holding.Id)) t -= ProsperitySiege;
-        if (world.Galaxy != null && holding.SystemId.Length > 0) t += world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)).Prosperity;
-        if (holding.InRebellion) t -= 20;
-        if (world.Galaxy != null && holding.IsPlanet && world.Galaxy.Capital == holding.SystemId) t += 5;   // the court draws trade (GDD §19)
-        if (holding.IsPlanet) t += ProsperityPerVentureLevel * world.Businesses.Values.Where(b => b.SystemId == holding.SystemId).Sum(b => b.Level);
-        if (holding.IsPlanet && SystemWorks.Any(world)) t += SystemWorks.Prosperity(world, _catalog, holding.SystemId);   // a trade station, the garden estates (docs/SYSTEMS.md)
-        return Math.Clamp(t, 0, 100);
+        if (governor != null && headOf != null && governor.Id != headOf.Id && (world.GetRelationship(governor.Id, headOf.Id)?.Disposition ?? 0) <= GovernorSabotageThreshold) Add("a governor who is hostile to you lets it slide", -10);
+        if (world.Sieges.ContainsKey(holding.Id)) Add("under siege", -ProsperitySiege);
+        if (world.Galaxy != null && holding.SystemId.Length > 0) Add($"where it lies (the {world.Galaxy.RingOf(holding.SystemId)})", world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)).Prosperity);
+        if (holding.InRebellion) Add("in revolt", -20);
+        if (world.Galaxy != null && holding.IsPlanet && world.Galaxy.Capital == holding.SystemId) Add("the capital draws trade", 5);   // (GDD §19)
+        if (holding.IsPlanet) Add("the ventures in the system, by their levels", ProsperityPerVentureLevel * world.Businesses.Values.Where(b => b.SystemId == holding.SystemId).Sum(b => b.Level));
+        if (holding.IsPlanet && SystemWorks.Any(world)) Add("the works of the system", SystemWorks.Prosperity(world, _catalog, holding.SystemId));   // a trade station, the garden estates (docs/SYSTEMS.md)
+        return why;
+    }
+
+    /// <summary>What moves a peopled world's unrest each year, cause by cause: the same sum the year's turn applies.</summary>
+    public List<(string what, int by)> UnrestWhy(World world, Holding holding) =>
+        world.House(holding.OwnerId) is { } owner ? UnrestCauses(world, holding, owner, owner.Treasury.Credits < 0) : new List<(string, int)>();
+    private List<(string what, int by)> UnrestCauses(World world, Holding holding, House house, bool insolvent)
+    {
+        var why = new List<(string, int)>(); void Add(string what, int by) { if (by != 0) why.Add((what, by)); }
+        var tax = _catalog.Tax(house.TaxPolicy); string? lawRegion = world.Galaxy?.System(holding.SystemId)?.RegionId;
+        if (insolvent) Add("the house is insolvent", UnrestStep); else Add("a solvent house: it settles", -UnrestDecay);
+        Add($"the tithe ({tax?.Name ?? "customary"})", tax?.UnrestDrift ?? 0);
+        if (world.Galaxy != null && holding.SystemId.Length > 0) Add($"where it lies (the {world.Galaxy.RingOf(holding.SystemId)})", world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)).UnrestDrift);
+        if (holding.Buildings.Contains(GranaryId)) Add("the public granary", -GranaryCalm);
+        Add("the laws of the house", Law(world, house.Id, "unrest_drift", lawRegion));
+        Add("the law of the Reach", ReachLaw(world, "unrest_drift"));
+        if (holding.IsPlanet && world.PlanetOf(holding.SystemId) == holding) Add("the works of the system", SystemWorks.Unrest(world, _catalog, holding.SystemId));
+        return why;
     }
 
     /// <summary>Apply one turn of accrual to every house. Call on turn advance.</summary>
@@ -296,8 +322,7 @@ public sealed class Economy
                 {
                     int ringDrift = world.Galaxy != null && holding.SystemId.Length > 0 ? world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)).UnrestDrift : 0;
                     string? lawRegion = world.Galaxy?.System(holding.SystemId)?.RegionId;
-                    holding.Unrest = Math.Clamp(holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0) + ringDrift - (holding.Buildings.Contains(GranaryId) ? GranaryCalm : 0) + Law(world, house.Id, "unrest_drift", lawRegion) + ReachLaw(world, "unrest_drift")
-                        + (holding.IsPlanet && world.PlanetOf(holding.SystemId) == holding ? SystemWorks.Unrest(world, _catalog, holding.SystemId) : 0), 0, 100);
+                    holding.Unrest = Math.Clamp(holding.Unrest + UnrestCauses(world, holding, house, insolvent).Sum(x => x.by), 0, 100);   // one reckoning: the screen shows the same causes
                     int growth = holding.Unrest > 50 ? spec.PopGrowth / 2 : spec.PopGrowth;      // the restless do not settle
                     growth += Law(world, house.Id, "pop_growth", lawRegion);                        // homesteads, bonded labour, the commons' regard
                     if (holding.Prosperity >= 75 && spec.PopGrowth > 0) growth += 1;             // a thriving world draws people
