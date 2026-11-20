@@ -1,4 +1,5 @@
 @inject GameClient G
+@implements IDisposable
 @{
     var w = G.World!; var house = w.House(w.Protagonist!.HouseId)!;
     var volumes = Volumes(w);
@@ -75,6 +76,10 @@
 </div>
 
 @code {
+    // it takes no parameters, so nothing redrew it when a year passed while it was open
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    protected override void OnInitialized() => G.Changed += Redraw;
+    public void Dispose() => G.Changed -= Redraw;
     private string? _volume; private bool _onlyNotable; private string _kind = "all", _whose = "all";
     private static bool Notable(string t) =>
         t.Contains("war", StringComparison.OrdinalIgnoreCase) || t.Contains("dies") || t.Contains("born") || t.Contains("wed") || t.Contains("takes ") ||

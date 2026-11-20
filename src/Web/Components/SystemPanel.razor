@@ -1,4 +1,5 @@
 @inject GameClient G
+@implements IDisposable
 @* A solar system, place by place (docs/SYSTEMS.md, docs/BUILDINGS.md): its development first, then the sun, each world with its moons
    under it, and open space. A row is a place: its kind, its feature, its deposit, its building slots as pips (the ones still to be
    opened shown faint) and its one site for a great work as a diamond. One place is open at a time: what stands there and how high it
@@ -354,6 +355,11 @@
 </div>
 
 @code {
+    // its parameters are a name and a flag, which do not change when a year passes: without this the open row showed last year's
+    // figures until it was closed and opened again (docs/PLAYTHROUGH.md, buildings)
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    protected override void OnInitialized() => G.Changed += Redraw;
+    public void Dispose() => G.Changed -= Redraw;
     [Parameter] public string SystemId { get; set; } = "";
     /// <summary>Show the system's infrastructure and not its bodies.</summary>
     [Parameter] public bool Infrastructure { get; set; }
