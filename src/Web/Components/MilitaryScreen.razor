@@ -283,7 +283,7 @@
                             <span class="odds">Odds @((int)Math.Round(100 * b.OurPower / Math.Max(0.01, b.OurPower + b.TheirPower)))%</span></div>
                     }
                     <div class="row small"><span class="muted">You command from</span>@foreach (var o in mil.MyStyleOptions) { <button class="opt inline tiny @(mil.MyStyle == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? StyleHelp(o.Id))" @onclick="() => G.Execute(new SetCommandStyleCommand(pid, pid, o.Id))">@(o.Id == "none" ? "the staff" : "the " + o.Label)</button> }
-                        <span class="muted">· @mil.MyCap hull(s) without strain@(mil.MyValour > 0 ? $" · valour {mil.MyValour}" : "")</span></div>
+                        <span class="muted">· <span title="A commander can lead this many hulls well: it comes of rank and tactics. A fleet larger than its commander's number fights worse.">commands up to @mil.MyCap hull(s) without loss</span>@(mil.MyValour > 0 ? $" · valour {mil.MyValour}" : "")</span></div>
                 </div>
             }
             @if (officeHulls > 0) { <div class="kv good"><span>The Admiralty</span><b>@officeHulls office hull(s) sail under your colours · the chair pays their upkeep and the state fuels them · war on the chair is treason</b></div> }

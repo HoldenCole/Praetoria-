@@ -47,7 +47,7 @@
             <h3><Icon Name="houses" Size="13" /> The standings <span class="muted">click a house</span></h3>
             <div class="vols">@foreach (var k in new[] { "title", "worlds", "hulls", "seats", "wealth", "senate", "arms", "commerce", "disposition" }) { <button class="rung @(_sort == k ? "here" : "")" @onclick="() => _sort = k">by @(k == "title" && !w.IsImperium ? "rank" : k)</button> }</div>
             <table class="standings">
-                <thead><tr><th>House</th><th>@(w.IsImperium ? "Title" : "Rank")</th><th>Worlds</th><th>Hulls</th><th>Seats</th><th>Wealth</th><th title="standing in the Senate, in Arms and in Commerce">Orders</th><th>Toward you</th><th>Bench</th></tr></thead>
+                <thead><tr><th>House</th><th>@(w.IsImperium ? "Title" : "Rank")</th><th>Worlds</th><th>Hulls</th><th>Seats</th><th>Wealth</th><th title="The house's standing in the three orders, one letter each: S the Senate, A arms, C commerce. A bright letter is great or dominant in that order, a dim one notable, a missing one of no account.">Orders (S·A·C)</th><th>Toward you</th><th>Bench</th></tr></thead>
                 <tbody>
                 @foreach (var h in houses.Prepend(mine))
                 {

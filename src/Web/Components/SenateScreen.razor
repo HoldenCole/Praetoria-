@@ -176,7 +176,7 @@
                 <div class="muted small">@cr.Counters</div>
                 @foreach (var a in cr.Active)
                 {
-                    <div class="crisis"><div><b>@a.Name</b> · severity @a.Severity · since turn @a.Since @(a.Author != null ? $"· authored by {a.Author}" : "· organic")</div>
+                    <div class="crisis"><div><b>@a.Name</b> · <span title="How bad it is, from 1 (a nuisance) upward: it rises each year it is left, and what it costs rises with it.">severity @a.Severity</span> · since year @a.Since @(a.Author != null ? $"· set going by {a.Author}" : "· nobody set it going: it came of itself")</div>
                         @foreach (var d in a.Dampers) { <button class="opt" disabled="@(!d.Available)" title="@d.Tooltip" @onclick="() => Damper(d)">@d.Label</button> }</div>
                 }
                 @if (cr.Active.Count == 0) { <div class="muted">No crisis is active.</div> }

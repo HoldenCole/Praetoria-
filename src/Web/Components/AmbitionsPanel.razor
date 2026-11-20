@@ -37,7 +37,7 @@
                     @if (c.Flags.Contains(AmbitionSystem.ThwartedChar)) { <span class="pill small warn">thwarted</span> }
                     <div class="muted small">@(u.Note.Length > 0 ? u.Note : "Nothing to note this year.")@(u.Helped + u.Refused > 0 ? $" · you have helped {u.Helped} time(s) and said no {u.Refused}" : "")</div></div>
             </div>
-            @if (!u.Fulfilled) { <div class="gauges"><div class="gauge" title="How near they are to it, by their own reckoning."><span>How near</span><i><b style="width:@u.Progress%" class="@(u.Progress >= 70 ? "high" : u.Progress < 25 ? "low" : "")"></b></i><em>@u.Progress</em></div></div> }
+            @if (!u.Fulfilled) { <div class="gauges"><div class="gauge" title="How near they are to what they want, from 0 to 100 by their own reckoning. At 100 they have it."><span>How near (of 100)</span><i><b style="width:@u.Progress%" class="@(u.Progress >= 70 ? "high" : u.Progress < 25 ? "low" : "")"></b></i><em>@u.Progress</em></div></div> }
             @if (w.Counter(VentureSystem.FailedFounderKey(c.Id)) > 0)
             {
                 var offer = sys.SecondStartOffer(w, w.Protagonist, c, G.Ctx);
