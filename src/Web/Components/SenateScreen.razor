@@ -254,7 +254,8 @@
                     @foreach (var pr in sen.Proposals)
                     {
                         <div class="proposal">
-                            <div><b>@pr.KindName</b> <span class="muted small">(@pr.Influence influence)</span> <span class="muted small">@pr.Description</span></div>
+                            <div><b>@pr.KindName</b> <span class="muted small">(@pr.Influence influence)</span> <span class="muted small">@pr.Description</span>
+                                @if (senate.Motions.Def(pr.KindId) is { } mdef && CourtProjection.MotionDoes(mdef) is { Length: > 0 } does) { <div class="small" data-motion-does="@pr.KindId">@does A motion is voted at the end of the year after it is moved.</div> }</div>
                             @if (pr.NeedsLaw && pr.Laws != null)
                             {
                                 <select class="sel" @onchange="e => SetLaw(pr.KindId, e)">

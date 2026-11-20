@@ -379,4 +379,13 @@ public class PlaythroughFixTests
         w.Turn = every - 1; Assert.Equal(1, LadderSystem.CountIn(w, Content.Offices)); w.Turn = every + 1; Assert.Equal(every - 1, LadderSystem.CountIn(w, Content.Offices));
         w.Turn = ElectionSystem.Every; Assert.Equal(0, ElectionSystem.CountIn(w)); w.Turn = ElectionSystem.Every - 2; Assert.Equal(2, ElectionSystem.CountIn(w));
     }
+
+    [Fact]
+    public void AMotionForm_SaysWhatTheMotionDoes()
+    {
+        var defs = Content.Motions.Defs; Assert.NotEmpty(defs);
+        Assert.Contains("legitimacy", Praetoria.Core.Presentation.CourtProjection.MotionDoes(defs.First(d => d.LegitimacyTarget < 0)));
+        Assert.Contains("exchanges are closed", Praetoria.Core.Presentation.CourtProjection.MotionDoes(defs.First(d => d.EmbargoTurns > 0)));
+        Assert.All(defs, d => { var says = Praetoria.Core.Presentation.CourtProjection.MotionDoes(d); Assert.True(says.Length == 0 || says.StartsWith("If it carries: ")); });
+    }
 }

@@ -719,6 +719,25 @@ public static class CourtProjection
         "venture_yield_pct" => "% venture coin", "charter_pct" => "% charters", "market_price_pct" => "% market prices", "fleet_upkeep_pct" => "% fleet upkeep", "readiness" => "readiness a turn",
         "senate_weight" => "Senate weight", "legitimacy_per_5" => "legitimacy every fifth turn", "motion_cost" => "influence per motion (others)", "tolls_bonus" => "credits a toll", _ => key.Replace('_', ' ')
     };
+    /// <summary>What a motion does if it carries, from its own numbers: so that a form says more than its name (docs/PLAYTHROUGH.md,
+    /// the Senate: "what each motion does, in a line").</summary>
+    public static string MotionDoes(MotionDef d)
+    {
+        var parts = new List<string>();
+        if (d.LegitimacyTarget != 0) parts.Add($"the house named {(d.LegitimacyTarget > 0 ? "gains" : "loses")} {Math.Abs(d.LegitimacyTarget)} legitimacy");
+        if (d.LegitimacyProposer != 0) parts.Add($"the mover {(d.LegitimacyProposer > 0 ? "gains" : "loses")} {Math.Abs(d.LegitimacyProposer)} legitimacy");
+        if (d.LevyCredits != 0) parts.Add($"every house pays {d.LevyCredits} credits to the chair");
+        if (d.EmbargoTurns > 0) parts.Add($"the exchanges are closed to the house named for {d.EmbargoTurns} years");
+        if (d.LawlessnessRegion != 0) parts.Add($"the region's lawlessness {(d.LawlessnessRegion < 0 ? "falls" : "rises")} by {Math.Abs(d.LawlessnessRegion)}");
+        if (d.AllegianceRegion != 0) parts.Add($"the region's allegiance {(d.AllegianceRegion > 0 ? "rises" : "falls")} by {Math.Abs(d.AllegianceRegion)}");
+        if (d.ProsperityRegion != 0) parts.Add($"its worlds' prosperity {(d.ProsperityRegion > 0 ? "rises" : "falls")} by {Math.Abs(d.ProsperityRegion)}");
+        if (d.ReliefCost > 0) parts.Add($"the chair pays {d.ReliefCost} credits for it");
+        if (d.Peace) parts.Add("the war with the house named is ended by the Senate's word");
+        if (d.Breakup) parts.Add("the companies of the house named are broken up and their holders paid out");
+        if (d.Rescue) parts.Add("the chair's purse steadies the Exchange");
+        return parts.Count == 0 ? "" : "If it carries: " + string.Join("; ", parts) + ".";
+    }
+
     public static string Effects(IReadOnlyDictionary<string, int> fx) => fx.Count == 0 ? "changes no yield and no cost: what it moves is how the estates think of you" : string.Join(" · ", fx.Select(kv => $"{(kv.Value > 0 ? "+" : "")}{kv.Value} {Prose(kv.Key)}"));
 
     /// <summary>Laws by category with every option's refusal, and the estates with their drift and mood (PolicySystem).</summary>
