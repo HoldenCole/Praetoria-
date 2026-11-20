@@ -199,6 +199,20 @@ public sealed class FleetSystem
         if (target != null && (target == systemId || g.Hops(target, systemId) is > 0 and var cd && cd <= _rules.CampaignRange)) return true;
         return false;
     }
+    /// <summary>What a fleet's supply will do at a system, in the figures of the rules: fed there or not, how fast it falls, the year it
+    /// begins to tell and the year hulls begin to desert (docs/PLAYTHROUGH.md, War and peace: "supply: how a fleet far away is fed").</summary>
+    public string SupplySays(World w, Fleet f, string systemId)
+    {
+        string where = w.Galaxy?.System(systemId)?.Name ?? systemId;
+        if (InSupply(w, f.OwnerId, systemId))
+            return $"{where} is in supply: a world of yours is within {_rules.SupplyRange} lane(s), or a supply depot within {_rules.DepotRange}, or your campaign's target within {_rules.CampaignRange}. Supply recovers {_rules.SupplyRecover} a year there, to 100.";
+        bool near = NearHome(w, f.OwnerId, systemId); int drain = near ? _rules.SupplyDrainNear : _rules.SupplyDrain;
+        int toLow = f.Supply < _rules.SupplyLow ? 0 : (f.Supply - _rules.SupplyLow) / drain + 1, toNone = (f.Supply + drain - 1) / drain;
+        return $"{where} is out of supply ({(near ? "within two lanes of a world of yours, so the drain is the gentler one" : "more than two lanes from any world of yours")}): supply falls {drain} a year from {f.Supply}. "
+            + (toLow == 0 ? $"It is already under {_rules.SupplyLow}: the fleet fights at {_rules.SupplyLowPower * 100:0}% and loses 5 readiness a year. " : $"In {toLow} year(s) it is under {_rules.SupplyLow}, and the fleet fights at {_rules.SupplyLowPower * 100:0}% and loses 5 readiness a year. ")
+            + $"In {toNone} year(s) it is at nought, and from the year after a hull deserts each year. A supply depot on a world of yours within {_rules.DepotRange} lanes, or a campaign declared on a system within {_rules.CampaignRange}, would feed it.";
+    }
+
     /// <summary>Within two lanes of a world of the house: out of supply, but near enough that the drain is gentler.</summary>
     private static bool NearHome(World w, string houseId, string systemId) =>
         w.Galaxy != null && w.HoldingsOf(houseId).Any(h => h.IsPlanet && h.SystemId.Length > 0 && (h.SystemId == systemId || w.Galaxy.Hops(h.SystemId, systemId) is > 0 and <= 2));
@@ -907,6 +921,19 @@ public sealed class FleetSystem
     public int SiegeRequired(World w, Holding h) =>
         _rules.SiegeTurns + (int)Math.Ceiling(2 * ((_catalog.Spec(h.Specialization)?.Defense ?? 0) + h.Buildings.Sum(b => _catalog.Building(b)?.Defense ?? 0)
             + (h.IsPlanet && SystemWorks.Any(w) ? SystemWorks.Defense(w, _catalog, h.SystemId) : 0) + (h.IsPlanet && h.Provinces.Count > 0 ? ProvinceSystem.Defense(_catalog, h) : 0)));
+
+    /// <summary>How a world of a house you are at war with is taken, as these rules have it, or "" when you are not at war with its
+    /// holder or it is a nation's (docs/PLAYTHROUGH.md, War and peace: "how to attack a world in a war between houses").</summary>
+    public string HowToTake(World w, Holding h, string attacker)
+    {
+        if (h.OwnerId == attacker || !w.AtWar(attacker, h.OwnerId) || w.Foreign(h.OwnerId) || h.SystemId.Length == 0) return "";
+        string them = w.House(h.OwnerId)?.Name ?? h.OwnerId; int years = SiegeRequired(w, h);
+        bool theirs = StrengthAt(w, h.OwnerId, h.SystemId) > 0, mine = StrengthAt(w, attacker, h.SystemId) > 0;
+        string now = w.Sieges.TryGetValue(h.Id, out var s) ? (s.BesiegerId == attacker ? $"Your siege stands at {s.Turns} of {s.Required} years." : $"{w.House(s.BesiegerId)?.Name ?? s.BesiegerId} is besieging it ({s.Turns} of {s.Required}): while its fleet stays, the siege and the world are its.")
+            : theirs ? $"A fleet of {them}'s is over it now: it must be beaten or drawn off first." : mine ? "Your fleet is over it: the siege begins when the year turns." : "No fleet of yours is there.";
+        return $"To take {h.Name}: keep a fleet over it while none of {them}'s is there. That is a siege. It takes {years} year(s) here ({_rules.SiegeTurns} for any world, and more for its defences), and while it lasts the world sends out half its yield and loses people. "
+            + $"When the years are spent the world is yours. If a fleet of {them}'s is over it when a year turns, the siege is lifted and its years are lost. There is no separate raid or blockade between houses: the siege is both. {now}";
+    }
 
     /// <summary>Whose siege it is when the holder has no fleet over the world: the house already pressing it while it
     /// keeps a fleet there; else, of the holder's enemies in the sky, the one that came first (then the stronger).</summary>

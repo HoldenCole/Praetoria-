@@ -25,7 +25,8 @@
                     @if (selectedFleet.Moving) { <span>It is bound for @(pos.TryGetValue(selectedFleet.DestinationId, out var dn) ? dn.Name : selectedFleet.DestinationId), @selectedFleet.Eta year(s) off.</span> }
                     else if (move == null) { <span class="muted">Click a world to see the way there. Nothing is ordered until you say so.</span> }
                     else if (no != null) { <span class="bad">It cannot be sent to @sel!.Name: @no.</span> }
-                    else { <span>To @sel!.Name: @jumps jump(s), there in @jumps year(s). @(odds != null ? Praetoria.Core.Systems.FleetSystem.Say(odds) : "No enemy fleet is known to be there.")</span> }
+                    else { <span>To @sel!.Name: @jumps jump(s), there in @jumps year(s). @(odds != null ? Praetoria.Core.Systems.FleetSystem.Say(odds) : "No enemy fleet is known to be there.")</span>
+                        @if (w.Fleets.TryGetValue(selectedFleet.Id, out var going)) { <span class="@(G.Turn!.Fleets.InSupply(w, playerHouse, sel.SystemId) ? "muted" : "warn")" data-supply-forecast="1"> @G.Turn!.Fleets.SupplySays(w, going, sel.SystemId)</span> } }
                 </div>
                 <div class="order-row">
                     @if (move != null && no == null) { <button class="btn primary sm" data-send="1" @onclick="() => Send(selectedFleet.Id, sel!.SystemId, jumps)">Send it to @sel!.Name (1 treasury action)</button> }
@@ -97,6 +98,8 @@
                     <div class="kv"><span>Loyalty</span><b class="@(planet.Unrest >= 50 ? "warn" : "")">@(100 - planet.Unrest)<span class="bar"><i style="width:@(100 - planet.Unrest)%"></i></span></b></div>
                     <div class="kv"><span>Built</span><b>@(planet.Buildings.Count == 0 ? "nothing" : string.Join(", ", planet.Buildings.Select(b => c.Holdings.Building(b)?.Name ?? b)))</b></div>
                     @if (w.Sieges.TryGetValue(planet.Id, out var sg)) { <div class="kv warn"><span>Siege</span><b>@(w.House(sg.BesiegerId)?.Name) · @sg.Turns/@sg.Required</b></div> }
+                    string take = G.Turn!.Fleets.HowToTake(w, planet, playerHouse);
+                    @if (take.Length > 0) { <div class="small" data-how-to-take="@planet.Id">@take</div> }
                     @if (planet.InRebellion) { <div class="kv warn"><span>Rising</span><b>in revolt for @planet.Rebellion year(s) · breaks away after @RegionSystem.SecessionTurns</b></div> }
                     var rstate = RegionSystem.StateOf(w, sys.RegionId);
                     <div class="kv"><span>Region</span><b>allegiance @rstate.Allegiance · <span class="@(rstate.Lawlessness >= 60 ? "warn" : "")">lawlessness @rstate.Lawlessness</span></b></div>

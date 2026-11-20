@@ -729,6 +729,13 @@ public class PlaythroughFixTests
         foreach (var f in w.Fleets.Values.ToList()) w.Fleets.Remove(f.Id);
         w.Wars.Clear(); fleets.DeclareWar(w, house.Id, foe.Id); fleets.DeclareWar(w, ally.Id, foe.Id);
         w.Fleets["mine"] = new Fleet { Id = "mine", Name = "Mine", OwnerId = house.Id, SystemId = target.SystemId, Strength = 6, ArrivedTurn = w.Turn };
+        // an enemy's world says how it is taken, in the years this one would take
+        string how = fleets.HowToTake(w, target, house.Id); Assert.Contains(fleets.SiegeRequired(w, target) + " year(s)", how); Assert.Contains("Your fleet is over it", how);
+        Assert.Equal("", fleets.HowToTake(w, w.HoldingsOf(house.Id).First(), house.Id));
+        // and a fleet far from home says what its supply will do there
+        string fed = fleets.SupplySays(w, w.Fleets["mine"], w.HoldingsOf(house.Id).First(x => x.IsPlanet).SystemId); Assert.Contains("in supply", fed);
+        var far = w.Galaxy!.Systems.Keys.OrderBy(x => x, StringComparer.Ordinal).FirstOrDefault(x => !fleets.InSupply(w, house.Id, x));
+        if (far != null) { w.Fleets["mine"].Supply = 100; string hungry = fleets.SupplySays(w, w.Fleets["mine"], far); Assert.Contains("out of supply", hungry); Assert.Contains("a hull deserts each year", hungry); }
         fleets.ResolveConquests(w); Assert.Equal(house.Id, w.Sieges[target.Id].BesiegerId); int spent = w.Sieges[target.Id].Turns;
         // the ally comes later, with more hulls: the siege is still the house's that began it, and it goes on
         w.Fleets["theirs"] = new Fleet { Id = "theirs", Name = "Theirs", OwnerId = ally.Id, SystemId = target.SystemId, Strength = 30, ArrivedTurn = w.Turn + 1 };
