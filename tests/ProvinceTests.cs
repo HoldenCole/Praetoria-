@@ -321,7 +321,7 @@ public class ProvinceTests
         house.Treasury.Credits = 0; Assert.StartsWith("needs ", new CommuteDuesCommand(me.Id, far.Id, idx, Cat).Refusal(ctx)); house.Treasury.Credits = 400;
         // the player as the house over: a rival with the coin agrees, one without does not
         var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var under = w.House(ProvinceSystem.HolderOf(seat, 1))!; var p = seat.Provinces[1];
-        under.Treasury.Credits = 0; Assert.Equal("they cannot find the coin", new CommuteDuesCommand(me.Id, seat.Id, 1, Cat).Refusal(ctx));
+        under.Treasury.Credits = 0; Assert.Contains("cannot find it", new CommuteDuesCommand(me.Id, seat.Id, 1, Cat).Refusal(ctx));
         under.Treasury.Credits = 200; mine = house.Treasury.Credits; Assert.True(tc.Executor.TryExecute(new CommuteDuesCommand(me.Id, seat.Id, 1, Cat), ctx)); Assert.Equal(mine + ProvinceSystem.CommuteCost(Cat, p).Credits, house.Treasury.Credits); Assert.True(p.EasedUntil > w.Turn);
         // a peace settles what was fought over: the house that stood and was not beaten keeps its province, at customary dues, and is not asked again for the term
         var q2 = seat.Provinces[2]; var stood = w.House(ProvinceSystem.HolderOf(seat, 2))!; q2.Dues = ProvinceSystem.Heavy; GiveFleet(w, stood.Id, 8); GiveFleet(w, house.Id, 8);

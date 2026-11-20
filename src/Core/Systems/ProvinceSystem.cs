@@ -165,7 +165,7 @@ public static class ProvinceSystem
         if (w.EnemiesOf(planet.OwnerId).Any()) return by.Id == planet.OwnerId ? "you are at war: you need its levy" : "the house over you is at war and wants its levy";
         if (by.Id == holderId) return holder.Treasury.CanAfford(cost) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(cost)}";
         var cushion = cost.Clone(); cushion.Credits += 20;
-        return holder.Treasury.CanAfford(cushion) ? null : "they cannot find the coin";
+        return holder.Treasury.CanAfford(cushion) ? null : $"{holder.Name} cannot find it: commuting takes {Presentation.CourtProjection.Bundle(cost)} and a house keeps 20 credits back, and it holds {Presentation.CourtProjection.Bundle(holder.Treasury)}";
     }
     public static void Commute(World w, HoldingCatalog cat, Holding planet, int index)
     {
