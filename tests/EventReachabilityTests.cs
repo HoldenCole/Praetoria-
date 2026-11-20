@@ -94,7 +94,13 @@ public class EventReachabilityTests
     [Fact] public void TheTreasuryAudit() => Eligible("the_fallen_house", "the_treasury_audit", (_, p) => { p.CareerTrack = "stewardship"; p.CareerRank = 3; p.Skills["economics"] = 3; });
     [Fact] public void TheEmptyHall() => Eligible("the_fallen_house", "the_empty_hall", (w, _) => w.WorldCounters["houses_fallen"] = 1);
     [Fact] public void TheIsotopeBroker() => Eligible("the_fallen_house", "the_isotope_broker", (w, p) => w.House(p.HouseId)!.Treasury.Isotopes = 3);
-    [Fact] public void TheHeliumGlut() => Eligible("the_fallen_house", "the_helium_glut", (w, p) => w.House(p.HouseId)!.Treasury.Helium3 = 9);
+    [Fact] public void TheHeliumGlut() => Eligible("the_fallen_house", "the_helium_glut", (w, p) =>
+    {
+        // the report says the exchanges pay less than they did last year: it is eligible only when they do
+        w.House(p.HouseId)!.Treasury.Helium3 = 9;
+        var g = Praetoria.Core.Systems.MarketSystem.Of(w, ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir()).Trade.Market).Goods["helium3"];
+        g.History.Clear(); g.History.Add(g.Price * 1.3); g.History.Add(g.Price);
+    });
     [Fact] public void TheFreeMarch() => Eligible("the_fallen_house", "the_free_march", (w, _) => w.WorldFlags.Add("free_march"));
     [Fact] public void TheComet_AndThePortrait_AndTheOldRetainer() { Eligible("the_fallen_house", "the_comet", (w, _) => w.Turn = 16); Eligible("the_fallen_house", "the_portrait", (_, _) => { }); Eligible("the_fallen_house", "the_old_retainer", (w, _) => w.Turn = 12); }
 }

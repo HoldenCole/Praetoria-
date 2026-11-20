@@ -78,7 +78,7 @@
                         bool loud = g.Price >= g.Base * 1.5 || g.Price <= g.Base * 0.7 || g.Deficit >= 15 || g.BuyRefusal != null || Math.Abs(g.ChangePct) >= 10;
                         <tr class="@(g.Price >= g.Base * 1.5 ? "spike" : g.Price <= g.Base * 0.7 ? "slump" : "") @(loud ? "" : "quiet")" title="@Cap(g.Cause)">
                             <td class="hn"><Icon Name="@(Icons.Paths.ContainsKey(g.Id) ? g.Id : "materials")" Size="14" /> <b>@g.Name</b>@if (g.Deficit >= 15) { <span class="pill small warn" title="the Reach needs more than it brings up and is shipped">short @g.Deficit%</span> }</td>
-                            <td><b>@F2(g.Price)</b> <span class="muted small">buy @F2(g.BuyUnit) · sell @F2(g.SellUnit)</span></td>
+                            <td><b>@F2(g.Price)</b> <span class="muted small" title="What one unit costs you to buy and brings you sold, before your order's own weight: the price, your spread, and what the Reach's law of trade adds or takes.">@(g.CanBuy && g.BuyRefusal == null ? $"buy {F2(g.BuyUnit)}" : "not to be bought") · sell @F2(g.SellUnit)</span></td>
                             <td>@((MarkupString)Spark(g))</td>
                             <td><span class="@(g.ChangePct >= 10 ? "warn" : g.ChangePct <= -10 ? "good" : "muted")">@(g.ChangePct > 0 ? "+" : "")@g.ChangePct%</span></td>
                             <td>@g.Stock</td>

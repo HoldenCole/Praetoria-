@@ -255,13 +255,21 @@ public sealed class HouseholdSystem
     {
         int skill = Fit(holder, Steward); var done = new List<string>();
         int acts = skill >= 3 ? 2 : skill == 0 && Hash(holder.Id + ":idle:" + w.Turn) % 2 == 0 ? 0 : 1;
+        /* a steward does not begin a thing with what the year's shares of the things already begun will want: the materials for a site
+           that is rising are spoken for, as the credits under the reserve are (docs/PLAYTHROUGH.md, Easy, F41) */
+        bool Spare(Resources first)
+        {
+            var owed = HouseAccounts.Total(HouseAccounts.Outgoings(w, _holdings, house));
+            foreach (var r in Resource.All) if (r != Resource.Credits && first.Get(r) > 0 && house.Treasury.Get(r) - first.Get(r) < owed.Get(r)) return false;
+            return true;
+        }
         for (int i = 0; i < acts; i++)
         {
             bool did = false;
             // what a world lacks, cheapest first, the deposit worked before the rest
             foreach (var h in w.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
             {
-                foreach (var b in _holdings.Buildings.Where(b => !b.Megastructure && !h.Buildings.Contains(b.Id) && house.Treasury.Credits - b.Cost.Credits >= d.Reserve)
+                foreach (var b in _holdings.Buildings.Where(b => !b.Megastructure && !h.Buildings.Contains(b.Id) && house.Treasury.Credits - b.Cost.Credits >= d.Reserve && Spare(ProjectSystem.Split(b.Cost, b.BuildTurns).First))
                              .OrderByDescending(b => b.RequiresDeposit != null).ThenBy(b => b.Cost.Credits).ThenBy(b => b.Id, StringComparer.Ordinal))
                     if (executor.TryExecute(new BuildCommand(holder.Id, h.Id, b.Id, _holdings, _titles), ctx)) { done.Add($"began {b.Name} on {h.Name}"); did = true; break; }
                 if (did) break;
@@ -270,7 +278,7 @@ public sealed class HouseholdSystem
             // else enlarge a venture
             foreach (var biz in w.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0))
             {
-                var def = _ventures.Def(biz.Kind); if (def == null || house.Treasury.Credits - def.ExpandCost.Credits < d.Reserve) continue;
+                var def = _ventures.Def(biz.Kind); if (def == null || house.Treasury.Credits - def.ExpandCost.Credits < d.Reserve || !Spare(ProjectSystem.Split(def.ExpandCost, def.BuildTurns).First)) continue;
                 if (executor.TryExecute(new ExpandBusinessCommand(holder.Id, biz.Id, _ventures), ctx)) { done.Add($"enlarged {def.Name}"); did = true; break; }
             }
             if (!did) break;

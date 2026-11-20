@@ -132,7 +132,7 @@ public class MarketTests
         Assert.Equal("you hold only 5000", MarketSystem.QuoteSell(w, t, house.Id, "materials", 5001).Refusal);
         // next year the market remembers who emptied it
         house.Treasury.Materials = 0; Years(w, tc, 1);
-        Assert.True(Good(w, "materials").Price > mid, $"{mid} → {Good(w, "materials").Price}: {Good(w, "materials").Cause}"); Assert.Contains("heavy buying by " + house.Name, Good(w, "materials").Cause);
+        Assert.True(Good(w, "materials").Price > mid, $"{mid} → {Good(w, "materials").Price}: {Good(w, "materials").Cause}"); Assert.Contains("your own order of", Good(w, "materials").Cause);   // the player's own buying is named as theirs, with how much of the stock it took
         Assert.Equal(0, Good(w, "materials").Bought);
     }
 
@@ -144,7 +144,7 @@ public class MarketTests
         Assert.Null(new BuyGoodCommand(p.Id, "manpower", 2, t).Refusal(Ctx(w)));
         // isotopes: sold freely, bought only under the Senate's licence
         Assert.Null(new SellGoodCommand(p.Id, "isotopes", 1, t).Refusal(Ctx(w)));
-        Assert.Equal("weapons-grade isotopes are not sold on any open market", new BuyGoodCommand(p.Id, "isotopes", 1, t).Refusal(Ctx(w)));
+        Assert.StartsWith("weapons-grade isotopes cannot be bought on any open market", new BuyGoodCommand(p.Id, "isotopes", 1, t).Refusal(Ctx(w)));
         PolicySystem.Enact(w, Content.Policies, PolicySystem.SenateHolder, "arms_market", "licensed");
         Assert.Null(new BuyGoodCommand(p.Id, "isotopes", 1, t).Refusal(Ctx(w)));
         // the trade charter moves every buying price

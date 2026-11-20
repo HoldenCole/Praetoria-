@@ -1446,6 +1446,13 @@
           "resource": "helium3",
           "op": "gte",
           "value": 8
+        },
+        {
+          "type": "price",
+          "resource": "helium3",
+          "op": "lte",
+          "pct": 95,
+          "against": "year"
         }
       ],
       "choices": [
@@ -1453,18 +1460,13 @@
           "id": "sell_cheap",
           "effects": [
             {
-              "type": "adjustResource",
+              "type": "sellAtMarket",
               "resource": "helium3",
-              "delta": -4
-            },
-            {
-              "type": "adjustResource",
-              "resource": "credits",
-              "delta": 6
+              "units": 4
             },
             {
               "type": "log",
-              "text": "{self.name} sold four tanks of helium-3 into a glutted market. Six credits; the tanks would have waited."
+              "text": "{self.name} sold four tanks of helium-3 into a falling market, at what the exchanges would give. The tanks would have waited."
             }
           ]
         },

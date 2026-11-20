@@ -59,7 +59,7 @@
                         @foreach (var bid in b.Bids ?? new List<VentureBid>())
                         {
                             string? bidNo = new SellVentureCommand(pid, b.Id, bid.HouseId, vs).Refusal(G.Ctx);
-                            <button class="opt inline tiny" disabled="@(bidNo != null)" title="@(bidNo ?? (bid.HoldsTheWorld ? "holds the world it works, and pays for that" : "its bid"))" @onclick='() => G.AskDo("Sell " + b.Name + " to " + bid.HouseName + "?", bid.HouseName + " pays " + bid.Price + " credits and has the venture and what it yields from now on. It cannot be asked back.", "Sell for " + bid.Price, new SellVentureCommand(pid, b.Id, bid.HouseId, vs))'>Sell to @bid.HouseName for @bid.Price</button>
+                            <button class="opt inline tiny" disabled="@(bidNo != null)" title="@(bidNo ?? ((bid.HoldsTheWorld ? "It holds the world the venture works, and pays the more for that. " : "") + $"A private sale: the venture stays whole and goes on working for {bid.HouseName}, whose head thinks {VentureSystem.PrivateSaleRegard} the better of you for it. The open market breaks it up and buys you no regard: take whichever pays you more for what you want."))" @onclick='() => G.AskDo("Sell " + b.Name + " to " + bid.HouseName + "?", bid.HouseName + " pays " + bid.Price + " credits and has the venture and what it yields from now on. It cannot be asked back.", "Sell for " + bid.Price, new SellVentureCommand(pid, b.Id, bid.HouseId, vs))'>Sell to @bid.HouseName for @bid.Price</button>
                         }
                     }
                 </div>

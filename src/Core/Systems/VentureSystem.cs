@@ -130,8 +130,14 @@ public sealed class VentureSystem
     {
         var buyer = w.House(buyerId); int price = Bid(w, buyerId, b); if (buyer == null || price <= 0) return false;
         if (FirstRefuser(w, b, buyerId, price) is { } holder) { Transfer(w, b, holder, price, "takes up its first refusal and buys"); if (b.OwnerId != buyerId && w.House(buyerId)?.Id == w.Protagonist?.HouseId) w.WorldFlags.Add(RefusedFirstFlag); return true; }
-        Transfer(w, b, buyer, price, "buys"); return true;
+        var seller = HeadOfHouse(w, b.OwnerId); var buyerHead = HeadOfHouse(w, buyerId);
+        Transfer(w, b, buyer, price, "buys");
+        /* a house that is sold what it bid for remembers who sold it: the venture goes on whole in its hands, where the open market would have broken it up */
+        if (seller != null && buyerHead != null && seller.Id != buyerHead.Id) { var r = w.Relationship(buyerHead.Id, seller.Id); r.Disposition = Math.Clamp(r.Disposition + PrivateSaleRegard, -100, 100); }
+        return true;
     }
+    /// <summary>What the head of a house that is sold a venture at its bid thinks the better of the seller for it.</summary>
+    public const int PrivateSaleRegard = 4;
 
     /// <summary>Bought at the owner's asking price — unless the world's holder matches it first, and then the buyer keeps their coin.</summary>
     public bool BuyAt(World w, Business b, string buyerId)

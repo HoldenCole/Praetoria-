@@ -89,7 +89,7 @@ public class StrategicResourceTests
         w.House("vega")!.Treasury.Credits = 40; int cost = buy.Cost(w); Assert.InRange(cost, 12, 20);   // two units near the base of six, the caravaneers' spread on top
         Assert.True(ex.TryExecute(buy, ctx));
         Assert.Equal(2, w.House("vega")!.Treasury.Helium3); Assert.Equal(40 - cost, w.House("vega")!.Treasury.Credits); Assert.Equal(2, w.Counter("procured"));
-        Assert.Equal("weapons-grade isotopes are not sold on any open market", new BuyGoodCommand("self", Resource.Isotopes, 1, trade).Refusal(ctx));
+        Assert.StartsWith("weapons-grade isotopes cannot be bought on any open market", new BuyGoodCommand("self", Resource.Isotopes, 1, trade).Refusal(ctx));
         Assert.Equal("not a thing the exchanges deal in", new BuyGoodCommand("self", Resource.Credits, 1, trade).Refusal(ctx));
     }
 

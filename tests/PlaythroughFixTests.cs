@@ -528,4 +528,32 @@ public class PlaythroughFixTests
             if (b != null && b.TryGet("buyer", out var who)) Assert.NotEqual(house.Id, w.Char(who)!.HouseId);
         }
     }
+    [Fact]
+    public void A_report_sells_at_the_markets_price_and_only_when_what_it_says_of_the_price_is_true()
+    {
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn();
+        var g = w.Market!.Good(Resource.Helium3)!; house.Treasury.Helium3 = 10;
+        var glut = Content.Events.First(e => e.Id == "the_helium_glut");
+        var price = glut.Conditions.OfType<Praetoria.Core.Events.PriceCondition>().Single();
+        var ev = new Praetoria.Core.Events.EvalContext(w, new Praetoria.Core.Events.Binding(me.Id), TestContent.Rng(), Content);
+        g.History.Clear(); g.History.Add(g.Price * 2); g.History.Add(g.Price); Assert.True(price.Evaluate(ev));      // half what it was a year ago
+        g.History.Clear(); g.History.Add(g.Price / 2); g.History.Add(g.Price); Assert.False(price.Evaluate(ev));     // twice what it was: no glut
+        var sell = glut.Choices.First(c => c.Id == "sell_cheap").Effects.OfType<Praetoria.Core.Events.SellAtMarketEffect>().Single();
+        int quoted = MarketSystem.QuoteSell(w, Content.Trade, house.Id, Resource.Helium3, 4).Credits, had = house.Treasury.Credits;
+        Assert.Equal(quoted, sell.Proceeds(ev)); sell.Apply(ev);
+        Assert.Equal(had + quoted, house.Treasury.Credits); Assert.Equal(6, house.Treasury.Helium3);
+    }
+
+    [Fact]
+    public void A_director_may_pay_the_houses_coin_into_the_company_and_a_private_sale_is_remembered()
+    {
+        var (w, tc, house, me, ctx) = Start();
+        var other = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id) && Economy.HeadOf(w, h) != null);
+        var co = new Company { Id = "co_test", Name = "The Test Company", ControllerId = house.Id, Shares = 100, Cash = 0 }; w.Companies.Add(co);
+        house.Treasury.Credits = 30;
+        var payIn = new BoardCommand(me.Id, co.Id, BoardCommand.PayIn, 12, tc.Companies!); Assert.Null(payIn.Refusal(ctx)); payIn.Execute(ctx);
+        Assert.Equal(12, co.Cash); Assert.Equal(18, house.Treasury.Credits);
+        Assert.Contains("treasury holds 18", new BoardCommand(me.Id, co.Id, BoardCommand.PayIn, 50, tc.Companies!).Refusal(ctx));
+        co.ControllerId = other.Id; Assert.Equal("you do not direct it", new BoardCommand(me.Id, co.Id, BoardCommand.PayIn, 5, tc.Companies!).Refusal(ctx));
+    }
 }

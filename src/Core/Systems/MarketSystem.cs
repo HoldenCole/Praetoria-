@@ -172,7 +172,8 @@ public sealed class MarketSystem
             }
             var closed = w.Nations.Where(n => _nations.Def(n.Id) is { } nd && nd.Exports.ContainsKey(d.Id) && n.AtWar).Select(n => _nations.Def(n.Id)!.Name).OrderBy(n => n, StringComparer.Ordinal).FirstOrDefault();
             if (closed != null) why.Add($"no ships from {closed}");
-            if (g.TopBought >= Math.Max(2, g.StockRef / 10) && w.House(g.TopBuyer) is { } buyer) why.Add($"heavy buying by {buyer.Name}");
+            if (g.TopBought >= Math.Max(2, g.StockRef / 10) && w.House(g.TopBuyer) is { } buyer)
+                why.Add(buyer.Id == w.Protagonist?.HouseId ? $"your own order of {g.TopBought:0} took {100 * g.TopBought / Math.Max(1, g.StockRef):0}% of what the merchants held" : $"heavy buying by {buyer.Name}");
             if (g.Deficit >= 0.15) why.Add("the Reach burns more than it brings up");
             if (why.Count == 0) why.Add(g.Stock < targetStock * 0.9 ? "the merchants' stocks are thin" : "demand is rising");
         }
@@ -214,7 +215,7 @@ public sealed class MarketSystem
         if (d == null || house == null) return new TradeQuote(0, 0, "not a thing the exchanges deal in");
         if (units <= 0) return new TradeQuote(0, 0, "nothing ordered");
         if (!d.Buy) return new TradeQuote(0, 0, $"{d.Name.ToLowerInvariant()} are not bought on the exchanges");
-        if (d.License.Length > 0 && (t.Policies.IsEmpty || PolicySystem.ReachModifier(w, t.Policies, d.License) <= 0)) return new TradeQuote(0, 0, good == Resource.Isotopes ? "weapons-grade isotopes are not sold on any open market" : $"{d.Name.ToLowerInvariant()} need a licence of the Senate");
+        if (d.License.Length > 0 && (t.Policies.IsEmpty || PolicySystem.ReachModifier(w, t.Policies, d.License) <= 0)) return new TradeQuote(0, 0, good == Resource.Isotopes ? "weapons-grade isotopes cannot be bought on any open market: they are brought up or made, and may be sold" : $"{d.Name.ToLowerInvariant()} need a licence of the Senate");
         if (SenateSystem.Embargoed(w, houseId)) return new TradeQuote(0, 0, "the Senate's embargo closes the exchanges to you");
         var g = Of(w, t.Market).Goods[d.Id];
         if (g.Stock < units) return new TradeQuote(0, 0, g.Stock < 1 ? $"the merchants have no {Resource.Label(good)} to sell" : $"the merchants hold only {Math.Floor(g.Stock):0}");

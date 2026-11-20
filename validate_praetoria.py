@@ -15,8 +15,8 @@ engine's loader accepts. Exit code 0 = clean, 1 = errors. Run after every batch.
 """
 import json, re, sys, glob, os
 
-COND={"academy","cohort","all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","atWar","bloc","sex","eventFired","wealth","deposit"}
-EFF={"setUpbringing","takeIn","courtship","marriage","beginCourtship","setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","revokeClaim","adjustLegitimacy","setTitle","succeed","kill","declareWar","makePeace","joinBloc","log"}
+COND={"price","academy","cohort","all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","atWar","bloc","sex","eventFired","wealth","deposit"}
+EFF={"sellAtMarket","setUpbringing","takeIn","courtship","marriage","beginCourtship","setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","revokeClaim","adjustLegitimacy","setTitle","succeed","kill","declareWar","makePeace","joinBloc","log"}
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
 RES={"credits","materials","manpower","influence","exotics","helium3","rare_earths","isotopes"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
 SPHERES={"navy","treasury","senate"}; TITLES={"landless","knight","baron","count","duke","archduke","emperor"}
@@ -143,7 +143,7 @@ def validate_events(ev,tx):
                 if ef["type"] not in EFF: errors.append(f"[{eid}/{cid}] bad effect '{ef['type']}'")
                 for rf in ("role","from","to"):
                     if rf in ef and ef[rf] not in roles: errors.append(f"[{eid}/{cid}] effect unbound role '{ef[rf]}'")
-                if ef["type"]=="adjustResource" and ef.get("resource") not in RES: errors.append(f"[{eid}/{cid}] bad resource")
+                if ef["type"] in ("adjustResource","sellAtMarket") and ef.get("resource") not in RES: errors.append(f"[{eid}/{cid}] bad resource")
                 if ef["type"]=="addTrait":
                     tr=ef.get("trait"); kind=ef.get("kind","aptitude")
                     pool=NATURE if kind=="nature" else APTITUDE

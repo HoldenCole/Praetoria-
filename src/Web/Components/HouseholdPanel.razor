@@ -23,7 +23,7 @@
         var d = house.Duty(role); var holder = d != null ? w.Char(d.HolderId) : null; string r = role; int reserve = d?.Reserve ?? ReserveOf(role);
         <div class="duty">
             <div class="duty-top">
-                <b>@HouseholdSystem.RoleName(role)</b> <span class="muted small">@HouseholdSystem.RoleDoes(role)</span>
+                <b>@HouseholdSystem.RoleName(role)</b> <span class="muted small">@HouseholdSystem.RoleDoes(role) Whoever holds the post is paid @HouseholdSystem.Stipend credits a year from the treasury; unpaid for @HouseholdSystem.LeavesAfter years, they give it up.</span>
                 @if (holder != null) { <button class="opt inline tiny" @onclick="() => G.Execute(new DelegateCommand(pid, r, string.Empty))">Take it back</button> }
             </div>
             @if (holder != null && d != null)
@@ -34,7 +34,7 @@
                         <div class="small">@(d.LastReport.Length > 0 ? d.LastReport : "Nothing to report yet.")</div>
                         @if (holder.Flags.Contains(HouseholdSystem.SkimmingChar)) { <div class="small bad">The accounts under them do not add up.</div> }</div>
                 </div>
-                <div class="suit-acts"><span class="muted small" title="They spend only what the treasury holds above this.">Leave in the treasury</span>
+                <div class="suit-acts"><span class="muted small" title="They spend only what the treasury holds above this in credits. Materials and the rest they leave alone as far as the year's shares of what is already being built will want them.">Leave in the treasury (credits)</span>
                     @foreach (int amt in Reserves) { int a = amt; <button class="opt inline tiny @(d.Reserve == amt ? "here" : "")" @onclick="() => G.Execute(new DelegateCommand(pid, r, d.HolderId, a))">@amt</button> }
                 </div>
             }

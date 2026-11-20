@@ -64,6 +64,8 @@ else
                     <input type="number" min="1" max="99" value="@n" @onchange="e => SetQty(BoardKey(c.Id), e)" />
                     <button class="opt inline tiny" disabled="@(fl != null)" title="@(fl ?? "new shares sold to the public at a tenth under the price; the coin goes into the company, and your share of it shrinks")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Float, n, cs))">Float @n new shares · raises @(fl == null ? cs.FloatProceeds(w.Company(c.Id)!, n).ToString() : "—")</button>
                     <button class="opt inline tiny" disabled="@(bb != null)" title="@(bb ?? "the company buys its own shares off the float with its cash and cancels them")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Buyback, n, cs))">Buy back @n</button>
+                    @{ string? pin = new BoardCommand(pid, c.Id, BoardCommand.PayIn, n, cs).Refusal(G.Ctx); }
+                    <button class="opt inline tiny" data-payin="@c.Id" disabled="@(pin != null)" title="@(pin ?? $"{n} credits of the house's own go into the company's chest, for no new shares: your share of it stays what it is, and every other holder is the richer by theirs. It is how a company you direct is given the coin to enlarge a venture without cutting the dividend or floating shares.")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.PayIn, n, cs))">Pay in @n credits</button>
                     <button class="opt inline tiny" disabled="@(sp != null)" title="@(sp ?? "the cash in hand is paid to every holder by their shares, now")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Special, 0, cs))">Pay out the cash</button>
                     <button class="opt inline tiny" disabled="@(pv != null)" title="@(pv ?? "the ventures and the cash are the house's again")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Private, 0, cs))">Wind it up</button>
                 </div>
@@ -85,7 +87,7 @@ else
                 @if (ex.BondOffer is { } bo)
                 {
                     <div class="muted small">The Reach borrows for the war with @bo.NationName: @bo.Face credits a bond at @bo.YieldPct% a year, repaid when the war ends (a tenth over if the nation is subdued, fifteen in the hundred short if not). You hold @bo.Held of @bo.Cap.</div>
-                    <button class="opt" disabled="@(bo.Refusal != null)" title="@bo.Refusal" @onclick="() => G.Execute(new BuyBondCommand(pid, cs))">Buy a bond · @bo.Face credits</button>
+                    <button class="opt" disabled="@(bo.Refusal != null)" title="@(bo.Refusal ?? $"{bo.Face} credits lent to the chair now. It pays {bo.YieldPct}% a year while the war lasts. When the war ends it is repaid: {bo.Face * 110 / 100} if {bo.NationName} was subdued, {bo.Face * 85 / 100} if not; and if the chair's treasury cannot find the whole sum, only what it can. There is no selling a bond before then.")" @onclick="() => G.Execute(new BuyBondCommand(pid, cs))">Buy a bond · @bo.Face credits at @bo.YieldPct% · repaid when the war ends</button>
                 }
                 @foreach (var b in ex.Bonds) { <div class="line small"><b>@b.Face</b> at @b.YieldPct% <span class="muted">· the war with @b.NationName · bought in year @b.Bought</span></div> }
             </section>

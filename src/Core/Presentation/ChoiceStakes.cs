@@ -23,6 +23,7 @@ public static class ChoiceStakes
             switch (e)
             {
                 case AdjustResourceEffect r when Mine(r.Role): sums[r.ResourceKey] = sums.GetValueOrDefault(r.ResourceKey) + r.Delta; break;
+                case SellAtMarketEffect sm when Mine(sm.Role): { int got = sm.Proceeds(ctx); sums[sm.ResourceKey] = sums.GetValueOrDefault(sm.ResourceKey) - sm.Units; sums[Resource.Credits] = sums.GetValueOrDefault(Resource.Credits) + got; break; }
                 case AdjustLegitimacyEffect l when Mine(l.Role): legit += l.Delta; break;
                 case AdjustStressEffect s when Me(s.Role): stress += s.Delta; break;
                 case AdjustSkillEffect k when Me(k.Role) && k.Delta != 0: parts.Add(k.Skill.Replace('_', ' ') + " " + Signed(k.Delta)); break;

@@ -421,3 +421,21 @@ public sealed class DepositCondition : ICondition
         return Systems.Economy.Deposits(ctx.World, c.HouseId).Contains(ResourceKey) == Present;
     }
 }
+
+/// <summary>Where a good's price stands on the Exchange: against what it was a year ago, or against its usual price. A report that
+/// says "the exchanges are paying less than they did last year" is gated on it, so it is true when it is read (docs/PLAYTHROUGH.md,
+/// Easy, F34). JSON: { "type": "price", "resource": "helium3", "op": "lte", "pct": 95, "against": "year" } ("year" or "usual").
+/// With no market in the world it does not hold.</summary>
+public sealed class PriceCondition : ICondition
+{
+    public string ResourceKey { get; } public CompareOp Op { get; } public int Pct { get; } public string Against { get; }
+    public PriceCondition(string resource, CompareOp op, int pct, string against) { ResourceKey = resource; Op = op; Pct = pct; Against = against; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var g = ctx.World.Market?.Good(ResourceKey); if (g == null || g.Price <= 0) return false;
+        double then = Against == "usual" ? ctx.Content?.Trade.Market.Good(ResourceKey)?.Base ?? 0 : g.History.Count >= 2 ? g.History[^2] : 0;
+        if (then <= 0) return false;
+        return Comparison.Apply(Op, (int)Math.Round(100 * g.Price / then), Pct);
+    }
+}
+

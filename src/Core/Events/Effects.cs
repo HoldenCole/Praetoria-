@@ -410,3 +410,27 @@ public sealed class SetUpbringingEffect : IEffect
     }
 }
 
+/// <summary>Sell units of a good on the Exchange at what the Exchange pays the house today: the proceeds are the market's, not a sum
+/// written in the report, and the sale moves the price as any sale does. JSON: { "type": "sellAtMarket", "resource": "helium3", "units": 4 }.
+/// Sells what the house has, up to the units named.</summary>
+public sealed class SellAtMarketEffect : IEffect
+{
+    public string Role { get; } public string ResourceKey { get; } public int Units { get; }
+    public SellAtMarketEffect(string role, string resource, int units) { Role = role; ResourceKey = resource; Units = units; }
+    /// <summary>What the sale would bring now, for saying so under the choice.</summary>
+    public int Proceeds(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role); var house = c == null ? null : ctx.World.House(c.HouseId); if (house == null) return 0;
+        int n = Math.Min(Units, house.Treasury.Get(ResourceKey)); if (n <= 0) return 0;
+        if (ctx.Content?.Trade is { } t && !t.Market.IsEmpty && ctx.World.Market != null) { var q = Systems.MarketSystem.QuoteSell(ctx.World, t, house.Id, ResourceKey, n); if (q.Refusal == null) return q.Credits; }
+        return (int)Math.Floor(Systems.Economy.WorthOf(ctx.World, ResourceKey) * n * 0.8);
+    }
+    public void Apply(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role); var house = c == null ? null : ctx.World.House(c.HouseId); if (house == null) return;
+        int n = Math.Min(Units, house.Treasury.Get(ResourceKey)); if (n <= 0) return;
+        if (ctx.Content?.Trade is { } t && !t.Market.IsEmpty && ctx.World.Market != null && Systems.MarketSystem.QuoteSell(ctx.World, t, house.Id, ResourceKey, n).Refusal == null) { Systems.MarketSystem.Sell(ctx.World, t, house.Id, ResourceKey, n); return; }
+        int got = Proceeds(ctx); house.Treasury.Set(ResourceKey, house.Treasury.Get(ResourceKey) - n); house.Treasury.Credits += got;
+    }
+}
+
