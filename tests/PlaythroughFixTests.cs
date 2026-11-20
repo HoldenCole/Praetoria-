@@ -420,4 +420,15 @@ public class PlaythroughFixTests
         w.Wars.RemoveAll(x => x.Between(house.Id, foe.Id)); Assert.Empty(w.EnemiesOf(house.Id));
         tc.Fleets.Tick(w); Assert.Null(FleetSystem.CampaignTarget(w, house.Id)); Assert.Contains(w.History, h => h.Text.Contains("The war is over, and with it the campaign"));
     }
+
+    [Fact]
+    public void ACensure_NamesItsGround()
+    {
+        var (w, tc, house, me, _) = Start(); tc.BeginTurn(); var foe = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id) && Economy.HeadOf(w, h) != null);
+        var m = new Motion { Id = "t_m", Kind = "censure", ProposerHouseId = foe.Id, TargetId = house.Id, ProposedTurn = w.Turn }; w.Motions.Add(m);
+        w.Relationship(Economy.HeadOf(w, foe)!.Id, me.Id).Disposition = -45;
+        Assert.Contains("thinks ill of", tc.Senate.Ground(w, m)); Assert.Contains("-45", tc.Senate.Ground(w, m));
+        w.Wars.Add(new War { HouseA = foe.Id, HouseB = house.Id, Since = w.Turn }); Assert.Contains("at war", tc.Senate.Ground(w, m));
+        Assert.Equal("", tc.Senate.Ground(w, new Motion { Id = "t_l", Kind = "levy", ProposerHouseId = foe.Id }));
+    }
 }

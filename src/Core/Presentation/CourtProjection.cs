@@ -490,7 +490,7 @@ public static class CourtProjection
                     FactionSystem.Of(w, h.Id)?.Name, FactionSystem.Leads(w, h.Id)) { BribePrice = SenateSystem.BribeCost(w, h, p) });
             var (f, a) = m.Open ? senate.Tally(w, m) : (m.ForWeight, m.AgainstWeight);
             bool againstMe = m.TargetId == house.Id && def != null && (def.LegitimacyTarget < 0 || def.EmbargoTurns > 0);
-            return new MotionCard(m.Id, m.Kind, def?.Name ?? m.Kind, senate.ProposerName(w, m), SenateSystem.IsPetition(m) ? SenateSystem.EstateAccent : proposer?.AccentColor ?? "#888", targetName, senate.Describe(w, m), m.ProposedTurn, m.Open, m.Passed,
+            return new MotionCard(m.Id, m.Kind, def?.Name ?? m.Kind, senate.ProposerName(w, m), SenateSystem.IsPetition(m) ? SenateSystem.EstateAccent : proposer?.AccentColor ?? "#888", targetName, senate.Describe(w, m) + (senate.Ground(w, m) is { Length: > 0 } ground ? " " + ground : ""), m.ProposedTurn, m.Open, m.Passed,
                 f, a, m.Votes.GetValueOrDefault(house.Id), m.ProposerHouseId == house.Id, againstMe, stances, SenateSystem.IsPetition(m),
                 m.Open ? new VetoCommand(p.Id, m.Id, senate.Offices, senate).Refusal(ctx) : "decided", m.Vetoed, m.Vetoed ? w.House(m.VetoedBy)?.Name ?? m.VetoedBy : null) { Swing = m.Swing };
         }

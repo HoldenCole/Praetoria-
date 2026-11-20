@@ -347,6 +347,19 @@ public sealed class SenateSystem
         return (f, a);
     }
 
+    /// <summary>Why a motion against a house was moved, as far as it can be read from how things stand: a motion that strikes at a
+    /// house names its ground (docs/PLAYTHROUGH.md, the Senate: "a censure should name its ground"). Empty for anything else.</summary>
+    public string Ground(World w, Motion m)
+    {
+        var def = _motions.Def(m.Kind); if (def == null || def.Target != "house" || def.Interest is not ("censure" or "embargo" or "breakup")) return "";
+        var mover = w.House(m.ProposerHouseId); var target = w.House(m.TargetId); if (mover == null || target == null) return "";
+        var mh = Economy.HeadOf(w, mover); var th = Economy.HeadOf(w, target); int d = mh != null && th != null ? w.GetRelationship(mh.Id, th.Id)?.Disposition ?? 0 : 0;
+        if (FeudSystem.Between(w, mover.Id, target.Id)) return $"The ground: there is blood between {mover.Name} and {target.Name}.";
+        if (w.AtWar(mover.Id, target.Id)) return $"The ground: {mover.Name} is at war with {target.Name}.";
+        if (d <= -30) return $"The ground: {mh!.Name} thinks ill of {th!.Name} ({d}), and has the votes to say so.";
+        return $"The ground: things have been put about against {target.Name}, and {mover.Name} has taken them up.";
+    }
+
     public string Describe(World w, Motion m)
     {
         var def = _motions.Def(m.Kind); if (def == null) return m.Kind;
