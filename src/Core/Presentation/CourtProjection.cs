@@ -215,7 +215,7 @@ public static class CourtProjection
                 string payback = perYear > 0.5 ? $"pays for itself in {Math.Ceiling(cost / perYear):0} year(s)" : "does not pay in coin";
                 string years = b.BuildTurns > 1 ? $" · {b.BuildTurns} years, {Bundle(ProjectSystem.Split(b.Cost, b.BuildTurns).First)} a year" : b.BuildTurns == 1 ? " · a year" : "";
                 builds.Add(new BuildOption(h.Id, b.Id, $"{(b.Megastructure ? "Raise" : "Build")} {b.Name}  ({Bundle(b.Cost)}{years})",
-                    $"yield {Bundle(b.Yield)}" + (b.Upkeep.IsEmpty() ? "" : $" · upkeep {Bundle(b.Upkeep)}") + $" · worth {perYear:0.#} credits a year now · {payback}" + (b.MinTitleRank > 0 ? $" · needs the rank of {Progression.Title.StyleOf(Progression.Title.OfRank(b.MinTitleRank), w.Era)}" : "") + (cmd.Refusal(ctx) is { } why ? $" · {why}" : ""), cmd.CanExecute(ctx)));
+                    (b.Id == Economy.GranaryId ? $"unrest eases {Economy.GranaryCalm} more each year" : b.Id == "supply_depot" ? "your fleets are in supply within 2 lanes of here, not 1" : $"yield {Bundle(b.Yield)}") + (b.Upkeep.IsEmpty() ? "" : $" · upkeep {Bundle(b.Upkeep)}") + $" · worth {perYear:0.#} credits a year now · {payback}" + (b.MinTitleRank > 0 ? $" · needs the rank of {Progression.Title.StyleOf(Progression.Title.OfRank(b.MinTitleRank), w.Era)}" : "") + (cmd.Refusal(ctx) is { } why ? $" · {why}" : ""), cmd.CanExecute(ctx)));
             }
             bool canRaise = new RaiseFleetCommand(p.Id, h.Id, content.Fleets, content.ShipClasses, null, content.Titles).CanExecute(ctx);
             var ships = new List<ShipOption>();

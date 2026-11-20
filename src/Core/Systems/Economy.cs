@@ -27,6 +27,9 @@ public sealed class Economy
 {
     public const int UnrestStep = 5;   // per-turn unrest gain while the owner is insolvent
     public const int UnrestDecay = 3;  // per-turn unrest relief while the owner is solvent
+    /// <summary>A public granary keeps a world fed: its unrest eases this much more each year (docs/PLAYTHROUGH.md: the building said
+    /// only what it cost, and did nothing).</summary>
+    public const string GranaryId = "granary_relief"; public const int GranaryCalm = 2;
     public const int ProsperityStep = 5;          // how far prosperity moves toward its target in a turn
     public const int ProsperityPerBuilding = 3;
     public const int ProsperityPerAdministration = 4;
@@ -293,7 +296,7 @@ public sealed class Economy
                 {
                     int ringDrift = world.Galaxy != null && holding.SystemId.Length > 0 ? world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)).UnrestDrift : 0;
                     string? lawRegion = world.Galaxy?.System(holding.SystemId)?.RegionId;
-                    holding.Unrest = Math.Clamp(holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0) + ringDrift + Law(world, house.Id, "unrest_drift", lawRegion) + ReachLaw(world, "unrest_drift")
+                    holding.Unrest = Math.Clamp(holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0) + ringDrift - (holding.Buildings.Contains(GranaryId) ? GranaryCalm : 0) + Law(world, house.Id, "unrest_drift", lawRegion) + ReachLaw(world, "unrest_drift")
                         + (holding.IsPlanet && world.PlanetOf(holding.SystemId) == holding ? SystemWorks.Unrest(world, _catalog, holding.SystemId) : 0), 0, 100);
                     int growth = holding.Unrest > 50 ? spec.PopGrowth / 2 : spec.PopGrowth;      // the restless do not settle
                     growth += Law(world, house.Id, "pop_growth", lawRegion);                        // homesteads, bonded labour, the commons' regard

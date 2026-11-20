@@ -85,6 +85,22 @@ public sealed class PauseProjectCommand : ICommand
     public void Execute(CommandContext ctx) { var p = ctx.World.Projects.First(x => x.Id == _id); p.Paused = !p.Paused; p.Stalled = false; }
 }
 
+/// <summary>Pay a stalled site's missed instalment now, so that the stall does not cost a year.</summary>
+public sealed class PayInstalmentCommand : ICommand
+{
+    private readonly string _id;
+    public PayInstalmentCommand(string actorId, string projectId) { ActorId = actorId; _id = projectId; }
+    public string ActorId { get; }
+    public string Describe() => $"pay the instalment on {_id}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var a = ctx.World.Char(ActorId); var p = ctx.World.Projects.FirstOrDefault(x => x.Id == _id);
+        return a?.Alive != true || p == null || p.OwnerId != a.HouseId ? "not your site" : ProjectSystem.PayNowRefusal(ctx.World, p);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) => ProjectSystem.PayNow(ctx.World, ctx.World.Projects.First(x => x.Id == _id));
+}
+
 /// <summary>Rush a project: pay everything still owed and a quarter more in credits, and it is done next year.</summary>
 public sealed class RushProjectCommand : ICommand
 {

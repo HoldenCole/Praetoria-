@@ -299,4 +299,28 @@ public class PlaythroughFixTests
         // and it survives a save
         var again = SaveSystem.Deserialize(SaveSystem.Serialize(w)); Assert.Equal(w.News.Count, again.News.Count); Assert.Equal(w.NewsFrom, again.NewsFrom);
     }
+
+    [Fact]
+    public void AGranary_DoesWhatItSays()
+    {
+        // the Easy list: the Public Granary said only what it cost, and did nothing
+        int Unrest(bool granary)
+        {
+            var (w, tc, house, _, _) = Start("the_old_lion", 5); var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); seat.Unrest = 60; house.Treasury.Credits = 500;
+            if (granary) seat.Buildings.Add(Economy.GranaryId);
+            tc.BeginTurn(); tc.EndTurn(); return w.Holding(seat.Id)!.Unrest;
+        }
+        Assert.Equal(Unrest(false) - Economy.GranaryCalm, Unrest(true));
+    }
+
+    [Fact]
+    public void AStalledSite_CanBePaidAtOnce()
+    {
+        var (w, _, house, me, ctx) = Start(); var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet);
+        var p = new Project { Id = "t_p", OwnerId = house.Id, Kind = Project.Building, DefId = "x", TargetId = seat.Id, Name = "a test works", TurnsTotal = 4, TurnsLeft = 3, Cost = new Resources { Credits = 40 }, Stalled = true }; w.Projects.Add(p);
+        house.Treasury.Credits = 4; Assert.Equal("6 credits short", new PayInstalmentCommand(me.Id, p.Id).Refusal(ctx));
+        house.Treasury.Credits = 25; var cmd = new PayInstalmentCommand(me.Id, p.Id); Assert.Null(cmd.Refusal(ctx)); cmd.Execute(ctx);
+        Assert.False(p.Stalled); Assert.Equal(15, house.Treasury.Credits); Assert.Equal(2, p.TurnsLeft); Assert.Equal(10, p.Paid.Credits);
+        Assert.Equal("it has not stalled", new PayInstalmentCommand(me.Id, p.Id).Refusal(ctx));
+    }
 }

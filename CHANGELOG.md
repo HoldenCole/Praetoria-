@@ -7,6 +7,9 @@
   (docs/PLAYTHROUGH.md, "Two things called influence").
 
 ### Fixed
+- **The Easy list, third and fourth batches.** A Public Granary eases its world's unrest by 2 more a year (it did nothing);
+  every building says what it gives; a stalled site can be paid at once; "Lay down" says keep, fuel and readiness;
+  "cannot sail" clears when helium is bought.
 - **The Easy list, second batch.** Selling or incorporating a venture, enacting a law, changing the law of succession
   and the consul's veto ask first and say what follows. A motion says how you have voted and which votes you paid for.
   The top bar counts years and heads of the house. A dowry says which way it went.

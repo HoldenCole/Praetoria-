@@ -35,6 +35,23 @@ public static class ProjectSystem
         return next;
     }
 
+    /// <summary>Why a stalled site's missed instalment cannot be paid now, or null (docs/PLAYTHROUGH.md: "a stalled building site gets a
+    /// 'pay the instalment now' button").</summary>
+    public static string? PayNowRefusal(World w, Project p)
+    {
+        if (!p.Stalled) return "it has not stalled"; if (p.Paused) return "it is paused: resume it first";
+        var due = NextInstalment(p); var t = w.House(p.OwnerId)?.Treasury; if (t == null || p.CompanyId.Length > 0) return "it is a company's site: the company pays";
+        var shortBy = Resource.All.Where(r => t.Get(r) < due.Get(r)).Select(r => $"{due.Get(r) - t.Get(r)} {Resource.Label(r)}").ToList();
+        return shortBy.Count == 0 ? null : string.Join(" and ", shortBy) + " short";
+    }
+    /// <summary>Pay the instalment that was missed: the site goes on, and the year the stall cost is made up.</summary>
+    public static void PayNow(World w, Project p)
+    {
+        var due = NextInstalment(p); if (!Pay(w, p, due)) return;
+        p.Stalled = false; p.TurnsLeft = Math.Max(1, p.TurnsLeft - 1);
+        w.Log($"The instalment that was missed on {p.Name} is paid ({Presentation.CourtProjection.Bundle(due)}). The work goes on: {p.TurnsLeft} year(s) to go.");
+    }
+
     /// <summary>Whose purse pays: the company's cash for a company's project (credits only: it buys the rest at market), else the house's treasury.</summary>
     private static bool Pay(World w, Project p, Resources due)
     {

@@ -28,6 +28,7 @@
                 {
                     <div class="row small">
                         <button class="opt inline tiny" @onclick="() => G.Execute(new PauseProjectCommand(pid, p.Id))">@(p.Paused ? "Resume" : "Pause")</button>
+                        @if (p.Stalled) { var payNo = new PayInstalmentCommand(pid, p.Id).Refusal(G.Ctx); <button class="opt inline tiny" data-paynow="@p.Id" disabled="@(payNo != null)" title="@(payNo ?? "Pay the instalment that was missed (" + p.Next + ") now: the work goes on and the lost year is made up")" @onclick="() => G.Execute(new PayInstalmentCommand(pid, p.Id))">Pay the instalment now · @p.Next</button> }
                         @if (p.Great)
                         {
                             bool on = p.Hastened;

@@ -440,8 +440,10 @@
         string perPoint = d.RequiresDeposit != null ? " for each point of the deposit" : "";
         if (!y.IsEmpty()) parts.Add("+" + CourtProjection.Bundle(y) + " a year" + perPoint);
         if (!keep.IsEmpty()) parts.Add($"upkeep {CourtProjection.Bundle(keep)}");
-        if (d.Defense > 0) parts.Add($"defence +{d.Defense:0.##}");
-        return parts.Count == 0 ? "Steadies the world." : string.Join(" · ", parts);
+        if (d.Defense > 0) parts.Add($"defence +{d.Defense * 100:0}% to fleets defending here");
+        if (d.Id == Economy.GranaryId) parts.Insert(0, $"unrest eases {Economy.GranaryCalm} more each year");
+        if (d.Id == "supply_depot") parts.Insert(0, "your fleets are in supply within 2 lanes of here, not 1");
+        return parts.Count == 0 ? "Nothing that is counted." : string.Join(" · ", parts);
     }
     private static string TrackDoes(InfrastructureDef t)
     {
