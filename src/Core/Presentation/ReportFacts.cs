@@ -51,6 +51,17 @@ public static class ReportFacts
             string me = Nm(mine);
             return w.History.LastOrDefault(h => h.Turn >= w.Turn - 1 && h.Text.StartsWith("It comes out that") && h.Text.Contains(me))?.Text ?? "";
         }
+        if (flags.Contains(FleetSystem.DeclaredOnMeFlag))
+        {
+            /* who, with what, why, and what they would take to stop: the terms are the ones the Military window offers */
+            var war = w.Wars.LastOrDefault(x => x.HouseB == mine && x.Since >= w.Turn - 2); if (war == null) return "";
+            var fleets = new FleetSystem(content.Fleets); string foe = war.HouseA; int theirs = FleetSystem.StrengthOf(w, foe), ours = FleetSystem.StrengthOf(w, mine);
+            var terms = HousePeace.Terms(w, fleets, content.Fleets, mine, foe).Where(t => t.Accepted).Select(t => t.Label.ToLowerInvariant()).ToList();
+            return $"{Nm(foe)} declared war on your house in year {war.Since}: its {theirs} hull(s) to your {ours}."
+                + (war.Why.Length > 0 ? $" Why: {war.Why}." : "")
+                + (terms.Count > 0 ? $" If you sued for peace today it would take: {string.Join(", or ", terms)}." : " It would take no peace you could offer today: the war must turn first.")
+                + " The war and its terms are under Military, on the deck.";
+        }
         if (flags.Contains(LadderSystem.AbsentFlag))
             return "The seat is used by taking any one of the year's duties under Senate, Your duties, before the year ends. Three years running without one brings this again, and each time costs the house 2 legitimacy.";
         if (flags.Contains("office_granted"))

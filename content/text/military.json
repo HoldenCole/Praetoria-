@@ -1,6 +1,16 @@
 {
   "texts": [
     {
+      "id": "war_is_declared_on_you",
+      "title": "War Is Declared On You",
+      "body": "A herald has read it at the door, in the old form: a house of the Reach holds itself at war with {self.house}, from this day, until it is satisfied or beaten. There is no law against it. The Senate does not make war between houses and does not stop it. What it is over, and what it would take to end it, is written below.",
+      "choices": {
+        "answer_it_in_the_senate": "Answer it in the Senate, where the benches can hear.",
+        "go_to_the_fleet": "Say nothing, and go to the fleet.",
+        "let_it_stand": "Let it stand. They have declared; let them come."
+      }
+    },
+    {
       "id": "the_front_or_the_flag",
       "title": "The Front or the Flag",
       "body": "{self.name}'s first command asks a question every officer answers once: where will you stand when the shooting starts? On the flagship's bridge, where the crews can see you — or at the plot table, where you can see the battle.",

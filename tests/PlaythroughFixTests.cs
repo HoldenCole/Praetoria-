@@ -605,4 +605,22 @@ public class PlaythroughFixTests
         Assert.Contains(eco.UnrestWhy(w, world), x => x.what.StartsWith("a solvent house"));
         house.Treasury.Credits = -5; Assert.Contains(eco.UnrestWhy(w, world), x => x.what == "the house is insolvent" && x.by > 0);
     }
+    [Fact]
+    public void A_war_declared_on_the_house_is_a_report_that_says_who_why_and_what_would_end_it()
+    {
+        // docs/PLAYTHROUGH.md, Medium: "a declaration of war on you is a report: who, why, what they want"
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn();
+        var foe = w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id) && Economy.HeadOf(w, h) != null).OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).First();
+        tc.Fleets.DeclareWar(w, foe.Id, house.Id);
+        Assert.True(w.HasFlag(FleetSystem.DeclaredOnMeFlag)); Assert.False(string.IsNullOrEmpty(w.Wars[^1].Why));
+        var card = Content.Events.First(e => e.Id == "war_is_declared_on_you");
+        var engine = new Praetoria.Core.Events.EventEngine(Content, WorldBuilder.RngFor(w));
+        Assert.Contains(engine.GatherEligible(w), e => e.def.Id == card.Id);
+        string facts = Praetoria.Core.Presentation.ReportFacts.For(w, card, Content);
+        Assert.Contains(foe.Name + " declared war on your house", facts); Assert.Contains("Why: " + w.Wars[^1].Why, facts); Assert.Contains("peace", facts);
+        // it is news for the year it happens and the next, and then the flag goes
+        tc.EndTurn(); if (w.IsDynastyDead) return; tc.BeginTurn(); Assert.True(w.HasFlag(FleetSystem.DeclaredOnMeFlag));
+        tc.EndTurn(); if (w.IsDynastyDead) return; tc.BeginTurn(); tc.EndTurn();
+        Assert.False(w.HasFlag(FleetSystem.DeclaredOnMeFlag));
+    }
 }

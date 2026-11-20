@@ -2,6 +2,71 @@
   "//": "THE MILITARY DEPTH (docs/MILITARY.md). These read FleetSystem's flags: battle_won / battle_lost / fought_at_the_front (the last battle), became_achilles, hulls_captured, out_of_supply, fleet_restive / fleet_mutinous, campaign_declared / campaign_over; and the commander's own flags command:front / command:flag / achilles.",
   "events": [
     {
+      "id": "war_is_declared_on_you",
+      "tier": "situation",
+      "weight": 60,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "war_declared_on_me",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "answer_it_in_the_senate",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood in the Senate and said who had broken the peace, and by what right. The benches heard it."
+            }
+          ]
+        },
+        {
+          "id": "go_to_the_fleet",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing in public and went to the yards."
+            }
+          ]
+        },
+        {
+          "id": "let_it_stand",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} read the declaration and put it with the others."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "the_front_or_the_flag",
       "tier": "situation",
       "weight": 9,

@@ -75,6 +75,8 @@ public sealed class FleetSystem
     public const string ConquestsCounter = "conquests";
     public const string BattleFoughtFlag = "battle_fought";
     /// <summary>One-turn flags of the military depth (docs/MILITARY.md), cleared at the top of <see cref="Tick"/>.</summary>
+    /// <summary>A house has declared war on the player's: raised for the year it happens and the next, for the report of it.</summary>
+    public const string DeclaredOnMeFlag = "war_declared_on_me";
     public static readonly string[] DepthTurnFlags = { "battle_won", "battle_lost", "fought_at_the_front", "hulls_captured", "became_achilles", "fleet_deserts", "campaign_over" };
     public const string FrontFlag = "command:front", FlagFlag = "command:flag", AchillesFlag = "achilles";
     public static string ValourKey(string characterId) => "valour:" + characterId;
@@ -144,6 +146,7 @@ public sealed class FleetSystem
         _world = w;
         LastBattles.Clear();
         foreach (var f in DepthTurnFlags) w.WorldFlags.Remove(f);
+        if (w.HasFlag(DeclaredOnMeFlag) && w.Counter("mark:" + DeclaredOnMeFlag) < w.Turn - 1) { w.WorldFlags.Remove(DeclaredOnMeFlag); w.WorldCounters.Remove("mark:" + DeclaredOnMeFlag); }
         if (w.Galaxy == null) { UpdateIntel(w); return; }
         Supply(w);
         Campaigns(w);
@@ -480,6 +483,7 @@ public sealed class FleetSystem
             var theirHead = w.House(a) is { } ah ? Economy.HeadOf(w, ah) : null; int regard = theirHead != null ? w.GetRelationship(theirHead.Id, w.ProtagonistId)?.Disposition ?? 0 : 0;
             string why = FeudSystem.Between(w, a, b) ? "there is blood between the houses" : regard <= -20 ? $"{theirHead?.Name} thinks ill of you ({regard})" : StrengthOf(w, a) > StrengthOf(w, b) * 2 ? "it has the hulls and you have not" : "it wants what you hold";
             w.Tell("warn", $"{w.House(a)?.Name ?? a} has declared war on your house: {StrengthOf(w, a)} hull(s) to your {StrengthOf(w, b)}. Why: {why}", "military", a);
+            w.Wars[^1].Why = why; w.WorldFlags.Add(DeclaredOnMeFlag); w.WorldCounters["mark:" + DeclaredOnMeFlag] = w.Turn;   // and a report comes of it while it is news
         }
         if (who != null) _friction.Apply(w, who, "declare_war");
     }

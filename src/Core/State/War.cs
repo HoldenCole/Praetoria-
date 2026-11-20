@@ -10,6 +10,9 @@ public sealed class War
     public int Since { get; set; }
     public int ScoreA { get; set; }
     public int ScoreB { get; set; }
+    /// <summary>Why the house that declared it did, as far as it can be said in a line: kept so the one it was declared on can be told
+    /// (docs/PLAYTHROUGH.md, Medium: "a declaration of war on you is a report: who, why, what they want").</summary>
+    public string Why { get; set; } = "";
     /// <summary>The last turn a battle was fought in this war (0 = none yet): a war with no battle for long is exhaustion, not war.</summary>
     public int LastBattleTurn { get; set; }
     public int Score(string houseId) => HouseA == houseId ? ScoreA : HouseB == houseId ? ScoreB : 0;
