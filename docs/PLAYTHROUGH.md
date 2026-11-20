@@ -58,7 +58,7 @@ Marked here as they are done; the list itself below is left as the players wrote
 | part | done |
 |---|---|
 | Reports | Every cost and effect under each choice; a greyed choice names what it lacks; a choice that would overdraw says so; what came of it is said after (with 8). |
-| Alerts | Every alert opens its subject (with 15). New alerts: a suit against the house, a ruling, a foreign fleet in your space, illness, a tutor gone, a birth, a death, a war declared (with 12 and 14). The fleets and holdings at the right open the map where they are; "open on the map" opens that system. |
+| Alerts | Every alert opens its subject (with 15). New alerts: a suit against the house, a ruling, a foreign fleet in your space, illness, a tutor gone, a birth, a death, a war declared (with 12 and 14). The fleets and holdings at the right open the map where they are; "open on the map" opens that system. Also new: manpower at nought, a world with no living governor, a rank you could take now, a holder withholding its dues. |
 | Words | No internal names ("shipyard_world", "title rank 1" are now "a shipyard world", "the rank of Prefect"); the Commission motion no longer says "the office of an office"; "pays back in never" is "does not pay itself back at this price"; a claim is to "the rank of Prefect", not "its baron rank". |
 | Two influences | The house's store of political capital is called **clout** everywhere; "influence" is now only the year's pool, and both tooltips say which is which. "Favours for coin" shows what it will really pay (half without an exchange of your own) and says why. |
 | Refusals | "No influence" is now "needs 2 influence this year (1 left)", for all three pools. Refit, merge and appointing an admiral each give their one true reason. |

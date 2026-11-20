@@ -5,6 +5,12 @@
     var alerts = new List<(string cls, string text, string? go)>();
     if (m.Treasury.Insolvent) alerts.Add(("warn", $"Insolvent: {m.Treasury.Credits} credits", "house:ledger"));
     foreach (var bt in w.Battles.Where(b => b.Turn == w.Turn - 1 && b.Involves(w.Protagonist!.HouseId)).Take(3)) alerts.Add((bt.WinnerId == w.Protagonist!.HouseId ? "good" : "warn", $"{(bt.WinnerId == w.Protagonist!.HouseId ? "Won" : "Lost")}: the battle of {bt.Place} ({bt.AttackerHulls} hull(s) against {bt.DefenderHulls})", "military:battles"));
+    // what a player should not have to find by looking (docs/PLAYTHROUGH.md, "New alerts where there are none")
+    if (house.Treasury.Manpower <= 0 && m.Fleets.Count + m.Holdings.Count > 0) alerts.Add(("warn", "Manpower is at nought: no new hull can be crewed and no levy raised until it recovers", "house:ledger"));
+    foreach (var ng in w.HoldingsOf(house.Id).Where(x => x.IsPlanet && w.Char(x.GovernorId) is not { Alive: true }).Take(2)) alerts.Add(("warn", ng.Name + " has no governor: name one, or it goes ungoverned", "galaxy:" + ng.SystemId));
+    if (m.Standing is { NextTitle: not null } st && st.Paths.FirstOrDefault(pp => pp.Available) is { } open1) alerts.Add(("good", "You could rise to " + st.NextTitle + " now: " + open1.Label.ToLowerInvariant(), "senate:offices"));
+    foreach (var (wh, wi) in w.Holdings.Values.Where(x => x.OwnerId == house.Id).SelectMany(x => x.Provinces.Select((pv, i) => (x, i))).Where(t => t.x.Provinces[t.i].Withheld && t.x.Provinces[t.i].HolderId != house.Id).Take(2))
+        alerts.Add(("warn", (w.House(wh.Provinces[wi].HolderId)?.Name ?? "A house") + " is withholding the dues of " + wh.Provinces[wi].Name, "galaxy:" + wh.SystemId));
     foreach (var nw in w.NewsNow().Reverse().Take(8)) alerts.Add((nw.Tone, nw.Text, nw.SubjectId.Length > 0 && nw.Target == "dynasty" ? "dynasty:tree:" + nw.SubjectId : nw.SubjectId.Length > 0 && nw.Target == "houses" ? "houses:" + nw.SubjectId : nw.Target));
     if (w.Protagonist?.HouseId is { } suedHouse)
     {
