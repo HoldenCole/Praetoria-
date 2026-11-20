@@ -1,0 +1,417 @@
+# What a player wants to do and cannot
+
+The owner, 2026-11-20: "I'm sure there are lots of small things like this throughout the game so we need to go and actually
+do a full play through and just try to do different things and see what comes up ... as you're playing think about what do I
+want to do in this situation and can I do it, or what would be nice to do in this situation and can I do it? Do that a few
+times and make a continuous running list and then put them in easy, medium, and hard categories for things to be done."
+
+## How it was done
+
+Five continuous games were played in the published browser build, each by a different kind of player, each asking at every
+step "what do I want to do here, and can I?", trying it in the real screens, and keeping a running list.
+
+| | who | start | years | rows | raw list |
+|---|---|---|---|---|---|
+| **B** | a builder and governor | The Old Lion | 26 | 70 | `docs/playthroughs/builder.md` |
+| **S** | a soldier | The Risen Officer | 21 | 81 | `docs/playthroughs/soldier.md` |
+| **P** | a politician from nothing | The New Man | 25 | 106 | `docs/playthroughs/politician.md` |
+| **F** | the head of a family, and its money | The Circling Heir | 31 | 102 | `docs/playthroughs/family.md` |
+| **N** | a first-time player | a custom character, then The Academy | 10 + a term | 82 | `docs/playthroughs/newcomer.md` |
+
+441 rows in all. This document is those rows merged, with duplicates folded together and sorted by how much work each is.
+A reference such as **B12** is row 12 of the builder's list, where the game's own words are quoted.
+
+**What to trust.** The players did not read the code or the design documents; they learned the game from its screens. They
+drove a headless browser through a small driver (`tools/browser/driver.js`), which reads every screen as text and every
+button with its tooltip, so a few things about the mouse and the map could not be judged (marked where it matters). No game
+crashed, no turn hung, and the browser console stayed empty in all 113 years played. Six reports were checked against the
+code afterwards and all six were as reported; those are marked **(confirmed)**. The rest are as the players saw them and
+have not been checked.
+
+**Sizes.** Easy: a label, a tooltip, a number, a button, a wrong link, a confirm box, a small rule. Medium: a new control
+or a rule with a screen. Hard: a new system.
+
+## The fifteen to fix first
+
+These are not the easiest. They are the ones that lose a player's work, break the game's balance, or hide what happened.
+
+1. **A rival's petition takes one of your worlds without asking.** A landless rival petitions "the house with most
+   worlds" for a prefecture, that house can be the player, and the world simply goes: the builder lost its colony and the
+   soldier its home world, each with no report (B69, S32). **(confirmed: `PetitionFiefCommand`)**
+2. **Saving loses work.** Save in the middle of a year shows "Saved ✓" and stores the start of the year; Quit has no
+   confirmation and drops the year; starting any new game overwrites the one save slot without a word (N62, N63, N79).
+   **(confirmed)**
+3. **The title ladder is climbed by clicking.** "Seize it by force" raised a house with no ships two rungs on turn 1 with
+   no price shown; "Petition the Senate" is never voted and pays for itself in legitimacy, so a house with no world reached
+   First Citizen by year 20, and another went from Citizen to Legate in one year (N24, P39, P83, P94, S58). **(confirmed for Seize)**
+4. **A venture sells for nine times what it cost, the year it is finished,** and can be founded again at once (F44, B29).
+5. **Three places name three heirs, and the one on show is wrong.** The Dynasty header said one child for 28 years; the
+   will and the Ambitions tab said others; only the abdication tooltip told the truth. After a succession the heir was the
+   mother who had just stepped down (F6, F67, F80, F93, F94, N34, P19).
+6. **The money forecast leaves out what a player spends.** Building instalments, hastening, household wages, tutors and
+   allowances are in neither the top bar nor the ledger: two players went insolvent with a positive forecast, while a
+   personal purse of 81 and 142 credits sat unseen on another screen for fifteen years (B12, B13, B51, S63, B58, N58, P38).
+7. **One click starts a war.** "Ask them to step down", "Declare war" and "marry by treaty" act at once with no
+   confirmation and no word on what will happen; two wars began by accident (B53, B66, S17, F10, F14).
+8. **Report choices are blind.** No cost or effect before choosing, coin taken that was not listed, "requirements not
+   met" with no requirement, and no outcome afterwards. Every one of the five players put this first or second
+   (B9, S1, P2, P3, F1, F2, F3, F4, N18, N19, N20).
+9. **Peace with a house ignores the war.** "Sue for peace" is instant and shows no terms; at 5 to 0, 6 to 2 and 5 to 0 it
+   paid a credit or nothing, and a world could not be asked for (S28, S49, S71, F66, B54).
+10. **A battle is one line in a log.** No place, no enemy, no numbers in the report; no way to see the odds before
+    sailing; a squadron was lost to one hull with nothing to say why (S38, S39, S66).
+11. **A fleet's order cannot be taken back, and looking at a world can give one.** With a fleet selected (which nothing
+    shows), the next star clicked becomes its destination; one squadron left on a six-year voyage that could not be
+    recalled (S11, S62, N65, B33).
+12. **The courts fine the player every year in silence.** Suits against the house are found only in the Chronicle; there is
+    no notice, no sum, and nothing to do about it (P49, P50, P101, F49, N76, S23).
+13. **A five-credit bribe to a bench leader turns the whole bench,** every motion a rival moved carried, and a count
+    forecast at 94 to 62 came in at 138 to 0 (P47, P71, P98).
+14. **Family news does not arrive.** Births, the death of the steward, two declarations of war, tutors leaving, an attempt
+    on the head's life: all in the Chronicle and nowhere else (F33, F48, F64, F79, N50, N76, P56, P63).
+15. **Alerts open the wrong place.** Nearly every alert leads to a window's first tab rather than its subject, or to
+    nothing (B16, B67, F35, F40, F55, N54, N73, N74, P33, P93, S24, S48, P91).
+
+---
+
+## Easy
+
+### Reports
+
+- Print every cost under each choice, pool costs included; take nothing that is not printed (B9, S1, P2, F2, F3, N18, N67).
+- A greyed choice names what it lacks, not "requirements not met" (B9, S1, P3, P86, F1, N20, N52, S45).
+- Grey or warn a choice that would put the treasury below nought (N59, P51).
+- A report names its subject: who sued and for how much, which motion, which office, which good, who died, which house
+  sent the knife, which world, which Act (S23, S77, P25, P48, P96, P102, F30, F54, F56, F86, B24, S44, N53).
+- An answered report, reopened, shows the answer that was given (N30).
+- The same card should not come back in a few years with the same words (F92, B70); a household request that says "1 more
+  year" for sixteen years should lapse (P103).
+- An offer with a price that is set aside should say it lapses at the year's end (B17).
+- The first word of a card loses its space: "Amarket", "Athin", "Ago-between" (S3).
+
+### Alerts and getting to things
+
+- Every alert opens its own subject: the finished project (named), the stalled site (named, with what was short), the ask
+  from a relative, the war bonds, the consuls, the physician, the raiders, the besieged world, the venture offered, the
+  triumph motion, the demand on a province (list at 15 above).
+- An alert goes when the thing is done (N54, P28).
+- New alerts where there are none: a tutor about to leave unpaid (F48, N51); a suit or fine against the house (F49);
+  a hearing left unheard costs legitimacy (F49); manpower at nought (F89); a holder withholding its dues (B52); a foreign
+  fleet over your world (N76); illness in the family (N76); a world with no governor (B61); you qualify for a title (S57).
+- A fleet's row in the outliner selects the fleet (S10, N64, B33).
+- "Open on the galaxy map" opens that system (B1); "the Exchange ▸" from Ventures opens Ventures (B25).
+- The council's seats in the outliner open the place they are filled, and agree with it (N40, F73).
+
+### Words that are wrong
+
+- "(GDD §9)" in the top bar tooltip (N16, P1, S18, F26). **(confirmed)**
+- Internal names: "needs a shipyard_world", "+1 rare_earths", "needs title rank 1" (B7, N38, S4, F26).
+- "the office of an office" in the Commission motion (N26, P7, S15). **(confirmed: an unfilled placeholder)**
+- "it leans you's way" on a province (B56, S51). **(confirmed)**
+- "knight" and "baron" in the log of a Republic that has Wardens and Prefects; "SOVEREIGN" on a card where no throne
+  stands (S78, S34, P73).
+- "pays back in never", "needs a isotopes deposit", "Governor Tiber Quillonable", an empty office name in "(yours), : sat."
+  (B27, N42, N78, P32).
+- A paragraph of design notes on the succession screen ("The register — The game turns ceremonial ...") (F97).
+- A dowry that went out is worded "came with the bride" (F82).
+- The conviction card uses the embezzlement text for another offence (P101).
+
+### Two things called influence
+
+- The stock and the yearly pool are both "influence", and every price says only "2 influence". Give them two names and
+  say which on every button (N17, P1, P67, P105, F78, B31, S18, S52).
+- "1 influence → 4 credits" pays 2 (B14, S46).
+- Put the pool cost on every button that spends one: Seize, Press a claim, Petition, Take in, Incorporate, a decree,
+  giving a fleet an admiral (N39, P39, P40, P24, P68, F52, F42, F62).
+
+### Refusals that say the wrong thing
+
+- Say what is short, and only that: "3 materials short", not the whole price (B64, N37, S4).
+- Refit: "only at a system of your own" when the fleet is at one and has no materials (S8).
+- Merge: "not in the same system" for levies and office fleets that are in the same system (S22, S31).
+- Admiral: "already in command, or no agents" for a man who commands nothing with six agents in hand (S9, S76).
+- Campaign: "2 influence" when the reason is that no object was chosen (S19).
+- Petition for a title: the tooltip repeats the description instead of "needs 2 influence" (P10, P40).
+- "no influence" with influence in hand: say "needs 2 (you have 1)" (P24, P68, N44).
+
+### Your own purse
+
+- Show the head's purse beside the treasury (top bar or House header) and on the You window (B58, S63, N33, P13, P14, F19).
+- A refusal "your purse does not hold it" should give the figure and a way to move coin (F19, N33).
+- "Insolvent" and "the tanks are dry" should offer "pay from your own purse" (S63).
+- Purse moves in any amount, not steps of 5 and 20 (B58, F58).
+
+### Numbers nobody explains
+
+- A label or tooltip for: the governor's "68" (B5); "Threat read in us 17" (F25); the fourth number in the marriage table
+  (P20, F7, N43); the ORDERS column "SAC" (F16, N44); the second number under a nation's strength (N45); the three bars
+  under the hemicycle (N27); "8 hull(s) without strain" (S7); "HOW NEAR 89" (F36); the marks "debt to crown · parvenu"
+  (S33, S59, N77); WEALTH (F98); "THE WAR OF THE REACH · Clock 0 / 40" (N22, N77); a crisis's "severity 2 · authored by"
+  (N60, P104); "legitimacy" in the top bar (N48); the tier word "able" in the creator (N7).
+- "Turn 1 · Gen 1" should be a year, with a word on what a generation is (N15).
+- What a skill is for, wherever a skill is chosen or studied (N5, N35, P15); the unit of "+5 from study" (F68, F21).
+- What a tutor costs, in what, from which purse (F23, N35).
+
+### Buildings, worlds and provinces
+
+- Every building line says what it gives (the Public Granary and the Fleet Supply Depot say only what they cost) (B10).
+- Every line says how long it takes, "at once" included (B38).
+- A standing building's line shows its level, and what the next level gives, without needing the coin first (B23, B30).
+- One name for one place: "The Forum at Greywater" and "The Power Plant at The Lion's March" are the same world (B3).
+- Pause, rush and abandon on the rising line in the system panel, not only in the Exchange (B4, B59).
+- The House card's slot count, its "Built" list, the population cap and the tolls disagree with the system panel
+  (B6, B68, N38): one source.
+- The open row of a system is stale after End Turn until it is closed and opened (B22).
+- A dead governor stays in the chair (sixteen years); the list offers the sitting governor and children (B61, B43).
+- "Invest (6 credits → +15 prosperity)" should say it drifts back, and what prosperity is good for (B8).
+- A world at its population cap should point at Habitats (B62).
+- A colony's line shows the first share, not the whole price, and says the fleet may leave once it has sailed (B45, B46);
+  a refusal "it lies in a nation's space" should say what would change that (N66).
+- Ask to step down: say beforehand whether this house will go or fight (the game already knows) (B20, S29).
+- Commute: show the holder's purse; "they cannot find the coin" on the fourth richest house reads as broken (B19).
+- Withheld dues: say what ends the withholding, and when it has ended (B55).
+- "A house that is your match may stop paying" should say whether this house is (B18).
+- A stalled building site gets a "pay the instalment now" button (S54, F40).
+- Hastening: say so the year it could not be paid; show the hastened share under "next year"; never overdraw (B49, B12).
+- Rush says the sum it will take, not the premium alone (B59, F29).
+
+### Laws
+
+- A law's row should look like something to click (N31, P22).
+- The option says "no effect of its own" above a line of real effects: print them, and "locks for 6 years", before the
+  click (B63, N31, P22, P55).
+
+### Fleets
+
+- A way to cancel an order before the fleet has left (S11, N65).
+- A refusal at the map when a click is ignored: dry tanks, a world that cannot be reached (S62, S67).
+- "CANNOT SAIL" stays after helium is bought (S21).
+- The system panel lists every fleet of yours wherever it is, and other houses' fleets only on the third tab; a fleet
+  under way is still shown where it started (S12, S25, B47).
+- "X's space" names the wrong holder; attacker and defender are the wrong way round; "falls back" and stays (S40).
+- Children offered as admirals, stewards and commanders of the Reach Squadron (B35, S53, S69).
+- Two squadrons with one name; no rename (S30).
+- Upkeep, fuel and starting readiness on every "Lay down" button (S81, S68, S75); why readiness moved this year (S75).
+- A link from Military to the shipyard (S5).
+- A campaign ends when its war does (S41); every war you are in is under Wars, and other houses' sieges are not (S73).
+- "Your fleets take and hold: order them to raid" is a state and a command in one label (S61).
+- The Triumph and Recall motions judge "Nero Ashgrove" whichever house is chosen (S48).
+
+### The Senate
+
+- "You hold 1 of its seats" beside "the house has no seat": one word for a vote and another for a voice (N23, P5, N28).
+- Consul: "rank 2 on any track" on one tab, "from 40, must have been praetor" on another (P11, P61).
+- What each motion does, in a line (N26, P45, S56, B37).
+- Say you have voted, and how (P28); what "you voted against your bench" cost (P30).
+- A whip or a bribe says whether it worked (P27, P70, P72); "Read the accounts" shows its finding where it was asked (P36).
+- The date of each election on its rung (P31, P41); the election alert a year early, and "in 10 years" in the election
+  year (P60, P88); the election card a year late and naming no office (P78, P42, N70).
+- A convicted man is elected consul; a banned man is commissioned (P60, P58).
+- Collapse the sixteen motion forms when the house cannot move one (P7); "qualifies: move a Commission" when it cannot (P8).
+- The census refusal should say the number wanted (P12).
+- A confirm on the consul's one veto (P97).
+- A censure should name its ground (P100).
+- A sold vote is marked on the motion (P85, N53).
+
+### The family
+
+- A word for the relation on every row and profile: "your brother", "child of X and Y" (F5, F33).
+- The terms of a marriage stay on its row (F12); the dowry chosen is marked (P35); the dowry paid is the dowry agreed
+  (F9, F82).
+- "Rival: Livia Crane" in Livia Crane's own suit (P34).
+- A second proposal accepted the same year as the first leaves two spouses in the cards (S37, S55).
+- A spouse taken into the household becomes the buyer, the borrower and the "old friend" in cards, and the head's own
+  marriage becomes "their marriage is their own" (F53, F65, F75, F76).
+- Children can be promised from seven: say so before that (F38, F77).
+- What a courtship lever is worth before pulling it (F8, P21); what each succession law would do, and its cost (F24);
+  what fostering is for (F71, N69); what a shrine does before paying (F57); the three choices for the children's name (F83).
+- A will with more than one legatee (F58).
+- A venture given to a relative still pays the house; "Sell" and "Fold" on it stay live and do nothing (F90, F51).
+- Where a married relative lives and serves (F84).
+- Why the pools fell to 2 after a succession (F96).
+
+### Money
+
+- The quantity box on the Exchange is easy to miss: three players took the lot for fixed (F27, N41, S6). Show the lot and
+  the total on the button.
+- "Hired crews" on the Exchange is "Manpower" on the top bar (N41, N75).
+- "+24 a year" on a venture is goods at today's price, not credits (F43, B29).
+- Isotopes "buy 7.92 · sell 7.96"; a note that they are "not sold on any open market" beside a Sell button (F101).
+- One purchase of five reads "heavy buying by House Quillon" and moves the price 39% (N56); two notes on one screen
+  disagree about the same price (S36).
+- A card sells helium at 1 while the market pays 6 (F34).
+- What a belt claim yields (B28, N42); what a private sale buys that the market does not (F45).
+- Put capital into your own company (F59); buy more than five shares at once (F60).
+- War bonds: rate, term and risk before buying (F55).
+- A wage for the steward, printed (B51); a reserve of materials as well as credits (F41).
+- The wealth tag "POOR" on the richest power (F15).
+
+### The front door and housekeeping
+
+- A sentence and a difficulty for each scenario; The Academy marked as where to start (N1).
+- Tooltips for the world options, ambitions, careers, ranks, cultures, parties and venture types (N2, N4, N9, N12).
+- The creator: a third nature clicked does nothing, with no word (N6); the over-budget message stays after the budget is
+  met and the button stays off (N8); the family name does not follow the person's (N10); nations' worlds are listed as
+  "unclaimed" (N36).
+- The Academy takes a first-timer for a returning one (N81).
+- The primer opens by itself in a first game and ends with three things to do (N14).
+- Keys in the rail's tooltips, a key for End Turn, a page of keys (N46).
+- "Continue" names the saga and the year (N61); Export says it exported (N49).
+- A confirm on Quit, and a true tooltip (N63).
+- The top bar lets the map show through it, and labels are drawn over its numbers (N15, B36).
+
+### Confirm before what cannot be undone
+
+One confirm box each, saying what it costs and what follows: declare war (S17, F14); marry by treaty (F10, P18); ask a
+holder to step down, a province or a world (B53, B66); seize a title (N24); sell a venture (F44); incorporate (F42); a
+succession law (F62); a law that locks (B63); the consul's veto (P97); a long voyage (S62); quit (N63); a new game over a
+save (N79). A demand made of you should say that refusing is war (F91).
+
+---
+
+## Medium
+
+### Telling the player what happened
+
+- **An outcome after every report**: the paragraph and the numbers that moved (F4, N19, S2, P2).
+- **The year in brief** at the start of each year: births, deaths, marriages, wars declared and ended, suits and fines,
+  elections, what was finished, money in and out (N50, F33, S27, P56).
+- **A death report**: who, how, what passes to whom, which posts are now empty, with the buttons to fill them (F79, B24, S44).
+- **A declaration of war on you is a report**: who, why, what they want (F64, P63, F91).
+- **A battle report**: where, who, the hulls and power of each side, stance against stance, what tipped it, the losses
+  (S38); and a **forecast before sailing**, with hull classes where intelligence allows (S39, S66).
+- **Last year's accounts** in the ledger, one-off lines included, so that the change in the treasury adds up; and a
+  forecast that counts instalments, hastening, wages, tutors and allowances (B12, B13, F47, N58, P49, P38, F63).
+- **Why loyalty and prosperity are what they are**, cause by cause (B5).
+
+### Things that happen to the player without a choice
+
+- A petition for a prefecture must not take the player's world unasked (B69, S32).
+- One heir, reckoned one way, shown everywhere; the line of succession shows who really inherits and why; the head who
+  has stepped down is not in it (F6, F67, F80, F93, F94, N34, P19).
+- Cards that do not fit the house: a forge-world's reactor for a house without one, "you have grown beyond the reach of
+  coalitions" for the poorest house, "the robe is new" in the thirteenth year, the wedding card for a couple wed nineteen
+  years, the conquered world four years late (F32, F61, F76, F85, P4, P43, P73, S34, S41, S45, N21, N68).
+- A siege you are pressing is taken over by an ally's fleet, your years are lost, and the ally takes the world (S70).
+- The house's consul is the head's sister, when the head stood (P95).
+
+### War and peace
+
+- **Peace with a house** that weighs the war: what they offer, what you may ask (a world, a province, coin, dues) by the
+  score, and an envoy whose terms can be read and accepted (S20, S28, S49, S71, P75, F66, B54).
+- **A fleet's own panel**: move, hold, a selected state that shows, cancel and recall (S10, S11, N64, B33).
+- **Detach hulls** to leave a guard; **lay up or pay off** hulls to cut the cost; **move your flag** (S50, S74, B34, S65).
+- **Supply**: its range on the map, what a depot does, how a fleet far away is fed; a forecast of fuel against what the
+  house brings up (S72, S42, S68).
+- **How to attack a world** in a war between houses: blockade, raid or siege (S26).
+- **Neutral fleets over your world**: what they are doing, and a way to ask them to go (S47, S80).
+- **An office with a fleet** says what the fleet may be used for and for how long (S69).
+- The map goes black when the browser loses its graphics context and does not come back (S79; seen in a headless
+  browser, so it may not happen to a player).
+
+### The Senate
+
+- **A roll call** for every vote, with each house's reason; the margin before a whip is paid for (P26, P29, P46, P62).
+- **What a motion would do, and how it would fare, before paying to move it** (P45, P55, N72).
+- **Bribes** priced by seats and regard, with a chance of refusal or exposure (P47); motions that sometimes fail because
+  benches follow their platforms (P71).
+- **Elections**: the candidates, your chances, the count afterwards (P31, P42, N70); a pledge of your votes at the
+  consular election, and a nomination inside the bench (P59, P87).
+- **Benches**: cross in one step with the cost shown, lead by seats or by a contest, found one (P9, P99).
+- **A consul's yearly business** (P97).
+- **Ask your patron or your bench leader** to move a motion for you, or for money, a post or backing (P6, P17, P54).
+- **Favours owed and owing**, house by house, that can be seen and called in (P53, P82, P85, P106).
+- **Your overlord's wishes on each motion**, and an account when it moves against you (P90).
+- **An answer to a demand other than yielding or war**: the praetor's court, coin, the bench (P91).
+- **Crises** explained: what it is, who is behind it, what it does each year, what each answer costs (N60, N71, P65, P104).
+- **Titles**: a strength test for seizing; one petition a year, or a vote; an alert when you qualify (N24, P39, P83, S57, S58).
+
+### Family
+
+- **Act on a person from their profile** and from the relations list: visit, gift, apologise, appoint (F17, F20, P77).
+- **Settle a quarrel between two relatives** as the head, choosing which (F74, F95).
+- **A relative asks your blessing to marry**: bless, forbid, set terms (F100).
+- **More than yes or no** to a relative, and a way to help with what they want (F36, F88).
+- **A wider field for marriage** when everyone eligible wed in the first year: lesser families, abroad, a waiting list (F37).
+- **Marriage by treaty goes through the same test as courtship**, with terms, a confirm and a choice of who (F10, F11, P18).
+- **Wards and children** under "Take someone in"; spouses in the household without being taken in (F52, F87, F84).
+- **Children think something of you**, from how they are raised (F102).
+- **The family tree** fits the window and groups children under their parents (F72).
+- **Compare suitors** in the table: sort, best skill, dowry (F7).
+- **Betroth or foster another house's child** from its page (F70).
+- **A succession law shows the line it would give** before it is decreed (F62).
+
+### Money
+
+- **A venture's sale price** tied to what was paid and how long it was held (F44, B29).
+- **Borrow** an amount you choose, from a lender you can see, and repay in part (F39).
+- **Something to do with manpower**: it reached 458 with nothing to spend it on and no Sell (B15, N75).
+- **Make an offer** on any venture of another house, from its page (F81).
+- **Tell the steward what to favour**, and see what she would do next (B51, F41).
+
+### Building and holding
+
+- **The system panel's long row**: groups that fold, "what I can begin" first, great works behind a header (B11, N37).
+- **The world's card** shows prosperity, free slots and what is rising, and builds from there; one list of what can be
+  built, whichever window it is opened from (B2, B42).
+- **Pull a building down** (B65). **Grant a province you hold** to another house (B21).
+- **Where a colony can go**: the empty systems, how far, and a way to send the fleet (B32).
+- **Claims other houses hold in your system**: what they owe, and an offer to buy them out (B50).
+- **Provinces you hold under other houses** listed in the House window and under Holdings: one player did not know it held
+  any for nineteen years (P89).
+- **Choose whom to petition for a prefecture**, and see how far their regard is from enough (P80, P23).
+
+### A first game
+
+- **Settings**: text size, sound, keys (N47, N3).
+- **A glossary**, and the Academy's lectures readable from any game (N48, N80).
+- **Aims**: the ambition's conditions and progress, what the war clock counts, a next step (N77, S14, S59).
+- **Save slots**, and a Save that saves where you are (N49, N62, N79).
+- **Undo the last action of the year** (N25).
+- **The creator**: a map for choosing a world, with what it yields and whose space it is in; a house for the spouse (N11, N13).
+
+---
+
+## Hard
+
+- **A docket**: the suits for and against the house, with a plea, an advocate, a settlement and a counter-suit; a notice
+  and a defence when you are charged (P50, P101, P79).
+- **Dealings between houses**: gifts, favours asked and called in, a pledged vote, a threat, a loan at interest, with
+  regard and debts that last. Today a house's page offers a client, a patron, a marriage, an accident and a war
+  (P16, P106, F13, N44, P81).
+- **A title ladder with rungs that must be earned**: land, seats or a carried vote above Prefect; a breakdown of what
+  legitimacy is made of (P94, P83, S58).
+- **Things worth a rich house's money**: endow a child, build a seat, fund a relative's campaign, lend to houses. One
+  treasury reached 3,034 at 200 a year with nothing to spend it on (F99).
+- **Cornering a good**: who holds what, how much there is, and a price that answers to a majority held; or a plain word
+  that it cannot be done (F46).
+- **Commanding a navy**: captains to appoint from the service, squadrons split and joined, supply lines, hulls laid up,
+  and a year-end report of the war. The pieces are in Medium; together they are a system (S50, S65, S72, S74, S27).
+
+---
+
+## What worked well
+
+Said by more than one player, unprompted:
+
+- **A disabled button nearly always says why**, and usually exactly.
+- **The Chronicle** holds everything, by year, with filters. It was where every player went to find out what had happened,
+  which is also the complaint.
+- **The courtship panel**: "they will refuse: the match stands at 46 with them and needs 50", changing as the terms change.
+- **Your duties in the Senate, and a magistrate's business**: every choice says what it does, with numbers.
+- **The system panel's build lines, the slot breakdown and the infrastructure tab.**
+- **Provinces**: dues, commuting, building in a province on another house's world, the levy arriving in a war and going
+  home at the peace.
+- **Projects**: paid, owed, next year, pause, rush, abandon with the refund stated.
+- **The venture table and the company board.**
+- **Purses and the will.**
+- **The career of an officer**: ranks, an epithet, a record, renown.
+- **The beyond-the-Reach tab, and its graded peace.**
+- **The character creator.**
+- **No crash, no hang and no console error in 113 years of play; a turn takes four to six seconds.**
+
+## Playing it again
+
+`tools/browser/driver.js` keeps one browser open on one game and answers over HTTP: the screen as text, every control
+with its tooltip, a click, an end of turn. `tools/browser/PLAYING.md` says how. A playthrough of twenty-five years takes
+about an hour.

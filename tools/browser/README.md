@@ -66,3 +66,9 @@ These run without a browser, from the tools project:
 | `praetoria survive --scenario all --seeds 12` | How often a passive player's line ends, and when the head weds and has a child. |
 | `praetoria balance --scenario the_fallen_house --seeds 2` | Prices, production against use, the Exchange and the three orders after sixty years. |
 | `praetoria qa --scenario all --seeds 3 --turns 60` | The soak: invariants, save and load, which events and commands were reached. |
+
+## Playing a whole game
+
+`driver.js` keeps one browser open on one game and is driven over HTTP: the screen as text, every control with its tooltip,
+a click, an end of turn. It is how the playthroughs of docs/PLAYTHROUGH.md were played. `PLAYING.md` says how to use it.
+

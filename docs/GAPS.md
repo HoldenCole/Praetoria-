@@ -11,6 +11,9 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 Last updated 2026-11-17 (known stories played against the game, R1 to R20 mapped, docs/ROLEPLAY.md; the owner's answers recorded; R14a, R4 and R8 closed).
 2026-11-18: the first stage of R5 built (docs/THRONE.md); R10 planned and its first stage built (docs/BEYOND.md); then, on the owner's word, the Vashti Khanates put on the map (R10b closed, N1 to N8 mapped), and after them the Free Cities of Thessar (R10c closed, N9 to N12 mapped) and the Ardent Concord (R10d closed, N13 to N15 mapped). 2026-11-19: the Outer Compact and the Hollow Crown put on the map, so all five are (R10e closed, N16 to N19 mapped); then the owner's answers on the map and on war built (R10f closed with N2, N3, N7 and N9; N20 to N25 mapped), and after them the answers on the kinds of peace, how often nations attack and what defying the Senate costs (R10g closed with N23; N26 mapped), and a peace negotiated or won by the war score (R10h closed). The owner's decisions on the nations are one list at the end of docs/BEYOND.md.
 
+> **Found by playing (2026-11-20):** five playthroughs and what a player wanted to do and could not, sorted easy, medium and
+> hard, are in `docs/PLAYTHROUGH.md`. They are not repeated in this register.
+
 ## The worklist
 
 Set by the owner on 2026-11-14: close what exists, then deepen it; no new systems until this list is short. Every
