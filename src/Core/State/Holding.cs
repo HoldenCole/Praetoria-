@@ -33,6 +33,8 @@ public sealed class Holding
     public List<string> Buildings { get; set; } = new();
     /// <summary>The levels of its buildings above the first (docs/BUILDINGS.md): building id → level. A building not named is at its first.</summary>
     public Dictionary<string, int> Upgrades { get; set; } = new();
+    /// <summary>The provinces of a world (docs/PROVINCES.md): three on a planet, the first the seat of the house that holds it.</summary>
+    public List<Province> Provinces { get; set; } = new();
     public int LevelOf(string buildingId) => Upgrades.TryGetValue(buildingId, out var v) ? Math.Max(1, v) : 1;
 
     /// <summary>"planet" (the world itself — whoever holds it holds the system) or "station" (an orbital, a belt

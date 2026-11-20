@@ -141,6 +141,26 @@ public sealed class BuildRules
     public Resources ClearCostOf(int already) { var c = new Resources(); foreach (var r in Resource.All) c.Set(r, ClearCost.Get(r) * (already + 1)); return c; }
 }
 
+/// <summary>What a province of a world is given over to (docs/PROVINCES.md): what it yields its holder a year, what it adds to the
+/// system's defence, and what kind of world it is found on. Content: provinces.json.</summary>
+public sealed class ProvinceFocus
+{
+    public string Id { get; init; } = ""; public string Name { get; init; } = ""; public string Title { get; init; } = "{0}"; public string Description { get; init; } = "";
+    public string Deposit { get; init; } = ""; public bool Military { get; init; } public IReadOnlyList<string> Classes { get; init; } = Array.Empty<string>();
+    public Resources Yield { get; init; } = new(); public double Defense { get; init; }
+}
+/// <summary>The rules of provinces: the focuses, what improving one costs, and what a demand that a holder step down costs and risks.</summary>
+public sealed class ProvinceRules
+{
+    public const string Seat = "seat";
+    public IReadOnlyList<ProvinceFocus> Focuses { get; init; } = Array.Empty<ProvinceFocus>();
+    public Resources ImproveCost { get; init; } = new() { Credits = 10, Materials = 8 };
+    public int DemandInfluence { get; init; } = 3; public int DemandInfluenceWorld { get; init; } = 6; public int YieldsAt { get; init; } = 150; public int StepDownLegitimacy { get; init; } = -6; public int AnswerYears { get; init; } = 1;
+    public int NpcProvinceYears { get; init; } = 30; public int NpcWorldYears { get; init; } = 60;
+    public ProvinceFocus? Focus(string id) { foreach (var f in Focuses) if (f.Id == id) return f; return null; }
+    public Resources ImproveCostOf(int level) { var c = new Resources(); foreach (var r in Resource.All) c.Set(r, ImproveCost.Get(r) * Math.Max(1, level)); return c; }
+}
+
 /// <summary>A work: what the holder of a system builds on one of its bodies (docs/SYSTEMS.md) — a colony, a mine, a base, a
 /// megastructure, or a wonder that only one feature allows. Its yearly <see cref="Yield"/> less <see cref="Upkeep"/> goes to whoever
 /// holds the system's world; the rest of what it does is in the fields. Pure data.</summary>
@@ -239,6 +259,7 @@ public sealed class HoldingCatalog
     public int SmallSlots { get; init; } = 1;
     public IReadOnlyList<InfrastructureDef> Infrastructure { get; init; } = Array.Empty<InfrastructureDef>();
     public BuildRules Rules { get; init; } = new();
+    public ProvinceRules Provinces { get; init; } = new();
     public InfrastructureDef? Track(string id) => Infrastructure.FirstOrDefault(t => t.Id == id);
     private Dictionary<string, WorkDef>? _works;
     public WorkDef? Work(string id) => (_works ??= Works.ToDictionary(w => w.Id)).TryGetValue(id, out var d) ? d : null;

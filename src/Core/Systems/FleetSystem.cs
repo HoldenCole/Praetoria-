@@ -758,6 +758,7 @@ public sealed class FleetSystem
             d += _catalog.Spec(h.Specialization)?.Defense ?? 0;
             foreach (var b in h.Buildings) d += _catalog.Building(b)?.Defense ?? 0;
         }
+        if (w.PlanetOf(systemId) is { } seat && seat.OwnerId == houseId && seat.Provinces.Count > 0) d += ProvinceSystem.Defense(_catalog, seat);   // a march (docs/PROVINCES.md)
         if (SystemWorks.Any(w) && w.PlanetHolder(systemId) == houseId) d += SystemWorks.Defense(w, _catalog, systemId);   // batteries, a fortress moon (docs/SYSTEMS.md)
         return d;
     }
@@ -808,7 +809,7 @@ public sealed class FleetSystem
     /// <summary>Turns a blockade needs to take a holding: the base plus two per point of its defense.</summary>
     public int SiegeRequired(World w, Holding h) =>
         _rules.SiegeTurns + (int)Math.Ceiling(2 * ((_catalog.Spec(h.Specialization)?.Defense ?? 0) + h.Buildings.Sum(b => _catalog.Building(b)?.Defense ?? 0)
-            + (h.IsPlanet && SystemWorks.Any(w) ? SystemWorks.Defense(w, _catalog, h.SystemId) : 0)));
+            + (h.IsPlanet && SystemWorks.Any(w) ? SystemWorks.Defense(w, _catalog, h.SystemId) : 0) + (h.IsPlanet && h.Provinces.Count > 0 ? ProvinceSystem.Defense(_catalog, h) : 0)));
 
     /// <summary>Advance sieges: an enemy fleet alone in the sky over a holding tightens the blockade; when the clock
     /// reaches the holding's resistance it changes hands (GDD §13 Military — "take it"). A contested sky lifts the siege.</summary>

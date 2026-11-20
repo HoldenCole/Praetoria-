@@ -42,7 +42,7 @@ what the screen has room for: **10 on a home world, 5 anywhere else**.
 | **1. Development** (the main one) | +1 at development 2, 4, 6, 8, 10: up to +5 | +1 at 3, 6, 9: up to +3 | the system's, 0 to 10 |
 | **2. Rank** of the house that holds it | +1 at baron, duke and emperor (title ranks 2, 4, 6): up to +3 | +1 at count and archduke (ranks 3, 5): up to +2 | goes with whoever holds the world |
 | **3. Money**: ground cleared | up to +3 | up to +2 | the Nth costs N × 14 cr, 10 mat, paid at once |
-| The whole system is one house's | +1 | | lost while another house has a holding in the system |
+| The whole system is one house's | +1 | | only while its holder has every province of its world and no other house has a holding in the system (docs/PROVINCES.md) |
 
 | place | starts with | site for a great work |
 |---|---|---|
@@ -68,8 +68,9 @@ Every held system has a **development** from 0 to 100; its **level** is a tenth 
   its people, and 10 on a prosperous world (prosperity 65 or more).
 - It **grows a point a year** toward that, two on a prosperous world. **Laying a level of infrastructure adds 3 at once.**
 - Under **siege or revolt it falls 2 a year**; above what it can bear it falls one.
-- Slots that development gave are not taken away from what stands: a place can be over-full, and then nothing new is
-  built there until there is room again.
+- Slots that development gave are not taken away from what stands: a place can be **over-full**. Then nothing new is
+  built there, and every building that stands without a slot is a point of unrest a year on the system's world, until
+  there is room again.
 
 So the way to more slots is the old way to a richer world: infrastructure, people, prosperity, peace.
 
@@ -106,10 +107,10 @@ All of them share **one row of slots**, the largest in the system. Which to spen
 | Hospital Quarter | upkeep 1 cr · room +10 · unrest −1/yr | 16 cr, 10 mat | 2 | one to a system |
 | Mint | +5 cr · upkeep 1 mat | 26 cr, 16 mat, 2 inf | 3 | one to a house; count or higher |
 
-**Part of a world, a whole world, a whole system.** A house that holds the world holds what is built round it. While
-another house has a holding in the system (a station, a claim) the home world has a slot the fewer; a house with only
-such a holding and not the world builds on its holding alone, with its specialization's slots. That is all the
-difference there is yet: see GAPS U7.
+**Part of a world, a whole world, a whole system.** A world has three provinces (docs/PROVINCES.md): its seat, which
+is its holder's, and two held by other houses. A house with a province has what the province pays and nothing else of
+the world. The house that holds the world has its row of slots and every other place in the system. A house that holds
+the world, all three provinces and every holding in the system has the slot more that the table above gives.
 
 ### The rest
 
@@ -257,8 +258,8 @@ difference there is yet: see GAPS U7.
 | the house is | at a time |
 |---|---|
 | a house like any other | 1 |
-| the leader of a region: the house that dominates one, or a duke | 2 |
-| a head of state: a consul, the holder of the capital, the head of a state that has left, an archduke | 3 |
+| the leader of a region: the house that dominates one, or a duke or archduke | 2 |
+| a head of state: a consul of the Republic; the king, president or dictator of a state that has left it; the ruling house of a nation | 3 |
 | the emperor | 5 |
 
 **Hastening.** A great work is not bought outright (the rush that an ordinary project allows is refused it). It can be
@@ -359,18 +360,27 @@ moved to its site.
 keyed by the id in content, with the same openly licensed model as the portraits; the panel shows it beside the thing.
 They are AI-generated (docs/ART_DIRECTION.md).
 
+The owner's rule (2026-11-20) is that a picture matches its subject or is not there, and that a set has all its pictures
+or none. The whole set was audited on contact sheets that day: nineteen that did not show their subject were painted
+again from simpler prompts and a different composition (a hospital as a ward with beds, a breakers' yard as a hull in a
+hangar with men cutting it, a sensor array as a row of dishes), and one that the model had signed in a corner was
+trimmed. The set ships whole.
+
+## Decided by the owner
+
+- **A head of state is the head of a state.** "King" is the head of a monarchy that is not big enough to be an empire;
+  the Republic the game opens in is Roman, so its heads are the consuls; a republic of another kind (one a player founds,
+  or the Republic reformed) has its own. So three great works at a time go to a consul, to the king, president or
+  dictator of a state that has left the Reach (by its form of government), and to the ruling house of a nation. An
+  archduke under someone, and the house that happens to hold the capital, are not heads of state.
+- **Rank adds slots everywhere**, on the home world and on every other place.
+- **Artwork matches or there is none**, and never some with and some without (docs/ART_DIRECTION.md).
+
 ## What the owner might want to change
 
-1. **The figures.** All of them are in `works.json` under `slotRules`, `development` and `greatWorks`: the levels of
-   development that open a slot, the ranks that do, how much ground can be cleared and at what price, the caps of 10 and 5,
-   how fast development grows, what hastening costs.
-2. **Who counts as a head of state.** A consul, the holder of the capital, the head of a state that has left, and an
-   archduke raise three great works; a duke or the house that dominates a region raises two. In the Republic the titles
-   are offices in all but name, so the consuls are the "president" and a breakaway's head the "king".
-3. **Rank on other places.** A count's moons have a slot more than a baron's. If rank should only matter on the home
-   world, `rankBody` is the line.
-4. **What an over-full place should suffer.** Nothing now: it cannot build until there is room.
-5. **Which buildings are missing.** Anything a kind of body or a home world ought to have and does not is a line of
+1. **The figures.** All of them are in `works.json` under `slotRules`, `development` and `greatWorks`.
+2. **What an over-full place suffers.** A point of unrest a year for each building without a slot. Nothing falls down.
+3. **Which buildings are missing.** Anything a kind of body or a home world ought to have and does not is a line of
    content and a line in the art script.
 
 ## Not done

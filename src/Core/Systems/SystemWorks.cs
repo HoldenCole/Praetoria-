@@ -82,10 +82,11 @@ public static class SystemWorks
 
     private static int Rank(World w, string systemId) => w.PlanetHolder(systemId) is { } id && w.House(id) is { } h ? Progression.Title.RankOf(h.Title) : 0;
     public static int Cleared(World w, string systemId, int body) => w.ClearedSlots.TryGetValue(Target(systemId, body), out var v) ? v : 0;
-    /// <summary>Whether nobody but its holder has a holding in the system: the whole of it is one house's.</summary>
+    /// <summary>Whether nobody but its holder has a holding in the system or a province of its world: the whole of it is one house's.</summary>
     public static bool Undivided(World w, string systemId)
     {
         var holder = w.PlanetHolder(systemId); if (holder == null) return false;
+        if (w.PlanetOf(systemId) is { } planet && ProvinceSystem.Divided(planet)) return false;
         foreach (var h in w.Holdings.Values) if (h.SystemId == systemId && h.OwnerId != holder) return false;
         return true;
     }
@@ -168,18 +169,27 @@ public static class SystemWorks
     /// <summary>What a house is, for how many great works it may raise at once (the owner, 2026-11-20: "everyone unless they are much
     /// higher up can only do one great work at a time per house. But if you are the leader of a region, you can do two, and if you
     /// are higher up like a king or president, you can do three. Finally, an emperor would be able to do five"): the emperor; a head
-    /// of state (a consul, the holder of the capital, the head of a state that has left, an archduke); the leader of a region (the
-    /// house that dominates one, or a duke); or a house like any other.</summary>
+    /// of state (a consul of the Republic; the king, president or dictator of a state that has left it; the ruling house of a nation); the leader of
+    /// a region (the house that dominates one, or a duke or archduke); or a house like any other.</summary>
     public static string Standing(World w, House house)
     {
+        // (the owner, 2026-11-20: a king is the head of a monarchy "not big enough to be an empire"; in the Republic the head is a consul;
+        // other republics have their own.) A head of state is the head of a state and nobody else.
         if (house.Title == Progression.Title.Emperor) return StandingEmperor;
-        int rank = Progression.Title.RankOf(house.Title);
-        if (rank >= 5 || RegionSystem.CapitalHolder(w)?.Id == house.Id) return StandingState;
-        foreach (var o in w.Offices) if (o.HouseId == house.Id && o.OfficeId.StartsWith("consul", StringComparison.Ordinal)) return StandingState;
-        foreach (var p in w.Polities) if (p.HeadHouseId == house.Id) return StandingState;
-        if (rank >= 4 || PolicySystem.RegionsDominated(w, house.Id).Any()) return StandingRegion;
+        if (HeadOfState(w, house) != null) return StandingState;
+        if (Progression.Title.RankOf(house.Title) >= 4 || PolicySystem.RegionsDominated(w, house.Id).Any()) return StandingRegion;
         return StandingHouse;
     }
+    /// <summary>What a house is the head of state as, or null: "a consul", "the king of X", "the president of X", "the dictator of X",
+    /// "the ruler of a nation".</summary>
+    public static string? HeadOfState(World w, House house)
+    {
+        foreach (var p in w.Polities) if (p.HeadHouseId == house.Id) return (p.Form == "kingdom" ? "the king of " : p.Form == "dictatorship" ? "the dictator of " : "the president of ") + p.Name;
+        foreach (var o in w.Offices) if (o.HouseId == house.Id && o.OfficeId.StartsWith("consul", StringComparison.Ordinal)) return "a consul";
+        return State.Nation.IsHouse(house.Id) ? "the ruler of a nation" : null;
+    }
+    /// <summary>What a house is, in words, for how many great works it may raise.</summary>
+    public static string StandingName(World w, House house) => Standing(w, house) switch { StandingEmperor => "an emperor", StandingState => HeadOfState(w, house) ?? "a head of state", StandingRegion => "the leader of a region", _ => "a house" };
     public static int Capacity(World w, HoldingCatalog cat, House house) => Standing(w, house) switch
     { StandingEmperor => cat.Rules.CapacityEmperor, StandingState => cat.Rules.CapacityHeadOfState, StandingRegion => cat.Rules.CapacityRegionLeader, _ => cat.Rules.CapacityHouse };
     public static string StandingLabel(string standing) => standing switch { StandingEmperor => "an emperor", StandingState => "a head of state", StandingRegion => "the leader of a region", _ => "a house" };
@@ -269,7 +279,7 @@ public static class SystemWorks
         {
             if (Site(w, cat, systemId, body) is { } there) return $"its site is taken: {cat.Work(there)?.Name ?? there}";
             int rising = Raising(w, cat, house.Id).Count(), may = Capacity(w, cat, house);
-            if (rising >= may) return may == 1 ? $"the house is already raising {Raising(w, cat, house.Id).First().Name}: one great work at a time" : $"the house is raising {rising} great works: {StandingLabel(Standing(w, house))} may raise {may} at a time";
+            if (rising >= may) return may == 1 ? $"the house is already raising {Raising(w, cat, house.Id).First().Name}: one great work at a time" : $"the house is raising {rising} great works: {StandingName(w, house)} may raise {may} at a time";
         }
         else if (FreeSlots(w, cat, sys, body) <= 0) return Slots(w, cat, sys, body) == 0 ? "nothing but a great work can be built here" : "no free slot here: development, rank and cleared ground open more";
         if (def.MinTitleRank > 0 && (titles?.RankOf(house.Title) ?? Progression.Title.RankOf(house.Title)) < def.MinTitleRank) return "needs a greater rank";
@@ -327,7 +337,15 @@ public static class SystemWorks
     public static double Defense(World w, HoldingCatalog cat, string systemId) { double d = 0; foreach (var x in In(w, systemId)) d += (cat.Work(x.DefId)?.Defense ?? 0) * Math.Max(1, x.Level); foreach (var (t, lv) in Levels(w, cat, systemId)) d += t.Defense * lv; return d; }
     public static bool Depot(World w, HoldingCatalog cat, string systemId) { foreach (var x in In(w, systemId)) if (cat.Work(x.DefId)?.Depot == true) return true; foreach (var (t, lv) in Levels(w, cat, systemId)) if (t.DepotAt > 0 && lv >= t.DepotAt) return true; return false; }
     public static int Prosperity(World w, HoldingCatalog cat, string systemId) { int v = 0; foreach (var x in In(w, systemId)) v += cat.Work(x.DefId)?.Prosperity ?? 0; foreach (var (t, lv) in Levels(w, cat, systemId)) v += t.Prosperity * lv; return v; }
-    public static int Unrest(World w, HoldingCatalog cat, string systemId) { int v = 0; foreach (var x in In(w, systemId)) v += cat.Work(x.DefId)?.Unrest ?? 0; foreach (var (t, lv) in Levels(w, cat, systemId)) v -= t.CalmAt.Count(l => l <= lv); return v; }
+    /// <summary>How many buildings in a system stand where there is no slot for them (its development fell, a lesser house took it):
+    /// each is a point of unrest a year on its world until there is room again.</summary>
+    public static int Crowding(World w, HoldingCatalog cat, string systemId)
+    {
+        var sys = w.Galaxy?.System(systemId); if (sys == null || w.PlanetOf(systemId) == null) return 0; int n = 0;
+        for (int i = 0; i < sys.Bodies.Count; i++) { if (sys.Bodies[i].IsStar) continue; int used = SlotsUsed(w, cat, systemId, i); if (used > 0) n += Math.Max(0, used - Slots(w, cat, sys, i)); }
+        return n;
+    }
+    public static int Unrest(World w, HoldingCatalog cat, string systemId) { int v = Crowding(w, cat, systemId); foreach (var x in In(w, systemId)) v += cat.Work(x.DefId)?.Unrest ?? 0; foreach (var (t, lv) in Levels(w, cat, systemId)) v -= t.CalmAt.Count(l => l <= lv); return v; }
     public static int Population(World w, HoldingCatalog cat, string systemId) { int v = 0; foreach (var x in In(w, systemId)) v += (cat.Work(x.DefId)?.Population ?? 0) * Math.Max(1, x.Level); foreach (var (t, lv) in Levels(w, cat, systemId)) v += t.Population * lv; return v; }
 
     // ---------------- infrastructure: the system's own, a level at a time ----------------

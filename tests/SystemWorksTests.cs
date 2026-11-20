@@ -193,7 +193,8 @@ public class SystemWorksTests
         // money, you can potentially clear obstacles or just pay to unlock more slots"
         var (w, tc, house, me, ctx) = Start(); var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var sys = w.Galaxy!.System(seat.SystemId)!; var r = Cat.Rules;
         int home = sys.Bodies.FindIndex(b => b.IsPrimary), moon = sys.Bodies.FindIndex(b => !b.IsPrimary && !b.IsStar);
-        foreach (var h in w.Holdings.Values.Where(h => h.SystemId == sys.Id && h.OwnerId != house.Id).ToList()) h.OwnerId = house.Id;   // the whole system is the house's
+        foreach (var h in w.Holdings.Values.Where(h => h.SystemId == sys.Id && h.OwnerId != house.Id).ToList()) h.OwnerId = house.Id;
+        foreach (var p in seat.Provinces.Skip(1)) p.HolderId = ""; w.ProvincesChanged();   // the whole system is the house's, every province of its world with it
         house.Title = "knight"; w.Development[sys.Id] = 0; int baseHome = Cat.Spec(seat.Specialization)!.Slots + r.Undivided, baseMoon = SystemWorks.Slots(w, Cat, sys, moon);
         Assert.Equal(baseHome, SystemWorks.Slots(w, Cat, sys, home)); Assert.Equal(baseHome, SystemWorks.WorldSlots(w, Cat, seat));
         // development is the main one: every level named opens a slot, on the home world sooner and more often than elsewhere
@@ -314,12 +315,12 @@ public class SystemWorksTests
         var (w, tc, house, me, ctx) = Start(); var r = Cat.Rules; var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var sys = w.Galaxy!.System(seat.SystemId)!;
         Assert.Equal((1, 2, 3, 5), (r.CapacityHouse, r.CapacityRegionLeader, r.CapacityHeadOfState, r.CapacityEmperor));
         w.Offices.RemoveAll(o => o.HouseId == house.Id); foreach (var p in w.Polities) if (p.HeadHouseId == house.Id) p.HeadHouseId = "";
-        bool capital = RegionSystem.CapitalHolder(w)?.Id == house.Id, dominant = PolicySystem.RegionsDominated(w, house.Id).Any();
-        house.Title = "baron"; if (!capital && !dominant) { Assert.Equal(SystemWorks.StandingHouse, SystemWorks.Standing(w, house)); Assert.Equal(1, SystemWorks.Capacity(w, Cat, house)); }
-        house.Title = "duke"; if (!capital) { Assert.Equal(SystemWorks.StandingRegion, SystemWorks.Standing(w, house)); Assert.Equal(2, SystemWorks.Capacity(w, Cat, house)); }
+        bool dominant = PolicySystem.RegionsDominated(w, house.Id).Any();
+        house.Title = "baron"; if (!dominant) { Assert.Equal(SystemWorks.StandingHouse, SystemWorks.Standing(w, house)); Assert.Equal(1, SystemWorks.Capacity(w, Cat, house)); }
+        house.Title = "duke"; { Assert.Equal(SystemWorks.StandingRegion, SystemWorks.Standing(w, house)); Assert.Equal(2, SystemWorks.Capacity(w, Cat, house)); }
         // a consul is a head of state, whatever the house's title
         house.Title = "baron"; w.Offices.Add(new OfficeHolding { OfficeId = "consul_senior", HouseId = house.Id, CharacterId = me.Id }); Assert.Equal(SystemWorks.StandingState, SystemWorks.Standing(w, house)); Assert.Equal(3, SystemWorks.Capacity(w, Cat, house));
-        w.Offices.RemoveAll(o => o.HouseId == house.Id); house.Title = "archduke"; Assert.Equal(3, SystemWorks.Capacity(w, Cat, house));
+        w.Offices.RemoveAll(o => o.HouseId == house.Id); house.Title = "archduke"; Assert.Equal(2, SystemWorks.Capacity(w, Cat, house));   // a great lord under someone is not a head of state
         house.Title = "emperor"; Assert.Equal(SystemWorks.StandingEmperor, SystemWorks.Standing(w, house)); Assert.Equal(5, SystemWorks.Capacity(w, Cat, house));
         // an emperor begins five, each on a site of its own, and is refused the sixth
         house.Treasury.Credits = 5000; house.Treasury.Materials = 5000; house.Treasury.Exotics = 500; house.Treasury.Influence = 500; house.Treasury.Manpower = 500;

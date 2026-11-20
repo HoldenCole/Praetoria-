@@ -66,6 +66,7 @@ public sealed class Economy
         var tax = _catalog.Tax(house.TaxPolicy);
         var head = HeadOf(world, house);
 
+        foreach (var (name, net) in ProvinceSystem.GivenLines(world, _catalog, houseId)) ledger.Add(name, "province", net);   // the provinces it was given on worlds, its own or another's (docs/PROVINCES.md)
         foreach (var holding in world.HoldingsOf(houseId).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var spec = _catalog.Spec(holding.Specialization); if (spec == null) continue;
@@ -108,6 +109,7 @@ public sealed class Economy
             if (holding.GovernorId.Length > 0 && (world.Char(holding.GovernorId)?.Skill("administration") ?? 0) >= AbleGovernorAdministration && holding.IsPlanet) d.Add(Resource.Credits, 1);
             if (head != null && holding.GovernorId.Length > 0 && holding.GovernorId != head.Id && (world.GetRelationship(holding.GovernorId, head.Id)?.Disposition ?? 0) <= GovernorSkimThreshold) d.Add(Resource.Credits, -1);
             ledger.Add(holding.Name, holding.IsClaim ? "claim" : holding.IsPlanet ? "world" : "station", d);
+            if (holding.IsPlanet && holding.Provinces.Count > 0) foreach (var (name, net) in ProvinceSystem.OwnLines(world, _catalog, holding)) ledger.Add(name, "province", net);   // its seat (docs/PROVINCES.md)
             // what is built on the bodies of its system (docs/SYSTEMS.md): the works go with the world, and a blockade halves what gets out
             if (holding.IsPlanet && SystemWorks.Any(world) && world.PlanetOf(holding.SystemId) == holding)
                 foreach (var (name, net) in SystemWorks.Lines(world, _catalog, holding.SystemId))
@@ -292,7 +294,7 @@ public sealed class Economy
                     int ringDrift = world.Galaxy != null && holding.SystemId.Length > 0 ? world.Galaxy.RulesFor(world.Galaxy.RingOf(holding.SystemId)).UnrestDrift : 0;
                     string? lawRegion = world.Galaxy?.System(holding.SystemId)?.RegionId;
                     holding.Unrest = Math.Clamp(holding.Unrest + (insolvent ? UnrestStep : -UnrestDecay) + (tax?.UnrestDrift ?? 0) + ringDrift + Law(world, house.Id, "unrest_drift", lawRegion) + ReachLaw(world, "unrest_drift")
-                        + (holding.IsPlanet && SystemWorks.Any(world) ? SystemWorks.Unrest(world, _catalog, holding.SystemId) : 0), 0, 100);
+                        + (holding.IsPlanet && world.PlanetOf(holding.SystemId) == holding ? SystemWorks.Unrest(world, _catalog, holding.SystemId) : 0), 0, 100);
                     int growth = holding.Unrest > 50 ? spec.PopGrowth / 2 : spec.PopGrowth;      // the restless do not settle
                     growth += Law(world, house.Id, "pop_growth", lawRegion);                        // homesteads, bonded labour, the commons' regard
                     if (holding.Prosperity >= 75 && spec.PopGrowth > 0) growth += 1;             // a thriving world draws people

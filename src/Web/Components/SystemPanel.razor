@@ -15,7 +15,7 @@
     for (int i = 0; i < sys.Bodies.Count; i++) { if (sys.Bodies[i].IsStar || sys.Bodies[i].IsSpace || sys.Bodies[i].Orbits >= 0) continue; order.Add(i); for (int m = 0; m < sys.Bodies.Count; m++) if (sys.Bodies[m].Orbits == i) order.Add(m); }
     int deep = sys.Bodies.FindIndex(b => b.IsSpace); if (deep >= 0) order.Add(deep);
     var colony = planet == null ? w.Projects.FirstOrDefault(p => p.Kind == Project.Colony && p.TargetId == sys.Id) : null;
-    var raising = SystemWorks.Raising(w, cat, house.Id).ToList(); int may = SystemWorks.Capacity(w, cat, house); string standingAs = SystemWorks.StandingLabel(SystemWorks.Standing(w, house));
+    var raising = SystemWorks.Raising(w, cat, house.Id).ToList(); int may = SystemWorks.Capacity(w, cat, house); string standingAs = SystemWorks.StandingName(w, house);
     var rules = cat.Rules; int dev = SystemWorks.Development(w, sys.Id), devLevel = dev / 10, devTop = SystemWorks.DevelopmentCeiling(w, cat, sys.Id), levelMay = SystemWorks.LevelAllowed(w, cat, sys.Id);
     string devParts = string.Join(" · ", SystemWorks.CeilingParts(w, cat, sys.Id).Select(x => x.what + " " + x.points));
     int nextWorld = rules.DevelopmentWorld.Where(l => l > devLevel).DefaultIfEmpty(0).Min(), nextBody = rules.DevelopmentBody.Where(l => l > devLevel).DefaultIfEmpty(0).Min(), nextUp = rules.UpgradeAt.Where(l => l > devLevel).DefaultIfEmpty(0).Min();
@@ -115,6 +115,64 @@
                     @if (feat != null) { <p class="sysp-desc">@feat.Description</p> }
                     @if (b.IsSpace) { <p class="sysp-desc">The dark between the worlds. What is built here is tied to no body: stations on the approaches, and the greatest works of all.</p> }
                     @if (world) { <p class="sysp-desc">The home world: where the system's people live and its holder sits. It takes its own buildings, some that only a home world takes, and the ordinary ones of its kind, all in the same slots.</p> }
+                    @if (world && planet!.Provinces.Count > 0)
+                    {
+                        var over = ProvinceSystem.Over(w, planet); string hid3 = planet.Id; string ownerName = mine ? "Your house" : w.House(planet.OwnerId)?.Name ?? "A house";
+                        <h5 class="sysp-h prov">Provinces <span class="muted">three to a world · each held by a house, for life</span></h5>
+                        <div class="muted small sysp-over">@ownerName holds the world, and its seat with it. @(over == null ? "Nobody stands over it." : (over.Id == house.Id ? "You stand" : over.Name + " stands") + " over it, and may ask it to make way.")</div>
+                        @for (int pi = 0; pi < planet.Provinces.Count; pi++)
+                        {
+                            var pv = planet.Provinces[pi]; var pf = cat.Provinces.Focus(pv.Focus); string holderId = ProvinceSystem.HolderOf(planet, pi); bool pmine = holderId == house.Id; int pidx = pi;
+                            var pending = w.SeatDemands.FirstOrDefault(d => d.HoldingId == planet.Id && d.Province == pidx);
+                            string? ino = pmine && pv.Level < rules.MaxLevel ? new ImproveProvinceCommand(me.Id, planet.Id, pi, cat).Refusal(ctx) : null;
+                            string giveTo = _giveTo.TryGetValue(planet.Id + "#" + pi, out var gt) ? gt : house.Id; string? dno = mine && pi > 0 && !pmine ? new DemandSeatCommand(me.Id, planet.Id, pi, giveTo, cat).Refusal(ctx) : null;
+                            string? wno = pi == 0 && over?.Id == house.Id && !mine ? new DemandSeatCommand(me.Id, planet.Id, 0, WorldFor(planet, giveTo), cat).Refusal(ctx) : null;
+                            bool atWar = !pmine && pi > 0 && w.AtWar(holderId, planet.OwnerId);
+                            <div class="sysp-prov @(pmine ? "mine" : "") @(atWar ? "war" : "")" data-province="@pv.Focus" data-holder="@holderId">
+                                <div class="sw-head"><b>@pv.Name</b> @LevelPips(pv.Level) <span class="muted small">@(pf?.Name ?? pv.Focus)</span></div>
+                                <div class="sw-does">@(pmine ? "Yours" : w.House(holderId)?.Name ?? "nobody's")@(pi > 0 && holderId != planet.OwnerId ? (pv.Since > 0 ? " since year " + pv.Since : ", for life") : pi == 0 ? ", with the world" : "") · @ProvinceDoes(pf, pv.Level)@(atWar ? " · withheld: its house is at war with the holder of the world" : "")</div>
+                                @if (pmine && pv.Level < rules.MaxLevel)
+                                {
+                                    <div class="sw-cost"><span>Level @SystemWorks.Roman(pv.Level + 1) · @Bundle(cat.Provinces.ImproveCostOf(pv.Level))</span>
+                                        <button class="opt inline" disabled="@(ino != null)" title="@(ino != null ? Cap(ino) : "It will pay " + (pv.Level + 1) + " times over.")" @onclick="() => G.Execute(new ImproveProvinceCommand(me.Id, hid3, pidx, cat))">Improve</button>
+                                    </div>
+                                    @if (ino != null) { <div class="sw-no">@Cap(ino)</div> }
+                                }
+                                @if (mine && pi > 0 && !pmine && pending == null)
+                                {
+                                    <div class="sw-cost"><span>Ask them to step down, for <select class="sysp-pick" @onchange="e => SetGive(hid3, pidx, e)">
+                                            <option value="@house.Id" selected="@(giveTo == house.Id)">your own house</option>
+                                            @foreach (var oh in w.Houses.Values.Where(x => !World.Outsider(x.Id) && x.Id != house.Id && x.Id != holderId).OrderBy(x => x.Name)) { <option value="@oh.Id" selected="@(giveTo == oh.Id)">@oh.Name</option> }
+                                        </select> · @cat.Provinces.DemandInfluence influence</span>
+                                        <button class="opt inline" disabled="@(dno != null)" title="@(dno != null ? Cap(dno) : "It was theirs for life. A house that cannot hope to win steps down; one that can, fights.")" @onclick="() => G.Execute(new DemandSeatCommand(me.Id, hid3, pidx, giveTo, cat))">Ask</button>
+                                    </div>
+                                    @if (dno != null) { <div class="sw-no">@Cap(dno)</div> }
+                                }
+                                @if (pi == 0 && over?.Id == house.Id && !mine && pending == null)
+                                {
+                                    string wfor = WorldFor(planet, giveTo);
+                                    <div class="sw-cost"><span>Ask its holder to make way for <select class="sysp-pick" @onchange="e => SetGive(hid3, pidx, e)">
+                                            @for (int k = 1; k < planet.Provinces.Count; k++) { string kh = ProvinceSystem.HolderOf(planet, k); if (kh == planet.OwnerId) continue; <option value="@kh" selected="@(wfor == kh)">@(kh == house.Id ? "your own house" : w.House(kh)?.Name ?? kh)</option> }
+                                        </select> · @cat.Provinces.DemandInfluenceWorld influence</span>
+                                        <button class="opt inline" disabled="@(wno != null)" title="@(wno != null ? Cap(wno) : "The world was theirs for life. They step down and hold a province under the house that rises, or they fight you.")" @onclick="() => G.Execute(new DemandSeatCommand(me.Id, hid3, 0, wfor, cat))">Ask</button>
+                                    </div>
+                                    @if (wno != null) { <div class="sw-no">@Cap(wno)</div> }
+                                }
+                                @if (pending != null)
+                                {
+                                    string did2 = pending.Id; string asker = w.House(pending.ById)?.Name ?? "A house"; string forWhom = pending.ForId == pending.ById ? "itself" : pending.ForId == house.Id ? "you" : w.House(pending.ForId)?.Name ?? "another";
+                                    @if (pending.AgainstId == house.Id)
+                                    {
+                                        <div class="sysp-demand">
+                                            <div><b>@asker asks you to give this up</b>, for @forWhom. It was yours for life. @(pi == 0 ? "Step down, and you hold a province under the house that rises, and your name is the less for it. Stand, and it is war with " + asker + "." : "Step down and it is gone. Stand, and it is war with " + asker + ".") Unanswered, it is taken for defiance.</div>
+                                            <div class="row small"><button class="opt inline" @onclick="() => G.Execute(new AnswerSeatDemandCommand(me.Id, did2, true, cat))">Step down</button><button class="opt inline warn" @onclick="() => G.Execute(new AnswerSeatDemandCommand(me.Id, did2, false, cat))">Stand, and fight</button></div>
+                                        </div>
+                                    }
+                                    else { <div class="muted small">@asker has asked for it, for @forWhom. No answer yet.</div> }
+                                }
+                            </div>
+                        }
+                    }
 
                     @* what stands here, and how high it may be taken *@
                     @foreach (var d in hb)
@@ -233,6 +291,22 @@
         WorkDef.Colony => "colony", WorkDef.Extraction => "extraction", WorkDef.Military => "military", _ => "civil"
     };
 
+    private readonly Dictionary<string, string> _giveTo = new();
+    private void SetGive(string holdingId, int index, ChangeEventArgs e) { _giveTo[holdingId + "#" + index] = e.Value?.ToString() ?? string.Empty; }
+    /// <summary>Whom a world is asked for: the choice made, if that house holds a province of it; else the first that does.</summary>
+    private static string WorldFor(Holding planet, string chosen)
+    {
+        if (ProvinceSystem.ProvinceOf(planet, chosen) > 0) return chosen;
+        for (int k = 1; k < planet.Provinces.Count; k++) { string kh = ProvinceSystem.HolderOf(planet, k); if (kh != planet.OwnerId) return kh; }
+        return chosen;
+    }
+    private static string ProvinceDoes(ProvinceFocus? f, int level)
+    {
+        if (f == null) return string.Empty; var y = new Resources(); foreach (var r in Resource.All) y.Set(r, f.Yield.Get(r) * Math.Max(1, level));
+        string s = y.IsEmpty() ? string.Empty : "+" + CourtProjection.Bundle(y) + " a year";
+        if (f.Defense > 0) s += (s.Length > 0 ? " · " : string.Empty) + "defence +" + (f.Defense * Math.Max(1, level)).ToString("0.##");
+        return s;
+    }
     private RenderFragment LevelPips(int level) => __builder =>
     {
         int max = G.Content!.Holdings.Rules.MaxLevel;

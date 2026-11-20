@@ -309,3 +309,21 @@ which scroll and by how much, and any section that is a heading over nothing.
 See docs/GAPS.md, "The look". The windows were converted by rule (what was a card is now an entry), not redesigned
 one by one: several still read as long pages and want tabs. Tooltips are the browser's own. The Academy and the
 character creation pages have not been through the pass. Traits, skills and offices are still words, not icons.
+
+### The rule for pictures of things (the owner, 2026-11-20)
+
+"It is better to have artwork that matches and getting that right instead of crappy artwork or something that doesn't make
+sense. It's even better to have no artwork instead of artwork that doesn't match because that is less immersion breaking.
+But we can't have artwork for some buildings and not others."
+
+So, for every set of pictures (buildings, great works, infrastructure):
+
+1. **A picture shows its subject.** Somebody who has not read the name should be able to say what the thing is: a
+   hospital has beds, a breakers' yard has a ship being cut up, a sensor array has dishes.
+2. **No picture is better than a wrong one.** A picture that shows something else is taken out, not left in.
+3. **All or none.** A set ships with a picture for every member or with none. A test holds the first half
+   (`EverythingThatCanBeBuilt_HasItsPicture`); the second is a decision made when the set is audited.
+4. **The audit is by eye, on a contact sheet of the whole set**, every time pictures are added. A subject the model will
+   not paint is given a different composition (a ward, not a hospital seen from the street; a hangar, not a wreck in
+   orbit) before it is given up on.
+

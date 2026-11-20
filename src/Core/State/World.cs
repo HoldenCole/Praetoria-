@@ -124,6 +124,8 @@ public sealed class World
     public Dictionary<string, int> Development { get; set; } = new();
     /// <summary>Slots cleared for coin, by place ("system#body").</summary>
     public Dictionary<string, int> ClearedSlots { get; set; } = new();
+    /// <summary>Demands that a holder step down, waiting on the player's answer (docs/PROVINCES.md).</summary>
+    public List<SeatDemand> SeatDemands { get; set; } = new();
     /// <summary>Ventures offered for sale to a named house, until they lapse.</summary>
     public List<VentureOffer> Offers { get; set; } = new();
     public IEnumerable<Project> ProjectsOf(string houseId) => Projects.Where(p => p.OwnerId == houseId);
@@ -234,6 +236,26 @@ public sealed class World
             _planetsOf = Holdings.Count;
         }
         return _planets.TryGetValue(systemId, out var p) ? p : null;
+    }
+    private Dictionary<string, List<(Holding h, int i)>>? _provinces; private int _provincesOf = -1;
+    /// <summary>Forget which house was given which province: call when one changes hands.</summary>
+    public void ProvincesChanged() => _provinces = null;
+    private static readonly List<(Holding h, int i)> NoProvinces = new();
+    /// <summary>The provinces a house was given (docs/PROVINCES.md): not the seats of its own worlds, which go with the worlds.</summary>
+    public IReadOnlyList<(Holding h, int i)> ProvincesOf(string houseId)
+    {
+        if (_provinces == null || _provincesOf != Holdings.Count)
+        {
+            _provinces = new Dictionary<string, List<(Holding h, int i)>>();
+            foreach (var h in Holdings.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
+                for (int i = 1; i < h.Provinces.Count; i++)
+                {
+                    string id = h.Provinces[i].HolderId; if (id.Length == 0) continue;
+                    if (!_provinces.TryGetValue(id, out var list)) _provinces[id] = list = new List<(Holding h, int i)>(); list.Add((h, i));
+                }
+            _provincesOf = Holdings.Count;
+        }
+        return _provinces.TryGetValue(houseId, out var mine) ? mine : NoProvinces;
     }
     /// <summary>The house holding the planet in a system, or null when no one does.</summary>
     public string? PlanetHolder(string systemId) => PlanetOf(systemId)?.OwnerId;

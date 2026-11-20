@@ -3,6 +3,17 @@
 ## [Unreleased]
 
 ### Added
+- **The provinces of a world** (docs/PROVINCES.md; the owner: "three regions on each planet and then the planet
+  overall ... the other two regions are controlled by different houses ... Governorship is for life unless the leader
+  over you tries to [take it] ... accept it and step down ... or you can fight in basically what would be a civil
+  war"). Every planet has three provinces: the seat, which is its holder's, and two given over to one thing each
+  (helium-3 fields, a march, foundry country, port towns: thirteen kinds, chosen for the world) and held by two other
+  houses for life. A province pays its holder and can be improved. The house that holds a world may ask a province's
+  holder to step down; the leader over that house may ask it to give up the world to one of the houses under it. The
+  one asked steps down, or stands and it is war. Rivals ask too, and the player is given a year to answer.
+- A **head of state** is the head of a state: a consul of the Republic, the king, president or dictator of a state that
+  has left it, the ruling house of a nation. An archduke and the holder of the capital no longer count as one.
+- An **over-full place** troubles its world: a point of unrest a year for every building without a slot.
 - **Slots from development, rank and money** (docs/BUILDINGS.md; the owner: "three things ... determine how many slots
   you have ... the big one and main one is development ... another one is your rank ... if you have more money, you can
   ... pay to unlock more slots"). Every held system has a **development** from 0 to 100 that grows a point a year toward

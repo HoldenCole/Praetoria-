@@ -30,7 +30,7 @@ public static class HoldingCatalogLoader
         var exchangeBuildings = new List<string>();
         var taxes = new List<TaxPolicy>();
         var works = new List<WorkDef>(); var features = new List<FeatureDef>(); ColonyRule colony = ColonyRule.Default;
-        var bodySlots = new Dictionary<string, int>(); int smallSlots = 1; var tracks = new List<InfrastructureDef>(); BuildRules rules = new();
+        var bodySlots = new Dictionary<string, int>(); int smallSlots = 1; var tracks = new List<InfrastructureDef>(); BuildRules rules = new(); ProvinceRules provinces = new();
         int contiguity = 0;
 
         foreach (var file in Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories)
@@ -81,6 +81,23 @@ public static class HoldingCatalogLoader
                             Prosperity = per.ValueKind == JsonValueKind.Object ? ConditionParser.Int(per, "prosperity", 0) : 0, Population = per.ValueKind == JsonValueKind.Object ? ConditionParser.Int(per, "population", 0) : 0
                         });
                     }
+                if (root.TryGetProperty("focuses", out var fo) && fo.ValueKind == JsonValueKind.Array)
+                {
+                    var p0 = new ProvinceRules(); var dm = root.TryGetProperty("demand", out var dmx) && dmx.ValueKind == JsonValueKind.Object ? dmx : root; var np = root.TryGetProperty("npc", out var npx) && npx.ValueKind == JsonValueKind.Object ? npx : root;
+                    provinces = new ProvinceRules
+                    {
+                        Focuses = fo.EnumerateArray().Where(e => e.TryGetProperty("id", out _)).Select(e => new ProvinceFocus
+                        {
+                            Id = e.GetProperty("id").GetString()!, Name = ConditionParser.OptStr(e, "name", ""), Title = ConditionParser.OptStr(e, "title", "{0}"), Description = ConditionParser.OptStr(e, "description", ""),
+                            Deposit = ConditionParser.OptStr(e, "deposit", ""), Military = ConditionParser.Bool(e, "military", false), Yield = ParseResources(e, "yield"), Defense = e.TryGetProperty("defense", out var pd) && pd.ValueKind == JsonValueKind.Number ? pd.GetDouble() : 0,
+                            Classes = e.TryGetProperty("classes", out var pc) && pc.ValueKind == JsonValueKind.Array ? pc.EnumerateArray().Select(x => x.GetString() ?? "").ToList() : new List<string>()
+                        }).ToList(),
+                        ImproveCost = root.TryGetProperty("improveCost", out _) ? ParseResources(root, "improveCost") : p0.ImproveCost,
+                        DemandInfluence = ConditionParser.Int(dm, "influence", p0.DemandInfluence), DemandInfluenceWorld = ConditionParser.Int(dm, "influenceWorld", p0.DemandInfluenceWorld), YieldsAt = ConditionParser.Int(dm, "yieldsAt", p0.YieldsAt),
+                        StepDownLegitimacy = ConditionParser.Int(dm, "legitimacy", p0.StepDownLegitimacy), AnswerYears = Math.Max(1, ConditionParser.Int(dm, "answerYears", p0.AnswerYears)),
+                        NpcProvinceYears = Math.Max(1, ConditionParser.Int(np, "provinceYears", p0.NpcProvinceYears)), NpcWorldYears = Math.Max(1, ConditionParser.Int(np, "worldYears", p0.NpcWorldYears))
+                    };
+                }
                 if (root.TryGetProperty("slotRules", out var sr) && sr.ValueKind == JsonValueKind.Object)
                 {
                     static List<int> Is(JsonElement e, string name, IReadOnlyList<int> d) => e.TryGetProperty(name, out var a) && a.ValueKind == JsonValueKind.Array ? a.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.Number).Select(x => x.GetInt32()).ToList() : d.ToList();
@@ -113,7 +130,7 @@ public static class HoldingCatalogLoader
             if (w.Feature.Length > 0 && features.All(f => f.Id != w.Feature)) throw new ContentException($"Work '{w.Id}' wants a feature '{w.Feature}' that is not defined.");
             if (w.Requires.Length > 0 && works.All(o => o.Id != w.Requires)) throw new ContentException($"Work '{w.Id}' requires a work '{w.Requires}' that is not defined.");
         }
-        return new HoldingCatalog(specs, buildings, rates, exchangeBuildings, taxes, contiguity) { Works = works, Features = features, Colony = colony, BodySlots = bodySlots, SmallSlots = smallSlots, Infrastructure = tracks, Rules = rules };
+        return new HoldingCatalog(specs, buildings, rates, exchangeBuildings, taxes, contiguity) { Works = works, Features = features, Colony = colony, BodySlots = bodySlots, SmallSlots = smallSlots, Infrastructure = tracks, Rules = rules, Provinces = provinces };
     }
 
     private static List<string> Strings(JsonElement el, string name) =>
