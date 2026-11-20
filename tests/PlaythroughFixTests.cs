@@ -431,4 +431,19 @@ public class PlaythroughFixTests
         w.Wars.Add(new War { HouseA = foe.Id, HouseB = house.Id, Since = w.Turn }); Assert.Contains("at war", tc.Senate.Ground(w, m));
         Assert.Equal("", tc.Senate.Ground(w, new Motion { Id = "t_l", Kind = "levy", ProposerHouseId = foe.Id }));
     }
+
+    [Fact]
+    public void AReport_NamesItsSubject()
+    {
+        // reports: "The Court Finds Against You" named neither who sued, nor over what, nor for how much
+        var (w, _, house, _, _) = Start(); var foe = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id));
+        var lost = Content.Events.First(e => e.Id == "the_court_finds_against_you"); var line = Content.Events.First(e => e.Id == "the_line_breaks");
+        Assert.Equal("", Praetoria.Core.Presentation.ReportFacts.For(w, lost, Content));
+        w.Judgments.Add(new JudgmentRecord { Turn = 3, Judge = "Eamon Thalen", WinnerId = foe.Id, LoserId = house.Id, Sum = 15, Matter = "a debt of long standing", How = "ruled where the law was doubtful" });
+        string facts = Praetoria.Core.Presentation.ReportFacts.For(w, lost, Content);
+        Assert.Contains(foe.Name, facts); Assert.Contains("a debt of long standing", facts); Assert.Contains("15 credits", facts); Assert.Contains("Eamon Thalen", facts);
+        w.Battles.Add(new BattleRecord { Turn = 4, Place = "Cinder Gate", AttackerId = foe.Id, DefenderId = house.Id, WinnerId = foe.Id, AttackerHulls = 9, DefenderHulls = 4, AttackerLost = 1, DefenderLost = 3 });
+        string fight = Praetoria.Core.Presentation.ReportFacts.For(w, line, Content);
+        Assert.Contains("Cinder Gate", fight); Assert.Contains("your 4 hull(s) against 9", fight); Assert.Contains("You lost 3", fight);
+    }
 }

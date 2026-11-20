@@ -29,6 +29,7 @@
                 </div>
             }
             <p class="prose">@b.Body</p>
+            @if (b.Facts.Length > 0) { <p class="facts small" data-facts="1">@b.Facts</p> }
         </div>
         <div class="win-choices">
             @if (b.Resolved) { <div class="done" data-answer="1">Answered@(b.Answer.Length > 0 ? ": “" + b.Answer + "”" : ".")</div> }

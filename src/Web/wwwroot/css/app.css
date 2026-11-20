@@ -1106,3 +1106,6 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 
 /* A house that may not move a motion is not shown sixteen dead forms (docs/PLAYTHROUGH.md, the Senate). */
 .propose.cannot .proposal { display: none; }
+
+/* Under a report's prose, the facts of the occasion it is about (docs/PLAYTHROUGH.md, reports). */
+.ev-body .facts { border-left: 2px solid var(--brass); padding-left: .6rem; color: var(--ink-2, #b9b3a3); margin-top: .5rem; }
