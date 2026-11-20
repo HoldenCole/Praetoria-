@@ -84,9 +84,9 @@
                             <td>@g.Stock</td>
                             <td>@g.Held @if (g.NetPerTurn != 0) { <small class="@(g.NetPerTurn > 0 ? "up" : "down")">@(g.NetPerTurn > 0 ? "+" : "")@g.NetPerTurn</small> }</td>
                             <td class="order">
-                                <input type="number" min="1" max="999" value="@qty" @onchange="e => SetQty(g.Id, e)" />
-                                @if (g.CanBuy) { <button class="opt inline tiny" disabled="@(buy.Refusal != null)" title="@(buy.Refusal ?? $"{F2(buy.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new BuyGoodCommand(pid, g.Id, qty, t))">Buy · @(buy.Credits > 0 ? buy.Credits.ToString() : "—")</button> }
-                                @if (g.CanSell) { <button class="opt inline tiny" disabled="@(sell.Refusal != null)" title="@(sell.Refusal ?? $"{F2(sell.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new SellGoodCommand(pid, g.Id, qty, t))">Sell · @(sell.Refusal == null ? sell.Credits.ToString() : "—")</button> }
+                                <label class="lot" title="How many units to buy or sell at once. Change it: the buttons show the lot and what it comes to."><small class="muted">lot</small> <input type="number" min="1" max="999" value="@qty" @oninput="e => SetQty(g.Id, e)" /></label>
+                                @if (g.CanBuy) { <button class="opt inline tiny" disabled="@(buy.Refusal != null)" title="@(buy.Refusal ?? $"{F2(buy.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new BuyGoodCommand(pid, g.Id, qty, t))">Buy @qty · @(buy.Credits > 0 ? buy.Credits + " cr" : "—")</button> }
+                                @if (g.CanSell) { <button class="opt inline tiny" disabled="@(sell.Refusal != null)" title="@(sell.Refusal ?? $"{F2(sell.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new SellGoodCommand(pid, g.Id, qty, t))">Sell @qty · @(sell.Refusal == null ? sell.Credits + " cr" : "—")</button> }
                             </td>
                         </tr>
                         @if (loud) { <tr class="cause"><td colspan="7"><span class="muted small">@Cap(g.Cause)@(g.BuyRefusal != null ? " · " + g.BuyRefusal : "")</span></td></tr> }
