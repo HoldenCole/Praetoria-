@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- **The map shows a different level at each zoom** (the owner: "the ck3 method"). From far off it shows the realms:
+  the Reach as one, each nation beyond it as one, with their names. In the middle distance it shows the houses,
+  each holder's worlds run together in its colour. Close to it shows the systems, a fine line round each. The
+  three cross-fade as you zoom, and the lines and fills are much lighter than before.
 - **Nothing on the map is written over anything else.** Names of regions, systems and fleets no longer overlap each
   other, the stars, or the outliner, legend, minimap and windows: a name with no room is left out rather than drawn
   on top of another. The legend is a single line until hovered, and the outliner's text has a solid ground.

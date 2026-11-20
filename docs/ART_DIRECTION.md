@@ -167,10 +167,14 @@ gone. Star Dynasties is a second: reviewers found its simple portraits made peop
   chamber, a table or a market. The window has a metal title bar and a close button; its body scrolls as one page.
 - **Right**: the outliner, on the map, with no column behind it: reports as rows, alerts, the council, fleets,
   holdings. It hides on a narrow screen.
-- **Territory is stained glass** (2026-11-20, after the BattleTech conversion below): every held system is a cell
-  filled in its holder's colour, with a dark line between cells and a wider, lit one where two holders meet; a
-  system nobody holds is a pale ring; a region's edge is a pale line. A house, the Reach and a nation read as
-  blocks at any zoom.
+- **Territory is drawn by zoom, as Crusader Kings III does it** (the owner, 2026-11-20: "The map and highlighting looks
+  bulky. Lets do the ck3 method that shows specific highlighting on certain levels depending on zoom"). Three
+  drawings of the same cells, cross-faded by the camera's distance. **From far off, the realms**: the Reach as one
+  wash of marble, each nation beyond it as one in its own colour, a state that has left as one, with the realms'
+  names and nothing else. **In the middle distance, the houses**: each holder's worlds run together in its colour,
+  a thin line where two holders meet, a hairline at a region's edge, and the regions' names. **Close to, the
+  systems**: a faint tint and a fine line round each cell, so the stars and worlds are what is looked at. Lines
+  are thin and fills are light; a system nobody holds is a pale ring.
 - **Nothing on the map is written over anything else** (the owner, 2026-11-20: "overlapping words and things on the
   map"). A name that would sit on another name, or under the bar, a window, the outliner, the legend or the minimap,
   is not shown; a region's name looks for room near its centre, clear of the stars if it can, and is left out if

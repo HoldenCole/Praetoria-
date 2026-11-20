@@ -975,3 +975,7 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 .game .legend::before { content: "Legend"; font-family: var(--display); font-size: .62rem; letter-spacing: .18em; text-transform: uppercase; color: var(--brass2); align-self: center; }
 .game .outliner { background: linear-gradient(270deg, rgba(5,7,12,.95), rgba(5,7,12,.86) 78%, rgba(5,7,12,0)); }
 .map-tip:empty { display: none !important; }
+/* names by zoom, as the territory is drawn (docs/ART_DIRECTION.md, "The shell"): the realms' names from far off, the regions' in the
+   middle distance, the systems' close to */
+.polity-label { font-family: var(--display); font-weight: 600; letter-spacing: .34em; text-transform: uppercase; white-space: nowrap; opacity: .92; text-shadow: 0 2px 6px #000, 0 0 16px rgba(0,0,0,.9); filter: brightness(1.35) saturate(.75); pointer-events: none; }
+.gl-labels:not(.realm) .polity-label { display: none; } .gl-labels.realm .region-label, .gl-labels.realm .fleet-label, .gl-labels.realm .sys-label:not(.mine) { display: none; }

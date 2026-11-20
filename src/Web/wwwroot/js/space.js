@@ -146,48 +146,60 @@ export class Galaxy {
       this.home = { t: this.target.clone(), d: this.distance }; this.homeSet = true; this.updateCamera(true);
     }
 
-    // Territory as stained glass (docs/ART_DIRECTION.md, "A mod worth learning from"): every held system is a cell filled in its
-    // holder's colour, with a dark lead between cells — a hairline between two cells of one holder, a wider one where two holders
-    // meet, lit along its inner edge — so a house's worlds, the Reach and a nation read as blocks at any zoom. A system nobody
-    // holds has no cell, only a pale disc round its star, so the map thins out where the holding does. A region's edge is a pale
-    // line over the leads. Rasterised when the holding changes, not on every model.
+    // Territory by zoom, as Crusader Kings III does it (the owner: "the ck3 method that shows specific highlighting on certain
+    // levels depending on zoom"). Three drawings of the same cells, cross-faded by how far off the camera is:
+    //   from far off, the realms: the Reach as one, each nation beyond it as one, a state that has left it as one, and their names;
+    //   in the middle distance, the houses: each holder's worlds run together in its colour, a thin line where two holders meet,
+    //   a hairline at a region's edge, and the regions' names;
+    //   close to, the systems: a faint tint and a fine line round each cell, so the stars and the worlds are what is looked at.
+    // Lines are thin and fills are light: the map is the picture and the colour a wash over it. A system nobody holds is a pale
+    // ring. Rasterised when the holding changes, not on every model.
     const PADR = 300, rx0 = this.bounds.minX - PADR, ry0 = this.bounds.minY - PADR, rw = (this.bounds.maxX - this.bounds.minX) + 2 * PADR, rh = (this.bounds.maxY - this.bounds.minY) + 2 * PADR;
     const RW = 1536, RH = Math.max(64, Math.round(RW * rh / rw));
-    const regIndex = {}; (model.regions || []).forEach((r, i) => regIndex[r.id] = i); const regFree = (model.regions || []).map(r => !!r.free);
-    const sites = model.systems.map(s => { const c = new THREE.Color(s.accent || '#8fa8d8'); return { x: s.x, y: -s.y, r: regIndex[s.regionId] ?? -1, own: s.ownerId || '', col: [c.r * 255, c.g * 255, c.b * 255], mine: !!s.isPlayer }; });
-    const sig = [RW, RH, rx0 | 0, ry0 | 0].join(',') + '|' + sites.map(t => [t.x | 0, t.y | 0, t.r, t.own, t.col[0] | 0, t.col[1] | 0, t.col[2] | 0, t.mine ? 1 : 0].join(',')).join(';') + '|' + regFree.map(f => f ? 1 : 0).join('');
-    let cv;
-    if (this.terrCache && this.terrCache.sig === sig) { cv = this.terrCache.cv; this.regionCentres = this.terrCache.centres; }
+    const regIndex = {}; (model.regions || []).forEach((r, i) => regIndex[r.id] = i);
+    const rgb = h => { const c = new THREE.Color(h || '#8fa8d8'); return [c.r * 255, c.g * 255, c.b * 255]; };
+    const sites = model.systems.map(s => ({ x: s.x, y: -s.y, r: regIndex[s.regionId] ?? -1, own: s.ownerId || '', col: rgb(s.accent), mine: !!s.isPlayer, pol: s.ownerId ? (s.polity || s.ownerId) : '', pcol: rgb(s.polityColor || s.accent) }));
+    const sig = [RW, RH, rx0 | 0, ry0 | 0].join(',') + '|' + sites.map(t => [t.x | 0, t.y | 0, t.r, t.own, t.col.map(v => v | 0).join('.'), t.mine ? 1 : 0, t.pol, t.pcol.map(v => v | 0).join('.')].join(',')).join(';');
+    let layers;
+    if (this.terrCache && this.terrCache.sig === sig) { layers = this.terrCache.layers; this.regionCentres = this.terrCache.centres; }
     else {
-      cv = document.createElement('canvas'); cv.width = RW; cv.height = RH; const rctx = cv.getContext('2d'); const img = rctx.createImageData(RW, RH); const px = img.data;
-      const nReg = (model.regions || []).length; const cx = new Float64Array(nReg), cy = new Float64Array(nReg), cn = new Float64Array(nReg);
-      const LEAD_SAME = 2.2, LEAD_OTHER = 6.5, RIM = 7, DARK = [5, 7, 12];
+      const mk = () => { const cv = document.createElement('canvas'); cv.width = RW; cv.height = RH; const ctx = cv.getContext('2d'); const img = ctx.createImageData(RW, RH); return { cv, ctx, img, px: img.data }; };
+      const F = mk(), M = mk(), N = mk(); const nReg = (model.regions || []).length; const cx = new Float64Array(nReg), cy = new Float64Array(nReg), cn = new Float64Array(nReg);
+      const D0 = 5, D1 = 7, D2 = 12;   // the dark of a line between two holders
       for (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++) {
         const wx = rx0 + (x + .5) / RW * rw, wy = ry0 + (RH - .5 - y) / RH * rh; let b1 = -1, b2 = -1, d1 = Infinity, d2 = Infinity;
         for (let i = 0; i < sites.length; i++) { const dx = sites[i].x - wx, dy = sites[i].y - wy; const d = dx * dx + dy * dy; if (d < d1) { d2 = d1; b2 = b1; d1 = d; b1 = i; } else if (d < d2) { d2 = d; b2 = i; } }
         if (b1 < 0) continue;
         const dist = Math.sqrt(d1), t = sites[b1], u = b2 >= 0 ? sites[b2] : null, e = u ? (Math.sqrt(d2) - dist) / 2 : 1e9;   // e: how far inside its own cell this point lies
-        const fade = dist < 236 ? 1 : dist > 250 ? 0 : 1 - (dist - 236) / 14; if (t.r >= 0 && fade > .5)   /* a cell reaches 240 from its star and stops */ { cx[t.r] += wx; cy[t.r] += wy; cn[t.r]++; }
-        let r = 0, g = 0, b = 0, a = 0;
-        if (t.own) {
-          const same = !!u && u.own === t.own, lead = same ? LEAD_SAME : LEAD_OTHER;
-          const glass = e <= lead ? 0 : Math.min(1, (e - lead) / 2.6);                                  // 0 in the lead, 1 in the glass
-          const rim = !same && e > lead && e < lead + RIM ? 1 - (e - lead) / RIM : 0;                   // lit where two holders meet
-          const outer = dist > 226 && dist < 240 ? 1 - Math.abs(dist - 233) / 7 : 0;                    // and along the open edge
-          const lit = Math.max(rim, outer) * 0.8, k = 0.5 + 0.5 * lit, ga = (t.mine ? 88 : 62) + 80 * lit, hatch = t.r >= 0 && regFree[t.r] && ((x + y) % 14) < 4 ? 26 : 0;
-          r = DARK[0] + (Math.min(255, t.col[0] * k) - DARK[0]) * glass; g = DARK[1] + (Math.min(255, t.col[1] * k) - DARK[1]) * glass; b = DARK[2] + (Math.min(255, t.col[2] * k) - DARK[2]) * glass;
-          a = (150 + (ga + hatch - 150) * glass) * fade;
-        } else if (dist < 54) { const ring = dist > 42 ? Math.max(0, 1 - Math.abs(dist - 48) / 5) : 0; r = 150; g = 162; b = 190; a = (dist < 46 ? 20 : 0) + ring * 95; }   // nobody's: a pale disc
-        if (u && u.r !== t.r && e < 3.6 && (t.own || u.own)) { const w = (1 - e / 3.6) * .72; r += (226 - r) * w; g += (214 - g) * w; b += (186 - b) * w; a = Math.max(a, 150 * (1 - e / 3.6) * fade); }   // a region's edge, soft so it does not stair-step up close
-        const o = (y * RW + x) * 4; px[o] = r; px[o + 1] = g; px[o + 2] = b; px[o + 3] = Math.max(0, Math.min(255, Math.round(a)));
+        const fade = dist < 236 ? 1 : dist > 244 ? 0 : 1 - (dist - 236) / 8; if (t.r >= 0 && dist < 240) { cx[t.r] += wx; cy[t.r] += wy; cn[t.r]++; }
+        if (fade <= 0) continue;
+        const o = (y * RW + x) * 4, open = dist > 229 ? Math.max(0, 1 - Math.abs(dist - 234) / 4) : 0;   // the open edge of a cell: a fine line
+        if (t.pol) {   // the realms
+          const same = !!u && u.pol === t.pol, glass = same ? 1 : e <= 2.6 ? 0 : Math.min(1, (e - 2.6) / 2.2), rim = Math.max(!same && e > 2.6 && e < 7.6 ? 1 - (e - 2.6) / 5 : 0, open), k = 0.5 + 0.45 * rim;
+          F.px[o] = D0 + (Math.min(255, t.pcol[0] * k) - D0) * glass; F.px[o + 1] = D1 + (Math.min(255, t.pcol[1] * k) - D1) * glass; F.px[o + 2] = D2 + (Math.min(255, t.pcol[2] * k) - D2) * glass; F.px[o + 3] = (105 + (50 + 75 * rim - 105) * glass) * fade;
+        }
+        if (t.own) {   // the houses, and the systems
+          const same = !!u && u.own === t.own, glass = same ? 1 : e <= 2.2 ? 0 : Math.min(1, (e - 2.2) / 2.2), rim = Math.max(!same && e > 2.2 && e < 6.6 ? 1 - (e - 2.2) / 4.4 : 0, open), k = 0.48 + 0.42 * rim;
+          let r = D0 + (Math.min(255, t.col[0] * k) - D0) * glass, g = D1 + (Math.min(255, t.col[1] * k) - D1) * glass, b = D2 + (Math.min(255, t.col[2] * k) - D2) * glass, a = 100 + ((t.mine ? 54 : 40) + 66 * rim - 100) * glass;
+          if (u && u.r !== t.r && e < 2.2) { const w = (1 - e / 2.2) * .5; r += (226 - r) * w; g += (214 - g) * w; b += (186 - b) * w; a = Math.max(a, 74 * (1 - e / 2.2)); }   // a region's edge: a hairline
+          M.px[o] = r; M.px[o + 1] = g; M.px[o + 2] = b; M.px[o + 3] = a * fade;
+          const line = Math.max(u ? Math.max(0, 1 - e / 1.7) : 0, open);
+          N.px[o] = Math.min(255, t.col[0] * .95); N.px[o + 1] = Math.min(255, t.col[1] * .95); N.px[o + 2] = Math.min(255, t.col[2] * .95); N.px[o + 3] = (11 + 92 * line) * fade;
+        } else if (dist < 54) { const ring = dist > 44 ? Math.max(0, 1 - Math.abs(dist - 49) / 3) : 0; for (const L of [M, N]) { L.px[o] = 150; L.px[o + 1] = 162; L.px[o + 2] = 190; L.px[o + 3] = (dist < 47 ? 12 : 0) + ring * 76; } }   // nobody's
       }
-      rctx.putImageData(img, 0, 0);
+      for (const L of [F, M, N]) L.ctx.putImageData(L.img, 0, 0);
+      layers = { far: F.cv, mid: M.cv, near: N.cv };
       this.regionCentres = {}; (model.regions || []).forEach((rg, i) => { this.regionCentres[rg.id] = cn[i] > 0 ? { x: cx[i] / cn[i], y: cy[i] / cn[i] } : { x: rg.cx, y: -rg.cy }; });
-      this.terrCache = { sig, cv, centres: this.regionCentres };
+      this.terrCache = { sig, layers, centres: this.regionCentres };
     }
-    this.regionRaster = { canvas: cv, x0: rx0, y0: ry0, w: rw, h: rh };
-    const rtex = new THREE.CanvasTexture(cv); rtex.colorSpace = THREE.SRGBColorSpace; rtex.minFilter = THREE.LinearFilter;
-    const terr = new THREE.Mesh(new THREE.PlaneGeometry(rw, rh), new THREE.MeshBasicMaterial({ map: rtex, transparent: true, depthWrite: false })); terr.position.set(rx0 + rw / 2, ry0 + rh / 2, -3); this.objects.add(terr);
+    this.regionRaster = { canvas: layers.mid, x0: rx0, y0: ry0, w: rw, h: rh };
+    this.terrLayers = {};
+    for (const [name, z] of [['far', -3], ['mid', -2.9], ['near', -2.8]]) {
+      const tex = new THREE.CanvasTexture(layers[name]); tex.colorSpace = THREE.SRGBColorSpace; tex.minFilter = THREE.LinearFilter;
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(rw, rh), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: name === 'mid' ? 1 : 0 })); mesh.position.set(rx0 + rw / 2, ry0 + rh / 2, z); this.objects.add(mesh); this.terrLayers[name] = mesh;
+    }
+    // the realms' names, for the far view: one over each realm, larger for a larger realm
+    this.polities = {}; for (const st of model.systems) { if (!st.ownerId) continue; const key = st.polity || st.ownerId; const pz = this.polities[key] ||= { name: st.polityName || st.ownerName || '', color: st.polityColor || st.accent, x: 0, y: 0, n: 0 }; pz.x += st.x; pz.y += -st.y; pz.n++; }
 
     // lanes
     const laneGeo = new THREE.BufferGeometry(); const lp = [], lc = [];
@@ -248,6 +260,7 @@ export class Galaxy {
       const lab = new CSS2DObject(el); lab.position.set(0, -(14 + bodies.length * 10.5) * .78 - 8, 0); g.add(lab); this.labels.push(lab);
       this.objects.add(g);
     }
+    for (const key of Object.keys(this.polities)) { const pz = this.polities[key]; if (!pz.name) continue; const el = document.createElement('div'); el.className = 'polity-label'; el.textContent = pz.name; el.style.color = pz.color; el.style.fontSize = Math.round(Math.min(30, 14 + pz.n * 0.4)) + 'px'; const lab = new CSS2DObject(el); lab.position.set(pz.x / pz.n, pz.y / pz.n, 6); this.objects.add(lab); this.labels.push(lab); }
     for (const r of model.regions || []) { const el = document.createElement('div'); el.className = 'region-label ring-' + (r.ring || 'middle') + (r.free || r.state ? ' free' : ''); el.innerHTML = `<span class="rn">${esc(r.name)}</span>${r.state ? `<span class="rs state">${esc(r.state)}${r.stateWar ? ' · at war for it' : ' · no longer of the Reach'}</span>` : ''}<span class="rs">${esc(r.ring || '')}${r.free ? ' · free march' : ''} · ${esc(r.dominant || 'no one')} · ⚜ ${r.allegiance} · ☠ ${r.lawlessness}</span>`; const lab = new CSS2DObject(el); const rc = this.regionCentres[r.id] || { x: r.cx, y: -r.cy }; lab.position.set(rc.x, rc.y, 0); this.objects.add(lab); this.labels.push(lab); }
     // the route a selected fleet would take to the selected system, lane by lane
     if (model.route && model.route.length > 1) { const pts = model.route.map(id => byId[id]).filter(Boolean).map(s => new THREE.Vector3(s.x, -s.y, 6)); const rg = new THREE.BufferGeometry().setFromPoints(pts); const rl = new THREE.Line(rg, new THREE.LineDashedMaterial({ color: 0xffe8a3, dashSize: 10, gapSize: 7, transparent: true, opacity: .9 })); rl.computeLineDistances(); this.objects.add(rl); }
@@ -315,11 +328,11 @@ export class Galaxy {
     const regions = () => {   // a region's name: the nearest free place to its centre, or not at all
       const step = 18, cands = [[0, 0]]; for (let k = 1; k <= 5; k++) { cands.push([0, -k * step], [0, k * step]); if (k <= 3) cands.push([-k * 70, 0], [k * 70, 0], [-k * 70, -k * step], [k * 70, -k * step], [-k * 70, k * step], [k * 70, k * step]); }
       cands.sort((a, b) => Math.abs(a[0]) + Math.abs(a[1]) * 1.5 - Math.abs(b[0]) - Math.abs(b[1]) * 1.5);
-      const regs = els.filter(e => e.classList.contains('region-label') && live(e)).map(e => ({ e, b: rect(e, parseFloat(e.style.marginLeft) || 0, parseFloat(e.style.marginTop) || 0) })).filter(o => o.b.w > 0).sort((a, b) => a.b.y - b.b.y);
+      const regs = els.filter(e => (e.classList.contains('region-label') || e.classList.contains('polity-label')) && live(e)).map(e => ({ e, b: rect(e, parseFloat(e.style.marginLeft) || 0, parseFloat(e.style.marginTop) || 0) })).filter(o => o.b.w > 0).sort((a, b) => a.b.y - b.b.y);
       for (const r of regs) {
-        let at = null;
+        let at = null; const big = r.e.classList.contains('polity-label');   // a realm's name wants air round it, and may lie over stars
         for (const strict of [true, false]) {   // first somewhere clear of the stars as well; failing that, clear of every other name
-          for (const [dx, dy] of cands) { const b = { x: r.b.x + dx, y: r.b.y + dy, w: r.b.w, h: r.b.h }; if (off(b) || hud.some(h => hits(b, h, 8)) || placed.some(q => hits(b, q, 5)) || (strict && stars.some(q => hits(b, q, 0)))) continue; at = { dx, dy, b }; break; }
+          for (const [dx, dy] of cands) { const b = { x: r.b.x + dx, y: r.b.y + dy, w: r.b.w, h: r.b.h }; if (off(b) || hud.some(h => hits(b, h, 8)) || placed.some(q => hits(b, q, big ? 26 : 5)) || (strict && !big && stars.some(q => hits(b, q, 0)))) continue; at = { dx, dy, b }; break; }
           if (at) break;
         }
         if (at) { placed.push(at.b); r.e.style.marginLeft = at.dx ? at.dx + 'px' : ''; r.e.style.marginTop = at.dy ? at.dy + 'px' : ''; r.e.style.visibility = ''; } else r.e.style.visibility = 'hidden';
@@ -374,7 +387,10 @@ export class Galaxy {
     this.objects.traverse(o => { if (o.userData.spin) o.rotation.y = t * o.userData.spin; if (o.userData.spinZ) o.rotation.z = t * o.userData.spinZ; });
     this.objects.traverse(o => { if (o.userData.pulse) { const s = 1 + 0.08 * Math.sin(t * 3 + o.position.x * 0.01); o.scale.setScalar ? (o.isSprite ? null : o.scale.set(s, s, 1)) : null; if (o.material?.opacity != null && o.isSprite) o.material.opacity = 0.45 + 0.25 * Math.sin(t * 2.5); } });
     // labels fade with distance
-    const lr = this.labelRenderer.domElement; lr.classList.toggle('near', this.distance < 700); lr.classList.toggle('far', this.distance > 1700); lr.classList.toggle('veryfar', this.distance > 3200);
+    const lr = this.labelRenderer.domElement; lr.classList.toggle('near', this.distance < 700); lr.classList.toggle('far', this.distance > 1700); lr.classList.toggle('veryfar', this.distance > 3200); lr.classList.toggle('realm', this.distance > 2200);
+    // which drawing of the territory shows: the systems close to, the houses in the middle distance, the realms from far off
+    if (this.terrLayers && this.terrLayers.mid) { const ss = (a, b, v) => { const q = Math.max(0, Math.min(1, (v - a) / (b - a))); return q * q * (3 - 2 * q); }; const far = ss(1900, 2500, this.distance), near = 1 - ss(620, 900, this.distance);
+      this.terrLayers.far.material.opacity = far; this.terrLayers.near.material.opacity = near; this.terrLayers.mid.material.opacity = Math.max(0, 1 - far - near); }
     this.composer.render(); this.labelRenderer.render(this.scene, this.camera);
     if ((this.miniTick = (this.miniTick || 0) + 1) % 3 === 0) { this.drawMinimap(); this.declutter(); }
   }

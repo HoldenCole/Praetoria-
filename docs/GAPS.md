@@ -228,6 +228,7 @@ still short of that:
 | V19 | The ancestries' names (Mediterranean, Northern, Levantine, African, East Asian, South Asian, Steppe) are plain words from our own world, and which house is which was set by the sound of its name. Both are in one file and are the owner's to change: the setting may want its own names for its peoples. | S | owner |
 | V20 | Ancestry is looks only. It gives no names (a house's naming culture is separate and all but two cultures share one list), moves no opinion, and is not in any event. | M | owner |
 
+| V23 | The three levels of the map are the realm, the house and the system. There is no level for a party's or a bench's hold on the Reach, for a region's dominant house, or for a state's provinces, and no map modes to choose one by hand (CK3 and Stellaris have both zoom levels and modes). | M | |
 | V21 | The cells are drawn from who holds a system and nothing else. A world under siege, occupied in a war still being fought, or contested looks like any other of its holder's; a fleet's reach, a blockade and a state's border are not on the glass. Other games hatch an occupied province in the occupier's colour. | S | |
 | V22 | A cell is a fixed 200 across wherever its neighbours are far off, so a nation of four systems reads as four overlapping discs rather than one country. A hull round a holder's cells would close the gaps between them. | S | |
 

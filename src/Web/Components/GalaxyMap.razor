@@ -172,7 +172,12 @@
             var siege = w.Sieges.Values.FirstOrDefault(s => w.Holding(s.HoldingId)?.SystemId == n.SystemId);
             int target = selectedFleet != null && new MoveFleetCommand(pid, selectedFleet.Id, n.SystemId, c.Fleets).CanExecute(ctx) ? w.Galaxy!.Hops(selectedFleet.SystemId, n.SystemId) : 0;
             var taken = n.PlanetHoldingId != null ? Conquered(w, w.Holding(n.PlanetHoldingId)!, n.Ring) : null;
-            return new { id = n.SystemId, name = n.Name, x = n.X, y = n.Y, ownerId = n.OwnerHouseId, ownerName = n.OwnerHouseName, accent = n.AccentColor, isPlayer = n.IsPlayerTerritory, contested = n.Contested,
+            // the realm a held system is of, for the far view: a nation beyond the Reach, a state that has left it, or the Reach itself
+            var nation = n.OwnerHouseId != null ? w.NationOfHouse(n.OwnerHouseId) : null; var reg = regions.FirstOrDefault(r => r.Id == n.RegionId);
+            string polity = n.OwnerHouseId == null ? "" : nation != null ? "nation:" + nation.Id : !string.IsNullOrEmpty(reg?.StateName) ? "state:" + reg!.StateName : "reach";
+            string polityName = nation != null ? (n.OwnerHouseName ?? "") : polity.StartsWith("state:") ? reg!.StateName! : w.Galaxy!.Name;
+            string polityColor = nation != null ? n.AccentColor : polity.StartsWith("state:") ? reg!.AccentColor : "#c3cde2";   // the Reach: marble, which no house and no nation wears
+            return new { id = n.SystemId, name = n.Name, x = n.X, y = n.Y, ownerId = n.OwnerHouseId, ownerName = n.OwnerHouseName, accent = n.AccentColor, polity, polityName, polityColor, isPlayer = n.IsPlayerTerritory, contested = n.Contested,
                 planetClass = n.PlanetClass, pop = n.Population, unrest = n.Unrest, stations = n.Stations, regionId = n.RegionId, governor = n.GovernorName, rebel = n.Rebellion > 0, capital = n.Capital, ring = n.Ring, chokepoint = n.Chokepoint, conquered = taken?.kind, deposits = n.Deposits == null ? "" : string.Join(" ", n.Deposits.Keys.Select(k => k == "helium3" ? "³He" : k == "rare_earths" ? "RE" : "Iso")),
                 bodies = (n.Bodies ?? Array.Empty<Body>()).Select(b => new { name = b.Name, cls = b.Class, size = b.Size, primary = b.IsPrimary }).ToList(),
                 industry = n.PlanetHoldingId != null ? c.Holdings.Spec(w.Holding(n.PlanetHoldingId)!.Specialization)?.Name : null,
