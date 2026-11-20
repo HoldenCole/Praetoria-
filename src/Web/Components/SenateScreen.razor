@@ -208,6 +208,13 @@
                         @if (patronWish != 0) { <div class="small warn">Your patron, @(w.House(house.PatronId)?.Name), wants this @(patronWish > 0 ? "carried" : "thrown out"). How you vote will be noticed.</div> }
                         <div class="tally"><span class="for" style="width:@(100 * mo.ForWeight / total)%"></span><span class="against" style="width:@(100 * mo.AgainstWeight / total)%"></span></div>
                         <div class="small tally-line"><b class="@(mo.ForWeight > mo.AgainstWeight || chairCarries ? "good" : "warn")">@(mo.ForWeight > mo.AgainstWeight ? "Carries" : chairCarries ? $"Tied: carries on the casting vote of {presides!.Name}, presiding," : tied && presides != null ? $"Tied: fails, since {presides.Name}, presiding, is not for it," : mo.ForWeight == mo.AgainstWeight ? "Tied: fails" : "Fails") as the benches lean</b> <span class="muted">· for @mo.ForWeight · against @mo.AgainstWeight</span></div>
+                        @if (motionNow != null)
+                        {
+                            bool declared = motionNow.Votes.TryGetValue(house.Id, out var myVote); int myLean = Math.Sign(senate.Lean(w, motionNow, house.Id));
+                            <div class="small @(declared ? "good" : "muted")" data-myvote="@(declared ? myVote : 9)">@(declared ? $"You have declared {(myVote > 0 ? "for it" : myVote < 0 ? "against it" : "that you abstain")}. You may change it until the year ends." : $"You have not declared. Left alone, your house votes as it leans: {(myLean > 0 ? "for" : myLean < 0 ? "against" : "it abstains")}.")</div>
+                            var paid = motionNow.BoughtBy.Where(kv => kv.Value == house.Id).Select(kv => (w.House(kv.Key)?.Name ?? kv.Key) + (motionNow.Bought.GetValueOrDefault(kv.Key) > 0 ? " (for)" : " (against)")).ToList();
+                            @if (paid.Count > 0) { <div class="small warn" data-bought="@paid.Count">Votes you have paid for on this motion: @string.Join(", ", paid). One time in @SenateSystem.BribeOutOneIn each comes out at the count.</div> }
+                        }
                         <div class="row small">
                             @foreach (var (stance, label) in new[] { (1, "Vote for"), (-1, "Vote against"), (0, "Abstain") })
                             { <button class="opt inline @(mo.MyStance == stance ? "here" : "")" @onclick="() => G.Execute(new VoteCommand(pid, mo.Id, stance))" @onclick:stopPropagation="true">@label</button> }
@@ -218,7 +225,7 @@
                                 <button class="opt inline" disabled="@(forNo != null)" title="@(forNo ?? "As presiding consul: the houses lean with the chair. Once a year.")" @onclick="() => G.Execute(new ChairCommand(pid, mo.Id, LadderSystem.SpeakFor, G.Turn!.Senate))" @onclick:stopPropagation="true">Speak for it from the chair</button>
                                 <button class="opt inline" disabled="@(againstNo != null)" title="@(againstNo ?? "As presiding consul: the houses lean with the chair. Once a year.")" @onclick="() => G.Execute(new ChairCommand(pid, mo.Id, LadderSystem.SpeakAgainst, G.Turn!.Senate))" @onclick:stopPropagation="true">Speak against it</button>
                             }
-                            @if (sen.Election is { AmConsul: true }) { <button class="opt inline veto" disabled="@(mo.VetoRefusal != null)" title="@(mo.VetoRefusal ?? "the consul's veto: struck from the docket, once a term")" @onclick="() => G.Execute(new VetoCommand(pid, mo.Id, c.Offices, G.Turn!.Senate))" @onclick:stopPropagation="true">Veto</button> }
+                            @if (sen.Election is { AmConsul: true }) { <button class="opt inline veto" disabled="@(mo.VetoRefusal != null)" title="@(mo.VetoRefusal ?? "the consul's veto: struck from the docket, once a term")" @onclick='() => G.AskDo("Veto this motion?", mo.Text + " It is struck from the docket and cannot be moved again this term. A consul has one veto a term: this spends yours. The house that moved it will not thank you.", "Veto it", new VetoCommand(pid, mo.Id, c.Offices, G.Turn!.Senate))' @onclick:stopPropagation="true">Veto</button> }
                         </div>
                         <details @onclick:stopPropagation="true"><summary>The benches · whip them</summary>
                             @foreach (var st in mo.Stances.Take(16))

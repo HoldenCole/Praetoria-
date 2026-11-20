@@ -719,7 +719,7 @@ public static class CourtProjection
         "venture_yield_pct" => "% venture coin", "charter_pct" => "% charters", "market_price_pct" => "% market prices", "fleet_upkeep_pct" => "% fleet upkeep", "readiness" => "readiness a turn",
         "senate_weight" => "Senate weight", "legitimacy_per_5" => "legitimacy every fifth turn", "motion_cost" => "influence per motion (others)", "tolls_bonus" => "credits a toll", _ => key.Replace('_', ' ')
     };
-    public static string Effects(IReadOnlyDictionary<string, int> fx) => fx.Count == 0 ? "no effect of its own" : string.Join(" · ", fx.Select(kv => $"{(kv.Value > 0 ? "+" : "")}{kv.Value} {Prose(kv.Key)}"));
+    public static string Effects(IReadOnlyDictionary<string, int> fx) => fx.Count == 0 ? "changes no yield and no cost: what it moves is how the estates think of you" : string.Join(" · ", fx.Select(kv => $"{(kv.Value > 0 ? "+" : "")}{kv.Value} {Prose(kv.Key)}"));
 
     /// <summary>Laws by category with every option's refusal, and the estates with their drift and mood (PolicySystem).</summary>
     private static ChanceryCard? BuildChancery(World w, Character p, House house, PolicyCatalog cat, CommandContext ctx)

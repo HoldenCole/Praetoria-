@@ -127,7 +127,7 @@ else
             {
                 var refusal = cs.IncorporateRefusal(w, house.Id, w.Businesses.GetValueOrDefault(b.Id), string.Empty);
                 <div class="line small"><b>@b.Name</b> <span class="muted">earns @b.Earnings · worth @b.Value</span>
-                    <button class="opt inline tiny" disabled="@(refusal != null)" title="@(refusal ?? "a hundred shares, all yours; sell some for coin, or float new ones to build")" @onclick="() => G.Execute(new IncorporateCommand(pid, b.Id, string.Empty, cs))">Incorporate</button>
+                    <button class="opt inline tiny" disabled="@(refusal != null)" title="@(refusal ?? "a hundred shares, all yours; sell some for coin, or float new ones to build")" @onclick='() => G.AskDo("Incorporate " + b.Name + "?", "It is listed on the Exchange as a company of a hundred shares, all yours to begin with. Its profit is then paid as dividends to whoever holds the shares, and others may buy in. It cannot be made a private venture again.", "Incorporate", new IncorporateCommand(pid, b.Id, string.Empty, cs))'>Incorporate</button>
                     @foreach (var c in directed) { <button class="opt inline tiny" title="new shares are issued to you for what it is worth" @onclick="() => G.Execute(new IncorporateCommand(pid, b.Id, c.Id, cs))">Fold into @c.Name</button> }
                 </div>
             }

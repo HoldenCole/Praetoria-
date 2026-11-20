@@ -27,7 +27,7 @@
                 <Portrait Id="@ours.Id" Name="@ours.Name" Sex="@ours.Sex" Age="@ours.Age" Accent="@house.AccentColor" Size="40" />
                 <Portrait Id="@spouse.Id" Name="@spouse.Name" Sex="@spouse.Sex" Age="@spouse.Age" Accent="@(sh?.AccentColor ?? "#888")" Size="40" />
                 <div><b>@ours.Name</b> and <b>@spouse.Name</b>@(sh != null && sh.Id != house.Id ? $" of {sh.Name}" : "")
-                    <div class="muted small">@CourtshipSystem.KindName(m.Kind) · @Years(w.Turn - m.Since) · @kids child(ren)@(m.ChildrenTo.Length > 0 ? $" · the children carry the name of {w.House(m.ChildrenTo)?.Name}" : "")@(m.Dowry > 0 ? $" · {m.Dowry} credits came with the bride" : "")</div></div>
+                    <div class="muted small">@CourtshipSystem.KindName(m.Kind) · @Years(w.Turn - m.Since) · @kids child(ren)@(m.ChildrenTo.Length > 0 ? $" · the children carry the name of {w.House(m.ChildrenTo)?.Name}" : "")@(m.Dowry > 0 ? (m.DowryFrom == G.World!.Protagonist!.HouseId ? $" · your house paid a dowry of {m.Dowry} credits" : $" · a dowry of {m.Dowry} credits came to your house") : "")</div></div>
             </div>
             <div class="gauges">
                 <div class="gauge" title="Warm marriages bear more children and ease their partners. Cold ones do the opposite. At the bottom the couple live apart and no children come."><span>Warmth</span><i><b style="width:@m.Warmth%" class="@(m.Warmth >= CourtshipSystem.WarmAt ? "high" : m.Warmth <= CourtshipSystem.ColdAt ? "low" : "")"></b></i><em>@m.Warmth</em></div>

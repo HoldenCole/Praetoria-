@@ -131,7 +131,7 @@
                                 <div class="law-options">
                                     @foreach (var o in l.Options)
                                     {
-                                        <button class="law-opt @(o.InForce ? "here" : "")" disabled="@(o.Refusal != null && !o.InForce)" title="@(o.InForce ? "in force" : o.Refusal)" @onclick="() => G.Execute(new EnactLawCommand(pid, l.Id, o.Id, c.Policies))">
+                                        <button class="law-opt @(o.InForce ? "here" : "")" disabled="@(o.Refusal != null && !o.InForce)" title="@(o.InForce ? "In force now" : o.Refusal ?? "Click to enact it: you are asked first")" @onclick="() => AskLaw(l, o)">
                                             <div class="lo-name">@o.Name</div>
                                             <div class="lo-fx muted small">@o.Effects</div>
                                             <div class="lo-op">@foreach (var op in o.Opinions) { <span class="opin @(op.Opinion > 0 ? "pos" : "neg")" title="@op.Name">@op.Name.Replace("The ", "") @(op.Opinion > 0 ? "+" : "")@op.Opinion</span> }</div>
@@ -161,6 +161,13 @@
 
 @code {
     private string _tab = "estates";
+    private void AskLaw(LawCard l, LawOptionCard o)
+    {
+        if (o.InForce) return;
+        int years = G.Content!.Policies.Law(l.Id)?.Cooldown ?? 6;
+        string estates = o.Opinions.Count == 0 ? "" : " The estates: " + string.Join(", ", o.Opinions.Select(x => x.Name.Replace("The ", "") + " " + (x.Opinion > 0 ? "+" : "") + x.Opinion)) + ".";
+        G.AskDo("Enact \"" + o.Name + "\"?", l.Name + ": " + o.Effects + "." + estates + " Once enacted it cannot be changed again for " + years + " years.", "Enact it", new EnactLawCommand(G.World!.ProtagonistId, l.Id, o.Id, G.Content.Policies));
+    }
     // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }

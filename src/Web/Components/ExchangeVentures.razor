@@ -51,14 +51,14 @@
                     @if (b.CompanyName == null && G.Turn!.Companies is { Open: true } cx)
                     {
                         var listing = cx.IncorporateRefusal(w, w.Protagonist!.HouseId, w.Businesses.GetValueOrDefault(b.Id), string.Empty);
-                        <button class="opt inline tiny" disabled="@(listing != null)" title="@(listing ?? "list it on the Exchange as a company: a hundred shares, all yours")" @onclick="() => G.Execute(new IncorporateCommand(pid, b.Id, string.Empty, cx))">Incorporate</button>
+                        <button class="opt inline tiny" disabled="@(listing != null)" title="@(listing ?? "list it on the Exchange as a company: a hundred shares, all yours")" @onclick='() => G.AskDo("Incorporate " + b.Name + "?", "It is listed on the Exchange as a company of a hundred shares, all yours to begin with. It is then a company and not a venture of the house: its profit is paid as dividends to whoever holds the shares, and others may buy in. It cannot be made a private venture again.", "Incorporate", new IncorporateCommand(pid, b.Id, string.Empty, cx))'>Incorporate</button>
                     }
                     @if (vs != null && b.CompanyName == null)
                     {
-                        <button class="opt inline tiny" disabled="@(b.Sell.Refusal != null)" title="@(b.Sell.Refusal ?? "four-fifths of its worth; the caravaneers break it up")" @onclick="() => G.Execute(new SellVentureCommand(pid, b.Id, string.Empty, vs))">@b.Sell.Label</button>
+                        <button class="opt inline tiny" disabled="@(b.Sell.Refusal != null)" title="@(b.Sell.Refusal ?? "four-fifths of its worth; the caravaneers break it up")" @onclick='() => G.AskDo("Sell " + b.Name + "?", b.Sell.Label + ". The caravaneers break it up and pay four-fifths of what it is worth today: a venture is worth what it cost in its first year and comes to its full worth over five. It is gone for good, and what it yielded each year goes with it.", "Sell it", new SellVentureCommand(pid, b.Id, string.Empty, vs))'>@b.Sell.Label</button>
                         @foreach (var bid in b.Bids ?? new List<VentureBid>())
                         {
-                            <button class="opt inline tiny" title="@(bid.HoldsTheWorld ? "holds the world it works, and pays for that" : "its bid")" @onclick="() => G.Execute(new SellVentureCommand(pid, b.Id, bid.HouseId, vs))">Sell to @bid.HouseName for @bid.Price</button>
+                            <button class="opt inline tiny" title="@(bid.HoldsTheWorld ? "holds the world it works, and pays for that" : "its bid")" @onclick='() => G.AskDo("Sell " + b.Name + " to " + bid.HouseName + "?", bid.HouseName + " pays " + bid.Price + " credits and has the venture and what it yields from now on. It cannot be asked back.", "Sell for " + bid.Price, new SellVentureCommand(pid, b.Id, bid.HouseId, vs))'>Sell to @bid.HouseName for @bid.Price</button>
                         }
                     }
                 </div>

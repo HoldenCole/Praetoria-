@@ -41,6 +41,8 @@ public sealed class GameClient
     public sealed record ConfirmAsk(string Title, string Text, string Yes, Action OnYes, string No);
     public ConfirmAsk? Asking { get; private set; }
     public void Ask(string title, string text, string yes, Action onYes, string no = "Leave it") { Asking = new ConfirmAsk(title, text, yes, onYes, no); Notify(); }
+    /// <summary>Ask, and on yes carry out one command: for the things that cannot be taken back (docs/PLAYTHROUGH.md, "Confirm before what cannot be undone").</summary>
+    public void AskDo(string title, string text, string yes, ICommand command) => Ask(title, text, yes, () => Execute(command));
     public void Answer(bool yes) { var a = Asking; Asking = null; if (yes) a?.OnYes(); Notify(); }
     // ---- the questions asked before what starts a war or binds the house (docs/PLAYTHROUGH.md 7) ----
 

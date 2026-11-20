@@ -64,7 +64,7 @@
             <details class="small"><summary>What the magistrates did this year (@done.Count)</summary>
                 @foreach (var (b, who) in done)
                 {
-                    <div class="muted small">@who!.Name@(who.HouseId == house.Id ? " (yours)" : " of " + w.House(who.HouseId)?.Name), @(offices.Rung(b.RungId)?.Name.ToLowerInvariant()): @Did(b).</div>
+                    <div class="muted small">@who!.Name@(who.HouseId == house.Id ? " (yours)" : " of " + w.House(who.HouseId)?.Name), @(offices.Rung(b.RungId)?.Name.ToLowerInvariant() ?? "in office"): @Did(b).</div>
                 }
             </details>
         }

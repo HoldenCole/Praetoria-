@@ -7,6 +7,9 @@
   (docs/PLAYTHROUGH.md, "Two things called influence").
 
 ### Fixed
+- **The Easy list, second batch.** Selling or incorporating a venture, enacting a law, changing the law of succession
+  and the consul's veto ask first and say what follows. A motion says how you have voted and which votes you paid for.
+  The top bar counts years and heads of the house. A dowry says which way it went.
 - **The Easy list, first batch** (docs/PLAYTHROUGH.md). Refusals say what is wanted and what is in hand ("needs 2
   influence this year (1 left)"); refit, merge and appointing an admiral give their one true reason; no internal names
   on a screen; "Favours for coin" shows what it pays; no child is offered a fleet.
