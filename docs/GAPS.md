@@ -264,7 +264,7 @@ still short of that:
 | U2 | Slots are fixed by the kind of body. Nothing a body is (its size beyond small, its feature, its people) gives it more, and the only way to open one is two tracks of infrastructure. | S | owner |
 | U3 | A house raises one great work at a time whatever its size, and nobody else can help: no loan of labour, no Senate grant, no company to build it for a share. | M | |
 | U4 | Infrastructure never decays, is never damaged by a siege or a rising, and costs nothing to keep. | S | |
-| U5 | The pictures are one per kind of thing. The same Outpost is shown on a moon, a desert and a comet, and a great work looks finished from the day it is begun. | M | |
+| U5 | The pictures are one per kind of thing. The same Outpost is shown on a moon, a desert and a comet, and a great work looks finished from the day it is begun. A handful do not show their subject well after three attempts (the Sun Fields, the Deep-Sky Sensor Array, the Sun Foundry, the Twin Crown): the model at hand paints landscapes better than machinery in space. | M | |
 | U6 | The House window still lists a world's buildings its own way, without the pictures and without the system's other bodies. | S | |
 
 ## Older, from docs/ROADMAP.md section 3

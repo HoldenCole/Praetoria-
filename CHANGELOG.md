@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- **A picture for everything that can be built.** `tools/art/works.py` paints a small wide painting for each of the 92
+  buildings, great works, tracks of infrastructure and buildings of a system's own world; the system panel shows it beside
+  the thing. A test fails if anything buildable has none.
 - **Buildings, great works and infrastructure** (docs/BUILDINGS.md; the owner: "separate out the mega structures from
   the ordinary buildings ... every planetary body ... should have a certain amount of building slots"). A **building**
   goes in a slot: every kind of body has its number of slots and buildings of its own (37 in all: smelters on a forge

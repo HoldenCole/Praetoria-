@@ -188,6 +188,18 @@ public class SystemWorksTests
     }
 
     [Fact]
+    public void EverythingThatCanBeBuilt_HasItsPicture()
+    {
+        // tools/art/works.py paints one for every building, great work, track of infrastructure and building of a system's own world
+        string root = Path.GetDirectoryName(ContentLocator.FindContentDir().TrimEnd(Path.DirectorySeparatorChar))!, dir = Path.Combine(root, "src", "Web", "wwwroot", "img", "works");
+        using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(dir, "manifest.json")));
+        var painted = doc.RootElement.GetProperty("works").EnumerateArray().Select(x => x.GetString() ?? "").ToHashSet();
+        var wanted = Cat.Works.Select(d => d.Id).Concat(Cat.Infrastructure.Select(t => t.Id)).Concat(Cat.Buildings.Select(b => b.Id)).ToList();
+        Assert.All(wanted, id => { Assert.True(painted.Contains(id), $"{id} has no picture: add a line to tools/art/works.py, paint and pack"); Assert.True(File.Exists(Path.Combine(dir, id + ".webp")), $"{id}.webp is missing"); });
+        Assert.All(painted, id => Assert.Contains(id, wanted));   // and nothing is painted that is no longer in the game
+    }
+
+    [Fact]
     public void AGreatWorkLeftInAWorldsSlot_IsMovedToItsSite()
     {
         var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 7);

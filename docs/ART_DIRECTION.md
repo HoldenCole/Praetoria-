@@ -239,6 +239,19 @@ intrigue, a world, a shipyard, a triumph), chosen by what the event is about (`S
 the foot of the painting in capitals. The people involved are shown at bust size in brass frames. The prose is
 serif. The choices are full-width plates; setting it aside is a plain line beneath.
 
+### Buildings (2026-11-20)
+
+The owner, of the building list: "let us get some artwork that matches the buildings to make sense." Every building, great
+work, track of infrastructure and building of a system's own world has a small wide painting (`tools/art/works.py`, 92 of
+them, about 2 MB), made the way the event paintings are and keyed by the thing's id in content. The system panel shows it
+beside the thing: at a glance a smelter row is furnaces and a tidal mill is a sea wall.
+
+- A thing in space is told not to be a sea. The model paints a shore, a sunset and a sailing ship for anything called
+  a harbour, a dock or a fleet, so the prompt says spacecraft and starfield and the negative prompt names water. A third
+  of the first pass was thrown again for this.
+- A picture is one per kind of thing, not per place: the same Outpost on a moon and on a comet (docs/GAPS.md, U5).
+- A test fails if anything that can be built has no picture, so a new building needs its line in the art script.
+
 ### A mod worth learning from: BattleTech, Heirs of the Star League (looked at 2026-11-20)
 
 The owner pointed at this Crusader Kings III conversion (Steam Workshop 3822860401; one author, a month old, about
