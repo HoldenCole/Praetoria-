@@ -556,4 +556,19 @@ public class PlaythroughFixTests
         Assert.Contains("treasury holds 18", new BoardCommand(me.Id, co.Id, BoardCommand.PayIn, 50, tc.Companies!).Refusal(ctx));
         co.ControllerId = other.Id; Assert.Equal("you do not direct it", new BoardCommand(me.Id, co.Id, BoardCommand.PayIn, 5, tc.Companies!).Refusal(ctx));
     }
+    [Fact]
+    public void A_will_may_leave_smaller_legacies_to_several_and_never_more_than_the_purse()
+    {
+        var (w, tc, house, me, ctx) = Start();
+        var heir = DynastySystem.FindHeir(w, me)!; var kin = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != me.Id && c.Id != heir.Id).OrderBy(c => c.Id, StringComparer.Ordinal).Take(3).ToList();
+        Assert.True(kin.Count >= 2, "the old lion has kin enough");
+        Assert.True(tc.Executor.TryExecute(new WealthCommand(me.Id, WealthCommand.Legacy, kin[0].Id, "25"), ctx));
+        Assert.True(tc.Executor.TryExecute(new WealthCommand(me.Id, WealthCommand.Legacy, kin[1].Id, "10"), ctx));
+        Assert.Equal("a tenth or a quarter of it", new WealthCommand(me.Id, WealthCommand.Legacy, kin[1].Id, "60").Refusal(ctx));
+        // with all of it willed to one, nothing is left for a smaller legacy
+        Assert.True(tc.Executor.TryExecute(new WealthCommand(me.Id, WealthCommand.Will, kin[0].Id, "50"), ctx)); Assert.False(me.Will!.Also.ContainsKey(kin[0].Id));
+        me.Purse = 200; int a = kin[0].Purse, b = kin[1].Purse, h = heir.Purse;
+        WealthSystem.Inherit(w, me, heir);
+        Assert.Equal(a + 100, kin[0].Purse); Assert.Equal(b + 20, kin[1].Purse); Assert.Equal(h + 80, heir.Purse);
+    }
 }

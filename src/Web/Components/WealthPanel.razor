@@ -186,7 +186,19 @@
             <span class="muted small">to</span>
             @foreach (var c in people.Where(c => c.Id != heir?.Id).Take(7)) { string cid = c.Id; <button class="opt inline tiny @((_legatee ?? legatee?.Id) == c.Id ? "here" : "")" @onclick="() => _legatee = cid">@First(c.Name)</button> }
         </div>
+        @if (_legatee == null && legatee == null) { <div class="muted small">Pick a name, then how much of the purse they are to have.</div> }
         @if (legatee != null) { <div class="muted small">@(will!.SharePct == 100 ? "All" : will.SharePct == 50 ? "Half" : "A quarter") of your purse to <b>@legatee.Name</b>, the rest to the heir.@(will.SharePct >= 50 ? " The heir will not thank them for it." : "")</div> }
+        <div class="suit-acts" data-legacies><span class="muted small" title="Smaller legacies out of the purse, to as many as you like, so long as the will does not give away more than the whole. Each is reckoned on the purse as it stands the day you die.">And smaller legacies</span>
+            @foreach (var c in people.Where(c => c.Id != heir?.Id && c.Id != legatee?.Id).Take(7))
+            {
+                string cid = c.Id; int has = will?.Also.GetValueOrDefault(c.Id) ?? 0;
+                <span class="legacy"><b class="@(has > 0 ? "" : "muted")">@First(c.Name)</b>
+                    @foreach (int part in new[] { 10, 25 }) { int pt = part; var lno = has == part ? null : new WealthCommand(pid, WealthCommand.Legacy, cid, pt.ToString()).Refusal(G.Ctx);
+                        <button class="opt inline tiny @(has == part ? "here" : "")" disabled="@(lno != null)" title="@(lno ?? (has == part ? "Strike it out" : ""))" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Legacy, cid, has == pt ? Zero : pt.ToString()))">@(has == part ? "✓ " : "")@(part == 10 ? "a tenth" : "a quarter")</button> }
+                </span>
+            }
+        </div>
+        @if (will is { Also.Count: > 0 }) { int left = 100 - (legatee != null ? will.SharePct : 0) - will.Also.Values.Sum(); <div class="muted small">@string.Join("; ", will.Also.OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => $"{(kv.Value == 10 ? "a tenth" : "a quarter")} to {w.Char(kv.Key)?.Name}")). The heir has what is left: @left parts in the hundred.</div> }
 
         <div class="hh-head"><b>Dowries</b> <span class="muted small">When a daughter of the house marries with a dowry, whose money it is.</span></div>
         <div class="suit-acts">

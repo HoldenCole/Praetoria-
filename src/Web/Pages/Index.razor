@@ -224,6 +224,7 @@ else
         int i = id.IndexOf(':'); string screen = i < 0 ? id : id[..i], tab = i < 0 ? "" : id[(i + 1)..];
         if (screen == "you") screen = "character"; if (screen == "worlds") screen = "planets";
         // a place on the map is its subject: the map comes forward on that system, with its panel open (docs/PLAYTHROUGH.md 15)
+        if (screen == "fleet") { _screen = "galaxy"; if (tab.Length > 0) _ = _map?.PickFleet(tab); return; }
         if (screen == "galaxy") { _screen = "galaxy"; if (tab.Length > 0) _ = _map?.Select(tab); return; }
         _screen = screen; _tab = tab; _tabStamp++;
     }

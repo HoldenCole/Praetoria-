@@ -1115,3 +1115,4 @@ button.ol-adv { display: block; width: 100%; text-align: left; background: none;
 .chip.full { opacity: .45; cursor: not-allowed; }
 /* the top bar is a solid plate over the map: nothing of the map shows through it, and the map's labels are drawn under it (docs/PLAYTHROUGH.md, Easy, N15 and B36) */
 .game .topbar { background-color: #10141d; isolation: isolate; } .game .gl-labels { clip-path: inset(var(--bar) 0 0 0); }
+.legacy { display: inline-flex; align-items: center; gap: .2rem; margin-right: .5rem; }

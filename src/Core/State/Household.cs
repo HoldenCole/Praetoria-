@@ -31,6 +31,9 @@ public sealed class Will
     public string LegateeId { get; set; } = "";
     /// <summary>The part of the purse they are to have: 0, 25, 50 or 100.</summary>
     public int SharePct { get; set; }
+    /// <summary>Smaller legacies out of the purse, to others than the heir and the one above: person → the part of the purse they are
+    /// to have (a tenth or a quarter). With the share above it never comes to more than the whole.</summary>
+    public Dictionary<string, int> Also { get; set; } = new();
     /// <summary>Heirloom id → the person it is left to. Anything not named goes to the heir.</summary>
     public Dictionary<string, string> Items { get; set; } = new();
 }

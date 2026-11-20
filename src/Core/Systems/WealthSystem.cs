@@ -299,6 +299,19 @@ public static partial class WealthSystem
         return w.Char(legateeId) is { Alive: true } l && l.Id != who.Id ? null : "no such person";
     }
 
+    /// <summary>Whether a smaller legacy may be written into a will: a tenth or a quarter of the purse (nothing strikes it out), to
+    /// someone living who is not the one who has the larger share, and never so that the will gives away more than the purse.</summary>
+    public static string? LegacyRefusal(World w, Character? who, string toId, int pct)
+    {
+        if (who?.Alive != true) return "no such person";
+        if (pct is not (0 or 10 or 25)) return "a tenth or a quarter of it";
+        if (w.Char(toId) is not { Alive: true } to || to.Id == who.Id) return "no such person";
+        var will = who.Will; if (pct == 0) return will?.Also.ContainsKey(toId) == true ? null : "nothing is left to them";
+        if (will?.LegateeId == toId && will.SharePct > 0) return "they have the larger share already";
+        int given = (will?.LegateeId.Length > 0 ? will.SharePct : 0) + (will?.Also.Where(kv => kv.Key != toId).Sum(kv => kv.Value) ?? 0);
+        return given + pct <= 100 ? null : $"the will already gives away {given} parts in the hundred";
+    }
+
     /// <summary>The head is dead and <paramref name="heir"/> has the house. The purse and heirlooms go by the will; the treasury is
     /// kept whole or shared out by the custom of the house; debts are the house's now.</summary>
     public static void Inherit(World w, Character dead, Character heir)
@@ -326,7 +339,16 @@ public static partial class WealthSystem
                 w.Log($"By {dead.Name}'s will, {toLegatee} credits go to {legatee.Name}.");
                 if (will.SharePct >= 50) { Regard(w, heir, legatee, -15); Mark(w, WillContestedFlag); }
             }
-            heir.Purse += purse - toLegatee;
+            /* the smaller legacies, each out of the whole purse as it stood, in the order of their names */
+            int toOthers = 0;
+            foreach (var (id, pct) in will.Also.OrderBy(kv => kv.Key, StringComparer.Ordinal))
+            {
+                if (w.Char(id) is not { Alive: true } other || other.Id == heir.Id || other.Id == legatee?.Id) continue;
+                int part = Math.Min(purse * pct / 100, purse - toLegatee - toOthers); if (part <= 0) continue;
+                other.Purse += part; other.Flags.Add(LegateeChar); toOthers += part;
+                w.Log($"By {dead.Name}'s will, {part} credits go to {other.Name}.");
+            }
+            heir.Purse += purse - toLegatee - toOthers;
         }
         foreach (var item in HeldBy(w, dead.Id))
         {

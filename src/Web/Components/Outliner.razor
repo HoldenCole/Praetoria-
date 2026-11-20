@@ -159,7 +159,7 @@
     </section>
     <section class="ol-block">
         <h4><Icon Name="fleet" Size="13" /> Fleets <span class="count">@m.Fleets.Count</span></h4>
-        @foreach (var f in m.Fleets) { <button class="ol-row" @onclick='() => OnGo.InvokeAsync("galaxy:" + (w.Fleets.TryGetValue(f.Id, out var of) ? of.SystemId : ""))'><b>@f.Name</b> <span class="muted">@f.Strength hulls · @(f.Moving ? $"→ {f.Destination}" : f.Where)</span></button> }
+        @foreach (var f in m.Fleets) { <button class="ol-row" title="Pick this fleet: the map goes to it, and the next world you click shows the way there" @onclick='() => OnGo.InvokeAsync("fleet:" + f.Id)'><b>@f.Name</b> <span class="muted">@f.Strength hulls · @(f.Moving ? $"→ {f.Destination}" : f.Where)</span></button> }
     </section>
     <section class="ol-block">
         <h4><Icon Name="planet" Size="13" /> Holdings <span class="count">@m.Holdings.Count</span></h4>

@@ -144,7 +144,7 @@ public sealed class EducationCommand : ICommand
 /// <see cref="Sell"/>: an heirloom.</summary>
 public sealed class WealthCommand : ICommand
 {
-    public const string Allowance = "allowance", Inheritance = "inheritance", Move = "move", Settle = "settle", Will = "will", Bequeath = "bequeath", Give = "give", Sell = "sell", Gift = "gift", Lend = "lend", Forgive = "forgive", Dowries = "dowries", EntailItem = "entail_item", BreakEntail = "break_entail", LendAtInterest = "lend_interest", Borrow = "borrow", Repay = "repay", Commission = "commission", Ransom = "ransom", Favour = "favour";
+    public const string Allowance = "allowance", Inheritance = "inheritance", Move = "move", Settle = "settle", Will = "will", Legacy = "legacy", Bequeath = "bequeath", Give = "give", Sell = "sell", Gift = "gift", Lend = "lend", Forgive = "forgive", Dowries = "dowries", EntailItem = "entail_item", BreakEntail = "break_entail", LendAtInterest = "lend_interest", Borrow = "borrow", Repay = "repay", Commission = "commission", Ransom = "ransom", Favour = "favour";
     private readonly string _what, _targetId, _value;
     public WealthCommand(string actorId, string what, string targetId, string value) { ActorId = actorId; _what = what; _targetId = targetId; _value = value; }
     public string ActorId { get; }
@@ -160,6 +160,7 @@ public sealed class WealthCommand : ICommand
             case Move: return int.TryParse(_value, out int amount) ? WealthSystem.MoveRefusal(w, me, amount) : "not a sum";
             case Settle: return WealthSystem.SettleRefusal(w, me, w.Char(_targetId), _value == "purse");
             case Will: return WealthSystem.WillRefusal(w, me, _targetId, int.TryParse(_value, out int pct) ? pct : -1);
+            case Legacy: return WealthSystem.LegacyRefusal(w, me, _targetId, int.TryParse(_value, out int part) ? part : -1);
             case Bequeath: return WealthSystem.BequeathRefusal(w, me, item, _value);
             case Give: return WealthSystem.GiveRefusal(w, me, item, w.Char(_value));
             case Sell: return WealthSystem.SellRefusal(w, me, item);
@@ -185,7 +186,11 @@ public sealed class WealthCommand : ICommand
             case Inheritance: house.Inheritance = _value; break;
             case Move: WealthSystem.Move(w, me, int.Parse(_value)); break;
             case Settle: WealthSystem.Settle(w, me, w.Char(_targetId)!, _value == "purse"); break;
-            case Will: me.Will ??= new State.Will(); me.Will.LegateeId = int.Parse(_value) == 0 ? "" : _targetId; me.Will.SharePct = _targetId.Length == 0 ? 0 : int.Parse(_value); break;
+            case Will: me.Will ??= new State.Will(); me.Will.LegateeId = int.Parse(_value) == 0 ? "" : _targetId; me.Will.SharePct = _targetId.Length == 0 ? 0 : int.Parse(_value);
+                /* the one given the larger share has no smaller one besides, and the smaller ones give way where the whole would be overrun */
+                me.Will.Also.Remove(me.Will.LegateeId); foreach (var k in me.Will.Also.Keys.OrderByDescending(k => k, StringComparer.Ordinal).ToList()) if (me.Will.SharePct + me.Will.Also.Values.Sum() > 100) me.Will.Also.Remove(k);
+                break;
+            case Legacy: me.Will ??= new State.Will(); if (int.Parse(_value) == 0) me.Will.Also.Remove(_targetId); else me.Will.Also[_targetId] = int.Parse(_value); break;
             case Bequeath: me.Will ??= new State.Will(); if (_value.Length == 0) me.Will.Items.Remove(_targetId); else me.Will.Items[_targetId] = _value; break;
             case Give: WealthSystem.Give(w, me, item!, w.Char(_value)!); break;
             case Sell: WealthSystem.Sell(w, me, item!); break;
