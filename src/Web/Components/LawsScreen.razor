@@ -166,7 +166,7 @@
         if (o.InForce) return;
         int years = G.Content!.Policies.Law(l.Id)?.Cooldown ?? 6;
         string estates = o.Opinions.Count == 0 ? "" : " The estates: " + string.Join(", ", o.Opinions.Select(x => x.Name.Replace("The ", "") + " " + (x.Opinion > 0 ? "+" : "") + x.Opinion)) + ".";
-        G.AskDo("Enact \"" + o.Name + "\"?", l.Name + ": " + o.Effects + "." + estates + " Once enacted it cannot be changed again for " + years + " years.", "Enact it", new EnactLawCommand(G.World!.ProtagonistId, l.Id, o.Id, G.Content.Policies));
+        G.AskDo("Enact \"" + o.Name + "\"?", l.Name + ": " + o.Effects + "." + estates + " It costs " + l.Cost + " influence of this year's. Once enacted it cannot be changed again for " + years + " years.", "Enact it · " + l.Cost + " influence", new EnactLawCommand(G.World!.ProtagonistId, l.Id, o.Id, G.Content.Policies));
     }
     // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
     [Parameter] public string Tab { get; set; } = "";

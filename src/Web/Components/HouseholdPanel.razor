@@ -144,7 +144,7 @@
                             <td>@xh?.Name</td>
                             <td>@HouseholdSystem.KindName(kind)</td>
                             <td class="num @(t.will.score >= HouseholdSystem.WillingAt ? "good" : "bad")" title="@string.Join(" · ", t.will.why)">@t.will.score</td>
-                            <td><button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? string.Join(" · ", t.will.why))" @onclick="() => G.Execute(new HouseholdCommand(pid, HouseholdCommand.TakeIn, xid, kind))">Take in</button></td>
+                            <td><button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? string.Join(" · ", t.will.why))" @onclick="() => G.Execute(new HouseholdCommand(pid, HouseholdCommand.TakeIn, xid, kind))">Take in · @HouseholdSystem.TakeInInfluence influence</button></td>
                         </tr>
                     }
                 </tbody>
