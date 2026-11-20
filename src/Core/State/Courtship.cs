@@ -64,6 +64,8 @@ public sealed class Marriage
     public string ChildrenTo { get; set; } = "";
     /// <summary>Credits that passed with the bride, and the house that paid them.</summary>
     public int Dowry { get; set; }
+    /// <summary>What the contract said the dowry was to be. More than <see cref="Dowry"/> when the bride's house could not raise it all.</summary>
+    public int DowryAgreed { get; set; }
     public string DowryFrom { get; set; } = "";
     /// <summary>They live apart. No children come of it until they are reconciled.</summary>
     public bool Estranged { get; set; }

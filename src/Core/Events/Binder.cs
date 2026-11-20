@@ -18,9 +18,15 @@ public static class Binder
     /// valid candidates one is chosen via the RNG so repeated runs from a seed are deterministic.
     /// Returns null if any role is unfillable.
     /// </summary>
+    /// <summary>Parts that are, by what they are, somebody outside the player's house: the one who buys from it, lends to it, envies it,
+    /// treats with it or comes to it as an old friend from elsewhere (a rival or an enemy may be of the blood, and is not in this list). One taken into the household is of the house, and a report cast them
+    /// as the outside buyer and the old friend in the city (docs/PLAYTHROUGH.md, Easy, F53 and F76).</summary>
+    private static readonly HashSet<string> OutsideParts = new(StringComparer.Ordinal)
+    { "buyer", "rival_house", "envoy", "intruder", "giver", "debtor", "claimant", "grandee", "pretender", "coalition_head", "envious", "friend", "sovereign" };
+
     public static Binding? TryBind(EventDef def, World world, IRng rng)
     {
-        var binding = new Binding(world.ProtagonistId);
+        var binding = new Binding(world.ProtagonistId); string protagonistHouse = world.Protagonist?.HouseId ?? "";
         var used = new HashSet<string> { world.ProtagonistId };
 
         foreach (var role in def.Roles)
@@ -36,6 +42,7 @@ public static class Binder
                 if (used.Contains(c.Id)) continue;
                 if (c.Flags.Contains(Systems.DynastySystem.HiddenFlag)) continue;   // fostered away — unreachable (GDD §14 scatter the seed)
                 if (!bindsChildren && c.Age < Systems.DynastySystem.AgeOfMajority) continue;
+                if (OutsideParts.Contains(role.Name) && c.HouseId == protagonistHouse) continue;   // nobody of the house buys from it, lends to it or comes to it as a stranger
                 var trial = binding.With(role.Name, c.Id);
                 var ctx = new EvalContext(world, trial, rng);
                 if (AllHold(role.Constraints, ctx))

@@ -10,13 +10,14 @@
     @foreach (var d in Levels)
     {
         string lv = d; int amt = CourtshipSystem.DowryAmount(W, bride.HouseId, d);
-        <button class="opt inline tiny @(Dowry == d ? "here" : "")" @onclick="() => OnChange.InvokeAsync((lv, Kids))">@(d == CourtshipSystem.None ? "none" : $"{d} · {amt}")</button>
+        int lean = CourtshipSystem.Terms(W, Suit, d, Kids) - CourtshipSystem.Terms(W, Suit, CourtshipSystem.Customary, Kids); int can = Math.Max(0, W.House(bride.HouseId)?.Treasury.Credits ?? 0);
+        <button class="opt inline tiny @(Dowry == d ? "here" : "")" title="@((lean == 0 ? "What custom expects: it moves their yes neither way." : $"Their yes {(lean > 0 ? "+" : "−")}{Math.Abs(lean)} against the customary sum.") + (amt > 0 && weReceive && can < amt ? $" Their treasury holds {can}: that is all that would come." : amt > 0 && !weReceive && can < amt ? $" Your treasury holds {can}: the rest would have to come from your purse, or go unpaid." : ""))" @onclick="() => OnChange.InvokeAsync((lv, Kids))">@(Dowry == d ? "✓ " : "")@(d == CourtshipSystem.None ? "none" : $"{d} · {amt}")@(amt > 0 && weReceive && can < amt ? $" (they can raise {can})" : "")</button>
     }
     <i></i>
     <span title="By custom the head of a house keeps the seat's children, otherwise the greater house does, otherwise the father's. The contract can say otherwise, at a price.">Children's name</span>
-    <button class="opt inline tiny @(Kids.Length == 0 ? "here" : "")" @onclick="() => OnChange.InvokeAsync((Dowry, string.Empty))">by custom (@Short(W.House(custom)?.Name))</button>
-    <button class="opt inline tiny @(Kids == ours.HouseId ? "here" : "")" @onclick="() => OnChange.InvokeAsync((Dowry, ours.HouseId))">yours</button>
-    <button class="opt inline tiny @(Kids == theirs.HouseId ? "here" : "")" @onclick="() => OnChange.InvokeAsync((Dowry, theirs.HouseId))">theirs</button>
+    <button class="opt inline tiny @(Kids.Length == 0 ? "here" : "")" title="@($"Nothing is written. Custom here gives the children the name of {W.House(custom)?.Name}: {(ours.Id == W.ProtagonistId || theirs.Id == W.ProtagonistId ? "the head of a house keeps the seat's children" : "the greater house keeps them, or the father's where the houses are equal")}. It moves their yes neither way.")" @onclick="() => OnChange.InvokeAsync((Dowry, string.Empty))">@(Kids.Length == 0 ? "✓ " : "")by custom (@Short(W.House(custom)?.Name))</button>
+    <button class="opt inline tiny @(Kids == ours.HouseId ? "here" : "")" title="@(custom == ours.HouseId ? "Written into the contract. It is what custom gives here already, so it costs nothing: it only makes it certain." : "Written into the contract against custom: their yes −15.")" @onclick="() => OnChange.InvokeAsync((Dowry, ours.HouseId))">@(Kids == ours.HouseId ? "✓ " : "")yours@(custom == ours.HouseId ? " (as custom)" : " · −15")</button>
+    <button class="opt inline tiny @(Kids == theirs.HouseId ? "here" : "")" title="@(custom == ours.HouseId ? "You give up what custom gives you: their yes +15, and the children are of their house, not yours." : "It is what custom gives here already: it only makes it certain.")" @onclick="() => OnChange.InvokeAsync((Dowry, theirs.HouseId))">@(Kids == theirs.HouseId ? "✓ " : "")theirs@(custom == ours.HouseId ? " · +15" : " (as custom)")</button>
 </div>
 
 @code {

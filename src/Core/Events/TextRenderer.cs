@@ -60,6 +60,8 @@ public static class TextRenderer
         {
             case "name": return c.Name;
             case "house":
+                /* a spouse who has come to live in the player's house: "their family" is still the house they were born to */
+                if (role == "spouse" && c.HouseId == ctx.World.Protagonist?.HouseId && c.BornHouseId.Length > 0 && c.BornHouseId != c.HouseId && ctx.World.Houses.TryGetValue(c.BornHouseId, out var born)) return born.Name;
                 return ctx.World.Houses.TryGetValue(c.HouseId, out var h) ? h.Name : c.HouseId;
             case "rank": return c.CareerRank.ToString();
             case "rankName":

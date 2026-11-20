@@ -58,7 +58,8 @@
                         <button class="opt inline tiny" disabled="@(b.Sell.Refusal != null)" title="@(b.Sell.Refusal ?? "four-fifths of its worth; the caravaneers break it up")" @onclick='() => G.AskDo("Sell " + b.Name + "?", b.Sell.Label + ". The caravaneers break it up and pay four-fifths of what it is worth today: a venture is worth what it cost in its first year and comes to its full worth over five. It is gone for good, and what it yielded each year goes with it.", "Sell it", new SellVentureCommand(pid, b.Id, string.Empty, vs))'>@b.Sell.Label</button>
                         @foreach (var bid in b.Bids ?? new List<VentureBid>())
                         {
-                            <button class="opt inline tiny" title="@(bid.HoldsTheWorld ? "holds the world it works, and pays for that" : "its bid")" @onclick='() => G.AskDo("Sell " + b.Name + " to " + bid.HouseName + "?", bid.HouseName + " pays " + bid.Price + " credits and has the venture and what it yields from now on. It cannot be asked back.", "Sell for " + bid.Price, new SellVentureCommand(pid, b.Id, bid.HouseId, vs))'>Sell to @bid.HouseName for @bid.Price</button>
+                            string? bidNo = new SellVentureCommand(pid, b.Id, bid.HouseId, vs).Refusal(G.Ctx);
+                            <button class="opt inline tiny" disabled="@(bidNo != null)" title="@(bidNo ?? (bid.HoldsTheWorld ? "holds the world it works, and pays for that" : "its bid"))" @onclick='() => G.AskDo("Sell " + b.Name + " to " + bid.HouseName + "?", bid.HouseName + " pays " + bid.Price + " credits and has the venture and what it yields from now on. It cannot be asked back.", "Sell for " + bid.Price, new SellVentureCommand(pid, b.Id, bid.HouseId, vs))'>Sell to @bid.HouseName for @bid.Price</button>
                         }
                     }
                 </div>

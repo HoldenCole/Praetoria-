@@ -163,6 +163,21 @@ public static class CourtshipSystem
         };
     }
 
+    /// <summary>What a year's act is worth, said before it is done, from the same sums <see cref="Act"/> uses (docs/PLAYTHROUGH.md,
+    /// Easy: "what a courtship lever is worth before pulling it").</summary>
+    public static string ActSays(World w, Courtship c, string act)
+    {
+        var s = w.Char(c.SuitorId); var t = w.Char(c.TargetId); if (s == null || t == null) return "";
+        var head = Head(w, s.HouseId) ?? s;
+        switch (act)
+        {
+            case ActTime: return $"Their favour +{6 + s.Skill("charisma") * 2 + (Spark(s.Id, t.Id) > 8 ? 3 : 0)} (now {c.Favour}).";
+            case ActGift: return $"{(IsChildMatch(w, c) ? "" : "Their favour +5, and the ")}{(IsChildMatch(w, c) ? "The " : "")}family's yes +4 (now {c.Consent}, and they agree at {AcceptAt}).";
+            case ActFamily: return $"The family's yes +{6 + Math.Max(head.Skill("oratory"), head.Skill("diplomacy")) * 2} (now {c.Consent}, and they agree at {AcceptAt}): {head.Name} speaks, and it is the better of their oratory and diplomacy that counts.";
+            default: return $"The rival's standing −{10 + head.Skill("intrigue") * 3} (now {c.RivalStanding}; the rival carries the match at {RivalWinsAt}). {Math.Max(5, 35 - head.Skill("intrigue") * 6)} times in 100 it is traced to you, and then the family's yes falls by 10.";
+        }
+    }
+
     /// <summary>The year's one act for a courtship. Returns a line saying what came of it.</summary>
     public static string Act(World w, Courtship c, string act)
     {
@@ -373,17 +388,23 @@ public static class CourtshipSystem
         // the counter is the player's own house's matches: an honour and the epilogue read it as "bound to yours"
         if (ourWedding) w.WorldCounters["marriages"] = w.Counter("marriages") + 1;
 
-        var bride = a.Sex == "female" ? a : b; var groom = bride == a ? b : a; int paid = 0;
+        var bride = a.Sex == "female" ? a : b; var groom = bride == a ? b : a; int paid = 0, agreed = 0;
         if (dowry != None && w.House(bride.HouseId) is { } from && w.House(groom.HouseId) is { } to && from.Id != to.Id)
         {
             // the head who has said so pays out of their own purse first (docs/WEALTH.md), and the bride knows whose money it was
-            int due = DowryAmount(w, from.Id, dowry), own = 0; var giver = from.DowryFromPurse && from.Id == mine ? w.Protagonist : null;
+            int due = DowryAmount(w, from.Id, dowry), own = 0; agreed = due; var giver = from.DowryFromPurse && from.Id == mine ? w.Protagonist : null;
             // a bride with a purse of her own puts half of it toward her portion, up to half of what is due
             int hers = from.Id == mine && bride.Id != w.ProtagonistId ? Math.Clamp(bride.Purse / 2, 0, due / 2) : 0; bride.Purse -= hers;
             if (hers > 0 && log) w.Log($"{bride.Name} puts {hers} credits of her own toward her portion.");
             if (giver is { Alive: true }) { own = Math.Clamp(giver.Purse, 0, due - hers); giver.Purse -= own; }
             paid = hers + own + Math.Min(due - hers - own, Math.Max(0, from.Treasury.Credits));
             from.Treasury.Credits -= paid - own - hers; to.Treasury.Credits += paid;
+            if (paid < due)
+            {
+                /* what was agreed and what could be found are two sums, and both are said (docs/PLAYTHROUGH.md, Easy, F9 and F82) */
+                if (log) w.Log($"{from.Name} agreed a dowry of {due} credits with {bride.Name} and could raise {paid}.");
+                if (log && (from.Id == mine || to.Id == mine)) w.Tell("warn", from.Id == mine ? $"Your house agreed a dowry of {due} credits with {bride.Name} and the treasury could find {paid}." : $"{from.Name} agreed a dowry of {due} credits with {bride.Name} and could raise only {paid}: that is all that came.", "dynasty:marriages");
+            }
             if (giver != null && own > 0 && own * 2 >= paid && bride.Id != giver.Id)
             {
                 var r = w.Relationship(bride.Id, giver.Id); r.Disposition = Math.Clamp(r.Disposition + WealthSystem.DowryRegard, -100, 100);
@@ -391,7 +412,7 @@ public static class CourtshipSystem
             }
         }
         bool first = string.CompareOrdinal(a.Id, b.Id) < 0;
-        var m = new Marriage { A = first ? a.Id : b.Id, B = first ? b.Id : a.Id, Since = w.Turn, Kind = kind, ChildrenTo = childrenTo, Dowry = paid, DowryFrom = paid > 0 ? bride.HouseId : "", Warmth = StartWarmth(w, a, b, kind, favour) };
+        var m = new Marriage { A = first ? a.Id : b.Id, B = first ? b.Id : a.Id, Since = w.Turn, Kind = kind, ChildrenTo = childrenTo, Dowry = paid, DowryAgreed = agreed, DowryFrom = paid > 0 ? bride.HouseId : "", Warmth = StartWarmth(w, a, b, kind, favour) };
         w.Marriages.RemoveAll(x => x.Has(a.Id) || x.Has(b.Id)); w.Marriages.Add(m);
         if (log) WealthSystem.WeddingGift(w, bride, groom, paid);   // the other house sometimes sends plate (docs/WEALTH.md)
         // every other suit for either hand is over

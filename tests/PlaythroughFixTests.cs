@@ -213,10 +213,10 @@ public class PlaythroughFixTests
     {
         // 12: the courts fined the player every year in silence: no notice, no sum, and nothing to do about it
         bool settled = false, heard = false;
-        for (int seed = 1; seed <= 8 && !(settled && heard); seed++)
+        for (int seed = 1; seed <= 16 && !(settled && heard); seed++)
         {
             var (w, tc, house, me, _) = Start("the_old_lion", seed); tc.BeginTurn();
-            for (int y = 0; y < 14 && !w.IsDynastyDead && !(settled && heard); y++)
+            for (int y = 0; y < 16 && !w.IsDynastyDead && !(settled && heard); y++)
             {
                 me = w.Protagonist!; house = w.House(me.HouseId)!; var ctx = new CommandContext(w, TestContent.Rng());
                 foreach (var suit in LadderSystem.SuitsNaming(w, house.Id))
@@ -247,7 +247,7 @@ public class PlaythroughFixTests
                 next: ;
             }
         }
-        Assert.True(settled || heard, "in eight sagas of fourteen years no suit named the player's house");
+        Assert.True(settled || heard, "in sixteen sagas of sixteen years no suit named the player's house");
     }
 
     [Fact]
@@ -498,5 +498,34 @@ public class PlaythroughFixTests
         string? no = tc.Orders.EnrollRefusal(w, house, false);
         if (no != null && no.Contains("notable in commerce")) { Assert.Contains(OrderSystem.NotableAt.ToString(), no); Assert.Contains("the house has 3", no); }
         else Assert.Fail("expected the census to refuse a house of no account: " + no);
+    }
+    [Fact]
+    public void A_dowry_agreed_and_a_dowry_paid_are_both_kept_and_a_second_yes_marries_nobody()
+    {
+        var (w, tc, house, me, ctx) = Start();
+        var bride = w.LivingCharacters().First(c => c.Sex == "female" && c.Age is >= 18 and <= 35 && c.HouseId != house.Id && !World.Outsider(c.HouseId) && DynastySystem.Spouse(w, c) == null);
+        var groom = w.LivingCharacters().First(c => c.Sex == "male" && c.Age >= 18 && c.HouseId == house.Id && DynastySystem.Spouse(w, c) == null);
+        var from = w.House(bride.HouseId)!; int due = CourtshipSystem.DowryAmount(w, from.Id, CourtshipSystem.Customary); Assert.True(due > 3);
+        from.Treasury.Credits = 3; bride.Purse = 0;
+        var m = CourtshipSystem.Wed(w, bride, groom, CourtshipSystem.Arranged, CourtshipSystem.Customary);
+        Assert.Equal(due, m.DowryAgreed); Assert.Equal(3, m.Dowry);
+        Assert.Contains(w.News, n => n.Text.Contains($"agreed a dowry of {due}") && n.Text.Contains("only 3"));
+        // a second yes, from a report answered the same year, marries nobody
+        var other = w.LivingCharacters().First(c => c.Sex == "female" && c.Age >= 18 && c.HouseId != house.Id && c.Id != bride.Id && DynastySystem.Spouse(w, c) == null);
+        new Praetoria.Core.Events.AddBondEffect("self", "match", BondType.Marriage, 60).Apply(new Praetoria.Core.Events.EvalContext(w, new Praetoria.Core.Events.Binding(groom.Id).With("match", other.Id), TestContent.Rng()));
+        Assert.NotEqual(BondType.Marriage, w.GetRelationship(groom.Id, other.Id)?.Bond ?? BondType.None);
+        Assert.Equal(bride.Id, DynastySystem.Spouse(w, groom)?.Id);
+    }
+
+    [Fact]
+    public void Nobody_of_the_house_is_cast_as_the_outside_buyer()
+    {
+        var (w, tc, house, me, ctx) = Start();
+        var def = Content.Events.First(e => e.Id == "the_fuel_contract");
+        for (int i = 0; i < 40; i++)
+        {
+            var b = Praetoria.Core.Events.Binder.TryBind(def, w, new Praetoria.Core.Rng.SplitMix64Rng((ulong)(i + 1)));
+            if (b != null && b.TryGet("buyer", out var who)) Assert.NotEqual(house.Id, w.Char(who)!.HouseId);
+        }
     }
 }

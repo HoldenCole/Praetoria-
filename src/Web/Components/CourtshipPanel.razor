@@ -19,7 +19,7 @@
 
     @foreach (var m in marriages)
     {
-        var ours = w.Char(m.A)!.HouseId == house.Id ? w.Char(m.A)! : w.Char(m.B)!; var spouse = w.Char(m.Other(ours.Id))!; var sh = w.House(spouse.HouseId);
+        var ours = m.Has(pid) ? w.Char(pid)! : w.Char(m.A)!.HouseId == house.Id ? w.Char(m.A)! : w.Char(m.B)!; /* your own marriage is yours whichever of you the list comes to first, and wherever your spouse now lives */ var spouse = w.Char(m.Other(ours.Id))!; var sh = w.House(spouse.HouseId);
         string mid = ours.Id; int kids = w.Characters.Values.Count(k => (k.MotherId == ours.Id && k.FatherId == spouse.Id) || (k.MotherId == spouse.Id && k.FatherId == ours.Id));
         var tend = new MarriageCommand(pid, mid, MarriageCommand.Tend).Refusal(G.Ctx);
         <div class="suit">
@@ -27,7 +27,7 @@
                 <Portrait Id="@ours.Id" Name="@ours.Name" Sex="@ours.Sex" Age="@ours.Age" Accent="@house.AccentColor" Size="40" />
                 <Portrait Id="@spouse.Id" Name="@spouse.Name" Sex="@spouse.Sex" Age="@spouse.Age" Accent="@(sh?.AccentColor ?? "#888")" Size="40" />
                 <div><b>@ours.Name</b> and <b>@spouse.Name</b>@(sh != null && sh.Id != house.Id ? $" of {sh.Name}" : "")
-                    <div class="muted small">@CourtshipSystem.KindName(m.Kind) · @Years(w.Turn - m.Since) · @kids child(ren)@(m.ChildrenTo.Length > 0 ? $" · the children carry the name of {w.House(m.ChildrenTo)?.Name}" : "")@(m.Dowry > 0 ? (m.DowryFrom == G.World!.Protagonist!.HouseId ? $" · your house paid a dowry of {m.Dowry} credits" : $" · a dowry of {m.Dowry} credits came to your house") : "")</div></div>
+                    <div class="muted small">@CourtshipSystem.KindName(m.Kind) · @Years(w.Turn - m.Since) · @kids child(ren)@(m.ChildrenTo.Length > 0 ? $" · the children carry the name of {w.House(m.ChildrenTo)?.Name}" : " · the children's name by custom")@(m.Dowry > 0 ? (m.DowryFrom == G.World!.Protagonist!.HouseId ? $" · your house paid a dowry of {m.Dowry} credits" : $" · a dowry of {m.Dowry} credits came to your house") + (m.DowryAgreed > m.Dowry ? $" ({m.DowryAgreed} were agreed; no more could be raised)" : "") : m.DowryAgreed > 0 ? $" · a dowry of {m.DowryAgreed} credits was agreed and none could be raised" : " · no dowry")</div></div>
             </div>
             <div class="gauges">
                 <div class="gauge" title="Warm marriages bear more children and ease their partners. Cold ones do the opposite. At the bottom the couple live apart and no children come."><span>Warmth</span><i><b style="width:@m.Warmth%" class="@(m.Warmth >= CourtshipSystem.WarmAt ? "high" : m.Warmth <= CourtshipSystem.ColdAt ? "low" : "")"></b></i><em>@m.Warmth</em></div>
@@ -106,7 +106,7 @@
                     {
                         if (act.id == CourtshipSystem.ActRival && rival == null) continue; if (act.id == CourtshipSystem.ActTime && (child || !mine)) continue;
                         string a = act.id; var no = new WooCommand(pid, sid, a).Refusal(G.Ctx);
-                        <button class="opt inline" disabled="@(no != null)" title="@(no ?? act.tip)" @onclick="() => G.Execute(new WooCommand(pid, sid, a))">@(mine ? act.label : act.help)</button>
+                        <button class="opt inline" disabled="@(no != null)" title="@(no ?? (CourtshipSystem.ActSays(w, s, a) + " One act a year for each courtship."))" @onclick="() => G.Execute(new WooCommand(pid, sid, a))">@(mine ? act.label : act.help)</button>
                     }
                     @if (acted) { <span class="muted small">@(mine ? "Done for this year." : "You have helped this year.")</span> }
                     else if (!mine) { <span class="muted small">Optional.</span> }
@@ -131,6 +131,8 @@
             <div class="suit-acts">
                 <span class="muted small">For</span>
                 @foreach (var k in free.Take(8)) { string kid = k.Id; <button class="opt inline @(k.Id == suitor.Id ? "here" : "")" @onclick="() => { _suitor = kid; _more = false; }">@(k.Id == pid ? "yourself" : First(k.Name)) · @k.Age</button> }
+                @{ var tooYoung = w.LivingCharacters().Where(k => k.HouseId == house.Id && k.Age < CourtshipSystem.BetrothalAge && DynastySystem.Spouse(w, k) == null).OrderByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal).ToList(); }
+                @foreach (var k in tooYoung.Take(4)) { <button class="opt inline" disabled title="@($"A child can be promised from {CourtshipSystem.BetrothalAge}: {First(k.Name)} is {k.Age}. A promise is kept when both are of age.")">@First(k.Name) · @k.Age · from @CourtshipSystem.BetrothalAge</button> }
             </div>
             @if (prospects.Count == 0) { <div class="muted small">There is no one @suitor.Name could be matched with now.</div> }
             else

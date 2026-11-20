@@ -89,7 +89,7 @@
                     <div class="sc-body">
                         <div class="sc-name">@focus.Name <span class="muted">@focus.Age@(focus.Sex.Length > 0 ? $" · {focus.Sex}" : "")@(c.Careers.RankName(focus.CareerTrack, focus.CareerRank, G.World!.Era) is { } rn ? $" · {rn}" : "")</span></div>
                         <div class="muted small">@(hl?.Married == true ? "wed · " : "")@(hl?.Hidden == true ? "fostered away · " : "")<span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d toward you</span>@(focus.NatureTraits.Count > 0 ? " · " + string.Join(", ", focus.NatureTraits.Concat(focus.AptitudeTraits)) : "")@(focus.Ambition.Length > 0 ? $" · wants: {focus.Ambition.Replace('_', ' ')}" : "")</div>
-                        @if (hl != null && hl.Actions.Count > 0) { <div class="sc-actions">@foreach (var o in hl.Actions) { if (o.Id == "defiant") { <span class="pill warn">defiant</span> } else { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(Household(o.Id, hl.Id))">@o.Label</button> } } </div> }
+                        @if (hl != null && hl.Actions.Count > 0) { <div class="sc-actions">@foreach (var o in hl.Actions) { if (o.Id == "defiant") { <span class="pill warn">defiant</span> } else { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@(o.Refusal ?? HouseholdWords.Tip(o.Id))" @onclick="() => G.Execute(Household(o.Id, hl.Id))">@o.Label</button> } } </div> }
                     </div>
                     <button class="win-close" @onclick="() => _focus = null">✕</button>
                 </div>
@@ -105,7 +105,7 @@
                     @foreach (var o in h.Actions)
                     {
                         @if (o.Id == "defiant") { <span class="pill warn">defiant</span> }
-                        else { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick:stopPropagation @onclick="() => G.Execute(Household(o.Id, h.Id))">@o.Label</button> }
+                        else { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@(o.Refusal ?? HouseholdWords.Tip(o.Id))" @onclick:stopPropagation @onclick="() => G.Execute(Household(o.Id, h.Id))">@o.Label</button> }
                     }
                 </div>
             }
@@ -116,7 +116,7 @@
             <section class="panel">
                 <h3><Icon Name="legitimacy" Size="13" /> Decrees</h3>
                 <div class="muted small">Tithe: @s.TaxPolicy — set in the Chancery (Laws), with the rest of the house's law.</div>
-                <details><summary>Succession: @s.SuccessionLaw</summary>@foreach (var o in s.LawOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick='() => G.AskDo("Change the law of succession to " + o.Label + "?", "The law decides who of the blood comes first when you die: it changes who your heir is from today, and those passed over will know it. The Dynasty window shows the line as it stands; look there after.", "Change the law", new SetSuccessionLawCommand(pid, o.Id))'>@o.Label</button> }</details>
+                <details><summary>Succession: @s.SuccessionLaw</summary>@foreach (var o in s.LawOptions) { var wouldBe = DynastySystem.Line(G.World!, G.World!.Protagonist!, o.Id).FirstOrDefault(); var nowHeir = DynastySystem.FindHeir(G.World!, G.World!.Protagonist!); <button class="opt" disabled="@(o.Refusal != null)" title="@(o.Refusal ?? $"{char.ToUpperInvariant(o.Label[0])}{o.Label[1..]}: {DynastySystem.LawSays(o.Id)}. Your heir would be {wouldBe?.Name ?? "nobody"}{(wouldBe?.Id == nowHeir?.Id ? ", as now" : nowHeir != null ? $", not {nowHeir.Name}" : "")}{(G.World!.House(G.World.Protagonist!.HouseId)?.NamedHeirId.Length > 0 ? " (the heir you named comes first under any law)" : "")}. Costs 2 influence this year.")" @onclick='() => G.AskDo("Change the law of succession to " + o.Label + "?", "The law decides who of the blood comes first when you die: it changes who your heir is from today, and those passed over will know it. The Dynasty window shows the line as it stands; look there after.", "Change the law", new SetSuccessionLawCommand(pid, o.Id))'>@o.Label</button> }</details>
                 <div class="kv" title="How dangerous the other houses take yours to be. It rises with your share of the spheres (the Navy, the Senate, the courts, the counting-houses) above an even share, by 5 for every holding past the first, with every rank seized by force, and with holding the capital. The higher it stands, the readier the others are to band against you."><span><Icon Name="threat" Size="12" /> How dangerous others think us</span><b class="@(s.Threat >= 60 ? "warn" : "")">@s.Threat</b></div>
                 @if (s.Instability > 0) { <div class="kv"><span>Title instability</span><b class="warn">@s.Instability</b></div> }
                 @if (s.Honors.Count > 0) { <div class="kv"><span><Icon Name="honor" Size="12" /> Honors</span><b>@string.Join(", ", s.Honors)</b></div> }
@@ -195,7 +195,7 @@
                     <div class="lb net"><span class="src"><b>What is left</b></span><span class="track"><i class="neg" style="width:@(net < 0 ? Math.Min(50.0, 50.0 * -net / maxAbs) : 0)%"></i><i class="pos" style="width:@(net > 0 ? Math.Min(50.0, 50.0 * net / maxAbs) : 0)%"></i></span><b class="@(net > 0 ? "good" : net < 0 ? "warn" : "muted")">@(net > 0 ? "+" : "")@net</b></div>
                 </div>
                 @if (Goods(lg.Net) is { Length: > 0 } goods) { <div class="muted small">And in goods, each year: @goods</div> }
-                @{ var outs = HouseAccounts.Outgoings(w, c.Holdings, house); var outTotal = HouseAccounts.Total(outs); int yearEnd = house.Treasury.Credits + lg.Net.Credits - outTotal.Credits; }
+                @{ var outs = HouseAccounts.Outgoings(w, c.Holdings, house, G.Turn!.Economy); var outTotal = HouseAccounts.Total(outs); int yearEnd = house.Treasury.Credits + lg.Net.Credits - outTotal.Credits; }
                 @if (outs.Count > 0)
                 {
                     <h4 class="ledger-sub">Also going out this year <span class="muted">not standing costs: they end when the work does</span></h4>

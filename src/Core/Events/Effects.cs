@@ -64,6 +64,18 @@ public sealed class AddBondEffect : IEffect
     public void Apply(EvalContext ctx)
     {
         if (!ctx.Binding.TryGet(From, out var f) || !ctx.Binding.TryGet(To, out var t)) return;
+        if (Bond == BondType.Marriage)
+        {
+            /* one living spouse each: a second "yes" in the same year marries nobody, and says so (docs/PLAYTHROUGH.md, Easy, S37) */
+            var w = ctx.World;
+            foreach (var (who, other) in new[] { (f, t), (t, f) })
+                if (w.Relationships.FirstOrDefault(r => r.FromId == who && r.ToId != other && r.Bond == BondType.Marriage && w.Char(r.ToId) is { Alive: true }) is { } wed)
+                {
+                    string line = $"{w.Char(who)?.Name} is married to {w.Char(wed.ToId)?.Name} already: the match with {w.Char(other)?.Name} comes to nothing.";
+                    w.Log(line); if (who == w.ProtagonistId || other == w.ProtagonistId) w.Tell("warn", line, "dynasty:marriages");
+                    return;
+                }
+        }
         Write(ctx.World, f, t);
         if (Bond == BondType.Marriage) Write(ctx.World, t, f);
     }

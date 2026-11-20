@@ -244,7 +244,7 @@ else
     {
         if (G.World is { InAcademy: false } w && G.Turn?.Economy is { } eco && w.Protagonist is { } head && w.House(head.HouseId) is { } house)
         {
-            int end = HouseAccounts.YearEnd(w, G.Content!.Holdings, house, eco.Forecast(w, house.Id, G.Turn.Fleets), Resource.Credits);
+            int end = HouseAccounts.YearEnd(w, G.Content!.Holdings, house, eco.Forecast(w, house.Id, G.Turn.Fleets), Resource.Credits, eco);
             if (end < 0 && house.Treasury.Credits >= 0)
             {
                 G.Ask("The year will end " + (-end) + " credits short", "With what the house takes in and what it has promised to pay this year, the treasury will stand at " + end + ". A house below nought is insolvent: unrest climbs on its worlds, unpaid crews desert, and building stops." + (head.Purse > 0 ? " Your own purse holds " + head.Purse + " credits: it can be put into the treasury in House, under Purses and the will." : ""), "End the year anyway", () => _ = InvokeAsync(EndTurnNow), "Go back");

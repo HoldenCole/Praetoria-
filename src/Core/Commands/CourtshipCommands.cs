@@ -102,6 +102,7 @@ public sealed class MarriageCommand : ICommand
     {
         var w = ctx.World; var head = w.Char(ActorId); var who = w.Char(_whoId);
         if (head?.Alive != true || who?.Alive != true || who.HouseId != head.HouseId) return "not of your house";
+        if (who.Id != head.Id && DynastySystem.Spouse(w, head)?.Id == who.Id) who = head;   /* the head's own marriage, named by the spouse who now lives in the house */
         if (who.Id != head.Id) return "their marriage is their own";
         if (_what == Divorce) return CourtshipSystem.DivorceRefusal(w, head, who);
         return CourtshipSystem.TendRefusal(w, who) ?? (ctx.PoolsOf(ActorId).Short(TendCost));
@@ -109,7 +110,7 @@ public sealed class MarriageCommand : ICommand
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
     {
-        var w = ctx.World; var who = w.Char(_whoId)!;
+        var w = ctx.World; var who = w.Char(_whoId)!; if (w.Char(ActorId) is { } head && who.Id != head.Id && DynastySystem.Spouse(w, head)?.Id == who.Id) who = head;
         if (_what == Divorce) CourtshipSystem.Divorce(w, who);
         else { ctx.PoolsOf(ActorId).Spend(TendCost); CourtshipSystem.Tend(w, who); }
     }

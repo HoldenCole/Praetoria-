@@ -489,9 +489,10 @@ public sealed class DynastySystem
     /// law gives: the head's children before the rest, by age, under primogeniture. Last, and only when no one of the blood is
     /// left, those who are of the house but not of its blood: someone who married in, someone taken in, and a head who has
     /// already laid the house down.</summary>
-    public static List<Character> Line(World world, Character deceased)
+    /// <param name="lawAs">Reckon the line as it would stand under another law, to say who the heir would be before the law is changed.</param>
+    public static List<Character> Line(World world, Character deceased, string? lawAs = null)
     {
-        var house = world.House(deceased.HouseId); string law = house?.SuccessionLaw ?? "primogeniture";
+        var house = world.House(deceased.HouseId); string law = lawAs ?? house?.SuccessionLaw ?? "primogeniture";
         var all = world.Characters.Values.Where(c => c.Alive && c.Id != deceased.Id && c.HouseId == deceased.HouseId).ToList();
         bool Outside(Character c) => HouseholdSystem.IsFound(c) || (c.BornHouseId.Length > 0 && c.BornHouseId != deceased.HouseId && c.AdoptedById.Length == 0) || c.Flags.Contains(LifeSystem.RetiredChar);   // (one who was adopted is of the blood)
         IEnumerable<Character> Order(IEnumerable<Character> members) => law switch
@@ -506,6 +507,14 @@ public sealed class DynastySystem
         return line;
     }
     /// <summary>Why the first of the line stands first, in a few words, for the screens.</summary>
+    /// <summary>What a law of succession prefers, in a line.</summary>
+    public static string LawSays(string law) => law switch
+    {
+        "ultimogeniture" => "your youngest child comes first, then the rest of the house by youth",
+        "seniority" => "the eldest of the house comes first, child of yours or not",
+        "merit" => "the ablest grown member of the house comes first, by skill and rank in a service",
+        _ => "your eldest child comes first, then the rest of the house by age",
+    };
     public static string HeirBy(World world, Character head)
     {
         var house = world.House(head.HouseId); var heir = FindHeir(world, head); if (heir == null || house == null) return "";

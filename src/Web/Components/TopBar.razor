@@ -3,7 +3,7 @@
     var w = G.World!; var p = w.Protagonist!; var house = w.House(p.HouseId)!; var t = house.Treasury;
     var fc = G.Turn!.Economy?.Forecast(w, house.Id, G.Turn.Fleets)?.Clone();
     // what also goes out this year: the shares of what is being built, hastening, tutors, allowances, the household (docs/PLAYTHROUGH.md 6)
-    var outs = HouseAccounts.Outgoings(w, G.Content!.Holdings, house); var outTotal = HouseAccounts.Total(outs);
+    var outs = HouseAccounts.Outgoings(w, G.Content!.Holdings, house, G.Turn!.Economy); var outTotal = HouseAccounts.Total(outs);
     if (fc != null) foreach (var k in Resource.All) fc.Add(k, -outTotal.Get(k));
     string outTip = outs.Count == 0 ? "" : "\n\nAlso going out this year:\n" + string.Join("\n", outs.Select(o => o.what + ": " + string.Join(", ", Resource.All.Where(k => o.cost.Get(k) != 0).Select(k => "-" + o.cost.Get(k) + " " + Resource.Label(k)))));
     string purseTip = "Your own purse, apart from the house's treasury: " + p.Purse + " credits. Physicians, gifts and bribes \"of your own\" are paid from it. Move coin between the two in House, under Purses and the will.";
