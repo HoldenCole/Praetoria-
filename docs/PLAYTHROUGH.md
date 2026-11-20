@@ -70,6 +70,7 @@ Marked here as they are done; the list itself below is left as the players wrote
 | Confirms | War, a treaty marriage, asking a holder to step down, a rung of the title ladder, quit, a new saga over a saved one, a bribe, terms in a suit, a peace (with 2, 3, 7, 9, 12, 13); and now selling a venture, incorporating one, a law that locks (with how long), a change of succession law, and the consul's veto. |
 | The Senate | Each open motion says how you have declared, or how your house will vote if left alone; the votes you paid for are listed on it; a bribe shows its price and its risk before it is paid. "(yours), : sat." has its office. One removed from office for taking money can no longer be elected consul or commissioned while the bar stands. |
 | Laws | An option with no yields says so plainly ("changes no yield and no cost: what it moves is how the estates think of you"); enacting asks first and says the effects, the estates and the years it locks. |
+| The family | Every row and every profile says how the person stands to you ("your niece", "your son's wife", "married into the house") and whose child they are. |
 | Housekeeping | The top bar says "Year 7 · 2nd head" and explains a generation; a dowry says which way it went. |
 
 ## The fifteen to fix first

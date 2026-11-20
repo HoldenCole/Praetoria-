@@ -16,6 +16,11 @@
                 <div class="profile-who">
                     <div class="profile-house"><i></i>@p.HouseName@(p.Ancestry.Length > 0 ? $" · {p.Ancestry}" : "")@(p.IsYou ? " · you" : "")@(p.Alive ? "" : " · dead")</div>
                     <h2>@p.Name</h2>
+                    @if (G.World?.Protagonist is { } pme && G.World.Char(p.Id) is { } pch && !p.IsYou)
+                    {
+                        string kinWord = Kinship.Of(G.World, pme, pch), born = Kinship.ChildOfSays(G.World, pch);
+                        @if (kinWord.Length + born.Length > 0) { <div class="profile-kin muted small" data-kin="@kinWord">@(kinWord.Length > 0 ? char.ToUpperInvariant(kinWord[0]) + kinWord[1..] : "")@(kinWord.Length > 0 && born.Length > 0 ? " · " : "")@born</div> }
+                    }
                     @if (p.Epithet.Length > 0) { <div class="profile-epithet">@p.Epithet</div> }
                     <div class="profile-station">@p.Station@(p.Alive ? $" · {p.Age} years" : $" · died at {p.Age}")</div>
                     @if (p.Offices.Count > 0) { <div class="profile-offices">@foreach (var o in p.Offices) { <span>@o</span> }</div> }

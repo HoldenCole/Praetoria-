@@ -333,4 +333,19 @@ public class PlaythroughFixTests
         Assert.NotEqual(who.Id, OfficeSystem.Candidate(w, def, house.Id)?.Id);
         w.Turn += 5; Assert.Equal(who.Id, OfficeSystem.Candidate(w, def, house.Id)?.Id);
     }
+
+    [Fact]
+    public void EveryoneOfTheBlood_HasAWordForWhoTheyAre()
+    {
+        // the family: rows and profiles did not say whose child each was, and a niece was taken for a daughter
+        var w = new World(); Character P(string id, string sex, string mother = "", string father = "") { var c = new Character { Id = id, Name = id, Sex = sex, HouseId = "h", MotherId = mother, FatherId = father, Alive = true }; w.Characters[id] = c; return c; }
+        var gm = P("gm", "female"); var me = P("me", "male", "gm"); var sis = P("sis", "female", "gm"); var son = P("son", "male", "wife", "me"); var wife = P("wife", "female");
+        var niece = P("niece", "female", "sis"); var grandson = P("grandson", "male", "x", "son"); var stranger = P("stranger", "male");
+        w.Marriages.Add(new Marriage { A = "me", B = "wife" });
+        Assert.Equal("your mother", Praetoria.Core.Presentation.Kinship.Of(w, me, gm)); Assert.Equal("your sister", Praetoria.Core.Presentation.Kinship.Of(w, me, sis));
+        Assert.Equal("your son", Praetoria.Core.Presentation.Kinship.Of(w, me, son)); Assert.Equal("your wife", Praetoria.Core.Presentation.Kinship.Of(w, me, wife));
+        Assert.Equal("your niece", Praetoria.Core.Presentation.Kinship.Of(w, me, niece)); Assert.Equal("your grandson", Praetoria.Core.Presentation.Kinship.Of(w, me, grandson));
+        Assert.Equal("your uncle", Praetoria.Core.Presentation.Kinship.Of(w, niece, me)); Assert.Equal("your grandmother", Praetoria.Core.Presentation.Kinship.Of(w, niece, gm));
+        Assert.Equal("", Praetoria.Core.Presentation.Kinship.Of(w, me, stranger)); Assert.Equal("son of me and wife", Praetoria.Core.Presentation.Kinship.ChildOfSays(w, son));
+    }
 }
