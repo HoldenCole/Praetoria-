@@ -336,6 +336,7 @@ public sealed class Economy
 
             var ledger = Compute(world, house.Id);
             house.Treasury.Add(ledger.Net);
+            if (house.Id == world.Protagonist?.HouseId) foreach (var r in Resource.All) world.WorldCounters[Presentation.YearInBrief.LedgerKey(r)] = ledger.Net.Get(r);   // what the standing ledger really brought this year: last year's accounts read it
             if (house.Debt > 0) house.Debt = Math.Max(0, house.Debt - _ventures.Finance.LoanInstalment);
             if (house.Debt == 0) house.LenderId = "";
 

@@ -204,6 +204,17 @@
                     <div class="lb net"><span class="src"><b>What is left</b></span><span class="track"><i class="neg" style="width:@(net < 0 ? Math.Min(50.0, 50.0 * -net / maxAbs) : 0)%"></i><i class="pos" style="width:@(net > 0 ? Math.Min(50.0, 50.0 * net / maxAbs) : 0)%"></i></span><b class="@(net > 0 ? "good" : net < 0 ? "warn" : "muted")">@(net > 0 ? "+" : "")@net</b></div>
                 </div>
                 @if (Goods(lg.Net) is { Length: > 0 } goods) { <div class="muted small">And in goods, each year: @goods</div> }
+                @if (YearInBrief.Accounts(w, Resource.Credits) is { } acc)
+                {
+                    <details class="why" data-last-year open="@(acc.close < 0)"><summary>Last year's accounts: the treasury opened at @acc.open credits and closed at @acc.close (@(acc.close - acc.open >= 0 ? "+" : "−")@Math.Abs(acc.close - acc.open))</summary>
+                        <div class="why-col">
+                            <div class="why-line"><span>Opened the year at</span><em>@acc.open</em></div>
+                            @foreach (var a in acc.lines) { <div class="why-line" title="@a.Says"><span>@a.What</span><em class="@(a.By > 0 ? "good" : a.By < 0 ? "bad" : "")">@(a.By > 0 ? "+" : a.By < 0 ? "−" : "")@Math.Abs(a.By)</em></div> }
+                            <div class="why-line sum"><span>Closed the year at</span><em>@acc.close</em></div>
+                        </div>
+                        <div class="muted small">The three lines add up to the change. Hover each for what is in it. The same for the goods: @string.Join("; ", new[] { Resource.Materials, Resource.Manpower, Resource.Helium3 }.Select(r => YearInBrief.Accounts(w, r) is { } g ? $"{Resource.Label(r).ToLowerInvariant()} {g.open} → {g.close}" : "").Where(x => x.Length > 0)).</div>
+                    </details>
+                }
                 @{ var outs = HouseAccounts.Outgoings(w, c.Holdings, house, G.Turn!.Economy); var outTotal = HouseAccounts.Total(outs); int yearEnd = house.Treasury.Credits + lg.Net.Credits - outTotal.Credits; }
                 @if (outs.Count > 0)
                 {

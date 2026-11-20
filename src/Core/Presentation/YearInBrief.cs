@@ -21,6 +21,36 @@ public static class YearInBrief
     /// <summary>Where the treasury stood when the year opened, and how it moved over the year: kept by the turn so the brief can say so.</summary>
     public static string OpenKey(string resource) => "year_open:" + resource;
     public static string DeltaKey(string resource) => "year_delta:" + resource;
+    /// <summary>Where a good stood when the head ended the year (after their own acts, before the year turned), and what the standing ledger brought.</summary>
+    public static string ActedKey(string resource) => "year_acted:" + resource;
+    public static string LedgerKey(string resource) => "year_ledger:" + resource;
+    public static string LastKey(string part, string resource) => $"year_last:{part}:{resource}";
+
+    /// <summary>Called as the head ends the year: where each counted good stands now their own acts are done.</summary>
+    public static void MarkActed(World w)
+    {
+        var house = w.Protagonist != null ? w.House(w.Protagonist.HouseId) : null; if (house == null) return;
+        foreach (var r in Counted) w.WorldCounters[ActedKey(r)] = house.Treasury.Get(r);
+    }
+
+    /// <summary>One line of last year's accounts for a good: what it was, and by how much.</summary>
+    public sealed record AccountLine(string What, int By, string Says);
+
+    /// <summary>Last year's accounts for a good (docs/PLAYTHROUGH.md, Medium: "last year's accounts in the ledger, one-off lines included,
+    /// so that the change in the treasury adds up"). Three parts that sum to the change: what the head did with it in the year, what the
+    /// standing ledger brought, and everything else the year's turn took or gave. Null before a whole year has been played.</summary>
+    public static (int open, int close, List<AccountLine> lines)? Accounts(World w, string resource)
+    {
+        if (!w.WorldCounters.TryGetValue(LastKey("open", resource), out int open) || !w.WorldCounters.TryGetValue(LastKey("close", resource), out int close)) return null;
+        int acted = w.Counter(LastKey("acted", resource)), ledger = w.Counter(LastKey("ledger", resource));
+        var lines = new List<AccountLine>
+        {
+            new("Your own acts in the year", acted - open, "What you bought, sold, built, gave, bribed and answered reports with, while the year was yours."),
+            new("The standing ledger", ledger, "What the worlds, ventures, fleets and the rest of the ledger above brought and cost when the year turned."),
+            new("The year's turn besides", close - acted - ledger, "Everything else the turn of the year took or gave: the year's shares of what is building and hastening, tutors, allowances, the household's keep and wages, the steward's and the marshal's spending, fines and damages, dowries, tribute, what was paid over to relatives for their own ventures."),
+        };
+        return (open, close, lines);
+    }
     private static readonly string[] Counted = { Resource.Credits, Resource.Materials, Resource.Manpower, Resource.Helium3 };
 
     /// <summary>Called as a year opens: what each counted good did over the year just ended, and where it stands now.</summary>
@@ -30,7 +60,15 @@ public static class YearInBrief
         foreach (var r in Counted)
         {
             int now = house.Treasury.Get(r);
-            if (w.WorldCounters.TryGetValue(OpenKey(r), out int open)) w.WorldCounters[DeltaKey(r)] = now - open; else w.WorldCounters.Remove(DeltaKey(r));
+            if (w.WorldCounters.TryGetValue(OpenKey(r), out int open))
+            {
+                w.WorldCounters[DeltaKey(r)] = now - open;
+                /* last year's accounts: where it opened and closed, where it stood when the head ended the year, and what the ledger brought */
+                w.WorldCounters[LastKey("open", r)] = open; w.WorldCounters[LastKey("close", r)] = now;
+                w.WorldCounters[LastKey("acted", r)] = w.WorldCounters.TryGetValue(ActedKey(r), out int acted) ? acted : open;
+                w.WorldCounters[LastKey("ledger", r)] = w.Counter(LedgerKey(r));
+            }
+            else w.WorldCounters.Remove(DeltaKey(r));
             w.WorldCounters[OpenKey(r)] = now;
         }
     }

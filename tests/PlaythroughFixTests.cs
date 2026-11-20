@@ -641,4 +641,18 @@ public class PlaythroughFixTests
         Assert.Contains(brief, l => l.Text.Contains("the governing of " + world.Name) && l.Target == "galaxy:" + world.SystemId);
         Assert.DoesNotContain(brief, l => l.Text.Contains("of your house has died"));   // said once, as the report
     }
+    [Fact]
+    public void Last_years_accounts_add_up_to_the_change_in_the_treasury()
+    {
+        // docs/PLAYTHROUGH.md, Medium: "last year's accounts in the ledger, one-off lines included, so that the change in the treasury adds up"
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn();
+        Assert.Null(Praetoria.Core.Presentation.YearInBrief.Accounts(w, Resource.Credits));   // no whole year has been played yet
+        int opened = house.Treasury.Credits;
+        house.Treasury.Credits -= 7;                                                          // the head spends in the year
+        tc.EndTurn(); if (w.IsDynastyDead) return; tc.BeginTurn();
+        var acc = Praetoria.Core.Presentation.YearInBrief.Accounts(w, Resource.Credits)!.Value;
+        Assert.Equal(opened, acc.open); Assert.Equal(house.Treasury.Credits, acc.close);
+        Assert.Equal(acc.close - acc.open, acc.lines.Sum(l => l.By));
+        Assert.Equal(-7, acc.lines[0].By); Assert.Equal(w.Counter(Praetoria.Core.Presentation.YearInBrief.LedgerKey(Resource.Credits)), acc.lines[1].By);
+    }
 }
