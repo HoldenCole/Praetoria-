@@ -1,102 +1,247 @@
 {
 "faces": {
 "fr00": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "fr01": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "fr02": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "fr03": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "fr04": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "fr05": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "fr06": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "fr07": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "fr08": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "fr09": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "fr10": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "fr11": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "fx00": [
-"adult"
+"adult",
+"older",
+"elder"
 ],
 "fx01": [
-"adult"
+"adult",
+"older",
+"elder"
 ],
 "fx02": [
-"adult"
+"adult",
+"older",
+"elder"
 ],
 "fx03": [
-"adult"
+"adult",
+"older",
+"elder"
 ],
 "mr00": [
 "adult",
-"older"
+"older",
+"elder",
+"youth",
+"child"
 ],
 "mr01": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "mr02": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "mr03": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "mr04": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "mr05": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "mr06": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "mr07": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "mr08": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "mr09": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "mr10": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "mr11": [
-"adult"
+"adult",
+"older",
+"elder",
+"youth",
+"child"
 ],
 "mx00": [
-"adult"
+"adult",
+"older",
+"elder"
 ],
 "mx01": [
-"adult"
+"adult",
+"older",
+"elder"
 ],
 "mx02": [
-"adult"
+"adult",
+"older",
+"elder"
 ],
 "mx03": [
-"adult"
+"adult",
+"older",
+"elder"
 ]
 },
-"note": "AI-generated with an openly licensed model; see tools/art/portraits.py"
+"note": "AI-generated with an openly licensed model; see tools/art/portraits.py",
+"tones": {
+"fr00": 5,
+"fr01": 0,
+"fr02": 3,
+"fr03": 6,
+"fr04": 1,
+"fr05": 4,
+"fr06": 7,
+"fr07": 2,
+"fr08": 5,
+"fr09": 0,
+"fr10": 3,
+"fr11": 6,
+"fx00": 5,
+"fx01": 0,
+"fx02": 3,
+"fx03": 6,
+"mr00": 0,
+"mr01": 3,
+"mr02": 6,
+"mr03": 1,
+"mr04": 4,
+"mr05": 7,
+"mr06": 2,
+"mr07": 5,
+"mr08": 0,
+"mr09": 3,
+"mr10": 6,
+"mr11": 1,
+"mx00": 0,
+"mx01": 3,
+"mx02": 6,
+"mx03": 1
+}
 }

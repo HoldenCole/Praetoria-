@@ -17,6 +17,9 @@
   with no account and no key, and the client ships them. A person is one face painted at five ages, so it grows
   old with its owner. The faces drawn in code remain only as the fallback where no picture exists. The pictures are
   AI-generated, which a store page must say; the document sets out what a hosted model or an artist would cost.
+- **A face at every age, and families that look like families.** The library is complete: 32 faces (24 of the
+  Reach, 8 from beyond it) each painted as a child, a youth, an adult, in middle age and in old age, 144
+  pictures in all. A child takes a parent's colouring. The workshop's Face tab lets you choose your own.
 - **Event windows open on a painting** (`tools/art/scenes.py`, sixteen occasions chosen by what the event is about),
   with the title over its foot, the people involved at bust size, and the choices as full-width plates. The title
   screen has key art behind it and its scenarios as a list.

@@ -154,7 +154,7 @@ else
     };
     private string _screen = "galaxy";
     /// <summary>Screens whose window is the wide one: a chamber, a table of houses, a market.</summary>
-    private static readonly HashSet<string> WideScreens = new() { "senate", "houses", "exchange", "office", "military" };
+    private static readonly HashSet<string> WideScreens = new() { "senate", "houses", "office", "military" };
     private void MapPicked() { if (_screen != "galaxy") { _screen = "galaxy"; StateHasChanged(); } }
     /// <summary>The rail in the role register's order (GDD Art Direction): the Office, then the career's screens, then the rest.</summary>
     private IEnumerable<(string id, string glyph, string label)> Rail() => G.World == null ? Screens : RoleTheme.OrderScreens(RoleTheme.Of(G.World), Screens, s => s.id);

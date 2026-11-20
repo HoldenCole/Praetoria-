@@ -33,6 +33,7 @@ BEARD = ["clean shaven", "clean shaven", "a short beard", "a full beard", "a mou
 DRESS = ["a dark navy high-collared officer's coat with brass buttons", "a black robe with a crimson stole and a gold chain", "a pale tunic under a deep green mantle pinned with a gold brooch",
          "a charcoal high-collared coat with silver embroidery", "a deep red mantle over a white tunic with a gold clasp", "a dark blue robe with a gold-trimmed collar"]
 RESEED = {"fr00": 1, "fr03": 1, "mr05": 1}   # identities whose first throw came out wrong (a picture frame painted into the picture): thrown again
+REDO = {"fx01_older": 2}                      # one picture of an identity thrown again, the rest of that identity kept
 FOREIGN = ["furs over lamellar armour with a gold torque", "an embroidered silk robe with heavy gold jewellery", "ornate bronze scale armour with a crimson cloak", "a quilted leather coat with bone toggles and a fur collar"]
 
 def who(sex, band, d):
@@ -72,7 +73,7 @@ def paint(a):
             if kind == "x" and band in ("youth", "child"): continue   # a court beyond the rim is met through its grown rulers
             path = os.path.join(a.work, f"{name}_{band}.png")
             if os.path.exists(path): continue
-            t = time.time(); g = torch.Generator().manual_seed(seed)
+            t = time.time(); g = torch.Generator().manual_seed(seed + 7 * REDO.get(f"{name}_{band}", 0))
             img = pipe(prompt=who(sex, band, d) + ", " + STYLE, negative_prompt=NEG, num_inference_steps=a.steps, guidance_scale=a.cfg, width=512, height=512, generator=g).images[0]
             img.save(path); print(f"{name}_{band} {time.time() - t:.0f}s", flush=True)
 
@@ -83,15 +84,17 @@ def pack(a):
     for f in sorted(os.listdir(a.work)):
         if not f.endswith(".png") or f[:-4] in rejected: continue
         name, band = f[:-4].rsplit("_", 1)
-        Image.open(os.path.join(a.work, f)).convert("RGB").resize((a.size, a.size), Image.LANCZOS).save(os.path.join(a.out, f"{name}_{band}.webp"), "WEBP", quality=a.quality, method=6)
+        im = Image.open(os.path.join(a.work, f)).convert("RGB"); w, h = im.size; m = int(w * a.trim)   # trim the edges: a stray frame or a cut-off shoulder lives there
+        im.crop((m, m // 2, w - m, h - m - m // 2)).resize((a.size, a.size), Image.LANCZOS).save(os.path.join(a.out, f"{name}_{band}.webp"), "WEBP", quality=a.quality, method=6)
         faces.setdefault(name, []).append(band)
     faces = {k: sorted(v, key=BANDS.index) for k, v in faces.items() if "adult" in v or "older" in v}   # an identity needs a grown face
-    json.dump({"note": "AI-generated with an openly licensed model; see tools/art/portraits.py", "faces": faces}, open(os.path.join(a.out, "manifest.json"), "w"), indent=0, sort_keys=True)
+    tones = {k: (int(k[2:]) * 3 + (0 if k[0] == "m" else 5)) % len(SKIN) for k in faces}   # the colouring each was painted with, so kin can be given faces alike
+    json.dump({"note": "AI-generated with an openly licensed model; see tools/art/portraits.py", "faces": faces, "tones": tones}, open(os.path.join(a.out, "manifest.json"), "w"), indent=0, sort_keys=True)
     print(f"{len(faces)} identities, {sum(len(v) for v in faces.values())} pictures -> {a.out}")
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(); s = p.add_subparsers(dest="cmd", required=True)
     q = s.add_parser("paint"); q.add_argument("work"); q.add_argument("--per-sex", type=int, default=12); q.add_argument("--foreign", type=int, default=4)
     q.add_argument("--steps", type=int, default=5); q.add_argument("--cfg", type=float, default=1.5); q.add_argument("--model", default="Lykon/dreamshaper-8-lcm"); q.set_defaults(fn=paint)
-    q = s.add_parser("pack"); q.add_argument("work"); q.add_argument("out"); q.add_argument("--size", type=int, default=384); q.add_argument("--quality", type=int, default=82); q.set_defaults(fn=pack)
+    q = s.add_parser("pack"); q.add_argument("work"); q.add_argument("out"); q.add_argument("--size", type=int, default=448); q.add_argument("--quality", type=int, default=84); q.add_argument("--trim", type=float, default=0.07); q.set_defaults(fn=pack)
     a = p.parse_args(); a.fn(a)

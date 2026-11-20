@@ -183,6 +183,8 @@ on a CPU at about half a minute a picture.
   seed: child, youth, adult, older, elder. The game gives each character an identity by a hash of their id, among
   those of their sex (and of the Reach, or of a nation beyond it), and shows the picture for their age, so a face
   grows old with its owner. Old World ships four portraits a character switched by age; this is that.
+- A child takes after one parent in colouring (the father or the mother by the dice of the child's id), so a
+  family looks like one. The player may choose their own face in the workshop.
 - Small portraits (72px and under) are the same picture drawn in to the face.
 - The house's colour is the frame. Rank, office and mood are not in the picture.
 - Where the library has no picture, the old canvas painter (`js/portrait.js`) still draws one. It is the fallback
@@ -205,6 +207,35 @@ a battle, the Exchange, a family hall, a funeral, a court, unrest, a hall beyond
 intrigue, a world, a shipyard, a triumph), chosen by what the event is about (`SceneArt.For`). The title sits over
 the foot of the painting in capitals. The people involved are shown at bust size in brass frames. The prose is
 serif. The choices are full-width plates; setting it aside is a plain line beneath.
+
+### A mod worth learning from: BattleTech, Heirs of the Star League (looked at 2026-11-20)
+
+The owner pointed at this Crusader Kings III conversion (Steam Workshop 3822860401; one author, a month old, about
+2,300 subscribers) for ideas. Only its Workshop page, its 104 comments and its twelve pictures could be read; nothing
+of its in-game windows is published, so what it teaches is the map and the presentation.
+
+- **Territory as stained glass.** Each star system is a cell with a bright star at its centre, filled in its owner's
+  colour, with thin dark gaps between cells, so a great house reads as one block at any zoom. Frontier systems are
+  lone haloed discs that thin out into bare starfield. Ours draws a region's border as a bright line and leaves
+  the inside empty; a filled cell under each owned system would read better.
+- **The map staged as an object**: a tilted table with a pale glowing frame, a title cartouche, a compass rose, and
+  painted nebula at its edge.
+- **One frame language, not a re-skin of every widget**: a dark panel with chamfered corners, corner brackets, a
+  single accent colour, one wear motif; the base game's serif type kept inside it.
+- **A house's hall as the home screen**: a painted hall with the house's banner, the head, spouse and heir standing
+  in it, and the house's crest on Continue.
+- **Scenario cards**: a year in large numerals and two or three named crises, each a sentence with a person in it.
+- **Its failures are lessons too.** Its star systems are islands with no routes drawn, and its players' loudest
+  complaint is war declared "half way across the galaxy": distance has to govern politics, and ours has lanes to do
+  it with. Its characters still wear medieval clothes, which players say breaks the setting: costume carries a
+  setting, and ours shows no rank or office in a portrait yet (V5). And a system of its own (the Clans' yearly
+  children) went unexplained and was reported as a bug: every bespoke system wants an event that introduces it.
+- **Mechanics it suggests**: a named capital ship as an heirloom of the house that can be lent, lost or captured;
+  captured hulls sold through the Exchange; capital ships that need a shipyard world, so the yard matters more
+  than the fleet; wards offered to the head by an academy or a client house; a house in exile fighting on as a
+  hired fleet.
+
+These are rows V12 to V17 and N27 to N30 in docs/GAPS.md.
 
 ### Not done yet
 

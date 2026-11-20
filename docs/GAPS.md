@@ -205,7 +205,7 @@ still short of that:
 |---|---|---|---|
 | V1 | The windows were converted by rule, not redesigned. Military, the Senate, the House and the Line are long single pages; each wants tabs and a first screen that fits without scrolling, as CK3's windows do. | M | |
 | V2 | Tooltips are the game's own now (`js/tips.js`: anything with a title), with a heading and breakdown rows, but they do not nest (a term inside a tooltip cannot be hovered in turn, as in CK3 and Victoria 3) and nothing shows on a touch screen. | M | |
-| V3 | A face is assigned by hash alone. Kin do not resemble each other, two people in one room can share a face, and only the player chooses theirs (the workshop's Face tab; a scenario's own protagonist takes what the hash gives). | M | |
+| V3 | A child takes a parent's colouring and nothing else of them: no shared features. With twelve faces a sex, two people in one room can share a face, and only the player chooses theirs (the workshop's Face tab; a scenario's own protagonist takes what the hash gives). | M | |
 | V4 | One identity across five ages comes from a shared seed, which holds colouring and dress but lets the face drift. A hosted model with reference-image editing holds it. Needs a key and about $100 to $300 from the owner. | M | owner |
 | V5 | Dress is not by career or rank: an admiral and a magistrate can wear the same coat. Rank, office, a triumph's laurel and a wound's scar are not shown on a painted portrait. | M | V4 |
 | V6 | The pictures are AI-generated. A store page must say so (Steam's content survey), and the owner has not been asked whether that is acceptable for release or a stand-in until an artist is paid. | S | owner |
@@ -214,6 +214,17 @@ still short of that:
 | V9 | The Office is a room modelled in code and is the weakest picture left in the game. It is off the default path now; it wants to be a painting, or to go. | S | owner |
 | V10 | The profile is a centred window, not docked, and what a person thinks of you has no itemised breakdown (Star Dynasties and CK3 both itemise opinion). | M | |
 | V11 | The event paintings are chosen by keyword from sixteen. An event cannot name its own picture, and the same hall shows for many occasions. | S | |
+
+| V12 | Territory on the map is a bright border line with nothing inside it. A filled cell under each owned system, in its owner's colour with a dark gap between cells, would let the Reach, a house's holdings and a nation read as blocks at any zoom (as the BattleTech conversion for CK3 does). | M | |
+| V13 | Unheld and frontier systems look the same as held ones. A lone haloed disc for a system nobody of the Reach holds would show where the Reach thins out. | S | V12 |
+| V14 | The map is a field of stars to its edges. It has no frame, title, compass or painted edge to make it the Senate's star table. | S | |
+| V15 | A house has no hall. The home screen and the title could open on a painting of the house's hall with its banner and its head, spouse and heir in it. | M | |
+| V16 | A scenario on the title is a name and a line of counts. A card with the year in large numerals and two or three named crises, each a sentence with a person in it, would sell the start. | S | |
+| V17 | At far zoom a realm is its name in small capitals. A large flat crest over its territory would read sooner. | S | V12 |
+| N27 | A flagship is a number in a fleet. A named capital ship that belongs to the house, passes with the seat, can be lent to a legate or a client, and can be lost or captured in battle, would be an heirloom worth a war. | M | |
+| N28 | A captured hull vanishes. Sold through the Exchange it would move a shipyard company's shares and give salvage a price. | M | |
+| N29 | Capital ships can be laid down wherever there are the goods. If they needed a shipyard world, losing the yard would matter more than losing the fleet. | M | |
+| N30 | A house without worlds lives, but has nothing to do. Fighting on as a hired fleet for another house or a nation would be a way back. | L | owner |
 
 ## Older, from docs/ROADMAP.md section 3
 

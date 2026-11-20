@@ -10,6 +10,7 @@ public sealed class PortraitLibrary
 {
     public static readonly string[] Bands = { "child", "youth", "adult", "older", "elder" };
     private readonly Dictionary<string, List<(string name, HashSet<string> bands)>> _pools = new();   // "mr", "fr", "mx", "fx"
+    private readonly Dictionary<string, int> _tones = new();   // the colouring an identity was painted with, light to dark
     public int Count { get; private set; }
 
     public static string Band(int age) => age < 13 ? "child" : age < 20 ? "youth" : age < 46 ? "adult" : age < 62 ? "older" : "elder";
@@ -26,16 +27,30 @@ public sealed class PortraitLibrary
             if (!lib._pools.TryGetValue(f.Name[..2], out var pool)) lib._pools[f.Name[..2]] = pool = new();
             pool.Add((f.Name, bands)); lib.Count += bands.Count;
         }
+        if (doc.RootElement.TryGetProperty("tones", out var tones)) foreach (var t in tones.EnumerateObject()) lib._tones[t.Name] = t.Value.GetInt32();
         return lib;
     }
 
-    /// <summary>The picture for this person now, or null if the library holds none for them. <paramref name="chosen"/> is a face the
-    /// player picked for themselves; otherwise the id decides.</summary>
-    public string? Url(string id, string sex, int age, bool foreign, int chosen = -1)
+    /// <summary>Which identity a person is: by choice, else by their id among the faces of their sex, and among those of a colouring
+    /// near <paramref name="tone"/> when one is asked for (a child takes after a parent).</summary>
+    private (string name, HashSet<string> bands)? Identity(string id, string sex, bool foreign, int chosen, int tone)
     {
         string s = sex == "female" ? "f" : "m";
         if (!_pools.TryGetValue(s + (foreign ? "x" : "r"), out var pool) && !_pools.TryGetValue(s + "r", out pool)) return null;
-        var (name, bands) = pool[(int)((chosen >= 0 ? (uint)chosen : Hash(id)) % (uint)pool.Count)];
+        if (chosen >= 0) return pool[chosen % pool.Count];
+        if (tone >= 0) { var near = pool.Where(p => _tones.TryGetValue(p.name, out int t) && Math.Abs(t - tone) <= 1).ToList(); if (near.Count > 0) pool = near; }
+        return pool[(int)(Hash(id) % (uint)pool.Count)];
+    }
+    /// <summary>The colouring of the face this person has, or -1 if unknown.</summary>
+    public int ToneOf(string id, string sex, bool foreign, int chosen = -1, int tone = -1) => Identity(id, sex, foreign, chosen, tone) is { } f && _tones.TryGetValue(f.name, out int t) ? t : -1;
+    public static bool TakesAfterFather(string id) => Hash(id + "|kin") % 2 == 0;
+
+    /// <summary>The picture for this person now, or null if the library holds none for them. <paramref name="chosen"/> is a face the
+    /// player picked for themselves; otherwise the id decides.</summary>
+    public string? Url(string id, string sex, int age, bool foreign, int chosen = -1, int tone = -1)
+    {
+        if (Identity(id, sex, foreign, chosen, tone) is not { } face) return null;
+        var (name, bands) = face;
         int want = Array.IndexOf(Bands, Band(age));
         // the nearest age the painter has finished: the right one, else the next older, else the next younger
         for (int step = 0; step < Bands.Length; step++)

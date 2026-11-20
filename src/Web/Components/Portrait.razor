@@ -29,8 +29,18 @@
     public static string? PaintedUrl(GameClient g, string id, string sex, int age, string? look = null)
     {
         if (g.Portraits == null || sex.Length == 0) return null;
-        int chosen = -1; if (look != null) foreach (var part in look.Split(',')) if (part.StartsWith("face=") && int.TryParse(part[5..], out int f)) chosen = f;
-        var c = g.World?.Char(id); return g.Portraits.Url(id, sex, age, c != null && g.World!.Foreign(c.HouseId), chosen);
+        var c = g.World?.Char(id); return g.Portraits.Url(id, sex, age, c != null && g.World!.Foreign(c.HouseId), Chosen(look), c != null ? KinTone(g, c, 0) : -1);
+    }
+    private static int Chosen(string? look) { if (look != null) foreach (var part in look.Split(',')) if (part.StartsWith("face=") && int.TryParse(part[5..], out int f)) return f; return -1; }
+    /// <summary>The colouring a person takes from a parent, so a family looks like one (docs/ART_DIRECTION.md, "Portraits"): the father's
+    /// or the mother's by the dice of the child's id, and theirs from their own parents in turn; -1 for someone with no parent on record.</summary>
+    private static int KinTone(GameClient g, Character c, int depth)
+    {
+        var w = g.World!; if (depth > 10) return -1;
+        var father = c.FatherId.Length > 0 ? w.Char(c.FatherId) : null; var mother = c.MotherId.Length > 0 ? w.Char(c.MotherId) : null;
+        var parent = father != null && mother != null ? (PortraitLibrary.TakesAfterFather(c.Id) ? father : mother) : father ?? mother;
+        if (parent == null) return -1;
+        return g.Portraits!.ToneOf(parent.Id, parent.Sex, w.Foreign(parent.HouseId), Chosen(w.Cosmetics.GetValueOrDefault("look:" + parent.Id)), KinTone(g, parent, depth + 1));
     }
     private bool CanOpen => Opens && G.World?.Char(Id) != null && G.ProfileId != Id;
     private void Open() { if (CanOpen) G.ShowProfile(Id); }
