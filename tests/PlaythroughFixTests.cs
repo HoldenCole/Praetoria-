@@ -388,4 +388,23 @@ public class PlaythroughFixTests
         Assert.Contains("exchanges are closed", Praetoria.Core.Presentation.CourtProjection.MotionDoes(defs.First(d => d.EmbargoTurns > 0)));
         Assert.All(defs, d => { var says = Praetoria.Core.Presentation.CourtProjection.MotionDoes(d); Assert.True(says.Length == 0 || says.StartsWith("If it carries: ")); });
     }
+
+    [Fact]
+    public void AnAnsweredReport_SaysHowItWasAnswered()
+    {
+        var (w, tc, _, _, _) = Start(); tc.BeginTurn();
+        for (int y = 0; y < 8; y++)
+        {
+            var model = Praetoria.Core.Presentation.CourtProjection.Build(tc, Content);
+            var card = model.Briefing.FirstOrDefault(b => !b.Resolved && b.Choices.Any(c => c.Available));
+            if (card != null)
+            {
+                var pick = card.Choices.First(c => c.Available); Assert.Equal("", card.Answer); Assert.True(tc.Resolve(card.Item, pick.Id));
+                var after = Praetoria.Core.Presentation.CourtProjection.Build(tc, Content).Briefing.First(b => ReferenceEquals(b.Item, card.Item));
+                Assert.True(after.Resolved); Assert.Equal(pick.Label, after.Answer); return;
+            }
+            tc.EndTurn(); if (w.IsDynastyDead) break; tc.BeginTurn();
+        }
+        Assert.Fail("no report with an open choice in eight years");
+    }
 }

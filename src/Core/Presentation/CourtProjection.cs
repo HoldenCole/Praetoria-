@@ -150,7 +150,9 @@ public sealed record BattleLine(string Text);
 /// <summary>One answer to a report. <c>Stakes</c> is what it costs and gives the house in words, <c>Warn</c> what it would overdraw
 /// (docs/PLAYTHROUGH.md 8: a choice is not made blind).</summary>
 public sealed record ChoiceCard(string Id, string Label, string Cost, bool Available, string? Reason = null, string Stakes = "", string? Warn = null);
-public sealed record BriefingCard(BriefingItem Item, string Title, string Tier, bool Setpiece, string Body, bool Resolved, IReadOnlyList<ChoiceCard> Choices);
+public sealed record BriefingCard(BriefingItem Item, string Title, string Tier, bool Setpiece, string Body, bool Resolved, IReadOnlyList<ChoiceCard> Choices)
+{ /// <summary>The words of the answer that was given, once it has been.</summary>
+  public string Answer { get; init; } = ""; }
 public sealed record MemberLine(string Name, string Detail, bool Alive, int Disposition, string Bond);
 public sealed record ConnectionLine(string Id, string Name, string HouseName, string Detail, int Disposition, string Bond, IReadOnlyList<string> Flags, bool Hostile,
     IReadOnlyList<Option> Actions);
@@ -363,7 +365,8 @@ public static class CourtProjection
                     cost, oc.Available, reason, ChoiceStakes.Of(oc.Choice, ectx, p), ChoiceStakes.Overdraws(oc.Choice, ectx, p));
             }).ToList();
             briefing.Add(new BriefingCard(item, TextRenderer.Substitute(text?.Title ?? fired.Def.Id, ectx), fired.Def.Tier.ToString().ToUpperInvariant(),
-                fired.Def.Tier == EventTier.Setpiece, string.IsNullOrWhiteSpace(text?.Body) ? "" : TextRenderer.Substitute(text!.Body, ectx), item.Resolved, choices));
+                fired.Def.Tier == EventTier.Setpiece, string.IsNullOrWhiteSpace(text?.Body) ? "" : TextRenderer.Substitute(text!.Body, ectx), item.Resolved, choices)
+                { Answer = item.Resolved && item.ChosenId.Length > 0 ? (text != null && text.Choices.TryGetValue(item.ChosenId, out var answered) ? TextRenderer.Substitute(answered, ectx) : item.ChosenId) : "" });
         }
 
         var members = house.Members.Select(w.Char).Where(c => c != null && c!.Id != p.Id).Select(c => c!)

@@ -15,6 +15,8 @@ public sealed class BriefingItem
 {
     public FiredEvent Fired { get; }
     public bool Resolved { get; internal set; }
+    /// <summary>The choice that was taken, so a report opened again says how it was answered (docs/PLAYTHROUGH.md, reports).</summary>
+    public string ChosenId { get; internal set; } = "";
     public BriefingItem(FiredEvent fired) => Fired = fired;
 }
 
@@ -221,7 +223,7 @@ public sealed class TurnController
 
         var cmd = new ResolveChoiceCommand(Engine, item.Fired, choiceId, World.ProtagonistId);
         bool ok = Executor.TryExecute(cmd, Context());
-        if (ok) item.Resolved = true;
+        if (ok) { item.Resolved = true; item.ChosenId = choiceId; }
         SyncRng();
         return ok;
     }

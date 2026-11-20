@@ -31,7 +31,7 @@
             <p class="prose">@b.Body</p>
         </div>
         <div class="win-choices">
-            @if (b.Resolved) { <div class="done">Answered.</div> }
+            @if (b.Resolved) { <div class="done" data-answer="1">Answered@(b.Answer.Length > 0 ? ": “" + b.Answer + "”" : ".")</div> }
             else
             {
                 @foreach (var ch in b.Choices)
@@ -44,7 +44,7 @@
                         @if (!ch.Available) { <span class="cost why" data-why="@ch.Id">@ch.Reason</span> }
                     </button>
                 }
-                <button class="choice aside" @onclick="OnClose"><span class="label">Set it aside for now</span></button>
+                <button class="choice aside" title="It waits in the list at the right until you end the year. Left unanswered then, it lapses: nothing is chosen for you, and an offer in it is gone." @onclick="OnClose"><span class="label">Set it aside for now</span><span class="cost">unanswered at the year's end, it lapses</span></button>
             }
         </div>
     </div>
