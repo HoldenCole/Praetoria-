@@ -1110,3 +1110,4 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 /* Under a report's prose, the facts of the occasion it is about (docs/PLAYTHROUGH.md, reports). */
 .ev-body .facts { border-left: 2px solid var(--brass); padding-left: .6rem; color: var(--ink-2, #b9b3a3); margin-top: .5rem; }
 .mark-word { border-bottom: 1px dotted var(--line); cursor: help; } .mark-word + .mark-word::before { content: " · "; }
+.law-open { float: right; color: var(--brass2); border: 1px solid var(--brass3); border-radius: 3px; padding: 0 .4rem; font-size: .72rem; letter-spacing: .04em; } .law-head:hover .law-open { background: rgba(200,160,80,.15); }

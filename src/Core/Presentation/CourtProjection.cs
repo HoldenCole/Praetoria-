@@ -33,6 +33,8 @@ public sealed record ProjectCard(string Id, string Name, string Kind, int TurnsL
     /// <summary>A great work: it is hastened by the year, not rushed. <see cref="HastenYear"/> is what a hastened year costs, and <see cref="HastenExtra"/> how much of that buys only the speed.</summary>
     public bool Great { get; init; }
     public bool Hastened { get; init; }
+    /// <summary>It was to be hastened last year and the treasury could not stand it: it went at its own pace.</summary>
+    public bool HastenMissed { get; init; }
     public string HastenYear { get; init; } = "";
     public string HastenExtra { get; init; } = "";
 }
@@ -252,7 +254,7 @@ public static class CourtProjection
             var table = Wealth.Ranked(w).Select(x => new WealthLine(x.house.Id, x.house.Name, x.house.AccentColor, x.wealth, Wealth.TierFor(w, x.house.Id), x.house.Id == house.Id)).ToList();
             var lender = house.LenderId.Length > 0 ? w.House(house.LenderId)?.Name : null;
             ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Keys.Count(h => !World.Outsider(h)), Wealth.TierFor(w, house.Id), house.Debt, lender, f.LoanPrincipal, f.LoanRepay, f.LoanInstalment,
-                new Option("loan", $"Borrow {f.LoanPrincipal} credits (owe {f.LoanRepay}, {f.LoanInstalment} a turn)", new TakeLoanCommand(p.Id, bc).Refusal(ctx)),
+                new Option("loan", $"Borrow {f.LoanPrincipal} credits (owe {f.LoanRepay}, {f.LoanInstalment} a year)", new TakeLoanCommand(p.Id, bc).Refusal(ctx)),
                 new Option("repay", $"Clear the debt ({house.Debt} credits)", new RepayLoanCommand(p.Id).Refusal(ctx)), table);
             var vs = tc.Ventures;
             foreach (var b in w.BusinessesOf(house.Id))
@@ -264,7 +266,7 @@ public static class CourtProjection
                 bool enlarging = ProjectSystem.Underway(w, house.Id, Project.Expansion, b.Kind, b.Id);
                 string expandCost = def.BuildTurns > 1 ? $"{Bundle(def.ExpandCost)} over {def.BuildTurns} years" : Bundle(def.ExpandCost);
                 businessCards.Add(new BusinessCard(b.Id, b.Name, def.Name, w.Galaxy?.System(b.SystemId)?.Name, b.Level, def.MaxLevel, delta.IsEmpty() ? "—" : Bundle(delta),
-                    holder != null && holder != house.Id && def.Charter > 0 ? $"{def.Charter * b.Level} credits a turn to {w.House(holder)?.Name}" : null, value,
+                    holder != null && holder != house.Id && def.Charter > 0 ? $"{def.Charter * b.Level} credits a year to {w.House(holder)?.Name}" : null, value,
                     new Option("expand", b.Level >= def.MaxLevel ? "At its height" : enlarging ? "Being enlarged" : $"Expand to level {b.Level + 1}  ({expandCost})", new ExpandBusinessCommand(p.Id, b.Id, bc).Refusal(ctx)),
                     new Option("sell", $"Sell on the open market for {(vs != null ? vs.MarketPrice(w, b) : value)} credits", vs == null ? "no market for ventures" : new SellVentureCommand(p.Id, b.Id, "", vs).Refusal(ctx)),
                     Earnings: eco.VentureEarnings(w, b), MarketPrice: vs != null ? vs.MarketPrice(w, b) : value, Bids: bids, CompanyName: b.CompanyId.Length > 0 ? w.Company(b.CompanyId)?.Name : null, Enlarging: enlarging));
@@ -565,7 +567,7 @@ public static class CourtProjection
             var rush = new RushProjectCommand(p.Id, x.Id);
             return new ProjectCard(x.Id, x.Name, x.Kind, x.TurnsLeft, x.TurnsTotal, Bundle(x.Paid), Bundle(ProjectSystem.Remaining(x)), x.TurnsLeft > 1 ? Bundle(ProjectSystem.NextInstalment(x)) : "nothing more", x.Paused, x.Stalled,
                 ProjectSystem.RushPremium(w, x), rush.Refusal(ctx), Bundle(ProjectSystem.Refund(x)), x.CompanyId.Length > 0 ? w.Company(x.CompanyId)?.Name : null)
-            { Great = x.Great, Hastened = x.Hastened, HastenYear = x.Great ? HastenYear(x, content.Holdings.Rules.HastenPct, false) : "", HastenExtra = x.Great ? HastenYear(x, content.Holdings.Rules.HastenPct, true) : "" };
+            { Great = x.Great, Hastened = x.Hastened, HastenMissed = x.Hastened && x.HastenMissedTurn > 0 && x.HastenMissedTurn >= w.Turn - 1, HastenYear = x.Great ? HastenYear(x, content.Holdings.Rules.HastenPct, false) : "", HastenExtra = x.Great ? HastenYear(x, content.Holdings.Rules.HastenPct, true) : "" };
         }).ToList();
         var forSale = new List<ForSaleCard>(); var offers = new List<OfferCard>();
         if (vs != null)
@@ -721,7 +723,7 @@ public static class CourtProjection
     private static string Prose(string key) => key switch
     {
         "credits_per_world" => "credits a world", "materials_per_world" => "materials a world", "manpower_per_world" => "manpower a world", "unrest_drift" => "unrest a turn",
-        "prosperity_drift" => "prosperity drift", "pop_growth" => "population growth", "lawlessness_drift" => "lawlessness a turn", "allegiance_drift" => "allegiance a turn",
+        "prosperity_drift" => "prosperity drift", "pop_growth" => "population growth", "lawlessness_drift" => "lawlessness a year", "allegiance_drift" => "allegiance a turn",
         "venture_yield_pct" => "% venture coin", "charter_pct" => "% charters", "market_price_pct" => "% market prices", "fleet_upkeep_pct" => "% fleet upkeep", "readiness" => "readiness a turn",
         "senate_weight" => "Senate weight", "legitimacy_per_5" => "legitimacy every fifth turn", "motion_cost" => "influence per motion (others)", "tolls_bonus" => "credits a toll", _ => key.Replace('_', ' ')
     };

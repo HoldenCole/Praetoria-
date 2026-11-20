@@ -29,7 +29,7 @@ public sealed class BuildWorkCommand : ICommand
     {
         var w = ctx.World; var actor = w.Char(ActorId)!; var house = w.House(actor.HouseId)!; var def = _catalog.Work(_workId)!; var sys = w.Galaxy!.System(_systemId)!; var b = sys.Bodies[_body];
         if (def.BuildTurns <= 1) { house.Treasury.Spend(def.Cost); SystemWorks.Raise(w, house, _systemId, _body, def); return; }
-        var begun = ProjectSystem.Start(w, house.Id, Project.Work, def.Id, SystemWorks.Target(_systemId, _body), $"{(def.Name.StartsWith("The ", StringComparison.Ordinal) ? def.Name : "the " + def.Name)} {(b.IsSpace ? "in the " + sys.Name.Replace("The ", "") + " system" : "at " + b.Name)}", def.Cost, def.BuildTurns);
+        var begun = ProjectSystem.Start(w, house.Id, Project.Work, def.Id, SystemWorks.Target(_systemId, _body), $"{(def.Name.StartsWith("The ", StringComparison.Ordinal) ? def.Name : "the " + def.Name)} {(b.IsSpace ? "in the " + sys.Name.Replace("The ", "") + " system" : "at " + (b.IsPrimary && w.PlanetOf(_systemId) is { } seat ? seat.Name : b.Name))}", def.Cost, def.BuildTurns);
         if (begun != null) begun.Great = def.IsMegastructure;
         if (def.IsMegastructure) w.Log($"{house.Name} begins {(def.Name.StartsWith("The ", StringComparison.Ordinal) ? def.Name : "the " + def.Name)} in the {sys.Name.Replace("The ", "")} system: {def.BuildTurns} years in the building.");
     }

@@ -406,7 +406,7 @@ public static class SystemWorks
     {
         var g = w.Galaxy; var sys = g?.System(systemId); if (g == null || sys == null) return "no such system";
         if (w.PlanetOf(systemId) != null) return "it is held already";
-        if (g.RingOf(systemId) == Ring.Beyond) return "it lies in a nation's space";
+        if (g.RingOf(systemId) == Ring.Beyond) return "it lies in a nation's space: a world there is taken in war, not settled";
         if (w.Projects.Any(p => p.Kind == Project.Colony && p.TargetId == systemId)) return w.Projects.Any(p => p.Kind == Project.Colony && p.TargetId == systemId && p.OwnerId == house.Id) ? "your colony is on its way" : "another house is settling it";
         if (World.Outsider(house.Id)) return "not for you";
         bool near = g.Neighbors(systemId).Any(n => w.PlanetHolder(n) == house.Id) || w.Fleets.Values.Any(f => f.OwnerId == house.Id && f.SystemId == systemId && !f.Moving && !f.IsAway);

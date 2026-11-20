@@ -380,7 +380,7 @@
         @if (_view == "deck" && (mil.Campaign.TargetName != null || mil.Campaign.Targets.Count > 0)) {
                 <section class="panel">
                     <h3><Icon Name="galaxy" Size="13" /> The campaign <span class="muted">an enemy's world named as the war's object for eight turns</span></h3>
-                    @if (mil.Campaign.TargetName != null) { <div class="kv good"><span>Object</span><b>@mil.Campaign.TargetName · @mil.Campaign.TurnsLeft turn(s) more</b></div><div class="muted small">Fleets within two lanes of it fight at +10% and count as supplied.</div> }
+                    @if (mil.Campaign.TargetName != null) { <div class="kv good"><span>Object</span><b>@mil.Campaign.TargetName · @mil.Campaign.TurnsLeft year(s) more</b></div><div class="muted small">Fleets within two lanes of it fight at +10% and count as supplied.</div> }
                     else
                     {
                         <select class="sel" @onchange="SetCampaign">

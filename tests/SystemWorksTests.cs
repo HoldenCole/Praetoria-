@@ -342,6 +342,22 @@ public class SystemWorksTests
     }
 
     [Fact]
+    public void AHastenedWork_SaysSo_TheYearTheTreasuryCouldNotStandIt()
+    {
+        // docs/PLAYTHROUGH.md, Easy, B49: a year the speed could not be paid went by in silence, still labelled "hastened"
+        var (w, tc, house, me, ctx) = Start(); var sys = w.Galaxy!.System(w.HoldingsOf(house.Id).First(h => h.IsPlanet).SystemId)!; int star = sys.Bodies.FindIndex(b => b.IsStar); var def = Cat.Work("sun_foundry")!;
+        house.Treasury.Credits = 5000; house.Treasury.Materials = 5000; house.Treasury.Exotics = 500;
+        Assert.True(tc.Executor.TryExecute(new BuildWorkCommand(me.Id, sys.Id, star, def.Id, Cat, Content.Titles), ctx)); var p = w.Projects.Single(x => x.DefId == def.Id);
+        Assert.True(tc.Executor.TryExecute(new HastenWorkCommand(me.Id, p.Id, true, Cat), ctx));
+        var (due, extra) = ProjectSystem.HastenDue(p, Cat.Rules.HastenPct); var each = ProjectSystem.NextInstalment(p);
+        house.Treasury.Materials = each.Materials; house.Treasury.Credits = Math.Max(each.Credits, 1) + 2000; house.Treasury.Exotics = 500;   // enough for the year's own share, not for the speed
+        Assert.True(due.Materials + extra.Materials > house.Treasury.Materials);
+        int left = p.TurnsLeft; w.NewsFrom = w.NewsSeq; ProjectSystem.Tick(w, Cat, Content.Businesses);
+        Assert.Equal(left - 1, p.TurnsLeft); Assert.Equal(w.Turn, p.HastenMissedTurn);
+        Assert.Contains(w.NewsNow(), n => n.Text.Contains("was not hastened this year") && n.Text.Contains("materials short"));
+    }
+
+    [Fact]
     public void AGreatWork_IsHastened_ForACostPaidEveryYearItIsHastened()
     {
         // the owner, 2026-11-20: "you can pay extra to speed up the development. This would be a continuous cost over the development life cycle"
@@ -464,7 +480,7 @@ public class SystemWorksTests
         int rock = empty.Bodies.FindIndex(b => SystemWorks.Suits(empty, b, Cat.Work("outpost")!)); if (rock >= 0) Assert.Null(new BuildWorkCommand(me.Id, empty.Id, rock, "outpost", Cat, Content.Titles).Refusal(ctx));
         // a nation's space is not settled
         var beyond = g.Systems.Values.First(s => g.RingOf(s.Id) == Ring.Beyond); var held = w.PlanetOf(beyond.Id); if (held != null) { w.Holdings.Remove(held.Id); w.HoldingsChanged(); }
-        Assert.Equal("it lies in a nation's space", new FoundColonyCommand(me.Id, beyond.Id, Cat).Refusal(ctx));
+        Assert.StartsWith("it lies in a nation's space", new FoundColonyCommand(me.Id, beyond.Id, Cat).Refusal(ctx));
     }
 
     [Fact]

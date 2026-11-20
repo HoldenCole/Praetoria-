@@ -123,7 +123,7 @@
                     {
                         var inForce = l.Options.First(o => o.InForce);
                         <div class="law @(_open == l.Id ? "open" : "") @(inForce.Id != c.Policies.Law(l.Id)?.DefaultOption.Id ? "custom" : "")">
-                            <div class="law-head" @onclick="() => _open = _open == l.Id ? null : l.Id"><b>@l.Name</b> <span class="muted small">@l.ScopeName</span><div class="small"><b class="inforce">@inForce.Name</b> <span class="muted">@(l.CooldownLeft > 0 ? $"· settled for {l.CooldownLeft} more turn(s)" : $"· {l.Cost} influence to change")</span></div>
+                            <div class="law-head" @onclick="() => _open = _open == l.Id ? null : l.Id"><b>@l.Name</b> <span class="muted small">@l.ScopeName</span><div class="small"><b class="inforce">@inForce.Name</b> <span class="muted">@(l.CooldownLeft > 0 ? $"· settled for {l.CooldownLeft} more year(s)" : $"· {l.Cost} influence to change")</span> <span class="law-open" data-law-open="@l.Id">@(_open == l.Id ? "close ▴" : l.CooldownLeft > 0 ? "see it ▾" : "change ▾")</span></div>
                                 @if (inForce.Opinions.Count > 0) { <div class="lo-op">@foreach (var op in inForce.Opinions) { <span class="opin @(op.Opinion > 0 ? "pos" : "neg")" title="@op.Name">@op.Name.Replace("The ", "") @(op.Opinion > 0 ? "+" : "")@op.Opinion</span> }</div> }</div>
                             @if (_open == l.Id)
                             {

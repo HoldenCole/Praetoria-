@@ -150,7 +150,7 @@
                             <div class="gauges">
                                 <div class="gauge" title="loyalty (100 − unrest)"><span>Loyalty</span><i><b style="width:@(100 - h.Unrest)%" class="@(h.Unrest >= 50 ? "low" : "")"></b></i><em>@(100 - h.Unrest)</em></div>
                                 <div class="gauge" title="prosperity, drifting toward @h.ProsperityTarget"><span>Prosperity</span><i><b style="width:@h.Prosperity%" class="@(h.Prosperity < 35 ? "low" : h.Prosperity >= 75 ? "high" : "")"></b><u style="left:@h.ProsperityTarget%"></u></i><em>@h.Prosperity</em></div>
-                                @if (h.MaxPopulation > 0) { <div class="gauge" title="population"><span>Pop</span><i><b style="width:@(100 * h.Population / Math.Max(1, h.MaxPopulation))%"></b></i><em>@h.Population/@h.MaxPopulation</em></div> }
+                                @if (h.MaxPopulation > 0) { <div class="gauge" title="@(h.Population >= h.MaxPopulation ? "Population: the world is full. Habitats, laid on the world from the map (its system, then the body), make room for more." : "Population, and the most the world can hold. Habitats laid on the world make room for more.")"><span>Pop@(h.Population >= h.MaxPopulation ? " · full" : "")</span><i><b style="width:@(100 * h.Population / Math.Max(1, h.MaxPopulation))%"></b></i><em>@h.Population/@h.MaxPopulation</em></div> }
                             </div>
                         }
                         @if (h.Belt > 0) { <div class="kv"><span>Belt</span><b>@(new string('●', h.Belt)) richness @h.Belt</b></div> }
@@ -237,7 +237,7 @@
                 foreach (var b in bz) { <div class="line small"><b>@b.Name</b> <span class="muted">@b.KindName · level @b.Level/@b.MaxLevel@(b.SystemName != null ? $" · {b.SystemName}" : "")</span> <span class="pill small @(b.Earnings <= 0 ? "warn" : "good")">@(b.Earnings >= 0 ? "+" : "")@b.Earnings a year · worth @b.Value</span></div> }
             }
             else { <div class="muted small">The house owns no venture. Coin that is not land still counts.</div> }
-            <div class="row"><button class="opt inline tiny" @onclick="@(() => OnGo.InvokeAsync("exchange"))">Found, enlarge, buy and sell ventures: the Exchange ▸</button></div>
+            <div class="row"><button class="opt inline tiny" @onclick="@(() => OnGo.InvokeAsync("exchange:ventures"))">Found, enlarge, buy and sell ventures: the Exchange ▸</button></div>
             @if (m.Claims is { Count: > 0 } cl)
             {
                 <details><summary>Stake a belt claim <span class="muted">@c.Businesses.Finance.ClaimCredits credits, @c.Businesses.Finance.ClaimMaterials materials</span></summary>

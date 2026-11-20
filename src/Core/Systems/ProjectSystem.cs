@@ -98,7 +98,14 @@ public static class ProjectSystem
         {
             if (w.House(p.OwnerId) == null || !StillPossible(w, p)) { w.Projects.Remove(p); continue; }
             if (p.Paused) continue;
-            if (p.Hastened && p.TurnsLeft > 1 && SystemWorks.IsGreat(holdings, p) && Hasten(w, p, holdings.Rules.HastenPct))
+            bool toHasten = p.Hastened && p.TurnsLeft > 1 && SystemWorks.IsGreat(holdings, p);
+            if (toHasten && !CanHasten(w, p, holdings.Rules.HastenPct, out string hastenShort))
+            {
+                /* said the year it happens: the work was to go two years in one and the treasury could not stand it (docs/PLAYTHROUGH.md, Easy, B49) */
+                p.HastenMissedTurn = w.Turn;
+                if (p.OwnerId == mine) w.Tell("warn", $"{char.ToUpperInvariant(p.Name[0])}{p.Name[1..]} was not hastened this year ({hastenShort}): it goes at its own pace.", "exchange:projects");
+            }
+            if (toHasten && Hasten(w, p, holdings.Rules.HastenPct))
             {
                 p.Stalled = false;
                 if (p.TurnsLeft <= 0) { Complete(w, p, holdings, ventures); w.Projects.Remove(p); if (p.OwnerId == mine) { w.WorldFlags.Add(DoneFlag); w.WorldFlags.Add(DoneFlag + ":" + p.Kind); } }
@@ -124,6 +131,13 @@ public static class ProjectSystem
         return (due, extra);
     }
     /// <summary>Two years' work in one, if the purse can stand it; if it cannot, the work goes at its ordinary pace this year.</summary>
+    private static bool CanHasten(World w, Project p, int pct, out string shortBy)
+    {
+        shortBy = ""; var house = w.House(p.OwnerId); if (house == null) return false;
+        var (due, extra) = HastenDue(p, pct); var all = due.Clone(); foreach (var r in Resource.All) all.Add(r, extra.Get(r));
+        if (house.Treasury.CanAfford(all)) return true;
+        shortBy = house.Treasury.Short(all); return false;
+    }
     private static bool Hasten(World w, Project p, int pct)
     {
         var house = w.House(p.OwnerId); if (house == null) return false;

@@ -33,7 +33,7 @@
             else
             {
                 <div class="empty-line">Nobody holds this system. A colony would make its world yours, and every body round its sun yours to build on.</div>
-                <button class="opt" disabled="@(why != null)" title="@(why ?? "Ships, settlers and stores: the cost is paid over the years they are on the way.")" @onclick="() => G.Execute(new FoundColonyCommand(me.Id, sys.Id, cat))">Send a colony · @CourtProjection.Bundle(cat.Colony.Cost) · @cat.Colony.BuildTurns years</button>
+                <button class="opt" disabled="@(why != null)" title="@(why ?? $"Ships, settlers and stores. The cost is paid a share a year while they are on the way: {CourtProjection.Bundle(cat.Colony.Cost)} in all. Only the first share is needed in hand to send it. A fleet that stood in the system to make the claim may leave once the colony has sailed.")" @onclick="() => G.Execute(new FoundColonyCommand(me.Id, sys.Id, cat))">Send a colony · @CourtProjection.Bundle(ProjectSystem.Split(cat.Colony.Cost, cat.Colony.BuildTurns).First) now@(cat.Colony.BuildTurns > 1 ? $", the same in each of {cat.Colony.BuildTurns - 1} more year(s)" : "") · lands in @cat.Colony.BuildTurns years</button>
                 @if (why != null) { <div class="muted small">@Cap(why).</div> }
             }
         </div>
@@ -151,7 +151,7 @@
                                             @foreach (var dv in new[] { ProvinceSystem.Forgiven, ProvinceSystem.Customary, ProvinceSystem.Heavy })
                                             {
                                                 int dvv = dv; string? duno = new SetDuesCommand(me.Id, planet.Id, pi, dv).Refusal(ctx); bool cur = pv.Dues == dv;
-                                                <button class="opt inline tiny @(cur ? "on" : "")" disabled="@(duno != null)" title="@(dv == ProvinceSystem.Forgiven ? "Nothing is paid; it leans your way the more." : dv == ProvinceSystem.Heavy ? "Twice the dues; it leans nowhere, and a house that is your match may stop paying." : "The tithe, the levy in war, and its voice.")" @onclick="() => G.Execute(new SetDuesCommand(me.Id, dkey, pidx, dvv))">@ProvinceSystem.DuesName(dv)</button>
+                                                <button class="opt inline tiny @(cur ? "on" : "")" disabled="@(duno != null)" title="@(dv == ProvinceSystem.Forgiven ? "Nothing is paid; it leans your way the more." : dv == ProvinceSystem.Heavy ? ("Twice the dues; it leans nowhere, and a house that is your match stops paying. " + HeavySays(holderId)) : "The tithe, the levy in war, and its voice.")" @onclick="() => G.Execute(new SetDuesCommand(me.Id, dkey, pidx, dvv))">@ProvinceSystem.DuesName(dv)</button>
                                             }
                                         </span></div>
                                     }
@@ -204,7 +204,7 @@
                                                 <div class="sw-text">
                                                     <div class="sw-head"><b>@d.Name</b></div>
                                                     <div class="sw-does">@Does(d, sys)</div>
-                                                    <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@(d.BuildTurns > 1 ? $" · {d.BuildTurns} years" : "")</span>
+                                                    <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@Takes(d.BuildTurns, 1)</span>
                                                         <button class="opt inline" disabled="@(bno != null)" title="@(bno != null ? Cap(bno) : "")" @onclick="() => G.Execute(new BuildInProvinceCommand(me.Id, hid3, pidx, bdid, cat))">@(d.BuildTurns > 1 ? "Begin" : "Build")</button>
                                                     </div>
                                                     @if (bno != null) { <div class="sw-no">@Cap(bno)</div> }
@@ -219,7 +219,7 @@
                                             <option value="@house.Id" selected="@(giveTo == house.Id)">your own house</option>
                                             @foreach (var oh in w.Houses.Values.Where(x => !World.Outsider(x.Id) && x.Id != house.Id && x.Id != holderId).OrderBy(x => x.Name)) { <option value="@oh.Id" selected="@(giveTo == oh.Id)">@oh.Name</option> }
                                         </select> · @cat.Provinces.DemandInfluence influence</span>
-                                        <button class="opt inline" disabled="@(dno != null)" title="@(dno != null ? Cap(dno) : "It was theirs for life. A house that cannot hope to win steps down; one that can, fights.")" @onclick="() => G.AskSeat(planet, pidx, giveTo)">Ask</button>
+                                        <button class="opt inline" disabled="@(dno != null)" title="@(dno != null ? Cap(dno) : "It was theirs for life. A house that cannot hope to win steps down; one that can, fights. " + YieldSays(holderId))" @onclick="() => G.AskSeat(planet, pidx, giveTo)">Ask</button>
                                     </div>
                                     @if (dno != null) { <div class="sw-no">@Cap(dno)</div> }
                                 }
@@ -264,7 +264,7 @@
                     {
                         bool isGreat = SystemWorks.IsGreat(cat, p); string pid = p.Id; bool hastened = p.Hastened; var hd = ProjectSystem.HastenDue(p, rules.HastenPct); var both = hd.due.Clone(); foreach (var r in Resource.All) both.Add(r, hd.extra.Get(r));
                         string? hno = isGreat && mine ? new HastenWorkCommand(me.Id, p.Id, !p.Hastened, cat).Refusal(ctx) : null;
-                        <div class="sysp-work stands up" data-rising="@p.DefId">@Art(p.DefId)<div class="sw-text"><div class="sw-head"><b>@Cap(p.Name)</b> <span class="muted small">@(p.Stalled ? "stalled: the purse could not pay" : hastened ? "rising · hastened" : "rising")</span></div><div class="sw-does">@p.TurnsLeft of @p.TurnsTotal year(s) to go · @Bundle(ProjectSystem.Remaining(p)) still to pay@(p.Paused ? " · paused" : "")</div>
+                        <div class="sysp-work stands up" data-rising="@p.DefId">@Art(p.DefId)<div class="sw-text"><div class="sw-head"><b>@Cap(p.Name)</b> <span class="muted small">@(p.Stalled ? "stalled: the purse could not pay" : hastened ? (p.HastenMissedTurn > 0 && p.HastenMissedTurn >= w.Turn - 1 ? "rising · not hastened last year: the treasury could not stand it" : "rising · hastened") : "rising")</span></div><div class="sw-does">@p.TurnsLeft of @p.TurnsTotal year(s) to go · @Bundle(ProjectSystem.Remaining(p)) still to pay@(p.Paused ? " · paused" : "")</div>
                             @if (p.OwnerId == me.HouseId && p.CompanyId.Length == 0)
                             {
                                 string? rushNo = new RushProjectCommand(me.Id, pid).Refusal(ctx); int rushMore = ProjectSystem.RushPremium(w, p); string? payNo = p.Stalled ? new PayInstalmentCommand(me.Id, pid).Refusal(ctx) : null;
@@ -316,7 +316,7 @@
                                     <div class="sw-text">
                                         <div class="sw-head"><b>@d.Name</b></div>
                                         <div class="sw-does">@BuildingDoes(d, 1)</div>
-                                        <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@(d.BuildTurns > 1 ? $" · {d.BuildTurns} years" : "")</span>
+                                        <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@Takes(d.BuildTurns, 0)</span>
                                             @if (mine) { <button class="opt inline" disabled="@(no != null)" title="@(no != null ? Cap(no) : "")" @onclick="() => G.Execute(new BuildCommand(me.Id, hid, did, cat, c.Titles))">@(d.BuildTurns > 1 ? "Begin" : "Build")</button> }
                                         </div>
                                         @if (mine && no != null) { <div class="sw-no">@Cap(no)</div> }
@@ -355,6 +355,19 @@
 </div>
 
 @code {
+    /* how long a thing takes, on every line: a building on a world stands at once only when it takes no years; a work or a province's building of one year stands at once too */
+    private static string Takes(int turns, int atOnceUpTo) => turns <= atOnceUpTo ? " · at once" : turns == 1 ? " · 1 year" : $" · {turns} years";
+    /* said before the click: whether this holder is the house's match (docs/PLAYTHROUGH.md, Easy, B18 and B20) */
+    private string HeavySays(string holderId)
+    {
+        var w = G.World!; var h = w.House(holderId); int theirs = FleetSystem.StrengthOf(w, holderId), yours = FleetSystem.StrengthOf(w, w.Protagonist!.HouseId);
+        return theirs > 0 && theirs >= yours ? $"{h?.Name ?? "This house"} is your match ({theirs} hull(s) to your {yours}): it will stop paying." : $"{h?.Name ?? "This house"} is not your match ({theirs} hull(s) to your {yours}): it will pay.";
+    }
+    private string YieldSays(string holderId)
+    {
+        var w = G.World!; var h = w.House(holderId); int theirs = FleetSystem.StrengthOf(w, holderId), yours = FleetSystem.StrengthOf(w, w.Protagonist!.HouseId);
+        return ProvinceSystem.WillYield(w, G.Content!.Holdings, w.Protagonist!.HouseId, holderId) ? $"{h?.Name ?? "This house"} cannot hope to win ({theirs} hull(s) to your {yours}): it will step down." : $"{h?.Name ?? "This house"} can hope to win ({theirs} hull(s) to your {yours}): asking is war.";
+    }
     // its parameters are a name and a flag, which do not change when a year passes: without this the open row showed last year's
     // figures until it was closed and opened again (docs/PLAYTHROUGH.md, buildings)
     private void Redraw() => InvokeAsync(StateHasChanged);
@@ -425,7 +438,7 @@
                 <div class="sw-head"><b>@d.Name</b> <span class="muted small">@Category(d)</span></div>
                 <div class="muted small">@d.Description</div>
                 <div class="sw-does">@Does(d, sys)</div>
-                <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@(d.BuildTurns > 1 ? $" · {d.BuildTurns} years" : "")</span>
+                <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@Takes(d.BuildTurns, 1)</span>
                     @if (mine) { <button class="opt inline" disabled="@(no != null)" title="@(no != null ? Cap(no) : d.BuildTurns > 1 ? "Begun now and paid for as it rises." : "")" @onclick="() => G.Execute(new BuildWorkCommand(me.Id, sid, body, did, c.Holdings, c.Titles))">@(d.IsMegastructure ? "Raise" : d.BuildTurns > 1 ? "Begin" : "Build")</button> }
                 </div>
                 @if (mine && no != null) { <div class="sw-no">@Cap(no)</div> }
