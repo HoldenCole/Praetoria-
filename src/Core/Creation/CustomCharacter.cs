@@ -53,6 +53,8 @@ public sealed class CustomCharacter
     public string HouseName { get; set; } = "";
     public string Accent { get; set; } = "#E63946";
     public string Culture { get; set; } = "reach";
+    /// <summary>What the people of the house look like (content/ancestries); empty leaves it to the dice of the house.</summary>
+    public string Ancestry { get; set; } = "";
     /// <summary>"old" or "new": whether anybody's grandfather sat with this name.</summary>
     public string Origin { get; set; } = "new";
     public string Title { get; set; } = "landless";
@@ -230,7 +232,7 @@ public static class CharacterWorkshop
         string given = c.Name.Trim().Length > 0 ? c.Name.Trim().Split(' ')[0] : GivenName(content, c.Culture, c.Sex, "self:" + w.RngState, taken);
         string surname = c.HouseName.Trim().Length > 0 ? c.HouseName.Trim().Replace("House ", "") : c.Name.Trim().Contains(' ') ? c.Name.Trim()[(c.Name.Trim().IndexOf(' ') + 1)..] : "Varro";
         house.Name = content.Titles.RankOf(c.Title) >= 1 ? "House " + surname : surname;
-        house.AccentColor = c.Accent; house.Culture = c.Culture.Length > 0 ? c.Culture : house.Culture; house.Origin = c.Origin; house.Title = c.Title; house.Legitimacy = c.Legitimacy;
+        house.AccentColor = c.Accent; house.Culture = c.Culture.Length > 0 ? c.Culture : house.Culture; if (content.Ancestries.Def(c.Ancestry) is { Beyond: false }) house.Ancestry = c.Ancestry; house.Origin = c.Origin; house.Title = c.Title; house.Legitimacy = c.Legitimacy;
         house.Enrolled = c.Seat && !c.Imperium; house.PatronId = c.Imperium ? "" : c.PatronId;
         house.Treasury = new Resources(); foreach (var (k, v) in c.Treasury) house.Treasury.Add(k, v);
 

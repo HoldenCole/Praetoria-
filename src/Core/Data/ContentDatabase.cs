@@ -33,6 +33,8 @@ public sealed class ContentDatabase
     public PartyCatalog Parties { get; }
     /// <summary>The foreign nations beyond the Reach (content/nations/nations.json; docs/FOREIGN_NATIONS.md).</summary>
     public NationCatalog Nations { get; }
+    /// <summary>What the people of each house look like (content/ancestries/ancestries.json).</summary>
+    public AncestryCatalog Ancestries { get; set; } = AncestryCatalog.Default;
     /// <summary>The Academy: its registers, subjects, Standards and lessons (content/academy/academy.json; docs/ACADEMY.md).</summary>
     public AcademyCatalog Academy { get; }
     /// <summary>The commodity market's goods and rules (content/market/goods.json; docs/ECONOMY_MARKET.md).</summary>

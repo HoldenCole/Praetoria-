@@ -205,7 +205,7 @@ still short of that:
 |---|---|---|---|
 | V1 | The windows were converted by rule, not redesigned. Military, the Senate, the House and the Line are long single pages; each wants tabs and a first screen that fits without scrolling, as CK3's windows do. | M | |
 | V2 | Tooltips are the game's own now (`js/tips.js`: anything with a title), with a heading and breakdown rows, but they do not nest (a term inside a tooltip cannot be hovered in turn, as in CK3 and Victoria 3) and nothing shows on a touch screen. | M | |
-| V3 | A child takes a parent's colouring and nothing else of them: no shared features. With twelve faces a sex, two people in one room can share a face, and only the player chooses theirs (the workshop's Face tab; a scenario's own protagonist takes what the hash gives). | M | |
+| V3 | A child takes a parent's ancestry and nothing else of them: no shared features, and never a blend of the two. With about six faces for a sex and an ancestry, cousins and brothers can share a face; the game does not yet keep two people of one house from drawing the same one. | M | |
 | V4 | One identity across five ages comes from a shared seed, which holds colouring and dress but lets the face drift. A hosted model with reference-image editing holds it. Needs a key and about $100 to $300 from the owner. | M | owner |
 | V5 | Dress is not by career or rank: an admiral and a magistrate can wear the same coat. Rank, office, a triumph's laurel and a wound's scar are not shown on a painted portrait. | M | V4 |
 | V6 | The pictures are AI-generated. A store page must say so (Steam's content survey), and the owner has not been asked whether that is acceptable for release or a stand-in until an artist is paid. | S | owner |
@@ -225,6 +225,10 @@ still short of that:
 | N28 | A captured hull vanishes. Sold through the Exchange it would move a shipyard company's shares and give salvage a price. | M | |
 | N29 | Capital ships can be laid down wherever there are the goods. If they needed a shipyard world, losing the yard would matter more than losing the fleet. | M | |
 | N30 | A house without worlds lives, but has nothing to do. Fighting on as a hired fleet for another house or a nation would be a way back. | L | owner |
+
+| V18 | Your own look is a choice of ancestry and of one face among about six. There is no choice of hair, beard, scar or dress on a painted face, and a scripted scenario's protagonist cannot be given a face at all. Each further choice multiplies the library or wants a model that paints on request (V4). | M | owner |
+| V19 | The ancestries' names (Mediterranean, Northern, Levantine, African, East Asian, South Asian, Steppe) are plain words from our own world, and which house is which was set by the sound of its name. Both are in one file and are the owner's to change: the setting may want its own names for its peoples. | S | owner |
+| V20 | Ancestry is looks only. It gives no names (a house's naming culture is separate and all but two cultures share one list), moves no opinion, and is not in any event. | M | owner |
 
 ## Older, from docs/ROADMAP.md section 3
 

@@ -28,6 +28,10 @@ public sealed class House
     /// <summary>Name culture for children born into the house (key into /content/names).</summary>
     public string Culture { get; set; } = "reach";
 
+    /// <summary>What the people of the house look like (content/ancestries; <see cref="Praetoria.Core.Systems.Lineage"/>). Empty for a
+    /// house that never chose: content's naming of it, or the dice of its id, decide.</summary>
+    public string Ancestry { get; set; } = "";
+
     /// <summary>Who inherits the seat (GDD §14): "primogeniture" (eldest blood child, then eldest member),
     /// "ultimogeniture" (youngest blood child), "seniority" (eldest member regardless of blood), or
     /// "merit" (the member with the highest skills). Data, so a scenario or an event can set it.</summary>

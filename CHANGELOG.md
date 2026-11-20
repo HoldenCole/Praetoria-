@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+- **Houses have an ancestry, and their portraits follow it** (docs/ART_DIRECTION.md, "Portraits"; the owner:
+  "certain houses will have certain genetics"). Every painted face is tagged with one of seven ancestries, and
+  every house and every nation beyond the Reach has one, named in `content/ancestries/ancestries.json` or fallen
+  to by the dice of its id. The people of a house are painted from it. Someone who marries in keeps the face of the
+  house they were born to, and a child of the marriage takes after its father or its mother. A profile says what
+  someone is.
+- **Your own look at creation.** The workshop's Face tab asks for the ancestry of your house, offers the faces
+  painted for it, and shows the one you choose as a child, in youth, grown, in middle age and in old age: the
+  faces you will wear across a life.
 - **A game's interface, not a dashboard** (docs/ART_DIRECTION.md, "The shell, the windows and the art"; the owner:
   "de-AI the UI because the amount of cards and side paneling is too much. Look at popular grand strategy games").
   The map is now the screen and is always there. A bar runs along the top with your portrait, the house and its

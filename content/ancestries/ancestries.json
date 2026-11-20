@@ -1,0 +1,23 @@
+{
+  "//": "ANCESTRY (docs/ART_DIRECTION.md, 'Portraits'; the owner, 2026-11-20: 'certain houses will have certain genetics ... the portraits match with what you would imagine the house to look like'). A house has one ancestry and its people are painted from it. Someone who marries in keeps the ancestry of the house they were born to; a child takes after its father or its mother. The ids are what the painter is told (tools/art/portraits.py); the names are what the game shows and are the owner's to change. 'weight' is the share of houses not named below that fall to it. 'beyond' marks an ancestry met only beyond the Reach.",
+  "ancestries": [
+    { "id": "mediterranean", "name": "Mediterranean", "note": "olive-skinned and dark-haired; the old senatorial families of the core", "weight": 26 },
+    { "id": "northern", "name": "Northern", "note": "pale, with fair, brown or red hair; the marcher and lane houses", "weight": 24 },
+    { "id": "levantine", "name": "Levantine", "note": "tan-skinned and dark-haired; the trading houses of the old routes", "weight": 14 },
+    { "id": "african", "name": "African", "note": "dark-skinned; among the oldest names of the Reach", "weight": 14 },
+    { "id": "east_asian", "name": "East Asian", "note": "the yard and foundry houses", "weight": 12 },
+    { "id": "south_asian", "name": "South Asian", "note": "brown-skinned and dark-haired; the houses of the long lanes", "weight": 10 },
+    { "id": "steppe", "name": "Steppe", "note": "the riders of the Vashti Khanates", "weight": 0, "beyond": true }
+  ],
+  "houses": {
+    "castellan": "mediterranean", "aurelian": "mediterranean", "valmont": "mediterranean", "severin": "mediterranean", "lucent": "mediterranean", "calderon": "mediterranean",
+    "ferro": "mediterranean", "serval": "mediterranean", "pallas": "mediterranean", "vega": "mediterranean",
+    "harker": "northern", "graves": "northern", "wren": "northern", "holloway": "northern", "kessler": "northern", "strand": "northern", "teague": "northern", "rourke": "northern",
+    "brannock": "northern", "orlov": "northern", "voss": "northern", "dreyer": "northern",
+    "ashkar": "levantine", "thalen": "levantine", "dorne": "levantine", "meridian": "levantine", "cask": "levantine",
+    "marrow": "african", "morrow": "african", "drake": "african", "thorne": "african", "harrow": "african", "oriel": "african",
+    "sato": "east_asian", "ishida": "east_asian", "quill": "east_asian", "lyle": "east_asian",
+    "corwin": "south_asian", "pike": "south_asian", "varga": "south_asian", "ashgrove": "south_asian"
+  },
+  "nations": { "vashti": "steppe", "concord": "northern", "thessar": "mediterranean", "hollow_crown": "levantine", "compact": "south_asian" }
+}

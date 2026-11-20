@@ -183,10 +183,24 @@ on a CPU at about half a minute a picture.
   seed: child, youth, adult, older, elder. The game gives each character an identity by a hash of their id, among
   those of their sex (and of the Reach, or of a nation beyond it), and shows the picture for their age, so a face
   grows old with its owner. Old World ships four portraits a character switched by age; this is that.
-- A child takes after one parent in colouring (the father or the mother by the dice of the child's id), so a
-  family looks like one. The player may choose their own face in the workshop.
+- **A house has an ancestry, and its people are painted from it** (the owner, 2026-11-20: "certain houses will
+  have certain genetics ... the portraits match with what you would imagine the house to look like. Wouldn't make
+  sense to have a mix of different kinds of ethnicities in a house. Unless they were brought into the house").
+  `content/ancestries/ancestries.json` lists them (Mediterranean, Northern, Levantine, African, East Asian, South
+  Asian, and the Steppe beyond the Reach), names which house and which nation is which, and gives the share of the
+  unnamed houses that falls to each. Every painted face is tagged with one. `Lineage` decides who is what: someone
+  with a parent on record takes after the father or the mother, by the dice of their own id; someone with none
+  takes the ancestry of the house they were born to, so **whoever marries in keeps their own face** and the
+  children of a mixed marriage take after one side or the other. Nothing is stored but a house's own choice.
+- **Ageing.** A face is painted five times from one seed, as a child, in youth, grown, in middle age and in old
+  age, and the game shows the one for the person's age (under 13, under 20, under 46, under 62, and after). The
+  person stays recognisable; they are not swapped for someone else.
+- **Your own look.** In the workshop's Face tab you choose the ancestry of your house, then a face among those
+  painted for it and your sex, and you are shown that face at all five ages before you begin. A face is a choice
+  among painted ones, not a set of sliders: each further thing to choose (hair, a beard, a scar) would multiply the
+  library, or wants a model that paints on request.
 - Small portraits (72px and under) are the same picture drawn in to the face.
-- The house's colour is the frame. Rank, office and mood are not in the picture.
+- The house's colour is the frame. Rank, office and mood are not in the picture. The profile says what someone is.
 - Where the library has no picture, the old canvas painter (`js/portrait.js`) still draws one. It is the fallback
   only, and should go when the library covers everyone.
 - The pictures are **AI-generated**. Steam's content survey asks a store page to say so, and purely AI-made images

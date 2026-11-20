@@ -21,7 +21,7 @@ public sealed record PersonProfile(string Id, string Name, string Epithet, strin
     ProfileRegard? TheirsOfYou, ProfileRegard? YoursOfThem,
     IReadOnlyList<ProfileTrait> Nature, IReadOnlyList<ProfileTrait> Aptitude, IReadOnlyList<string> Marks,
     IReadOnlyList<(string Name, int Value)> Skills, int Health, string HealthName, int Renown, string RenownName, int Stress, string Ambition,
-    IReadOnlyList<ProfileKin> Kin, IReadOnlyList<ProfileDeed> Deeds, int Sway);
+    IReadOnlyList<ProfileKin> Kin, IReadOnlyList<ProfileDeed> Deeds, int Sway, string Ancestry);
 
 /// <summary>What a portrait wears and how its face is set (see <see cref="ProfileProjection.Dress"/>).</summary>
 public sealed record BustDress(string Career, int Rank, int Mood, bool Head, bool Laurel, bool Scar, bool Foreign);
@@ -104,7 +104,7 @@ public static class ProfileProjection
 
         return new PersonProfile(c.Id, c.Name, LifeSystem.Epithet(c), c.Sex, c.Age, c.Alive, c.HouseId, nd?.Name ?? house?.Name ?? c.HouseId, house?.AccentColor ?? "#888888",
             you, head, foreign, station, offices, story, theirs, yours, nature, aptitude, marks, skills, c.Health, LifeSystem.HealthName(c.Health), renown, LifeSystem.RenownName(renown), c.Stress,
-            content.Traits.Ambitions.FirstOrDefault(a => a.Id == c.Ambition)?.Name ?? "", kin, deeds, c.CareerTrack == "military" ? CaesarSystem.Sway(w, c) : 0);
+            content.Traits.Ambitions.FirstOrDefault(a => a.Id == c.Ambition)?.Name ?? "", kin, deeds, c.CareerTrack == "military" ? CaesarSystem.Sway(w, c) : 0, content.Ancestries.Name(Lineage.Of(w, content.Ancestries, c)));
     }
 
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];

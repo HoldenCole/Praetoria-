@@ -14,7 +14,7 @@
             <header class="profile-head">
                 <div class="profile-frame"><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@p.Accent" Size="232" Opens="false" /><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i></div>
                 <div class="profile-who">
-                    <div class="profile-house"><i></i>@p.HouseName@(p.IsYou ? " · you" : "")@(p.Alive ? "" : " · dead")</div>
+                    <div class="profile-house"><i></i>@p.HouseName@(p.Ancestry.Length > 0 ? $" · {p.Ancestry}" : "")@(p.IsYou ? " · you" : "")@(p.Alive ? "" : " · dead")</div>
                     <h2>@p.Name</h2>
                     @if (p.Epithet.Length > 0) { <div class="profile-epithet">@p.Epithet</div> }
                     <div class="profile-station">@p.Station@(p.Alive ? $" · {p.Age} years" : $" · died at {p.Age}")</div>

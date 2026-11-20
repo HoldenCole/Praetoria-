@@ -36,6 +36,27 @@ RESEED = {"fr00": 1, "fr03": 1, "mr05": 1}   # identities whose first throw came
 REDO = {"fx01_older": 2}                      # one picture of an identity thrown again, the rest of that identity kept
 FOREIGN = ["furs over lamellar armour with a gold torque", "an embroidered silk robe with heavy gold jewellery", "ornate bronze scale armour with a crimson cloak", "a quilted leather coat with bone toggles and a fur collar"]
 
+# ---- ancestry (docs/ART_DIRECTION.md, "Portraits"; the game's names for these are in content/ancestries/ancestries.json) ----
+# What the painter is told for each, and the hair that goes with it. A house has one ancestry and its people are painted from it.
+ANCESTRY = {
+    "northern":      (["Northern European, pale skin", "Scandinavian, fair skin", "Slavic, pale skin", "Celtic, pale freckled skin"], ["blond hair", "light brown hair", "red hair", "brown hair", "ash blond hair"]),
+    "mediterranean": (["Italian, olive skin", "Spanish, olive skin", "Greek, olive skin"], ["black hair", "dark brown hair"]),
+    "levantine":     (["Middle Eastern, Arab, tan skin", "Persian, olive tan skin", "Levantine, tan skin"], ["black hair", "dark brown hair"]),
+    "south_asian":   (["South Asian, Indian, brown skin", "South Asian, Tamil, dark brown skin", "South Asian, Punjabi, light brown skin"], ["black hair"]),
+    "african":       (["Black, West African, dark brown skin", "Black, East African, brown skin", "Black African, very dark skin"], ["black hair"]),
+    "east_asian":    (["East Asian, Chinese", "East Asian, Japanese", "East Asian, Korean"], ["black hair"]),
+    "steppe":        (["Mongolian, weathered tan skin", "Central Asian, Kazakh, weathered skin"], ["black hair"]),
+}
+CODE = {"northern": "no", "mediterranean": "me", "levantine": "le", "south_asian": "sa", "african": "af", "east_asian": "ea", "steppe": "st"}
+CUT_AF_M = ["short cropped hair", "a shaved head", "short natural hair", "short dreadlocks tied back"]
+CUT_AF_F = ["long braided hair", "natural curly hair", "short natural hair", "hair in a braided crown"]
+# The first library was painted before houses had an ancestry; its faces are kept, each given the one it shows (by eye).
+LEGACY = {"fr00": "south_asian", "fr01": "mediterranean", "fr02": "mediterranean", "fr03": "south_asian", "fr04": "northern", "fr05": "levantine", "fr06": "african", "fr07": "mediterranean",
+          "fr08": "northern", "fr09": "northern", "fr10": "levantine", "fr11": "african", "mr00": "northern", "mr01": "northern", "mr02": "levantine", "mr03": "mediterranean", "mr04": "mediterranean",
+          "mr05": "african", "mr06": "northern", "mr07": "south_asian", "mr08": "northern", "mr09": "levantine", "mr10": "south_asian", "mr11": "mediterranean"}
+# How many more of each to paint, to bring every ancestry to six faces a sex (the steppe, met only through its rulers, to four).
+NEW = {"east_asian": (6, 6), "african": (5, 4), "south_asian": (4, 4), "levantine": (4, 4), "steppe": (4, 4), "mediterranean": (3, 3), "northern": (2, 3)}   # (men, women)
+
 def who(sex, band, d):
     """The subject, in few enough words for the model's 77 tokens."""
     m = sex == "m"
@@ -49,16 +70,27 @@ def who(sex, band, d):
     beard = (", " + d["beard"]) if m else ""
     return f"a {age} {'man' if m else 'woman'}, {d['skin']}, {hair}, {d['cut']}{beard}, {d['face']}{lines}, stern, wearing {d['dress']}"
 
-def identities(per_sex, foreign):
+def identities(per_sex=12, foreign=0):
+    """Every identity: (name, sex, ancestry, seed, description, the ages it is painted at). The first library's, then the new ones in
+    rounds, one of each ancestry and sex at a time, so that a part-finished run has widened every group a little."""
     out = []
     for sex in "mf":
-        for kind, n in (("r", per_sex), ("x", foreign)):   # r: of the Reach; x: of a nation beyond it
-            for i in range(n):
-                r = random.Random(int(hashlib.sha1(f"{sex}{kind}{i}".encode()).hexdigest()[:8], 16))
-                d = {"skin": SKIN[(i * 3 + (0 if sex == "m" else 5)) % len(SKIN)], "hair": r.choice(HAIR), "face": r.choice(FACE), "cut": r.choice(CUT_M if sex == "m" else CUT_F),
-                     "beard": r.choice(BEARD), "dress": (FOREIGN[i % len(FOREIGN)] if kind == "x" else DRESS[i % len(DRESS)])}
-                out.append((f"{sex}{kind}{i:02d}", sex, kind, 7000 + i * 13 + (0 if sex == "m" else 500) + (250 if kind == "x" else 0) + 100003 * RESEED.get(f"{sex}{kind}{i:02d}", 0), d))
-    return out
+        for i in range(per_sex):
+            name = f"{sex}r{i:02d}"; r = random.Random(int(hashlib.sha1(f"{sex}r{i}".encode()).hexdigest()[:8], 16))
+            d = {"skin": SKIN[(i * 3 + (0 if sex == "m" else 5)) % len(SKIN)], "hair": r.choice(HAIR), "face": r.choice(FACE), "cut": r.choice(CUT_M if sex == "m" else CUT_F), "beard": r.choice(BEARD), "dress": DRESS[i % len(DRESS)]}
+            if name in LEGACY: out.append((name, sex, LEGACY[name], 7000 + i * 13 + (0 if sex == "m" else 500) + 100003 * RESEED.get(name, 0), d, BANDS))
+    new = []; had = {}
+    for n, anc in LEGACY.items(): had[(anc, n[0])] = had.get((anc, n[0]), 0) + 1
+    for rnd in range(max(max(v) for v in NEW.values())):
+        for anc, (men, women) in NEW.items():
+            for sex, n in (("m", men), ("f", women)):
+                if rnd >= n: continue
+                name = f"{sex}{CODE[anc]}{rnd:02d}"; r = random.Random(int(hashlib.sha1(name.encode()).hexdigest()[:8], 16)); looks, hairs = ANCESTRY[anc]
+                cuts = (CUT_AF_M if sex == "m" else CUT_AF_F) if anc == "african" else (CUT_M if sex == "m" else CUT_F)
+                d = {"skin": looks[rnd % len(looks)], "hair": r.choice(hairs), "face": r.choice(FACE), "cut": cuts[(rnd + r.randrange(2)) % len(cuts)], "beard": r.choice(BEARD),
+                     "dress": FOREIGN[(0, 3)[rnd % 2]] if anc == "steppe" else DRESS[(rnd * 5 + (0 if sex == "m" else 3) + len(anc)) % len(DRESS)]}
+                new.append((had.get((anc, sex), 0) + rnd, len(new), (name, sex, anc, 9000 + int(hashlib.sha1(name.encode()).hexdigest()[:6], 16) % 90000 + 7919 * RESEED.get(name, 0), d, [b for b in BANDS if not (anc == "steppe" and b == "child")])))
+    return out + [x[2] for x in sorted(new)]   # the thinnest group first: each new face goes where there are fewest
 
 def paint(a):
     import torch
@@ -67,10 +99,8 @@ def paint(a):
     pipe = AutoPipelineForText2Image.from_pretrained(a.model, torch_dtype=torch.float32, safety_checker=None)
     if "lcm" in a.model.lower(): pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
     pipe.set_progress_bar_config(disable=True)
-    ids = identities(a.per_sex, a.foreign)
-    for band in BANDS:
-        for name, sex, kind, seed, d in ids:
-            if kind == "x" and band in ("youth", "child"): continue   # a court beyond the rim is met through its grown rulers
+    for name, sex, anc, seed, d, bands in identities():
+        for band in bands:   # a whole identity at a time: a face is of use once all its ages are painted
             path = os.path.join(a.work, f"{name}_{band}.png")
             if os.path.exists(path): continue
             t = time.time(); g = torch.Generator().manual_seed(seed + 7 * REDO.get(f"{name}_{band}", 0))
@@ -81,16 +111,16 @@ def pack(a):
     from PIL import Image
     os.makedirs(a.out, exist_ok=True); faces = {}
     rejected = set(open(os.path.join(a.work, "rejected.txt")).read().split()) if os.path.exists(os.path.join(a.work, "rejected.txt")) else set()
-    for f in sorted(os.listdir(a.work)):
-        if not f.endswith(".png") or f[:-4] in rejected: continue
-        name, band = f[:-4].rsplit("_", 1)
-        im = Image.open(os.path.join(a.work, f)).convert("RGB"); w, h = im.size; m = int(w * a.trim)   # trim the edges: a stray frame or a cut-off shoulder lives there
-        im.crop((m, m // 2, w - m, h - m - m // 2)).resize((a.size, a.size), Image.LANCZOS).save(os.path.join(a.out, f"{name}_{band}.webp"), "WEBP", quality=a.quality, method=6)
-        faces.setdefault(name, []).append(band)
-    faces = {k: sorted(v, key=BANDS.index) for k, v in faces.items() if "adult" in v or "older" in v}   # an identity needs a grown face
-    tones = {k: (int(k[2:]) * 3 + (0 if k[0] == "m" else 5)) % len(SKIN) for k in faces}   # the colouring each was painted with, so kin can be given faces alike
-    json.dump({"note": "AI-generated with an openly licensed model; see tools/art/portraits.py", "faces": faces, "tones": tones}, open(os.path.join(a.out, "manifest.json"), "w"), indent=0, sort_keys=True)
-    print(f"{len(faces)} identities, {sum(len(v) for v in faces.values())} pictures -> {a.out}")
+    for name, sex, anc, seed, d, bands in identities():
+        if name in rejected or not all(os.path.exists(os.path.join(a.work, f"{name}_{b}.png")) for b in bands): continue   # only a face painted at all its ages
+        for b in bands:
+            im = Image.open(os.path.join(a.work, f"{name}_{b}.png")).convert("RGB"); w, h = im.size; m = int(w * a.trim)   # trim the edges: a stray frame or a cut-off shoulder lives there
+            im.crop((m, m // 2, w - m, h - m - m // 2)).resize((a.size, a.size), Image.LANCZOS).save(os.path.join(a.out, f"{name}_{b}.webp"), "WEBP", quality=a.quality, method=6)
+        faces[name] = {"sex": "male" if sex == "m" else "female", "ancestry": anc, "ages": sorted(bands, key=BANDS.index)}
+    json.dump({"note": "AI-generated with an openly licensed model; see tools/art/portraits.py", "faces": faces}, open(os.path.join(a.out, "manifest.json"), "w"), indent=0, sort_keys=True)
+    by = {}
+    for f in faces.values(): by[(f["ancestry"], f["sex"])] = by.get((f["ancestry"], f["sex"]), 0) + 1
+    print(f"{len(faces)} identities, {sum(len(v['ages']) for v in faces.values())} pictures -> {a.out}"); print("  " + ", ".join(f"{k[0]} {k[1]} {v}" for k, v in sorted(by.items())))
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(); s = p.add_subparsers(dest="cmd", required=True)
