@@ -32,6 +32,20 @@ public static class ChoiceStakes
                 case AdvanceCareerEffect c when Me(c.Role): parts.Add("a step up in the service"); break;
                 case DeclareWarEffect: parts.Add("war"); break;
                 case MakePeaceEffect: parts.Add("peace"); break;
+                case PeaceTermsEffect pt when ctx.Actor(pt.Role) is { } foe && ctx.World.Wars.FirstOrDefault(x => x.Between(player.HouseId, foe.HouseId)) is { } war:
+                {
+                    int lead = war.Lead(player.HouseId); var rules = ctx.Content?.Fleets ?? Systems.FleetRules.Default; string them = ctx.World.House(foe.HouseId)?.Name ?? foe.HouseId;
+                    if (pt.Kind == Systems.HousePeace.Tribute && lead != 0)
+                    {
+                        var p = Systems.HousePeace.Payable(ctx.World, lead > 0 ? foe.HouseId : player.HouseId, Math.Abs(lead) * rules.TributePerScore);
+                        sums[Resource.Credits] = sums.GetValueOrDefault(Resource.Credits) + (lead > 0 ? p.credits : -p.credits);
+                        foreach (var (g, n) in p.goods) sums[g] = sums.GetValueOrDefault(g) + (lead > 0 ? n : -n);
+                        parts.Add(p.unpaid > 0 ? $"peace ({Math.Abs(lead) * rules.TributePerScore} is owed by the score; {p.unpaid} of it {(lead > 0 ? them + " does not have" : "you do not have")})" : "peace");
+                    }
+                    else if (pt.Kind == Systems.HousePeace.Cede && pt.World(ctx) is { } h) parts.Add(lead >= 0 ? $"peace, and {h.Name} ({h.Population} people) is yours" : $"peace, and {h.Name} is theirs");
+                    else parts.Add(lead > 0 && pt.Kind == Systems.HousePeace.White ? "peace, nothing asked: " + them + " will remember it" : "peace, each side keeping what it holds");
+                    break;
+                }
                 case GrantClaimEffect g when Mine(g.Role): parts.Add("a claim to a higher rank"); break;
             }
         var money = Resource.All.Where(k => sums.GetValueOrDefault(k) != 0).Select(k => Signed(sums[k]) + " " + Resource.Label(k)).ToList();
@@ -76,6 +90,7 @@ public static class ChoiceStakes
             case AgeCondition ag: return want ? $"needs an age {Op(ag.Op)} {ag.Value}" : "not at that age";
             case FleetStrengthCondition fl: { var a = ctx.Actor(fl.Role); int have = a != null ? Systems.FleetSystem.StrengthOf(ctx.World, a.HouseId) : 0; return want ? $"needs {Op(fl.Op)} {fl.Value} hull(s) (the house has {have})" : "not with a fleet of that size"; }
             case AtWarCondition aw: return want == aw.Present ? "only in a war" : "not while at war";
+            case PeaceTermCondition pc: { var t = pc.Terms(ctx).FirstOrDefault(); return !want ? "" : t == null ? (pc.Kind == Systems.HousePeace.Tribute ? "tribute is asked by the side ahead in the war, and you are not ahead (a battle won is 2, a world taken 3)" : "there is no such term to ask in this war") : t.Why.Length > 0 ? t.Why : "they will not take that term"; }
             case BondCondition: return want ? "needs a tie between the two that is not there" : "not between two so tied";
             case TrackCondition tr: return want == tr.Present ? "needs a career in " + tr.Track.Replace('_', ' ') : "not for one in " + tr.Track.Replace('_', ' ');
             case EraCondition er: return want == er.Present ? "only under the " + er.Era : "not under the " + er.Era;

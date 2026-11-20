@@ -40,6 +40,20 @@ public static class OfficeSystem
                 && w.Counter(LadderSystem.BarredKey(c.Id)) <= w.Turn)   // one removed from office for taking money holds no office of the Reach until the bar is out (docs/PLAYTHROUGH.md: a convicted man was elected consul, a banned man commissioned)
             .OrderByDescending(c => c.Id == w.ProtagonistId).ThenByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
 
+    /// <summary>What a fleet held by office may be used for, by whom and for how long, as these rules have it
+    /// (docs/PLAYTHROUGH.md, War and peace: "an office with a fleet says what the fleet may be used for and for how long").</summary>
+    public static string FleetTerms(World w, OfficeCatalog offices, Fleet f)
+    {
+        if (!f.Office) return "";
+        var def = offices.Defs.FirstOrDefault(d => d.CommandsFleets); var held = def != null ? Holding(w, def.Id) : null; var chair = RegionSystem.CapitalHolder(w);
+        string pays = chair != null ? $"{(chair.Id == f.OwnerId ? "Your house, which holds the capital, pays" : chair.Name + ", which holds the capital, pays")} its upkeep, and the state's bunkers fuel it." : "No house holds the capital, so its upkeep falls on the house that sails it.";
+        if (w.CivilWar is { SwordHouseId.Length: > 0 } cw && cw.SwordHouseId == f.OwnerId) return $"The Reach's squadron, under the Senate's sword while the civil war lasts. {pays}";
+        if (def == null || held == null || held.HouseId != f.OwnerId) return $"The Reach's squadron. No house holds the office that commands it, so it sails under the colours of the house that holds the capital. {pays}";
+        string who = w.Char(held.CharacterId)?.Name ?? "one of the house", treason = chair != null && chair.Id != f.OwnerId ? $", or the house makes war on {chair.Name}, which is treason and strips the office" : "";
+        return $"The Reach's squadron, under your colours while {who} is {def.Name} (since year {held.SinceTurn}). There is no term: it is the house's until the Senate commissions another, no one of the house has the rank to hold the office{treason}. "
+            + $"It sails and fights where you send it, in your own wars as well. {pays} It is kept apart from your own fleets, and it is not yours to pay off.";
+    }
+
     /// <summary>The house the office fleets belong to when no Admiral holds them: the chair, else no one.</summary>
     public static string? FleetsDefaultOwner(World w) => RegionSystem.CapitalHolder(w)?.Id;
 

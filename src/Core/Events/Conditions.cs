@@ -348,6 +348,23 @@ public sealed class AtWarCondition : ICondition
     }
 }
 
+/// <summary>Whether the role's house would take a peace on the term named, by the same reckoning the Military window shows
+/// (<see cref="Systems.HousePeace.Terms"/>): "white", "tribute" or "world". JSON: { "type": "peaceTerm", "role": "envoy", "kind": "tribute" }.</summary>
+public sealed class PeaceTermCondition : ICondition
+{
+    public string Role { get; }
+    public string Kind { get; }
+    public PeaceTermCondition(string role, string kind) { Role = role; Kind = kind; }
+    /// <summary>The terms of that kind the protagonist's house could put to the role's house now.</summary>
+    public List<Systems.HousePeace.Term> Terms(EvalContext ctx)
+    {
+        var self = ctx.Actor(Binding.Self); var other = ctx.Actor(Role); if (self == null || other == null) return new();
+        var rules = ctx.Content?.Fleets ?? Systems.FleetRules.Default;
+        return Systems.HousePeace.Terms(ctx.World, new Systems.FleetSystem(rules), rules, self.HouseId, other.HouseId).Where(t => t.Kind == Kind).ToList();
+    }
+    public bool Evaluate(EvalContext ctx) => Terms(ctx).Any(t => t.Accepted);
+}
+
 /// <summary>Total fleet strength the role's house commands (GDD §6/§8). JSON: { "type": "fleetStrength", "role": "self", "op": "gte", "value": 2 }.</summary>
 public sealed class FleetStrengthCondition : ICondition
 {

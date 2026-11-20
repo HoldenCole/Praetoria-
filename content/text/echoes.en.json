@@ -131,8 +131,9 @@
       "title": "The Envoy",
       "body": "{envoy.name} of {envoy.house} comes under a white banner, which costs a house more than any battle. They are asking for the war to end. Behind the courtesy is arithmetic — hulls lost, worlds taken, a treasury bleeding — and behind the arithmetic a question only you can answer: what was this war for, and do you have it yet?",
       "choices": {
-        "accept_peace": "Accept. End it. Let both sides light their lamps.",
-        "demand_tribute": "Name a price. Peace, yes — paid for.",
+        "accept_peace": "Accept, and ask nothing. Let both sides light their lamps.",
+        "demand_tribute": "Name a price: the tribute the war's score says they owe.",
+        "demand_world": "Name a world. They give it up, and the war ends.",
         "refuse_terms": "Send them back with nothing. The war is not finished."
       }
     },

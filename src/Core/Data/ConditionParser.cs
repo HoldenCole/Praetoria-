@@ -50,6 +50,8 @@ public static class ConditionParser
                 return new TraitCondition(Str(el, "role"), Str(el, "trait"), OptStr(el, "kind", "any"), Bool(el, "present", true));
             case "rank":
                 return new RankCondition(Str(el, "role"), Op(el), Int(el, "value", 0), OptStrOrNull(el, "vsRole"));
+            case "peaceTerm":
+                return new PeaceTermCondition(Str(el, "role"), OptStr(el, "kind", "white"));
             case "rankYears":
                 return new RankYearsCondition(OptStr(el, "role", "self"), Op(el), Int(el, "value", 0));
             case "turn":

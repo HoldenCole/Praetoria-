@@ -397,6 +397,30 @@ public sealed class FleetSystem
         else w.Log($"{f.Name} arrives at {sys?.Name ?? f.SystemId}.");
     }
 
+    /// <summary>A house asked to take its fleet out of another's space is not sent back to stand over it for this many years.</summary>
+    public const int AskedOffYears = 5;
+    /// <summary>The head of a fleet's house obliges a request to leave when they think at least this well of the one who asks.</summary>
+    public const int ObligesAt = -20;
+    public static string AskedOffKey(string fleetHouse, string askerHouse) => $"asked_off:{fleetHouse}:{askerHouse}";
+
+    /// <summary>What a fleet of another house is doing where it lies, as the house whose space it is in would be told
+    /// (docs/PLAYTHROUGH.md, War and peace: "neutral fleets over your world: what they are doing").</summary>
+    public static string Doing(World w, Fleet f, string viewer)
+    {
+        string owner = w.House(f.OwnerId)?.Name ?? f.OwnerId; int years = Math.Max(0, w.Turn - f.ArrivedTurn);
+        string lain = f.Moving ? "" : years <= 0 ? " It came this year." : $" It has lain here {years} year(s).";
+        if (f.OwnerId == PirateSystem.HouseId) return "Raiders: they take what passes and the yield of the world they sit over." + lain;
+        if (w.AtWar(viewer, f.OwnerId))
+        {
+            var siege = w.Sieges.Values.FirstOrDefault(s => s.BesiegerId == f.OwnerId && w.Holding(s.HoldingId)?.SystemId == f.SystemId);
+            return (siege != null ? $"At war with you, and besieging {w.Holding(siege.HoldingId)?.Name}: {siege.Turns} of {siege.Required} years spent." : "At war with you.") + lain;
+        }
+        if (f.Office) return $"The Reach's own squadron, under {owner}'s colours while it holds the office." + lain;
+        if (f.LevyOf.Length > 0) return $"A levy of {w.House(f.LevyOf)?.Name ?? f.LevyOf}, called out by {owner}." + lain;
+        string why = f.Errand.Length > 0 ? $"It came {f.Errand}." : $"{owner} has given no reason for it.";
+        return $"Not at war with you. {why}{lain} It does not besiege or blockade: only a house at war with you can.";
+    }
+
     public static string? TerritoryOwner(World w, string systemId)
     {
         if (w.PlanetHolder(systemId) is { Length: > 0 } holder) return holder;   /* a system is the space of whoever holds its world; a claim or a station there does not outvote the world */

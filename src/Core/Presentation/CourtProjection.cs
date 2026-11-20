@@ -325,7 +325,7 @@ public static class CourtProjection
                 f.Moving ? w.Galaxy?.System(f.DestinationId)?.Name ?? f.DestinationId : null, f.Eta, f.Office,
                 fleetSys.Describe(f), f.AdmiralId.Length > 0 ? w.Char(f.AdmiralId)?.Name : null, f.Veterancy,
                 w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority).OrderByDescending(c => c.Skill("tactics")).ThenBy(c => c.Id, StringComparer.Ordinal)   // no child is offered a fleet
-                    .Select(c => new Option(c.Id, $"Give {f.Name} to {c.Name} (tactics {c.Skill("tactics")}, {c.Age}) · 1 agent", new AssignAdmiralCommand(p.Id, f.Id, c.Id).Refusal(ctx))).ToList(),
+                    .Select(c => new Option(c.Id, $"Give {f.Name} to {c.Name} (tactics {c.Skill("tactics")}, {c.Age}){(w.Fleets.Values.FirstOrDefault(x => x.Id != f.Id && x.AdmiralId == c.Id) is { } has ? $", who shifts flag from {has.Name} and leaves it without an admiral" : "")} · 1 agent", new AssignAdmiralCommand(p.Id, f.Id, c.Id).Refusal(ctx))).ToList(),
                 w.Fleets.Values.Where(o => o.Id != f.Id && o.OwnerId == house.Id).OrderBy(o => o.Id, StringComparer.Ordinal)
                     .Select(o => new Option(o.Id, $"Fold {o.Name} into {f.Name}", new MergeFleetsCommand(p.Id, o.Id, f.Id).Refusal(ctx))).ToList(),
                 new Option("refit", $"Refit {f.Name}  ({RefitFleetCommand.MaterialsPerHull * f.Strength} materials → readiness 100)", new RefitFleetCommand(p.Id, f.Id).Refusal(ctx)),

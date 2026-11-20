@@ -60,7 +60,7 @@ public sealed class MoveFleetCommand : ICommand
         ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Treasury] = _rules.MovePoolCost });
         var f = w.Fleets[_fleetId];
         f.DestinationId = _targetSystemId;
-        f.Eta = w.Galaxy!.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId)); f.Voyage = f.Eta;
+        f.Eta = w.Galaxy!.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId)); f.Voyage = f.Eta; f.Errand = "";
         w.Log($"{f.Name} sets course for {w.Galaxy.System(_targetSystemId)?.Name ?? _targetSystemId} ({f.Eta} jump{(f.Eta == 1 ? "" : "s")}).");
     }
 }
@@ -218,7 +218,6 @@ public sealed class AssignAdmiralCommand : ICommand
         if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId || c.HouseId != actor.HouseId) return false;
         if (f.AdmiralId == _characterId || f.LevyOf.Length > 0) return false;   // (a levy keeps the officer its own house gave it)
         if (Praetoria.Core.Systems.CaesarSystem.Barred(w, c)) return false;   // the Senate had them lay a command down (docs/CAESAR.md)
-        if (w.Fleets.Values.Any(x => x.Id != _fleetId && x.AdmiralId == _characterId)) return false;
         return ctx.PoolsOf(ActorId).CanAfford(CostMap);
     }
     /// <summary>Why the appointment would be refused, said singly.</summary>
@@ -229,7 +228,6 @@ public sealed class AssignAdmiralCommand : ICommand
         if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId || c.HouseId != actor.HouseId) return "not of your house";
         if (f.AdmiralId == _characterId) return "already commands it"; if (f.LevyOf.Length > 0) return "a levy keeps the officer its own house gave it";
         if (Praetoria.Core.Systems.CaesarSystem.Barred(w, c)) return "the Senate had them lay a command down";
-        if (w.Fleets.Values.FirstOrDefault(x => x.Id != _fleetId && x.AdmiralId == _characterId) is { } other) return $"already commands {other.Name}";
         return ctx.PoolsOf(ActorId).Short(CostMap);
     }
 
@@ -238,9 +236,148 @@ public sealed class AssignAdmiralCommand : ICommand
         var w = ctx.World;
         ctx.PoolsOf(ActorId).Spend(CostMap);
         var f = w.Fleets[_fleetId]; var c = w.Char(_characterId)!;
+        // one command to a person: whoever had another shifts their flag, and the fleet they leave has no admiral until one is named
+        var left = w.Fleets.Values.FirstOrDefault(x => x.Id != _fleetId && x.AdmiralId == _characterId);
+        if (left != null) left.AdmiralId = "";
         f.AdmiralId = c.Id;
         FleetSystem.RefreshAdmiralFlags(w);
-        w.Log($"{c.Name} takes command of {f.Name}.");
+        w.Log(left != null ? $"{c.Name} shifts {(c.Sex == "female" ? "her" : "his")} flag from {left.Name} to {f.Name}; {left.Name} is without an admiral." : $"{c.Name} takes command of {f.Name}.");
+    }
+}
+
+/// <summary>Ask another house to take its fleet out of your space (docs/PLAYTHROUGH.md, War and peace: "a way to ask them to go").
+/// One influence. Its head obliges when they think no worse of you than <see cref="FleetSystem.ObligesAt"/>, or when you have at
+/// least as many hulls there as they: otherwise the answer is no, and the refusal says which. The fleet goes home, and its house
+/// does not send one to stand over you again for <see cref="FleetSystem.AskedOffYears"/> years.</summary>
+public sealed class AskFleetToLeaveCommand : ICommand
+{
+    private static readonly Dictionary<string, int> CostMap = new() { [Pool.Influence] = 1 };
+    private readonly string _fleetId;
+    public AskFleetToLeaveCommand(string actorId, string fleetId) { ActorId = actorId; _fleetId = fleetId; }
+    public string ActorId { get; }
+    public string Describe() => $"ask {_fleetId} to leave";
+    private static string? Home(World w, Fleet f) => w.Holdings.Values.Where(h => h.OwnerId == f.OwnerId && h.SystemId.Length > 0 && h.SystemId != f.SystemId)
+        .Select(h => (s: h.SystemId, hops: w.Galaxy!.Hops(f.SystemId, h.SystemId))).Where(x => x.hops > 0).OrderBy(x => x.hops).ThenBy(x => x.s, StringComparer.Ordinal).Select(x => x.s).FirstOrDefault();
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true || w.Galaxy == null) return "no one to ask";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId == actor.HouseId) return "not another house's fleet";
+        if (f.Moving || f.IsAway) return "it is under way";
+        if (FleetSystem.TerritoryOwner(w, f.SystemId) != actor.HouseId) return "this is not your space: you have no standing to ask";
+        if (f.OwnerId == PirateSystem.HouseId) return "raiders are not asked: they are driven off";
+        if (w.AtWar(actor.HouseId, f.OwnerId)) return "you are at war with it: it is driven off, or peace is made";
+        string them = w.House(f.OwnerId)?.Name ?? f.OwnerId;
+        if (f.Office) return $"it is the Reach's squadron, not {them}'s own: the Senate's commission sends it where it goes";
+        if (Home(w, f) == null) return $"{them} has no port of its own for it to go to";
+        var head = w.House(f.OwnerId) is { } h ? Economy.HeadOf(w, h) : null;
+        int regard = head != null ? w.GetRelationship(head.Id, ActorId)?.Disposition ?? 0 : 0, mine = (int)w.Fleets.Values.Where(x => x.OwnerId == actor.HouseId && !x.Moving && x.SystemId == f.SystemId).Sum(x => (double)x.Strength), theirs = w.Fleets.Values.Where(x => x.OwnerId == f.OwnerId && !x.Moving && x.SystemId == f.SystemId).Sum(x => x.Strength);
+        if (regard < FleetSystem.ObligesAt && mine < theirs)
+            return $"{them} would refuse: {head?.Name ?? "its head"} thinks too ill of you to oblige (regard {regard}; {FleetSystem.ObligesAt} or better would do), and you have {mine} hull(s) here to its {theirs} (as many as it has would do)";
+        return ctx.PoolsOf(ActorId).Short(CostMap);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId)!; var f = w.Fleets[_fleetId]; ctx.PoolsOf(ActorId).Spend(CostMap);
+        string home = Home(w, f)!; string them = w.House(f.OwnerId)?.Name ?? f.OwnerId, where = w.Galaxy!.System(f.SystemId)?.Name ?? f.SystemId, to = w.Galaxy.System(home)?.Name ?? home;
+        foreach (var x in w.Fleets.Values.Where(x => x.OwnerId == f.OwnerId && !x.Moving && !x.Office && x.SystemId == f.SystemId).ToList())
+        { x.DestinationId = home; x.Eta = w.Galaxy.Hops(x.SystemId, home); x.Voyage = x.Eta; x.Errand = "home, asked out of " + (w.House(actor.HouseId)?.Name ?? actor.HouseId) + "'s space"; }
+        w.WorldCounters[FleetSystem.AskedOffKey(f.OwnerId, actor.HouseId)] = w.Turn + FleetSystem.AskedOffYears;
+        w.Log($"{actor.Name} asks {them} to take its fleet out of {where}, and it goes: it sails for {to}.");
+        w.Tell("good", $"{them} takes its fleet out of {where} as you asked. It sails for {to}, and {them} will not send one to stand over you for {FleetSystem.AskedOffYears} years.", "galaxy:" + f.SystemId, f.OwnerId);
+    }
+}
+
+/// <summary>Hulls taken out of a fleet, the lightest first (the cheapest to build), as a guard left behind or a squadron paid off would be.</summary>
+public static class FleetHulls
+{
+    public static List<(ShipClassDef cls, int n)> Lightest(Fleet f, int hulls, ShipClassCatalog classes, FleetRules rules)
+    {
+        var have = f.Ships.Count > 0 ? f.Ships.Where(kv => kv.Value > 0).Select(kv => (cls: classes.Resolve(kv.Key), n: kv.Value)).ToList() : new() { (classes.Resolve(rules.DefaultClass), f.Strength) };
+        var took = new List<(ShipClassDef, int)>();
+        foreach (var (cls, n) in have.OrderBy(x => x.cls.Cost.Materials + x.cls.Cost.Credits).ThenBy(x => x.cls.Attack + x.cls.Defense).ThenBy(x => x.cls.Id, StringComparer.Ordinal))
+        { if (hulls <= 0) break; int t = Math.Min(n, hulls); took.Add((cls, t)); hulls -= t; }
+        return took;
+    }
+    public static string Say(List<(ShipClassDef cls, int n)> hulls) => string.Join(", ", hulls.Select(x => $"{x.n} {x.cls.Name.ToLowerInvariant()}{(x.n == 1 ? "" : "s")}"));
+    /// <summary>Strike them from the fleet's composition.</summary>
+    public static void Take(Fleet f, List<(ShipClassDef cls, int n)> hulls, FleetRules rules)
+    {
+        if (f.Ships.Count == 0 && f.Strength > 0) f.Ships[rules.DefaultClass] = f.Strength;
+        foreach (var (cls, n) in hulls) { string key = f.Ships.ContainsKey(cls.Id) ? cls.Id : rules.DefaultClass; int left = f.Ships.GetValueOrDefault(key) - n; if (left > 0) f.Ships[key] = left; else f.Ships.Remove(key); }
+        if (f.Ships.Count == 0) f.Strength = 0; else f.Recount();
+    }
+}
+
+/// <summary>Detach hulls from a fleet where it lies, as a squadron of their own: a guard left over a world while the rest sails on
+/// (docs/PLAYTHROUGH.md, War and peace: "detach hulls to leave a guard"). The lightest hulls go. The admiral stays with the fleet;
+/// the detachment has none until one is named. It costs nothing.</summary>
+public sealed class DetachHullsCommand : ICommand
+{
+    private readonly string _fleetId; private readonly int _hulls; private readonly FleetRules _rules; private readonly ShipClassCatalog _classes;
+    public DetachHullsCommand(string actorId, string fleetId, int hulls, FleetRules rules, ShipClassCatalog? classes = null) { ActorId = actorId; _fleetId = fleetId; _hulls = hulls; _rules = rules; _classes = classes ?? ShipClassCatalog.Empty; }
+    public string ActorId { get; }
+    public string Describe() => $"detach {_hulls} hull(s) from {_fleetId}";
+    public List<(ShipClassDef cls, int n)> Which(World w) => w.Fleets.TryGetValue(_fleetId, out var f) ? FleetHulls.Lightest(f, _hulls, _classes, _rules) : new();
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true) return "no one to give the order";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        if (f.LevyOf.Length > 0) return "a levy sails under its own house's officers and goes home whole";
+        if (f.IsAway) return "it is beyond the Reach"; if (f.Moving) return "it is under way: hulls are detached where a fleet lies";
+        if (f.Strength < 2) return "it is one hull: there is nothing to detach";
+        return _hulls >= 1 && _hulls < f.Strength ? null : $"a detachment is at least one hull and leaves at least one: {f.Name} has {f.Strength}";
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var f = w.Fleets[_fleetId]; var house = w.House(f.OwnerId)!; var took = Which(w);
+        FleetHulls.Take(f, took, _rules);
+        int n = w.Counter("fleets_raised") + 1; w.WorldCounters["fleets_raised"] = n;
+        var d = new Fleet { Id = $"fleet_{house.Id}_{n}", Name = FleetNames.Squadron(w, house), OwnerId = f.OwnerId, SystemId = f.SystemId, HomeSystemId = f.HomeSystemId, Office = f.Office,
+            Readiness = f.Readiness, Veterancy = f.Veterancy, Supply = f.Supply, Loyalty = f.Loyalty, Stance = f.Stance, Loadout = f.Loadout, ArrivedTurn = f.ArrivedTurn, Strength = 0 };
+        foreach (var (cls, k) in took) d.Ships[cls.Id] = d.Ships.GetValueOrDefault(cls.Id) + k;
+        d.Recount(); w.Fleets[d.Id] = d;
+        w.Log($"{FleetHulls.Say(took)} of {f.Name} {(took.Sum(x => x.n) == 1 ? "is" : "are")} detached at {w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId} as {d.Name}; {f.Name} keeps {f.Strength} hull(s).");
+    }
+}
+
+/// <summary>Pay hulls off: break them up at a world or station of the house's own, to cut what the fleet costs each year
+/// (docs/PLAYTHROUGH.md, War and peace: "lay up or pay off hulls to cut the cost"). The lightest go first. A part of what they cost
+/// to build comes back as materials (<see cref="ScrapPct"/>). An office fleet is the Reach's and is not broken up by its commander.</summary>
+public sealed class PayOffHullsCommand : ICommand
+{
+    public const int ScrapPct = 25;
+    private readonly string _fleetId; private readonly int _hulls; private readonly FleetRules _rules; private readonly ShipClassCatalog _classes;
+    public PayOffHullsCommand(string actorId, string fleetId, int hulls, FleetRules rules, ShipClassCatalog? classes = null) { ActorId = actorId; _fleetId = fleetId; _hulls = hulls; _rules = rules; _classes = classes ?? ShipClassCatalog.Empty; }
+    public string ActorId { get; }
+    public string Describe() => $"pay off {_hulls} hull(s) of {_fleetId}";
+    public List<(ShipClassDef cls, int n)> Which(World w) => w.Fleets.TryGetValue(_fleetId, out var f) ? FleetHulls.Lightest(f, _hulls, _classes, _rules) : new();
+    /// <summary>The materials the breakers give back for them.</summary>
+    public int Scrap(World w) => Which(w).Sum(x => x.cls.Cost.Materials * x.n) * ScrapPct / 100;
+    /// <summary>What they cost each year, which is what is saved.</summary>
+    public Resources Saved(World w) { var r = new Resources(); foreach (var (cls, n) in Which(w)) foreach (var k in Resource.All) r.Add(k, cls.Upkeep.Get(k) * n); return r; }
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true) return "no one to give the order";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        if (f.Office) return "it is held by office and is the Reach's: it is not yours to break up";
+        if (f.LevyOf.Length > 0) return "a levy is its own house's: send it home instead";
+        if (f.IsAway) return "it is beyond the Reach"; if (f.Moving) return "it is under way: hulls are paid off in port";
+        if (!w.Holdings.Values.Any(h => h.OwnerId == actor.HouseId && h.SystemId == f.SystemId)) return $"only at a world or station of your own: {w.Galaxy?.System(f.SystemId)?.Name ?? "this system"} is not";
+        return _hulls >= 1 && _hulls <= f.Strength ? null : $"{f.Name} has {f.Strength} hull(s)";
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var f = w.Fleets[_fleetId]; var house = w.House(f.OwnerId)!; var took = Which(w); int scrap = Scrap(w);
+        FleetHulls.Take(f, took, _rules); house.Treasury.Add(Resource.Materials, scrap);
+        string where = w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId;
+        if (f.Strength <= 0) { w.Fleets.Remove(f.Id); w.Intel.Remove(f.Id); FleetSystem.RefreshAdmiralFlags(w); w.Log($"{f.Name} is paid off at {where} ({FleetHulls.Say(took)}); the breakers give back {scrap} materials."); }
+        else w.Log($"{FleetHulls.Say(took)} of {f.Name} {(took.Sum(x => x.n) == 1 ? "is" : "are")} paid off at {where}; the breakers give back {scrap} materials, and {f.Name} keeps {f.Strength} hull(s).");
     }
 }
 

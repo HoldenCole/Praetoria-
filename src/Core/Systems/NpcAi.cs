@@ -75,6 +75,13 @@ public sealed class NpcAi
     /// hold the line; a tactician with manpower to spare boards; torpedoes are loaded at home when the house holds two isotopes or more; a house
     /// at war with no campaign names the nearest enemy world; a head on the military track leads from the front when young and from the flag when
     /// a Commander or better.</summary>
+    /// <summary>Order a fleet somewhere and keep the reason with it, so the house whose space it comes into can be told what it is there for.</summary>
+    private static bool Sail(CommandExecutor executor, CommandContext ctx, Character head, Fleet f, string to, FleetRules rules, string errand)
+    {
+        if (!executor.TryExecute(new MoveFleetCommand(head.Id, f.Id, to, rules), ctx)) return false;
+        f.Errand = errand; return true;
+    }
+
     private void Posture(World world, House house, Character head, FleetRules rules, CommandExecutor executor, CommandContext ctx)
     {
         var enemies = world.EnemiesOf(house.Id).ToList();
@@ -193,7 +200,7 @@ public sealed class NpcAi
         if (target == null && raids && g.RingOf(fleet.SystemId) == Galaxy.Ring.Beyond)
             target = world.HoldingsOf(house.Id).Where(h => h.SystemId.Length > 0).Select(h => h.SystemId).Distinct().OrderBy(Hops).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault() ?? NationSystem.Marches(world, d).FirstOrDefault();
         if (target == null || target == fleet.SystemId || Hops(target) >= 99) return;
-        if (executor.TryExecute(new MoveFleetCommand(head.Id, fleet.Id, target, rules), ctx)) { world.WorldCounters[NationSystem.SentCounter] = world.Counter(NationSystem.SentCounter) + 1; world.WorldCounters[NationSystem.SentCounter + ":" + n.Id] = world.Counter(NationSystem.SentCounter + ":" + n.Id) + 1; }
+        if (Sail(executor, ctx, head, fleet, target, rules, "to raid")) { world.WorldCounters[NationSystem.SentCounter] = world.Counter(NationSystem.SentCounter) + 1; world.WorldCounters[NationSystem.SentCounter + ":" + n.Id] = world.Counter(NationSystem.SentCounter + ":" + n.Id) + 1; }
     }
 
     private void Sail(List<Character> npcs, FleetRules rules, CommandExecutor executor, CommandContext ctx)
@@ -221,7 +228,7 @@ public sealed class NpcAi
             if (rising != null && !world.Fleets.Values.Any(f => f.OwnerId == house.Id && f.SystemId == rising.SystemId && !f.Moving))
             {
                 var garrison = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.Strength >= RegionSystem.GarrisonStrength).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
-                if (garrison != null) executor.TryExecute(new MoveFleetCommand(head.Id, garrison.Id, rising.SystemId, rules), ctx);
+                if (garrison != null) Sail(executor, ctx, head, garrison, rising.SystemId, rules, $"to put down the rising on {rising.Name}");
             }
 
             // war and peace (GDD §7 fear with teeth): a house that hates you and outguns you declares war;
@@ -243,7 +250,7 @@ public sealed class NpcAi
                 if (!world.AtWar(house.Id, stolen.OwnerId) && FleetSystem.StrengthOf(world, house.Id) >= 2 && FleetSystem.StrengthOf(world, house.Id) > FleetSystem.StrengthOf(world, stolen.OwnerId) && house.Treasury.Credits >= 0)
                     if (executor.TryExecute(new DeclareWarCommand(head.Id, stolen.OwnerId, rules), ctx)) world.Log($"{house.Name} moves to take {stolen.Name} back from {world.House(stolen.OwnerId)?.Name}.");
                 var enemyAt = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.SystemId != stolen.SystemId && f.Strength >= 2).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
-                if (world.AtWar(house.Id, stolen.OwnerId) && enemyAt != null && executor.TryExecute(new MoveFleetCommand(head.Id, enemyAt.Id, stolen.SystemId, rules), ctx)) continue;
+                if (world.AtWar(house.Id, stolen.OwnerId) && enemyAt != null && Sail(executor, ctx, head, enemyAt, stolen.SystemId, rules, $"to take {stolen.Name} back")) continue;
             }
 
             // raided from beyond the rim lately: post a fleet at that nation's march, where the next raid can be met before it lands (docs/BEYOND.md)
@@ -252,7 +259,7 @@ public sealed class NpcAi
                 var march = NationSystem.Marches(world, rd); var hearth = world.HoldingsOf(house.Id).Where(h => h.SystemId.Length > 0).Select(h => h.SystemId).FirstOrDefault();
                 var post = hearth == null ? null : march.OrderBy(m => world.Galaxy!.Hops(hearth, m) is var hops && hops >= 0 ? hops : 99).ThenBy(m => m, StringComparer.Ordinal).FirstOrDefault();
                 var warden = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && !f.IsAway && f.Strength >= NationSystem.MarchGuard && f.SystemId != post).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
-                if (post != null && warden != null && executor.TryExecute(new MoveFleetCommand(head.Id, warden.Id, post, rules), ctx)) { world.WorldCounters["marches_garrisoned"] = world.Counter("marches_garrisoned") + 1; continue; }
+                if (post != null && warden != null && Sail(executor, ctx, head, warden, post, rules, "to guard the march against raiders from beyond the rim")) { world.WorldCounters["marches_garrisoned"] = world.Counter("marches_garrisoned") + 1; continue; }
             }
 
             // a nation that pays only while it is watched (docs/BEYOND.md, the Free Cities): the house that holds the capital, which takes
@@ -264,7 +271,7 @@ public sealed class NpcAi
                 var post = hearth == null ? null : NationSystem.Marches(world, payer).OrderBy(m => world.Galaxy!.Hops(hearth, m) is var hops && hops >= 0 ? hops : 99).ThenBy(m => m, StringComparer.Ordinal).FirstOrDefault();
                 var watch = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && !f.IsAway && f.Strength >= NationSystem.MarchGuard && f.SystemId != post).OrderBy(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (post != null && watch != null && world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.IsAway).Sum(f => f.Strength) - watch.Strength >= 2
-                    && executor.TryExecute(new MoveFleetCommand(head.Id, watch.Id, post, rules), ctx)) { world.WorldCounters["marches_watched_for_tribute"] = world.Counter("marches_watched_for_tribute") + 1; continue; }
+                    && Sail(executor, ctx, head, watch, post, rules, "to watch the march, where a tributary nation pays its tribute")) { world.WorldCounters["marches_watched_for_tribute"] = world.Counter("marches_watched_for_tribute") + 1; continue; }
             }
 
             // raiders near home are hunted (GAP §6): a fleet of two or more sails on raiders sitting within a lane of a world of the house's
@@ -273,7 +280,7 @@ public sealed class NpcAi
             if (raiders != null)
             {
                 var hunter = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.Strength > raiders.Strength && f.SystemId != raiders.SystemId).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
-                if (hunter != null && executor.TryExecute(new MoveFleetCommand(head.Id, hunter.Id, raiders.SystemId, rules), ctx)) continue;
+                if (hunter != null && Sail(executor, ctx, head, hunter, raiders.SystemId, rules, "to hunt raiders")) continue;
             }
 
             // the capital is coveted (GDD §19 "the capital as a prize"): a strong, legitimate, solvent house makes war on its holder, one such war a decade
@@ -285,7 +292,7 @@ public sealed class NpcAi
                 world.WorldCounters["capital_coveted_turn"] = world.Turn;
                 world.Log($"{house.Name} declares for the capital: its fleets sail on {world.Galaxy!.System(world.Galaxy.Capital)?.Name ?? "the capital"} and {capital.Name} must hold it.");
                 var fleet = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.SystemId != world.Galaxy.Capital).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
-                if (fleet != null) executor.TryExecute(new MoveFleetCommand(head.Id, fleet.Id, world.Galaxy.Capital, rules), ctx);
+                if (fleet != null) Sail(executor, ctx, head, fleet, world.Galaxy.Capital, rules, "to take the capital");
                 continue;
             }
 
@@ -294,15 +301,15 @@ public sealed class NpcAi
             {
                 var van = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.SystemId != gal.Capital).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (van != null && !world.Fleets.Values.Any(f => f.OwnerId == house.Id && (f.SystemId == gal.Capital && !f.Moving || f.Moving && f.DestinationId == gal.Capital) && f.Strength >= 2)
-                    && executor.TryExecute(new MoveFleetCommand(head.Id, van.Id, gal.Capital, rules), ctx)) continue;
+                    && Sail(executor, ctx, head, van, gal.Capital, rules, "to take the throne at the capital")) continue;
             }
 
             // menace: a hostile (or belligerent), rested house fleet moves on the player's seat
-            if (seat != null && player != null && (atWar || disposition < -40))
+            if (seat != null && player != null && (atWar || disposition < -40 && world.Counter(FleetSystem.AskedOffKey(house.Id, playerHouse!)) <= world.Turn))
             {
                 var fleet = world.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving && f.Readiness >= 80 && f.SystemId != seat)
                                                .OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
-                if (fleet != null && executor.TryExecute(new MoveFleetCommand(head.Id, fleet.Id, seat, rules), ctx)) continue;
+                if (fleet != null && Sail(executor, ctx, head, fleet, seat, rules, atWar ? "to make war on your seat" : "to stand over your seat as a threat: its head thinks ill of you")) continue;
             }
 
             // against any enemy (GAP §7 "wars are bloodless"): hold the chokepoint between home and the enemy if it is unguarded, else strike the enemy's weakest world
@@ -324,7 +331,7 @@ public sealed class NpcAi
                     }
                     target ??= world.HoldingsOf(enemy).Where(h => h.IsPlanet && h.SystemId.Length > 0 && !world.Fleets.Values.Any(f => f.OwnerId == enemy && !f.Moving && f.SystemId == h.SystemId))
                         .OrderBy(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault()?.SystemId;
-                    if (target != null && target != strike.SystemId && executor.TryExecute(new MoveFleetCommand(head.Id, strike.Id, target, rules), ctx)) continue;
+                    if (target != null && target != strike.SystemId && Sail(executor, ctx, head, strike, target, rules, $"to make war on {world.House(enemy)?.Name ?? enemy}")) continue;
                 }
             }
 

@@ -300,6 +300,7 @@
                     </div>
                     <div class="ships">@foreach (var (cls, n) in fs.Composition(fleet)) { <span class="pill" title="atk @cls.Attack / def @cls.Defense"><Icon Name="@(Icons.Paths.ContainsKey(cls.Id) ? cls.Id : "fleet")" Size="12" /> @n × @cls.Name</span> }@if (f.Veterancy > 0) { <span class="pill">veterancy @f.Veterancy</span> }</div>
                     <div class="kv"><span>Admiral</span><b>@(f.AdmiralName ?? "no admiral")@(f.AdmiralName != null ? $" · {(f.AdmiralStyle == "front" ? "leads from the front" : f.AdmiralStyle == "flag" ? "commands from the flag" : "leaves the line to the captains")} · cap {f.Cap}" : "")@(f.Valour > 0 ? $" · valour {f.Valour}" : "")@(f.Achilles ? " · ACHILLES" : "")</b></div>
+                    @if (fleet.Office) { <div class="small muted" data-office-terms="@f.Id">@OfficeSystem.FleetTerms(w, c.Offices, fleet)</div> }
                     <details class="orders" open="@(m.Fleets.Count <= 2)"><summary>Orders</summary>
                     <div class="row small"><span class="muted">Stance</span>@if (f.StanceOptions != null) { foreach (var o in f.StanceOptions) { <button class="opt inline tiny @(f.Stance == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? StanceHelp(o.Id))" @onclick="() => G.Execute(new SetStanceCommand(pid, f.Id, o.Id))">@o.Label</button> } }</div>
                     <div class="row small"><span class="muted">Loadout</span>@if (f.LoadoutOptions != null) { foreach (var o in f.LoadoutOptions) { <button class="opt inline tiny @(f.Loadout == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? (o.Id == "torpedoes" ? "a quarter more power; burns an isotope a battle" : "the guns"))" @onclick="() => G.Execute(new SetLoadoutCommand(pid, f.Id, o.Id))">@o.Label</button> } }</div>
@@ -319,6 +320,18 @@
                             </details>
                         }
                         <details class="inline"><summary>Command</summary>@foreach (var o in f.AdmiralOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AssignAdmiralCommand(pid, f.Id, o.Id))">@o.Label</button> }</details>
+                        @if (!fleet.IsAway && fleet.LevyOf.Length == 0)
+                        {
+                            int hn = Math.Clamp(_hulls.GetValueOrDefault(f.Id, 1), 1, Math.Max(1, fleet.Strength));
+                            var det = new DetachHullsCommand(pid, f.Id, hn, c.Fleets, c.ShipClasses); var detNo = det.Refusal(G.Ctx);
+                            var pay = new PayOffHullsCommand(pid, f.Id, hn, c.Fleets, c.ShipClasses); var payNo = pay.Refusal(G.Ctx);
+                            <details class="inline" data-hulls="@f.Id"><summary>Hulls</summary>
+                                <span class="muted small">How many</span>
+                                <input class="qty" type="number" min="1" max="@fleet.Strength" value="@hn" @onchange="e => _hulls[f.Id] = int.TryParse(e.Value?.ToString(), out var v) ? v : 1" />
+                                <button class="opt" data-detach="@f.Id" disabled="@(detNo != null)" title="@(detNo ?? $"{FleetHulls.Say(det.Which(w))} {(hn == 1 ? "stays" : "stay")} here as a squadron of {(hn == 1 ? "its" : "their")} own, without an admiral until you name one; {f.Name} keeps the rest. The lightest hulls go. It costs nothing.")" @onclick="() => G.Execute(det)">Detach @hn as a guard</button>
+                                <button class="opt" data-payoff="@f.Id" disabled="@(payNo != null)" title="@(payNo ?? $"{FleetHulls.Say(pay.Which(w))} {(hn == 1 ? "is" : "are")} broken up. It saves {SavedSays(pay.Saved(w))} a year, and the breakers give back {pay.Scrap(w)} materials ({PayOffHullsCommand.ScrapPct}% of what they cost). It cannot be undone.")" @onclick='() => G.Ask("Pay off " + hn + " hull(s) of " + f.Name + "?", FleetHulls.Say(pay.Which(w)) + (hn == 1 ? " is" : " are") + " broken up for " + pay.Scrap(w) + " materials. That saves " + SavedSays(pay.Saved(w)) + " a year. It cannot be undone.", "Pay them off", () => G.Execute(pay))'>Pay off @hn</button>
+                            </details>
+                        }
                         @if (f.MergeOptions.Count > 0) { <details class="inline"><summary>Merge</summary>@foreach (var o in f.MergeOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new MergeFleetsCommand(pid, f.Id, o.Id))">@o.Label</button> }</details> }
                     </div>
                     </details>
@@ -401,6 +414,9 @@
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string _campaign = "", _view = "deck"; private bool _allNavies; private readonly Dictionary<string, string> _names = new();
+    private readonly Dictionary<string, int> _hulls = new();
+    private static string SavedSays(Praetoria.Core.State.Resources r)
+    { var parts = Praetoria.Core.State.Resource.All.Where(k => r.Get(k) != 0).Select(k => r.Get(k) == 1 && k == Praetoria.Core.State.Resource.Credits ? "1 credit" : r.Get(k) + " " + Praetoria.Core.State.Resource.Label(k)).ToList(); return parts.Count == 0 ? "nothing" : string.Join(" and ", parts); }
     [Parameter] public EventCallback<string> OnGo { get; set; }
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }

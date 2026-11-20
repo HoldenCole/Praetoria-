@@ -142,7 +142,19 @@
             <section class="panel" data-fleets-here="@hereFleets.Count">
                 <h3>Fleets at @sel.Name</h3>
                 @if (hereFleets.Count == 0 && bound.Count == 0) { <div class="muted small">No fleet is known to be here.</div> }
-                @foreach (var f in hereFleets) { <div class="fleet-line @(f.FleetId == _fleetId ? "selected" : "")" @onclick="() => ClickFleet(f)"><b>@f.Name</b> <span class="muted">@(f.IsPlayer ? "yours" : f.OwnerHouseName)@(w.AtWar(playerHouse, f.OwnerHouseId) ? " · at war with you" : "") · @f.Strength hulls@(f.IsPlayer ? " · readiness " + f.Readiness : " · by report, " + f.Confidence + "% sure")</span></div> }
+                @foreach (var f in hereFleets) { <div class="fleet-line @(f.FleetId == _fleetId ? "selected" : "")" @onclick="() => ClickFleet(f)"><b>@f.Name</b> <span class="muted">@(f.IsPlayer ? "yours" : f.OwnerHouseName)@(w.AtWar(playerHouse, f.OwnerHouseId) ? " · at war with you" : "") · @f.Strength hulls@(f.IsPlayer ? " · readiness " + f.Readiness : " · by report, " + f.Confidence + "% sure")</span>
+                    @if (!f.IsPlayer && w.Fleets.TryGetValue(f.FleetId, out var real) && !real.Moving && real.SystemId == sel.SystemId && Praetoria.Core.Systems.FleetSystem.TerritoryOwner(w, sel.SystemId) == playerHouse)
+                    {
+                        /* a fleet of another house in the player's own space: what it is there for, and a way to ask it out */
+                        var ask = new AskFleetToLeaveCommand(pid, real.Id); var askNo = ask.Refusal(ctx);
+                        <div class="small" data-doing="@real.Id">@Praetoria.Core.Systems.FleetSystem.Doing(w, real, playerHouse)</div>
+                        @if (!w.AtWar(playerHouse, real.OwnerId) && real.OwnerId != Praetoria.Core.Systems.PirateSystem.HouseId)
+                        {
+                            <button class="btn sm" data-ask-leave="@real.Id" disabled="@(askNo != null)" title="@(askNo ?? $"1 influence. {f.OwnerHouseName} takes its fleet home, and does not send one to stand over you for {Praetoria.Core.Systems.FleetSystem.AskedOffYears} years.")" @onclick:stopPropagation="true" @onclick="() => G.Execute(ask)">Ask it to leave</button>
+                            @if (askNo != null) { <div class="muted small">@askNo</div> }
+                        }
+                    }
+                </div> }
                 @foreach (var f in bound) { <div class="fleet-line"><b>@f.Name</b> <span class="muted">@(f.IsPlayer ? "yours" : f.OwnerHouseName) · on its way here, @f.Eta year(s) off · @f.Strength hulls</span></div> }
             </section>
         }

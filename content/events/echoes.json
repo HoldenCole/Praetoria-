@@ -1401,8 +1401,9 @@
               "value": false
             },
             {
-              "type": "makePeace",
-              "role": "envoy"
+              "type": "peaceTerms",
+              "role": "envoy",
+              "kind": "white"
             },
             {
               "type": "adjustRelationship",
@@ -1425,30 +1426,9 @@
           "id": "demand_tribute",
           "requires": [
             {
-              "type": "any",
-              "of": [
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Greedy",
-                  "kind": "aptitude",
-                  "present": true
-                },
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Ruthless",
-                  "kind": "nature",
-                  "present": true
-                },
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Proud",
-                  "kind": "nature",
-                  "present": true
-                }
-              ]
+              "type": "peaceTerm",
+              "role": "envoy",
+              "kind": "tribute"
             }
           ],
           "effects": [
@@ -1459,19 +1439,9 @@
               "value": false
             },
             {
-              "type": "makePeace",
-              "role": "envoy"
-            },
-            {
-              "type": "adjustResource",
+              "type": "peaceTerms",
               "role": "envoy",
-              "resource": "credits",
-              "delta": -8
-            },
-            {
-              "type": "adjustResource",
-              "resource": "credits",
-              "delta": 8
+              "kind": "tribute"
             },
             {
               "type": "adjustRelationship",
@@ -1487,6 +1457,49 @@
             {
               "type": "log",
               "text": "{self.name} named a price for peace and {envoy.name} of {envoy.house} paid it, which is what losing means. The war ended with the treasury heavier and a grievance filed carefully away."
+            }
+          ]
+        },
+        {
+          "id": "demand_world",
+          "requires": [
+            {
+              "type": "peaceTerm",
+              "role": "envoy",
+              "kind": "world"
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "envoy",
+              "flag": "suing_for_peace",
+              "value": false
+            },
+            {
+              "type": "peaceTerms",
+              "role": "envoy",
+              "kind": "world"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": -25
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} heard {envoy.name} of {envoy.house} out and named the price of the peace: a world. It was given, because the alternative was to lose it anyway and more besides. {envoy.house} will count the years until it can ask for it back."
             }
           ]
         },

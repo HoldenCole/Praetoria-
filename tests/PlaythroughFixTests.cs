@@ -741,4 +741,88 @@ public class PlaythroughFixTests
         w.Sieges.Clear(); w.Fleets["mine"] = new Fleet { Id = "mine", Name = "Mine", OwnerId = house.Id, SystemId = target.SystemId, Strength = 2, ArrivedTurn = w.Turn - 1 };
         w.Fleets["theirs"].ArrivedTurn = w.Turn; Assert.Equal(house.Id, fleets.Besieger(w, target));
     }
+    [Fact]
+    public void AnEnvoysPeace_IsReckonedByTheWar_AndTheCardSaysHowItStands()
+    {
+        // docs/PLAYTHROUGH.md, Medium, War and peace: an envoy whose terms can be read and accepted
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); var fleets = tc.Fleets; var rules = Content.Fleets;
+        var foe = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id) && w.HoldingsOf(h.Id).Count(x => x.IsPlanet) >= 2);
+        w.Wars.Clear(); fleets.DeclareWar(w, foe.Id, house.Id); var war = w.Wars.First(x => x.Between(house.Id, foe.Id));
+        var envoy = Economy.HeadOf(w, foe)!; envoy.Flags.Add(FleetSystem.SuingForPeaceFlag);
+        var def = Content.Events.First(e => e.Id == Praetoria.Core.Presentation.ReportFacts.EnvoyReport);
+        var binding = Praetoria.Core.Events.Binder.TryBind(def, w, TestContent.Rng()); Assert.NotNull(binding);
+        var ec = new Praetoria.Core.Events.EvalContext(w, binding!, TestContent.Rng(), Content);
+        Praetoria.Core.Events.Choice Ch(string id) => def.Choices.First(c => c.Id == id);
+        bool Open(string id) => Ch(id).Requirements.All(r => r.Evaluate(ec));
+        // level: nothing may be asked, and the card says so
+        Assert.False(Open("demand_tribute")); Assert.False(Open("demand_world"));
+        Assert.Contains("neither side is ahead", Praetoria.Core.Presentation.ReportFacts.For(w, def, Content));
+        // three ahead: tribute by the score, which is what the choice pays; no world yet
+        war.AddScore(house.Id, 3); foe.Treasury.Credits = 500; int owed = HousePeace.TributeOwed(w, rules, house.Id, foe.Id); Assert.True(owed > 0);
+        Assert.True(Open("demand_tribute")); Assert.False(Open("demand_world"));
+        string facts = Praetoria.Core.Presentation.ReportFacts.For(w, def, Content); Assert.Contains("you are 3 ahead", facts); Assert.Contains(owed.ToString(), facts);
+        Assert.Contains("+" + owed + " credits", Praetoria.Core.Presentation.ChoiceStakes.Of(Ch("demand_tribute"), ec, me));
+        int before = house.Treasury.Credits; foreach (var e in Ch("demand_tribute").Effects) e.Apply(ec);
+        Assert.Equal(before + owed, house.Treasury.Credits); Assert.False(w.AtWar(house.Id, foe.Id));
+        // far ahead with the stronger fleet: a world may be named, and it changes hands
+        fleets.DeclareWar(w, foe.Id, house.Id); war = w.Wars.First(x => x.Between(house.Id, foe.Id)); war.AddScore(house.Id, HousePeace.WorldLead); Hulls(w, foe.Id, 0); Hulls(w, house.Id, 9);
+        envoy.Flags.Add(FleetSystem.SuingForPeaceFlag); Assert.True(Open("demand_world"));
+        var world = HousePeace.Cedable(w, foe.Id).First(); foreach (var e in Ch("demand_world").Effects) e.Apply(ec);
+        Assert.Equal(house.Id, world.OwnerId); Assert.False(w.AtWar(house.Id, foe.Id));
+    }
+    [Fact]
+    public void HullsAreDetached_PaidOff_AndAnAdmiralShiftsFlag()
+    {
+        // docs/PLAYTHROUGH.md, Medium, War and peace: detach hulls to leave a guard; pay off hulls to cut the cost; move your flag
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); Fill(ctx, me); var rules = Content.Fleets; var classes = Content.ShipClasses;
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id).ToList()) w.Fleets.Remove(f.Id);
+        var home = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var heavy = classes.Defs.OrderByDescending(c => c.Cost.Materials + c.Cost.Credits).First(); var light = classes.Defs.OrderBy(c => c.Cost.Materials + c.Cost.Credits).First();
+        var fleet = new Fleet { Id = "main", Name = "Main", OwnerId = house.Id, SystemId = home.SystemId, Strength = 0, Readiness = 80, AdmiralId = me.Id };
+        fleet.Ships[heavy.Id] = 2; fleet.Ships[light.Id] = 3; fleet.Recount(); w.Fleets[fleet.Id] = fleet;
+        // a guard is left: the lightest hulls, where the fleet lies, and the admiral stays with the fleet
+        Assert.NotNull(new DetachHullsCommand(me.Id, fleet.Id, 5, rules, classes).Refusal(ctx));
+        Assert.True(tc.Executor.TryExecute(new DetachHullsCommand(me.Id, fleet.Id, 2, rules, classes), ctx));
+        var guard = w.Fleets.Values.Single(f => f.OwnerId == house.Id && f.Id != fleet.Id);
+        Assert.Equal(2, guard.Strength); Assert.Equal(2, guard.Ships[light.Id]); Assert.Equal(3, fleet.Strength); Assert.Equal(home.SystemId, guard.SystemId); Assert.Equal("", guard.AdmiralId); Assert.Equal(me.Id, fleet.AdmiralId);
+        // the flag is shifted: one command to a person, and the fleet left behind has no admiral
+        Assert.True(tc.Executor.TryExecute(new AssignAdmiralCommand(me.Id, guard.Id, me.Id), ctx)); Assert.Equal(me.Id, guard.AdmiralId); Assert.Equal("", fleet.AdmiralId);
+        // hulls are paid off at a world of the house's own: the cost goes, and a quarter of the materials comes back
+        var pay = new PayOffHullsCommand(me.Id, fleet.Id, 1, rules, classes); int scrap = pay.Scrap(w); int mat = house.Treasury.Materials; var before = tc.Fleets.Upkeep(fleet).Credits;
+        Assert.Equal(light.Cost.Materials * PayOffHullsCommand.ScrapPct / 100, scrap);
+        Assert.True(tc.Executor.TryExecute(pay, ctx)); Assert.Equal(2, fleet.Strength); Assert.Equal(mat + scrap, house.Treasury.Materials); Assert.True(tc.Fleets.Upkeep(fleet).Credits <= before);
+        // not in another house's space, and the last hulls take the fleet with them
+        var elsewhere = w.Holdings.Values.First(h => h.IsPlanet && h.OwnerId != house.Id && h.SystemId != home.SystemId); fleet.SystemId = elsewhere.SystemId;
+        Assert.Contains("of your own", new PayOffHullsCommand(me.Id, fleet.Id, 1, rules, classes).Refusal(ctx));
+        fleet.SystemId = home.SystemId; Assert.True(tc.Executor.TryExecute(new PayOffHullsCommand(me.Id, fleet.Id, 2, rules, classes), ctx)); Assert.False(w.Fleets.ContainsKey(fleet.Id));
+    }
+    [Fact]
+    public void AFleetInYourSpace_SaysWhatItIsFor_AndCanBeAskedToGo()
+    {
+        // docs/PLAYTHROUGH.md, Medium, War and peace: neutral fleets over your world: what they are doing, and a way to ask them to go (S47, S80)
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); Fill(ctx, me);
+        var home = w.HoldingsOf(house.Id).First(h => h.IsPlanet);
+        var other = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id) && w.HoldingsOf(h.Id).Any(x => x.IsPlanet && x.SystemId != home.SystemId && w.Galaxy!.Hops(home.SystemId, x.SystemId) > 0));
+        w.Wars.Clear(); foreach (var f in w.Fleets.Values.ToList()) w.Fleets.Remove(f.Id);
+        var theirs = new Fleet { Id = "theirs", Name = "Theirs", OwnerId = other.Id, SystemId = home.SystemId, Strength = 6, ArrivedTurn = w.Turn - 2, Errand = "to stand over your seat as a threat: its head thinks ill of you" };
+        w.Fleets[theirs.Id] = theirs; var head = Economy.HeadOf(w, other)!;
+        string doing = FleetSystem.Doing(w, theirs, house.Id);
+        Assert.Contains("Not at war with you", doing); Assert.Contains("to stand over your seat", doing); Assert.Contains("2 year(s)", doing);
+        // a head who thinks ill of you, with more hulls there than you, says no, and the refusal gives both figures
+        w.Relationship(head.Id, me.Id).Disposition = -60; var ask = new AskFleetToLeaveCommand(me.Id, theirs.Id);
+        string? no = ask.Refusal(ctx); Assert.NotNull(no); Assert.Contains("-60", no); Assert.Contains("0 hull(s) here to its 6", no);
+        // as many hulls there as it has, and it goes; or a head who thinks no worse of you than the mark
+        w.Fleets["mine"] = new Fleet { Id = "mine", Name = "Mine", OwnerId = house.Id, SystemId = home.SystemId, Strength = 6 }; Assert.Null(ask.Refusal(ctx));
+        w.Fleets.Remove("mine"); w.Relationship(head.Id, me.Id).Disposition = FleetSystem.ObligesAt; Assert.Null(ask.Refusal(ctx));
+        int inf = ctx.PoolsOf(me.Id).Influence; Assert.True(tc.Executor.TryExecute(ask, ctx)); Assert.Equal(inf - 1, ctx.PoolsOf(me.Id).Influence);
+        Assert.True(theirs.Moving); Assert.Equal(other.Id, w.PlanetHolder(theirs.DestinationId) ?? w.Holdings.Values.First(h => h.SystemId == theirs.DestinationId).OwnerId);
+        Assert.True(w.Counter(FleetSystem.AskedOffKey(other.Id, house.Id)) > w.Turn);
+        // at war it is not asked, and it is not asked out of space that is not yours
+        theirs.DestinationId = ""; theirs.SystemId = home.SystemId; tc.Fleets.DeclareWar(w, other.Id, house.Id); Assert.Contains("at war", new AskFleetToLeaveCommand(me.Id, theirs.Id).Refusal(ctx));
+        Assert.StartsWith("At war with you", FleetSystem.Doing(w, theirs, house.Id));
+        // a fleet held by office says whose it is and what ends it
+        var office = new Fleet { Id = "office", Name = "The Reach Squadron", OwnerId = house.Id, SystemId = home.SystemId, Strength = 4, Office = true }; w.Fleets[office.Id] = office;
+        var admiral = Content.Offices.Defs.First(d => d.CommandsFleets); OfficeSystem.Grant(w, admiral, house.Id, me);
+        string terms = OfficeSystem.FleetTerms(w, Content.Offices, office); Assert.Contains(admiral.Name, terms); Assert.Contains("There is no term", terms); Assert.Contains("not yours to pay off", terms);
+        Assert.NotNull(new PayOffHullsCommand(me.Id, office.Id, 1, Content.Fleets, Content.ShipClasses).Refusal(ctx));
+    }
 }

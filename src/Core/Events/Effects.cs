@@ -321,6 +321,27 @@ public sealed class MakePeaceEffect : IEffect
     }
 }
 
+/// <summary>Peace with the role's house on a term of <see cref="Systems.HousePeace"/>, reckoned by the war's score as the
+/// Military window reckons it: "white" (nothing changes hands), "tribute" (the side behind pays what the score says, in
+/// credits and then goods), "world" (the side behind gives up its most peopled world that can be given).
+/// JSON: { "type": "peaceTerms", "role": "envoy", "kind": "tribute" }.</summary>
+public sealed class PeaceTermsEffect : IEffect
+{
+    public string Role { get; }
+    public string Kind { get; }
+    public PeaceTermsEffect(string role, string kind) { Role = role; Kind = kind; }
+    /// <summary>The world that would change hands on the "world" term: the first the other side would give, or null.</summary>
+    public State.Holding? World(EvalContext ctx) =>
+        new PeaceTermCondition(Role, Systems.HousePeace.Cede).Terms(ctx).FirstOrDefault(t => t.Accepted && t.HoldingId.Length > 0) is { } t ? ctx.World.Holding(t.HoldingId) : null;
+    public void Apply(EvalContext ctx)
+    {
+        var self = ctx.Actor(Binding.Self); var other = ctx.Actor(Role);
+        if (self == null || other == null) return;
+        var rules = ctx.Content?.Fleets ?? Systems.FleetRules.Default;
+        Systems.HousePeace.Conclude(ctx.World, new Systems.FleetSystem(rules), rules, self.HouseId, other.HouseId, Kind, Kind == Systems.HousePeace.Cede ? World(ctx)?.Id ?? "" : "");
+    }
+}
+
 /// <summary>Write a line to the history log (GDD §15 L1). JSON: { "type": "log", "text": "..." } — supports {role.name} tokens.</summary>
 public sealed class LogEffect : IEffect
 {

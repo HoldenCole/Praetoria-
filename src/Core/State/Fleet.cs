@@ -81,6 +81,10 @@ public sealed class Fleet
     /// <summary>The year this fleet came to where it lies: in space that is neither side's, the one who came later is the attacker.</summary>
     public int ArrivedTurn { get; set; }
 
+    /// <summary>Why another house's head sent it where it is or is going, as a clause that follows "It came " ("to hunt raiders"), or ""
+    /// when nothing is known. Set when a house that is not the player's orders it; struck out by any later order.</summary>
+    public string Errand { get; set; } = "";
+
     public bool Moving => DestinationId.Length > 0;
 }
 

@@ -81,6 +81,8 @@ public static class EffectParser
                 return new JoinBlocEffect(S(el, "bloc"));
             case "declareWar":
                 return new DeclareWarEffect(S(el, "role"));
+            case "peaceTerms":
+                return new PeaceTermsEffect(S(el, "role"), ConditionParser.OptStr(el, "kind", "white"));
             case "makePeace":
                 return new MakePeaceEffect(S(el, "role"));
             case "log":
