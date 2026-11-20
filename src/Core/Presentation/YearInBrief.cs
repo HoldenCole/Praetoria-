@@ -42,7 +42,15 @@ public static class YearInBrief
         int year = w.Turn - 1; string mine = house.Id; string Nm(string id) => w.House(id)?.Name ?? id;
 
         // what the house was told as the year turned: births, deaths, wars declared on it, attempts, tutors, illness, dues, dowries
-        foreach (var n in w.NewsNow()) lines.Add(new BriefLine(KindOf(n.Target), n.Tone, n.Text, n.Target));
+        var dead = w.Deaths.Where(d => d.Turn >= year).ToList();
+        foreach (var n in w.NewsNow()) { if (dead.Any(d => n.SubjectId == d.PersonId && n.Text.Contains("has died"))) continue; lines.Add(new BriefLine(KindOf(n.Target), n.Tone, n.Text, n.Target)); }
+        // a death is a report of its own: who and how, each post it left empty (the line opens the place it is filled), and what passed
+        foreach (var d in dead)
+        {
+            lines.Add(new BriefLine(Family, "warn", $"{d.Name} died at {d.Age}{(d.How.Length > 0 ? ", " + d.How : "")}.", "dynasty:dead"));
+            foreach (var post in d.Posts) lines.Add(new BriefLine(Family, "warn", $"Left empty by {d.Name}: {post.What}. Fill it here.", post.Target));
+            foreach (var passed in d.Passed) lines.Add(new BriefLine(Family, "info", passed, "house:purse"));
+        }
 
         // the seat passed: said first of all, since everything else in the year is read in its light
         foreach (var s in w.Successions.Where(s => s.Turn >= year && s.HeirId == p.Id))

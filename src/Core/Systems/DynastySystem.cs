@@ -251,7 +251,7 @@ public sealed class DynastySystem
             double chance = c.Age >= MortalityAge ? DeathProbability(c.Age) * LifeSystem.DeathFactor(c) : LifeSystem.EarlyDeath(c);
             if (chance <= 0) continue;   // young and well ⇒ no roll, no RNG
             if (rng.NextDouble() < chance)
-                Die(world, id);
+                Die(world, id, c.Age >= MortalityAge ? "of age" : "of what ailed them");
         }
     }
 
@@ -382,7 +382,8 @@ public sealed class DynastySystem
 
     /// <summary>Kill a character (natural death, assassination, Bloody Event). If it was the
     /// protagonist, pass the seat to an heir — or end the dynasty. No RNG (succession is deterministic).</summary>
-    public static void Die(World world, string id)
+    /// <param name="how">How they died, in a few words, where the caller knows ("in battle at Cinder Gate", "by a knife").</param>
+    public static void Die(World world, string id, string how = "")
     {
         var c = world.Char(id);
         if (c is not { Alive: true }) return;
@@ -390,11 +391,19 @@ public sealed class DynastySystem
         world.Log($"{c.Name} dies at {c.Age}.");
         if (world.Protagonist is { } mine && c.HouseId == mine.HouseId && c.Id != mine.Id)
         {
-            var left = new List<string>();
-            left.AddRange(world.Holdings.Values.Where(h => h.GovernorId == c.Id).OrderBy(h => h.Id, StringComparer.Ordinal).Select(h => "the governing of " + h.Name));
-            left.AddRange(world.Fleets.Values.Where(f => f.AdmiralId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal).Select(f => "the command of " + f.Name));
-            if (world.House(mine.HouseId) is { } hh) left.AddRange(hh.Duties.Where(d => d.HolderId == c.Id).Select(d => "the place of " + d.Role));
-            world.Tell("warn", $"{c.Name} of your house has died at {c.Age}" + (left.Count > 0 ? ". Left empty: " + string.Join(", ", left) : ""), "dynasty", c.Id);
+            /* the death as a report: what it left empty, each with the place it is filled, and what they had and whose it is now */
+            var rec = new DeathRecord { Turn = world.Turn, PersonId = c.Id, Name = c.Name, Age = c.Age, How = how.Length > 0 ? how : c.Age >= 60 ? "of age" : "" };
+            foreach (var h in world.Holdings.Values.Where(h => h.GovernorId == c.Id).OrderBy(h => h.Id, StringComparer.Ordinal)) rec.Posts.Add(new DeathPost { What = "the governing of " + h.Name, Target = "galaxy:" + h.SystemId });
+            foreach (var f in world.Fleets.Values.Where(f => f.AdmiralId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal)) rec.Posts.Add(new DeathPost { What = "the command of " + f.Name, Target = "military:deck" });
+            if (world.House(mine.HouseId) is { } hh) foreach (var d in hh.Duties.Where(d => d.HolderId == c.Id)) rec.Posts.Add(new DeathPost { What = "the place of " + d.Role, Target = "house:household" });
+            foreach (var m in world.Magistrates.Where(m => m.CharacterId == c.Id)) rec.Posts.Add(new DeathPost { What = "an office of the Reach they held", Target = "senate:ladder" });
+            string head = mine.Name;
+            if (c.Purse > 0) rec.Passed.Add($"Their purse of {c.Purse} credits comes to {head}."); else if (c.Purse < 0) rec.Passed.Add($"They owed {-c.Purse} credits, and the house's treasury pays it.");
+            var things = WealthSystem.HeldBy(world, c.Id).Select(i => i.Name).ToList(); if (things.Count > 0) rec.Passed.Add($"{char.ToUpperInvariant(string.Join(", ", things)[0])}{string.Join(", ", things)[1..]} {(things.Count == 1 ? "comes" : "come")} to {head}.");
+            var own = world.Businesses.Values.Where(b => b.HeldById == c.Id).Select(b => b.Name).ToList(); if (own.Count > 0) rec.Passed.Add($"What was their own is the house's again: {string.Join(", ", own)}.");
+            if (c.LentHead > 0) rec.Passed.Add($"{head} owed them {c.LentHead} credits, which is paid out of {head}'s purse as far as it goes and then forgotten.");
+            world.Deaths.Add(rec); while (world.Deaths.Count > 20) world.Deaths.RemoveAt(0);
+            world.Tell("warn", $"{c.Name} of your house has died at {c.Age}{(rec.How.Length > 0 ? ", " + rec.How : "")}" + (rec.Posts.Count > 0 ? ". Left empty: " + string.Join(", ", rec.Posts.Select(x => x.What)) : ""), "dynasty", c.Id);
         }
         LifeSystem.Died(world, c);   // buried and spoken over, while the house still knows whose it is (docs/LIFE.md)
 

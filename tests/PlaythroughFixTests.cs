@@ -623,4 +623,22 @@ public class PlaythroughFixTests
         tc.EndTurn(); if (w.IsDynastyDead) return; tc.BeginTurn(); tc.EndTurn();
         Assert.False(w.HasFlag(FleetSystem.DeclaredOnMeFlag));
     }
+    [Fact]
+    public void A_death_in_the_house_is_a_report_of_what_it_left_empty_and_what_passed()
+    {
+        // docs/PLAYTHROUGH.md, Medium: "a death report: who, how, what passes to whom, which posts are now empty"
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn();
+        var kin = w.LivingCharacters().First(c => c.HouseId == house.Id && c.Id != me.Id && c.Age >= 18);
+        var world = w.HoldingsOf(house.Id).First(h => h.IsPlanet); world.GovernorId = kin.Id; kin.Purse = 14;
+        DynastySystem.Die(w, kin.Id, "in battle");
+        var rec = w.Deaths.Single(d => d.PersonId == kin.Id);
+        Assert.Equal("in battle", rec.How);
+        Assert.Contains(rec.Posts, p => p.What == "the governing of " + world.Name && p.Target == "galaxy:" + world.SystemId);
+        Assert.Contains(rec.Passed, l => l.Contains("purse of 14 credits") && l.Contains(me.Name));
+        tc.EndTurn(); if (w.IsDynastyDead) return; tc.BeginTurn();
+        var brief = Praetoria.Core.Presentation.YearInBrief.For(w, Content);
+        Assert.Contains(brief, l => l.Text.StartsWith(kin.Name + " died at") && l.Text.Contains("in battle"));
+        Assert.Contains(brief, l => l.Text.Contains("the governing of " + world.Name) && l.Target == "galaxy:" + world.SystemId);
+        Assert.DoesNotContain(brief, l => l.Text.Contains("of your house has died"));   // said once, as the report
+    }
 }

@@ -148,7 +148,7 @@ public sealed class AssassinateCommand : ICommand
             bool traced = FeudSystem.Traced(w, t, actor);
             w.Log($"{t.Name} of {w.House(t.HouseId)?.Name} dies suddenly. {(traced ? $"Nobody in {w.House(t.HouseId)?.Name} doubts whose hand it was." : "Nothing is proven.")}");
             if (traced) FeudSystem.Blood(w, t, actor.HouseId, actor.Id, "knife");
-            DynastySystem.Die(w, t.Id);
+            DynastySystem.Die(w, t.Id, "by a knife in the dark");
             if (player) w.WorldCounters["corruption"] = w.Counter("corruption") + 1;
         }
         else

@@ -141,7 +141,7 @@
             </section>
         }
         @if (_tab == "dead") {
-            <FuneralsPanel />
+            <FuneralsPanel OnGo="OnGo" />
             @if (kin.Any(k => !k.Alive))
             {
                 <section class="panel"><h3>The remembered</h3>@foreach (var k in kin.Where(k => !k.Alive).OrderBy(k => k.Id, StringComparer.Ordinal).Take(10)) { <div class="line muted" @onclick="() => _focus = k.Id">† @k.Name</div> }</section>
@@ -157,6 +157,7 @@
     private string _tab = "tree";
     // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
     [Parameter] public string Tab { get; set; } = "";
+    [Parameter] public EventCallback<string> OnGo { get; set; }
     [Parameter] public int TabStamp { get; set; }
     private static int _seenStamp;
     protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) OpenOn(Tab); } }

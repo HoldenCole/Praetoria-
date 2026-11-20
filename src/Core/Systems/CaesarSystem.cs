@@ -498,7 +498,7 @@ public sealed class CaesarSystem
         {
             g.Flags.Remove(CaesarChar);
             w.Log($"{g.Name} does not wait for the Senate's officers.");
-            DynastySystem.Die(w, g.Id);
+            DynastySystem.Die(w, g.Id, "by their own hand, before the Senate's officers came");
         }
     }
 

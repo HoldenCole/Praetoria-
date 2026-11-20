@@ -186,7 +186,7 @@ public static class FeudSystem
         {
             w.Log($"{challenger.Name} of {w.House(challenger.HouseId)?.Name} and {blamed.Name} of {w.House(blamed.HouseId)?.Name} meet over the death of {f.VictimName}. {loser.Name} is killed. It was done in the open, and it ends there.");
             foreach (var kin in w.LivingCharacters().Where(c => c.HouseId == loser.HouseId && c.Id != loser.Id).ToList()) Regard(w, kin, winner, DuelKinRegard);
-            Bump(w, DuelDeathsKey); DynastySystem.Die(w, loser.Id);
+            Bump(w, DuelDeathsKey); DynastySystem.Die(w, loser.Id, "in a duel");
         }
         else
         {
@@ -280,7 +280,7 @@ public static class FeudSystem
             if ((int)(Hash($"{f.Id}:{w.Turn}:knife") / 7 % 100) < odds)
             {
                 w.Log($"{target.Name} of {w.House(target.HouseId)?.Name} dies suddenly. Nobody doubts whose hand it was.");
-                Blood(w, target, f.WrongedId, head.Id, "knife"); DynastySystem.Die(w, target.Id);
+                Blood(w, target, f.WrongedId, head.Id, "knife"); DynastySystem.Die(w, target.Id, "by a knife, for the blood between the houses");
             }
             else
             {

@@ -719,7 +719,7 @@ public sealed class FleetSystem
                 // war is forgotten at the peace, but not the death of a head or of a head's near blood (docs/FEUD.md)
                 string killers = winnerHouseId.Length > 0 ? winnerHouseId : winners.FirstOrDefault()?.HouseId ?? "";
                 if (killers.Length > 0 && FeudSystem.BattleDeathBinds(w, c)) FeudSystem.Blood(w, c, killers, winners.OrderByDescending(a => a.CareerRank).ThenBy(a => a.Id, StringComparer.Ordinal).FirstOrDefault()?.Id, "battle");
-                DynastySystem.Die(w, c.Id);
+                DynastySystem.Die(w, c.Id, "in battle");
             }
             else
             {

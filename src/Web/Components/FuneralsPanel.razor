@@ -21,6 +21,21 @@
         </div>
     }
 </section>
+@if (w.Deaths.Count > 0)
+{
+    <section class="panel funerals" data-deaths>
+        <h3><Icon Name="dynasty" Size="13" /> The dead, and what they left</h3>
+        @foreach (var d in w.Deaths.OrderByDescending(d => d.Turn).Take(6))
+        {
+            <div class="funeral">
+                <b>@d.Name</b> <span class="muted">died at @d.Age in year @d.Turn@(d.How.Length > 0 ? ", " + d.How : "")</span>
+                @foreach (var post in d.Posts) { string go = post.Target; <div class="small"><span class="warnline">Left empty: @post.What.</span> <button class="opt inline tiny" @onclick="() => OnGo.InvokeAsync(go)">Fill it ▸</button></div> }
+                @foreach (var line in d.Passed) { <div class="muted small">@line</div> }
+                @if (d.Posts.Count == 0 && d.Passed.Count == 0) { <div class="muted small">They held no post of yours and left nothing that was their own.</div> }
+            </div>
+        }
+    </section>
+}
 @if (funerals.Count > 0)
 {
     <section class="panel funerals">
@@ -36,6 +51,7 @@
 }
 
 @code {
+    [Parameter] public EventCallback<string> OnGo { get; set; }
     private bool _all;
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);
