@@ -22,7 +22,7 @@ import argparse, hashlib, json, os, random, sys, time
 
 BANDS = ["adult", "older", "elder", "youth", "child"]   # painted in this order: the commonest first
 STYLE = "head and shoulders portrait, facing the viewer, painterly digital oil painting, dramatic warm key light, cool rim light, dark plain background, detailed face"
-NEG = "photo, 3d render, anime, cartoon, text, watermark, signature, frame, border, deformed, hands, blurry, lowres, hat, helmet, modern clothes, smiling, teeth, nude"
+NEG = "photo, 3d render, anime, cartoon, text, watermark, signature, frame, border, deformed, hands, blurry, lowres, hat, helmet, hood, veil, modern clothes, smiling, teeth, nude"
 
 SKIN = ["pale skin", "fair skin", "olive skin", "tan skin", "light brown skin", "brown skin", "dark brown skin", "black skin"]
 HAIR = ["black hair", "dark brown hair", "brown hair", "auburn hair", "blond hair", "black hair", "dark brown hair", "red hair"]
