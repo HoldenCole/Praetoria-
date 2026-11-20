@@ -5,7 +5,7 @@
     var skills = p.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value).ThenBy(k => k.Key, StringComparer.Ordinal).ToList();
     var mine = w.History.Where(h => h.EventId != null && h.Text.Contains(p.Name)).Reverse().Take(12).ToList();
     var spouse = DynastySystem.Spouse(w, p);
-    var heirNow = DynastyScreen.Heirs(w, house).FirstOrDefault();
+    var heirNow = DynastySystem.FindHeir(w, w.Protagonist!);
     var children = w.Characters.Values.Where(k => k.MotherId == p.Id || k.FatherId == p.Id).OrderByDescending(k => k.Age).ToList();
     var ambition = c.Traits.Ambitions.FirstOrDefault(a => a.Id == p.Ambition);
     var honors = m.Standing?.Honors ?? new List<string>();

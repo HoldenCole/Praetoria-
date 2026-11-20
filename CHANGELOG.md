@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+- **Found by playing** (docs/PLAYTHROUGH.md, the first five). A rival's petition for a prefecture no longer takes a world of
+  the player's. Save says that it keeps the start of the year; Quit and a new saga over a saved one ask first. A title is
+  no longer climbed by clicking: one rung a year, ships to seize one, worlds under the higher ranks, and each road shows
+  its cost and asks before it is taken. A venture just founded sells for what it cost. Every screen names the same heir.
+
 ### Added
 - **Provinces, what was still simple.** A levy squadron is its own house's: named for it, under one of its people, not
   to be merged or given another admiral; destroyed, the house that sent it loses crews and regard, and none is sent

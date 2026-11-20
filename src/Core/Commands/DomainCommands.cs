@@ -202,9 +202,11 @@ public sealed class PetitionFiefCommand : ICommand
     public static House? Grantor(World w, string houseId)
     {
         int Spare(House h) => w.HoldingsOf(h.Id).Count(x => x.IsPlanet);
+        // The player's worlds are the player's to give: no rival is granted one over the player's head (docs/PLAYTHROUGH.md 1).
+        string? mine = w.Protagonist?.HouseId is { } pid && pid != houseId ? pid : null;
         var court = Systems.RegionSystem.CapitalHolder(w);
-        if (court != null && court.Id != houseId && !w.AtWar(houseId, court.Id) && Spare(court) >= 2) return court;
-        return w.Houses.Values.Where(h => h.Id != houseId && !World.Outsider(h.Id) && h.Bloc != Systems.RegionSystem.FreeholdsBloc && !w.AtWar(houseId, h.Id) && Spare(h) >= 2)
+        if (court != null && court.Id != houseId && court.Id != mine && !w.AtWar(houseId, court.Id) && Spare(court) >= 2) return court;
+        return w.Houses.Values.Where(h => h.Id != houseId && h.Id != mine && !World.Outsider(h.Id) && h.Bloc != Systems.RegionSystem.FreeholdsBloc && !w.AtWar(houseId, h.Id) && Spare(h) >= 2)
             .OrderByDescending(Spare).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;

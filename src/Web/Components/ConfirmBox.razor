@@ -1,0 +1,15 @@
+@inject GameClient G
+@* The one question the game asks before something that cannot be taken back (docs/PLAYTHROUGH.md): any screen calls G.Ask. *@
+@if (G.Asking is { } a)
+{
+    <div class="confirm-veil" @onclick="() => G.Answer(false)">
+        <div class="confirm-box" role="dialog" aria-modal="true" @onclick:stopPropagation="true">
+            <h3>@a.Title</h3>
+            <p>@a.Text</p>
+            <div class="confirm-row">
+                <button class="btn ghost" data-confirm="no" @onclick="() => G.Answer(false)">@a.No</button>
+                <button class="btn primary" data-confirm="yes" @onclick="() => G.Answer(true)">@a.Yes</button>
+            </div>
+        </div>
+    </div>
+}

@@ -145,6 +145,7 @@ else
         }
     </div>
 }
+<ConfirmBox />
 
 @code {
     private static readonly (string id, string glyph, string label)[] Screens =
@@ -265,10 +266,16 @@ else
         }
         catch { }
     }
-    private async Task SaveLocal() { await Autosave(); _savedFlash = true; StateHasChanged(); await Task.Delay(1500); _savedFlash = false; }
+    private async Task SaveLocal() { await Autosave(); _savedFlash = true; StateHasChanged(); await Task.Delay(G.ActedThisYear ? 4000 : 1500); _savedFlash = false; StateHasChanged(); }
     private async Task Download() { try { await JS.InvokeVoidAsync("praetoria.download", $"praetoria-turn{G.World!.Turn}.json", G.SaveJson()); } catch { } }
     private async Task ContinueAutosave() { try { var json = await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey); if (!string.IsNullOrEmpty(json)) G.LoadJson(json); } catch { } }
     private void LoadFromJson(string json) { try { G.LoadJson(json); } catch { } }
-    private void Abandon() { _epilogueDismissed = false; _screen = "office"; _openReport = null; _succession = null; _lastProtagonist = null; _passingOut = false; _primerChecked = false; G.Abandon(); }
+    /// <summary>Quit asks first, and says what is kept (docs/PLAYTHROUGH.md 2).</summary>
+    private void Abandon()
+    {
+        if (G.World == null || G.World.IsDynastyDead) { Leave(); return; }
+        G.Ask("Leave this saga?", "It is kept as it stood when year " + G.World.Turn + " began, and \"Continue the saved saga\" on the title brings it back there." + (G.ActedThisYear ? " What you have done this year is not kept: end the year first if you want it." : ""), "Leave", Leave, "Stay");
+    }
+    private void Leave() { _epilogueDismissed = false; _screen = "office"; _openReport = null; _succession = null; _lastProtagonist = null; _passingOut = false; _primerChecked = false; G.Abandon(); }
     public void Dispose() { G.Changed -= OnChanged; _self?.Dispose(); }
 }

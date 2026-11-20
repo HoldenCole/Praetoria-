@@ -86,7 +86,11 @@ public sealed record WealthLine(string HouseId, string Name, string Accent, int 
 /// <summary>The house ledger (GDD §17): every per-turn line, the net, wealth and its rank, the loan.</summary>
 public sealed record LedgerCard(IReadOnlyList<LedgerLine> Lines, Resources Net, int Wealth, int Rank, int Houses, string Tier, int Debt, string? LenderName, int LoanPrincipal, int LoanRepay, int LoanInstalment,
     Option Loan, Option Repay, IReadOnlyList<WealthLine> Table);
-public sealed record PathOption(string Id, string Label, string Tooltip, bool Available);
+public sealed record PathOption(string Id, string Label, string Tooltip, bool Available)
+{
+    /// <summary>What it costs, in words; why it is refused, when it is; and what the player is asked before it is done.</summary>
+    public string Cost { get; init; } = ""; public string? Refusal { get; init; } public string Confirm { get; init; } = "";
+}
 public sealed record StandingCard(int Legitimacy, int Instability, IReadOnlyList<string> Claims, string? NextTitle, int NextRequirement,
     IReadOnlyList<PathOption> Paths, string Spheres, int Threat, IReadOnlyList<string> Honors, string SuccessionLaw, IReadOnlyList<Option> LawOptions,
     string TaxPolicy, IReadOnlyList<Option> TaxOptions, IReadOnlyList<Option> ExchangeOptions, ThroneCard Throne);
@@ -276,9 +280,15 @@ public static class CourtProjection
             var paths = new List<PathOption>();
             if (next != null)
             {
-                paths.Add(new PathOption("seize", "Seize it by force", "Military — ignores legitimacy; spikes the galaxy's fear", new SeizeTitleCommand(p.Id, prog).CanExecute(ctx)));
-                paths.Add(new PathOption("petition", w.IsImperium ? "Petition the throne" : "Petition the Senate", "Merit — granted only what you're legitimate for; arrives clean", new PetitionTitleCommand(p.Id, prog).CanExecute(ctx)));
-                paths.Add(new PathOption("claim", "Press a claim", "Intrigue — needs a claim; launders legitimacy, leaves a trail", new ClaimTitleCommand(p.Id, prog).CanExecute(ctx)));
+                string rung = next.NameIn(w.Era);
+                string? Why(string? rule, bool afford, string cost) => rule ?? (afford ? null : "needs " + cost);
+                bool sz = new SeizeTitleCommand(p.Id, prog).CanExecute(ctx), pt = new PetitionTitleCommand(p.Id, prog).CanExecute(ctx), cl = new ClaimTitleCommand(p.Id, prog).CanExecute(ctx);
+                paths.Add(new PathOption("seize", "Seize it by force", "By arms: the house's own ships behind it. Legitimacy does not rise with the rank, and every house fears you the more.", sz)
+                { Cost = "2 treasury actions, 1 agent", Refusal = sz ? null : Why(prog.SeizeRefusal(w, p.Id), false, "2 treasury actions and 1 agent this year"), Confirm = $"The house takes the rank of {rung} by force. Its legitimacy stays where it is, so the rank stands above what the house is thought to deserve, and every house fears it the more. One rung a year." });
+                paths.Add(new PathOption("petition", w.IsImperium ? "Petition the throne" : "Petition the Senate", "By merit: granted only to a house thought to deserve it, and it arrives clean.", pt)
+                { Cost = "2 influence of this year's", Refusal = pt ? null : Why(prog.PetitionRefusal(w, p.Id), false, "2 influence of this year's"), Confirm = $"The house is granted the rank of {rung}, and is thought the better of for it (+5 legitimacy). One rung a year." });
+                paths.Add(new PathOption("claim", "Press a claim", "By a claim the house holds: it launders the rise, and leaves a trail.", cl)
+                { Cost = "1 influence of this year's, 2 agents", Refusal = cl ? null : Why(prog.ClaimRefusal(w, p.Id), false, "1 influence of this year's and 2 agents"), Confirm = $"The house presses its claim and takes the rank of {rung} (+12 legitimacy). The claim is spent, and the way it was pressed leaves a trail. One rung a year." });
             }
             var honors = new HonorSystem(content.Honors).Held(p).Select(h => h.Name).ToList();
             var laws = SetSuccessionLawCommand.Laws.Select(l => new Option(l, l, new SetSuccessionLawCommand(p.Id, l).CanExecute(ctx) ? null : (house.SuccessionLaw == l ? "current law" : "no influence"))).ToList();

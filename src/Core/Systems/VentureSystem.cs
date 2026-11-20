@@ -31,7 +31,18 @@ public sealed class VentureSystem
     public int Earnings(World w, Business b) => _economy.VentureEarnings(w, b);
     public int Salvage(Business b) => (_ventures.Def(b.Kind)?.Value(b.Level) ?? 0) * Economy.SalvagePct / 100;
     /// <summary>What the open market pays: four-fifths of value, never less than salvage.</summary>
-    public int MarketPrice(World w, Business b) => Math.Max(Salvage(b), Value(w, b) * MarketPct / 100);
+    public int MarketPrice(World w, Business b) => Math.Max(Salvage(b), Trading(w, b) * MarketPct / 100);
+    /// <summary>Years before a buyer pays for what a venture earns and not for what it cost.</summary>
+    public const int Seasoning = 5;
+    /// <summary>What a buyer reckons a venture at (docs/PLAYTHROUGH.md 4): its value, but a venture founded lately has no record, and
+    /// is reckoned at what it cost, rising to its value over its first <see cref="Seasoning"/> years. Without this a venture sold
+    /// the year it was finished for many times its price, and could be founded again at once.</summary>
+    public int Trading(World w, Business b)
+    {
+        int value = Value(w, b); if (b.Founded <= 0) return value;
+        int held = w.Turn - b.Founded, book = _ventures.Def(b.Kind)?.Value(b.Level) ?? value;
+        return held >= Seasoning || value <= book ? value : book + (value - book) * Math.Max(0, held) / Seasoning;
+    }
 
     private static int Regard(World w, House from, House to)
     {
@@ -55,7 +66,7 @@ public sealed class VentureSystem
         int regard = Regard(w, buyer, seller); pct += regard >= 20 ? 5 : regard <= -20 ? -10 : 0;
         if (BadName(w, seller.Id)) pct -= BadNameBidPct;   // a house known for bad business is known to have to sell
         if (Wealth.TierIndex(Wealth.TierFor(w, buyerId)) >= 3) pct += 5;
-        int bid = Value(w, b) * pct / 100;
+        int bid = Trading(w, b) * pct / 100;
         return bid > 0 && buyer.Treasury.Credits >= bid + Reserve ? bid : 0;
     }
 
@@ -78,7 +89,7 @@ public sealed class VentureSystem
         if (Holder(w, b) == seller.Id) pct += OwnWorldAsk;
         if (!w.HoldingsOf(seller.Id).Any(h => h.IsPlanet) && w.BusinessesOf(seller.Id).Count() == 1) pct += LastVentureAsk;   // it is all they have
         if (regard >= 30) pct -= 10;
-        return (Math.Max(Salvage(b), Value(w, b) * pct / 100), null);
+        return (Math.Max(Salvage(b), Trading(w, b) * pct / 100), null);
     }
 
     /// <summary>The holder of the world, if it is neither party and would match the price: it has first refusal on anything sold there.</summary>
@@ -88,7 +99,7 @@ public sealed class VentureSystem
         var holder = w.House(holderId); if (holder == null || holderId == w.Protagonist?.HouseId) return null;   // the player is asked, never assumed (an offer is posted instead)
         if (holder.Treasury.Credits < price + Reserve || w.AtWar(holderId, b.OwnerId)) return null;
         if (w.Businesses.Values.Any(o => o.OwnerId == holderId && o.Kind == b.Kind && o.SystemId == b.SystemId)) return null;
-        return Value(w, b) * (BidPct + HolderPremium) / 100 >= price ? holder : null;
+        return Trading(w, b) * (BidPct + HolderPremium) / 100 >= price ? holder : null;
     }
 
     /// <summary>The venture changes hands for the price.</summary>
@@ -145,7 +156,7 @@ public sealed class VentureSystem
     public void StewardSells(World w, Business b)
     {
         var seller = w.House(b.OwnerId); var mine = w.Protagonist != null ? w.House(w.Protagonist.HouseId) : null; if (seller == null || ConsentRefusal(w, b) != null) return;
-        int fair = Math.Max(Salvage(b), Value(w, b) * OfferPct / 100);
+        int fair = Math.Max(Salvage(b), Trading(w, b) * OfferPct / 100);
         if (mine != null && mine.Id != seller.Id && b.OfferedUntil == 0 && !w.AtWar(mine.Id, seller.Id) && Ask(w, b, mine.Id).refusal == null
             && (Holder(w, b) == mine.Id || (Regard(w, seller, mine) >= 10 && mine.Treasury.Credits >= fair)))
         {

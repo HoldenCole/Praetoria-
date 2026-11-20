@@ -141,7 +141,7 @@
                 <div class="kv"><span>Legitimacy</span><b>@s.Legitimacy@(s.NextTitle != null ? $" / {s.NextRequirement} for {s.NextTitle}" : "")</b></div>
                 @if (s.Instability > 0) { <div class="kv warn"><span>Instability</span><b>@s.Instability</b></div> }
                 @if (s.Claims.Count > 0) { <div class="kv"><span>Claims held</span><b>@string.Join(", ", s.Claims.Select(cl => c.Titles.NameOf(cl, w.Era)))</b></div> }
-                @if (s.NextTitle != null) { foreach (var path in s.Paths) { <button class="opt" disabled="@(!path.Available)" title="@path.Tooltip" @onclick="() => G.Execute(PathCommand(path.Id))">@path.Label</button> } }
+                @if (s.NextTitle != null) { foreach (var path in s.Paths) { var pth = path; string ptip = path.Available ? path.Tooltip : PathWhy(path); <button class="opt" data-path="@path.Id" disabled="@(!path.Available)" title="@ptip" @onclick="() => AskPath(pth, s.NextTitle)">@path.Label <span class="muted small">· @path.Cost</span></button> @if (!path.Available && path.Refusal != null) { <div class="sw-no path-no">@path.Label: @path.Refusal.</div> } } }
                 <details open="@w.IsImperium"><summary>@(w.IsImperium ? "The throne" : "The end of the Republic") @(s.Throne.HoldsThrone ? "· yours" : s.Throne.EmperorName != null ? $"· {s.Throne.EmperorName}" : w.IsImperium ? "· empty" : "· no throne stands")</summary>
                     @if (ThroneSystem.Emperor(w) is { } onThrone)
                     {
@@ -444,6 +444,9 @@
             }
         return list;
     }
+    private static string PathWhy(PathOption p) { string r = p.Refusal ?? p.Tooltip; return r.Length == 0 ? r : char.ToUpperInvariant(r[0]) + r[1..] + "."; }
+    /// <summary>A rise in rank is asked about first: what it is, what it costs, what follows (docs/PLAYTHROUGH.md 3).</summary>
+    private void AskPath(PathOption p, string? next) => G.Ask(p.Label + (next != null ? ": " + next : ""), p.Confirm + " It costs " + p.Cost + ".", p.Label, () => G.Execute(PathCommand(p.Id)));
     private ICommand PathCommand(string id) { var pid = G.World!.ProtagonistId; var prog = G.Turn!.Progression!; return id switch { "seize" => new SeizeTitleCommand(pid, prog), "petition" => new PetitionTitleCommand(pid, prog), _ => new ClaimTitleCommand(pid, prog) }; }
     private void Damper(DamperOption d) { var crises = G.Turn!.Crises!; var def = crises.Def(d.CrisisId)!; G.Execute(new ApplyDamperCommand(G.World!.ProtagonistId, crises, def, def.Dampers.First(x => x.Id == d.DamperId))); }
     private ICommand Conn(string optionId, string targetId) { var pid = G.World!.ProtagonistId; var c = G.Content!; return optionId.StartsWith("marry:") ? new ProposeMarriageCommand(pid, optionId["marry:".Length..], targetId, c.Titles) : new AssassinateCommand(pid, targetId, c.Friction); }

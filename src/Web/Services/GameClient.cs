@@ -37,6 +37,15 @@ public sealed class GameClient
     public event Action? Changed;
     private void Notify() => Changed?.Invoke();
 
+    /// <summary>Something that cannot be taken back is about to be done: the player is asked first (docs/PLAYTHROUGH.md 2, 7).</summary>
+    public sealed record ConfirmAsk(string Title, string Text, string Yes, Action OnYes, string No);
+    public ConfirmAsk? Asking { get; private set; }
+    public void Ask(string title, string text, string yes, Action onYes, string no = "Leave it") { Asking = new ConfirmAsk(title, text, yes, onYes, no); Notify(); }
+    public void Answer(bool yes) { var a = Asking; Asking = null; if (yes) a?.OnYes(); Notify(); }
+    /// <summary>Whether anything has been done since this year began. A save is the start of the year (see <see cref="SaveJson"/>):
+    /// what is done in a year is kept when the year is ended, and the screen says so.</summary>
+    public bool ActedThisYear { get; private set; }
+
     /// <summary>The person whose profile is open over the screen, if any: any portrait opens it (docs/ART_DIRECTION.md).</summary>
     public string? ProfileId { get; private set; }
     /// <summary>The painted portraits, if the build ships any (tools/art/portraits.py).</summary>
@@ -138,6 +147,7 @@ public sealed class GameClient
         using (Perf.Time("client:resolve the year")) Turn.EndTurn();
         Turn.SyncRng();
         using (Perf.Time("client:serialise the save")) _idleSnapshot = SaveSystem.Serialize(World);
+        ActedThisYear = false;
         if (!World.IsDynastyDead) using (Perf.Time("client:open the next year")) Turn.BeginTurn();
         LastNotice = null;
         Settled(); Notify();
@@ -148,6 +158,7 @@ public sealed class GameClient
         if (Turn == null) return false;
         Changing();
         bool ok = Turn.Resolve(item, choiceId);
+        if (ok) ActedThisYear = true;
         Settled(); Notify();
         return ok;
     }
@@ -162,11 +173,12 @@ public sealed class GameClient
         bool ok = Turn.Executor.TryExecute(command, new CommandContext(World, WorldBuilder.RngFor(World)));
         Turn.SyncRng();
         LastNotice = ok ? null : $"Could not: {command.Describe()}.";
+        if (ok) ActedThisYear = true;
         Settled(); Notify();
         return ok;
     }
 
-    public void Abandon() { Changing(); Turn = null; Notify(); }
+    public void Abandon() { Changing(); Turn = null; ActedThisYear = false; Notify(); }
 
     // Between one action and the next the world does not change, so the projection is built once and pure questions the screens
     // ask (Senate weights, law tables) are memoised (ReadCache). Every method here that changes the world calls Changing() first
@@ -204,7 +216,7 @@ public sealed class GameClient
     {
         Changing();
         var world = SaveSystem.Deserialize(json);
-        _idleSnapshot = json;
+        _idleSnapshot = json; ActedThisYear = false;
         Turn = new TurnController(world, Content!);
         ScenarioId = "(saved game)"; Seed = world.RngState;
         if (!world.IsDynastyDead) Turn.BeginTurn();

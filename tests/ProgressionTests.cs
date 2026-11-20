@@ -28,6 +28,9 @@ public class ProgressionTests
         w.Houses["vega"] = new House { Id = "vega", Name = "House Vega", Title = title, Legitimacy = legit };
         w.Characters["marcus"] = new Character { Id = "marcus", Name = "Marcus", HouseId = "vega", Alive = true, CareerTrack = "military", CareerRank = rank };
         w.Houses["vega"].Members.Add("marcus");
+        // a house that may rise: ships of its own behind a seizure, and land under the higher ranks (docs/PLAYTHROUGH.md 3)
+        w.Fleets["vega_fleet"] = new Fleet { Id = "vega_fleet", OwnerId = "vega", Name = "The Vega Squadron", Strength = 20 };
+        for (int i = 0; i < 3; i++) w.Holdings["vega_world_" + i] = new Holding { Id = "vega_world_" + i, OwnerId = "vega", Name = "Vega " + i, SystemId = "vega_sys_" + i };
         w.Pools["marcus"] = ActionPools.ForPlayer();
         return w;
     }

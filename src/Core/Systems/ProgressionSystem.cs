@@ -46,11 +46,45 @@ public sealed class ProgressionSystem
 
     // ---- the three rise paths (GDD §13) ----
 
-    public bool CanSeize(World w, string actorId)
+    /// <summary>Hulls of its own a house must have, for each rung of the title it would seize: a rank is taken with ships.</summary>
+    public const int SeizeHullsPerRank = 2;
+    /// <summary>The rung from which a title wants land under it, and how many worlds: a Legate one, a Proconsul two, a First Citizen three.</summary>
+    public const int LandedFromRank = 3;
+    private static string RoseKey(string houseId) => "rose:" + houseId;
+    private static int Worlds(World w, string houseId) => w.HoldingsOf(houseId).Count(h => h.IsPlanet);
+    private static int OwnHulls(World w, string houseId) => w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Office && f.LevyOf.Length == 0).Sum(f => f.Strength);
+    private static void Rose(World w, string houseId) => w.WorldCounters[RoseKey(houseId)] = w.Turn + 1;
+    /// <summary>What stops any rise this year, whichever road is taken (docs/PLAYTHROUGH.md 3): there is a rung to climb, the house
+    /// has not climbed one already this year, and from Legate up it holds the worlds the rank wants.</summary>
+    private string? RiseRefusal(World w, Character? c, bool needsLand)
     {
-        var c = w.Char(actorId);
-        if (c?.Alive != true || NextTitle(w, c.HouseId) == null) return false;
-        return c.CareerRank >= 2;   // a real officer with a fleet/army behind the claim
+        if (c?.Alive != true) return "no one to ask";
+        var next = NextTitle(w, c.HouseId); if (next == null) return "there is no higher rung to climb this way";
+        if (w.WorldCounters.TryGetValue(RoseKey(c.HouseId), out var at) && at == w.Turn + 1) return "the house has risen a rung this year: one a year";
+        int rank = Title.RankOf(next.Id), want = rank - LandedFromRank + 1;
+        if (needsLand && want > 0 && Worlds(w, c.HouseId) < want) return $"a {next.NameIn(w.Era)} holds {(want == 1 ? "a world" : want + " worlds")}: the house holds {Worlds(w, c.HouseId)}";
+        return null;
+    }
+    /// <summary>Why a house may not seize the next title by force, or null: its head is an officer, and it has the ships.</summary>
+    public string? SeizeRefusal(World w, string actorId)
+    {
+        var c = w.Char(actorId); if (RiseRefusal(w, c, needsLand: false) is { } no) return no;
+        if (c!.CareerRank < 2) return "only an officer of some rank has the men to do it";
+        var next = NextTitle(w, c.HouseId)!; int need = Title.RankOf(next.Id) * SeizeHullsPerRank, have = OwnHulls(w, c.HouseId);
+        return have >= need ? null : $"needs {need} hulls of the house's own to take the rank of {next.NameIn(w.Era)}: it has {have}";
+    }
+    public bool CanSeize(World w, string actorId) => SeizeRefusal(w, actorId) == null;
+    public string? PetitionRefusal(World w, string actorId)
+    {
+        var c = w.Char(actorId); if (RiseRefusal(w, c, needsLand: true) is { } no) return no;
+        var next = NextTitle(w, c!.HouseId)!; var h = w.House(c.HouseId)!;
+        return h.Legitimacy >= next.LegitimacyRequirement ? null : $"needs legitimacy {next.LegitimacyRequirement}: the house has {h.Legitimacy}";
+    }
+    public string? ClaimRefusal(World w, string actorId)
+    {
+        var c = w.Char(actorId); if (RiseRefusal(w, c, needsLand: true) is { } no) return no;
+        var next = NextTitle(w, c!.HouseId)!;
+        return w.House(c.HouseId)!.Claims.Contains(next.Id) ? null : $"the house holds no claim to the rank of {next.NameIn(w.Era)}";
     }
 
     public void Seize(World w, string actorId)
@@ -58,17 +92,14 @@ public sealed class ProgressionSystem
         var c = w.Char(actorId)!;
         var h = w.House(c.HouseId)!;
         var next = NextTitle(w, h.Id)!;
-        h.Title = next.Id;                                       // legitimacy UNCHANGED → instability
+        h.Title = next.Id; Rose(w, h.Id);                        // legitimacy UNCHANGED → instability
         w.WorldCounters["seizures"] = w.Counter("seizures") + 1; // every seizure spikes rival fear (§7)
         w.Log($"{c.Name} SEIZES the {(w.IsImperium ? "title" : "rank")} of {next.NameIn(w.Era)} by force.");
     }
 
     public bool CanPetition(World w, string actorId)
     {
-        var c = w.Char(actorId);
-        var next = c?.Alive == true ? NextTitle(w, c.HouseId) : null;
-        if (next == null) return false;
-        return w.House(c!.HouseId)!.Legitimacy >= next.LegitimacyRequirement;  // throne grants only the legitimate
+        return PetitionRefusal(w, actorId) == null;   // the legitimate, once a year, with the land the rank wants
     }
 
     public void Petition(World w, string actorId)
@@ -76,17 +107,14 @@ public sealed class ProgressionSystem
         var c = w.Char(actorId)!;
         var h = w.House(c.HouseId)!;
         var next = NextTitle(w, h.Id)!;
-        h.Title = next.Id;
+        h.Title = next.Id; Rose(w, h.Id);
         h.Legitimacy += 5;                                       // arrives clean, with standing
         w.Log($"{c.Name} is GRANTED the {(w.IsImperium ? "title" : "rank")} of {next.NameIn(w.Era)}.");
     }
 
     public bool CanClaimByBlood(World w, string actorId)
     {
-        var c = w.Char(actorId);
-        var next = c?.Alive == true ? NextTitle(w, c.HouseId) : null;
-        if (next == null) return false;
-        return w.House(c!.HouseId)!.Claims.Contains(next.Id);
+        return ClaimRefusal(w, actorId) == null;
     }
 
     public void ClaimByBlood(World w, string actorId)
@@ -94,7 +122,7 @@ public sealed class ProgressionSystem
         var c = w.Char(actorId)!;
         var h = w.House(c.HouseId)!;
         var next = NextTitle(w, h.Id)!;
-        h.Title = next.Id;
+        h.Title = next.Id; Rose(w, h.Id);
         h.Claims.Remove(next.Id);
         h.Legitimacy += 12;                                     // bloodline launders the claim
         w.WorldCounters["corruption"] = w.Counter("corruption") + 1;  // the scheme leaves a trail

@@ -94,7 +94,7 @@
             <h2>A character of your own</h2>
             <Workshop Spec="_spec" SpecChanged="s => _spec = s" />
             @if (_error != null) { <p class="error">@_error</p> }
-            <button class="btn primary big begin" disabled="@(CharacterWorkshop.Problems(_spec, G.Content!, G.BlankWorld(_spec.Imperium)).Count > 0)" @onclick="Begin">Begin the saga ▸</button>
+            <button class="btn primary big begin" disabled="@(CharacterWorkshop.Problems(_spec, G.Content!, G.BlankWorld(_spec.Imperium)).Count > 0)" @onclick="BeginAsked">Begin the saga ▸</button>
         </div>
         }
         else
@@ -149,7 +149,7 @@
             </div>
 
             @if (_error != null) { <p class="error">@_error</p> }
-            <button class="btn primary big begin" @onclick="Begin">Begin the saga ▸</button>
+            <button class="btn primary big begin" @onclick="BeginAsked">Begin the saga ▸</button>
         </div>
         }
     </section>
@@ -240,6 +240,12 @@
         catch (Exception ex) { _error = "Could not read that save: " + ex.Message; }
     }
 
+    /// <summary>There is one saved saga: a new one replaces it, and the player is told so first (docs/PLAYTHROUGH.md 2).</summary>
+    private void BeginAsked()
+    {
+        if (!HasAutosave) { Begin(); return; }
+        G.Ask("Begin a new saga?", "There is a saved saga in this browser, and there is room for one: a new saga takes its place at the end of its first year. To keep the old one, continue it and use Export first.", "Begin the new saga", Begin, "Go back");
+    }
     private void Begin()
     {
         _error = null;

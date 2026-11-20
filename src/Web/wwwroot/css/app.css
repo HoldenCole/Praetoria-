@@ -1076,3 +1076,11 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 .sysp-prov .sw-head .sysp-slots { margin-left: .5rem; vertical-align: middle; } .sysp-built.prov { padding: .15rem 0 .1rem; } .sysp-owes { margin: .1rem 0; }
 .sysp-prov .sysp-work { padding-left: 0; }
 .sysp-owes .warnline { color: var(--warn); } .sysp-dues .seg { display: inline-flex; gap: .25rem; } .sysp-dues .opt.on { border-color: var(--brass2); color: #ffe1a0; }
+
+/* the one question before what cannot be taken back (docs/PLAYTHROUGH.md) */
+.confirm-veil { position: fixed; inset: 0; z-index: 4000; background: rgba(4,6,10,.72); display: grid; place-items: center; }
+.confirm-box { width: min(30rem, 92vw); background: #10141d; border: 1px solid var(--brass3); box-shadow: 0 0 0 1px #000, 0 18px 60px rgba(0,0,0,.7); padding: 1.1rem 1.3rem 1rem; }
+.confirm-box h3 { margin: 0 0 .5rem; font-family: var(--serif); font-weight: 500; font-size: 1.25rem; color: #ffe1a0; }
+.confirm-box p { margin: 0 0 1rem; font-size: .88rem; line-height: 1.5; color: var(--ink); }
+.confirm-row { display: flex; justify-content: flex-end; gap: .6rem; }
+.path-no { margin: .1rem 0 .3rem; }

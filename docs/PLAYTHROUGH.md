@@ -31,6 +31,16 @@ have not been checked.
 **Sizes.** Easy: a label, a tooltip, a number, a button, a wrong link, a confirm box, a small rule. Medium: a new control
 or a rule with a screen. Hard: a new system.
 
+## Progress
+
+| | what was done | date |
+|---|---|---|
+| 1 | No rival is granted a world of the player's: the petition passes over the player's house. | 2026-11-20 |
+| 2 | Save says what it keeps ("as the year began") and for how long; Quit asks first and says what is lost; a new saga over a saved one asks first. A save in the middle of a year is still the start of that year: keeping the middle of a year is Medium ("a Save that saves where you are"). | 2026-11-20 |
+| 3 | One rung a year by any road. Seizing takes ships of the house's own (two for each rung of the rank). Legate, Proconsul and First Citizen want one, two and three worlds. Each button shows its cost and, when refused, the reason; each asks before it is done. | 2026-11-20 |
+| 4 | A venture is sold at what it cost in its first year, rising to its full value over five. | 2026-11-20 |
+| 5 | One line of succession, read by every screen: the Dynasty header, the You window, the will, the Ambitions tab and the succession itself. Someone who married in, someone taken in and a head who has stepped down stand behind everyone of the blood. The header says why the heir is the heir. | 2026-11-20 |
+
 ## The fifteen to fix first
 
 These are not the easiest. They are the ones that lose a player's work, break the game's balance, or hide what happened.
