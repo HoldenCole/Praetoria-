@@ -23,12 +23,12 @@
                         <div class="cast">
                             <Portrait Id="@r.ch.Id" Name="@r.ch.Name" Sex="@r.ch.Sex" Age="@r.ch.Age" Alive="@r.ch.Alive" Accent="@(h?.AccentColor ?? "#888")" Size="116" />
                             <div class="cast-name">@r.ch.Name</div>
-                            <div class="cast-sub">@(h?.Name ?? "") · @r.role.Replace('_', ' ')</div>
+                            <div class="cast-sub">@(h?.Name ?? "") · @RoleWord(r.role, h)</div>
                         </div>
                     }
                 </div>
             }
-            <p class="prose">@b.Body</p>
+            <p class="prose">@Prose(b.Body)</p>
             @if (b.Facts.Length > 0) { <p class="facts small" data-facts="1">@b.Facts</p> }
         </div>
         <div class="win-choices">
@@ -52,6 +52,15 @@
 </div>
 
 @code {
+    /* the first letter is set large and floated, and a browser drops the space after it: "A market" read "Amarket". A space that does not break is kept. */
+    private static string Prose(string s) => s.Length > 2 && s[1] == ' ' ? s[0] + "\u00A0" + s[2..] : s;
+    /* the part somebody plays in a report, in the Reach's own words: no "sovereign" where no throne stands */
+    private string RoleWord(string role, House? h)
+    {
+        var w = G.World!;
+        if (role == "sovereign" && !w.IsImperium) return h != null && RegionSystem.CapitalHolder(w)?.Id == h.Id ? "holds the chair" : h != null ? Praetoria.Core.Progression.Title.StyleOf(h.Title, w.Era) : "of higher rank";
+        return role.Replace('_', ' ');
+    }
     [Parameter, EditorRequired] public BriefingCard Card { get; set; } = default!;
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<(BriefingCard card, string choiceId)> OnChoose { get; set; }

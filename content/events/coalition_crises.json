@@ -890,6 +890,12 @@
       ],
       "when": [
         {
+          "type": "counter",
+          "key": "threat",
+          "op": "gte",
+          "value": 15
+        },
+        {
           "type": "any",
           "of": [
             {

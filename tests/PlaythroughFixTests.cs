@@ -446,4 +446,35 @@ public class PlaythroughFixTests
         string fight = Praetoria.Core.Presentation.ReportFacts.For(w, line, Content);
         Assert.Contains("Cinder Gate", fight); Assert.Contains("your 4 hull(s) against 9", fight); Assert.Contains("You lost 3", fight);
     }
+    [Fact]
+    public void An_article_fits_the_good_and_every_skill_says_what_it_is_for()
+    {
+        Assert.Equal("an isotopes", Resource.A(Resource.Isotopes));
+        Assert.StartsWith("a ", Resource.A(Resource.RareEarths));
+        foreach (var s in EducationSystem.All) Assert.False(string.IsNullOrEmpty(Praetoria.Core.Presentation.SkillWords.For(s)), s);
+        Assert.Contains("legitimacy", Praetoria.Core.Presentation.Marks.Tip("parvenu"));
+        Assert.Equal("debt to crown", Praetoria.Core.Presentation.Marks.Label("debt_to_crown"));
+    }
+
+    [Fact]
+    public void A_committees_chair_weighs_in_its_estate_every_year_it_is_held()
+    {
+        var (w, tc, house, me, ctx) = Start();
+        house.Committee = LadderSystem.FleetCommittee; Assert.Equal("navy", LadderSystem.CommitteeSphere(LadderSystem.FleetCommittee));
+        w.WorldCounters[LadderSystem.StandingKey(house.Id)] = 0;
+        tc.BeginTurn(); int before = house.SphereInfluence.GetValueOrDefault("navy");
+        w.WorldCounters[LadderSystem.StandingKey(house.Id)] = LadderSystem.StandingMax;
+        Assert.Equal(house.Id, LadderSystem.ChairOf(w, LadderSystem.FleetCommittee)?.Id);
+        tc.EndTurn(); tc.BeginTurn();
+        Assert.True(house.SphereInfluence.GetValueOrDefault("navy") >= before + SphereSystem.ChairWeight, $"{before} -> {house.SphereInfluence.GetValueOrDefault("navy")}");
+        Assert.False(house.SphereInfluence.ContainsKey("military"));
+    }
+    [Fact]
+    public void A_system_is_the_space_of_whoever_holds_its_world()
+    {
+        var (w, tc, house, me, ctx) = Start();
+        var world = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var other = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id));
+        for (int i = 0; i < 3; i++) w.Holdings["zz_claim_" + i] = new Holding { Id = "zz_claim_" + i, OwnerId = other.Id, Name = "claim", SystemId = world.SystemId, Kind = Holding.Claim, Specialization = "belt_claim" };
+        Assert.Equal(house.Id, FleetSystem.TerritoryOwner(w, world.SystemId));
+    }
 }

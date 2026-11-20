@@ -28,6 +28,8 @@ public static class Resource
     /// <summary>How the game writes the resource's name in prose.</summary>
     /// <summary>What a good is called on a screen. The house's store of political capital is "clout": it is not the influence of the
     /// year, which is a pool of actions, and five players took the two for one (docs/PLAYTHROUGH.md, "Two things called influence").</summary>
+    /// <summary>A good with its article, for a sentence: "an isotopes deposit", "a helium-3 deposit".</summary>
+    public static string A(string r) { string l = Label(r); return ("aeiou".Contains(char.ToLowerInvariant(l[0])) ? "an " : "a ") + l; }
     public static string Label(string r) => r switch { Helium3 => "helium-3", RareEarths => "rare earths", Isotopes => "isotopes", Influence => "clout", _ => r };
 }
 

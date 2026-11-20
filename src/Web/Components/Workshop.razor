@@ -23,7 +23,7 @@
                 <button class="chip @(free ? "on" : "")" @onclick="() => SetMode(CustomCharacter.Free)" title="no budget and very high caps; the run is marked as custom">Free · no limits</button>
             </div>
             <div class="ws-power @CharacterWorkshop.Rating(total)">
-                <b>@total</b> point@(total == 1 ? "" : "s") · <b>@CharacterWorkshop.Rating(total)</b>
+                <b>@total</b> point@(total == 1 ? "" : "s") · <b title="How strong a start this person is, by the points spent: under 30 modest, to 60 able, to 110 formidable, to 220 overpowered, beyond that absurd.">@CharacterWorkshop.Rating(total)</b>
                 @if (!free) { <span class="ws-bar"><i style="width:@(Math.Min(100, 100 * total / Math.Max(1, lim.Budget)))%" class="@(total > lim.Budget ? "over" : "")"></i></span> <span class="muted">of @lim.Budget</span> }
                 else { <span class="muted">· made without limits; the saga will say so</span> }
             </div>
@@ -63,7 +63,7 @@
             @foreach (var s in CharacterWorkshop.Skills)
             {
                 var sk = s; int v = c.Skills.GetValueOrDefault(sk);
-                <div class="ws-skill"><span>@sk</span>
+                <div class="ws-skill" title="@SkillWords.For(sk)"><span>@sk</span>
                     <button class="chip tiny" disabled="@(v <= 0)" @onclick="() => Step(sk, -1, lim.MaxSkill)">−</button>
                     <b class="@(v > 0 ? "" : "muted")">@v</b>
                     <button class="chip tiny" disabled="@(v >= lim.MaxSkill)" @onclick="() => Step(sk, 1, lim.MaxSkill)">+</button>

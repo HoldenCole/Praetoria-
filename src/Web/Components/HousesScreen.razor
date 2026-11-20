@@ -47,7 +47,7 @@
             <h3><Icon Name="houses" Size="13" /> The standings <span class="muted">click a house</span></h3>
             <div class="vols">@foreach (var k in new[] { "title", "worlds", "hulls", "seats", "wealth", "senate", "arms", "commerce", "disposition" }) { <button class="rung @(_sort == k ? "here" : "")" @onclick="() => _sort = k">by @(k == "title" && !w.IsImperium ? "rank" : k)</button> }</div>
             <table class="standings">
-                <thead><tr><th>House</th><th>@(w.IsImperium ? "Title" : "Rank")</th><th>Worlds</th><th>Hulls</th><th>Seats</th><th>Wealth</th><th title="The house's standing in the three orders, one letter each: S the Senate, A arms, C commerce. A bright letter is great or dominant in that order, a dim one notable, a missing one of no account.">Orders (S·A·C)</th><th>Toward you</th><th>Bench</th></tr></thead>
+                <thead><tr><th>House</th><th>@(w.IsImperium ? "Title" : "Rank")</th><th>Worlds</th><th>Hulls</th><th>Seats</th><th title="What the house would fetch sold up, in credits: its treasury, its stores at two-thirds of the market, its worlds and what is built on them, its ventures and shares, less what it owes.">Wealth</th><th title="The house's standing in the three orders, one letter each: S the Senate, A arms, C commerce. A bright letter is great or dominant in that order, a dim one notable, a missing one of no account.">Orders (S·A·C)</th><th>Toward you</th><th>Bench</th></tr></thead>
                 <tbody>
                 @foreach (var h in houses.Prepend(mine))
                 {
@@ -116,7 +116,7 @@
                         <Portrait Id="@ch.Id" Name="@ch.Name" Sex="@ch.Sex" Age="@ch.Age" Accent="@fh.AccentColor" Size="30" />
                         <span><b>@ch.Name</b> <span class="muted">@(c.Careers.RankName(ch.CareerTrack, ch.CareerRank, G.World!.Era) ?? "") · @ch.Age@(ch == head ? " · head" : "")@(ch.Flags.Contains(FleetSystem.AchillesFlag) ? " · Achilles" : "")</span>
                             @if (ch.Id != pid) { <span class="pill @(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span> }
-                            @if (cn != null) { foreach (var f in cn.Flags.Take(3)) { <span class="pill small">@f.Replace('_', ' ')</span> } }
+                            @if (cn != null) { foreach (var f in cn.Flags.Take(3)) { <span class="pill small" title="@Marks.Tip(f)">@Marks.Label(f)</span> } }
                         </span>
                         @if (cn != null) { foreach (var o in cn.Actions) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => AskConn(o.Id, o.Label, cn.Id)">@o.Label</button> } }
                     </div>

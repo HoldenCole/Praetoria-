@@ -87,7 +87,7 @@ public sealed class FoundBusinessCommand : ICommand
         if (ProjectSystem.Underway(w, house.Id, Project.Venture, _defId, _systemId)) return "already being founded here";
         var planet = w.Holdings.Values.Where(h => h.IsPlanet && h.SystemId == _systemId).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
         if (def.RequiresBelt && sys.Belt <= 0) return "needs a belt";
-        if (def.RequiresDeposit != null && sys.Deposit(def.RequiresDeposit) == 0) return $"needs a {Resource.Label(def.RequiresDeposit)} deposit";
+        if (def.RequiresDeposit != null && sys.Deposit(def.RequiresDeposit) == 0) return $"needs {Resource.A(def.RequiresDeposit)} deposit";
         if (def.RequiresPopulated && (planet == null || planet.Population <= 0)) return "needs a peopled world";
         if (def.RequiresOwnWorld && (planet == null || planet.OwnerId != house.Id)) return "needs a world of your own";
         if (def.MinLanes > 0 && w.Galaxy!.Neighbors(_systemId).Count() < def.MinLanes) return $"needs a hub of {def.MinLanes} lanes";

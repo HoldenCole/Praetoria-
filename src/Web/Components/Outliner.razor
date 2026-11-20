@@ -125,7 +125,7 @@
     }
     else if (w.HasFlag(Praetoria.Core.Systems.CaesarSystem.GreatNameFlag) && w.Characters.Values.FirstOrDefault(c => c.Alive && c.Flags.Contains(Praetoria.Core.Systems.CaesarSystem.GreatNameChar)) is { } rising)
         alerts.Add(("warn", $"{rising.Name} of {w.House(rising.HouseId)?.Name} is a commander of the first rank, and loved: the Reach has few of these", "military"));
-    else if (w.HasFlag(Praetoria.Core.Systems.CaesarSystem.LaurelsFlag)) alerts.Add(("info", "The house's general has the victories for a triumph: ask the Senate", "military"));
+    else if (w.HasFlag(Praetoria.Core.Systems.CaesarSystem.LaurelsFlag)) alerts.Add(("info", "The house's general has the victories for a triumph: move it in the Senate", "senate:move"));
     if (w.Protagonist is { } self && self.Health < Praetoria.Core.Systems.LifeSystem.Sound) alerts.Add(("warn", self.Health < Praetoria.Core.Systems.LifeSystem.Frail ? "Your health is failing" : "You are ailing", "you"));
     if (w.Protagonist is { } sick && sick.Flags.Contains(Praetoria.Core.Systems.LifeSystem.IllChar)) alerts.Add(("warn", "You are ill", "you:life"));
     if (w.HasFlag(Praetoria.Core.Systems.WealthSystem.DebtFlag)) alerts.Add(("warn", "One of the house is in debt", "house:purse"));

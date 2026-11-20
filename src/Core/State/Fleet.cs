@@ -78,6 +78,8 @@ public sealed class Fleet
     /// <summary>How many years the whole voyage under way was to take when it was ordered: what has been sailed is this less
     /// <see cref="Eta"/>, which is how long turning back takes (docs/PLAYTHROUGH.md 11).</summary>
     public int Voyage { get; set; }
+    /// <summary>The year this fleet came to where it lies: in space that is neither side's, the one who came later is the attacker.</summary>
+    public int ArrivedTurn { get; set; }
 
     public bool Moving => DestinationId.Length > 0;
 }

@@ -48,7 +48,7 @@ public sealed class BuildCommand : ICommand
         if (holding.Buildings.Contains(_buildingId)) return "already built";
         if (Systems.ProjectSystem.Underway(w, actor.HouseId, Project.Building, _buildingId, holding.Id)) return "already being built";
         if (!building.FitsSpecialization(holding.Specialization)) return "does not suit this holding";
-        if (building.RequiresDeposit != null && (w.Galaxy?.System(holding.SystemId)?.Deposit(building.RequiresDeposit) ?? 0) == 0) return $"needs a {Resource.Label(building.RequiresDeposit)} deposit";
+        if (building.RequiresDeposit != null && (w.Galaxy?.System(holding.SystemId)?.Deposit(building.RequiresDeposit) ?? 0) == 0) return $"needs {Resource.A(building.RequiresDeposit)} deposit";
         var house = w.House(actor.HouseId); if (house == null) return "no house";
         if (building.MinTitleRank > 0 && (_titles?.RankOf(house.Title) ?? 0) < building.MinTitleRank) return "needs a greater rank";   // megastructures want a seat
         var first = Systems.ProjectSystem.Split(building.Cost, building.BuildTurns).First;

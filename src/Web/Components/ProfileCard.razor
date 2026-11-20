@@ -58,7 +58,7 @@
                 <section>
                     <h3>What they are good at</h3>
                     @if (p.Skills.Count == 0) { <p class="muted small">Untrained.</p> }
-                    @foreach (var s in p.Skills) { <div class="ps"><span>@Cap(s.Name)</span><div class="sk-pips">@for (int i = 1; i <= 10; i++) { <i class="@(i <= s.Value ? "on" : "")"></i> }</div><b>@s.Value</b></div> }
+                    @foreach (var s in p.Skills) { <div class="ps" title="@SkillWords.For(s.Name.ToLowerInvariant())"><span>@Cap(s.Name)</span><div class="sk-pips">@for (int i = 1; i <= 10; i++) { <i class="@(i <= s.Value ? "on" : "")"></i> }</div><b>@s.Value</b></div> }
                 </section>
                 <section>
                     <h3>Whose they are</h3>

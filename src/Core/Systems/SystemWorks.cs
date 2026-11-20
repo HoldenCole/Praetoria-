@@ -265,7 +265,7 @@ public static class SystemWorks
         if (def.On == "world" && !b.IsPrimary) return "only on the system's home world";
         if (def.NotHome && b.IsPrimary) return "not for a home world";
         if (def.Feature.Length > 0 && b.Feature != def.Feature) return $"needs {cat.Feature(def.Feature)?.Name.ToLowerInvariant() ?? def.Feature}";
-        if (def.Deposit.Length > 0 && (b.Deposit != def.Deposit || sys.Deposit(def.Deposit) == 0)) return $"needs a {Resource.Label(def.Deposit)} deposit here";
+        if (def.Deposit.Length > 0 && (b.Deposit != def.Deposit || sys.Deposit(def.Deposit) == 0)) return $"needs {Resource.A(def.Deposit)} deposit here";
         if (def.Chokepoint && !w.Galaxy!.IsChokepoint(systemId)) return "only at a key of the lanes";
         if (On(w, systemId, body).Any(x => x.DefId == def.Id)) return "already built here";
         if (w.Projects.Any(p => p.Kind == Project.Work && p.DefId == def.Id && p.TargetId == Target(systemId, body))) return "already being built here";

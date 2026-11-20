@@ -16,7 +16,7 @@
         @foreach (var r in rows)
         {
             double fill = (r.level + (r.level < r.top ? Math.Min(0.95, r.have / (double)EducationSystem.Need(r.level)) : 0)) * 10;
-            <div class="learn-row @(p.Study == r.skill ? "studied" : "")" title="@($"{r.skill}: {r.level}, {EducationSystem.LevelName(r.level)}. Can reach {r.top}." + (r.level < r.top ? $" {r.have} of {EducationSystem.Need(r.level)} toward the next step." : " As far as you can go."))">
+            <div class="learn-row @(p.Study == r.skill ? "studied" : "")" title="@($"{r.skill}: {r.level}, {EducationSystem.LevelName(r.level)}. Can reach {r.top}." + (r.level < r.top ? $" {r.have} of {EducationSystem.Need(r.level)} toward the next step." : " As far as you can go.") + " " + SkillWords.For(r.skill))">
                 <span>@r.skill</span>
                 <i><b style="width:@Pct(r.level * 10)%"></b><s style="left:@Pct(r.level * 10)%; width:@Pct(Math.Max(0, fill - r.level * 10))%"></s><u style="left:@(r.top * 10)%"></u></i>
                 <em>@r.level<small> / @r.top</small></em>
@@ -24,10 +24,11 @@
         }
     </div>
 
-    <div class="ac-fact"><span>This year</span><p>
+    <div class="ac-fact"><span>This year</span><p title="Points toward the next step of a skill. The step from @(0) to 1 takes @EducationSystem.Need(0) points, and each step after it takes 3 more than the last.">
+        @if (practice.Count > 0 || p.Study.Length > 0) { <text>In points toward the next step: </text> }
         @if (practice.Count == 0 && p.Study.Length == 0 && mentor == null) { <text>Nothing is feeding any skill. Choose something to study.</text> }
         @foreach (var x in practice) { <text><b>@x.skill</b> +@x.points from @x.why. </text> }
-        @if (p.Study.Length > 0) { <text><b>@p.Study</b> +@(EducationSystem.StudyPoints + EducationSystem.TutorPoints(p.Tutor)) from study@(p.Tutor > 0 ? " with a tutor" : ""). </text> }
+        @if (p.Study.Length > 0) { <text><b>@p.Study</b> +@(EducationSystem.StudyPoints + EducationSystem.TutorPoints(p.Tutor)) from study@(p.Tutor > 0 ? " with a tutor" : "")@(p.Skill(p.Study) < EducationSystem.Ceiling(p, p.Study) ? $" (you have {p.Learning.GetValueOrDefault(p.Study)} of the {EducationSystem.Need(p.Skill(p.Study))} the next step takes)" : ""). </text> }
         @if (mentor != null) { <text>@mentor.Name teaches you a step every third year. </text> }
     </p></div>
 
@@ -35,7 +36,7 @@
         @foreach (var r in rows.Where(r => r.level < r.top).OrderBy(r => r.skill, StringComparer.Ordinal))
         {
             string s = r.skill;
-            <button class="opt inline tiny @(p.Study == s ? "here" : "")" title="@($"{r.level} now, can reach {r.top}")" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Study, pid, s))">@s</button>
+            <button class="opt inline tiny @(p.Study == s ? "here" : "")" title="@($"{r.level} now, can reach {r.top}. {SkillWords.For(r.skill)}")" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Study, pid, s))">@s</button>
         }
         @if (p.Study.Length > 0) { <button class="opt inline tiny" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Study, pid, string.Empty))">nothing</button> }
     </p></div>
@@ -45,14 +46,14 @@
         @foreach (int t in Tutors)
         {
             int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, pid, lv.ToString()).Refusal(G.Ctx);
-            <button class="opt inline tiny @(p.Tutor == t ? "here" : "")" disabled="@(no != null)" title="@(no ?? (t == 0 ? "no teacher" : $"+{EducationSystem.TutorPoints(t)} a year to what you study"))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, pid, lv.ToString()))">@TutorLabel(t)</button>
+            <button class="opt inline tiny @(p.Tutor == t ? "here" : "")" disabled="@(no != null)" title="@(no ?? (t == 0 ? "no teacher" : $"+{EducationSystem.TutorPoints(t)} point{(EducationSystem.TutorPoints(t) == 1 ? "" : "s")} a year to what you study. The fee is {EducationSystem.TutorCost(t)} credits a year from the house treasury, taken at the year's end; a teacher the treasury cannot pay leaves."))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, pid, lv.ToString()))">@TutorLabel(t)</button>
         }
     </div>
 </section>
 
 @code {
     private static readonly int[] Tutors = { 0, 1, 2 };
-    private static string TutorLabel(int t) => t == 0 ? "none" : t == 1 ? $"good · {EducationSystem.GoodTutorCredits} a year" : $"the best · {EducationSystem.BestTutorCredits} a year";
+    private static string TutorLabel(int t) => t == 0 ? "none" : t == 1 ? $"good · {EducationSystem.GoodTutorCredits} credits a year" : $"the best · {EducationSystem.BestTutorCredits} credits a year";
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);
     public void Dispose() => G.Changed -= Redraw;

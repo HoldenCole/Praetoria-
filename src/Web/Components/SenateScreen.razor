@@ -181,7 +181,7 @@
                 }
                 @if (cr.Active.Count == 0) { <div class="muted">No crisis is active.</div> }
                 @if (cr.Causable.Count > 0) { <div class="flag">Ripe to be lit, by you or by a rival: @string.Join(", ", cr.Causable)</div> }
-                @if (m.GreatCrisis is { } gc) { <div class="kv"><span>@gc.Name</span><b>@(gc.Resolved ? "resolved" : gc.Stage ?? "not yet") · @gc.Clock@(gc.NextAt != null ? $"/{gc.NextAt}" : "")</b></div> }
+                @if (m.GreatCrisis is { } gc) { <div class="kv" title="How near the Reach is to the next stage of its great war. Before the war it rises each year by what is wrong with the Reach (the Senate window lists what) and falls back when nothing is; once the war has begun it runs on, faster the more wars there are. The second figure is where the next stage begins."><span>@gc.Name</span><b>@(gc.Resolved ? "resolved" : gc.Stage ?? "not yet") · @gc.Clock@(gc.NextAt != null ? $"/{gc.NextAt}" : "")</b></div> }
             </section>
         }
         </div>
@@ -287,7 +287,7 @@
                                         @foreach (var o in pr.Offices) { <option value="@o.Id">@o.Name</option> }
                                     </select>
                                 }
-                                <button class="opt inline" disabled="@(!CanMove(pr))" title="@pr.Refusal" @onclick="() => MoveTarget(pr.KindId)">Move it</button>
+                                { string? tno = TargetRefusal(pr); <button class="opt inline" disabled="@(tno != null)" title="@tno" @onclick="() => MoveTarget(pr.KindId)">Move it</button> @if (tno != null && !string.IsNullOrEmpty(_target.GetValueOrDefault(pr.KindId))) { <span class="muted small" data-motion-no>@tno</span> } }
                             }
                         </div>
                     }
@@ -341,13 +341,14 @@
                     <button class="win-close" @onclick="() => _focus = null">✕</button>
                 </div>
             }
+            <div class="muted small" data-sphere-legend>The three estates of the Reach. A house's weight in each is the ranks of its family serving on that track, added up; each bar is cut by house, yours outlined. Weight in the Senate is also what your vote counts for in the chamber. A share well above an even split is what makes the other houses fear you.</div>
             <div class="spheres-row">
                 @foreach (var sp in spheres)
                 {
                     var shares = w.Houses.Values.Select(h => (h, v: h.SphereInfluence.TryGetValue(sp, out var v) ? v : 0)).Where(x => x.v > 0).OrderByDescending(x => x.v).ToList(); int total = Math.Max(1, shares.Sum(x => x.v));
                     var def = c.Spheres.IsEmpty ? null : c.Spheres.Defs.FirstOrDefault(x => x.Id == sp);
-                    <div class="sphere">
-                        <div class="sphere-head"><b>@(def?.Name ?? sp)</b> <span class="muted">yours @(house.SphereInfluence.TryGetValue(sp, out var mine) ? mine : 0) / @total</span></div>
+                    <div class="sphere" title="@SphereTip(sp, def?.Name ?? sp)">
+                        <div class="sphere-head"><b>@(def?.Name ?? sp)</b> <span class="muted">your weight @(house.SphereInfluence.TryGetValue(sp, out var mine) ? mine : 0) of @total</span></div>
                         <div class="sphere-bar">@foreach (var x in shares) { <i style="width:@(100.0 * x.v / total)%; background:@x.h.AccentColor" title="@x.h.Name @x.v" class="@(x.h.Id == house.Id ? "mine" : "")"></i> }</div>
                     </div>
                 }
@@ -408,6 +409,13 @@
 
 
 @code {
+    private static string SphereTip(string id, string name) => id switch
+    {
+        "navy" => $"Weight in {name}: the ranks of your family serving in the fleet, added up, and one more while you chair the committee on the fleet.",
+        "treasury" => $"Weight in {name}: the ranks of your family serving in the administration, added up, and one more while you chair the committee on the purse.",
+        "senate" => $"Weight in {name}: the ranks of your family at the law, plus one for each motion of yours the chamber has carried and less one for each it threw out, plus {Praetoria.Core.Systems.SphereSystem.CapitalSenateWeight} if you hold the capital and one while you chair the committee on the laws. With your title's rank, this is what your vote counts for.",
+        _ => $"Weight in {name}: the ranks of your family serving on that track, added up.",
+    };
     private string _view = "chamber";
     /// <summary>The tab an alert asked for, and a stamp that changes each time one asks; a stamp is used once.</summary>
     private static string BribeTip(StanceLine st) => $"{st.BribePrice} credits from the treasury to the head of {st.HouseName}: its own vote leans your way by {SenateSystem.BribeWeight}." + (st.FactionLeader ? " It leads a bench, but the bench was not paid and does not follow a bought vote." : "") + $" One time in {SenateSystem.BribeOutOneIn} it comes out at the count: the vote is struck and your house loses {SenateSystem.BribeOutLegitimacy} legitimacy.";
@@ -433,6 +441,14 @@
     private string? ActRefusal(MotionProposal pr) => ActOption(pr)?.Refusal ?? (ActOption(pr) == null ? "choose a law and what it should be" : null);
     private bool CanMoveAct(MotionProposal pr) => ActOption(pr) is { Refusal: null };
     private void MoveAct(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, "", G.Turn!.Senate, lawId: _law.GetValueOrDefault(kind) ?? "", optionId: _lawOpt.GetValueOrDefault(kind) ?? ""));
+    /* the refusal for the house, region or nation chosen in the form, not for whichever the list happened to begin with */
+    private string? TargetRefusal(MotionProposal pr)
+    {
+        string t = _target.GetValueOrDefault(pr.KindId) ?? "", o = _office.GetValueOrDefault(pr.KindId) ?? "";
+        if (t.Length == 0) return pr.TargetType == "house" ? "choose a house" : pr.TargetType == "nation" ? "choose a nation" : "choose a region";
+        if (pr.NeedsOffice && o.Length == 0) return "choose the office";
+        return new ProposeMotionCommand(G.World!.ProtagonistId, pr.KindId, t, G.Turn!.Senate, o).Refusal(G.Ctx);
+    }
     private bool CanMove(MotionProposal pr) => !string.IsNullOrEmpty(_target.GetValueOrDefault(pr.KindId)) && (!pr.NeedsOffice || !string.IsNullOrEmpty(_office.GetValueOrDefault(pr.KindId)))
         && (pr.Refusal == null || pr.Refusal == "not against yourself" || pr.Refusal == "already before the Senate" || pr.Refusal.StartsWith("no one of") || pr.Refusal.EndsWith("holds it already"));
     private void MoveSelf(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, G.World.Protagonist!.HouseId, G.Turn!.Senate));

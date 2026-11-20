@@ -78,7 +78,7 @@ public static class ChoiceStakes
             case BondCondition: return want ? "needs a tie between the two that is not there" : "not between two so tied";
             case TrackCondition tr: return want == tr.Present ? "needs a career in " + tr.Track.Replace('_', ' ') : "not for one in " + tr.Track.Replace('_', ' ');
             case EraCondition er: return want == er.Present ? "only under the " + er.Era : "not under the " + er.Era;
-            case DepositCondition dp: return want == dp.Present ? "needs a " + Resource.Label(dp.ResourceKey) + " deposit on a world of the house" : "";
+            case DepositCondition dp: return want == dp.Present ? "needs " + Resource.A(dp.ResourceKey) + " deposit on a world of the house" : "";
             case SphereCondition sp: return want ? $"needs standing {Op(sp.Op)} {sp.Value} with {sp.SphereKey.Replace('_', ' ')}" : "";
             case BlocCondition bl: return want == bl.Present ? "needs a seat with " + bl.Bloc.Replace('_', ' ') : "not for one of " + bl.Bloc.Replace('_', ' ');
             default: return "";   // a flag, a counter, a turn: something that happened or did not, which the story has told

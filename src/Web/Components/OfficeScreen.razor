@@ -64,7 +64,7 @@
             <section class="panel great @(gc.Resolved ? "resolved" : "")">
                 <h3><Icon Name="crisis" Size="13" /> @gc.Name</h3>
                 <div class="kv"><span>Stage</span><b>@(gc.Resolved ? "resolved" : gc.Stage ?? "not yet")</b></div>
-                <div class="kv"><span>Clock</span><b>@gc.Clock@(gc.NextAt != null ? $" / {gc.NextAt}" : "")</b></div>
+                <div class="kv" title="How near the Reach is to the next stage of its great war. Before the war it rises each year by what is wrong with the Reach (the Senate window lists what) and falls back when nothing is; once the war has begun it runs on, faster the more wars there are. The second figure is where the next stage begins."><span>How near</span><b>@gc.Clock@(gc.NextAt != null ? $" / {gc.NextAt}" : "")</b></div>
                 @if (gc.Bloc.Length > 0) { <div class="kv"><span>Your bloc</span><b>@gc.Bloc</b></div> }
                 @if (gc.HegemonName != null) { <div class="kv"><span>Hegemon</span><b>@gc.HegemonName</b></div> }
             </section>

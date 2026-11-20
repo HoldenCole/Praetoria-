@@ -25,7 +25,7 @@ public static partial class LadderSystem
 
     public static string CommitteeName(string id) => id == Purse ? "the Committee of the Purse" : id == FleetCommittee ? "the Committee of the Fleet" : "the Committee of the Laws";
     /// <summary>The sphere a committee's chair is heard in.</summary>
-    public static string CommitteeSphere(string id) => id == Purse ? "treasury" : id == FleetCommittee ? "military" : "senate";
+    public static string CommitteeSphere(string id) => id == Purse ? "treasury" : id == FleetCommittee ? "navy" : "senate";
     /// <summary>What a committee's business is, among the things the Senate votes on.</summary>
     public static bool IsBusinessOf(string committee, string interest) => committee switch
     {
@@ -85,7 +85,7 @@ public static partial class LadderSystem
         }
         else { EducationSystem.Gain(w, who, "law", 2); PolicySystem.Sway(w, house.Id, "magistrates", 1); MoveTrust(w, 1); }
         bool chair = ChairOf(w, committee)?.Id == house.Id;
-        if (chair) { w.PoolsFor(who.Id).Influence += 1; house.SphereInfluence[CommitteeSphere(committee)] = house.SphereInfluence.GetValueOrDefault(CommitteeSphere(committee)) + 1; }
+        if (chair) w.PoolsFor(who.Id).Influence += 1;   /* the chair's weight in its estate is counted by SphereSystem, every year it is held */
         if (ours)
         {
             if (chair && !wasChair) { Mark(w, ChairFlag); LifeSystem.Note(w, who, "office", $"Took the chair of {CommitteeName(committee)}."); w.Log($"{who.Name} takes the chair of {CommitteeName(committee)}."); }

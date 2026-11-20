@@ -53,7 +53,7 @@
         @if (ambition != null) { <span class="cw-trait amb" title="@("Ambition — " + ambition.Description)">wants to @ambition.Name.ToLowerInvariant()</span> }
     </div>
     <div class="cw-skills">
-        @foreach (var sk in skills.Take(6)) { <div class="cw-skill" title="@($"{char.ToUpper(sk.Key[0])}{sk.Key[1..]} — {sk.Value} of a possible {EducationSystem.Ceiling(p, sk.Key)}; every skill runs to ten")"><b>@sk.Value</b><span>@sk.Key</span></div> }
+        @foreach (var sk in skills.Take(6)) { <div class="cw-skill" title="@($"{char.ToUpper(sk.Key[0])}{sk.Key[1..]} — {sk.Value} of a possible {EducationSystem.Ceiling(p, sk.Key)}; every skill runs to ten. {SkillWords.For(sk.Key)}")"><b>@sk.Value</b><span>@sk.Key</span></div> }
         @if (skills.Count == 0) { <span class="muted small">Untrained. Skills grow from what you do, what you study and who teaches you.</span> }
     </div>
     <div class="tiles">
@@ -79,7 +79,7 @@
             <div class="kv"><span>Commands from</span><b>@(style == "front" ? "the front" : style == "flag" ? "the flag" : "the staff")@(valour > 0 ? $" · valour {valour}" : "")@(p.Flags.Contains(FleetSystem.AchillesFlag) ? " · the fleet will not fight without you" : "")</b></div>
             @if (ambition != null) { <div class="kv"><span>Ambition</span><b>@ambition.Name</b></div> }
             @if (honors.Count > 0) { <div class="kv"><span>Honours</span><b>@string.Join(", ", honors)</b></div> }
-            @if (flags.Count > 0) { <div class="kv"><span>Marked as</span><b>@string.Join(" · ", flags.Select(f => f.Replace('_', ' ')))</b></div> }
+            @if (flags.Count > 0) { <div class="kv"><span>Marked as</span><b>@foreach (var f in flags) { <span class="mark-word" title="@Marks.Tip(f)">@Marks.Label(f)</span> }</b></div> }
         </section>
         <LifePanel />
         <FeudPanel />

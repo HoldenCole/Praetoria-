@@ -98,6 +98,7 @@ public sealed class SphereSystem
             if (c is { Alive: true } && c.CareerTrack == sphere.CareerTrack)
                 sum += c.CareerRank;
         }
+        if (!World.Outsider(house.Id) && LadderSystem.CommitteeSphere(LadderSystem.CommitteeOf(w, house)) == sphere.Id && LadderSystem.ChairOf(w, LadderSystem.CommitteeOf(w, house))?.Id == house.Id) sum += ChairWeight;   // a committee's chair weighs in its estate
         if (sphere.Id == "senate" && RegionSystem.CapitalHolder(w)?.Id == house.Id) sum += CapitalSenateWeight;   // the chair is the capital's (GDD §19)
         if (sphere.Id == "senate") sum += w.Counter("senate_standing:" + house.Id);                                   // motions carried, less motions thrown out (SenateSystem)
         return sum;
@@ -127,6 +128,8 @@ public sealed class SphereSystem
     /// </summary>
     /// <summary>Senate influence the capital's holder carries by right of the chair.</summary>
     public const int CapitalSenateWeight = 2;
+    /// <summary>What the chair of a committee adds to its house's weight in that committee's estate.</summary>
+    public const int ChairWeight = 1;
     /// <summary>Threat the capital puts on its holder's back.</summary>
     public const int CapitalThreat = 5;
 

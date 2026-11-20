@@ -99,7 +99,7 @@
                             </div>
                             @if (fc.NatureTraits.Count + fc.AptitudeTraits.Count > 0) { <div class="muted small">@string.Join(" · ", fc.NatureTraits.Concat(fc.AptitudeTraits))@(fc.Ambition.Length > 0 ? $" · wants: {fc.Ambition.Replace('_', ' ')}" : "")</div> }
                             @if (fc.Skills.Any(k => k.Value > 0)) { <div class="muted small">@string.Join(" · ", fc.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value).Take(4).Select(k => $"{k.Key} {k.Value}"))</div> }
-                            @if (fc.Flags.Any(f => !f.StartsWith("background:"))) { <div class="sc-flags">@foreach (var f in fc.Flags.Where(f => !f.StartsWith("background:")).OrderBy(f => f, StringComparer.Ordinal)) { <span class="pill small">@f.Replace('_', ' ')</span> }</div> }
+                            @if (fc.Flags.Any(f => !f.StartsWith("background:"))) { <div class="sc-flags">@foreach (var f in fc.Flags.Where(f => !f.StartsWith("background:")).OrderBy(f => f, StringComparer.Ordinal)) { <span class="pill small" title="@Marks.Tip(f)">@Marks.Label(f)</span> }</div> }
                             @if (hl != null && hl.Actions.Count > 0) { <div class="sc-actions">@foreach (var o in hl.Actions) { if (o.Id == "defiant") { <span class="pill warn">defiant</span> } else { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(Household(o.Id, hl.Id))">@o.Label</button> } }</div> }
                         </div>
                         <button class="win-close" @onclick="() => _focus = null">✕</button>

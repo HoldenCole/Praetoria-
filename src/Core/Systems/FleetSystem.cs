@@ -374,6 +374,7 @@ public sealed class FleetSystem
 
     private static void Arrive(World w, Fleet f)
     {
+        f.ArrivedTurn = w.Turn;
         string? owner = TerritoryOwner(w, f.SystemId);
         var sys = w.Galaxy!.System(f.SystemId);
         if (f.OwnerId == PirateSystem.HouseId)   // raiders roam every turn; the chronicle hears of them only when they reach someone's world
@@ -393,6 +394,7 @@ public sealed class FleetSystem
 
     public static string? TerritoryOwner(World w, string systemId)
     {
+        if (w.PlanetHolder(systemId) is { Length: > 0 } holder) return holder;   /* a system is the space of whoever holds its world; a claim or a station there does not outvote the world */
         var owners = w.Holdings.Values.Where(h => h.SystemId == systemId)
             .GroupBy(h => h.OwnerId).OrderByDescending(g => g.Count()).ThenBy(g => g.Key, StringComparer.Ordinal)
             .Select(g => g.Key).ToList();
@@ -604,7 +606,10 @@ public sealed class FleetSystem
     private BattleReport Battle(World w, IRng rng, string systemId, string a, string b)
     {
         string? owner = TerritoryOwner(w, systemId);
-        string attacker = owner == a ? b : a, defender = owner == a ? a : b;
+        /* the one whose space it is holds; where it is neither's, the one who was there first holds and the one who came is the attacker */
+        int Came(string h) => w.Fleets.Values.Where(f => f.OwnerId == h && !f.Moving && f.SystemId == systemId).Select(f => f.ArrivedTurn).DefaultIfEmpty(0).Max();
+        bool aHolds = owner == a || (owner != b && Came(a) < Came(b));
+        string attacker = aHolds ? b : a, defender = aHolds ? a : b;
         double pa = Power(w, attacker, systemId, defending: false);
         double pd = Power(w, defender, systemId, defending: owner == defender);
         // the other houses of the Reach in the system lend their guns against a power from outside; the losses are the leader's
@@ -958,7 +963,7 @@ public sealed class FleetSystem
             {
                 loser.Title = "landless";
                 w.House(conqueror)?.Claims.Add(fallen);
-                w.Log($"{loser.Name}, landless, loses its {fallen} rank; {w.House(conqueror)?.Name ?? conqueror} holds a claim to it.");
+                w.Log($"{loser.Name}, landless, loses the rank of {Progression.Title.StyleOf(fallen, w.Era)}; {w.House(conqueror)?.Name ?? conqueror} holds a claim to it.");
             }
         }
     }

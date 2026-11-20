@@ -135,6 +135,7 @@
             @if (prospects.Count == 0) { <div class="muted small">There is no one @suitor.Name could be matched with now.</div> }
             else
             {
+                <div class="muted small" data-prospect-legend>The figures run from 0 to 100, as they would stand on the first day of the courtship. <b>Favour</b> is what the one courted would feel; <b>Family</b> is how near their family is to saying yes, and they agree at @CourtshipSystem.AcceptAt. @(suitor.Id != pid && suitor.Age >= 16 ? $"{First(suitor.Name)}'s wish is what your own relative thinks of the match: under {CourtshipSystem.UnwillingWish} they are unwilling. " : "")Both move in the years of the courtship.</div>
                 <table class="standings prospects">
                     <thead><tr><th></th><th>Who</th><th>House</th>@if (suitor.Id != pid && suitor.Age >= 16) { <th title="what your own kin would think of them">@First(suitor.Name)'s wish</th> }<th title="what they would feel on the first day">Favour</th><th title="what their family would think on the first day">Family</th><th></th></tr></thead>
                     <tbody>

@@ -179,9 +179,9 @@
                                 @if (n.Watch.Length > 0) { <div class="nrow small @(n.Watch.StartsWith("not") ? "warn" : "")" title="It pays while a fleet of the Reach of three hulls or more stands at its march or over one of its worlds."><span class="muted">Tribute:</span> @n.Watch</div> }
                                 @if (n.Lost.Length > 0) { <div class="nrow small" title="Easy to take, hard to hold: without a fleet over it, it rises."><span class="muted">Of its own, in the Reach's hands:</span> @n.Lost</div> }
                             }
-                            <div class="nrow"><span class="muted small">strength</span><span class="mbar"><i style="width:@(100 * n.Strength / maxStr)%; background:@(n.AtWar ? "#E63946" : n.SubduedUntil > 0 ? "#2EC27E" : "#C9D1DC")"></i></span><b>@n.Strength</b>
-                                <span class="pill small @(n.Disposition <= -30 ? "warn" : n.Disposition >= 20 ? "good" : "")" title="their regard for the Reach">@(n.Disposition >= 0 ? "+" : "")@n.Disposition</span>
-                                @if (n.AtWar) { <span class="pill small warn">at war</span> } else if (n.SubduedUntil > 0) { <span class="pill small good">pays @n.Tribute/turn until T@(n.SubduedUntil)</span> } @if (n.RaidedLately) { <span class="pill small warn">raiding the rim</span> }@if (n.Wars > 0 && !n.AtWar) { <span class="pill small">@n.Wars war(s) fought</span> }
+                            <div class="nrow"><span class="muted small">strength</span><span class="mbar"><i style="width:@(100 * n.Strength / maxStr)%; background:@(n.AtWar ? "#E63946" : n.SubduedUntil > 0 ? "#2EC27E" : "#C9D1DC")"></i></span><b title="The hulls it can put in the field. The bar is against the strongest nation at its full strength.">@n.Strength hulls</b>
+                                <span class="pill small @(n.Disposition <= -30 ? "warn" : n.Disposition >= 20 ? "good" : "")" title="Their regard for the Reach, from −100 to +100. An aggressive or decaying nation raids the rim once its regard is at −20 or lower.">regard @(n.Disposition >= 0 ? "+" : "")@n.Disposition</span>
+                                @if (n.AtWar) { <span class="pill small warn">at war</span> } else if (n.SubduedUntil > 0) { <span class="pill small good">pays @n.Tribute a year until year @n.SubduedUntil</span> } @if (n.RaidedLately) { <span class="pill small warn">raiding the rim</span> }@if (n.Wars > 0 && !n.AtWar) { <span class="pill small">@n.Wars war(s) fought</span> }
                                 @if (!n.AtWar && n.SubduedUntil == 0 && !n.Fallen) { <button class="opt inline tiny" disabled="@(n.War.Refusal != null)" title="@(n.War.Refusal ?? "move in the Senate that the Reach make war upon them (3 influence)")" @onclick="() => MoveWar(n.Id)">@n.War.Label</button> }</div>
                         </div>
                     }
@@ -352,17 +352,25 @@
             @if (raidersAtLarge > 0) { <div class="small bad">Raiders on the lanes: @raidersAtLarge hull(s) in all.</div> }
         </section>
         }
-        @if (_view == "deck" && m.Wars.Count == 0 && m.Sieges.Count == 0) { <div class="empty-line peace">At peace: no war, no siege, no campaign. A house declares a war on the Houses window; the Senate makes war beyond the Reach.</div> }
-        @if (_view == "deck" && (m.Wars.Count > 0 || m.Sieges.Count > 0)) {
+        @if (_view == "deck" && m.Wars.Count == 0 && m.Sieges.Count == 0 && !nations.Any(n => n.AtWar)) { <div class="empty-line peace">At peace: no war, no siege, no campaign. A house declares a war on the Houses window; the Senate makes war beyond the Reach.</div> }
+        @if (_view == "deck" && (m.Wars.Count > 0 || m.Sieges.Count > 0 || nations.Any(n => n.AtWar))) {
             <section class="panel">
                 <h3><Icon Name="war" Size="13" /> Wars</h3>
                 @foreach (var war in m.Wars)
                 {
                     var wr = w.Wars.First(x => x.Between(house.Id, war.EnemyHouseId)); var eh = w.House(war.EnemyHouseId); int a = wr.Score(house.Id), b = wr.Score(war.EnemyHouseId); int tot = Math.Max(1, a + b);
-                    <div class="war"><div><Sigil HouseId="@war.EnemyHouseId" Accent="@(eh?.AccentColor ?? "#888")" Size="16" /> <b>@war.EnemyName</b> <span class="muted">since turn @war.Since · their hulls ~@war.EnemyHulls@(war.TheyAreSuing ? " · they sue for peace" : "")</span></div>
+                    <div class="war"><div><Sigil HouseId="@war.EnemyHouseId" Accent="@(eh?.AccentColor ?? "#888")" Size="16" /> <b>@war.EnemyName</b> <span class="muted">since year @war.Since · their hulls ~@war.EnemyHulls@(war.TheyAreSuing ? " · they sue for peace" : "")</span></div>
                         <div class="tally"><span class="for" style="width:@(100 * a / tot)%"></span><span class="against" style="width:@(100 * b / tot)%"></span></div>
                         <div class="kv"><span>War score</span><b>@a : @b</b></div>
                         <PeaceTerms War="war" /></div>
+                }
+                @foreach (var nw in nations.Where(n => n.AtWar))
+                {
+                    int na = nw.ScoreReach, nb = nw.ScoreNation, ntot = Math.Max(1, na + nb);
+                    <div class="war" data-nation-war="@nw.Id"><div><b>@nw.Name</b> <span class="muted">a war beyond the Reach, since year @nw.WarSince@(nw.WhoseWar.Length > 0 ? " · " + nw.WhoseWar : "")</span></div>
+                        <div class="tally"><span class="for" style="width:@(100 * na / ntot)%"></span><span class="against" style="width:@(100 * nb / ntot)%"></span></div>
+                        <div class="kv"><span>War score</span><b>@na : @nb</b></div>
+                        <div class="row"><button class="opt inline tiny" @onclick='() => _view = "abroad"'>Its orders and its peace: Beyond the Reach ▸</button></div></div>
                 }
                 @foreach (var sg in m.Sieges) { <div class="line @(sg.Ours ? "warn" : "")"><Icon Name="siege" Size="12" /> @sg.HoldingName under siege by @sg.BesiegerName · @sg.Turns/@sg.Required@(sg.Ours ? " — ours" : "")</div> }
             </section>

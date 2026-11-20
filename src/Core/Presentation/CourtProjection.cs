@@ -410,7 +410,8 @@ public static class CourtProjection
                 return new HouseholdLine(c.Id, c.Name, c.Age, c.Sex, c.Flags.Contains(DynastySystem.HiddenFlag), ProposeMarriageCommand.IsMarried(w, c.Id), acts);
             }).ToList();
 
-        var sieges = w.Sieges.Values.OrderBy(s => s.HoldingId, StringComparer.Ordinal)
+        /* the sieges that are the house's business: its own worlds invested, and the ones its own fleets are laying. Strangers' sieges are the map's to show. */
+        var sieges = w.Sieges.Values.Where(s => s.BesiegerId == house.Id || w.Holding(s.HoldingId)?.OwnerId == house.Id).OrderBy(s => s.HoldingId, StringComparer.Ordinal)
             .Select(s => new SiegeLine(w.Holding(s.HoldingId)?.Name ?? s.HoldingId, w.House(s.BesiegerId)?.Name ?? s.BesiegerId, s.Turns, s.Required, w.Holding(s.HoldingId)?.OwnerId == house.Id)).ToList();
         // the story is told when the line ends, or while the player's own house sits a throne it took: not because some other house took one (docs/THRONE.md)
         string? epilogue = w.IsDynastyDead || (w.HasFlag(ThroneSystem.ProclaimedFlag) || w.HasFlag(ThroneSystem.SeizedFlag)) && ThroneSystem.Emperor(w)?.Id == house.Id ? Epilogue.Generate(w, content) : null;
@@ -695,7 +696,7 @@ public static class CourtProjection
                     new Option("terms_ceded", "Make your own peace: they keep what they hold", n.WarOf != house.Id ? "not your war" : NationSystem.WarScore(n, d) >= 0 ? "not offered" : new NegotiateCommand(p.Id, d.Id, "ceded", nations).Refusal(ctx)),   // conceding is offered only when the war is going against you
                     new Option("terms_paid", "Make your own peace: pay them tribute", n.WarOf != house.Id ? "not your war" : NationSystem.WarScore(n, d) >= 0 ? "not offered" : new NegotiateCommand(p.Id, d.Id, "paid", nations).Refusal(ctx)),
                     new Option("client", w.HasFlag(NationSystem.PlayerClientsFlag) ? "Beaten decisively, you would make it a client: say you would keep what you take" : "Beaten decisively, you would keep what you take: say you would make it a client", !n.OnMap ? "not on the map" : null),
-                    new Option("raid", w.HasFlag(NationSystem.PlayerRaidsFlag) ? "Your fleets raid: order them to take and hold" : "Your fleets take and hold: order them to raid", !n.OnMap ? "not on the map" : null),
+                    new Option("raid", w.HasFlag(NationSystem.PlayerRaidsFlag) ? "Order your fleets to take and hold (now they raid)" : "Order your fleets to raid (now they take and hold)", !n.OnMap ? "not on the map" : null),
                 });
         }).ToList();
         var brief = new List<BattleBrief>();
