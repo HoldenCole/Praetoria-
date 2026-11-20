@@ -263,7 +263,17 @@
                     {
                         bool isGreat = SystemWorks.IsGreat(cat, p); string pid = p.Id; bool hastened = p.Hastened; var hd = ProjectSystem.HastenDue(p, rules.HastenPct); var both = hd.due.Clone(); foreach (var r in Resource.All) both.Add(r, hd.extra.Get(r));
                         string? hno = isGreat && mine ? new HastenWorkCommand(me.Id, p.Id, !p.Hastened, cat).Refusal(ctx) : null;
-                        <div class="sysp-work stands up" data-rising="@p.DefId">@Art(p.DefId)<div class="sw-text"><div class="sw-head"><b>@Cap(p.Name)</b> <span class="muted small">@(p.Stalled ? "stalled: the purse could not pay" : hastened ? "rising · hastened" : "rising")</span></div><div class="sw-does">@p.TurnsLeft of @p.TurnsTotal year(s) to go · @Bundle(ProjectSystem.Remaining(p)) still to pay</div>
+                        <div class="sysp-work stands up" data-rising="@p.DefId">@Art(p.DefId)<div class="sw-text"><div class="sw-head"><b>@Cap(p.Name)</b> <span class="muted small">@(p.Stalled ? "stalled: the purse could not pay" : hastened ? "rising · hastened" : "rising")</span></div><div class="sw-does">@p.TurnsLeft of @p.TurnsTotal year(s) to go · @Bundle(ProjectSystem.Remaining(p)) still to pay@(p.Paused ? " · paused" : "")</div>
+                            @if (p.OwnerId == me.HouseId && p.CompanyId.Length == 0)
+                            {
+                                string? rushNo = new RushProjectCommand(me.Id, pid).Refusal(ctx); int rushMore = ProjectSystem.RushPremium(w, p); string? payNo = p.Stalled ? new PayInstalmentCommand(me.Id, pid).Refusal(ctx) : null;
+                                <div class="suit-acts" data-site="@pid">
+                                    <button class="opt inline tiny" @onclick="() => G.Execute(new PauseProjectCommand(me.Id, pid))">@(p.Paused ? "Resume" : "Pause")</button>
+                                    @if (p.Stalled) { <button class="opt inline tiny" disabled="@(payNo != null)" title="@(payNo ?? "Pay the instalment that was missed now: the work goes on and the lost year is made up")" @onclick="() => G.Execute(new PayInstalmentCommand(me.Id, pid))">Pay the instalment now · @Bundle(ProjectSystem.NextInstalment(p))</button> }
+                                    @if (!isGreat && p.TurnsLeft > 1) { <button class="opt inline tiny" disabled="@(rushNo != null)" title="@(rushNo != null ? Cap(rushNo) : "Everything still owed is paid now, and " + rushMore + " credits more for the haste: it is done next year")" @onclick="() => G.Execute(new RushProjectCommand(me.Id, pid))">Rush · @Bundle(ProjectSystem.Remaining(p)) and @rushMore credits more</button> }
+                                    <button class="opt inline tiny" title="half of what was paid comes back" @onclick='() => G.AskDo("Abandon " + p.Name + "?", "The site is cleared. Of the " + Bundle(p.Paid) + " paid so far, " + Bundle(ProjectSystem.Refund(p)) + " comes back and the rest is lost.", "Abandon it", new AbandonProjectCommand(me.Id, pid))'>Abandon · get back @Bundle(ProjectSystem.Refund(p))</button>
+                                </div>
+                            }
                             @if (isGreat && mine && p.TurnsLeft > 1)
                             {
                                 <div class="sw-cost"><span>@(hastened ? "Hastened: two years' work in one. This year " + Bundle(both) + " (" + Bundle(hd.extra) + " of it for the speed)." : "Hasten it: two years' work in one, for " + Bundle(both) + " a year (" + Bundle(hd.extra) + " of it for the speed), every year it is hastened.")</span>

@@ -36,9 +36,9 @@
                         }
                         else
                         {
-                            <button class="opt inline tiny" disabled="@(p.RushRefusal != null)" title="@(p.RushRefusal ?? "everything still owed now, and a quarter more: done next year")" @onclick="() => G.Execute(new RushProjectCommand(pid, p.Id))">Rush · @p.RushCredits credits over the cost</button>
+                            <button class="opt inline tiny" disabled="@(p.RushRefusal != null)" title="@(p.RushRefusal ?? "Everything still owed is paid now, and " + p.RushCredits + " credits more for the haste: it is done next year")" @onclick="() => G.Execute(new RushProjectCommand(pid, p.Id))">Rush · pay @p.Remaining and @p.RushCredits credits more, now</button>
                         }
-                        <button class="opt inline tiny" title="half of what was paid comes back" @onclick="() => G.Execute(new AbandonProjectCommand(pid, p.Id))">Abandon · get back @p.Refund</button>
+                        <button class="opt inline tiny" title="half of what was paid comes back" @onclick='() => G.AskDo("Abandon " + p.Name + "?", "The site is cleared. Of the " + p.Paid + " paid so far, " + p.Refund + " comes back and the rest is lost. It cannot be taken up again where it was left.", "Abandon it", new AbandonProjectCommand(pid, p.Id))'>Abandon · get back @p.Refund</button>
                     </div>
                 }
             </div>
