@@ -111,8 +111,8 @@
         alerts.Add(("info", "Your year in the Senate is not yet spent", "senate:duties"));
     if (w.Protagonist is { } officer && Praetoria.Core.Systems.LadderSystem.BusinessOf(w, officer.Id) is { } officeWork)
         alerts.Add(("warn", officeWork.Kind == Praetoria.Core.Systems.LadderSystem.Case ? "A case waits for your ruling as praetor" : officeWork.Kind == Praetoria.Core.Systems.LadderSystem.Works ? "The works wait on you as aedile" : "The year's accounts wait on you as quaestor", "senate:ladder"));
-    if (Praetoria.Core.Systems.LadderSystem.Active(w, G.Content!.Offices) && Praetoria.Core.Systems.LadderSystem.NextIn(w, G.Content.Offices) <= 2 && w.Protagonist is { } cand && !w.Candidacies.Any(x => x.CharacterId == cand.Id) && Praetoria.Core.Systems.LadderSystem.Next(w, G.Content.Offices, cand) is { } nextRung)
-        alerts.Add(("info", $"You could stand for {nextRung.Name.ToLowerInvariant()}: the election is in {Praetoria.Core.Systems.LadderSystem.NextIn(w, G.Content.Offices)} year(s)", "senate:ladder"));
+    if (Praetoria.Core.Systems.LadderSystem.Active(w, G.Content!.Offices) && Praetoria.Core.Systems.LadderSystem.CountIn(w, G.Content.Offices) <= 2 && w.Protagonist is { } cand && !w.Candidacies.Any(x => x.CharacterId == cand.Id) && Praetoria.Core.Systems.LadderSystem.Next(w, G.Content.Offices, cand) is { } nextRung)
+        alerts.Add(("info", $"You could stand for {nextRung.Name.ToLowerInvariant()}: the election is {(Praetoria.Core.Systems.LadderSystem.CountIn(w, G.Content.Offices) is var cin && cin == 0 ? "at the end of this year" : "in " + cin + " year(s)")}", "senate:ladder"));
     if (w.HasFlag(Praetoria.Core.Systems.PolitySystem.WarFlag)) alerts.Add(("warn", "Your state is at war for its independence: hold the region", "senate:orders"));
     else if (w.HasFlag(Praetoria.Core.Systems.PolitySystem.RefuseFlag)) alerts.Add(("warn", "You fought the one who now holds the throne, and you hold a region: you need not kneel", "senate:orders"));
     if (w.Recalls.FirstOrDefault(r => r.HouseId == w.Protagonist?.HouseId) is { } recall)

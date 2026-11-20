@@ -3,7 +3,7 @@
 @implements IDisposable
 @{
     var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var offices = c.Offices;
-    bool active = LadderSystem.Active(w, offices); int next = LadderSystem.NextIn(w, offices);
+    bool active = LadderSystem.Active(w, offices); int next = LadderSystem.CountIn(w, offices);
     var mySeat = LadderSystem.Seat(w, pid); var myStand = w.Candidacies.FirstOrDefault(x => x.CharacterId == pid);
     var consul = ElectionSystem.ConsulOffices(offices).FirstOrDefault();
     var consulMan = consul != null ? OfficeSystem.Candidate(w, consul, house.Id) : null;
@@ -39,6 +39,7 @@
     else
     {
         <div class="muted small">Each rung is held by a person, for five years, and filled by election. The houses vote with their weight in the chamber; a candidate's own speaking, standing and record count besides. You have been: <b>@Held(p)</b>.</div>
+        <div class="small" data-next-election="@next"><b>The next election is @(next <= 0 ? "at the end of this year" : next == 1 ? "at the end of next year (year " + (w.Turn + 1) + ")" : "in " + next + " years, at the end of year " + (w.Turn + next))</b>: every rung below the consulship is filled then, and names go down before it. @w.Candidacies.Count name(s) are down so far.</div>
         <div class="small">The magistrates of the Reach are <span class="@trustClass" title="@TrustTip">@trustWord (@trust)</span> <span class="muted small">@trustDoes</span></div>
         @if (LadderSystem.TrustApartSays(w) is { Length: > 0 } apart) { <div class="muted small" title="An office's own name is what a scandal costs at the count for that office. A region that does not believe the magistrates holds a little less closely to the Reach each year.">@apart</div> }
         @if (taintLine.Length > 0) { <div class="small bad">@taintLine</div> }
@@ -80,7 +81,7 @@
                 {
                     var x = w.Char(cd.CharacterId); if (x == null) continue; string xid = x.Id; var back = new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices).Refusal(G.Ctx);
                     <div class="suit-acts">
-                        <span class="small"><b>@(x.Id == pid ? "You are" : x.Name + " is") standing</b>@(cd.Backing > 0 ? $", with {cd.Backing} votes of your weight behind {(x.Id == pid ? "you" : "them")}" : "")@(x.Id == pid ? "" : ", of their own accord").</span>
+                        <span class="small"><b>@(x.Id == pid ? "You are" : x.Name + " is") standing</b> <span class="muted">(the count is @(next <= 0 ? "at this year's end" : "in " + next + " year(s)") · @w.Candidacies.Count(o => o.RungId == cd.RungId) name(s) down for this rung)</span>@(cd.Backing > 0 ? $", with {cd.Backing} votes of your weight behind {(x.Id == pid ? "you" : "them")}" : "")@(x.Id == pid ? "" : ", of their own accord").</span>
                         <button class="opt inline tiny" disabled="@(back != null)" title="@(back ?? $"{LadderSystem.BackVotes} more votes at the count")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices))">@(x.Id == pid ? "Call in what is owed" : "Speak for them") · @LadderSystem.BackInfluence influence</button>
                         @if (x.Id == pid) { <button class="opt inline tiny" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Withdraw, pid, string.Empty, offices))">Withdraw</button> }
                         else

@@ -25,6 +25,8 @@ public static class ElectionSystem
         if (w.Emergency is { } e) { if (w.Turn % Every == 0) e.SkippedElection = true; return false; }
         return w.Turn % Every == 0 || w.Counter(OwedKey) > 0;
     }
+    /// <summary>For a screen, in the year being played: years until the consuls are elected. Nought in the year it is held at the end of.</summary>
+    public static int CountIn(World w) => (Every - w.Turn % Every) % Every;
     public static int NextIn(World w) => w.Turn % Every == 0 ? Every : Every - w.Turn % Every;
     public static IEnumerable<OfficeDef> ConsulOffices(OfficeCatalog offices) => offices.Defs.Where(d => d.Elected).OrderByDescending(d => d.Weight).ThenBy(d => d.Id, StringComparer.Ordinal);
     public static bool IsConsul(World w, OfficeCatalog offices, string houseId) => ConsulOffices(offices).Any(d => OfficeSystem.Holds(w, houseId, d.Id));

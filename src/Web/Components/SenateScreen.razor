@@ -35,7 +35,7 @@
     var elect = sen?.Election; var lead = elect?.Nominees.OrderByDescending(n => n.Tally).Select(n => (n.HouseName, n.Tally)).FirstOrDefault();
     bool yearUnspent = LadderSystem.DutyOf(w, p.Id, LadderSystem.SeatKind) != null, workWaits = w.OfficeWork.Any(b => b.HolderId == p.Id && b.Choice.Length == 0);
     int trust = LadderSystem.Trust(w);
-    string countLine = elect == null ? "" : elect.AmConsul ? " You hold the consulship." : elect.NextIn <= 1 ? $" The consuls are elected at the year's end{(lead is { HouseName: not null } l1 ? $"; {l1.HouseName} leads the count" : "")}." : $" The consuls are elected in {elect.NextIn} years.";
+    string countLine = elect == null ? "" : elect.AmConsul ? " You hold the consulship." : elect.NextIn == 0 ? $" The consuls are elected at the year's end{(lead is { HouseName: not null } l1 ? $"; {l1.HouseName} leads the count" : "")}." : $" The consuls are elected in {elect.NextIn} years.";
     string story, storyTone;
     if (sen == null) { story = "The Senate does not sit in this age."; storyTone = ""; }
     else if (againstMe != null) { bool passes = againstMe.ForWeight > againstMe.AgainstWeight; story = $"A motion against you is before the chamber: {againstMe.KindName}, moved by {againstMe.ProposerName}. As the benches lean it {(passes ? "carries" : "fails")}, {againstMe.ForWeight} to {againstMe.AgainstWeight}."; storyTone = passes ? "bad" : "warn"; }
@@ -67,7 +67,7 @@
             }
             @if (elect != null)
             {
-                <Tile Label="The consulship" Value="@(elect.AmConsul ? "yours" : elect.NextIn <= 1 ? "this year" : $"in {elect.NextIn} years")" Tone="@(elect.AmConsul ? "good" : "")"
+                <Tile Label="The consulship" Value="@(elect.AmConsul ? "yours" : elect.NextIn == 0 ? "this year" : elect.NextIn == 1 ? "next year" : $"in {elect.NextIn} years")" Tone="@(elect.AmConsul ? "good" : "")"
                       Note="@(elect.AmConsul ? (elect.CanVeto ? "your veto is unspent this term" : "your veto is spent this term") : (elect.Standing ? "you stand" : "you do not stand") + (lead is { HouseName: not null } l2 ? $" · {l2.HouseName} leads with {l2.Tally}" : " · no candidate yet"))"
                       Title="@($"Two consuls are elected every {elect.TermTurns} years, by the weight of the houses that vote for them.")" />
             }
@@ -358,7 +358,7 @@
             var consuls = sen.Offices?.Where(o => o.Elected).ToList() ?? new List<OfficeCard>();
         @if (_view == "consuls") {
             <section class="panel consulship">
-                <h3><Icon Name="throne" Size="13" /> The consulship <span class="muted">elected every @el.TermTurns turns · next in @el.NextIn</span></h3>
+                <h3><Icon Name="throne" Size="13" /> The consulship <span class="muted">elected every @el.TermTurns years · @(el.NextIn == 0 ? "the next at the end of this year" : el.NextIn == 1 ? "the next at the end of next year" : "the next in " + el.NextIn + " years")</span></h3>
                 @foreach (var o in consuls)
                 {
                     <div class="off-card @(o.Mine ? "mine" : "") @(o.HolderHouse == null ? "vacant" : "")" title="@o.Description">

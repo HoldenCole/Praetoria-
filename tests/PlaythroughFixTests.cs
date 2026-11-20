@@ -369,4 +369,14 @@ public class PlaythroughFixTests
         var cmd = new RenameFleetCommand(me.Id, b.Id, "  The Second  "); Assert.Null(cmd.Refusal(ctx)); cmd.Execute(ctx); Assert.Equal("The Second", b.Name);
         b.LevyOf = "someone"; Assert.Contains("levy", new RenameFleetCommand(me.Id, b.Id, "Mine Now").Refusal(ctx));
     }
+
+    [Fact]
+    public void TheElectionYear_SaysItIsTheElectionYear()
+    {
+        // the Easy list: "in 10 years" in the election year, and the alert a year early
+        var (w, _, _, _, _) = Start(); int every = Content.Offices.LadderEvery;
+        w.Turn = every; Assert.True(LadderSystem.Due(w, Content.Offices)); Assert.Equal(0, LadderSystem.CountIn(w, Content.Offices));
+        w.Turn = every - 1; Assert.Equal(1, LadderSystem.CountIn(w, Content.Offices)); w.Turn = every + 1; Assert.Equal(every - 1, LadderSystem.CountIn(w, Content.Offices));
+        w.Turn = ElectionSystem.Every; Assert.Equal(0, ElectionSystem.CountIn(w)); w.Turn = ElectionSystem.Every - 2; Assert.Equal(2, ElectionSystem.CountIn(w));
+    }
 }

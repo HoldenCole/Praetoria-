@@ -541,7 +541,7 @@ public static class CourtProjection
         {
             Func<string, int> wt = id => senate.Weight(w, id);
             var noms = ElectionSystem.Nominees(w, senate.Offices, wt); var tally = ElectionSystem.Tally(w, senate.Offices, wt, noms);
-            election = new ElectionCard(ElectionSystem.NextIn(w), ElectionSystem.ConsulOffices(senate.Offices).First().TermTurns,
+            election = new ElectionCard(ElectionSystem.CountIn(w), ElectionSystem.ConsulOffices(senate.Offices).First().TermTurns,
                 noms.Select(n => { var f = n.partyId != null ? w.Factions.FirstOrDefault(x => x.Id == n.partyId) : null; var nh = w.House(n.houseId); return (f?.Name ?? "independent", f?.Accent ?? "#C9D1DC", n.houseId, nh?.Name ?? n.houseId, nh?.AccentColor ?? "#888", tally.GetValueOrDefault(n.houseId)); }).OrderByDescending(x => x.Item6).ToList(),
                 w.HasFlag(ElectionSystem.StandFlag(house.Id)), new StandForConsulCommand(p.Id, senate.Offices).Refusal(ctx), ElectionSystem.IsConsul(w, senate.Offices, house.Id), ElectionSystem.MayVeto(w, senate.Offices, house.Id));
         }

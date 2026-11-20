@@ -31,6 +31,9 @@ public static partial class LadderSystem
 
     public static bool Active(World w, OfficeCatalog offices) => !w.IsImperium && offices.Rungs.Count > 0;
     public static bool Due(World w, OfficeCatalog offices) => Active(w, offices) && w.Turn > 0 && w.Turn % offices.LadderEvery == 0;
+    /// <summary>For a screen, in the year being played: how many years until the count. Nought in the year it is held at the end of
+    /// (docs/PLAYTHROUGH.md: the election year itself read "in 5 years", and the alert came a year early and not in the year).</summary>
+    public static int CountIn(World w, OfficeCatalog offices) => (offices.LadderEvery - w.Turn % offices.LadderEvery) % offices.LadderEvery;
     public static int NextIn(World w, OfficeCatalog offices) => w.Turn % offices.LadderEvery == 0 ? offices.LadderEvery : offices.LadderEvery - w.Turn % offices.LadderEvery;
     public static OfficeHolding? Seat(World w, string characterId) => w.Magistrates.FirstOrDefault(m => m.CharacterId == characterId);
     public static List<OfficeHolding> Holders(World w, string rungId) => w.Magistrates.Where(m => m.OfficeId == rungId).OrderBy(m => m.CharacterId, StringComparer.Ordinal).ToList();
