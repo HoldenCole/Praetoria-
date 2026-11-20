@@ -64,6 +64,39 @@ public sealed class MoveFleetCommand : ICommand
     }
 }
 
+public static class FleetNames
+{
+    private static string Nth(int n) => n % 100 is 11 or 12 or 13 ? n + "th" : (n % 10) switch { 1 => n + "st", 2 => n + "nd", 3 => n + "rd", _ => n + "th" };
+    /// <summary>A name no other fleet of the house has: "House X Squadron", then "House X 2nd Squadron", and so on.</summary>
+    public static string Squadron(World w, House house)
+    {
+        bool Taken(string name) => w.Fleets.Values.Any(f => f.OwnerId == house.Id && f.Name == name);
+        string first = $"{house.Name} Squadron"; if (!Taken(first)) return first;
+        for (int n = 2; ; n++) { string name = $"{house.Name} {Nth(n)} Squadron"; if (!Taken(name)) return name; }
+    }
+}
+
+/// <summary>Give a fleet a name of the house's choosing (docs/PLAYTHROUGH.md: two squadrons with one name, and no way to tell them
+/// apart). Free. A levy keeps the name of the house that sent it, and an office fleet the Reach's.</summary>
+public sealed class RenameFleetCommand : ICommand
+{
+    private readonly string _fleetId, _name;
+    public RenameFleetCommand(string actorId, string fleetId, string name) { ActorId = actorId; _fleetId = fleetId; _name = (name ?? "").Trim(); }
+    public string ActorId { get; }
+    public string Describe() => $"rename {_fleetId} to {_name}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true || !w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        if (f.LevyOf.Length > 0) return "a levy keeps the name of the house that sent it"; if (f.Office) return "it is the Reach's fleet, and keeps the Reach's name";
+        if (_name.Length < 2 || _name.Length > 40) return "a name of two to forty letters";
+        if (_name.Any(ch => char.IsControl(ch) || ch is '<' or '>' or '{' or '}')) return "letters, numbers and plain marks only";
+        return w.Fleets.Values.Any(x => x.Id != f.Id && x.OwnerId == f.OwnerId && string.Equals(x.Name, _name, StringComparison.OrdinalIgnoreCase)) ? "another of your fleets has that name" : f.Name == _name ? "it has that name" : null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var f = ctx.World.Fleets[_fleetId]; ctx.World.Log($"{f.Name} is to be called {_name}."); f.Name = _name; }
+}
+
 /// <summary>Call a fleet under way back (docs/PLAYTHROUGH.md 11: "a fleet's order cannot be taken back": one squadron left on a
 /// six-year voyage that could not be recalled). An order given this year is simply struck out; a fleet that has sailed some years
 /// takes as many to come home. It costs nothing but the time.</summary>
@@ -153,7 +186,7 @@ public sealed class RaiseFleetCommand : ICommand
         {
             int n = w.Counter("fleets_raised") + 1;
             w.WorldCounters["fleets_raised"] = n;
-            fleet = new Fleet { Id = $"fleet_{house.Id}_{n}", Name = $"{house.Name} Squadron", OwnerId = house.Id, Strength = 0, SystemId = h.SystemId, Readiness = 60 };
+            fleet = new Fleet { Id = $"fleet_{house.Id}_{n}", Name = FleetNames.Squadron(w, house), OwnerId = house.Id, Strength = 0, SystemId = h.SystemId, Readiness = 60 };
             w.Fleets[fleet.Id] = fleet;
             w.Log($"{house.Name} lays down a squadron at {h.Name}.");
         }

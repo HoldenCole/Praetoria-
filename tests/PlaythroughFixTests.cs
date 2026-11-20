@@ -358,4 +358,15 @@ public class PlaythroughFixTests
         Assert.True(CourtshipSystem.Intercept(w, theirs, mine));   // their steward proposes the same match
         Assert.Equal("", suit.RivalId); Assert.Equal(50, suit.Consent);
     }
+
+    [Fact]
+    public void AFleet_CanBeGivenAName()
+    {
+        var (w, _, house, me, ctx) = Start(); var home = w.HoldingsOf(house.Id).First(h => h.IsPlanet).SystemId;
+        var a = new Fleet { Id = "t_a", OwnerId = house.Id, Name = "House Squadron", SystemId = home, Strength = 2 }; var b = new Fleet { Id = "t_b", OwnerId = house.Id, Name = "House Squadron", SystemId = home, Strength = 2 }; w.Fleets[a.Id] = a; w.Fleets[b.Id] = b;
+        Assert.Equal("another of your fleets has that name", new RenameFleetCommand(me.Id, b.Id, "house squadron").Refusal(ctx));
+        Assert.NotNull(new RenameFleetCommand(me.Id, b.Id, "x").Refusal(ctx));
+        var cmd = new RenameFleetCommand(me.Id, b.Id, "  The Second  "); Assert.Null(cmd.Refusal(ctx)); cmd.Execute(ctx); Assert.Equal("The Second", b.Name);
+        b.LevyOf = "someone"; Assert.Contains("levy", new RenameFleetCommand(me.Id, b.Id, "Mine Now").Refusal(ctx));
+    }
 }
