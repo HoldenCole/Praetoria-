@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- **Nothing on the map is written over anything else.** Names of regions, systems and fleets no longer overlap each
+  other, the stars, or the outliner, legend, minimap and windows: a name with no room is left out rather than drawn
+  on top of another. The legend is a single line until hovered, and the outliner's text has a solid ground.
 - **Territory you can read** (docs/ART_DIRECTION.md, "The shell"; the owner: "do the filled-cell territory on the map
   next"). Every held system on the map is a cell filled in its holder's colour, with a dark line between cells
   of one holder and a wider one, lit along its edge, where two holders meet. A house's worlds, the Reach and each

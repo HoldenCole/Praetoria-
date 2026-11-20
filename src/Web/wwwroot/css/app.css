@@ -970,3 +970,8 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 .face-life { display: flex; flex-wrap: wrap; gap: .6rem; margin: .4rem 0 .9rem; } .face-life figure { margin: 0; width: 104px; text-align: center; } .face-life img { width: 104px; height: 104px; object-fit: cover; object-position: 50% 18%; display: block; border: 1px solid #000; box-shadow: 0 0 0 1px var(--brass3); }
 .face-life figcaption { font-family: var(--display); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink2); margin-top: .3rem; }
 .legend .sw.cell { background: linear-gradient(135deg, #b23a48, #2a5fa8); border: 1px solid #05070c; } .legend .sw.free { background: none; border: 1px solid #9aa6c4; border-radius: 50%; }
+/* the legend is one line until it is asked for, so it covers no more of the map than it must */
+.game .legend { max-height: 1.75rem; overflow: hidden; flex-wrap: wrap; row-gap: .35rem; padding: .3rem .6rem; transition: max-height .15s; cursor: help; } .game .legend:hover { max-height: 12rem; background: rgba(5,7,12,.92); opacity: 1; }
+.game .legend::before { content: "Legend"; font-family: var(--display); font-size: .62rem; letter-spacing: .18em; text-transform: uppercase; color: var(--brass2); align-self: center; }
+.game .outliner { background: linear-gradient(270deg, rgba(5,7,12,.95), rgba(5,7,12,.86) 78%, rgba(5,7,12,0)); }
+.map-tip:empty { display: none !important; }

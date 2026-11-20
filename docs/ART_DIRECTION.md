@@ -171,6 +171,11 @@ gone. Star Dynasties is a second: reviewers found its simple portraits made peop
   filled in its holder's colour, with a dark line between cells and a wider, lit one where two holders meet; a
   system nobody holds is a pale ring; a region's edge is a pale line. A house, the Reach and a nation read as
   blocks at any zoom.
+- **Nothing on the map is written over anything else** (the owner, 2026-11-20: "overlapping words and things on the
+  map"). A name that would sit on another name, or under the bar, a window, the outliner, the legend or the minimap,
+  is not shown; a region's name looks for room near its centre, clear of the stars if it can, and is left out if
+  there is none. From far off the regions' names are placed first; close to, the systems', yours before others'.
+  The legend is one line until the pointer is on it.
 - **Picking a world or a fleet** on the map opens the map's own window in the same dock; the regions list is a
   button among the map tools.
 - **Bottom right**: the minimap and the end of the turn.

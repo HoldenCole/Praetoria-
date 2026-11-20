@@ -292,31 +292,40 @@ export class Galaxy {
   // the minimap: the whole Reach in a corner, the viewport drawn on it, click to travel
   setMinimap(canvas) { this.mini = canvas; if (!canvas) return; canvas.addEventListener('pointerdown', e => { if (!this.bounds) return; const r = canvas.getBoundingClientRect(); const m = this.miniMap(); const x = (e.clientX - r.left) / r.width * canvas.width, y = (e.clientY - r.top) / r.height * canvas.height; this.target.set(m.minX + (x - m.ox) / m.k, m.maxY - (y - m.oy) / m.k, 0); this.updateCamera(); }); }
   miniMap() { const b = this.bounds, pad = 70; const w = this.mini.width, h = this.mini.height; const kx = (w - 12) / (b.maxX - b.minX + pad * 2), ky = (h - 12) / (b.maxY - b.minY + pad * 2); const k = Math.min(kx, ky); const ox = (w - (b.maxX - b.minX + pad * 2) * k) / 2 + pad * k, oy = (h - (b.maxY - b.minY + pad * 2) * k) / 2 + pad * k; return { k, ox, oy, minX: b.minX, maxY: b.maxY }; }
-  separateRegionLabels() {
-    // region names keep off one another and off system names: each tries a ring of candidate offsets around its centre
-    // and takes the one with the least overlap (a region name counts triple), nearest the centre on a tie
-    const vis = e => e.style.display !== 'none' && getComputedStyle(e).display !== 'none';
-    const box = (e, dx, dy) => { const r = e.getBoundingClientRect(); return { x: r.left - dx, y: r.top - dy, w: r.width, h: r.height }; };
-    const sys = this.labels.map(l => l.element).filter(e => e.classList.contains('sys-label') && vis(e)).map(e => box(e, 0, 0)).filter(b => b.w > 0);
-    const regions = this.labels.map(l => l.element).filter(e => e.classList.contains('region-label') && vis(e))
-      .map(e => ({ e, b: box(e, parseFloat(e.style.marginLeft) || 0, parseFloat(e.style.marginTop) || 0) })).filter(o => o.b.w > 0).sort((a, b) => a.b.y - b.b.y);
-    const overlap = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) + 6) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) + 4);
-    const placed = []; const step = 18; const view = this.renderer.domElement.getBoundingClientRect();
-    // how much of a box lies outside the map's own rectangle (a name half off the edge is worse than one nudged inward)
-    const outside = b => Math.max(0, view.left + 8 - b.x) + Math.max(0, b.x + b.w - (view.right - 8)) + Math.max(0, view.top + 8 - b.y) + Math.max(0, b.y + b.h - (view.bottom - 8));
-    const cands = [[0, 0]]; for (let k = 1; k <= 5; k++) { cands.push([0, -k * step], [0, k * step]); if (k <= 3) cands.push([-k * 70, 0], [k * 70, 0], [-k * 70, -k * step], [k * 70, -k * step], [-k * 70, k * step], [k * 70, k * step]); }
-    for (const r of regions) {
-      let best = null;
-      for (const [dx, dy] of cands) {
-        const b = { x: r.b.x + dx, y: r.b.y + dy, w: r.b.w, h: r.b.h }; let score = 0;
-        for (const q of placed) score += overlap(b, q) * 3; for (const q of sys) score += overlap(b, q);
-        score += outside(b) * b.h * 2;                  // keep the name inside the map
-        score += (Math.abs(dx) + Math.abs(dy)) * 0.45;  // prefer staying near the centre
-        if (!best || score < best.score) best = { score, dx, dy, b };
-        if (score === 0 && dx === 0 && dy === 0) break;
+  declutter() {
+    // Nothing on the map is written over anything else (the owner: "overlapping words and things on the map"). A name that would
+    // sit on another name, or under the bar, the window, the outliner, the legend or the minimap, is not shown. Seen from far off
+    // the regions' names are placed first and the systems' fit round them; close to, the systems' names come first, your own before
+    // others'. A region's name looks for room near its centre and is left out if there is none.
+    const els = this.labels.map(l => l.element); const live = e => e.style.display !== 'none' && getComputedStyle(e).display !== 'none';
+    const rect = (e, dx = 0, dy = 0) => { const r = e.getBoundingClientRect(); return { x: r.left - dx, y: r.top - dy, w: r.width, h: r.height }; };
+    const hits = (a, b, pad) => a.x < b.x + b.w + pad && b.x < a.x + a.w + pad && a.y < b.y + b.h + pad && b.y < a.y + a.h + pad;
+    const hud = [...document.querySelectorAll('.topbar, .rail, .outliner, .legend, .minimap, .map-tools, .endturn-dock, .screen.window, .map-side')].map(e => rect(e)).filter(b => b.w > 0 && b.h > 0);
+    const view = this.renderer.domElement.getBoundingClientRect(); const far = this.labelRenderer.domElement.classList.contains('far');
+    const off = b => b.x < view.left + 4 || b.y < view.top + 4 || b.x + b.w > view.right - 4 || b.y + b.h > view.bottom - 4;
+    const placed = [];
+    // where the stars themselves are drawn: a region's name keeps off them too, if it can (a name sits just under its star)
+    const g = far ? 12 : this.labelRenderer.domElement.classList.contains('near') ? 46 : 28;
+    const stars = els.filter(e => e.classList.contains('sys-label') && live(e)).map(e => rect(e)).filter(b => b.w > 0).map(b => ({ x: b.x + b.w / 2 - g, y: b.y - 2 * g - 4, w: 2 * g, h: 2 * g + 4 }));
+    const points = () => {   // the names of systems and fleets: shown where they stand, or not at all
+      const pts = els.filter(e => e.classList.contains('sys-label') || e.classList.contains('fleet-label'));
+      pts.sort((a, b) => (b.classList.contains('mine') ? 2 : 0) + (b.classList.contains('sys-label') ? 1 : 0) - (a.classList.contains('mine') ? 2 : 0) - (a.classList.contains('sys-label') ? 1 : 0));
+      for (const e of pts) { if (!live(e)) continue; const b = rect(e); const bad = b.w === 0 || hud.some(h => hits(b, h, 6)) || placed.some(q => hits(b, q, 3)); e.style.visibility = bad ? 'hidden' : ''; if (!bad) placed.push(b); }
+    };
+    const regions = () => {   // a region's name: the nearest free place to its centre, or not at all
+      const step = 18, cands = [[0, 0]]; for (let k = 1; k <= 5; k++) { cands.push([0, -k * step], [0, k * step]); if (k <= 3) cands.push([-k * 70, 0], [k * 70, 0], [-k * 70, -k * step], [k * 70, -k * step], [-k * 70, k * step], [k * 70, k * step]); }
+      cands.sort((a, b) => Math.abs(a[0]) + Math.abs(a[1]) * 1.5 - Math.abs(b[0]) - Math.abs(b[1]) * 1.5);
+      const regs = els.filter(e => e.classList.contains('region-label') && live(e)).map(e => ({ e, b: rect(e, parseFloat(e.style.marginLeft) || 0, parseFloat(e.style.marginTop) || 0) })).filter(o => o.b.w > 0).sort((a, b) => a.b.y - b.b.y);
+      for (const r of regs) {
+        let at = null;
+        for (const strict of [true, false]) {   // first somewhere clear of the stars as well; failing that, clear of every other name
+          for (const [dx, dy] of cands) { const b = { x: r.b.x + dx, y: r.b.y + dy, w: r.b.w, h: r.b.h }; if (off(b) || hud.some(h => hits(b, h, 8)) || placed.some(q => hits(b, q, 5)) || (strict && stars.some(q => hits(b, q, 0)))) continue; at = { dx, dy, b }; break; }
+          if (at) break;
+        }
+        if (at) { placed.push(at.b); r.e.style.marginLeft = at.dx ? at.dx + 'px' : ''; r.e.style.marginTop = at.dy ? at.dy + 'px' : ''; r.e.style.visibility = ''; } else r.e.style.visibility = 'hidden';
       }
-      placed.push(best.b); r.e.style.marginLeft = best.dx ? best.dx + 'px' : ''; r.e.style.marginTop = best.dy ? best.dy + 'px' : '';
-    }
+    };
+    if (far) { regions(); points(); } else { points(); regions(); }
   }
   drawMinimap() {
     const c = this.mini; if (!c || !this.model || !this.bounds) return; const ctx = c.getContext('2d'); const m = this.miniMap(); const P = (x, y) => [m.ox + (x - m.minX) * m.k, m.oy + (m.maxY - y) * m.k];
@@ -367,7 +376,7 @@ export class Galaxy {
     // labels fade with distance
     const lr = this.labelRenderer.domElement; lr.classList.toggle('near', this.distance < 700); lr.classList.toggle('far', this.distance > 1700); lr.classList.toggle('veryfar', this.distance > 3200);
     this.composer.render(); this.labelRenderer.render(this.scene, this.camera);
-    if ((this.miniTick = (this.miniTick || 0) + 1) % 3 === 0) { this.drawMinimap(); this.separateRegionLabels(); }
+    if ((this.miniTick = (this.miniTick || 0) + 1) % 3 === 0) { this.drawMinimap(); this.declutter(); }
   }
   dispose() { this.disposed = true; this.resizeObserver.disconnect(); this.setModel(null); this.renderer.dispose(); this.renderer.domElement.remove(); this.labelRenderer.domElement.remove(); }
 }
