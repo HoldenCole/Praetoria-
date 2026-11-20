@@ -22,3 +22,4 @@ Thumbs.db
 
 # Web client: staged copy of /content (build output)
 src/Web/wwwroot/content/
+__pycache__/
