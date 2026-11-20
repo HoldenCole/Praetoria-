@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Provinces, the thin parts closed.** A building in a province is taken to level II and III and tells on its world
+  (room for people, prosperity, unrest). The house that holds a world sets each province's dues: forgiven, customary or
+  heavy. A house may withhold its dues, and may then be asked to give up the province at no cost. In a war of the house
+  that holds the world, every paying province sends a levy squadron that sails under it until the peace. The house over
+  the player notes how the player votes on what touches it, and twice defied asks for the province.
 - **A province has building slots of its own** (the owner: yes to all three). One to begin with, more by the system's
   development and the rank of the house that holds the province, four at the most; its holder builds the ordinary
   buildings of the world's kind in them, and what they yield is the holder's.

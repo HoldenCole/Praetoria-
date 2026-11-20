@@ -161,6 +161,8 @@ public sealed class ProvinceRules
     public int SlotBase { get; init; } = 1; public IReadOnlyList<int> SlotDevelopment { get; init; } = new[] { 3, 6, 9 }; public IReadOnlyList<int> SlotRank { get; init; } = new[] { 3, 5 }; public int SlotMax { get; init; } = 4;
     /// <summary>What a house that holds a province under another owes the holder of the world a year, for each level of the province: always, and in a year the holder of the world is at war.</summary>
     public Resources Tithe { get; init; } = new() { Credits = 1 }; public Resources Levy { get; init; } = new() { Manpower = 1 };
+    /// <summary>Hulls a paying province sends, for each of its levels, while the holder of its world is at war; and how many times the player may vote against the house over it before that house asks for the province.</summary>
+    public int LevySquadron { get; init; } = 1; public int Defiances { get; init; } = 2;
     /// <summary>Rungs of title lost by a house that steps down from a world.</summary>
     public int StepDownRanks { get; init; } = 1;
     public ProvinceFocus? Focus(string id) { foreach (var f in Focuses) if (f.Id == id) return f; return null; }

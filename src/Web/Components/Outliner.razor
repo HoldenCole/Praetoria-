@@ -53,6 +53,7 @@
     if (w.HasFlag("office_granted")) alerts.Add(("good", "The Senate has commissioned you to an office", "senate:offices"));
     if (w.HasFlag("office_lost")) alerts.Add(("warn", w.HasFlag("treason") ? "Stripped of office for treason" : "Relieved of office by the Senate", "senate:offices"));
     foreach (var sd in w.SeatDemands.Where(x => x.AgainstId == w.Protagonist?.HouseId)) alerts.Add(("warn", (w.House(sd.ById)?.Name ?? "A house") + " asks you to give up " + (w.Holding(sd.HoldingId) is { } sh ? ProvinceSystem.What(sh, sd.Province) : "a seat") + ": step down, or stand", "galaxy"));
+    if (w.Protagonist?.HouseId is { } myHouse) foreach (var (ph, pi) in w.ProvincesOf(myHouse).Where(x => x.i < x.h.Provinces.Count && x.h.Provinces[x.i].Dues >= ProvinceSystem.Heavy && !x.h.Provinces[x.i].Withheld).Take(1)) alerts.Add(("info", (w.House(ph.OwnerId)?.Name ?? "A house") + " asks heavy dues of " + ph.Provinces[pi].Name, "galaxy"));
     foreach (var f in w.WorldFlags.Where(f => f.StartsWith("office_vacant:")).Take(1)) alerts.Add(("info", "An office of the Reach stands vacant", "senate:offices"));
     if (w.HasFlag("faction_against_me")) alerts.Add(("warn", "A bench's leader has moved against you — the whole bench will follow", "senate"));
     if (w.HasFlag("broke_the_whip")) alerts.Add(("warn", "You voted against your bench", "senate"));

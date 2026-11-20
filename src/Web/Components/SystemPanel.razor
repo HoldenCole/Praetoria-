@@ -134,20 +134,46 @@
                                     @if (pi > 0) { <span class="sysp-slots" title="@($"Building slots of the province: {pbuilt} built · {prising} rising · {pslots} open of {cat.Provinces.SlotMax} at the most. One to begin with; more by the system's development and the rank of the house that holds the province.")">@for (int k = 0; k < Math.Max(pslots, cat.Provinces.SlotMax); k++) { <i class="@(k < pbuilt ? "on" : k < pbuilt + prising ? "up" : k >= pslots ? "lock" : "")"></i> }</span> }
                                 </div>
                                 <div class="sw-does">@(pmine ? "Yours" : w.House(holderId)?.Name ?? "nobody's")@(pi > 0 && holderId != planet.OwnerId ? (pv.Since > 0 ? " since year " + pv.Since : ", for life") : pi == 0 ? ", with the world" : "") · @(pyield.IsEmpty() ? "pays nothing" : "+" + CourtProjection.Bundle(pyield) + " a year")@(pf != null && pf.Defense > 0 ? " · defence +" + (pf.Defense * Math.Max(1, pv.Level)).ToString("0.##") : "")@(atWar ? " · withheld: its house is at war with the holder of the world" : "")</div>
-                                @if (pi > 0 && holderId != planet.OwnerId && !atWar) { <div class="muted small sysp-owes">@(pmine ? "You owe" : "It owes") @(mine ? "you" : ownerName == "Your house" ? "you" : w.House(planet.OwnerId)?.Name ?? "the holder of the world") @(owed.IsEmpty() ? "nothing this year" : Bundle(owed) + " a year")@(w.EnemiesOf(planet.OwnerId).Any() ? ", levy included while the holder of the world is at war" : "; a levy too in a year the holder of the world is at war"), and @(pmine ? "your house is expected to lean" : "leans") its way in the Senate.</div> }
+                                @if (pi > 0 && holderId != planet.OwnerId && !atWar)
+                                {
+                                    string overName = mine ? "you" : w.House(planet.OwnerId)?.Name ?? "the holder of the world"; bool warNow = w.EnemiesOf(planet.OwnerId).Any(); int squad = cat.Provinces.LevySquadron * Math.Max(1, pv.Level); string dkey = planet.Id;
+                                    <div class="muted small sysp-owes">
+                                        @if (pv.Withheld) { <span class="warnline">@(pmine ? "You are withholding" : "It is withholding") the dues. Nothing is paid, no levy is sent, and @overName may ask for the province at no cost.</span> }
+                                        else if (pv.Dues <= ProvinceSystem.Forgiven) { <span>Its dues are forgiven: nothing is owed, no levy is sent, and @(pmine ? "your house is expected to lean" : "it leans") @overName's way in the Senate the more for it.</span> }
+                                        else { <span>@(pmine ? "You owe" : "It owes") @overName @(owed.IsEmpty() ? "nothing this year" : Bundle(owed) + " a year") (@ProvinceSystem.DuesName(pv.Dues) dues)@(warNow ? ", levy included, and a squadron of " + squad + " sails under " + (mine ? "you" : "that house") + " until the peace" : "; in a war of " + (mine ? "yours" : "that house's") + ", a levy too and a squadron of " + squad)@(pv.Dues >= ProvinceSystem.Heavy ? ". Heavy dues buy no voice in the Senate." : ", and " + (pmine ? "your house is expected to lean" : "it leans") + " that way in the Senate.")</span> }
+                                    </div>
+                                    @if (mine && !pmine)
+                                    {
+                                        <div class="sw-cost sysp-dues"><span>Its dues</span><span class="seg">
+                                            @foreach (var dv in new[] { ProvinceSystem.Forgiven, ProvinceSystem.Customary, ProvinceSystem.Heavy })
+                                            {
+                                                int dvv = dv; string? duno = new SetDuesCommand(me.Id, planet.Id, pi, dv).Refusal(ctx); bool cur = pv.Dues == dv;
+                                                <button class="opt inline tiny @(cur ? "on" : "")" disabled="@(duno != null)" title="@(dv == ProvinceSystem.Forgiven ? "Nothing is paid; it leans your way the more." : dv == ProvinceSystem.Heavy ? "Twice the dues; it leans nowhere, and a house that is your match may stop paying." : "The tithe, the levy in war, and its voice.")" @onclick="() => G.Execute(new SetDuesCommand(me.Id, dkey, pidx, dvv))">@ProvinceSystem.DuesName(dv)</button>
+                                            }
+                                        </span></div>
+                                    }
+                                    @if (pmine && pv.Dues > ProvinceSystem.Forgiven)
+                                    {
+                                        bool wh = pv.Withheld; string? whno = new WithholdDuesCommand(me.Id, planet.Id, pi, !wh).Refusal(ctx);
+                                        <div class="sw-cost"><span>@(wh ? "Pay what is owed again" : "Refuse to pay")</span><button class="opt inline @(wh ? "" : "warn")" disabled="@(whno != null)" title="@(wh ? "The dues, the levy and your voice are theirs again." : "You keep what you owe. " + overName + " may ask you to give up the province at no cost, and if it is your match it will.")" @onclick="() => G.Execute(new WithholdDuesCommand(me.Id, dkey, pidx, !wh))">@(wh ? "Pay again" : "Withhold the dues")</button></div>
+                                    }
+                                }
                                 @if (pv.Buildings.Count > 0 || prising > 0)
                                 {
+                                    string ptarget = ProvinceSystem.Target(planet.Id, pi); var pup = w.Projects.Where(x => x.Kind == Project.Upgrade && x.TargetId == ptarget).ToList();
+                                    @if (pmine)
+                                    {
+                                        @foreach (var bid in pv.Buildings)
+                                        {
+                                            var bd = cat.Work(bid); if (bd == null) continue; int blv = pv.LevelOf(bid);
+                                            <div class="sysp-work stands">@Art(bd.Id)<div class="sw-text"><div class="sw-head"><b>@bd.Name</b> @LevelPips(blv) <span class="muted small">stands</span></div><div class="sw-does">@Does(bd, sys, blv)</div>@UpgradeLine(ptarget, bd.Id, bd.Cost, bd.BuildTurns, blv, true, pup, ctx)</div></div>
+                                        }
+                                    }
                                     <div class="sysp-built prov">
-                                        @foreach (var bid in pv.Buildings) { var bd = cat.Work(bid); if (bd == null) continue; <span class="built" title="@(bd.Description + " " + Does(bd, sys))">@bd.Name</span> }
-                                        @foreach (var pp in w.Projects.Where(x => x.Kind == Project.ProvinceWork && x.TargetId == ProvinceSystem.Target(planet.Id, pidx))) { <span class="built up">@(cat.Work(pp.DefId)?.Name ?? pp.DefId) · @pp.TurnsLeft y</span> }
+                                        @if (!pmine) { @foreach (var bid in pv.Buildings) { var bd = cat.Work(bid); if (bd == null) continue; int blv = pv.LevelOf(bid); <span class="built" title="@(bd.Description + " " + Does(bd, sys, blv))">@bd.Name@(blv > 1 ? " " + SystemWorks.Roman(blv) : "")</span> } }
+                                        @foreach (var pp in w.Projects.Where(x => x.Kind == Project.ProvinceWork && x.TargetId == ptarget)) { <span class="built up">@(cat.Work(pp.DefId)?.Name ?? pp.DefId) · @pp.TurnsLeft y</span> }
+                                        @foreach (var pp in pup) { <span class="built up">@Cap(pp.Name) · @pp.TurnsLeft y</span> }
                                     </div>
-                                }
-                                @if (pmine && pv.Level < rules.MaxLevel)
-                                {
-                                    <div class="sw-cost"><span>Level @SystemWorks.Roman(pv.Level + 1) · @Bundle(cat.Provinces.ImproveCostOf(pv.Level))</span>
-                                        <button class="opt inline" disabled="@(ino != null)" title="@(ino != null ? Cap(ino) : "It will pay " + (pv.Level + 1) + " times over.")" @onclick="() => G.Execute(new ImproveProvinceCommand(me.Id, hid3, pidx, cat))">Improve</button>
-                                    </div>
-                                    @if (ino != null) { <div class="sw-no">@Cap(ino)</div> }
                                 }
                                 @if (pmine && pi > 0)
                                 {

@@ -84,3 +84,39 @@ public sealed class BuildInProvinceCommand : ICommand
         ProjectSystem.Start(w, house.Id, Project.ProvinceWork, def.Id, ProvinceSystem.Target(planet.Id, _index), def.Name + " in " + planet.Provinces[_index].Name, def.Cost, def.BuildTurns);
     }
 }
+
+/// <summary>Set what a province of the actor's world owes (docs/PROVINCES.md): forgiven (0), customary (1) or heavy (2). Forgiven, the
+/// house that holds it leans the actor's way the more; heavy, it pays twice, leans nowhere, and if it is the actor's match it may stop paying.</summary>
+public sealed class SetDuesCommand : ICommand
+{
+    private readonly string _holdingId; private readonly int _index; private readonly int _dues;
+    public SetDuesCommand(string actorId, string holdingId, int index, int dues) { ActorId = actorId; _holdingId = holdingId; _index = index; _dues = dues; }
+    public string ActorId { get; }
+    public string Describe() => $"set the dues of province {_index} of {_holdingId} to {_dues}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        var house = w.House(actor.HouseId); var planet = w.Holding(_holdingId); if (house == null || planet == null) return "no such province";
+        return ProvinceSystem.DuesRefusal(w, house, planet, _index, _dues);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) => ProvinceSystem.SetDues(ctx.World, ctx.World.Holding(_holdingId)!, _index, _dues);
+}
+
+/// <summary>Stop paying the dues of a province the actor's house holds under another, or pay them again (docs/PROVINCES.md). Withheld,
+/// nothing is paid, no levy is sent and the house leans nowhere; the house over it may ask it to step down at no cost in influence.</summary>
+public sealed class WithholdDuesCommand : ICommand
+{
+    private readonly string _holdingId; private readonly int _index; private readonly bool _withhold;
+    public WithholdDuesCommand(string actorId, string holdingId, int index, bool withhold) { ActorId = actorId; _holdingId = holdingId; _index = index; _withhold = withhold; }
+    public string ActorId { get; }
+    public string Describe() => $"{(_withhold ? "withhold" : "pay")} the dues of province {_index} of {_holdingId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        var house = w.House(actor.HouseId); var planet = w.Holding(_holdingId); if (house == null || planet == null) return "no such province";
+        return ProvinceSystem.WithholdRefusal(w, house, planet, _index, _withhold);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) => ProvinceSystem.Withhold(ctx.World, ctx.World.Holding(_holdingId)!, _index, _withhold);
+}

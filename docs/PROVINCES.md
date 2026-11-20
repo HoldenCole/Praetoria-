@@ -52,7 +52,9 @@ provinces. A nation's world is all the nation's. A new colony is all its founder
   more at development 3, 6 and 9 of its system, one more when its holder is a count and again an archduke, four at the
   most. Its holder builds the ordinary buildings of the world's kind in them (a smelter in a province of a forge world, a
   tidal mill on an ocean), and a building that works a deposit only in the province given over to that deposit. What
-  they yield is the holder's, on the province's line. Not for a province: the home world's own eight, anything a system
+  they yield is the holder's, on the province's line. Each can be **taken to level II and III** like any building, as far
+  as the system's development allows, and yields that many times over. What a building does for a world it does from a
+  province too: room for people (by its level), where the world's prosperity heads, its unrest. Not for a province: the home world's own eight, anything a system
   has only one of, great works. The buildings go with the province when it changes hands. The seat has no row of its
   own: the world's row is its holder's.
 - A province can be **improved** to level II and III by its holder (10 credits and 8 materials, then twice that); it pays
@@ -68,14 +70,33 @@ The owner, 2026-11-20: yes, a house with a province owes the house that holds th
 |---|---|---|
 | **A tithe** | 1 credit a year for each level of the province | every year |
 | **A levy** | 1 manpower a year for each level, on top of the tithe | in any year the holder of the world is at war |
+| **A squadron** | 1 hull for each level of the province, as a fleet at the world, under the holder of the world | from the first year of its war until the peace; once a war, and not replaced if it is lost |
 | **Its voice** | it leans the holder's way in the Senate, as a client leans to a patron (+2) | on what that house moves, and on what is aimed at it |
 
-Because it leans that way, a house with a province under another is counted among "the houses that would follow" when
-that house takes a region out of the Reach (docs/BREAKAWAY.md).
-
 The tithe and the levy come off the province's line in the holder's ledger and appear in the ledger of the house that
-holds the world as "Dues of" the province. A house at war with the house over it pays nothing and leans nowhere; nothing
-is owed on a world in revolt. The player owes the tithe and the levy like any house; how the player votes is the player's.
+holds the world as "Dues of" the province. Because it leans that way, a house with a province under another is counted
+among "the houses that would follow" when that house takes a region out of the Reach (docs/BREAKAWAY.md).
+
+**The house that holds the world sets the dues** of each province:
+
+| dues | paid | squadron | voice |
+|---|---|---|---|
+| forgiven | nothing | none | leans its way the more (+3) |
+| customary | the tithe; the levy in war | yes | leans its way (+2) |
+| heavy | twice both | yes | none |
+
+**A house may refuse.** Withholding its dues, it pays nothing, sends nothing and leans nowhere, and the house over it
+may ask it to give up the province **at no cost in influence**. A rival under heavy dues that is the match of the house
+over it stops paying, and pays again when the dues are eased. A rival that holds a world answers a house that withholds
+by asking for the province, if it is at peace and at least that house's match; so refusing is a step toward the war
+that standing ends in. A rival at war sometimes asks heavy dues of the weaker houses under it and goes back to what is
+customary at the peace.
+
+**The player's vote is noticed.** When the player casts a vote on something the house over it moved, or that is aimed at
+that house, that house notes it: regard between the two heads rises a little for a vote its way and falls a good deal
+for one against, as with a patron. Votes against are counted (a vote its way takes one off): at two, a house that is at
+peace and the player's match asks for the province. A vote left to drift is not noticed. A house at war with the house
+over it pays nothing, sends nothing and leans nowhere; nothing is owed on a world in revolt.
 
 **Part of a world, the whole world, the whole system.** A house with a province has that province, its slots and what it
 builds in them, and nothing else of the world. The house that holds the world has its seat, its row of building slots, every other place in the system, its

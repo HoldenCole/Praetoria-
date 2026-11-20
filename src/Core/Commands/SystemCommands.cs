@@ -141,7 +141,8 @@ public sealed class UpgradeBuildingCommand : ICommand
     {
         var w = ctx.World; var actor = w.Char(ActorId)!; var house = w.House(actor.HouseId)!;
         string name; Resources cost; int years, level;
-        if (_target.Contains('#')) { var (sysId, body) = SystemWorks.Parse(_target); var def = _catalog.Work(_defId)!; var x = SystemWorks.On(w, sysId, body).First(o => o.DefId == _defId); level = Math.Max(1, x.Level); cost = def.Cost; years = def.BuildTurns; var sys = w.Galaxy!.System(sysId)!; name = def.Name + " " + SystemWorks.Roman(level + 1) + (sys.Bodies[body].IsSpace ? " in the " + sys.Name.Replace("The ", "") + " system" : " at " + sys.Bodies[body].Name); }
+        if (_target.Contains('@')) { var (hid, idx) = ProvinceSystem.Parse(_target); var planet = w.Holding(hid)!; var def = _catalog.Work(_defId)!; level = planet.Provinces[idx].LevelOf(_defId); cost = def.Cost; years = def.BuildTurns; name = def.Name + " " + SystemWorks.Roman(level + 1) + " in " + planet.Provinces[idx].Name; }
+        else if (_target.Contains('#')) { var (sysId, body) = SystemWorks.Parse(_target); var def = _catalog.Work(_defId)!; var x = SystemWorks.On(w, sysId, body).First(o => o.DefId == _defId); level = Math.Max(1, x.Level); cost = def.Cost; years = def.BuildTurns; var sys = w.Galaxy!.System(sysId)!; name = def.Name + " " + SystemWorks.Roman(level + 1) + (sys.Bodies[body].IsSpace ? " in the " + sys.Name.Replace("The ", "") + " system" : " at " + sys.Bodies[body].Name); }
         else { var h = w.Holding(_target)!; var def = _catalog.Building(_defId)!; level = h.LevelOf(_defId); cost = def.Cost; years = def.BuildTurns; name = def.Name + " " + SystemWorks.Roman(level + 1) + " at " + h.Name; }
         ProjectSystem.Start(w, house.Id, Project.Upgrade, _defId, _target, name, SystemWorks.UpgradeCost(cost, level), Math.Max(1, years));
     }

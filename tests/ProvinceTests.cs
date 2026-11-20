@@ -194,6 +194,87 @@ public class ProvinceTests
     }
 
     [Fact]
+    public void ABuildingInAProvince_IsTakenHigher_AndTellsOnTheWorld()
+    {
+        var (w, tc, house, me, ctx) = Start(); var eco = new Economy(Cat, Content.Businesses);
+        var (far, idx) = w.ProvincesOf(house.Id).First(x => Cat.Works.Any(d => ProvinceSystem.Suits(Cat, w.Galaxy!.System(x.h.SystemId)!, x.h.Provinces[x.i], d) && d.BuildTurns <= 1 && !d.Yield.IsEmpty()));
+        var sys = w.Galaxy!.System(far.SystemId)!; var p = far.Provinces[idx]; string target = ProvinceSystem.Target(far.Id, idx);
+        var def = Cat.Works.First(d => ProvinceSystem.Suits(Cat, sys, p, d) && d.BuildTurns <= 1 && !d.Yield.IsEmpty());
+        Assert.True(tc.Executor.TryExecute(new BuildInProvinceCommand(me.Id, far.Id, idx, def.Id, Cat), ctx)); Assert.Contains(def.Id, p.Buildings); var one = ProvinceSystem.Yield(w, Cat, far, p);
+        // its level is the system's development's to allow, as for any building; a level higher, it yields twice over
+        w.Development[sys.Id] = Cat.Rules.UpgradeAt[1] * 10 - 1; Assert.StartsWith("needs development", new UpgradeBuildingCommand(me.Id, target, def.Id, Cat).Refusal(ctx));
+        w.Development[sys.Id] = 100; Assert.True(tc.Executor.TryExecute(new UpgradeBuildingCommand(me.Id, target, def.Id, Cat), ctx), new UpgradeBuildingCommand(me.Id, target, def.Id, Cat).Refusal(ctx));
+        Assert.Equal("the next level is being built", new UpgradeBuildingCommand(me.Id, target, def.Id, Cat).Refusal(ctx));
+        ProjectSystem.Tick(w, Cat, Content.Businesses); Assert.Equal(2, p.LevelOf(def.Id)); var two = ProvinceSystem.Yield(w, Cat, far, p);
+        var focus = new Resources(); foreach (var r in Resource.All) focus.Set(r, Cat.Provinces.Focus(p.Focus)!.Yield.Get(r) * p.Level);
+        foreach (var r in Resource.All) Assert.Equal((one.Get(r) - focus.Get(r)) * 2, two.Get(r) - focus.Get(r));
+        // only its holder takes it higher
+        var owner = w.House(far.OwnerId)!; var oh = Economy.HeadOf(w, owner); if (oh != null) Assert.Equal("it is not your province", new UpgradeBuildingCommand(oh.Id, target, def.Id, Cat).Refusal(ctx));
+        // what a building does for a world it does from a province too: room for people (by its level), prosperity, unrest
+        int room = SystemWorks.Population(w, Cat, sys.Id), prosper = SystemWorks.Prosperity(w, Cat, sys.Id), unrest = SystemWorks.Unrest(w, Cat, sys.Id);
+        var roomy = Cat.Works.First(d => d.Population > 0 && !d.IsMegastructure); var fair = Cat.Works.First(d => d.Prosperity > 0 && !d.IsMegastructure && d.Id != roomy.Id); var calm = Cat.Works.First(d => d.Unrest < 0 && !d.IsMegastructure);
+        p.Buildings.Add(roomy.Id); p.BuildingLevels[roomy.Id] = 2; p.Buildings.Add(fair.Id); p.Buildings.Add(calm.Id); w.WorldCounters["province_buildings"] = 3;
+        Assert.Equal(room + 2 * roomy.Population + fair.Population + calm.Population, SystemWorks.Population(w, Cat, sys.Id));
+        Assert.Equal(prosper + roomy.Prosperity + fair.Prosperity + calm.Prosperity, SystemWorks.Prosperity(w, Cat, sys.Id));
+        Assert.True(SystemWorks.Unrest(w, Cat, sys.Id) <= unrest + roomy.Unrest + fair.Unrest + calm.Unrest); Assert.True(SystemWorks.Any(w));
+    }
+
+    [Fact]
+    public void Dues_AreSetByTheHouseOver_CanBeRefused_AndTheLevyTurnsUp()
+    {
+        var (w, tc, house, me, ctx) = Start(); var rules = Cat.Provinces; w.Wars.Clear(); foreach (var n in w.Nations) n.AtWar = false;
+        var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var under = w.House(ProvinceSystem.HolderOf(seat, 1))!; var p = seat.Provinces[1]; var uh = Economy.HeadOf(w, under)!;
+        // the house that holds the world sets them: forgiven, nothing is paid and the house leans its way the more; heavy, twice, and it leans nowhere
+        int customary = ProvinceSystem.Dues(w, Cat, seat, 1).Credits; Assert.Equal(ProvinceSystem.VoteLean, ProvinceSystem.LeanUnder(w, under.Id, house.Id));
+        Assert.Equal("they are customary already", new SetDuesCommand(me.Id, seat.Id, 1, ProvinceSystem.Customary).Refusal(ctx)); Assert.Equal("only the house that holds the world sets its dues", new SetDuesCommand(uh.Id, seat.Id, 1, ProvinceSystem.Heavy).Refusal(ctx));
+        Assert.True(tc.Executor.TryExecute(new SetDuesCommand(me.Id, seat.Id, 1, ProvinceSystem.Forgiven), ctx)); Assert.True(ProvinceSystem.Dues(w, Cat, seat, 1).IsEmpty()); Assert.Equal(ProvinceSystem.VoteLean + 1, ProvinceSystem.LeanUnder(w, under.Id, house.Id));
+        Assert.True(tc.Executor.TryExecute(new SetDuesCommand(me.Id, seat.Id, 1, ProvinceSystem.Heavy), ctx)); Assert.Equal(2 * customary, ProvinceSystem.Dues(w, Cat, seat, 1).Credits);
+        if (w.ProvincesOf(under.Id).Count(x => x.h.OwnerId == house.Id) == 1) { Assert.Equal(0, ProvinceSystem.LeanUnder(w, under.Id, house.Id)); Assert.DoesNotContain("holds a province under it", OrderSystem.Sway(w, under, house).why); }
+        // a rival under heavy dues that is the governor's match stops paying; then nothing is paid, and it may be asked to go for nothing
+        GiveFleet(w, house.Id, 6); GiveFleet(w, under.Id, 6); ProvinceSystem.Tick(w, Cat); Assert.True(p.Withheld); Assert.True(ProvinceSystem.Dues(w, Cat, seat, 1).IsEmpty());
+        Assert.Equal(0, ProvinceSystem.DemandCost(Cat, seat, 1)); Assert.Equal(rules.DemandInfluence, ProvinceSystem.DemandCost(Cat, seat, 2));
+        house.Treasury.Influence = 0; Assert.Null(new DemandSeatCommand(me.Id, seat.Id, 1, house.Id, Cat).Refusal(ctx)); house.Treasury.Influence = 40;
+        // eased to what is customary, it pays again
+        Assert.True(tc.Executor.TryExecute(new SetDuesCommand(me.Id, seat.Id, 1, ProvinceSystem.Customary), ctx)); ProvinceSystem.Tick(w, Cat); Assert.False(p.Withheld); Assert.Equal(customary, ProvinceSystem.Dues(w, Cat, seat, 1).Credits);
+        // the player may withhold what it owes another house, and pay again; a rival that can answers by asking for the province
+        var (far, idx) = w.ProvincesOf(house.Id).First(); var over = w.House(far.OwnerId)!; var q = far.Provinces[idx]; GiveFleet(w, over.Id, 20); GiveFleet(w, house.Id, 6);
+        Assert.Equal("you hold no province under another here", new WithholdDuesCommand(me.Id, seat.Id, 1, true).Refusal(ctx));
+        Assert.True(tc.Executor.TryExecute(new WithholdDuesCommand(me.Id, far.Id, idx, true), ctx)); Assert.True(q.Withheld); Assert.True(ProvinceSystem.Dues(w, Cat, far, idx).IsEmpty()); if (w.ProvincesOf(house.Id).Count(x => x.h.OwnerId == over.Id) == 1) Assert.Equal(0, ProvinceSystem.LeanUnder(w, house.Id, over.Id));
+        Assert.Equal("you are withholding them", new WithholdDuesCommand(me.Id, far.Id, idx, true).Refusal(ctx)); over.Treasury.Influence = 0;
+        ProvinceSystem.Tick(w, Cat); Assert.Contains(w.SeatDemands, d => d.HoldingId == far.Id && d.Province == idx && d.AgainstId == house.Id && d.ById == over.Id);
+        w.SeatDemands.Clear(); Assert.True(tc.Executor.TryExecute(new WithholdDuesCommand(me.Id, far.Id, idx, false), ctx)); Assert.False(q.Withheld);
+        // the levy: the governor goes to war and every province that pays sends its squadron, once; at the peace it goes home
+        w.SeatDemands.Clear(); var foe = w.Houses.Values.First(h => !World.Outsider(h.Id) && h.Id != house.Id && h.Id != under.Id && h.Id != ProvinceSystem.HolderOf(seat, 2));
+        p.Level = 2; int before = FleetSystem.StrengthOf(w, house.Id); w.Wars.Add(new War { HouseA = house.Id, HouseB = foe.Id, Since = w.Turn }); ProvinceSystem.Tick(w, Cat);
+        var levy = w.Fleets.Values.Where(f => f.Id.StartsWith(ProvinceSystem.LevyPrefix)).ToList(); Assert.Contains(levy, f => f.OwnerId == house.Id && f.SystemId == seat.SystemId && f.Strength == 2 * rules.LevySquadron);
+        Assert.True(FleetSystem.StrengthOf(w, house.Id) > before); Assert.True(p.Levied); int raised = w.Counter("levies_raised"); Assert.True(raised >= 1);
+        foreach (var f in levy) w.Fleets.Remove(f.Id); ProvinceSystem.Tick(w, Cat); Assert.Equal(raised, w.Counter("levies_raised"));   // lost, it is not sent again in the same war
+        w.Wars.Clear(); ProvinceSystem.Tick(w, Cat); Assert.False(p.Levied); Assert.DoesNotContain(w.Fleets.Values, f => f.Id.StartsWith(ProvinceSystem.LevyPrefix) && f.OwnerId == house.Id);
+        // a province that pays nothing sends nothing
+        p.Dues = ProvinceSystem.Forgiven; seat.Provinces[2].Withheld = true; w.Wars.Add(new War { HouseA = house.Id, HouseB = foe.Id, Since = w.Turn }); ProvinceSystem.Tick(w, Cat);
+        Assert.DoesNotContain(w.Fleets.Values, f => f.Id.StartsWith(ProvinceSystem.LevyPrefix + seat.Id + "@"));   // (the house's other worlds send theirs)
+    }
+
+    [Fact]
+    public void TheHouseOverThePlayer_NoticesHowItVotes_AndTwiceDefiedAsksForTheProvince()
+    {
+        var (w, tc, house, me, ctx) = Start(); w.Wars.Clear(); foreach (var n in w.Nations) n.AtWar = false; var rules = Cat.Provinces;
+        var (far, idx) = w.ProvincesOf(house.Id).First(x => x.h.OwnerId != house.PatronId); var over = w.House(far.OwnerId)!; var oh = Economy.HeadOf(w, over)!;
+        var rival = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != over.Id && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).First();
+        int regard = w.Relationship(oh.Id, me.Id).Disposition; string key = ProvinceSystem.DefiedKey(over.Id, house.Id);
+        // voting to censure the house it holds a province under: noted, and counted
+        var censure = tc.Senate.Add(w, rival.Id, "censure", over.Id); censure.Votes[house.Id] = 1; censure.ProposedTurn = w.Turn - 1; tc.Senate.Tick(w);
+        Assert.True(censure.Resolved); Assert.Contains("defied_overlord", w.WorldFlags); Assert.Equal(regard + SenateSystem.DefyRegard, w.Relationship(oh.Id, me.Id).Disposition); Assert.Equal(1, w.Counter(key));
+        // voting its way takes one off the count
+        var again = tc.Senate.Add(w, rival.Id, "censure", over.Id); again.Votes[house.Id] = -1; again.ProposedTurn = w.Turn - 1; tc.Senate.Tick(w); Assert.Equal(0, w.Counter(key)); Assert.Contains("obliged_overlord", w.WorldFlags);
+        // a vote not cast is not noticed
+        var drift = tc.Senate.Add(w, rival.Id, "censure", over.Id); drift.ProposedTurn = w.Turn - 1; tc.Senate.Tick(w); Assert.Equal(0, w.Counter(key));
+        // defied as often as it will bear, a house that is the player's match asks for the province
+        w.WorldCounters[key] = rules.Defiances; GiveFleet(w, over.Id, 12); GiveFleet(w, house.Id, 4); over.Treasury.Influence = 40; w.Wars.Clear(); w.SeatDemands.Clear();
+        ProvinceSystem.Tick(w, Cat); Assert.Contains(w.SeatDemands, d => d.HoldingId == far.Id && d.Province == idx && d.ById == over.Id && d.AgainstId == house.Id); Assert.Equal(0, w.Counter(key));
+    }
+
+    [Fact]
     public void AHeadOfState_IsTheHeadOfAState()
     {
         // the owner, 2026-11-20: a king is the head of a monarchy "not big enough to be an empire"; in the Republic the head is a consul

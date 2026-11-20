@@ -208,12 +208,9 @@ still short of that:
 | V6 | The pictures are AI-generated. A store page must say so (Steam's content survey), and the owner has not been asked whether that is acceptable for release or a stand-in until an artist is paid. | S | owner |
 | V7 | The Academy, the character creation pages, the primer and the seat-passing interstitial have not been through the pass. | M | |
 | V8 | Icons (game-icons.net) are used small and only on the rail and the top bar. Traits, skills, offices and the figures in a window are words; CK3 and Old World carry those as icons with a tooltip. | M | V2 |
-| V9 | A building in a province has one level and does two things, yield and defend: what it would add to the world's prosperity, people or unrest is not counted, and it cannot be upgraded. | S | |
-| V10 | The dues are fixed: a holder of a world cannot ask for more or forgive them, a province holder cannot refuse them short of war, and the levy is manpower on a ledger, not ships or a regiment that turns up. | M | owner |
-| V11 | The player's own vote owes nothing: voting against the house over you costs nothing and is not noticed, though a client who defies a patron is. | S | |
-| V9 | The Office is a room modelled in code and is the weakest picture left in the game. It is off the default path now; it wants to be a painting, or to go. | S | owner |
-| V10 | The profile is a centred window, not docked, and what a person thinks of you has no itemised breakdown (Star Dynasties and CK3 both itemise opinion). | M | |
-| V11 | The event paintings are chosen by keyword from sixteen. An event cannot name its own picture, and the same hall shows for many occasions. | S | |
+| V12 | A levy squadron is plain hulls with no admiral and no name of its own house: it does not remember whose it is in a battle report, cannot refuse an order, and the house that sent it loses nothing when it is destroyed. | S | |
+| V13 | Dues are three settings. They cannot be bargained over, promised in a marriage contract or a peace, or set for a term; a rival never forgives them to win a house over. | S | |
+| V14 | Only the player's votes are counted against it by the house over it. A rival that votes against its own overlord is leaning that way already and is never asked to go for it. | S | |
 
 | V14 | The map is a field of stars to its edges. It has no frame, title, compass or painted edge to make it the Senate's star table. | S | |
 | V15 | A house has no hall. The home screen and the title could open on a painting of the house's hall with its banner and its head, spouse and heir in it. | M | |
@@ -277,9 +274,9 @@ still short of that:
 | V6 | Provinces are named and listed but not drawn: the world on the map is one disc. | M | art |
 | V7 | A rival never gives a province to a third house, never asks on behalf of a friend, and the consuls ask nothing of anyone. | S | |
 | V8 | The Senate has no say: a house cannot appeal a demand, and no law limits how often a holder may be asked. | M | |
-| V9 | A building in a province has one level and does two things, yield and defend: what it would add to the world's prosperity, people or unrest is not counted, and it cannot be upgraded. | S | |
-| V10 | The dues are fixed: a holder of a world cannot ask for more or forgive them, a province holder cannot refuse them short of war, and the levy is manpower on a ledger, not ships or a regiment that turns up. | M | owner |
-| V11 | The player's own vote owes nothing: voting against the house over you costs nothing and is not noticed, though a client who defies a patron is. | S | |
+| V12 | A levy squadron is plain hulls with no admiral and no name of its own house: it does not remember whose it is in a battle report, cannot refuse an order, and the house that sent it loses nothing when it is destroyed. | S | |
+| V13 | Dues are three settings. They cannot be bargained over, promised in a marriage contract or a peace, or set for a term; a rival never forgives them to win a house over. | S | |
+| V14 | Only the player's votes are counted against it by the house over it. A rival that votes against its own overlord is leaning that way already and is never asked to go for it. | S | |
 
 ## Older, from docs/ROADMAP.md section 3
 
@@ -299,6 +296,9 @@ look-and-feel pass is planned and not begun, there is no sound.
 | V1 | A province had nothing to build in it. | 2026-11-20 | The owner: yes. A province has building slots of its own, by development and its holder's rank, and its holder builds the ordinary buildings of the world's kind in them. |
 | V2 | The holder of a province owed the holder of the world nothing. | 2026-11-20 | The owner: yes. A tithe every year, a levy when the holder of the world is at war, and its voice in the Senate. |
 | V5 | Stepping down from a world cost no title. | 2026-11-20 | The owner: yes. The house loses a rung of its title. |
+| V9 | A building in a province had one level and only yielded and defended. | 2026-11-20 | It is taken to level II and III as any building is, and adds to its world's room for people, prosperity and unrest. |
+| V10 | The dues were fixed, could not be refused short of war, and the levy was manpower on a ledger. | 2026-11-20 | The holder of the world sets them forgiven, customary or heavy; a house may withhold them, and may then be asked to go for nothing; in a war every paying province sends a squadron that sails under the holder of the world until the peace. |
+| V11 | The player's vote owed nothing. | 2026-11-20 | The house over the player notes a vote for or against it, and after two against asks for the province if it can. |
 | S9 | The old megastructures on a world were buildings in a world's slots. | 2026-11-20 | They are great works with sites of their own: the Orbital Ring on the world, the Dyson Lattice round the sun, the Lane Gate Anchor in open space; a world that had one in a slot has it moved (docs/BUILDINGS.md). |
 | G5 | A system nobody holds could be fought over but not settled. | 2026-11-20 | A colony is sent from a world a lane away, or under a fleet standing in the system; when it lands the world is the house's (docs/SYSTEMS.md). |
 | V12 | Territory on the map was a bright border line with nothing inside it. | 2026-11-20 | Every held system is a cell filled in its holder's colour, with a dark line between cells of one holder and a wider one, lit along its inner edge, where two holders meet. A house's worlds, the Reach and each nation read as blocks at any zoom, and on the minimap. A region's edge is a pale line. V17 (a crest over a realm at far zoom) and V14 (the map as an object) are what is left. |

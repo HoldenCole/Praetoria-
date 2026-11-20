@@ -100,7 +100,7 @@ public static class HoldingCatalogLoader
                         SlotBase = ps.ValueKind == JsonValueKind.Object ? ConditionParser.Int(ps, "base", p0.SlotBase) : p0.SlotBase, SlotMax = ps.ValueKind == JsonValueKind.Object ? ConditionParser.Int(ps, "max", p0.SlotMax) : p0.SlotMax,
                         SlotDevelopment = ps.ValueKind == JsonValueKind.Object ? PIs(ps, "development", p0.SlotDevelopment) : p0.SlotDevelopment, SlotRank = ps.ValueKind == JsonValueKind.Object ? PIs(ps, "rank", p0.SlotRank) : p0.SlotRank,
                         Tithe = po.ValueKind == JsonValueKind.Object && po.TryGetProperty("tithe", out _) ? ParseResources(po, "tithe") : p0.Tithe, Levy = po.ValueKind == JsonValueKind.Object && po.TryGetProperty("levy", out _) ? ParseResources(po, "levy") : p0.Levy,
-                        StepDownRanks = ConditionParser.Int(dm, "ranks", p0.StepDownRanks),
+                        StepDownRanks = ConditionParser.Int(dm, "ranks", p0.StepDownRanks), LevySquadron = po.ValueKind == JsonValueKind.Object ? ConditionParser.Int(po, "squadron", p0.LevySquadron) : p0.LevySquadron, Defiances = po.ValueKind == JsonValueKind.Object ? Math.Max(1, ConditionParser.Int(po, "defiances", p0.Defiances)) : p0.Defiances,
                         NpcProvinceYears = Math.Max(1, ConditionParser.Int(np, "provinceYears", p0.NpcProvinceYears)), NpcWorldYears = Math.Max(1, ConditionParser.Int(np, "worldYears", p0.NpcWorldYears))
                     };
                 }

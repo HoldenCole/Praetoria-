@@ -126,7 +126,8 @@ public static class ProjectSystem
         Project.Colony => w.Galaxy?.System(p.TargetId) != null && w.PlanetOf(p.TargetId) == null,
         Project.Infrastructure => w.PlanetOf(p.TargetId) is { } ip && ip.OwnerId == p.OwnerId,
         Project.ProvinceWork => ProvinceSystem.Parse(p.TargetId) is var (ph, pi) && w.Holding(ph) is { } pw && pi > 0 && pi < pw.Provinces.Count && ProvinceSystem.HolderOf(pw, pi) == p.OwnerId,
-        Project.Upgrade => p.TargetId.Contains('#') ? w.PlanetOf(SystemWorks.Parse(p.TargetId).systemId) is { } up && up.OwnerId == p.OwnerId && w.BodyWorks.Any(x => x.DefId == p.DefId && SystemWorks.Target(x.SystemId, x.Body) == p.TargetId)
+        Project.Upgrade => p.TargetId.Contains('@') ? ProvinceSystem.Parse(p.TargetId) is var (uph, upi) && w.Holding(uph) is { } upw && upi > 0 && upi < upw.Provinces.Count && ProvinceSystem.HolderOf(upw, upi) == p.OwnerId && upw.Provinces[upi].Buildings.Contains(p.DefId)
+            : p.TargetId.Contains('#') ? w.PlanetOf(SystemWorks.Parse(p.TargetId).systemId) is { } up && up.OwnerId == p.OwnerId && w.BodyWorks.Any(x => x.DefId == p.DefId && SystemWorks.Target(x.SystemId, x.Body) == p.TargetId)
             : w.Holding(p.TargetId) is { } uh && uh.OwnerId == p.OwnerId && uh.Buildings.Contains(p.DefId),
         _ => w.Galaxy?.System(p.TargetId) != null
     };

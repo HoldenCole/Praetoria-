@@ -92,7 +92,7 @@ public static class ProvinceSystem
     {
         var d = new Resources(); if (cat.Provinces.Focus(p.Focus) is not { } f) return d; var sys = w.Galaxy?.System(planet.SystemId);
         foreach (var r in Resource.All) d.Set(r, f.Yield.Get(r) * Math.Max(1, p.Level));
-        foreach (var id in p.Buildings) if (cat.Work(id) is { } b) foreach (var r in Resource.All) d.Add(r, (b.Deposit == r ? b.Yield.Get(r) * Math.Max(1, sys?.Deposit(r) ?? 1) : b.Yield.Get(r)) - b.Upkeep.Get(r));
+        foreach (var id in p.Buildings) if (cat.Work(id) is { } b) foreach (var r in Resource.All) d.Add(r, ((b.Deposit == r ? b.Yield.Get(r) * Math.Max(1, sys?.Deposit(r) ?? 1) : b.Yield.Get(r)) - b.Upkeep.Get(r)) * p.LevelOf(id));
         return d;
     }
     /// <summary>What the house that holds a province under another owes the holder of the world this year (the owner, 2026-11-20: yes to
@@ -101,13 +101,66 @@ public static class ProvinceSystem
     public static Resources Dues(World w, HoldingCatalog cat, Holding planet, int index)
     {
         var d = new Resources(); if (index <= 0 || index >= planet.Provinces.Count || planet.InRebellion) return d;
-        string holder = HolderOf(planet, index); if (holder == planet.OwnerId || w.AtWar(holder, planet.OwnerId)) return d;
-        int level = Math.Max(1, planet.Provinces[index].Level); bool war = w.EnemiesOf(planet.OwnerId).Any();
+        string holder = HolderOf(planet, index); var p = planet.Provinces[index]; if (holder == planet.OwnerId || w.AtWar(holder, planet.OwnerId) || p.Withheld || p.Dues <= 0) return d;
+        int level = Math.Max(1, p.Level) * Math.Min(Heavy, p.Dues); bool war = w.EnemiesOf(planet.OwnerId).Any();
         foreach (var r in Resource.All) d.Set(r, (cat.Provinces.Tithe.Get(r) + (war ? cat.Provinces.Levy.Get(r) : 0)) * level);
         return d;
     }
+    public const int Forgiven = 0, Customary = 1, Heavy = 2;
+    public static string DuesName(int dues) => dues <= Forgiven ? "forgiven" : dues >= Heavy ? "heavy" : "customary";
+    /// <summary>How far a house leans, in the Senate, the way of a house it holds a province under: the more where its dues are
+    /// forgiven, not at all where they are heavy or it is withholding them, or the two are at war.</summary>
+    public static int LeanUnder(World w, string houseId, string overId)
+    {
+        if (houseId == overId || w.AtWar(houseId, overId)) return 0; int best = 0;
+        foreach (var (h, i) in w.ProvincesOf(houseId)) { if (h.OwnerId != overId || i >= h.Provinces.Count) continue; var p = h.Provinces[i]; if (p.Withheld || p.Dues >= Heavy) continue; best = Math.Max(best, p.Dues <= Forgiven ? VoteLean + 1 : VoteLean); }
+        return best;
+    }
+    /// <summary>Why the house that holds a world may not set a province's dues so, or null.</summary>
+    public static string? DuesRefusal(World w, House by, Holding planet, int index, int dues)
+    {
+        if (!planet.IsPlanet || index <= 0 || index >= planet.Provinces.Count) return "no such province";
+        if (planet.OwnerId != by.Id) return "only the house that holds the world sets its dues";
+        if (HolderOf(planet, index) == by.Id) return "it is your own";
+        if (dues < Forgiven || dues > Heavy) return "no such dues";
+        return planet.Provinces[index].Dues == dues ? "they are " + DuesName(dues) + " already" : null;
+    }
+    public static void SetDues(World w, Holding planet, int index, int dues)
+    {
+        var p = planet.Provinces[index]; int was = p.Dues; p.Dues = dues; w.ProvincesChanged();
+        w.Log($"{w.House(planet.OwnerId)?.Name ?? "The holder of the world"} {(dues > was ? "raises" : "eases")} the dues of {p.Name}: they are {DuesName(dues)} now.");
+    }
+    /// <summary>Why a house may not begin, or stop, withholding the dues of a province it holds under another, or null.</summary>
+    public static string? WithholdRefusal(World w, House by, Holding planet, int index, bool withhold)
+    {
+        if (!planet.IsPlanet || index <= 0 || index >= planet.Provinces.Count) return "no such province";
+        if (HolderOf(planet, index) != by.Id || planet.OwnerId == by.Id) return "you hold no province under another here";
+        var p = planet.Provinces[index]; if (p.Withheld == withhold) return withhold ? "you are withholding them" : "you are paying them";
+        return withhold && p.Dues <= Forgiven ? "nothing is asked of you" : null;
+    }
+    public static void Withhold(World w, Holding planet, int index, bool withhold)
+    {
+        var p = planet.Provinces[index]; p.Withheld = withhold; w.ProvincesChanged(); if (withhold) w.WorldCounters["dues_withheld"] = w.Counter("dues_withheld") + 1;
+        string holder = w.House(HolderOf(planet, index))?.Name ?? "Its holder", over = w.House(planet.OwnerId)?.Name ?? "the holder of the world";
+        w.Log(withhold ? $"{holder} will pay no more dues for {p.Name}. {over} may ask it to go." : $"{holder} pays the dues of {p.Name} again.");
+    }
+    /// <summary>What a province adds to its world beyond coin: what its buildings add to where the world's prosperity heads, to the
+    /// people it can hold (by their level), and to its unrest a year.</summary>
+    public static (int prosperity, int population, int unrest) OnWorld(HoldingCatalog cat, Holding planet)
+    {
+        int pr = 0, po = 0, un = 0;
+        foreach (var p in planet.Provinces) foreach (var id in p.Buildings) if (cat.Work(id) is { } b) { pr += b.Prosperity; po += b.Population * p.LevelOf(id); un += b.Unrest; }
+        return (pr, po, un);
+    }
     /// <summary>Whether a house holds a province of a world another house holds: it owes that house, and leans its way in the Senate.</summary>
     public static bool Under(World w, string houseId, string overId) { if (houseId == overId) return false; foreach (var (h, _) in w.ProvincesOf(houseId)) if (h.OwnerId == overId && !w.AtWar(houseId, overId)) return true; return false; }
+    /// <summary>The houses a house holds a province under, and is not at war with.</summary>
+    public static IEnumerable<House> Overs(World w, string houseId)
+    {
+        var seen = new HashSet<string>();
+        foreach (var (h, _) in w.ProvincesOf(houseId)) if (h.OwnerId != houseId && seen.Add(h.OwnerId) && !w.AtWar(houseId, h.OwnerId) && w.House(h.OwnerId) is { } o) yield return o;
+    }
+    public static string DefiedKey(string overId, string houseId) => "defied_over:" + overId + ":" + houseId;
     public const int VoteLean = 2;
     /// <summary>What the provinces of a house's own world pay it: its seat, and any province it has given to nobody.</summary>
     public static IEnumerable<(string name, Resources net)> OwnLines(World w, HoldingCatalog cat, Holding planet)
@@ -130,7 +183,7 @@ public static class ProvinceSystem
             if (!y.IsEmpty()) yield return (h.Provinces[i].Name, y);
         }
     }
-    public static double Defense(HoldingCatalog cat, Holding planet) { double d = 0; foreach (var p in planet.Provinces) { d += (cat.Provinces.Focus(p.Focus)?.Defense ?? 0) * Math.Max(1, p.Level); foreach (var id in p.Buildings) d += cat.Work(id)?.Defense ?? 0; } return d; }
+    public static double Defense(HoldingCatalog cat, Holding planet) { double d = 0; foreach (var p in planet.Provinces) { d += (cat.Provinces.Focus(p.Focus)?.Defense ?? 0) * Math.Max(1, p.Level); foreach (var id in p.Buildings) d += (cat.Work(id)?.Defense ?? 0) * p.LevelOf(id); } return d; }
 
     // ---------------- building in a province ----------------
 
@@ -234,9 +287,12 @@ public static class ProvinceSystem
         if (w.AtWar(by.Id, against)) return "you are at war with them: the war will settle it";
         if (w.SeatDemands.Any(d => d.HoldingId == planet.Id && d.Province == index)) return "it has been asked, and not yet answered";
         if (w.WorldCounters.TryGetValue(AskedKey(by.Id), out var asked) && asked == w.Turn + 1) return "one such demand a year";
-        int cost = index == 0 ? cat.Provinces.DemandInfluenceWorld : cat.Provinces.DemandInfluence;
+        int cost = DemandCost(cat, planet, index);
         return by.Treasury.Influence >= cost ? null : !explain ? "needs more" : $"needs {cost} influence";
     }
+
+    /// <summary>What asking costs in influence: nothing, of a house that is withholding its dues.</summary>
+    public static int DemandCost(HoldingCatalog cat, Holding planet, int index) => index == 0 ? cat.Provinces.DemandInfluenceWorld : planet.Provinces[index].Withheld ? 0 : cat.Provinces.DemandInfluence;
 
     /// <summary>Whether a rival house steps down when asked, or fights: it steps down when it has no fleet, or when the one who asks
     /// is so much the stronger that fighting is hopeless.</summary>
@@ -249,7 +305,7 @@ public static class ProvinceSystem
     /// <summary>The demand is made. A rival answers at once; the player's answer is waited for. Returns what came of it.</summary>
     public static string Demand(World w, HoldingCatalog cat, House by, Holding planet, int index, string forId)
     {
-        string against = HolderOf(planet, index); by.Treasury.Influence -= index == 0 ? cat.Provinces.DemandInfluenceWorld : cat.Provinces.DemandInfluence;
+        string against = HolderOf(planet, index); by.Treasury.Influence -= DemandCost(cat, planet, index);
         w.WorldCounters[AskedKey(by.Id)] = w.Turn + 1; int n = w.Counter(DemandsCounter) + 1; w.WorldCounters[DemandsCounter] = n;
         var d = new SeatDemand { Id = "demand_" + n, HoldingId = planet.Id, Province = index, ById = by.Id, AgainstId = against, ForId = forId, Turn = w.Turn };
         if (against == w.Protagonist?.HouseId)
@@ -292,11 +348,28 @@ public static class ProvinceSystem
         }
         else
         {
-            var p = planet.Provinces[d.Province]; p.HolderId = to.Id == planet.OwnerId ? "" : to.Id; p.Since = w.Turn; w.ProvincesChanged();
+            var p = planet.Provinces[d.Province]; p.HolderId = to.Id == planet.OwnerId ? "" : to.Id; p.Since = w.Turn; p.Withheld = false; p.Dues = Customary; w.ProvincesChanged();
             w.Log($"{against.Name} gives up {what} at the word of {by.Name}{(to.Id == by.Id ? "" : ": it goes to " + to.Name)}.");
         }
         w.WorldCounters[YieldedCounter] = w.Counter(YieldedCounter) + 1;
         return Yielded;
+    }
+
+    public const string LevyPrefix = "levy_";
+    /// <summary>The levy (docs/PROVINCES.md): in a war of the house that holds a world, every province that pays it dues sends a squadron,
+    /// once a war, which sails under that house until the peace. At peace the provinces are ready to be asked again.</summary>
+    private static void Levies(World w, HoldingCatalog cat, Holding planet)
+    {
+        bool war = !World.Outsider(planet.OwnerId) && w.EnemiesOf(planet.OwnerId).Any();
+        for (int i = 1; i < planet.Provinces.Count; i++)
+        {
+            var p = planet.Provinces[i]; if (!war) { p.Levied = false; continue; }
+            if (p.Levied || cat.Provinces.LevySquadron <= 0 || Dues(w, cat, planet, i).IsEmpty()) continue;
+            string id = LevyPrefix + Target(planet.Id, i); if (w.Fleets.ContainsKey(id)) { p.Levied = true; continue; }
+            w.Fleets[id] = new Fleet { Id = id, Name = "The Levy of " + (p.Name.StartsWith("The ", StringComparison.Ordinal) ? p.Name[4..] : p.Name), OwnerId = planet.OwnerId, SystemId = planet.SystemId, HomeSystemId = planet.SystemId, Strength = cat.Provinces.LevySquadron * Math.Max(1, p.Level), Loyalty = 60 };
+            p.Levied = true; w.WorldCounters["levies_raised"] = w.Counter("levies_raised") + 1;
+            w.Log($"{w.House(HolderOf(planet, i))?.Name ?? "Its holder"} sends the levy of {p.Name} to {w.House(planet.OwnerId)?.Name ?? "the holder of the world"}: {cat.Provinces.LevySquadron * Math.Max(1, p.Level)} hull(s), until the peace.");
+        }
     }
 
     // ---------------- the year ----------------
@@ -307,6 +380,7 @@ public static class ProvinceSystem
     {
         var rules = cat.Provinces; if (rules.Focuses.Count == 0 || w.Galaxy == null) return;
         Seed(w, cat);
+        w.WorldFlags.Remove("obliged_overlord"); w.WorldFlags.Remove("defied_overlord");
         foreach (var d in w.SeatDemands.Where(d => w.Turn - d.Turn > rules.AnswerYears).ToList()) Resolve(w, cat, d, false);
         string? me = w.Protagonist?.HouseId; bool changed = false;
         foreach (var h in w.Holdings.Values.Where(h => h.IsPlanet && h.Provinces.Count > 1).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
@@ -322,7 +396,31 @@ public static class ProvinceSystem
                     w.Log($"{holder.Name} has no fleet left to keep {p.Name}: {w.House(h.OwnerId)?.Name ?? "the holder of the world"} takes it."); p.HolderId = ""; p.Since = w.Turn; changed = true;
                 }
             }
+            Levies(w, cat, h);
+            // a rival under heavy dues that is the match of the house over it stops paying; one whose dues are eased pays again
+            for (int i = 1; i < h.Provinces.Count; i++)
+            {
+                var p = h.Provinces[i]; string holder = HolderOf(h, i); if (holder == h.OwnerId || holder == me) continue;
+                if (!p.Withheld && p.Dues >= Heavy && !w.AtWar(holder, h.OwnerId) && FleetSystem.StrengthOf(w, holder) >= FleetSystem.StrengthOf(w, h.OwnerId) && FleetSystem.StrengthOf(w, holder) > 0) { Withhold(w, h, i, true); changed = true; }
+                else if (p.Withheld && p.Dues < Heavy) { Withhold(w, h, i, false); changed = true; }
+            }
             if (World.Outsider(h.OwnerId) || h.OwnerId == me || h.InRebellion || w.House(h.OwnerId) is not { } owner) continue;
+            // a rival at war asks more of the houses under it that are weaker than it; at peace it goes back to what is customary
+            for (int i = 1; i < h.Provinces.Count; i++)
+            {
+                var p = h.Provinces[i]; string holder = HolderOf(h, i); if (holder == owner.Id) continue; bool atWar = w.EnemiesOf(owner.Id).Any(e => e != holder);
+                if (atWar && p.Dues == Customary && Hash(h.Id + ":dues:" + i + ":" + w.Turn) % 8 == 0 && FleetSystem.StrengthOf(w, owner.Id) > FleetSystem.StrengthOf(w, holder)) { SetDues(w, h, i, Heavy); changed = true; }
+                else if (!atWar && p.Dues == Heavy) { SetDues(w, h, i, Customary); changed = true; }
+            }
+            // a rival that holds a world answers a house that withholds its dues, or the player who has voted against it once too often, by asking for the province
+            if (!w.EnemiesOf(owner.Id).Any())
+                for (int i = 1; i < h.Provinces.Count; i++)
+                {
+                    string holder = HolderOf(h, i); if (holder == owner.Id) continue;
+                    bool provoked = h.Provinces[i].Withheld || (holder == me && w.Counter(DefiedKey(owner.Id, holder)) >= rules.Defiances);
+                    if (!provoked || FleetSystem.StrengthOf(w, owner.Id) < FleetSystem.StrengthOf(w, holder) || DemandRefusal(w, cat, owner, h, i, owner.Id, false) != null) continue;
+                    w.WorldCounters.Remove(DefiedKey(owner.Id, holder)); Demand(w, cat, owner, h, i, owner.Id); changed = true; break;
+                }
             // a rival who holds a world asks for one of its provinces for itself, when it is at peace and at least the holder's match
             if (Hash(h.Id + ":province:" + w.Turn) % (uint)rules.NpcProvinceYears == 0 && !w.EnemiesOf(owner.Id).Any())
                 for (int i = 1; i < h.Provinces.Count; i++)
@@ -336,6 +434,12 @@ public static class ProvinceSystem
                 string? to = Enumerable.Range(1, h.Provinces.Count - 1).Select(i => HolderOf(h, i)).Where(x => x != owner.Id).Distinct().OrderByDescending(x => FleetSystem.StrengthOf(w, x)).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault();
                 if (to != null && DemandRefusal(w, cat, over, h, 0, to, false) == null) { Demand(w, cat, over, h, 0, to); changed = true; }
             }
+        }
+        // a levy whose province is gone, or whose war is over, has gone home
+        foreach (var f in w.Fleets.Values.Where(f => f.Id.StartsWith(LevyPrefix, StringComparison.Ordinal)).ToList())
+        {
+            var (hid, idx) = Parse(f.Id[LevyPrefix.Length..]); var planet = w.Holding(hid);
+            if (planet == null || idx <= 0 || idx >= planet.Provinces.Count || f.OwnerId != planet.OwnerId || !w.EnemiesOf(planet.OwnerId).Any() || Dues(w, cat, planet, idx).IsEmpty()) { w.Fleets.Remove(f.Id); w.WorldCounters["levies_home"] = w.Counter("levies_home") + 1; }
         }
         if (changed) w.ProvincesChanged();
         if (w.SeatDemands.Any(x => x.AgainstId == me)) w.WorldFlags.Add(DemandFlag); else w.WorldFlags.Remove(DemandFlag);

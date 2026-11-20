@@ -14,6 +14,15 @@ public sealed class Province
     public int Level { get; set; } = 1;
     /// <summary>What its holder has built in its slots: works of works.json. They go with the province.</summary>
     public List<string> Buildings { get; set; } = new();
+    /// <summary>The levels of its buildings above the first: work id → level.</summary>
+    public Dictionary<string, int> BuildingLevels { get; set; } = new();
+    public int LevelOf(string workId) => BuildingLevels.TryGetValue(workId, out var v) ? Math.Max(1, v) : 1;
+    /// <summary>What the house that holds the world asks of it: 0 forgiven, 1 customary, 2 heavy.</summary>
+    public int Dues { get; set; } = 1;
+    /// <summary>Its holder is refusing to pay.</summary>
+    public bool Withheld { get; set; }
+    /// <summary>Its levy has been sent to this war: it is not sent twice.</summary>
+    public bool Levied { get; set; }
 }
 
 /// <summary>A demand that a holder step down (docs/PROVINCES.md): from a province of a world (<see cref="Province"/> 1 or 2), made by

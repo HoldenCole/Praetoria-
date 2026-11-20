@@ -1075,3 +1075,4 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 .sysp-demand { margin-top: .3rem; padding: .4rem .5rem; border: 1px solid var(--warn); background: rgba(190,80,60,.08); font-size: .76rem; } .sysp-demand .row { margin-top: .35rem; gap: .4rem; display: flex; }
 .sysp-prov .sw-head .sysp-slots { margin-left: .5rem; vertical-align: middle; } .sysp-built.prov { padding: .15rem 0 .1rem; } .sysp-owes { margin: .1rem 0; }
 .sysp-prov .sysp-work { padding-left: 0; }
+.sysp-owes .warnline { color: var(--warn); } .sysp-dues .seg { display: inline-flex; gap: .25rem; } .sysp-dues .opt.on { border-color: var(--brass2); color: #ffe1a0; }

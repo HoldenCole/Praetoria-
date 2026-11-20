@@ -209,7 +209,14 @@ public static class SystemWorks
     public static string? UpgradeRefusal(World w, HoldingCatalog cat, House house, string target, string defId, bool explain = true)
     {
         string systemId; int level; Resources cost; int years;
-        if (target.Contains('#'))
+        if (target.Contains('@'))
+        {
+            var (hid, idx) = ProvinceSystem.Parse(target); var planet = w.Holding(hid); var def = cat.Work(defId);
+            if (planet == null || def == null || idx <= 0 || idx >= planet.Provinces.Count || !planet.Provinces[idx].Buildings.Contains(defId)) return "no such building";
+            if (ProvinceSystem.HolderOf(planet, idx) != house.Id) return "it is not your province";
+            systemId = planet.SystemId; level = planet.Provinces[idx].LevelOf(defId); cost = def.Cost; years = def.BuildTurns;
+        }
+        else if (target.Contains('#'))
         {
             var (sysId, body) = Parse(target); systemId = sysId; var x = On(w, sysId, body).FirstOrDefault(o => o.DefId == defId); var def = cat.Work(defId);
             if (x == null || def == null) return "no such building"; if (def.IsMegastructure) return "a great work has no levels";
@@ -232,7 +239,8 @@ public static class SystemWorks
     /// <summary>The level is built: the building stands one higher.</summary>
     public static void Upgrade(World w, HoldingCatalog cat, string target, string defId)
     {
-        if (target.Contains('#')) { var (sysId, body) = Parse(target); if (On(w, sysId, body).FirstOrDefault(o => o.DefId == defId) is { } x) x.Level = Math.Min(cat.Rules.MaxLevel, Math.Max(1, x.Level) + 1); }
+        if (target.Contains('@')) { var (hid, idx) = ProvinceSystem.Parse(target); if (w.Holding(hid) is { } planet && idx > 0 && idx < planet.Provinces.Count && planet.Provinces[idx].Buildings.Contains(defId)) planet.Provinces[idx].BuildingLevels[defId] = Math.Min(cat.Rules.MaxLevel, planet.Provinces[idx].LevelOf(defId) + 1); }
+        else if (target.Contains('#')) { var (sysId, body) = Parse(target); if (On(w, sysId, body).FirstOrDefault(o => o.DefId == defId) is { } x) x.Level = Math.Min(cat.Rules.MaxLevel, Math.Max(1, x.Level) + 1); }
         else if (w.Holding(target) is { } h && h.Buildings.Contains(defId)) h.Upgrades[defId] = Math.Min(cat.Rules.MaxLevel, h.LevelOf(defId) + 1);
         w.WorldCounters["buildings_upgraded"] = w.Counter("buildings_upgraded") + 1;
     }
@@ -328,7 +336,7 @@ public static class SystemWorks
         }
     }
     /// <summary>Whether anything is built or laid anywhere: asked first, so a bare map costs nothing to reckon.</summary>
-    public static bool Any(World w) => w.BodyWorks.Count > 0 || w.Infrastructure.Count > 0;
+    public static bool Any(World w) => w.BodyWorks.Count > 0 || w.Infrastructure.Count > 0 || w.Counter("province_buildings") > 0;
     private static IEnumerable<(InfrastructureDef def, int level)> Levels(World w, HoldingCatalog cat, string systemId)
     {
         if (!w.Infrastructure.TryGetValue(systemId, out var levels)) yield break;
@@ -336,7 +344,7 @@ public static class SystemWorks
     }
     public static double Defense(World w, HoldingCatalog cat, string systemId) { double d = 0; foreach (var x in In(w, systemId)) d += (cat.Work(x.DefId)?.Defense ?? 0) * Math.Max(1, x.Level); foreach (var (t, lv) in Levels(w, cat, systemId)) d += t.Defense * lv; return d; }
     public static bool Depot(World w, HoldingCatalog cat, string systemId) { foreach (var x in In(w, systemId)) if (cat.Work(x.DefId)?.Depot == true) return true; foreach (var (t, lv) in Levels(w, cat, systemId)) if (t.DepotAt > 0 && lv >= t.DepotAt) return true; return false; }
-    public static int Prosperity(World w, HoldingCatalog cat, string systemId) { int v = 0; foreach (var x in In(w, systemId)) v += cat.Work(x.DefId)?.Prosperity ?? 0; foreach (var (t, lv) in Levels(w, cat, systemId)) v += t.Prosperity * lv; return v; }
+    public static int Prosperity(World w, HoldingCatalog cat, string systemId) { int v = w.PlanetOf(systemId) is { } pp ? ProvinceSystem.OnWorld(cat, pp).prosperity : 0; foreach (var x in In(w, systemId)) v += cat.Work(x.DefId)?.Prosperity ?? 0; foreach (var (t, lv) in Levels(w, cat, systemId)) v += t.Prosperity * lv; return v; }
     /// <summary>How many buildings in a system stand where there is no slot for them (its development fell, a lesser house took it):
     /// each is a point of unrest a year on its world until there is room again.</summary>
     public static int Crowding(World w, HoldingCatalog cat, string systemId)
@@ -345,8 +353,8 @@ public static class SystemWorks
         for (int i = 0; i < sys.Bodies.Count; i++) { if (sys.Bodies[i].IsStar) continue; int used = SlotsUsed(w, cat, systemId, i); if (used > 0) n += Math.Max(0, used - Slots(w, cat, sys, i)); }
         return n;
     }
-    public static int Unrest(World w, HoldingCatalog cat, string systemId) { int v = Crowding(w, cat, systemId); foreach (var x in In(w, systemId)) v += cat.Work(x.DefId)?.Unrest ?? 0; foreach (var (t, lv) in Levels(w, cat, systemId)) v -= t.CalmAt.Count(l => l <= lv); return v; }
-    public static int Population(World w, HoldingCatalog cat, string systemId) { int v = 0; foreach (var x in In(w, systemId)) v += (cat.Work(x.DefId)?.Population ?? 0) * Math.Max(1, x.Level); foreach (var (t, lv) in Levels(w, cat, systemId)) v += t.Population * lv; return v; }
+    public static int Unrest(World w, HoldingCatalog cat, string systemId) { int v = Crowding(w, cat, systemId) + (w.PlanetOf(systemId) is { } pp ? ProvinceSystem.OnWorld(cat, pp).unrest : 0); foreach (var x in In(w, systemId)) v += cat.Work(x.DefId)?.Unrest ?? 0; foreach (var (t, lv) in Levels(w, cat, systemId)) v -= t.CalmAt.Count(l => l <= lv); return v; }
+    public static int Population(World w, HoldingCatalog cat, string systemId) { int v = w.PlanetOf(systemId) is { } pp ? ProvinceSystem.OnWorld(cat, pp).population : 0; foreach (var x in In(w, systemId)) v += (cat.Work(x.DefId)?.Population ?? 0) * Math.Max(1, x.Level); foreach (var (t, lv) in Levels(w, cat, systemId)) v += t.Population * lv; return v; }
 
     // ---------------- infrastructure: the system's own, a level at a time ----------------
 
