@@ -20,7 +20,7 @@
         <span class="res purse" title="@purseTip" data-purse="@p.Purse"><small class="pl">purse</small><b>@p.Purse</b></span>
         @Res("materials", t.Materials, fc?.Materials, "Materials — building and shipbuilding.")
         @Res("manpower", t.Manpower, fc?.Manpower, "Manpower — crews and garrisons; people are soldiers.")
-        @Res("influence", t.Influence, fc?.Influence, "Influence (stock) — spent through the exchange and by decrees.")
+        @Res("influence", t.Influence, fc?.Influence, "Clout: the house's political capital in store. Seats and standing earn it; decrees and the Exchange spend it. It is not this year's influence (at the right), which is how much you can act in the Senate this year.")
         @Res("exotics", t.Exotics, fc?.Exotics, "Exotics — rare finds; sell dear or study them.")
     </div>
     <div class="tb-res strat @(w.HasFlag("fuel_short") ? "dry" : "")" title="The strategic three — dug or skimmed only where the galaxy put them. Helium-3 fuels the fleet (three hulls burn one a turn); rare earths build the heavy hulls and the clever buildings; isotopes arm battleships and bastions and are never on the open market.">
@@ -29,9 +29,9 @@
         @Res("isotopes", t.Isotopes, fc?.Isotopes, "Isotopes — weapons-grade; battleships, bastion guns, arsenals. Never sold on the open market.")
     </div>
     <div class="tb-pools" title="What you can do this year: treasury actions, influence and agents. Reading is free; acting spends them, and they come back each year.">
-        <span class="pool inf" title="Influence this turn: plots, favours, motions and whips in the Senate"><Icon Name="influence_pool" Size="14" />@pools.Influence</span>
-        <span class="pool tre" title="Treasury actions this turn"><Icon Name="treasury_pool" Size="14" />@pools.Treasury</span>
-        <span class="pool agt" title="Agents this turn"><Icon Name="agents_pool" Size="14" />@pools.Agents</span>
+        <span class="pool inf" title="Influence this year: what you can do in politics before the year ends. Every button that says 'N influence' spends this. It comes back each year, and is not the clout the house keeps in store (at the left)."><Icon Name="influence_pool" Size="14" />@pools.Influence</span>
+        <span class="pool tre" title="Treasury actions this year: orders that take the house's officers (a build, a fleet order). They come back each year."><Icon Name="treasury_pool" Size="14" />@pools.Treasury</span>
+        <span class="pool agt" title="Agents this year: people you can send on quiet business. They come back each year."><Icon Name="agents_pool" Size="14" />@pools.Agents</span>
     </div>
     <div class="tb-right">
         <div class="tb-era">@(w.Era == "imperium" ? "The Imperium" : "The Republic")</div>

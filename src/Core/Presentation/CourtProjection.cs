@@ -215,7 +215,7 @@ public static class CourtProjection
                 string payback = perYear > 0.5 ? $"pays for itself in {Math.Ceiling(cost / perYear):0} year(s)" : "does not pay in coin";
                 string years = b.BuildTurns > 1 ? $" · {b.BuildTurns} years, {Bundle(ProjectSystem.Split(b.Cost, b.BuildTurns).First)} a year" : b.BuildTurns == 1 ? " · a year" : "";
                 builds.Add(new BuildOption(h.Id, b.Id, $"{(b.Megastructure ? "Raise" : "Build")} {b.Name}  ({Bundle(b.Cost)}{years})",
-                    $"yield {Bundle(b.Yield)}" + (b.Upkeep.IsEmpty() ? "" : $" · upkeep {Bundle(b.Upkeep)}") + $" · worth {perYear:0.#} credits a year now · {payback}" + (b.MinTitleRank > 0 ? $" · needs title rank {b.MinTitleRank}" : "") + (cmd.Refusal(ctx) is { } why ? $" · {why}" : ""), cmd.CanExecute(ctx)));
+                    $"yield {Bundle(b.Yield)}" + (b.Upkeep.IsEmpty() ? "" : $" · upkeep {Bundle(b.Upkeep)}") + $" · worth {perYear:0.#} credits a year now · {payback}" + (b.MinTitleRank > 0 ? $" · needs the rank of {Progression.Title.StyleOf(Progression.Title.OfRank(b.MinTitleRank), w.Era)}" : "") + (cmd.Refusal(ctx) is { } why ? $" · {why}" : ""), cmd.CanExecute(ctx)));
             }
             bool canRaise = new RaiseFleetCommand(p.Id, h.Id, content.Fleets, content.ShipClasses, null, content.Titles).CanExecute(ctx);
             var ships = new List<ShipOption>();
@@ -302,8 +302,8 @@ public static class CourtProjection
             var honors = new HonorSystem(content.Honors).Held(p).Select(h => h.Name).ToList();
             var laws = SetSuccessionLawCommand.Laws.Select(l => new Option(l, l, new SetSuccessionLawCommand(p.Id, l).CanExecute(ctx) ? null : (house.SuccessionLaw == l ? "current law" : "no influence"))).ToList();
             var taxes = content.Holdings.TaxPolicies.Select(t => new Option(t.Id, $"{t.Name} ({t.CreditsBonus:+#;-#;0} credits/holding, unrest {t.UnrestDrift:+#;-#;0})", new SetTaxPolicyCommand(p.Id, t.Id, content.Holdings).CanExecute(ctx) ? null : "current")).ToList();
-            var exchange = content.Holdings.Rates.Select(r => new Option($"{r.Give}>{r.Get}", $"{r.GiveAmount} {r.Give} → {r.GetAmount} {r.Get}",
-                new ExchangeCommand(p.Id, r, content.Holdings).CanExecute(ctx) ? null : "cannot afford")).ToList();
+            var exchange = content.Holdings.Rates.Select(r => new Option($"{r.Give}>{r.Get}", $"{r.GiveAmount} {Resource.Label(r.Give)} → {ExchangeCommand.Received(w, house.Id, r, content.Holdings, 1)} {Resource.Label(r.Get)}" + (ExchangeCommand.HasExchange(w, house.Id, content.Holdings) ? "" : " (half: the house has no exchange of its own)"),
+                new ExchangeCommand(p.Id, r, content.Holdings).CanExecute(ctx) ? null : $"needs {r.GiveAmount} {Resource.Label(r.Give)} (the house has {house.Treasury.Get(r.Give)})")).ToList();
             var emperor = ThroneSystem.Emperor(w);
             var throne = new ThroneCard(new ProclaimImperiumCommand(p.Id, content.Titles).Refusal(ctx), new SeizeThroneCommand(p.Id, content.Titles, content.Friction).Refusal(ctx),
                 house.Title == "emperor", emperor?.Name);
@@ -318,11 +318,11 @@ public static class CourtProjection
             .Select(f => new FleetLine(f.Id, f.Name, f.IsAway ? "beyond the Reach" : w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId, f.Strength, f.Readiness, f.Moving,
                 f.Moving ? w.Galaxy?.System(f.DestinationId)?.Name ?? f.DestinationId : null, f.Eta, f.Office,
                 fleetSys.Describe(f), f.AdmiralId.Length > 0 ? w.Char(f.AdmiralId)?.Name : null, f.Veterancy,
-                w.LivingCharacters().Where(c => c.HouseId == house.Id).OrderBy(c => c.Id, StringComparer.Ordinal)
-                    .Select(c => new Option(c.Id, $"Give {f.Name} to {c.Name} (tactics {c.Skill("tactics")})", new AssignAdmiralCommand(p.Id, f.Id, c.Id).CanExecute(ctx) ? null : "already in command, or no agents")).ToList(),
+                w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority).OrderByDescending(c => c.Skill("tactics")).ThenBy(c => c.Id, StringComparer.Ordinal)   // no child is offered a fleet
+                    .Select(c => new Option(c.Id, $"Give {f.Name} to {c.Name} (tactics {c.Skill("tactics")}, {c.Age}) · 1 agent", new AssignAdmiralCommand(p.Id, f.Id, c.Id).Refusal(ctx))).ToList(),
                 w.Fleets.Values.Where(o => o.Id != f.Id && o.OwnerId == house.Id).OrderBy(o => o.Id, StringComparer.Ordinal)
-                    .Select(o => new Option(o.Id, $"Fold {o.Name} into {f.Name}", new MergeFleetsCommand(p.Id, o.Id, f.Id).CanExecute(ctx) ? null : "not in the same system")).ToList(),
-                new Option("refit", $"Refit {f.Name}  ({RefitFleetCommand.MaterialsPerHull * f.Strength} materials → readiness 100)", new RefitFleetCommand(p.Id, f.Id).CanExecute(ctx) ? null : (f.Readiness >= 100 ? "already at full readiness" : "only at a system of your own, with the materials")),
+                    .Select(o => new Option(o.Id, $"Fold {o.Name} into {f.Name}", new MergeFleetsCommand(p.Id, o.Id, f.Id).Refusal(ctx))).ToList(),
+                new Option("refit", $"Refit {f.Name}  ({RefitFleetCommand.MaterialsPerHull * f.Strength} materials → readiness 100)", new RefitFleetCommand(p.Id, f.Id).Refusal(ctx)),
                 StanceOptions: FleetSystem.Stances.Select(st => new Option(st, st, new SetStanceCommand(p.Id, f.Id, st).Refusal(ctx))).ToList(),
                 LoadoutOptions: FleetSystem.Loadouts.Select(l => new Option(l, l, new SetLoadoutCommand(p.Id, f.Id, l).Refusal(ctx))).ToList(),
                 Stance: f.Stance, Loadout: f.Loadout, Loyalty: f.Loyalty, Supply: f.Supply, AdmiralId: f.AdmiralId.Length > 0 ? f.AdmiralId : null,
@@ -517,7 +517,7 @@ public static class CourtProjection
                 var firstOpen = laws.SelectMany(l => l.Options).FirstOrDefault(o => o.Refusal == null); probe = firstOpen.Refusal ?? laws.SelectMany(l => l.Options).Select(o => o.Refusal).FirstOrDefault(r => r != "already the law of the Reach") ?? probe;
                 if (laws.SelectMany(l => l.Options).Any(o => o.Refusal == null)) probe = null;
             }
-            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer} moves", "You move").Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : d.Target == "nation" ? "a nation beyond the Reach" : "").Replace("{office}", "an office").Replace("{law}", "a law of the Reach").Replace("{option}", "so set"), cost, d.Target, targets, probe, d.Office,
+            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer} moves", "You move").Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : d.Target == "nation" ? "a nation beyond the Reach" : "").Replace("the office of {office}", "an office of the Reach").Replace("{office}", "an office of the Reach").Replace("{law}", "a law of the Reach").Replace("{option}", "so set"), cost, d.Target, targets, probe, d.Office,
                 d.Office ? commissionable.Select(o => (Id: o.Id, Name: o.Name)).ToList() : null, d.Law, laws);
         }).ToList();
         int total = w.Houses.Values.Where(h => !World.Outsider(h.Id)).Sum(h => senate.Weight(w, h.Id));

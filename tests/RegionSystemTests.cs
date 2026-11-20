@@ -448,7 +448,7 @@ public class DepthCycleTests
         var cmd = new PetitionFiefCommand("self");
         Assert.EndsWith("does not think well enough of you", cmd.Refusal(ctx));
         w.Relationship("aurelian_head", "self").Disposition = 15;
-        Assert.Equal("not enough influence", cmd.Refusal(ctx)); w.Pools["self"].Influence = 3;
+        Assert.Contains("influence this year", cmd.Refusal(ctx)); w.Pools["self"].Influence = 3;
         Assert.Null(cmd.Refusal(ctx));
         Assert.True(new CommandExecutor().TryExecute(cmd, ctx));
         Assert.Equal("vega", w.Holding("prime_two")!.OwnerId); Assert.Equal("self", w.Holding("prime_two")!.GovernorId); Assert.Equal("baron", w.House("vega")!.Title);

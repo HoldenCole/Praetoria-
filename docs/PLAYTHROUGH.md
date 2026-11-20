@@ -51,6 +51,21 @@ or a rule with a screen. Hard: a new system.
 | 14 | The house is told what happens to it, as alerts that open their subject: a child born (whose, and where in the line), a death (and what it leaves empty), a war declared on you (their hulls, yours, and why), a tutor gone unpaid, illness, an attempt on a life, a foreign fleet in your space, a ruling overturned. | 2026-11-20 |
 | 15 | Every window opens on a tab or a subject, and some fifty alerts now name theirs: a siege, a revolt, a demand for a seat or a coming battle open the map on that system; Exchange alerts open goods, shares, ventures or projects; Senate alerts the chamber, the consuls, the offices or the courts; family alerts marriages, upbringing, ambitions or the person. The fleets and holdings listed at the right open where they are. | 2026-11-20 |
 
+### The Easy list, done so far
+
+Marked here as they are done; the list itself below is left as the players wrote it.
+
+| part | done |
+|---|---|
+| Reports | Every cost and effect under each choice; a greyed choice names what it lacks; a choice that would overdraw says so; what came of it is said after (with 8). |
+| Alerts | Every alert opens its subject (with 15). New alerts: a suit against the house, a ruling, a foreign fleet in your space, illness, a tutor gone, a birth, a death, a war declared (with 12 and 14). The fleets and holdings at the right open the map where they are; "open on the map" opens that system. |
+| Words | No internal names ("shipyard_world", "title rank 1" are now "a shipyard world", "the rank of Prefect"); the Commission motion no longer says "the office of an office"; "pays back in never" is "does not pay itself back at this price"; a claim is to "the rank of Prefect", not "its baron rank". |
+| Two influences | The house's store of political capital is called **clout** everywhere; "influence" is now only the year's pool, and both tooltips say which is which. "Favours for coin" shows what it will really pay (half without an exchange of your own) and says why. |
+| Refusals | "No influence" is now "needs 2 influence this year (1 left)", for all three pools. Refit, merge and appointing an admiral each give their one true reason. |
+| Purse | The head's purse is on the top bar (with 6). |
+| Fleets | An order can be struck out or the fleet called back (with 11); no child is offered a fleet, and the list is by tactics, with age. |
+| Confirms | War, a treaty marriage, asking a holder to step down, a rung of the title ladder, quit, a new saga over a saved one, a bribe, terms in a suit, a peace (with 2, 3, 7, 9, 12, 13). |
+
 ## The fifteen to fix first
 
 These are not the easiest. They are the ones that lose a player's work, break the game's balance, or hide what happened.

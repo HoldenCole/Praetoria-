@@ -48,8 +48,8 @@ public class ShipClassAndAdmiralTests
         var ctx = new CommandContext(w, TestContent.Rng());
         var house = w.House("vega")!; house.Treasury.Materials = 100; house.Treasury.Manpower = 50; house.Treasury.Credits = 50; house.Treasury.Exotics = 5; house.Treasury.RareEarths = 6; house.Treasury.Isotopes = 4;   // the heavy hulls want the strategic three
         Assert.Null(new RaiseFleetCommand(w.ProtagonistId, "vega_barony", content.Fleets, content.ShipClasses, "cruiser", content.Titles).Refusal(ctx));      // baron = rank 2
-        Assert.Equal("needs title rank 3", new RaiseFleetCommand(w.ProtagonistId, "vega_barony", content.Fleets, content.ShipClasses, "battleship", content.Titles).Refusal(ctx));
-        Assert.Equal("needs a shipyard_world", new RaiseFleetCommand(w.ProtagonistId, "vega_barony", content.Fleets, content.ShipClasses, "carrier", content.Titles).Refusal(ctx));
+        Assert.Equal("needs the rank of " + Praetoria.Core.Progression.Title.StyleOf("count", w.Era), new RaiseFleetCommand(w.ProtagonistId, "vega_barony", content.Fleets, content.ShipClasses, "battleship", content.Titles).Refusal(ctx));
+        Assert.Equal("needs a shipyard world", new RaiseFleetCommand(w.ProtagonistId, "vega_barony", content.Fleets, content.ShipClasses, "carrier", content.Titles).Refusal(ctx));
         house.Title = "duke";
         Assert.Null(new RaiseFleetCommand(w.ProtagonistId, "vega_barony", content.Fleets, content.ShipClasses, "battleship", content.Titles).Refusal(ctx));
     }

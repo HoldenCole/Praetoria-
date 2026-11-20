@@ -16,7 +16,7 @@ public sealed class ProclaimImperiumCommand : ICommand
     {
         var actor = ctx.World.Char(ActorId);
         if (actor?.Alive != true) return "no actor";
-        return ThroneSystem.ProclaimRefusal(ctx.World, actor.HouseId, _titles) ?? (ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "not enough influence and agents");
+        return ThroneSystem.ProclaimRefusal(ctx.World, actor.HouseId, _titles) ?? (ctx.PoolsOf(ActorId).Short(CostMap));
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
@@ -39,7 +39,7 @@ public sealed class SeizeThroneCommand : ICommand
     {
         var actor = ctx.World.Char(ActorId);
         if (actor?.Alive != true) return "no actor";
-        return ThroneSystem.SeizeRefusal(ctx.World, actor.HouseId, _titles) ?? (ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "not enough treasury and agents");
+        return ThroneSystem.SeizeRefusal(ctx.World, actor.HouseId, _titles) ?? (ctx.PoolsOf(ActorId).Short(CostMap));
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
@@ -66,7 +66,7 @@ public sealed class ThroneCommand : ICommand
         var w = ctx.World; var actor = w.Char(ActorId); var house = actor?.Alive == true ? w.House(actor.HouseId) : null;
         if (house == null) return "no actor";
         if (actor!.Id != w.ProtagonistId && Economy.HeadOf(w, house)?.Id != actor.Id) return "the head of the house decides this";
-        if (_what == Raise) return ThroneSystem.RiseRefusal(w, house, _titles) ?? (ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "not enough influence");
+        if (_what == Raise) return ThroneSystem.RiseRefusal(w, house, _titles) ?? (ctx.PoolsOf(ActorId).Short(CostMap));
         return ThroneSystem.BackRefusal(w, house, _what);
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;

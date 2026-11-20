@@ -31,7 +31,7 @@ public sealed class HouseholdCommand : ICommand
             Decline => house.Petitions.Any(p => p.PersonId == _personId) ? null : "nobody is asking",
             _ => "no such thing"
         };
-        return no ?? (ctx.PoolsOf(ActorId).CanAfford(Cost(_what)) ? null : "no influence");
+        return no ?? (ctx.PoolsOf(ActorId).Short(Cost(_what)));
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
@@ -60,7 +60,7 @@ public sealed class MentorCommand : ICommand
         var w = ctx.World; var me = w.Char(ActorId);
         if (_mentorId.Length == 0) return me is { MentorId.Length: > 0 } ? null : "you have no mentor";
         if (me is { MentorId.Length: > 0 }) return "you have a mentor already";
-        return HouseholdSystem.MentorRefusal(w, me, w.Char(_mentorId)) ?? (ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "no influence");
+        return HouseholdSystem.MentorRefusal(w, me, w.Char(_mentorId)) ?? (ctx.PoolsOf(ActorId).Short(CostMap));
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
@@ -103,7 +103,7 @@ public sealed class EducationCommand : ICommand
             case Teach: return EducationSystem.TeachRefusal(w, head, who, w.Char(_value));
             case AskAndPay: return EducationSystem.AskAndPayRefusal(w, head, who, _value);
             case AskAndSpeak:
-                return EducationSystem.AskAndSpeakRefusal(w, head, who, _value) ?? (ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = EducationSystem.FavourPrice(w, head, who, _value) }) ? null : "no influence");
+                return EducationSystem.AskAndSpeakRefusal(w, head, who, _value) ?? (ctx.PoolsOf(ActorId).Short(new Dictionary<string, int> { [Pool.Influence] = EducationSystem.FavourPrice(w, head, who, _value) }));
             case Thank: return EducationSystem.ThankRefusal(w, head, who);
             case Study:
                 if (who.Id != head.Id) return "what they study is their own affair; you may ask";
@@ -244,7 +244,7 @@ public sealed class LifeCommand : ICommand
         var w = ctx.World; var me = w.Char(ActorId);
         return _what switch
         {
-            Rest => LifeSystem.RestRefusal(w, me) ?? (ctx.PoolsOf(ActorId).CanAfford(RestCost) ? null : "no influence"),
+            Rest => LifeSystem.RestRefusal(w, me) ?? (ctx.PoolsOf(ActorId).Short(RestCost)),
             Physicians => LifeSystem.PhysicianRefusal(w, me),
             Retire => LifeSystem.RetireRefusal(w, me),
             Send => LifeSystem.SendRefusal(w, me, w.Char(_personId)),
@@ -292,7 +292,7 @@ public sealed class ProsecutionCommand : ICommand
         if (!LadderSystem.Active(w, _offices)) return "there are no courts of the Republic";
         if (_what == Buy) return LadderSystem.BuyRefusal(w, head, w.Char(_targetId));
         if (_what != Prosecute) return "no such thing";
-        return LadderSystem.ProsecuteRefusal(w, head, w.OfficeRecord.FirstOrDefault(d => d.Id == _targetId)) ?? (ctx.PoolsOf(ActorId).CanAfford(Cost) ? null : "no influence");
+        return LadderSystem.ProsecuteRefusal(w, head, w.OfficeRecord.FirstOrDefault(d => d.Id == _targetId)) ?? (ctx.PoolsOf(ActorId).Short(Cost));
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
@@ -318,7 +318,7 @@ public sealed class SuitCommand : ICommand
         var w = ctx.World; var head = w.Char(ActorId); var b = w.OfficeWork.FirstOrDefault(x => x.Id == _suitId);
         if (_what == Settle) return LadderSystem.SettleRefusal(w, head, b);
         if (_what != Plead) return "no such thing";
-        return LadderSystem.PleadRefusal(w, head, b, w.Char(_advocateId)) ?? (ctx.PoolsOf(ActorId).CanAfford(Cost) ? null : "no influence left this year");
+        return LadderSystem.PleadRefusal(w, head, b, w.Char(_advocateId)) ?? (ctx.PoolsOf(ActorId).Short(Cost));
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
@@ -353,7 +353,7 @@ public sealed class LadderCommand : ICommand
             Decide => who?.Id == ActorId ? LadderSystem.DecideRefusal(w, who, _rungId) : "the business of their office is their own",
             _ => "no such thing"
         };
-        return no ?? (ctx.PoolsOf(ActorId).CanAfford(Cost(_what)) ? null : "no influence");
+        return no ?? (ctx.PoolsOf(ActorId).Short(Cost(_what)));
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
@@ -439,7 +439,7 @@ public sealed class SecessionCommand : ICommand
             Declare => _polities.DeclareRefusal(w, house, _regionId, _form),
             Rejoin => _polities.RejoinRefusal(w, house),
             Join => _polities.AccedeRefusal(w, house, w.Polities.FirstOrDefault(p => p.Id == _form), _regionId),   // the state travels in the form slot
-            Stir => _polities.StirRefusal(w, house, _regionId.Length > 0 ? w.House(_regionId) : null) ?? (_regionId.Length > 0 && w.House(_regionId) == null ? "no such house" : ctx.PoolsOf(ActorId).CanAfford(StirCost) ? null : "no influence"),   // a house to set them against travels in the region slot
+            Stir => _polities.StirRefusal(w, house, _regionId.Length > 0 ? w.House(_regionId) : null) ?? (_regionId.Length > 0 && w.House(_regionId) == null ? "no such house" : ctx.PoolsOf(ActorId).Short(StirCost)),   // a house to set them against travels in the region slot
             Leave => _polities.DepartRefusal(w, house),
             SeekPartition => !CaesarSystem.GreatWar(w) ? "the Reach is not in its great war" : w.HasFlag(GreatCrisisSystem.PartitionWishFlag) ? "it is already known" : !PolitySystem.InReach(w, house.Id) ? "the house has left the Reach" : null,
             _ => "no such thing"
@@ -470,7 +470,7 @@ public sealed class WorkHouseCommand : ICommand
     {
         var w = ctx.World; var head = w.Char(ActorId); var house = head != null ? w.House(head.HouseId) : null;
         if (head?.Alive != true || house == null || head.Id != w.ProtagonistId) return "no house";
-        return _polities.WorkRefusal(w, house, w.House(_targetHouseId), _how) ?? (ctx.PoolsOf(ActorId).CanAfford(Cost) ? null : "no influence");
+        return _polities.WorkRefusal(w, house, w.House(_targetHouseId), _how) ?? (ctx.PoolsOf(ActorId).Short(Cost));
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)

@@ -106,7 +106,7 @@
 
             @if (m.Standing is { } s && s.ExchangeOptions.Count > 0)
             {
-                <div class="favours-row" title="Influence is not a good and has no market. It is bought and sold in private, at a fixed and poor rate.">
+                <div class="favours-row" title="Clout (the house's political capital in store) is not a good and has no market. It is bought and sold in private, at a fixed and poor rate. A house with no exchange of its own gets half.">
                     <span class="fr-label"><Icon Name="influence" Size="13" /> Favours for coin</span>
                     @foreach (var o in s.ExchangeOptions) { var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))">@o.Label</button> }
                 </div>

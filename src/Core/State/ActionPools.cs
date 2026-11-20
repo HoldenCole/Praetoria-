@@ -45,6 +45,14 @@ public sealed class ActionPools
         }
     }
 
+    /// <summary>What a cost is short by, in words, or null when it can be met: "needs 2 influence this year (1 left)". A refusal
+    /// says the number wanted and the number in hand, not "no influence" (docs/PLAYTHROUGH.md, "Refusals that say the wrong thing").</summary>
+    public string? Short(IReadOnlyDictionary<string, int> cost)
+    {
+        var lacks = cost.Where(kv => Get(kv.Key) < kv.Value).Select(kv => $"{kv.Value} {(kv.Key == Pool.Treasury ? "treasury action" + (kv.Value == 1 ? "" : "s") : kv.Key == Pool.Agents ? "agent" + (kv.Value == 1 ? "" : "s") : "influence")} this year ({Get(kv.Key)} left)").ToList();
+        return lacks.Count == 0 ? null : "needs " + string.Join(" and ", lacks);
+    }
+
     public bool CanAfford(IReadOnlyDictionary<string, int> cost)
     {
         foreach (var kv in cost)

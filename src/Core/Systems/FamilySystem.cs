@@ -94,6 +94,6 @@ public sealed class FamilySystem
         if (from.Title != "landless") to.Claims.Add(from.Title);
         w.WorldCounters["defections"] = w.Counter("defections") + 1;
         w.WorldFlags.Add("kin_defected");
-        w.Log($"{kin.Name} abandons {from.Name} for {to.Name}, and takes {from.Name}'s blood — and a claim to its {from.Title} rank — with them.");
+        w.Log($"{kin.Name} abandons {from.Name} for {to.Name}, and takes {from.Name}'s blood — and a claim to its rank of {Progression.Title.StyleOf(from.Title, w.Era)} — with them.");
     }
 }

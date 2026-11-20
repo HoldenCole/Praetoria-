@@ -123,7 +123,7 @@ public sealed class LobbyCommand : ICommand
         var head = Economy.HeadOf(w, target); if (head == null) return "no one to speak to";
         if (_bribe) { int price = SenateSystem.BribeCost(w, target, actor); return SenateSystem.BribeRefused(w, target, actor) ?? (house.Treasury.Credits >= price ? null : $"needs {price} credits (the house has {house.Treasury.Credits})"); }
         if ((w.GetRelationship(head.Id, actor.Id)?.Disposition ?? 0) < -20) return $"{head.Name} will not hear you — try coin";
-        return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = 1 }) ? null : "needs 1 influence";
+        return ctx.PoolsOf(ActorId).Short(new Dictionary<string, int> { [Pool.Influence] = 1 });
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)

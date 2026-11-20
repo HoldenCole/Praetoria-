@@ -84,7 +84,7 @@ public sealed class ProposeMarriageCommand : ICommand
         if ((w.GetRelationship(t.Id, s.Id)?.Disposition ?? 0) < -10) return "they will not have it";
         int theirs = w.House(t.HouseId)?.Legitimacy ?? 0, ours = w.House(s.HouseId)?.Legitimacy ?? 0;
         if (theirs > ours + 40) return "their house looks too far down on yours";
-        return ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "no influence";
+        return ctx.PoolsOf(ActorId).Short(CostMap);
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
 

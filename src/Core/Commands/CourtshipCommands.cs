@@ -36,7 +36,7 @@ public sealed class WooCommand : ICommand
         var w = ctx.World; var c = w.Courtships.FirstOrDefault(x => x.Id == _courtshipId);
         if (c == null || w.Char(c.SuitorId)?.HouseId != w.Char(ActorId)?.HouseId) return "no such suit";
         var no = CourtshipSystem.ActRefusal(w, c, _act); if (no != null) return no;
-        return ctx.PoolsOf(ActorId).CanAfford(Cost(_act)) ? null : _act == CourtshipSystem.ActRival ? "no agents" : "no influence";
+        return ctx.PoolsOf(ActorId).Short(Cost(_act));
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
@@ -104,7 +104,7 @@ public sealed class MarriageCommand : ICommand
         if (head?.Alive != true || who?.Alive != true || who.HouseId != head.HouseId) return "not of your house";
         if (who.Id != head.Id) return "their marriage is their own";
         if (_what == Divorce) return CourtshipSystem.DivorceRefusal(w, head, who);
-        return CourtshipSystem.TendRefusal(w, who) ?? (ctx.PoolsOf(ActorId).CanAfford(TendCost) ? null : "no influence");
+        return CourtshipSystem.TendRefusal(w, who) ?? (ctx.PoolsOf(ActorId).Short(TendCost));
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)

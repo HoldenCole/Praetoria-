@@ -2,7 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+- **Clout.** The house's store of political capital is called clout, so that it is not taken for the year's influence
+  (docs/PLAYTHROUGH.md, "Two things called influence").
+
 ### Fixed
+- **The Easy list, first batch** (docs/PLAYTHROUGH.md). Refusals say what is wanted and what is in hand ("needs 2
+  influence this year (1 left)"); refit, merge and appointing an admiral give their one true reason; no internal names
+  on a screen; "Favours for coin" shows what it pays; no child is offered a fleet.
 - **Found by playing, eleven to fifteen** (docs/PLAYTHROUGH.md). A suit that names the player's house waits a year on a
   docket that says who, what and how much, and can be settled or pleaded; every ruling that moved the house's coin is kept
   and shown. A Senate vote is priced by the house that sells it, the upright refuse, a purse can come out at the count, a

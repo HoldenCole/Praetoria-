@@ -20,6 +20,8 @@ public static class Title
         : title switch { Knight => "Warden", Baron => "Prefect", Count => "Legate", Duke => "Proconsul", Archduke => "First Citizen", Emperor => "Dictator", _ => "Citizen" };
 
     /// <summary>The fixed ladder's rank of a title id (landless 0 … emperor 6); unknown titles rank 0.</summary>
+    /// <summary>The title that stands at a rank, for saying "needs the rank of Prefect" and not "needs title rank 2".</summary>
+    public static string OfRank(int rank) => rank switch { 1 => Knight, 2 => Baron, 3 => Count, 4 => Duke, 5 => Archduke, >= 6 => Emperor, _ => "" };
     public static int RankOf(string title) => title switch { Knight => 1, Baron => 2, Count => 3, Duke => 4, Archduke => 5, Emperor => 6, _ => 0 };
 }
 

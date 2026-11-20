@@ -26,7 +26,9 @@ public static class Resource
     public static bool IsStrategic(string r) => r == Helium3 || r == RareEarths || r == Isotopes;
 
     /// <summary>How the game writes the resource's name in prose.</summary>
-    public static string Label(string r) => r switch { Helium3 => "helium-3", RareEarths => "rare earths", Isotopes => "isotopes", _ => r };
+    /// <summary>What a good is called on a screen. The house's store of political capital is "clout": it is not the influence of the
+    /// year, which is a pool of actions, and five players took the two for one (docs/PLAYTHROUGH.md, "Two things called influence").</summary>
+    public static string Label(string r) => r switch { Helium3 => "helium-3", RareEarths => "rare earths", Isotopes => "isotopes", Influence => "clout", _ => r };
 }
 
 /// <summary>

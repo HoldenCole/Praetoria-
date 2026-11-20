@@ -154,7 +154,7 @@ public sealed class AppointGovernorCommand : ICommand
         if (g.Age < Systems.DynastySystem.AgeOfMajority) return "too young";
         if (g.Flags.Contains(Systems.DynastySystem.HiddenFlag)) return "fostered away";
         if (h.GovernorId == g.Id) return "already governs it";
-        return ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "no influence";
+        return ctx.PoolsOf(ActorId).Short(CostMap);
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
 
@@ -194,7 +194,7 @@ public sealed class PetitionFiefCommand : ICommand
         if (court == null) return "no house has a world to spare";
         var crown = Systems.Economy.HeadOf(w, court);
         if (crown != null && (w.GetRelationship(crown.Id, actor.Id)?.Disposition ?? 0) < 10) return $"{court.Name} does not think well enough of you";
-        return ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "not enough influence";
+        return ctx.PoolsOf(ActorId).Short(CostMap);
     }
 
     /// <summary>Who would grant the fief: the court if it holds a world beyond the capital, else the landed house with most worlds (two at

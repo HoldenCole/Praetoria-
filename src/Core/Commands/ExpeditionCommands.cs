@@ -126,7 +126,7 @@ public sealed class SendExpeditionCommand : ICommand
         if (f.Strength < MinHulls) return $"too few hulls to sail abroad ({MinHulls} at least)";
         if (f.Supply < MinSupply) return $"short of supply for the voyage ({MinSupply} at least)";
         if (f.Loyalty < _rules.LoyaltyRefuse) return "the crews will not sail so far for this house";
-        return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Treasury] = 1 }) ? null : "needs 1 treasury action";
+        return ctx.PoolsOf(ActorId).Short(new Dictionary<string, int> { [Pool.Treasury] = 1 });
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)

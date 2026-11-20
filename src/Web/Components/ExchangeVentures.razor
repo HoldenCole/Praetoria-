@@ -120,7 +120,7 @@
                     <div class="vcard @(f.Distressed ? "distress" : "")">
                         <div class="vc-head"><Sigil HouseId="@f.OwnerId" Accent="@f.OwnerAccent" Size="14" /> <b>@f.Name</b></div>
                         <div class="muted small">@f.KindName · level @f.Level@(f.SystemName != null ? $" · {f.SystemName}" : "") · @f.OwnerName@(f.Distressed ? " · short of coin" : "")@(f.OnYourWorld ? " · works your world" : "")</div>
-                        <div class="kv"><span>To you</span><b><span class="@(f.PerYear > 0 ? "good" : "warn")">@(f.PerYear >= 0 ? "+" : "")@f.PerYear a year</span> · pays back in @f.Payback</b></div>
+                        <div class="kv"><span>To you</span><b><span class="@(f.PerYear > 0 ? "good" : "warn")">@(f.PerYear >= 0 ? "+" : "")@f.PerYear a year</span> · @(f.Payback == "never" ? "does not pay itself back at this price" : "pays back in " + f.Payback)</b></div>
                         @if (vs != null) { <button class="opt inline tiny" disabled="@(f.Refusal != null)" title="@f.Refusal" @onclick="() => G.Execute(new BuyVentureCommand(pid, f.BusinessId, vs))">@(f.Ask > 0 ? $"Buy for {f.Ask}" : "Not for sale")@(f.Refusal != null && !f.Refusal.StartsWith("needs ") ? $" — {f.Refusal}" : "")</button> }
                     </div>
                 }

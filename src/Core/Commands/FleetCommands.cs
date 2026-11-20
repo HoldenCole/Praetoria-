@@ -44,7 +44,7 @@ public sealed class MoveFleetCommand : ICommand
         if (w.Galaxy.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId)) <= 0) return "no route";
         if (FleetSystem.Unfuelled(w, f.OwnerId)) return "the tanks are dry";
         if (f.Loyalty < _rules.LoyaltyRefuse) return "the crews will not sail — loyalty " + f.Loyalty;
-        return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Treasury] = _rules.MovePoolCost }) ? null : "needs a treasury action";
+        return ctx.PoolsOf(ActorId).Short(new Dictionary<string, int> { [Pool.Treasury] = _rules.MovePoolCost });
     }
 
     /// <summary>A chokepoint whose world is held by a house at war with the mover, with that house's fleet sitting there, cannot be
@@ -127,10 +127,10 @@ public sealed class RaiseFleetCommand : ICommand
         if (h == null || h.OwnerId != actor.HouseId || h.SystemId == "") return "not your holding";
         var cls = Cls;
         if (_classes.ById(_classId) == null && _classId != _rules.DefaultClass) return $"unknown class {_classId}";
-        if (cls.Requires != null && cls.Requires != h.Specialization) return $"needs a {cls.Requires}";
+        if (cls.Requires != null && cls.Requires != h.Specialization) return $"needs a {cls.Requires.Replace('_', ' ')}";
         var house = w.House(actor.HouseId);
         if (house == null) return "no house";
-        if (cls.MinTitleRank > 0 && (_titles?.RankOf(house.Title) ?? 0) < cls.MinTitleRank) return $"needs title rank {cls.MinTitleRank}";
+        if (cls.MinTitleRank > 0 && (_titles?.RankOf(house.Title) ?? 0) < cls.MinTitleRank) return $"needs the rank of {Progression.Title.StyleOf(Progression.Title.OfRank(cls.MinTitleRank), ctx.World.Era)}";
         return house.Treasury.CanAfford(cls.Cost) ? null : "cannot afford it";
     }
 
@@ -187,6 +187,17 @@ public sealed class AssignAdmiralCommand : ICommand
         if (w.Fleets.Values.Any(x => x.Id != _fleetId && x.AdmiralId == _characterId)) return false;
         return ctx.PoolsOf(ActorId).CanAfford(CostMap);
     }
+    /// <summary>Why the appointment would be refused, said singly.</summary>
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var c = w.Char(_characterId);
+        if (actor?.Alive != true || c?.Alive != true) return "no one to appoint";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId || c.HouseId != actor.HouseId) return "not of your house";
+        if (f.AdmiralId == _characterId) return "already commands it"; if (f.LevyOf.Length > 0) return "a levy keeps the officer its own house gave it";
+        if (Praetoria.Core.Systems.CaesarSystem.Barred(w, c)) return "the Senate had them lay a command down";
+        if (w.Fleets.Values.FirstOrDefault(x => x.Id != _fleetId && x.AdmiralId == _characterId) is { } other) return $"already commands {other.Name}";
+        return ctx.PoolsOf(ActorId).Short(CostMap);
+    }
 
     public void Execute(CommandContext ctx)
     {
@@ -216,6 +227,16 @@ public sealed class RefitFleetCommand : ICommand
         if (!w.Holdings.Values.Any(h => h.OwnerId == actor.HouseId && h.SystemId == f.SystemId)) return false;
         return (w.House(actor.HouseId)?.Treasury.Materials ?? 0) >= MaterialsPerHull * f.Strength;
     }
+    /// <summary>Why a refit would be refused: the one thing that is in the way (docs/PLAYTHROUGH.md, "Refusals that say the wrong thing").</summary>
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true || !w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        if (f.Moving) return "it is under way: a fleet is refitted in port"; if (f.Readiness >= 100) return "already at full readiness";
+        if (!w.Holdings.Values.Any(h => h.OwnerId == actor.HouseId && h.SystemId == f.SystemId)) return $"only at a world or station of your own: {w.Galaxy?.System(f.SystemId)?.Name ?? "this system"} is not";
+        int have = w.House(actor.HouseId)?.Treasury.Materials ?? 0, need = MaterialsPerHull * f.Strength;
+        return have >= need ? null : $"{need - have} materials short (it takes {need}, the house has {have})";
+    }
     public void Execute(CommandContext ctx)
     {
         var w = ctx.World; var f = w.Fleets[_fleetId]; var house = w.House(w.Char(ActorId)!.HouseId)!;
@@ -241,6 +262,17 @@ public sealed class MergeFleetsCommand : ICommand
         if (!w.Fleets.TryGetValue(_fromId, out var a) || !w.Fleets.TryGetValue(_intoId, out var b)) return false;
         if (a.LevyOf.Length > 0 || b.LevyOf.Length > 0) return false;   // a levy sails under its own house's officers, and goes home whole (docs/PROVINCES.md)
         return a.OwnerId == actor.HouseId && b.OwnerId == actor.HouseId && !a.Moving && !b.Moving && a.SystemId == b.SystemId && a.Office == b.Office;
+    }
+    /// <summary>Why two fleets cannot be folded together, said singly.</summary>
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true || _fromId == _intoId || !w.Fleets.TryGetValue(_fromId, out var a) || !w.Fleets.TryGetValue(_intoId, out var b)) return "no such fleets";
+        if (a.LevyOf.Length > 0 || b.LevyOf.Length > 0) return "a levy sails under its own house's officers and goes home whole: it is not folded into yours";
+        if (a.OwnerId != actor.HouseId || b.OwnerId != actor.HouseId) return "not both yours";
+        if (a.Office != b.Office) return "one is held by office and is the Reach's, not the house's: they are kept apart";
+        if (a.Moving || b.Moving) return "one of them is under way";
+        return a.SystemId == b.SystemId ? null : "not in the same system";
     }
 
     public void Execute(CommandContext ctx)
