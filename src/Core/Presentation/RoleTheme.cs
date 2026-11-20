@@ -36,10 +36,10 @@ public static class RoleTheme
     /// <summary>One line for the seat-passing card: what the heir's register will look like.</summary>
     public static string Describe(string role) => role switch
     {
-        Military => "The game turns martial: dispatches, readouts, the fleet first on the rail and the Admiral first at the desk.",
-        Stewardship => "The game turns administrative: ledgers, ruled lines, the house and its worlds first on the rail and the Steward first at the desk.",
-        Law => "The game turns ceremonial: the chamber, engraved framing, the Senate and the Chancery first on the rail and the Chancellor first at the desk.",
-        _ => "No career yet: the house's own register, until the heir takes a track."
+        Military => "A soldier leads the house now: the Military window comes first at the left, and the Admiral speaks first in council.",
+        Stewardship => "An administrator leads the house now: the House and Worlds windows come first at the left, and the Steward speaks first in council.",
+        Law => "A lawyer leads the house now: the Senate and Laws windows come first at the left, and the Chancellor speaks first in council.",
+        _ => "The new head has no career yet: the windows keep their usual order until one is chosen."
     };
 
     /// <summary>Order the rail: the Office, then the register's screens, then the rest in their usual order.</summary>

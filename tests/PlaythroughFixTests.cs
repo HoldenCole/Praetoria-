@@ -348,4 +348,14 @@ public class PlaythroughFixTests
         Assert.Equal("your uncle", Praetoria.Core.Presentation.Kinship.Of(w, niece, me)); Assert.Equal("your grandmother", Praetoria.Core.Presentation.Kinship.Of(w, niece, gm));
         Assert.Equal("", Praetoria.Core.Presentation.Kinship.Of(w, me, stranger)); Assert.Equal("son of me and wife", Praetoria.Core.Presentation.Kinship.ChildOfSays(w, son));
     }
+
+    [Fact]
+    public void NobodyIsTheRivalInTheirOwnSuit()
+    {
+        var (w, _, house, me, _) = Start(); var foe = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id));
+        var mine = w.LivingCharacters().First(c => c.HouseId == house.Id && c.Id != me.Id); var theirs = w.LivingCharacters().First(c => c.HouseId == foe.Id);
+        var suit = new Courtship { Id = "t_c", SuitorId = mine.Id, TargetId = theirs.Id, Since = w.Turn, Consent = 40 }; w.Courtships.Add(suit);
+        Assert.True(CourtshipSystem.Intercept(w, theirs, mine));   // their steward proposes the same match
+        Assert.Equal("", suit.RivalId); Assert.Equal(50, suit.Consent);
+    }
 }

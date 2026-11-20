@@ -65,7 +65,7 @@ public static class CourtshipSystem
         if (s.Id == t.Id || s.HouseId == t.HouseId) return "too close";
         if (DynastySystem.AreKin(w, s, t)) return "too close in blood";
         if (s.Sex == "" || t.Sex == "" || s.Sex == t.Sex) return "no heirs could come of it";
-        if (s.Age < BetrothalAge || t.Age < BetrothalAge) return "too young even to be promised";
+        if (s.Age < BetrothalAge || t.Age < BetrothalAge) { var young = s.Age < BetrothalAge ? s : t; return $"{young.Name} is {young.Age}: a child may be promised from {BetrothalAge}, and wed from {DynastySystem.AgeOfMajority}"; }
         if (DynastySystem.Spouse(w, s) != null || DynastySystem.Spouse(w, t) != null) return "already wed";
         if (w.AtWar(s.HouseId, t.HouseId)) return "not while your houses are at war";
         if (FeudSystem.Between(w, s.HouseId, t.HouseId)) return "there is blood between your houses";
@@ -478,6 +478,8 @@ public static class CourtshipSystem
         {
             string? other = c.TargetId == t.Id ? s.Id : c.TargetId == s.Id ? t.Id : null;
             if (other == null) continue;
+            // the other family proposing the very match being courted is no rival: it is their yes coming nearer (the suitor was once named as her own rival)
+            if (other == c.SuitorId) { c.Consent = Math.Clamp(c.Consent + 10, 0, 100); return true; }
             if (c.RivalId.Length == 0) AddRival(w, c, w.Char(other)!);
             return true;
         }
