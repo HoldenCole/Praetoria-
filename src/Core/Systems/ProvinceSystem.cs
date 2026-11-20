@@ -87,17 +87,37 @@ public static class ProvinceSystem
 
     // ---------------- what a province does ----------------
 
-    private static Resources Yield(ProvinceRules rules, Province p)
+    /// <summary>What a province brings in a year: what its focus yields, by its level, and what its buildings yield less what they cost to keep.</summary>
+    public static Resources Yield(World w, HoldingCatalog cat, Holding planet, Province p)
     {
-        var d = new Resources(); if (rules.Focus(p.Focus) is not { } f) return d;
+        var d = new Resources(); if (cat.Provinces.Focus(p.Focus) is not { } f) return d; var sys = w.Galaxy?.System(planet.SystemId);
         foreach (var r in Resource.All) d.Set(r, f.Yield.Get(r) * Math.Max(1, p.Level));
+        foreach (var id in p.Buildings) if (cat.Work(id) is { } b) foreach (var r in Resource.All) d.Add(r, (b.Deposit == r ? b.Yield.Get(r) * Math.Max(1, sys?.Deposit(r) ?? 1) : b.Yield.Get(r)) - b.Upkeep.Get(r));
         return d;
     }
+    /// <summary>What the house that holds a province under another owes the holder of the world this year (the owner, 2026-11-20: yes to
+    /// "a share of yield, troops, a vote"): the tithe, by the province's level, and the levy too in a year the holder of the world is
+    /// at war. Nothing for a province that is the world's holder's own, on a world in revolt, or held by a house at war with that holder.</summary>
+    public static Resources Dues(World w, HoldingCatalog cat, Holding planet, int index)
+    {
+        var d = new Resources(); if (index <= 0 || index >= planet.Provinces.Count || planet.InRebellion) return d;
+        string holder = HolderOf(planet, index); if (holder == planet.OwnerId || w.AtWar(holder, planet.OwnerId)) return d;
+        int level = Math.Max(1, planet.Provinces[index].Level); bool war = w.EnemiesOf(planet.OwnerId).Any();
+        foreach (var r in Resource.All) d.Set(r, (cat.Provinces.Tithe.Get(r) + (war ? cat.Provinces.Levy.Get(r) : 0)) * level);
+        return d;
+    }
+    /// <summary>Whether a house holds a province of a world another house holds: it owes that house, and leans its way in the Senate.</summary>
+    public static bool Under(World w, string houseId, string overId) { if (houseId == overId) return false; foreach (var (h, _) in w.ProvincesOf(houseId)) if (h.OwnerId == overId && !w.AtWar(houseId, overId)) return true; return false; }
+    public const int VoteLean = 2;
     /// <summary>What the provinces of a house's own world pay it: its seat, and any province it has given to nobody.</summary>
     public static IEnumerable<(string name, Resources net)> OwnLines(World w, HoldingCatalog cat, Holding planet)
     {
         if (planet.InRebellion) yield break;
-        for (int i = 0; i < planet.Provinces.Count; i++) if (i == 0 || planet.Provinces[i].HolderId.Length == 0) { var y = Yield(cat.Provinces, planet.Provinces[i]); if (!y.IsEmpty()) yield return (planet.Provinces[i].Name, y); }
+        for (int i = 0; i < planet.Provinces.Count; i++)
+        {
+            if (i == 0 || planet.Provinces[i].HolderId.Length == 0) { var y = Yield(w, cat, planet, planet.Provinces[i]); if (!y.IsEmpty()) yield return (planet.Provinces[i].Name, y); }
+            else { var due = Dues(w, cat, planet, i); if (!due.IsEmpty()) yield return ("Dues of " + planet.Provinces[i].Name, due); }
+        }
     }
     /// <summary>What the provinces a house was given pay it, wherever they are. A province of a world in revolt pays nothing, nor does
     /// one whose holder is at war with the house that holds its world.</summary>
@@ -106,10 +126,55 @@ public static class ProvinceSystem
         foreach (var (h, i) in w.ProvincesOf(houseId))
         {
             if (i >= h.Provinces.Count || h.InRebellion || (h.OwnerId != houseId && w.AtWar(houseId, h.OwnerId))) continue;
-            var y = Yield(cat.Provinces, h.Provinces[i]); if (!y.IsEmpty()) yield return (h.Provinces[i].Name, y);
+            var y = Yield(w, cat, h, h.Provinces[i]); var due = Dues(w, cat, h, i); foreach (var r in Resource.All) y.Add(r, -due.Get(r));
+            if (!y.IsEmpty()) yield return (h.Provinces[i].Name, y);
         }
     }
-    public static double Defense(HoldingCatalog cat, Holding planet) { double d = 0; foreach (var p in planet.Provinces) d += (cat.Provinces.Focus(p.Focus)?.Defense ?? 0) * Math.Max(1, p.Level); return d; }
+    public static double Defense(HoldingCatalog cat, Holding planet) { double d = 0; foreach (var p in planet.Provinces) { d += (cat.Provinces.Focus(p.Focus)?.Defense ?? 0) * Math.Max(1, p.Level); foreach (var id in p.Buildings) d += cat.Work(id)?.Defense ?? 0; } return d; }
+
+    // ---------------- building in a province ----------------
+
+    public static string Target(string holdingId, int index) => holdingId + "@" + index;
+    public static (string holdingId, int index) Parse(string target) { int at = target.LastIndexOf('@'); return at < 0 ? (target, -1) : (target[..at], int.TryParse(target[(at + 1)..], out var i) ? i : -1); }
+    public static int Rising(World w, Holding planet, int index) { string t = Target(planet.Id, index); int n = 0; foreach (var p in w.Projects) if (p.Kind == Project.ProvinceWork && p.TargetId == t) n++; return n; }
+    /// <summary>The building slots of a province (the owner, 2026-11-20: yes to a province having slots of its own). The seat has none
+    /// of its own: the world's row is its holder's. Another province starts with one and gains by the system's development and the
+    /// rank of the house that holds it.</summary>
+    public static int Slots(World w, HoldingCatalog cat, Holding planet, int index)
+    {
+        if (index <= 0 || index >= planet.Provinces.Count) return 0; var r = cat.Provinces;
+        int level = SystemWorks.DevelopmentLevel(w, planet.SystemId), rank = w.House(HolderOf(planet, index)) is { } h ? Progression.Title.RankOf(h.Title) : 0;
+        return Math.Min(r.SlotMax, r.SlotBase + r.SlotDevelopment.Count(l => l <= level) + r.SlotRank.Count(l => l <= rank));
+    }
+    /// <summary>Whether a building suits a province: an ordinary building of the world's kind, not one for the home world's own row or
+    /// one kept off a settled world, not one a system has only one of; and one that works a deposit only in the province given over to it.</summary>
+    public static bool Suits(HoldingCatalog cat, Galaxy.StarSystem sys, Province p, WorkDef d) =>
+        !d.IsMegastructure && d.On != "world" && !d.NotHome && d.Feature.Length == 0 && d.Requires.Length == 0 && d.Limit == WorkDef.PerBody && d.Fits(sys.PlanetClass)
+        && (d.Deposit.Length == 0 || (cat.Provinces.Focus(p.Focus)?.Deposit == d.Deposit && sys.Deposit(d.Deposit) > 0));
+    public static string? BuildRefusal(World w, HoldingCatalog cat, House house, Holding planet, int index, WorkDef def, bool explain = true)
+    {
+        if (!planet.IsPlanet || index <= 0 || index >= planet.Provinces.Count) return "no such province";
+        if (HolderOf(planet, index) != house.Id) return "it is not yours to build in";
+        if (planet.InRebellion) return "its world is in revolt";
+        var sys = w.Galaxy?.System(planet.SystemId); var p = planet.Provinces[index]; if (sys == null) return "no such world";
+        if (!Suits(cat, sys, p, def)) return "does not suit this province";
+        if (p.Buildings.Contains(def.Id)) return "already built here";
+        if (w.Projects.Any(x => x.Kind == Project.ProvinceWork && x.TargetId == Target(planet.Id, index) && x.DefId == def.Id)) return "already being built here";
+        if (p.Buildings.Count + Rising(w, planet, index) >= Slots(w, cat, planet, index)) return "no free slot in this province: development and rank open more";
+        if (def.MinTitleRank > 0 && Progression.Title.RankOf(house.Title) < def.MinTitleRank) return "needs a greater rank";
+        var first = ProjectSystem.Split(def.Cost, def.BuildTurns).First;
+        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
+    }
+    public static void Raise(World w, Holding planet, int index, WorkDef def)
+    {
+        if (index <= 0 || index >= planet.Provinces.Count || planet.Provinces[index].Buildings.Contains(def.Id)) return;
+        planet.Provinces[index].Buildings.Add(def.Id); w.WorldCounters["province_buildings"] = w.Counter("province_buildings") + 1;
+    }
+    private static string Below(string title, int ranks)
+    {
+        string[] ladder = { Progression.Title.Knight, Progression.Title.Baron, Progression.Title.Count, Progression.Title.Duke, Progression.Title.Archduke, Progression.Title.Emperor };
+        int at = Array.IndexOf(ladder, title); return at <= 0 ? title : ladder[Math.Max(0, at - Math.Max(0, ranks))];
+    }
 
     /// <summary>Why a house may not improve a province, or null: it must hold it, and the system's development sets how far it goes.</summary>
     public static string? ImproveRefusal(World w, HoldingCatalog cat, House house, Holding planet, int index, bool explain = true)
@@ -221,9 +286,9 @@ public static class ProvinceSystem
             int theirs = ProvinceOf(planet, to.Id);
             planet.OwnerId = to.Id; planet.GovernorId = Economy.HeadOf(w, to)?.Id ?? "";
             if (theirs > 0) { planet.Provinces[theirs].HolderId = against.Id; planet.Provinces[theirs].Since = w.Turn; }
-            against.Legitimacy += cat.Provinces.StepDownLegitimacy;
+            against.Legitimacy += cat.Provinces.StepDownLegitimacy; string was = against.Title; against.Title = Below(against.Title, cat.Provinces.StepDownRanks);
             w.HoldingsChanged(); w.ProvincesChanged();
-            w.Log($"{against.Name} steps down from {planet.Name} at the word of {by.Name}. {to.Name} holds the world now{(theirs > 0 ? ", and " + against.Name + " holds " + planet.Provinces[theirs].Name + " under it" : "")}.");
+            w.Log($"{against.Name} steps down from {planet.Name} at the word of {by.Name}. {to.Name} holds the world now{(theirs > 0 ? ", and " + against.Name + " holds " + planet.Provinces[theirs].Name + " under it" : "")}.{(was != against.Title ? " " + against.Name + " is a rung the lower for it." : "")}");
         }
         else
         {

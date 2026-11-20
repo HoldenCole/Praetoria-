@@ -125,6 +125,7 @@ public static class ProjectSystem
         Project.Work => w.PlanetOf(SystemWorks.Parse(p.TargetId).systemId) is { } wp && wp.OwnerId == p.OwnerId,   // the system changed hands: the site is the new holder's to abandon
         Project.Colony => w.Galaxy?.System(p.TargetId) != null && w.PlanetOf(p.TargetId) == null,
         Project.Infrastructure => w.PlanetOf(p.TargetId) is { } ip && ip.OwnerId == p.OwnerId,
+        Project.ProvinceWork => ProvinceSystem.Parse(p.TargetId) is var (ph, pi) && w.Holding(ph) is { } pw && pi > 0 && pi < pw.Provinces.Count && ProvinceSystem.HolderOf(pw, pi) == p.OwnerId,
         Project.Upgrade => p.TargetId.Contains('#') ? w.PlanetOf(SystemWorks.Parse(p.TargetId).systemId) is { } up && up.OwnerId == p.OwnerId && w.BodyWorks.Any(x => x.DefId == p.DefId && SystemWorks.Target(x.SystemId, x.Body) == p.TargetId)
             : w.Holding(p.TargetId) is { } uh && uh.OwnerId == p.OwnerId && uh.Buildings.Contains(p.DefId),
         _ => w.Galaxy?.System(p.TargetId) != null
@@ -152,6 +153,9 @@ public static class ProjectSystem
                 break;
             case Project.Infrastructure:
                 if (holdings.Track(p.DefId) is { } track) SystemWorks.Lay(w, holdings, p.TargetId, track);
+                break;
+            case Project.ProvinceWork:
+                { var (ph, pi) = ProvinceSystem.Parse(p.TargetId); if (w.Holding(ph) is { } pw && holdings.Work(p.DefId) is { } pd) ProvinceSystem.Raise(w, pw, pi, pd); }
                 break;
             case Project.Upgrade:
                 SystemWorks.Upgrade(w, holdings, p.TargetId, p.DefId);

@@ -519,6 +519,14 @@ public sealed class NpcAi
                 int next = SystemWorks.Level(world, seats[0].SystemId, t.Id) + 1; if (next > t.MaxLevel || house.Treasury.Credits < t.CostOf(next).Credits + 20) continue;
                 if (executor.TryExecute(new InvestInfrastructureCommand(steward.Id, seats[0].SystemId, t.Id, catalog), ctx)) return;
             }
+        // about one year in four it builds in a province it was given: the cheapest thing that suits, where there is a slot
+        if (h % 4 == 1 && house.Treasury.Credits >= 30)
+            foreach (var (pw, pvi) in world.ProvincesOf(house.Id))
+            {
+                if (pvi >= pw.Provinces.Count || g.System(pw.SystemId) is not { } psys || pw.Provinces[pvi].Buildings.Count + ProvinceSystem.Rising(world, pw, pvi) >= ProvinceSystem.Slots(world, catalog, pw, pvi)) continue;
+                foreach (var def in catalog.Works.Where(d => ProvinceSystem.Suits(catalog, psys, pw.Provinces[pvi], d) && house.Treasury.Credits >= d.Cost.Credits + 15).OrderBy(d => d.Cost.Credits + d.Cost.Materials).ThenBy(d => d.Id, StringComparer.Ordinal))
+                    if (executor.TryExecute(new BuildInProvinceCommand(steward.Id, pw.Id, pvi, def.Id, catalog), ctx)) return;
+            }
         // about one year in five it takes a building a level higher, where the system's development lets it: its seat's own first
         if (h % 5 == 3 && house.Treasury.Credits >= 40)
             foreach (var seat in seats)

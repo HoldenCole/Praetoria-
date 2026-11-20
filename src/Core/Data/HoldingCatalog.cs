@@ -157,6 +157,12 @@ public sealed class ProvinceRules
     public Resources ImproveCost { get; init; } = new() { Credits = 10, Materials = 8 };
     public int DemandInfluence { get; init; } = 3; public int DemandInfluenceWorld { get; init; } = 6; public int YieldsAt { get; init; } = 150; public int StepDownLegitimacy { get; init; } = -6; public int AnswerYears { get; init; } = 1;
     public int NpcProvinceYears { get; init; } = 30; public int NpcWorldYears { get; init; } = 60;
+    /// <summary>The building slots of a province other than the seat: what it starts with, the development levels and the title ranks of its holder that add one, and the most.</summary>
+    public int SlotBase { get; init; } = 1; public IReadOnlyList<int> SlotDevelopment { get; init; } = new[] { 3, 6, 9 }; public IReadOnlyList<int> SlotRank { get; init; } = new[] { 3, 5 }; public int SlotMax { get; init; } = 4;
+    /// <summary>What a house that holds a province under another owes the holder of the world a year, for each level of the province: always, and in a year the holder of the world is at war.</summary>
+    public Resources Tithe { get; init; } = new() { Credits = 1 }; public Resources Levy { get; init; } = new() { Manpower = 1 };
+    /// <summary>Rungs of title lost by a house that steps down from a world.</summary>
+    public int StepDownRanks { get; init; } = 1;
     public ProvinceFocus? Focus(string id) { foreach (var f in Focuses) if (f.Id == id) return f; return null; }
     public Resources ImproveCostOf(int level) { var c = new Resources(); foreach (var r in Resource.All) c.Set(r, ImproveCost.Get(r) * Math.Max(1, level)); return c; }
 }

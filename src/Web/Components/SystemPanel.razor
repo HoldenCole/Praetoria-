@@ -129,14 +129,51 @@
                             string? wno = pi == 0 && over?.Id == house.Id && !mine ? new DemandSeatCommand(me.Id, planet.Id, 0, WorldFor(planet, giveTo), cat).Refusal(ctx) : null;
                             bool atWar = !pmine && pi > 0 && w.AtWar(holderId, planet.OwnerId);
                             <div class="sysp-prov @(pmine ? "mine" : "") @(atWar ? "war" : "")" data-province="@pv.Focus" data-holder="@holderId">
-                                <div class="sw-head"><b>@pv.Name</b> @LevelPips(pv.Level) <span class="muted small">@(pf?.Name ?? pv.Focus)</span></div>
-                                <div class="sw-does">@(pmine ? "Yours" : w.House(holderId)?.Name ?? "nobody's")@(pi > 0 && holderId != planet.OwnerId ? (pv.Since > 0 ? " since year " + pv.Since : ", for life") : pi == 0 ? ", with the world" : "") · @ProvinceDoes(pf, pv.Level)@(atWar ? " · withheld: its house is at war with the holder of the world" : "")</div>
+                                @{ int pslots = ProvinceSystem.Slots(w, cat, planet, pi), pbuilt = pv.Buildings.Count, prising = ProvinceSystem.Rising(w, planet, pi); var owed = ProvinceSystem.Dues(w, cat, planet, pi); var pyield = ProvinceSystem.Yield(w, cat, planet, pv); }
+                                <div class="sw-head"><b>@pv.Name</b> @LevelPips(pv.Level) <span class="muted small">@(pf?.Name ?? pv.Focus)</span>
+                                    @if (pi > 0) { <span class="sysp-slots" title="@($"Building slots of the province: {pbuilt} built · {prising} rising · {pslots} open of {cat.Provinces.SlotMax} at the most. One to begin with; more by the system's development and the rank of the house that holds the province.")">@for (int k = 0; k < Math.Max(pslots, cat.Provinces.SlotMax); k++) { <i class="@(k < pbuilt ? "on" : k < pbuilt + prising ? "up" : k >= pslots ? "lock" : "")"></i> }</span> }
+                                </div>
+                                <div class="sw-does">@(pmine ? "Yours" : w.House(holderId)?.Name ?? "nobody's")@(pi > 0 && holderId != planet.OwnerId ? (pv.Since > 0 ? " since year " + pv.Since : ", for life") : pi == 0 ? ", with the world" : "") · @(pyield.IsEmpty() ? "pays nothing" : "+" + CourtProjection.Bundle(pyield) + " a year")@(pf != null && pf.Defense > 0 ? " · defence +" + (pf.Defense * Math.Max(1, pv.Level)).ToString("0.##") : "")@(atWar ? " · withheld: its house is at war with the holder of the world" : "")</div>
+                                @if (pi > 0 && holderId != planet.OwnerId && !atWar) { <div class="muted small sysp-owes">@(pmine ? "You owe" : "It owes") @(mine ? "you" : ownerName == "Your house" ? "you" : w.House(planet.OwnerId)?.Name ?? "the holder of the world") @(owed.IsEmpty() ? "nothing this year" : Bundle(owed) + " a year")@(w.EnemiesOf(planet.OwnerId).Any() ? ", levy included while the holder of the world is at war" : "; a levy too in a year the holder of the world is at war"), and @(pmine ? "your house is expected to lean" : "leans") its way in the Senate.</div> }
+                                @if (pv.Buildings.Count > 0 || prising > 0)
+                                {
+                                    <div class="sysp-built prov">
+                                        @foreach (var bid in pv.Buildings) { var bd = cat.Work(bid); if (bd == null) continue; <span class="built" title="@(bd.Description + " " + Does(bd, sys))">@bd.Name</span> }
+                                        @foreach (var pp in w.Projects.Where(x => x.Kind == Project.ProvinceWork && x.TargetId == ProvinceSystem.Target(planet.Id, pidx))) { <span class="built up">@(cat.Work(pp.DefId)?.Name ?? pp.DefId) · @pp.TurnsLeft y</span> }
+                                    </div>
+                                }
                                 @if (pmine && pv.Level < rules.MaxLevel)
                                 {
                                     <div class="sw-cost"><span>Level @SystemWorks.Roman(pv.Level + 1) · @Bundle(cat.Provinces.ImproveCostOf(pv.Level))</span>
                                         <button class="opt inline" disabled="@(ino != null)" title="@(ino != null ? Cap(ino) : "It will pay " + (pv.Level + 1) + " times over.")" @onclick="() => G.Execute(new ImproveProvinceCommand(me.Id, hid3, pidx, cat))">Improve</button>
                                     </div>
                                     @if (ino != null) { <div class="sw-no">@Cap(ino)</div> }
+                                }
+                                @if (pmine && pi > 0)
+                                {
+                                    var pfits = cat.Works.Where(d => ProvinceSystem.Suits(cat, sys, pv, d) && !pv.Buildings.Contains(d.Id) && !w.Projects.Any(x => x.Kind == Project.ProvinceWork && x.TargetId == ProvinceSystem.Target(planet.Id, pidx) && x.DefId == d.Id)).OrderByDescending(d => d.Deposit.Length > 0).ThenBy(d => d.Cost.Credits + d.Cost.Materials).ToList();
+                                    bool showAll = _provOpen == planet.Id + "#" + pi; string key = planet.Id + "#" + pi;
+                                    <div class="sw-cost"><span>@(pslots - pbuilt - prising > 0 ? (pslots - pbuilt - prising) + " of " + pslots + " slot" + (pslots == 1 ? "" : "s") + " free" : "No slot free") · @pfits.Count building@(pfits.Count == 1 ? "" : "s") would suit it</span>
+                                        @if (pfits.Count > 0) { <button class="opt inline" @onclick="() => _provOpen = showAll ? null : key">@(showAll ? "Close" : "Build…")</button> }
+                                    </div>
+                                    @if (showAll)
+                                    {
+                                        @foreach (var d in pfits)
+                                        {
+                                            string? bno = new BuildInProvinceCommand(me.Id, planet.Id, pi, d.Id, cat).Refusal(ctx); string bdid = d.Id;
+                                            <div class="sysp-work" data-work="@d.Id">
+                                                @Art(d.Id)
+                                                <div class="sw-text">
+                                                    <div class="sw-head"><b>@d.Name</b></div>
+                                                    <div class="sw-does">@Does(d, sys)</div>
+                                                    <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@(d.BuildTurns > 1 ? $" · {d.BuildTurns} years" : "")</span>
+                                                        <button class="opt inline" disabled="@(bno != null)" title="@(bno != null ? Cap(bno) : "")" @onclick="() => G.Execute(new BuildInProvinceCommand(me.Id, hid3, pidx, bdid, cat))">@(d.BuildTurns > 1 ? "Begin" : "Build")</button>
+                                                    </div>
+                                                    @if (bno != null) { <div class="sw-no">@Cap(bno)</div> }
+                                                </div>
+                                            </div>
+                                        }
+                                    }
                                 }
                                 @if (mine && pi > 0 && !pmine && pending == null)
                                 {
@@ -164,7 +201,7 @@
                                     @if (pending.AgainstId == house.Id)
                                     {
                                         <div class="sysp-demand">
-                                            <div><b>@asker asks you to give this up</b>, for @forWhom. It was yours for life. @(pi == 0 ? "Step down, and you hold a province under the house that rises, and your name is the less for it. Stand, and it is war with " + asker + "." : "Step down and it is gone. Stand, and it is war with " + asker + ".") Unanswered, it is taken for defiance.</div>
+                                            <div><b>@asker asks you to give this up</b>, for @forWhom. It was yours for life. @(pi == 0 ? "Step down, and you hold a province under the house that rises, your name is the less for it and your house a rung the lower. Stand, and it is war with " + asker + "." : "Step down and it is gone. Stand, and it is war with " + asker + ".") Unanswered, it is taken for defiance.</div>
                                             <div class="row small"><button class="opt inline" @onclick="() => G.Execute(new AnswerSeatDemandCommand(me.Id, did2, true, cat))">Step down</button><button class="opt inline warn" @onclick="() => G.Execute(new AnswerSeatDemandCommand(me.Id, did2, false, cat))">Stand, and fight</button></div>
                                         </div>
                                     }
@@ -291,7 +328,7 @@
         WorkDef.Colony => "colony", WorkDef.Extraction => "extraction", WorkDef.Military => "military", _ => "civil"
     };
 
-    private readonly Dictionary<string, string> _giveTo = new();
+    private readonly Dictionary<string, string> _giveTo = new(); private string? _provOpen;
     private void SetGive(string holdingId, int index, ChangeEventArgs e) { _giveTo[holdingId + "#" + index] = e.Value?.ToString() ?? string.Empty; }
     /// <summary>Whom a world is asked for: the choice made, if that house holds a province of it; else the first that does.</summary>
     private static string WorldFor(Holding planet, string chosen)

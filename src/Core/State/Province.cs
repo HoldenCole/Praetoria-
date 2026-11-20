@@ -12,6 +12,8 @@ public sealed class Province
     public int Since { get; set; }
     /// <summary>1 to 3: what it yields is multiplied by it.</summary>
     public int Level { get; set; } = 1;
+    /// <summary>What its holder has built in its slots: works of works.json. They go with the province.</summary>
+    public List<string> Buildings { get; set; } = new();
 }
 
 /// <summary>A demand that a holder step down (docs/PROVINCES.md): from a province of a world (<see cref="Province"/> 1 or 2), made by

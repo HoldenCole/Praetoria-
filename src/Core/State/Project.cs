@@ -14,6 +14,8 @@ public sealed class Project
     public const string Infrastructure = "infra";
     /// <summary>The next level of a building that stands (the building is the definition, the place "system#body" the target).</summary>
     public const string Upgrade = "upgrade";
+    /// <summary>A building in a province of a world (docs/PROVINCES.md): the work is the definition, "holding@province" the target.</summary>
+    public const string ProvinceWork = "province";
     public string Id { get; set; } = "";
     public string OwnerId { get; set; } = "";
     /// <summary>The company paying for it (stage C), or "" when the house pays.</summary>

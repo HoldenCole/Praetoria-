@@ -48,13 +48,37 @@ provinces. A nation's world is all the nation's. A new colony is all its founder
 
 - A province **pays its holder** what its focus yields, on the ledger under its own name. A house is paid by the seats
   of its own worlds and by every province it was given, on its own world or another's.
+- A province other than the seat has **building slots of its own** (the owner, 2026-11-20: yes): one to begin with, one
+  more at development 3, 6 and 9 of its system, one more when its holder is a count and again an archduke, four at the
+  most. Its holder builds the ordinary buildings of the world's kind in them (a smelter in a province of a forge world, a
+  tidal mill on an ocean), and a building that works a deposit only in the province given over to that deposit. What
+  they yield is the holder's, on the province's line. Not for a province: the home world's own eight, anything a system
+  has only one of, great works. The buildings go with the province when it changes hands. The seat has no row of its
+  own: the world's row is its holder's.
 - A province can be **improved** to level II and III by its holder (10 credits and 8 materials, then twice that); it pays
   that many times over. How high it may go is the development of the system it is in, as for a building (3 and 6).
 - A **march defends** the system it is in, whoever holds the world.
 - A province pays **nothing** while its world is in revolt, or while its holder is at war with the house that holds the world.
 
-**Part of a world, the whole world, the whole system.** A house with a province has that province and nothing else of
-the world. The house that holds the world has its seat, its row of building slots, every other place in the system, its
+## What a holder owes the house over it
+
+The owner, 2026-11-20: yes, a house with a province owes the house that holds the world "a share of yield, troops, a vote".
+
+| | what | when |
+|---|---|---|
+| **A tithe** | 1 credit a year for each level of the province | every year |
+| **A levy** | 1 manpower a year for each level, on top of the tithe | in any year the holder of the world is at war |
+| **Its voice** | it leans the holder's way in the Senate, as a client leans to a patron (+2) | on what that house moves, and on what is aimed at it |
+
+Because it leans that way, a house with a province under another is counted among "the houses that would follow" when
+that house takes a region out of the Reach (docs/BREAKAWAY.md).
+
+The tithe and the levy come off the province's line in the holder's ledger and appear in the ledger of the house that
+holds the world as "Dues of" the province. A house at war with the house over it pays nothing and leans nowhere; nothing
+is owed on a world in revolt. The player owes the tithe and the levy like any house; how the player votes is the player's.
+
+**Part of a world, the whole world, the whole system.** A house with a province has that province, its slots and what it
+builds in them, and nothing else of the world. The house that holds the world has its seat, its row of building slots, every other place in the system, its
 infrastructure and its great works. A house that holds the world and all three of its provinces, with no other house's
 holding in the system, has the whole of it, and one more building slot on the home world for that (docs/BUILDINGS.md).
 
@@ -71,8 +95,8 @@ One such demand a year. The one asked **steps down, or stands**.
 
 - **Stepping down from a province**: it goes to the house it was asked for.
 - **Stepping down from a world**: the other family holds the world now, and the house that stepped down holds the
-  province that family had, under it. It loses 6 legitimacy, and with the world gone it stands lower in every ranking
-  that counts worlds.
+  province that family had, under it. It loses 6 legitimacy and **a rung of its title** (a duke is a count, a count a
+  baron; nobody falls below the lowest rung), and with the world gone it stands lower in every ranking that counts worlds.
 - **Standing**: it is war between the house and the one who asked. The world is settled by the war in the ordinary way
   (sieges, a peace). A province is lost when its house has no fleet left in the field.
 

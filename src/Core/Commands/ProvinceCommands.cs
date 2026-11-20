@@ -60,3 +60,27 @@ public sealed class AnswerSeatDemandCommand : ICommand
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx) { var w = ctx.World; ProvinceSystem.Resolve(w, _catalog, w.SeatDemands.First(d => d.Id == _id), _stepDown); }
 }
+
+/// <summary>Build in a province the actor's house holds (docs/PROVINCES.md): an ordinary building of the world's kind, in one of the
+/// province's own slots. What it yields is the holder's. A building that takes years is begun and paid for as it rises.</summary>
+public sealed class BuildInProvinceCommand : ICommand
+{
+    private readonly string _holdingId; private readonly int _index; private readonly string _workId; private readonly HoldingCatalog _catalog;
+    public BuildInProvinceCommand(string actorId, string holdingId, int index, string workId, HoldingCatalog catalog) { ActorId = actorId; _holdingId = holdingId; _index = index; _workId = workId; _catalog = catalog; }
+    public string ActorId { get; }
+    public string Describe() => $"build {_workId} in province {_index} of {_holdingId}";
+    public string? Refusal(CommandContext ctx) => Refusal(ctx, true);
+    private string? Refusal(CommandContext ctx, bool explain)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        var house = w.House(actor.HouseId); var planet = w.Holding(_holdingId); var def = _catalog.Work(_workId); if (house == null || planet == null || def == null) return "no such building";
+        return ProvinceSystem.BuildRefusal(w, _catalog, house, planet, _index, def, explain);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx, false) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!; var planet = w.Holding(_holdingId)!; var def = _catalog.Work(_workId)!;
+        if (def.BuildTurns <= 1) { house.Treasury.Spend(def.Cost); ProvinceSystem.Raise(w, planet, _index, def); return; }
+        ProjectSystem.Start(w, house.Id, Project.ProvinceWork, def.Id, ProvinceSystem.Target(planet.Id, _index), def.Name + " in " + planet.Provinces[_index].Name, def.Cost, def.BuildTurns);
+    }
+}

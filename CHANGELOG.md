@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **A province has building slots of its own** (the owner: yes to all three). One to begin with, more by the system's
+  development and the rank of the house that holds the province, four at the most; its holder builds the ordinary
+  buildings of the world's kind in them, and what they yield is the holder's.
+- **A house with a province owes the house over it**: a tithe every year, a levy of manpower in any year the holder of
+  the world is at war, and its voice in the Senate, where it leans that house's way.
+- **Stepping down from a world costs a rung of title**, as well as legitimacy and the world.
 - **The provinces of a world** (docs/PROVINCES.md; the owner: "three regions on each planet and then the planet
   overall ... the other two regions are controlled by different houses ... Governorship is for life unless the leader
   over you tries to [take it] ... accept it and step down ... or you can fight in basically what would be a civil

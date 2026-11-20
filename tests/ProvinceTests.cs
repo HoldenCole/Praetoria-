@@ -61,7 +61,7 @@ public class ProvinceTests
         // the seat of the house's own world pays it; so does every province it was given on another's
         Assert.Contains(lines, l => l.Source == seat.Provinces[0].Name); var given = w.ProvincesOf(house.Id); Assert.NotEmpty(given);
         foreach (var (h, i) in given) { Assert.NotEqual(house.Id, h.OwnerId); Assert.Contains(lines, l => l.Source == h.Provinces[i].Name); }
-        Assert.Equal(given.Count + w.HoldingsOf(house.Id).Count(h => h.IsPlanet), lines.Count);
+        Assert.Equal(given.Count + w.HoldingsOf(house.Id).Count(h => h.IsPlanet), lines.Count(l => !l.Source.StartsWith("Dues of ")));
         // the province another house holds on the house's world pays that house, not this one
         Assert.DoesNotContain(lines, l => l.Source == seat.Provinces[1].Name); string other = ProvinceSystem.HolderOf(seat, 1);
         Assert.Contains(eco.Compute(w, other).Lines, l => l.Kind == "province" && l.Source == seat.Provinces[1].Name);
@@ -70,7 +70,7 @@ public class ProvinceTests
         w.Development[far.SystemId] = Cat.Rules.UpgradeAt[1] * 10 - 1; Assert.StartsWith("needs development", new ImproveProvinceCommand(me.Id, far.Id, idx, Cat).Refusal(ctx));
         w.Development[far.SystemId] = Cat.Rules.UpgradeAt[1] * 10; int credits = house.Treasury.Credits;
         Assert.True(tc.Executor.TryExecute(new ImproveProvinceCommand(me.Id, far.Id, idx, Cat), ctx)); Assert.Equal(2, p.Level); Assert.Equal(credits - rules.ImproveCost.Credits, house.Treasury.Credits);
-        var after = eco.Compute(w, house.Id).Lines.First(l => l.Source == p.Name).Delta; foreach (var r in Resource.All) Assert.Equal(before.Get(r) * 2, after.Get(r));
+        var after = eco.Compute(w, house.Id).Lines.First(l => l.Source == p.Name).Delta; foreach (var r in Resource.All) Assert.Equal(before.Get(r) * 2, after.Get(r));   // (and its tithe is twice what it was)
         Assert.Equal("it is not yours to improve", new ImproveProvinceCommand(me.Id, seat.Id, 1, Cat).Refusal(ctx));
         // a march defends the system it is in
         var march = w.Holdings.Values.FirstOrDefault(h => h.IsPlanet && h.Provinces.Any(x => rules.Focus(x.Focus)!.Defense > 0));
@@ -123,10 +123,10 @@ public class ProvinceTests
         Assert.Null(ProvinceSystem.DemandRefusal(w, Cat, over, seat, 0, rising));
         Assert.Equal(ProvinceSystem.Pending, ProvinceSystem.Demand(w, Cat, over, seat, 0, rising)); var d = Assert.Single(w.SeatDemands); Assert.Contains(ProvinceSystem.DemandFlag, w.WorldFlags); Assert.Equal(house.Id, seat.OwnerId);
         // stepping down: the other family holds the world, and this one holds a province under it and is the less for it
-        int legit = house.Legitimacy; var copy = new SeatDemand { Id = d.Id, HoldingId = d.HoldingId, Province = d.Province, ById = d.ById, AgainstId = d.AgainstId, ForId = d.ForId, Turn = d.Turn };
+        house.Title = "duke"; string titleBefore = house.Title; int legit = house.Legitimacy; var copy = new SeatDemand { Id = d.Id, HoldingId = d.HoldingId, Province = d.Province, ById = d.ById, AgainstId = d.AgainstId, ForId = d.ForId, Turn = d.Turn };
         Assert.True(tc.Executor.TryExecute(new AnswerSeatDemandCommand(me.Id, d.Id, true, Cat), ctx));
         Assert.Equal(rising, seat.OwnerId); Assert.Equal(rising, w.PlanetHolder(seat.SystemId)); Assert.Equal(house.Id, ProvinceSystem.HolderOf(seat, theirs)); Assert.Equal(rising, ProvinceSystem.HolderOf(seat, 0));
-        Assert.Equal(Math.Clamp(legit + Cat.Provinces.StepDownLegitimacy, 0, 100), house.Legitimacy); Assert.Empty(w.SeatDemands); Assert.DoesNotContain(ProvinceSystem.DemandFlag, w.WorldFlags); Assert.False(w.AtWar(house.Id, over.Id));
+        Assert.Equal(Math.Clamp(legit + Cat.Provinces.StepDownLegitimacy, 0, 100), house.Legitimacy); Assert.Equal(Praetoria.Core.Progression.Title.RankOf(titleBefore) - Cat.Provinces.StepDownRanks, Praetoria.Core.Progression.Title.RankOf(house.Title)); Assert.Empty(w.SeatDemands); Assert.DoesNotContain(ProvinceSystem.DemandFlag, w.WorldFlags); Assert.False(w.AtWar(house.Id, over.Id));
         Assert.Contains(new Economy(Cat, Content.Businesses).Compute(w, house.Id).Lines, l => l.Kind == "province" && l.Source == seat.Provinces[theirs].Name);
         // standing: put it back, ask again, and refuse. It is war with the one who asked, and the world is still the house's
         seat.OwnerId = house.Id; seat.Provinces[theirs].HolderId = rising; w.HoldingsChanged(); w.ProvincesChanged(); w.SeatDemands.Add(copy);
@@ -135,6 +135,62 @@ public class ProvinceTests
         // a demand left unanswered is taken for defiance after its year
         w.Wars.Clear(); w.SeatDemands.Add(new SeatDemand { Id = "late", HoldingId = seat.Id, Province = 0, ById = over.Id, AgainstId = house.Id, ForId = rising, Turn = w.Turn - Cat.Provinces.AnswerYears - 1 });
         ProvinceSystem.Tick(w, Cat); Assert.Empty(w.SeatDemands); Assert.True(w.AtWar(house.Id, over.Id)); Assert.Equal("nothing has been asked of you", new AnswerSeatDemandCommand(me.Id, "late", true, Cat).Refusal(ctx));
+    }
+
+    [Fact]
+    public void AProvince_HasSlotsOfItsOwn_AndItsHolderBuildsInThem()
+    {
+        // the owner, 2026-11-20: yes, a province should have its own building slots, so a house with only a province has more to do there
+        var (w, tc, house, me, ctx) = Start(); var rules = Cat.Provinces; var eco = new Economy(Cat, Content.Businesses);
+        var (far, idx) = w.ProvincesOf(house.Id).First(x => Cat.Works.Count(d => ProvinceSystem.Suits(Cat, w.Galaxy!.System(x.h.SystemId)!, x.h.Provinces[x.i], d)) >= 2);
+        var sys = w.Galaxy!.System(far.SystemId)!; var p = far.Provinces[idx]; Assert.NotEqual(house.Id, far.OwnerId);
+        // slots: one to begin with, more by the system's development and by the rank of the house that holds the province; the seat has none of its own
+        house.Title = "knight"; w.Development[sys.Id] = 0; Assert.Equal(rules.SlotBase, ProvinceSystem.Slots(w, Cat, far, idx)); Assert.Equal(0, ProvinceSystem.Slots(w, Cat, far, 0));
+        w.Development[sys.Id] = rules.SlotDevelopment[0] * 10; Assert.Equal(rules.SlotBase + 1, ProvinceSystem.Slots(w, Cat, far, idx));
+        house.Title = "emperor"; w.Development[sys.Id] = 100; Assert.Equal(rules.SlotMax, ProvinceSystem.Slots(w, Cat, far, idx)); house.Title = "knight"; w.Development[sys.Id] = 0;
+        // what suits: ordinary buildings of the world's kind; nothing for a home world's own row, nothing a system has one of, no great work
+        var fits = Cat.Works.Where(d => ProvinceSystem.Suits(Cat, sys, p, d)).OrderBy(d => d.BuildTurns).ThenBy(d => d.Id, StringComparer.Ordinal).ToList();
+        Assert.All(fits, d => Assert.True(!d.IsMegastructure && d.On != "world" && !d.NotHome && d.Limit == WorkDef.PerBody && d.Fits(sys.PlanetClass), d.Id));
+        Assert.Equal("does not suit this province", new BuildInProvinceCommand(me.Id, far.Id, idx, "forum", Cat).Refusal(ctx)); Assert.Equal("does not suit this province", new BuildInProvinceCommand(me.Id, far.Id, idx, "sun_foundry", Cat).Refusal(ctx));
+        // the holder builds, in its one slot; what the building yields is on the province's line; a second wants another slot
+        var one = fits[0]; var before = eco.Compute(w, house.Id).Lines.First(l => l.Source == p.Name).Delta.Clone(); int credits = house.Treasury.Credits;
+        Assert.True(tc.Executor.TryExecute(new BuildInProvinceCommand(me.Id, far.Id, idx, one.Id, Cat), ctx), new BuildInProvinceCommand(me.Id, far.Id, idx, one.Id, Cat).Refusal(ctx)); Assert.True(house.Treasury.Credits < credits || one.Cost.Credits == 0);
+        Assert.StartsWith("no free slot in this province", new BuildInProvinceCommand(me.Id, far.Id, idx, fits[1].Id, Cat).Refusal(ctx));
+        for (int t = 0; t < 6 && !p.Buildings.Contains(one.Id); t++) { house.Treasury.Credits = 400; house.Treasury.Materials = 400; w.SeatDemands.Clear(); tc.BeginTurn(); tc.EndTurn(); }
+        Assert.Contains(one.Id, p.Buildings); if (ProvinceSystem.HolderOf(far, idx) == house.Id && !far.InRebellion && !w.AtWar(house.Id, far.OwnerId))
+        {
+            var after = eco.Compute(w, house.Id).Lines.First(l => l.Source == p.Name).Delta; var due = ProvinceSystem.Dues(w, Cat, far, idx); var whole = ProvinceSystem.Yield(w, Cat, far, p);
+            foreach (var r in Resource.All) Assert.Equal(whole.Get(r) - due.Get(r), after.Get(r)); Assert.Equal("already built here", new BuildInProvinceCommand(me.Id, far.Id, idx, one.Id, Cat).Refusal(ctx));
+        }
+        // it is the holder's to build in, and nobody else's: not even the house that holds the world
+        var seat = w.HoldingsOf(house.Id).FirstOrDefault(h => h.IsPlanet && ProvinceSystem.HolderOf(h, 1) != house.Id);
+        if (seat != null) Assert.Equal("it is not yours to build in", new BuildInProvinceCommand(me.Id, seat.Id, 1, fits[0].Id, Cat).Refusal(ctx));
+        // the building goes with the province
+        far.Provinces[idx].HolderId = far.OwnerId == "x" ? "" : w.Houses.Values.First(h => !World.Outsider(h.Id) && h.Id != house.Id && h.Id != far.OwnerId).Id; w.ProvincesChanged();
+        Assert.DoesNotContain(eco.Compute(w, house.Id).Lines, l => l.Source == p.Name); Assert.Contains(one.Id, p.Buildings);
+    }
+
+    [Fact]
+    public void AHouseWithAProvince_OwesTheHouseOverIt_ATithe_ALevyInWar_AndItsVoice()
+    {
+        // the owner, 2026-11-20: yes, a province holder owes the house over it "a share of yield, troops, a vote"
+        var (w, _, house, _, _) = Start(); var rules = Cat.Provinces; var eco = new Economy(Cat, Content.Businesses); w.Wars.Clear(); foreach (var n in w.Nations) n.AtWar = false;
+        var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var under = w.House(ProvinceSystem.HolderOf(seat, 1))!; var p = seat.Provinces[1];
+        // at peace: a tithe, by the province's level, off the holder's line and onto the governor's
+        var due = ProvinceSystem.Dues(w, Cat, seat, 1); foreach (var r in Resource.All) Assert.Equal(rules.Tithe.Get(r), due.Get(r)); Assert.True(due.Credits > 0);
+        Assert.Equal(due.Credits, eco.Compute(w, house.Id).Lines.First(l => l.Source == "Dues of " + p.Name).Delta.Credits);
+        var theirs = eco.Compute(w, under.Id).Lines.First(l => l.Source == p.Name).Delta; var whole = ProvinceSystem.Yield(w, Cat, seat, p); foreach (var r in Resource.All) Assert.Equal(whole.Get(r) - due.Get(r), theirs.Get(r));
+        p.Level = 2; Assert.Equal(2 * rules.Tithe.Credits, ProvinceSystem.Dues(w, Cat, seat, 1).Credits); p.Level = 1;
+        // the governor at war: the levy as well
+        var foe = w.Houses.Values.First(h => !World.Outsider(h.Id) && h.Id != house.Id && h.Id != under.Id); w.Wars.Add(new War { HouseA = house.Id, HouseB = foe.Id, Since = w.Turn });
+        var war = ProvinceSystem.Dues(w, Cat, seat, 1); foreach (var r in Resource.All) Assert.Equal(rules.Tithe.Get(r) + rules.Levy.Get(r), war.Get(r)); Assert.True(war.Manpower > 0);
+        // a house at war with the house over it owes it nothing, and a house owes nothing for a seat or for its own
+        w.Wars.Clear(); w.Wars.Add(new War { HouseA = under.Id, HouseB = house.Id, Since = w.Turn }); Assert.True(ProvinceSystem.Dues(w, Cat, seat, 1).IsEmpty()); Assert.False(ProvinceSystem.Under(w, under.Id, house.Id));
+        w.Wars.Clear(); Assert.True(ProvinceSystem.Dues(w, Cat, seat, 0).IsEmpty());
+        // its voice: it leans the governor's way in the Senate, and that is given as the reason
+        Assert.True(ProvinceSystem.Under(w, under.Id, house.Id)); Assert.False(ProvinceSystem.Under(w, house.Id, under.Id) && !w.ProvincesOf(house.Id).Any(x => x.h.OwnerId == under.Id));
+        var (lean, why) = OrderSystem.Sway(w, under, house); Assert.True(lean >= Math.Min(OrderSystem.SwayCap, ProvinceSystem.VoteLean)); Assert.Contains("holds a province under it", why);
+        var stranger = w.Houses.Values.First(h => !World.Outsider(h.Id) && h.Id != house.Id && !ProvinceSystem.Under(w, h.Id, house.Id)); Assert.DoesNotContain("holds a province under it", OrderSystem.Sway(w, stranger, house).why);
     }
 
     [Fact]

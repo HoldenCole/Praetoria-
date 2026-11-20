@@ -19,7 +19,7 @@
         {
             int done = p.TurnsTotal - p.TurnsLeft;
             <div class="vcard @(p.Stalled ? "distress" : "")">
-                <div class="vc-head"><b>@Cap(p.Name)</b> <span class="muted small">@(p.Kind == "building" ? "building" : p.Kind == "venture" ? "new venture" : p.Kind == "work" ? (p.Great ? "great work" : "building in a system") : p.Kind == "colony" ? "colony" : p.Kind == "infra" ? "infrastructure" : p.Kind == "upgrade" ? "a building taken a level higher" : "enlargement")@(p.CompanyName != null ? $" · paid by {p.CompanyName}" : "")</span>
+                <div class="vc-head"><b>@Cap(p.Name)</b> <span class="muted small">@(p.Kind == "building" ? "building" : p.Kind == "venture" ? "new venture" : p.Kind == "work" ? (p.Great ? "great work" : "building in a system") : p.Kind == "colony" ? "colony" : p.Kind == "infra" ? "infrastructure" : p.Kind == "upgrade" ? "a building taken a level higher" : p.Kind == "province" ? "building in a province" : "enlargement")@(p.CompanyName != null ? $" · paid by {p.CompanyName}" : "")</span>
                     @if (p.Paused) { <span class="pill">paused</span> } else if (p.Stalled) { <span class="pill warn">stalled: the instalment was not met</span> } else { <span class="pill good">@p.TurnsLeft year(s) left</span> }</div>
                 <div class="gauge" title="years built"><span>Built</span><i><b style="width:@(100 * done / Math.Max(1, p.TurnsTotal))%" class="high"></b></i><em>@done/@p.TurnsTotal</em></div>
                 <div class="kv"><span>Paid</span><b>@p.Paid</b></div>

@@ -337,6 +337,8 @@ public class BreakawayTests
         var worlds = Worlds(w, regionId); int take = (int)Math.Ceiling(worlds.Count * percent / 100.0);
         foreach (var x in worlds.Where(x => x.OwnerId == h.Id)) x.OwnerId = "nobody_" + x.Id;
         foreach (var x in worlds.Take(take)) x.OwnerId = h.Id;
+        foreach (var x in worlds) foreach (var pv in x.Provinces.Skip(1)) pv.HolderId = "";   // (worlds handed out by a test are whole: the houses with provinces under a house would follow it, docs/PROVINCES.md)
+        w.HoldingsChanged(); w.ProvincesChanged();
     }
     private static House Other(World w, House mine, int n = 0) => w.Houses.Values.Where(h => h.Id != mine.Id && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null && h.Id != RegionSystem.CapitalHolder(w)?.Id)
         .OrderBy(h => h.Id, StringComparer.Ordinal).Skip(n).First();

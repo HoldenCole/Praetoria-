@@ -83,6 +83,8 @@ public static class HoldingCatalogLoader
                     }
                 if (root.TryGetProperty("focuses", out var fo) && fo.ValueKind == JsonValueKind.Array)
                 {
+                    static List<int> PIs(JsonElement e, string name, IReadOnlyList<int> d) => e.TryGetProperty(name, out var a) && a.ValueKind == JsonValueKind.Array ? a.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.Number).Select(x => x.GetInt32()).ToList() : d.ToList();
+                    var ps = root.TryGetProperty("slots", out var psx) && psx.ValueKind == JsonValueKind.Object ? psx : default; var po = root.TryGetProperty("owes", out var pox) && pox.ValueKind == JsonValueKind.Object ? pox : default;
                     var p0 = new ProvinceRules(); var dm = root.TryGetProperty("demand", out var dmx) && dmx.ValueKind == JsonValueKind.Object ? dmx : root; var np = root.TryGetProperty("npc", out var npx) && npx.ValueKind == JsonValueKind.Object ? npx : root;
                     provinces = new ProvinceRules
                     {
@@ -95,6 +97,10 @@ public static class HoldingCatalogLoader
                         ImproveCost = root.TryGetProperty("improveCost", out _) ? ParseResources(root, "improveCost") : p0.ImproveCost,
                         DemandInfluence = ConditionParser.Int(dm, "influence", p0.DemandInfluence), DemandInfluenceWorld = ConditionParser.Int(dm, "influenceWorld", p0.DemandInfluenceWorld), YieldsAt = ConditionParser.Int(dm, "yieldsAt", p0.YieldsAt),
                         StepDownLegitimacy = ConditionParser.Int(dm, "legitimacy", p0.StepDownLegitimacy), AnswerYears = Math.Max(1, ConditionParser.Int(dm, "answerYears", p0.AnswerYears)),
+                        SlotBase = ps.ValueKind == JsonValueKind.Object ? ConditionParser.Int(ps, "base", p0.SlotBase) : p0.SlotBase, SlotMax = ps.ValueKind == JsonValueKind.Object ? ConditionParser.Int(ps, "max", p0.SlotMax) : p0.SlotMax,
+                        SlotDevelopment = ps.ValueKind == JsonValueKind.Object ? PIs(ps, "development", p0.SlotDevelopment) : p0.SlotDevelopment, SlotRank = ps.ValueKind == JsonValueKind.Object ? PIs(ps, "rank", p0.SlotRank) : p0.SlotRank,
+                        Tithe = po.ValueKind == JsonValueKind.Object && po.TryGetProperty("tithe", out _) ? ParseResources(po, "tithe") : p0.Tithe, Levy = po.ValueKind == JsonValueKind.Object && po.TryGetProperty("levy", out _) ? ParseResources(po, "levy") : p0.Levy,
+                        StepDownRanks = ConditionParser.Int(dm, "ranks", p0.StepDownRanks),
                         NpcProvinceYears = Math.Max(1, ConditionParser.Int(np, "provinceYears", p0.NpcProvinceYears)), NpcWorldYears = Math.Max(1, ConditionParser.Int(np, "worldYears", p0.NpcWorldYears))
                     };
                 }
