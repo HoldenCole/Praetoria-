@@ -140,6 +140,10 @@ public sealed class LobbyCommand : ICommand
         m.Votes.Remove(_houseId);   // a lobbied house reconsiders
         var head = Economy.HeadOf(w, w.House(_houseId)!); if (head != null && !_bribe) w.Relationship(head.Id, actor.Id).Disposition = Math.Clamp((w.GetRelationship(head.Id, actor.Id)?.Disposition ?? 0) + 2, -100, 100);
         w.WorldCounters["lobbied"] = w.Counter("lobbied") + 1;
+        // the one who asked is told that it was heard, and by how much (docs/PLAYTHROUGH.md: "a whip or a bribe says whether it worked")
+        if (house.Id == w.Protagonist?.HouseId)
+            w.Tell("info", _bribe ? $"{w.House(_houseId)?.Name} has taken the purse: its own vote leans {(_side > 0 ? "for" : "against")} the motion by {SenateSystem.BribeWeight} more. Whether that is enough shows in the count"
+                : $"{w.House(_houseId)?.Name} has heard you: it leans {(_side > 0 ? "for" : "against")} the motion by {SenateSystem.LobbyWeight} more{(FactionSystem.Leads(w, _houseId) ? ", and its bench by half as much" : "")}. Whether that is enough shows in the count", "senate:chamber", _houseId);
     }
 }
 

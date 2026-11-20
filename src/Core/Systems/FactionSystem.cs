@@ -171,6 +171,10 @@ public static class FactionSystem
         AddAffinity(w, houseId, f.LeaderHouseId, -BreakWhipAffinity);
         var leaderHead = w.House(f.LeaderHouseId) is { } lh ? Economy.HeadOf(w, lh) : null; var head = w.House(houseId) is { } hh ? Economy.HeadOf(w, hh) : null;
         if (leaderHead != null && head != null) w.Relationship(leaderHead.Id, head.Id).Disposition = Math.Clamp((w.GetRelationship(leaderHead.Id, head.Id)?.Disposition ?? 0) - BreakWhipDisposition, -100, 100);
-        if (houseId == w.Protagonist?.HouseId) w.WorldFlags.Add("broke_the_whip");
+        if (houseId == w.Protagonist?.HouseId)
+        {
+            w.WorldFlags.Add("broke_the_whip");
+            w.Tell("warn", $"You voted against {f.Name}, your bench: {leaderHead?.Name ?? "its leader"} thinks {BreakWhipDisposition} the worse of you, and your tie to the bench is weaker by {BreakWhipAffinity}", "senate:chamber", f.LeaderHouseId);
+        }
     }
 }

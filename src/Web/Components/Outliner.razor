@@ -69,7 +69,6 @@
     if (w.Protagonist?.HouseId is { } myHouse) foreach (var (ph, pi) in w.ProvincesOf(myHouse).Where(x => x.i < x.h.Provinces.Count && x.h.Provinces[x.i].Dues >= ProvinceSystem.Heavy && !x.h.Provinces[x.i].Withheld).Take(1)) alerts.Add(("info", (w.House(ph.OwnerId)?.Name ?? "A house") + " asks heavy dues of " + ph.Provinces[pi].Name, "galaxy:" + ph.SystemId));
     foreach (var f in w.WorldFlags.Where(f => f.StartsWith("office_vacant:")).Take(1)) alerts.Add(("info", "An office of the Reach stands vacant", "senate:offices"));
     if (w.HasFlag("faction_against_me")) alerts.Add(("warn", "A bench's leader has moved against you — the whole bench will follow", "senate:chamber"));
-    if (w.HasFlag("broke_the_whip")) alerts.Add(("warn", "You voted against your bench", "senate:chamber"));
     if (w.HasFlag("faction_formed")) alerts.Add(("info", "A bench has formed with you on it", "senate:chamber"));
     if (w.HasFlag("faction_dissolved")) alerts.Add(("info", "Your bench has broken", "senate:chamber"));
     foreach (var f in w.WorldFlags.Where(f => f.StartsWith("estate_hostile:")).Take(2)) alerts.Add(("warn", $"{G.Content!.Policies.Estate(f["estate_hostile:".Length..])?.Name ?? f} are hostile to the house", "laws:estates"));
