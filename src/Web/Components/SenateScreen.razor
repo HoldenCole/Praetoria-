@@ -106,7 +106,7 @@
                     <div class="off-card @(o.Mine ? "mine" : "") @(o.HolderHouse == null ? "vacant" : "")" title="@o.Description">
                         <div class="of-head"><b>@o.Name</b> <span class="muted small">@o.Track rank @o.MinRank+@(o.Hulls > 0 ? $" · {o.Hulls} office hull(s)" : "")</span></div>
                         <div class="small">@if (o.HolderHouse != null) { <Sigil HouseId="@o.HolderHouseId" Accent="@o.HolderAccent" Size="12" /> <span>@o.HolderName of @o.HolderHouse</span> <span class="muted">since turn @o.Since</span> } else { <span class="muted">vacant</span> }
-                            @if (o.MyCandidate != null && !o.Mine) { <span class="muted"> · @o.MyCandidate qualifies — move a Commission</span> }</div>
+                            @if (o.MyCandidate != null && !o.Mine) { <span class="muted"> · @o.MyCandidate qualifies@(sen.MayPropose ? ": move a Commission" : ", but your house may not move a motion yet")</span> }</div>
                     </div>
                 }
             </section>
@@ -250,7 +250,7 @@
         </section> }
         else if (_view == "move") { <section class="panel resolutions">
                 <h3>Move a motion</h3>
-                <div class="propose">@if (!sen.MayPropose) { <div class="muted">@NoSeatLine(w).TrimStart('·', ' ')</div> }
+                <div class="propose @(sen.MayPropose || _showForms ? "" : "cannot")">@if (!sen.MayPropose) { <div class="muted" data-cannot-move="1">Your house may not move a motion yet: @NoSeatLine(w).TrimStart('·', ' '). <button class="opt inline tiny" @onclick="() => _showForms = !_showForms">@(_showForms ? "Hide the motions" : "Show what could be moved, " + sen.Proposals.Count + " kinds")</button></div> }
                     @foreach (var pr in sen.Proposals)
                     {
                         <div class="proposal">
@@ -412,6 +412,7 @@
     /// <summary>The tab an alert asked for, and a stamp that changes each time one asks; a stamp is used once.</summary>
     private static string BribeTip(StanceLine st) => $"{st.BribePrice} credits from the treasury to the head of {st.HouseName}: its own vote leans your way by {SenateSystem.BribeWeight}." + (st.FactionLeader ? " It leads a bench, but the bench was not paid and does not follow a bought vote." : "") + $" One time in {SenateSystem.BribeOutOneIn} it comes out at the count: the vote is struck and your house loses {SenateSystem.BribeOutLegitimacy} legitimacy.";
     private void AskBribe(string motionId, StanceLine st, int side) => G.Ask("Pay " + st.HouseName + " for its vote?", BribeTip(st), "Pay " + st.BribePrice, () => G.Execute(new LobbyCommand(G.World!.ProtagonistId, motionId, st.HouseId, side, bribe: true)));
+    private bool _showForms;
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }
     private static int _seenStamp;

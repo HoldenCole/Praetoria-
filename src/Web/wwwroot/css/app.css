@@ -1103,3 +1103,6 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 .order-bar .order-row { display: flex; gap: .4rem; margin-top: .4rem; flex-wrap: wrap; }
 .battle { padding: .5rem .6rem; border-left: 3px solid var(--line); margin: .4rem 0; background: rgba(255,255,255,.02); } .battle.won { border-left-color: #6fbf8a; } .battle.lost { border-left-color: #d8705a; }
 .battle-sides { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; font-size: .86rem; margin: .25rem 0; }
+
+/* A house that may not move a motion is not shown sixteen dead forms (docs/PLAYTHROUGH.md, the Senate). */
+.propose.cannot .proposal { display: none; }
