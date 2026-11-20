@@ -228,8 +228,8 @@ public static class CourtProjection
                 h.Population, spec is { MaxPopulation: > 0 } ? spec.MaxPopulation + (h.IsPlanet && SystemWorks.Any(w) ? SystemWorks.Population(w, content.Holdings, h.SystemId) : 0) : 0, h.Unrest, h.Buildings.Count, SystemWorks.WorldSlots(w, content.Holdings, h),
                 h.Buildings.Select(b => content.Holdings.Building(b)?.Name ?? b).ToList(), builds,
                 canRaise, $"Lay down a hull at {h.Name}  ({Bundle(content.Fleets.ShipCost)})", ships, w.Sieges.ContainsKey(h.Id),
-                h.Kind, h.GovernorId.Length > 0 ? w.Char(h.GovernorId)?.Name : null,
-                w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority).OrderBy(c => c.Id, StringComparer.Ordinal)
+                h.Kind, w.Char(h.GovernorId) is { } gov ? (gov.Alive ? gov.Name : $"nobody: {gov.Name} is dead, and the chair is empty") : null,   // a dead governor is not left in the chair on the screen
+                w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority && c.Id != h.GovernorId).OrderByDescending(c => c.Skill("administration")).ThenBy(c => c.Id, StringComparer.Ordinal)
                     .Select(c => new Option(c.Id, $"Name {c.Name} governor of {h.Name}  (1 influence · administration {c.Skill("administration")})", new AppointGovernorCommand(p.Id, h.Id, c.Id).Refusal(ctx))).ToList(),
                 h.Culture,
                 h.Prosperity, tc.Economy?.ProsperityTarget(w, h) ?? 50,

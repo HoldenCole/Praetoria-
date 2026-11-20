@@ -147,6 +147,9 @@ public static class ProvinceSystem
         var p = planet.Provinces[index]; p.Withheld = withhold; w.ProvincesChanged(); if (withhold) w.WorldCounters["dues_withheld"] = w.Counter("dues_withheld") + 1;
         string holder = w.House(HolderOf(planet, index))?.Name ?? "Its holder", over = w.House(planet.OwnerId)?.Name ?? "the holder of the world";
         w.Log(withhold ? $"{holder} will pay no more dues for {p.Name}. {over} may ask it to go." : $"{holder} pays the dues of {p.Name} again.");
+        // the house over it is told when it begins and when it ends (docs/PLAYTHROUGH.md: "say what ends the withholding, and when it has ended")
+        if (planet.OwnerId == w.Protagonist?.HouseId && HolderOf(planet, index) != planet.OwnerId)
+            w.Tell(withhold ? "warn" : "good", withhold ? $"{holder} has stopped paying the dues of {p.Name}: you may ask it to give the province up" : $"{holder} pays the dues of {p.Name} again", "galaxy:" + planet.SystemId, HolderOf(planet, index));
     }
     /// <summary>What commuting a province's dues costs its holder, paid at once to the house over it: so many years of its tithe.</summary>
     public static Resources CommuteCost(HoldingCatalog cat, Province p) { var c = new Resources(); foreach (var r in Resource.All) c.Set(r, cat.Provinces.Tithe.Get(r) * Math.Max(1, p.Level) * cat.Provinces.CommuteYears); return c; }
