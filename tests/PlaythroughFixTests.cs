@@ -407,4 +407,17 @@ public class PlaythroughFixTests
         }
         Assert.Fail("no report with an open choice in eight years");
     }
+
+    [Fact]
+    public void ACampaign_EndsWithItsWar()
+    {
+        var (w, tc, house, _, _) = Start(); tc.BeginTurn(); var foe = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id));
+        var target = w.HoldingsOf(foe.Id).First(h => h.IsPlanet).SystemId;
+        foreach (var x in w.Wars.Where(x => x.Involves(house.Id)).ToList()) w.Wars.Remove(x); foreach (var n in w.Nations) n.AtWar = false;
+        w.Wars.Add(new War { HouseA = house.Id, HouseB = foe.Id, Since = w.Turn });
+        w.WorldCounters[FleetSystem.CampaignUntilKey(house.Id)] = w.Turn + 9; w.WorldFlags.Add(FleetSystem.CampaignPrefix(house.Id) + target);
+        tc.Fleets.Tick(w); Assert.Equal(target, FleetSystem.CampaignTarget(w, house.Id));   // at war: the campaign stands
+        w.Wars.RemoveAll(x => x.Between(house.Id, foe.Id)); Assert.Empty(w.EnemiesOf(house.Id));
+        tc.Fleets.Tick(w); Assert.Null(FleetSystem.CampaignTarget(w, house.Id)); Assert.Contains(w.History, h => h.Text.Contains("The war is over, and with it the campaign"));
+    }
 }

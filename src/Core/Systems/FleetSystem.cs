@@ -234,12 +234,14 @@ public sealed class FleetSystem
         var mine = w.Protagonist?.HouseId;
         foreach (var key in w.WorldCounters.Keys.Where(k => k.StartsWith("campaign_until:")).OrderBy(k => k, StringComparer.Ordinal).ToList())   // by name: a dictionary that has had removals does not enumerate as a reloaded one does
         {
-            if (w.WorldCounters[key] > w.Turn) continue;
             string houseId = key["campaign_until:".Length..];
+            // a campaign ends with its term, or with the war it was for: a house at war with nobody is not on campaign (docs/PLAYTHROUGH.md, fleets)
+            bool atPeace = !w.EnemiesOf(houseId).Any();   // (a nation the Reach fights on the map is among a house's enemies)
+            if (w.WorldCounters[key] > w.Turn && !atPeace) continue;
             foreach (var f in w.WorldFlags.Where(f => f.StartsWith(CampaignPrefix(houseId))).ToList()) w.WorldFlags.Remove(f);
             w.WorldCounters.Remove(key);
             if (houseId == mine) w.WorldFlags.Add("campaign_over");
-            w.Log($"The campaign of {w.House(houseId)?.Name ?? houseId} is over; its fleets are recalled to their stations.");
+            w.Log(atPeace ? $"The war is over, and with it the campaign of {w.House(houseId)?.Name ?? houseId}; its fleets are recalled to their stations." : $"The campaign of {w.House(houseId)?.Name ?? houseId} is over; its fleets are recalled to their stations.");
         }
         foreach (var f in new[] { "campaign_open" }) w.WorldFlags.Remove(f);
         if (mine != null && CampaignTarget(w, mine) != null) w.WorldFlags.Add("campaign_open");
