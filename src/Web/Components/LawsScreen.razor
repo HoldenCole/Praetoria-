@@ -58,11 +58,15 @@
         }
     </header>
 
+    <nav class="cw-tabs">
+        @foreach (var (id, label) in new[] { ("estates", "The estates"), ("yours", "The laws in your gift"), ("reach", "The law of the Reach") }) { var tid = id; <button class="rung @(_tab == tid ? "here" : "")" @onclick="() => _tab = tid">@label</button> }
+    </nav>
     @if (ch == null) { <section class="panel"><div class="muted">No laws in this age.</div></section> }
     else
     {
         <div class="dash-grid chancery2-grid">
             <div class="deck-col">
+        @if (_tab == "estates") {
             <section class="panel">
                 <h3><Icon Name="houses" Size="13" /> The estates <span class="muted">regard from −100 to +100 · hover one for what it gives, what it costs and what the laws say to it</span></h3>
                 <div class="es-rows">
@@ -85,8 +89,10 @@
                 </div>
                 <div class="es-key muted small"><i class="k fill"></i> their regard now <i class="k target"></i> where the laws are taking it <i class="k loyal"></i> loyal <i class="k hostile"></i> hostile</div>
             </section>
+        }
             @if (ch.Reach is { Count: > 0 } reach)
             {
+        @if (_tab == "reach") {
                 <section class="panel">
                     <h3><Icon Name="galaxy" Size="13" /> The law of the Reach <span class="muted">binds every house</span></h3>
                     <table class="near reach-table">
@@ -102,9 +108,11 @@
                     </table>
                     <div class="muted small">A law of the Senate changes only by an Act carried in the chamber — move one from the Senate, under "Move a motion".</div>
                 </section>
+        }
             }
             </div>
             <div class="deck-col">
+        @if (_tab == "yours") {
             <section class="panel">
                 <h3><Icon Name="throne" Size="13" /> The laws in your gift <span class="muted">click a law to see its options</span></h3>
                 @foreach (var cat in held.GroupBy(l => l.Category).OrderBy(g => g.Key, StringComparer.Ordinal))
@@ -136,12 +144,15 @@
                     </div>
                 }
             </section>
+        }
             @if (notHeld.Count > 0)
             {
+        @if (_tab == "yours") {
                 <section class="panel">
                     <h3><Icon Name="throne" Size="13" /> Beyond your gift <span class="muted">@notHeld.Count</span></h3>
                     @foreach (var l in notHeld) { <div class="small reach-line"><b>@l.Name</b> — @l.Options.First(o => o.InForce).Name.ToLowerInvariant()<div class="muted">@l.ScopeName may set it</div></div> }
                 </section>
+        }
             }
             </div>
         </div>
@@ -149,6 +160,7 @@
 </div>
 
 @code {
+    private string _tab = "estates";
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string? _open;
 }

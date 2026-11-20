@@ -31,9 +31,13 @@
         </div>
     </header>
     <div class="dash-grid worlds-grid">
+        <nav class="cw-tabs">
+            @foreach (var (id, label) in new[] { ("worlds", "The worlds"), ("regions", "The regions") }) { var tid = id; <button class="rung @(_tab == tid ? "here" : "")" @onclick="() => _tab = tid">@label</button> }
+        </nav>
+        @if (_tab == "worlds") {
         <section class="panel">
             <h3><Icon Name="worlds" Size="13" /> The world board <span class="muted">click a world</span></h3>
-            <div class="vols"><button class="rung @(_region == null ? "here" : "")" @onclick="() => _region = null">all regions</button>@foreach (var r in regions) { <button class="rung @(_region == r.Id ? "here" : "")" style="--accent:@r.AccentColor" @onclick="() => _region = r.Id">@r.Name</button> }</div>
+            <div class="pick-row"><span class="muted small">Region</span> <select @onchange='e => _region = string.IsNullOrEmpty(e.Value?.ToString()) ? null : e.Value!.ToString()'><option value="">all the regions</option>@foreach (var r in regions) { <option value="@r.Id" selected="@(_region == r.Id)">@r.Name</option> }</select></div>
             @foreach (var r in shown)
             {
                 <div class="region-head" style="--accent:@r.AccentColor"><h4>@r.Name <span class="ring @r.Ring">@r.Ring</span></h4><span class="muted small">@r.Culture · @(r.DominantHouseName != null ? $"{r.DominantHouseName} dominates" : "no house dominates")@(r.FreeMarch ? " · FREE MARCH" : "")@(r.StateName != null ? " · " + r.StateName : "") · unrest @r.Unrest</span></div>
@@ -58,12 +62,14 @@
                 </table>
             }
         </section>
+        }
         <aside class="dash-side">
             @if (fn != null)
             {
                 var planet = fn.PlanetHoldingId != null ? w.Holding(fn.PlanetHoldingId) : null; var owner = fn.OwnerHouseId != null ? w.House(fn.OwnerHouseId) : null; var region = regions.FirstOrDefault(r => r.Id == fn.RegionId);
                 var stations = w.Holdings.Values.Where(h => h.SystemId == fn.SystemId && !h.IsPlanet).ToList(); var sys = w.Galaxy.System(fn.SystemId);
                 var fleets = GalaxyProjection.Fleets(w).Where(f => f.SystemId == fn.SystemId).ToList();
+        @if (_tab == "worlds") {
                 <section class="panel">
                     <div class="seat-card">
                         <img class="sprite big" data-planet="@fn.PlanetClass|@fn.SystemId|64" alt="" />
@@ -80,17 +86,20 @@
                         <button class="win-close" @onclick="() => _focus = null">✕</button>
                     </div>
                 </section>
+        }
             }
+        @if (_tab == "regions") {
             <section class="panel">
                 <h3><Icon Name="galaxy" Size="13" /> The regions</h3>
                 @foreach (var r in regions)
                 {
                     int mineHere = r.SystemIds.Count(id => nodes[id].IsPlayerTerritory);
-                    <div class="region-row" style="--accent:@r.AccentColor" @onclick="() => _region = r.Id"><b>@r.Name</b> <span class="ring @r.Ring">@r.Ring</span><div class="muted small">@r.SystemIds.Count systems · @(r.DominantHouseName ?? "no one") dominates@(mineHere > 0 ? $" · {mineHere} yours" : "")@(r.FreeMarch ? " · free march" : "")</div>
+                    <div class="region-row" style="--accent:@r.AccentColor" @onclick='() => { _region = r.Id; _tab = "worlds"; }'><b>@r.Name</b> <span class="ring @r.Ring">@r.Ring</span><div class="muted small">@r.SystemIds.Count systems · @(r.DominantHouseName ?? "no one") dominates@(mineHere > 0 ? $" · {mineHere} yours" : "")@(r.FreeMarch ? " · free march" : "")</div>
                         <div class="gauge" title="regional unrest"><span>Unrest</span><i><b style="width:@r.Unrest%" class="@(r.Unrest >= 50 ? "low" : "")"></b></i><em>@r.Unrest</em></div>
                         @if (w.Counter(LadderSystem.RegionTrustKey(r.Id)) != 0) { int rt = LadderSystem.RegionTrust(w, r.Id); <div class="gauge" title="What this region thinks of the magistrates, against the Reach's @LadderSystem.Trust(w). Under @LadderSystem.TrustLow it holds a little less closely to the Reach each year; at @LadderSystem.TrustHigh or more, a little closer."><span>Magistrates</span><i><b style="width:@rt%" class="@(rt < LadderSystem.TrustLow ? "low" : "")"></b></i><em>@rt</em></div> }</div>
                 }
             </section>
+        }
         </aside>
     </div>
 </div>
@@ -98,5 +107,6 @@
 @code {
     [Parameter] public EventCallback<string> OnFocus { get; set; }
     private string? _focus, _region;
+    private string _tab = "worlds";
     protected override async Task OnAfterRenderAsync(bool first) { try { await JS.InvokeVoidAsync("praetoriaFx.paint"); } catch { } }
 }

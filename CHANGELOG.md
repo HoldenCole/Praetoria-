@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- **Three more windows**: **Military** is a normal-width window with tabs for your fleets, what is near, and the
+  navies, so the map stays in view; **Laws** has tabs for the estates, your laws and the law of the Reach;
+  **Worlds** has tabs for worlds and regions, and picks a region from a list.
 - **Four windows redesigned** (docs/ART_DIRECTION.md, "The windows, one by one"; the owner: "redesign the windows one
   by one next"). **You** is laid out like a character window in Crusader Kings III: a large portrait, the people
   closest beside it, traits, the best skills as large figures, and tabs for the rest. **Dynasty** opens on the

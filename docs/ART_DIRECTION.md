@@ -275,8 +275,11 @@ without scrolling, everything else behind tabs, rows and not cards. Every window
 | Dynasty | done | The line's headline and figures, then tabs: The tree (with whoever is picked on it and the succession), Marriages, Ambitions, Upbringing, The dead. |
 | House | done | Five tabs: The estate (the worlds alone), The ledger (where the coin comes from, the stores, the wealth of the houses), Ventures, The household, Purses and the will. |
 | Houses | done | The standings as one full-width table; a row opens that house's own page, with a way back. The side-by-side detail that overlapped the table is gone. |
-| Military, Senate, Exchange | not yet | Already tabbed; their first tabs are long and want the same treatment. |
-| Worlds, Laws, Chronicle, Office | not yet | Single pages. |
+| Military | done | A normal-width window, so the map it is about stays in view. Tabs: Your fleets (with the wars and the campaign), What is near, The navies, The general and the Senate, Beyond the Reach. |
+| Laws | done | Tabs: The estates, The laws in your gift, The law of the Reach. |
+| Worlds | done | Tabs: The worlds (a region chosen from a list, not a wall of buttons), The regions. |
+| Senate, Exchange | not yet | Already tabbed; the Senate's first tab is long and the window is the wide one. |
+| Chronicle, Office | not yet | Single pages; the Office is still a room modelled in code (V9). |
 
 ### Not done yet
 

@@ -96,7 +96,9 @@
     </header>
 
     <div class="ex-tabs">
-        <button class="rung @(_view == "deck" ? "here" : "")" @onclick='() => _view = "deck"'>The deck</button>
+        <button class="rung @(_view == "deck" ? "here" : "")" @onclick='() => _view = "deck"'>Your fleets</button>
+        <button class="rung @(_view == "near" ? "here" : "")" @onclick='() => _view = "near"'>What is near</button>
+        <button class="rung @(_view == "navies" ? "here" : "")" @onclick='() => _view = "navies"'>The navies</button>
         <button class="rung @(_view == "general" ? "here" : "")" @onclick='() => _view = "general"'>The general and the Senate</button>
         @if (nations.Count > 0) { <button class="rung @(_view == "abroad" ? "here" : "") @(warAbroad != null ? "warn" : "")" @onclick='() => _view = "abroad"'>Beyond the Reach · @(warAbroad != null ? "war with " + warAbroad.Name : nations.Count + " nations")</button> }
     </div>
@@ -160,6 +162,7 @@
     {
     <div class="dash-grid deck2-grid">
         <div class="deck-col">
+        @if (_view == "near") {
         <section class="panel">
             <h3><Icon Name="galaxy" Size="13" /> The plot <span class="muted">where yours are, and what is near them</span></h3>
             <svg class="plot" viewBox="0 0 640 360" role="img" aria-label="the war plot">
@@ -195,6 +198,8 @@
                 <span><i class="lg fleet enemy"></i> hostile</span><span><i class="lg fleet other"></i> other houses' fleets</span><span class="muted">drawn to three jumps from your worlds</span>@if (enemies.Count > 0) { <span><i class="lg front"></i> a front</span> }
             </div>
         </section>
+        }
+        @if (_view == "near") {
         <section class="panel">
             <h3><Icon Name="fleet" Size="13" /> What is near your worlds <span class="muted">every fleet within three jumps, hostile first</span></h3>
             @if (near.Count == 0) { <div class="muted small">Nothing sails within three jumps of your worlds. Your captains report other houses' fleets here as they come near.</div> }
@@ -220,16 +225,20 @@
                 @if (near.Count > 8) { <div class="muted small">And @(near.Count - 8) more.</div> }
             }
         </section>
+        }
         @if (battles.Count > 0)
         {
+        @if (_view == "near") {
             <section class="panel">
                 <h3><Icon Name="report" Size="13" /> Dispatches <span class="muted">the last battles</span></h3>
                 @foreach (var h in battles.Take(5)) { <div class="line small"><span class="muted">Year @(h.Turn)</span> @h.Text</div> }
             </section>
         }
+        }
         </div>
 
         <div class="deck-col">
+        @if (_view == "deck") {
         <section class="panel">
             <h3><Icon Name="fleet" Size="13" /> Your fleets <span class="muted">movement is ordered on the Galaxy map</span></h3>
             @if (mil != null)
@@ -275,6 +284,8 @@
             }
             @if (m.Fleets.Count == 0) { <div class="muted small">No hull flies your colours. A world with a shipyard can lay one down: House, then the world.</div> }
         </section>
+        }
+        @if (_view == "navies") {
         <section class="panel">
             <h3><Icon Name="houses" Size="13" /> The navies <span class="muted">every house with a hull, strongest first</span></h3>
             <table class="near navies">
@@ -297,6 +308,8 @@
             @if (board.Count > 6) { <button class="opt inline tiny" @onclick="() => _allNavies = !_allNavies">@(_allNavies ? "Show fewer" : $"Show all {board.Count}")</button> }
             @if (raidersAtLarge > 0) { <div class="small bad">Raiders on the lanes: @raidersAtLarge hull(s) in all.</div> }
         </section>
+        }
+        @if (_view == "deck") {
             <section class="panel">
                 <h3><Icon Name="war" Size="13" /> Wars</h3>
                 @foreach (var war in m.Wars)
@@ -310,8 +323,10 @@
                 @if (m.Wars.Count == 0) { <div class="muted small">No war. A house declares one on the Houses screen; the Senate makes war beyond the Reach.</div> }
                 @foreach (var sg in m.Sieges) { <div class="line @(sg.Ours ? "warn" : "")"><Icon Name="siege" Size="12" /> @sg.HoldingName under siege by @sg.BesiegerName · @sg.Turns/@sg.Required@(sg.Ours ? " — ours" : "")</div> }
             </section>
+        }
             @if (mil != null)
             {
+        @if (_view == "deck") {
                 <section class="panel">
                     <h3><Icon Name="galaxy" Size="13" /> The campaign</h3>
                     @if (mil.Campaign.TargetName != null) { <div class="kv good"><span>Object</span><b>@mil.Campaign.TargetName · @mil.Campaign.TurnsLeft turn(s) more</b></div><div class="muted small">Fleets within two lanes of it fight at +10% and count as supplied.</div> }
@@ -326,6 +341,7 @@
                         <button class="opt inline" disabled="@(pick == null || pick.Refusal != null)" title="@(pick?.Refusal ?? $"{mil.Campaign.Cost} influence")" @onclick="() => G.Execute(new DeclareCampaignCommand(pid, _campaign, c.Fleets))">Declare the campaign</button>
                     }
                 </section>
+        }
             }
         </div>
     </div>

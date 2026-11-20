@@ -997,3 +997,4 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 @media (max-width: 620px) { .cw-head { grid-template-columns: 1fr; } }
 /* every window's tabs are the same tabs */
 .game .win-body .ex-tabs { display: flex; flex-wrap: wrap; gap: 0; margin: 1rem 0 .9rem; border-bottom: 1px solid var(--line); } .game .win-body .ex-tabs button.rung { padding: .45rem .1rem .5rem; margin-right: 1.5rem; font-size: .76rem; margin-bottom: -1px; }
+.game .win-body .pick-row { display: flex; align-items: center; gap: .6rem; margin: 0 0 .7rem; }
