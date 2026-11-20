@@ -222,7 +222,7 @@ public static class CourtProjection
             foreach (var cls in content.ShipClasses.Defs)
             {
                 var rc = new RaiseFleetCommand(p.Id, h.Id, content.Fleets, content.ShipClasses, cls.Id, content.Titles);
-                ships.Add(new ShipOption(h.Id, cls.Id, $"Lay down a {cls.Name.ToLowerInvariant()}  ({Bundle(cls.Cost)}) · atk {cls.Attack} / def {cls.Defense}", rc.Refusal(ctx)));
+                ships.Add(new ShipOption(h.Id, cls.Id, $"Lay down a {cls.Name.ToLowerInvariant()}  ({Bundle(cls.Cost)}) · atk {cls.Attack} / def {cls.Defense}" + (cls.Upkeep.IsEmpty() ? "" : $" · keep {Bundle(cls.Upkeep)} a year") + $" · {content.Fleets.FuelHullsPerUnit} hulls burn 1 helium-3 a year · a new squadron starts at readiness 60", rc.Refusal(ctx)));
             }
             holdings.Add(new HoldingCard(h.Id, h.Name, spec?.Name ?? h.Specialization, w.Galaxy?.System(h.SystemId)?.Name,
                 h.Population, spec is { MaxPopulation: > 0 } ? spec.MaxPopulation + (h.IsPlanet && SystemWorks.Any(w) ? SystemWorks.Population(w, content.Holdings, h.SystemId) : 0) : 0, h.Unrest, h.Buildings.Count, SystemWorks.WorldSlots(w, content.Holdings, h),
@@ -233,7 +233,7 @@ public static class CourtProjection
                     .Select(c => new Option(c.Id, $"Name {c.Name} governor of {h.Name}  (1 influence · administration {c.Skill("administration")})", new AppointGovernorCommand(p.Id, h.Id, c.Id).Refusal(ctx))).ToList(),
                 h.Culture,
                 h.Prosperity, tc.Economy?.ProsperityTarget(w, h) ?? 50,
-                new Option("invest", $"Invest in {h.Name}  ({content.Businesses.Finance.InvestCredits} credits → +{content.Businesses.Finance.InvestProsperity} prosperity)", new InvestCommand(p.Id, h.Id, content.Businesses).Refusal(ctx)),
+                new Option("invest", $"Invest in {h.Name}  ({content.Businesses.Finance.InvestCredits} credits → +{content.Businesses.Finance.InvestProsperity} prosperity: the world's yields are scaled by its prosperity, and it drifts back toward what its buildings and governor support by 5 a year)", new InvestCommand(p.Id, h.Id, content.Businesses).Refusal(ctx)),
                 w.Galaxy?.System(h.SystemId)?.Belt ?? 0,
                 h.GovernorId.Length > 0 && h.GovernorId != p.Id ? w.GetRelationship(h.GovernorId, p.Id)?.Disposition ?? 0 : 100, w.Char(h.GovernorId)?.Skill("administration") ?? 0, w.Char(h.GovernorId)?.NatureTraits.Contains("Ambitious") == true));
         }

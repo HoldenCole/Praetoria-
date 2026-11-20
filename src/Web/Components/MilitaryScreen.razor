@@ -47,7 +47,7 @@
         .OrderByDescending(x => x.hulls).ThenByDescending(x => x.mine).ThenBy(x => x.id, StringComparer.Ordinal).ToList();
     int navyRank = 1 + fleetsOf.Count(r => r.hulls > ours), navies = fleetsOf.Count; int strongest = fleetsOf.Count == 0 ? ours : Math.Max(ours, fleetsOf[0].hulls);
     int avgReady = m.Fleets.Count == 0 ? 0 : (int)m.Fleets.Average(f => f.Readiness), avgLoyal = m.Fleets.Count == 0 ? 0 : (int)m.Fleets.Average(f => f.Loyalty), avgSupply = m.Fleets.Count == 0 ? 0 : (int)m.Fleets.Average(f => f.Supply);
-    bool dry = w.HasFlag("fuel_short"); int he3 = house.Treasury.Helium3; int fuelYears = fuelBurn > 0 ? he3 / fuelBurn : 99;
+    bool dry = w.HasFlag("fuel_short") && house.Treasury.Helium3 == 0; /* helium bought this year lets the fleet sail at once, and the screen says so */ int he3 = house.Treasury.Helium3; int fuelYears = fuelBurn > 0 ? he3 / fuelBurn : 99;
     int net = m.Ledger?.Net.Credits ?? 0; int gross = Math.Max(1, net + upkeep); int upkeepPct = Math.Clamp(100 * upkeep / gross, 0, 100);
     var firstBattle = mil?.Brief.FirstOrDefault(); int odds = firstBattle == null ? 0 : (int)Math.Round(100 * firstBattle.OurPower / Math.Max(0.01, firstBattle.OurPower + firstBattle.TheirPower));
     var coldest = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null).OrderBy(h => RegardOf(h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
