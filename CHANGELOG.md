@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Four windows redesigned** (docs/ART_DIRECTION.md, "The windows, one by one"; the owner: "redesign the windows one
+  by one next"). **You** is laid out like a character window in Crusader Kings III: a large portrait, the people
+  closest beside it, traits, the best skills as large figures, and tabs for the rest. **Dynasty** opens on the
+  tree, with marriages, ambitions, upbringing and the dead behind tabs. **House** splits its long page into the
+  estate, the ledger and ventures. **Houses** is one full-width table whose rows open a house's own page.
 - **The map shows a different level at each zoom** (the owner: "the ck3 method"). From far off it shows the realms:
   the Reach as one, each nation beyond it as one, with their names. In the middle distance it shows the houses,
   each holder's worlds run together in its colour. Close to it shows the systems, a fine line round each. The

@@ -17,6 +17,8 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.toLowerCase().includes(n.toLowerCase())); if (el) el.click(); return !!el; }, name);
+  // a window keeps its sections behind tabs (docs/ART_DIRECTION.md, "The windows, one by one"): open the one a check needs
+  const wtab = async name => { await page.evaluate(n => { const b = [...document.querySelectorAll('.cw-tabs .rung, .ex-tabs .rung')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()); if (b) b.click(); }, name); await page.waitForTimeout(400); };
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
   const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => e.innerText.includes('End Turn')); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
@@ -26,7 +28,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   if (process.argv[4] === 'watch') {
     let shot = false;
     for (let y = 0; y < years; y++) {
-      await closeWindows(); await rail('Dynasty'); await page.waitForTimeout(500);
+      await closeWindows(); await rail('Dynasty'); await wtab('Marriages'); await page.waitForTimeout(500);
       const lines = await page.evaluate(() => [...document.querySelectorAll('.panel.courtship .suit')].filter(e => !e.classList.contains('begin')).map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 150)));
       console.log('year ' + y + ': ' + (lines.length ? lines.join(' || ') : 'nothing in hand'));
       if (!shot && lines.some(l => /own accord|asks your leave/.test(l))) { shot = /asks your leave/.test(lines.join(' ')); await page.screenshot({ path: shots + '/courtship-kin.png' }); }
@@ -34,13 +36,13 @@ require('fs').mkdirSync(shots, { recursive: true });
     }
     console.log('errors: ' + errors.length); errors.slice(0, 5).forEach(e => console.log('   ' + e)); await browser.close(); return;
   }
-  await closeWindows(); await rail('Dynasty'); await page.waitForTimeout(700);
+  await closeWindows(); await rail('Dynasty'); await wtab('Marriages'); await page.waitForTimeout(700);
   let text = await panel(); console.log('panel: ' + (/NaN|undefined|Exception|@\(/.test(text) ? 'SUSPICIOUS TEXT' : 'ok') + ' · ' + text.split('\n')[0]);
   console.log('prospects listed: ' + await page.evaluate(() => document.querySelectorAll('table.prospects tbody tr').length));
   await page.screenshot({ path: shots + '/courtship-begin.png' });
   console.log('pay court: ' + await press('Pay court')); await page.waitForTimeout(400); console.log('  ' + await gauges());
   for (let y = 0; y < years; y++) {
-    await rail('Dynasty'); await page.waitForTimeout(400);
+    await rail('Dynasty'); await wtab('Marriages'); await page.waitForTimeout(400);
     text = await panel(); if (/NaN|undefined|Exception|@\(/.test(text)) console.log('SUSPICIOUS TEXT in year ' + y);
     if (!/is courting|may be promised/.test(text)) { console.log('year ' + y + ': no suit in hand · ' + (text.match(/and .* of House.*|Nobody of the house is married\./) || [''])[0].slice(0, 90)); await rail('House'); await page.waitForTimeout(300); await endTurn(); continue; }
     const verdict = (text.match(/Asked now, on these terms: (.*)/) || [, ''])[1].slice(0, 80);
@@ -50,7 +52,7 @@ require('fs').mkdirSync(shots, { recursive: true });
     if (y === 1) await page.screenshot({ path: shots + '/courtship-suit.png' });
     await rail('House'); await page.waitForTimeout(300); await endTurn();
   }
-  await rail('Dynasty'); await page.waitForTimeout(600); await page.screenshot({ path: shots + '/courtship-end.png' });
+  await rail('Dynasty'); await wtab('Marriages'); await page.waitForTimeout(600); await page.screenshot({ path: shots + '/courtship-end.png' });
   console.log('at the end: ' + (await panel()).split('\n').slice(0, 5).join(' / ').slice(0, 300));
   console.log('errors: ' + errors.length); errors.slice(0, 5).forEach(e => console.log('   ' + e));
   await browser.close();

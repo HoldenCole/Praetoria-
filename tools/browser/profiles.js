@@ -26,6 +26,7 @@ const out = process.env.PRAETORIA_SHOTS || '/tmp/praetoria-shots'; const title =
   await rail('dynasty'); check(await page.evaluate(() => { const im = [...document.querySelectorAll('.tree image')]; return im.length > 0 && im.every(e => (e.getAttribute('href') || '').length > 10); }), 'the family tree has no faces'); await page.screenshot({ path: out + '/dynasty.png' });
   await rail('houses'); await page.screenshot({ path: out + '/houses.png' });
   // someone of another house
+  await page.evaluate(() => { const r = document.querySelectorAll('.standings tbody tr'); if (r.length > 1) r[1].click(); }); await page.waitForTimeout(700);   // a house's page opens from its row
   const other = await page.evaluate(() => { const all = [...document.querySelectorAll('.portrait.opens')]; const el = all[Math.min(all.length - 1, 3)]; if (el) el.click(); return all.length; });
   if (other > 0) { await page.waitForSelector('.profile', { timeout: 10000 }); await page.waitForTimeout(600); await page.screenshot({ path: out + '/profile_other.png' }); await page.click('.profile-x'); } else fails.push('no portrait on the Houses screen opens a profile');
   await rail('office'); await page.screenshot({ path: out + '/office.png' });

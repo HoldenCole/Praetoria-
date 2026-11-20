@@ -41,8 +41,14 @@
             <Tile Label="Generation" Value="@Ordinal(generation)" Note="@(w.Successions.Count == 0 ? "the seat has not yet passed" : $"the seat has passed {w.Successions.Count} time(s)")" />
         </div>
     </header>
+    @* The Dynasty window (docs/ART_DIRECTION.md, "The windows, one by one"): the tree first, and whoever is picked on it beside the
+       succession; marriages, what your people are after, how the young are raised and the dead each behind a tab. *@
+    <nav class="cw-tabs">
+        @foreach (var (id, label) in new[] { ("tree", "The tree"), ("marriages", "Marriages"), ("ambitions", "Ambitions"), ("upbringing", "Upbringing"), ("dead", "The dead") }) { var tid = id; <button class="rung @(_tab == tid ? "here" : "")" @onclick="() => _tab = tid">@label</button> }
+    </nav>
     <div class="dash-grid lineage-grid">
         <div class="dash-col">
+        @if (_tab == "tree") {
         <section class="panel">
             <h3><Icon Name="dynasty" Size="13" /> The family tree <span class="muted">a row a generation · the eldest leftmost · the figure is an age · click a name</span></h3>
             <div class="tree-wrap"><svg class="tree" viewBox="@F(minX - 75) 0 @F(treeW) @(Math.Max(200, tree.rows * 120 + 30))" style="min-width:@F(Math.Min(treeW, 1400) * 0.8)px; max-width:@F(treeW)px" role="img" aria-label="the family tree">
@@ -63,11 +69,19 @@
             </svg></div>
             <div class="chamber-legend"><span class="lg"><i style="background:@house.AccentColor"></i>@house.Name</span><span class="lg"><i class="none"></i>wed in from another house</span><span class="lg"><i class="ring me"></i>you</span><span class="lg"><i class="ring heir"></i>your heir</span><span class="lg">† remembered</span></div>
         </section>
+        }
+        @if (_tab == "ambitions") {
         <AmbitionsPanel />
+        }
+        @if (_tab == "marriages") {
         <CourtshipPanel />
+        }
+        @if (_tab == "upbringing") {
         <EducationPanel />
+        }
         </div>
         <aside class="dash-side">
+        @if (_tab == "tree") {
             @if (fc != null)
             {
                 var fh = w.House(fc.HouseId)!; var rel = w.GetRelationship(fc.Id, pid); int d = rel?.Disposition ?? 0; var sp = DynastySystem.Spouse(w, fc);
@@ -92,6 +106,8 @@
                     </div>
                 </section>
             }
+        }
+        @if (_tab == "tree") {
             <section class="panel">
                 <h3><Icon Name="throne" Size="13" /> The line of succession</h3>
                 @if (w.Successions.Count > 0) { <div class="muted small seats-before">The seats before: @string.Join(" · ", w.Successions.Select(s => $"{s.DeceasedName} ({(s.Cause == "abdication" ? "yielded" : "d.")} turn {s.Turn}) → {s.HeirName}"))</div> }
@@ -108,6 +124,8 @@
                 }
                 <div class="muted small">By @house.SuccessionLaw.Replace('_', ' '). The law is set in the Senate.</div>
             </section>
+        }
+        @if (_tab == "marriages") {
             <section class="panel">
                 <h3><Icon Name="marriage" Size="13" /> Bonds within the house</h3>
                 @foreach (var k in kin.Where(k => k.Alive && k.Id != pid).OrderByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal))
@@ -121,11 +139,14 @@
                 }
                 @if (kin.Count(k => k.Alive) <= 1) { <div class="muted">You are the last of your name.</div> }
             </section>
+        }
+        @if (_tab == "dead") {
             <FuneralsPanel />
             @if (kin.Any(k => !k.Alive))
             {
                 <section class="panel"><h3>The remembered</h3>@foreach (var k in kin.Where(k => !k.Alive).OrderBy(k => k.Id, StringComparer.Ordinal).Take(10)) { <div class="line muted" @onclick="() => _focus = k.Id">† @k.Name</div> }</section>
             }
+        }
         </aside>
     </div>
 </div>
@@ -133,8 +154,9 @@
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string? _focus;
+    private string _tab = "tree";
 
-    private static List<Character> Heirs(World w, House house)
+    public static List<Character> Heirs(World w, House house)
     {
         var p = w.Protagonist!;
         return w.Characters.Values.Where(x => x.Alive && x.HouseId == house.Id && x.Id != p.Id && (x.MotherId == p.Id || x.FatherId == p.Id || SharesParent(x, p)))

@@ -918,7 +918,8 @@ table.reach-table td { font-size: .78rem; } table.reach-table td:first-child { w
 .game .win-body .ladder, .game .win-body .vols, .game .win-body .ex-tabs { gap: 0; }
 .game .opt { border-radius: 0; border: 1px solid #000; background: linear-gradient(180deg, #232a3b, #151a26); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); } .game .opt:hover:not(:disabled) { background: linear-gradient(180deg, #343c54, #1c2231); border-color: #000; box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 0 0 1px var(--brass3); }
 .game .opt.inline.here { background: linear-gradient(180deg, #5a4a22, #2e2612); color: var(--brass2); border-color: #000; }
-.game .window[data-screen="houses"] { width: min(1280px, calc(100vw - var(--rail) - 290px)); } .game .window[data-screen="houses"] .win-body .dash-grid { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr) !important; }
+.game .window[data-screen="houses"] .win-body .dash-grid { display: block !important; } .game .win-body .focus-house { max-width: 760px; } .game .win-body button.rung.back { margin: 0 0 .8rem; color: var(--brass2); }
+.game .win-body .standings tbody tr { cursor: pointer; }
 .game .win-body table { border-collapse: collapse; width: 100%; } .game .win-body th { font-family: var(--display); font-size: .62rem; letter-spacing: .16em; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--brass3); }
 .game .win-body tbody tr:nth-child(even) { background: rgba(255,255,255,.022); } .game .win-body tbody tr:hover { background: linear-gradient(90deg, rgba(201,162,74,.14), transparent); }
 /* what used to be a card is an entry in a list: a rule above it, nothing around it */
@@ -979,3 +980,20 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
    middle distance, the systems' close to */
 .polity-label { font-family: var(--display); font-weight: 600; letter-spacing: .34em; text-transform: uppercase; white-space: nowrap; opacity: .92; text-shadow: 0 2px 6px #000, 0 0 16px rgba(0,0,0,.9); filter: brightness(1.35) saturate(.75); pointer-events: none; }
 .gl-labels:not(.realm) .polity-label { display: none; } .gl-labels.realm .region-label, .gl-labels.realm .fleet-label, .gl-labels.realm .sys-label:not(.mine) { display: none; }
+
+/* ==== The windows, one by one (docs/ART_DIRECTION.md) ==== */
+/* 1. The character window: the person on top, as Crusader Kings III lays it out; the rest behind tabs */
+.cw-head { display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: start; margin-bottom: .8rem; }
+.cw-who { min-width: 0; } .cw-who h2 { font-size: 1.9rem; line-height: 1.1; margin: .3rem 0 .1rem; letter-spacing: .03em; }
+.cw-close { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .7rem; margin-top: .9rem; }
+.cw-near { display: grid; justify-items: center; gap: .25rem; } .cw-near span { font-family: var(--display); font-size: .56rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); } .cw-near.heir span { color: var(--good); }
+.cw-traits { display: flex; flex-wrap: wrap; gap: .2rem 1.1rem; padding: .5rem 0 .55rem; border-top: 1px solid var(--line); }
+.cw-trait { font-family: var(--serif); font-size: 1.08rem; font-style: italic; cursor: help; padding-bottom: 1px; border-bottom: 1px solid transparent; }
+.cw-trait.nature { color: #e7b7c9; border-bottom-color: #6b3b50; } .cw-trait.apt { color: #a9d1ff; border-bottom-color: #2e4b75; } .cw-trait.amb { color: var(--brass2); border-bottom-color: var(--brass3); }
+.cw-skills { display: flex; flex-wrap: wrap; gap: 0; border-top: 1px solid var(--line); }
+.cw-skill { flex: 1 1 86px; display: grid; justify-items: center; padding: .45rem .3rem .4rem; border-left: 1px solid var(--line); cursor: help; } .cw-skill:first-child { border-left: 0; }
+.cw-skill b { font-family: var(--display); font-size: 1.5rem; line-height: 1; color: var(--ink); } .cw-skill span { font-family: var(--display); font-size: .56rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: .2rem; }
+.cw-tabs { display: flex; flex-wrap: wrap; gap: 0; margin: 1rem 0 .9rem; border-bottom: 1px solid var(--line); } .game .win-body .cw-tabs button.rung { padding: .45rem .1rem .5rem; margin-right: 1.5rem; font-size: .76rem; margin-bottom: -1px; }
+@media (max-width: 620px) { .cw-head { grid-template-columns: 1fr; } }
+/* every window's tabs are the same tabs */
+.game .win-body .ex-tabs { display: flex; flex-wrap: wrap; gap: 0; margin: 1rem 0 .9rem; border-bottom: 1px solid var(--line); } .game .win-body .ex-tabs button.rung { padding: .45rem .1rem .5rem; margin-right: 1.5rem; font-size: .76rem; margin-bottom: -1px; }

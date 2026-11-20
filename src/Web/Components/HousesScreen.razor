@@ -42,6 +42,7 @@
         </div>
     </header>
     <div class="dash-grid gallery-grid">
+        @if (!_open) {
         <section class="panel">
             <h3><Icon Name="houses" Size="13" /> The standings <span class="muted">click a house</span></h3>
             <div class="vols">@foreach (var k in new[] { "title", "worlds", "hulls", "seats", "wealth", "senate", "arms", "commerce", "disposition" }) { <button class="rung @(_sort == k ? "here" : "")" @onclick="() => _sort = k">by @(k == "title" && !w.IsImperium ? "rank" : k)</button> }</div>
@@ -51,7 +52,7 @@
                 @foreach (var h in houses.Prepend(mine))
                 {
                     int worlds = w.HoldingsOf(h.Id).Count(x => x.IsPlanet), hulls = FleetSystem.StrengthOf(w, h.Id), seats = senate.Weight(w, h.Id); int disp = h.Id == mine.Id ? 0 : Disp(h); bool atWar = w.AtWar(mine.Id, h.Id); var bench = FactionSystem.Of(w, h.Id);
-                    <tr class="@(h.Id == mine.Id ? "mine" : "") @(h.Id == _focus ? "here" : "") @(atWar ? "hostile" : "")" @onclick="() => _focus = h.Id">
+                    <tr class="@(h.Id == mine.Id ? "mine" : "") @(h.Id == _focus ? "here" : "") @(atWar ? "hostile" : "")" @onclick="() => { _focus = h.Id; _open = true; }" title="Open this house">
                         <td class="hn"><Sigil HouseId="@h.Id" Accent="@h.AccentColor" Size="16" /> <b>@h.Name</b>@if (m.Capital?.HolderId == h.Id) { <span class="tier small opulent">capital</span> }@if (h.Bloc == RegionSystem.FreeholdsBloc) { <span class="tier small destitute">free hold</span> }@if (ThroneSystem.Emperor(w)?.Id == h.Id) { <span class="tier small opulent">throne</span> }</td>
                         <td class="muted">@(c.Titles.NameOf(h.Title, G.World!.Era))</td>
                         <td><span class="mbar"><i style="width:@(100 * worlds / maxWorlds)%; background:@h.AccentColor"></i></span>@worlds</td>
@@ -66,7 +67,10 @@
                 </tbody>
             </table>
         </section>
+        }
 
+        @if (_open) {
+        <button class="rung back" @onclick="() => _open = false">‹ All the houses</button>
         <aside class="dash-side">
         @if (fh != null)
         {
@@ -131,12 +135,15 @@
             </section>
         }
         </aside>
+        }
     </div>
 </div>
 
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string? _focus; private string _sort = "title";
+    /// <summary>Whether a house's own page is open over the standings (docs/ART_DIRECTION.md, "The windows, one by one").</summary>
+    private bool _open;
     protected override async Task OnAfterRenderAsync(bool first) { try { await JS.InvokeVoidAsync("praetoriaFx.paint"); } catch { } }
     private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
     private ICommand Conn(string optionId, string targetId) { var pid = G.World!.ProtagonistId; var c = G.Content!; return optionId.StartsWith("marry:") ? new ProposeMarriageCommand(pid, optionId["marry:".Length..], targetId, c.Titles) : new AssassinateCommand(pid, targetId, c.Friction); }

@@ -70,8 +70,10 @@
     </header>
     <div class="ex-tabs">
         <button class="rung @(_view == "estate" ? "here" : "")" @onclick='() => _view = "estate"'>The estate</button>
+        <button class="rung @(_view == "ledger" ? "here" : "")" @onclick='() => _view = "ledger"'>The ledger</button>
+        <button class="rung @(_view == "ventures" ? "here" : "")" @onclick='() => _view = "ventures"'>Ventures@(m.Businesses?.Count > 0 ? $" · {m.Businesses.Count}" : "")</button>
         <button class="rung @(_view == "household" ? "here" : "")" @onclick='() => _view = "household"'>The household · @m.Household.Count</button>
-        <button class="rung @(_view == "purse" ? "here" : "")" @onclick='() => _view = "purse"'>Purses, heirlooms and the will</button>
+        <button class="rung @(_view == "purse" ? "here" : "")" @onclick='() => _view = "purse"'>Purses and the will</button>
     </div>
     @if (_view == "household")
     {
@@ -131,6 +133,7 @@
     {
     <div class="dash-grid deck2-grid">
         <div class="deck-col">
+        @if (_view == "estate") {
         <section class="panel">
             <h3><Icon Name="worlds" Size="13" /> The domain <span class="muted">@m.Holdings.Count holding(s)</span></h3>
             @if (m.Holdings.Count == 0) { <div class="muted">Your house holds no land. A fief is won, granted, or married into.</div> }
@@ -163,18 +166,22 @@
                 }
             </div>
         </section>
+        }
         @if (lg != null)
         {
+        @if (_view == "ledger") {
         <section class="panel">
             <h3><Icon Name="houses" Size="13" /> The wealth of the houses <span class="muted">the eight richest@(lg.Rank > 8 ? ", and you" : "")</span></h3>
                 @foreach (var wl in lg.Table.Take(8)) { <div class="wealth-row @(wl.Mine ? "mine" : "")"><Sigil HouseId="@wl.HouseId" Accent="@wl.Accent" Size="14" /> <span>@wl.Name</span><span class="bar"><i style="width:@(Math.Max(2, 100 * Math.Max(0, wl.Wealth) / Math.Max(1, lg.Table[0].Wealth)))%; background:@wl.Accent"></i></span><b>@wl.Wealth</b></div> }
             @if (lg.Rank > 8 && lg.Table.FirstOrDefault(x => x.Mine) is { } mine) { <div class="wealth-row mine"><Sigil HouseId="@mine.HouseId" Accent="@mine.Accent" Size="14" /> <span>@Ordinal(lg.Rank) · @mine.Name</span><span class="bar"><i style="width:@(Math.Max(2, 100 * Math.Max(0, mine.Wealth) / richest))%; background:@mine.Accent"></i></span><b>@mine.Wealth</b></div> }
         </section>
         }
+        }
         </div>
         <div class="deck-col">
         @if (lg != null)
         {
+        @if (_view == "ledger") {
         <section class="panel">
             <h3><Icon Name="credits" Size="13" /> Where the coin comes from, and goes <span class="muted">credits a year, largest first</span></h3>
                 <div class="ledger-bars">
@@ -195,6 +202,8 @@
                 </div>
         </section>
         }
+        }
+        @if (_view == "ledger") {
         <section class="panel">
             <h3><Icon Name="materials" Size="13" /> In the stores <span class="muted">what the house holds, and what a year adds</span></h3>
             <div class="res-grid">
@@ -207,6 +216,8 @@
             <div class="row">@if (m.Procure != null) { foreach (var o in m.Procure) { var res = o.Id["procure_".Length..]; <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new BuyGoodCommand(pid, res, 3, c.Trade))">@o.Label</button> } }
                 <button class="opt inline tiny" @onclick="@(() => OnGo.InvokeAsync("exchange"))">Every good, bought and sold: the Exchange ▸</button></div>
         </section>
+        }
+        @if (_view == "ventures") {
         <section class="panel">
             <h3><Icon Name="trade_hub" Size="13" /> Ventures <span class="muted">@(m.Businesses?.Count ?? 0) · @(m.Assets?.Projects.Count ?? 0) site(s) under construction</span></h3>
             @if (m.Businesses is { Count: > 0 } bz)
@@ -222,6 +233,7 @@
                 </details>
             }
         </section>
+        }
         </div>
     </div>
     }

@@ -264,6 +264,20 @@ of its in-game windows is published, so what it teaches is the map and the prese
 
 These are rows V12 to V17 and N27 to N30 in docs/GAPS.md.
 
+### The windows, one by one (begun 2026-11-20)
+
+The owner: "redesign the windows one by one next." The rule for each: its subject on top, the first screen whole
+without scrolling, everything else behind tabs, rows and not cards. Every window's tabs are the same tabs.
+
+| window | state | what it is now |
+|---|---|---|
+| You | done | Laid out as CK3 lays out a character: a large portrait; beside it the name, the house and ancestry, the station, and the people closest (wife or husband, heir, children) as small portraits; a row of traits, each with its meaning in the tooltip; the best skills as large figures; a strip of rank, health, renown and strain; then tabs: A life, Family, Relations, Learning, Record. |
+| Dynasty | done | The line's headline and figures, then tabs: The tree (with whoever is picked on it and the succession), Marriages, Ambitions, Upbringing, The dead. |
+| House | done | Five tabs: The estate (the worlds alone), The ledger (where the coin comes from, the stores, the wealth of the houses), Ventures, The household, Purses and the will. |
+| Houses | done | The standings as one full-width table; a row opens that house's own page, with a way back. The side-by-side detail that overlapped the table is gone. |
+| Military, Senate, Exchange | not yet | Already tabbed; their first tabs are long and want the same treatment. |
+| Worlds, Laws, Chronicle, Office | not yet | Single pages. |
+
 ### Not done yet
 
 See docs/GAPS.md, "The look". The windows were converted by rule (what was a card is now an entry), not redesigned

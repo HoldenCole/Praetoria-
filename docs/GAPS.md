@@ -203,7 +203,7 @@ still short of that:
 
 | id | gap | size | needs |
 |---|---|---|---|
-| V1 | The windows were converted by rule, not redesigned. Military, the Senate, the House and the Line are long single pages; each wants tabs and a first screen that fits without scrolling, as CK3's windows do. | M | |
+| V1 | The windows are being redesigned one by one (docs/ART_DIRECTION.md, "The windows, one by one"). You, Dynasty, House and Houses are done. Military, the Senate and the Exchange are tabbed but their first tabs are long; Worlds, Laws, the Chronicle and the Office are single pages. | M | |
 | V2 | Tooltips are the game's own now (`js/tips.js`: anything with a title), with a heading and breakdown rows, but they do not nest (a term inside a tooltip cannot be hovered in turn, as in CK3 and Victoria 3) and nothing shows on a touch screen. | M | |
 | V3 | A child takes a parent's ancestry and nothing else of them: no shared features, and never a blend of the two. With about six faces for a sex and an ancestry, cousins and brothers can share a face; the game does not yet keep two people of one house from drawing the same one. And the scripted scenarios do not say what house a wife or husband was born to, so whoever married in before the game began looks like the house they married into; only marriages made in play carry a face across. | M | |
 | V4 | One identity across five ages comes from a shared seed, which holds colouring and dress but lets the face drift. A hosted model with reference-image editing holds it. Needs a key and about $100 to $300 from the owner. | M | owner |
