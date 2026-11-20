@@ -38,9 +38,9 @@ else
                     <td>@c.Float<span class="muted small">/@c.Shares</span></td>
                     <td title="@(c.Held > 0 ? $"worth {c.HeldValue} credits" : "")">@if (c.Held > 0) { <b>@c.Held</b> <span class="muted small">@(c.Held * 100 / Math.Max(1, c.Shares))%</span> } else { <span class="muted">—</span> }</td>
                     <td class="order">
-                        <input type="number" min="1" max="999" value="@qty" @onchange="e => SetQty(c.Id, e)" />
-                        <button class="opt inline tiny" disabled="@(buy.Refusal != null)" title="@(buy.Refusal ?? BuyTip(buy, c, wouldControl))" @onclick="() => G.Execute(new BuySharesCommand(pid, c.Id, qty, cs))">Buy · @(buy.Credits > 0 ? buy.Credits.ToString() : "—")</button>
-                        @if (c.Held > 0) { <button class="opt inline tiny" disabled="@(sell.Refusal != null)" title="@(sell.Refusal ?? $"{F2(sell.UnitPrice)} a share with your order's weight")" @onclick="() => G.Execute(new SellSharesCommand(pid, c.Id, qty, cs))">Sell · @(sell.Refusal == null ? sell.Credits.ToString() : "—")</button> }
+                        <label class="lot" title="How many shares to buy or sell at once. Change it: the buttons show the lot and what it comes to."><small class="muted">lot</small> <input type="number" min="1" max="999" value="@qty" @oninput="e => SetQty(c.Id, e)" /></label>
+                        <button class="opt inline tiny" disabled="@(buy.Refusal != null)" title="@(buy.Refusal ?? BuyTip(buy, c, wouldControl))" @onclick="() => G.Execute(new BuySharesCommand(pid, c.Id, qty, cs))">Buy @qty · @(buy.Credits > 0 ? buy.Credits + " cr" : "—")</button>
+                        @if (c.Held > 0) { <button class="opt inline tiny" disabled="@(sell.Refusal != null)" title="@(sell.Refusal ?? $"{F2(sell.UnitPrice)} a share with your order's weight")" @onclick="() => G.Execute(new SellSharesCommand(pid, c.Id, qty, cs))">Sell @qty · @(sell.Refusal == null ? sell.Credits + " cr" : "—")</button> }
                     </td>
                 </tr>
                 <tr class="cause"><td colspan="7"><span class="muted small">@Cap(c.Cause)@(c.Stakes.Count > 0 ? " · held by " + string.Join(", ", c.Stakes.Select(s => $"{s.HouseName} {s.Pct}%")) : "")@(c.Description.Length > 0 ? " · " + c.Description : "")@(c.Ventures.Count > 0 ? " · owns " + string.Join(", ", c.Ventures) : "")@(wouldControl && c.GoldenShare ? " · its founder may refuse a takeover once" : "")</span></td></tr>
