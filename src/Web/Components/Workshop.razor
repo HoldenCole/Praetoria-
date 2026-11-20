@@ -75,6 +75,15 @@
     }
     else if (_tab == "face")
     {
+        @if (G.Portraits?.Faces(c.Sex, age) is { Count: > 0 } faces)
+        {
+            <p class="hint">Choose a face, or leave it to the dice. It is painted at five ages and grows old with you.</p>
+            <div class="face-pick">
+                <button class="chip @(c.Face.Portrait < 0 ? "on" : "")" @onclick="() => { c.Face.Portrait = -1; Changed(); }">dice</button>
+                @for (int i = 0; i < faces.Count; i++) { int k = i; <button class="face @(c.Face.Portrait == k ? "on" : "")" @onclick="() => { c.Face.Portrait = k; Changed(); }" title="face @(k + 1)"><img src="@faces[k]" alt="face @(k + 1)" loading="lazy" /></button> }
+            </div>
+            <p class="hint">The choices below only shape the drawn stand-in shown where no painted face exists.</p>
+        }
         <p class="hint">A face is thrown by the dice of the person unless you choose. Anything left on "dice" stays as thrown.</p>
         <h3>Skin</h3>
         <div class="chips"><button class="chip @(c.Face.Skin < 0 ? "on" : "")" @onclick="() => { c.Face.Skin = -1; Changed(); }">dice</button>@for (int i = 0; i < Skins.Length; i++) { int k = i; <button class="swatch @(c.Face.Skin == k ? "on" : "")" style="background:@Skins[k]" title="skin @(k + 1)" @onclick="() => { c.Face.Skin = k; Changed(); }"></button> }</div>

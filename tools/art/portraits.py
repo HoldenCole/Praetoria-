@@ -32,6 +32,7 @@ CUT_F = ["hair pinned up", "long loose hair", "hair in a braid over one shoulder
 BEARD = ["clean shaven", "clean shaven", "a short beard", "a full beard", "a moustache", "stubble"]
 DRESS = ["a dark navy high-collared officer's coat with brass buttons", "a black robe with a crimson stole and a gold chain", "a pale tunic under a deep green mantle pinned with a gold brooch",
          "a charcoal high-collared coat with silver embroidery", "a deep red mantle over a white tunic with a gold clasp", "a dark blue robe with a gold-trimmed collar"]
+RESEED = {"fr00": 1, "fr03": 1, "mr05": 1}   # identities whose first throw came out wrong (a picture frame painted into the picture): thrown again
 FOREIGN = ["furs over lamellar armour with a gold torque", "an embroidered silk robe with heavy gold jewellery", "ornate bronze scale armour with a crimson cloak", "a quilted leather coat with bone toggles and a fur collar"]
 
 def who(sex, band, d):
@@ -55,7 +56,7 @@ def identities(per_sex, foreign):
                 r = random.Random(int(hashlib.sha1(f"{sex}{kind}{i}".encode()).hexdigest()[:8], 16))
                 d = {"skin": SKIN[(i * 3 + (0 if sex == "m" else 5)) % len(SKIN)], "hair": r.choice(HAIR), "face": r.choice(FACE), "cut": r.choice(CUT_M if sex == "m" else CUT_F),
                      "beard": r.choice(BEARD), "dress": (FOREIGN[i % len(FOREIGN)] if kind == "x" else DRESS[i % len(DRESS)])}
-                out.append((f"{sex}{kind}{i:02d}", sex, kind, 7000 + i * 13 + (0 if sex == "m" else 500) + (250 if kind == "x" else 0), d))
+                out.append((f"{sex}{kind}{i:02d}", sex, kind, 7000 + i * 13 + (0 if sex == "m" else 500) + (250 if kind == "x" else 0) + 100003 * RESEED.get(f"{sex}{kind}{i:02d}", 0), d))
     return out
 
 def paint(a):

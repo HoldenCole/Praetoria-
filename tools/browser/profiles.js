@@ -14,7 +14,7 @@ const out = process.env.PRAETORIA_SHOTS || '/tmp/praetoria-shots'; const title =
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   for (let i = 0; i < 10; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(300); }
   const rail = async name => { await page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => new RegExp('^' + n + '$', 'i').test(e.innerText.trim())); if (el) el.click(); }, name); await page.waitForTimeout(1500); };
-  const painted = () => page.evaluate(() => [...document.querySelectorAll('img[data-bust]')].every(e => (e.getAttribute('src') || '').startsWith('data:image/png')));
+  const painted = () => page.evaluate(() => [...document.querySelectorAll('.portrait img')].every(e => (e.getAttribute('src') || '').length > 10));
   await rail('you'); check(await painted(), 'a portrait on the You screen was not painted'); await page.screenshot({ path: out + '/you.png' });
   // your own portrait opens your own profile
   await page.click('.hero-frame .portrait'); await page.waitForSelector('.profile', { timeout: 10000 }); await page.waitForTimeout(600);
@@ -23,7 +23,7 @@ const out = process.env.PRAETORIA_SHOTS || '/tmp/praetoria-shots'; const title =
   const kin = await page.$('.profile .pk'); if (kin) { const before = await page.evaluate(() => document.querySelector('.profile h2').innerText); await kin.click(); await page.waitForTimeout(700);
     check(await page.evaluate(b => document.querySelector('.profile h2').innerText !== b, before), 'a relative did not open from the kin list'); await page.screenshot({ path: out + '/profile_kin.png' }); }
   await page.click('.profile-x'); await page.waitForTimeout(300); check(!(await page.$('.profile')), 'the profile did not close');
-  await rail('dynasty'); check(await page.evaluate(() => [...document.querySelectorAll('.tree image[data-bust]')].length > 0 && [...document.querySelectorAll('.tree image[data-bust]')].every(e => (e.getAttribute('href') || '').startsWith('data:image/png'))), 'the family tree has no faces'); await page.screenshot({ path: out + '/dynasty.png' });
+  await rail('dynasty'); check(await page.evaluate(() => { const im = [...document.querySelectorAll('.tree image')]; return im.length > 0 && im.every(e => (e.getAttribute('href') || '').length > 10); }), 'the family tree has no faces'); await page.screenshot({ path: out + '/dynasty.png' });
   await rail('houses'); await page.screenshot({ path: out + '/houses.png' });
   // someone of another house
   const other = await page.evaluate(() => { const all = [...document.querySelectorAll('.portrait.opens')]; const el = all[Math.min(all.length - 1, 3)]; if (el) el.click(); return all.length; });

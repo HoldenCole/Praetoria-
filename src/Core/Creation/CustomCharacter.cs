@@ -15,8 +15,11 @@ public sealed class FaceSpec
     /// <summary>-1 by the dice, 0 clean-shaven, 1 bearded.</summary>
     public int Beard { get; set; } = -1;
     public bool Scar { get; set; }
-    public bool IsDefault => Skin < 0 && Hair < 0 && Style < 0 && Beard < 0 && !Scar;
-    public string Encode() => $"skin={Skin},hair={Hair},style={Style},beard={Beard},scar={(Scar ? 1 : 0)}";
+    /// <summary>A painted face chosen from the portrait library (docs/ART_DIRECTION.md, "Portraits"): its place among the faces of the
+    /// person's sex; -1 leaves it to the dice. Where the client ships painted portraits this is the choice that shows.</summary>
+    public int Portrait { get; set; } = -1;
+    public bool IsDefault => Skin < 0 && Hair < 0 && Style < 0 && Beard < 0 && !Scar && Portrait < 0;
+    public string Encode() => $"skin={Skin},hair={Hair},style={Style},beard={Beard},scar={(Scar ? 1 : 0)}" + (Portrait >= 0 ? $",face={Portrait}" : "");
 }
 public sealed class KinSpec { public string Name { get; set; } = ""; public string Sex { get; set; } = "male"; public int Age { get; set; } = 8; }
 public sealed class VentureSpec { public string Kind { get; set; } = ""; public string System { get; set; } = ""; }

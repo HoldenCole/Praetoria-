@@ -45,5 +45,12 @@ public sealed class PortraitLibrary
         return null;
     }
 
+    /// <summary>Every face of a sex at an age, in the order a chosen face is counted in: for a player picking their own.</summary>
+    public IReadOnlyList<string> Faces(string sex, int age)
+    {
+        string key = (sex == "female" ? "f" : "m") + "r";
+        return _pools.TryGetValue(key, out var pool) ? Enumerable.Range(0, pool.Count).Select(i => Url("", sex, age, false, i) ?? "").ToList() : Array.Empty<string>();
+    }
+
     private static uint Hash(string s) { uint h = 2166136261; foreach (char c in s) { h ^= c; h *= 16777619; } h ^= h >> 15; h *= 2246822519; h ^= h >> 13; return h; }
 }

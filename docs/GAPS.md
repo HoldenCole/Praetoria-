@@ -205,7 +205,7 @@ still short of that:
 |---|---|---|---|
 | V1 | The windows were converted by rule, not redesigned. Military, the Senate, the House and the Line are long single pages; each wants tabs and a first screen that fits without scrolling, as CK3's windows do. | M | |
 | V2 | Tooltips are the game's own now (`js/tips.js`: anything with a title), with a heading and breakdown rows, but they do not nest (a term inside a tooltip cannot be hovered in turn, as in CK3 and Victoria 3) and nothing shows on a touch screen. | M | |
-| V3 | A face is assigned by hash alone. Kin do not resemble each other, two people in one room can share a face, and the player cannot choose theirs (a `face=N` in the look is read, but nothing sets it). | M | |
+| V3 | A face is assigned by hash alone. Kin do not resemble each other, two people in one room can share a face, and only the player chooses theirs (the workshop's Face tab; a scenario's own protagonist takes what the hash gives). | M | |
 | V4 | One identity across five ages comes from a shared seed, which holds colouring and dress but lets the face drift. A hosted model with reference-image editing holds it. Needs a key and about $100 to $300 from the owner. | M | owner |
 | V5 | Dress is not by career or rank: an admiral and a magistrate can wear the same coat. Rank, office, a triumph's laurel and a wound's scar are not shown on a painted portrait. | M | V4 |
 | V6 | The pictures are AI-generated. A store page must say so (Steam's content survey), and the owner has not been asked whether that is acceptable for release or a stand-in until an artist is paid. | S | owner |
