@@ -324,7 +324,8 @@
                     </details>
                 </div>
             }
-            @if (m.Fleets.Count == 0) { <div class="muted small">No hull flies your colours. A world with a shipyard can lay one down: House, then the world.</div> }
+            @if (m.Fleets.Count == 0) { <div class="muted small">No hull flies your colours. A world with a shipyard can lay one down.</div> }
+            <button class="opt inline tiny" data-to-shipyard="1" title="Hulls are laid down at a world of yours: the House window lists your worlds, and each has its shipyard's buttons" @onclick='() => OnGo.InvokeAsync("house:estate")'>Lay down hulls: open your worlds ▸</button>
         </section>
         }
         @if (_view == "navies") {
@@ -379,7 +380,7 @@
                             @foreach (var t in mil.Campaign.Targets) { <option value="@t.Id">@t.Label</option> }
                         </select>
                         var pick = mil.Campaign.Targets.FirstOrDefault(t => t.Id == _campaign);
-                        <button class="opt inline" disabled="@(pick == null || pick.Refusal != null)" title="@(pick?.Refusal ?? $"{mil.Campaign.Cost} influence")" @onclick="() => G.Execute(new DeclareCampaignCommand(pid, _campaign, c.Fleets))">Declare the campaign</button>
+                        <button class="opt inline" disabled="@(pick == null || pick.Refusal != null)" title="@(pick == null ? "Choose the system the campaign is for first, in the list beside this button" : pick.Refusal ?? $"{mil.Campaign.Cost} influence of this year's")" @onclick="() => G.Execute(new DeclareCampaignCommand(pid, _campaign, c.Fleets))">Declare the campaign@(pick == null ? "" : " · " + mil.Campaign.Cost + " influence")</button>
                     }
                 </section>
         }
@@ -392,6 +393,7 @@
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string _campaign = "", _view = "deck"; private bool _allNavies; private readonly Dictionary<string, string> _names = new();
+    [Parameter] public EventCallback<string> OnGo { get; set; }
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }
     private static int _seenStamp;

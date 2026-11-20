@@ -142,7 +142,7 @@ public class VentureTests
         var def = v.Def("shipping_line")!; Assert.Equal(2, def.BuildTurns);
         w.Galaxy!.Lanes.Add(new Praetoria.Core.Galaxy.Hyperlane { A = "tessaly", B = "prime" }); w.Galaxy.Lanes.Add(new Praetoria.Core.Galaxy.Hyperlane { A = "tessaly", B = "mid1" });   // a hub of three lanes
         var found = new FoundBusinessCommand("self", "shipping_line", "tessaly", v, Content.Holdings, Content.Titles);
-        vega.Treasury.Credits = 6; Assert.Equal("needs 7 credits, 3 materials to begin", found.Refusal(Ctx(w)));
+        vega.Treasury.Credits = 6; Assert.Equal("1 credits short to begin", found.Refusal(Ctx(w)));   // what is short, and only that
         vega.Treasury.Credits = 100; Assert.True(ex.TryExecute(found, Ctx(w)));
         var p = Assert.Single(w.Projects); Assert.Equal(Project.Venture, p.Kind); Assert.Equal(2, p.TurnsLeft); Assert.Equal(93, vega.Treasury.Credits); Assert.Equal(97, vega.Treasury.Materials);
         Assert.Null(w.Business(FoundBusinessCommand.IdFor("vega", "shipping_line", "tessaly"))); Assert.Equal("already being founded here", found.Refusal(Ctx(w)));

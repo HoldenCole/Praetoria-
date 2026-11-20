@@ -117,7 +117,7 @@ public sealed class RushProjectCommand : ICommand
         if (p.Great) return "a great work is not bought outright: hasten it, and pay by the year";
         var rem = ProjectSystem.Remaining(p); int premium = ProjectSystem.RushPremium(w, p);
         var need = rem.Clone(); need.Credits += premium;
-        return house.Treasury.CanAfford(need) ? null : $"needs {Presentation.CourtProjection.Bundle(need)}";
+        return house.Treasury.CanAfford(need) ? null : $"{house.Treasury.Short(need)}";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)

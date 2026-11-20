@@ -52,7 +52,7 @@ public sealed class BuildCommand : ICommand
         var house = w.House(actor.HouseId); if (house == null) return "no house";
         if (building.MinTitleRank > 0 && (_titles?.RankOf(house.Title) ?? 0) < building.MinTitleRank) return "needs a greater rank";   // megastructures want a seat
         var first = Systems.ProjectSystem.Split(building.Cost, building.BuildTurns).First;
-        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(first)}{(building.BuildTurns > 1 ? " to begin" : "")}";
+        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"{house.Treasury.Short(first)}{(building.BuildTurns > 1 ? " to begin" : "")}";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx, false) == null;
 

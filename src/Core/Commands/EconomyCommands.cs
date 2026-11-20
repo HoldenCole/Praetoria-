@@ -103,7 +103,7 @@ public sealed class FoundBusinessCommand : ICommand
             int need = (int)Math.Ceiling(Economy.WorthOf(w, first));
             return co.Cash >= need ? null : $"the company needs {need} credits in hand (it has {co.Cash})";
         }
-        return house.Treasury.CanAfford(first) ? null : $"needs {Presentation.CourtProjection.Bundle(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
+        return house.Treasury.CanAfford(first) ? null : $"{house.Treasury.Short(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
@@ -144,7 +144,7 @@ public sealed class ExpandBusinessCommand : ICommand
         if (b.CompanyId.Length > 0)   // a company's venture is enlarged from the company's cash, by whoever directs it
             return ProjectSystem.CanBegin(w, house.Id, def.ExpandCost, def.BuildTurns, b.CompanyId) ? null : $"the company needs {(int)Math.Ceiling(Economy.WorthOf(w, ProjectSystem.Split(def.ExpandCost, def.BuildTurns).First))} credits in hand";
         var first = ProjectSystem.Split(def.ExpandCost, def.BuildTurns).First;
-        return house.Treasury.CanAfford(first) ? null : $"needs {Presentation.CourtProjection.Bundle(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
+        return house.Treasury.CanAfford(first) ? null : $"{house.Treasury.Short(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)

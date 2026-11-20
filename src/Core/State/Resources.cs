@@ -93,6 +93,13 @@ public sealed class Resources
     }
 
     /// <summary>True if this balance covers a cost bundle (every resource ≥ the cost).</summary>
+    /// <summary>What is short of a cost, and only that: "3 materials and 2 credits short" (docs/PLAYTHROUGH.md, "Refusals that say the
+    /// wrong thing": a refusal used to quote the whole price, leaving the player to work out which part was missing).</summary>
+    public string Short(Resources cost)
+    {
+        var lacks = Resource.All.Where(r => Get(r) < cost.Get(r)).Select(r => $"{cost.Get(r) - Get(r)} {Resource.Label(r)}").ToList();
+        return lacks.Count == 0 ? "" : string.Join(" and ", lacks) + " short";
+    }
     public bool CanAfford(Resources cost)
     {
         foreach (var r in Resource.All)

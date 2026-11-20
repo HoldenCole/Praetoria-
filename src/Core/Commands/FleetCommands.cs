@@ -164,7 +164,7 @@ public sealed class RaiseFleetCommand : ICommand
         var house = w.House(actor.HouseId);
         if (house == null) return "no house";
         if (cls.MinTitleRank > 0 && (_titles?.RankOf(house.Title) ?? 0) < cls.MinTitleRank) return $"needs the rank of {Progression.Title.StyleOf(Progression.Title.OfRank(cls.MinTitleRank), ctx.World.Era)}";
-        return house.Treasury.CanAfford(cls.Cost) ? null : "cannot afford it";
+        return house.Treasury.CanAfford(cls.Cost) ? null : house.Treasury.Short(cls.Cost);
     }
 
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;

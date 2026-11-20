@@ -166,7 +166,7 @@ public static class ProvinceSystem
         if (p.Dues <= Forgiven) return "nothing is asked of it";
         var holder = w.House(holderId); var cost = CommuteCost(cat, p); if (holder == null) return "no such house";
         if (w.EnemiesOf(planet.OwnerId).Any()) return by.Id == planet.OwnerId ? "you are at war: you need its levy" : "the house over you is at war and wants its levy";
-        if (by.Id == holderId) return holder.Treasury.CanAfford(cost) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(cost)}";
+        if (by.Id == holderId) return holder.Treasury.CanAfford(cost) ? null : !explain ? "needs more" : $"{holder.Treasury.Short(cost)}";
         var cushion = cost.Clone(); cushion.Credits += 20;
         return holder.Treasury.CanAfford(cushion) ? null : $"{holder.Name} cannot find it: commuting takes {Presentation.CourtProjection.Bundle(cost)} and a house keeps 20 credits back, and it holds {Presentation.CourtProjection.Bundle(holder.Treasury)}";
     }
@@ -270,7 +270,7 @@ public static class ProvinceSystem
         if (p.Buildings.Count + Rising(w, planet, index) >= Slots(w, cat, planet, index)) return "no free slot in this province: development and rank open more";
         if (def.MinTitleRank > 0 && Progression.Title.RankOf(house.Title) < def.MinTitleRank) return "needs a greater rank";
         var first = ProjectSystem.Split(def.Cost, def.BuildTurns).First;
-        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
+        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"{house.Treasury.Short(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
     }
     public static void Raise(World w, Holding planet, int index, WorkDef def)
     {
@@ -293,7 +293,7 @@ public static class ProvinceSystem
         if (level >= cat.Rules.MaxLevel) return "it can be taken no higher";
         if (level >= SystemWorks.LevelAllowed(w, cat, planet.SystemId)) return $"needs development {cat.Rules.UpgradeAt[level]} (it is {SystemWorks.DevelopmentLevel(w, planet.SystemId)})";
         var cost = cat.Provinces.ImproveCostOf(level);
-        return house.Treasury.CanAfford(cost) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(cost)}";
+        return house.Treasury.CanAfford(cost) ? null : !explain ? "needs more" : $"{house.Treasury.Short(cost)}";
     }
     public static void Improve(World w, HoldingCatalog cat, House house, Holding planet, int index)
     {
@@ -343,7 +343,7 @@ public static class ProvinceSystem
         if (w.SeatDemands.Any(d => d.HoldingId == planet.Id && d.Province == index)) return "it has been asked, and not yet answered";
         if (w.WorldCounters.TryGetValue(AskedKey(by.Id), out var asked) && asked == w.Turn + 1) return "one such demand a year";
         int cost = DemandCost(cat, planet, index);
-        return by.Treasury.Influence >= cost ? null : !explain ? "needs more" : $"needs {cost} influence";
+        return by.Treasury.Influence >= cost ? null : !explain ? "needs more" : $"needs {cost} clout (the house has {by.Treasury.Influence})";
     }
 
     /// <summary>What asking costs in influence: nothing, of a house that is withholding its dues.</summary>

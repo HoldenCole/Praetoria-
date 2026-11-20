@@ -3,7 +3,7 @@
     var m = Model; var w = G.World!; var house = w.House(w.Protagonist!.HouseId)!;
     var open = m.Briefing.Where(b => !b.Resolved).ToList();
     var alerts = new List<(string cls, string text, string? go)>();
-    if (m.Treasury.Insolvent) alerts.Add(("warn", $"Insolvent: {m.Treasury.Credits} credits", "house:ledger"));
+    if (m.Treasury.Insolvent) alerts.Add(("warn", $"Insolvent: {m.Treasury.Credits} credits" + (w.Protagonist!.Purse > 0 ? $". Your own purse holds {w.Protagonist.Purse}: it can be put into the treasury" : ""), w.Protagonist!.Purse > 0 ? "house:purse" : "house:ledger"));
     foreach (var bt in w.Battles.Where(b => b.Turn == w.Turn - 1 && b.Involves(w.Protagonist!.HouseId)).Take(3)) alerts.Add((bt.WinnerId == w.Protagonist!.HouseId ? "good" : "warn", $"{(bt.WinnerId == w.Protagonist!.HouseId ? "Won" : "Lost")}: the battle of {bt.Place} ({bt.AttackerHulls} hull(s) against {bt.DefenderHulls})", "military:battles"));
     // what a player should not have to find by looking (docs/PLAYTHROUGH.md, "New alerts where there are none")
     if (house.Treasury.Manpower <= 0 && m.Fleets.Count + m.Holdings.Count > 0) alerts.Add(("warn", "Manpower is at nought: no new hull can be crewed and no levy raised until it recovers", "house:ledger"));
@@ -23,7 +23,7 @@
     if (m.Character.Regency) alerts.Add(("info", "A regent rules in your name", "dynasty"));
     if (w.HasFlag("pirates_near")) alerts.Add(("warn", "Raiders within a lane of your worlds", "military:near"));
     if (w.HasFlag("raided")) alerts.Add(("warn", "Your shipping was plundered", "military:near"));
-    if (w.HasFlag("fuel_short")) alerts.Add(("warn", "The tanks are dry — the fleet cannot sail", "military"));
+    if (w.HasFlag("fuel_short")) alerts.Add(("warn", "The tanks are dry: the fleet cannot sail until helium-3 is bought or skimmed" + (w.Protagonist!.Purse > 0 && house.Treasury.Credits < 6 ? $" (your own purse holds {w.Protagonist.Purse})" : ""), "exchange:goods"));
     string NationName(string prefix) => w.WorldFlags.Where(f => f.StartsWith(prefix)).Select(f => G.Content!.Nations.Def(f[prefix.Length..])?.Name ?? f[prefix.Length..]).FirstOrDefault() ?? "a nation beyond the Reach";
     if (w.HasFlag("foreign_war_declared")) alerts.Add(("warn", $"The Senate has made war on {NationName("foreign_war:")} — fleets may be sent", "military:abroad"));
     else if (w.HasFlag("foreign_war") && NationSystem.AtWar(w) is { WarOf.Length: > 0 } own) alerts.Add((own.Defied ? "warn" : "info", own.WarOf == w.Protagonist?.HouseId ? $"Your house is at war with {NationName("foreign_war:")} on its own account{(own.Defied ? ", against a peace the Senate voted" : ": the Senate voted nothing")}" : $"{w.House(own.WarOf)?.Name ?? own.WarOf} is at war with {NationName("foreign_war:")} on its own account{(own.Defied ? ", against a peace the Senate voted" : "")}: no other house is", "military:abroad"));

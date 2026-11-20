@@ -98,7 +98,7 @@ public class SystemWorksTests
         var noFuel = mine.Bodies.FindIndex(b => b.Class == "gas" && b.Deposit != "helium3"); if (noFuel >= 0) Assert.Contains("deposit", Why(mine.Id, noFuel, "skimmer_fleet"));
         // rank, and the purse
         house.Title = "knight"; Assert.Equal("needs a greater rank", Why(mine.Id, star, "sun_foundry")); house.Title = "duke";
-        house.Treasury.Credits = 0; Assert.StartsWith("needs ", Why(mine.Id, star, "sun_foundry")); house.Treasury.Credits = 400;
+        house.Treasury.Credits = 0; Assert.Contains(" short", Why(mine.Id, star, "sun_foundry")); house.Treasury.Credits = 400;
         Assert.Null(Why(mine.Id, star, "sun_foundry"));
         // a domed colony wants an outpost on the same body first
         int rock = mine.Bodies.FindIndex(b => !b.IsPrimary && Cat.Work("domed_colony")!.Fits(b.Class)); if (rock >= 0) Assert.Contains("Outpost here first", Why(mine.Id, rock, "domed_colony"));
@@ -216,7 +216,7 @@ public class SystemWorksTests
         for (int i = 2; i < r.ClearMaxWorld; i++) Assert.True(tc.Executor.TryExecute(new ClearSlotCommand(me.Id, sys.Id, home, Cat), ctx));
         Assert.Equal("there is no more ground to clear", new ClearSlotCommand(me.Id, sys.Id, home, Cat).Refusal(ctx)); Assert.Equal(baseHome + r.ClearMaxWorld, SystemWorks.Slots(w, Cat, sys, home));
         Assert.StartsWith("there is no ground", new ClearSlotCommand(me.Id, sys.Id, sys.Bodies.FindIndex(b => b.IsStar), Cat).Refusal(ctx));
-        house.Treasury.Credits = 0; Assert.StartsWith("needs ", new ClearSlotCommand(me.Id, sys.Id, moon, Cat).Refusal(ctx)); house.Treasury.Credits = 400;
+        house.Treasury.Credits = 0; Assert.Contains(" short", new ClearSlotCommand(me.Id, sys.Id, moon, Cat).Refusal(ctx)); house.Treasury.Credits = 400;
         var theirs = w.Holdings.Values.First(h => h.IsPlanet && h.OwnerId != house.Id); Assert.Equal("you do not hold this system", new ClearSlotCommand(me.Id, theirs.SystemId, 1, Cat).Refusal(ctx));
         // everything at once never shows more than the screen has room for
         house.Title = "emperor"; w.Development[sys.Id] = 100; Assert.Equal(r.MaxWorld, SystemWorks.Slots(w, Cat, sys, home)); Assert.InRange(SystemWorks.Slots(w, Cat, sys, moon), 1, r.MaxBody);

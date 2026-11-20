@@ -160,7 +160,7 @@ public static class SystemWorks
         if (cleared >= (b.IsPrimary ? r.ClearMaxWorld : r.ClearMaxBody)) return "there is no more ground to clear";
         if (Slots(w, cat, sys, body) >= (b.IsPrimary ? r.MaxWorld : r.MaxBody)) return "it has all the slots a place can have";
         var cost = r.ClearCostOf(cleared);
-        return house.Treasury.CanAfford(cost) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(cost)}";
+        return house.Treasury.CanAfford(cost) ? null : !explain ? "needs more" : $"{house.Treasury.Short(cost)}";
     }
 
     // ---------------- great works: how many at once ----------------
@@ -234,7 +234,7 @@ public static class SystemWorks
         if (Upgrading(w, target, defId) != null) return "the next level is being built";
         if (level >= LevelAllowed(w, cat, systemId)) return $"needs development {cat.Rules.UpgradeAt[level]} (it is {DevelopmentLevel(w, systemId)})";
         var first = ProjectSystem.Split(UpgradeCost(cost, level), Math.Max(1, years)).First;
-        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(first)}{(years > 1 ? " to begin" : "")}";
+        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"{house.Treasury.Short(first)}{(years > 1 ? " to begin" : "")}";
     }
     /// <summary>The level is built: the building stands one higher.</summary>
     public static void Upgrade(World w, HoldingCatalog cat, string target, string defId)
@@ -292,7 +292,7 @@ public static class SystemWorks
         else if (FreeSlots(w, cat, sys, body) <= 0) return Slots(w, cat, sys, body) == 0 ? "nothing but a great work can be built here" : "no free slot here: development, rank and cleared ground open more";
         if (def.MinTitleRank > 0 && (titles?.RankOf(house.Title) ?? Progression.Title.RankOf(house.Title)) < def.MinTitleRank) return "needs a greater rank";
         var first = ProjectSystem.Split(def.Cost, def.BuildTurns).First;
-        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
+        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"{house.Treasury.Short(first)}{(def.BuildTurns > 1 ? " to begin" : "")}";
     }
     public static string Roman(int n) => n switch { 1 => "I", 2 => "II", 3 => "III", 4 => "IV", 5 => "V", 6 => "VI", _ => n.ToString() };
     private static string Article(string cls) => cls switch { "gas" => "a gas giant", "belt" => "a belt", "moon" => "a moon", "comet" => "a comet", "ocean" => "an ocean world", "arid" => "an arid world", _ => $"a {cls} world" };
@@ -370,7 +370,7 @@ public static class SystemWorks
         int level = Level(w, systemId, t.Id); if (level >= t.MaxLevel) return "it can be carried no further";
         if (Laying(w, systemId, t.Id) != null) return "the next level is being laid";
         var first = ProjectSystem.Split(t.CostOf(level + 1), t.YearsOf(level + 1)).First;
-        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(first)}{(t.YearsOf(level + 1) > 1 ? " to begin" : "")}";
+        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"{house.Treasury.Short(first)}{(t.YearsOf(level + 1) > 1 ? " to begin" : "")}";
     }
     /// <summary>A level is laid: the track stands one higher, and the system is the more developed for it at once.</summary>
     public static void Lay(World w, HoldingCatalog cat, string systemId, InfrastructureDef t)
@@ -413,7 +413,7 @@ public static class SystemWorks
         if (!near) return "too far: it must lie a lane from a world of yours, or have a fleet of yours standing in it";
         if (w.Fleets.Values.Any(f => f.SystemId == systemId && !f.Moving && !f.IsAway && f.OwnerId != house.Id && w.AtWar(f.OwnerId, house.Id))) return "an enemy fleet holds the sky";
         var first = ProjectSystem.Split(cat.Colony.Cost, cat.Colony.BuildTurns).First;
-        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"needs {Presentation.CourtProjection.Bundle(first)} to begin";
+        return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"{house.Treasury.Short(first)} to begin";
     }
 
     /// <summary>The colony lands: the system's world is a holding of the house, small and loyal, governed by its head.</summary>

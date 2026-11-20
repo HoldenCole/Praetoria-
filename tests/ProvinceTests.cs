@@ -318,7 +318,7 @@ public class ProvinceTests
         // a house over it that is at war wants the levy and will not hear of it; a house without the coin cannot
         var foe = w.Houses.Values.First(h => !World.Outsider(h.Id) && h.Id != house.Id && h.Id != over.Id); w.Wars.Add(new War { HouseA = over.Id, HouseB = foe.Id, Since = w.Turn });
         Assert.Equal("the house over you is at war and wants its levy", new CommuteDuesCommand(me.Id, far.Id, idx, Cat).Refusal(ctx)); w.Wars.Clear();
-        house.Treasury.Credits = 0; Assert.StartsWith("needs ", new CommuteDuesCommand(me.Id, far.Id, idx, Cat).Refusal(ctx)); house.Treasury.Credits = 400;
+        house.Treasury.Credits = 0; Assert.Contains(" short", new CommuteDuesCommand(me.Id, far.Id, idx, Cat).Refusal(ctx)); house.Treasury.Credits = 400;
         // the player as the house over: a rival with the coin agrees, one without does not
         var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var under = w.House(ProvinceSystem.HolderOf(seat, 1))!; var p = seat.Provinces[1];
         under.Treasury.Credits = 0; Assert.Contains("cannot find it", new CommuteDuesCommand(me.Id, seat.Id, 1, Cat).Refusal(ctx));
