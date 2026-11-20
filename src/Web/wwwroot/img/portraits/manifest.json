@@ -11,6 +11,17 @@
 "ancestry": "african",
 "sex": "female"
 },
+"faf01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "female"
+},
 "fea00": {
 "ages": [
 "adult",
@@ -33,6 +44,28 @@
 "ancestry": "east_asian",
 "sex": "female"
 },
+"fea02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "female"
+},
+"fea03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "female"
+},
 "fle00": {
 "ages": [
 "adult",
@@ -42,6 +75,39 @@
 "child"
 ],
 "ancestry": "levantine",
+"sex": "female"
+},
+"fle01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "female"
+},
+"fme00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "female"
+},
+"fno00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
 "sex": "female"
 },
 "fr00": {
@@ -187,6 +253,17 @@
 "ancestry": "south_asian",
 "sex": "female"
 },
+"fsa01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "female"
+},
 "fst00": {
 "ages": [
 "adult",
@@ -207,7 +284,39 @@
 "ancestry": "steppe",
 "sex": "female"
 },
+"fst02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth"
+],
+"ancestry": "steppe",
+"sex": "female"
+},
 "maf00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "male"
+},
+"maf01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "male"
+},
+"maf02": {
 "ages": [
 "adult",
 "older",
@@ -240,6 +349,28 @@
 "ancestry": "east_asian",
 "sex": "male"
 },
+"mea02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "male"
+},
+"mea03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "male"
+},
 "mle00": {
 "ages": [
 "adult",
@@ -249,6 +380,28 @@
 "child"
 ],
 "ancestry": "levantine",
+"sex": "male"
+},
+"mle01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "male"
+},
+"mme00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
 "sex": "male"
 },
 "mr00": {
@@ -394,6 +547,17 @@
 "ancestry": "south_asian",
 "sex": "male"
 },
+"msa01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "male"
+},
 "mst00": {
 "ages": [
 "adult",
@@ -405,6 +569,26 @@
 "sex": "male"
 },
 "mst01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth"
+],
+"ancestry": "steppe",
+"sex": "male"
+},
+"mst02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth"
+],
+"ancestry": "steppe",
+"sex": "male"
+},
+"mst03": {
 "ages": [
 "adult",
 "older",
