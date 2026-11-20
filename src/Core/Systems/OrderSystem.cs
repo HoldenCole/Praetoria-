@@ -204,7 +204,7 @@ public sealed class OrderSystem
     {
         if (w.IsImperium) return "the throne, not the census, seats a house now";
         if (h.Enrolled || seated) return "the house sits in the Senate already";
-        if (Tier(h, Commerce) < 1) return "the census enrols only a house of some account in commerce";
+        if (Tier(h, Commerce) < 1) return $"the census enrols only a house notable in commerce: that is a standing of {NotableAt}, and the house has {h.Order(Commerce)}";
         return h.Treasury.Credits >= CensusFee ? null : $"the census asks {CensusFee} credits";
     }
     public void Enroll(World w, House h)

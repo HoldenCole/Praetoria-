@@ -23,6 +23,15 @@ public static class OfficeSystem
     public static IEnumerable<OfficeHolding> HeldBy(World w, string houseId) => w.Offices.Where(o => o.HouseId == houseId);
 
     /// <summary>The best-qualified living member of a house for an office: the office's track, at least its rank; highest rank, then id. Null if none.</summary>
+    /// <summary>What an office asks of the one who would hold it, in the words the ladder uses: one rule, said one way wherever it is refused.</summary>
+    public static string Wants(OfficeCatalog offices, OfficeDef def)
+    {
+        var parts = new List<string>();
+        if (def.MinAge > 0) parts.Add($"{def.MinAge} or older");
+        if (def.MinRank > 0) parts.Add(def.Track.Length > 0 ? $"of rank {def.MinRank} or higher in {def.Track}" : $"of rank {def.MinRank} or higher in a service");
+        if (def.Requires.Length > 0) parts.Add($"to have been {(offices.Def(def.Requires)?.Name ?? def.Requires).ToLowerInvariant()}");
+        return parts.Count == 0 ? "anyone of the house" : string.Join(", ", parts);
+    }
     public static Character? Candidate(World w, OfficeDef def, string houseId) =>
         w.LivingCharacters().Where(c => c.HouseId == houseId && (def.Track.Length == 0 || c.CareerTrack == def.Track) && c.CareerRank >= def.MinRank
                 && c.Age >= def.MinAge && (def.Requires.Length == 0 || c.Cursus.Contains(def.Requires))   // the ladder: an age, and a rung already held (docs/LADDER.md)

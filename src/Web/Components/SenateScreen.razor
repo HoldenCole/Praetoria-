@@ -426,7 +426,7 @@
     private static int _seenStamp;
     protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) _view = Tab; } }
     private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
-    private static string NoSeatLine(World w) => w.IsImperium ? "· only a house of rank, or a Judge, may" : "· the house has no seat: land of rank, a Judge at its head, a name great in arms, or enrolment by the census";
+    private static string NoSeatLine(World w) => w.IsImperium ? "· only a house of rank, or a Judge, may" : "· the house has its votes but no voice: a voice comes by land of rank, a Judge at its head, a name great in arms, or enrolment by the census";
     private void Canvass(string nomineeId) { var names = G.Court().Senate?.Election?.Nominees.Select(x => x.HouseId).ToList() ?? new List<string>(); G.Execute(new CanvassCommand(G.World!.ProtagonistId, nomineeId, G.Turn!.Orders, _ => names)); }
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string? _focus, _watch; private readonly Dictionary<string, string> _target = new();

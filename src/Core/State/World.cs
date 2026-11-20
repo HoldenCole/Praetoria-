@@ -130,6 +130,8 @@ public sealed class World
     public List<BattleRecord> Battles { get; set; } = new();
     /// <summary>The rulings of the courts that touched the player's house, newest last (docs/PLAYTHROUGH.md 12).</summary>
     public List<JudgmentRecord> Judgments { get; set; } = new();
+    /// <summary>The count at the last election of the ladder: every name, its office and its votes.</summary>
+    public List<CountRecord> Counts { get; set; } = new();
     /// <summary>What the player's house should be told (docs/PLAYTHROUGH.md 14), newest last. <see cref="NewsFrom"/> is where the
     /// year now being played began: everything after it is this year's news.</summary>
     public List<NewsItem> News { get; set; } = new();

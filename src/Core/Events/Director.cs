@@ -28,7 +28,12 @@ public sealed class Director
     /// <summary>World counter: the turn an event last surfaced. Repeats within <see cref="RepeatWindowTurns"/> turns are suppressed.</summary>
     public static string LastFiredCounter(string eventId) => $"evt:{eventId}:turn";
     public const int RepeatWindowTurns = 4;
+    /// <summary>A report read less than this many years ago is remembered, and is half as likely to be drawn again.</summary>
+    public const int RememberedTurns = 10;
+    public const double RememberedFactor = 0.5;
     public const double AmbitionBias = 1.6;
+    /// <summary>How much likelier a report is while the thing that raised it is a year old or less.</summary>
+    public const double FreshBias = 5.0;
 
     public double WeightOf(EventDef def, World world)
     {
@@ -43,6 +48,11 @@ public sealed class Director
         if (ambition != null && def.Ambitions.Count > 0)
             w *= def.Ambitions.Contains(ambition) ? AmbitionBias : 0.8;
 
+        // News comes while it is news: a report raised by something that happened this year or last is drawn ahead of the rest,
+        // so the card for an election does not come two years after the count (docs/PLAYTHROUGH.md, Easy, P78).
+        foreach (var c in def.Conditions.OfType<WorldFlagCondition>())
+            if (c.Value && world.WorldCounters.TryGetValue("mark:" + c.Flag, out var at) && world.Turn - at <= 1) { w *= FreshBias; break; }
+
         // A lull breeds complications: weight above-ambient events up the longer nothing has happened.
         if (def.Tier != EventTier.Ambient)
             w *= 1.0 + Math.Min(1.5, world.Counter(LullCounter) * 0.25);
@@ -50,6 +60,7 @@ public sealed class Director
         // Suppress recent repeats: by turn (a report seen four turns ago is still fresh in mind) and by the tail of the
         // recent-event memory (within a briefing).
         if (world.WorldCounters.TryGetValue(LastFiredCounter(def.Id), out var last) && world.Turn - last < RepeatWindowTurns) w *= _suppressionFactor;
+        else if (world.WorldCounters.TryGetValue(LastFiredCounter(def.Id), out var seen) && world.Turn - seen < RememberedTurns) w *= RememberedFactor;   // read within the decade: it comes less readily (docs/PLAYTHROUGH.md, Easy: "the same card with the same words")
         else
         {
             int from = Math.Max(0, world.RecentEventIds.Count - _suppressionWindow);

@@ -101,7 +101,7 @@ public static partial class LadderSystem
                 accused.Legitimacy = Math.Clamp(accused.Legitimacy - ConvictLegitimacy, 0, 100);
                 int fine = Math.Min(FineCredits, Math.Max(0, accused.Treasury.Credits)); accused.Treasury.Credits -= fine;
                 if (w.House(d.AgainstId) is { } wronged) wronged.Treasury.Credits += fine; else if (RegionSystem.CapitalHolder(w) is { } chair && chair.Id != accused.Id) chair.Treasury.Credits += fine;
-                Judged(w, judge.Name, accuser.Id, accused.Id, fine, null, $"{who.Name} was charged with what they did in office, and it was found proved", "charge");
+                Judged(w, judge.Name, accuser.Id, accused.Id, fine, null, $"{who.Name} {DeedSays(w, offices, d)}, and it was found proved", "charge");
             }
             accuser.Legitimacy = Math.Clamp(accuser.Legitimacy + 2, 0, 100); PolicySystem.Sway(w, accuser.Id, "commons", 2); MoveTrust(w, 1); Shift(w, accused, accuser, -25);
             who.Flags.Add(ExposedChar); LifeSystem.Note(w, who, "office", "Was convicted of what they did in office."); LifeSystem.Note(w, pleader, "office", $"Prosecuted {who.Name} and won.");

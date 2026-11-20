@@ -22,6 +22,9 @@ public sealed class HouseholdSystem
     public const string Ward = "ward", Protege = "protege", Companion = "companion";
     public const string Steward = "steward", Marshal = "marshal";
     public static readonly string[] Roles = { Steward, Marshal };
+    /// <summary>One who asked at the door and was not answered (or was refused) does not ask again for this long.</summary>
+    public const int AskAgainYears = 12;
+    public static string AskedKey(string personId) => "door_asked:" + personId;
     public const int WillingAt = 50, PetitionYears = 2, MentorEvery = 3, PostYearsPerSkill = 4, SkillFromPostCap = 4, SkimAt = 9, Adult = DynastySystem.AgeOfMajority, TakeInInfluence = 2, AdoptInfluence = 3;
 
     public const string FoundChar = "taken_in", AdoptedChar = "adopted", SkimmingChar = "skimming", WardOfAgeChar = "ward_of_age";
@@ -357,17 +360,24 @@ public sealed class HouseholdSystem
             else Teach(w, p, m);
         }
 
-        // people at the door
+        // people at the door. One left unanswered goes away and says so, and does not come back to the same door for years
+        // (docs/PLAYTHROUGH.md, Easy, P103: the same man asked for sixteen years, always "1 more year")
+        foreach (var pe in house.Petitions.Where(pe => w.Turn - pe.Since >= PetitionYears && w.Char(pe.PersonId) is { Alive: true }))
+        {
+            var gone = w.Char(pe.PersonId)!; w.WorldCounters[AskedKey(gone.Id)] = w.Turn;
+            w.Log($"{gone.Name}, unanswered at the door of {house.Name}, looks elsewhere.");
+            if (house.Id == w.Protagonist?.HouseId) w.Tell("info", $"{gone.Name} waited {PetitionYears} years for an answer and has gone to look elsewhere.", "house:household");
+        }
         house.Petitions.RemoveAll(pe => w.Char(pe.PersonId) is not { Alive: true } c || c.HouseId == house.Id || w.Turn - pe.Since >= PetitionYears || TakeInRefusal(w, p, c, pe.As) != null);
         if (house.Petitions.Count == 0 && Found(w, house.Id).Count < Room(house) && Hash(house.Id + ":door:" + w.Turn) % 100 < 14)
         {
             var asker = w.LivingCharacters().Where(c => c.HouseId != house.Id && !World.Outsider(c.HouseId) && c.Age >= 6 && DynastySystem.Spouse(w, c) == null)
                 .Select(c => (c, kind: c.Age < Adult ? Ward : c.CareerTrack == p.CareerTrack && p.CareerRank > c.CareerRank ? Protege : Companion))
-                .Where(x => TakeInRefusal(w, p, x.c, x.kind) == null && Willing(w, p, x.c, x.kind).score >= WillingAt + 10)
+                .Where(x => (!w.WorldCounters.TryGetValue(AskedKey(x.c.Id), out int asked) || w.Turn - asked >= AskAgainYears) && TakeInRefusal(w, p, x.c, x.kind) == null && Willing(w, p, x.c, x.kind).score >= WillingAt + 10)
                 .OrderByDescending(x => Willing(w, p, x.c, x.kind).score + x.c.Skills.Values.Sum()).ThenBy(x => x.c.Id, StringComparer.Ordinal).FirstOrDefault();
             if (asker.c != null)
             {
-                house.Petitions.Add(new Petition { PersonId = asker.c.Id, As = asker.kind, Since = w.Turn });
+                house.Petitions.Add(new Petition { PersonId = asker.c.Id, As = asker.kind, Since = w.Turn }); w.WorldCounters[AskedKey(asker.c.Id)] = w.Turn;
                 w.Log(asker.kind == Ward ? $"{w.House(asker.c.HouseId)?.Name} asks whether {house.Name} would take {asker.c.Name} as a ward." : $"{asker.c.Name} of {w.House(asker.c.HouseId)?.Name} asks for a place in the household of {house.Name}.");
             }
         }

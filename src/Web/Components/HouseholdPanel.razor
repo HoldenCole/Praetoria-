@@ -112,7 +112,7 @@
             <div class="suit-who">
                 <Portrait Id="@who.Id" Name="@who.Name" Sex="@who.Sex" Age="@who.Age" Accent="@(wh?.AccentColor ?? "#888")" Size="36" />
                 <div><b>@(kind == HouseholdSystem.Ward ? $"{wh?.Name} asks you to take {who.Name} as a ward" : $"{who.Name} of {wh?.Name} asks for a place in your household")</b>
-                    <div class="muted small">@who.Age, @Rank(who) · @Best(who) · they will wait @Math.Max(1, HouseholdSystem.PetitionYears - (w.Turn - pe.Since)) more year(s)</div></div>
+                    <div class="muted small">@who.Age, @Rank(who) · @Best(who) · @(HouseholdSystem.PetitionYears - (w.Turn - pe.Since) <= 1 ? "this is the last year they will wait" : $"they will wait {HouseholdSystem.PetitionYears - (w.Turn - pe.Since)} more years")</div></div>
             </div>
             <div class="suit-acts">
                 <button class="opt inline" disabled="@(take != null)" title="@take" @onclick="() => G.Execute(new HouseholdCommand(pid, HouseholdCommand.TakeIn, wid, kind))">Take them in · @HouseholdSystem.TakeInInfluence influence</button>

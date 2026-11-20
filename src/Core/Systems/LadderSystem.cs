@@ -138,12 +138,13 @@ public static partial class LadderSystem
     {
         if (!Active(w, offices)) return;
         var p = w.Protagonist; var mine = p?.HouseId; var taken = new HashSet<string>(); var lines = new List<string>();
-        w.Magistrates.Clear();
+        w.Magistrates.Clear(); w.Counts.Clear();
         foreach (var rung in offices.Rungs.Reverse())   // the highest first: someone who could have a greater rung is not also given a lesser
         {
             var candidates = Candidates(w, offices, rung, taken).Where(c => !taken.Contains(c.Id)).ToList();
             var tally = Tally(w, offices, rung, candidates, weight);
             var winners = candidates.OrderByDescending(c => tally[c.Id]).ThenBy(c => c.Id, StringComparer.Ordinal).Take(rung.Seats).ToList();
+            foreach (var c in candidates) w.Counts.Add(new CountRecord { Turn = w.Turn, RungId = rung.Id, Rung = rung.Name, CharacterId = c.Id, Name = c.Name, HouseId = c.HouseId, Votes = tally[c.Id], Won = winners.Contains(c) });
             foreach (var c in winners)
             {
                 taken.Add(c.Id); w.Magistrates.Add(new OfficeHolding { OfficeId = rung.Id, HouseId = c.HouseId, CharacterId = c.Id, SinceTurn = w.Turn });

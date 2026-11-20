@@ -20,7 +20,7 @@ public sealed class ProposeMotionCommand : ICommand
         if (actor?.Alive != true || house == null) return "no house";
         var def = _senate.Motions.Def(_kind); if (def == null) return "no such motion";
         if (_kind == "petition") return "only an estate brings a petition";
-        if (!_senate.MayPropose(w, house.Id)) return $"the Senate hears a {Progression.Title.StyleOf(Progression.Title.Baron, w.Era)}, or a Judge";
+        if (!_senate.MayPropose(w, house.Id)) return w.IsImperium ? $"the Senate hears a {Progression.Title.StyleOf(Progression.Title.Baron, w.Era)}, or a Judge" : "the house has its votes but no voice in the Senate: it may not move a motion";
         if (w.Motions.Any(m => m.Open && m.ProposerHouseId == house.Id)) return "you already have a motion before the Senate";
         if (SenateSystem.Docket(w).Count() >= SenateSystem.DocketSize) return "the docket is full this session";
         if (SenateSystem.Stale(w, house.Id, _kind, def.Law ? _lawId + ":" + _optionId : def.Target == "none" ? "" : def.Office ? _targetId + ":" + _officeId : _targetId)) return "the chamber heard that from you lately";
@@ -240,7 +240,7 @@ public sealed class StandForConsulCommand : ICommand
         if (w.Era == "imperium") return "the Emperor holds every office";
         if (w.HasFlag(ElectionSystem.StandFlag(house.Id))) return "you already stand";
         if (ElectionSystem.IsConsul(w, _offices, house.Id)) return "you hold the consulship";
-        if (!ElectionSystem.Eligible(w, _offices, house.Id)) return OfficeSystem.Candidate(w, ElectionSystem.ConsulOffices(_offices).First(), house.Id) == null ? "no one of the house has the rank (2 on any track)" : "a consul may not stand again at the next election";
+        if (!ElectionSystem.Eligible(w, _offices, house.Id)) return OfficeSystem.Candidate(w, ElectionSystem.ConsulOffices(_offices).First(), house.Id) == null ? $"no one of the house may stand: a consul must be {OfficeSystem.Wants(_offices, ElectionSystem.ConsulOffices(_offices).First())}, and not barred from office" : "a consul may not stand again at the next election";
         return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = ElectionSystem.StandInfluence }) ? null : $"needs {ElectionSystem.StandInfluence} influence";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;

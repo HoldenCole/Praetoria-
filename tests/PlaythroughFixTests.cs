@@ -477,4 +477,26 @@ public class PlaythroughFixTests
         for (int i = 0; i < 3; i++) w.Holdings["zz_claim_" + i] = new Holding { Id = "zz_claim_" + i, OwnerId = other.Id, Name = "claim", SystemId = world.SystemId, Kind = Holding.Claim, Specialization = "belt_claim" };
         Assert.Equal(house.Id, FleetSystem.TerritoryOwner(w, world.SystemId));
     }
+    [Fact]
+    public void One_left_unanswered_at_the_door_goes_and_does_not_come_back_for_years()
+    {
+        var (w, tc, house, me, ctx) = Start();
+        var asker = w.LivingCharacters().First(c => c.HouseId != house.Id && !World.Outsider(c.HouseId) && c.Age >= 18);
+        house.Petitions.Add(new Petition { PersonId = asker.Id, As = HouseholdSystem.Companion, Since = w.Turn - HouseholdSystem.PetitionYears });
+        w.NewsFrom = w.NewsSeq; tc.EndTurn();
+        Assert.DoesNotContain(house.Petitions, p => p.PersonId == asker.Id);
+        Assert.True(w.WorldCounters.ContainsKey(HouseholdSystem.AskedKey(asker.Id)));
+        Assert.Contains(w.News, n => n.Text.Contains(asker.Name) && n.Text.Contains("gone to look elsewhere"));
+        for (int i = 0; i < HouseholdSystem.AskAgainYears - 2; i++) { tc.BeginTurn(); tc.EndTurn(); Assert.DoesNotContain(house.Petitions, p => p.PersonId == asker.Id); if (w.IsDynastyDead) break; }
+    }
+
+    [Fact]
+    public void The_census_refusal_gives_the_number_and_a_house_without_a_voice_is_told_so()
+    {
+        var (w, tc, house, me, ctx) = Start("the_new_man");
+        house.Orders[OrderSystem.Commerce] = 3; house.Enrolled = false;
+        string? no = tc.Orders.EnrollRefusal(w, house, false);
+        if (no != null && no.Contains("notable in commerce")) { Assert.Contains(OrderSystem.NotableAt.ToString(), no); Assert.Contains("the house has 3", no); }
+        else Assert.Fail("expected the census to refuse a house of no account: " + no);
+    }
 }

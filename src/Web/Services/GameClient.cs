@@ -216,6 +216,28 @@ public sealed class GameClient
         return ok;
     }
 
+    /// <summary>Carry out a command and say what came of it in the outcome box, as a report's choice does: what moved in the treasury, the
+    /// year's pools, legitimacy and strain, and what the chronicle wrote. For acts whose whole result used to be one line in another
+    /// window (docs/PLAYTHROUGH.md, Easy: "Read the accounts shows its finding where it was asked").</summary>
+    public bool ExecuteTold(ICommand command, string title, string chose)
+    {
+        if (Turn == null || World == null) return false;
+        var me = World.Char(World.ProtagonistId); var house = me != null ? World.House(me.HouseId) : null;
+        var before = house?.Treasury.Clone(); int legit = house?.Legitimacy ?? 0, stress = me?.Stress ?? 0, told = World.History.Count;
+        var pools = me != null ? World.PoolsFor(me.Id) : null; int pi = pools?.Influence ?? 0, pt = pools?.Treasury ?? 0, pa = pools?.Agents ?? 0;
+        if (!Execute(command)) return false;
+        var changed = new List<string>();
+        if (house != null && before != null) changed.AddRange(Resource.All.Select(k => (k, d: house.Treasury.Get(k) - before.Get(k))).Where(x => x.d != 0).Select(x => (x.d > 0 ? "+" : "−") + Math.Abs(x.d) + " " + Resource.Label(x.k)));
+        if (pools != null) foreach (var (name, was, now) in new[] { ("influence this year", pi, pools.Influence), ("treasury this year", pt, pools.Treasury), ("agents this year", pa, pools.Agents) }) if (now != was) changed.Add((now > was ? "+" : "−") + Math.Abs(now - was) + " " + name);
+        if (house != null && house.Legitimacy != legit) changed.Add("legitimacy " + (house.Legitimacy > legit ? "+" : "−") + Math.Abs(house.Legitimacy - legit));
+        if (me != null && me.Stress != stress) changed.Add("stress " + (me.Stress > stress ? "+" : "−") + Math.Abs(me.Stress - stress));
+        var lines = new List<string>(); if (changed.Count > 0) lines.Add(string.Join(" · ", changed));
+        lines.AddRange(World.History.Skip(told).Select(h => h.Text).Where(t => !string.IsNullOrWhiteSpace(t)).Distinct().Take(4));
+        Told = new Outcome(title, chose, lines.Count > 0 ? lines : new List<string> { "Nothing that can be counted changed by it. What it changed between people will show in time." });
+        Notify();
+        return true;
+    }
+
     /// <summary>A context for asking a command whether it would be refused. Not for executing.</summary>
     public CommandContext Ctx => new(World!, WorldBuilder.RngFor(World!));
 

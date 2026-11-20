@@ -62,6 +62,23 @@ public class LadderTests
     }
 
     [Fact]
+    public void The_count_is_kept_and_the_card_for_it_names_the_office_and_the_votes()
+    {
+        // docs/PLAYTHROUGH.md, Easy, P42 and P78: "is elected, and for five years will hold an office of the Reach": no office, no votes
+        var (tc, w, me, mine, ctx) = Start(); var k = Kin(w, mine, "orator", 30);
+        w.Candidacies.Add(new Candidacy { RungId = "quaestor", CharacterId = k.Id });
+        w.Turn = 5; LadderSystem.Hold(w, Offices, id => Weight(w, tc, id));
+        Assert.Contains(w.Counts, x => x.CharacterId == k.Id && x.RungId == "quaestor" && x.Turn == 5);
+        Assert.All(Offices.Rungs, r => Assert.Contains(w.Counts, x => x.RungId == r.Id && x.Won));
+        var card = Content.Events.First(e => e.Conditions.OfType<Praetoria.Core.Events.WorldFlagCondition>().Any(c => c.Flag == LadderSystem.KinElectedFlag || c.Flag == LadderSystem.ElectedFlag));
+        string facts = Praetoria.Core.Presentation.ReportFacts.For(w, card, Content);
+        Assert.StartsWith("The count, year 5.", facts); Assert.Contains("For quaestor:", facts); Assert.Contains(k.Name + " (yours)", facts);
+        // and one rule for the consulship, said one way
+        var consul = ElectionSystem.ConsulOffices(Offices).First();
+        Assert.Contains("to have been praetor", OfficeSystem.Wants(Offices, consul)); Assert.Contains("40 or older", OfficeSystem.Wants(Offices, consul));
+    }
+
+    [Fact]
     public void An_election_fills_every_rung_from_those_standing_and_writes_it_into_their_lives()
     {
         var (tc, w, me, mine, ctx) = Start(); var k = Kin(w, mine, "orator", 30);
