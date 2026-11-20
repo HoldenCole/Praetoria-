@@ -229,7 +229,7 @@ public static class CourtProjection
                 ships.Add(new ShipOption(h.Id, cls.Id, $"Lay down a {cls.Name.ToLowerInvariant()}  ({Bundle(cls.Cost)}) · atk {cls.Attack} / def {cls.Defense}" + (cls.Upkeep.IsEmpty() ? "" : $" · keep {Bundle(cls.Upkeep)} a year") + $" · {content.Fleets.FuelHullsPerUnit} hulls burn 1 helium-3 a year · a new squadron starts at readiness 60", rc.Refusal(ctx)));
             }
             holdings.Add(new HoldingCard(h.Id, h.Name, spec?.Name ?? h.Specialization, w.Galaxy?.System(h.SystemId)?.Name,
-                h.Population, spec is { MaxPopulation: > 0 } ? spec.MaxPopulation + (h.IsPlanet && SystemWorks.Any(w) ? SystemWorks.Population(w, content.Holdings, h.SystemId) : 0) : 0, h.Unrest, h.Buildings.Count, SystemWorks.WorldSlots(w, content.Holdings, h),
+                h.Population, spec is { MaxPopulation: > 0 } ? spec.MaxPopulation + (h.IsPlanet && SystemWorks.Any(w) ? SystemWorks.Population(w, content.Holdings, h.SystemId) : 0) : 0, h.Unrest, SystemWorks.WorldSlotsUsed(w, content.Holdings, h), SystemWorks.WorldSlots(w, content.Holdings, h),   // one count, the system panel's: what stands, what is rising and the works on the world (docs/PLAYTHROUGH.md, buildings)
                 h.Buildings.Select(b => content.Holdings.Building(b)?.Name ?? b).ToList(), builds,
                 canRaise, $"Lay down a hull at {h.Name}  ({Bundle(content.Fleets.ShipCost)})", ships, w.Sieges.ContainsKey(h.Id),
                 h.Kind, w.Char(h.GovernorId) is { } gov ? (gov.Alive ? gov.Name : $"nobody: {gov.Name} is dead, and the chair is empty") : null,   // a dead governor is not left in the chair on the screen

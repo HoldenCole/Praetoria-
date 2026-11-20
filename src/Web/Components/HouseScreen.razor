@@ -155,7 +155,7 @@
                         }
                         @if (h.Belt > 0) { <div class="kv"><span>Belt</span><b>@(new string('●', h.Belt)) richness @h.Belt</b></div> }
                         <div class="kv"><span><Icon Name="governor" Size="12" /> Governor</span><b>@(h.GovernorName ?? "—")@if (h.GovernorName != null && h.GovernorDisposition < 100) { <span class="gov-chip @GovClass(h)" title="@GovTitle(h)">@GovText(h)</span> }@if (h.GovernorAdministration >= 3) { <span class="gov-chip able" title="an able administrator">able</span> }</b></div>
-                        <div class="chips">@foreach (var b in h.Buildings) { <span class="pill small">@b</span> } <span class="muted small">@h.SlotsUsed/@h.Slots slots</span></div>
+                        <div class="chips">@foreach (var b in h.Buildings) { <span class="pill small">@b</span> } <span class="muted small" title="The world's building slots: what stands, what is rising and the works on the world itself. The same count as the system's own panel on the map, where each is built.">@h.SlotsUsed of @h.Slots slots in use (standing, rising and works)</span></div>
                         <div class="row">
                             @if (h.Invest != null && h.Kind != "claim") { <button class="opt inline tiny" disabled="@(h.Invest.Refusal != null)" title="@h.Invest.Refusal" @onclick="() => G.Execute(new InvestCommand(pid, h.Id, c.Businesses))">@h.Invest.Label</button> }
                         </div>
