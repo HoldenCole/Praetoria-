@@ -25,7 +25,8 @@ public static class OfficeSystem
     /// <summary>The best-qualified living member of a house for an office: the office's track, at least its rank; highest rank, then id. Null if none.</summary>
     public static Character? Candidate(World w, OfficeDef def, string houseId) =>
         w.LivingCharacters().Where(c => c.HouseId == houseId && (def.Track.Length == 0 || c.CareerTrack == def.Track) && c.CareerRank >= def.MinRank
-                && c.Age >= def.MinAge && (def.Requires.Length == 0 || c.Cursus.Contains(def.Requires)))   // the ladder: an age, and a rung already held (docs/LADDER.md)
+                && c.Age >= def.MinAge && (def.Requires.Length == 0 || c.Cursus.Contains(def.Requires))   // the ladder: an age, and a rung already held (docs/LADDER.md)
+                && w.Counter(LadderSystem.BarredKey(c.Id)) <= w.Turn)   // one removed from office for taking money holds no office of the Reach until the bar is out (docs/PLAYTHROUGH.md: a convicted man was elected consul, a banned man commissioned)
             .OrderByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
 
     /// <summary>The house the office fleets belong to when no Admiral holds them: the chair, else no one.</summary>

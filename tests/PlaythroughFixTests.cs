@@ -323,4 +323,14 @@ public class PlaythroughFixTests
         Assert.False(p.Stalled); Assert.Equal(15, house.Treasury.Credits); Assert.Equal(2, p.TurnsLeft); Assert.Equal(10, p.Paid.Credits);
         Assert.Equal("it has not stalled", new PayInstalmentCommand(me.Id, p.Id).Refusal(ctx));
     }
+
+    [Fact]
+    public void OneBarredFromOffice_IsNotGivenOne()
+    {
+        // the Easy list: "a convicted man is elected consul; a banned man is commissioned"
+        var (w, _, house, me, _) = Start(); var def = Content.Offices.Defs.First(d => OfficeSystem.Candidate(w, d, house.Id) != null);
+        var who = OfficeSystem.Candidate(w, def, house.Id)!; w.WorldCounters[LadderSystem.BarredKey(who.Id)] = w.Turn + 5;
+        Assert.NotEqual(who.Id, OfficeSystem.Candidate(w, def, house.Id)?.Id);
+        w.Turn += 5; Assert.Equal(who.Id, OfficeSystem.Candidate(w, def, house.Id)?.Id);
+    }
 }
