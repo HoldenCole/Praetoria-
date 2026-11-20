@@ -167,6 +167,10 @@ gone. Star Dynasties is a second: reviewers found its simple portraits made peop
   chamber, a table or a market. The window has a metal title bar and a close button; its body scrolls as one page.
 - **Right**: the outliner, on the map, with no column behind it: reports as rows, alerts, the council, fleets,
   holdings. It hides on a narrow screen.
+- **Territory is stained glass** (2026-11-20, after the BattleTech conversion below): every held system is a cell
+  filled in its holder's colour, with a dark line between cells and a wider, lit one where two holders meet; a
+  system nobody holds is a pale ring; a region's edge is a pale line. A house, the Reach and a nation read as
+  blocks at any zoom.
 - **Picking a world or a fleet** on the map opens the map's own window in the same dock; the regions list is a
   button among the map tools.
 - **Bottom right**: the minimap and the end of the turn.

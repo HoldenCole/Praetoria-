@@ -146,30 +146,46 @@ export class Galaxy {
       this.home = { t: this.target.clone(), d: this.distance }; this.homeSet = true; this.updateCamera(true);
     }
 
-    // territory as Star Dynasties draws it: the whole area partitioned, every point belonging to its nearest system's region,
-    // crisp borders in the dominant house's colour, a dark tinted fill, a hatch for a free march — rasterised once per model
+    // Territory as stained glass (docs/ART_DIRECTION.md, "A mod worth learning from"): every held system is a cell filled in its
+    // holder's colour, with a dark lead between cells — a hairline between two cells of one holder, a wider one where two holders
+    // meet, lit along its inner edge — so a house's worlds, the Reach and a nation read as blocks at any zoom. A system nobody
+    // holds has no cell, only a pale disc round its star, so the map thins out where the holding does. A region's edge is a pale
+    // line over the leads. Rasterised when the holding changes, not on every model.
     const PADR = 300, rx0 = this.bounds.minX - PADR, ry0 = this.bounds.minY - PADR, rw = (this.bounds.maxX - this.bounds.minX) + 2 * PADR, rh = (this.bounds.maxY - this.bounds.minY) + 2 * PADR;
-    const RW = 1024, RH = Math.max(64, Math.round(RW * rh / rw)); const cv = document.createElement('canvas'); cv.width = RW; cv.height = RH; const rctx = cv.getContext('2d'); const img = rctx.createImageData(RW, RH); const px = img.data;
-    const regIndex = {}; (model.regions || []).forEach((r, i) => regIndex[r.id] = i);
-    const sites = model.systems.map(s => ({ x: s.x, y: -s.y, r: regIndex[s.regionId] ?? -1 }));
-    const ringTint = r => r.ring === 'core' ? [230, 199, 122] : r.ring === 'rim' ? [208, 120, 90] : [143, 168, 216];
-    const regCol = (model.regions || []).map(r => { const t = ringTint(r); const a = new THREE.Color(r.accent || '#8fa8d8'); const acc = [a.r * 255, a.g * 255, a.b * 255]; return { fill: [(t[0] * .4 + acc[0] * .6) * .7, (t[1] * .4 + acc[1] * .6) * .7, (t[2] * .4 + acc[2] * .6) * .7], border: acc, free: !!r.free }; });
-    const idx = new Int16Array(RW * RH); const fade = new Float32Array(RW * RH); const cx = new Float64Array(regCol.length), cy = new Float64Array(regCol.length), cn = new Float64Array(regCol.length);
-    for (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++) {
-      const wx = rx0 + (x + .5) / RW * rw, wy = ry0 + (RH - .5 - y) / RH * rh; let best = -1, bd = Infinity;
-      for (let i = 0; i < sites.length; i++) { const dx = sites[i].x - wx, dy = sites[i].y - wy; const d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
-      const dist = Math.sqrt(bd); const k = y * RW + x; const ri = best >= 0 ? sites[best].r : -1; idx[k] = ri; fade[k] = dist < 210 ? 1 : dist > 300 ? 0 : 1 - (dist - 210) / 90;
-      if (ri >= 0 && fade[k] > .5) { cx[ri] += wx; cy[ri] += wy; cn[ri]++; }
+    const RW = 1536, RH = Math.max(64, Math.round(RW * rh / rw));
+    const regIndex = {}; (model.regions || []).forEach((r, i) => regIndex[r.id] = i); const regFree = (model.regions || []).map(r => !!r.free);
+    const sites = model.systems.map(s => { const c = new THREE.Color(s.accent || '#8fa8d8'); return { x: s.x, y: -s.y, r: regIndex[s.regionId] ?? -1, own: s.ownerId || '', col: [c.r * 255, c.g * 255, c.b * 255], mine: !!s.isPlayer }; });
+    const sig = [RW, RH, rx0 | 0, ry0 | 0].join(',') + '|' + sites.map(t => [t.x | 0, t.y | 0, t.r, t.own, t.col[0] | 0, t.col[1] | 0, t.col[2] | 0, t.mine ? 1 : 0].join(',')).join(';') + '|' + regFree.map(f => f ? 1 : 0).join('');
+    let cv;
+    if (this.terrCache && this.terrCache.sig === sig) { cv = this.terrCache.cv; this.regionCentres = this.terrCache.centres; }
+    else {
+      cv = document.createElement('canvas'); cv.width = RW; cv.height = RH; const rctx = cv.getContext('2d'); const img = rctx.createImageData(RW, RH); const px = img.data;
+      const nReg = (model.regions || []).length; const cx = new Float64Array(nReg), cy = new Float64Array(nReg), cn = new Float64Array(nReg);
+      const LEAD_SAME = 2.2, LEAD_OTHER = 6.5, RIM = 7, DARK = [5, 7, 12];
+      for (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++) {
+        const wx = rx0 + (x + .5) / RW * rw, wy = ry0 + (RH - .5 - y) / RH * rh; let b1 = -1, b2 = -1, d1 = Infinity, d2 = Infinity;
+        for (let i = 0; i < sites.length; i++) { const dx = sites[i].x - wx, dy = sites[i].y - wy; const d = dx * dx + dy * dy; if (d < d1) { d2 = d1; b2 = b1; d1 = d; b1 = i; } else if (d < d2) { d2 = d; b2 = i; } }
+        if (b1 < 0) continue;
+        const dist = Math.sqrt(d1), t = sites[b1], u = b2 >= 0 ? sites[b2] : null, e = u ? (Math.sqrt(d2) - dist) / 2 : 1e9;   // e: how far inside its own cell this point lies
+        const fade = dist < 236 ? 1 : dist > 250 ? 0 : 1 - (dist - 236) / 14; if (t.r >= 0 && fade > .5)   /* a cell reaches 240 from its star and stops */ { cx[t.r] += wx; cy[t.r] += wy; cn[t.r]++; }
+        let r = 0, g = 0, b = 0, a = 0;
+        if (t.own) {
+          const same = !!u && u.own === t.own, lead = same ? LEAD_SAME : LEAD_OTHER;
+          const glass = e <= lead ? 0 : Math.min(1, (e - lead) / 2.6);                                  // 0 in the lead, 1 in the glass
+          const rim = !same && e > lead && e < lead + RIM ? 1 - (e - lead) / RIM : 0;                   // lit where two holders meet
+          const outer = dist > 226 && dist < 240 ? 1 - Math.abs(dist - 233) / 7 : 0;                    // and along the open edge
+          const lit = Math.max(rim, outer) * 0.8, k = 0.5 + 0.5 * lit, ga = (t.mine ? 88 : 62) + 80 * lit, hatch = t.r >= 0 && regFree[t.r] && ((x + y) % 14) < 4 ? 26 : 0;
+          r = DARK[0] + (Math.min(255, t.col[0] * k) - DARK[0]) * glass; g = DARK[1] + (Math.min(255, t.col[1] * k) - DARK[1]) * glass; b = DARK[2] + (Math.min(255, t.col[2] * k) - DARK[2]) * glass;
+          a = (150 + (ga + hatch - 150) * glass) * fade;
+        } else if (dist < 54) { const ring = dist > 42 ? Math.max(0, 1 - Math.abs(dist - 48) / 5) : 0; r = 150; g = 162; b = 190; a = (dist < 46 ? 20 : 0) + ring * 95; }   // nobody's: a pale disc
+        if (u && u.r !== t.r && e < 3.6 && (t.own || u.own)) { const w = (1 - e / 3.6) * .72; r += (226 - r) * w; g += (214 - g) * w; b += (186 - b) * w; a = Math.max(a, 150 * (1 - e / 3.6) * fade); }   // a region's edge, soft so it does not stair-step up close
+        const o = (y * RW + x) * 4; px[o] = r; px[o + 1] = g; px[o + 2] = b; px[o + 3] = Math.max(0, Math.min(255, Math.round(a)));
+      }
+      rctx.putImageData(img, 0, 0);
+      this.regionCentres = {}; (model.regions || []).forEach((rg, i) => { this.regionCentres[rg.id] = cn[i] > 0 ? { x: cx[i] / cn[i], y: cy[i] / cn[i] } : { x: rg.cx, y: -rg.cy }; });
+      this.terrCache = { sig, cv, centres: this.regionCentres };
     }
-    for (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++) {
-      const k = y * RW + x; const ri = idx[k]; if (ri < 0 || fade[k] <= 0) continue; const c = regCol[ri]; let border = false;
-      for (const [ox, oy] of [[1, 0], [0, 1], [-1, 0], [0, -1], [2, 0], [0, 2]]) { const xx = x + ox, yy = y + oy; if (xx < 0 || yy < 0 || xx >= RW || yy >= RH) continue; const j = idx[yy * RW + xx]; if (j !== ri && j >= 0) { border = true; break; } }
-      const hatch = c.free && ((x + y) % 14) < 4; const o = k * 4;
-      if (border) { px[o] = c.border[0]; px[o + 1] = c.border[1]; px[o + 2] = c.border[2]; px[o + 3] = Math.round(190 * fade[k]); }
-      else { px[o] = c.fill[0]; px[o + 1] = c.fill[1]; px[o + 2] = c.fill[2]; px[o + 3] = Math.round((hatch ? 58 : 26) * fade[k]); }
-    }
-    rctx.putImageData(img, 0, 0); this.regionRaster = { canvas: cv, x0: rx0, y0: ry0, w: rw, h: rh };
-    this.regionCentres = {}; (model.regions || []).forEach((r, i) => { this.regionCentres[r.id] = cn[i] > 0 ? { x: cx[i] / cn[i], y: cy[i] / cn[i] } : { x: r.cx, y: -r.cy }; });
+    this.regionRaster = { canvas: cv, x0: rx0, y0: ry0, w: rw, h: rh };
     const rtex = new THREE.CanvasTexture(cv); rtex.colorSpace = THREE.SRGBColorSpace; rtex.minFilter = THREE.LinearFilter;
     const terr = new THREE.Mesh(new THREE.PlaneGeometry(rw, rh), new THREE.MeshBasicMaterial({ map: rtex, transparent: true, depthWrite: false })); terr.position.set(rx0 + rw / 2, ry0 + rh / 2, -3); this.objects.add(terr);
 

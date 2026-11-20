@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Territory you can read** (docs/ART_DIRECTION.md, "The shell"; the owner: "do the filled-cell territory on the map
+  next"). Every held system on the map is a cell filled in its holder's colour, with a dark line between cells
+  of one holder and a wider one, lit along its edge, where two holders meet. A house's worlds, the Reach and each
+  nation beyond it read as blocks at any zoom and on the minimap. A system nobody holds is a pale ring, so the
+  map thins out where the holding does, and a region's edge is a pale line.
 - **Houses have an ancestry, and their portraits follow it** (docs/ART_DIRECTION.md, "Portraits"; the owner:
   "certain houses will have certain genetics"). Every painted face is tagged with one of seven ancestries, and
   every house and every nation beyond the Reach has one, named in `content/ancestries/ancestries.json` or fallen

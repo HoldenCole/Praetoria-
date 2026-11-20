@@ -215,8 +215,6 @@ still short of that:
 | V10 | The profile is a centred window, not docked, and what a person thinks of you has no itemised breakdown (Star Dynasties and CK3 both itemise opinion). | M | |
 | V11 | The event paintings are chosen by keyword from sixteen. An event cannot name its own picture, and the same hall shows for many occasions. | S | |
 
-| V12 | Territory on the map is a bright border line with nothing inside it. A filled cell under each owned system, in its owner's colour with a dark gap between cells, would let the Reach, a house's holdings and a nation read as blocks at any zoom (as the BattleTech conversion for CK3 does). | M | |
-| V13 | Unheld and frontier systems look the same as held ones. A lone haloed disc for a system nobody of the Reach holds would show where the Reach thins out. | S | V12 |
 | V14 | The map is a field of stars to its edges. It has no frame, title, compass or painted edge to make it the Senate's star table. | S | |
 | V15 | A house has no hall. The home screen and the title could open on a painting of the house's hall with its banner and its head, spouse and heir in it. | M | |
 | V16 | A scenario on the title is a name and a line of counts. A card with the year in large numerals and two or three named crises, each a sentence with a person in it, would sell the start. | S | |
@@ -230,6 +228,9 @@ still short of that:
 | V19 | The ancestries' names (Mediterranean, Northern, Levantine, African, East Asian, South Asian, Steppe) are plain words from our own world, and which house is which was set by the sound of its name. Both are in one file and are the owner's to change: the setting may want its own names for its peoples. | S | owner |
 | V20 | Ancestry is looks only. It gives no names (a house's naming culture is separate and all but two cultures share one list), moves no opinion, and is not in any event. | M | owner |
 
+| V21 | The cells are drawn from who holds a system and nothing else. A world under siege, occupied in a war still being fought, or contested looks like any other of its holder's; a fleet's reach, a blockade and a state's border are not on the glass. Other games hatch an occupied province in the occupier's colour. | S | |
+| V22 | A cell is a fixed 200 across wherever its neighbours are far off, so a nation of four systems reads as four overlapping discs rather than one country. A hull round a holder's cells would close the gaps between them. | S | |
+
 ## Older, from docs/ROADMAP.md section 3
 
 Kept there in full. In short: the state gives commerce nothing (no tax-farming or contracts), callings lean to commerce,
@@ -240,6 +241,8 @@ look-and-feel pass is planned and not begun, there is no sound.
 
 | Id | Gap | Closed | How |
 |---|---|---|---|
+| V12 | Territory on the map was a bright border line with nothing inside it. | 2026-11-20 | Every held system is a cell filled in its holder's colour, with a dark line between cells of one holder and a wider one, lit along its inner edge, where two holders meet. A house's worlds, the Reach and each nation read as blocks at any zoom, and on the minimap. A region's edge is a pale line. V17 (a crest over a realm at far zoom) and V14 (the map as an object) are what is left. |
+| V13 | Unheld systems looked the same as held ones. | 2026-11-20 | A system nobody holds has no cell, only a pale ring round its star, so the map thins out where the holding does. |
 | B-a | Standing alone was not tested: no economy, no monopoly. | 2026-11-14 | Fuel of its own, a treasury that pays its way, and half the Reach's output of a strategic resource now move the Reach's temper; a state with no fuel is embargoed while it fights; one with leverage outlasts the Reach faster. B7 is what is left. |
 | B-b | You could not work on a region's houses. | 2026-11-14 | A quiet word or a gift raises a house's regard; at 25 it gives its word. The capital's creature reports you. B8 is what is left. |
 | B-c | The great war came by the calendar. | 2026-11-14 | Its clock is moved only by what is wrong with the Reach, and runs back when nothing is; blocs that had formed stand down. B9 and B10 are what is left. |
