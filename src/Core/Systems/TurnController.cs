@@ -108,6 +108,7 @@ public sealed class TurnController
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
         _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
         _senate = new SenateSystem(content.Motions, content.Titles, _fleets, content.Offices) { Policies = content.Policies, Nations = content.Nations };
+        if (world.Galaxy != null) Praetoria.Core.Galaxy.SystemBodies.Furnish(world.Galaxy, content.Holdings);   // every system its sun, moons and features, once (docs/SYSTEMS.md): a save from before them gets them here
         _nations = new NationSystem(content.Nations, _fleets); if (world.Turn == 0) NationSystem.Seed(world, content.Nations);   // the nations beyond the Reach (docs/FOREIGN_NATIONS.md)
         if (world.Turn == 0 && world.Laws.Count == 0) PolicySystem.ApplyCultures(world, content.Policies);   // every house begins with its culture's laws (GDD §19)
         FactionSystem.Use(world, content.Policies);   // this world's laws, not every world's (see FactionSystem.Policies)
@@ -152,6 +153,7 @@ public sealed class TurnController
         LadderSystem.Handover(World);   // a head who died after the year's business was drawn: the seat's year is the new head's
         foreach (var pools in World.Pools.Values) pools.Regenerate();
         using (Perf.Time("begin:_economy.Accrue")) { _economy?.Accrue(World); }     // RNG-free, so determinism is preserved (GDD §17)
+        SystemWorks.Tick(World);   // last year's marks are cleared before this year's works are finished (docs/SYSTEMS.md)
         using (Perf.Time("begin:ProjectSystem.Tick")) { ProjectSystem.Tick(World, _content.Holdings, _content.Businesses); }   // a year passes on every building site (docs/ECONOMY_MARKET.md stage B)
         using (Perf.Time("begin:_ventures.Tick")) { _ventures?.Tick(World); }      // last year's offers lapse
         using (Perf.Time("begin:_regions.Tick")) { _regions.Tick(World); }        // the rings: lawlessness, allegiance, risings and secessions (GDD §19) — seeded only for a new leader's name

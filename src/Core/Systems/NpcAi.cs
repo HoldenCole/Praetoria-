@@ -482,9 +482,40 @@ public sealed class NpcAi
                 if (built) break;
             }
 
+            if (!built && !World.Outsider(house.Id)) using (Diagnostics.Perf.Time("npc:works")) Works(house, steward, catalog, executor, ctx);
             using (Diagnostics.Perf.Time("npc:venture")) Venture(house, steward, catalog, executor, ctx);
         }
     }
+
+    /// <summary>A rival house builds on the bodies of its systems and settles what lies empty beside it (docs/SYSTEMS.md). About one year
+    /// in three, by a hash, a house with coin to spare builds the first work it can on a body of a system it holds: what works a deposit
+    /// first, then what only that body's feature allows, then the rest; a megastructure only when it could pay for it twice. About one
+    /// year in six, a house with the coin sends a colony to an empty system a lane from a world of its own. One of each a year at most.</summary>
+    private void Works(House house, Character steward, HoldingCatalog catalog, CommandExecutor executor, CommandContext ctx)
+    {
+        var world = ctx.World; var g = world.Galaxy; if (g == null || catalog.Works.Count == 0) return;
+        uint h = 2166136261; foreach (var ch in house.Id + ":works:" + world.Turn) h = (h ^ ch) * 16777619;
+        var seats = world.HoldingsOf(house.Id).Where(x => x.IsPlanet && !x.InRebellion && x.SystemId.Length > 0).OrderBy(x => x.Id, StringComparer.Ordinal).ToList();
+        if (h % 3 == 0 && house.Treasury.Credits >= 24 && seats.Count > 0)
+        {
+            _worksInOrder ??= catalog.Works.OrderByDescending(d => d.Deposit.Length > 0).ThenByDescending(d => d.Feature.Length > 0).ThenBy(d => d.IsMegastructure).ThenBy(d => d.Id, StringComparer.Ordinal).ToList();
+            foreach (var seat in seats)
+            {
+                var sys = g.System(seat.SystemId); if (sys == null) continue;
+                for (int i = 0; i < sys.Bodies.Count; i++)
+                    foreach (var def in _worksInOrder)
+                    {
+                        if (!SystemWorks.Suits(sys, sys.Bodies[i], def)) continue;
+                        if (house.Treasury.Credits < def.Cost.Credits * (def.IsMegastructure ? 2 : 1) + 12) continue;   // a cushion kept; a megastructure only when it can afford to show off
+                        if (executor.TryExecute(new BuildWorkCommand(steward.Id, sys.Id, i, def.Id, catalog, Titles), ctx)) return;
+                    }
+            }
+        }
+        if (h % 6 == 1 && house.Treasury.Credits >= catalog.Colony.Cost.Credits + 20 && seats.Count > 0)
+            foreach (var target in seats.SelectMany(x => g.Neighbors(x.SystemId)).Distinct().OrderBy(x => x, StringComparer.Ordinal))
+                if (world.PlanetOf(target) == null && executor.TryExecute(new FoundColonyCommand(steward.Id, target, catalog), ctx)) return;
+    }
+    private List<WorkDef>? _worksInOrder;
 
     /// <summary>The steward's wider ledger (GDD §17): a house deep in the red borrows; a solvent one with a slack world
     /// invests in it; a house with coin to spare stakes a belt claim near home (or anywhere, if it holds nothing), founds

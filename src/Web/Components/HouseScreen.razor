@@ -143,7 +143,7 @@
                 {
                     var holding = w.Holding(h.Id)!; var sys = w.Galaxy?.System(holding.SystemId); var (pf, pg) = Svg.Planet(sys?.PlanetClass ?? "terran");
                     <div class="hcard @(h.Besieged ? "besieged" : "") @(h.Unrest >= 50 ? "restless" : "")">
-                        <div class="hc-head"><i class="pdot" style="background:radial-gradient(circle at 35% 35%, @pg, @pf)"></i><div><b>@h.Name</b><div class="muted small">@h.SpecName@(h.Kind == "station" ? " · station" : h.Kind == "claim" ? " · claim" : "")@(h.SystemName != null ? $" · {h.SystemName}" : "")@(h.Culture.Length > 0 ? $" · {h.Culture}" : "")</div></div>
+                        <div class="hc-head"><i class="pdot" style="background:radial-gradient(circle at 35% 35%, @pg, @pf)"></i><div><b>@h.Name</b><div class="muted small">@h.SpecName@(h.Kind == "station" ? " · station" : h.Kind == "claim" ? " · claim" : "")@(h.SystemName != null ? $" · {h.SystemName}" : "")@(h.Culture.Length > 0 ? $" · {h.Culture}" : "")@(h.Kind == "planet" && w.Holding(h.Id) is { } hw && SystemWorks.In(w, hw.SystemId).Count() is > 0 and var nw ? $" · {nw} work{(nw == 1 ? "" : "s")} round its sun" : "")</div></div>
                             @if (h.Besieged) { <span class="pill warn">besieged</span> }</div>
                         @if (h.Kind != "claim")
                         {
@@ -188,7 +188,7 @@
                     @foreach (var l in lg.Lines.OrderByDescending(x => x.Delta.Credits))
                     {
                         int v = l.Delta.Credits;
-                        <div class="lb" title="@Delta(l.Delta)"><span class="src"><Icon Name="@(l.Kind == "world" ? "planet" : l.Kind == "station" || l.Kind == "claim" ? "station" : l.Kind == "fleet" ? "fleet" : l.Kind == "loan" || l.Kind == "interest" ? "treasury_pool" : "trade_hub")" Size="11" /> @l.Source</span>
+                        <div class="lb" title="@Delta(l.Delta)"><span class="src"><Icon Name="@(l.Kind == "world" ? "planet" : l.Kind == "station" || l.Kind == "claim" || l.Kind == "work" ? "station" : l.Kind == "fleet" ? "fleet" : l.Kind == "loan" || l.Kind == "interest" ? "treasury_pool" : "trade_hub")" Size="11" /> @l.Source</span>
                             <span class="track"><i class="neg" style="width:@(v < 0 ? 50.0 * -v / maxAbs : 0)%"></i><i class="pos" style="width:@(v > 0 ? 50.0 * v / maxAbs : 0)%"></i></span>
                             <b class="@(v > 0 ? "good" : v < 0 ? "warn" : "muted")">@(v > 0 ? "+" : "")@v</b></div>
                     }

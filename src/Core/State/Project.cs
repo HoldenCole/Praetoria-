@@ -8,6 +8,8 @@ namespace Praetoria.Core.State;
 public sealed class Project
 {
     public const string Building = "building", Venture = "venture", Expansion = "expand";
+    /// <summary>A work on a body of a system (target "system#body"), and a colony on a system nobody holds (target the system): docs/SYSTEMS.md.</summary>
+    public const string Work = "work", Colony = "colony";
     public string Id { get; set; } = "";
     public string OwnerId { get; set; } = "";
     /// <summary>The company paying for it (stage C), or "" when the house pays.</summary>

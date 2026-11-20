@@ -25,7 +25,11 @@
     frozen: { sea: [170, 210, 240], land: [235, 245, 255], hi: [255, 255, 255], cloud: .35, atm: [210, 235, 255] },
     gas: { sea: [210, 140, 70], land: [250, 210, 140], hi: [255, 240, 210], cloud: 0, atm: [255, 220, 170], bands: true },
     belt: { sea: [110, 105, 100], land: [170, 160, 150], hi: [220, 210, 200], cloud: 0, atm: [0, 0, 0], belt: true },
-    barren: { sea: [150, 155, 165], land: [200, 208, 220], hi: [240, 244, 250], cloud: 0, atm: [200, 208, 220] }
+    barren: { sea: [150, 155, 165], land: [200, 208, 220], hi: [240, 244, 250], cloud: 0, atm: [200, 208, 220] },
+    // what else goes round a sun (docs/SYSTEMS.md): a moon, a comet, and the sun itself
+    moon: { sea: [112, 112, 120], land: [176, 176, 186], hi: [232, 232, 238], cloud: 0, atm: [170, 170, 182] },
+    comet: { sea: [150, 200, 230], land: [220, 240, 255], hi: [255, 255, 255], cloud: 0, atm: [180, 230, 255] },
+    star: { sea: [255, 170, 40], land: [255, 222, 120], hi: [255, 250, 220], cloud: 0, atm: [255, 220, 140], glow: true }
   };
 
   const cache = {};

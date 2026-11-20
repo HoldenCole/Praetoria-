@@ -258,14 +258,27 @@ export class Galaxy {
       const sun = new THREE.Sprite(sunMat(cls[0])); const sz = (17 + Math.min(9, (s.pop || 0) / 6)) * cls[1]; sun.scale.set(sz, sz, 1); g.add(sun);
       const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); core.scale.set(7 * cls[1], 7 * cls[1], 1); g.add(core);
       const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.flare, color: cls[0], transparent: true, opacity: .3, blending: THREE.AdditiveBlending, depthWrite: false })); flare.scale.set(sz * 2.6, sz * .16, 1); g.add(flare);
+      if (s.sunWorks) { const halo = new THREE.Mesh(new THREE.RingGeometry(sz * .46, sz * .5, 48), new THREE.MeshBasicMaterial({ color: 0xffd36a, transparent: true, opacity: .8, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); halo.userData.spinZ = -0.25; g.add(halo); }   // something is built round the sun itself
       if (s.isPlayer) { const home = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffe8a3, transparent: true, opacity: .35, blending: THREE.AdditiveBlending, depthWrite: false })); home.scale.set(sz * 2.2, sz * 2.2, 1); home.userData.pulse = true; g.add(home); }
       // the system, not one planet (GDD §19): every body on its own orbit, the primary a lit sphere, the rest sprites
       const bodies = (s.bodies && s.bodies.length) ? s.bodies : [{ name: s.name, cls: s.planetClass, size: 3, primary: true }];
       const orbitMat = new THREE.LineBasicMaterial({ color: 0xc9a24a, transparent: true, opacity: .09 });
       let planet = null; const pr = 5.5 + Math.min(4, (s.pop || 0) / 15);
+      // what goes round the sun has an orbit of its own; a moon sits beside its world (docs/SYSTEMS.md). A body with something built on it carries a small gold light.
+      const at = {}; let lane = 0; bodies.forEach((b, bi) => { if (b.orbits == null || b.orbits < 0) { const orb = 14 + lane * 10.5, ang = ((h >> (lane * 3)) % 628) / 100 + lane * 1.7; at[bi] = { orb, x: Math.cos(ang) * orb, y: Math.sin(ang) * orb * .78 }; lane++; } });
+      const orbiting = Math.max(1, lane); const moonsOf = {};
+      const built = (x, y, z) => { const lamp = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffd36a, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false })); lamp.scale.set(3.4, 3.4, 1); lamp.position.set(x, y, z); g.add(lamp); };
       bodies.forEach((b, bi) => {
-        const orb = 14 + bi * 10.5; const ang = ((h >> (bi * 3)) % 628) / 100 + bi * 1.7; const bx = Math.cos(ang) * orb, by = Math.sin(ang) * orb * .78;
+        if (b.orbits != null && b.orbits >= 0 && at[b.orbits]) {   // a moon: close in beside its world, no ring of its own
+          const k = moonsOf[b.orbits] = (moonsOf[b.orbits] || 0) + 1, pa = at[b.orbits], ma = ((h >> (bi + 2)) % 628) / 100 + k * 2.3, mr = 5.2 + k * 2.4, mx = pa.x + Math.cos(ma) * mr, my = pa.y + Math.sin(ma) * mr * .78;
+          const mtex = window.praetoriaFx ? new THREE.TextureLoader().load(window.praetoriaFx.planet('moon', s.id + b.name, 48)) : null; if (mtex) mtex.colorSpace = THREE.SRGBColorSpace;
+          const ms = new THREE.Sprite(new THREE.SpriteMaterial({ map: mtex, color: mtex ? 0xffffff : 0xb0b0ba, transparent: true, depthWrite: false })); ms.scale.set(2.4, 2.4, 1); ms.position.set(mx, my, 4.5); g.add(ms);
+          if (b.works) built(mx + 1.6, my + 1.6, 6);
+          return;
+        }
+        const here = at[bi] || { orb: 14, x: 14, y: 0 }; const orb = here.orb, bx = here.x, by = here.y;
         const ring = new THREE.Line(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 65 }, (_, i) => { const a = i / 64 * Math.PI * 2; return new THREE.Vector3(Math.cos(a) * orb, Math.sin(a) * orb * .78, 1); })), orbitMat); g.add(ring);
+        if (b.works) built(bx + (b.primary ? pr * .8 : 3), by + (b.primary ? pr * .8 : 3), 7);
         if (b.primary) {
           const ptex = window.praetoriaFx ? new THREE.TextureLoader().load(window.praetoriaFx.planet(b.cls, s.id, 128)) : null; if (ptex) ptex.colorSpace = THREE.SRGBColorSpace;
           planet = new THREE.Mesh(new THREE.SphereGeometry(pr, 32, 24), new THREE.MeshStandardMaterial({ color: ptex ? 0xffffff : planetColor(b.cls), map: ptex, roughness: 0.8, metalness: 0.0, emissive: new THREE.Color(planetColor(b.cls)).multiplyScalar(0.12) }));
@@ -275,7 +288,7 @@ export class Galaxy {
           const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); g.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xc9bca8, size: 1.3, transparent: true, opacity: .85 })));
         } else {
           const tex = window.praetoriaFx ? new THREE.TextureLoader().load(window.praetoriaFx.planet(b.cls, s.id + b.name, 64)) : null; if (tex) tex.colorSpace = THREE.SRGBColorSpace;
-          const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: tex ? 0xffffff : planetColor(b.cls), transparent: true, depthWrite: false })); const bs = b.size === 3 ? 7.5 : b.size === 2 ? 5 : 3.2; sp.scale.set(bs, bs, 1); sp.position.set(bx, by, 4); g.add(sp);
+          const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: tex ? 0xffffff : planetColor(b.cls), transparent: true, depthWrite: false })); const bs = b.cls === 'comet' ? 2.6 : b.size === 3 ? 7.5 : b.size === 2 ? 5 : 3.2; sp.scale.set(bs, bs, 1); sp.position.set(bx, by, 4); g.add(sp);
         }
       });
       if (!planet) { planet = new THREE.Mesh(new THREE.SphereGeometry(pr, 16, 12), new THREE.MeshStandardMaterial({ color: planetColor(s.planetClass) })); planet.position.set(15, -10, 5); g.add(planet); }
@@ -294,10 +307,10 @@ export class Galaxy {
       if (s.target) { const tr = new THREE.Mesh(new THREE.RingGeometry(sz * 0.9, sz * 0.93, 64), new THREE.MeshBasicMaterial({ color: 0xc9a24a, transparent: true, opacity: s.target === 1 ? 0.95 : 0.4, side: THREE.DoubleSide })); tr.userData.pulse = true; g.add(tr); }
       if (s.id === this.selected.systemId) { const sel = new THREE.Mesh(new THREE.RingGeometry(sz * 0.56, sz * 0.6, 64), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: 0.95, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); sel.userData.spinZ = 0.6; g.add(sel); const sel2 = new THREE.Mesh(new THREE.RingGeometry(sz * 0.66, sz * 0.67, 64), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: 0.5, side: THREE.DoubleSide })); g.add(sel2); }
       for (let k = 0; k < (s.stations || 0); k++) { const st = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.station, color: 0xc9bca8, transparent: true, depthWrite: false })); st.scale.set(5, 5, 1); st.position.set(-12 - k * 6, 10, 3); g.add(st); }
-      const hit = new THREE.Mesh(new THREE.SphereGeometry(Math.max(sz * 0.55, 14 + bodies.length * 10.5), 8, 8), new THREE.MeshBasicMaterial({ visible: false })); hit.userData = { kind: 'system', id: s.id }; g.add(hit); this.hitTargets.push(hit);
+      const hit = new THREE.Mesh(new THREE.SphereGeometry(Math.max(sz * 0.55, 14 + orbiting * 10.5), 8, 8), new THREE.MeshBasicMaterial({ visible: false })); hit.userData = { kind: 'system', id: s.id }; g.add(hit); this.hitTargets.push(hit);
       // label
       const el = document.createElement('div'); el.className = 'sys-label' + (s.isPlayer ? ' mine' : ''); el.innerHTML = `<span class="n">${s.capital ? '♛ ' : ''}${esc(s.name)}</span>${s.ownerName ? `<span class="o" style="color:${s.accent}">${esc(s.ownerName)}</span>` : ''}${s.target ? `<span class="j">${s.target}j</span>` : ''}${s.deposits ? `<span class="d">${esc(s.deposits)}</span>` : ''}`;
-      const lab = new CSS2DObject(el); lab.position.set(0, -(14 + bodies.length * 10.5) * .78 - 8, 0); g.add(lab); this.labels.push(lab);
+      const lab = new CSS2DObject(el); lab.position.set(0, -(14 + orbiting * 10.5) * .78 - 8, 0); g.add(lab); this.labels.push(lab);
       this.objects.add(g);
     }
     for (const key of Object.keys(this.polities)) { const pz = this.polities[key]; if (!pz.name) continue; const el = document.createElement('div'); el.className = 'polity-label'; el.textContent = pz.name; el.style.color = pz.color; el.style.fontSize = Math.round(Math.min(30, 14 + pz.n * 0.4)) + 'px'; const lab = new CSS2DObject(el); lab.position.set(pz.x / pz.n, pz.y / pz.n, 6); this.objects.add(lab); this.labels.push(lab); }
@@ -447,5 +460,7 @@ window.praetoriaSpace = {
   setModel(id, json) { const g = this.galaxies.get(id); if (!g) return false; const m = JSON.parse(json); g.setSelection(m.selected); g.setModel(m); return true; },
   zoom(id, f) { this.galaxies.get(id)?.zoom(f); }, home(id) { this.galaxies.get(id)?.home(); }, fit(id) { this.galaxies.get(id)?.fit(); }, focus(id, x, y) { this.galaxies.get(id)?.focus(x, y); },
   minimap(id, canvas) { this.galaxies.get(id)?.setMinimap(canvas); },
+  // pick a system as a click on it would, and look at it close to: for the keyboard, and for the scripts in tools/browser (the first map when no id is given)
+  select(systemId, id) { const g = id ? this.galaxies.get(id) : [...this.galaxies.values()][0]; if (!g || !g.model) return false; const s = g.model.systems.find(x => x.id === systemId || x.name === systemId); if (!s) return false; g.dotnet?.invokeMethodAsync('OnPick', 'system', s.id); g.focus(s.x, s.y); return s.id; },
   destroy(id) { const g = this.galaxies.get(id); if (g) { g.dispose(); this.galaxies.delete(id); } }
 };

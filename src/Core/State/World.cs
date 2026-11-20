@@ -116,6 +116,8 @@ public sealed class World
 
     /// <summary>Everything under construction (docs/ECONOMY_MARKET.md stage B), in the order begun.</summary>
     public List<Project> Projects { get; set; } = new();
+    /// <summary>What has been built on the bodies of the systems (docs/SYSTEMS.md).</summary>
+    public List<BodyWork> BodyWorks { get; set; } = new();
     /// <summary>Ventures offered for sale to a named house, until they lapse.</summary>
     public List<VentureOffer> Offers { get; set; } = new();
     public IEnumerable<Project> ProjectsOf(string houseId) => Projects.Where(p => p.OwnerId == houseId);

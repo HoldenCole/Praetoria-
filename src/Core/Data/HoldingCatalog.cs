@@ -77,6 +77,60 @@ public sealed class BuildingDef
         Requires == null || Requires == specialization;
 }
 
+/// <summary>Something that makes one solar system unlike another (docs/SYSTEMS.md): great rings, a wreck field, ruins older than the
+/// Reach. It is found on a body of the kinds it names, and it opens one work that can be built nowhere else.</summary>
+public sealed record FeatureDef(string Id, string Name, IReadOnlyList<string> Bodies, int Weight, string Description);
+
+/// <summary>What it takes to settle a system nobody holds (docs/SYSTEMS.md): the cost, the years, and the colony it becomes.</summary>
+public sealed record ColonyRule(Resources Cost, int BuildTurns, int Population, string Specialization)
+{
+    public static ColonyRule Default { get; } = new(new Resources { Credits = 30, Materials = 20, Manpower = 8, Influence = 2 }, 3, 6, "frontier_colony");
+}
+
+/// <summary>A work: what the holder of a system builds on one of its bodies (docs/SYSTEMS.md) — a colony, a mine, a base, a
+/// megastructure, or a wonder that only one feature allows. Its yearly <see cref="Yield"/> less <see cref="Upkeep"/> goes to whoever
+/// holds the system's world; the rest of what it does is in the fields. Pure data.</summary>
+public sealed class WorkDef
+{
+    public const string Colony = "colony", Extraction = "extraction", Military = "military", Orbital = "orbital", Megastructure = "megastructure", Wonder = "wonder";
+    public const string PerBody = "body", PerSystem = "system", PerHouse = "house", PerGalaxy = "galaxy";
+    public string Id { get; init; } = "";
+    public string Name { get; init; } = "";
+    public string Category { get; init; } = Orbital;
+    public string Description { get; init; } = "";
+    /// <summary>The kinds of body it suits; empty = any but the sun.</summary>
+    public IReadOnlyList<string> Bodies { get; init; } = Array.Empty<string>();
+    /// <summary>The feature the body must have, or "".</summary>
+    public string Feature { get; init; } = "";
+    /// <summary>The deposit the body must carry, or "": the work brings up richness-many of what it yields of that good.</summary>
+    public string Deposit { get; init; } = "";
+    /// <summary>A work that must already stand on the same body, or "".</summary>
+    public string Requires { get; init; } = "";
+    /// <summary>How many may stand: one on a body (the default), one in a system, one in all a house holds, one in the galaxy.</summary>
+    public string Limit { get; init; } = PerBody;
+    /// <summary>Only in a system that is a key of the lanes.</summary>
+    public bool Chokepoint { get; init; }
+    public Resources Cost { get; init; } = new();
+    public Resources Yield { get; init; } = new();
+    public Resources Upkeep { get; init; } = new();
+    public int BuildTurns { get; init; }
+    public int MinTitleRank { get; init; }
+    public bool IsMegastructure { get; init; }
+    public double Defense { get; init; }
+    /// <summary>Supplies fleets as a supply depot does.</summary>
+    public bool Depot { get; init; }
+    /// <summary>Added to where the world's prosperity is heading.</summary>
+    public int Prosperity { get; init; }
+    /// <summary>Added to the world's unrest every year (negative calms it).</summary>
+    public int Unrest { get; init; }
+    /// <summary>Added to the most the world can hold.</summary>
+    public int Population { get; init; }
+    /// <summary>Given once, when it is finished: legitimacy to the house, and glory.</summary>
+    public int Legitimacy { get; init; }
+    public int Glory { get; init; }
+    public bool Fits(string bodyClass) => Bodies.Count == 0 ? bodyClass != "star" : Bodies.Contains(bodyClass);
+}
+
 /// <summary>
 /// The loaded domain-economy catalog (BuildSpec §2 /content — holdings/specializations/buildings as
 /// data). Joined to live <see cref="Holding"/>s by id at runtime, exactly as events join to text.
@@ -114,6 +168,15 @@ public sealed class HoldingCatalog
 
     public static HoldingCatalog Empty { get; } =
         new(Array.Empty<HoldingSpec>(), Array.Empty<BuildingDef>());
+
+    /// <summary>What may be built on the bodies of a system, what makes one system unlike another, and what a colony takes (docs/SYSTEMS.md).
+    /// They ride in this catalog because everything that reckons a house's year already has it in hand.</summary>
+    public IReadOnlyList<WorkDef> Works { get; init; } = Array.Empty<WorkDef>();
+    public IReadOnlyList<FeatureDef> Features { get; init; } = Array.Empty<FeatureDef>();
+    public ColonyRule Colony { get; init; } = ColonyRule.Default;
+    private Dictionary<string, WorkDef>? _works;
+    public WorkDef? Work(string id) => (_works ??= Works.ToDictionary(w => w.Id)).TryGetValue(id, out var d) ? d : null;
+    public FeatureDef? Feature(string id) => Features.FirstOrDefault(f => f.Id == id);
 
     public HoldingSpec? Spec(string id) => _specs.TryGetValue(id, out var s) ? s : null;
     public BuildingDef? Building(string id) => _buildings.TryGetValue(id, out var b) ? b : null;

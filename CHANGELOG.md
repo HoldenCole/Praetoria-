@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+- **Solar systems** (docs/SYSTEMS.md; the owner: "there ... should be multiple planets, asteroids and other things per
+  solar system ... you should be able to do things for and with every part of your solar system"). Every system is a sun
+  and what goes round it: worlds, moons, giants, a belt, a comet, four to ten bodies, with one or two of eighteen features
+  that make it unlike its neighbours. The holder of a system builds on every body in it: 38 works, among them colonies,
+  mines, skimmers, batteries, a fleet anchorage, a fortress moon, a foundry round the sun, and a work for each feature
+  that can be built nowhere else (the Ring Habitat, the Great Dig, the Old Capital Restored). Works pay into the ledger,
+  defend the system, supply fleets and make room for people; they go with the world when it changes hands.
+- **Settling.** A system nobody holds can be colonised from a world a lane away, or under a fleet standing in it.
+- Rival houses build works and send colonies too. Clicking a system on the map opens it body by body.
 - **The size of the map** (docs/GALAXY_SIZE.md; the owner: "a scaler for how big the galaxy is ... the empire that you
   are a part of, and the other empires would be bigger as well"). A setting on the new-game screen: small (the map as
   written, 50 systems), medium (about 80), large (about 115) and extra large (about 165). A larger map is grown from the

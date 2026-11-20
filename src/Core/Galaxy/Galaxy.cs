@@ -32,6 +32,8 @@ public sealed class StarSystem
     public string Description { get; set; } = "";
     /// <summary>Not on the written map: added when the game was begun at a larger size (docs/GALAXY_SIZE.md).</summary>
     public bool Grown { get; set; }
+    /// <summary>Its sun, moons, belt and features have been filled in (docs/SYSTEMS.md): done once, when the game begins.</summary>
+    public bool Furnished { get; set; }
 }
 
 /// <summary>A body in a system: a world, a moon, a gas giant, a belt. Decorative except the primary, which is the world a holding sits on.</summary>
@@ -42,6 +44,16 @@ public sealed class Body
     /// <summary>1 small (a moon, a rock), 2 a world, 3 the primary or a giant.</summary>
     public int Size { get; set; } = 2;
     public bool IsPrimary { get; set; }
+    /// <summary>What it goes round: the index of its world in the system's bodies, for a moon; -1 for what goes round the sun.</summary>
+    public int Orbits { get; set; } = -1;
+    /// <summary>What makes it unlike any other (docs/SYSTEMS.md): a feature id from content, or "".</summary>
+    public string Feature { get; set; } = "";
+    /// <summary>The strategic deposit it carries, or "": the system's richness of that good is brought up here.</summary>
+    public string Deposit { get; set; } = "";
+    public const string Star = "star", Moon = "moon", Comet = "comet", Belt = "belt";
+    public bool IsStar => Class == Star;
+    /// <summary>How many works it has room for: one on the sun, a rock or a moon; two on a world or a belt; three on the system's own world or a giant.</summary>
+    public int Slots => IsStar ? 1 : Class == Belt ? 2 : Math.Clamp(Size, 1, 3);
 }
 
 /// <summary>A region of space: a handful of systems that share a culture and a character (GDD §19). Loyalties and houses

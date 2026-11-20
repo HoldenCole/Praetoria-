@@ -1,0 +1,107 @@
+@inject GameClient G
+@* A solar system, body by body (docs/SYSTEMS.md): what goes round the sun, what makes each body unlike any other, what is built on it
+   and what is being built, and, for the house that holds the system's world, what may be built there. One body is open at a time. *@
+@{
+    var w = G.World!; var c = G.Content!; var cat = c.Holdings; var sys = w.Galaxy!.System(SystemId); if (sys == null) return;
+    var me = w.Protagonist!; var house = w.House(me.HouseId)!; var planet = w.PlanetOf(sys.Id); bool mine = planet?.OwnerId == house.Id;
+    var ctx = new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0));
+    if (_for != sys.Id) { _for = sys.Id; _open = -1; }
+    // the sun first, then each world with its moons under it, then the rest in the order they lie
+    var order = new List<int>(); int sun = sys.Bodies.FindIndex(b => b.IsStar); if (sun >= 0) order.Add(sun);
+    for (int i = 0; i < sys.Bodies.Count; i++) { if (sys.Bodies[i].IsStar || sys.Bodies[i].Orbits >= 0) continue; order.Add(i); for (int m = 0; m < sys.Bodies.Count; m++) if (sys.Bodies[m].Orbits == i) order.Add(m); }
+    var colony = planet == null ? w.Projects.FirstOrDefault(p => p.Kind == Project.Colony && p.TargetId == sys.Id) : null;
+}
+<div class="sysp" data-system="@sys.Id">
+    @if (planet == null)
+    {
+        var fc = new FoundColonyCommand(me.Id, sys.Id, cat); string? why = fc.Refusal(ctx);
+        <div class="sysp-settle">
+            @if (colony != null) { <div class="empty-line">@(w.House(colony.OwnerId)?.Name ?? "A house") has a colony on its way here: @colony.TurnsLeft year(s) more.</div> }
+            else
+            {
+                <div class="empty-line">Nobody holds this system. A colony would make its world yours, and every body round its sun yours to build on.</div>
+                <button class="opt" disabled="@(why != null)" title="@(why ?? "Ships, settlers and stores: the cost is paid over the years they are on the way.")" @onclick="() => G.Execute(new FoundColonyCommand(me.Id, sys.Id, cat))">Send a colony · @CourtProjection.Bundle(cat.Colony.Cost) · @cat.Colony.BuildTurns years</button>
+                @if (why != null) { <div class="muted small">@Cap(why).</div> }
+            }
+        </div>
+    }
+    else if (!mine) { <div class="muted small sysp-note">Held by @(w.House(planet.OwnerId)?.Name ?? "another"). What is built here is theirs while they hold the world, and would be yours if you took it.</div> }
+    @foreach (int i in order)
+    {
+        var b = sys.Bodies[i]; var feat = b.Feature.Length > 0 ? cat.Feature(b.Feature) : null;
+        var works = SystemWorks.On(w, sys.Id, i).Select(x => cat.Work(x.DefId)).Where(d => d != null).ToList(); var rising = SystemWorks.Underway(w, sys.Id, i).ToList();
+        bool open = _open == i; int idx = i; int px = b.IsStar || b.IsPrimary ? 30 : b.Orbits >= 0 ? 16 : 18 + b.Size * 4;
+        string sprite = $"{b.Class}|{sys.Id}{b.Name}|{px}";
+        <div class="sysp-body @(open ? "open" : "") @(b.Orbits >= 0 ? "moon" : "") @(b.IsStar ? "star" : "")" data-body="@b.Class">
+            <button class="sysp-row" @onclick="() => _open = _open == idx ? -1 : idx" title="@(feat?.Description ?? Kind(b))">
+                <img class="sprite" data-planet="@sprite" alt="" />
+                <span class="sysp-name"><b>@b.Name</b><span class="muted">@Kind(b)@(b.IsPrimary ? " · the system's world" : "")</span></span>
+                <span class="sysp-marks">
+                    @if (feat != null) { <span class="pill small feat">@feat.Name</span> }
+                    @if (b.Deposit.Length > 0) { <span class="pill small dep" title="@($"A {Resource.Label(b.Deposit)} deposit: richness {sys.Deposit(b.Deposit)}")">@Resource.Label(b.Deposit) @(new string('●', sys.Deposit(b.Deposit)))</span> }
+                    <span class="sysp-slots" title="@($"{works.Count} built · {rising.Count} rising · room for {b.Slots}")">@for (int k = 0; k < b.Slots; k++) { <i class="@(k < works.Count ? "on" : k < works.Count + rising.Count ? "up" : "")"></i> }</span>
+                </span>
+            </button>
+            @if (works.Count > 0 || rising.Count > 0)
+            {
+                <div class="sysp-built">
+                    @foreach (var d in works) { <span class="built" title="@($"{d!.Description} {Does(d, sys)}")">@d!.Name</span> }
+                    @foreach (var p in rising) { <span class="built up" title="@($"{Bundle(ProjectSystem.Remaining(p))} still to pay")">@(cat.Work(p.DefId)?.Name ?? p.DefId) · @p.TurnsLeft y</span> }
+                </div>
+            }
+            @if (open)
+            {
+                <div class="sysp-open">
+                    @if (feat != null) { <p class="sysp-desc">@feat.Description</p> }
+                    @{ var fits = cat.Works.Where(d => SystemWorks.Suits(sys, b, d) && !works.Any(x => x!.Id == d.Id) && !rising.Any(p => p.DefId == d.Id)).OrderByDescending(d => d.Feature.Length > 0).ThenByDescending(d => d.Deposit.Length > 0).ThenBy(d => d.Cost.Credits + d.Cost.Materials).ToList(); }
+                    @if (fits.Count == 0) { <div class="muted small">@(works.Count > 0 || rising.Count > 0 ? "Everything that suits it is built or rising." : "Nothing can be built here.")</div> }
+                    @foreach (var d in fits)
+                    {
+                        string? no = mine ? new BuildWorkCommand(me.Id, sys.Id, idx, d.Id, cat, c.Titles).Refusal(ctx) : null; string did = d.Id;
+                        <div class="sysp-work @(d.Feature.Length > 0 ? "unique" : "") @(d.IsMegastructure ? "mega" : "")">
+                            <div class="sw-head"><b>@d.Name</b> <span class="muted small">@Category(d)</span></div>
+                            <div class="muted small">@d.Description</div>
+                            <div class="sw-does">@Does(d, sys)</div>
+                            <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@(d.BuildTurns > 1 ? $" · {d.BuildTurns} years" : "")</span>
+                                @if (mine) { <button class="opt inline" disabled="@(no != null)" title="@(no != null ? Cap(no) : d.BuildTurns > 1 ? "Begun now and paid for as it rises." : "")" @onclick="() => G.Execute(new BuildWorkCommand(me.Id, sys.Id, idx, did, cat, c.Titles))">@(d.BuildTurns > 1 ? "Begin" : "Build")</button> }
+                            </div>
+                            @if (mine && no != null) { <div class="sw-no">@Cap(no)</div> }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string SystemId { get; set; } = "";
+    private int _open = -1; private string? _for;
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private static string Bundle(Resources r) => r.IsEmpty() ? "nothing" : CourtProjection.Bundle(r);
+    private static string Kind(Body b) => b.Class switch
+    {
+        "star" => "the sun", "moon" => "moon", "comet" => "comet", "belt" => "asteroid belt", "gas" => "gas giant", "terran" => "living world", "ocean" => "ocean world",
+        "arid" => "arid world", "forge" => "forge world", "frozen" => b.Size <= 1 ? "ice dwarf" : "frozen world", "barren" => b.Size <= 1 ? "rock" : "dead world", _ => b.Class
+    };
+    private static string Category(WorkDef d) => d.Feature.Length > 0 ? "only here" : d.Limit == WorkDef.PerGalaxy ? "a wonder: one in the galaxy" : d.Category switch
+    {
+        WorkDef.Colony => "colony", WorkDef.Extraction => "extraction", WorkDef.Military => "military", WorkDef.Megastructure => "megastructure", WorkDef.Wonder => d.Limit == WorkDef.PerHouse ? "one to a house" : "wonder", _ => "orbital"
+    };
+    /// <summary>What a work does, in a line: what it brings a year, what it costs to keep, and the rest.</summary>
+    private static string Does(WorkDef d, StarSystem sys)
+    {
+        var parts = new List<string>(); var y = new Resources();
+        foreach (var r in Resource.All) y.Set(r, d.Deposit == r ? d.Yield.Get(r) * Math.Max(1, sys.Deposit(r)) : d.Yield.Get(r));
+        if (!y.IsEmpty()) parts.Add($"+{CourtProjection.Bundle(y)} a year");
+        if (!d.Upkeep.IsEmpty()) parts.Add($"upkeep {CourtProjection.Bundle(d.Upkeep)}");
+        if (d.Defense > 0) parts.Add($"defence +{d.Defense:0.##} ({(int)Math.Ceiling(2 * d.Defense)} more year(s) to besiege)");
+        if (d.Depot) parts.Add("supplies fleets as a depot");
+        if (d.Population > 0) parts.Add($"room for {d.Population} more people");
+        if (d.Prosperity != 0) parts.Add($"prosperity {(d.Prosperity > 0 ? "+" : "")}{d.Prosperity}");
+        if (d.Unrest != 0) parts.Add(d.Unrest < 0 ? $"unrest {d.Unrest} a year" : $"unrest +{d.Unrest} a year");
+        if (d.Legitimacy > 0) parts.Add($"legitimacy +{d.Legitimacy} when finished");
+        if (d.Glory > 0) parts.Add($"glory +{d.Glory}");
+        return string.Join(" · ", parts);
+    }
+}

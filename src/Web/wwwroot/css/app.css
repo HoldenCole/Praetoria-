@@ -1015,3 +1015,24 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 /* The map's legend: a realm's border (gold for your own) and another realm's hatched land. */
 .legend .sw.realm-own { background: none; border: 0; border-top: 2px solid #ffde96; height: 0; width: 14px; border-radius: 0; box-shadow: 0 0 5px rgba(255,222,150,.7); }
 .legend .sw.realm-other { background: repeating-linear-gradient(135deg, rgba(215,38,61,.85) 0 2px, rgba(215,38,61,.25) 2px 5px); border: 1px solid #d7263d; }
+
+/* A solar system, body by body (docs/SYSTEMS.md): rows, one open at a time; a moon is set in under its world. */
+.sys-tabs { margin: .5rem 0 .4rem; }
+.sysp { display: flex; flex-direction: column; }
+.sysp-settle { margin: .2rem 0 .6rem; } .sysp-note { margin: 0 0 .4rem; }
+.sysp-body { border-bottom: 1px solid var(--line); } .sysp-body.moon { margin-left: 1.5rem; } .sysp-body.open { background: rgba(255,255,255,.03); }
+.sysp-row { display: flex; align-items: center; gap: .55rem; width: 100%; padding: .34rem .2rem; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.sysp-row:hover { background: rgba(255,255,255,.045); }
+.sysp-row .sprite { flex: 0 0 auto; width: 26px; height: 26px; object-fit: contain; } .sysp-body.moon .sysp-row .sprite { width: 16px; height: 16px; margin: 0 5px; }
+.sysp-body.star .sysp-row .sprite { filter: drop-shadow(0 0 6px rgba(255,210,120,.9)); }
+.sysp-name { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; } .sysp-name b { font-size: .86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .sysp-name .muted { font-size: .68rem; }
+.sysp-marks { flex: 0 0 auto; display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; justify-content: flex-end; max-width: 55%; }
+.pill.small.feat { border-color: var(--brass3); color: var(--brass2); } .pill.small.dep { border-color: #4f6f95; color: #9fc8ee; }
+.sysp-slots { display: inline-flex; gap: 2px; } .sysp-slots i { width: 7px; height: 7px; border: 1px solid var(--line2); border-radius: 50%; display: inline-block; }
+.sysp-slots i.on { background: var(--brass2); border-color: var(--brass2); } .sysp-slots i.up { background: none; border-color: var(--brass2); border-style: dashed; }
+.sysp-built { display: flex; flex-wrap: wrap; gap: .25rem .4rem; padding: 0 .2rem .35rem 2.4rem; } .sysp-body.moon .sysp-built { padding-left: 2.2rem; }
+.sysp-built .built { font-size: .7rem; color: var(--brass2); border-left: 2px solid var(--brass3); padding-left: .35rem; } .sysp-built .built.up { color: var(--ink2); border-left-style: dashed; }
+.sysp-open { padding: .1rem .3rem .6rem 2.4rem; } .sysp-desc { font-family: var(--serif); font-size: .92rem; color: var(--ink2); margin: 0 0 .5rem; }
+.sysp-work { padding: .4rem 0; border-top: 1px dotted var(--line); } .sysp-work.unique .sw-head b { color: var(--brass2); } .sysp-work.mega .sw-head b::after { content: " ◆"; color: var(--brass3); font-size: .7em; }
+.sw-head b { font-size: .85rem; } .sw-does { font-size: .74rem; color: var(--ink); margin: .15rem 0; }
+.sw-cost { display: flex; align-items: center; justify-content: space-between; gap: .5rem; font-size: .74rem; color: var(--ink2); } .sw-no { font-size: .7rem; color: var(--warn); }

@@ -29,6 +29,7 @@ public static class HoldingCatalogLoader
         var rates = new List<ExchangeRate>();
         var exchangeBuildings = new List<string>();
         var taxes = new List<TaxPolicy>();
+        var works = new List<WorkDef>(); var features = new List<FeatureDef>(); ColonyRule colony = ColonyRule.Default;
         int contiguity = 0;
 
         foreach (var file in Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories)
@@ -56,6 +57,14 @@ public static class HoldingCatalogLoader
                         taxes.Add(new TaxPolicy(ConditionParser.Str(t, "id"), ConditionParser.OptStr(t, "name", ConditionParser.Str(t, "id")),
                             ConditionParser.Int(t, "creditsBonus", 0), ConditionParser.Int(t, "unrestDrift", 0), ConditionParser.Int(t, "legitimacyPerTurn", 0)));
                 contiguity = Math.Max(contiguity, ConditionParser.Int(root, "contiguityBonus", 0));
+                // what a solar system holds and what may be built on it (docs/SYSTEMS.md)
+                if (root.TryGetProperty("works", out var wArr) && wArr.ValueKind == JsonValueKind.Array)
+                    foreach (var el in wArr.EnumerateArray()) works.Add(ParseWork(el));
+                if (root.TryGetProperty("features", out var fArr) && fArr.ValueKind == JsonValueKind.Array)
+                    foreach (var el in fArr.EnumerateArray())
+                        features.Add(new FeatureDef(ConditionParser.Str(el, "id"), ConditionParser.OptStr(el, "name", ConditionParser.Str(el, "id")), Strings(el, "bodies"), ConditionParser.Int(el, "weight", 1), ConditionParser.OptStr(el, "description", "")));
+                if (root.TryGetProperty("colony", out var col) && col.ValueKind == JsonValueKind.Object)
+                    colony = new ColonyRule(ParseResources(col, "cost"), ConditionParser.Int(col, "buildTurns", 3), ConditionParser.Int(col, "population", 6), ConditionParser.OptStr(col, "specialization", "frontier_colony"));
             }
             catch (JsonException ex)
             {
@@ -63,8 +72,28 @@ public static class HoldingCatalogLoader
             }
         }
 
-        return new HoldingCatalog(specs, buildings, rates, exchangeBuildings, taxes, contiguity);
+        if (works.Count != works.Select(w => w.Id).Distinct().Count()) throw new ContentException("Two works share an id (content/holdings).");
+        foreach (var w in works)
+        {
+            if (w.Feature.Length > 0 && features.All(f => f.Id != w.Feature)) throw new ContentException($"Work '{w.Id}' wants a feature '{w.Feature}' that is not defined.");
+            if (w.Requires.Length > 0 && works.All(o => o.Id != w.Requires)) throw new ContentException($"Work '{w.Id}' requires a work '{w.Requires}' that is not defined.");
+        }
+        return new HoldingCatalog(specs, buildings, rates, exchangeBuildings, taxes, contiguity) { Works = works, Features = features, Colony = colony };
     }
+
+    private static List<string> Strings(JsonElement el, string name) =>
+        el.TryGetProperty(name, out var a) && a.ValueKind == JsonValueKind.Array ? a.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString() ?? "").ToList() : new List<string>();
+
+    private static WorkDef ParseWork(JsonElement el) => new()
+    {
+        Id = ConditionParser.Str(el, "id"), Name = ConditionParser.OptStr(el, "name", ConditionParser.Str(el, "id")), Category = ConditionParser.OptStr(el, "category", WorkDef.Orbital),
+        Description = ConditionParser.OptStr(el, "description", ""), Bodies = Strings(el, "bodies"), Feature = ConditionParser.OptStr(el, "feature", ""), Deposit = ConditionParser.OptStr(el, "deposit", ""),
+        Requires = ConditionParser.OptStr(el, "requires", ""), Limit = ConditionParser.OptStr(el, "limit", WorkDef.PerBody), Chokepoint = ConditionParser.Bool(el, "chokepoint", false),
+        Cost = ParseResources(el, "cost"), Yield = ParseResources(el, "yield"), Upkeep = ParseResources(el, "upkeep"), BuildTurns = ConditionParser.Int(el, "buildTurns", 1),
+        MinTitleRank = ConditionParser.Int(el, "minTitleRank", 0), IsMegastructure = ConditionParser.Bool(el, "megastructure", false), Defense = Dbl(el, "defense"), Depot = ConditionParser.Bool(el, "depot", false),
+        Prosperity = ConditionParser.Int(el, "prosperity", 0), Unrest = ConditionParser.Int(el, "unrest", 0), Population = ConditionParser.Int(el, "population", 0),
+        Legitimacy = ConditionParser.Int(el, "legitimacy", 0), Glory = ConditionParser.Int(el, "glory", 0)
+    };
 
     private static HoldingSpec ParseSpec(JsonElement el) => new()
     {

@@ -96,6 +96,8 @@ public static class ProjectSystem
     {
         Project.Building => w.Holding(p.TargetId) is { } h && h.OwnerId == p.OwnerId,
         Project.Expansion => w.Business(p.TargetId) is { } b && b.OwnerId == p.OwnerId,
+        Project.Work => w.PlanetOf(SystemWorks.Parse(p.TargetId).systemId) is { } wp && wp.OwnerId == p.OwnerId,   // the system changed hands: the site is the new holder's to abandon
+        Project.Colony => w.Galaxy?.System(p.TargetId) != null && w.PlanetOf(p.TargetId) == null,
         _ => w.Galaxy?.System(p.TargetId) != null
     };
 
@@ -112,6 +114,12 @@ public static class ProjectSystem
                 break;
             case Project.Expansion:
                 if (w.Business(p.TargetId) is { } biz && ventures.Def(biz.Kind) is { } bd && biz.Level < bd.MaxLevel) biz.Level++;
+                break;
+            case Project.Work:
+                { var (sysId, body) = SystemWorks.Parse(p.TargetId); if (holdings.Work(p.DefId) is { } wd && w.Galaxy?.System(sysId) is { } ws && body >= 0 && body < ws.Bodies.Count) SystemWorks.Raise(w, house, sysId, body, wd); }
+                break;
+            case Project.Colony:
+                SystemWorks.Settle(w, holdings, house, p.TargetId);
                 break;
         }
         w.WorldCounters["projects_done"] = w.Counter("projects_done") + 1;
