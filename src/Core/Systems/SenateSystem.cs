@@ -357,23 +357,13 @@ public sealed class SenateSystem
             w.WorldFlags.Add(with ? ObligedPatronFlag : DefiedPatronFlag);
             w.Log(with ? $"{client.Name} votes as {patron.Name} wished. It is noted." : $"{client.Name} votes against the wishes of its patron, {patron.Name}. It is noted.");
         }
-        // so does the house the player holds a province under (docs/PROVINCES.md): a vote against it is counted, and one too many and it asks for the province
-        if (mine != null && m.Votes.TryGetValue(mine, out int mineCast) && mineCast != 0 && w.House(mine) is { } under && Economy.HeadOf(w, under) is { } uh)
-            foreach (var over in ProvinceSystem.Overs(w, mine).ToList())
-            {
-                int want = m.TargetId == over.Id && def.Target == "house" ? (def.Interest is "censure" or "embargo" or "breakup" ? -1 : 1) : m.ProposerHouseId == over.Id ? 1 : 0;
-                if (want == 0 || under.PatronId == over.Id || Economy.HeadOf(w, over) is not { } oh) continue;   // (a patron has noted it already)
-                bool with = mineCast == want; var rel = w.Relationship(oh.Id, uh.Id); rel.Disposition = Math.Clamp(rel.Disposition + (with ? ObligeRegard : DefyRegard), -100, 100);
-                string key = ProvinceSystem.DefiedKey(over.Id, mine); w.WorldCounters[key] = Math.Max(0, w.Counter(key) + (with ? -1 : 1)); if (w.Counter(key) == 0) w.WorldCounters.Remove(key);
-                w.WorldFlags.Add(with ? "obliged_overlord" : "defied_overlord");
-                w.Log(with ? $"{under.Name} votes as {over.Name}, which it holds a province under, wished. It is noted." : $"{under.Name} votes against {over.Name}, which it holds a province under. It is noted.");
-            }
         // the rivals declare: the leaders of the benches first, then the rest by name. The order is fixed because a house leans with its
         // leader's vote when that is already cast; taken in the order the houses happen to be held, a house made after a save could vote
         // before its leader in one game and after in the same game resumed
         foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => FactionSystem.Of(w, h.Id)?.LeaderHouseId == h.Id ? 0 : 1).ThenBy(h => h.Id, StringComparer.Ordinal).ToList())
             if (!m.Votes.ContainsKey(h.Id)) m.Votes[h.Id] = Math.Sign(Lean(w, m, h.Id));
         WealthSystem.FavoursCalled(w, m);   // a favour owed to the proposer is spent on this vote (docs/WEALTH.md "A gift that asks")
+        if (_fleets?.Catalog is { } provinceRules) ProvinceSystem.NoteVotes(w, provinceRules, m, def.Interest, def.Target == "house", mine, ObligeRegard, DefyRegard);   // the houses over those who voted take note (docs/PROVINCES.md)
         var (f, a) = Tally(w, m);
         Character? casting = null; bool byChair = f == a && f > 0 && LadderSystem.CastingVote(w, m, out casting);   // a tied Senate goes as the presiding consul voted
         m.ForWeight = f; m.AgainstWeight = a; m.Passed = f > a || byChair; m.Resolved = true; m.ResolvedTurn = w.Turn;

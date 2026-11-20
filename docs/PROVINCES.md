@@ -92,10 +92,30 @@ by asking for the province, if it is at peace and at least that house's match; s
 that standing ends in. A rival at war sometimes asks heavy dues of the weaker houses under it and goes back to what is
 customary at the peace.
 
-**The player's vote is noticed.** When the player casts a vote on something the house over it moved, or that is aimed at
-that house, that house notes it: regard between the two heads rises a little for a vote its way and falls a good deal
-for one against, as with a patron. Votes against are counted (a vote its way takes one off): at two, a house that is at
-peace and the player's match asks for the province. A vote left to drift is not noticed. A house at war with the house
+**The levy is its own house's.** The squadron is named for the house that sent it and sails under one of that house's
+own people, where it has one to send. The house it sails for cannot fold it into another fleet or put its own officer
+over it. Under heavy dues it comes with its loyalty low, and the ordinary rules for a fleet that will not obey apply to
+it. A house sends no squadron against a house it also holds a province under. If the squadron is **destroyed**, the
+house that sent it loses 2 manpower a hull, its head thinks the less of the head it was sent to, and no other is sent
+until the peace. A squadron that goes home at the peace costs its house nothing.
+
+**The dues can be commuted.** The holder of a province pays six years of its tithe at once to the house over it and
+owes nothing for ten years: no tithe, no levy, no squadron, and it leans that house's way the more. Either of the two
+may ask. A house over it that is at war wants its levy and will not; a holder without the coin cannot. Rivals do it
+among themselves, about one year in ten when the holder has coin to spare.
+
+**A peace settles what was fought over.** When a house that stood and the house over it make peace, and the house that
+stood still holds what it stood for, the peace holds it: for ten years it may not be asked for, and its dues are at
+what is customary and may not be made heavy. The same holds for a world, between its holder and the leader over it.
+
+**Rivals forgive dues to win a house over.** A rival that holds a world, at peace, sooner or later forgives the dues of
+a house under it that is stronger than itself, to have that house's voice in the Senate.
+
+**Every house's vote is noticed.** When a house casts a vote on something the house over it moved, or that is aimed at
+that house, it is counted: a vote against adds one, a vote its way takes one off. At two, the house over it asks for
+the province, if it is at peace and at least that house's match; a rival asked steps down or fights as any does. The
+player's vote is also felt at once in the regard between the two heads (a little up for a vote its way, a good deal
+down for one against), as with a patron. A vote left to drift is not noticed. A house at war with the house
 over it pays nothing, sends nothing and leans nowhere; nothing is owed on a world in revolt.
 
 **Part of a world, the whole world, the whole system.** A house with a province has that province, its slots and what it

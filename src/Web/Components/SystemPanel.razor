@@ -119,6 +119,7 @@
                     {
                         var over = ProvinceSystem.Over(w, planet); string hid3 = planet.Id; string ownerName = mine ? "Your house" : w.House(planet.OwnerId)?.Name ?? "A house";
                         <h5 class="sysp-h prov">Provinces <span class="muted">three to a world · each held by a house, for life</span></h5>
+                        @if (planet.Provinces[0].SettledUntil > w.Turn) { <div class="muted small">A peace holds the world its holder's until year @planet.Provinces[0].SettledUntil.</div> }
                         <div class="muted small sysp-over">@ownerName holds the world, and its seat with it. @(over == null ? "Nobody stands over it." : (over.Id == house.Id ? "You stand" : over.Name + " stands") + " over it, and may ask it to make way.")</div>
                         @for (int pi = 0; pi < planet.Provinces.Count; pi++)
                         {
@@ -139,8 +140,9 @@
                                     string overName = mine ? "you" : w.House(planet.OwnerId)?.Name ?? "the holder of the world"; bool warNow = w.EnemiesOf(planet.OwnerId).Any(); int squad = cat.Provinces.LevySquadron * Math.Max(1, pv.Level); string dkey = planet.Id;
                                     <div class="muted small sysp-owes">
                                         @if (pv.Withheld) { <span class="warnline">@(pmine ? "You are withholding" : "It is withholding") the dues. Nothing is paid, no levy is sent, and @overName may ask for the province at no cost.</span> }
+                                        else if (pv.EasedUntil > w.Turn) { <span>Its dues are commuted until year @pv.EasedUntil: nothing is owed, no levy is sent, and @(pmine ? "your house is expected to lean" : "it leans") @overName's way in the Senate the more for it.</span> }
                                         else if (pv.Dues <= ProvinceSystem.Forgiven) { <span>Its dues are forgiven: nothing is owed, no levy is sent, and @(pmine ? "your house is expected to lean" : "it leans") @overName's way in the Senate the more for it.</span> }
-                                        else { <span>@(pmine ? "You owe" : "It owes") @overName @(owed.IsEmpty() ? "nothing this year" : Bundle(owed) + " a year") (@ProvinceSystem.DuesName(pv.Dues) dues)@(warNow ? ", levy included, and a squadron of " + squad + " sails under " + (mine ? "you" : "that house") + " until the peace" : "; in a war of " + (mine ? "yours" : "that house's") + ", a levy too and a squadron of " + squad)@(pv.Dues >= ProvinceSystem.Heavy ? ". Heavy dues buy no voice in the Senate." : ", and " + (pmine ? "your house is expected to lean" : "it leans") + " that way in the Senate.")</span> }
+                                        else { <span>@(pmine ? "You owe" : "It owes") @overName @(owed.IsEmpty() ? "nothing this year" : Bundle(owed) + " a year") (@ProvinceSystem.DuesName(pv.Dues) dues)@(warNow ? ", levy included, and a squadron of " + squad + " under one of " + (pmine ? "your" : "its") + " own officers sails for " + (mine ? "you" : "that house") + " until the peace" : "; in a war of " + (mine ? "yours" : "that house's") + ", a levy too and a squadron of " + squad)@(pv.Dues >= ProvinceSystem.Heavy ? ". Heavy dues buy no voice in the Senate." : ", and " + (pmine ? "your house is expected to lean" : "it leans") + " that way in the Senate.")</span> }
                                     </div>
                                     @if (mine && !pmine)
                                     {
@@ -152,7 +154,16 @@
                                             }
                                         </span></div>
                                     }
-                                    @if (pmine && pv.Dues > ProvinceSystem.Forgiven)
+                                    @if (pv.SettledUntil > w.Turn) { <div class="muted small">Settled by a peace: it may not be asked for, nor its dues made heavy, until year @pv.SettledUntil.</div> }
+                                    @if ((pmine || mine) && !pv.Withheld && pv.EasedUntil <= w.Turn && pv.Dues > ProvinceSystem.Forgiven)
+                                    {
+                                        string? cno = new CommuteDuesCommand(me.Id, planet.Id, pi, cat).Refusal(ctx); var ccost = ProvinceSystem.CommuteCost(cat, pv);
+                                        <div class="sw-cost"><span>Commute the dues: @Bundle(ccost) @(pmine ? "from you" : "to you") now, nothing owed for @cat.Provinces.CommuteTerm years</span>
+                                            <button class="opt inline" disabled="@(cno != null)" title="@(cno != null ? Cap(cno) : pmine ? "No tithe, no levy and no squadron for the term. Their side has agreed." : "They pay now and owe nothing for the term: no tithe, no levy, no squadron.")" @onclick="() => G.Execute(new CommuteDuesCommand(me.Id, dkey, pidx, cat))">@(pmine ? "Commute" : "Offer")</button>
+                                        </div>
+                                        @if (cno != null && !cno.StartsWith("needs")) { <div class="sw-no">@Cap(cno)</div> }
+                                    }
+                                    @if (pmine && ProvinceSystem.DuesOf(w, pv) > ProvinceSystem.Forgiven)
                                     {
                                         bool wh = pv.Withheld; string? whno = new WithholdDuesCommand(me.Id, planet.Id, pi, !wh).Refusal(ctx);
                                         <div class="sw-cost"><span>@(wh ? "Pay what is owed again" : "Refuse to pay")</span><button class="opt inline @(wh ? "" : "warn")" disabled="@(whno != null)" title="@(wh ? "The dues, the levy and your voice are theirs again." : "You keep what you owe. " + overName + " may ask you to give up the province at no cost, and if it is your match it will.")" @onclick="() => G.Execute(new WithholdDuesCommand(me.Id, dkey, pidx, !wh))">@(wh ? "Pay again" : "Withhold the dues")</button></div>

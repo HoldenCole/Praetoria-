@@ -26,6 +26,8 @@ public sealed class Fleet
 
     /// <summary>The character commanding it, or "" for an unled fleet (GDD §6 "the admiral's skill").</summary>
     public string AdmiralId { get; set; } = "";
+    /// <summary>A levy squadron (docs/PROVINCES.md): the house that sent it. It sails under the house that holds the world until the peace.</summary>
+    public string LevyOf { get; set; } = "";
 
     /// <summary>Battles survived, 0..veterancyMax; each adds veterancyBonus to power.</summary>
     public int Veterancy { get; set; }

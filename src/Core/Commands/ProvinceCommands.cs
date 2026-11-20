@@ -120,3 +120,23 @@ public sealed class WithholdDuesCommand : ICommand
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx) => ProvinceSystem.Withhold(ctx.World, ctx.World.Holding(_holdingId)!, _index, _withhold);
 }
+
+/// <summary>Commute the dues of a province (docs/PROVINCES.md): its holder pays so many years of the tithe at once to the house over
+/// it and owes nothing for a term. Either of the two may ask; the other must be willing, which a house at war or a house without
+/// the coin is not.</summary>
+public sealed class CommuteDuesCommand : ICommand
+{
+    private readonly string _holdingId; private readonly int _index; private readonly HoldingCatalog _catalog;
+    public CommuteDuesCommand(string actorId, string holdingId, int index, HoldingCatalog catalog) { ActorId = actorId; _holdingId = holdingId; _index = index; _catalog = catalog; }
+    public string ActorId { get; }
+    public string Describe() => $"commute the dues of province {_index} of {_holdingId}";
+    public string? Refusal(CommandContext ctx) => Refusal(ctx, true);
+    private string? Refusal(CommandContext ctx, bool explain)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        var house = w.House(actor.HouseId); var planet = w.Holding(_holdingId); if (house == null || planet == null) return "no such province";
+        return ProvinceSystem.CommuteRefusal(w, _catalog, house, planet, _index, explain);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx, false) == null;
+    public void Execute(CommandContext ctx) => ProvinceSystem.Commute(ctx.World, _catalog, ctx.World.Holding(_holdingId)!, _index);
+}

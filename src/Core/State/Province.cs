@@ -23,6 +23,13 @@ public sealed class Province
     public bool Withheld { get; set; }
     /// <summary>Its levy has been sent to this war: it is not sent twice.</summary>
     public bool Levied { get; set; }
+    /// <summary>Its levy was destroyed in this war: no other is sent until the peace.</summary>
+    public bool LevyLost { get; set; }
+    /// <summary>Its dues were commuted: nothing is owed until this year.</summary>
+    public int EasedUntil { get; set; }
+    /// <summary>Its holder and the house over it are at war over it; and, after their peace, the year until which it may not be asked for.</summary>
+    public bool FoughtOver { get; set; }
+    public int SettledUntil { get; set; }
 }
 
 /// <summary>A demand that a holder step down (docs/PROVINCES.md): from a province of a world (<see cref="Province"/> 1 or 2), made by

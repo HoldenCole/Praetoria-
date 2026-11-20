@@ -96,6 +96,8 @@ public sealed class FleetSystem
 
     private readonly FleetRules _rules;
     private readonly HoldingCatalog _catalog;
+    /// <summary>The buildings, works and provinces this fleet system reckons with.</summary>
+    public HoldingCatalog Catalog => _catalog;
     private readonly ShipClassCatalog _classes;
     private readonly FrictionTable _friction;
 

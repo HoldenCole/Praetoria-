@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- **Provinces, what was still simple.** A levy squadron is its own house's: named for it, under one of its people, not
+  to be merged or given another admiral; destroyed, the house that sent it loses crews and regard, and none is sent
+  against a house it also holds a province under. Dues can be **commuted**: six years of tithe at once for ten years of
+  owing nothing. A **peace settles** what was fought over and holds it for ten years. Rivals forgive the dues of a
+  stronger house to have its voice. Every house's vote against the house over it is counted, not only the player's.
 - **Provinces, the thin parts closed.** A building in a province is taken to level II and III and tells on its world
   (room for people, prosperity, unrest). The house that holds a world sets each province's dues: forgiven, customary or
   heavy. A house may withhold its dues, and may then be asked to give up the province at no cost. In a war of the house

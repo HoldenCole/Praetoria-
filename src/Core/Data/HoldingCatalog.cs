@@ -163,6 +163,8 @@ public sealed class ProvinceRules
     public Resources Tithe { get; init; } = new() { Credits = 1 }; public Resources Levy { get; init; } = new() { Manpower = 1 };
     /// <summary>Hulls a paying province sends, for each of its levels, while the holder of its world is at war; and how many times the player may vote against the house over it before that house asks for the province.</summary>
     public int LevySquadron { get; init; } = 1; public int Defiances { get; init; } = 2;
+    /// <summary>What a house loses for each hull of a levy of its own that is destroyed, and what its head then thinks the less of the head it was sent to; how many years of tithe commute the dues, and for how long; how long a peace settles what was fought over.</summary>
+    public Resources LevyLost { get; init; } = new() { Manpower = 2 }; public int LevyLostRegard { get; init; } = -8; public int CommuteYears { get; init; } = 6; public int CommuteTerm { get; init; } = 10; public int SettleYears { get; init; } = 10;
     /// <summary>Rungs of title lost by a house that steps down from a world.</summary>
     public int StepDownRanks { get; init; } = 1;
     public ProvinceFocus? Focus(string id) { foreach (var f in Focuses) if (f.Id == id) return f; return null; }

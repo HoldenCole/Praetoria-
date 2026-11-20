@@ -152,7 +152,7 @@ public sealed class AssignAdmiralCommand : ICommand
         var actor = w.Char(ActorId); var c = w.Char(_characterId);
         if (actor?.Alive != true || c?.Alive != true) return false;
         if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId || c.HouseId != actor.HouseId) return false;
-        if (f.AdmiralId == _characterId) return false;
+        if (f.AdmiralId == _characterId || f.LevyOf.Length > 0) return false;   // (a levy keeps the officer its own house gave it)
         if (Praetoria.Core.Systems.CaesarSystem.Barred(w, c)) return false;   // the Senate had them lay a command down (docs/CAESAR.md)
         if (w.Fleets.Values.Any(x => x.Id != _fleetId && x.AdmiralId == _characterId)) return false;
         return ctx.PoolsOf(ActorId).CanAfford(CostMap);
@@ -209,6 +209,7 @@ public sealed class MergeFleetsCommand : ICommand
         var actor = w.Char(ActorId);
         if (actor?.Alive != true || _fromId == _intoId) return false;
         if (!w.Fleets.TryGetValue(_fromId, out var a) || !w.Fleets.TryGetValue(_intoId, out var b)) return false;
+        if (a.LevyOf.Length > 0 || b.LevyOf.Length > 0) return false;   // a levy sails under its own house's officers, and goes home whole (docs/PROVINCES.md)
         return a.OwnerId == actor.HouseId && b.OwnerId == actor.HouseId && !a.Moving && !b.Moving && a.SystemId == b.SystemId && a.Office == b.Office;
     }
 
