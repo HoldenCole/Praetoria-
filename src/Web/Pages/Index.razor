@@ -84,7 +84,7 @@ else
                 case "house": <HouseScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
                 case "exchange": <ExchangeScreen Model="m" OnGo="Go" /> break;
                 case "laws": <LawsScreen Model="m" /> break;
-                case "military": <MilitaryScreen Model="m" /> break;
+                case "military": <MilitaryScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
                 case "dynasty": <DynastyScreen Model="m" /> break;
                 case "houses": <HousesScreen Model="m" /> break;
                 case "chronicle": <ChronicleScreen /> break;
@@ -229,9 +229,23 @@ else
     private async Task ClosePrimer() { _primer = false; try { await JS.InvokeVoidAsync("localStorage.setItem", "praetoria.primer.seen", "1"); } catch { } }
     private void FocusSystem(string systemId) { _screen = "galaxy"; }
     private void OpenReport(BriefingCard card) => _openReport = card;
-    private void Choose((BriefingCard card, string choiceId) pick) { G.Resolve(pick.card.Item, pick.choiceId); _openReport = null; }
+    private void Choose((BriefingCard card, string choiceId) pick) { G.Resolve(pick.card.Item, pick.choiceId, pick.card.Title, pick.card.Choices.FirstOrDefault(c => c.Id == pick.choiceId)?.Label ?? ""); _openReport = null; }
 
+    /// <summary>End Turn asks first when the year would end with the treasury below nought (docs/PLAYTHROUGH.md 6).</summary>
     private async Task EndTurn()
+    {
+        if (G.World is { InAcademy: false } w && G.Turn?.Economy is { } eco && w.Protagonist is { } head && w.House(head.HouseId) is { } house)
+        {
+            int end = HouseAccounts.YearEnd(w, G.Content!.Holdings, house, eco.Forecast(w, house.Id, G.Turn.Fleets), Resource.Credits);
+            if (end < 0 && house.Treasury.Credits >= 0)
+            {
+                G.Ask("The year will end " + (-end) + " credits short", "With what the house takes in and what it has promised to pay this year, the treasury will stand at " + end + ". A house below nought is insolvent: unrest climbs on its worlds, unpaid crews desert, and building stops." + (head.Purse > 0 ? " Your own purse holds " + head.Purse + " credits: it can be put into the treasury in House, under Purses and the will." : ""), "End the year anyway", () => _ = InvokeAsync(EndTurnNow), "Go back");
+                return;
+            }
+        }
+        await EndTurnNow();
+    }
+    private async Task EndTurnNow()
     {
         long perfStart = System.Diagnostics.Stopwatch.GetTimestamp();
         _openReport = null;

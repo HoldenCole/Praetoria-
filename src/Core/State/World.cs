@@ -126,6 +126,8 @@ public sealed class World
     public Dictionary<string, int> ClearedSlots { get; set; } = new();
     /// <summary>Demands that a holder step down, waiting on the player's answer (docs/PROVINCES.md).</summary>
     public List<SeatDemand> SeatDemands { get; set; } = new();
+    /// <summary>The battles fought, newest last: the last sixty are kept (docs/PLAYTHROUGH.md 10).</summary>
+    public List<BattleRecord> Battles { get; set; } = new();
     /// <summary>Ventures offered for sale to a named house, until they lapse.</summary>
     public List<VentureOffer> Offers { get; set; } = new();
     public IEnumerable<Project> ProjectsOf(string houseId) => Projects.Where(p => p.OwnerId == houseId);

@@ -42,6 +42,36 @@ public sealed class GameClient
     public ConfirmAsk? Asking { get; private set; }
     public void Ask(string title, string text, string yes, Action onYes, string no = "Leave it") { Asking = new ConfirmAsk(title, text, yes, onYes, no); Notify(); }
     public void Answer(bool yes) { var a = Asking; Asking = null; if (yes) a?.OnYes(); Notify(); }
+    // ---- the questions asked before what starts a war or binds the house (docs/PLAYTHROUGH.md 7) ----
+
+    /// <summary>War on a house: what it costs, what it has, who will send it ships.</summary>
+    public void AskWar(string targetId)
+    {
+        var w = World!; var me = w.Protagonist!; var t = w.House(targetId); if (t == null) return;
+        int mine = FleetSystem.StrengthOf(w, me.HouseId), theirs = FleetSystem.StrengthOf(w, targetId), levies = 0, myLevies = 0;
+        foreach (var h in w.Holdings.Values) { if (!h.IsPlanet) continue; for (int i = 1; i < h.Provinces.Count; i++) { string holder = ProvinceSystem.HolderOf(h, i); if (holder == h.OwnerId || ProvinceSystem.Dues(w, Content!.Holdings, h, i).IsEmpty() && !w.EnemiesOf(h.OwnerId).Any() && h.Provinces[i].Dues <= 0) continue; if (h.OwnerId == targetId && holder != me.HouseId) levies++; else if (h.OwnerId == me.HouseId && holder != targetId) myLevies++; } }
+        string text = t.Name + " has about " + theirs + " hull(s) of its own to your " + mine + "."
+            + (levies > 0 ? " The houses with provinces under it may send it as many as " + levies + " squadron(s)." : "") + (myLevies > 0 ? " Those under you may send you " + myLevies + "." : "")
+            + " Its head will think far worse of you. The war ends when either side sues for peace and the other will have it, or when one cannot fight on. It costs 2 influence of this year's.";
+        Ask("Declare war on " + t.Name + "?", text, "Declare war", () => Execute(new DeclareWarCommand(me.Id, targetId, Content!.Fleets)));
+    }
+    /// <summary>A holder asked to step down: whether it will go or fight is known before it is asked, and said.</summary>
+    public void AskSeat(Holding planet, int index, string forId)
+    {
+        var w = World!; var me = w.Protagonist!; var cat = Content!.Holdings; string againstId = ProvinceSystem.HolderOf(planet, index); var against = w.House(againstId); if (against == null) return;
+        bool yields = ProvinceSystem.WillYield(w, cat, me.HouseId, againstId); int mine = FleetSystem.StrengthOf(w, me.HouseId), theirs = FleetSystem.StrengthOf(w, againstId);
+        string what = ProvinceSystem.What(planet, index), to = forId == me.HouseId ? "your own house" : w.House(forId)?.Name ?? "another house"; int cost = ProvinceSystem.DemandCost(cat, planet, index);
+        string text = what + " was " + against.Name + "'s for life. You ask it to give it up to " + to + (cost > 0 ? ", for " + cost + " influence" : ", at no cost: it is withholding its dues") + ". "
+            + (yields ? against.Name + " cannot hope to stand against you (" + theirs + " hull(s) to your " + mine + "): it will step down." + (index == 0 ? " It takes the province the new holder had, and is a rung the lower for it." : "")
+                      : against.Name + " can hope to win (" + theirs + " hull(s) to your " + mine + "): it will not step down. Asking is war with " + against.Name + ".");
+        Ask(yields ? "Ask " + against.Name + " to step down?" : "This means war with " + against.Name, text, yields ? "Ask" : "Ask, and go to war", () => Execute(new DemandSeatCommand(me.Id, planet.Id, index, forId, cat)));
+    }
+    /// <summary>A marriage by treaty is made at once, with no courtship and no terms.</summary>
+    public void AskTreatyMarriage(string label, ICommand command) =>
+        Ask("Marry by treaty?", label + ". A treaty marriage is made at once: there is no courtship, no dowry is agreed and the children's name follows custom. To set terms, or to see whether the family would agree, arrange the match in Dynasty, under Marriages.", "Make the marriage", () => Execute(command));
+    public void AskAccident(string label, ICommand command) =>
+        Ask("Arrange an accident?", label + ". If it is traced to you it is a blood feud with that house, and the Senate hears of it. It cannot be called back once the order is given.", "Give the order", () => Execute(command));
+
     /// <summary>Whether anything has been done since this year began. A save is the start of the year (see <see cref="SaveJson"/>):
     /// what is done in a year is kept when the year is ended, and the screen says so.</summary>
     public bool ActedThisYear { get; private set; }
@@ -153,12 +183,33 @@ public sealed class GameClient
         Settled(); Notify();
     }
 
-    public bool Resolve(BriefingItem item, string choiceId)
+    /// <summary>What came of the last answer given to a report: what the house gained and lost by it and what was written down
+    /// (docs/PLAYTHROUGH.md 8). Shown once, then dismissed.</summary>
+    public sealed record Outcome(string Title, string Chose, IReadOnlyList<string> Lines);
+    public Outcome? Told { get; private set; }
+    public void Dismiss() { Told = null; Notify(); }
+
+    public bool Resolve(BriefingItem item, string choiceId, string title = "", string chose = "")
     {
-        if (Turn == null) return false;
+        if (Turn == null || World == null) return false;
         Changing();
+        var me = World.Char(World.ProtagonistId); var house = me != null ? World.House(me.HouseId) : null;
+        var before = house?.Treasury.Clone(); int legit = house?.Legitimacy ?? 0, stress = me?.Stress ?? 0, told = World.History.Count;
         bool ok = Turn.Resolve(item, choiceId);
-        if (ok) ActedThisYear = true;
+        if (ok)
+        {
+            ActedThisYear = true;
+            var lines = new List<string>();
+            if (house != null && before != null)
+            {
+                var changed = Resource.All.Select(k => (k, d: house.Treasury.Get(k) - before.Get(k))).Where(x => x.d != 0).Select(x => (x.d > 0 ? "+" : "−") + Math.Abs(x.d) + " " + Resource.Label(x.k)).ToList();
+                if (house.Legitimacy != legit) changed.Add("legitimacy " + (house.Legitimacy > legit ? "+" : "−") + Math.Abs(house.Legitimacy - legit));
+                if (me != null && me.Stress != stress) changed.Add("stress " + (me.Stress > stress ? "+" : "−") + Math.Abs(me.Stress - stress));
+                if (changed.Count > 0) lines.Add(string.Join(" · ", changed));
+            }
+            lines.AddRange(World.History.Skip(told).Select(h => h.Text).Where(t => !string.IsNullOrWhiteSpace(t)).Distinct().Take(4));
+            Told = new Outcome(title, chose, lines.Count > 0 ? lines : new List<string> { "Nothing in the house's accounts changed by it. What it changed between people will show in time." });
+        }
         Settled(); Notify();
         return ok;
     }

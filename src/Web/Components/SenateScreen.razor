@@ -328,7 +328,7 @@
                                 <button class="opt inline tiny" disabled="@(focusStance.LobbyRefusal != null)" title="@(focusStance.LobbyRefusal ?? "1 influence: lean them your way")" @onclick="() => G.Execute(new LobbyCommand(pid, watched.Id, focusHouse.Id, watched.MyStance >= 0 ? 1 : -1))">whip</button>
                                 <button class="opt inline tiny" disabled="@(focusStance.BribeRefusal != null)" title="@(focusStance.BribeRefusal ?? $"{SenateSystem.BribeCredits} credits: a purse weighs more")" @onclick="() => G.Execute(new LobbyCommand(pid, watched.Id, focusHouse.Id, watched.MyStance >= 0 ? 1 : -1, bribe: true))">bribe</button></div>
                         }
-                        @if (cn != null) { <div class="sc-actions">@foreach (var o in cn.Actions) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(Conn(o.Id, cn.Id))">@o.Label</button> }</div> }
+                        @if (cn != null) { <div class="sc-actions">@foreach (var o in cn.Actions) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => AskConn(o.Id, o.Label, cn.Id)">@o.Label</button> }</div> }
                     </div>
                     <button class="win-close" @onclick="() => _focus = null">✕</button>
                 </div>
@@ -449,5 +449,6 @@
     private void AskPath(PathOption p, string? next) => G.Ask(p.Label + (next != null ? ": " + next : ""), p.Confirm + " It costs " + p.Cost + ".", p.Label, () => G.Execute(PathCommand(p.Id)));
     private ICommand PathCommand(string id) { var pid = G.World!.ProtagonistId; var prog = G.Turn!.Progression!; return id switch { "seize" => new SeizeTitleCommand(pid, prog), "petition" => new PetitionTitleCommand(pid, prog), _ => new ClaimTitleCommand(pid, prog) }; }
     private void Damper(DamperOption d) { var crises = G.Turn!.Crises!; var def = crises.Def(d.CrisisId)!; G.Execute(new ApplyDamperCommand(G.World!.ProtagonistId, crises, def, def.Dampers.First(x => x.Id == d.DamperId))); }
+    private void AskConn(string optionId, string label, string targetId) { if (optionId.StartsWith("marry:")) G.AskTreatyMarriage(label, Conn(optionId, targetId)); else G.AskAccident(label, Conn(optionId, targetId)); }
     private ICommand Conn(string optionId, string targetId) { var pid = G.World!.ProtagonistId; var c = G.Content!; return optionId.StartsWith("marry:") ? new ProposeMarriageCommand(pid, optionId["marry:".Length..], targetId, c.Titles) : new AssassinateCommand(pid, targetId, c.Friction); }
 }

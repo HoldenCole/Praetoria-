@@ -75,6 +75,9 @@ public sealed class Fleet
     /// <summary>Where it is going, or "" when holding. Arrival after <see cref="Eta"/> turns.</summary>
     public string DestinationId { get; set; } = "";
     public int Eta { get; set; }
+    /// <summary>How many years the whole voyage under way was to take when it was ordered: what has been sailed is this less
+    /// <see cref="Eta"/>, which is how long turning back takes (docs/PLAYTHROUGH.md 11).</summary>
+    public int Voyage { get; set; }
 
     public bool Moving => DestinationId.Length > 0;
 }

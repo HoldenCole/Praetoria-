@@ -218,7 +218,7 @@
                                             <option value="@house.Id" selected="@(giveTo == house.Id)">your own house</option>
                                             @foreach (var oh in w.Houses.Values.Where(x => !World.Outsider(x.Id) && x.Id != house.Id && x.Id != holderId).OrderBy(x => x.Name)) { <option value="@oh.Id" selected="@(giveTo == oh.Id)">@oh.Name</option> }
                                         </select> · @cat.Provinces.DemandInfluence influence</span>
-                                        <button class="opt inline" disabled="@(dno != null)" title="@(dno != null ? Cap(dno) : "It was theirs for life. A house that cannot hope to win steps down; one that can, fights.")" @onclick="() => G.Execute(new DemandSeatCommand(me.Id, hid3, pidx, giveTo, cat))">Ask</button>
+                                        <button class="opt inline" disabled="@(dno != null)" title="@(dno != null ? Cap(dno) : "It was theirs for life. A house that cannot hope to win steps down; one that can, fights.")" @onclick="() => G.AskSeat(planet, pidx, giveTo)">Ask</button>
                                     </div>
                                     @if (dno != null) { <div class="sw-no">@Cap(dno)</div> }
                                 }
@@ -228,7 +228,7 @@
                                     <div class="sw-cost"><span>Ask its holder to make way for <select class="sysp-pick" @onchange="e => SetGive(hid3, pidx, e)">
                                             @for (int k = 1; k < planet.Provinces.Count; k++) { string kh = ProvinceSystem.HolderOf(planet, k); if (kh == planet.OwnerId) continue; <option value="@kh" selected="@(wfor == kh)">@(kh == house.Id ? "your own house" : w.House(kh)?.Name ?? kh)</option> }
                                         </select> · @cat.Provinces.DemandInfluenceWorld influence</span>
-                                        <button class="opt inline" disabled="@(wno != null)" title="@(wno != null ? Cap(wno) : "The world was theirs for life. They step down and hold a province under the house that rises, or they fight you.")" @onclick="() => G.Execute(new DemandSeatCommand(me.Id, hid3, 0, wfor, cat))">Ask</button>
+                                        <button class="opt inline" disabled="@(wno != null)" title="@(wno != null ? Cap(wno) : "The world was theirs for life. They step down and hold a province under the house that rises, or they fight you.")" @onclick="() => G.AskSeat(planet, 0, wfor)">Ask</button>
                                     </div>
                                     @if (wno != null) { <div class="sw-no">@Cap(wno)</div> }
                                 }
@@ -238,7 +238,7 @@
                                     @if (pending.AgainstId == house.Id)
                                     {
                                         <div class="sysp-demand">
-                                            <div><b>@asker asks you to give this up</b>, for @forWhom. It was yours for life. @(pi == 0 ? "Step down, and you hold a province under the house that rises, your name is the less for it and your house a rung the lower. Stand, and it is war with " + asker + "." : "Step down and it is gone. Stand, and it is war with " + asker + ".") Unanswered, it is taken for defiance.</div>
+                                            <div><b>@asker asks you to give this up</b>, for @forWhom. It was yours for life. @(pi == 0 ? "Step down, and you hold a province under the house that rises, your name is the less for it and your house a rung the lower. Stand, and it is war with " + asker + "." : "Step down and it is gone. Stand, and it is war with " + asker + ".") Left unanswered for a year, it is taken for defiance, and that too is war.</div>
                                             <div class="row small"><button class="opt inline" @onclick="() => G.Execute(new AnswerSeatDemandCommand(me.Id, did2, true, cat))">Step down</button><button class="opt inline warn" @onclick="() => G.Execute(new AnswerSeatDemandCommand(me.Id, did2, false, cat))">Stand, and fight</button></div>
                                         </div>
                                     }

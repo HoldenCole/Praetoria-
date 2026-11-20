@@ -14,6 +14,27 @@
     <div class="map-wrap">
         <div class="gl-host" @ref="_host"></div>
         <canvas class="minimap" @ref="_minimap" width="220" height="132" title="the whole Reach · click to travel"></canvas>
+        @if (selectedFleet != null)
+        {
+            var here = pos.TryGetValue(selectedFleet.SystemId, out var hn) ? hn.Name : selectedFleet.SystemId;
+            var move = sel != null && sel.SystemId != selectedFleet.SystemId ? new MoveFleetCommand(pid, selectedFleet.Id, sel.SystemId, c.Fleets) : null;
+            string? no = move?.Refusal(ctx); int jumps = move != null && no == null ? w.Galaxy!.Hops(selectedFleet.SystemId, sel!.SystemId, MoveFleetCommand.Barred(w, selectedFleet.OwnerId)) : 0;
+            var odds = move != null && no == null ? G.Turn!.Fleets.OddsAt(w, playerHouse, new[] { selectedFleet }, sel!.SystemId) : null;
+            <div class="order-bar" data-order="@selectedFleet.Id">
+                <div><b>⚑ @selectedFleet.Name</b> is picked: @selectedFleet.Strength hull(s) @(selectedFleet.Moving ? "under way" : "at " + here).
+                    @if (selectedFleet.Moving) { <span>It is bound for @(pos.TryGetValue(selectedFleet.DestinationId, out var dn) ? dn.Name : selectedFleet.DestinationId), @selectedFleet.Eta year(s) off.</span> }
+                    else if (move == null) { <span class="muted">Click a world to see the way there. Nothing is ordered until you say so.</span> }
+                    else if (no != null) { <span class="bad">It cannot be sent to @sel!.Name: @no.</span> }
+                    else { <span>To @sel!.Name: @jumps jump(s), there in @jumps year(s). @(odds != null ? Praetoria.Core.Systems.FleetSystem.Say(odds) : "No enemy fleet is known to be there.")</span> }
+                </div>
+                <div class="order-row">
+                    @if (move != null && no == null) { <button class="btn primary sm" data-send="1" @onclick="() => Send(selectedFleet.Id, sel!.SystemId)">Send it to @sel!.Name (1 treasury action)</button> }
+                    @if (selectedFleet.Moving) { var rc = new RecallFleetCommand(pid, selectedFleet.Id); var why = rc.Refusal(ctx); int back = RecallFleetCommand.YearsBack(selectedFleet);
+                        <button class="btn sm" data-recall="1" disabled="@(why != null)" title="@(why ?? (back == 0 ? "The order was given this year: it is struck out and the fleet stays" : $"It has sailed {back} year(s): it takes as long to come back"))" @onclick="() => G.Execute(rc)">@(back == 0 ? "Strike out the order" : $"Call it back ({back} yr)")</button> }
+                    <button class="btn ghost sm" data-deselect="1" @onclick="() => _fleetId = null">Let it be</button>
+                </div>
+            </div>
+        }
         <div class="map-tools">
             <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.zoom", _id, 0.8)' title="Zoom in">+</button>
             <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.zoom", _id, 1.25)' title="Zoom out">−</button>
@@ -25,7 +46,7 @@
             <span><i class="sw own"></i> your fleet</span><span><i class="sw intel"></i> reported fleet (fainter = less certain)</span>
             <span title="Every held world is a cell in its holder's colour, with a dark line between cells and a wider one where two holders meet. A pale ring is a world nobody holds. A pale line is a region's edge."><i class="sw cell"></i> a holder's colour · <i class="sw free"></i> nobody's</span>
             <span title="A bright line is where a realm ends. Your own realm's border is gold. The land of another realm is hatched in its colour."><i class="sw realm-own"></i> your realm's border · <i class="sw realm-other"></i> another realm</span><span><i class="sw siege"></i> siege clock</span><span><i class="sw front"></i> front line</span><span><i class="sw station"></i> station</span><span><i class="sw raid"></i> raiders</span> <span class="lg" title="A world of the Reach's that a nation has taken or been ceded, or a world of a nation's that a house of the Reach holds: a broken ring in the holder's colour. It can be taken back."><i class="sw conq"></i> conquered</span> <span class="lg"><i class="sw ck"></i> chokepoint</span><span class="lg" title="³He helium-3 · RE rare earths · Iso isotopes"><i class="sw dep">³He</i> deposits</span>
-            @if (selectedFleet != null) { <span class="hint">@selectedFleet.Name selected — click a ringed world to set course (1 treasury)</span> }
+            @if (selectedFleet != null) { <span class="hint">@selectedFleet.Name selected: click a ringed world to see the route, then give the order in the bar above</span> }
             else { <span class="muted">drag to pan · wheel to zoom · click a world or a fleet</span> }
         </div>
     </div>
@@ -96,7 +117,7 @@
                 @if (owner != null && owner.Id != playerHouse)
                 {
                     var dw = new DeclareWarCommand(pid, owner.Id, c.Fleets);
-                    <button class="opt" disabled="@(!dw.CanExecute(ctx))" title="@(dw.CanExecute(ctx) ? "" : "already at war, or no influence")" @onclick="() => G.Execute(new DeclareWarCommand(pid, owner.Id, c.Fleets))">Declare war on @owner.Name (2 influence)</button>
+                    <button class="opt" disabled="@(!dw.CanExecute(ctx))" title="@(dw.CanExecute(ctx) ? "" : "already at war, or no influence")" @onclick="() => G.AskWar(owner.Id)">Declare war on @owner.Name (2 influence)</button>
                     @if (planet != null && G.Court().Reclaims?.FirstOrDefault(r => r.HoldingId == planet.Id) is { } rc) { <button class="opt" disabled="@(rc.Refusal != null)" title="@rc.Refusal" @onclick="() => G.Execute(new ReclaimFreeholdCommand(pid, rc.HoldingId))">Buy @rc.HoldingName back from @rc.FreeHouseName (@rc.Price credits)</button> }
                 }
                 }
@@ -152,8 +173,8 @@
         var w = G.World!;
         if (kind == "system")
         {
-            if (_fleetId != null && w.Fleets.TryGetValue(_fleetId, out var f) && f.OwnerId == w.Protagonist!.HouseId && new MoveFleetCommand(w.ProtagonistId, _fleetId, id, G.Content!.Fleets).CanExecute(new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0))))
-            { G.Execute(new MoveFleetCommand(w.ProtagonistId, _fleetId, id, G.Content!.Fleets)); _fleetId = null; }
+            // looking at a world is only looking (docs/PLAYTHROUGH.md 11): with a fleet picked the route and the odds are shown, and the
+            // order is given by the button in the order bar, never by the click
             _systemId = id; _ = OnPicked.InvokeAsync();
         }
         else if (kind == "fleet") { if (w.Fleets.TryGetValue(id, out var f)) { if (f.OwnerId == w.Protagonist!.HouseId) _fleetId = _fleetId == id ? null : id; _systemId = f.SystemId; _ = OnPicked.InvokeAsync(); } }
@@ -173,6 +194,7 @@
         return null;
     }
 
+    private void Send(string fleetId, string systemId) { var w = G.World!; if (G.Execute(new MoveFleetCommand(w.ProtagonistId, fleetId, systemId, G.Content!.Fleets))) { } }
     private void ClickFleet(MapFleet f) { if (f.IsPlayer) { _fleetId = _fleetId == f.FleetId ? null : f.FleetId; } _systemId = f.SystemId; }
     private async Task Focus(double x, double y) { try { await JS.InvokeVoidAsync("praetoriaSpace.focus", _id, x, y); } catch { } }
 

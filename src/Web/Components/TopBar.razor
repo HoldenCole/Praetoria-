@@ -1,7 +1,12 @@
 @inject GameClient G
 @{
     var w = G.World!; var p = w.Protagonist!; var house = w.House(p.HouseId)!; var t = house.Treasury;
-    var fc = G.Turn!.Economy?.Forecast(w, house.Id, G.Turn.Fleets);
+    var fc = G.Turn!.Economy?.Forecast(w, house.Id, G.Turn.Fleets)?.Clone();
+    // what also goes out this year: the shares of what is being built, hastening, tutors, allowances, the household (docs/PLAYTHROUGH.md 6)
+    var outs = HouseAccounts.Outgoings(w, G.Content!.Holdings, house); var outTotal = HouseAccounts.Total(outs);
+    if (fc != null) foreach (var k in Resource.All) fc.Add(k, -outTotal.Get(k));
+    string outTip = outs.Count == 0 ? "" : "\n\nAlso going out this year:\n" + string.Join("\n", outs.Select(o => o.what + ": " + string.Join(", ", Resource.All.Where(k => o.cost.Get(k) != 0).Select(k => "-" + o.cost.Get(k) + " " + Resource.Label(k)))));
+    string purseTip = "Your own purse, apart from the house's treasury: " + p.Purse + " credits. Physicians, gifts and bribes \"of your own\" are paid from it. Move coin between the two in House, under Purses and the will.";
     var pools = G.Turn.PlayerPools;
     var ledgerTip = G.Turn.Economy == null ? "" : string.Join("\n", G.Turn.Economy.Compute(w, house.Id, G.Turn.Fleets).Lines.Take(12).Select(l => l.Source + ": " + string.Join(", ", Resource.All.Where(k => l.Delta.Get(k) != 0).Select(k => (l.Delta.Get(k) > 0 ? "+" : "") + l.Delta.Get(k) + " " + k))));
 }
@@ -10,8 +15,9 @@
         <span class="tb-ruler"><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="52" /><i class="tb-sigil"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="20" /></i></span>
         <div><div class="tb-name">@house.Name</div><div class="tb-sub">@(G.Content!.Titles.NameOf(house.Title, G.World!.Era)) · legitimacy @house.Legitimacy</div></div>
     </div>
-    <div class="tb-res" title="@ledgerTip">
-        @Res("credits", t.Credits, fc?.Credits, "Credits — the one you run out of. Upkeep, hulls, bribes.")
+    <div class="tb-res" title="@(ledgerTip + outTip)">
+        @Res("credits", t.Credits, fc?.Credits, "Credits — the one you run out of. Upkeep, hulls, bribes. The small figure is what the year will add or take, the shares of what is being built counted.")
+        <span class="res purse" title="@purseTip" data-purse="@p.Purse"><small class="pl">purse</small><b>@p.Purse</b></span>
         @Res("materials", t.Materials, fc?.Materials, "Materials — building and shipbuilding.")
         @Res("manpower", t.Manpower, fc?.Manpower, "Manpower — crews and garrisons; people are soldiers.")
         @Res("influence", t.Influence, fc?.Influence, "Influence (stock) — spent through the exchange and by decrees.")

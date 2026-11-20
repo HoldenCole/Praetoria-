@@ -1,0 +1,27 @@
+@inject GameClient G
+@* What a peace with a house may ask, by how the war stands (docs/PLAYTHROUGH.md 9): every term with what it does, and why one would be refused. *@
+<div class="peace-terms" data-peace="@War.EnemyHouseId">
+    <div class="small muted">@Standing()</div>
+    @foreach (var t in War.Terms)
+    {
+        bool can = t.Accepted && War.CanPay;
+        <div class="peace-term @(can ? "" : "off")">
+            <button class="opt" disabled="@(!can)" data-term="@t.Kind" title="@(t.Accepted ? (War.CanPay ? t.What : "No influence left this year: an envoy costs 1") : Cap(t.Why))" @onclick="() => Put(t)">@t.Label</button>
+            <span class="small @(t.Accepted ? "muted" : "bad")">@(t.Accepted ? t.What : Cap(t.Why) + ".")</span>
+        </div>
+    }
+    @if (War.Terms.Count > 0 && !War.CanPay) { <div class="small bad">An envoy costs 1 influence, and this year's is spent.</div> }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public WarLine War { get; set; } = default!;
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private string Standing() => War.Lead > 0 ? $"You are ahead by {War.Lead}. A battle won is 2 and a world taken 3; a world may be asked for from {HousePeace.WorldLead} ahead." + (War.TheyAreSuing ? " They are suing for peace." : "")
+        : War.Lead < 0 ? $"You are behind by {-War.Lead}. Peace will cost something unless they tire of it first." + (War.TheyAreSuing ? " They are suing for peace: a white peace is on the table." : "")
+        : "The war stands level." + (War.TheyAreSuing ? " They are suing for peace." : "");
+    private void Put(HousePeace.Term t)
+    {
+        var pid = G.World!.ProtagonistId; var enemy = War.EnemyHouseId; var rules = G.Content!.Fleets;
+        G.Ask(t.Label + "?", t.What + " The envoy costs 1 influence, and the peace is made at once.", "Make peace", () => G.Execute(new SueForPeaceCommand(pid, enemy, rules, t.Kind, t.HoldingId)), "Fight on");
+    }
+}

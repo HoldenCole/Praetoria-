@@ -38,8 +38,10 @@
                 {
                     <button class="choice" disabled="@(!ch.Available)" @onclick="() => OnChoose.InvokeAsync((b, ch.Id))">
                         <span class="label">@ch.Label</span>
-                        @if (ch.Cost.Length > 0) { <span class="cost">@ch.Cost</span> }
-                        @if (!ch.Available) { <span class="cost why">@ch.Reason</span> }
+                        @if (ch.Cost.Length > 0) { <span class="cost" title="Taken from this year's pools, which refill each year">@ch.Cost this year</span> }
+                        @if (ch.Stakes.Length > 0) { <span class="cost stakes" data-stakes="@ch.Id">@ch.Stakes</span> }
+                        @if (ch.Warn != null) { <span class="cost why" data-warn="@ch.Id">@ch.Warn</span> }
+                        @if (!ch.Available) { <span class="cost why" data-why="@ch.Id">@ch.Reason</span> }
                     </button>
                 }
                 <button class="choice aside" @onclick="OnClose"><span class="label">Set it aside for now</span></button>

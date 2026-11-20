@@ -4,6 +4,7 @@
     var open = m.Briefing.Where(b => !b.Resolved).ToList();
     var alerts = new List<(string cls, string text, string? go)>();
     if (m.Treasury.Insolvent) alerts.Add(("warn", $"Insolvent: {m.Treasury.Credits} credits", "house"));
+    foreach (var bt in w.Battles.Where(b => b.Turn == w.Turn - 1 && b.Involves(w.Protagonist!.HouseId)).Take(3)) alerts.Add((bt.WinnerId == w.Protagonist!.HouseId ? "good" : "warn", $"{(bt.WinnerId == w.Protagonist!.HouseId ? "Won" : "Lost")}: the battle of {bt.Place} ({bt.AttackerHulls} hull(s) against {bt.DefenderHulls})", "military:battles"));
     foreach (var war in m.Wars) alerts.Add(("warn", $"At war with {war.EnemyName}{(war.TheyAreSuing ? " — they sue for peace" : "")}", "military"));
     foreach (var sg in m.Sieges.Where(s => s.Ours)) alerts.Add(("warn", $"{sg.HoldingName} besieged by {sg.BesiegerName} ({sg.Turns}/{sg.Required})", "galaxy"));
     foreach (var h in m.Household.Where(h => h.Actions.Any(a => a.Id == "defiant"))) alerts.Add(("warn", $"{h.Name} is defiant", "dynasty"));

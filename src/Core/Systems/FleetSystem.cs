@@ -155,7 +155,7 @@ public sealed class FleetSystem
             {
                 f.Eta -= 1;
                 f.Readiness = Math.Max(0, f.Readiness - _rules.ReadinessDecayMoving);
-                if (f.Eta <= 0) { f.SystemId = f.DestinationId; f.DestinationId = ""; f.Eta = 0; Arrive(w, f); }
+                if (f.Eta <= 0) { f.SystemId = f.DestinationId; f.DestinationId = ""; f.Eta = 0; f.Voyage = 0; Arrive(w, f); }
             }
             else f.Readiness = Math.Clamp(f.Readiness + _rules.ReadinessRecovery + PolicySystem.Modifier(w, Policies, f.OwnerId, "readiness"), 0, 100);
         }
@@ -495,14 +495,7 @@ public sealed class FleetSystem
             {
                 string winner = loser == a ? b : a;
                 var ceded = w.HoldingsOf(loser).Where(h => h.IsPlanet && !(w.Galaxy is { Capital.Length: > 0 } g && g.Capital == h.SystemId)).OrderBy(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
-                if (ceded != null && w.HoldingsOf(loser).Count(h => h.IsPlanet) > 1)
-                {
-                    ceded.FormerOwnerId = loser; ceded.OwnerId = winner; ceded.Unrest = Math.Min(100, ceded.Unrest + 10);
-                    var newGov = Economy.HeadOf(w, w.House(winner)!); if (newGov != null) ceded.GovernorId = newGov.Id;
-                    w.WorldCounters["cessions"] = w.Counter("cessions") + 1;
-                    var player = w.Protagonist?.HouseId; if (winner == player) w.WorldFlags.Add("won_a_world"); if (loser == player) w.WorldFlags.Add("ceded_a_world");
-                    w.Log($"By the terms of the peace, {w.House(loser)?.Name ?? loser} cedes {ceded.Name} to {w.House(winner)?.Name ?? winner}.");
-                }
+                if (ceded != null && w.HoldingsOf(loser).Count(h => h.IsPlanet) > 1) CedeWorld(w, ceded, loser, winner);
             }
         }
         foreach (var s in w.Sieges.Values.Where(s => (war.Involves(s.BesiegerId)) && war.Involves(w.Holding(s.HoldingId)?.OwnerId ?? "")).ToList()) w.Sieges.Remove(s.HoldingId);
@@ -510,6 +503,16 @@ public sealed class FleetSystem
         RefreshWarFlags(w);
         RefreshSiegeFlag(w);
         w.Log($"{w.House(a)?.Name ?? a} and {w.House(b)?.Name ?? b} make peace.");
+    }
+
+    /// <summary>A world changes hands at a peace: its new house's head governs it, and its people take it badly for a while.</summary>
+    public void CedeWorld(World w, Holding ceded, string loser, string winner)
+    {
+        ceded.FormerOwnerId = loser; ceded.OwnerId = winner; ceded.Unrest = Math.Min(100, ceded.Unrest + 10);
+        var newGov = Economy.HeadOf(w, w.House(winner)!); if (newGov != null) ceded.GovernorId = newGov.Id;
+        w.WorldCounters["cessions"] = w.Counter("cessions") + 1;
+        var player = w.Protagonist?.HouseId; if (winner == player) w.WorldFlags.Add("won_a_world"); if (loser == player) w.WorldFlags.Add("ceded_a_world");
+        w.Log($"By the terms of the peace, {w.House(loser)?.Name ?? loser} cedes {ceded.Name} to {w.House(winner)?.Name ?? winner}.");
     }
 
     /// <summary>Tribute the lower-scoring side pays the higher on peace (credits), from the war's score difference.</summary>
@@ -603,8 +606,21 @@ public sealed class FleetSystem
         if (edge > 0) pa *= 1 + _rules.StanceEdge; else if (edge < 0) pd *= 1 + _rules.StanceEdge;
         foreach (var f in w.Fleets.Values.Where(f => !f.Moving && f.SystemId == systemId && (f.OwnerId == a || f.OwnerId == b) && f.Loadout == "torpedoes"))
             if (w.House(f.OwnerId) is { } th && th.Treasury.Isotopes > 0) th.Treasury.Isotopes -= 1;   // the magazines are spent whatever the outcome
+        int hullsA = StrengthAt(w, attacker, systemId), hullsD = StrengthAt(w, defender, systemId);
+        var notes = new List<string>();
+        if (owner == defender) notes.Add($"{w.House(defender)?.Name ?? defender} fought on its own ground: +{(int)Math.Round(100 * (_rules.DefenderBonus + Defense(w, systemId, defender)))}% for the ground and its works");
+        if (edge != 0) notes.Add($"{w.House(edge > 0 ? attacker : defender)?.Name} chose the better order of battle ({(edge > 0 ? sa : sd)} against {(edge > 0 ? sd : sa)}): +{(int)Math.Round(100 * _rules.StanceEdge)}%");
+        foreach (var side in new[] { attacker, defender })
+        {
+            var led = Admirals(w, side, systemId); var here = w.Fleets.Values.Where(f => f.OwnerId == side && !f.Moving && f.SystemId == systemId).ToList();
+            int ready = here.Count == 0 ? 0 : (int)here.Average(f => f.Readiness);
+            notes.Add($"{w.House(side)?.Name ?? side}: " + (led.Count > 0 ? "led by " + string.Join(" and ", led.Select(c => $"{c.Name} (tactics {c.Skill("tactics")})")) : "no admiral aboard") + $", readiness {ready}"
+                + (here.Any(f => f.Supply < _rules.SupplyLow) ? ", short of supply" : "") + (here.Any(f => f.Loadout == "torpedoes") ? ", torpedoes loaded" : ""));
+        }
         double roll = rng.NextDouble();
         bool attackerWins = roll < pa / (pa + pd);
+        int chance = (int)Math.Round(100 * pa / (pa + pd));
+        if (attackerWins ? chance < 40 : chance > 60) notes.Add($"The weaker side won: at these odds that happens {(attackerWins ? chance : 100 - chance)} times in 100");
         string winner = attackerWins ? attacker : defender, loser = attackerWins ? defender : attacker;
         double pw = attackerWins ? pa : pd, pl = attackerWins ? pd : pa;
 
@@ -642,6 +658,9 @@ public sealed class FleetSystem
         w.Log($"Battle of {sys}: {w.House(winner)?.Name ?? winner} defeats {w.House(loser)?.Name ?? loser} " +
               $"({w.House(attacker)?.Name ?? attacker} attacking, {w.House(defender)?.Name ?? defender} holding). " +
               $"Hulls lost — {w.House(attacker)?.Name ?? attacker} {(attackerWins ? winnerLosses : loserLosses)}, {w.House(defender)?.Name ?? defender} {(attackerWins ? loserLosses : winnerLosses)}.");
+        w.Battles.Add(new BattleRecord { Turn = w.Turn, SystemId = systemId, Place = sys, AttackerId = attacker, DefenderId = defender, WinnerId = winner, AttackerHulls = hullsA, DefenderHulls = hullsD,
+            AttackerLost = attackerWins ? winnerLosses : loserLosses, DefenderLost = attackerWins ? loserLosses : winnerLosses, AttackerPower = Math.Round(pa, 1), DefenderPower = Math.Round(pd, 1), Notes = notes });
+        if (w.Battles.Count > 60) w.Battles.RemoveRange(0, w.Battles.Count - 60);
         return new BattleReport(systemId, attacker, defender, winner, attackerWins ? winnerLosses : loserLosses, attackerWins ? loserLosses : winnerLosses, pa, pd, w.Turn);
     }
 
@@ -695,16 +714,48 @@ public sealed class FleetSystem
 
     /// <summary>Power = Σ hulls × class stat (attack assaulting, defense holding) × (0.5 + readiness/200) × admiral × veterancy;
     /// defenders × (1 + bonus + the system's holdings' defense).</summary>
-    public double Power(World w, string houseId, string systemId, bool defending)
+    public double Power(World w, string houseId, string systemId, bool defending) =>
+        PowerWith(w, houseId, systemId, w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId), defending);
+
+    /// <summary>What a house would weigh in a system with the fleets named: <see cref="Power"/> for the fleets standing there, and the
+    /// staff's estimate for a fleet that has not sailed yet (<see cref="OddsAt"/>).</summary>
+    public double PowerWith(World w, string houseId, string systemId, IEnumerable<Fleet> fleets, bool defending)
     {
         double p = 0;
-        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId)) p += PowerOf(w, f, defending);
+        foreach (var f in fleets) p += PowerOf(w, f, defending);
         if (defending) p *= 1 + _rules.DefenderBonus + Defense(w, systemId, houseId);
         p *= 1 + FlagFactor(w, houseId);
         if (CampaignTarget(w, houseId) is { } target && w.Galaxy != null && (target == systemId || w.Galaxy.Hops(target, systemId) is > 0 and var cd && cd <= _rules.CampaignRange)) p *= 1 + _rules.CampaignBonus;
         if (w.NationOfHouse(houseId) is { Mettle: > 0 } nation) p *= nation.Mettle / 100.0;   // a nation's fleets fight by its temper, as they did off the map (docs/BEYOND.md)
         return p;
     }
+
+    /// <summary>What the staff makes of sending fleets to a system: what they would weigh there, what stands there against them, and
+    /// the chance of the day (docs/PLAYTHROUGH.md 10: "no way to see the odds before sailing"). It counts only what the house can
+    /// see: enemy fleets in a watched system or with a report on file. Null when no enemy is known to be there.</summary>
+    public sealed record Odds(int Chance, int MyHulls, int TheirHulls, string Enemies, bool TheyHoldTheGround, int GroundPercent, bool Sighted, int ReportYear);
+    public Odds? OddsAt(World w, string houseId, IReadOnlyCollection<Fleet> sailing, string systemId)
+    {
+        if (w.Galaxy == null) return null;
+        var watched = Watched(w); bool sighted = watched.Contains(systemId);
+        var there = w.Fleets.Values.Where(f => !f.Moving && !f.IsAway && f.SystemId == systemId && f.OwnerId != houseId && w.AtWar(f.OwnerId, houseId) && (sighted || w.Intel.ContainsKey(f.Id))).OrderBy(f => f.Id, StringComparer.Ordinal).ToList();
+        if (there.Count == 0) return null;
+        string? owner = TerritoryOwner(w, systemId);
+        var mine = sailing.Concat(w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId && !sailing.Contains(f))).ToList();
+        double pm = PowerWith(w, houseId, systemId, mine, defending: owner == houseId), pt = 0; bool ground = false; double bonus = 0;
+        foreach (var enemy in there.Select(f => f.OwnerId).Distinct().OrderBy(h => h, StringComparer.Ordinal))
+        {
+            bool holds = owner == enemy; pt += PowerWith(w, enemy, systemId, there.Where(f => f.OwnerId == enemy), defending: holds);
+            if (holds) { ground = true; bonus = _rules.DefenderBonus + Defense(w, systemId, enemy); }
+        }
+        int year = sighted ? w.Turn : there.Max(f => w.Intel.TryGetValue(f.Id, out var i) ? i.TurnObserved : w.Turn);
+        return new Odds(pm + pt <= 0 ? 50 : (int)Math.Round(100 * pm / (pm + pt)), mine.Sum(f => f.Strength), there.Sum(f => f.Strength),
+            string.Join(" and ", there.Select(f => w.House(f.OwnerId)?.Name ?? f.OwnerId).Distinct()), ground, (int)Math.Round(100 * bonus), sighted, year);
+    }
+    /// <summary>The odds in a sentence, for a screen.</summary>
+    public static string Say(Odds o) => $"{o.Enemies} {(o.TheirHulls == 1 ? "has" : "have")} {o.TheirHulls} hull(s) there{(o.Sighted ? "" : $" by the last report (year {o.ReportYear})")}" +
+        (o.TheyHoldTheGround ? $", on their own ground (+{o.GroundPercent}% to them)" : "") + $". With {o.MyHulls} hull(s) of yours the staff gives you {o.Chance} in 100" +
+        (o.Chance >= 65 ? ": the day should be yours." : o.Chance >= 45 ? ": it could go either way." : o.Chance >= 25 ? ": the odds are against you." : ": it would be thrown away.");
 
     /// <summary>One fleet's power on its own: hulls × class stat × readiness × admiral × veterancy × the depth factor. The house-wide flag and
     /// campaign factors are added by <see cref="Power"/>; expeditions (NationSystem) read this alone, with the flag factor.</summary>
@@ -801,7 +852,7 @@ public sealed class FleetSystem
         foreach (var f in survivors)
         {
             if (havens.Count == 0) { w.Fleets.Remove(f.Id); w.Intel.Remove(f.Id); w.Log($"{f.Name}, with no port to run to, scatters and is lost."); continue; }
-            f.DestinationId = havens[0].s; f.Eta = havens[0].hops;
+            f.DestinationId = havens[0].s; f.Eta = havens[0].hops; f.Voyage = f.Eta;
             w.Log($"{f.Name} falls back toward {w.Galaxy!.System(havens[0].s)?.Name ?? havens[0].s}.");
         }
     }

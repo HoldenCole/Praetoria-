@@ -59,8 +59,38 @@ public sealed class MoveFleetCommand : ICommand
         ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Treasury] = _rules.MovePoolCost });
         var f = w.Fleets[_fleetId];
         f.DestinationId = _targetSystemId;
-        f.Eta = w.Galaxy!.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId));
+        f.Eta = w.Galaxy!.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId)); f.Voyage = f.Eta;
         w.Log($"{f.Name} sets course for {w.Galaxy.System(_targetSystemId)?.Name ?? _targetSystemId} ({f.Eta} jump{(f.Eta == 1 ? "" : "s")}).");
+    }
+}
+
+/// <summary>Call a fleet under way back (docs/PLAYTHROUGH.md 11: "a fleet's order cannot be taken back": one squadron left on a
+/// six-year voyage that could not be recalled). An order given this year is simply struck out; a fleet that has sailed some years
+/// takes as many to come home. It costs nothing but the time.</summary>
+public sealed class RecallFleetCommand : ICommand
+{
+    private readonly string _fleetId;
+    public RecallFleetCommand(string actorId, string fleetId) { ActorId = actorId; _fleetId = fleetId; }
+    public string ActorId { get; }
+    public string Describe() => $"recall {_fleetId}";
+    /// <summary>The years it would take to be home again: what it has sailed.</summary>
+    public static int YearsBack(Fleet f) => f.Voyage > 0 ? Math.Max(0, f.Voyage - f.Eta) : 0;
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true) return "no one to give the order";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        if (f.IsAway) return "it is beyond the Reach: recall the expedition";
+        if (!f.Moving) return "it is not under way";
+        if (f.DestinationId == f.SystemId) return "it is already coming home";
+        return null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var f = w.Fleets[_fleetId]; int back = YearsBack(f); string home = w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId;
+        if (back <= 0) { f.DestinationId = ""; f.Eta = 0; f.Voyage = 0; w.Log($"{f.Name}'s orders are struck out before it has left {home}."); }
+        else { f.DestinationId = f.SystemId; f.Eta = back; f.Voyage = back; w.Log($"{f.Name} is called back to {home} ({back} year{(back == 1 ? "" : "s")} to come about and return)."); }
     }
 }
 

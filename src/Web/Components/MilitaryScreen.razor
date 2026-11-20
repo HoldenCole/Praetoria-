@@ -99,11 +99,43 @@
         <button class="rung @(_view == "deck" ? "here" : "")" @onclick='() => _view = "deck"'>Your fleets</button>
         <button class="rung @(_view == "near" ? "here" : "")" @onclick='() => _view = "near"'>What is near</button>
         <button class="rung @(_view == "navies" ? "here" : "")" @onclick='() => _view = "navies"'>The navies</button>
+        <button class="rung @(_view == "battles" ? "here" : "")" data-view="battles" @onclick='() => _view = "battles"'>Battles@(w.Battles.Any(b => b.Involves(house.Id) && b.Turn >= w.Turn - 1) ? " ●" : "")</button>
         <button class="rung @(_view == "general" ? "here" : "")" @onclick='() => _view = "general"'>The general and the Senate</button>
         @if (nations.Count > 0) { <button class="rung @(_view == "abroad" ? "here" : "") @(warAbroad != null ? "warn" : "")" @onclick='() => _view = "abroad"'>Beyond the Reach · @(warAbroad != null ? "war with " + warAbroad.Name : nations.Count + " nations")</button> }
     </div>
 
-    @if (_view == "general") { <div class="dash-grid deck-one"><div class="deck-col"><CaesarPanel /></div></div> }
+    @if (_view == "battles")
+    {
+        var mineB = w.Battles.Where(b => b.Involves(house.Id)).Reverse().Take(12).ToList(); var othersB = w.Battles.Where(b => !b.Involves(house.Id)).Reverse().Take(10).ToList();
+        string Nm(string id) => w.House(id)?.Name ?? id;
+        <div class="dash-grid deck-one"><div class="deck-col">
+            <section class="panel" data-battles="mine">
+                <h3><Icon Name="war" Size="13" /> Your battles</h3>
+                @if (mineB.Count == 0) { <div class="muted small">Your house has fought no battle yet. A battle is fought when two fleets at war stand in the same system at the year's end.</div> }
+                @foreach (var b in mineB)
+                {
+                    bool won = b.WinnerId == house.Id; bool att = b.AttackerId == house.Id; int ch = att ? b.AttackerChance() : 100 - b.AttackerChance();
+                    <div class="battle @(won ? "won" : "lost")">
+                        <div><b>@(won ? "Won" : "Lost"): the battle of @b.Place</b> <span class="muted small">year @b.Turn · against @Nm(att ? b.DefenderId : b.AttackerId) · you were @(att ? "attacking" : "holding")</span></div>
+                        <div class="battle-sides">
+                            <span><b>@Nm(b.AttackerId)</b> (attacking): @b.AttackerHulls hull(s), lost @b.AttackerLost · weight @b.AttackerPower.ToString("0.#")</span>
+                            <span><b>@Nm(b.DefenderId)</b> (holding): @b.DefenderHulls hull(s), lost @b.DefenderLost · weight @b.DefenderPower.ToString("0.#")</span>
+                        </div>
+                        <div class="small">Before a shot was fired your chance was @ch in 100.</div>
+                        @foreach (var n in b.Notes) { <div class="small muted">· @n.</div> }
+                    </div>
+                }
+            </section>
+            @if (othersB.Count > 0)
+            {
+                <section class="panel" data-battles="others">
+                    <h3>Battles between others</h3>
+                    @foreach (var b in othersB) { <div class="line small">Year @b.Turn, @b.Place: @Nm(b.WinnerId) beat @Nm(b.WinnerId == b.AttackerId ? b.DefenderId : b.AttackerId) · @b.AttackerHulls against @b.DefenderHulls hull(s), lost @b.AttackerLost and @b.DefenderLost</div> }
+                </section>
+            }
+        </div></div>
+    }
+    else if (_view == "general") { <div class="dash-grid deck-one"><div class="deck-col"><CaesarPanel /></div></div> }
     else if (_view == "abroad")
     {
         <div class="dash-grid deck-one"><div class="deck-col">
@@ -275,6 +307,8 @@
                     <div class="row small">
                         @if (f.Expedition != null) { <button class="opt inline tiny" disabled="@(f.Expedition.Refusal != null)" title="@(f.Expedition.Refusal ?? "1 treasury action: the fleet leaves the map, sails the nation's distance, fights a season of four battles and comes home with plunder, valour and fewer hulls")" @onclick="() => G.Execute(new SendExpeditionCommand(pid, f.Id, f.Expedition.Id, c.Fleets, c.Nations))">@f.Expedition.Label</button> }
                         @if (f.Recall != null) { <button class="opt inline tiny" disabled="@(f.Recall.Refusal != null)" title="@(f.Recall.Refusal ?? "turn for home before the season is done")" @onclick="() => G.Execute(new RecallExpeditionCommand(pid, f.Id, c.Nations))">@f.Recall.Label</button> }
+                        @if (fleet.Moving && !fleet.IsAway) { var rc = new RecallFleetCommand(pid, f.Id); var why = rc.Refusal(G.Ctx); int back = RecallFleetCommand.YearsBack(fleet);
+                            <button class="opt inline tiny" data-recall="@f.Id" disabled="@(why != null)" title="@(why ?? (back == 0 ? "The order was given this year: it is struck out and the fleet stays" : $"It has sailed {back} year(s): it takes as long to come back"))" @onclick="() => G.Execute(rc)">@(back == 0 ? "Strike out the order" : $"Call it back ({back} yr)")</button> }
                         <button class="opt inline tiny" disabled="@(f.Refit.Refusal != null)" title="@f.Refit.Refusal" @onclick="() => G.Execute(new RefitFleetCommand(pid, f.Id))">@f.Refit.Label</button>
                         <details class="inline"><summary>Command</summary>@foreach (var o in f.AdmiralOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AssignAdmiralCommand(pid, f.Id, o.Id))">@o.Label</button> }</details>
                         @if (f.MergeOptions.Count > 0) { <details class="inline"><summary>Merge</summary>@foreach (var o in f.MergeOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new MergeFleetsCommand(pid, f.Id, o.Id))">@o.Label</button> }</details> }
@@ -319,7 +353,7 @@
                     <div class="war"><div><Sigil HouseId="@war.EnemyHouseId" Accent="@(eh?.AccentColor ?? "#888")" Size="16" /> <b>@war.EnemyName</b> <span class="muted">since turn @war.Since · their hulls ~@war.EnemyHulls@(war.TheyAreSuing ? " · they sue for peace" : "")</span></div>
                         <div class="tally"><span class="for" style="width:@(100 * a / tot)%"></span><span class="against" style="width:@(100 * b / tot)%"></span></div>
                         <div class="kv"><span>War score</span><b>@a : @b</b></div>
-                        <button class="opt" disabled="@(!war.PeaceAvailable)" title="@war.PeaceTooltip" @onclick="() => G.Execute(new SueForPeaceCommand(pid, war.EnemyHouseId, c.Fleets))">Sue for peace (1 influence)</button></div>
+                        <PeaceTerms War="war" /></div>
                 }
                 @foreach (var sg in m.Sieges) { <div class="line @(sg.Ours ? "warn" : "")"><Icon Name="siege" Size="12" /> @sg.HoldingName under siege by @sg.BesiegerName · @sg.Turns/@sg.Required@(sg.Ours ? " — ours" : "")</div> }
             </section>
@@ -350,6 +384,10 @@
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string _campaign = "", _view = "deck"; private bool _allNavies;
+    [Parameter] public string Tab { get; set; } = "";
+    [Parameter] public int TabStamp { get; set; }
+    private static int _seenStamp;
+    protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) _view = Tab; } }
     private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? n + "th" : (n % 10) switch { 1 => n + "st", 2 => n + "nd", 3 => n + "rd", _ => n + "th" };
     private static string JumpWord(int d) => d == 0 ? "at" : d == 1 ? "one jump from" : d + " jumps from";
     private void SetCampaign(ChangeEventArgs e) => _campaign = e.Value?.ToString() ?? "";

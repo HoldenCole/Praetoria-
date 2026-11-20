@@ -118,7 +118,7 @@
                             @if (ch.Id != pid) { <span class="pill @(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span> }
                             @if (cn != null) { foreach (var f in cn.Flags.Take(3)) { <span class="pill small">@f.Replace('_', ' ')</span> } }
                         </span>
-                        @if (cn != null) { foreach (var o in cn.Actions) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(Conn(o.Id, cn.Id))">@o.Label</button> } }
+                        @if (cn != null) { foreach (var o in cn.Actions) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => AskConn(o.Id, o.Label, cn.Id)">@o.Label</button> } }
                     </div>
                 }
                 @if (members.Count == 0) { <div class="muted">No one of the name still lives.</div> }
@@ -129,8 +129,8 @@
                 @if (fh.Id != mine.Id)
                 {
                     var dw = new DeclareWarCommand(pid, fh.Id, c.Fleets);
-                    @if (!atWar) { <button class="opt" disabled="@(!dw.CanExecute(ctx))" title="@(dw.CanExecute(ctx) ? "" : "no influence")" @onclick="() => G.Execute(new DeclareWarCommand(pid, fh.Id, c.Fleets))">Declare war on @fh.Name (2 influence)</button> }
-                    else { var peace = m.Wars.FirstOrDefault(x => x.EnemyHouseId == fh.Id); if (peace != null) { <button class="opt" disabled="@(!peace.PeaceAvailable)" title="@peace.PeaceTooltip" @onclick="() => G.Execute(new SueForPeaceCommand(pid, fh.Id, c.Fleets))">Sue for peace (1 influence)</button> } }
+                    @if (!atWar) { <button class="opt" disabled="@(!dw.CanExecute(ctx))" title="@(dw.CanExecute(ctx) ? "" : "no influence")" @onclick="() => G.AskWar(fh.Id)">Declare war on @fh.Name (2 influence)</button> }
+                    else { var peace = m.Wars.FirstOrDefault(x => x.EnemyHouseId == fh.Id); if (peace != null) { <PeaceTerms War="peace" /> } }
                 }
             </section>
         }
@@ -146,5 +146,6 @@
     private bool _open;
     protected override async Task OnAfterRenderAsync(bool first) { try { await JS.InvokeVoidAsync("praetoriaFx.paint"); } catch { } }
     private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
+    private void AskConn(string optionId, string label, string targetId) { if (optionId.StartsWith("marry:")) G.AskTreatyMarriage(label, Conn(optionId, targetId)); else G.AskAccident(label, Conn(optionId, targetId)); }
     private ICommand Conn(string optionId, string targetId) { var pid = G.World!.ProtagonistId; var c = G.Content!; return optionId.StartsWith("marry:") ? new ProposeMarriageCommand(pid, optionId["marry:".Length..], targetId, c.Titles) : new AssassinateCommand(pid, targetId, c.Friction); }
 }

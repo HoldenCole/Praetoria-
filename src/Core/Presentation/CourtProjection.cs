@@ -136,11 +136,16 @@ public sealed record HouseholdLine(string Id, string Name, int Age, string Sex, 
 public sealed record SiegeLine(string HoldingName, string BesiegerName, int Turns, int Required, bool Ours);
 public sealed record ThroneCard(string? ProclaimRefusal, string? SeizeRefusal, bool HoldsThrone, string? EmperorName);
 public sealed record GreatCrisisCard(string Name, string? Stage, int Clock, int? NextAt, string Intensity, string Bloc, bool Resolved, string? HegemonName);
-public sealed record WarLine(string EnemyHouseId, string EnemyName, int Since, int EnemyHulls, bool PeaceAvailable, string PeaceTooltip, bool TheyAreSuing);
+/// <summary>A war with a house. <c>Terms</c> is every peace that could be put to it now, each with what it would do and whether it
+/// would be taken (docs/PLAYTHROUGH.md 9).</summary>
+public sealed record WarLine(string EnemyHouseId, string EnemyName, int Since, int EnemyHulls, bool PeaceAvailable, string PeaceTooltip, bool TheyAreSuing)
+{ public IReadOnlyList<HousePeace.Term> Terms { get; init; } = Array.Empty<HousePeace.Term>(); public int Lead { get; init; } public bool CanPay { get; init; } }
 public sealed record BattleLine(string Text);
 /// <summary>A choice as offered: <paramref name="Reason"/> is null when available, else why not ("requirements not met" — a trait,
 /// skill or rank gate — or "cannot afford: 2 influence").</summary>
-public sealed record ChoiceCard(string Id, string Label, string Cost, bool Available, string? Reason = null);
+/// <summary>One answer to a report. <c>Stakes</c> is what it costs and gives the house in words, <c>Warn</c> what it would overdraw
+/// (docs/PLAYTHROUGH.md 8: a choice is not made blind).</summary>
+public sealed record ChoiceCard(string Id, string Label, string Cost, bool Available, string? Reason = null, string Stakes = "", string? Warn = null);
 public sealed record BriefingCard(BriefingItem Item, string Title, string Tier, bool Setpiece, string Body, bool Resolved, IReadOnlyList<ChoiceCard> Choices);
 public sealed record MemberLine(string Name, string Detail, bool Alive, int Disposition, string Bond);
 public sealed record ConnectionLine(string Id, string Name, string HouseName, string Detail, int Disposition, string Bond, IReadOnlyList<string> Flags, bool Hostile,
@@ -333,7 +338,8 @@ public static class CourtProjection
             bool refuses = !tc.Fleets.WouldAcceptPeace(w, enemy, house.Id);
             bool suing = w.LivingCharacters().Any(c => c.HouseId == enemy && c.Flags.Contains(FleetSystem.SuingForPeaceFlag));
             wars.Add(new WarLine(enemy, w.House(enemy)?.Name ?? enemy, war.Since, FleetSystem.StrengthOf(w, enemy), can,
-                can ? "" : refuses ? "They smell victory — their hulls far outnumber yours." : "No Influence left this turn.", suing));
+                can ? "" : refuses ? "They smell victory — their hulls far outnumber yours." : "No Influence left this turn.", suing)
+                { Terms = HousePeace.Terms(w, tc.Fleets, content.Fleets, house.Id, enemy), Lead = war.Lead(house.Id), CanPay = pools.Get(Pool.Influence) >= content.Fleets.PeaceCost });
         }
 
         var briefing = new List<BriefingCard>();
@@ -346,11 +352,11 @@ public static class CourtProjection
             {
                 string cost = oc.Choice.Cost.Count == 0 ? "" : string.Join(", ", oc.Choice.Cost.Select(c => $"{c.Value} {c.Key}"));
                 string? reason = oc.Available ? null
-                    : !tc.Engine.IsChoiceAvailable(fired, w, oc.Choice.Id) ? "requirements not met"
-                    : $"cannot afford: {cost}";
+                    : !tc.Engine.IsChoiceAvailable(fired, w, oc.Choice.Id) ? ChoiceStakes.Unmet(oc.Choice, ectx)
+                    : "this year's " + string.Join(" and ", oc.Choice.Cost.Where(c => pools.Get(c.Key) < c.Value).Select(c => $"{c.Key} is spent ({pools.Get(c.Key)} left of the {c.Value} it takes)"));
                 return new ChoiceCard(oc.Choice.Id,
                     text != null && text.Choices.TryGetValue(oc.Choice.Id, out var ct) ? TextRenderer.Substitute(ct, ectx) : oc.Choice.Id,
-                    cost, oc.Available, reason);
+                    cost, oc.Available, reason, ChoiceStakes.Of(oc.Choice, ectx, p), ChoiceStakes.Overdraws(oc.Choice, ectx, p));
             }).ToList();
             briefing.Add(new BriefingCard(item, TextRenderer.Substitute(text?.Title ?? fired.Def.Id, ectx), fired.Def.Tier.ToString().ToUpperInvariant(),
                 fired.Def.Tier == EventTier.Setpiece, string.IsNullOrWhiteSpace(text?.Body) ? "" : TextRenderer.Substitute(text!.Body, ectx), item.Resolved, choices));

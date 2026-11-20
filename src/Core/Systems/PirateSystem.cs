@@ -68,7 +68,7 @@ public sealed class PirateSystem
             if (world != null && hash % 2 == 0) continue;
             var options = g.Neighbors(f.SystemId).Where(n => g.RingOf(n) != Ring.Core && w.Fleets.Values.Where(x => x.OwnerId != HouseId && !x.Moving && x.SystemId == n).Sum(x => x.Strength) < f.Strength).ToList();
             if (options.Count == 0) continue;
-            f.DestinationId = options[(int)(hash % (uint)options.Count)]; f.Eta = 1;
+            f.DestinationId = options[(int)(hash % (uint)options.Count)]; f.Eta = 1; f.Voyage = 1;
         }
     }
 

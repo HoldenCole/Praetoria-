@@ -254,7 +254,7 @@ public sealed partial class NationSystem
             if (!IsGuard(n, f)) bound.Add(to ?? f.SystemId);
             if (to == null || to == f.SystemId) continue;
             int eta = w.Galaxy!.Hops(f.SystemId, to, Commands.MoveFleetCommand.Barred(w, house.Id)); if (eta <= 0) continue;
-            f.DestinationId = to; f.Eta = eta;
+            f.DestinationId = to; f.Eta = eta; f.Voyage = eta;
             if (!IsGuard(n, f) && !Own(w, d).Contains(to))
             {
                 Bump(w, HostsCounter, n); Mark(w, "nation_host_sails", n);

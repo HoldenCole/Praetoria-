@@ -1,4 +1,5 @@
 @inject GameClient G
+@implements IDisposable
 @* The one question the game asks before something that cannot be taken back (docs/PLAYTHROUGH.md): any screen calls G.Ask. *@
 @if (G.Asking is { } a)
 {
@@ -12,4 +13,26 @@
             </div>
         </div>
     </div>
+}
+@* What came of an answer to a report: said once, after it is given (docs/PLAYTHROUGH.md 8). *@
+@if (G.Asking == null && G.Told is { } t)
+{
+    <div class="confirm-veil" @onclick="G.Dismiss">
+        <div class="confirm-box outcome" role="dialog" aria-modal="true" data-outcome="1" @onclick:stopPropagation="true">
+            <div class="outcome-kicker">What came of it</div>
+            <h3>@t.Title</h3>
+            @if (t.Chose.Length > 0) { <p class="outcome-chose">“@t.Chose”</p> }
+            @foreach (var line in t.Lines) { <p>@line</p> }
+            <div class="confirm-row">
+                <button class="btn primary" data-outcome-ok="1" @onclick="G.Dismiss">So be it</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    // it has no parameters, so nothing redraws it but the client saying the world or the question changed
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    protected override void OnInitialized() => G.Changed += Redraw;
+    public void Dispose() => G.Changed -= Redraw;
 }

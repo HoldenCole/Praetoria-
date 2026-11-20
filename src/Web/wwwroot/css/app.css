@@ -1084,3 +1084,22 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 .confirm-box p { margin: 0 0 1rem; font-size: .88rem; line-height: 1.5; color: var(--ink); }
 .confirm-row { display: flex; justify-content: flex-end; gap: .6rem; }
 .path-no { margin: .1rem 0 .3rem; }
+.topbar .res.purse { opacity: .85; } .topbar .res.purse .pl { font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink2); margin-right: .25rem; }
+.ledger-sub { margin: .7rem 0 .2rem; font-family: var(--sans); font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink2); font-weight: 600; } .ledger-sub .muted { letter-spacing: 0; text-transform: none; font-weight: 400; margin-left: .4rem; }
+
+/* A report's choices say what they cost and give, and what came of the one taken (docs/PLAYTHROUGH.md 8). */
+.choice .cost.stakes { color: var(--ink-2, #b9b3a3); font-style: normal; }
+.confirm-box.outcome .outcome-kicker { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; opacity: .7; margin-bottom: 4px; }
+.confirm-box.outcome .outcome-chose { font-style: italic; opacity: .85; }
+.choice { flex-wrap: wrap; } .choice .cost.stakes, .choice .cost.why { flex-basis: 100%; white-space: normal; text-align: left; }
+
+/* Peace with a house: every term, what it does, and why one would be refused (docs/PLAYTHROUGH.md 9). */
+.peace-terms { margin-top: .35rem; display: flex; flex-direction: column; gap: .25rem; flex-basis: 100%; }
+.peace-term { display: grid; grid-template-columns: minmax(11rem, max-content) 1fr; gap: .5rem; align-items: center; }
+.peace-term.off .opt { opacity: .6; }
+
+/* A fleet that is picked says so, and an order is given by a button, never by looking (docs/PLAYTHROUGH.md 10, 11). */
+.order-bar { position: absolute; left: 50%; top: .6rem; transform: translateX(-50%); z-index: 6; max-width: min(46rem, 80%); background: rgba(14,17,26,.94); border: 1px solid var(--brass); border-radius: 6px; padding: .5rem .7rem; font-size: .88rem; box-shadow: 0 6px 24px rgba(0,0,0,.5); }
+.order-bar .order-row { display: flex; gap: .4rem; margin-top: .4rem; flex-wrap: wrap; }
+.battle { padding: .5rem .6rem; border-left: 3px solid var(--line); margin: .4rem 0; background: rgba(255,255,255,.02); } .battle.won { border-left-color: #6fbf8a; } .battle.lost { border-left-color: #d8705a; }
+.battle-sides { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; font-size: .86rem; margin: .25rem 0; }

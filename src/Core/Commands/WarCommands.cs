@@ -39,9 +39,12 @@ public sealed class DeclareWarCommand : ICommand
 /// flagged <c>suing_for_peace</c> and the player answers through the envoy event (GDD §15: decisions are scenes).</summary>
 public sealed class SueForPeaceCommand : ICommand
 {
-    private readonly string _targetHouseId;
+    private readonly string _targetHouseId, _kind, _holdingId;
     private readonly FleetRules _rules;
-    public SueForPeaceCommand(string actorId, string targetHouseId, FleetRules rules) { ActorId = actorId; _targetHouseId = targetHouseId; _rules = rules; }
+    /// <summary>With no <paramref name="kind"/> the peace is the customary one (tribute by the score, a world at a rout), which is what
+    /// the other houses ask of each other. With one (<see cref="HousePeace"/>) it is the term named: nothing, tribute, or a world.</summary>
+    public SueForPeaceCommand(string actorId, string targetHouseId, FleetRules rules, string kind = "", string holdingId = "") { ActorId = actorId; _targetHouseId = targetHouseId; _rules = rules; _kind = kind; _holdingId = holdingId; }
+    private HousePeace.Term? Term(World w, string house) => HousePeace.Terms(w, new FleetSystem(_rules), _rules, house, _targetHouseId).FirstOrDefault(t => t.Kind == _kind && t.HoldingId == _holdingId);
 
     public string ActorId { get; }
     public string Describe() => $"sue for peace with {_targetHouseId}";
@@ -53,7 +56,8 @@ public sealed class SueForPeaceCommand : ICommand
         if (actor?.Alive != true || !w.AtWar(actor.HouseId, _targetHouseId)) return false;
         bool toPlayer = _targetHouseId == w.Protagonist?.HouseId;
         if (toPlayer && actor.Flags.Contains(FleetSystem.SuingForPeaceFlag)) return false;       // offer already on the table
-        if (!toPlayer && !new FleetSystem(_rules).WouldAcceptPeace(w, _targetHouseId, actor.HouseId)) return false;
+        if (!toPlayer && _kind.Length > 0) { if (Term(w, actor.HouseId) is not { Accepted: true }) return false; }
+        else if (!toPlayer && !new FleetSystem(_rules).WouldAcceptPeace(w, _targetHouseId, actor.HouseId)) return false;
         return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = _rules.PeaceCost });
     }
 
@@ -69,6 +73,13 @@ public sealed class SueForPeaceCommand : ICommand
             return;
         }
         var fleets = new FleetSystem(_rules);
+        if (_kind.Length > 0)
+        {
+            HousePeace.Conclude(w, fleets, _rules, actor.HouseId, _targetHouseId, _kind, _holdingId);
+            foreach (var head in w.LivingCharacters().Where(c => c.HouseId == _targetHouseId))
+                w.Relationship(head.Id, ActorId).Disposition = Math.Clamp(w.Relationship(head.Id, ActorId).Disposition + (_kind == HousePeace.Cede && w.Holding(_holdingId)?.OwnerId == actor.HouseId ? -10 : 10), -100, 100);
+            return;
+        }
         int tribute = fleets.Tribute(w, actor.HouseId, _targetHouseId);          // the side behind on score pays
         if (tribute > 0)
         {

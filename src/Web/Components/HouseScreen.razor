@@ -195,6 +195,15 @@
                     <div class="lb net"><span class="src"><b>What is left</b></span><span class="track"><i class="neg" style="width:@(net < 0 ? Math.Min(50.0, 50.0 * -net / maxAbs) : 0)%"></i><i class="pos" style="width:@(net > 0 ? Math.Min(50.0, 50.0 * net / maxAbs) : 0)%"></i></span><b class="@(net > 0 ? "good" : net < 0 ? "warn" : "muted")">@(net > 0 ? "+" : "")@net</b></div>
                 </div>
                 @if (Goods(lg.Net) is { Length: > 0 } goods) { <div class="muted small">And in goods, each year: @goods</div> }
+                @{ var outs = HouseAccounts.Outgoings(w, c.Holdings, house); var outTotal = HouseAccounts.Total(outs); int yearEnd = house.Treasury.Credits + lg.Net.Credits - outTotal.Credits; }
+                @if (outs.Count > 0)
+                {
+                    <h4 class="ledger-sub">Also going out this year <span class="muted">not standing costs: they end when the work does</span></h4>
+                    <div class="ledger-outs" data-outgoings="@outTotal.Credits">
+                        @foreach (var o in outs) { <div class="kv"><span>@Cap(o.what)</span><b class="warn">−@CourtProjection.Bundle(o.cost)</b></div> }
+                    </div>
+                }
+                <div class="kv @(yearEnd < 0 ? "warn" : "")" data-yearend="@yearEnd"><span>The treasury at the year's end, if nothing else is done</span><b>@yearEnd credits <i class="muted">· it holds @house.Treasury.Credits now@(w.Protagonist!.Purse > 0 ? ", and your own purse " + w.Protagonist.Purse : "")</i></b></div>
                 @if (lg.Debt > 0) { <div class="kv warn"><span>Debt</span><b>@lg.Debt credits@(lg.LenderName != null ? $" to the bank of {lg.LenderName}" : " to the counting-houses") · @lg.LoanInstalment a turn</b></div> }
                 <div class="row">
                     @if (lg.Debt == 0) { <button class="opt inline" disabled="@(lg.Loan.Refusal != null)" title="@lg.Loan.Refusal" @onclick="() => G.Execute(new TakeLoanCommand(pid, c.Businesses))">@lg.Loan.Label</button> }
@@ -241,6 +250,7 @@
 
 
 @code {
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<string> OnGo { get; set; }
     private string? _focus; private string _view = "estate";

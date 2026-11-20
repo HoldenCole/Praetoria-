@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Fixed
+- **Found by playing, six to ten** (docs/PLAYTHROUGH.md). The money forecast counts what a player spends (instalments,
+  hastening, tutors, allowances, the household's keep), the ledger lists it and says where the year will end, End Turn
+  asks before a year that ends below nought, and the head's own purse is on the top bar. War, a demand that a house step
+  down, a treaty marriage and an accident ask first and say what follows. A report's choices say what they cost and give
+  and what a greyed one lacks, and a box says what came of the one taken. Peace with a house has terms by the war's
+  score: nothing, tribute (in goods when there is no coin), or a named world. Battles are kept with their numbers and
+  what told, and the map gives the odds before a fleet sails. A fleet's order is given by a button, not by looking at a
+  world, and a fleet under way can be called back.
+- The question box ("Leave this saga?", "Declare war?") did not redraw when asked, so the question never appeared. It does now.
 - **Found by playing** (docs/PLAYTHROUGH.md, the first five). A rival's petition for a prefecture no longer takes a world of
   the player's. Save says that it keeps the start of the year; Quit and a new saga over a saved one ask first. A title is
   no longer climbed by clicking: one rung a year, ships to seize one, worlds under the higher ranks, and each road shows
