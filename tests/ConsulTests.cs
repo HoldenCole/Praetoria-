@@ -40,6 +40,65 @@ public class ConsulTests
         Assert.NotNull(OfficeSystem.Candidate(w, consuls[0], "aurelian"));   // a military Commander qualifies for an office with no track
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, The Senate: "Ask your patron or your bench leader to move a motion for you, or for money, a
+       post or backing" (P6, P17, P54). */
+    [Fact]
+    public void AHouseAsksItsPatronForCoin_ForItsBacking_OrToMoveAMotion_AndOwesAFavourForIt()
+    {
+        var (w, senate, ctx) = Chamber(); Func<string, int> wt = id => senate.Weight(w, id); var mine = w.House("vega")!; var exec = new CommandExecutor();
+        var patron = w.House("aurelian")!; mine.PatronId = patron.Id; patron.Treasury.Credits = 120; var pHead = Economy.HeadOf(w, patron)!;
+        Assert.Contains(AskAbove.Above(w, "vega"), x => x.house.Id == "aurelian");
+        string stranger = w.Houses.Keys.Where(h => h != "vega" && !World.Outsider(h)).OrderBy(h => h, StringComparer.Ordinal).First(h => !AskAbove.Above(w, "vega").Any(x => x.house.Id == h));
+        Assert.Equal("they are neither your patron nor the leader of your bench", new AskAboveCommand("self", stranger, AskAbove.Coin, Content.Offices, senate).Refusal(ctx));
+
+        // not heard by one who thinks too little of you, and told by how much
+        w.Relationship(pHead.Id, "self").Disposition = 4;
+        string? no = new AskAboveCommand("self", "aurelian", AskAbove.Coin, Content.Offices, senate).Refusal(ctx);
+        Assert.Contains("thinks +4 of you", no); Assert.Contains("(6 short)", no);
+        w.Relationship(pHead.Id, "self").Disposition = 20;
+
+        // coin: a sixth of its treasury, fifteen at the most; given, and a favour owed
+        int coin = AskAbove.CoinOf(patron); Assert.Equal(AskAbove.CoinMost, coin); int had = mine.Treasury.Credits;
+        var ask = new AskAboveCommand("self", "aurelian", AskAbove.Coin, Content.Offices, senate); Assert.Null(ask.Refusal(ctx)); Assert.Contains($"gives you {coin} credits", ask.Says(w));
+        Assert.True(exec.TryExecute(ask, ctx));
+        Assert.Equal(had + coin, mine.Treasury.Credits); Assert.Equal(120 - coin, patron.Treasury.Credits); Assert.True(WealthSystem.FavourOwed(w, "vega", "aurelian"));
+        // one debt at a time: nothing more until the favour is settled
+        Assert.Contains("you owe House Aurelian a favour already", new AskAboveCommand("self", "aurelian", AskAbove.Coin, Content.Offices, senate).Refusal(ctx));
+        w.WorldCounters.Remove(WealthSystem.FavourKey("vega", "aurelian"));
+        Assert.Contains("not again before year", new AskAboveCommand("self", "aurelian", AskAbove.Coin, Content.Offices, senate).Refusal(ctx));
+        w.Turn += AskAbove.EveryYears; patron.Treasury.Credits = AskAbove.CoinKeeps; Assert.Contains("no coin to spare", new AskAboveCommand("self", "aurelian", AskAbove.Coin, Content.Offices, senate).Refusal(ctx));
+
+        // a motion moved in the patron's name: it is on the docket as the patron's, and a favour is owed
+        var kind = Content.Motions.Defs.Select(d => d.Id).FirstOrDefault(k => AskAbove.MoveRefusal(w, ctx, mine, patron, k, "", senate, "", "", "") == null);
+        if (kind == null)
+        {
+            // no motion without a target is open to the patron in this chamber: one with a house named, then
+            var named = Content.Motions.Defs.Select(d => d.Id).SelectMany(k => w.Houses.Keys.Where(h => h != "vega" && h != "aurelian" && !World.Outsider(h)).Select(h => (k, h))).FirstOrDefault(x => AskAbove.MoveRefusal(w, ctx, mine, patron, x.k, x.h, senate, "", "", "") == null);
+            Assert.NotNull(named.k); int open0 = w.Motions.Count(m => m.Open);
+            Assert.True(exec.TryExecute(new AskToMoveCommand("self", "aurelian", named.k, named.h, senate), ctx));
+            Assert.Equal(open0 + 1, w.Motions.Count(m => m.Open)); Assert.Equal("aurelian", w.Motions.Last(m => m.Open).ProposerHouseId); Assert.True(WealthSystem.FavourOwed(w, "vega", "aurelian"));
+        }
+        else
+        {
+            int open = w.Motions.Count(m => m.Open);
+            Assert.True(exec.TryExecute(new AskToMoveCommand("self", "aurelian", kind, "", senate), ctx));
+            Assert.Equal(open + 1, w.Motions.Count(m => m.Open)); Assert.Equal("aurelian", w.Motions.Last(m => m.Open).ProposerHouseId); Assert.True(WealthSystem.FavourOwed(w, "vega", "aurelian"));
+            Assert.Contains(w.History, h => h.Text.Contains("at the asking of House Vega"));
+        }
+
+        // its backing for consul: its seats are counted for you, once you have declared and it does not stand itself
+        var (w2, senate2, ctx2) = Chamber(); Func<string, int> wt2 = id => senate2.Weight(w2, id); var mine2 = w2.House("vega")!;
+        string backer = w2.Houses.Keys.Where(h => h != "vega" && !World.Outsider(h)).OrderBy(h => h, StringComparer.Ordinal).First(h => !ElectionSystem.Nominees(w2, Content.Offices, wt2).Any(n => n.houseId == h) && Economy.HeadOf(w2, w2.House(h)!) != null);
+        mine2.PatronId = backer; w2.Relationship(Economy.HeadOf(w2, w2.House(backer)!)!.Id, "self").Disposition = 20;
+        Assert.Contains("you are not standing for consul", new AskAboveCommand("self", backer, AskAbove.Backing, Content.Offices, senate2).Refusal(ctx2));
+        w2.WorldFlags.Add(ElectionSystem.StandFlag("vega")); var noms = ElectionSystem.Nominees(w2, Content.Offices, wt2); Assert.Contains(noms, n => n.houseId == "vega");
+        int before = ElectionSystem.Tally(w2, Content.Offices, wt2, noms)["vega"];
+        Assert.True(new CommandExecutor().TryExecute(new AskAboveCommand("self", backer, AskAbove.Backing, Content.Offices, senate2), ctx2));
+        Assert.Equal("vega", ElectionSystem.PledgedTo(w2, backer)); Assert.True(WealthSystem.FavourOwed(w2, "vega", backer));
+        var noms2 = ElectionSystem.Nominees(w2, Content.Offices, wt2);
+        Assert.True(ElectionSystem.Tally(w2, Content.Offices, wt2, noms2)["vega"] >= before);
+    }
+
     /* docs/PLAYTHROUGH.md, Medium, The Senate: "a nomination inside the bench" (P87). */
     [Fact]
     public void ABenchPutsForwardWhicheverOfItsMembersTheBenchIsBehind_NotThePlayerByRight()

@@ -44,7 +44,7 @@ public static class ElectionSystem
             // weightiest eligible member is, as when the player does not stand
             bool mineHere = mine != null && f.Members.Contains(mine) && w.HasFlag(StandFlag(mine)) && Eligible(w, offices, mine);
             string? pick = mineHere && BenchContest(w, offices, weight, f) is { won: true } ? mine
-                : f.Members.Where(h => Eligible(w, offices, h) && h != mine).OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault();
+                : f.Members.Where(h => Eligible(w, offices, h) && h != mine && !(mineHere && PledgedTo(w, h) == mine)).OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault();
             if (pick != null) list.Add((pick, f.Id));
         }
         if (mine != null && w.HasFlag(StandFlag(mine)) && Eligible(w, offices, mine) && !list.Any(x => x.Item1 == mine)) list.Add((mine, null));
@@ -61,7 +61,8 @@ public static class ElectionSystem
     public static (bool won, string rivalId, int mine, int rival, List<string> forMine, List<string> forRival)? BenchContest(World w, OfficeCatalog offices, Func<string, int> weight, Faction f)
     {
         var mine = w.Protagonist?.HouseId; if (mine == null || !f.Members.Contains(mine)) return null;
-        string? rival = f.Members.Where(h => h != mine && Eligible(w, offices, h)).OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault();
+        // (a member who has pledged its seats to the player's house does not stand against it, and backs it)
+        string? rival = f.Members.Where(h => h != mine && Eligible(w, offices, h) && PledgedTo(w, h) != mine).OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault();
         if (rival == null) return (true, "", weight(mine), 0, new(), new());
         var forMine = new List<string>(); var forRival = new List<string>(); int a = weight(mine), b = weight(rival);
         if (f.LeaderHouseId == mine) return (true, rival, a, b, forMine, forRival);
@@ -70,7 +71,7 @@ public static class ElectionSystem
         {
             var head = w.House(m) is { } hm ? Economy.HeadOf(w, hm) : null; if (head == null) continue;
             int toMine = myHead != null ? w.GetRelationship(head.Id, myHead.Id)?.Disposition ?? 0 : 0, toRival = rivalHead != null ? w.GetRelationship(head.Id, rivalHead.Id)?.Disposition ?? 0 : 0;
-            bool mineIt = toMine > toRival || (toMine == toRival && weight(mine) >= weight(rival));
+            bool mineIt = PledgedTo(w, m) == mine || toMine > toRival || (toMine == toRival && weight(mine) >= weight(rival));
             if (mineIt) { forMine.Add(m); a += weight(m); } else { forRival.Add(m); b += weight(m); }
         }
         return (a >= b, rival, a, b, forMine, forRival);

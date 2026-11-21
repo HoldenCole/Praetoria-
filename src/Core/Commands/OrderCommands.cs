@@ -1,3 +1,4 @@
+using Praetoria.Core.Data;
 using Praetoria.Core.Progression;
 using Praetoria.Core.State;
 using Praetoria.Core.Systems;
@@ -20,6 +21,36 @@ public sealed class EnrollCommand : ICommand
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx) { var w = ctx.World; _os.Enroll(w, w.House(w.Char(ActorId)!.HouseId)!); }
+}
+
+/// <summary>Ask the house's patron, or the leader of its bench, for coin or for its backing for consul (<see cref="AskAbove"/>).
+/// What is given leaves a favour owed.</summary>
+public sealed class AskAboveCommand : ICommand
+{
+    private readonly string _ofId, _what; private readonly OfficeCatalog _offices; private readonly SenateSystem _senate;
+    public AskAboveCommand(string actorId, string ofHouseId, string what, OfficeCatalog offices, SenateSystem senate) { ActorId = actorId; _ofId = ofHouseId; _what = what; _offices = offices; _senate = senate; }
+    public string ActorId { get; }
+    public string Describe() => $"ask {_ofId} for {_what}";
+    private House? Mine(World w) => w.Char(ActorId) is { Alive: true } a && w.House(a.HouseId) is { } h && Economy.HeadOf(w, h)?.Id == a.Id ? h : null;
+    public string? Refusal(CommandContext ctx) { var w = ctx.World; return Mine(w) is { } by ? AskAbove.Refusal(w, _offices, id => _senate.Weight(w, id), by, w.House(_ofId), _what) : "only the head of the house asks"; }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public string Says(World w) => Mine(w) is { } by && w.House(_ofId) is { } of ? AskAbove.Says(w, id => _senate.Weight(w, id), by, of, _what) : "";
+    public void Execute(CommandContext ctx) { var w = ctx.World; AskAbove.Grant(w, id => _senate.Weight(w, id), Mine(w)!, w.House(_ofId)!, _what); }
+}
+
+/// <summary>Ask the house's patron, or the leader of its bench, to move a motion in its own name (<see cref="AskAbove.Move"/>):
+/// the way a house with no voice gets a motion onto the floor. It leaves a favour owed.</summary>
+public sealed class AskToMoveCommand : ICommand
+{
+    private readonly string _ofId, _kind, _target, _office, _law, _option; private readonly SenateSystem _senate;
+    public AskToMoveCommand(string actorId, string ofHouseId, string kind, string targetId, SenateSystem senate, string officeId = "", string lawId = "", string optionId = "")
+    { ActorId = actorId; _ofId = ofHouseId; _kind = kind; _target = targetId; _senate = senate; _office = officeId; _law = lawId; _option = optionId; }
+    public string ActorId { get; }
+    public string Describe() => $"ask {_ofId} to move {_kind} {_target}".Trim();
+    private House? Mine(World w) => w.Char(ActorId) is { Alive: true } a && w.House(a.HouseId) is { } h && Economy.HeadOf(w, h)?.Id == a.Id ? h : null;
+    public string? Refusal(CommandContext ctx) { var w = ctx.World; return Mine(w) is { } by ? AskAbove.MoveRefusal(w, ctx, by, w.House(_ofId), _kind, _target, _senate, _office, _law, _option) : "only the head of the house asks"; }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; AskAbove.Move(w, ctx, new CommandExecutor(), Mine(w)!, w.House(_ofId)!, _kind, _target, _senate, _office, _law, _option); }
 }
 
 /// <summary>Patrons and clients: take a needy house as a client (pay its debts and a gift), put the house under a greater one's

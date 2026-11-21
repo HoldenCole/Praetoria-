@@ -143,3 +143,11 @@ the bench will have it. A leader who stands is the nominee. Otherwise each other
 head thinks the better of (the weightier on a tie), with its seats, and the player's house needs at least as many of
 the bench's seats as the member the bench would otherwise put forward. Passed over, it stands alone, as a house on no
 bench does. Among other houses a bench still puts forward its weightiest eligible member.
+
+## Asking those above you (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, The Senate, P6, P17 and P54). `AskAbove`: a house asks its patron or
+its bench's leader for coin (`CoinOf`: a sixth of the treasury, 15 at most, 30 kept by), for its backing for consul (a
+pledge of its seats, as in the section above), or to move a motion in its own name (`AskToMoveCommand`: the head of
+that house proposes it, at that house's cost). Heard at +10 regard; one favour owed at a time (`WealthSystem.OweFor`);
+once in two years for each house. Other houses do not ask the player.

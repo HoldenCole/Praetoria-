@@ -30,6 +30,17 @@
             else if (clients.Count > 0) { <text>The house keeps @clients.Count of @OrderSystem.ClientCap(house) client(s): @string.Join(", ", clients.Select(x => x.Name)). They vote for you at an election and lean your way in the chamber. </text> }
             else { <text>No patron and no clients. Take a needy house as a client, or seek a greater house's protection, on the Houses screen. The house could keep @OrderSystem.ClientCap(house). </text> }
         </p></div>
+        @foreach (var (ab, asWhat) in AskAbove.Above(w, house.Id))
+        {
+            /* what may be asked of those above you (docs/PLAYTHROUGH.md, Medium, The Senate, P6, P17 and P54) */
+            string abId = ab.Id; int abRegard = AskAbove.RegardOf(w, ab, house);
+            var coin = new AskAboveCommand(pid, abId, AskAbove.Coin, c.Offices, senate); string? coinNo = coin.Refusal(G.Ctx);
+            var backing = new AskAboveCommand(pid, abId, AskAbove.Backing, c.Offices, senate); string? backNo = backing.Refusal(G.Ctx);
+            <div class="ac-fact" data-ask-above="@abId"><span>Ask @ab.Name</span><p>@Cap(asWhat). Its head thinks <b class="@(abRegard >= AskAbove.AskAt ? "good" : "warn")">@abRegard.ToString("+0;-0")</b> of you and hears a request at @AskAbove.AskAt.ToString("+0;-0"). What is given is a favour owed: you settle it by voting for the next motion that house moves.
+                <button class="opt inline tiny" data-ask-coin disabled="@(coinNo != null)" title="@(coinNo ?? coin.Says(w))" @onclick='() => G.Ask("Ask " + ab.Name + " for coin?", coin.Says(w), "Ask", () => G.Execute(coin))'>For coin · @AskAbove.CoinOf(ab) credits</button>
+                <button class="opt inline tiny" data-ask-backing disabled="@(backNo != null)" title="@(backNo ?? backing.Says(w))" @onclick='() => G.Ask("Ask " + ab.Name + " for its backing?", backing.Says(w), "Ask", () => G.Execute(backing))'>For its backing for consul</button>
+                <span class="muted small">To have it move a motion for you: Senate, Move a motion.</span></p></div>
+        }
         @if (patron != null) { <button class="opt inline tiny" title="its head will not forgive it quickly" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Leave, string.Empty, os))">Leave @patron.Name's protection</button> }
         @foreach (var cl in clients) { var cid = cl.Id; <button class="opt inline tiny" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Release, cid, os))">Turn @cl.Name away</button> }
     }
