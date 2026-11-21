@@ -151,3 +151,11 @@ its bench's leader for coin (`CoinOf`: a sixth of the treasury, 15 at most, 30 k
 pledge of its seats, as in the section above), or to move a motion in its own name (`AskToMoveCommand`: the head of
 that house proposes it, at that house's cost). Heard at +10 regard; one favour owed at a time (`WealthSystem.OweFor`);
 once in two years for each house. Other houses do not ask the player.
+
+## The lead of a bench by a contest (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, The Senate, P9 and P99). `ChallengeLeaderCommand`,
+`FactionSystem.Challenge`: a member asks its bench to choose between it and the leader. `LeadCount` divides the bench
+as the nomination does: each other member to whichever of the two its head thinks the better of, by seats. Strictly
+more than the leader's and the house leads. 2 influence; 15 regard with the old leader if won, 10 if lost; once in
+five years. Other houses do not challenge.

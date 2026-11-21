@@ -99,6 +99,36 @@ public class ConsulTests
         Assert.True(ElectionSystem.Tally(w2, Content.Offices, wt2, noms2)["vega"] >= before);
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, The Senate: "Benches: ... lead by seats or by a contest" (P9, P99). */
+    [Fact]
+    public void AMemberAsksTheBenchToChoose_AndLeadsItIfMoreOfItsSeatsAreBehindThem()
+    {
+        var (w, senate, ctx) = Chamber(); Func<string, int> wt = id => senate.Weight(w, id); var mine = w.House("vega")!; var exec = new CommandExecutor();
+        var bench = FactionSystem.Of(w, "vega"); if (bench == null) return;
+        foreach (var f in w.Factions) { f.Members.Remove("drake"); f.Members.Remove("sato"); f.Members.Remove("ferro"); }
+        bench.Members.AddRange(new[] { "drake", "sato", "ferro" }.Where(h => !bench.Members.Contains(h))); bench.LeaderHouseId = "drake";
+        var leadHead = Economy.HeadOf(w, w.House("drake")!)!; var others = bench.Members.Where(h => h != "vega" && h != "drake").ToList();
+        // the bench thinks better of its leader: asked, it keeps them, and the asking is remembered
+        foreach (var m in others) { var head = Economy.HeadOf(w, w.House(m)!)!; w.Relationship(head.Id, "self").Disposition = -5; w.Relationship(head.Id, leadHead.Id).Disposition = 20; }
+        var count = FactionSystem.LeadCount(w, wt, "vega")!.Value; Assert.Equal(wt("vega"), count.mine); Assert.Equal(wt("drake") + others.Sum(wt), count.leaders);
+        var cmd = new ChallengeLeaderCommand("self", senate); Assert.Null(cmd.Refusal(ctx)); Assert.Contains("You would lose", cmd.Says(w));
+        int regard = w.Relationship(leadHead.Id, "self").Disposition, influence = w.Pools["self"].Influence;
+        Assert.True(exec.TryExecute(cmd, ctx));
+        Assert.Equal("drake", bench.LeaderHouseId); Assert.Equal(regard - FactionSystem.LostRegard, w.Relationship(leadHead.Id, "self").Disposition); Assert.Equal(influence - FactionSystem.ChallengeInfluence, w.Pools["self"].Influence);
+        Assert.Contains("not again before year", new ChallengeLeaderCommand("self", senate).Refusal(ctx));
+        // years on, the bench thinks better of the house: asked, it chooses the house
+        w.Turn += FactionSystem.ChallengeEvery; w.Pools["self"].Influence = 6;
+        foreach (var m in others) { var head = Economy.HeadOf(w, w.House(m)!)!; w.Relationship(head.Id, "self").Disposition = 40; w.Relationship(head.Id, leadHead.Id).Disposition = 0; }
+        var now = FactionSystem.LeadCount(w, wt, "vega")!.Value; Assert.Equal(wt("vega") + others.Sum(wt), now.mine);
+        if (now.mine > now.leaders)
+        {
+            Assert.Contains("You would lead", new ChallengeLeaderCommand("self", senate).Says(w)); regard = w.Relationship(leadHead.Id, "self").Disposition;
+            Assert.True(exec.TryExecute(new ChallengeLeaderCommand("self", senate), ctx));
+            Assert.Equal("vega", bench.LeaderHouseId); Assert.Equal(regard - FactionSystem.WonRegard, w.Relationship(leadHead.Id, "self").Disposition); Assert.Contains(w.News, n => n.Text.Contains("has chosen you to lead it"));
+            Assert.Equal("you lead it already", new ChallengeLeaderCommand("self", senate).Refusal(ctx));
+        }
+    }
+
     /* docs/PLAYTHROUGH.md, Medium, The Senate: "a nomination inside the bench" (P87). */
     [Fact]
     public void ABenchPutsForwardWhicheverOfItsMembersTheBenchIsBehind_NotThePlayerByRight()

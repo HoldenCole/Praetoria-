@@ -123,6 +123,15 @@
                             @if (fa.Platform.Length > 0) { <span class="muted small"> · @fa.Platform</span> }</div>
                         @if (fa.Courts.Length > 0 || fa.LawPlatform.Length > 0) { <div class="muted small">@(fa.Courts.Length > 0 ? $"courts {fa.Courts}" : "")@(fa.Courts.Length > 0 && fa.LawPlatform.Length > 0 ? " · " : "")@fa.LawPlatform</div> }
                         @{ var seated = FactionSystem.Of(w, house.Id); string faId = fa.Id, faName = fa.Name; }
+                        @if (fa.Mine && seated != null && seated.LeaderHouseId != house.Id)
+                        {
+                            /* ask the bench to choose between you and its leader (docs/PLAYTHROUGH.md, Medium, The Senate, P9 and P99) */
+                            var askLead = new ChallengeLeaderCommand(pid, senate); string? leadNo = askLead.Refusal(G.Ctx); var count = FactionSystem.LeadCount(w, id => senate.Weight(w, id), house.Id);
+                            <div class="small" data-lead-count="@(count is { } lc ? lc.mine + ":" + lc.leaders : "")">
+                                @if (count is { } cnt) { <span class="muted">If the bench were asked to choose, @cnt.mine of its seats would be behind you and @cnt.leaders behind @fa.LeaderName. </span> }
+                                <button class="opt inline tiny" data-challenge disabled="@(leadNo != null)" title="@(leadNo ?? askLead.Says(w))" @onclick='() => G.Ask("Ask " + faName + " to choose its leader?", askLead.Says(w), "Ask the bench", () => G.Execute(askLead))'>Ask the bench to choose · @FactionSystem.ChallengeInfluence influence</button>
+                            </div>
+                        }
                         @if (!fa.Mine && seated != null)
                         {
                             <button class="opt inline tiny" data-cross="@fa.Id" disabled="@(fa.JoinRefusal != null)" title="@(fa.JoinRefusal ?? $"{FactionSystem.JoinInfluence} influence, in one step: you leave {seated.Name} and sit with {fa.Name}. {FactionSystem.WalkSays(w, seated)}.")" @onclick="() => AskCross(faId, faName)">cross to them · @FactionSystem.JoinInfluence</button>
@@ -468,7 +477,11 @@
                     </div>
                 }
                 <button class="opt" disabled="@(el.StandRefusal != null)" title="@(el.StandRefusal ?? StandSays(c.Offices))" @onclick="() => G.Execute(new StandForConsulCommand(pid, c.Offices))">@(el.AmConsul ? ConsulIs(c.Offices) : StandWord(c.Offices, el.Standing))</button>
-                @if (el.AmConsul) { <div class="muted small">@(el.CanVeto ? "Your veto is unspent this term: strike a motion from the docket above." : "Your veto is spent this term.")</div> }
+                @if (el.AmConsul)
+                {
+                    <div class="muted small">@(el.CanVeto ? "Your veto is unspent this term: strike a motion from the docket above." : "Your veto is spent this term.")</div>
+                    <div class="small" data-consul-year>A consul has a charge every year (render the Reach's account, sweep its most lawless region, or see to your bench's business), may speak from the chair on one motion, and decides a tied Senate. <button class="opt inline tiny" @onclick='() => _view = "duties"'>Your duties ▸</button></div>
+                }
             </section>
         }
         }

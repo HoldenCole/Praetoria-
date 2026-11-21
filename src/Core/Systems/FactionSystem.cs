@@ -93,6 +93,64 @@ public static class FactionSystem
     public static int LeaderStance(World w, Motion m, Faction f, Func<string, int> rawLean) =>
         m.Votes.TryGetValue(f.LeaderHouseId, out var v) ? v : Math.Sign(rawLean(f.LeaderHouseId));
 
+    // ---------------- taking the lead of a bench (docs/PLAYTHROUGH.md, Medium, The Senate, P9 and P99) ----------------
+    // A bench's leader was whoever weighed most when it was seated, and kept the lead for good. A member may now ask the bench
+    // to choose: each other member backs whichever of the two its head thinks the better of (the weightier, where it thinks the
+    // same of both), with its seats, and each of the two has its own. More seats than the leader's, and the lead changes hands.
+
+    public const int ChallengeInfluence = 2, ChallengeEvery = 5, WonRegard = 15, LostRegard = 10;
+    public const string ChallengesCounter = "bench_challenges", LedByContestCounter = "benches_won";
+    public static string ChallengeKey(string houseId) => "bench_challenge:" + houseId;
+    /// <summary>How the bench would divide between a member and its leader, or null where the house is on no bench or leads it.</summary>
+    public static (int mine, int leaders, List<string> forMine, List<string> forLeader)? LeadCount(World w, Func<string, int> weight, string houseId)
+    {
+        var f = Of(w, houseId); if (f == null || f.LeaderHouseId == houseId || !w.Houses.ContainsKey(f.LeaderHouseId)) return null;
+        string leader = f.LeaderHouseId; int a = weight(houseId), b = weight(leader); var forMine = new List<string>(); var forLeader = new List<string>();
+        var mineHead = w.House(houseId) is { } mh ? Economy.HeadOf(w, mh) : null; var leadHead = w.House(leader) is { } lh ? Economy.HeadOf(w, lh) : null;
+        foreach (var m in f.Members.Where(m => m != houseId && m != leader).OrderBy(m => m, StringComparer.Ordinal))
+        {
+            var head = w.House(m) is { } hm ? Economy.HeadOf(w, hm) : null; if (head == null) continue;
+            int toMine = mineHead != null ? w.GetRelationship(head.Id, mineHead.Id)?.Disposition ?? 0 : 0, toLead = leadHead != null ? w.GetRelationship(head.Id, leadHead.Id)?.Disposition ?? 0 : 0;
+            if (toMine > toLead || (toMine == toLead && weight(houseId) > weight(leader))) { forMine.Add(m); a += weight(m); } else { forLeader.Add(m); b += weight(m); }
+        }
+        return (a, b, forMine, forLeader);
+    }
+    public static string? ChallengeRefusal(World w, Func<string, int> weight, House mine, ActionPools? pools)
+    {
+        var f = Of(w, mine.Id); if (f == null) return "you sit on no bench";
+        if (f.LeaderHouseId == mine.Id) return "you lead it already";
+        if (LeadCount(w, weight, mine.Id) == null) return "the bench has no leader to challenge: it chooses one when the year turns";
+        int last = w.Counter(ChallengeKey(mine.Id));
+        if (last > 0 && w.Turn - last < ChallengeEvery) return $"you asked the bench to choose in year {last}: not again before year {last + ChallengeEvery}";
+        return (pools?.Influence ?? 0) >= ChallengeInfluence ? null : $"needs {ChallengeInfluence} influence";
+    }
+    /// <summary>What asking would come to, said before it is asked.</summary>
+    public static string ChallengeSays(World w, Func<string, int> weight, House mine)
+    {
+        var f = Of(w, mine.Id); if (f == null || LeadCount(w, weight, mine.Id) is not { } c) return "";
+        string leader = w.House(f.LeaderHouseId)?.Name ?? f.LeaderHouseId; string Names(List<string> ids) => ids.Count == 0 ? "its own seats only" : "with " + string.Join(", ", ids.Select(x => w.House(x)?.Name ?? x));
+        return $"As the bench stands, {c.mine} of its seats would be behind you ({Names(c.forMine)}) and {c.leaders} behind {leader} ({Names(c.forLeader)}). "
+            + (c.mine > c.leaders ? $"You would lead {f.Name}: its nomination for consul is yours when you stand, and the bench follows your lead on motions. {leader}'s head thinks {WonRegard} the worse of you."
+                                  : $"You would lose: {leader} keeps the lead, and its head thinks {LostRegard} the worse of you for asking.")
+            + $" It costs {ChallengeInfluence} influence, and the bench is not asked again for {ChallengeEvery} years.";
+    }
+    /// <summary>Ask the bench to choose between the house and its leader. True if the house leads it now.</summary>
+    public static bool Challenge(World w, Func<string, int> weight, House mine, ActionPools? pools)
+    {
+        var f = Of(w, mine.Id)!; var c = LeadCount(w, weight, mine.Id)!.Value; var leader = w.House(f.LeaderHouseId)!; bool won = c.mine > c.leaders;
+        pools?.Spend(new Dictionary<string, int> { [Pool.Influence] = ChallengeInfluence });
+        w.WorldCounters[ChallengeKey(mine.Id)] = Math.Max(1, w.Turn); w.WorldCounters[ChallengesCounter] = w.Counter(ChallengesCounter) + 1;
+        var lh = Economy.HeadOf(w, leader); var mh = Economy.HeadOf(w, mine);
+        if (lh != null && mh != null) { var r = w.Relationship(lh.Id, mh.Id); r.Disposition = Math.Clamp(r.Disposition - (won ? WonRegard : LostRegard), -100, 100); }
+        if (won)
+        {
+            f.LeaderHouseId = mine.Id; w.WorldCounters[LedByContestCounter] = w.Counter(LedByContestCounter) + 1; if (mine.Id == w.Protagonist?.HouseId) w.WorldFlags.Add("faction_leader");
+            w.Log($"{f.Name} is asked to choose, and chooses {mine.Name} over {leader.Name}: {c.mine} seats to {c.leaders}.");
+        }
+        else w.Log($"{mine.Name} asks {f.Name} to choose between it and {leader.Name}, and the bench keeps {leader.Name}: {c.leaders} seats to {c.mine}.");
+        return won;
+    }
+
     public static void Tick(World w, Func<string, int> weight)
     {
         var mine = w.Protagonist?.HouseId;   // turn flags are cleared by SenateSystem.Tick before motions resolve

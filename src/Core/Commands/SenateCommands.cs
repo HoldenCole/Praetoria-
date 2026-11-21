@@ -147,6 +147,25 @@ public sealed class LobbyCommand : ICommand
     }
 }
 
+/// <summary>Ask the bench the house sits on to choose between it and its leader (<see cref="FactionSystem.Challenge"/>).</summary>
+public sealed class ChallengeLeaderCommand : ICommand
+{
+    private readonly SenateSystem _senate;
+    public ChallengeLeaderCommand(string actorId, SenateSystem senate) { ActorId = actorId; _senate = senate; }
+    public string ActorId { get; }
+    public string Describe() => "ask the bench to choose its leader";
+    private House? Mine(World w) => w.Char(ActorId) is { Alive: true } a && w.House(a.HouseId) is { } h && Economy.HeadOf(w, h)?.Id == a.Id ? h : null;
+    public string? Refusal(CommandContext ctx) { var w = ctx.World; return Mine(w) is { } mine ? FactionSystem.ChallengeRefusal(w, id => _senate.Weight(w, id), mine, ctx.PoolsOf(ActorId)) : "only the head of the house asks it"; }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public string Says(World w) => Mine(w) is { } mine ? FactionSystem.ChallengeSays(w, id => _senate.Weight(w, id), mine) : "";
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var mine = Mine(w)!; var bench = FactionSystem.Of(w, mine.Id)!; string leader = w.House(bench.LeaderHouseId)?.Name ?? "its leader";
+        bool won = FactionSystem.Challenge(w, id => _senate.Weight(w, id), mine, ctx.PoolsOf(ActorId));
+        if (mine.Id == w.Protagonist?.HouseId) w.Tell(won ? "good" : "warn", won ? $"{bench.Name} has chosen you to lead it, over {leader}." : $"{bench.Name} keeps {leader} as its leader. You may ask again in {FactionSystem.ChallengeEvery} years.", "senate");
+    }
+}
+
 /// <summary>Take a seat with a Senate faction (two influence): the leader's head must not dislike you, and you must sit with no other bench.</summary>
 public sealed class JoinFactionCommand : ICommand
 {
