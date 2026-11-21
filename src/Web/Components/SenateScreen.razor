@@ -254,6 +254,14 @@
         </section> }
         else if (_view == "move") { <section class="panel resolutions">
                 <h3>Move a motion</h3>
+                @{ var oweMe = WealthSystem.OweMe(w, house.Id); var iOwe = WealthSystem.IOwe(w, house.Id); }
+                @if (oweMe.Count + iOwe.Count > 0)
+                {
+                    <div class="small" data-favours="@(oweMe.Count + iOwe.Count)">
+                        @if (oweMe.Count > 0) { <span><b>Owe you a favour:</b> @string.Join(", ", oweMe.Select(h => $"{h.Name} ({FavourLeft(w, h.Id, house.Id)})")). Each leans @Signed(WealthSystem.FavourLeanBy) for the next motion you move, and the favour is spent at that vote. To call one in for something else, see House, under what is owed. </span> }
+                        @if (iOwe.Count > 0) { <span><b>You owe a favour to:</b> @string.Join(", ", iOwe.Select(h => $"{h.Name} ({FavourLeft(w, house.Id, h.Id)})")). Vote for that house's next motion and the account is even; vote otherwise and its head remembers who kept the gift.</span> }
+                    </div>
+                }
                 <div class="propose @(sen.MayPropose || _showForms ? "" : "cannot")">@if (!sen.MayPropose) { <div class="muted" data-cannot-move="1">Your house may not move a motion yet: @NoSeatLine(w).TrimStart('·', ' '). <button class="opt inline tiny" @onclick="() => _showForms = !_showForms">@(_showForms ? "Hide the motions" : "Show what could be moved, " + sen.Proposals.Count + " kinds")</button></div> }
                     @foreach (var pr in sen.Proposals)
                     {
@@ -402,6 +410,7 @@
                 <h4>The nominees as they stand</h4>
                 @foreach (var n in el.Nominees) { <div class="nominee"><i class="party-dot" style="background:@n.PartyAccent"></i><Sigil HouseId="@n.HouseId" Accent="@n.Accent" Size="13" /> <span><b>@n.HouseName</b> <span class="muted small">for @n.Party</span></span><b class="tally-n">@n.Tally</b>@{ var nid = n.HouseId; var canvassNo = G.Turn!.Orders.CanvassRefusal(w, house, nid, el.Nominees.Select(x => x.HouseId)); }<button class="opt inline tiny" disabled="@(canvassNo != null)" title="@(canvassNo ?? "largesse in the candidate's name: one more vote's weight at the election")" @onclick="() => Canvass(nid)">Canvass · @OrderSystem.CanvassCredits</button></div> }
                 @if (el.Nominees.Count == 0) { <div class="muted small">No house of standing has a candidate yet.</div> }
+                else { <div class="small" data-election-chances="1">@ChancesSay(el, c.Offices)</div> }
                 <button class="opt" disabled="@(el.StandRefusal != null)" title="@(el.StandRefusal ?? StandSays(c.Offices))" @onclick="() => G.Execute(new StandForConsulCommand(pid, c.Offices))">@(el.AmConsul ? ConsulIs(c.Offices) : StandWord(c.Offices, el.Standing))</button>
                 @if (el.AmConsul) { <div class="muted small">@(el.CanVeto ? "Your veto is unspent this term: strike a motion from the docket above." : "Your veto is spent this term.")</div> }
             </section>
@@ -414,6 +423,19 @@
 
 
 @code {
+    private static string FavourLeft(Praetoria.Core.State.World w, string ower, string to)
+    { int left = WealthSystem.FavourYears - (w.Turn - w.Counter(WealthSystem.FavourKey(ower, to))); return left <= 1 ? "forgotten after this year" : $"forgotten in {left} years"; }
+    /* where the count for consul stands today: who would be elected, and how far the player's house is from it */
+    private string ChancesSay(Praetoria.Core.Presentation.ElectionCard el, Praetoria.Core.Data.OfficeCatalog offices)
+    {
+        var w = G.World!; string mine = w.Protagonist!.HouseId; int seats = ElectionSystem.ConsulOffices(offices).Count();
+        var order = el.Nominees.OrderByDescending(n => n.Tally).ThenBy(n => n.HouseId, StringComparer.Ordinal).ToList(); var winners = order.Take(seats).ToList();
+        string said = $"As the houses would vote today, {string.Join(" and ", winners.Select(n => $"{n.HouseName} ({n.Tally})"))} would be elected: {seats} are chosen, the most votes first. A house votes for its own candidate, else its patron's, else its bench's; a house on no bench for the candidate whose head it likes best.";
+        int at = order.FindIndex(n => n.HouseId == mine);
+        if (at < 0) return said + (el.Standing ? "" : " Your house has no candidate in the count.");
+        if (at < seats) { int next = order.Count > seats ? order[seats].Tally : 0; return said + $" Your house is {(at == 0 ? "first" : "second")} with {order[at].Tally}, {order[at].Tally - next} clear of the first house left out."; }
+        return said + $" Your house is {at + 1}{(at == 2 ? "rd" : "th")} with {order[at].Tally}: {winners[^1].Tally - order[at].Tally + 1} more would put it among the elected. A canvass adds one; a house that comes over to your bench, or takes you for patron, brings its seats.";
+    }
     private static string Signed(int n) => n > 0 ? "+" + n : n < 0 ? "−" + (-n) : "0";
     private static string VoteWord(int lean) => lean > 0 ? "for" : lean < 0 ? "against" : "abstaining";
     /* what a whip or a bought vote would do to one house: where its lean goes, and whether its vote changes */
