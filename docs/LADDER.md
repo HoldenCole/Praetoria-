@@ -97,7 +97,7 @@ business is waiting.
 
 The same rule for the positions that are not elected offices.
 
-**A senator's year.** The head of a house in the Reach has the house's seat, and each year one thing to do with it
+**A senator's year.** A house that has no seat (docs/UPSTART.md: it has come in by none of the four doors) has no senator's year, owes no attendance and has no place on a committee; its head's year is the work of their service, and one who does that work at a junior step goes up after four years of it. The head of a house in the Reach that sits has the house's seat, and each year one thing to do with it
 besides the chamber's motions:
 
 | Choice | What it does |

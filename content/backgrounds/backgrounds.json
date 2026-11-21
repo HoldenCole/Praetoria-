@@ -114,6 +114,45 @@
       ],
       "trackHint": "law",
       "ambitionHint": "master_the_senate"
+    },
+    {
+      "id": "clerks_child",
+      "name": "Clerk's Child",
+      "description": "Your mother kept another house's ledgers for thirty years and taught you to read one before you could ride. Nobody knows your name. A great many people know your handwriting.",
+      "legitimacy": -4,
+      "treasury": {
+        "credits": 4
+      },
+      "aptitude": [
+        "Administrator"
+      ],
+      "skills": {
+        "administration": 1,
+        "law": 1
+      },
+      "trackHint": "stewardship",
+      "ambitionHint": "restore_house_fortunes"
+    },
+    {
+      "id": "rim_born",
+      "name": "Rim-born",
+      "description": "From a world the core cannot find on a chart, where the law was whoever stood nearest. You learned to count, to bargain and to shoot, in that order, and you have never once been taken for a gentleman.",
+      "legitimacy": -6,
+      "treasury": {
+        "materials": 4,
+        "manpower": 2
+      },
+      "nature": [
+        "Ambitious"
+      ],
+      "skills": {
+        "logistics": 1,
+        "gunnery": 1,
+        "economics": 1
+      },
+      "stress": 2,
+      "trackHint": "military",
+      "ambitionHint": "earn_a_command"
     }
   ]
 }

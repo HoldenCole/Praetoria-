@@ -123,7 +123,7 @@ public class CharacterCreationTests
         Assert.Equal(8, content.Traits.Ambitions.Count);
         Assert.True(content.Traits.IsNature("Honorable"));
         Assert.False(content.Traits.IsNature("Brilliant"));
-        Assert.Equal(6, content.Backgrounds.Defs.Count);
+        Assert.Equal(8, content.Backgrounds.Defs.Count);
         Assert.NotNull(content.Backgrounds.ById("upjumped"));
     }
 

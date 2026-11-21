@@ -34,6 +34,7 @@ public sealed class PetitionTitleCommand : ICommand
 
     public string ActorId { get; }
     public string Describe() => "petition for title";
+    public string? Refusal(CommandContext ctx) => _prog.PetitionRefusal(ctx.World, ActorId) ?? (ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "needs 2 influence to hand");
     public bool CanExecute(CommandContext ctx) =>
         _prog.CanPetition(ctx.World, ActorId) && ctx.PoolsOf(ActorId).CanAfford(CostMap);
     public void Execute(CommandContext ctx)
@@ -52,6 +53,7 @@ public sealed class ClaimTitleCommand : ICommand
 
     public string ActorId { get; }
     public string Describe() => "claim title by blood";
+    public string? Refusal(CommandContext ctx) => _prog.ClaimRefusal(ctx.World, ActorId) ?? (ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "needs 1 influence and 2 agents to hand");
     public bool CanExecute(CommandContext ctx) =>
         _prog.CanClaimByBlood(ctx.World, ActorId) && ctx.PoolsOf(ActorId).CanAfford(CostMap);
     public void Execute(CommandContext ctx)

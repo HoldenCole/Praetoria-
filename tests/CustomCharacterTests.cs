@@ -29,12 +29,12 @@ public class CustomCharacterTests
     [Fact]
     public void The_presets_are_legal_and_three_of_them_fit_the_standard_budget()
     {
-        var presets = CharacterWorkshop.Presets(Content); Assert.Equal(4, presets.Count);
+        var presets = CharacterWorkshop.Presets(Content); Assert.Equal(5, presets.Count);
         foreach (var (name, blurb, spec) in presets)
         {
             Assert.True(blurb.Length > 20); var problems = CharacterWorkshop.Problems(spec, Content, Blank(spec)); Assert.True(problems.Count == 0, $"{name}: {string.Join("; ", problems)}");
             int cost = CharacterWorkshop.Cost(spec, Content).total;
-            if (spec.Mode == CustomCharacter.Standard) Assert.InRange(cost, 15, WorkshopLimits.Standard.Budget); else Assert.True(cost > 220, $"{name} costs {cost}");
+            if (spec.Mode == CustomCharacter.Standard) Assert.InRange(cost, name == "The Upstart" ? 5 : 15, WorkshopLimits.Standard.Budget); else Assert.True(cost > 220, $"{name} costs {cost}");
         }
         Assert.Equal("absurd", CharacterWorkshop.Rating(CharacterWorkshop.Cost(Preset("The Colossus"), Content).total));
         Assert.Equal("modest", CharacterWorkshop.Rating(10)); Assert.Equal("able", CharacterWorkshop.Rating(60)); Assert.Equal("formidable", CharacterWorkshop.Rating(61)); Assert.Equal("overpowered", CharacterWorkshop.Rating(200));
@@ -221,5 +221,105 @@ public class CustomCharacterTests
         Play(tc, 5); Assert.False(w.IsDynastyDead);
         // the choice is kept when a character is saved to a file
         Assert.Equal("aurelian", CustomCharacter.FromJson(c.ToJson()).Spouse!.HouseId);
+    }
+
+    // ---------------- where they come from, and the family each of them (docs/CHARACTER.md; docs/UPSTART.md) ----------------
+
+    private static CustomCharacter Plain() => new() { Name = "Tam Corvane", HouseName = "Corvane", Age = 30, Track = "stewardship", Rank = 1, Legitimacy = 10, Skills = { ["administration"] = 1 } };
+
+    [Fact]
+    public void A_background_moves_the_person_and_the_house_and_is_priced()
+    {
+        var bare = Plain(); var born = Plain(); born.Background = "clerks_child"; var bg = Content.Backgrounds.ById("clerks_child")!;
+        Assert.Empty(CharacterWorkshop.Problems(born, Content, Blank(born)));
+        Assert.Equal(CharacterWorkshop.Cost(bare, Content).total + CharacterWorkshop.BackgroundCost(bg), CharacterWorkshop.Cost(born, Content).total);
+        Assert.Contains(CharacterWorkshop.Cost(born, Content).lines, l => l.what.Contains(bg.Name));
+        var (_, w, house) = Build(born); var p = w.Protagonist!;
+        Assert.Equal(10 + bg.Legitimacy, house.Legitimacy); Assert.Equal(20 + bg.Treasury.Credits, house.Treasury.Credits);
+        Assert.Contains("Administrator", p.AptitudeTraits); Assert.Equal(2, p.Skill("administration")); Assert.Equal(1, p.Skill("law")); Assert.Contains("background:clerks_child", p.Flags);
+        // a low birth gives points back and a high one costs them; an unknown one is refused
+        Assert.True(CharacterWorkshop.BackgroundCost(Content.Backgrounds.ById("rim_born")!) <= CharacterWorkshop.BackgroundCost(Content.Backgrounds.ById("old_blood")!));
+        Assert.True(CharacterWorkshop.BackgroundCost(Content.Backgrounds.ById("old_blood")!) > 0);
+        born.Background = "a_prince"; Assert.Contains(CharacterWorkshop.Problems(born, Content, Blank(born)), x => x.Contains("no such background"));
+        // and it survives the file
+        born.Background = "rim_born"; Assert.Equal("rim_born", CustomCharacter.FromJson(born.ToJson()).Background);
+    }
+
+    [Fact]
+    public void A_father_and_a_mother_may_be_living_and_of_the_house()
+    {
+        var c = Plain(); int before = CharacterWorkshop.Cost(c, Content).total;
+        c.Mother = new KinSpec { Name = "Hesta", Age = 55, Track = "law", Rank = 2, Nature = "Just", Aptitude = "Orator" }; c.Siblings.Add(new KinSpec { Sex = "female", Age = 24 });
+        Assert.Empty(CharacterWorkshop.Problems(c, Content, Blank(c)));
+        Assert.Equal(before + CharacterWorkshop.ParentCost + 2 * CharacterWorkshop.KinRankCost + CharacterWorkshop.KinAptitudeCost + 1, CharacterWorkshop.Cost(c, Content).total);
+        var (tc, w, house) = Build(c); var p = w.Protagonist!; var mother = w.Char("custom_mother")!; var father = w.Char("custom_father")!; var sister = w.Char("custom_sibling_1")!;
+        Assert.True(mother.Alive); Assert.False(father.Alive); Assert.Equal("Hesta Corvane", mother.Name); Assert.Equal(house.Id, mother.HouseId); Assert.Contains(mother.Id, house.Members);
+        Assert.Equal("law", mother.CareerTrack); Assert.Equal(2, mother.CareerRank); Assert.Contains("Just", mother.NatureTraits); Assert.Contains("Orator", mother.AptitudeTraits);
+        Assert.Equal(mother.Id, p.MotherId); Assert.Equal(mother.Id, sister.MotherId); Assert.Equal(BondType.Blood, w.Relationship(mother.Id, p.Id).Bond);
+        Assert.Equal(p.Id, Economy.HeadOf(w, house)!.Id);   // the player is the head whoever else is living
+        Play(tc, 3); Assert.False(w.IsDynastyDead); Assert.Equal(house.Id, w.Protagonist!.HouseId);
+        // a parent is a parent's age
+        c.Mother.Age = c.Age + 5; Assert.Contains(CharacterWorkshop.Problems(c, Content, Blank(c)), x => x.Contains("not the age of a parent"));
+    }
+
+    [Fact]
+    public void Each_relative_of_age_has_a_service_a_step_a_nature_and_a_gift()
+    {
+        var c = Plain(); c.Age = 44;
+        c.Spouse = new KinSpec { Age = 40, Track = "military", Rank = 2, Nature = "Honorable" };
+        c.Children.Add(new KinSpec { Sex = "female", Age = 21, Track = "law", Rank = 1, Aptitude = "Orator" }); c.Children.Add(new KinSpec { Sex = "male", Age = 9 });
+        Assert.Empty(CharacterWorkshop.Problems(c, Content, Blank(c)));
+        var (_, w, _) = Build(c); var spouse = w.Char("custom_spouse")!; var daughter = w.Char("custom_child_1")!; var son = w.Char("custom_child_2")!;
+        Assert.Equal("military", spouse.CareerTrack); Assert.Equal(2, spouse.CareerRank); Assert.Contains("Honorable", spouse.NatureTraits); Assert.Single(spouse.NatureTraits);
+        Assert.Equal("law", daughter.CareerTrack); Assert.Equal(1, daughter.CareerRank); Assert.Contains("Orator", daughter.AptitudeTraits);
+        Assert.Equal(0, son.CareerRank); Assert.Empty(son.NatureTraits);
+        // one left alone is as before: the head's service, from the bottom, a nature by the dice
+        var d = Plain(); d.Siblings.Add(new KinSpec { Sex = "male", Age = 27 }); var (_, w2, _) = Build(d); var brother = w2.Char("custom_sibling_1")!;
+        Assert.Equal("stewardship", brother.CareerTrack); Assert.Equal(0, brother.CareerRank); Assert.Single(brother.NatureTraits);
+        // the rules: nobody has a step before twenty, a standard start stops at two steps, and the words must be real ones
+        c.Children[0].Age = 18; Assert.Contains(CharacterWorkshop.Problems(c, Content, Blank(c)), x => x.Contains("before " + CharacterWorkshop.KinRankAge));
+        c.Children[0].Age = 21; c.Spouse.Rank = 4; Assert.Contains(CharacterWorkshop.Problems(c, Content, Blank(c)), x => x.Contains("steps up a service"));
+        c.Mode = CustomCharacter.Free; Assert.Empty(CharacterWorkshop.Problems(c, Content, Blank(c)));
+        c.Spouse.Nature = "Sleepy"; Assert.Contains(CharacterWorkshop.Problems(c, Content, Blank(c)), x => x.Contains("no such nature"));
+    }
+
+    [Fact]
+    public void The_upstart_begins_with_nothing_and_is_not_held_to_a_senators_year()
+    {
+        var c = Preset("The Upstart"); Assert.Equal("modest", CharacterWorkshop.Rating(CharacterWorkshop.Cost(c, Content).total));
+        var (tc, w, house) = Build(c); var p = w.Protagonist!;
+        Assert.Equal("landless", house.Title); Assert.Empty(w.HoldingsOf(house.Id)); Assert.Equal("", house.PatronId); Assert.False(house.Enrolled); Assert.False(OrderSystem.Seated(w, house));
+        Assert.True(w.Char("custom_mother")!.Alive); Assert.Contains("background:clerks_child", p.Flags);
+        // nobody of the house is called by its surname
+        Assert.DoesNotContain(w.Characters.Values.Where(x => x.HouseId == house.Id), x => x.Name.Split(' ')[0] == "Corvane");
+        int legitimacy = house.Legitimacy;
+        Play(tc, 5);
+        Assert.DoesNotContain(w.OfficeWork, b => b.Kind == LadderSystem.SeatKind && b.HolderId == p.Id);                    // no seat, no senator's year
+        Assert.Contains(w.OfficeWork, b => b.Kind == LadderSystem.Ledgers && b.HolderId == p.Id);                              // the year is the clerk's
+        Assert.DoesNotContain(w.History, e => e.Text.Contains("has not been seen in the Senate"));
+        Assert.NotNull(LadderSystem.ChangeCommitteeRefusal(w, p, LadderSystem.Committees.First(x => x != house.Committee)));
+        // the rank it cannot yet ask for says why
+        var why = new Praetoria.Core.Commands.PetitionTitleCommand(p.Id, tc.Progression!).Refusal(new Praetoria.Core.Commands.CommandContext(w, WorldBuilder.RngFor(w)));
+        if (house.Legitimacy < 10) Assert.Contains("legitimacy", why);
+        // a seat by the census brings the senator's year with it
+        house.Enrolled = true; Assert.True(OrderSystem.Seated(w, house)); Play(tc, 1);
+        Assert.Contains(w.OfficeWork, b => b.Kind == LadderSystem.SeatKind && b.HolderId == w.ProtagonistId);
+        Assert.True(house.Legitimacy >= legitimacy - 2, $"standing fell from {legitimacy} to {house.Legitimacy} in six quiet years");
+    }
+
+    [Fact]
+    public void One_who_does_the_years_work_at_the_bottom_goes_up_a_step()
+    {
+        var c = Preset("The Upstart"); var (tc, w, house) = Build(c); var p = w.Protagonist!; Assert.Equal(0, p.CareerRank);
+        var ctx = new Praetoria.Core.Commands.CommandContext(w, WorldBuilder.RngFor(w)); int years = 0;
+        for (int t = 0; t < LadderSystem.ServedYears + 3 && p.CareerRank == 0; t++)
+        {
+            foreach (var i in tc.BeginTurn()) { var ch = tc.Offer(i).FirstOrDefault(x => x.Available && !x.Choice.Id.Contains("pad")); if (ch != null) tc.Resolve(i, ch.Choice.Id); }
+            if (w.OfficeWork.Any(b => b.Kind == LadderSystem.Ledgers && b.HolderId == p.Id && b.Choice.Length == 0)
+                && tc.Executor.TryExecute(new Praetoria.Core.Commands.DutyCommand(p.Id, LadderSystem.Ledgers, LadderSystem.Diligent, Content.Offices, Content.Policies), ctx)) years++;
+            tc.EndTurn();
+        }
+        Assert.True(p.CareerRank >= 1, $"still at the bottom after {years} years' work");
+        Assert.True(years <= LadderSystem.ServedYears);   // the years did it, or somebody's word did it sooner
     }
 }

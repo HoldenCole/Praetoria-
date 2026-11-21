@@ -17,7 +17,9 @@ namespace Praetoria.Tools;
 internal static class Scripted
 {
     /// <summary>One thing a road wants, by the command's type and how it describes itself.</summary>
-    private sealed record Step(string Name, Func<ICommand, string, World, bool> Match, int Most = 1);
+    /// <summary>A thing a player wants done this year. <c>Score</c>, where given, is how good each offer of it is: the best is tried
+    /// first and one that scores nothing or less is not tried at all (a careful player reads the prospectus before founding).</summary>
+    private sealed record Step(string Name, Func<ICommand, string, World, bool> Match, int Most = 1, Func<ICommand, string, World, TurnController, int>? Score = null);
     private sealed record Milestone(string Name, Func<World, TurnController, bool> Reached);
     private sealed class Road
     {
@@ -31,11 +33,12 @@ internal static class Scripted
     /// <summary>What one run of one road found.</summary>
     internal sealed class Result
     {
-        public string Road = "", Label = ""; public int Years; public bool LineEnded; public World? World;
+        public string Road = "", Label = ""; public int Years; public bool LineEnded; public World? World; public TurnController? Controller;
         public Dictionary<string, int> ReachedIn = new();                       // milestone → the year it was first true
         public Dictionary<string, int> Landed = new();                          // command type → times it succeeded
         public Dictionary<string, Dictionary<string, int>> Refused = new();     // wanted step → reason → years
         public Dictionary<string, int> Fired = new();
+        public List<(int year, int legitimacy, int credits, int rank, int career)> Trace = new();   // the player's house, year by year
     }
 
     // ---------------- streams that offer every command ----------------
@@ -163,10 +166,76 @@ internal static class Scripted
         },
     };
 
-    private static readonly Road[] Roads = { General, Seceder, Courtier };
+    /// <summary>The upstart: a house nobody has heard of, with nothing, that wants to be a great one (docs/UPSTART.md). It tries every
+    /// way up the game has, in the order a careful climber would: a seat, a patron, an income, a wife or a husband, land, rank, office.</summary>
+    private static readonly Road Upstart = new()
+    {
+        Id = "upstart", Aim = "from nothing: an income, a patron, a seat, a marriage, land, rank and office",
+        Wants = new[]
+        {
+            new Step("enrol in the Senate by the census", (c, _, _) => c is EnrollCommand),
+            new Step("rise a rank", (c, _, _) => c is PetitionTitleCommand or ClaimTitleCommand),
+            new Step("petition for land", (c, _, _) => c is PetitionFiefCommand),
+            new Step("seek a patron", (c, d, w) => c is ClientCommand && Starts(d, ClientCommand.Seek) && MyHouse(w, out var h) && h.PatronId.Length == 0),
+            new Step("sell what the ventures bring up", (c, d, w) => c is SellGoodCommand && MyHouse(w, out var h) && Surplus(h, d), 3),
+            new Step("found a venture", (c, _, w) => c is FoundBusinessCommand && MyHouse(w, out var h) && w.BusinessesOf(h.Id).Count() < 4, 1, Prospect),
+            new Step("stake a claim", (c, _, w) => c is StakeClaimCommand && MyHouse(w, out var h) && w.HoldingsOf(h.Id).Count(x => x.IsClaim) < 2),
+            new Step("seek a match", (c, _, _) => c is SeekMatchCommand),
+            new Step("press a suit", (c, _, _) => c is CourtCommand or WooCommand or SettleSuitCommand or MarriageCommand or ProposeMarriageCommand),
+            new Step("stand for an office", (c, d, _) => c is StandForConsulCommand || c is LadderCommand && Starts(d, "stand")),
+            new Step("do the year's duty", (c, _, _) => c is DutyCommand or CommitteeCommand, 3),
+            new Step("ask a patron or a bench for coin or backing", (c, _, _) => c is AskAboveCommand),
+            new Step("join a bench", (c, _, w) => c is JoinFactionCommand && MyHouse(w, out var h) && FactionSystem.Of(w, h.Id) == null),
+            new Step("study", (c, _, _) => c is TrainCommand),
+            new Step("seek a mentor", (c, d, _) => c is MentorCommand && Starts(d, "seek")),
+            new Step("grow the venture", (c, _, _) => c is ExpandBusinessCommand or InvestCommand),
+            new Step("build", (c, _, _) => c is BuildCommand or BuildWorkCommand or BuildInProvinceCommand or ImproveProvinceCommand),
+            new Step("send a colony", (c, _, _) => c is FoundColonyCommand),
+            new Step("raise ships", (c, _, w) => c is RaiseFleetCommand && MyHouse(w, out var h) && w.HoldingsOf(h.Id).Any(x => x.IsPlanet) && FleetSystem.StrengthOf(w, h.Id) < 4),
+            new Step("canvass", (c, _, _) => c is CanvassCommand, 1, (_, _, w, _) => MyHouse(w, out var h) && h.Treasury.Credits >= 60 ? 1 : 0),   // not with the house's last coins
+            new Step("vote", (c, _, _) => c is VoteCommand),
+        },
+        Never = (c, d) => NoBreakaway(c, d) || NoMarch(c, d) || NoThrone(c, d) || c is DeclareWarCommand || c is LeaveFactionCommand || c is AssassinateCommand
+            || c is ClientCommand && !Starts(d, ClientCommand.Seek) || c is AmbitionCommand && Starts(d, AmbitionCommand.Refuse) || c is MentorCommand && Starts(d, "leave"),
+        Prefers = new[] { "accept", "thank", "agree", "work", "study", "serve", "take", "stand", "pay" },
+        Milestones = new[]
+        {
+            new Milestone("an income of its own: a venture or a claim", (w, _) => MyHouse(w, out var h) && (w.BusinessesOf(h.Id).Any() || w.HoldingsOf(h.Id).Any())),
+            new Milestone("a patron", (w, _) => MyHouse(w, out var h) && h.PatronId.Length > 0),
+            new Milestone("the head is wed", (w, _) => w.Protagonist is { } p && w.Marriages.Any(m => m.Has(p.Id))),
+            new Milestone("a child of the house is born", (w, _) => MyHouse(w, out var h) && w.Protagonist is { } p && w.LivingCharacters().Any(c => c.HouseId == h.Id && (c.FatherId == p.Id || c.MotherId == p.Id))),
+            new Milestone("a seat in the Senate", (w, tc) => MyHouse(w, out var h) && tc.Senate.Door(w, h) != null),
+            new Milestone("one of the house holds a magistracy", (w, _) => MyHouse(w, out var h) && w.Magistrates.Any(m => w.Char(m.CharacterId)?.HouseId == h.Id)),
+            new Milestone("a province held under another house", (w, _) => MyHouse(w, out var h) && w.Holdings.Values.Any(x => x.IsPlanet && x.OwnerId != h.Id && x.Provinces.Any(pv => pv.HolderId == h.Id))),
+            new Milestone("a world of its own", (w, _) => MyHouse(w, out var h) && w.HoldingsOf(h.Id).Any(x => x.IsPlanet)),
+            new Milestone("the first rank (Warden, or knight)", (w, _) => MyHouse(w, out var h) && Praetoria.Core.Progression.Title.RankOf(h.Title) >= 1),
+            new Milestone("the second rank (Prefect, or baron)", (w, _) => MyHouse(w, out var h) && Praetoria.Core.Progression.Title.RankOf(h.Title) >= 2),
+            new Milestone("the third rank (Legate, or count)", (w, _) => MyHouse(w, out var h) && Praetoria.Core.Progression.Title.RankOf(h.Title) >= 3),
+            new Milestone("among the richer half of the houses", (w, _) => MyHouse(w, out var h) && w.Houses.Values.Count(o => !World.Outsider(o.Id) && o.Wealth > h.Wealth) < w.Houses.Values.Count(o => !World.Outsider(o.Id)) / 2),
+            new Milestone("the seat has passed to an heir", (w, _) => w.Counter("generation") >= 1),
+        },
+    };
+
+    /// <summary>What a venture would earn this house a year where it is offered, in credits' worth: the figure the prospectus shows.</summary>
+    private static int Prospect(ICommand c, string d, World w, TurnController tc)
+    {
+        var parts = d.Split(' '); if (parts.Length < 4 || tc.Ventures == null || !MyHouse(w, out var h)) return 0;   // "found <kind> in <system>"
+        return tc.Ventures.Earnings(w, new Business { Id = "prospect", OwnerId = h.Id, Kind = parts[1], SystemId = parts[3], Level = 1 });
+    }
+    /// <summary>A good the house holds more of than it has a use for: what a landless house's ventures pay it in.</summary>
+    private static bool Surplus(House h, string described)
+    {
+        foreach (var (good, keep) in new[] { (Resource.Materials, 12), (Resource.Exotics, 1), (Resource.Helium3, 2), (Resource.RareEarths, 1), (Resource.Isotopes, 1) })
+            if (described.EndsWith(" " + Resource.Label(good), StringComparison.OrdinalIgnoreCase)) return h.Treasury.Get(good) > keep;
+        return false;
+    }
+
+    private static readonly Road[] Roads = { General, Seceder, Courtier, Upstart };
+    /// <summary>The roads the nightly soak plays: the upstart has a command of its own (it starts from a character, not a scenario).</summary>
+    private static readonly Road[] SoakRoads = { General, Seceder, Courtier };
     /// <summary>The last thing on a road: what "it got there" means in one line of the soak.</summary>
     internal static string[] MilestonesOf(string roadId) => Roads.First(r => r.Id == roadId).Milestones.Select(m => m.Name).ToArray();
-    internal static readonly string[] RoadIds = Roads.Select(r => r.Id).ToArray();
+    internal static readonly string[] RoadIds = SoakRoads.Select(r => r.Id).ToArray();
 
     // ---------------- playing one ----------------
 
@@ -197,12 +266,15 @@ internal static class Scripted
             or PledgeCommand or LeaveFactionCommand or SetSuccessionLawCommand or TakeLoanCommand or SueForPeaceCommand or RecallExpeditionCommand or ClientCommand
         || c is WealthCommand && (Starts(d, WealthCommand.Sell) || Starts(d, WealthCommand.Give) || Starts(d, WealthCommand.BreakEntail));
 
-    internal static Result Play(string contentRoot, ContentDatabase content, string roadId, string sid, ulong seed, int turns, Options o, Dictionary<string, int>? fired = null, Dictionary<string, int>? taken = null, HashSet<string>? flags = null)
+    internal static Result Play(string contentRoot, ContentDatabase content, string roadId, string sid, ulong seed, int turns, Options o, Dictionary<string, int>? fired = null, Dictionary<string, int>? taken = null, HashSet<string>? flags = null, Praetoria.Core.Creation.CustomCharacter? custom = null)
     {
         var road = Roads.First(r => r.Id == roadId); var res = new Result { Road = road.Id, Label = $"{sid} seed {seed}" };
+        if (custom != null) sid = Praetoria.Core.Creation.CharacterWorkshop.BaseFor(custom);
         var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(contentRoot, sid), seed);
         w.Difficulty = o.Difficulty; w.CrisisIntensity = o.Intensity; w.FamilyAutonomy = o.Autonomy; Praetoria.Core.Galaxy.GalaxyGrowth.Grow(w, content, o.Size);
+        if (custom != null) Praetoria.Core.Creation.CharacterWorkshop.Apply(w, content, custom);
         var tc = new TurnController(w, content); var decisions = new SplitMix64Rng(seed * 104729 + 31);
+        if (custom != null) Praetoria.Core.Creation.CharacterWorkshop.Finish(tc, custom);
         for (int t = 0; t < turns && !w.IsDynastyDead; t++)
         {
             var briefing = tc.BeginTurn(); if (flags != null) foreach (var f in w.WorldFlags) flags.Add(f);   // the flags as the events see them
@@ -214,12 +286,14 @@ internal static class Scripted
                 if (tc.Resolve(item, pick.Choice.Id) && taken != null) { string key = $"{id}/{pick.Choice.Id}"; taken[key] = taken.GetValueOrDefault(key) + 1; }
             }
             var ctx = new CommandContext(w, WorldBuilder.RngFor(w)); int done = 0;
-            void Did(ICommand c) { string name = c.GetType().Name.Replace("Command", ""); res.Landed[name] = res.Landed.GetValueOrDefault(name) + 1; if (taken != null) taken["cmd/" + name] = taken.GetValueOrDefault("cmd/" + name) + 1; }
+            void Did(ICommand c) { string name = c.GetType().Name.Replace("Command", ""); if (c is DutyCommand) name += ":" + c.Describe().Split(' ')[0]; res.Landed[name] = res.Landed.GetValueOrDefault(name) + 1; if (taken != null) taken["cmd/" + name] = taken.GetValueOrDefault("cmd/" + name) + 1; }
             foreach (var step in road.Wants)
             {
                 if (done >= 6) break;
                 // the world moves with each command given, so what is offered is read again for each step
-                var wanted = Offered(tc, w, content).Where(x => !road.Never(x.c, x.d) && step.Match(x.c, x.d, w)).ToList(); if (wanted.Count == 0) continue;
+                var wanted = Offered(tc, w, content).Where(x => !road.Never(x.c, x.d) && step.Match(x.c, x.d, w)).ToList();
+                if (step.Score != null) wanted = wanted.Select(x => (x, s: step.Score(x.c, x.d, w, tc))).Where(x => x.s > 0).OrderByDescending(x => x.s).Select(x => x.x).ToList();
+                if (wanted.Count == 0) continue;
                 int landed = 0; string? first = null;
                 foreach (var (c, _) in wanted)
                 {
@@ -233,8 +307,9 @@ internal static class Scripted
             for (int tries = 0; tries < 3 && rest.Count > 0; tries++) { int i = decisions.NextInt(0, rest.Count); var c = rest[i].c; rest.RemoveAt(i); if (tc.Executor.TryExecute(c, ctx)) { Did(c); break; } }
             tc.EndTurn();
             foreach (var m in road.Milestones) if (!res.ReachedIn.ContainsKey(m.Name) && m.Reached(w, tc)) res.ReachedIn[m.Name] = w.Turn;
+            if (MyHouse(w, out var mine)) res.Trace.Add((w.Turn, mine.Legitimacy, mine.Treasury.Credits, Praetoria.Core.Progression.Title.RankOf(mine.Title), w.Counter("generation") == 0 ? w.Protagonist?.CareerRank ?? 0 : -1));
         }
-        res.Years = w.Turn; res.LineEnded = w.IsDynastyDead; res.World = w; return res;
+        res.Years = w.Turn; res.LineEnded = w.IsDynastyDead; res.World = w; res.Controller = tc; return res;
     }
 
     // ---------------- the report ----------------
@@ -244,9 +319,9 @@ internal static class Scripted
         string root = ContentLocator.FindContentDir(); var content = ContentLoader.LoadFromDirectory(root);
         var scenarios = o.Scenario is "academy_crucible" or "all" ? Starts(root) : new List<string> { o.Scenario };
         int seeds = Math.Max(1, Math.Min(o.Seeds, 10)), turns = o.Turns > 6 ? o.Turns : 60; int failures = 0;
-        Console.WriteLine($"=== Players with an end in view: {Roads.Length} roads × {scenarios.Count} start(s) × {seeds} seed(s) × {turns} years ===");
+        Console.WriteLine($"=== Players with an end in view: {SoakRoads.Length} roads × {scenarios.Count} start(s) × {seeds} seed(s) × {turns} years ===");
         var everything = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var road in Roads)
+        foreach (var road in SoakRoads)
         {
             var runs = new List<Result>();
             foreach (var sid in scenarios) for (ulong seed = 1; seed <= (ulong)seeds; seed++)
@@ -282,6 +357,100 @@ internal static class Scripted
         Console.WriteLine(); Console.WriteLine($"-- FAILURES: {failures}");
         return failures == 0 ? 0 : 1;
     }
+    // ---------------- the upstart: a new house from nothing (docs/UPSTART.md) ----------------
+
+    /// <summary>A house nobody has heard of: a new name, no land, no seat, no patron, no family, a few coins, and one person of twenty-two
+    /// at the bottom of a service. Everything the creator leaves at its least.</summary>
+    internal static Praetoria.Core.Creation.CustomCharacter Nothing(string track, string name = "Tam Corvane") => new()
+    {
+        Mode = Praetoria.Core.Creation.CustomCharacter.Standard, Name = name, Sex = "male", Age = 22, Track = track, Rank = 0, Origin = "new", Title = "landless", Legitimacy = 5,
+        HouseName = name.Split(' ')[^1], Skills = { [track == "military" ? "tactics" : track == "law" ? "law" : "administration"] = 2 },
+        Treasury = new() { ["credits"] = 20, ["materials"] = 6, ["manpower"] = 4, ["influence"] = 1 }
+    };
+
+    public static int RunUpstart(Options o)
+    {
+        string root = ContentLocator.FindContentDir(); var content = ContentLoader.LoadFromDirectory(root);
+        int seeds = Math.Max(1, Math.Min(o.Seeds, 10)), turns = o.Turns > 6 ? o.Turns : 60; int failures = 0; var road = Upstart;
+        var tracks = new[] { "military", "stewardship", "law" };
+        Console.WriteLine($"=== The upstart: a new house from nothing · {tracks.Length} services × {seeds} seed(s) × {turns} years ===");
+        var spec0 = Nothing("military"); var (cost, _) = Praetoria.Core.Creation.CharacterWorkshop.Cost(spec0, content);
+        Console.WriteLine($"    the start: landless, a new name, legitimacy {spec0.Legitimacy}, {spec0.Treasury["credits"]} credits, no seat, no patron, no family · {cost} of {Praetoria.Core.Creation.WorkshopLimits.Standard.Budget} points");
+        var runs = new List<(string track, Result r)>();
+        foreach (var track in tracks) for (ulong seed = 1; seed <= (ulong)seeds; seed++)
+        {
+            try { var r = Play(root, content, road.Id, "", seed, turns, o, custom: Nothing(track)); r.Label = $"{track} seed {seed}"; runs.Add((track, r)); }
+            catch (Exception ex) { failures++; Console.WriteLine($"  FAILED {track} seed {seed}: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace?.Split('\n').FirstOrDefault()}"); }
+        }
+        Console.WriteLine(); Console.WriteLine($"   {runs.Count} games · the line ended in {runs.Count(x => x.r.LineEnded)}");
+        Console.WriteLine("   how far it got (games of all, and the year in the middle game of those):");
+        foreach (var m in road.Milestones)
+        {
+            var years = runs.Where(x => x.r.ReachedIn.ContainsKey(m.Name)).Select(x => x.r.ReachedIn[m.Name]).OrderBy(y => y).ToList();
+            string by = string.Join(" ", tracks.Select(t => $"{t[..3]} {runs.Count(x => x.track == t && x.r.ReachedIn.ContainsKey(m.Name))}/{runs.Count(x => x.track == t)}"));
+            Console.WriteLine($"     {years.Count,3} of {runs.Count} · {m.Name}{(years.Count > 0 ? $" (year {years[years.Count / 2]})" : "")}   [{by}]");
+        }
+        Console.WriteLine("   what it wanted, and what stood in the way (years refused, over all games):");
+        foreach (var step in road.Wants)
+        {
+            var why = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var (_, r) in runs) if (r.Refused.TryGetValue(step.Name, out var d)) foreach (var kv in d) why[kv.Key] = why.GetValueOrDefault(kv.Key) + kv.Value;
+            if (why.Count == 0) continue;
+            Console.WriteLine($"     {step.Name}:");
+            foreach (var kv in why.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(4)) Console.WriteLine($"       {kv.Value,5} · {kv.Key}");
+        }
+        var commands = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var (_, r) in runs) foreach (var kv in r.Landed) commands[kv.Key] = commands.GetValueOrDefault(kv.Key) + kv.Value;
+        Console.WriteLine($"   commands that landed ({commands.Count} kinds): " + string.Join(" · ", commands.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => $"{kv.Key} ×{kv.Value}")));
+        Console.WriteLine(); Console.WriteLine("   where each ended:");
+        foreach (var (track, r) in runs)
+        {
+            var w = r.World!; var p = w.Protagonist; var h = p != null ? w.House(p.HouseId) : null; if (h == null || p == null) { Console.WriteLine($"     {r.Label}: the line ended in year {r.Years}"); continue; }
+            int richer = w.Houses.Values.Count(x => !World.Outsider(x.Id) && x.Wealth > h.Wealth), houses = w.Houses.Values.Count(x => !World.Outsider(x.Id));
+            Console.WriteLine($"     {r.Label,-22} year {r.Years} · {content.Titles.NameOf(h.Title, w.Era)} · {p.Name}, {p.Age}, rank {p.CareerRank} · worlds {w.HoldingsOf(h.Id).Count(x => x.IsPlanet)} · provinces {w.Holdings.Values.Sum(x => x.IsPlanet && x.OwnerId != h.Id ? x.Provinces.Count(pv => pv.HolderId == h.Id) : 0)} · ventures {w.BusinessesOf(h.Id).Count()} · {h.Treasury.Credits} credits · wealth {richer + 1} of {houses} · legitimacy {h.Legitimacy} · of the house alive {w.LivingCharacters().Count(c => c.HouseId == h.Id)} · {(h.PatronId.Length > 0 ? "client of " + (w.House(h.PatronId)?.Name ?? "?") : "no patron")} · head {w.Counter("generation") + 1}{(r.LineEnded ? " · THE LINE ENDED" : "")}");
+        }
+        // what a first venture pays: every kind a house with no world and no rank may found, on every world it could found it on
+        if (runs.FirstOrDefault().r?.Controller is { } tc0)
+        {
+            var w0 = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, Praetoria.Core.Creation.CharacterWorkshop.BaseFor(spec0)), 1); w0.Difficulty = o.Difficulty; Praetoria.Core.Galaxy.GalaxyGrowth.Grow(w0, content, o.Size);
+            Praetoria.Core.Creation.CharacterWorkshop.Apply(w0, content, spec0); var tcv = new TurnController(w0, content); Praetoria.Core.Creation.CharacterWorkshop.Finish(tcv, spec0);
+            var ctx0 = new CommandContext(w0, WorldBuilder.RngFor(w0)); MyHouse(w0, out var h0); h0.Treasury.Credits = 500; h0.Treasury.Materials = 500; h0.Treasury.Manpower = 500; h0.Treasury.Influence = 50;
+            Console.WriteLine(); Console.WriteLine("   what a first venture pays a house with no world (credits' worth a year, on every world it may be founded on; year 0, seed 1):");
+            foreach (var def in content.Businesses.Defs.OrderBy(d => d.Id, StringComparer.Ordinal))
+            {
+                var pays = new List<(int worth, string where)>(); string? never = null;
+                foreach (var sys in w0.Galaxy!.Systems.Values.OrderBy(s => s.Id, StringComparer.Ordinal))
+                {
+                    string? no = new FoundBusinessCommand(w0.ProtagonistId, def.Id, sys.Id, content.Businesses, content.Holdings, content.Titles).Refusal(ctx0); if (no != null) { never ??= no; continue; }
+                    var ghost = new Business { Id = "ghost", OwnerId = h0.Id, Kind = def.Id, SystemId = sys.Id, Level = 1 };
+                    pays.Add((tcv.Ventures!.Earnings(w0, ghost), $"{sys.Name} ({w0.Galaxy.RingOf(sys.Id)})"));
+                }
+                if (pays.Count == 0) { Console.WriteLine($"     {def.Name,-22} nowhere: {never}"); continue; }
+                pays.Sort((a, b) => b.worth.CompareTo(a.worth));
+                Console.WriteLine($"     {def.Name,-22} costs {def.Cost} · {pays.Count} worlds · pays nothing or less on {pays.Count(x => x.worth <= 0)} · best {pays[0].worth} at {pays[0].where} · middle {pays[pays.Count / 2].worth} · worst {pays[^1].worth}");
+            }
+        }
+        Console.WriteLine(); Console.WriteLine("   the middle game by year (legitimacy · credits in hand · the house's rank):");
+        foreach (int y in new[] { 1, 3, 5, 10, 15, 20, 30, 40, 50, 60 }.Where(y => y <= turns))
+        {
+            var at = runs.Select(x => x.r.Trace.LastOrDefault(t => t.year <= y)).Where(t => t.year > 0).ToList(); if (at.Count == 0) continue;
+            int Mid(Func<(int year, int legitimacy, int credits, int rank, int career), int> f) => at.Select(f).OrderBy(v => v).ElementAt(at.Count / 2);
+            Console.WriteLine($"     year {y,2}: legitimacy {Mid(t => t.legitimacy),3} ({at.Min(t => t.legitimacy)} to {at.Max(t => t.legitimacy)}) · credits {Mid(t => t.credits),4} ({at.Min(t => t.credits)} to {at.Max(t => t.credits)}) · rank {Mid(t => t.rank)}{(at.Any(t => t.career >= 0) ? $" · the founder's step in the service {at.Where(t => t.career >= 0).Select(t => t.career).OrderBy(v => v).ElementAt(at.Count(t => t.career >= 0) / 2)} ({at.Where(t => t.career >= 0).Min(t => t.career)} to {at.Where(t => t.career >= 0).Max(t => t.career)})" : "")}");
+        }
+        // one house's own story, as its chronicle tells it
+        var told = runs.Where(x => !x.r.LineEnded).OrderByDescending(x => x.r.ReachedIn.Count).ThenBy(x => x.r.Label, StringComparer.Ordinal).FirstOrDefault();
+        if (told.r?.World is { } tw)
+        {
+            string surname = Nothing(told.track).HouseName;
+            Console.WriteLine(); Console.WriteLine($"   the story of one of them ({told.r.Label}), as the chronicle has it:");
+            foreach (var m in told.r.ReachedIn.OrderBy(kv => kv.Value)) Console.WriteLine($"     year {m.Value,2}: {m.Key}");
+            Console.WriteLine("     ---");
+            foreach (var e in tw.History.Where(e => e.Text.Contains(surname, StringComparison.Ordinal)).GroupBy(e => e.Text).Select(g => g.First()).Take(70)) Console.WriteLine($"     y{e.Turn,2}  {e.Text}");
+        }
+        Console.WriteLine(); Console.WriteLine($"-- FAILURES: {failures}");
+        return failures == 0 ? 0 : 1;
+    }
+
     /// <summary>The starts a player may choose, in id order.</summary>
     internal static List<string> Starts(string root) =>
         Directory.EnumerateFiles(Path.Combine(root, "scenarios"), "*.json").Select(Path.GetFileNameWithoutExtension).Select(s => s!).OrderBy(s => s, StringComparer.Ordinal)

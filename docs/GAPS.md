@@ -284,6 +284,22 @@ still short of that:
 | P15 | Commutation is one bargain at one price. Dues cannot be set for a term by agreement, promised in a marriage contract, or traded for a vote or a loan; and a rival never asks the player to commute. | S | |
 | P16 | A levy's officer is picked for it and does nothing of his own: he earns no valour that his house hears of, cannot be recalled, and the house that sent him cannot refuse a war it thinks unjust, only withhold everything. | S | |
 
+## A new house from nothing (docs/UPSTART.md, 2026-11-21)
+
+Measured by `upstart` (three services, four seeds, sixty years). U8 to U11 are closed below.
+
+| | Gap | Size | Needs |
+|---|---|---|---|
+| U1 | A new house never overtakes the old ones in wealth: with 650 credits and five ventures at year 60 it is 30th of 32, and one game in twelve reached the richer half. | L | the owner: how rich a new house may get |
+| U2 | A commodity warehouse and a shipyard company pay nothing on every world in an ordinary year, and are wound up after three. Nothing on the founding screen warns that they are a bet on a spike or a war. | S | |
+| U3 | A landless house is given a province on the first day, so a house with "nothing" holds ground and a levy. | S | the owner |
+| U4 | A house with no seat still votes, has a bench and a party and can be bought. | S | the owner: what no seat forbids |
+| U5 | Event texts written for a great house are told of a landless or seatless one ("older than the panic", "crosses the floor", "the house's worlds"). | M | |
+| U6 | A background is a start and nothing after: no event reads it. | M | the owner |
+| U7 | The creator has no uncles, cousins or grandparents, no household on the first day, and no relative who dislikes the head. A relative's skills, ambition and face are thrown. | M | |
+| U12 | Every belt is claimed out from the first year: a new house can never stake a claim. | S | |
+| U13 | One founder in twelve was still at the bottom of a service at year 20. Not traced. | S | |
+
 ## Older, from docs/ROADMAP.md section 3
 
 Kept there in full. In short: the state gives commerce nothing (no tax-farming or contracts), callings lean to commerce,
@@ -398,3 +414,7 @@ look-and-feel pass is planned and not begun, there is no sound.
 | R10a | A foreign nation had no place and no people: a raid picked any world of the rim by lot, an expedition's length was a fixed count of years, and its fleets were led by nobody. | 2026-11-18 | Stage 0 of docs/BEYOND.md. Each nation has a march on the rim: raids come through it and fall within two lanes of it, a fleet of three hulls standing there turns them back, and an expedition's voyage is the lanes to the march and the nation's depth beyond it. Each has a ruler and a commander with titles and names of its own: the commander's skill counts in a battle and a routed commander may be killed; the ruler's nature moves the nation's regard and its raids, and rulers die and are followed. A raided house posts a fleet at the march. Probe (60 runs): 521 raids landed, 170 met at the march, 45 turned back at the world; 82 commanders killed; 643 rulers succeeded. Soak passes. Left: stages 1 to 4 (R10). |
 | V12 | Territory on the map was a bright border line with nothing inside it. | 2026-11-20 | Every held system is a cell filled in its holder's colour, with a dark line between cells of one holder and a wider one, lit along its inner edge, where two holders meet. A house's worlds, the Reach and each nation read as blocks at any zoom, and on the minimap. A region's edge is a pale line. V17 (a crest over a realm at far zoom) and V14 (the map as an object) are what is left. |
 | V13 | Unheld systems looked the same as held ones. | 2026-11-20 | A system nobody holds has no cell, only a pale ring round its star, so the map thins out where the holding does. |
+| U8 | The player's own person never went up in a service by the years: one who began at the bottom and was never spoken for stayed there for life and could stand for no office. | 2026-11-21 | Four years of the year's work at a junior step is a step (a year of padded accounts does not count), never faster than the service allows anybody. docs/UPSTART.md. |
+| U9 | The head of a house with no seat was given a senator's year, and the house lost 2 legitimacy every three years for not being seen in a chamber it did not sit in. | 2026-11-21 | A house that has come in by none of the four doors has no senator's year, owes no attendance and has no place on a committee. |
+| U10 | In the creator a relative was a name, a sex and an age; parents were always dead; the eight backgrounds were for written starts only. | 2026-11-21 | A background on the person's page, priced by what it gives; a father and a mother who may be living; a service, a step, a nature and a gift for each relative of age; an Upstart preset. docs/CHARACTER.md. |
+| U11 | Asking for the next rank was refused with no reason; a child could be named for its own surname. | 2026-11-21 | The petition says what is wanting. Nobody of a house is given its name for a first name. |

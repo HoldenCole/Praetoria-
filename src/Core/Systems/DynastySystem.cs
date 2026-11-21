@@ -342,6 +342,7 @@ public sealed class DynastySystem
         {
             // no two living kin share a given name — a house with two Dariuses reads like a bug, not a family
             var taken = world.Characters.Values.Where(k => k.Alive && k.HouseId == lineParent.HouseId).Select(k => k.Name.Split(' ')[0]).ToHashSet();
+            taken.Add(surname);   // nor is anybody given their own surname: "Orrin Orrin" reads like a bug too
             for (int attempt = 0; attempt < 8; attempt++)
             {
                 given = Content.Names.Pick(house?.Culture ?? "reach", sex, rng);

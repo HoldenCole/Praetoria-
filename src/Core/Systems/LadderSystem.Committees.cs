@@ -104,6 +104,7 @@ public static partial class LadderSystem
     {
         var house = head != null ? w.House(head.HouseId) : null; if (head?.Alive != true || house == null || Economy.HeadOf(w, house)?.Id != head.Id) return "only the head of the house has its seat";
         if (!Committees.Contains(committee)) return "no such committee";
+        if (!OrderSystem.Seated(w, house)) return "a committee is made up of houses that sit, and yours has no seat yet";
         if (CommitteeOf(w, house) == committee) return "you sit on it already";
         return w.WorldCounters.TryGetValue(ChangedKey(house.Id), out int last) && w.Turn - last < ChangeEvery ? $"you changed committees not long ago (again in {ChangeEvery - (w.Turn - last)} year(s))" : null;
     }

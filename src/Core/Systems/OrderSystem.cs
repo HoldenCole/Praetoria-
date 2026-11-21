@@ -198,6 +198,19 @@ public sealed class OrderSystem
         return Tier(h, Arms) >= 2 ? "the sword" : null;
     }
 
+    /// <summary>Whether a house sits in the Senate at all (docs/UPSTART.md, "No seat"): under a throne every house is of the court;
+    /// in the Republic it has come in by one of the four doors. A house that has not still votes with the assembly, and that is all:
+    /// it is given no senator's year, owes no attendance, and has no place on a committee.</summary>
+    public static bool Seated(World w, House h) => w.IsImperium || Door(w, h) != null;
+    /// <summary>The door by the game's own figures, for the systems that have no title catalog to hand.</summary>
+    public static string? Door(World w, House h)
+    {
+        if (Title.RankOf(h.Title) >= SenateSystem.ProposerTitleRank) return "land";
+        if (Economy.HeadOf(w, h) is { CareerTrack: "law" } head && head.CareerRank >= SenateSystem.ProposerLawRank) return "the bench";
+        if (h.Enrolled) return "the purse";
+        return Tier(h, Arms) >= 2 ? "the sword" : null;
+    }
+
     // ---------------------------------------------------------------- the purse: a seat by the census
 
     public string? EnrollRefusal(World w, House h, bool seated)

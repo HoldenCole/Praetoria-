@@ -83,10 +83,27 @@ public static partial class LadderSystem
     public static string UnderKey(string juniorId, string aboveId) => $"served_under:{juniorId}:{aboveId}";
     /// <summary>One whose senior has come to think well of them, and has had three good years' work of them, is spoken for, once at
     /// each rank, and goes up a step sooner than the years alone would have taken them: never faster than the service allows anybody.</summary>
-    private static void SpokenFor(World w, OfficeBusiness b, Character who)
+    private static void SpokenFor(World w, OfficeBusiness b, Character who, bool honest = true)
     {
-        if (w.Char(b.SubjectId) is not { Alive: true } above || above.Id == who.Id) return;
-        Patronage(w, above, who); Speak(w, above, who);
+        int was = who.CareerRank;
+        if (w.Char(b.SubjectId) is { Alive: true } above && above.Id != who.Id) { Patronage(w, above, who); Speak(w, above, who); }
+        if (honest && who.CareerRank == was) Served(w, who);   // a year of padded accounts is not a year's work
+    }
+    /// <summary>Years of the year's work done at a step, for the one the player is (docs/UPSTART.md, "The service").</summary>
+    public static string ServedKey(string characterId, int rank) => $"served_at:{characterId}:{rank}";
+    public const int ServedYears = 4; public const string ServedCounter = "juniors_risen_by_years";
+    /// <summary>The years alone: everybody else in a service goes up a step every so often whatever they do
+    /// (<see cref="DynastySystem"/>), and the player's own person was the one exception, so that one who began at the bottom and was
+    /// never spoken for stayed a cadet for life and could stand for nothing. A junior who does the year's work goes up after
+    /// <see cref="ServedYears"/> years of it at a step, never faster than the service allows anybody.</summary>
+    private static void Served(World w, Character who)
+    {
+        if (who.Id != w.ProtagonistId) return;
+        string key = ServedKey(who.Id, who.CareerRank); int years = w.Counter(key) + 1; w.WorldCounters[key] = years;
+        if (years < ServedYears || who.CareerRank >= (who.Age - DynastySystem.AgeOfMajority) / DynastySystem.YearsPerRank) return;
+        w.WorldCounters.Remove(key); who.CareerRank++; Bump(w, ServedCounter);
+        LifeSystem.Note(w, who, "office", $"Went up a step after {years} years' work.");
+        w.Log($"{who.Name} has done {years} years' work at the bottom of the table, and goes up a step in the service: it is the years that did it, and nobody's word.");
     }
     private static void Speak(World w, Character above, Character who)
     {
@@ -181,7 +198,8 @@ public static partial class LadderSystem
         }
 
         // 3. the seat: the head's year in the Senate
-        if (PolitySystem.InReach(w, mine.Id) && DutyOf(w, p.Id, Charge) == null)   // one who holds an office of the Reach spends the year on its charge
+        //    a house with no seat has no senator's year: its head's year is the work of their service (docs/UPSTART.md)
+        if (PolitySystem.InReach(w, mine.Id) && OrderSystem.Seated(w, mine) && DutyOf(w, p.Id, Charge) == null)   // one who holds an office of the Reach spends the year on its charge
             w.OfficeWork.Add(new OfficeBusiness { Id = $"seat_{w.Turn}_{p.Id}", RungId = "senate", HolderId = p.Id, Kind = SeatKind, Turn = w.Turn, RegionId = HomeRegion(w, mine.Id) ?? "" });
 
         // 4. somebody else reads the accounts too: one upright senator a year, and what was taken last year may come out through them
@@ -409,7 +427,7 @@ public static partial class LadderSystem
                         if (ours) w.Log($"{who.Name}'s ledgers are gone through, and an account is found padded. It is written against them.");
                     }
                 }
-                SpokenFor(w, b, who);
+                SpokenFor(w, b, who, choice != Pad);
                 break;
             }
             case Watch:

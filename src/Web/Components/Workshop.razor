@@ -54,6 +54,15 @@
             <label>Rank in it <select value="@c.Rank" disabled="@c.Academy" @onchange="e => { c.Rank = Num(e, 0, 9); Changed(); }">@for (int r = 0; r <= maxRank; r++) { int rr = r; <option value="@rr">@(content.Careers.RankName(c.Track, rr, era) ?? "rank " + rr)</option> }</select></label>
             <label>Ambition <select value="@c.Ambition" @onchange="e => { c.Ambition = Text(e); Changed(); }"><option value="">none yet</option>@foreach (var a in content.Traits.Ambitions) { <option value="@a.Id">@a.Name</option> }</select></label>
         </div>
+        <h3>Where they come from <span class="muted">a background: it moves the house's standing and purse, and gives them a little of what that life teaches</span></h3>
+        <div class="chips" data-backgrounds="@content.Backgrounds.Defs.Count">
+            <button class="chip @(c.Background.Length == 0 ? "on" : "")" title="No background: only what you set on these pages." @onclick="() => { c.Background = string.Empty; Changed(); }">none</button>
+            @foreach (var b in content.Backgrounds.Defs) { var bid = b.Id; <button class="chip @(c.Background == bid ? "on" : "")" data-background="@bid" title="@b.Description" @onclick="() => { c.Background = bid; Changed(); }">@b.Name</button> }
+        </div>
+        @if (content.Backgrounds.ById(c.Background) is { } bgd)
+        {
+            <p class="hint" data-background-says>@bgd.Description <b>@BackgroundGives(bgd)</b> @(free ? "" : BackgroundPrice(bgd))</p>
+        }
         <h3>Nature <span class="muted">up to @lim.MaxNature · how they are, and what costs them sleep@(c.Nature.Count >= lim.MaxNature ? " · you have " + lim.MaxNature + ": un-pick one to change" : "")</span></h3>
         <div class="chips">@foreach (var t in content.Traits.Nature) { var tid = t.Id; bool nFull = !c.Nature.Contains(tid) && c.Nature.Count >= lim.MaxNature; <button class="chip @(c.Nature.Contains(tid) ? "on" : "") @(nFull ? "full" : "")" disabled="@nFull" title="@(nFull ? $"Up to {lim.MaxNature}: un-pick one first. {t.Description}" : t.Description)" @onclick="() => Toggle(c.Nature, tid, lim.MaxNature)">@t.Name</button> }</div>
         <h3>Aptitude <span class="muted">up to @lim.MaxAptitude · four points each@(c.Aptitude.Count >= lim.MaxAptitude ? " · you have " + lim.MaxAptitude + ": un-pick one to change" : "")</span></h3>
@@ -231,6 +240,7 @@
             @if (c.Spouse is { } sp)
             {
                 <div class="ws-line"><input value="@sp.Name" placeholder="a name by the dice" @onchange="e => { sp.Name = Text(e); Changed(); }" /><span class="muted">aged</span><input type="number" min="16" max="80" value="@sp.Age" @onchange="e => { sp.Age = Num(e, 16, 80); Changed(); }" /></div>
+                @KinDetail(sp, "spouse")
                 <label data-spouse-house>Of the house <select value="@sp.HouseId" @onchange="e => { sp.HouseId = Text(e); Changed(); }"><option value="">your own: they took your name</option>@foreach (var h in houses) { <option value="@h.Id">@h.Name</option> }</select></label>
                 <p class="hint">@(sp.HouseId.Length > 0 && blank.House(sp.HouseId) is { } sph
                     ? $"A husband or wife from {sph.Name} keeps that house's name and lives with yours, as one married in play does. The children are your house's. Its head thinks well of you from the first day (regard {CharacterWorkshop.SpouseHouseRegard}), and you of them ({CharacterWorkshop.SpouseHouseRegardBack}). It costs {CharacterWorkshop.SpouseHouseCost} point in a standard start."
@@ -244,6 +254,7 @@
                     <select value="@kid.Sex" @onchange="e => { kid.Sex = Text(e); Changed(); }"><option value="male">son</option><option value="female">daughter</option></select>
                     <span class="muted">aged</span><input type="number" min="0" max="@Math.Max(0, age - CharacterWorkshop.MinAge)" value="@kid.Age" @onchange="e => { kid.Age = Num(e, 0, 64); Changed(); }" />
                     <button class="chip tiny" @onclick="() => { c.Children.RemoveAt(k); Changed(); }">remove</button></div>
+                @KinDetail(kid, "child")
             }
             <button class="chip" disabled="@(c.Children.Count >= lim.MaxChildren || age <= CharacterWorkshop.MinAge)" @onclick="AddChild">Add a child</button>
         }
@@ -255,8 +266,26 @@
                 <select value="@sib.Sex" @onchange="e => { sib.Sex = Text(e); Changed(); }"><option value="male">brother</option><option value="female">sister</option></select>
                 <span class="muted">aged</span><input type="number" min="0" max="80" value="@sib.Age" @onchange="e => { sib.Age = Num(e, 0, 80); Changed(); }" />
                 <button class="chip tiny" @onclick="() => { c.Siblings.RemoveAt(k); Changed(); }">remove</button></div>
+            @KinDetail(sib, "sibling")
         }
         <button class="chip" disabled="@(c.Siblings.Count >= lim.MaxSiblings)" @onclick="AddSibling">Add a brother or sister</button>
+        <h3>Father and mother <span class="muted">living and of the house, or names in the chronicle · @CharacterWorkshop.ParentCost points each</span></h3>
+        <div data-parents>
+        @foreach (var (who, label) in new[] { ("father", "Father"), ("mother", "Mother") })
+        {
+            string w = who; var par = w == "father" ? c.Father : c.Mother;
+            <div class="ws-line"><b class="ws-kin-what">@label</b>
+                <span class="chips"><button class="chip tiny @(par == null ? "on" : "")" @onclick="() => { SetParent(w, false); Changed(); }">dead</button><button class="chip tiny @(par != null ? "on" : "")" data-parent-living="@w" @onclick="() => { SetParent(w, true); Changed(); }">living</button></span>
+                @if (par != null)
+                {
+                    <input value="@par.Name" placeholder="a name by the dice" @onchange="e => { par.Name = Text(e); Changed(); }" />
+                    <span class="muted">aged</span><input type="number" min="@(age + CharacterWorkshop.ParentGap)" max="@CharacterWorkshop.MaxParentAge" value="@par.Age" @onchange="e => { par.Age = Num(e, 16, CharacterWorkshop.MaxParentAge); Changed(); }" />
+                }
+            </div>
+            @if (par != null) { @KinDetail(par, w) }
+        }
+        </div>
+        <p class="hint">A relative of sixteen or more is somebody: a service of their own, a step in it from twenty (@CharacterWorkshop.KinRankCost points a step), what they are known for, and a gift (@CharacterWorkshop.KinAptitudeCost points). Leave a line alone and the dice decide the nature, and they follow your service from the bottom. You are the head of the house whoever else is living.</p>
     }
     else
     {
@@ -317,6 +346,34 @@
     private void Wed() { Spec.Spouse ??= new KinSpec { Age = Math.Max(CharacterWorkshop.MinAge, Spec.Age - 1) }; }
     private void AddChild() => Spec.Children.Add(new KinSpec { Sex = Spec.Children.Count % 2 == 0 ? "female" : "male", Age = Math.Clamp(Spec.Age - 22, 0, Math.Max(0, Spec.Age - CharacterWorkshop.MinAge)) });
     private void AddSibling() => Spec.Siblings.Add(new KinSpec { Sex = Spec.Siblings.Count % 2 == 0 ? "female" : "male", Age = Math.Max(0, (Spec.Academy ? CharacterWorkshop.AcademyAge : Spec.Age) - 3) });
+    private void SetParent(string who, bool living)
+    {
+        int a = Math.Min(CharacterWorkshop.MaxParentAge, (Spec.Academy ? CharacterWorkshop.AcademyAge : Spec.Age) + 26);
+        if (who == "father") Spec.Father = living ? Spec.Father ?? new KinSpec { Sex = "male", Age = a + 2 } : null; else Spec.Mother = living ? Spec.Mother ?? new KinSpec { Sex = "female", Age = a } : null;
+    }
+    private string Era => Spec.Imperium ? World.EraImperium : World.EraRepublic;
+    /// <summary>What a background gives, in a line: the same figures the engine applies.</summary>
+    private static string BackgroundGives(BackgroundDef b)
+    {
+        var parts = new List<string>(); if (b.Legitimacy != 0) parts.Add($"legitimacy {b.Legitimacy:+0;-0}");
+        string purse = CourtProjection.Bundle(b.Treasury); if (purse.Length > 0) parts.Add(purse);
+        foreach (var t in b.Nature.Concat(b.Aptitude)) parts.Add(t); foreach (var kv in b.Skills.OrderBy(kv => kv.Key, StringComparer.Ordinal)) parts.Add($"{kv.Key} {kv.Value:+0;-0}");
+        if (b.Stress > 0) parts.Add($"strain {b.Stress:+0}");
+        return string.Join(" · ", parts) + ".";
+    }
+    private static string BackgroundPrice(BackgroundDef b) { int pts = CharacterWorkshop.BackgroundCost(b); return pts > 0 ? $"It costs {pts} point{(pts == 1 ? "" : "s")}." : pts < 0 ? $"It gives {-pts} point{(pts == -1 ? "" : "s")} back." : "It costs nothing."; }
+    /// <summary>What one relative is, on the line under their name: a service, a step in it, a nature and a gift.</summary>
+    private RenderFragment KinDetail(KinSpec k, string what) => @<div class="ws-line sub" data-kin-detail="@what">
+        @if (k.Age < DynastySystem.AgeOfMajority) { <span class="muted small">Under sixteen: what they will be comes with the years.</span> }
+        else
+        {
+            var careers = G.Content!.Careers; string service = k.Track.Length > 0 ? k.Track : Spec.Track; int top = Math.Min(WorkshopLimits.For(Spec.Mode).MaxKinRank, careers.MaxRank(service) ?? 0);
+            <select title="The service they are in" value="@k.Track" @onchange="e => { k.Track = Text(e); k.Rank = 0; Changed(); }"><option value="">in your service</option>@foreach (var t in careers.Defs) { <option value="@t.Id">@t.NameIn(Era)</option> }</select>
+            <select title="@(k.Age < CharacterWorkshop.KinRankAge ? $"Nobody has a step in a service before {CharacterWorkshop.KinRankAge}" : "How far up it they have got")" value="@k.Rank" disabled="@(k.Age < CharacterWorkshop.KinRankAge)" @onchange="e => { k.Rank = Num(e, 0, 9); Changed(); }">@for (int r = 0; r <= top; r++) { int rr = r; <option value="@rr">@(careers.RankName(service, rr, Era) ?? "step " + rr)</option> }</select>
+            <select title="What they are known for" value="@k.Nature" @onchange="e => { k.Nature = Text(e); Changed(); }"><option value="">a nature by the dice</option>@foreach (var t in G.Content.Traits.Nature) { <option value="@t.Id">@t.Name</option> }</select>
+            <select title="A gift" value="@k.Aptitude" @onchange="e => { k.Aptitude = Text(e); Changed(); }"><option value="">no particular gift</option>@foreach (var t in G.Content.Traits.Aptitude) { <option value="@t.Id">@t.Name</option> }</select>
+        }
+    </div>;
     private void StartAtAcademy() { Spec.Academy = true; Spec.Spouse = null; Spec.Children.Clear(); }
     private void RollFace() { _dice++; uint h = 2166136261; foreach (var ch in "face:" + _dice) h = (h ^ ch) * 16777619; Spec.Face.Skin = (int)(h % 7); Spec.Face.Hair = (int)(h / 7 % 9); Spec.Face.Style = (int)(h / 63 % 5); }
     private async Task SetMode(string mode) { Spec.Mode = mode; await SpecChanged.InvokeAsync(Spec); }

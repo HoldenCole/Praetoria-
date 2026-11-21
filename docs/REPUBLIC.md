@@ -76,7 +76,7 @@ years. A house that brings up a quarter of the Reach's production of a strategic
 
 - **Weight in the chamber.** One seat for each step in Arms and in Commerce, and one for every two clients. A great
   general or banker is heard whatever their rank.
-- **Four doors to a seat.** A house may move motions and stand for office by **land** (Prefect or better), **the
+- **Four doors to a seat.** (A house that has come in by none of them has no senator's year and no committee: docs/UPSTART.md.) A house may move motions and stand for office by **land** (Prefect or better), **the
   bench** (a head who is a Judge), **the sword** (great in Arms) or **the purse**: a house notable in Commerce
   pays the census 60 credits and is enrolled. Every house still votes.
 - **Sway.** A house leans toward whoever it depends on: +3 its patron, +2 its client, +2 its creditor, +1 a fellow

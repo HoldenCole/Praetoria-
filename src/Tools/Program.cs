@@ -11,6 +11,7 @@ using Praetoria.Tools;
 //   qa        [--scenario id|all] [--seeds N] [--turns N]        soak with a randomised player: invariants, save/load, coverage
 //   drift     --scenario id --seed N [--turns N]                 one game straight and once saved and resumed: the first year they differ, and how
 //   roads     [--scenario id|all] [--seeds N] [--turns N]        three players with an end in view: how far each gets, what refuses them
+//   upstart   [--seeds N] [--turns N]                            a new house from nothing, in each service: how far it climbs, and what stops it
 //   perf      [--scenario id|all] [--turns N]                    where a turn's milliseconds go
 //   caesar    [--scenario id|all] [--seeds N]                    how far generals get on the Caesar road in sixty years
 //   throne    [--scenario id|all] [--seeds N]                    how a throne is held: the hold, pretenders, and how often it changes houses
@@ -42,6 +43,7 @@ try
         "qa"       => Qa.Run(opts),
         "drift"    => Qa.Drift(opts),
         "roads"    => Scripted.Run(opts),
+        "upstart"  => Scripted.RunUpstart(opts),
         "perf"     => Probes.PerfRun(opts),
         "survive"  => Probes.Survive(opts),
         "balance"  => Probes.Balance(opts),

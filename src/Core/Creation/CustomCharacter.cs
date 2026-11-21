@@ -27,6 +27,12 @@ public sealed class KinSpec
     /// <summary>For a spouse only: the house they come from and keep the name of, as a husband or wife from another house does in
     /// play. Empty for one who is of the head's own house.</summary>
     public string HouseId { get; set; } = "";
+    /// <summary>For one of age (docs/CHARACTER.md, "The family, each of them"): the service they are in (empty: the head's), how far
+    /// up it they have got, the nature they are known for (empty: by the dice) and a gift (empty: none).</summary>
+    public string Track { get; set; } = "";
+    public int Rank { get; set; }
+    public string Nature { get; set; } = "";
+    public string Aptitude { get; set; } = "";
 }
 /// <summary>A world a character of the player's own making might start on, as the creator shows it (docs/CHARACTER.md, "The creator's
 /// map"): what it is, where, whose, what it brings a year, and why a standard start may not take it (null when it may).</summary>
@@ -59,6 +65,9 @@ public sealed class CustomCharacter
     public List<string> Aptitude { get; set; } = new();
     public Dictionary<string, int> Skills { get; set; } = new();
     public FaceSpec Face { get; set; } = new();
+    /// <summary>Where they come from (content/backgrounds): a delta on the person and the house, as it is on a scenario's start.
+    /// Empty is no background at all.</summary>
+    public string Background { get; set; } = "";
 
     public string HouseName { get; set; } = "";
     public string Accent { get; set; } = "#E63946";
@@ -83,6 +92,15 @@ public sealed class CustomCharacter
     public KinSpec? Spouse { get; set; }
     public List<KinSpec> Children { get; set; } = new();
     public List<KinSpec> Siblings { get; set; } = new();
+    /// <summary>A father and a mother still living, and of the house. Left null they are names in the chronicle and no more.</summary>
+    public KinSpec? Father { get; set; }
+    public KinSpec? Mother { get; set; }
+    /// <summary>Every relative named, with what they are to the head.</summary>
+    public IEnumerable<(KinSpec kin, string what)> Kin()
+    {
+        if (Spouse != null) yield return (Spouse, "the spouse"); if (Father != null) yield return (Father, "the father"); if (Mother != null) yield return (Mother, "the mother");
+        foreach (var k in Children) yield return (k, "a child"); foreach (var k in Siblings) yield return (k, "a brother or sister");
+    }
 
     public string FriendId { get; set; } = "";
     public string RivalId { get; set; } = "";
@@ -97,8 +115,10 @@ public sealed class CustomCharacter
 public sealed record WorkshopLimits(int Budget, int MaxSkill, int MaxNature, int MaxAptitude, int MaxRank, int MaxTitleRank, int MaxLegitimacy, int MaxWorlds, int MaxHulls, int MaxVentures,
     int MaxChildren, int MaxSiblings, int MaxCredits, int MaxGoods, int MaxInfluence, bool AnyWorld)
 {
+    /// <summary>How far up a service a relative may have got on the first day.</summary>
+    public int MaxKinRank { get; init; } = 2;
     public static WorkshopLimits Standard { get; } = new(60, 4, 2, 2, 3, 3, 60, 2, 8, 3, 3, 3, 150, 60, 10, false);
-    public static WorkshopLimits Free { get; } = new(0, 10, 9, 11, 6, 5, 100, 12, 80, 12, 8, 6, 5000, 2000, 200, true);
+    public static WorkshopLimits Free { get; } = new(0, 10, 9, 11, 6, 5, 100, 12, 80, 12, 8, 6, 5000, 2000, 200, true) { MaxKinRank = 5 };
     public static WorkshopLimits For(string mode) => mode == CustomCharacter.Free ? Free : Standard;
 }
 
@@ -123,6 +143,18 @@ public static class CharacterWorkshop
     /// <summary>A spouse from a named house (docs/CHARACTER.md): what it costs in a standard start, and what the head of that house and
     /// the new head think of each other on the first day.</summary>
     public const int SpouseHouseCost = 1, SpouseHouseRegard = 25, SpouseHouseRegardBack = 20;
+    /// <summary>The family, each of them (docs/CHARACTER.md): what a living parent, a relative's step in a service and a relative's
+    /// gift cost in a standard start, the youngest a relative with a step may be, and how much older than the head a parent is at least.</summary>
+    public const int ParentCost = 2, KinRankCost = 2, KinAptitudeCost = 2, KinRankAge = 20, ParentGap = 16, MaxParentAge = 95;
+
+    /// <summary>What a background is worth in points, by the same price list as the dials it moves: a start that takes Old Blood has
+    /// bought standing, and one that takes a low birth is paid back for it. Never less than -4.</summary>
+    public static int BackgroundCost(BackgroundDef bg)
+    {
+        var t = bg.Treasury; int pts = (int)Math.Floor(bg.Legitimacy / 5.0) + bg.Aptitude.Count * 4 + bg.Skills.Values.Sum()
+            + (int)Math.Floor(t.Credits / 8.0) + t.Influence * 2 + t.Materials / 8 + t.Manpower / 8 + t.Exotics * 2;
+        return Math.Max(-4, pts);
+    }
 
     /// <summary>The kind of world an unclaimed system becomes when a new house is given it.</summary>
     public static string SpecFor(ContentDatabase content, string planetClass)
@@ -182,7 +214,9 @@ public static class CharacterWorkshop
         Add("worlds", c.Worlds.Count * 10);
         Add("hulls", Math.Max(0, c.Hulls) * 2);
         Add("ventures", c.Ventures.Count * 4);
-        Add("family", (c.Spouse != null ? 2 : 0) + c.Children.Sum(k => k.Age >= DynastySystem.AgeOfMajority ? 3 : 2) + c.Siblings.Count);
+        Add("family", (c.Spouse != null ? 2 : 0) + c.Children.Sum(k => k.Age >= DynastySystem.AgeOfMajority ? 3 : 2) + c.Siblings.Count + ((c.Father != null ? 1 : 0) + (c.Mother != null ? 1 : 0)) * ParentCost);
+        Add("what the family has made of itself", c.Kin().Sum(x => Math.Max(0, x.kin.Rank) * KinRankCost + (x.kin.Aptitude.Length > 0 ? KinAptitudeCost : 0)));
+        if (content.Backgrounds.ById(c.Background) is { } bg) Add("a background: " + bg.Name, BackgroundCost(bg));
         if (c.Spouse is { HouseId.Length: > 0 }) Add("a marriage into another house", SpouseHouseCost);
         if (c.FriendId.Length > 0) Add("a friend among the great", 2);
         if (c.RivalId.Length > 0) Add("a rival among the great", -2);
@@ -241,6 +275,17 @@ public static class CharacterWorkshop
         foreach (var k in c.Siblings) if (k.Age < 0 || k.Age > MaxAge) no.Add("a sibling's age is out of range");
         foreach (var k in c.Children.Concat(c.Siblings).Append(c.Spouse).Where(k => k != null)) if (k!.Sex != "male" && k.Sex != "female") no.Add("kin are male or female");
         if (c.FriendId.Length > 0 && c.FriendId == c.RivalId) no.Add("a house cannot be both friend and rival");
+        if (c.Background.Length > 0 && !content.Backgrounds.IsEmpty && content.Backgrounds.ById(c.Background) == null) no.Add($"no such background as '{c.Background}'");
+        foreach (var (k, what) in new[] { (c.Father, "father"), (c.Mother, "mother") }) if (k != null && (k.Age < age + ParentGap || k.Age > MaxParentAge)) no.Add($"a {what} of {k.Age} is not the age of a parent of one of {age}: {age + ParentGap} to {MaxParentAge}");
+        foreach (var (k, what) in c.Kin())
+        {
+            if (k.Track.Length > 0 && !content.Careers.IsEmpty && content.Careers.ById(k.Track) == null) no.Add($"no such service as '{k.Track}' for {what}");
+            int top = Math.Min(lim.MaxKinRank, content.Careers.ById(k.Track.Length > 0 ? k.Track : c.Track)?.MaxRank ?? lim.MaxKinRank);
+            if (k.Rank < 0 || k.Rank > top) no.Add($"{what} may be 0 to {top} steps up a service in this mode");
+            else if (k.Rank > 0 && k.Age < KinRankAge) no.Add($"{what} is {k.Age}: nobody has a step in a service before {KinRankAge}");
+            if (k.Nature.Length > 0 && !traits.IsEmpty && !traits.IsNature(k.Nature)) no.Add($"no such nature as '{k.Nature}'");
+            if (k.Aptitude.Length > 0 && !traits.IsEmpty && !traits.IsAptitude(k.Aptitude)) no.Add($"no such aptitude as '{k.Aptitude}'");
+        }
         if (baseWorld != null)
         {
             var g = baseWorld.Galaxy;
@@ -282,7 +327,7 @@ public static class CharacterWorkshop
         // ---- the house
         string given = c.Name.Trim().Length > 0 ? c.Name.Trim().Split(' ')[0] : GivenName(content, c.Culture, c.Sex, "self:" + w.RngState, taken);
         string surname = c.HouseName.Trim().Length > 0 ? c.HouseName.Trim().Replace("House ", "") : c.Name.Trim().Contains(' ') ? c.Name.Trim()[(c.Name.Trim().IndexOf(' ') + 1)..] : "Varro";
-        house.Name = content.Titles.RankOf(c.Title) >= 1 ? "House " + surname : surname;
+        house.Name = content.Titles.RankOf(c.Title) >= 1 ? "House " + surname : surname; taken.Add(surname);   // nobody of the house is given its surname for a first name
         house.AccentColor = c.Accent; house.Culture = c.Culture.Length > 0 ? c.Culture : house.Culture; if (content.Ancestries.Def(c.Ancestry) is { Beyond: false }) house.Ancestry = c.Ancestry; house.Origin = c.Origin; house.Title = c.Title; house.Legitimacy = c.Legitimacy;
         house.Enrolled = c.Seat && !c.Imperium; house.PatronId = c.Imperium ? "" : c.PatronId;
         house.Treasury = new Resources(); foreach (var (k, v) in c.Treasury) house.Treasury.Add(k, v);
@@ -293,6 +338,14 @@ public static class CharacterWorkshop
         p.NatureTraits = new HashSet<string>(c.Nature); p.AptitudeTraits = new HashSet<string>(c.Aptitude);
         p.Skills = c.Skills.Where(kv => kv.Value > 0).ToDictionary(kv => kv.Key, kv => kv.Value); p.Stress = 0; p.Flags.Clear();
         if (!c.Face.IsDefault) w.Cosmetics["look:" + p.Id] = c.Face.Encode();
+        if (content.Backgrounds.ById(c.Background) is { } bg)
+        {
+            // where they come from: the same delta a scenario's start takes (CharacterCreation), on the person and house as made
+            house.Legitimacy = Math.Max(0, house.Legitimacy + bg.Legitimacy); house.Treasury.Add(bg.Treasury); house.Treasury.ClampNonCredit();
+            foreach (var t in bg.Nature) p.NatureTraits.Add(t); foreach (var t in bg.Aptitude) p.AptitudeTraits.Add(t);
+            foreach (var kv in bg.Skills) p.Skills[kv.Key] = Math.Max(0, p.Skill(kv.Key) + kv.Value);
+            foreach (var f in bg.Flags) p.Flags.Add(f); p.Stress = Math.Clamp(p.Stress + bg.Stress, 0, 100); p.Flags.Add("background:" + bg.Id);
+        }
 
         // ---- what it holds: every world named is the house's from the first day
         foreach (var old in w.Holdings.Values.Where(h => h.OwnerId == house.Id).ToList()) w.Holdings.Remove(old.Id); w.HoldingsChanged();
@@ -328,11 +381,18 @@ public static class CharacterWorkshop
         foreach (var v in c.Ventures) FoundBusinessCommand.Open(w, house, content.Businesses.Def(v.Kind)!, g!.System(v.System)!);
 
         // ---- the family
-        Character Kin(string id, string name, string sex, int age, string salt)
+        Character Kin(string id, KinSpec spec, string sex, string salt)
         {
+            string name = spec.Name; int age = spec.Age;
             var k = new Character { Id = id, HouseId = house.Id, Sex = sex, Age = age, Name = (name.Trim().Length > 0 ? name.Trim().Split(' ')[0] : GivenName(content, house.Culture, sex, salt + w.RngState, taken)) + " " + surname };
             taken.Add(k.Name.Split(' ')[0]);
-            if (age >= DynastySystem.AgeOfMajority) { k.CareerTrack = c.Track; k.CareerRank = 0; k.NatureTraits.Add(content.Traits.Nature.Count > 0 ? content.Traits.Nature[(int)(Hash(id) % (uint)content.Traits.Nature.Count)].Id : "Loyal"); }
+            if (age >= DynastySystem.AgeOfMajority)
+            {
+                // each of them is somebody: a service of their own, a step in it, what they are like and what they are good at
+                k.CareerTrack = spec.Track.Length > 0 ? spec.Track : c.Track; k.CareerRank = age >= KinRankAge ? Math.Max(0, spec.Rank) : 0;
+                k.NatureTraits.Add(spec.Nature.Length > 0 ? spec.Nature : content.Traits.Nature.Count > 0 ? content.Traits.Nature[(int)(Hash(id) % (uint)content.Traits.Nature.Count)].Id : "Loyal");
+                if (spec.Aptitude.Length > 0) k.AptitudeTraits.Add(spec.Aptitude);
+            }
             w.Characters[id] = k; if (!house.Members.Contains(id)) house.Members.Add(id); w.Pools[id] = ActionPools.ForNpc();
             return k;
         }
@@ -344,7 +404,7 @@ public static class CharacterWorkshop
         Character? spouse = null; string spouseHouse = "";
         if (c.Spouse != null && !c.Academy)
         {
-            spouse = Kin("custom_spouse", c.Spouse.Name, c.Sex == "male" ? "female" : "male", c.Spouse.Age, "spouse:");
+            spouse = Kin("custom_spouse", c.Spouse, c.Sex == "male" ? "female" : "male", "spouse:");
             Bond(p.Id, spouse.Id, BondType.Marriage, 55, 65); p.Flags.Add("wed"); spouse.Flags.Add("wed");
             // a husband or wife from another house keeps that house's name and is of it, as one married in play is (docs/CHARACTER.md)
             if (c.Spouse.HouseId.Length > 0 && w.House(c.Spouse.HouseId) is { } theirs && theirs.Id != house.Id && !World.Outsider(theirs.Id))
@@ -359,22 +419,26 @@ public static class CharacterWorkshop
         var father = c.Sex == "male" ? p : spouse; var mother = c.Sex == "male" ? spouse : p;
         for (int i = 0; i < c.Children.Count && !c.Academy; i++)
         {
-            var k = Kin($"custom_child_{i + 1}", c.Children[i].Name, c.Children[i].Sex, c.Children[i].Age, $"child{i}:");
+            var k = Kin($"custom_child_{i + 1}", c.Children[i], c.Children[i].Sex, $"child{i}:");
             k.FatherId = father?.Id ?? ""; k.MotherId = mother?.Id ?? ""; Bond(p.Id, k.Id, BondType.Blood, 60, 70); if (spouse != null) Bond(spouse.Id, k.Id, BondType.Blood, 60, 70);
         }
-        if (c.Siblings.Count > 0)
+        if (c.Siblings.Count > 0 || c.Father != null || c.Mother != null)
         {
-            // brothers and sisters share parents, who are in the chronicle and not in the world
-            foreach (var (id, sex) in new[] { ("custom_father", "male"), ("custom_mother", "female") })
+            // a father and a mother: living and of the house where the player made them so, otherwise in the chronicle and not in
+            // the world. Brothers and sisters share them.
+            foreach (var (id, sex, living) in new[] { ("custom_father", "male", c.Father), ("custom_mother", "female", c.Mother) })
             {
+                if (living != null) { var parent = Kin(id, living, sex, id + ":"); Bond(p.Id, parent.Id, BondType.Blood, 60, 70); continue; }
                 var dead = new Character { Id = id, HouseId = house.Id, Sex = sex, Age = p.Age + 28, Alive = false, Name = GivenName(content, house.Culture, sex, id + w.RngState, taken) + " " + surname };
                 w.Characters[id] = dead;
             }
+            if (c.Father != null && c.Mother != null) { Bond("custom_father", "custom_mother", BondType.Marriage, 50, 60); w.Char("custom_father")!.Flags.Add("wed"); w.Char("custom_mother")!.Flags.Add("wed"); }
             p.FatherId = "custom_father"; p.MotherId = "custom_mother";
             for (int i = 0; i < c.Siblings.Count; i++)
             {
-                var k = Kin($"custom_sibling_{i + 1}", c.Siblings[i].Name, c.Siblings[i].Sex, c.Siblings[i].Age, $"sibling{i}:");
+                var k = Kin($"custom_sibling_{i + 1}", c.Siblings[i], c.Siblings[i].Sex, $"sibling{i}:");
                 k.FatherId = "custom_father"; k.MotherId = "custom_mother"; Bond(p.Id, k.Id, BondType.Blood, 55, 60);
+                foreach (var pid in new[] { "custom_father", "custom_mother" }) if (w.Char(pid) is { Alive: true }) Bond(pid, k.Id, BondType.Blood, 60, 70);
             }
         }
 
@@ -437,6 +501,13 @@ public static class CharacterWorkshop
                 Name = "Marcus Crane", Sex = "male", Age = 24, Track = "stewardship", Rank = 1, Ambition = Amb("amass_a_fortune"), Nature = { Nat("Ambitious"), Nat("Ruthless") }, Aptitude = { Apt("Administrator") },
                 Skills = { ["administration"] = 3, ["economics"] = 3, ["charisma"] = 1 }, HouseName = "Crane", Accent = "#2EC27E", Origin = "new", Title = "landless", Legitimacy = 5, Party = "factors", PatronId = "lucent",
                 Treasury = { ["credits"] = 45, ["materials"] = 4, ["manpower"] = 0, ["influence"] = 1 }, Ventures = { new VentureSpec { Kind = "trading_company", System = "aurelia_prime" } }
+            }),
+            ("The Upstart", "Nothing but a name nobody knows: no land, no seat, no patron, twenty credits, and a mother who kept another house's books. Everything is still to do.", new CustomCharacter
+            {
+                Name = "Tam Corvane", Sex = "male", Age = 22, Track = "stewardship", Rank = 0, Ambition = Amb("restore_house_fortunes"), Nature = { Nat("Ambitious") }, Background = content.Backgrounds.ById("clerks_child") != null ? "clerks_child" : "",
+                Skills = { ["administration"] = 2, ["economics"] = 1 }, HouseName = "Corvane", Accent = "#8AC926", Origin = "new", Title = "landless", Legitimacy = 5,
+                Treasury = { ["credits"] = 20, ["materials"] = 6, ["manpower"] = 4, ["influence"] = 1 },
+                Mother = new KinSpec { Age = 49, Track = "stewardship", Rank = 1, Nature = Nat("Just") }, Siblings = { new KinSpec { Sex = "female", Age = 19 } }
             }),
             ("The Colossus", "Frankly overpowered: a great house, three worlds, a fleet, a fortune, and every gift. Made without limits.", new CustomCharacter
             {
