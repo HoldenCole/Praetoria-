@@ -308,6 +308,8 @@ public static partial class WealthSystem
     /// <summary>A house that owes the proposer a favour leans its way: the favour is what the gift was for.</summary>
     public static int FavourLean(World w, string houseId, string proposerHouseId) => houseId != proposerHouseId && houseId != w.Protagonist?.HouseId && FavourOwed(w, houseId, proposerHouseId) ? FavourLeanBy : 0;
     private static void Owe(World w, string owerHouseId, string toHouseId) { if (!FavourOwed(w, owerHouseId, toHouseId)) { w.WorldCounters[FavourKey(owerHouseId, toHouseId)] = Math.Max(1, w.Turn); Count(w, FavoursOwedKey); } }
+    /// <summary>One house comes to owe another a favour for something done for it outside the giving of gifts (a pledge of votes kept).</summary>
+    public static void OweFor(World w, string owerHouseId, string toHouseId) => Owe(w, owerHouseId, toHouseId);
     public static List<House> OweMe(World w, string houseId) => w.Houses.Values.Where(h => FavourOwed(w, h.Id, houseId)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
     public static List<House> IOwe(World w, string houseId) => w.Houses.Values.Where(h => FavourOwed(w, houseId, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
 

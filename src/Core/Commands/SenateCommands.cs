@@ -227,6 +227,26 @@ public sealed class FoundFactionCommand : ICommand
 }
 
 
+/// <summary>Pledge the house's seats to a nominee for the consulship, or (an empty house) take the pledge back
+/// (<see cref="ElectionSystem.Pledge"/>).</summary>
+public sealed class PledgeVotesCommand : ICommand
+{
+    private readonly string _toId; private readonly OfficeCatalog _offices; private readonly SenateSystem _senate;
+    public PledgeVotesCommand(string actorId, string toHouseId, OfficeCatalog offices, SenateSystem senate) { ActorId = actorId; _toId = toHouseId; _offices = offices; _senate = senate; }
+    public string ActorId { get; }
+    public string Describe() => _toId.Length == 0 ? "take back the pledge of votes" : $"pledge votes to {_toId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null) return "no house";
+        if (Economy.HeadOf(w, house)?.Id != actor.Id) return "the house's seats are its head's to pledge";
+        return ElectionSystem.PledgeRefusal(w, _offices, id => _senate.Weight(w, id), house, _toId);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public string Says(World w) => w.Char(ActorId) is { } a && w.House(a.HouseId) is { } h ? ElectionSystem.PledgeSays(w, _offices, id => _senate.Weight(w, id), h, _toId) : "";
+    public void Execute(CommandContext ctx) { var w = ctx.World; ElectionSystem.Pledge(w, _offices, id => _senate.Weight(w, id), w.House(w.Char(ActorId)!.HouseId)!, _toId); }
+}
+
 /// <summary>Stand for the consulship at the next election (docs/REPUBLIC.md): your party nominates you in place of its weightiest, or you run alone.
 /// Two influence; a qualified member of the house; not the consul of the last term.</summary>
 public sealed class StandForConsulCommand : ICommand

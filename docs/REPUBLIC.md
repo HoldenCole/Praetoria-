@@ -127,3 +127,19 @@ docs/FOREIGN_NATIONS.md. The general's sway from those triumphs is the Caesar's 
 ## Not yet
 Elections' content (hustings events), the parties' names per culture, and the map presence of foreign wars that make
 consular commands matter (docs/FOREIGN_NATIONS.md).
+
+## A pledge of votes, and the nomination inside a bench (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, The Senate, P59 and P87).
+
+**A pledge.** A house that is not standing may pledge its seats to a nominee (`PledgeVotesCommand`,
+`ElectionSystem.Pledge`). `Tally` counts them for that nominee ahead of its patron and its bench. The nominee's head
+thinks 8 the better of the house; pledging away from its own bench's nominee costs 5 with that nominee; taking a pledge
+back costs 10 with the one it was given to. At the count a pledge kept to one who is elected is a favour owed
+(`WealthSystem.OweFor`). Only the player's house pledges; other houses vote as they did.
+
+**The nomination.** `ElectionSystem.BenchContest`: the player's house, having declared, is its bench's nominee only if
+the bench will have it. A leader who stands is the nominee. Otherwise each other member backs whichever of the two its
+head thinks the better of (the weightier on a tie), with its seats, and the player's house needs at least as many of
+the bench's seats as the member the bench would otherwise put forward. Passed over, it stands alone, as a house on no
+bench does. Among other houses a bench still puts forward its weightiest eligible member.

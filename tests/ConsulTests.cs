@@ -40,6 +40,80 @@ public class ConsulTests
         Assert.NotNull(OfficeSystem.Candidate(w, consuls[0], "aurelian"));   // a military Commander qualifies for an office with no track
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, The Senate: "a nomination inside the bench" (P87). */
+    [Fact]
+    public void ABenchPutsForwardWhicheverOfItsMembersTheBenchIsBehind_NotThePlayerByRight()
+    {
+        var (w, senate, ctx) = Chamber(); Func<string, int> wt = id => senate.Weight(w, id);
+        var bench = FactionSystem.Of(w, "vega"); if (bench == null) return;
+        // put a weightier member and two more on the player's bench, and make another house its leader
+        foreach (var f in w.Factions) { f.Members.Remove("drake"); f.Members.Remove("sato"); f.Members.Remove("ferro"); }
+        bench.Members.AddRange(new[] { "drake", "sato", "ferro" }.Where(h => !bench.Members.Contains(h))); bench.LeaderHouseId = "drake";
+        w.House("drake")!.SphereInfluence["senate"] = 8; w.WorldFlags.Add(ElectionSystem.StandFlag("vega"));
+        Assert.True(ElectionSystem.Eligible(w, Content.Offices, "vega")); Assert.True(ElectionSystem.Eligible(w, Content.Offices, "drake"));
+        string rival = bench.Members.Where(h => h != "vega" && ElectionSystem.Eligible(w, Content.Offices, h)).OrderByDescending(wt).ThenBy(h => h, StringComparer.Ordinal).First();
+        string rivalHead = Economy.HeadOf(w, w.House(rival)!)!.Id; var others = bench.Members.Where(h => h != "vega" && h != rival).ToList(); Assert.NotEmpty(others);
+
+        // the rest of the bench thinks better of the other: the bench puts them forward, and the player stands alone
+        foreach (var m in others) { var head = Economy.HeadOf(w, w.House(m)!)!; w.Relationship(head.Id, "self").Disposition = -10; w.Relationship(head.Id, rivalHead).Disposition = 20; }
+        var lost = ElectionSystem.BenchContest(w, Content.Offices, wt, bench)!.Value;
+        Assert.False(lost.won); Assert.Equal(rival, lost.rivalId); Assert.Equal(wt("vega"), lost.mine); Assert.Equal(wt(rival) + others.Sum(wt), lost.rival); Assert.Empty(lost.forMine);
+        var noms = ElectionSystem.Nominees(w, Content.Offices, wt);
+        Assert.Contains(noms, n => n.houseId == rival && n.partyId == bench.Id); Assert.Contains(noms, n => n.houseId == "vega" && n.partyId == null);
+        var tally = ElectionSystem.Tally(w, Content.Offices, wt, noms); Assert.True(tally["vega"] < tally[rival]);   // its own seats, and the bench behind the other
+
+        // the rest of the bench thinks better of the player: the bench puts the player forward
+        foreach (var m in others) { var head = Economy.HeadOf(w, w.House(m)!)!; w.Relationship(head.Id, "self").Disposition = 30; w.Relationship(head.Id, rivalHead).Disposition = 0; }
+        var won = ElectionSystem.BenchContest(w, Content.Offices, wt, bench)!.Value;
+        Assert.Equal(wt("vega") + others.Sum(wt), won.mine); Assert.Equal(won.mine >= won.rival, won.won);
+        if (won.won) { var n2 = ElectionSystem.Nominees(w, Content.Offices, wt); Assert.Contains(n2, n => n.houseId == "vega" && n.partyId == bench.Id); Assert.DoesNotContain(n2, n => n.houseId == rival && n.partyId == bench.Id); }
+
+        // a leader who stands is the bench's nominee, whatever the bench thinks
+        foreach (var m in others) { var head = Economy.HeadOf(w, w.House(m)!)!; w.Relationship(head.Id, "self").Disposition = -50; w.Relationship(head.Id, rivalHead).Disposition = 50; }
+        bench.LeaderHouseId = "vega"; Assert.True(ElectionSystem.BenchContest(w, Content.Offices, wt, bench)!.Value.won);
+        Assert.Contains(ElectionSystem.Nominees(w, Content.Offices, wt), n => n.houseId == "vega" && n.partyId == bench.Id);
+    }
+
+    /* docs/PLAYTHROUGH.md, Medium, The Senate: "a pledge of your votes at the consular election" (P59). */
+    [Fact]
+    public void AHouseThatIsNotStanding_PledgesItsSeats_AndIsOwedAFavourIfItsNomineeIsElected()
+    {
+        var (w, senate, ctx) = Chamber(); Func<string, int> wt = id => senate.Weight(w, id); var mine = w.House("vega")!;
+        var noms = ElectionSystem.Nominees(w, Content.Offices, wt); Assert.DoesNotContain(noms, n => n.houseId == "vega");
+        string? own = ElectionSystem.BenchNominee(w, Content.Offices, wt, "vega");
+        string to = noms.Select(n => n.houseId).First(h => h != own); var toHead = Economy.HeadOf(w, w.House(to)!)!;
+        // nothing to take back yet; not to a house that is not standing
+        Assert.Equal("you have pledged your seats to nobody", new PledgeVotesCommand("self", "", Content.Offices, senate).Refusal(ctx));
+        string notStanding = w.Houses.Keys.First(h => h != "vega" && !World.Outsider(h) && !noms.Any(n => n.houseId == h));
+        Assert.EndsWith("is not standing", new PledgeVotesCommand("self", notStanding, Content.Offices, senate).Refusal(ctx));
+
+        // pledged: the seats are counted for them and not where they went before
+        var before = ElectionSystem.Tally(w, Content.Offices, wt, noms); int seats = wt("vega"); Assert.True(seats > 0);
+        int regard = w.Relationship(toHead.Id, "self").Disposition; int ownRegard = own != null ? w.Relationship(Economy.HeadOf(w, w.House(own)!)!.Id, "self").Disposition : 0;
+        var cmd = new PledgeVotesCommand("self", to, Content.Offices, senate); Assert.Null(cmd.Refusal(ctx)); Assert.Contains($"{seats} seat(s) are counted for", cmd.Says(w));
+        Assert.True(new CommandExecutor().TryExecute(cmd, ctx)); Assert.Equal(to, ElectionSystem.PledgedTo(w, "vega"));
+        var after = ElectionSystem.Tally(w, Content.Offices, wt, noms);
+        Assert.Equal(before[to] + seats, after[to]); Assert.Equal(before.Values.Sum(), after.Values.Sum());
+        Assert.Equal(regard + ElectionSystem.PledgeRegard, w.Relationship(toHead.Id, "self").Disposition);
+        if (own != null) Assert.Equal(ownRegard - ElectionSystem.BenchSlight, w.Relationship(Economy.HeadOf(w, w.House(own)!)!.Id, "self").Disposition);
+        Assert.Contains("pledged to them already", new PledgeVotesCommand("self", to, Content.Offices, senate).Refusal(ctx));
+
+        // taken back, it costs; given again and kept to the count, a nominee who is elected owes a favour
+        Assert.True(new CommandExecutor().TryExecute(new PledgeVotesCommand("self", "", Content.Offices, senate), ctx));
+        Assert.Null(ElectionSystem.PledgedTo(w, "vega")); Assert.Equal(regard + ElectionSystem.PledgeRegard - ElectionSystem.UnpledgeRegard, w.Relationship(toHead.Id, "self").Disposition);
+        Assert.Equal(before[to], ElectionSystem.Tally(w, Content.Offices, wt, noms)[to]);
+        string winner = ElectionSystem.Tally(w, Content.Offices, wt, noms).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).First().Key;
+        Assert.True(new CommandExecutor().TryExecute(new PledgeVotesCommand("self", winner, Content.Offices, senate), ctx));
+        Assert.False(WealthSystem.FavourOwed(w, winner, "vega"));
+        w.Turn = 10; ElectionSystem.Hold(w, Content.Offices, wt);
+        Assert.True(WealthSystem.FavourOwed(w, winner, "vega")); Assert.Null(ElectionSystem.PledgedTo(w, "vega")); Assert.Contains(w.News, n => n.Text.Contains("owes your house a favour"));
+
+        // a house that stands itself keeps its own seats
+        var (w2, senate2, ctx2) = Chamber(); w2.WorldFlags.Add(ElectionSystem.StandFlag("vega"));
+        var noms2 = ElectionSystem.Nominees(w2, Content.Offices, id => senate2.Weight(w2, id)); string other = noms2.Select(n => n.houseId).First(h => h != "vega");
+        Assert.StartsWith("you are standing yourself", new PledgeVotesCommand("self", other, Content.Offices, senate2).Refusal(ctx2));
+    }
+
     [Fact]
     public void TheElection_SeatsTheTwoHeaviestNominees_AndNeitherStandsAgainNextTerm()
     {

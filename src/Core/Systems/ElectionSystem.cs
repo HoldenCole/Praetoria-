@@ -40,12 +40,99 @@ public static class ElectionSystem
         var list = new List<(string, string?)>(); var mine = w.Protagonist?.HouseId;
         foreach (var f in w.Factions.OrderBy(f => f.Id, StringComparer.Ordinal))
         {
-            string? pick = mine != null && f.Members.Contains(mine) && w.HasFlag(StandFlag(mine)) && Eligible(w, offices, mine) ? mine
-                : f.Members.Where(h => Eligible(w, offices, h) && !(h == mine && !w.HasFlag(StandFlag(mine)))).OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault();
+            // the player's house, standing, is its bench's nominee only if the bench will have it (see BenchContest); otherwise the
+            // weightiest eligible member is, as when the player does not stand
+            bool mineHere = mine != null && f.Members.Contains(mine) && w.HasFlag(StandFlag(mine)) && Eligible(w, offices, mine);
+            string? pick = mineHere && BenchContest(w, offices, weight, f) is { won: true } ? mine
+                : f.Members.Where(h => Eligible(w, offices, h) && h != mine).OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault();
             if (pick != null) list.Add((pick, f.Id));
         }
         if (mine != null && w.HasFlag(StandFlag(mine)) && Eligible(w, offices, mine) && !list.Any(x => x.Item1 == mine)) list.Add((mine, null));
         return list;
+    }
+
+    // ---------------- the nomination inside a bench (docs/PLAYTHROUGH.md, Medium, The Senate, P87) ----------------
+
+    /// <summary>How the bench stands between the player's house, which has declared, and the member it would otherwise put forward.
+    /// A bench's leader is its nominee when they stand. Otherwise each other member backs whichever of the two its head thinks
+    /// the better of (the weightier, where it thinks the same of both), with its seats; each of the two has its own. The player's
+    /// house is the nominee if it has at least as many seats of the bench behind it. Null where there is no contest: the player's
+    /// house is not of the bench, or nobody else of it could stand.</summary>
+    public static (bool won, string rivalId, int mine, int rival, List<string> forMine, List<string> forRival)? BenchContest(World w, OfficeCatalog offices, Func<string, int> weight, Faction f)
+    {
+        var mine = w.Protagonist?.HouseId; if (mine == null || !f.Members.Contains(mine)) return null;
+        string? rival = f.Members.Where(h => h != mine && Eligible(w, offices, h)).OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault();
+        if (rival == null) return (true, "", weight(mine), 0, new(), new());
+        var forMine = new List<string>(); var forRival = new List<string>(); int a = weight(mine), b = weight(rival);
+        if (f.LeaderHouseId == mine) return (true, rival, a, b, forMine, forRival);
+        var myHead = w.House(mine) is { } mh ? Economy.HeadOf(w, mh) : null; var rivalHead = w.House(rival) is { } rh ? Economy.HeadOf(w, rh) : null;
+        foreach (var m in f.Members.Where(m => m != mine && m != rival).OrderBy(m => m, StringComparer.Ordinal))
+        {
+            var head = w.House(m) is { } hm ? Economy.HeadOf(w, hm) : null; if (head == null) continue;
+            int toMine = myHead != null ? w.GetRelationship(head.Id, myHead.Id)?.Disposition ?? 0 : 0, toRival = rivalHead != null ? w.GetRelationship(head.Id, rivalHead.Id)?.Disposition ?? 0 : 0;
+            bool mineIt = toMine > toRival || (toMine == toRival && weight(mine) >= weight(rival));
+            if (mineIt) { forMine.Add(m); a += weight(m); } else { forRival.Add(m); b += weight(m); }
+        }
+        return (a >= b, rival, a, b, forMine, forRival);
+    }
+
+    // ---------------- a pledge of votes (docs/PLAYTHROUGH.md, Medium, The Senate, P59) ----------------
+    // A house that is not standing may pledge its seats to a nominee: they are counted for that nominee, whatever its bench or its
+    // patron would have had. The nominee's head thinks the better of the house at once, and if the nominee is elected with the
+    // pledge kept, owes it a favour. Pledging away from the house's own bench is seen by the bench's nominee. A pledge may be
+    // taken back before the count, at a cost with the one it was given to.
+
+    public const string PledgePrefix = "consul_pledge:";
+    public const int PledgeRegard = 8, UnpledgeRegard = 10, BenchSlight = 5;
+    /// <summary>The nominee a house has pledged its seats to, or null.</summary>
+    public static string? PledgedTo(World w, string houseId)
+    {
+        string lead = PledgePrefix + houseId + ">";
+        foreach (var f in w.WorldFlags) if (f.StartsWith(lead, StringComparison.Ordinal)) return f[lead.Length..];
+        return null;
+    }
+    public static string? PledgeRefusal(World w, OfficeCatalog offices, Func<string, int> weight, House? by, string toId)
+    {
+        if (by == null || World.Outsider(by.Id)) return "no house";
+        string? now = PledgedTo(w, by.Id);
+        if (toId.Length == 0) return now != null ? null : "you have pledged your seats to nobody";
+        if (w.HasFlag(StandFlag(by.Id))) return "you are standing yourself: your seats are your own";
+        var to = w.House(toId); if (to == null || toId == by.Id) return "no such nominee";
+        if (!Nominees(w, offices, weight).Any(n => n.houseId == toId)) return $"{to.Name} is not standing";
+        if (now == toId) return "your seats are pledged to them already";
+        if (now != null) return $"your seats are pledged to {w.House(now)?.Name ?? "another"}: take that back first";
+        return w.AtWar(by.Id, toId) ? "you are at war with them" : null;
+    }
+    private static void Think(World w, string ofHouseId, string aboutHouseId, int by)
+    {
+        var a = w.House(ofHouseId) is { } ha ? Economy.HeadOf(w, ha) : null; var b = w.House(aboutHouseId) is { } hb ? Economy.HeadOf(w, hb) : null;
+        if (a == null || b == null || a.Id == b.Id) return; var r = w.Relationship(a.Id, b.Id); r.Disposition = Math.Clamp(r.Disposition + by, -100, 100);
+    }
+    /// <summary>The nominee of a house's own bench, if it has one and it is another house.</summary>
+    public static string? BenchNominee(World w, OfficeCatalog offices, Func<string, int> weight, string houseId) =>
+        FactionSystem.Of(w, houseId) is { } bench && Nominees(w, offices, weight).FirstOrDefault(n => n.partyId == bench.Id).houseId is { } pick && pick != houseId ? pick : null;
+    /// <summary>What a pledge to them would do, said before it is given.</summary>
+    public static string PledgeSays(World w, OfficeCatalog offices, Func<string, int> weight, House by, string toId)
+    {
+        var to = w.House(toId); string? own = BenchNominee(w, offices, weight, by.Id);
+        return $"Your {weight(by.Id)} seat(s) are counted for {to?.Name}, whatever your bench or your patron would have had. Its head thinks {PledgeRegard} the better of you now, and owes you a favour if it is elected with your pledge kept."
+            + (own != null && own != toId ? $" {w.House(own)?.Name}, whom your bench puts forward, thinks {BenchSlight} the worse of you for it." : "")
+            + $" Taken back before the count, its head thinks {UnpledgeRegard} the worse of you.";
+    }
+    /// <summary>Pledge the house's seats to a nominee, or (empty) take the pledge back.</summary>
+    public static void Pledge(World w, OfficeCatalog offices, Func<string, int> weight, House by, string toId)
+    {
+        string? now = PledgedTo(w, by.Id);
+        if (toId.Length == 0)
+        {
+            if (now == null) return; w.WorldFlags.Remove(PledgePrefix + by.Id + ">" + now); Think(w, now, by.Id, -UnpledgeRegard);
+            w.Log($"{by.Name} takes back the seats it had pledged to {w.House(now)?.Name}."); return;
+        }
+        string? own = BenchNominee(w, offices, weight, by.Id);
+        w.WorldFlags.Add(PledgePrefix + by.Id + ">" + toId); Think(w, toId, by.Id, PledgeRegard);
+        if (own != null && own != toId) Think(w, own, by.Id, -BenchSlight);
+        w.WorldCounters["consul_pledges"] = w.Counter("consul_pledges") + 1;
+        w.Log($"{by.Name} pledges its seats to {w.House(toId)?.Name} for the consulship.");
     }
 
     /// <summary>Each house's weight to its party's nominee; an unaffiliated house to the nominee its head likes best (ties by weight).</summary>
@@ -56,6 +143,7 @@ public static class ElectionSystem
         {
             var party = FactionSystem.Of(w, h.Id); string? vote = null;
             if (nominees.Any(n => n.houseId == h.Id)) vote = h.Id;
+            else if (PledgedTo(w, h.Id) is { } pledged && nominees.Any(n => n.houseId == pledged)) vote = pledged;   // a pledge of its seats, kept
             else if (h.PatronId.Length > 0 && nominees.Any(n => n.houseId == h.PatronId)) vote = h.PatronId;   // a client votes for the patron, whatever the party says
             else if (party != null) vote = nominees.FirstOrDefault(n => n.partyId == party.Id).houseId;
             if (vote == null && nominees.Count > 0)
@@ -82,6 +170,12 @@ public static class ElectionSystem
             OfficeSystem.Grant(w, consuls[i], winners[i].Key, who);
             w.WorldCounters["consul_term:" + winners[i].Key] = w.Turn;
             if (winners[i].Key == mine) { w.WorldFlags.Add("consul_elected"); w.WorldFlags.Remove("consul_lost"); }
+        }
+        // a pledge kept to one who was elected is a favour owed
+        foreach (var f in w.WorldFlags.Where(f => f.StartsWith(PledgePrefix, StringComparison.Ordinal)).ToList())
+        {
+            var parts = f[PledgePrefix.Length..].Split('>'); w.WorldFlags.Remove(f);
+            if (parts.Length == 2 && winners.Any(x => x.Key == parts[1]) && w.House(parts[0]) != null && !nominees.Any(n => n.houseId == parts[0])) { WealthSystem.OweFor(w, parts[1], parts[0]); if (parts[0] == mine) w.Tell("good", $"{w.House(parts[1])?.Name} is elected with the seats you pledged, and owes your house a favour.", "senate"); }
         }
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("stands_for_consul:")).ToList()) w.WorldFlags.Remove(f);
         OrderSystem.SweepCanvass(w);
