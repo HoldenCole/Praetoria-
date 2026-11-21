@@ -75,6 +75,19 @@ short. Before this the stores ran over the house's name.
 The title has three more buttons for the same reason (the newcomer looked there first): **Saved sagas**, **Options**, and
 **Glossary and lectures** (the handbook without the primer, which speaks to the head of a house and needs a saga).
 
+## The map when the browser takes its graphics away
+
+A browser may take a page's graphics context away: a laptop that sleeps, a driver that restarts, too many tabs. The map
+used to stay black after that (docs/PLAYTHROUGH.md, S79). Now nothing is drawn while the context is gone; when the
+browser gives it back the map is sized and drawn again; and if it is not given back within two and a half seconds the
+whole map is built afresh on a new canvas, looking where it looked, with what was picked still picked
+(`praetoriaSpace.rebuild` in `js/space.js`; it tries a few times, then leaves the screens to work without the map).
+Both ways were tried in a headless browser by taking the context away with `WEBGL_lose_context`. The other drawn scenes
+(the Office, the portraits' frame) have not been given the same care.
+
+Found while in that file and fixed: the map's "Back to your seat" button had done nothing since the seat was first
+stored under the same name as the function that goes to it.
+
 ## Running and testing it locally
 
 ```bash

@@ -15,6 +15,8 @@ public sealed class FleetRules
     public int ConfidenceInTerritory { get; init; } = 100;
     public int ConfidenceAdjacent { get; init; } = 65;
     public int MovePoolCost { get; init; } = 1;
+    /// <summary>What a laid-up fleet costs, of a hundred of its keep (docs/MILITARY.md, "Laid up").</summary>
+    public int LaidUpUpkeepPct { get; init; } = 25;
     /// <summary>Hulls per unit of helium-3 a turn (GDD §17 fuel): three hulls burn one, rounded up. Fleets under two hulls run on scraps and pay nothing.</summary>
     public int FuelHullsPerUnit { get; init; } = 3;
 
@@ -140,6 +142,8 @@ public sealed class FleetSystem
         var r = new Resources();
         foreach (var (cls, n) in Composition(f)) foreach (var k in Resource.All) r.Add(k, cls.Upkeep.Get(k) * n);
         int pct = _world != null ? PolicySystem.Modifier(_world, Policies, f.OwnerId, "fleet_upkeep_pct") : 0; if (pct != 0 && r.Credits > 0) r.Credits = Math.Max(0, r.Credits * (100 + pct) / 100);
+        // laid up: the caretakers' part of it, never rounded away to nothing
+        if (f.LaidUp) foreach (var k in Resource.All) { int v = r.Get(k); if (v > 0) r.Set(k, (v * _rules.LaidUpUpkeepPct + 99) / 100); }
         return r;
     }
 
@@ -165,6 +169,7 @@ public sealed class FleetSystem
                 f.Readiness = Math.Max(0, f.Readiness - _rules.ReadinessDecayMoving);
                 if (f.Eta <= 0) { f.SystemId = f.DestinationId; f.DestinationId = ""; f.Eta = 0; f.Voyage = 0; Arrive(w, f); }
             }
+            else if (f.LaidUp) f.Readiness = 0;   // no crews: it gains nothing while it lies there
             else f.Readiness = Math.Clamp(f.Readiness + _rules.ReadinessRecovery + PolicySystem.Modifier(w, Policies, f.OwnerId, "readiness"), 0, 100);
         }
 
@@ -320,10 +325,24 @@ public sealed class FleetSystem
     /// <summary>Who pays a fleet's upkeep: its owner, except an office fleet, which the chair pays for (GDD §8) — the owner if there is no chair.</summary>
     public static string BilledTo(Fleet f, string? chairId) => f.Office && chairId != null ? chairId : f.OwnerId;
     public int FuelBill(World w, string houseId) => FuelBillFor(w, houseId, _rules.FuelHullsPerUnit);
+    /// <summary>How the fuel stands against the years ahead (docs/MILITARY.md, "A forecast of fuel"): what is in the tanks, what the
+    /// fleets burn a year, and what the house's accounts leave of helium-3 a year once that is burned (the year's net). <c>Years</c> is
+    /// how many whole years the tanks last at that rate; -1 when they do not run down at all.</summary>
+    public sealed record FuelOutlook(int InTanks, int Burned, int BroughtUp, int Years, string Says);
+    public static FuelOutlook Outlook(int inTanks, int burnedAYear, int netAYear)
+    {
+        int brought = Math.Max(0, burnedAYear + netAYear);
+        if (burnedAYear <= 0) return new FuelOutlook(inTanks, 0, brought, -1, brought > 0 ? $"{inTanks} in the tanks · nothing is burning it, and {brought} comes up a year" : $"{inTanks} in the tanks · nothing is burning it");
+        if (netAYear >= 0) return new FuelOutlook(inTanks, burnedAYear, brought, -1, $"{inTanks} in the tanks · {brought} comes up a year and {burnedAYear} is burned: the tanks " + (netAYear > 0 ? $"fill by {netAYear} a year" : "hold level"));
+        int years = inTanks / -netAYear;
+        string end = years == 0 ? "dry within the year" : years == 1 ? "dry in a year" : $"dry in {years} years";
+        return new FuelOutlook(inTanks, burnedAYear, brought, years, $"{inTanks} in the tanks · {(brought > 0 ? brought + " comes up a year" : "none comes up")} and {burnedAYear} is burned: {-netAYear} short each year, {end}");
+    }
+
     public static int FuelBillFor(World w, string houseId, int hullsPerUnit)
     {
         if (World.Outsider(houseId)) return 0;
-        int hulls = w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Office).Sum(f => f.Strength);   // the state's bunkers fuel the office fleets
+        int hulls = w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Office && !f.LaidUp).Sum(f => f.Strength);   // the state's bunkers fuel the office fleets, and a hull laid up burns nothing
         return hulls < 2 ? 0 : (hulls + hullsPerUnit - 1) / Math.Max(1, hullsPerUnit);
     }
 
@@ -450,7 +469,10 @@ public sealed class FleetSystem
         return owners.Count == 0 ? null : owners[0];
     }
 
-    public static int StrengthOf(World w, string houseId) => w.Fleets.Values.Where(f => f.OwnerId == houseId).Sum(f => f.Strength);
+    /// <summary>The hulls a house has in commission: what it is counted as having wherever strength is weighed. Hulls laid up are not in it.</summary>
+    public static int StrengthOf(World w, string houseId) => w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.LaidUp).Sum(f => f.Strength);
+    /// <summary>Why a laid-up fleet may not be given an order that needs crews, or null.</summary>
+    public static string? LaidUpRefusal(Fleet f) => f.LaidUp ? "it is laid up, with no crews aboard: put it back in commission first" : null;
     public static int StrengthAt(World w, string houseId, string systemId) =>
         w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId).Sum(f => f.Strength);
 

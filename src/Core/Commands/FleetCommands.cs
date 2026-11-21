@@ -28,7 +28,7 @@ public sealed class MoveFleetCommand : ICommand
         var actor = w.Char(ActorId);
         if (actor?.Alive != true || w.Galaxy == null) return false;
         if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return false;
-        if (f.Moving || f.SystemId == _targetSystemId) return false;
+        if (f.Moving || f.SystemId == _targetSystemId || f.LaidUp) return false;
         if (w.Galaxy.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId)) <= 0) return false;
         if (FleetSystem.Unfuelled(w, f.OwnerId)) return false;   // the tanks are dry (GDD §17 fuel)
         if (f.Loyalty < _rules.LoyaltyRefuse) return false;      // the crews will not sail (docs/MILITARY.md loyalty)
@@ -41,6 +41,7 @@ public sealed class MoveFleetCommand : ICommand
         if (actor?.Alive != true || w.Galaxy == null) return "no one to give the order";
         if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
         if (f.Moving) return "already under way"; if (f.SystemId == _targetSystemId) return "already there";
+        if (FleetSystem.LaidUpRefusal(f) is { } laid) return laid;
         if (w.Galaxy.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId)) <= 0)
             return w.Galaxy.Hops(f.SystemId, _targetSystemId) > 0 ? "no way through: an enemy's fleet holds a gate on the road, and a gate that is held must be taken first" : "no lane runs there from where the fleet lies";
         if (FleetSystem.Unfuelled(w, f.OwnerId)) return "the tanks are dry: helium-3 is bought on the Exchange, and no fleet of the house sails without it";
@@ -297,7 +298,7 @@ public sealed class HireOutFleetCommand : ICommand
     public HireOutFleetCommand(string actorId, string fleetId, string employerId) { ActorId = actorId; _fleetId = fleetId; _employerId = employerId; }
     public string ActorId { get; }
     public string Describe() => $"hire {_fleetId} out to {_employerId}";
-    public string? Refusal(CommandContext ctx) => MercenarySystem.Refusal(ctx.World, ctx.World.Char(ActorId), _fleetId, _employerId);
+    public string? Refusal(CommandContext ctx) => ctx.World.Fleets.TryGetValue(_fleetId, out var lf) && FleetSystem.LaidUpRefusal(lf) is { } laid ? laid : MercenarySystem.Refusal(ctx.World, ctx.World.Char(ActorId), _fleetId, _employerId);
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx) { var w = ctx.World; MercenarySystem.Hire(w, w.Char(ActorId)!, w.Fleets[_fleetId], w.House(_employerId)!); }
 }
@@ -329,6 +330,7 @@ public sealed class DrillFleetCommand : ICommand
         if (actor?.Alive != true) return "no one to give the order";
         if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
         if (f.Office) return "it is the Reach's squadron: the Reach sees to its training"; if (f.LevyOf.Length > 0) return "a levy is drilled by its own house";
+        if (_on && FleetSystem.LaidUpRefusal(f) is { } laid) return laid;
         if (f.Drilling == _on) return _on ? "it is at drill" : "it is not at drill";
         return _on && f.Veterancy >= _fleets.Rules.DrillCap ? $"it is as well drilled as drill makes a fleet (veterancy {f.Veterancy}): the rest is learnt in battle" : null;
     }
@@ -374,6 +376,7 @@ public sealed class DetachHullsCommand : ICommand
         if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
         if (f.LevyOf.Length > 0) return "a levy sails under its own house's officers and goes home whole";
         if (f.IsAway) return "it is beyond the Reach"; if (f.Moving) return "it is under way: hulls are detached where a fleet lies";
+        if (FleetSystem.LaidUpRefusal(f) is { } laid) return laid;
         if (f.Strength < 2) return "it is one hull: there is nothing to detach";
         return _hulls >= 1 && _hulls < f.Strength ? null : $"a detachment is at least one hull and leaves at least one: {f.Name} has {f.Strength}";
     }
@@ -394,6 +397,49 @@ public sealed class DetachHullsCommand : ICommand
 /// <summary>Pay hulls off: break them up at a world or station of the house's own, to cut what the fleet costs each year
 /// (docs/PLAYTHROUGH.md, War and peace: "lay up or pay off hulls to cut the cost"). The lightest go first. A part of what they cost
 /// to build comes back as materials (<see cref="ScrapPct"/>). An office fleet is the Reach's and is not broken up by its commander.</summary>
+/// <summary>Lay a fleet up, or put it back in commission (docs/MILITARY.md, "Laid up"). Laid up at a world or station of the house, its
+/// hulls are kept and its crews paid off: it costs <see cref="FleetRules.LaidUpUpkeepPct"/> of a hundred of its keep, burns no fuel,
+/// has no readiness, takes no order that needs crews, and is not counted in the house's strength. Put back in commission it starts
+/// with no readiness and gains it by the year, as any fleet at anchor does. One treasury action either way. Nothing is broken up.</summary>
+public sealed class LayUpFleetCommand : ICommand
+{
+    private readonly string _fleetId; private readonly bool _on; private readonly FleetSystem _fleets;
+    public LayUpFleetCommand(string actorId, string fleetId, bool on, FleetSystem fleets) { ActorId = actorId; _fleetId = fleetId; _on = on; _fleets = fleets; }
+    public string ActorId { get; }
+    public string Describe() => _on ? $"lay up {_fleetId}" : $"put {_fleetId} back in commission";
+    private Dictionary<string, int> Cost => new() { [Pool.Treasury] = _fleets.Rules.MovePoolCost };
+    /// <summary>What it costs a year as it is, and what it would cost laid up.</summary>
+    public (Resources now, Resources laidUp) Keep(World w)
+    {
+        if (!w.Fleets.TryGetValue(_fleetId, out var f)) return (new Resources(), new Resources());
+        bool was = f.LaidUp; f.LaidUp = false; var now = _fleets.Upkeep(f); f.LaidUp = true; var laid = _fleets.Upkeep(f); f.LaidUp = was;
+        return (now, laid);
+    }
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true) return "no one to give the order";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        if (f.Office) return "it is held by office and is the Reach's: it is not yours to lay up";
+        if (f.LevyOf.Length > 0) return "a levy is its own house's: send it home instead";
+        if (f.LaidUp == _on) return _on ? "it is laid up already" : "it is in commission";
+        if (_on)
+        {
+            if (f.IsAway) return "it is beyond the Reach"; if (f.Moving) return "it is under way: a fleet is laid up in port";
+            if (!w.Holdings.Values.Any(h => h.OwnerId == actor.HouseId && h.SystemId == f.SystemId)) return $"only at a world or station of your own: {w.Galaxy?.System(f.SystemId)?.Name ?? "this system"} is not";
+        }
+        return ctx.PoolsOf(ActorId).Short(Cost);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var f = w.Fleets[_fleetId]; ctx.PoolsOf(ActorId).Spend(Cost);
+        string where = w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId;
+        if (_on) { f.LaidUp = true; f.Readiness = 0; f.Drilling = false; w.Log($"{f.Name} is laid up at {where}: its crews are paid off and its {f.Strength} hull(s) kept, at {_fleets.Rules.LaidUpUpkeepPct} in a hundred of their keep."); }
+        else { f.LaidUp = false; f.Readiness = 0; w.Log($"{f.Name} is put back in commission at {where}. Its crews are new to it: it has no readiness, and gains {_fleets.Rules.ReadinessRecovery} a year at anchor."); }
+    }
+}
+
 public sealed class PayOffHullsCommand : ICommand
 {
     public const int ScrapPct = 25;
@@ -441,7 +487,7 @@ public sealed class RefitFleetCommand : ICommand
     {
         var w = ctx.World; var actor = w.Char(ActorId);
         if (actor?.Alive != true || !w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return false;
-        if (f.Moving || f.Readiness >= 100) return false;
+        if (f.Moving || f.Readiness >= 100 || f.LaidUp) return false;
         if (!w.Holdings.Values.Any(h => h.OwnerId == actor.HouseId && h.SystemId == f.SystemId)) return false;
         return (w.House(actor.HouseId)?.Treasury.Materials ?? 0) >= MaterialsPerHull * f.Strength;
     }
@@ -450,7 +496,7 @@ public sealed class RefitFleetCommand : ICommand
     {
         var w = ctx.World; var actor = w.Char(ActorId);
         if (actor?.Alive != true || !w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
-        if (f.Moving) return "it is under way: a fleet is refitted in port"; if (f.Readiness >= 100) return "already at full readiness";
+        if (f.Moving) return "it is under way: a fleet is refitted in port"; if (FleetSystem.LaidUpRefusal(f) is { } laid) return laid; if (f.Readiness >= 100) return "already at full readiness";
         if (!w.Holdings.Values.Any(h => h.OwnerId == actor.HouseId && h.SystemId == f.SystemId)) return $"only at a world or station of your own: {w.Galaxy?.System(f.SystemId)?.Name ?? "this system"} is not";
         int have = w.House(actor.HouseId)?.Treasury.Materials ?? 0, need = MaterialsPerHull * f.Strength;
         return have >= need ? null : $"{need - have} materials short (it takes {need}, the house has {have})";
@@ -479,6 +525,7 @@ public sealed class MergeFleetsCommand : ICommand
         if (actor?.Alive != true || _fromId == _intoId) return false;
         if (!w.Fleets.TryGetValue(_fromId, out var a) || !w.Fleets.TryGetValue(_intoId, out var b)) return false;
         if (a.LevyOf.Length > 0 || b.LevyOf.Length > 0) return false;   // a levy sails under its own house's officers, and goes home whole (docs/PROVINCES.md)
+        if (a.LaidUp != b.LaidUp) return false;   // a fleet with crews and one without are not one fleet
         return a.OwnerId == actor.HouseId && b.OwnerId == actor.HouseId && !a.Moving && !b.Moving && a.SystemId == b.SystemId && a.Office == b.Office;
     }
     /// <summary>Why two fleets cannot be folded together, said singly.</summary>

@@ -57,6 +57,35 @@ when loyal), +1 under a commander at the front; +8 after a victory, −8 after a
 sail** on orders (the move is refused); under 15 a hull **deserts** each turn. Flags: `fleet_restive`, `fleet_mutinous`,
 `fleet_deserts`.
 
+## Laid up
+
+Built 2026-11-21 from the playthroughs (docs/PLAYTHROUGH.md, Medium, War and peace: S50, S74). Before this the only way
+to cut a fleet's cost was to pay hulls off: they were broken up for a quarter of their materials and were gone.
+
+A fleet lying at a world or station of its house may be **laid up** (`LayUpFleetCommand`, one treasury action): the
+hulls are kept and the crews paid off. While it is laid up (`Fleet.LaidUp`):
+
+- it costs 25 in a hundred of its keep (`FleetRules.LaidUpUpkeepPct`), rounded up, so never nothing;
+- it burns no helium-3, and its hulls are not in the house's fuel bill;
+- it has no readiness and gains none;
+- it takes no order that needs crews: to sail, to go beyond the Reach, to be hired out, to drill, to refit, to detach
+  hulls, or to merge with a fleet in commission; each refusal says it is laid up;
+- its hulls are not counted in the house's strength (`FleetSystem.StrengthOf`), wherever strength is weighed: the navies'
+  table, a title's test of strength, what rivals and the Senate make of the house;
+- if the system is attacked it fights as any fleet with no readiness does, at half weight.
+
+It is **put back in commission** by the same command in any year (one treasury action): it may sail again and is counted
+again, costs its whole keep and burns fuel, and starts with no readiness, gaining the usual ten a year at anchor. Nothing
+is broken up either way. A fleet held by office, a levy and a hired company cannot be laid up. Only the player lays
+fleets up: the other houses do not.
+
+## A forecast of fuel
+
+The Military window's helium-3 figure used to be the tanks divided by the year's burn. A house that brought up as much
+as it burned was told it had a few years left. It is now `FleetSystem.Outlook`: what is in the tanks, what the fleets
+burn, and what the year's accounts leave of helium-3 once that is burned. When more is burned than comes up, the years
+are the tanks over the shortfall; when not, the tile says the tanks hold or fill, and by how much.
+
 ## Flags and counters for content
 `battle_won`, `battle_lost`, `fought_at_the_front`, `hulls_captured`, `became_achilles`, `fleet_deserts`, `out_of_supply`,
 `supply_low`, `fleet_restive`, `fleet_mutinous`, `campaign_declared`, `campaign_open`, `campaign_over`; counters

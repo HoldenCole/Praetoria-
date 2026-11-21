@@ -122,6 +122,7 @@ public sealed class SendExpeditionCommand : ICommand
         if (!n.AtWar) return $"the Reach is not at war with {d.Name}";
         if (f.IsAway) return "already beyond the Reach";
         if (f.Moving) return "under way";
+        if (FleetSystem.LaidUpRefusal(f) is { } laid) return laid;
         if (f.SystemId.Length == 0) return "nowhere to sail from";
         if (f.Strength < MinHulls) return $"too few hulls to sail abroad ({MinHulls} at least)";
         if (f.Supply < MinSupply) return $"short of supply for the voyage ({MinSupply} at least)";

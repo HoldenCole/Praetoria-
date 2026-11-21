@@ -27,6 +27,77 @@ public class PlaythroughFixTests
 
     /* docs/PLAYTHROUGH.md, Medium, The Senate: "Titles: ... an alert when you qualify". (The strength test for seizing, the
        land a rank wants and one rise a year were done with the fifteen: 3.) */
+    /* docs/PLAYTHROUGH.md, Medium, War and peace: "a forecast of fuel against what the house brings up" (S72, S42, S68: the
+       tile divided the tanks by the burn alone, so a house that skimmed all it burned was told it had a few years left). */
+    [Fact]
+    public void TheFuelForecast_SetsWhatComesUpAgainstWhatIsBurned()
+    {
+        // nothing burning: no end, and it says so
+        var idle = FleetSystem.Outlook(12, 0, 3); Assert.Equal(-1, idle.Years); Assert.Contains("nothing is burning it", idle.Says); Assert.Equal(3, idle.BroughtUp);
+        // the house brings up all it burns: the tanks hold
+        var level = FleetSystem.Outlook(12, 4, 0); Assert.Equal(-1, level.Years); Assert.Equal(4, level.BroughtUp); Assert.Contains("hold level", level.Says);
+        var filling = FleetSystem.Outlook(12, 4, 2); Assert.Equal(-1, filling.Years); Assert.Equal(6, filling.BroughtUp); Assert.Contains("fill by 2", filling.Says);
+        // it brings up some: the years are by the shortfall, not by the burn
+        var some = FleetSystem.Outlook(12, 4, -1); Assert.Equal(12, some.Years); Assert.Equal(3, some.BroughtUp); Assert.Contains("1 short each year", some.Says); Assert.Contains("dry in 12 years", some.Says);
+        // it brings up none: the years are the tanks over the burn, as before
+        var none = FleetSystem.Outlook(12, 4, -4); Assert.Equal(3, none.Years); Assert.Equal(0, none.BroughtUp); Assert.Contains("none comes up", none.Says);
+        Assert.Equal(0, FleetSystem.Outlook(3, 4, -4).Years); Assert.Contains("dry within the year", FleetSystem.Outlook(3, 4, -4).Says);
+        Assert.Contains("dry in a year", FleetSystem.Outlook(4, 4, -4).Says);
+
+        // on a real house the figures are the house's own: the burn is the fleet's bill, and the net is the year's forecast
+        var (w, tc, house, me, _) = Start(); tc.BeginTurn(); Hulls(w, house.Id, 9);
+        int burn = FleetSystem.FuelBillFor(w, house.Id, Content.Fleets.FuelHullsPerUnit); Assert.True(burn > 0);
+        int net = tc.Economy!.Forecast(w, house.Id, tc.Fleets).Helium3;
+        var real = FleetSystem.Outlook(house.Treasury.Helium3, burn, net);
+        Assert.Equal(Math.Max(0, burn + net), real.BroughtUp);
+        if (net < 0) Assert.Equal(house.Treasury.Helium3 / -net, real.Years); else Assert.Equal(-1, real.Years);
+    }
+
+    /* docs/PLAYTHROUGH.md, Medium, War and peace: "lay up or pay off hulls to cut the cost" (S50, S74: the only way to cut a
+       fleet's cost was to break its hulls up for a quarter of their materials). */
+    [Fact]
+    public void AFleetLaidUp_KeepsItsHulls_CostsAPartOfItsKeep_BurnsNothing_AndCannotSailUntilRecommissioned()
+    {
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); Fill(ctx, me); Hulls(w, house.Id, 9);
+        var f = w.Fleets["t_" + house.Id]; f.HomeSystemId = f.SystemId; var fs = tc.Fleets;
+        Assert.Contains(w.Holdings.Values, h => h.OwnerId == house.Id && h.SystemId == f.SystemId);
+        var full = fs.Upkeep(f); int burn = FleetSystem.FuelBillFor(w, house.Id, Content.Fleets.FuelHullsPerUnit); int strength = FleetSystem.StrengthOf(w, house.Id);
+        Assert.True(full.Credits > 0); Assert.True(burn > 0); Assert.Equal(9, strength);
+
+        var lay = new LayUpFleetCommand(me.Id, f.Id, true, fs);
+        Assert.Null(lay.Refusal(ctx));
+        var (now, laid) = lay.Keep(w); Assert.Equal(full.Credits, now.Credits); Assert.False(f.LaidUp);   // asking the price changes nothing
+        int treasuryActions = ctx.PoolsOf(me.Id).Treasury;
+        Assert.True(tc.Executor.TryExecute(lay, ctx));
+        Assert.True(f.LaidUp); Assert.Equal(9, f.Strength); Assert.Equal(0, f.Readiness); Assert.Equal(treasuryActions - 1, ctx.PoolsOf(me.Id).Treasury);
+        // a part of its keep, rounded up, and never nothing; no fuel; not counted as strength
+        Assert.Equal((full.Credits * Content.Fleets.LaidUpUpkeepPct + 99) / 100, fs.Upkeep(f).Credits); Assert.Equal(laid.Credits, fs.Upkeep(f).Credits);
+        Assert.InRange(fs.Upkeep(f).Credits, 1, full.Credits - 1);
+        Assert.Equal(0, FleetSystem.FuelBillFor(w, house.Id, Content.Fleets.FuelHullsPerUnit));
+        Assert.Equal(0, FleetSystem.StrengthOf(w, house.Id));
+        // it takes no order that needs crews, and each says why
+        string other = w.Galaxy!.Lanes.Where(l => l.A == f.SystemId || l.B == f.SystemId).Select(l => l.A == f.SystemId ? l.B : l.A).First();
+        var move = new MoveFleetCommand(me.Id, f.Id, other, Content.Fleets); Assert.False(move.CanExecute(ctx)); Assert.Contains("laid up", move.Refusal(ctx));
+        Assert.Contains("laid up", new DrillFleetCommand(me.Id, f.Id, true, fs).Refusal(ctx));
+        Assert.Contains("laid up", new DetachHullsCommand(me.Id, f.Id, 2, Content.Fleets, Content.ShipClasses).Refusal(ctx));
+        Assert.False(new RefitFleetCommand(me.Id, f.Id).CanExecute(ctx));
+        Assert.Contains("already", new LayUpFleetCommand(me.Id, f.Id, true, fs).Refusal(ctx));
+        // a year laid up: it gains no readiness, and the year's forecast counts the lesser keep and no fuel for it
+        tc.EndTurn(); tc.BeginTurn(); Fill(ctx, me);
+        Assert.True(f.LaidUp); Assert.Equal(0, f.Readiness); Assert.Equal(9, f.Strength);
+        // back in commission: it may sail again, starts with no readiness, and gains it by the year
+        var back = new LayUpFleetCommand(me.Id, f.Id, false, fs); Assert.Null(back.Refusal(ctx)); Assert.True(tc.Executor.TryExecute(back, ctx));
+        Assert.False(f.LaidUp); Assert.Equal(0, f.Readiness); Assert.Equal(9, FleetSystem.StrengthOf(w, house.Id)); Assert.Equal(full.Credits, fs.Upkeep(f).Credits);
+        Assert.Equal(burn, FleetSystem.FuelBillFor(w, house.Id, Content.Fleets.FuelHullsPerUnit));
+        Assert.Contains("in commission", new LayUpFleetCommand(me.Id, f.Id, false, fs).Refusal(ctx));
+        tc.EndTurn(); tc.BeginTurn();
+        Assert.True(f.Readiness > 0);
+        // not away from home, and not another's
+        Fill(ctx, me); f.SystemId = w.Galaxy.Systems.Keys.First(sid => !w.Holdings.Values.Any(h => h.OwnerId == house.Id && h.SystemId == sid));
+        Assert.Contains("only at a world or station of your own", new LayUpFleetCommand(me.Id, f.Id, true, fs).Refusal(ctx));
+        var theirs = w.Fleets.Values.First(x => x.OwnerId != house.Id && !x.Office); Assert.Equal("not your fleet", new LayUpFleetCommand(me.Id, theirs.Id, true, fs).Refusal(ctx));
+    }
+
     /* docs/PLAYTHROUGH.md, Medium, A first game: "a Save that saves where you are" (N62: Save in the middle of a year stored
        nothing new, and a reload put the answered report back unanswered and the credits back where they were). */
     [Fact]

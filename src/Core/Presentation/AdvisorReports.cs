@@ -51,7 +51,9 @@ public static class AdvisorReports
         int ours = FleetSystem.StrengthOf(w, house.Id);
         var seen = GalaxyProjection.Fleets(w).Where(f => !f.IsPlayer).ToList();
         var biggest = seen.GroupBy(f => f.OwnerHouseName).Select(g => (name: g.Key, hulls: g.Sum(f => f.Strength), conf: (int)g.Average(f => f.Confidence))).OrderByDescending(x => x.hulls).FirstOrDefault();
-        string admiralLine = ours == 0 ? "We keep no ships. Any house with a squadron can dictate to us."
+        int laidUpHulls = w.Fleets.Values.Where(f => f.OwnerId == house.Id && f.LaidUp).Sum(f => f.Strength);
+        string admiralLine = ours == 0 && laidUpHulls > 0 ? $"We have no hull in commission: {laidUpHulls} lie laid up, with no crews aboard. Until they are put back in commission any house with a squadron can dictate to us."
+            : ours == 0 ? "We keep no ships. Any house with a squadron can dictate to us."
             : biggest.name == null ? $"We field {ours} hull(s). Of the rivals' fleets we have no reliable picture."
             : $"We field {ours} hull(s); {biggest.name} is reported at {(biggest.conf >= 90 ? "" : "perhaps ")}{biggest.hulls}{(biggest.conf < 60 ? " — an old report, trust it lightly" : "")}.";
         var enemies = w.EnemiesOf(house.Id).Select(e => w.House(e)?.Name ?? e).ToList();

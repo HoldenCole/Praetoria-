@@ -91,6 +91,12 @@ export class Galaxy {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); this.renderer.setSize(w, h); this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.1;
     this.renderer.domElement.className = 'gl'; container.appendChild(this.renderer.domElement);
+    // A browser may take the graphics context away (a sleeping laptop, a driver restart, too many tabs). The map used to stay black
+    // after that. Now: nothing is drawn while it is gone; when the browser gives it back the map is sized and drawn again; and if it
+    // is not given back in a few seconds the whole map is built afresh on a new canvas (praetoriaSpace.rebuild).
+    this.lost = false; this.lostAt = 0; this.onGiveUp = null;
+    this.renderer.domElement.addEventListener('webglcontextlost', e => { e.preventDefault(); this.lost = true; this.lostAt = performance.now(); });
+    this.renderer.domElement.addEventListener('webglcontextrestored', () => { this.lost = false; this.resize(); this.dirty = true; });
     this.labelRenderer = new CSS2DRenderer(); this.labelRenderer.setSize(w, h); this.labelRenderer.domElement.className = 'gl-labels'; container.appendChild(this.labelRenderer.domElement);
     this.scene = new THREE.Scene(); this.scene.background = new THREE.Color(0x02030a);
     this.camera = new THREE.PerspectiveCamera(42, w / h, 1, 20000);
@@ -143,7 +149,7 @@ export class Galaxy {
       // the view opens on your own seat with the Reach running off the edges (ART_DIRECTION: you see a corner, not the galaxy)
       const seat = model.systems.find(s => s.isPlayer) || model.systems[0];
       this.target.set(seat.x, -seat.y, 0); this.distance = Math.min(this.fitView.d, 1050);
-      this.home = { t: this.target.clone(), d: this.distance }; this.homeSet = true; this.updateCamera(true);
+      this.seat = { t: this.target.clone(), d: this.distance }; this.homeSet = true; this.updateCamera(true);   // not this.home: that is the method below, and a value of that name hid it, so the seat button did nothing
     }
 
     // Territory by zoom, as Crusader Kings III does it (the owner: "the ck3 method that shows specific highlighting on certain
@@ -353,7 +359,7 @@ export class Galaxy {
     this.distance = Math.max(160, Math.min(6000, this.distance * f)); this.updateCamera();
     if (before) { const after = this.planePoint(px, py); if (after) { this.target.x += before.x - after.x; this.target.y += before.y - after.y; this.updateCamera(); } }
   }
-  home() { if (this.home) { this.target.copy(this.home.t); this.distance = this.home.d; this.updateCamera(); } }
+  home() { if (this.seat) { this.target.copy(this.seat.t); this.distance = this.seat.d; this.updateCamera(); } }
   // the whole map, whatever the shape of the panel: a narrow panel stands further back so the outermost systems (the nations beyond the rim) are in it
   fit() { if (!this.fitView) return; const b = this.bounds, a = this.camera.aspect || 1.3; this.target.copy(this.fitView.t); this.distance = b ? Math.max((b.maxX - b.minX) * 1.22 * Math.max(1, 1.3 / a), (b.maxY - b.minY) * 1.7) + 240 : this.fitView.d; this.updateCamera(); }
   // the minimap: the whole Reach in a corner, the viewport drawn on it, click to travel
@@ -437,6 +443,7 @@ export class Galaxy {
     // a frame budget: about 20 fps, nothing while the tab is hidden — the map is a chart, not a shooter
     setTimeout(() => requestAnimationFrame(this.loop), 50);
     if (document.hidden) return;
+    if (this.lost) { if (performance.now() - this.lostAt > 2500 && this.onGiveUp) { const again = this.onGiveUp; this.onGiveUp = null; again(); } return; }
     const t = this.clock.getElapsedTime(); this.nebula.material.uniforms.uTime.value = t; this.stars.material.uniforms.uTime.value = t; this.applyCamera();
     this.objects.traverse(o => { if (o.userData.spin) o.rotation.y = t * o.userData.spin; if (o.userData.spinZ) o.rotation.z = t * o.userData.spinZ; });
     this.objects.traverse(o => { if (o.userData.pulse) { const s = 1 + 0.08 * Math.sin(t * 3 + o.position.x * 0.01); o.scale.setScalar ? (o.isSprite ? null : o.scale.set(s, s, 1)) : null; if (o.material?.opacity != null && o.isSprite) o.material.opacity = 0.45 + 0.25 * Math.sin(t * 2.5); } });
@@ -448,7 +455,7 @@ export class Galaxy {
     this.composer.render(); this.labelRenderer.render(this.scene, this.camera);
     if ((this.miniTick = (this.miniTick || 0) + 1) % 3 === 0) { this.drawMinimap(); this.declutter(); }
   }
-  dispose() { this.disposed = true; this.resizeObserver.disconnect(); this.setModel(null); this.renderer.dispose(); this.renderer.domElement.remove(); this.labelRenderer.domElement.remove(); }
+  dispose() { this.disposed = true; this.resizeObserver.disconnect(); try { this.setModel(null); this.renderer.dispose(); } catch { /* a renderer whose context is gone may not tidy up cleanly */ } this.renderer.domElement.remove(); this.labelRenderer.domElement.remove(); }
 }
 
 function esc(s) { return String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
@@ -457,7 +464,18 @@ function planetGlow(cls) { return ({ terran: 0x8ad9ff, ocean: 0x8ac8ff, arid: 0x
 
 window.praetoriaSpace = {
   galaxies: new Map(),
-  create(id, container, dotnet) { this.destroy(id); const g = new Galaxy(container, dotnet); this.galaxies.set(id, g); return true; },
+  create(id, container, dotnet) { this.destroy(id); const g = new Galaxy(container, dotnet); g.onGiveUp = () => this.rebuild(id); this.galaxies.set(id, g); return true; },
+  // the graphics context was lost and not given back: the same map on a new canvas, looking where it looked, with what was picked still picked
+  rebuild(id) {
+    const old = this.galaxies.get(id); if (!old) return false;
+    const { container, dotnet, model, mini, selected } = old; const target = old.target.clone(), distance = old.distance, tilt = old.tilt, tries = (old.rebuilt || 0) + 1;
+    old.dispose(); this.galaxies.delete(id);
+    let g; try { g = new Galaxy(container, dotnet); } catch { return false; }   // the browser will give no context at all: the screens still work without the map
+    g.rebuilt = tries; if (tries < 4) g.onGiveUp = () => this.rebuild(id); this.galaxies.set(id, g);
+    if (model) { g.setSelection(selected); g.setModel(model); }
+    g.target.copy(target); g.distance = distance; g.tilt = tilt; g.updateCamera(true); if (mini) g.setMinimap(mini);
+    return true;
+  },
   setModel(id, json) { const g = this.galaxies.get(id); if (!g) return false; const m = JSON.parse(json); g.setSelection(m.selected); g.setModel(m); return true; },
   zoom(id, f) { this.galaxies.get(id)?.zoom(f); }, home(id) { this.galaxies.get(id)?.home(); }, fit(id) { this.galaxies.get(id)?.fit(); }, focus(id, x, y) { this.galaxies.get(id)?.focus(x, y); },
   minimap(id, canvas) { this.galaxies.get(id)?.setMinimap(canvas); },

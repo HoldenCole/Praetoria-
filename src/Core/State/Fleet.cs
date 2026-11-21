@@ -31,6 +31,9 @@ public sealed class Fleet
     /// <summary>The fleet is kept at drill (the owner, 2026-11-21: "you can have maybe smaller forces but ... you train them better"):
     /// each year it lies at a world of its house's own it takes manpower and gains a step of veterancy, as far as drill can take it.</summary>
     public bool Drilling { get; set; }
+    /// <summary>Laid up at a world of its house (docs/MILITARY.md, "Laid up"): the hulls are kept and the crews paid off. It costs a part
+    /// of its keep, burns no fuel, has no readiness, takes no orders to sail, and is not counted in the house's strength.</summary>
+    public bool LaidUp { get; set; }
     /// <summary>The house that hired this fleet out as a company of mercenaries, or "" (docs/PLAYTHROUGH.md, Money; MercenarySystem).
     /// While it is set the fleet sails under its employer (<see cref="OwnerId"/>) and <see cref="LevyOf"/> names the same house, so
     /// everything that keeps a levy whole keeps a hired company whole. <see cref="HireTurn"/> is the year it was hired.</summary>
