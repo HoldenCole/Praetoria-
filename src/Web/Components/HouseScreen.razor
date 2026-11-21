@@ -201,7 +201,34 @@
                         <div class="row">
                             @if (h.Invest != null && h.Kind != "claim") { <button class="opt inline tiny" disabled="@(h.Invest.Refusal != null)" title="@h.Invest.Refusal" @onclick="() => G.Execute(new InvestCommand(pid, h.Id, c.Businesses))">@h.Invest.Label</button> }
                         </div>
-                        <details><summary><Icon Name="build" Size="12" /> Build</summary>@foreach (var b in h.Builds) { <button class="opt" disabled="@(!b.Available)" title="@b.Tooltip" @onclick="() => G.Execute(new BuildCommand(pid, h.Id, b.BuildingId, c.Holdings, c.Titles))">@b.Label</button> }</details>
+                        @if (holding.IsPlanet && sys != null)
+                        {
+                            /* what is rising, the slots free, and the one list of what can be built, the same the system's own panel
+                               reads (docs/PLAYTHROUGH.md, Medium, Building and holding, B2 and B42) */
+                            var risingHere = w.Projects.Where(p => p.OwnerId == house.Id && (p.TargetId == holding.Id || p.TargetId.StartsWith(holding.SystemId + "#", StringComparison.Ordinal) || p.TargetId.StartsWith(holding.Id + "@", StringComparison.Ordinal))).ToList();
+                            var canBuild = SystemWorks.BuildableOn(w, c.Holdings, c.Titles, house, holding, G.Ctx); var nowBuild = canBuild.Where(x => x.Refusal == null).ToList(); int homeBody = sys.Bodies.FindIndex(x => x.IsPrimary); string sysId = sys.Id; string hidB = holding.Id;
+                            int free = Math.Max(0, h.Slots - h.SlotsUsed);
+                            <div class="kv" data-free-slots="@free"><span>Slots</span><b class="@(free > 0 ? "good" : "")">@free free of @h.Slots</b></div>
+                            @if (risingHere.Count > 0)
+                            {
+                                <div class="hc-rising" data-rising-here="@risingHere.Count"><span class="muted small">Rising</span>
+                                    @foreach (var rp in risingHere) { <span class="pill small @(rp.Stalled ? "warn" : "")" title="@(rp.Stalled ? "Stalled: the treasury could not pay its share last year." : rp.Paused ? "Paused." : "")">@Cap(rp.Name) · @rp.TurnsLeft yr</span> }
+                                </div>
+                            }
+                            <details class="hc-build" data-can-begin="@nowBuild.Count"><summary><Icon Name="build" Size="12" /> Build <span class="muted small">@(free <= 0 ? "no free slot" : nowBuild.Count + " can be begun now")</span></summary>
+                                @if (nowBuild.Count == 0) { <div class="muted small">@(free <= 0 ? "Every slot is taken. Development, rank and cleared ground open more." : "Nothing can be begun now.") The system's own panel says what each thing lacks.</div> }
+                                @foreach (var bo in nowBuild)
+                                {
+                                    string boId = bo.Id; bool isWork = bo.Work != null; string label = (bo.BuildTurns > 1 ? "Begin " : "Build ") + bo.Name + "  (" + CourtProjection.Bundle(bo.Cost) + (bo.BuildTurns > 1 ? " · " + bo.BuildTurns + " years" : "") + ")";
+                                    <button class="opt" title="@(bo.Work?.Description ?? "")" @onclick="() => G.Execute(isWork ? new BuildWorkCommand(pid, sysId, homeBody, boId, c.Holdings, c.Titles) : new BuildCommand(pid, hidB, boId, c.Holdings, c.Titles))">@label</button>
+                                }
+                                <button class="opt inline tiny" @onclick='() => OnGo.InvokeAsync("galaxy:" + sysId)'>@(canBuild.Count - nowBuild.Count) more not yet possible, the other bodies and the great works: its system ▸</button>
+                            </details>
+                        }
+                        else
+                        {
+                            <details><summary><Icon Name="build" Size="12" /> Build</summary>@foreach (var b in h.Builds) { <button class="opt" disabled="@(!b.Available)" title="@b.Tooltip" @onclick="() => G.Execute(new BuildCommand(pid, h.Id, b.BuildingId, c.Holdings, c.Titles))">@b.Label</button> }</details>
+                        }
                         @if (h.Ships.Count > 0) { <details><summary><Icon Name="ship" Size="12" /> Shipyard</summary>@foreach (var sh in h.Ships) { <button class="opt" disabled="@(sh.Refusal != null)" title="@sh.Refusal" @onclick="() => G.Execute(new RaiseFleetCommand(pid, h.Id, c.Fleets, c.ShipClasses, sh.ClassId, c.Titles))">@sh.Label</button> }</details> }
                         @if (h.GovernorOptions is { Count: > 0 }) { <details><summary>Governor's chair</summary>@foreach (var o in h.GovernorOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AppointGovernorCommand(pid, h.Id, o.Id))">@o.Label</button> }</details> }
                     </div>

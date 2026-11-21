@@ -47,6 +47,29 @@
                 </div>
             }
         </section>
+        var sites = SystemWorks.ColonySites(w, c.Holdings, house); var me = w.Protagonist!;
+        <section class="panel" data-colony-sites="@sites.Count">
+            <h3><Icon Name="worlds" Size="13" /> Where a colony can go <span class="muted">systems nobody holds, within @SystemWorks.ColonySearch lanes of a world of yours</span></h3>
+            @if (sites.Count == 0) { <div class="muted">No empty system lies within reach of your worlds. One is opened when a world falls empty, or by taking a fleet further out.</div> }
+            @foreach (var st in sites.Take(10))
+            {
+                string sid = st.SystemId; var send = new FoundColonyCommand(me.Id, sid, c.Holdings);
+                var move = st.FleetId != null && st.FleetLanes > 0 ? new MoveFleetCommand(me.Id, st.FleetId, sid, c.Fleets) : null; string? moveNo = move?.Refusal(G.Ctx);
+                <div class="colony-row" data-colony-site="@sid">
+                    <button class="opt inline tiny" title="Show it on the map" @onclick="() => OnFocus.InvokeAsync(sid)">▸</button>
+                    <b>@st.Name</b> <span class="muted small">@(st.Class.Length > 0 ? st.Class : "no world") @(st.Deposits.Length > 0 ? "· " + st.Deposits : "") · @(st.Lanes < 0 ? "no lane from your worlds" : st.Lanes + (st.Lanes == 1 ? " lane" : " lanes") + " from " + st.FromWorld)</span>
+                    @if (st.Refusal == null) { <button class="opt inline" data-send-colony="@sid" @onclick="() => AskColony(send, st.Name)">Send a colony</button> }
+                    else if (st.InReach) { <span class="small warn">@Cap(st.Refusal)</span> }
+                    else
+                    {
+                        <span class="small muted">Too far for a colony until a fleet of yours stands in it.</span>
+                        @if (move != null) { <button class="opt inline tiny" data-send-fleet="@sid" disabled="@(moveNo != null)" title="@(moveNo ?? "Once it stands there, the colony can be sent from this list or from the system itself.")" @onclick="() => G.Execute(move)">Send @st.FleetName (@st.FleetLanes @(st.FleetLanes == 1 ? "lane" : "lanes"))</button> }
+                        else if (st.FleetId == null) { <span class="small muted">You have no fleet to send.</span> }
+                    }
+                </div>
+            }
+            <div class="muted small colony-note">A colony is sent to a system that lies one lane from a world of yours, or has a fleet of yours standing in it. It costs @CourtProjection.Bundle(c.Holdings.Colony.Cost), paid by the year over the @Math.Max(1, c.Holdings.Colony.BuildTurns) year(s) it is on the way; when it lands the system's world is yours. The list looks @SystemWorks.ColonySearch lanes out from your worlds.</div>
+        </section>
         <section class="panel">
             <h3><Icon Name="worlds" Size="13" /> The world board <span class="muted">click a world</span></h3>
             <div class="pick-row"><span class="muted small">Region</span> <select @onchange='e => _region = string.IsNullOrEmpty(e.Value?.ToString()) ? null : e.Value!.ToString()'><option value="">all the regions</option>@foreach (var r in regions) { <option value="@r.Id" selected="@(_region == r.Id)">@r.Name</option> }</select></div>
@@ -119,6 +142,12 @@
 @code {
     [Parameter] public EventCallback<string> OnFocus { get; set; }
     private string? _focus, _region;
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private void AskColony(FoundColonyCommand cmd, string name)
+    {
+        var cat = G.Content!.Holdings; int years = Math.Max(1, cat.Colony.BuildTurns);
+        G.Ask("Send a colony to " + name + "?", "Ships, settlers and stores: " + CourtProjection.Bundle(cat.Colony.Cost) + " in all, a share each year for the " + years + " year(s) they are on the way. When it lands the system's world is yours, small and loyal.", "Send it", () => G.Execute(cmd));
+    }
     private string _tab = "worlds";
     // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
     [Parameter] public string Tab { get; set; } = "";

@@ -46,6 +46,27 @@
             <span class="dv-text"><b>Development</b> <span class="muted">@dev of 100 · @devTrend</span><span class="dv-bar"><i style="@($"width:{dev}%")"></i><u style="@($"left:{devTop}%")"></u></span></span>
         </div>
         <div class="muted small sysp-devnote">@devNext</div>
+        @if (mine && ClaimSystem.Of(w, sys.Id, house.Id).ToList() is { Count: > 0 } claims)
+        {
+            /* the claims other houses hold in your belt: what each brings its house, what it owes you, and a price to buy it out
+               (docs/PLAYTHROUGH.md, Medium, Building and holding, B50) */
+            var eco = G.Turn!.Ventures?.Economy;
+            <div class="sysp-claims" data-claims="@claims.Count">
+                <h5 class="sysp-h">Claims of other houses in this belt <span class="muted">@claims.Count of @sys.Belt the belt has room for</span></h5>
+                <div class="muted small">A belt claim is its house's own: it brings up what the belt holds for that house and owes you nothing, though it lies in your system. You may offer to buy it out.</div>
+                @foreach (var cl in claims)
+                {
+                    string clid = cl.Id; var co = w.House(cl.OwnerId); var brings = eco?.Compute(w, cl.OwnerId).Lines.FirstOrDefault(l => l.Kind == "claim" && l.Source == cl.Name)?.Delta;
+                    var buy = new BuyOutClaimCommand(me.Id, cl.Id, G.Content!.Businesses); string? buyNo = buy.Refusal(ctx); int price = ClaimSystem.Price(w, G.Content!.Businesses, cl, house);
+                    bool closes = w.Holdings.Values.Any(x => x.IsClaim && x.SystemId == sys.Id && x.OwnerId == house.Id);
+                    <div class="sw-cost" data-claim="@clid">
+                        <span><b>@(co?.Name ?? "A house")</b> <span class="muted small">· brings it @(brings == null || brings.IsEmpty() ? "nothing this year" : Bundle(brings) + " a year") · owes you nothing</span></span>
+                        <button class="opt inline" disabled="@(buyNo != null)" title="@(buyNo != null ? Cap(buyNo) : closes ? "You have a claim in this belt already: this one would be closed down, and the belt has room for another." : "The claim and what it brings up are yours from this year.")" @onclick="() => AskBuyOut(buy, co?.Name ?? string.Empty, price, closes)">Buy it out for @price</button>
+                    </div>
+                    @if (buyNo != null && !buyNo.StartsWith("needs")) { <div class="sw-no">@Cap(buyNo)</div> }
+                }
+            </div>
+        }
     }
 
     @if (Infrastructure)
@@ -338,36 +359,42 @@
                         @if (slots - used - up < 0) { <div class="sw-no">More stands here than its slots now allow: nothing new can be built until there is room again.</div> }
                         @if (world)
                         {
-                            var wfits = cat.Buildings.Where(x => x.FitsSpecialization(planet!.Specialization) && !planet.Buildings.Contains(x.Id) && !hbRising.Any(p => p.DefId == x.Id) && (x.RequiresDeposit == null || sys.Deposit(x.RequiresDeposit) > 0)).OrderBy(x => x.Cost.Credits + x.Cost.Materials).ToList();
-                            var homeOnly = cat.Works.Where(d => !d.IsMegastructure && d.On == "world" && SystemWorks.Suits(sys, b, d, planet) && !standing.Any(x => x.Id == d.Id) && !rising.Any(p => p.DefId == d.Id)).OrderBy(d => d.Cost.Credits + d.Cost.Materials).ToList();
-                            var ordinary = cat.Works.Where(d => !d.IsMegastructure && d.On != "world" && SystemWorks.Suits(sys, b, d) && !standing.Any(x => x.Id == d.Id) && !rising.Any(p => p.DefId == d.Id)).OrderByDescending(d => d.Deposit.Length > 0).ThenBy(d => d.Cost.Credits + d.Cost.Materials).ToList();
-                            @if (homeOnly.Count > 0) { <h6 class="sysp-sub">Only on a home world</h6> }
-                            @foreach (var d in homeOnly) { @WorkRow(d, sys, idx, mine, ctx) }
-                            @if (wfits.Count > 0) { <h6 class="sysp-sub">The world's own · @(cat.Spec(planet!.Specialization)?.Name ?? planet.Specialization)</h6> }
-                            @foreach (var d in wfits)
+                            /* one list, the same the House window reads (SystemWorks.BuildableOn): what can be begun now comes first and
+                               stands open; the rest is folded by kind, each thing saying what it lacks (docs/PLAYTHROUGH.md, Medium,
+                               Building and holding, B11, N37, B2 and B42) */
+                            var all = SystemWorks.BuildableOn(w, cat, c.Titles, house, planet!, ctx);
+                            var homeOnly = all.Where(x => x.Group == "home").Select(x => x.Work!).ToList(); var wfits = all.Where(x => x.Group == "own").Select(x => x.Building!).ToList(); var ordinary = all.Where(x => x.Group == "ordinary").Select(x => x.Work!).ToList();
+                            var nowHome = all.Where(x => x.Group == "home" && mine && x.Refusal == null).Select(x => x.Work!).ToList(); var nowOwn = all.Where(x => x.Group == "own" && mine && x.Refusal == null).Select(x => x.Building!).ToList(); var nowOrd = all.Where(x => x.Group == "ordinary" && mine && x.Refusal == null).Select(x => x.Work!).ToList();
+                            var laterHome = homeOnly.Except(nowHome).ToList(); var laterOwn = wfits.Except(nowOwn).ToList(); var laterOrd = ordinary.Except(nowOrd).ToList(); int nowCount = nowHome.Count + nowOwn.Count + nowOrd.Count;
+                            @if (mine)
                             {
-                                string? no = mine ? new BuildCommand(me.Id, planet!.Id, d.Id, cat, c.Titles).Refusal(ctx) : null; string did = d.Id; string hid = planet!.Id;
-                                <div class="sysp-work">
-                                    @Art(d.Id)
-                                    <div class="sw-text">
-                                        <div class="sw-head"><b>@d.Name</b></div>
-                                        <div class="sw-does">@BuildingDoes(d, 1)</div>
-                                        <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@Takes(d.BuildTurns, 0)</span>
-                                            @if (mine) { <button class="opt inline" disabled="@(no != null)" title="@(no != null ? Cap(no) : "")" @onclick="() => G.Execute(new BuildCommand(me.Id, hid, did, cat, c.Titles))">@(d.BuildTurns > 1 ? "Begin" : "Build")</button> }
-                                        </div>
-                                        @if (mine && no != null) { <div class="sw-no">@Cap(no)</div> }
-                                    </div>
-                                </div>
+                                <details class="sysp-fold now" open data-can-begin="@nowCount">
+                                    <summary>What can be begun now <span class="muted">@nowCount</span></summary>
+                                    @if (nowCount == 0) { <div class="muted small">Nothing can be begun now. Each thing below says what it lacks.</div> }
+                                    @foreach (var d in nowHome) { @WorkRow(d, sys, idx, mine, ctx) }
+                                    @foreach (var d in nowOwn) { @OwnRow(d, planet!, mine, ctx) }
+                                    @foreach (var d in nowOrd) { @WorkRow(d, sys, idx, mine, ctx) }
+                                </details>
                             }
-                            @if (ordinary.Count > 0) { <h6 class="sysp-sub">Ordinary buildings · @Kind(b)</h6> }
-                            @foreach (var d in ordinary) { @WorkRow(d, sys, idx, mine, ctx) }
+                            @if (laterHome.Count > 0) { <details class="sysp-fold" open="@(!mine)" data-fold="home"><summary>Only on a home world <span class="muted">@laterHome.Count@(mine ? " not yet" : "")</span></summary>@foreach (var d in laterHome) { @WorkRow(d, sys, idx, mine, ctx) }</details> }
+                            @if (laterOwn.Count > 0) { <details class="sysp-fold" open="@(!mine)" data-fold="own"><summary>The world's own · @(cat.Spec(planet!.Specialization)?.Name ?? planet.Specialization) <span class="muted">@laterOwn.Count@(mine ? " not yet" : "")</span></summary>@foreach (var d in laterOwn) { @OwnRow(d, planet!, mine, ctx) }</details> }
+                            @if (laterOrd.Count > 0) { <details class="sysp-fold" open="@(!mine)" data-fold="ordinary"><summary>Ordinary buildings · @Kind(b) <span class="muted">@laterOrd.Count@(mine ? " not yet" : "")</span></summary>@foreach (var d in laterOrd) { @WorkRow(d, sys, idx, mine, ctx) }</details> }
                             @if (homeOnly.Count + wfits.Count + ordinary.Count == 0) { <div class="muted small">Everything that suits this world stands.</div> }
                         }
                         else
                         {
                             var fits = cat.Works.Where(d => !d.IsMegastructure && SystemWorks.Suits(sys, b, d) && !standing.Any(x => x.Id == d.Id) && !rising.Any(p => p.DefId == d.Id)).OrderByDescending(d => d.Deposit.Length > 0).ThenBy(d => d.Cost.Credits + d.Cost.Materials).ToList();
+                            var nowFits = fits.Where(d => mine && new BuildWorkCommand(me.Id, sys.Id, idx, d.Id, cat, c.Titles).Refusal(ctx) == null).ToList(); var laterFits = fits.Except(nowFits).ToList();
                             @if (fits.Count == 0) { <div class="muted small">Every building that suits it stands.</div> }
-                            @foreach (var d in fits) { @WorkRow(d, sys, idx, mine, ctx) }
+                            @if (mine && fits.Count > 0)
+                            {
+                                <details class="sysp-fold now" open data-can-begin="@nowFits.Count">
+                                    <summary>What can be begun now <span class="muted">@nowFits.Count</span></summary>
+                                    @if (nowFits.Count == 0) { <div class="muted small">Nothing can be begun now. Each thing below says what it lacks.</div> }
+                                    @foreach (var d in nowFits) { @WorkRow(d, sys, idx, mine, ctx) }
+                                </details>
+                            }
+                            @if (laterFits.Count > 0) { <details class="sysp-fold" open="@(!mine)" data-fold="later"><summary>@(mine ? "Not yet possible" : "What suits it") <span class="muted">@laterFits.Count</span></summary>@foreach (var d in laterFits) { @WorkRow(d, sys, idx, mine, ctx) }</details> }
                         }
                     }
 
@@ -379,7 +406,7 @@
                         @if (great == null)
                         {
                             @if (mine) { <div class="muted small sysp-cap" data-capacity="@may">The house is raising @raising.Count of the @may great work@(may == 1 ? "" : "s") @standingAs may raise at a time@(raising.Count > 0 ? ": " + string.Join(", ", raising.Select(p => p.Name)) : "").</div> }
-                            @foreach (var d in greats) { @WorkRow(d, sys, idx, mine, ctx) }
+                            <details class="sysp-fold great" data-fold="great"><summary>The great works that could stand here <span class="muted">@greats.Count</span></summary>@foreach (var d in greats) { @WorkRow(d, sys, idx, mine, ctx) }</details>
                         }
                     }
                     @if (most == 0 && greats.Count == 0 && great == null) { <div class="muted small">Nothing can be built here.</div> }
@@ -471,6 +498,24 @@
         @if (mine && no != null) { <div class="sw-no">@Cap(no)</div> }
     };
 
+    /// <summary>One of the home world's own buildings that could be built: its picture, what it does, what it costs, and the button or why not.</summary>
+    private RenderFragment OwnRow(BuildingDef d, Holding planet, bool mine, CommandContext ctx) => __builder =>
+    {
+        var w = G.World!; var c = G.Content!; var cat = c.Holdings; var me = w.Protagonist!;
+        string? no = mine ? new BuildCommand(me.Id, planet.Id, d.Id, cat, c.Titles).Refusal(ctx) : null; string did = d.Id; string hid = planet.Id;
+        <div class="sysp-work" data-own-building="@d.Id">
+            @Art(d.Id)
+            <div class="sw-text">
+                <div class="sw-head"><b>@d.Name</b></div>
+                <div class="sw-does">@BuildingDoes(d, 1)</div>
+                <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@Takes(d.BuildTurns, 0)</span>
+                    @if (mine) { <button class="opt inline" disabled="@(no != null)" title="@(no != null ? Cap(no) : "")" @onclick="() => G.Execute(new BuildCommand(me.Id, hid, did, cat, c.Titles))">@(d.BuildTurns > 1 ? "Begin" : "Build")</button> }
+                </div>
+                @if (mine && no != null) { <div class="sw-no">@Cap(no)</div> }
+            </div>
+        </div>
+    };
+
     /// <summary>Pull down a building that stands: a small button, behind a confirm that says what comes back and what stops.</summary>
     private RenderFragment PullDownLine(string target, string defId, string name, bool mine) => __builder =>
     {
@@ -478,6 +523,8 @@
         var w = G.World!; var cat = G.Content!.Holdings; var me = w.Protagonist!; var cmd = new PullDownCommand(me.Id, target, defId, cat); string? no = cmd.Refusal(G.Ctx);
         <div class="sw-pull"><button class="opt inline tiny" data-pull-down="@(target + "|" + defId)" disabled="@(no != null)" title="@(no != null ? Cap(no) : cmd.Says(w))" @onclick="() => AskPullDown(cmd, name)">Pull down</button></div>
     };
+    private void AskBuyOut(BuyOutClaimCommand cmd, string owner, int price, bool closes) =>
+        G.Ask("Buy out the claim of " + owner + "?", owner + " is paid " + price + " credits. " + (closes ? "You have a claim in this belt already, so this one is closed down and the belt has room for another." : "The claim is yours, with what it brings up each year.") + " It cannot be undone.", "Buy it out", () => G.Execute(cmd));
     private void AskPullDown(PullDownCommand cmd, string name) => G.Ask("Pull down " + name + "?", cmd.Says(G.World!), "Pull it down", () => G.Execute(cmd));
 
     /// <summary>One thing that could be built on a body: its picture, what it does, what it costs, and the button or why not.</summary>

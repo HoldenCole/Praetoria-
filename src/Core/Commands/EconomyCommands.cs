@@ -32,6 +32,23 @@ public sealed class InvestCommand : ICommand
     }
 }
 
+/// <summary>The holder of a system's world buys out a belt claim another house holds there (<see cref="ClaimSystem"/>).</summary>
+public sealed class BuyOutClaimCommand : ICommand
+{
+    private readonly string _claimId; private readonly BusinessCatalog _ventures;
+    public BuyOutClaimCommand(string actorId, string claimId, BusinessCatalog ventures) { ActorId = actorId; _claimId = claimId; _ventures = ventures; }
+    public string ActorId { get; }
+    public string Describe() => $"buy out {_claimId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null) return "no house";
+        return ClaimSystem.BuyOutRefusal(w, _ventures, house, w.Holding(_claimId));
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; ClaimSystem.BuyOut(w, _ventures, w.House(w.Char(ActorId)!.HouseId)!, w.Holding(_claimId)!); }
+}
+
 /// <summary>Stake a mining claim in a system's asteroid belt (GDD §17 asteroids). The belt's richness is how many claims it
 /// takes; a house may stake where it holds something, next door to where it does, or anywhere at all if it holds nothing —
 /// the landless house's way back onto the ledger.</summary>

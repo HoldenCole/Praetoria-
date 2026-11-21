@@ -1163,3 +1163,16 @@ details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant
 .held-under .held-row { display: block; width: 100%; text-align: left; }
 details.sysp-grant { display: block; margin-top: .35rem; }
 details.sysp-grant select { max-width: 22rem; }
+
+/* Where a colony can go */
+.colony-row { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; padding: .25rem 0; border-top: 1px solid var(--line, rgba(255,255,255,.08)); }
+
+/* The system panel's list of what can be built: groups that fold, what can be begun now first */
+details.sysp-fold { margin: .35rem 0; }
+details.sysp-fold > summary { cursor: pointer; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted, #9aa3b5); padding: .25rem 0; border-bottom: 1px solid var(--line, rgba(255,255,255,.08)); }
+details.sysp-fold.now > summary { color: var(--gold, #d8b25a); }
+details.sysp-fold > summary .muted { letter-spacing: 0; text-transform: none; margin-left: .3rem; }
+.sysp-claims { margin: .5rem 0; }
+
+/* The world's card in the House window: what is rising, and building from there */
+.hc-rising { display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; margin: .2rem 0; }

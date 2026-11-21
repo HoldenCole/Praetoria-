@@ -236,6 +236,37 @@ public static class SystemWorks
         var first = ProjectSystem.Split(UpgradeCost(cost, level), Math.Max(1, years)).First;
         return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"{house.Treasury.Short(first)}{(years > 1 ? " to begin" : "")}";
     }
+    // ---------------- one list of what a home world can take (docs/PLAYTHROUGH.md, Medium, Building and holding, B2 and B42) ----------------
+
+    /// <summary>One thing that could be built on a home world. <see cref="Group"/> is "home" (only on a home world), "own" (the
+    /// world's own, by what it is given over to) or "ordinary". <see cref="Work"/> or <see cref="Building"/> is set, never both.</summary>
+    public sealed record Buildable(string Group, WorkDef? Work, BuildingDef? Building, string? Refusal)
+    {
+        public string Id => Work?.Id ?? Building!.Id;
+        public string Name => Work?.Name ?? Building!.Name;
+        public Resources Cost => Work?.Cost ?? Building!.Cost;
+        public int BuildTurns => Work?.BuildTurns ?? Building!.BuildTurns;
+    }
+    /// <summary>Everything that could be built in the slots of a home world and does not stand or rise there yet, with why not where
+    /// it cannot be begun now: the buildings only a home world takes, the world's own, and the ordinary ones, each cheapest first.
+    /// The system's panel and the House window both read this, so there is one list whichever window it is opened from.</summary>
+    public static List<Buildable> BuildableOn(World w, HoldingCatalog cat, Progression.TitleCatalog? titles, House house, Holding planet, Commands.CommandContext ctx)
+    {
+        var list = new List<Buildable>(); var sys = w.Galaxy?.System(planet.SystemId); if (sys == null || !planet.IsPlanet) return list;
+        int body = sys.Bodies.FindIndex(b => b.IsPrimary); if (body < 0) return list; var b = sys.Bodies[body];
+        var head = Economy.HeadOf(w, house); string actor = head?.Id ?? ""; bool mine = planet.OwnerId == house.Id && head != null;
+        var standing = On(w, sys.Id, body).Select(x => x.DefId).ToHashSet(); var rising = Underway(w, sys.Id, body).Select(p => p.DefId).ToHashSet();
+        var ownRising = w.Projects.Where(p => p.Kind == Project.Building && p.TargetId == planet.Id).Select(p => p.DefId).ToHashSet();
+        string? No(WorkDef d) => mine ? new Commands.BuildWorkCommand(actor, sys.Id, body, d.Id, cat, titles).Refusal(ctx) : "not your world";
+        foreach (var d in cat.Works.Where(d => !d.IsMegastructure && d.On == "world" && Suits(sys, b, d, planet) && !standing.Contains(d.Id) && !rising.Contains(d.Id)).OrderBy(d => d.Cost.Credits + d.Cost.Materials))
+            list.Add(new Buildable("home", d, null, No(d)));
+        foreach (var x in cat.Buildings.Where(x => x.FitsSpecialization(planet.Specialization) && !planet.Buildings.Contains(x.Id) && !ownRising.Contains(x.Id) && (x.RequiresDeposit == null || sys.Deposit(x.RequiresDeposit) > 0)).OrderBy(x => x.Cost.Credits + x.Cost.Materials))
+            list.Add(new Buildable("own", null, x, mine ? new Commands.BuildCommand(actor, planet.Id, x.Id, cat, titles).Refusal(ctx) : "not your world"));
+        foreach (var d in cat.Works.Where(d => !d.IsMegastructure && d.On != "world" && Suits(sys, b, d) && !standing.Contains(d.Id) && !rising.Contains(d.Id)).OrderByDescending(d => d.Deposit.Length > 0).ThenBy(d => d.Cost.Credits + d.Cost.Materials))
+            list.Add(new Buildable("ordinary", d, null, No(d)));
+        return list;
+    }
+
     // ---------------- pulling a building down (docs/PLAYTHROUGH.md, Medium, Building and holding, B65) ----------------
 
     /// <summary>What the breakers give back: this share of the materials the building's first level cost, for each level it stands at.</summary>
@@ -482,6 +513,34 @@ public static class SystemWorks
         if (w.Fleets.Values.Any(f => f.SystemId == systemId && !f.Moving && !f.IsAway && f.OwnerId != house.Id && w.AtWar(f.OwnerId, house.Id))) return "an enemy fleet holds the sky";
         var first = ProjectSystem.Split(cat.Colony.Cost, cat.Colony.BuildTurns).First;
         return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"{house.Treasury.Short(first)} to begin";
+    }
+
+    /// <summary>A system nobody holds that a house might settle (docs/PLAYTHROUGH.md, Medium, Building and holding, B32): how far it
+    /// lies from the house's nearest world, whether a colony can be sent now and if not why, and the house's nearest fleet, which
+    /// standing in it would put it within reach.</summary>
+    public sealed record ColonySite(string SystemId, string Name, string Class, string Deposits, int Lanes, string FromWorld, bool InReach, string? Refusal, string? FleetId, string? FleetName, int FleetLanes);
+    /// <summary>How many lanes from a world of the house the list looks.</summary>
+    public const int ColonySearch = 4;
+    /// <summary>The empty systems within <see cref="ColonySearch"/> lanes of a world of the house, or with a fleet of its own standing
+    /// in them: those a colony can be sent to now first, then the nearest.</summary>
+    public static List<ColonySite> ColonySites(World w, HoldingCatalog cat, House house)
+    {
+        var list = new List<ColonySite>(); var g = w.Galaxy; if (g == null) return list;
+        var mine = w.HoldingsOf(house.Id).Where(h => h.IsPlanet && g.System(h.SystemId) != null).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var fleets = w.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.IsAway && f.LevyOf.Length == 0 && f.HiredFrom.Length == 0 && g.System(f.SystemId) != null).OrderBy(f => f.Id, StringComparer.Ordinal).ToList();
+        foreach (var sys in g.Systems.Values.OrderBy(s => s.Id, StringComparer.Ordinal))
+        {
+            if (w.PlanetOf(sys.Id) != null || g.RingOf(sys.Id) == Ring.Beyond) continue;
+            int lanes = int.MaxValue; string from = "";
+            foreach (var h in mine) { int d = g.Hops(h.SystemId, sys.Id); if (d >= 0 && d < lanes) { lanes = d; from = h.Name; } }
+            bool standing = fleets.Any(f => f.SystemId == sys.Id && !f.Moving);
+            if (lanes > ColonySearch && !standing) continue;
+            Fleet? near = null; int fl = int.MaxValue;
+            foreach (var f in fleets) { int d = g.Hops(f.SystemId, sys.Id); if (d >= 0 && d < fl) { fl = d; near = f; } }
+            string deposits = string.Join(", ", sys.Deposits.Where(kv => kv.Value > 0).OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => $"{kv.Key.Replace('_', ' ')} {kv.Value}"));
+            list.Add(new ColonySite(sys.Id, sys.Name, sys.PlanetClass, deposits, lanes == int.MaxValue ? -1 : lanes, from, lanes == 1 || standing, ColonyRefusal(w, cat, house, sys.Id), near?.Id, near?.Name, near == null ? -1 : fl));
+        }
+        return list.OrderByDescending(x => x.Refusal == null).ThenByDescending(x => x.InReach).ThenBy(x => x.Lanes < 0 ? 99 : x.Lanes).ThenBy(x => x.SystemId, StringComparer.Ordinal).ToList();
     }
 
     /// <summary>The colony lands: the system's world is a holding of the house, small and loyal, governed by its head.</summary>

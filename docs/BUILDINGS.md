@@ -397,3 +397,17 @@ as an upgrade: a holding's id (the home world's own buildings), `system#body`, o
 may build in the place may pull down what stands there. The slot is free; a quarter of the materials of each level come
 back (`SystemWorks.ScrapPct`); legitimacy a building gave for being raised is taken back. A great work is not pulled
 down, and nothing is while its next level is being built. Other houses do not pull anything down.
+
+## One list of what a home world can take (2026-11-21)
+
+`SystemWorks.BuildableOn` gives everything that could be built in a home world's slots and does not stand or rise there:
+the buildings only a home world takes, the world's own, and the ordinary ones, each with the refusal its own command
+gives. The system's panel and the House window's world card both read it. The panel shows what can be begun now first
+and folds the rest by kind; great works are behind their own header.
+
+## Where a colony can go, and claims in your belt (2026-11-21)
+
+`SystemWorks.ColonySites` lists the empty systems within `ColonySearch` (4) lanes of a world of the house, with how far,
+whether a colony can be sent now, and the house's nearest fleet. `ClaimSystem` lists the belt claims other houses hold in
+a system whose world the house holds and prices a buy-out (`BuyOutClaimCommand`): twice the stake at today's prices, 300
+in the hundred from one who thinks ill, 150 from a friend. A bought claim is kept under its buyer's name.

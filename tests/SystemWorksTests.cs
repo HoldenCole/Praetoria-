@@ -275,6 +275,28 @@ public class SystemWorksTests
         w.Projects.RemoveAll(p => SystemWorks.IsGreat(Cat, p)); Assert.Null(new BuildWorkCommand(w.ProtagonistId, sys.Id, home, "great_stair", Cat, Content.Titles).Refusal(ctx));
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, Building and holding: "one list of what can be built, whichever window it is opened from" (B2, B42). */
+    [Fact]
+    public void WhatAHomeWorldCanTake_IsOneList_WithWhyNot_WhicheverWindowReadsIt()
+    {
+        var (w, tc, house, me, ctx) = Start(); house.Treasury.Credits = 400; house.Treasury.Materials = 400;
+        var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var sys = w.Galaxy!.System(seat.SystemId)!; int home = sys.Bodies.FindIndex(b => b.IsPrimary); w.Development[sys.Id] = 100;
+        var all = SystemWorks.BuildableOn(w, Cat, Content.Titles, house, seat, ctx);
+        Assert.Contains(all, x => x.Group == "home"); Assert.Contains(all, x => x.Group == "ordinary"); Assert.All(all, x => Assert.True((x.Work == null) != (x.Building == null)));
+        // each says exactly what its own command says
+        Assert.All(all, x => Assert.Equal(x.Work != null ? new BuildWorkCommand(me.Id, sys.Id, home, x.Id, Cat, Content.Titles).Refusal(ctx) : new BuildCommand(me.Id, seat.Id, x.Id, Cat, Content.Titles).Refusal(ctx), x.Refusal));
+        Assert.All(all, x => Assert.False(seat.Buildings.Contains(x.Id) || SystemWorks.On(w, sys.Id, home).Any(o => o.DefId == x.Id)));
+        // what is begun leaves the list; what is pulled down comes back to it
+        var first = all.First(x => x.Refusal == null && x.Work != null && x.BuildTurns <= 1);
+        Assert.True(tc.Executor.TryExecute(new BuildWorkCommand(me.Id, sys.Id, home, first.Id, Cat, Content.Titles), ctx));
+        Assert.DoesNotContain(SystemWorks.BuildableOn(w, Cat, Content.Titles, house, seat, ctx), x => x.Id == first.Id);
+        Assert.True(tc.Executor.TryExecute(new PullDownCommand(me.Id, SystemWorks.Target(sys.Id, home), first.Id, Cat), ctx));
+        Assert.Contains(SystemWorks.BuildableOn(w, Cat, Content.Titles, house, seat, ctx), x => x.Id == first.Id);
+        // another house's world: the same list, and nothing in it can be begun by you
+        var theirs = w.Holdings.Values.First(h => h.IsPlanet && h.OwnerId != house.Id && w.Galaxy.System(h.SystemId) is { } s && s.Bodies.Any(b => b.IsPrimary));
+        Assert.All(SystemWorks.BuildableOn(w, Cat, Content.Titles, house, theirs, ctx), x => Assert.Equal("not your world", x.Refusal));
+    }
+
     /* docs/PLAYTHROUGH.md, Medium, Building and holding: "Pull a building down" (B65). */
     [Fact]
     public void ABuilding_IsPulledDown_ItsSlotIsFree_AndAQuarterOfItsMaterialsComeBack()
@@ -507,6 +529,34 @@ public class SystemWorksTests
         Assert.Contains(eco.Compute(w, house.Id).Lines, l => l.Kind == "work"); Assert.DoesNotContain(eco.Compute(w, other.Id).Lines, l => l.Kind == "work");
         seat.OwnerId = other.Id;
         Assert.DoesNotContain(eco.Compute(w, house.Id).Lines, l => l.Kind == "work"); Assert.Contains(eco.Compute(w, other.Id).Lines, l => l.Kind == "work");
+    }
+
+    /* docs/PLAYTHROUGH.md, Medium, Building and holding: "Where a colony can go: the empty systems, how far, and a way to send
+       the fleet" (B32). */
+    [Fact]
+    public void TheEmptySystemsWithinReach_AreListed_WithHowFar_AndTheFleetThatWouldOpenThem()
+    {
+        var (w, tc, house, me, ctx) = Start(); var g = w.Galaxy!; house.Treasury.Credits = 400; house.Treasury.Materials = 400; house.Treasury.Manpower = 100;
+        var mine = w.HoldingsOf(house.Id).Where(h => h.IsPlanet).ToList(); var fleet = w.Fleets.Values.First(f => f.OwnerId == house.Id);
+        // empty a system two lanes out and one beside a world of the house
+        var beside = g.Neighbors(mine[0].SystemId).Select(n => g.System(n)!).First(s => g.RingOf(s.Id) != Ring.Beyond && !mine.Any(h => h.SystemId == s.Id));
+        var further = g.Systems.Values.OrderBy(s => s.Id, StringComparer.Ordinal).First(s => g.RingOf(s.Id) != Ring.Beyond && mine.Min(h => { int d = g.Hops(h.SystemId, s.Id); return d < 0 ? 99 : d; }) == 2 && fleet.SystemId != s.Id);
+        foreach (var s in new[] { beside, further }) { foreach (var h in w.Holdings.Values.Where(h => h.SystemId == s.Id).ToList()) w.Holdings.Remove(h.Id); }
+        w.HoldingsChanged(); w.ProvincesChanged();
+
+        var sites = SystemWorks.ColonySites(w, Cat, house);
+        var near = sites.Single(x => x.SystemId == beside.Id); var far = sites.Single(x => x.SystemId == further.Id);
+        Assert.All(sites, x => { Assert.Null(w.PlanetOf(x.SystemId)); Assert.True(x.Lanes <= SystemWorks.ColonySearch || x.InReach); });
+        Assert.Equal(1, near.Lanes); Assert.True(near.InReach); Assert.Null(near.Refusal); Assert.Equal(near.Refusal, new FoundColonyCommand(me.Id, beside.Id, Cat).Refusal(ctx));
+        Assert.Equal(2, far.Lanes); Assert.False(far.InReach); Assert.StartsWith("too far", far.Refusal); Assert.Equal(fleet.Id, far.FleetId); Assert.Equal(g.Hops(fleet.SystemId, further.Id), far.FleetLanes);
+        Assert.True(sites.IndexOf(near) < sites.IndexOf(far));                                        // what can be settled now comes first
+        // the fleet standing in it opens it
+        fleet.SystemId = further.Id; fleet.DestinationId = "";
+        var opened = SystemWorks.ColonySites(w, Cat, house).Single(x => x.SystemId == further.Id); Assert.True(opened.InReach); Assert.Null(opened.Refusal);
+        // a system being settled says so, and one that is held is not listed
+        Assert.True(tc.Executor.TryExecute(new FoundColonyCommand(me.Id, beside.Id, Cat), ctx));
+        Assert.Equal("your colony is on its way", SystemWorks.ColonySites(w, Cat, house).Single(x => x.SystemId == beside.Id).Refusal);
+        Assert.DoesNotContain(SystemWorks.ColonySites(w, Cat, house), x => x.SystemId == mine[0].SystemId);
     }
 
     [Fact]

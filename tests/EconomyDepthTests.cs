@@ -162,6 +162,46 @@ public class EconomyDepthTests
         Assert.Equal("the world's holder is at war with you", new FoundBusinessCommand("self", "mining_concern", "ember", v, cat).Refusal(Ctx(w)));
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, Building and holding: "Claims other houses hold in your system: what they owe, and an offer to
+       buy them out" (B50). */
+    [Fact]
+    public void AClaimInYourBelt_OwesYouNothing_AndCanBeBoughtOut()
+    {
+        var w = Reach(credits: 100, materials: 40); var cat = Catalog(); var v = Ventures(); var eco = new Economy(cat, v); var exec = new CommandExecutor(); var f = v.Finance;
+        var vega = w.House("vega")!; var corwin = w.House("corwin")!; corwin.Treasury.Credits = 100;
+        Assert.True(exec.TryExecute(new StakeClaimCommand("self", "ember", cat, v), Ctx(w)));                       // Vega's claim in the belt of Corwin's world
+        var claim = w.Holdings.Values.Single(h => h.IsClaim && h.OwnerId == "vega");
+        Assert.Equal(new[] { claim.Id }, ClaimSystem.Of(w, "ember", "corwin").Select(h => h.Id).ToArray()); Assert.Empty(ClaimSystem.Of(w, "ember", "vega"));
+        Assert.DoesNotContain(eco.Compute(w, "corwin").Lines, l => l.Source == claim.Name);                              // it owes the holder nothing
+
+        // the price is twice the stake at today's prices; dearer from one who thinks ill of the buyer, cheaper from a friend
+        int stake = (int)Math.Ceiling(Economy.WorthOf(w, new Resources { Credits = f.ClaimCredits, Materials = f.ClaimMaterials }) * 2);
+        Assert.Equal(stake, ClaimSystem.Price(w, v, claim, corwin));
+        w.Relationship("self", "corwin_head").Disposition = ClaimSystem.Ill; int dear = ClaimSystem.Price(w, v, claim, corwin);
+        w.Relationship("self", "corwin_head").Disposition = ClaimSystem.Friend; int cheap = ClaimSystem.Price(w, v, claim, corwin);
+        Assert.True(cheap < stake && stake < dear);
+        w.Relationship("self", "corwin_head").Disposition = ClaimSystem.WontAt; Assert.Contains("will not sell to you", new BuyOutClaimCommand("corwin_head", claim.Id, v).Refusal(Ctx(w)));
+        w.Relationship("self", "corwin_head").Disposition = 0;
+
+        // only the holder of that system's world buys; not at war; and the coin must be there
+        Assert.Equal("it is yours already", new BuyOutClaimCommand("self", claim.Id, v).Refusal(Ctx(w)));
+        w.Wars.Add(new War { HouseA = "vega", HouseB = "corwin", Since = 1 }); Assert.StartsWith("you are at war with", new BuyOutClaimCommand("corwin_head", claim.Id, v).Refusal(Ctx(w))); w.Wars.Clear();
+        corwin.Treasury.Credits = 1; Assert.Equal($"needs {stake} credits", new BuyOutClaimCommand("corwin_head", claim.Id, v).Refusal(Ctx(w))); corwin.Treasury.Credits = 100;
+
+        // bought: the coin changes hands, the claim is the buyer's and pays the buyer
+        int mine = vega.Treasury.Credits;
+        Assert.True(exec.TryExecute(new BuyOutClaimCommand("corwin_head", claim.Id, v), Ctx(w)));
+        Assert.Equal("corwin", claim.OwnerId); Assert.Equal("vega", claim.FormerOwnerId); Assert.Same(claim, w.Holding("claim_corwin_ember")); Assert.Null(w.Holding("claim_vega_ember")); Assert.Equal(mine + stake, vega.Treasury.Credits); Assert.Equal(100 - stake, corwin.Treasury.Credits);
+        Assert.Contains(eco.Compute(w, "corwin").Lines, l => l.Kind == "claim" && l.Source == claim.Name); Assert.Equal(1, w.Counter(ClaimSystem.BoughtOutCounter));
+
+        // a buyer with a claim there already closes the bought one down; and a house does not sell the last thing it holds
+        vega.Treasury.Credits = 100; vega.Treasury.Materials = 40;
+        Assert.True(exec.TryExecute(new StakeClaimCommand("self", "ember", cat, v), Ctx(w))); var second = w.Holdings.Values.Single(h => h.IsClaim && h.OwnerId == "vega");
+        Assert.True(exec.TryExecute(new BuyOutClaimCommand("corwin_head", second.Id, v), Ctx(w))); Assert.Null(w.Holding(second.Id)); Assert.Equal(1, w.Holdings.Values.Count(h => h.IsClaim && h.SystemId == "ember"));
+        Assert.True(exec.TryExecute(new StakeClaimCommand("self", "ember", cat, v), Ctx(w))); var third = w.Holdings.Values.Single(h => h.IsClaim && h.OwnerId == "vega");
+        w.Holdings.Remove("barony"); w.HoldingsChanged(); Assert.Contains("it is all House", new BuyOutClaimCommand("corwin_head", third.Id, v).Refusal(Ctx(w)) ?? "");
+    }
+
     /* docs/PLAYTHROUGH.md, Medium, Money: "Borrow an amount you choose, from a lender you can see, and repay in part." */
     [Fact]
     public void ALoan_IsOfAChosenAmount_FromALenderWhoNamesTerms_AndIsPaidInPart()
