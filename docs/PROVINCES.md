@@ -169,3 +169,11 @@ the praetor's court (`CourtFinds`: for the holder unless the dues are withheld o
 asker lets it lie unless its head is ruthless or arrogant and has the stronger fleet), or the bench (more seats than
 the asker's bench, and the asker not of it; a favour owed to the bench's leader). Kept, the province is settled for
 `SettleYears`. These are the player's answers; a rival house asked still yields or fights by `WillYield`.
+
+## An overlord's wishes shown, and a demand that says why (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, The Senate, P90). `ProvinceSystem.Wish` is what a house over another
+wants of a motion (the reckoning `NoteVotes` already used); `Wishes` lists, for the player, each such house with the
+province held under it, the votes already cast against it and the number at which it asks for the province. The Senate
+window shows them on every motion. `SeatDemand.Why` carries the reason a rival gives for a demand, and the house asked
+is told it.

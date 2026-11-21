@@ -227,6 +227,14 @@
                         <div class="mo-text">@mo.Text</div>
                         @{ int patronWish = motionNow != null ? senate.PatronWish(w, motionNow, house.Id) : 0; }
                         @if (patronWish != 0) { <div class="small warn">Your patron, @(w.House(house.PatronId)?.Name), wants this @(patronWish > 0 ? "carried" : "thrown out"). How you vote will be noticed.</div> }
+                        @if (motionNow != null && senate.Motions.Def(motionNow.Kind) is { } wishDef)
+                        {
+                            /* the houses you hold a province under, and what each wants of this motion (docs/PLAYTHROUGH.md, Medium, The Senate, P90) */
+                            foreach (var ow in ProvinceSystem.Wishes(w, c.Holdings, motionNow, wishDef.Interest, wishDef.Target == "house", house.Id))
+                            {
+                                <div class="small warn" data-overlord-wish="@ow.over.Id">@ow.over.Name, which you hold @ow.province under, wants this @(ow.want > 0 ? "carried" : "thrown out"). Vote its way and its head thinks @SenateSystem.ObligeRegard the better of you@(ow.defied > 0 ? " and one of your votes against it is forgotten" : ""); vote the other way and it thinks @Math.Abs(SenateSystem.DefyRegard) the worse. You have voted against it @ow.defied time(s) on what touched it: at @ow.bears, if it is at least your match in arms and at peace, it asks for the province back.</div>
+                            }
+                        }
                         <div class="tally"><span class="for" style="width:@(100 * mo.ForWeight / total)%"></span><span class="against" style="width:@(100 * mo.AgainstWeight / total)%"></span></div>
                         <div class="small tally-line"><b class="@(mo.ForWeight > mo.AgainstWeight || chairCarries ? "good" : "warn")">@(mo.ForWeight > mo.AgainstWeight ? "Carries" : chairCarries ? $"Tied: carries on the casting vote of {presides!.Name}, presiding," : tied && presides != null ? $"Tied: fails, since {presides.Name}, presiding, is not for it," : mo.ForWeight == mo.AgainstWeight ? "Tied: fails" : "Fails") as the benches lean</b> <span class="muted">· for @mo.ForWeight · against @mo.AgainstWeight</span></div>
                         @if (motionNow != null)

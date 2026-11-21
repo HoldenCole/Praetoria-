@@ -46,6 +46,9 @@ public sealed class SeatDemand
     public int Province { get; set; }
     public string ById { get; set; } = "";
     public string AgainstId { get; set; } = "";
+    /// <summary>Why it was asked, as the one asked is told it: the dues withheld, the votes cast against the asker, or only that
+    /// the asker is strong enough to ask. "" for a demand the player makes.</summary>
+    public string Why { get; set; } = "";
     /// <summary>The house that is to have it.</summary>
     public string ForId { get; set; } = "";
     public int Turn { get; set; }

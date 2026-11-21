@@ -194,6 +194,29 @@ public class ProvinceTests
         var stranger = w.Houses.Values.First(h => !World.Outsider(h.Id) && h.Id != house.Id && !ProvinceSystem.Under(w, h.Id, house.Id)); Assert.DoesNotContain("holds a province under it", OrderSystem.Sway(w, stranger, house).why);
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, The Senate: "Your overlord's wishes on each motion, and an account when it moves against you" (P90). */
+    [Fact]
+    public void TheHouseOverYou_HasAWishOnWhatTouchesIt_AndSaysWhyWhenItAsksForTheProvince()
+    {
+        var (w, tc, house, me, ctx) = Start(); var (planet, idx) = w.ProvincesOf(house.Id).First(x => x.h.OwnerId != house.Id); var over = w.House(planet.OwnerId)!;
+        var third = w.Houses.Values.First(h => h.Id != house.Id && h.Id != over.Id && !World.Outsider(h.Id));
+        // it wants what it moved carried, and what is aimed against it thrown out; what does not touch it, it has no wish on
+        var its = new Motion { Id = "m1", Kind = "k", ProposerHouseId = over.Id, TargetId = "" };
+        var against = new Motion { Id = "m2", Kind = "censure", ProposerHouseId = third.Id, TargetId = over.Id };
+        var elsewhere = new Motion { Id = "m3", Kind = "k", ProposerHouseId = third.Id, TargetId = third.Id };
+        var wish = ProvinceSystem.Wishes(w, Cat, its, "", false, house.Id).Single();
+        Assert.Equal(over.Id, wish.over.Id); Assert.Equal(1, wish.want); Assert.Equal(planet.Provinces[idx].Name, wish.province); Assert.Equal(Cat.Provinces.Defiances, wish.bears); Assert.Equal(0, wish.defied);
+        Assert.Equal(-1, ProvinceSystem.Wishes(w, Cat, against, "censure", true, house.Id).Single().want);
+        Assert.Empty(ProvinceSystem.Wishes(w, Cat, elsewhere, "", true, house.Id));
+        // voting against it is counted, and the count is what the screen shows
+        its.Votes[house.Id] = -1; ProvinceSystem.NoteVotes(w, Cat, its, "", false, house.Id, SenateSystem.ObligeRegard, SenateSystem.DefyRegard);
+        Assert.Equal(1, ProvinceSystem.Wishes(w, Cat, its, "", false, house.Id).Single().defied);
+        // when it asks for the province, the demand says why, and the house is told
+        ProvinceSystem.Demand(w, Cat, over, planet, idx, over.Id, "you have voted against it in the Senate 2 time(s) on what touched it, and it bears 1");
+        var d = w.SeatDemands.Single(); Assert.Contains("voted against it", d.Why);
+        Assert.Contains(w.News, n => n.Text.Contains("asks you to give up") && n.Text.Contains("voted against it") && n.Target == "galaxy:" + planet.SystemId);
+    }
+
     /* docs/PLAYTHROUGH.md, Medium, The Senate: "An answer to a demand other than yielding or war: the praetor's court, coin, the
        bench" (P91). */
     [Fact]

@@ -182,6 +182,24 @@ public static class ProvinceSystem
     /// <summary>The Senate has voted (docs/PROVINCES.md): every house that cast a vote on what a house over it moved, or on what is aimed
     /// at that house, has it counted. A vote against adds one and a vote its way takes one off; at the number it will bear, the
     /// house over it asks for the province, if it can. The player's is also felt at once in the regard between the two heads.</summary>
+    /// <summary>What a house over another wants of a motion: carried (1) when it moved it or it is to its good, thrown out (-1)
+    /// when it is aimed against it, and nothing (0) when it does not touch it.</summary>
+    public static int Wish(Motion m, House over, string interest, bool aimedAtHouse) =>
+        m.TargetId == over.Id && aimedAtHouse ? (interest is "censure" or "embargo" or "breakup" ? -1 : 1) : m.ProposerHouseId == over.Id ? 1 : 0;
+    /// <summary>The wishes of every house a house holds a province under, on one motion (docs/PLAYTHROUGH.md, Medium, The Senate,
+    /// P90): what each wants, how often the house has voted against it on what touched it, how many times it bears that before it
+    /// asks for the province, and the province held under it.</summary>
+    public static List<(House over, int want, int defied, int bears, string province)> Wishes(World w, HoldingCatalog cat, Motion m, string interest, bool aimedAtHouse, string houseId)
+    {
+        var list = new List<(House, int, int, int, string)>();
+        foreach (var over in Overs(w, houseId).OrderBy(o => o.Id, StringComparer.Ordinal))
+        {
+            int want = Wish(m, over, interest, aimedAtHouse); if (want == 0) continue;
+            string province = w.ProvincesOf(houseId).Where(x => x.h.OwnerId == over.Id).Select(x => x.h.Provinces[x.i].Name).FirstOrDefault() ?? "a province";
+            list.Add((over, want, w.Counter(DefiedKey(over.Id, houseId)), cat.Provinces.Defiances, province));
+        }
+        return list;
+    }
     public static void NoteVotes(World w, HoldingCatalog cat, Motion m, string interest, bool aimedAtHouse, string? mine, int oblige, int defy)
     {
         foreach (var (houseId, cast) in m.Votes.OrderBy(v => v.Key, StringComparer.Ordinal).ToList())
@@ -189,7 +207,7 @@ public static class ProvinceSystem
             if (cast == 0 || World.Outsider(houseId) || w.House(houseId) is not { } under) continue;
             foreach (var over in Overs(w, houseId).ToList())
             {
-                int want = m.TargetId == over.Id && aimedAtHouse ? (interest is "censure" or "embargo" or "breakup" ? -1 : 1) : m.ProposerHouseId == over.Id ? 1 : 0; if (want == 0) continue;
+                int want = Wish(m, over, interest, aimedAtHouse); if (want == 0) continue;
                 bool with = cast == want; string key = DefiedKey(over.Id, houseId); int was = w.Counter(key), now = Math.Max(0, was + (with ? -1 : 1));
                 if (now == 0) w.WorldCounters.Remove(key); else w.WorldCounters[key] = now;
                 if (houseId != mine) { if (!with && now == cat.Provinces.Defiances && was < now) w.Log($"{under.Name} has voted against {over.Name}, which it holds a province under, once too often."); continue; }
@@ -495,14 +513,16 @@ public static class ProvinceSystem
     }
 
     /// <summary>The demand is made. A rival answers at once; the player's answer is waited for. Returns what came of it.</summary>
-    public static string Demand(World w, HoldingCatalog cat, House by, Holding planet, int index, string forId)
+    public static string Demand(World w, HoldingCatalog cat, House by, Holding planet, int index, string forId, string why = "")
     {
         string against = HolderOf(planet, index); by.Treasury.Influence -= DemandCost(cat, planet, index);
         w.WorldCounters[AskedKey(by.Id)] = w.Turn + 1; int n = w.Counter(DemandsCounter) + 1; w.WorldCounters[DemandsCounter] = n;
-        var d = new SeatDemand { Id = "demand_" + n, HoldingId = planet.Id, Province = index, ById = by.Id, AgainstId = against, ForId = forId, Turn = w.Turn };
+        var d = new SeatDemand { Id = "demand_" + n, HoldingId = planet.Id, Province = index, ById = by.Id, AgainstId = against, ForId = forId, Turn = w.Turn, Why = why };
         if (against == w.Protagonist?.HouseId)
         {
             w.SeatDemands.Add(d); w.WorldFlags.Add(DemandFlag);
+            // an account of it, where the house can read it (docs/PLAYTHROUGH.md, Medium, The Senate, P90)
+            w.Tell("warn", $"{by.Name} asks you to give up {What(planet, index)}{(why.Length > 0 ? ": " + why : "")}. The answer is yours.", "galaxy:" + planet.SystemId);
             w.Log($"{by.Name} asks {w.House(against)?.Name ?? against} to give up {What(planet, index)}{(forId == by.Id ? "" : " to " + (w.House(forId)?.Name ?? forId))}. It was held for life. The answer is yours: step down, or stand.");
             return Pending;
         }
@@ -639,22 +659,23 @@ public static class ProvinceSystem
                 for (int i = 1; i < h.Provinces.Count; i++)
                 {
                     string holder = HolderOf(h, i); if (holder == owner.Id) continue;
-                    bool provoked = h.Provinces[i].Withheld || w.Counter(DefiedKey(owner.Id, holder)) >= rules.Defiances;
+                    int defied = w.Counter(DefiedKey(owner.Id, holder)); bool provoked = h.Provinces[i].Withheld || defied >= rules.Defiances;
                     if (!provoked || FleetSystem.StrengthOf(w, owner.Id) < FleetSystem.StrengthOf(w, holder) || DemandRefusal(w, cat, owner, h, i, owner.Id, false) != null) continue;
-                    w.WorldCounters.Remove(DefiedKey(owner.Id, holder)); Demand(w, cat, owner, h, i, owner.Id); changed = true; break;
+                    string why = h.Provinces[i].Withheld ? "you are withholding the dues the province owes it" : $"you have voted against it in the Senate {defied} time(s) on what touched it, and it bears {rules.Defiances - 1}";
+                    w.WorldCounters.Remove(DefiedKey(owner.Id, holder)); Demand(w, cat, owner, h, i, owner.Id, why); changed = true; break;
                 }
             // a rival who holds a world asks for one of its provinces for itself, when it is at peace and at least the holder's match
             if (Hash(h.Id + ":province:" + w.Turn) % (uint)rules.NpcProvinceYears == 0 && !w.EnemiesOf(owner.Id).Any())
                 for (int i = 1; i < h.Provinces.Count; i++)
                 {
                     string holder = HolderOf(h, i); if (holder == owner.Id || FleetSystem.StrengthOf(w, owner.Id) < FleetSystem.StrengthOf(w, holder)) continue;
-                    if (DemandRefusal(w, cat, owner, h, i, owner.Id, false) == null) { Demand(w, cat, owner, h, i, owner.Id); changed = true; break; }
+                    if (DemandRefusal(w, cat, owner, h, i, owner.Id, false) == null) { Demand(w, cat, owner, h, i, owner.Id, "you have given it no cause: it is at peace, it is at least your match in arms, and it wants the province for itself"); changed = true; break; }
                 }
             // and the leader over a rival asks it to make way for the stronger of the houses under it
             if (Hash(h.Id + ":world:" + w.Turn) % (uint)rules.NpcWorldYears == 0 && Over(w, h) is { } over && over.Id != me && !w.EnemiesOf(over.Id).Any() && FleetSystem.StrengthOf(w, over.Id) >= FleetSystem.StrengthOf(w, owner.Id))
             {
                 string? to = Enumerable.Range(1, h.Provinces.Count - 1).Select(i => HolderOf(h, i)).Where(x => x != owner.Id).Distinct().OrderByDescending(x => FleetSystem.StrengthOf(w, x)).ThenBy(x => x, StringComparer.Ordinal).FirstOrDefault();
-                if (to != null && DemandRefusal(w, cat, over, h, 0, to, false) == null) { Demand(w, cat, over, h, 0, to); changed = true; }
+                if (to != null && DemandRefusal(w, cat, over, h, 0, to, false) == null) { Demand(w, cat, over, h, 0, to, $"it stands over you, and would have the stronger house, {w.House(to)?.Name ?? to}, hold the world"); changed = true; }
             }
         }
         // a levy whose province is gone, or whose war is over, has gone home
