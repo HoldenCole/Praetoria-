@@ -160,3 +160,12 @@ province it still holds itself to another house (`GrantProvinceCommand`, `Provin
 is built in it, at the customary dues. Their head thinks 12 the better of the giver, and the giver gains 1 legitimacy. The
 seat is not given; a house holds one province of a world; not to a house at war with the giver; only the head gives land.
 It is asked back like any province (`DemandSeatCommand`). Other houses do not yet give provinces of their own accord.
+
+## Other answers to a demand (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, The Senate, P91). `AnswerDemandOtherwiseCommand`,
+`ProvinceSystem.Answer`: coin (`BuyOffPrice`: 20 a level, 60 for a world; refused by an asker at -20 regard or worse),
+the praetor's court (`CourtFinds`: for the holder unless the dues are withheld or the world is in revolt; `Abides`: the
+asker lets it lie unless its head is ruthless or arrogant and has the stronger fleet), or the bench (more seats than
+the asker's bench, and the asker not of it; a favour owed to the bench's leader). Kept, the province is settled for
+`SettleYears`. These are the player's answers; a rival house asked still yields or fights by `WillYield`.

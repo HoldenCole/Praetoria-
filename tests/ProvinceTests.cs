@@ -194,6 +194,72 @@ public class ProvinceTests
         var stranger = w.Houses.Values.First(h => !World.Outsider(h.Id) && h.Id != house.Id && !ProvinceSystem.Under(w, h.Id, house.Id)); Assert.DoesNotContain("holds a province under it", OrderSystem.Sway(w, stranger, house).why);
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, The Senate: "An answer to a demand other than yielding or war: the praetor's court, coin, the
+       bench" (P91). */
+    [Fact]
+    public void ADemand_CanBeBoughtOff_TakenToCourt_OrFacedDownByTheBench()
+    {
+        (World w, TurnController tc, House house, Character me, CommandContext ctx, Holding planet, int idx, House asker, SeatDemand d) Asked()
+        {
+            var (w, tc, house, me, ctx) = Start(); var (planet, idx) = w.ProvincesOf(house.Id).First(x => x.h.OwnerId != house.Id);
+            var asker = w.House(planet.OwnerId)!; var d = new SeatDemand { Id = "demand_t", HoldingId = planet.Id, Province = idx, ById = asker.Id, AgainstId = house.Id, ForId = asker.Id, Turn = w.Turn };
+            w.SeatDemands.Add(d); w.WorldFlags.Add(ProvinceSystem.DemandFlag); house.Treasury.Credits = 200; w.Pools[me.Id].Influence = 6;
+            foreach (var t in new[] { "Ruthless", "Arrogant" }) Economy.HeadOf(w, asker)!.NatureTraits.Remove(t);
+            return (w, tc, house, me, ctx, planet, idx, asker, d);
+        }
+        // coin: the asker is paid by the province's level and lets it lie, and it may not be asked for again for years
+        {
+            var (w, tc, house, me, ctx, planet, idx, asker, d) = Asked(); int price = ProvinceSystem.BuyOffPrice(planet, d); Assert.Equal(ProvinceSystem.CoinPerLevel * Math.Max(1, planet.Provinces[idx].Level), price);
+            w.Relationship(Economy.HeadOf(w, asker)!.Id, me.Id).Disposition = ProvinceSystem.CoinRegardFloor;
+            Assert.Contains("not your coin", new AnswerDemandOtherwiseCommand(me.Id, d.Id, ProvinceSystem.Coin, Cat, tc.Senate).Refusal(ctx));
+            w.Relationship(Economy.HeadOf(w, asker)!.Id, me.Id).Disposition = 0; int theirs = asker.Treasury.Credits;
+            var cmd = new AnswerDemandOtherwiseCommand(me.Id, d.Id, ProvinceSystem.Coin, Cat, tc.Senate); Assert.Contains($"paid {price} credits", cmd.Says(w));
+            Assert.True(tc.Executor.TryExecute(cmd, ctx));
+            Assert.Equal(200 - price, house.Treasury.Credits); Assert.Equal(theirs + price, asker.Treasury.Credits); Assert.Empty(w.SeatDemands); Assert.False(w.HasFlag(ProvinceSystem.DemandFlag));
+            Assert.Equal(house.Id, ProvinceSystem.HolderOf(planet, idx)); Assert.Equal(w.Turn + Cat.Provinces.SettleYears, planet.Provinces[idx].SettledUntil); Assert.False(w.AtWar(house.Id, asker.Id));
+            Assert.StartsWith("the peace holds it theirs until", ProvinceSystem.DemandRefusal(w, Cat, asker, planet, idx, asker.Id));
+        }
+        // the court: for a holder who has given no cause, where the asker abides by it
+        {
+            var (w, tc, house, me, ctx, planet, idx, asker, d) = Asked(); int legit = asker.Legitimacy;
+            Assert.True(ProvinceSystem.CourtFinds(w, planet, d).forHolder); Assert.True(ProvinceSystem.Abides(w, asker, house));
+            var cmd = new AnswerDemandOtherwiseCommand(me.Id, d.Id, ProvinceSystem.Court, Cat, tc.Senate); Assert.Contains("would abide by it", cmd.Says(w));
+            Assert.True(tc.Executor.TryExecute(cmd, ctx));
+            Assert.Equal(6 - ProvinceSystem.CourtInfluence, w.Pools[me.Id].Influence); Assert.Equal(200 - ProvinceSystem.CourtFee, house.Treasury.Credits); Assert.Equal(legit - ProvinceSystem.CourtLegitimacy, asker.Legitimacy);
+            Assert.Empty(w.SeatDemands); Assert.Equal(house.Id, ProvinceSystem.HolderOf(planet, idx)); Assert.False(w.AtWar(house.Id, asker.Id));
+        }
+        // the court: a holder who withholds the dues has given cause, and steps down by its finding
+        {
+            var (w, tc, house, me, ctx, planet, idx, asker, d) = Asked(); planet.Provinces[idx].Withheld = true;
+            Assert.False(ProvinceSystem.CourtFinds(w, planet, d).forHolder); Assert.Contains("you would have to step down", new AnswerDemandOtherwiseCommand(me.Id, d.Id, ProvinceSystem.Court, Cat, tc.Senate).Says(w));
+            Assert.True(tc.Executor.TryExecute(new AnswerDemandOtherwiseCommand(me.Id, d.Id, ProvinceSystem.Court, Cat, tc.Senate), ctx));
+            Assert.NotEqual(house.Id, ProvinceSystem.HolderOf(planet, idx)); Assert.False(w.AtWar(house.Id, asker.Id));
+        }
+        // the court: an asker who is ruthless and the stronger does not abide by it, and it is war
+        {
+            var (w, tc, house, me, ctx, planet, idx, asker, d) = Asked(); Economy.HeadOf(w, asker)!.NatureTraits.Add("Ruthless");
+            foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id).ToList()) w.Fleets.Remove(f.Id);
+            if (FleetSystem.StrengthOf(w, asker.Id) > 0)
+            {
+                Assert.False(ProvinceSystem.Abides(w, asker, house)); Assert.Contains("it would be war", new AnswerDemandOtherwiseCommand(me.Id, d.Id, ProvinceSystem.Court, Cat, tc.Senate).Says(w));
+                Assert.True(tc.Executor.TryExecute(new AnswerDemandOtherwiseCommand(me.Id, d.Id, ProvinceSystem.Court, Cat, tc.Senate), ctx)); Assert.True(w.AtWar(house.Id, asker.Id));
+            }
+        }
+        // the bench: it faces the asker down only if it has more seats than the asker's, and never against one of its own
+        {
+            var (w, tc, house, me, ctx, planet, idx, asker, d) = Asked(); var bench = FactionSystem.Of(w, house.Id);
+            var cmd = new AnswerDemandOtherwiseCommand(me.Id, d.Id, ProvinceSystem.Bench, Cat, tc.Senate); string? no = cmd.Refusal(ctx);
+            if (bench == null) Assert.Equal("you sit on no bench", no);
+            else if (bench.Members.Contains(asker.Id)) Assert.Contains("sits on your own bench", no);
+            else
+            {
+                int ours = bench.Members.Sum(h => tc.Senate.Weight(w, h)); var theirBench = FactionSystem.Of(w, asker.Id); int theirs = theirBench != null ? theirBench.Members.Sum(h => tc.Senate.Weight(w, h)) : tc.Senate.Weight(w, asker.Id);
+                if (ours > theirs) { Assert.Null(no); Assert.True(tc.Executor.TryExecute(cmd, ctx)); Assert.Empty(w.SeatDemands); Assert.Equal(house.Id, ProvinceSystem.HolderOf(planet, idx)); if (bench.LeaderHouseId != house.Id) Assert.True(WealthSystem.FavourOwed(w, house.Id, bench.LeaderHouseId)); }
+                else Assert.Contains("would not face them down", no);
+            }
+        }
+    }
+
     /* docs/PLAYTHROUGH.md, Medium, Building and holding: "Grant a province you hold to another house" (B21). */
     [Fact]
     public void AProvinceOfYourOwnWorld_IsGivenToAnotherHouse_ForLife()

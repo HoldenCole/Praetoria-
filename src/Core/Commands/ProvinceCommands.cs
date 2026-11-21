@@ -61,6 +61,22 @@ public sealed class AnswerSeatDemandCommand : ICommand
     public void Execute(CommandContext ctx) { var w = ctx.World; ProvinceSystem.Resolve(w, _catalog, w.SeatDemands.First(d => d.Id == _id), _stepDown); }
 }
 
+/// <summary>Answer a demand another way than stepping down or fighting (<see cref="ProvinceSystem.Answer"/>): buy the asker
+/// off (<see cref="ProvinceSystem.Coin"/>), take it to the praetor's court (<see cref="ProvinceSystem.Court"/>), or have the
+/// bench stand behind the house (<see cref="ProvinceSystem.Bench"/>).</summary>
+public sealed class AnswerDemandOtherwiseCommand : ICommand
+{
+    private readonly string _id, _how; private readonly HoldingCatalog _catalog; private readonly SenateSystem _senate;
+    public AnswerDemandOtherwiseCommand(string actorId, string demandId, string how, HoldingCatalog catalog, SenateSystem senate) { ActorId = actorId; _id = demandId; _how = how; _catalog = catalog; _senate = senate; }
+    public string ActorId { get; }
+    public string Describe() => $"answer {_id} by {_how}";
+    private (House? mine, SeatDemand? d) Find(World w) { var a = w.Char(ActorId); var h = a is { Alive: true } ? w.House(a.HouseId) : null; return (h, w.SeatDemands.FirstOrDefault(x => x.Id == _id)); }
+    public string? Refusal(CommandContext ctx) { var w = ctx.World; var (mine, d) = Find(w); return mine == null ? "no one to answer" : ProvinceSystem.AnswerRefusal(w, _catalog, id => _senate.Weight(w, id), mine, d, _how, ctx.PoolsOf(ActorId)); }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public string Says(World w) { var (mine, d) = Find(w); return mine == null || d == null ? "" : ProvinceSystem.AnswerSays(w, _catalog, id => _senate.Weight(w, id), mine, d, _how); }
+    public void Execute(CommandContext ctx) { var w = ctx.World; var (mine, d) = Find(w); ProvinceSystem.Answer(w, _catalog, id => _senate.Weight(w, id), mine!, d!, _how, ctx.PoolsOf(ActorId)); }
+}
+
 /// <summary>Build in a province the actor's house holds (docs/PROVINCES.md): an ordinary building of the world's kind, in one of the
 /// province's own slots. What it yields is the holder's. A building that takes years is begun and paid for as it rises.</summary>
 public sealed class BuildInProvinceCommand : ICommand

@@ -298,6 +298,14 @@
                                         <div class="sysp-demand">
                                             <div><b>@asker asks you to give this up</b>, for @forWhom. It was yours for life. @(pi == 0 ? "Step down, and you hold a province under the house that rises, your name is the less for it and your house a rung the lower. Stand, and it is war with " + asker + "." : "Step down and it is gone. Stand, and it is war with " + asker + ".") Left unanswered for a year, it is taken for defiance, and that too is war.</div>
                                             <div class="row small"><button class="opt inline" @onclick="() => G.Execute(new AnswerSeatDemandCommand(me.Id, did2, true, cat))">Step down</button><button class="opt inline warn" @onclick="() => G.Execute(new AnswerSeatDemandCommand(me.Id, did2, false, cat))">Stand, and fight</button></div>
+                                            <div class="row small" data-demand-answers="@did2">
+                                                <span class="muted">Or:</span>
+                                                @foreach (var (how, label) in new[] { (ProvinceSystem.Coin, "Buy them off"), (ProvinceSystem.Court, "Take it to the praetor's court"), (ProvinceSystem.Bench, "Have your bench stand behind you") })
+                                                {
+                                                    var other = new AnswerDemandOtherwiseCommand(me.Id, did2, how, cat, G.Turn!.Senate); string? otherNo = other.Refusal(ctx); string lab = label;
+                                                    <button class="opt inline" data-demand-answer="@how" disabled="@(otherNo != null)" title="@(otherNo != null ? Cap(otherNo) : other.Says(w))" @onclick='() => G.Ask(lab + "?", other.Says(w), lab, () => G.Execute(other))'>@label@(how == ProvinceSystem.Coin ? " · " + ProvinceSystem.BuyOffPrice(planet, pending) + " credits" : "")</button>
+                                                }
+                                            </div>
                                         </div>
                                     }
                                     else { <div class="muted small">@asker has asked for it, for @forWhom. No answer yet.</div> }

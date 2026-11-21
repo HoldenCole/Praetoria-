@@ -385,6 +385,107 @@ public static class ProvinceSystem
     /// <summary>What asking costs in influence: nothing, of a house that is withholding its dues.</summary>
     public static int DemandCost(HoldingCatalog cat, Holding planet, int index) => index == 0 ? cat.Provinces.DemandInfluenceWorld : planet.Provinces[index].Withheld ? 0 : cat.Provinces.DemandInfluence;
 
+    // ---------------- other answers to a demand (docs/PLAYTHROUGH.md, Medium, The Senate, P91) ----------------
+    // A house asked to give up what it holds for life could step down or fight. It may also buy the asker off; take it to
+    // the praetor's court, which finds for a holder who has given no cause; or have its bench stand behind it. Each says
+    // beforehand what would come of it, and each, where it holds, settles the matter for the years a peace would.
+
+    public const string Coin = "coin", Court = "court", Bench = "bench";
+    public const int CoinPerLevel = 20, CoinWorld = 60, CoinRegardFloor = -20, CourtInfluence = 2, CourtFee = 8, CourtLegitimacy = 6, BenchRegard = 5;
+    public const string BoughtOffCounter = "seat_demands_bought_off", CourtCounter = "seat_demands_in_court", BenchCounter = "seat_demands_faced_down";
+    private static void Closed(World w, SeatDemand d)
+    {
+        w.SeatDemands.RemoveAll(x => x.Id == d.Id); if (!w.SeatDemands.Any(x => x.AgainstId == w.Protagonist?.HouseId)) w.WorldFlags.Remove(DemandFlag);
+    }
+    private static void Settled(World w, HoldingCatalog cat, Holding planet, SeatDemand d) { if (d.Province < planet.Provinces.Count) planet.Provinces[d.Province].SettledUntil = w.Turn + cat.Provinces.SettleYears; }
+    private static int RegardOf(World w, House of, House to) { var a = Economy.HeadOf(w, of); var b = Economy.HeadOf(w, to); return a != null && b != null ? w.GetRelationship(a.Id, b.Id)?.Disposition ?? 0 : 0; }
+
+    /// <summary>What the asker would take to let the matter lie: by the level of the province, or a flat sum for a world.</summary>
+    public static int BuyOffPrice(Holding planet, SeatDemand d) => d.Province == 0 ? CoinWorld : CoinPerLevel * Math.Max(1, planet.Provinces[d.Province].Level);
+    /// <summary>Whether the court would find for the holder, and why: it holds for life, and loses only by a cause of its own giving.</summary>
+    public static (bool forHolder, string why) CourtFinds(World w, Holding planet, SeatDemand d)
+    {
+        if (d.Province > 0 && planet.Provinces[d.Province].Withheld) return (false, "you are withholding the dues the province owes: the court would find you have given cause");
+        if (d.Province == 0 && planet.InRebellion) return (false, "the world is in revolt under you: the court would find you have given cause");
+        return (true, "it is held for life and you have given no cause: the court would find for you");
+    }
+    /// <summary>Whether the asker would abide by a court that found against it: not a head who is ruthless or arrogant and has the stronger fleet.</summary>
+    public static bool Abides(World w, House asker, House holder)
+    {
+        var head = Economy.HeadOf(w, asker); bool hard = head != null && (head.NatureTraits.Contains("Ruthless") || head.NatureTraits.Contains("Arrogant"));
+        return !(hard && FleetSystem.StrengthOf(w, asker.Id) > FleetSystem.StrengthOf(w, holder.Id));
+    }
+    private static int BenchSeats(World w, Func<string, int> weight, string houseId) => FactionSystem.Of(w, houseId) is { } f ? f.Members.Sum(weight) : weight(houseId);
+
+    /// <summary>Why this answer is not open, or null.</summary>
+    public static string? AnswerRefusal(World w, HoldingCatalog cat, Func<string, int> weight, House mine, SeatDemand? d, string how, ActionPools? pools)
+    {
+        if (d == null || d.AgainstId != mine.Id) return "nothing has been asked of you";
+        var planet = w.Holding(d.HoldingId); var asker = w.House(d.ById); if (planet == null || asker == null || d.Province >= planet.Provinces.Count) return "nothing has been asked of you";
+        switch (how)
+        {
+            case Coin:
+                int regard = RegardOf(w, asker, mine);
+                if (regard <= CoinRegardFloor) return $"{asker.Name} wants it, not your coin: its head thinks {regard:+0;-0} of you";
+                int price = BuyOffPrice(planet, d); return mine.Treasury.Credits >= price ? null : $"needs {price} credits";
+            case Court:
+                if (w.IsImperium) return "there is no praetor's court to take it to";
+                if ((pools?.Influence ?? 0) < CourtInfluence) return $"needs {CourtInfluence} influence";
+                return mine.Treasury.Credits >= CourtFee ? null : $"needs {CourtFee} credits for the court's fees";
+            case Bench:
+                var bench = FactionSystem.Of(w, mine.Id); if (bench == null) return "you sit on no bench";
+                if (bench.Members.Contains(asker.Id)) return $"{asker.Name} sits on your own bench: it will not stand against one of its own";
+                int ours = BenchSeats(w, weight, mine.Id), theirs = BenchSeats(w, weight, asker.Id);
+                return ours > theirs ? null : $"your bench has {ours} seats to their {theirs}: it would not face them down";
+            default: return "no such answer";
+        }
+    }
+    /// <summary>What the answer would do, said before it is given.</summary>
+    public static string AnswerSays(World w, HoldingCatalog cat, Func<string, int> weight, House mine, SeatDemand d, string how)
+    {
+        var planet = w.Holding(d.HoldingId)!; var asker = w.House(d.ById)!; string what = What(planet, d.Province); int years = cat.Provinces.SettleYears;
+        switch (how)
+        {
+            case Coin: return $"{asker.Name} is paid {BuyOffPrice(planet, d)} credits and lets it lie. {what} is yours, and may not be asked for again for {years} years.";
+            case Court:
+                var (forHolder, why) = CourtFinds(w, planet, d); string cost = $"It costs {CourtInfluence} influence and {CourtFee} credits in fees. ";
+                if (!forHolder) return cost + $"But {why}, and you would have to step down as if you had been asked and agreed.";
+                return cost + Cap(why) + ". " + (Abides(w, asker, mine)
+                    ? $"{asker.Name} would abide by it: {what} is yours and may not be asked for again for {years} years, and {asker.Name} loses {CourtLegitimacy} legitimacy for asking what the law would not give."
+                    : $"{asker.Name} is not one to abide by a court and has the stronger fleet: it would be war. It loses {CourtLegitimacy} legitimacy for defying the court, and you fight with the law on your side.");
+            default:
+                var bench = FactionSystem.Of(w, mine.Id); bool lead = bench?.LeaderHouseId == mine.Id;
+                return $"{bench?.Name ?? "Your bench"} stands behind you with {BenchSeats(w, weight, mine.Id)} seats to {asker.Name}'s {BenchSeats(w, weight, asker.Id)}, and {asker.Name} lets it lie: {what} is yours and may not be asked for again for {years} years. {asker.Name}'s head thinks {BenchRegard} the worse of you"
+                    + (lead || bench == null ? "." : $", and you owe {w.House(bench.LeaderHouseId)?.Name} a favour for it.");
+        }
+    }
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    /// <summary>Give the answer. Returns what came of it: <see cref="Yielded"/>, <see cref="War"/>, or "kept".</summary>
+    public static string Answer(World w, HoldingCatalog cat, Func<string, int> weight, House mine, SeatDemand d, string how, ActionPools? pools)
+    {
+        var planet = w.Holding(d.HoldingId)!; var asker = w.House(d.ById)!; string what = What(planet, d.Province);
+        switch (how)
+        {
+            case Coin:
+                int price = BuyOffPrice(planet, d); mine.Treasury.Credits -= price; asker.Treasury.Credits += price; Closed(w, d); Settled(w, cat, planet, d);
+                w.WorldCounters[BoughtOffCounter] = w.Counter(BoughtOffCounter) + 1;
+                w.Log($"{mine.Name} pays {asker.Name} {price} credits to let the matter of {what} lie."); return "kept";
+            case Court:
+                pools?.Spend(new Dictionary<string, int> { [Pool.Influence] = CourtInfluence }); mine.Treasury.Credits -= CourtFee; w.WorldCounters[CourtCounter] = w.Counter(CourtCounter) + 1;
+                if (!CourtFinds(w, planet, d).forHolder) { w.Log($"The praetor's court hears the matter of {what} and finds for {asker.Name}: {mine.Name} had given cause."); return Resolve(w, cat, d, true); }
+                asker.Legitimacy = Math.Clamp(asker.Legitimacy - CourtLegitimacy, 0, 100);
+                if (!Abides(w, asker, mine)) { w.Log($"The praetor's court finds that {what} is {mine.Name}'s for life. {asker.Name} does not abide by it."); return Resolve(w, cat, d, false); }
+                Closed(w, d); Settled(w, cat, planet, d);
+                w.Log($"The praetor's court finds that {what} is {mine.Name}'s for life, and {asker.Name} lets it lie."); return "kept";
+            default:
+                var bench = FactionSystem.Of(w, mine.Id); Closed(w, d); Settled(w, cat, planet, d); w.WorldCounters[BenchCounter] = w.Counter(BenchCounter) + 1;
+                var a = Economy.HeadOf(w, asker); var m = Economy.HeadOf(w, mine);
+                if (a != null && m != null) { var r = w.Relationship(a.Id, m.Id); r.Disposition = Math.Clamp(r.Disposition - BenchRegard, -100, 100); }
+                if (bench != null && bench.LeaderHouseId != mine.Id && w.House(bench.LeaderHouseId) != null) WealthSystem.OweFor(w, mine.Id, bench.LeaderHouseId);
+                w.Log($"{bench?.Name ?? "Its bench"} stands behind {mine.Name} over {what}, and {asker.Name} lets it lie."); return "kept";
+        }
+    }
+
     /// <summary>Whether a rival house steps down when asked, or fights: it steps down when it has no fleet, or when the one who asks
     /// is so much the stronger that fighting is hopeless.</summary>
     public static bool WillYield(World w, HoldingCatalog cat, string byId, string againstId)
