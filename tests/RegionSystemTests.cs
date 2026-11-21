@@ -446,7 +446,7 @@ public class DepthCycleTests
         w.Holdings["prime_two"] = new Holding { Id = "prime_two", OwnerId = "aurelian", Name = "Lesser Prime", Specialization = "agri", SystemId = "mid1", Population = 6 };
         w.House("vega")!.Legitimacy = 25; w.House("vega")!.Title = "landless"; var ctx = new CommandContext(w, TestContent.Rng());
         var cmd = new PetitionFiefCommand("self");
-        Assert.EndsWith("does not think well enough of you", cmd.Refusal(ctx));
+        Assert.Contains("does not think well enough of you", cmd.Refusal(ctx));
         w.Relationship("aurelian_head", "self").Disposition = 15;
         Assert.Contains("influence this year", cmd.Refusal(ctx)); w.Pools["self"].Influence = 3;
         Assert.Null(cmd.Refusal(ctx));
@@ -548,12 +548,40 @@ public class PatronTests
         w.House("vega")!.Legitimacy = 25; w.House("vega")!.Title = "landless"; var ctx = new CommandContext(w, TestContent.Rng());
         Assert.Equal("corwin", PetitionFiefCommand.Grantor(w, "vega")!.Id);                      // the court has no world to spare; Corwin has two
         var cmd = new PetitionFiefCommand("self");
-        Assert.Equal("House Corwin does not think well enough of you", cmd.Refusal(ctx));
+        Assert.StartsWith("House Corwin does not think well enough of you", cmd.Refusal(ctx));
         w.Relationship("corwin_head", "self").Disposition = 15; w.Pools["self"].Influence = 3;
         Assert.True(new CommandExecutor().TryExecute(cmd, ctx));
         Assert.Equal("vega", w.Holding("corwin_two")!.OwnerId); Assert.Equal("baron", w.House("vega")!.Title);
         Assert.Contains(w.History, h => h.Text.Contains("as patron"));
         w.Wars.Add(new War { HouseA = "vega", HouseB = "aurelian" }); w.Holdings.Remove("corwin_two");
         Assert.Null(PetitionFiefCommand.Grantor(w, "vega"));                                        // no one left with a world to spare
+    }
+
+    /* docs/PLAYTHROUGH.md, Medium, Building and holding: "Choose whom to petition for a prefecture, and see how far their regard is
+       from enough" (P80, P23). */
+    [Fact]
+    public void APetition_IsMadeOfAHouseOfYourChoosing_AndSaysHowFarShortItsRegardIs()
+    {
+        var w = Rings(0); w.Holdings.Remove("barony");
+        w.Holdings["corwin_two"] = new Holding { Id = "corwin_two", OwnerId = "corwin", Name = "Corwin's Lesser", Specialization = "agri", SystemId = "empty", Population = 4 };
+        w.Holdings["aurelian_two"] = new Holding { Id = "aurelian_two", OwnerId = "aurelian", Name = "Aurelian's Lesser", Specialization = "agri", SystemId = "empty", Population = 3 };
+        w.House("vega")!.Legitimacy = 25; w.House("vega")!.Title = "landless"; var ctx = new CommandContext(w, TestContent.Rng()); w.Pools["self"].Influence = 6;
+        var me = w.Char("self")!; var named = PetitionFiefCommand.Grantor(w, "vega")!; var all = PetitionFiefCommand.Grantors(w, "vega");
+        Assert.Equal(named.Id, all[0].Id); Assert.Contains(all, h => h.Id == "corwin"); Assert.Contains(all, h => h.Id == "aurelian");
+        string other = named.Id == "corwin" ? "aurelian" : "corwin"; string otherHead = Economy.HeadOf(w, w.House(other)!)!.Id, namedHead = Economy.HeadOf(w, named)!.Id;
+
+        // the house the Reach would name thinks too little of you, and the refusal says by how much
+        w.Relationship(namedHead, "self").Disposition = 4; w.Relationship(otherHead, "self").Disposition = 12;
+        Assert.Equal(4, PetitionFiefCommand.RegardOf(w, named, me));
+        string? no = new PetitionFiefCommand("self").Refusal(ctx);
+        Assert.Contains("thinks +4 of you", no); Assert.Contains($"grants a world at +{PetitionFiefCommand.Need}", no); Assert.Contains("(6 short)", no);
+
+        // another house thinks well enough: it can be asked instead, and gives its own least peopled world
+        var would = PetitionFiefCommand.WouldGrant(w, w.House(other)!)!;
+        Assert.Null(new PetitionFiefCommand("self", other).Refusal(ctx));
+        Assert.Contains("no world to spare", new PetitionFiefCommand("self", "no_such_house").Refusal(ctx));
+        Assert.True(new CommandExecutor().TryExecute(new PetitionFiefCommand("self", other), ctx));
+        Assert.Equal("vega", would.OwnerId); Assert.Equal(other, would.FormerOwnerId); Assert.Equal(3, w.Pools["self"].Influence);
+        Assert.Equal("you hold land already", new PetitionFiefCommand("self", named.Id).Refusal(ctx));
     }
 }

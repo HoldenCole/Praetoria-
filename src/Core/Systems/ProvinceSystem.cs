@@ -243,6 +243,39 @@ public static class ProvinceSystem
 
     // ---------------- building in a province ----------------
 
+    // ---------------- giving a province to another house (docs/PLAYTHROUGH.md, Medium, Building and holding, B21) ----------------
+
+    /// <summary>What the head of a house given a province thinks the better of the giver, and what the giving is worth in legitimacy.</summary>
+    public const int GrantRegard = 12, GrantLegitimacy = 1;
+    public const string GrantedCounter = "provinces_granted";
+    /// <summary>Why the house that holds a world may not give one of its provinces to another house, or null. Only a province it
+    /// still holds itself is its to give; the seat goes with the world; and a house holds one province of a world, not two.</summary>
+    public static string? GrantRefusal(World w, House by, Holding? planet, int index, string toId)
+    {
+        if (planet == null || !planet.IsPlanet || planet.OwnerId != by.Id) return "not your world";
+        if (index <= 0 || index >= planet.Provinces.Count) return "the seat goes with the world";
+        string holder = HolderOf(planet, index);
+        if (holder != by.Id) return $"{w.House(holder)?.Name ?? "another house"} holds it for life: it is asked for, not given away";
+        var to = w.House(toId); if (to == null || World.Outsider(toId) || toId == by.Id) return "choose a house to give it to";
+        if (Economy.HeadOf(w, to) == null) return $"{to.Name} has no head to take it";
+        if (w.AtWar(by.Id, toId)) return $"you are at war with {to.Name}";
+        if (planet.InRebellion) return "its world is in revolt";
+        if (planet.Provinces[index].FoughtOver) return "it is being fought over";
+        return ProvinceOf(planet, toId) > 0 ? $"{to.Name} holds a province of {planet.Name} already" : null;
+    }
+    /// <summary>The province is another house's now, for life, with what was built in it. It owes the customary dues.</summary>
+    public static void Grant(World w, House by, Holding planet, int index, string toId)
+    {
+        var to = w.House(toId)!; var p = planet.Provinces[index];
+        p.HolderId = to.Id; p.Since = w.Turn; p.Withheld = false; p.Dues = Customary; p.Levied = false; p.LevyLost = false; p.EasedUntil = 0; w.ProvincesChanged();
+        var mine = Economy.HeadOf(w, by); var theirs = Economy.HeadOf(w, to);
+        if (mine != null && theirs != null && mine.Id != theirs.Id) { var r = w.Relationship(theirs.Id, mine.Id); r.Disposition = Math.Clamp(r.Disposition + GrantRegard, -100, 100); }
+        by.Legitimacy = Math.Clamp(by.Legitimacy + GrantLegitimacy, 0, 100);
+        w.WorldCounters[GrantedCounter] = w.Counter(GrantedCounter) + 1;
+        w.Log($"{by.Name} gives {p.Name} on {planet.Name} to {to.Name}, to hold for life under it.");
+        if (to.Id == w.Protagonist?.HouseId) w.Tell("good", $"{by.Name} has given your house {p.Name} on {planet.Name}, to hold for life. What it yields is yours, less the customary dues.", "galaxy:" + planet.SystemId);
+    }
+
     public static string Target(string holdingId, int index) => holdingId + "@" + index;
     public static (string holdingId, int index) Parse(string target) { int at = target.LastIndexOf('@'); return at < 0 ? (target, -1) : (target[..at], int.TryParse(target[(at + 1)..], out var i) ? i : -1); }
     public static int Rising(World w, Holding planet, int index) { string t = Target(planet.Id, index); int n = 0; foreach (var p in w.Projects) if (p.Kind == Project.ProvinceWork && p.TargetId == t) n++; return n; }

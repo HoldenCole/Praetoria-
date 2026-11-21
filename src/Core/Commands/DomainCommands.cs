@@ -180,7 +180,26 @@ public sealed class AppointGovernorCommand : ICommand
 public sealed class PetitionFiefCommand : ICommand
 {
     private static readonly Dictionary<string, int> CostMap = new() { [Pool.Influence] = 3 };
-    public PetitionFiefCommand(string actorId) { ActorId = actorId; }
+    private readonly string _grantorId;
+    /// <summary>The regard a house's head must have for the petitioner before it will grant a world.</summary>
+    public const int Need = 10;
+    public const int Influence = 3;
+    /// <summary>Petition the house the Reach would name (<see cref="Grantor"/>), or (docs/PLAYTHROUGH.md, Medium, P80) one of your choosing.</summary>
+    public PetitionFiefCommand(string actorId, string grantorId = "") { ActorId = actorId; _grantorId = grantorId; }
+    private House? Chosen(World w, string houseId) => _grantorId.Length == 0 ? Grantor(w, houseId) : Grantors(w, houseId).FirstOrDefault(h => h.Id == _grantorId);
+    /// <summary>What the head of a house thinks of a petitioner.</summary>
+    public static int RegardOf(World w, House grantor, Character petitioner) => Systems.Economy.HeadOf(w, grantor) is { } crown ? w.GetRelationship(crown.Id, petitioner.Id)?.Disposition ?? 0 : Need;
+    /// <summary>The world a house would part with: its least peopled, never the capital.</summary>
+    public static Holding? WouldGrant(World w, House grantor) =>
+        w.HoldingsOf(grantor.Id).Where(h => h.IsPlanet && !(w.Galaxy is { Capital.Length: > 0 } g && g.Capital == h.SystemId)).OrderBy(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+    /// <summary>Every house that has a world to spare and could be asked: the one the Reach would name first, then by how many worlds it holds.</summary>
+    public static List<House> Grantors(World w, string houseId)
+    {
+        int Spare(House h) => w.HoldingsOf(h.Id).Count(x => x.IsPlanet);
+        string? mine = w.Protagonist?.HouseId is { } pid && pid != houseId ? pid : null; var first = Grantor(w, houseId);
+        return w.Houses.Values.Where(h => h.Id != houseId && h.Id != mine && !World.Outsider(h.Id) && h.Bloc != Systems.RegionSystem.FreeholdsBloc && !w.AtWar(houseId, h.Id) && Spare(h) >= 2 && WouldGrant(w, h) != null)
+            .OrderByDescending(h => h.Id == first?.Id).ThenByDescending(Spare).ThenByDescending(h => h.Legitimacy).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
+    }
     public string ActorId { get; }
     public string Describe() => "petition for a world to hold";
 
@@ -190,10 +209,10 @@ public sealed class PetitionFiefCommand : ICommand
         if (actor?.Alive != true || house == null) return "no house";
         if (w.HoldingsOf(house.Id).Any(h => h.IsPlanet)) return "you hold land already";
         if (house.Legitimacy < 20) return w.IsImperium ? "no court will hear a house of so little standing" : "the Senate will not entrust a world to a house of so little standing";
-        var court = Grantor(w, house.Id);
-        if (court == null) return "no house has a world to spare";
-        var crown = Systems.Economy.HeadOf(w, court);
-        if (crown != null && (w.GetRelationship(crown.Id, actor.Id)?.Disposition ?? 0) < 10) return $"{court.Name} does not think well enough of you";
+        var court = Chosen(w, house.Id);
+        if (court == null) return _grantorId.Length == 0 ? "no house has a world to spare" : "that house has no world to spare, or will not hear you";
+        int regard = RegardOf(w, court, actor);
+        if (regard < Need) return $"{court.Name} does not think well enough of you: {Systems.Economy.HeadOf(w, court)?.Name ?? "its head"} thinks {regard:+0;-0} of you, and grants a world at {Need:+0;-0} ({Need - regard} short)";
         return ctx.PoolsOf(ActorId).Short(CostMap);
     }
 
@@ -213,9 +232,9 @@ public sealed class PetitionFiefCommand : ICommand
 
     public void Execute(CommandContext ctx)
     {
-        var w = ctx.World; var actor = w.Char(ActorId)!; var house = w.House(actor.HouseId)!; var court = Grantor(w, house.Id)!;
+        var w = ctx.World; var actor = w.Char(ActorId)!; var house = w.House(actor.HouseId)!; var court = Chosen(w, house.Id)!;
         ctx.PoolsOf(ActorId).Spend(CostMap);
-        var fief = w.HoldingsOf(court.Id).Where(h => h.IsPlanet && !(w.Galaxy is { Capital.Length: > 0 } g && g.Capital == h.SystemId)).OrderBy(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).First();
+        var fief = WouldGrant(w, court)!;
         fief.FormerOwnerId = court.Id; fief.OwnerId = house.Id; fief.GovernorId = actor.Id;
         if (Progression.Title.RankOf(house.Title) < Progression.Title.RankOf(Progression.Title.Baron)) house.Title = Progression.Title.Baron;
         house.Legitimacy += 3; court.Legitimacy = Math.Min(100, court.Legitimacy + 5);

@@ -1149,3 +1149,17 @@ details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant
 .vbuy { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: .2rem; }
 .vbuy .qty { width: 4.2rem; }
 .house-venture { display: block; padding: .25rem 0; }
+
+/* Pull a building down: a small button under what stands */
+.sw-pull { margin-top: .2rem; text-align: right; }
+.sw-pull .opt { opacity: .75; }
+.sw-pull .opt:hover:not([disabled]) { opacity: 1; }
+
+/* Whom to petition, the provinces held under others, and giving a province away */
+.petition { margin: .3rem 0 .6rem; }
+.petition-row { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; padding: .2rem 0; }
+.held-under { margin: .3rem 0 .7rem; }
+.held-under h4 { margin: .2rem 0 .3rem; }
+.held-under .held-row { display: block; width: 100%; text-align: left; }
+details.sysp-grant { display: block; margin-top: .35rem; }
+details.sysp-grant select { max-width: 22rem; }

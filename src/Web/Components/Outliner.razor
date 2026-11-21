@@ -164,6 +164,7 @@
     <section class="ol-block">
         <h4><Icon Name="planet" Size="13" /> Holdings <span class="count">@m.Holdings.Count</span></h4>
         @foreach (var h in m.Holdings) { <button class="ol-row" @onclick='() => OnGo.InvokeAsync("galaxy:" + (w.Holding(h.Id)?.SystemId ?? ""))'><b>@h.Name</b> <span class="muted">@h.SpecName@(h.Unrest >= 50 ? " · restless" : "")@(h.Besieged ? " · besieged" : "")</span></button> }
+        @foreach (var (uh, ui) in w.ProvincesOf(house.Id).Where(x => x.h.OwnerId != house.Id)) { string usys = uh.SystemId; <button class="ol-row" data-ol-province title="A province you hold under another house, for life" @onclick='() => OnGo.InvokeAsync("galaxy:" + usys)'><b>@uh.Provinces[ui].Name</b> <span class="muted">province on @uh.Name · under @(w.House(uh.OwnerId)?.Name)</span></button> }
     </section>
 </aside>
 

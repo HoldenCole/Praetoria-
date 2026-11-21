@@ -148,6 +148,25 @@ public sealed class UpgradeBuildingCommand : ICommand
     }
 }
 
+/// <summary>Pull down a building that stands: on the home world (target the holding's id), on a body ("system#body") or in a
+/// province ("holding@index"). The slot is free; a quarter of its materials come back (<see cref="SystemWorks.PullDown"/>).</summary>
+public sealed class PullDownCommand : ICommand
+{
+    private readonly string _target; private readonly string _defId; private readonly HoldingCatalog _catalog;
+    public PullDownCommand(string actorId, string target, string defId, HoldingCatalog catalog) { ActorId = actorId; _target = target; _defId = defId; _catalog = catalog; }
+    public string ActorId { get; }
+    public string Describe() => $"pull down {_defId} at {_target}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); if (actor?.Alive != true) return "no one to give the order";
+        var house = w.House(actor.HouseId); if (house == null) return "no house";
+        return SystemWorks.PullDownRefusal(w, _catalog, house, _target, _defId);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public string Says(World w) => w.Char(ActorId) is { } a && w.House(a.HouseId) is { } h ? SystemWorks.PullDownSays(w, _catalog, h, _target, _defId) : "";
+    public void Execute(CommandContext ctx) { var w = ctx.World; SystemWorks.PullDown(w, _catalog, w.House(w.Char(ActorId)!.HouseId)!, _target, _defId); }
+}
+
 /// <summary>Hasten a great work, or let it go at its own pace again (docs/BUILDINGS.md; the owner, 2026-11-20: "you can pay extra to
 /// speed up the development. This would be a continuous cost over the development life cycle"). A hastened work does two years in
 /// one, and every year it is hastened pays both instalments and half as much again; a year the purse cannot stand it, it goes at its

@@ -275,6 +275,51 @@ public class SystemWorksTests
         w.Projects.RemoveAll(p => SystemWorks.IsGreat(Cat, p)); Assert.Null(new BuildWorkCommand(w.ProtagonistId, sys.Id, home, "great_stair", Cat, Content.Titles).Refusal(ctx));
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, Building and holding: "Pull a building down" (B65). */
+    [Fact]
+    public void ABuilding_IsPulledDown_ItsSlotIsFree_AndAQuarterOfItsMaterialsComeBack()
+    {
+        var (w, tc, house, me, ctx) = Start(); var eco = new Economy(Cat, Content.Businesses); house.Treasury.Credits = 400; house.Treasury.Materials = 400;
+        // on a body of the system
+        var def = Cat.Works.First(d => !d.IsMegastructure && d.BuildTurns <= 1 && d.Deposit.Length == 0 && d.Requires.Length == 0 && d.Cost.Materials >= 4 && !d.Yield.IsEmpty() && Site(w, house, d) != null); var at = Site(w, house, def)!.Value;
+        string target = SystemWorks.Target(at.sys.Id, at.body); int used = SystemWorks.SlotsUsed(w, Cat, at.sys.Id, at.body);
+        Assert.Equal("no such building", new PullDownCommand(me.Id, target, def.Id, Cat).Refusal(ctx));
+        Assert.True(tc.Executor.TryExecute(new BuildWorkCommand(me.Id, at.sys.Id, at.body, def.Id, Cat, Content.Titles), ctx));
+        Assert.Equal(used + 1, SystemWorks.SlotsUsed(w, Cat, at.sys.Id, at.body)); Assert.Contains(eco.Compute(w, house.Id).Lines, l => l.Kind == "work" && l.Source.StartsWith(def.Name));
+        // not another house's to pull down
+        var other = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id) && Economy.HeadOf(w, h) != null);
+        Assert.Equal("you do not hold this system", new PullDownCommand(Economy.HeadOf(w, other)!.Id, target, def.Id, Cat).Refusal(ctx));
+        // not while its next level is rising
+        w.Development[at.sys.Id] = 100; Assert.True(tc.Executor.TryExecute(new UpgradeBuildingCommand(me.Id, target, def.Id, Cat), ctx));
+        Assert.StartsWith("its next level is being built", new PullDownCommand(me.Id, target, def.Id, Cat).Refusal(ctx));
+        w.Development[at.sys.Id] = 100; Year(tc); tc.BeginTurn(); Assert.Equal(2, SystemWorks.On(w, at.sys.Id, at.body).First(x => x.DefId == def.Id).Level);
+        // down it comes: a quarter of the materials of both levels, the slot free, the ledger line gone
+        var cmd = new PullDownCommand(me.Id, target, def.Id, Cat); int scrap = def.Cost.Materials * 2 * SystemWorks.ScrapPct / 100; Assert.True(scrap > 0);
+        Assert.Equal(scrap, SystemWorks.Scrap(w, Cat, house, target, def.Id)); Assert.Contains($"{scrap} materials", cmd.Says(w)); Assert.Contains("cannot be undone", cmd.Says(w));
+        int mats = house.Treasury.Materials, legit = house.Legitimacy; Assert.True(tc.Executor.TryExecute(cmd, ctx));
+        Assert.Equal(mats + scrap, house.Treasury.Materials); Assert.Equal(used, SystemWorks.SlotsUsed(w, Cat, at.sys.Id, at.body)); Assert.Empty(SystemWorks.On(w, at.sys.Id, at.body).Where(x => x.DefId == def.Id));
+        Assert.DoesNotContain(eco.Compute(w, house.Id).Lines, l => l.Kind == "work" && l.Source.StartsWith(def.Name)); Assert.Equal(legit - Math.Max(0, def.Legitimacy), house.Legitimacy);
+        Assert.Null(new BuildWorkCommand(me.Id, at.sys.Id, at.body, def.Id, Cat, Content.Titles).Refusal(ctx));   // and it can be built again
+
+        // one of the home world's own buildings
+        var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet && h.Buildings.Any(b => Cat.Building(b) is { Megastructure: false })); string bid = seat.Buildings.First(b => Cat.Building(b) is { Megastructure: false });
+        int worldUsed = SystemWorks.WorldSlotsUsed(w, Cat, seat); seat.Upgrades[bid] = 2;
+        Assert.True(tc.Executor.TryExecute(new PullDownCommand(me.Id, seat.Id, bid, Cat), ctx)); Assert.DoesNotContain(bid, seat.Buildings); Assert.False(seat.Upgrades.ContainsKey(bid)); Assert.Equal(worldUsed - 1, SystemWorks.WorldSlotsUsed(w, Cat, seat));
+
+        // a building in a province of one's own, and not in another's
+        var (far, idx) = w.ProvincesOf(house.Id).First(x => Cat.Works.Any(d => ProvinceSystem.Suits(Cat, w.Galaxy!.System(x.h.SystemId)!, x.h.Provinces[x.i], d) && d.BuildTurns <= 1));
+        var pv = far.Provinces[idx]; var pdef = Cat.Works.First(d => ProvinceSystem.Suits(Cat, w.Galaxy!.System(far.SystemId)!, pv, d) && d.BuildTurns <= 1); string ptarget = ProvinceSystem.Target(far.Id, idx);
+        Assert.True(tc.Executor.TryExecute(new BuildInProvinceCommand(me.Id, far.Id, idx, pdef.Id, Cat), ctx), new BuildInProvinceCommand(me.Id, far.Id, idx, pdef.Id, Cat).Refusal(ctx));
+        Assert.Equal("it is not your province", new PullDownCommand(Economy.HeadOf(w, other)!.Id, ptarget, pdef.Id, Cat).Refusal(ctx));
+        Assert.True(tc.Executor.TryExecute(new PullDownCommand(me.Id, ptarget, pdef.Id, Cat), ctx)); Assert.DoesNotContain(pdef.Id, pv.Buildings);
+
+        // a great work is not pulled down
+        var great = Cat.Works.First(d => d.IsMegastructure); var gsys = w.Galaxy!.System(seat.SystemId)!; int gbody = gsys.Bodies.FindIndex(b => b.IsPrimary);
+        w.BodyWorks.Add(new BodyWork { Id = "g", SystemId = gsys.Id, Body = gbody, DefId = great.Id, BuiltBy = house.Id });
+        Assert.Equal("a great work is not pulled down", new PullDownCommand(me.Id, SystemWorks.Target(gsys.Id, gbody), great.Id, Cat).Refusal(ctx));
+        Assert.Equal(4, w.Counter(SystemWorks.PulledDownCounter) + 1);
+    }
+
     [Fact]
     public void ABuilding_IsTakenHigher_AsFarAsDevelopmentAllows()
     {

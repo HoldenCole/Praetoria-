@@ -137,7 +137,40 @@
         <section class="panel">
             <h3><Icon Name="worlds" Size="13" /> The domain <span class="muted">@m.Holdings.Count holding(s)</span></h3>
             @if (m.Holdings.Count == 0) { <div class="muted">Your house holds no land. A fief is won, granted, or married into.</div> }
-            @if (m.Petition != null && !m.Holdings.Any(h => h.Kind == "planet")) { <button class="opt" disabled="@(m.Petition.Refusal != null)" title="@m.Petition.Refusal" @onclick="() => G.Execute(new PetitionFiefCommand(pid))">@m.Petition.Label</button> }
+            @if (m.Petition != null && !m.Holdings.Any(h => h.Kind == "planet"))
+            {
+                /* whom to ask for a world, and how far each is from saying yes (docs/PLAYTHROUGH.md, Medium, P80, P23) */
+                var grantors = PetitionFiefCommand.Grantors(w, house.Id); var named = PetitionFiefCommand.Grantor(w, house.Id);
+                <div class="petition" data-petition>
+                    <div class="muted small">A house with a world to spare may entrust its least peopled one to you. It costs @PetitionFiefCommand.Influence influence, and its head must think @PetitionFiefCommand.Need.ToString("+0;-0") of you or better. Visits, gifts and votes move that: a house's page under Houses says what can be done.</div>
+                    @if (grantors.Count == 0) { <div class="small warn">No house has a world to spare.</div> }
+                    @foreach (var gr in grantors.Take(8))
+                    {
+                        string gid = gr.Id; int regard = PetitionFiefCommand.RegardOf(w, gr, w.Protagonist!); var would = PetitionFiefCommand.WouldGrant(w, gr); var ask = new PetitionFiefCommand(pid, gid); string? askNo = ask.Refusal(G.Ctx);
+                        <div class="line petition-row" data-grantor="@gid" data-short="@Math.Max(0, PetitionFiefCommand.Need - regard)">
+                            <b>@gr.Name</b>@(gr.Id == named?.Id ? " · the house the Reach would name" : "")
+                            <span class="muted small"> · would give @(would?.Name ?? "a world") · its head thinks <b class="@(regard >= PetitionFiefCommand.Need ? "good" : "warn")">@regard.ToString("+0;-0")</b> of you@(regard >= PetitionFiefCommand.Need ? ": enough" : $": {PetitionFiefCommand.Need - regard} short")</span>
+                            <button class="opt inline tiny" disabled="@(askNo != null)" title="@(askNo ?? "")" @onclick="() => G.Execute(ask)">Petition</button>
+                            <button class="opt inline tiny" @onclick='() => OnGo.InvokeAsync("houses:" + gid)'>Its page ▸</button>
+                        </div>
+                    }
+                </div>
+            }
+            @{ var under = w.ProvincesOf(house.Id).Where(x => x.h.OwnerId != house.Id).ToList(); }
+            @if (under.Count > 0)
+            {
+                /* one player did not know for nineteen years that the house held any (docs/PLAYTHROUGH.md, Medium, P89) */
+                <div class="held-under" data-held-under="@under.Count">
+                    <h4>Provinces held under other houses <span class="muted small">yours for life · what they yield is in the ledger, less the dues</span></h4>
+                    @foreach (var (uh, ui) in under)
+                    {
+                        var up = uh.Provinces[ui]; var uy = ProvinceSystem.Yield(w, c.Holdings, uh, up); var ud = ProvinceSystem.Dues(w, c.Holdings, uh, ui); string usys = uh.SystemId;
+                        <button class="ol-row held-row" title="Open its system: the province, its city and what can be built there" @onclick='() => OnGo.InvokeAsync("galaxy:" + usys)'>
+                            <b>@up.Name</b> <span class="muted">on @uh.Name · under @(w.House(uh.OwnerId)?.Name) · @(c.Holdings.Provinces.Focus(up.Focus)?.Name ?? up.Focus)@(up.City.Length > 0 ? " · " + up.City : "") · level @up.Level · @(uy.IsEmpty() ? "pays nothing" : "+" + CourtProjection.Bundle(uy) + " a year")@(up.Withheld ? " · you are withholding the dues" : ud.IsEmpty() ? " · no dues owed" : " · owes " + CourtProjection.Bundle(ud) + " (" + ProvinceSystem.DuesName(ProvinceSystem.DuesOf(w, up)) + ")")</span>
+                        </button>
+                    }
+                </div>
+            }
             <div class="holding-board">
                 @foreach (var h in m.Holdings)
                 {

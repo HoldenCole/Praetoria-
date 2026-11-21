@@ -236,6 +236,69 @@ public static class SystemWorks
         var first = ProjectSystem.Split(UpgradeCost(cost, level), Math.Max(1, years)).First;
         return house.Treasury.CanAfford(first) ? null : !explain ? "needs more" : $"{house.Treasury.Short(first)}{(years > 1 ? " to begin" : "")}";
     }
+    // ---------------- pulling a building down (docs/PLAYTHROUGH.md, Medium, Building and holding, B65) ----------------
+
+    /// <summary>What the breakers give back: this share of the materials the building's first level cost, for each level it stands at.</summary>
+    public const int ScrapPct = 25;
+    public const string PulledDownCounter = "buildings_pulled_down";
+    /// <summary>The building a target names, wherever it stands: its name, what it cost, its level, where it is, and whether it is a great work.</summary>
+    private static (string name, Resources cost, int level, string where, bool great, int legitimacy, string systemId)? Stands(World w, HoldingCatalog cat, House house, string target, string defId, out string? refusal)
+    {
+        refusal = null;
+        if (target.Contains('@'))
+        {
+            var (hid, idx) = ProvinceSystem.Parse(target); var planet = w.Holding(hid); var def = cat.Work(defId);
+            if (planet == null || def == null || idx <= 0 || idx >= planet.Provinces.Count || !planet.Provinces[idx].Buildings.Contains(defId)) { refusal = "no such building"; return null; }
+            if (ProvinceSystem.HolderOf(planet, idx) != house.Id) { refusal = "it is not your province"; return null; }
+            return (def.Name, def.Cost, planet.Provinces[idx].LevelOf(defId), "in " + planet.Provinces[idx].Name, def.IsMegastructure, def.Legitimacy, planet.SystemId);
+        }
+        if (target.Contains('#'))
+        {
+            var (sysId, body) = Parse(target); var x = On(w, sysId, body).FirstOrDefault(o => o.DefId == defId); var def = cat.Work(defId); var sys = w.Galaxy?.System(sysId);
+            if (x == null || def == null || sys == null || body < 0 || body >= sys.Bodies.Count) { refusal = "no such building"; return null; }
+            if (w.PlanetHolder(sysId) != house.Id) { refusal = "you do not hold this system"; return null; }
+            return (def.Name, def.Cost, Math.Max(1, x.Level), Where(sys.Bodies[body]), def.IsMegastructure, def.Legitimacy, sysId);
+        }
+        var h = w.Holding(target); var bd = cat.Building(defId);
+        if (h == null || bd == null || !h.Buildings.Contains(defId)) { refusal = "no such building"; return null; }
+        if (h.OwnerId != house.Id) { refusal = "not your holding"; return null; }
+        return (bd.Name, bd.Cost, h.LevelOf(defId), "at " + h.Name, bd.Megastructure, 0, h.SystemId);
+    }
+    /// <summary>The materials the breakers give back for it.</summary>
+    public static int Scrap(World w, HoldingCatalog cat, House house, string target, string defId) =>
+        Stands(w, cat, house, target, defId, out _) is { } s ? s.cost.Materials * s.level * ScrapPct / 100 : 0;
+    /// <summary>Why a building may not be pulled down, or null. Whoever may build in a place may pull down what stands there; a great
+    /// work is not pulled down, and nothing is while its next level is rising.</summary>
+    public static string? PullDownRefusal(World w, HoldingCatalog cat, House house, string target, string defId)
+    {
+        if (Stands(w, cat, house, target, defId, out var no) is not { } s) return no;
+        if (s.great) return "a great work is not pulled down";
+        if (w.PlanetOf(s.systemId)?.InRebellion == true) return "its world is in revolt";
+        return Upgrading(w, target, defId) != null ? "its next level is being built: let that finish, or abandon it" : null;
+    }
+    /// <summary>What pulling it down would do, in a line, for the confirm.</summary>
+    public static string PullDownSays(World w, HoldingCatalog cat, House house, string target, string defId)
+    {
+        if (Stands(w, cat, house, target, defId, out _) is not { } s) return "";
+        int scrap = s.cost.Materials * s.level * ScrapPct / 100;
+        return $"{s.name}{(s.level > 1 ? " " + Roman(s.level) : "")} {s.where} is pulled down and its slot is free. "
+            + (scrap > 0 ? $"The breakers give back {scrap} materials ({ScrapPct}% of what its {(s.level > 1 ? s.level + " levels" : "first level")} cost in them). " : "Nothing of it is worth carrying away. ")
+            + "What it yielded and what it cost to keep both stop."
+            + (s.legitimacy > 0 ? $" The house loses the {s.legitimacy} legitimacy it had for raising it." : "") + " It cannot be undone.";
+    }
+    public static void PullDown(World w, HoldingCatalog cat, House house, string target, string defId)
+    {
+        if (Stands(w, cat, house, target, defId, out _) is not { } s) return;
+        int scrap = s.cost.Materials * s.level * ScrapPct / 100;
+        if (target.Contains('@')) { var (hid, idx) = ProvinceSystem.Parse(target); var p = w.Holding(hid)!.Provinces[idx]; p.Buildings.Remove(defId); p.BuildingLevels.Remove(defId); w.WorldCounters["province_buildings"] = Math.Max(0, w.Counter("province_buildings") - 1); }
+        else if (target.Contains('#')) { var (sysId, body) = Parse(target); w.BodyWorks.RemoveAll(o => o.SystemId == sysId && o.Body == body && o.DefId == defId); }
+        else { var h = w.Holding(target)!; h.Buildings.Remove(defId); h.Upgrades.Remove(defId); }
+        house.Treasury.Materials += scrap;
+        if (s.legitimacy > 0) house.Legitimacy = Math.Clamp(house.Legitimacy - s.legitimacy, 0, 100);
+        w.WorldCounters[PulledDownCounter] = w.Counter(PulledDownCounter) + 1;
+        w.Log($"{house.Name} pulls down {s.name} {s.where}{(scrap > 0 ? $": {scrap} materials come back from the breakers" : "")}.");
+    }
+
     /// <summary>The level is built: the building stands one higher.</summary>
     public static void Upgrade(World w, HoldingCatalog cat, string target, string defId)
     {

@@ -85,6 +85,25 @@ public sealed class BuildInProvinceCommand : ICommand
     }
 }
 
+/// <summary>Give a province of a world you hold, which you still hold yourself, to another house (<see cref="ProvinceSystem.Grant"/>):
+/// theirs for life, with what was built in it; they owe you the customary dues and their head thinks the better of you.</summary>
+public sealed class GrantProvinceCommand : ICommand
+{
+    private readonly string _holdingId, _toId; private readonly int _index;
+    public GrantProvinceCommand(string actorId, string holdingId, int index, string toHouseId) { ActorId = actorId; _holdingId = holdingId; _index = index; _toId = toHouseId; }
+    public string ActorId { get; }
+    public string Describe() => $"give province {_index} of {_holdingId} to {_toId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null) return "no one to give the order";
+        if (Economy.HeadOf(w, house)?.Id != actor.Id) return "only the head of the house gives land away";
+        return ProvinceSystem.GrantRefusal(w, house, w.Holding(_holdingId), _index, _toId);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; ProvinceSystem.Grant(w, w.House(w.Char(ActorId)!.HouseId)!, w.Holding(_holdingId)!, _index, _toId); }
+}
+
 /// <summary>Set what a province of the actor's world owes (docs/PROVINCES.md): forgiven (0), customary (1) or heavy (2). Forgiven, the
 /// house that holds it leans the actor's way the more; heavy, it pays twice, leans nowhere, and if it is the actor's match it may stop paying.</summary>
 public sealed class SetDuesCommand : ICommand

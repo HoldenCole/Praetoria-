@@ -162,7 +162,7 @@
     [Parameter] public int TabStamp { get; set; }
     private static int _seenStamp;
     protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) OpenOn(Tab); } }
-    private void OpenOn(string tab) { if (G.World?.House(tab) != null) _focus = tab; }
+    private void OpenOn(string tab) { if (G.World?.House(tab) != null) { _focus = tab; _open = true; } }
     /// <summary>Whether a house's own page is open over the standings (docs/ART_DIRECTION.md, "The windows, one by one").</summary>
     private bool _open;
     protected override async Task OnAfterRenderAsync(bool first) { try { await JS.InvokeVoidAsync("praetoriaFx.paint"); } catch { } }

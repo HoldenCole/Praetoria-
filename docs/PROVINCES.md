@@ -152,3 +152,11 @@ under it about one year in sixty. In a sixty-year game of the small map this com
 ## Not done
 
 See docs/GAPS.md, "Provinces".
+
+## Giving a province away (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, Building and holding, B21). The house that holds a world may give a
+province it still holds itself to another house (`GrantProvinceCommand`, `ProvinceSystem.Grant`): theirs for life, with what
+is built in it, at the customary dues. Their head thinks 12 the better of the giver, and the giver gains 1 legitimacy. The
+seat is not given; a house holds one province of a world; not to a house at war with the giver; only the head gives land.
+It is asked back like any province (`DemandSeatCommand`). Other houses do not yet give provinces of their own accord.

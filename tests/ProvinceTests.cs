@@ -194,6 +194,39 @@ public class ProvinceTests
         var stranger = w.Houses.Values.First(h => !World.Outsider(h.Id) && h.Id != house.Id && !ProvinceSystem.Under(w, h.Id, house.Id)); Assert.DoesNotContain("holds a province under it", OrderSystem.Sway(w, stranger, house).why);
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, Building and holding: "Grant a province you hold to another house" (B21). */
+    [Fact]
+    public void AProvinceOfYourOwnWorld_IsGivenToAnotherHouse_ForLife()
+    {
+        var (w, tc, house, me, ctx) = Start(); var eco = new Economy(Cat, Content.Businesses);
+        var planet = w.HoldingsOf(house.Id).First(h => h.IsPlanet && h.Provinces.Count >= 3);
+        int idx = 1; var p = planet.Provinces[idx]; p.HolderId = ""; w.ProvincesChanged();                                       // one the house still holds itself
+        var others = w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id) && Economy.HeadOf(w, h) != null && !w.AtWar(house.Id, h.Id) && ProvinceSystem.ProvinceOf(planet, h.Id) < 0).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var to = others[0]; var toHead = Economy.HeadOf(w, to)!;
+
+        // what is not yours to give
+        Assert.Equal("the seat goes with the world", new GrantProvinceCommand(me.Id, planet.Id, 0, to.Id).Refusal(ctx));
+        Assert.Equal("not your world", new GrantProvinceCommand(toHead.Id, planet.Id, idx, house.Id).Refusal(ctx));
+        Assert.Equal("choose a house to give it to", new GrantProvinceCommand(me.Id, planet.Id, idx, house.Id).Refusal(ctx));
+        w.Wars.Add(new War { HouseA = house.Id, HouseB = to.Id, Since = w.Turn }); Assert.StartsWith("you are at war with", new GrantProvinceCommand(me.Id, planet.Id, idx, to.Id).Refusal(ctx)); w.Wars.Clear();
+        var kin = w.Characters.Values.First(c => c.HouseId == house.Id && c.Alive && c.Id != me.Id);
+        Assert.Equal("only the head of the house gives land away", new GrantProvinceCommand(kin.Id, planet.Id, idx, to.Id).Refusal(ctx));
+
+        // given: theirs, from this year, at the customary dues, with what stood in it
+        p.Buildings.Add("kept"); int regard = w.Relationship(toHead.Id, me.Id).Disposition, legit = house.Legitimacy; var mineBefore = eco.Compute(w, house.Id).Net.Clone();
+        Assert.True(tc.Executor.TryExecute(new GrantProvinceCommand(me.Id, planet.Id, idx, to.Id), ctx), new GrantProvinceCommand(me.Id, planet.Id, idx, to.Id).Refusal(ctx));
+        Assert.Equal(to.Id, ProvinceSystem.HolderOf(planet, idx)); Assert.Equal(w.Turn, p.Since); Assert.Equal(ProvinceSystem.Customary, p.Dues); Assert.Contains("kept", p.Buildings);
+        Assert.Equal(regard + ProvinceSystem.GrantRegard, w.Relationship(toHead.Id, me.Id).Disposition); Assert.Equal(Math.Min(100, legit + ProvinceSystem.GrantLegitimacy), house.Legitimacy);
+        Assert.Contains(w.ProvincesOf(to.Id), x => x.h.Id == planet.Id && x.i == idx); Assert.True(ProvinceSystem.Under(w, to.Id, house.Id));
+        Assert.Equal(1, w.Counter(ProvinceSystem.GrantedCounter)); p.Buildings.Remove("kept");
+
+        // it is theirs now: not given twice, and a house holds one province of a world
+        Assert.Contains("holds it for life", new GrantProvinceCommand(me.Id, planet.Id, idx, others[1].Id).Refusal(ctx));
+        planet.Provinces[2].HolderId = ""; w.ProvincesChanged();
+        Assert.Contains("holds a province of", new GrantProvinceCommand(me.Id, planet.Id, 2, to.Id).Refusal(ctx));
+        Assert.Null(new GrantProvinceCommand(me.Id, planet.Id, 2, others[1].Id).Refusal(ctx));
+    }
+
     [Fact]
     public void ABuildingInAProvince_IsTakenHigher_AndTellsOnTheWorld()
     {

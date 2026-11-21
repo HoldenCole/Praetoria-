@@ -181,6 +181,31 @@
                                         <div class="sw-cost"><span>@(wh ? "Pay what is owed again" : "Refuse to pay")</span><button class="opt inline @(wh ? "" : "warn")" disabled="@(whno != null)" title="@(wh ? "The dues, the levy and your voice are theirs again." : "You keep what you owe. " + overName + " may ask you to give up the province at no cost, and if it is your match it will.")" @onclick="() => G.Execute(new WithholdDuesCommand(me.Id, dkey, pidx, !wh))">@(wh ? "Pay again" : "Withhold the dues")</button></div>
                                     }
                                 }
+                                @if (mine && pmine && pi > 0)
+                                {
+                                    /* a province of your own world that you still hold yourself is yours to give (docs/PLAYTHROUGH.md, Medium, B21) */
+                                    string gkey = planet.Id + "#" + pi; string hidG = planet.Id;
+                                    var takers = w.Houses.Values.Where(x => x.Id != house.Id && !World.Outsider(x.Id) && ProvinceSystem.GrantRefusal(w, house, planet, pidx, x.Id) == null)
+                                        .OrderByDescending(x => RegardFor(x)).ThenBy(x => x.Name, StringComparer.Ordinal).ToList();
+                                    string toG = _grantTo.TryGetValue(gkey, out var gto) && takers.Any(x => x.Id == gto) ? gto : "";
+                                    var grant = new GrantProvinceCommand(me.Id, planet.Id, pi, toG); string? gno = toG.Length == 0 ? "choose a house to give it to" : grant.Refusal(ctx);
+                                    var after = ProvinceSystem.Customary * 1; var tithe = new Resources(); foreach (var rr in Resource.All) tithe.Set(rr, cat.Provinces.Tithe.Get(rr) * Math.Max(1, pv.Level) * after);
+                                    <details class="inline sysp-grant" data-grant="@gkey">
+                                        <summary>Give this province to another house</summary>
+                                        <div class="muted small">It is theirs for life, with what is built in it. You lose what it yields (@(pyield.IsEmpty() ? "nothing now" : "+" + Bundle(pyield) + " a year")) and are owed the customary dues instead (@(tithe.IsEmpty() ? "nothing" : Bundle(tithe) + " a year"), a levy in your wars, and its voice in the Senate). Its head thinks @ProvinceSystem.GrantRegard the better of you, and the house gains @ProvinceSystem.GrantLegitimacy legitimacy for the giving. To have it back you must ask for it, and they may refuse.</div>
+                                        @if (takers.Count == 0) { <div class="small warn">No house can take it now.</div> }
+                                        else
+                                        {
+                                            <div class="row">
+                                                <select @onchange="e => _grantTo[gkey] = e.Value?.ToString() ?? string.Empty">
+                                                    <option value="" selected="@(toG.Length == 0)">Choose a house</option>
+                                                    @foreach (var tk in takers) { <option value="@tk.Id" selected="@(tk.Id == toG)">@tk.Name (its head thinks @RegardFor(tk).ToString("+0;-0") of you)</option> }
+                                                </select>
+                                                <button class="opt inline" data-grant-go disabled="@(gno != null)" title="@(gno != null ? Cap(gno) : "")" @onclick="() => AskGrant(grant, pv.Name, planet.Name, toG)">Give it</button>
+                                            </div>
+                                        }
+                                    </details>
+                                }
                                 @if (pv.Buildings.Count > 0 || prising > 0)
                                 {
                                     string ptarget = ProvinceSystem.Target(planet.Id, pi); var pup = w.Projects.Where(x => x.Kind == Project.Upgrade && x.TargetId == ptarget).ToList();
@@ -189,7 +214,7 @@
                                         @foreach (var bid in pv.Buildings)
                                         {
                                             var bd = cat.Work(bid); if (bd == null) continue; int blv = pv.LevelOf(bid);
-                                            <div class="sysp-work stands">@Art(bd.Id)<div class="sw-text"><div class="sw-head"><b>@bd.Name</b> @LevelPips(blv) <span class="muted small">stands</span></div><div class="sw-does">@Does(bd, sys, blv)</div>@UpgradeLine(ptarget, bd.Id, bd.Cost, bd.BuildTurns, blv, true, pup, ctx)</div></div>
+                                            <div class="sysp-work stands">@Art(bd.Id)<div class="sw-text"><div class="sw-head"><b>@bd.Name</b> @LevelPips(blv) <span class="muted small">stands</span></div><div class="sw-does">@Does(bd, sys, blv)</div>@UpgradeLine(ptarget, bd.Id, bd.Cost, bd.BuildTurns, blv, true, pup, ctx)@PullDownLine(ptarget, bd.Id, bd.Name, true)</div></div>
                                         }
                                     }
                                     <div class="sysp-built prov">
@@ -264,12 +289,12 @@
                     @foreach (var d in hb)
                     {
                         int lv = planet!.LevelOf(d.Id);
-                        <div class="sysp-work stands">@Art(d.Id)<div class="sw-text"><div class="sw-head"><b>@d.Name</b> @LevelPips(lv) <span class="muted small">stands</span></div><div class="sw-does">@BuildingDoes(d, lv)</div>@UpgradeLine(planet.Id, d.Id, d.Cost, d.BuildTurns, lv, mine, upgrading, ctx)</div></div>
+                        <div class="sysp-work stands">@Art(d.Id)<div class="sw-text"><div class="sw-head"><b>@d.Name</b> @LevelPips(lv) <span class="muted small">stands</span></div><div class="sw-does">@BuildingDoes(d, lv)</div>@UpgradeLine(planet.Id, d.Id, d.Cost, d.BuildTurns, lv, mine, upgrading, ctx)@PullDownLine(planet.Id, d.Id, d.Name, mine)</div></div>
                     }
                     @foreach (var x in SystemWorks.On(w, sys.Id, i).ToList())
                     {
                         var d = cat.Work(x.DefId); if (d == null) continue; int lv = Math.Max(1, x.Level);
-                        <div class="sysp-work stands @(d.IsMegastructure ? "mega" : "")">@Art(d.Id)<div class="sw-text"><div class="sw-head"><b>@d.Name</b> @if (!d.IsMegastructure) { @LevelPips(lv) } <span class="muted small">@(d.IsMegastructure ? "great work · stands" : "stands")</span></div><div class="sw-does">@Does(d, sys, lv)</div>@if (!d.IsMegastructure) { @UpgradeLine(target, d.Id, d.Cost, d.BuildTurns, lv, mine, upgrading, ctx) }</div></div>
+                        <div class="sysp-work stands @(d.IsMegastructure ? "mega" : "")">@Art(d.Id)<div class="sw-text"><div class="sw-head"><b>@d.Name</b> @if (!d.IsMegastructure) { @LevelPips(lv) } <span class="muted small">@(d.IsMegastructure ? "great work · stands" : "stands")</span></div><div class="sw-does">@Does(d, sys, lv)</div>@if (!d.IsMegastructure) { @UpgradeLine(target, d.Id, d.Cost, d.BuildTurns, lv, mine, upgrading, ctx) @PullDownLine(target, d.Id, d.Name, mine) }</div></div>
                     }
                     @foreach (var p in hbRising.Concat(rising))
                     {
@@ -406,6 +431,14 @@
     };
 
     private readonly Dictionary<string, string> _giveTo = new(); private string? _provOpen;
+    /// <summary>The house picked to be given each province, by "holding#index".</summary>
+    private readonly Dictionary<string, string> _grantTo = new();
+    private int RegardFor(House h) { var w = G.World!; var head = Economy.HeadOf(w, h); return head == null ? 0 : w.GetRelationship(head.Id, w.ProtagonistId)?.Disposition ?? 0; }
+    private void AskGrant(GrantProvinceCommand cmd, string province, string world, string toId)
+    {
+        string to = G.World!.House(toId)?.Name ?? "that house";
+        G.Ask("Give " + province + " to " + to + "?", province + " on " + world + " is theirs for life, with what is built in it. They owe you the customary dues. To have it back you must ask for it, and they may refuse.", "Give it", () => G.Execute(cmd));
+    }
     private void SetGive(string holdingId, int index, ChangeEventArgs e) { _giveTo[holdingId + "#" + index] = e.Value?.ToString() ?? string.Empty; }
     /// <summary>Whom a world is asked for: the choice made, if that house holds a province of it; else the first that does.</summary>
     private static string WorldFor(Holding planet, string chosen)
@@ -437,6 +470,15 @@
         </div>
         @if (mine && no != null) { <div class="sw-no">@Cap(no)</div> }
     };
+
+    /// <summary>Pull down a building that stands: a small button, behind a confirm that says what comes back and what stops.</summary>
+    private RenderFragment PullDownLine(string target, string defId, string name, bool mine) => __builder =>
+    {
+        if (!mine) return;
+        var w = G.World!; var cat = G.Content!.Holdings; var me = w.Protagonist!; var cmd = new PullDownCommand(me.Id, target, defId, cat); string? no = cmd.Refusal(G.Ctx);
+        <div class="sw-pull"><button class="opt inline tiny" data-pull-down="@(target + "|" + defId)" disabled="@(no != null)" title="@(no != null ? Cap(no) : cmd.Says(w))" @onclick="() => AskPullDown(cmd, name)">Pull down</button></div>
+    };
+    private void AskPullDown(PullDownCommand cmd, string name) => G.Ask("Pull down " + name + "?", cmd.Says(G.World!), "Pull it down", () => G.Execute(cmd));
 
     /// <summary>One thing that could be built on a body: its picture, what it does, what it costs, and the button or why not.</summary>
     private RenderFragment WorkRow(WorkDef d, StarSystem sys, int body, bool mine, CommandContext ctx) => __builder =>

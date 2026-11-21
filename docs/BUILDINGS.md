@@ -389,3 +389,11 @@ trimmed. The set ships whole.
 ## Not done
 
 See docs/GAPS.md, "Buildings".
+
+## Pulling a building down (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, Building and holding, B65). `PullDownCommand` takes the same targets
+as an upgrade: a holding's id (the home world's own buildings), `system#body`, or `holding@index` (a province). Whoever
+may build in the place may pull down what stands there. The slot is free; a quarter of the materials of each level come
+back (`SystemWorks.ScrapPct`); legitimacy a building gave for being raised is taken back. A great work is not pulled
+down, and nothing is while its next level is being built. Other houses do not pull anything down.
