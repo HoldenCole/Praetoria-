@@ -191,3 +191,12 @@ end, 69 were cold, 53 living apart, and 38 had been ended over the years.
 - No love outside courtship: affection between people who are not being courted does not exist.
 - Two of the twelve events (the affair, the elopement's letter) need a choice the soak's player rarely makes, and were
   not seen to fire in it.
+
+## A match by treaty is a courtship's question on its first day (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, Family, F10, F11 and P18). For the player's house
+`ProposeMarriageCommand` asks `CourtshipSystem.TreatyAnswer`: `Answer` on `FirstDay(s, t)`, the courtship as it would
+stand before anything was done for it, on the terms given (custom's by default). Refused, the command is refused with
+the reckoning and no influence is spent. Agreed, a courtship is begun and settled at once through `Propose`, so the
+terms, the kind of marriage and what the one married thinks of it are a courtship's. Other houses' treaties among
+themselves still go by regard and standing alone.

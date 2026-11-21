@@ -288,6 +288,17 @@ public static class CourtshipSystem
         return score >= AcceptAt ? (true, score, "they will agree") : (false, score, $"they will refuse: the match stands at {score} with them and needs {AcceptAt}");
     }
 
+    /// <summary>A courtship as it would stand on its first day, not yet begun: what a match by treaty is judged on
+    /// (docs/PLAYTHROUGH.md, Medium, Family, F10, F11 and P18).</summary>
+    public static Courtship FirstDay(World w, Character s, Character t)
+    {
+        bool child = s.Age < Adult || t.Age < Adult, own = s.Id == w.ProtagonistId;
+        return new Courtship { Id = "", SuitorId = s.Id, TargetId = t.Id, Since = w.Turn, Favour = child ? 0 : StartFavour(w, s, t), Consent = StartConsent(w, s, t), Own = own, Wish = own ? 100 : child ? 50 : StartFavour(w, t, s) };
+    }
+    /// <summary>Would the other family agree to a match by treaty, on these terms? A treaty is the question put on the first day:
+    /// it is answered by the same reckoning as a courtship, with nothing yet done to move it.</summary>
+    public static (bool ok, int score, string why) TreatyAnswer(World w, Character s, Character t, string dowry = Customary, string childrenTo = "") => Answer(w, FirstDay(w, s, t), dowry, childrenTo);
+
     /// <summary>Put the match to the other family. Agreed: a wedding, or a betrothal if either is a child. Refused: it costs a little
     /// of their goodwill to have been asked too soon.</summary>
     public static bool Propose(World w, Courtship c, string dowry, string childrenTo)

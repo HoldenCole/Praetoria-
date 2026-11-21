@@ -51,14 +51,20 @@ public sealed class RecallCommand : ICommand
 
 /// <summary>Propose a marriage (GDD §18/§13): both living, unmarried adults of opposite sex. Accepted when the target
 /// is not ill-disposed and their house is not far above yours (a greater house wants more). Costs 2 Influence. A
-/// match with a higher-titled house grants a claim to its rung; the lower house gains standing.</summary>
+/// match with a higher-titled house grants a claim to its rung; the lower house gains standing.
+/// For the player's house a match by treaty is put to the other family as a courtship is, on its first day and on the
+/// terms given (<see cref="CourtshipSystem.TreatyAnswer"/>): they agree only where they would agree to a courtship that
+/// had done nothing yet, and one of the house who is married against their wish holds it against the head as in any
+/// arranged match (docs/PLAYTHROUGH.md, Medium, Family, F10, F11 and P18).</summary>
 public sealed class ProposeMarriageCommand : ICommand
 {
     private static readonly Dictionary<string, int> CostMap = new() { [Pool.Influence] = 2 };
     private readonly string _suitorId, _targetId;
-    private readonly Progression.TitleCatalog? _titles;
-    public ProposeMarriageCommand(string actorId, string suitorId, string targetId, Progression.TitleCatalog? titles = null)
-    { ActorId = actorId; _suitorId = suitorId; _targetId = targetId; _titles = titles; }
+    private readonly Progression.TitleCatalog? _titles; private readonly string _dowry, _childrenTo;
+    public ProposeMarriageCommand(string actorId, string suitorId, string targetId, Progression.TitleCatalog? titles = null, string dowry = CourtshipSystem.Customary, string childrenTo = "")
+    { ActorId = actorId; _suitorId = suitorId; _targetId = targetId; _titles = titles; _dowry = dowry; _childrenTo = childrenTo; }
+    /// <summary>Is this the player's own house proposing for one of its own to someone of another house?</summary>
+    private static bool PlayersTreaty(World w, Character s, Character t) => s.HouseId == w.Protagonist?.HouseId && t.Id != w.ProtagonistId;
     public string ActorId { get; }
     public string Describe() => $"propose {_suitorId} ⚭ {_targetId}";
 
@@ -84,6 +90,7 @@ public sealed class ProposeMarriageCommand : ICommand
         if ((w.GetRelationship(t.Id, s.Id)?.Disposition ?? 0) < -10) return "they will not have it";
         int theirs = w.House(t.HouseId)?.Legitimacy ?? 0, ours = w.House(s.HouseId)?.Legitimacy ?? 0;
         if (theirs > ours + 40) return "their house looks too far down on yours";
+        if (PlayersTreaty(w, s, t) && CourtshipSystem.TreatyAnswer(w, s, t, _dowry, _childrenTo) is { ok: false } no) return no.why + ": a courtship could bring them round";
         return ctx.PoolsOf(ActorId).Short(CostMap);
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
@@ -101,6 +108,13 @@ public sealed class ProposeMarriageCommand : ICommand
         }
         // a proposal that touches the player's house or one of its suits is not settled in a season (docs/MARRIAGE.md)
         if (CourtshipSystem.Intercept(w, s, t)) return;
+        if (PlayersTreaty(w, s, t))
+        {
+            // the same road as a courtship that is settled on its first day: the terms, the kind of marriage, and what the one married thinks of it
+            var c = w.Courtships.FirstOrDefault(x => !x.Incoming && x.SuitorId == s.Id && x.TargetId == t.Id) ?? CourtshipSystem.Begin(w, s, t);
+            if (!CourtshipSystem.Propose(w, c, _dowry, _childrenTo)) c.AskedTurn = w.Turn;
+            return;
+        }
         CourtshipSystem.Wed(w, s, t, CourtshipSystem.Arranged);
     }
 }

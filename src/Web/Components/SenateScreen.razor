@@ -361,7 +361,7 @@
                                 <button class="opt inline tiny" disabled="@(focusStance.LobbyRefusal != null)" title="@(focusStance.LobbyRefusal ?? "1 influence: lean them your way")" @onclick="() => G.Execute(new LobbyCommand(pid, watched.Id, focusHouse.Id, watched.MyStance >= 0 ? 1 : -1))">whip</button>
                                 <button class="opt inline tiny" disabled="@(focusStance.BribeRefusal != null)" title="@(focusStance.BribeRefusal ?? BribeTip(focusStance))" @onclick="() => AskBribe(watched.Id, focusStance, watched.MyStance >= 0 ? 1 : -1)">bribe · @focusStance.BribePrice</button></div>
                         }
-                        @if (cn != null) { <div class="sc-actions">@foreach (var o in cn.Actions) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => AskConn(o.Id, o.Label, cn.Id)">@o.Label</button> }</div> }
+                        @if (cn != null) { <div class="sc-actions">@foreach (var o in TreatyFirst(cn.Actions)) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => AskConn(o.Id, o.Label, cn.Id)">@o.Label</button> }</div> }
                     </div>
                     <button class="win-close" @onclick="() => _focus = null">✕</button>
                 </div>
@@ -560,5 +560,11 @@
     private ICommand PathCommand(string id) { var pid = G.World!.ProtagonistId; var prog = G.Turn!.Progression!; return id switch { "seize" => new SeizeTitleCommand(pid, prog), "petition" => new PetitionTitleCommand(pid, prog), _ => new ClaimTitleCommand(pid, prog) }; }
     private void Damper(DamperOption d) { var crises = G.Turn!.Crises!; var def = crises.Def(d.CrisisId)!; G.Execute(new ApplyDamperCommand(G.World!.ProtagonistId, crises, def, def.Dampers.First(x => x.Id == d.DamperId))); }
     private void AskConn(string optionId, string label, string targetId) { if (optionId.StartsWith("marry:")) G.AskTreatyMarriage(label, Conn(optionId, targetId)); else G.AskAccident(label, Conn(optionId, targetId)); }
+    /* a match by treaty: every one of yours the family would take today (three at most), or the first with why not; then the rest */
+    private static IEnumerable<Option> TreatyFirst(IReadOnlyList<Option> actions)
+    {
+        var matches = actions.Where(o => o.Id.StartsWith("marry:")).ToList(); var willing = matches.Where(o => o.Refusal == null).Take(3).ToList();
+        return (willing.Count > 0 ? willing : matches.Take(1)).Concat(actions.Where(o => !o.Id.StartsWith("marry:")));
+    }
     private ICommand Conn(string optionId, string targetId) { var pid = G.World!.ProtagonistId; var c = G.Content!; return optionId.StartsWith("marry:") ? new ProposeMarriageCommand(pid, optionId["marry:".Length..], targetId, c.Titles) : new AssassinateCommand(pid, targetId, c.Friction); }
 }

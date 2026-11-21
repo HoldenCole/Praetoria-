@@ -70,7 +70,7 @@ public sealed class GameClient
     }
     /// <summary>A marriage by treaty is made at once, with no courtship and no terms.</summary>
     public void AskTreatyMarriage(string label, ICommand command) =>
-        Ask("Marry by treaty?", label + ". A treaty marriage is made at once: there is no courtship, no dowry is agreed and the children's name follows custom. To set terms, or to see whether the family would agree, arrange the match in Dynasty, under Marriages.", "Make the marriage", () => Execute(command));
+        Ask("Marry by treaty?", label + ". The other family is asked today, as it would be on the first day of a courtship, and has said it would agree. The marriage is made at once on custom's terms: the customary dowry, and the children's name as custom gives it. One of your house who does not want the match will hold it against you, as in any marriage arranged for them. To offer other terms, or to bring round a family that would refuse, arrange the match in Dynasty, under Marriages.", "Make the marriage", () => Execute(command));
     public void AskAccident(string label, ICommand command) =>
         Ask("Arrange an accident?", label + ". If it is traced to you it is a blood feud with that house, and the Senate hears of it. It cannot be called back once the order is given.", "Give the order", () => Execute(command));
 

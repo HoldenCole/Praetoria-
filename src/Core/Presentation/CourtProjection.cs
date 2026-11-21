@@ -378,8 +378,9 @@ public static class CourtProjection
                 c.Alive ? $"{content.Careers.RankName(c.CareerTrack, c.CareerRank, w.Era) ?? $"rank {c.CareerRank}"}, {c.Age}" : "dead",
                 c.Alive, rel?.Disposition ?? 0, BondName(rel)); }).ToList();
 
-        var suitor = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority && c.Sex != "" && !ProposeMarriageCommand.IsMarried(w, c.Id))
-                      .OrderByDescending(c => c.Id == p.Id).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+        var suitors = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority && c.Sex != "" && !ProposeMarriageCommand.IsMarried(w, c.Id))
+                      .OrderByDescending(c => c.Id == p.Id).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+        var suitor = suitors.FirstOrDefault();
         var connections = w.LivingCharacters().Where(c => c.HouseId != house.Id).OrderBy(c => c.Id, StringComparer.Ordinal)
             .Select(c =>
             {
@@ -388,10 +389,12 @@ public static class CourtProjection
                 // no match and no knife is offered against a child (GDD §14): the court does not list what the house would not do
                 if (c.Age >= DynastySystem.AgeOfMajority)
                 {
-                    if (suitor != null)
+                    // a choice of who (docs/PLAYTHROUGH.md, Medium, Family, F11): each of the house who could be matched with them, yourself first
+                    var could = suitors.Where(s => s.Sex != c.Sex).Take(4).ToList(); if (could.Count == 0 && suitor != null) could.Add(suitor);
+                    foreach (var s in could)
                     {
-                        var pm = new ProposeMarriageCommand(p.Id, suitor.Id, c.Id, content.Titles);
-                        actions.Add(new Option("marry:" + suitor.Id, $"Propose {suitor.Name} ⚭ {c.Name} by treaty  (2 influence)", pm.Refusal(ctx)));
+                        var pm = new ProposeMarriageCommand(p.Id, s.Id, c.Id, content.Titles);
+                        actions.Add(new Option("marry:" + s.Id, $"Propose {(s.Id == p.Id ? "yourself" : s.Name)} ⚭ {c.Name} by treaty  (2 influence)", pm.Refusal(ctx)));
                     }
                     var kill = new AssassinateCommand(p.Id, c.Id, content.Friction);
                     actions.Add(new Option("assassinate", $"Arrange an accident  (2 agents · {AssassinateCommand.Odds(w, p, c):P0})", kill.CanExecute(ctx) ? null : "unreachable, or no agents"));

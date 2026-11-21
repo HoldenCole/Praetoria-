@@ -133,7 +133,13 @@
                             @if (ch.Id != pid) { <span class="pill @(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span> }
                             @if (cn != null) { foreach (var f in cn.Flags.Take(3)) { <span class="pill small" title="@Marks.Tip(f)">@Marks.Label(f)</span> } }
                         </span>
-                        @if (cn != null) { foreach (var o in cn.Actions) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => AskConn(o.Id, o.Label, cn.Id)">@o.Label</button> } }
+                        @if (cn != null)
+                        {
+                            /* a match by treaty: every one of yours the family would take today, or the first with why not */
+                            var matches = cn.Actions.Where(o => o.Id.StartsWith("marry:")).ToList(); var willing = matches.Where(o => o.Refusal == null).Take(3).ToList();
+                            foreach (var o in willing.Count > 0 ? willing : matches.Take(1)) { <button class="opt inline tiny" data-treaty="@o.Id" disabled="@(o.Refusal != null)" title="@(o.Refusal ?? "The family would agree today, on custom's terms.")" @onclick="() => AskConn(o.Id, o.Label, cn.Id)">@o.Label</button> }
+                            foreach (var o in cn.Actions.Where(o => !o.Id.StartsWith("marry:"))) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => AskConn(o.Id, o.Label, cn.Id)">@o.Label</button> }
+                        }
                     </div>
                 }
                 @if (members.Count == 0) { <div class="muted">No one of the name still lives.</div> }

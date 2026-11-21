@@ -133,6 +133,15 @@ public class DynastyDepthTests
         var (content, w) = Fresh("academy_crucible");                 // Marcus (vega, baron) ↔ Sela (drake, baron); Ren (sato, knight)
         var ctx = new CommandContext(w, TestContent.Rng());
         var cmd = new ProposeMarriageCommand(w.ProtagonistId, "vega_marcus", "drake_sela", content.Titles);
+        // a match by treaty is put to the other family as a courtship is, on its first day: a family that is not yet minded to say
+        // yes says no, with the reckoning, and the influence is not spent (docs/PLAYTHROUGH.md, Medium, Family, F10, F11 and P18)
+        var marcus = w.Char("vega_marcus")!; var sela = w.Char("drake_sela")!; var first = CourtshipSystem.TreatyAnswer(w, marcus, sela);
+        Assert.False(first.ok); Assert.Equal(first.why + ": a courtship could bring them round", cmd.Refusal(ctx)); Assert.Contains($"needs {CourtshipSystem.AcceptAt}", cmd.Refusal(ctx));
+        Assert.False(new CommandExecutor().TryExecute(cmd, ctx)); Assert.Null(DynastySystem.Spouse(w, marcus));
+        // better terms for them, or a family that thinks better of yours, and they agree: the same figures a courtship would show
+        var drakeHead = Economy.HeadOf(w, w.House("drake")!)!; var vegaHead = Economy.HeadOf(w, w.House("vega")!)!;
+        w.Relationship(drakeHead.Id, vegaHead.Id).Disposition += 3 * (CourtshipSystem.AcceptAt - first.score) + 3;
+        Assert.True(CourtshipSystem.TreatyAnswer(w, marcus, sela).ok); Assert.Equal(CourtshipSystem.TreatyAnswer(w, marcus, sela).score, CourtshipSystem.Answer(w, CourtshipSystem.FirstDay(w, marcus, sela), CourtshipSystem.Customary, "").score);
         Assert.Null(cmd.Refusal(ctx));
         Assert.True(new CommandExecutor().TryExecute(cmd, ctx));
         Assert.NotNull(DynastySystem.Spouse(w, w.Char("vega_marcus")!));
@@ -142,6 +151,7 @@ public class DynastyDepthTests
         var (_, w2) = Fresh("academy_crucible");
         var ctx2 = new CommandContext(w2, TestContent.Rng());
         w2.Char("corwin_lucan")!.Sex = "female";                     // a Count's heir
+        w2.Relationship(Economy.HeadOf(w2, w2.House("corwin")!)!.Id, Economy.HeadOf(w2, w2.House("vega")!)!.Id).Disposition = 100;   // a family that would say yes on the first day
         Assert.True(new CommandExecutor().TryExecute(new ProposeMarriageCommand(w2.ProtagonistId, "vega_marcus", "corwin_lucan", content.Titles), ctx2));
         Assert.Contains("count", w2.House("vega")!.Claims);           // marrying up forges a claim (GDD §13 Intrigue)
     }
