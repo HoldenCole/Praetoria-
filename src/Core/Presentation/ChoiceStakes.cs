@@ -42,7 +42,7 @@ public static class ChoiceStakes
                         foreach (var (g, n) in p.goods) sums[g] = sums.GetValueOrDefault(g) + (lead > 0 ? n : -n);
                         parts.Add(p.unpaid > 0 ? $"peace ({Math.Abs(lead) * rules.TributePerScore} is owed by the score; {p.unpaid} of it {(lead > 0 ? them + " does not have" : "you do not have")})" : "peace");
                     }
-                    else if (pt.Kind == Systems.HousePeace.Cede && pt.World(ctx) is { } h) parts.Add(lead >= 0 ? $"peace, and {h.Name} ({h.Population} people) is yours" : $"peace, and {h.Name} is theirs");
+                    else if (pt.Kind == Systems.HousePeace.Cede && pt.World(ctx) is { } h) parts.Add(lead >= 0 ? $"peace, and {h.Name} ({Census.Say(Census.Citizens(ctx.World, h))} citizens) is yours" : $"peace, and {h.Name} is theirs");
                     else parts.Add(lead > 0 && pt.Kind == Systems.HousePeace.White ? "peace, nothing asked: " + them + " will remember it" : "peace, each side keeping what it holds");
                     break;
                 }

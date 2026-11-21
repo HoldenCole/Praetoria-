@@ -2,7 +2,7 @@
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var house = w.House(w.Protagonist!.HouseId)!;
     var fc = G.Turn!.Economy?.Forecast(w, house.Id, G.Turn.Fleets);
-    int planets = m.Holdings.Count(h => h.Kind == "planet"), stations = m.Holdings.Count(h => h.Kind == "station"), claims = m.Holdings.Count(h => h.Kind == "claim"), pop = m.Holdings.Sum(h => h.Population);
+    int planets = m.Holdings.Count(h => h.Kind == "planet"), stations = m.Holdings.Count(h => h.Kind == "station"), claims = m.Holdings.Count(h => h.Kind == "claim"), pop = m.Holdings.Sum(h => h.Population); long citizens = Census.CitizensOf(G.World!, G.World!.Protagonist!.HouseId);
     var lg = m.Ledger; int maxAbs = lg == null ? 1 : Math.Max(1, lg.Lines.Select(l => Math.Abs(l.Delta.Credits)).DefaultIfEmpty(1).Max());
     var focus = _focus != null ? w.Char(_focus) : null;
 
@@ -36,7 +36,7 @@
 <div class="dash keep" style="--accent:@m.HouseAccent">
     <header class="dash-head picture">
         <div class="dh-title"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="22" /> <b>@house.Name</b>
-            <span class="muted">@titleName · @house.Culture culture · @planets world(s)@(stations > 0 ? $" · {stations} station(s)" : "")@(claims > 0 ? $" · {claims} claim(s)" : "") · @pop pop · tithe @(m.Standing?.TaxPolicy ?? "customary")</span></div>
+            <span class="muted">@titleName · @house.Culture culture · @planets world(s)@(stations > 0 ? $" · {stations} station(s)" : "")@(claims > 0 ? $" · {claims} claim(s)" : "") · <span data-house-citizens="@citizens" title="The citizens of every world and station of the house. On the scale the rules reckon by, they come to @pop.">@Census.Say(citizens) citizens</span> · tithe @(m.Standing?.TaxPolicy ?? "customary")</span></div>
         <p class="headline @storyTone">@story</p>
         <div class="tiles">
             <Tile Label="In the treasury" Value="@($"{credits} credits")" Tone="@(m.Treasury.Insolvent ? "bad" : net < 0 ? "warn" : net > 0 ? "good" : "")"
@@ -150,7 +150,7 @@
                             <div class="gauges">
                                 <div class="gauge" title="@("Loyalty is 100 less the world's unrest (" + h.Unrest + "). " + WhySays(G.Turn?.Economy?.UnrestWhy(w, w.Holding(h.Id)!), "Each year unrest moves by", "a year"))"><span>Loyalty</span><i><b style="width:@(100 - h.Unrest)%" class="@(h.Unrest >= 50 ? "low" : "")"></b></i><em>@(100 - h.Unrest)</em></div>
                                 <div class="gauge" title="@("Prosperity is " + h.Prosperity + " and settles at " + h.ProsperityTarget + ", a step nearer each year. " + WhySays(G.Turn?.Economy?.ProsperityWhy(w, w.Holding(h.Id)!), "It settles there because", "in all, held between 0 and 100"))"><span>Prosperity</span><i><b style="width:@h.Prosperity%" class="@(h.Prosperity < 35 ? "low" : h.Prosperity >= 75 ? "high" : "")"></b><u style="left:@h.ProsperityTarget%"></u></i><em>@h.Prosperity</em></div>
-                                @if (h.MaxPopulation > 0) { <div class="gauge" title="@(h.Population >= h.MaxPopulation ? "Population: the world is full. Habitats, laid on the world from the map (its system, then the body), make room for more." : "Population, and the most the world can hold. Habitats laid on the world make room for more.")"><span>Pop@(h.Population >= h.MaxPopulation ? " · full" : "")</span><i><b style="width:@(100 * h.Population / Math.Max(1, h.MaxPopulation))%"></b></i><em>@h.Population/@h.MaxPopulation</em></div> }
+                                @if (h.MaxPopulation > 0) { <div class="gauge" title="@(h.Population >= h.MaxPopulation ? "Population: the world is full. Habitats, laid on the world from the map (its system, then the body), make room for more." : "Population, and the most the world can hold. Habitats laid on the world make room for more.")"><span>Pop@(h.Population >= h.MaxPopulation ? " · full" : "")</span><i><b style="width:@(100 * h.Population / Math.Max(1, h.MaxPopulation))%"></b></i><em title="@(G.World!.Holding(h.Id) is { } hcw ? GalaxyMap.CitizensTip(G.World!, hcw, h.MaxPopulation) : "")">@(G.World!.Holding(h.Id) is { } hcc ? Census.Say(Census.Citizens(G.World!, hcc)) : h.Population.ToString()) <span class="muted">· @h.Population/@h.MaxPopulation</span></em></div> }
                             </div>
                             <details class="why" data-why="@h.Id"><summary>Why loyalty and prosperity are what they are</summary>
                                 @{ var uw = G.Turn?.Economy?.UnrestWhy(w, w.Holding(h.Id)!) ?? new(); var pw = G.Turn?.Economy?.ProsperityWhy(w, w.Holding(h.Id)!) ?? new(); }

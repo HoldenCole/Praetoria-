@@ -132,7 +132,7 @@
                             bool atWar = !pmine && pi > 0 && w.AtWar(holderId, planet.OwnerId);
                             <div class="sysp-prov @(pmine ? "mine" : "") @(atWar ? "war" : "")" data-province="@pv.Focus" data-holder="@holderId">
                                 @{ int pslots = ProvinceSystem.Slots(w, cat, planet, pi), pbuilt = pv.Buildings.Count, prising = ProvinceSystem.Rising(w, planet, pi); var owed = ProvinceSystem.Dues(w, cat, planet, pi); var pyield = ProvinceSystem.Yield(w, cat, planet, pv); }
-                                <div class="sw-head"><b>@pv.Name</b> @LevelPips(pv.Level) <span class="muted small">@(pf?.Name ?? pv.Focus)</span>
+                                <div class="sw-head"><b>@pv.Name</b> @LevelPips(pv.Level) <span class="muted small">@(pf?.Name ?? pv.Focus)@(planet.Population > 0 ? " · " + Census.Say(Census.CitizensOfProvince(w, planet, pi)) + " citizens" : "")</span>
                                     @if (pi > 0) { <span class="sysp-slots" title="@($"Building slots of the province: {pbuilt} built · {prising} rising · {pslots} open of {cat.Provinces.SlotMax} at the most. One to begin with; more by the system's development and the rank of the house that holds the province.")">@for (int k = 0; k < Math.Max(pslots, cat.Provinces.SlotMax); k++) { <i class="@(k < pbuilt ? "on" : k < pbuilt + prising ? "up" : k >= pslots ? "lock" : "")"></i> }</span> }
                                 </div>
                                 <div class="sw-does">@(pmine ? "Yours" : w.House(holderId)?.Name ?? "nobody's")@(pi > 0 && holderId != planet.OwnerId ? (pv.Since > 0 ? " since year " + pv.Since : ", for life") : pi == 0 ? ", with the world" : "") · @(pyield.IsEmpty() ? "pays nothing" : "+" + CourtProjection.Bundle(pyield) + " a year")@(pf != null && pf.Defense > 0 ? " · defence +" + (pf.Defense * Math.Max(1, pv.Level)).ToString("0.##") : "")@(atWar ? " · withheld: its house is at war with the holder of the world" : "")</div>
@@ -455,7 +455,7 @@
         if (!keep.IsEmpty()) parts.Add($"upkeep {CourtProjection.Bundle(keep)}");
         if (d.Defense > 0) parts.Add($"defence +{d.Defense * level:0.##} ({(int)Math.Ceiling(2 * d.Defense * level)} more year(s) to besiege)");
         if (d.Depot) parts.Add("supplies fleets as a depot");
-        if (d.Population > 0) parts.Add($"room for {d.Population * level} more people");
+        if (d.Population > 0) parts.Add($"room for more people (+{d.Population * level} on the world's scale)");
         if (d.Prosperity != 0) parts.Add($"prosperity {(d.Prosperity > 0 ? "+" : "")}{d.Prosperity}");
         if (d.Unrest != 0) parts.Add(d.Unrest < 0 ? $"unrest {d.Unrest} a year" : $"unrest +{d.Unrest} a year");
         if (d.Legitimacy > 0) parts.Add($"legitimacy +{d.Legitimacy} when finished");
@@ -480,7 +480,7 @@
         if (!t.Yield.IsEmpty()) parts.Add($"+{CourtProjection.Bundle(t.Yield)} a year");
         if (t.Defense > 0) parts.Add($"defence +{t.Defense:0.##}");
         if (t.Prosperity != 0) parts.Add($"prosperity +{t.Prosperity}");
-        if (t.Population != 0) parts.Add($"room for {t.Population} more people");
+        if (t.Population != 0) parts.Add($"room for more people (+{t.Population} on the world's scale)");
         string each = parts.Count > 0 ? "Each level: " + string.Join(" · ", parts) + "." : "";
         string calmLevels = string.Join(" and ", t.CalmAt.Select(SystemWorks.Roman));
         if (t.CalmAt.Count > 0) each += " Levels " + calmLevels + " take a point a year off the world's unrest.";

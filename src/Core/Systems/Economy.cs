@@ -360,7 +360,7 @@ public sealed class Economy
             int cap = MusterCap(world, house.Id), settled = MusterSettle(manpowerBefore, ledger.Net.Manpower, cap);
             if (settled != house.Treasury.Manpower)
             {
-                if (house.Id == world.Protagonist?.HouseId && manpowerBefore < cap) world.Tell("info", $"Your worlds can muster no more: manpower stands at {cap}, which is what their people can keep under arms. It grows only as they do.", "house", house.Id);
+                if (house.Id == world.Protagonist?.HouseId && manpowerBefore < cap) world.Tell("info", $"Your worlds can muster no more: manpower stands at {cap}, which is what their {Presentation.Census.Say(Presentation.Census.CitizensOf(world, house.Id))} citizens can keep under arms. It grows only as they do.", "house", house.Id);
                 // what the worlds could not muster was never made: the exchanges are told, or they would read it as men used up
                 int unmustered = house.Treasury.Manpower - settled; if (unmustered > 0) world.WorldCounters[UnmusteredKey(world.Turn)] = world.Counter(UnmusteredKey(world.Turn)) + unmustered;
                 house.Treasury.Manpower = settled;

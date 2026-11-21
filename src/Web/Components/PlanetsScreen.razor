@@ -54,7 +54,7 @@
                             <td class="muted small">@(n.GovernorName ?? "")</td>
                             <td>@if (n.Population > 0) { <span class="mbar"><i style="width:@(100 - n.Unrest)%; background:@(n.Unrest >= 50 ? "var(--warn)" : "var(--good)")"></i></span>@(100 - n.Unrest) }</td>
                             <td>@if (n.PlanetHoldingId != null) { <span class="mbar"><i style="width:@n.Prosperity%; background:var(--brass)"></i></span>@n.Prosperity }</td>
-                            <td class="muted">@(n.Population > 0 ? n.Population.ToString() : "")</td>
+                            <td class="muted" title="@(n.Population > 0 ? "scale " + n.Population : "")">@(n.Population > 0 && n.PlanetHoldingId != null && w.Holding(n.PlanetHoldingId) is { } nh ? Census.Short(Census.Citizens(w, nh)) : "")</td>
                             <td class="small">@if (n.Stations > 0) { <span class="pill small">@n.Stations st</span> }@if (n.Belt > 0) { <span class="pill small" title="belt richness @n.Belt">@(new string('●', n.Belt))</span> }@if (n.Deposits is { Count: > 0 }) { foreach (var d in n.Deposits) { <span class="pill small dep" title="@Resource.Label(d.Key) deposit, richness @d.Value">@(d.Key == "helium3" ? "³He" : d.Key == "rare_earths" ? "RE" : "Iso") @d.Value</span> } }@if (n.Ventures > 0) { <span class="pill small" title="ventures">@n.Ventures v</span> }</td>
                         </tr>
                     }
@@ -75,7 +75,7 @@
                         <img class="sprite big" data-planet="@fn.PlanetClass|@fn.SystemId|64" alt="" />
                         <div class="sc-body">
                             <div class="sc-name">@fn.Name <span class="muted">@fn.PlanetClass world@(region != null ? $" · {region.Name}" : "") · @fn.Culture culture</span></div>
-                            <div class="muted small">@(owner != null ? $"held by {owner.Name}" : "unclaimed")@(fn.GovernorName != null ? $" · governor {fn.GovernorName}" : "")@(planet != null ? $" · {c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization}" : "")@(fn.Population > 0 ? $" · pop {fn.Population} · loyalty {100 - fn.Unrest}" : "")@(fn.Rebellion > 0 ? $" · rebellion {fn.Rebellion}" : "")</div>
+                            <div class="muted small">@(owner != null ? $"held by {owner.Name}" : "unclaimed")@(fn.GovernorName != null ? $" · governor {fn.GovernorName}" : "")@(planet != null ? $" · {c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization}" : "")@(fn.Population > 0 ? $" · {(planet != null ? Census.Say(Census.Citizens(w, planet)) : fn.Population.ToString())} citizens · loyalty {100 - fn.Unrest}" : "")@(fn.Rebellion > 0 ? $" · rebellion {fn.Rebellion}" : "")</div>
                             @if (planet != null) { <div class="muted small">Built: @(planet.Buildings.Count == 0 ? "nothing" : string.Join(", ", planet.Buildings.Select(b => c.Holdings.Building(b)?.Name ?? b)))</div> }
                             @if (stations.Count > 0) { <div class="muted small">Stations: @string.Join(", ", stations.Select(s => s.Name))</div> }
                             @if (fn.Deposits is { Count: > 0 }) { <div class="muted small">Deposits: @string.Join(", ", fn.Deposits.Select(d => $"{Resource.Label(d.Key)} ({d.Value})"))</div> }

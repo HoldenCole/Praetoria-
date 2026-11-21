@@ -61,7 +61,7 @@ public static class HousePeace
             var worlds = Cedable(w, other);
             bool beaten = lead >= FleetSystem.CessionLead || theirs <= mine;
             foreach (var h in worlds.Take(6))
-                terms.Add(new Term(Cede, h.Id, "Peace for " + h.Name, $"{them} gives up {h.Name} ({h.Population} people) and the war ends.",
+                terms.Add(new Term(Cede, h.Id, "Peace for " + h.Name, $"{them} gives up {h.Name} ({Presentation.Census.Say(Presentation.Census.Citizens(w, h))} citizens) and the war ends.",
                     lead >= WorldLead && beaten && (listens || lead >= FleetSystem.CessionLead),
                     lead < WorldLead ? $"a world is asked for from {WorldLead} ahead; you are {lead} ahead (a battle won is 2, a world taken 3)"
                     : !beaten ? $"{them} still has the stronger fleet ({theirs} hull(s) to your {mine}) and will not give a world while it can hope to win one back: beat its fleet, or lead by {FleetSystem.CessionLead}" : listens || lead >= FleetSystem.CessionLead ? "" : deaf));
@@ -74,7 +74,7 @@ public static class HousePeace
             terms.Add(new Term(Tribute, "", $"Peace, paying tribute ({owed})", $"You owe {owed} ({-lead} behind × {rules.TributePerScore})" + (p.unpaid == 0 ? $" and pay {got}." : got.Length > 0 ? $": you can pay {got}, and the other {p.unpaid} is let go." : ": the treasury is empty, and it is let go."),
                 listens, listens ? "" : deaf));
             foreach (var h in Cedable(w, asker).OrderBy(h => h.Population).Take(4))
-                terms.Add(new Term(Cede, h.Id, "Peace, giving up " + h.Name, $"You give {h.Name} ({h.Population} people) to {them} and the war ends. A house that smells victory will still take a world to stop.", true, ""));
+                terms.Add(new Term(Cede, h.Id, "Peace, giving up " + h.Name, $"You give {h.Name} ({Presentation.Census.Say(Presentation.Census.Citizens(w, h))} citizens) to {them} and the war ends. A house that smells victory will still take a world to stop.", true, ""));
         }
         return terms;
     }

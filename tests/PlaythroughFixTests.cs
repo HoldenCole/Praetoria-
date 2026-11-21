@@ -1001,4 +1001,31 @@ public class PlaythroughFixTests
         var elsewhere = w.Holdings.Values.First(h => h.IsPlanet && h.OwnerId != house.Id && h.SystemId != home.SystemId); raw.SystemId = elsewhere.SystemId; house.Treasury.Manpower = 50;
         Assert.Contains("of its house's own", fleets.DrillStops(w, raw));
     }
+    [Fact]
+    public void AWorldsCitizens_AreRealNumbers_ByItsKindAndPlace()
+    {
+        // the owner, 2026-11-21: "the citizens of certain cities or planets should be realistic numbers"
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); var census = Praetoria.Core.Presentation.Census.Citizens;
+        var peopled = w.Holdings.Values.Where(h => h.IsPlanet && h.Population > 0).ToList(); Assert.True(peopled.Count > 20);
+        // every peopled world is somewhere between a mining camp and a crowded capital
+        foreach (var h in peopled) { long c = census(w, h); Assert.True(c >= 500_000 && c <= 40_000_000_000, $"{h.Name}: {c}"); }
+        // the capital of the Reach holds billions; a barren or frozen world of the same scale holds far fewer than a terran one
+        var capital = w.Holdings.Values.First(h => h.IsPlanet && h.SystemId == w.Galaxy!.Capital); Assert.True(census(w, capital) >= 2_000_000_000, capital.Name + " " + census(w, capital));
+        Assert.True(Praetoria.Core.Presentation.Census.Habitable("terran") > 5 * Praetoria.Core.Presentation.Census.Habitable("barren"));
+        // twice as high on the scale is four times the people, and nothing about it is stored: the same world always says the same
+        var home = w.HoldingsOf(house.Id).First(h => h.IsPlanet); long at20 = Praetoria.Core.Presentation.Census.At(w, home, 20), at40 = Praetoria.Core.Presentation.Census.At(w, home, 40);
+        Assert.InRange(at40 / (double)at20, 3.99, 4.01); Assert.Equal(census(w, home), census(w, home)); Assert.Equal(0, Praetoria.Core.Presentation.Census.At(w, home, 0));
+        // a house's citizens are its worlds' citizens; a world's provinces share them, the seat holding half
+        Assert.Equal(w.HoldingsOf(house.Id).Sum(h => census(w, h)), Praetoria.Core.Presentation.Census.CitizensOf(w, house.Id));
+        var parted = peopled.FirstOrDefault(h => h.Provinces.Count > 1);
+        if (parted != null)
+        {
+            long all = census(w, parted), sum = Enumerable.Range(0, parted.Provinces.Count).Sum(i => Praetoria.Core.Presentation.Census.CitizensOfProvince(w, parted, i));
+            Assert.Equal(all / 2, Praetoria.Core.Presentation.Census.CitizensOfProvince(w, parted, 0)); Assert.True(sum <= all && sum >= all - parted.Provinces.Count);
+        }
+        // said in words a reader takes in
+        Assert.Equal("7.33 billion", Praetoria.Core.Presentation.Census.Say(7_330_000_000)); Assert.Equal("12.4 billion", Praetoria.Core.Presentation.Census.Say(12_400_000_000));
+        Assert.Equal("614 million", Praetoria.Core.Presentation.Census.Say(614_000_000)); Assert.Equal("6.73 million", Praetoria.Core.Presentation.Census.Say(6_730_000)); Assert.Equal("86,000", Praetoria.Core.Presentation.Census.Say(86_400));
+        Assert.Equal("7.3B", Praetoria.Core.Presentation.Census.Short(7_330_000_000)); Assert.Equal("614M", Praetoria.Core.Presentation.Census.Short(614_000_000));
+    }
 }
