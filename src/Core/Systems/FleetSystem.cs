@@ -427,9 +427,11 @@ public sealed class FleetSystem
         if (w.AtWar(viewer, f.OwnerId))
         {
             var siege = w.Sieges.Values.FirstOrDefault(s => s.BesiegerId == f.OwnerId && w.Holding(s.HoldingId)?.SystemId == f.SystemId);
-            return (siege != null ? $"At war with you, and besieging {w.Holding(siege.HoldingId)?.Name}: {siege.Turns} of {siege.Required} years spent." : "At war with you.") + lain;
+            string company = f.HiredFrom.Length > 0 ? $" It is a company hired from {w.House(f.HiredFrom)?.Name ?? f.HiredFrom}, in {owner}'s pay." : "";
+            return (siege != null ? $"At war with you, and besieging {w.Holding(siege.HoldingId)?.Name}: {siege.Turns} of {siege.Required} years spent." : "At war with you.") + company + lain;
         }
         if (f.Office) return $"The Reach's own squadron, under {owner}'s colours while it holds the office." + lain;
+        if (f.HiredFrom.Length > 0) return $"A company hired from {w.House(f.HiredFrom)?.Name ?? f.HiredFrom}, in {owner}'s pay." + lain;
         if (f.LevyOf.Length > 0) return $"A levy of {w.House(f.LevyOf)?.Name ?? f.LevyOf}, called out by {owner}." + lain;
         string why = f.Errand.Length > 0 ? $"It came {f.Errand}." : $"{owner} has given no reason for it.";
         return $"Not at war with you. {why}{lain} It does not besiege or blockade: only a house at war with you can.";

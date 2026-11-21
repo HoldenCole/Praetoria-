@@ -287,6 +287,16 @@
                 </div>
             }
             @if (officeHulls > 0) { <div class="kv good"><span>The Admiralty</span><b>@officeHulls office hull(s) sail under your colours · the chair pays their upkeep and the state fuels them · war on the chair is treason</b></div> }
+            @foreach (var hired in MercenarySystem.HiredOutBy(w, house.Id))
+            {
+                /* a company out on hire: whose pay it is in, where, for how long, and a way to call it back */
+                var recall = new RecallHiredFleetCommand(pid, hired.Id); string? recallNo = recall.Refusal(G.Ctx); string hiredId = hired.Id, hiredName = hired.Name, employerName = w.House(hired.OwnerId)?.Name ?? hired.OwnerId;
+                <div class="fcard" data-hired-out="@hired.Id">
+                    <div class="hc-head"><Icon Name="fleet" Size="18" /><div><b>@hired.Name</b> <span class="pill small status">out on hire</span> <span class="muted small">@fs.Describe(hired) · in the pay of @employerName · @(hired.IsAway ? "beyond the Reach" : hired.Moving ? "under way" : "at " + (w.Galaxy?.System(hired.SystemId)?.Name ?? hired.SystemId))</span></div></div>
+                    <div class="small">@employerName pays @MercenarySystem.PayOf(hired) credits a year for it (@MercenarySystem.CreditsPerHull a hull) and keeps and fuels it. It sails and fights at @employerName's orders; hulls it loses are lost. @MercenarySystem.YearsLeft(w, hired) year(s) of its term are left, and it comes home sooner if that house's wars end or the pay is not found.</div>
+                    <button class="opt inline tiny" data-recall-hired="@hired.Id" disabled="@(recallNo != null)" title="@(recallNo ?? $"The contract is broken: {employerName}'s head thinks {MercenarySystem.BreakRegard} the worse of you, and your house is thought the less of (legitimacy −{MercenarySystem.BreakLegitimacy}). The company is yours again at once and sails for home.")" @onclick="() => AskRecallHired(hiredId, hiredName, employerName)">Call it back</button>
+                </div>
+            }
             @foreach (var f in m.Fleets)
             {
                 var fleet = w.Fleets[f.Id];
@@ -330,6 +340,19 @@
                                 <input class="qty" type="number" min="1" max="@fleet.Strength" value="@hn" @onchange="e => _hulls[f.Id] = int.TryParse(e.Value?.ToString(), out var v) ? v : 1" />
                                 <button class="opt" data-detach="@f.Id" disabled="@(detNo != null)" title="@(detNo ?? $"{FleetHulls.Say(det.Which(w))} {(hn == 1 ? "stays" : "stay")} here as a squadron of {(hn == 1 ? "its" : "their")} own, without an admiral until you name one; {f.Name} keeps the rest. The lightest hulls go. It costs nothing.")" @onclick="() => G.Execute(det)">Detach @hn as a guard</button>
                                 <button class="opt" data-payoff="@f.Id" disabled="@(payNo != null)" title="@(payNo ?? $"{FleetHulls.Say(pay.Which(w))} {(hn == 1 ? "is" : "are")} broken up. It saves {SavedSays(pay.Saved(w))} a year, and the breakers give back {pay.Scrap(w)} materials ({PayOffHullsCommand.ScrapPct}% of what they cost). It cannot be undone.")" @onclick='() => G.Ask("Pay off " + hn + " hull(s) of " + f.Name + "?", FleetHulls.Say(pay.Which(w)) + (hn == 1 ? " is" : " are") + " broken up for " + pay.Scrap(w) + " materials. That saves " + SavedSays(pay.Saved(w)) + " a year. It cannot be undone.", "Pay them off", () => G.Execute(pay))'>Pay off @hn</button>
+                            </details>
+                        }
+                        @if (!fleet.IsAway && !fleet.Office && fleet.LevyOf.Length == 0)
+                        {
+                            var employers = MercenarySystem.Employers(w, house.Id);
+                            <details class="inline" data-hire="@f.Id"><summary>Hire out</summary>
+                                @if (employers.Count == 0) { <span class="muted small">No house you are at peace with is at war: nobody is hiring.</span> }
+                                @foreach (var em in employers.Take(8))
+                                {
+                                    string? hireNo = new HireOutFleetCommand(pid, f.Id, em.Id).Refusal(G.Ctx); string emId = em.Id, fid = f.Id;
+                                    <button class="opt" data-hire-to="@em.Id" disabled="@(hireNo != null)" title="@(hireNo ?? MercenarySystem.Says(w, fleet, em))" @onclick="() => AskHire(fid, emId)">To @em.Name · @MercenarySystem.PayOf(fleet) credits a year</button>
+                                    @if (hireNo != null) { <span class="muted small">@hireNo</span> }
+                                }
                             </details>
                         }
                         @if (f.MergeOptions.Count > 0) { <details class="inline"><summary>Merge</summary>@foreach (var o in f.MergeOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new MergeFleetsCommand(pid, f.Id, o.Id))">@o.Label</button> }</details> }
@@ -415,6 +438,17 @@
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string _campaign = "", _view = "deck"; private bool _allNavies; private readonly Dictionary<string, string> _names = new();
     private readonly Dictionary<string, int> _hulls = new();
+    /* hiring a fleet out costs the house its name: say all of it before it is done */
+    private void AskHire(string fleetId, string employerId)
+    {
+        var w = G.World!; if (!w.Fleets.TryGetValue(fleetId, out var f) || w.House(employerId) is not { } em) return; string pid = w.ProtagonistId;
+        G.Ask($"Hire {f.Name} out to {em.Name}?", MercenarySystem.Says(w, f, em), "Hire it out", () => G.Execute(new HireOutFleetCommand(pid, fleetId, employerId)));
+    }
+    private void AskRecallHired(string fleetId, string fleetName, string employerName)
+    {
+        string pid = G.World!.ProtagonistId;
+        G.Ask($"Call {fleetName} back from {employerName}?", $"The contract is broken: {employerName}'s head thinks {MercenarySystem.BreakRegard} the worse of you, and your house is thought the less of (legitimacy −{MercenarySystem.BreakLegitimacy}). The company is yours again at once and sails for home.", "Call it back", () => G.Execute(new RecallHiredFleetCommand(pid, fleetId)));
+    }
     private static string SavedSays(Praetoria.Core.State.Resources r)
     { var parts = Praetoria.Core.State.Resource.All.Where(k => r.Get(k) != 0).Select(k => r.Get(k) == 1 && k == Praetoria.Core.State.Resource.Credits ? "1 credit" : r.Get(k) + " " + Praetoria.Core.State.Resource.Label(k)).ToList(); return parts.Count == 0 ? "nothing" : string.Join(" and ", parts); }
     [Parameter] public EventCallback<string> OnGo { get; set; }

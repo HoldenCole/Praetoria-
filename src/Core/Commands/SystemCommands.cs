@@ -165,8 +165,39 @@ public sealed class HastenWorkCommand : ICommand
         if (!SystemWorks.IsGreat(_catalog, p)) return "only a great work is hastened";
         if (p.Hastened == _on) return _on ? "it is being hastened" : "it goes at its own pace";
         if (_on && p.TurnsLeft <= 1) return "done next year as it is";
+        if (_on && p.Gang) return "a gang is on it already: it is sped one way or the other, not both";
         return null;
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx) { var p = ctx.World.Projects.First(x => x.Id == _id); p.Hastened = _on; }
+}
+
+/// <summary>Put men of the house to a work as a gang, or call them off (the owner, 2026-11-21: "you can definitely spend manpower to
+/// hasten buildings, but it would be more of a cost ... over [time] and your manpower just wouldn't accumulate as quickly"). A work
+/// with a gang on it does two years in one. Each year the gang is on it the house gives <see cref="BuildRules.GangManpower"/>
+/// manpower as well as the two instalments; a year it cannot, the work goes at its own pace. Any work of the house's own takes one,
+/// great or small; a company's does not, and a great work hastened with coin is not ganged as well.</summary>
+public sealed class WorkGangCommand : ICommand
+{
+    private readonly string _id; private readonly bool _on; private readonly HoldingCatalog _catalog;
+    public WorkGangCommand(string actorId, string projectId, bool on, HoldingCatalog catalog) { ActorId = actorId; _id = projectId; _on = on; _catalog = catalog; }
+    public string ActorId { get; }
+    public string Describe() => $"{(_on ? "gang" : "ungang")} {_id}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var p = w.Projects.FirstOrDefault(x => x.Id == _id); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null || p == null || p.OwnerId != house.Id) return "no such project";
+        if (p.CompanyId.Length > 0) return "it is a company's work: the company's hands build it, not the house's men";
+        if (p.Gang == _on) return _on ? "a gang is on it" : "no gang is on it";
+        if (!_on) return null;
+        if (p.TurnsLeft <= 1) return "done next year as it is";
+        if (p.Hastened) return "it is hastened with coin already: it is sped one way or the other, not both";
+        int need = _catalog.Rules.GangManpower; return house.Treasury.Manpower >= need ? null : $"a gang is {need} manpower a year, and the house has {house.Treasury.Manpower}";
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var p = w.Projects.First(x => x.Id == _id); p.Gang = _on;
+        w.Log(_on ? $"A gang of the house's men is put to {p.Name}: it goes two years in one while they are on it." : $"The gang is called off {p.Name}: it goes at its own pace.");
+    }
 }

@@ -161,6 +161,7 @@ public sealed class TurnController
         using (Perf.Time("begin:_ventures.Tick")) { _ventures?.Tick(World); }      // last year's offers lapse
         using (Perf.Time("begin:_regions.Tick")) { _regions.Tick(World); }        // the rings: lawlessness, allegiance, risings and secessions (GDD §19) — seeded only for a new leader's name
         using (Perf.Time("begin:_pirates.Tick")) { _pirates.Tick(World); }        // raiders gather where the lanes are lawless, roam and plunder (GAP §6) — RNG-free
+        MercenarySystem.Tick(World);   // companies out on hire: the year's pay, and whether they come home
         using (Perf.Time("begin:_fleets.Tick")) { _fleets.Tick(World); }         // fleets move, eat, arrive; the intel picture refreshes (GDD §19) — RNG-free
         using (Perf.Time("begin:_fleets.ResolveBattles")) { _fleets.ResolveBattles(World, _rng); }   // warring fleets that share a system fight (seeded roll)
         using (Perf.Time("begin:PirateSystem.AfterBattles")) { PirateSystem.AfterBattles(World, _fleets.LastBattles); PirateSystem.WriteFlags(World); }

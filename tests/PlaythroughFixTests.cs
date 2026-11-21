@@ -893,4 +893,89 @@ public class PlaythroughFixTests
         Assert.Contains(w.News, n => n.Text.StartsWith("You have left " + from.Name));
         Assert.Equal("you sit with them already", new JoinFactionCommand(me.Id, to.Id).Refusal(ctx));
     }
+    [Fact]
+    public void Manpower_StopsAtWhatTheWorldsCanMuster()
+    {
+        // the owner, 2026-11-21: "there should 100% be a cap ... you're not gonna be in charge of one world that has like 100 million troops"
+        Assert.Equal(30, Economy.MusterSettle(20, 10, 100));           // under the cap, the year's gain is kept
+        Assert.Equal(100, Economy.MusterSettle(95, 10, 100));          // it stops at the cap
+        Assert.Equal(100, Economy.MusterSettle(100, 12, 100));         // and stays there
+        Assert.Equal(175, Economy.MusterSettle(200, 10, 100));         // an excess already held grows no more, and a quarter of it stands down
+        Assert.Equal(100, Economy.MusterSettle(101, 0, 100));
+        Assert.Equal(90, Economy.MusterSettle(120, -30, 100));         // spending is spending
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn();
+        int cap = Economy.MusterCap(w, house.Id); Assert.Equal(w.HoldingsOf(house.Id).Where(h => h.IsPlanet).Sum(h => h.Population), cap);
+        foreach (var h in w.Holdings.Values.Where(h => h.OwnerId == house.Id && h.IsPlanet).ToList()) Assert.True(h.Population > 0);
+        var landless = w.Houses.Values.First(h => h.Id != house.Id); Assert.True(Economy.MusterCap(w, landless.Id) >= Economy.MusterFloor);
+        // a year turns on a house a little under its cap: it ends at the cap of the worlds as they then are, and the player is told once
+        house.Treasury.Manpower = cap - 1; house.Treasury.Credits = 500; tc.EndTurn(); tc.BeginTurn();
+        Assert.True(house.Treasury.Manpower <= Economy.MusterCap(w, house.Id));
+        Assert.Contains(w.News, n => n.Text.StartsWith("Your worlds can muster no more"));
+        // no house in the Reach ends a long run with a host its worlds could not keep
+        for (int y = 0; y < 12; y++) { tc.EndTurn(); tc.BeginTurn(); }
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id))) Assert.True(h.Treasury.Manpower <= Math.Max(Economy.MusterCap(w, h.Id), 60), h.Name + " holds " + h.Treasury.Manpower + " of " + Economy.MusterCap(w, h.Id));
+    }
+
+    [Fact]
+    public void AWorkGang_HastensAWork_ForManpowerEachYear()
+    {
+        // the owner, 2026-11-21: "you can definitely spend manpower to hasten buildings, but it would be more of a cost ... over [time]"
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); var cat = Content.Holdings; int gm = cat.Rules.GangManpower;
+        var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet);
+        var p = new Project { Id = "t_gang", OwnerId = house.Id, Kind = Project.Building, DefId = "x", TargetId = seat.Id, Name = "a test works", TurnsTotal = 6, TurnsLeft = 6, Cost = new Resources { Credits = 60 } }; w.Projects.Add(p);
+        house.Treasury.Credits = 500; house.Treasury.Manpower = 0;
+        Assert.Contains(gm + " manpower a year", new WorkGangCommand(me.Id, p.Id, true, cat).Refusal(ctx));
+        house.Treasury.Manpower = 3 * gm; Assert.True(tc.Executor.TryExecute(new WorkGangCommand(me.Id, p.Id, true, cat), ctx)); Assert.True(p.Gang);
+        Assert.Equal("a gang is on it", new WorkGangCommand(me.Id, p.Id, true, cat).Refusal(ctx));
+        Assert.NotNull(new HastenWorkCommand(me.Id, p.Id, true, cat).Refusal(ctx));
+        // the year's outgoings count the gang, and the work goes two years in one for it
+        var outs = HouseAccounts.Outgoings(w, cat, house, tc.Economy); Assert.Contains(outs, o => o.what.StartsWith("a gang hastening") && o.cost.Manpower == gm);
+        int mp = house.Treasury.Manpower, paid = p.Paid.Credits; ProjectSystem.Tick(w, cat, Content.Businesses);
+        Assert.Equal(4, p.TurnsLeft); Assert.Equal(mp - gm, house.Treasury.Manpower); Assert.True(p.Paid.Credits > paid);
+        // a year the men cannot be found it goes at its own pace, and the house is told
+        house.Treasury.Manpower = gm - 1; ProjectSystem.Tick(w, cat, Content.Businesses); Assert.Equal(3, p.TurnsLeft);
+        Assert.Contains(w.News, n => n.Text.Contains("was not worked by its gang this year"));
+        // called off, it goes on as any work does
+        Assert.True(tc.Executor.TryExecute(new WorkGangCommand(me.Id, p.Id, false, cat), ctx)); house.Treasury.Manpower = 50; ProjectSystem.Tick(w, cat, Content.Businesses); Assert.Equal(2, p.TurnsLeft); Assert.Equal(50, house.Treasury.Manpower);
+        // a company's work takes no gang
+        p.CompanyId = "co"; Assert.Contains("company", new WorkGangCommand(me.Id, p.Id, true, cat).Refusal(ctx));
+    }
+    [Fact]
+    public void AFleetIsHiredOutAsMercenaries_ForPay_AndAtACostToTheHousesName()
+    {
+        // the owner, 2026-11-21: "you can have forces act as mercenaries in war, but I think that should come with a [hurt] to reputation"; manpower is never sold
+        Assert.False(Content.Market.Good(Resource.Manpower)?.Sell ?? false);
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); Fill(ctx, me);
+        w.Wars.Clear(); foreach (var f in w.Fleets.Values.ToList()) w.Fleets.Remove(f.Id);
+        var home = w.HoldingsOf(house.Id).First(h => h.IsPlanet);
+        var others = w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id) && w.HoldingsOf(h.Id).Any(x => x.IsPlanet)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+        var employer = others[0]; var foe = others[1]; var eHead = Economy.HeadOf(w, employer)!; var foeHead = Economy.HeadOf(w, foe)!;
+        var fleet = new Fleet { Id = "co", Name = "The Company", OwnerId = house.Id, SystemId = home.SystemId, Strength = 4, AdmiralId = me.Id }; w.Fleets[fleet.Id] = fleet;
+        // nobody is hiring in peace
+        Assert.Empty(MercenarySystem.Employers(w, house.Id)); Assert.Contains("at war with no one", new HireOutFleetCommand(me.Id, fleet.Id, employer.Id).Refusal(ctx));
+        tc.Fleets.DeclareWar(w, employer.Id, foe.Id); employer.Treasury.Credits = 100; w.Relationship(eHead.Id, me.Id).Disposition = 0;
+        Assert.Contains(employer, MercenarySystem.Employers(w, house.Id));
+        int legit = house.Legitimacy, credits = house.Treasury.Credits, foeRegard = w.Relationship(foeHead.Id, me.Id).Disposition, pay = MercenarySystem.PayOf(fleet);
+        Assert.Contains("legitimacy −" + MercenarySystem.Legitimacy, MercenarySystem.Says(w, fleet, employer));
+        Assert.True(tc.Executor.TryExecute(new HireOutFleetCommand(me.Id, fleet.Id, employer.Id), ctx));
+        // it sails under the employer, keeps its own admiral, and is kept whole as a levy is
+        Assert.Equal(employer.Id, fleet.OwnerId); Assert.Equal(house.Id, fleet.HiredFrom); Assert.Equal(me.Id, fleet.AdmiralId);
+        Assert.NotNull(new DetachHullsCommand(eHead.Id, fleet.Id, 1, Content.Fleets, Content.ShipClasses).Refusal(new CommandContext(w, TestContent.Rng())));
+        // the first year is paid, the house is thought the less of, and the house it is turned on thinks the worse of its head
+        Assert.Equal(credits + pay, house.Treasury.Credits); Assert.Equal(legit - MercenarySystem.Legitimacy, house.Legitimacy);
+        Assert.Equal(foeRegard - MercenarySystem.FoeRegard, w.Relationship(foeHead.Id, me.Id).Disposition);
+        Assert.Contains(fleet, MercenarySystem.HiredOutBy(w, house.Id)); Assert.Contains("a company hired from " + house.Name, FleetSystem.Doing(w, fleet, foe.Id));
+        // each year after, the pay comes; when the pay is not found it comes home
+        w.Turn += 1; credits = house.Treasury.Credits; MercenarySystem.Tick(w); Assert.Equal(credits + pay, house.Treasury.Credits); Assert.Equal(employer.Id, fleet.OwnerId);
+        w.Turn += 1; employer.Treasury.Credits = 0; MercenarySystem.Tick(w); Assert.Equal(house.Id, fleet.OwnerId); Assert.Equal("", fleet.HiredFrom); Assert.Equal("", fleet.LevyOf);
+        Assert.Contains(w.News, n => n.Text.Contains("has left " + employer.Name + "'s service"));
+        // hired again and called back: the contract is broken, and the employer's head remembers
+        employer.Treasury.Credits = 100; fleet.DestinationId = ""; fleet.SystemId = home.SystemId; Assert.True(tc.Executor.TryExecute(new HireOutFleetCommand(me.Id, fleet.Id, employer.Id), ctx));
+        int eRegard = w.Relationship(eHead.Id, me.Id).Disposition; Assert.True(tc.Executor.TryExecute(new RecallHiredFleetCommand(me.Id, fleet.Id), ctx));
+        Assert.Equal(house.Id, fleet.OwnerId); Assert.Equal(eRegard - MercenarySystem.BreakRegard, w.Relationship(eHead.Id, me.Id).Disposition);
+        // when the employer's wars end, a company comes home; one destroyed in service is told of
+        Assert.True(tc.Executor.TryExecute(new HireOutFleetCommand(me.Id, fleet.Id, employer.Id), ctx)); w.Wars.Clear(); w.Turn += 1; MercenarySystem.Tick(w); Assert.Equal(house.Id, fleet.OwnerId);
+        tc.Fleets.DeclareWar(w, employer.Id, foe.Id); fleet.DestinationId = ""; fleet.SystemId = home.SystemId; Assert.True(tc.Executor.TryExecute(new HireOutFleetCommand(me.Id, fleet.Id, employer.Id), ctx));
+        w.Fleets.Remove(fleet.Id); MercenarySystem.Tick(w); Assert.Contains(w.News, n => n.Text.Contains("The Company, which you hired out, has been destroyed"));
+    }
 }

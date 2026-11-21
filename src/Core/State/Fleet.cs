@@ -28,6 +28,11 @@ public sealed class Fleet
     public string AdmiralId { get; set; } = "";
     /// <summary>A levy squadron (docs/PROVINCES.md): the house that sent it. It sails under the house that holds the world until the peace.</summary>
     public string LevyOf { get; set; } = "";
+    /// <summary>The house that hired this fleet out as a company of mercenaries, or "" (docs/PLAYTHROUGH.md, Money; MercenarySystem).
+    /// While it is set the fleet sails under its employer (<see cref="OwnerId"/>) and <see cref="LevyOf"/> names the same house, so
+    /// everything that keeps a levy whole keeps a hired company whole. <see cref="HireTurn"/> is the year it was hired.</summary>
+    public string HiredFrom { get; set; } = "";
+    public int HireTurn { get; set; }
 
     /// <summary>Battles survived, 0..veterancyMax; each adds veterancyBonus to power.</summary>
     public int Veterancy { get; set; }

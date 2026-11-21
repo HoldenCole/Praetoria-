@@ -121,7 +121,7 @@ public static class HoldingCatalogLoader
                         DevPerLevel = ConditionParser.Int(dv, "perLevel", d0.DevPerLevel), DevCeiling = ConditionParser.Int(dv, "ceiling", d0.DevCeiling), DevCeilingPerLevel = ConditionParser.Int(dv, "ceilingPerLevel", d0.DevCeilingPerLevel),
                         DevCeilingPerPeople = Math.Max(1, ConditionParser.Int(dv, "ceilingPerPeople", d0.DevCeilingPerPeople)), DevProsperous = ConditionParser.Int(dv, "prosperous", d0.DevProsperous), DevSiege = ConditionParser.Int(dv, "siege", d0.DevSiege), DevSeed = ConditionParser.Int(dv, "seed", d0.DevSeed), DevSeedPerPeople = Math.Max(1, ConditionParser.Int(dv, "seedPerPeople", d0.DevSeedPerPeople)),
                         CapacityHouse = ConditionParser.Int(cap, "house", d0.CapacityHouse), CapacityRegionLeader = ConditionParser.Int(cap, "regionLeader", d0.CapacityRegionLeader), CapacityHeadOfState = ConditionParser.Int(cap, "headOfState", d0.CapacityHeadOfState),
-                        CapacityEmperor = ConditionParser.Int(cap, "emperor", d0.CapacityEmperor), HastenPct = ConditionParser.Int(gw, "hastenPct", d0.HastenPct)
+                        CapacityEmperor = ConditionParser.Int(cap, "emperor", d0.CapacityEmperor), HastenPct = ConditionParser.Int(gw, "hastenPct", d0.HastenPct), GangManpower = ConditionParser.Int(gw, "gangManpower", d0.GangManpower)
                     };
                 }
                 if (root.TryGetProperty("colony", out var col) && col.ValueKind == JsonValueKind.Object)

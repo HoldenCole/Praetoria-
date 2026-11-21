@@ -118,9 +118,12 @@ public sealed class MarketSystem
         foreach (var d in _trade.Market.Goods)
         {
             var g = m.Goods[d.Id]; var (produced, needed) = ledgers[d.Id];
+            // men past what a house's worlds can muster (Economy.MusterCap) were not taken into its service: the worlds still raised
+            // them and they are there for hire, so they count as made, and they are not counted as used up
+            double unkept = 0; if (d.Id == Resource.Manpower) { unkept = w.Counter(Economy.UnmusteredKey(w.Turn - 1)); w.WorldCounters.Remove(Economy.UnmusteredKey(w.Turn - 1)); }
             int total = Total(w, d.Id); double imports = Imports(w, d.Id);
             // conservation: what the houses hold changed by production less consumption, plus what they bought, less what they sold
-            double consumed = Math.Max(needed, produced - (total - g.LastTotal) + (g.Bought - g.Sold));
+            double consumed = Math.Max(needed, produced - unkept - (total - g.LastTotal) + (g.Bought - g.Sold));
             consumed = Math.Min(consumed, needed + Math.Max(8, g.LastTotal));   // an event that empties a treasury is not a year's appetite
             double supply = d.MinDemand + produced + imports, demand = (d.MinDemand + consumed) * (1 + d.WarPct * wars / 100.0);
             double prevSupplyLong = g.SupplyLong, prevDemandLong = g.DemandLong;

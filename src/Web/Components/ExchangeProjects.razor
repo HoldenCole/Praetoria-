@@ -28,6 +28,12 @@
                 {
                     <div class="row small">
                         <button class="opt inline tiny" @onclick="() => G.Execute(new PauseProjectCommand(pid, p.Id))">@(p.Paused ? "Resume" : "Pause")</button>
+                        @if (w.Projects.FirstOrDefault(x => x.Id == p.Id) is { CompanyId.Length: 0 } raw)
+                        {
+                            /* a gang of the house's men: two years' work in one, for manpower each year it is on the work */
+                            bool gang = raw.Gang; var gc = new WorkGangCommand(pid, p.Id, !gang, G.Content!.Holdings); string? gno = gc.Refusal(G.Ctx); int gm = G.Content.Holdings.Rules.GangManpower;
+                            <button class="opt inline tiny @(gang ? "on" : "")" data-gang="@p.Id" disabled="@(gno != null)" title="@(gno ?? (gang ? $"A gang is on it: it goes two years in one, for {gm} manpower a year and both years' instalments. A year the house cannot find the men or the instalments, it goes at its own pace. Call them off and it does so from now on." : $"Put men of the house to it: it goes two years in one while they are on it, for {gm} manpower a year and both years' instalments, and no coin beyond those. The men are not lost: the house musters {gm} fewer each year the work lasts."))" @onclick="() => G.Execute(gc)">@(gang ? "Call the gang off" : $"Put a gang on it · {gm} manpower a year")</button>
+                        }
                         @if (p.Stalled) { var payNo = new PayInstalmentCommand(pid, p.Id).Refusal(G.Ctx); <button class="opt inline tiny" data-paynow="@p.Id" disabled="@(payNo != null)" title="@(payNo ?? "Pay the instalment that was missed (" + p.Next + ") now: the work goes on and the lost year is made up")" @onclick="() => G.Execute(new PayInstalmentCommand(pid, p.Id))">Pay the instalment now · @p.Next</button> }
                         @if (p.Great)
                         {

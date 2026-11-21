@@ -252,6 +252,25 @@ public sealed class Economy
 
     /// <summary>Where a holding's prosperity is heading (GDD §17): the governor's administration, what is built, the tithe,
     /// unrest, a blockade, the ventures working the world.</summary>
+    /// <summary>The manpower the ledgers of the Reach showed in a year that no house could keep, because it was past the cap.</summary>
+    public static string UnmusteredKey(int turn) => "unmustered:" + turn;
+    /// <summary>A house with no world can still keep this many under arms: its household and its hired hands.</summary>
+    public const int MusterFloor = 20;
+    /// <summary>Men beyond the cap (a world lost, an older game) stand down this share of the excess each year.</summary>
+    public const int StandDownShare = 4;
+    /// <summary>The most manpower a house can hold: one for each of the people of its worlds, and never less than
+    /// <see cref="MusterFloor"/>. One world does not keep a hundred million under arms.</summary>
+    public static int MusterCap(World world, string houseId) => Math.Max(MusterFloor, world.HoldingsOf(houseId).Where(h => h.IsPlanet).Sum(h => h.Population));
+    /// <summary>Where a house's manpower stands after a year: what it had and what the year brought, but not past the cap by
+    /// the year's gain, and with a share of any excess already held standing down.</summary>
+    public static int MusterSettle(int had, int net, int cap)
+    {
+        int raw = had + net; if (raw <= cap) return raw;
+        int kept = Math.Max(cap, Math.Min(had, raw));
+        if (kept > cap) kept -= Math.Max(1, (kept - cap + StandDownShare - 1) / StandDownShare);
+        return Math.Max(cap, kept);
+    }
+
     public int ProsperityTarget(World world, Holding holding) => Math.Clamp(ProsperityWhy(world, holding).Sum(x => x.by), 0, 100);
 
     /// <summary>What a world's prosperity settles at, cause by cause (docs/PLAYTHROUGH.md, Medium: "why loyalty and prosperity are what
@@ -335,7 +354,17 @@ public sealed class Economy
             }
 
             var ledger = Compute(world, house.Id);
+            int manpowerBefore = house.Treasury.Manpower;
             house.Treasury.Add(ledger.Net);
+            // a house keeps under arms no more than its worlds can muster (the owner, 2026-11-21: "there should 100% be a cap")
+            int cap = MusterCap(world, house.Id), settled = MusterSettle(manpowerBefore, ledger.Net.Manpower, cap);
+            if (settled != house.Treasury.Manpower)
+            {
+                if (house.Id == world.Protagonist?.HouseId && manpowerBefore < cap) world.Tell("info", $"Your worlds can muster no more: manpower stands at {cap}, which is what their people can keep under arms. It grows only as they do.", "house", house.Id);
+                // what the worlds could not muster was never made: the exchanges are told, or they would read it as men used up
+                int unmustered = house.Treasury.Manpower - settled; if (unmustered > 0) world.WorldCounters[UnmusteredKey(world.Turn)] = world.Counter(UnmusteredKey(world.Turn)) + unmustered;
+                house.Treasury.Manpower = settled;
+            }
             if (house.Id == world.Protagonist?.HouseId) foreach (var r in Resource.All) world.WorldCounters[Presentation.YearInBrief.LedgerKey(r)] = ledger.Net.Get(r);   // what the standing ledger really brought this year: last year's accounts read it
             if (house.Debt > 0) house.Debt = Math.Max(0, house.Debt - _ventures.Finance.LoanInstalment);
             if (house.Debt == 0) house.LenderId = "";

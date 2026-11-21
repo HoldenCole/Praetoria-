@@ -98,14 +98,14 @@ public static class ProjectSystem
         {
             if (w.House(p.OwnerId) == null || !StillPossible(w, p)) { w.Projects.Remove(p); continue; }
             if (p.Paused) continue;
-            bool toHasten = p.Hastened && p.TurnsLeft > 1 && SystemWorks.IsGreat(holdings, p);
-            if (toHasten && !CanHasten(w, p, holdings.Rules.HastenPct, out string hastenShort))
+            bool toHasten = p.TurnsLeft > 1 && (Ganged(p) || p.Hastened && SystemWorks.IsGreat(holdings, p));
+            if (toHasten && !CanHasten(w, p, holdings.Rules, out string hastenShort))
             {
                 /* said the year it happens: the work was to go two years in one and the treasury could not stand it (docs/PLAYTHROUGH.md, Easy, B49) */
                 p.HastenMissedTurn = w.Turn;
-                if (p.OwnerId == mine) w.Tell("warn", $"{char.ToUpperInvariant(p.Name[0])}{p.Name[1..]} was not hastened this year ({hastenShort}): it goes at its own pace.", "exchange:projects");
+                if (p.OwnerId == mine) w.Tell("warn", $"{char.ToUpperInvariant(p.Name[0])}{p.Name[1..]} was not {(Ganged(p) ? "worked by its gang" : "hastened")} this year ({hastenShort}): it goes at its own pace.", "exchange:projects");
             }
-            if (toHasten && Hasten(w, p, holdings.Rules.HastenPct))
+            if (toHasten && Hasten(w, p, holdings.Rules))
             {
                 p.Stalled = false;
                 if (p.TurnsLeft <= 0) { Complete(w, p, holdings, ventures); w.Projects.Remove(p); if (p.OwnerId == mine) { w.WorldFlags.Add(DoneFlag); w.WorldFlags.Add(DoneFlag + ":" + p.Kind); Finished(w, p); } }
@@ -130,18 +130,27 @@ public static class ProjectSystem
         foreach (var r in Resource.All) { int d = Math.Min(each.Get(r) * shares, rem.Get(r)); due.Set(r, d); extra.Set(r, (d * pct + 99) / 100); }
         return (due, extra);
     }
+    /// <summary>A gang is on it: only a house's own work takes one, never a company's.</summary>
+    public static bool Ganged(Project p) => p.Gang && p.CompanyId.Length == 0;
+    /// <summary>What a work that goes two years in one pays this year, whichever way it is sped: with a gang, the two instalments and
+    /// the gang's manpower; hastened with coin, the two instalments and the share more that buys the speed.</summary>
+    public static (Resources due, Resources extra) SpeedDue(Project p, BuildRules rules)
+    {
+        if (!Ganged(p)) return HastenDue(p, rules.HastenPct);
+        var (due, _) = HastenDue(p, 0); return (due, new Resources { Manpower = rules.GangManpower });
+    }
     /// <summary>Two years' work in one, if the purse can stand it; if it cannot, the work goes at its ordinary pace this year.</summary>
-    private static bool CanHasten(World w, Project p, int pct, out string shortBy)
+    private static bool CanHasten(World w, Project p, BuildRules rules, out string shortBy)
     {
         shortBy = ""; var house = w.House(p.OwnerId); if (house == null) return false;
-        var (due, extra) = HastenDue(p, pct); var all = due.Clone(); foreach (var r in Resource.All) all.Add(r, extra.Get(r));
+        var (due, extra) = SpeedDue(p, rules); var all = due.Clone(); foreach (var r in Resource.All) all.Add(r, extra.Get(r));
         if (house.Treasury.CanAfford(all)) return true;
         shortBy = house.Treasury.Short(all); return false;
     }
-    private static bool Hasten(World w, Project p, int pct)
+    private static bool Hasten(World w, Project p, BuildRules rules)
     {
         var house = w.House(p.OwnerId); if (house == null) return false;
-        var (due, extra) = HastenDue(p, pct); var all = due.Clone(); foreach (var r in Resource.All) all.Add(r, extra.Get(r));
+        var (due, extra) = SpeedDue(p, rules); var all = due.Clone(); foreach (var r in Resource.All) all.Add(r, extra.Get(r));
         if (!house.Treasury.CanAfford(all)) return false;
         house.Treasury.Spend(extra); if (!Pay(w, p, due)) return false;
         p.TurnsLeft -= 2;

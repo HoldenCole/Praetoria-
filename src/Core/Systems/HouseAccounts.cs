@@ -22,9 +22,10 @@ public static class HouseAccounts
         {
             if (p.Paused || p.TurnsLeft <= 1 || p.CompanyId.Length > 0) continue;
             Resources due;
-            if (p.Hastened && SystemWorks.IsGreat(cat, p)) { var (d, extra) = ProjectSystem.HastenDue(p, cat.Rules.HastenPct); due = d.Clone(); foreach (var r in Resource.All) due.Add(r, extra.Get(r)); }
+            bool sped = ProjectSystem.Ganged(p) || p.Hastened && SystemWorks.IsGreat(cat, p);
+            if (sped) { var (d, extra) = ProjectSystem.SpeedDue(p, cat.Rules); due = d.Clone(); foreach (var r in Resource.All) due.Add(r, extra.Get(r)); }
             else due = ProjectSystem.NextInstalment(p);
-            if (!due.IsEmpty()) lines.Add(((p.Hastened ? "hastening " : "building ") + p.Name, due));
+            if (!due.IsEmpty()) lines.Add(((ProjectSystem.Ganged(p) ? "a gang hastening " : sped ? "hastening " : "building ") + p.Name, due));
         }
         bool mine = house.Id == w.Protagonist?.HouseId;
         int tutors = mine ? w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Tutor > 0).Sum(c => EducationSystem.TutorCost(c.Tutor)) : 0;

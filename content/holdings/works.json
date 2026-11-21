@@ -82,7 +82,8 @@
    "headOfState": 3,
    "emperor": 5
   },
-  "hastenPct": 50
+  "hastenPct": 50,
+  "gangManpower": 5
  },
  "infrastructure": [
   {

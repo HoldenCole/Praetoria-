@@ -34,6 +34,9 @@ public sealed class Project
     public bool Paused { get; set; }
     /// <summary>A great work being hastened (docs/BUILDINGS.md): it goes two years in one, and each year pays both instalments and half as much again.</summary>
     public bool Hastened { get; set; }
+    /// <summary>Men of the house are put to the work as a gang: it does two years in one, for manpower each year the gang is on it
+    /// and no coin beyond the instalments (the owner, 2026-11-21: "spend manpower to hasten buildings ... more of a cost over time").</summary>
+    public bool Gang { get; set; }
     /// <summary>The year a hastened work last went at its own pace because the treasury could not pay for the speed (0: never).</summary>
     public int HastenMissedTurn { get; set; }
     /// <summary>A great work: it is hastened by the year, never bought outright.</summary>

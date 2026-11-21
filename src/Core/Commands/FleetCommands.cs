@@ -181,7 +181,7 @@ public sealed class RaiseFleetCommand : ICommand
         house.Treasury.ClampNonCredit();
 
         var fleet = w.Fleets.Values
-            .Where(f => f.OwnerId == house.Id && !f.Office && !f.Moving && f.SystemId == h.SystemId)
+            .Where(f => f.OwnerId == house.Id && !f.Office && f.LevyOf.Length == 0 && !f.Moving && f.SystemId == h.SystemId)   // new hulls are not laid into a levy or a hired company
             .OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
         if (fleet == null)
         {
@@ -287,6 +287,31 @@ public sealed class AskFleetToLeaveCommand : ICommand
         w.Log($"{actor.Name} asks {them} to take its fleet out of {where}, and it goes: it sails for {to}.");
         w.Tell("good", $"{them} takes its fleet out of {where} as you asked. It sails for {to}, and {them} will not send one to stand over you for {FleetSystem.AskedOffYears} years.", "galaxy:" + f.SystemId, f.OwnerId);
     }
+}
+
+/// <summary>Hire a fleet out to a house that is at war, as a company of mercenaries (<see cref="MercenarySystem"/>). It costs
+/// nothing to do; what it costs is the house's name.</summary>
+public sealed class HireOutFleetCommand : ICommand
+{
+    private readonly string _fleetId, _employerId;
+    public HireOutFleetCommand(string actorId, string fleetId, string employerId) { ActorId = actorId; _fleetId = fleetId; _employerId = employerId; }
+    public string ActorId { get; }
+    public string Describe() => $"hire {_fleetId} out to {_employerId}";
+    public string? Refusal(CommandContext ctx) => MercenarySystem.Refusal(ctx.World, ctx.World.Char(ActorId), _fleetId, _employerId);
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; MercenarySystem.Hire(w, w.Char(ActorId)!, w.Fleets[_fleetId], w.House(_employerId)!); }
+}
+
+/// <summary>Call a company back from hire before its term: the contract is broken, and the employer remembers it.</summary>
+public sealed class RecallHiredFleetCommand : ICommand
+{
+    private readonly string _fleetId;
+    public RecallHiredFleetCommand(string actorId, string fleetId) { ActorId = actorId; _fleetId = fleetId; }
+    public string ActorId { get; }
+    public string Describe() => $"call {_fleetId} back from hire";
+    public string? Refusal(CommandContext ctx) => MercenarySystem.RecallRefusal(ctx.World, ctx.World.Char(ActorId), _fleetId);
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; MercenarySystem.Recall(w, w.Char(ActorId)!, w.Fleets[_fleetId]); }
 }
 
 /// <summary>Hulls taken out of a fleet, the lightest first (the cheapest to build), as a guard left behind or a squadron paid off would be.</summary>

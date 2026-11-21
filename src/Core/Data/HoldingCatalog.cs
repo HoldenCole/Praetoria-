@@ -137,6 +137,9 @@ public sealed class BuildRules
     public int CapacityHouse { get; init; } = 1; public int CapacityRegionLeader { get; init; } = 2; public int CapacityHeadOfState { get; init; } = 3; public int CapacityEmperor { get; init; } = 5;
     /// <summary>What a hastened great work pays each year beyond its two instalments, in hundredths of them.</summary>
     public int HastenPct { get; init; } = 50;
+    /// <summary>The manpower a work gang takes each year it is on a work. The men are not lost for good: the house simply musters
+    /// that many fewer while the work lasts.</summary>
+    public int GangManpower { get; init; } = 5;
     public int MaxLevel => Math.Max(1, UpgradeAt.Count);
     public Resources ClearCostOf(int already) { var c = new Resources(); foreach (var r in Resource.All) c.Set(r, ClearCost.Get(r) * (already + 1)); return c; }
 }
