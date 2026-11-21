@@ -200,3 +200,11 @@ stand before anything was done for it, on the terms given (custom's by default).
 the reckoning and no influence is spent. Agreed, a courtship is begun and settled at once through `Propose`, so the
 terms, the kind of marriage and what the one married thinks of it are a courtship's. Other houses' treaties among
 themselves still go by regard and standing alone.
+
+## A wider field (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, Family, F37). When fewer than `AfieldBelow` (3) grown people could
+be matched with one of the house, the head may look further afield (`SeekMatchCommand`, `CourtshipSystem.FindAfield`)
+for `AfieldInfluence` (2): the house at peace whose head thinks best of the head brings forward a new person of a
+lesser branch of its name (flag `lesser_branch`), of the other sex and of an age to marry. Once every `AfieldEvery` (3)
+years for the same person. Other houses do not do this for their own.

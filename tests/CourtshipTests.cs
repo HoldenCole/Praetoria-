@@ -28,6 +28,33 @@ public class CourtshipTests
         return w.Courtships.Single(c => c.SuitorId == me.Id && c.TargetId == t.Id);
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, Family: "A wider field for marriage when everyone eligible wed in the first year" (F37). */
+    [Fact]
+    public void WhenNearlyEveryoneIsWed_TheHeadLooksFurtherAfield_AndAHouseBringsSomeoneForward()
+    {
+        var (tc, w, me) = Start(); var ctx = new CommandContext(w, TestContent.Rng()); var mine = w.House(me.HouseId)!;
+        var s = w.LivingCharacters().FirstOrDefault(c => c.HouseId == mine.Id && c.Id != me.Id && c.Age >= CourtshipSystem.Adult && DynastySystem.Spouse(w, c) == null && c.Sex.Length > 0);
+        if (s == null) { s = new Character { Id = "unwed", Name = "Unwed Kin", HouseId = mine.Id, Age = 24, Sex = "male", Alive = true }; w.Characters[s.Id] = s; mine.Members.Add(s.Id); w.Pools[s.Id] = ActionPools.ForNpc(); }
+        // while there are people to be matched with, there is no need
+        if (CourtshipSystem.GrownProspects(w, s) >= CourtshipSystem.AfieldBelow) Assert.Contains("who could be matched with them already", new SeekMatchCommand(me.Id, s.Id, Content.Names).Refusal(ctx));
+        // everyone else of an age is wed
+        foreach (var x in CourtshipSystem.Prospects(w, s).Where(x => x.person.Age >= CourtshipSystem.Adult).Select(x => x.person).ToList()) x.Flags.Add(DynastySystem.HiddenFlag);
+        Assert.Equal(0, CourtshipSystem.GrownProspects(w, s));
+        w.Pools[me.Id].Influence = 1; Assert.Equal($"needs {CourtshipSystem.AfieldInfluence} influence", new SeekMatchCommand(me.Id, s.Id, Content.Names).Refusal(ctx));
+        w.Pools[me.Id].Influence = 5; int people = w.Characters.Count; var host = CourtshipSystem.AfieldHost(w, s)!;
+        Assert.True(new CommandExecutor().TryExecute(new SeekMatchCommand(me.Id, s.Id, Content.Names), ctx), new SeekMatchCommand(me.Id, s.Id, Content.Names).Refusal(ctx));
+        Assert.Equal(5 - CourtshipSystem.AfieldInfluence, w.Pools[me.Id].Influence); Assert.Equal(people + 1, w.Characters.Count);
+        var found = w.Characters.Values.Single(c => c.Flags.Contains(CourtshipSystem.LesserChar));
+        // someone of that house, of the other sex, of an age to marry, and able to be matched with them like anyone else
+        Assert.Equal(host.Id, found.HouseId); Assert.Contains(found.Id, host.Members); Assert.NotEqual(s.Sex, found.Sex); Assert.True(found.Age >= CourtshipSystem.Adult); Assert.EndsWith(host.Name.Replace("House ", ""), found.Name);
+        Assert.Null(CourtshipSystem.Bar(w, s, found)); Assert.Contains(CourtshipSystem.Prospects(w, s), x => x.person.Id == found.Id); Assert.Equal(1, CourtshipSystem.GrownProspects(w, s));
+        Assert.Null(new CourtCommand(me.Id, s.Id, found.Id).Refusal(ctx)); Assert.Contains(w.History, h => h.Text.Contains("of a lesser branch of the name"));
+        // not again for the same person for some years; and not for a child, or one who is wed
+        Assert.Contains("before another can be found", new SeekMatchCommand(me.Id, s.Id, Content.Names).Refusal(ctx));
+        w.Turn += CourtshipSystem.AfieldEvery; Assert.Null(new SeekMatchCommand(me.Id, s.Id, Content.Names).Refusal(ctx));
+        Assert.Equal("only the head of the house can", new SeekMatchCommand(s.Id, s.Id, Content.Names).Refusal(ctx));
+    }
+
     [Fact]
     public void A_courtship_is_won_from_the_person_and_from_the_family_one_act_a_year()
     {

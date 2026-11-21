@@ -139,6 +139,16 @@
                 @{ var tooYoung = w.LivingCharacters().Where(k => k.HouseId == house.Id && k.Age < CourtshipSystem.BetrothalAge && DynastySystem.Spouse(w, k) == null).OrderByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal).ToList(); }
                 @foreach (var k in tooYoung.Take(4)) { <button class="opt inline" disabled title="@($"A child can be promised from {CourtshipSystem.BetrothalAge}: {First(k.Name)} is {k.Age}. A promise is kept when both are of age.")">@First(k.Name) · @k.Age · from @CourtshipSystem.BetrothalAge</button> }
             </div>
+            @if (suitor.Age >= CourtshipSystem.Adult && CourtshipSystem.GrownProspects(w, suitor) < CourtshipSystem.AfieldBelow)
+            {
+                /* nearly everyone who could be matched with them is wed: the head may look further (docs/PLAYTHROUGH.md, Medium, Family, F37) */
+                var seek = new SeekMatchCommand(pid, suitor.Id, G.Content!.Names); string? seekNo = seek.Refusal(G.Ctx); int grown = CourtshipSystem.GrownProspects(w, suitor); var host = CourtshipSystem.AfieldHost(w, suitor);
+                <div class="suit-acts" data-afield="@suitor.Id">
+                    <span class="small">@(grown == 0 ? "Nobody grown" : grown == 1 ? "Only one grown person" : "Only " + grown + " grown people") in the Reach could be matched with @First(suitor.Name) now.</span>
+                    <button class="opt inline" disabled="@(seekNo != null)" title="@(seekNo ?? $"Word goes out, and {host?.Name ?? "a house at peace with yours"} brings forward someone of a lesser branch of its name, of an age to marry {First(suitor.Name)}. They are courted or matched like anyone else. It can be done for the same person again in {CourtshipSystem.AfieldEvery} years.")" @onclick="() => G.Execute(seek)">Look further afield · @CourtshipSystem.AfieldInfluence influence</button>
+                    @if (seekNo != null) { <span class="small muted">@char.ToUpperInvariant(seekNo[0])@seekNo[1..].</span> }
+                </div>
+            }
             @if (prospects.Count == 0) { <div class="muted small">There is no one @suitor.Name could be matched with now.</div> }
             else
             {

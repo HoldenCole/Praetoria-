@@ -136,6 +136,56 @@ public static class CourtshipSystem
             .Select(t => (t, f: t.Age < Adult || suitor.Age < Adult ? 0 : StartFavour(w, suitor, t), k: StartConsent(w, suitor, t)))
             .OrderByDescending(x => CanBear(suitor, x.t)).ThenByDescending(x => x.f + x.k).ThenBy(x => x.t.Id, StringComparer.Ordinal).Select(x => (x.t, x.f, x.k)).ToList();
 
+    // ---------------- a wider field (docs/PLAYTHROUGH.md, Medium, Family, F37) ----------------
+    // When nearly everyone who could be matched with one of the house is wed already, the head may send word further afield: a
+    // house at peace with theirs brings forward someone of a lesser branch of its name, of an age to marry. They are a person
+    // like any other from then on, and are courted or matched as anyone is.
+
+    /// <summary>With fewer grown prospects than this the head may look further; what it costs; and the years before the same
+    /// person can be looked for again.</summary>
+    public const int AfieldBelow = 3, AfieldInfluence = 2, AfieldEvery = 3;
+    public const string LesserChar = "lesser_branch", AfieldCounter = "matches_found_afield";
+    public static string AfieldKey(string suitorId) => "afield:" + suitorId;
+    /// <summary>How many grown people one of the house could be matched with now.</summary>
+    public static int GrownProspects(World w, Character s) => Prospects(w, s).Count(x => x.person.Age >= Adult);
+    /// <summary>The house that would bring someone forward: at peace with the suitor's, no blood between them, and the one whose
+    /// head thinks best of the suitor's head.</summary>
+    public static House? AfieldHost(World w, Character s)
+    {
+        var ours = w.House(s.HouseId); var ourHead = ours != null ? Economy.HeadOf(w, ours) : null; if (ours == null) return null;
+        return w.Houses.Values.Where(h => h.Id != ours.Id && !World.Outsider(h.Id) && !w.AtWar(h.Id, ours.Id) && !FeudSystem.Between(w, h.Id, ours.Id) && Economy.HeadOf(w, h) != null)
+            .OrderByDescending(h => ourHead != null ? w.GetRelationship(Economy.HeadOf(w, h)!.Id, ourHead.Id)?.Disposition ?? 0 : 0).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+    }
+    public static string? AfieldRefusal(World w, Character? head, Character? s, ActionPools? pools)
+    {
+        var house = head != null ? w.House(head.HouseId) : null;
+        if (head?.Alive != true || house == null || Economy.HeadOf(w, house)?.Id != head.Id) return "only the head of the house can";
+        if (s?.Alive != true || s.HouseId != house.Id) return "not of your house";
+        if (s.Age < Adult) return "they are a child: a promise is sounded out among the children there are";
+        if (s.Sex.Length == 0) return "no heirs could come of it";
+        if (DynastySystem.Spouse(w, s) != null) return "already wed"; if (Promised(w, s.Id)) return "already promised";
+        int have = GrownProspects(w, s);
+        if (have >= AfieldBelow) return $"there are {have} who could be matched with them already";
+        int last = w.Counter(AfieldKey(s.Id));
+        if (last > 0 && w.Turn - last < AfieldEvery) return $"word went out for them in year {last}: it is {AfieldEvery} years before another can be found";
+        if (AfieldHost(w, s) == null) return "no house at peace with yours has anyone to bring forward";
+        return (pools?.Influence ?? 0) >= AfieldInfluence ? null : $"needs {AfieldInfluence} influence";
+    }
+    /// <summary>Word goes out, and a house brings forward someone of a lesser branch of its name for the one of yours. Returns them.</summary>
+    public static Character FindAfield(World w, Character head, Character s, Creation.NameCatalog names, Rng.IRng rng)
+    {
+        var host = AfieldHost(w, s)!; int n = w.Counter(AfieldCounter) + 1; w.WorldCounters[AfieldCounter] = n; w.WorldCounters[AfieldKey(s.Id)] = w.Turn;
+        string sex = s.Sex == "female" ? "male" : "female"; int age = Math.Clamp(s.Age + rng.NextInt(-6, 4), Adult, 60);
+        if (sex == "female") age = Math.Min(age, DynastySystem.FertileMax - 8); if (Math.Abs(s.Age - age) > 30) age = s.Age > age ? s.Age - 30 : s.Age + 30;
+        string given = names.IsEmpty ? $"Cousin {n}" : names.Pick(host.Culture, sex, rng); string[] tracks = { "military", "stewardship", "law" };
+        var found = new Character { Id = $"lesser_{host.Id}_{n}", Name = $"{given} {host.Name.Replace("House ", "")}", HouseId = host.Id, Age = age, Sex = sex, CareerTrack = tracks[rng.NextInt(0, tracks.Length)], CareerRank = age >= 26 ? 1 : 0 };
+        found.Skills[found.CareerTrack == "military" ? "tactics" : found.CareerTrack == "law" ? "oratory" : "administration"] = 1 + rng.NextInt(0, 3);
+        found.Flags.Add(LesserChar);
+        w.Characters[found.Id] = found; host.Members.Add(found.Id); w.Pools[found.Id] = ActionPools.ForNpc();
+        w.Log($"{head.Name} sends word further afield for a match for {s.Name}. {host.Name} brings forward {found.Name}, {age}, of a lesser branch of the name.");
+        return found;
+    }
+
     /// <summary>Are children likely of this match? Not when the woman is within five years of the end of her bearing years, or past them.</summary>
     public static bool CanBear(Character a, Character b) => (a.Sex == "female" ? a : b).Age <= DynastySystem.FertileMax - 5;
 

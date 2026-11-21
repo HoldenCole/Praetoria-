@@ -16,6 +16,24 @@ public sealed class CourtCommand : ICommand
     public void Execute(CommandContext ctx) { var w = ctx.World; CourtshipSystem.Begin(w, w.Char(_suitorId)!, w.Char(_targetId)!); }
 }
 
+/// <summary>Look further afield for a match for one of the house, when nearly everyone who could be matched with them is wed
+/// (<see cref="CourtshipSystem.FindAfield"/>): a house at peace with yours brings forward someone of a lesser branch.</summary>
+public sealed class SeekMatchCommand : ICommand
+{
+    private readonly string _suitorId; private readonly Creation.NameCatalog _names;
+    public SeekMatchCommand(string actorId, string suitorId, Creation.NameCatalog names) { ActorId = actorId; _suitorId = suitorId; _names = names; }
+    public string ActorId { get; }
+    public string Describe() => $"look further afield for {_suitorId}";
+    public string? Refusal(CommandContext ctx) { var w = ctx.World; return CourtshipSystem.AfieldRefusal(w, w.Char(ActorId), w.Char(_suitorId), ctx.PoolsOf(ActorId)); }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = CourtshipSystem.AfieldInfluence });
+        var found = CourtshipSystem.FindAfield(w, w.Char(ActorId)!, w.Char(_suitorId)!, _names, ctx.Rng);
+        if (w.Char(ActorId)!.HouseId == w.Protagonist?.HouseId) w.Tell("good", $"{w.House(found.HouseId)?.Name} has brought forward {found.Name}, {found.Age}, for {w.Char(_suitorId)!.Name}: Dynasty, Marriages.", "dynasty:marriages");
+    }
+}
+
 /// <summary>The year's one act for a courtship: time together (1 influence), a gift (credits), the case put to the family
 /// (2 influence), or word put about against a rival (1 agent).</summary>
 public sealed class WooCommand : ICommand
