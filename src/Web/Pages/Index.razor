@@ -133,7 +133,7 @@ else
         }
         @if (_primer)
         {
-            <Primer OnClose="ClosePrimer" />
+            <Primer OnClose="ClosePrimer" OnGo="Go" />
         }
         <ProfileCard />
         @if (_passingOut && G.Academy() is { Graduated: true } grad)
@@ -195,7 +195,8 @@ else
     public async Task Key(string key)
     {
         if (G.Turn == null) return;
-        if (key == "Escape" && _brief) _brief = false;
+        if (_primer) { if (key is "Escape" or "?") await ClosePrimer(); else return; }   // the handbook is in front: it takes Escape, and no key reaches the desk behind it
+        else if (key == "Escape" && _brief) _brief = false;
         else if (key == "Escape") { if (G.ProfileId != null) G.CloseProfile(); else if (_openReport != null || _succession != null) { _openReport = null; _succession = null; } else _screen = "galaxy"; }
         else if (key == "Enter" && _brief) _brief = false;
         else if (key == "Enter" && _openReport == null && _succession == null) await EndTurn();

@@ -1185,3 +1185,19 @@ table.prospects th.sortable.here { color: var(--gold, #d8b25a); text-decoration:
 /* Your own aim, on the character sheet */
 .aim { margin: .3rem 0 .5rem; }
 .aim .gauge { margin-bottom: .2rem; }
+
+/* the handbook: the primer, the glossary and the lectures behind the ? (docs/PLAYTHROUGH.md, a first game) */
+.handbook { width: min(760px, 100%); }
+.hb-tabs { display: flex; gap: .3rem; align-items: center; border-bottom: 1px solid var(--line); margin: -.4rem 0 .9rem; }
+.hb-tab { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--ink3); font: inherit; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; padding: .45rem .7rem; cursor: pointer; }
+.hb-tab:hover { color: var(--ink); } .hb-tab.on { color: var(--brass2); border-bottom-color: var(--brass); }
+.hb-tabs .hb-x { margin-left: auto; }
+.hb-find { display: flex; gap: .7rem; align-items: center; margin-bottom: .6rem; }
+.hb-find input { flex: 1; background: #0b0e14; border: 1px solid var(--line); color: var(--ink); font: inherit; padding: .45rem .6rem; border-radius: 3px; }
+.hb-find input:focus { outline: 1px solid var(--brass); }
+.hb-scroll { max-height: min(60vh, 34rem); overflow-y: auto; padding-right: .5rem; }
+.hb-scroll h4 { margin: .9rem 0 .3rem; color: var(--brass2); font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; }
+.hb-scroll h4:first-child { margin-top: 0; }
+.hb-scroll dl { margin: 0; } .hb-scroll dt { font-weight: 600; color: var(--ink); margin-top: .55rem; display: flex; gap: .5rem; align-items: baseline; flex-wrap: wrap; }
+.hb-scroll dd { margin: .1rem 0 0; color: var(--ink2); line-height: 1.45; }
+.handbook .ac-lesson { margin-top: .4rem; } .handbook .ac-lesson p { color: var(--ink2); line-height: 1.5; }

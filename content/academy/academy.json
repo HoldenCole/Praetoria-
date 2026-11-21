@@ -99,6 +99,526 @@
       "motto": "Through."
     }
   ],
+  "glossary": [
+      {
+          "id": "credits",
+          "group": "Money",
+          "term": "Credits",
+          "means": "The money of the Reach. Worlds, ventures and claims bring credits in each year; fleets, buildings, loans and allowances take them out.",
+          "where": "house"
+      },
+      {
+          "id": "treasury",
+          "group": "Money",
+          "term": "Treasury",
+          "means": "The house's money, which is not the same as your own purse. The ledger in the House window lists what comes in and what goes out, and its last line says where the treasury will stand when the year ends.",
+          "where": "house"
+      },
+      {
+          "id": "purse",
+          "group": "Money",
+          "term": "Purse",
+          "means": "A person's own money, kept apart from the house's treasury. Each grown member of the family has one. What a relative does with theirs is their own affair.",
+          "where": "house"
+      },
+      {
+          "id": "allowance",
+          "group": "Money",
+          "term": "Allowance",
+          "means": "What the head pays a relative each year, out of the treasury and into that relative's purse.",
+          "where": "house"
+      },
+      {
+          "id": "loan",
+          "group": "Money",
+          "term": "Loan",
+          "means": "Credits borrowed from a lender you choose. The lender sets a limit and a rate by what the house holds and by how it regards you, and the debt is paid back by an instalment each year.",
+          "where": "house"
+      },
+      {
+          "id": "venture",
+          "group": "Money",
+          "term": "Venture",
+          "means": "A business: a mine, a bank, a shipping line. A house or a single person can own one. It pays its owner each year, it can fail, and it can be bought and sold.",
+          "where": "exchange"
+      },
+      {
+          "id": "company_and_shares",
+          "group": "Money",
+          "term": "Company and shares",
+          "means": "A company is a business owned in shares. Shares are bought and sold on the Exchange, and a company that does well pays a dividend on each.",
+          "where": "exchange"
+      },
+      {
+          "id": "the_exchange",
+          "group": "Money",
+          "term": "The Exchange",
+          "means": "The market of the Reach. Goods, ventures and shares change hands there, and a price rises when a thing is scarce and falls when there is too much of it.",
+          "where": "exchange"
+      },
+      {
+          "id": "claim",
+          "group": "Money",
+          "term": "Claim",
+          "means": "The smallest holding there is: a stake in a system's asteroid belt, worked for a small income. A house may hold a claim in a system whose world belongs to another.",
+          "where": "planets"
+      },
+      {
+          "id": "the_strategic_three",
+          "group": "Money",
+          "term": "The strategic three",
+          "means": "Helium-3, rare earths and isotopes. They are found only where the galaxy put them. Helium-3 fuels a fleet, rare earths build the heavy hulls and the advanced buildings, and isotopes arm battleships and bastions and are never sold on the open market.",
+          "where": "exchange"
+      },
+      {
+          "id": "manpower",
+          "group": "Money",
+          "term": "Manpower",
+          "means": "The people your worlds can muster for crews and for work gangs. It is capped by the worlds the house holds and cannot be bought or sold.",
+          "where": "house"
+      },
+      {
+          "id": "wealth",
+          "group": "Money",
+          "term": "Wealth",
+          "means": "Where a house ranks among the houses of the Reach by what it owns: the top sixth are called opulent, the next quarter rich, and the bottom quarter poor.",
+          "where": "houses"
+      },
+      {
+          "id": "dues",
+          "group": "Money",
+          "term": "Dues",
+          "means": "What a house that holds a province pays each year to the house that holds the world above it.",
+          "where": "house"
+      },
+      {
+          "id": "legitimacy",
+          "group": "Standing",
+          "term": "Legitimacy",
+          "means": "From 0 to 100: how rightful the Reach holds your house's place to be. It is asked for at every step up in rank, and it falls when the house is caught doing what it should not.",
+          "where": "house"
+      },
+      {
+          "id": "influence_treasury_actions_and_agents",
+          "group": "Standing",
+          "term": "Influence, treasury actions and agents",
+          "means": "The three things you can spend in a year. Influence is for politics, treasury actions are for orders that take the house's officers (a build, a fleet order), and agents are people sent on quiet business. Reading is free. All three come back each year.",
+          "where": "office"
+      },
+      {
+          "id": "clout",
+          "group": "Standing",
+          "term": "Clout",
+          "means": "The house's political capital kept in store, shown at the left of the top bar. It is not the influence you spend within the year.",
+          "where": "house"
+      },
+      {
+          "id": "regard",
+          "group": "Standing",
+          "term": "Regard",
+          "means": "What one person or one house thinks of another, as a number: below zero is ill will, above it is good will. It decides whether they will lend, sell, marry, or vote with you.",
+          "where": "houses"
+      },
+      {
+          "id": "favour",
+          "group": "Standing",
+          "term": "Favour",
+          "means": "A debt of honour between two houses. A favour you owe is called in as your vote for that house's next motion; a favour owed to you can be called in the same way.",
+          "where": "senate"
+      },
+      {
+          "id": "glory",
+          "group": "Standing",
+          "term": "Glory",
+          "means": "The victories of a house that are still talked about: battles won, triumphs. It fades slowly.",
+          "where": "military"
+      },
+      {
+          "id": "renown",
+          "group": "Standing",
+          "term": "Renown",
+          "means": "A person's fame, made of the deeds written in the record of their life: commands, offices, victories, a year at the Academy.",
+          "where": "character"
+      },
+      {
+          "id": "title",
+          "group": "Standing",
+          "term": "Title",
+          "means": "The rung a house stands on. In the Republic: Citizen, Warden, Prefect, Legate, Proconsul, First Citizen. Under the Imperium: knight, baron, count, duke, archduke, and the throne. Each rung asks for worlds held, legitimacy and strength.",
+          "where": "house"
+      },
+      {
+          "id": "rank",
+          "group": "Standing",
+          "term": "Rank",
+          "means": "How far a person has risen in their own service: the Navy, the Administration or the Courts. A rank belongs to the person and not to the house, so an heir starts again from the bottom.",
+          "where": "character"
+      },
+      {
+          "id": "the_three_orders",
+          "group": "Standing",
+          "term": "The three orders",
+          "means": "The Senate, arms and commerce. A house has a standing in each, reckoned every year from what it holds and has done. A great general or a great banker carries weight in the chamber whatever their rank.",
+          "where": "senate"
+      },
+      {
+          "id": "public_trust",
+          "group": "Standing",
+          "term": "Public trust",
+          "means": "How far the Reach trusts its magistrates. It falls when a ruling is given against the law or an officer is caught, and it moves elections, the estates and standing.",
+          "where": "senate"
+      },
+      {
+          "id": "the_senate",
+          "group": "The Senate",
+          "term": "The Senate",
+          "means": "The chamber of the houses. It votes motions, passes Acts that bind every house, elects the magistrates and declares the wars of the Reach.",
+          "where": "senate"
+      },
+      {
+          "id": "weight",
+          "group": "The Senate",
+          "term": "Weight",
+          "means": "How much a house's vote counts: its influence in the Senate, plus its title's rung, plus one if its head is a Justice or better. A motion passes when the weight for it is the greater.",
+          "where": "senate"
+      },
+      {
+          "id": "motion",
+          "group": "The Senate",
+          "term": "Motion",
+          "means": "A proposal put to the Senate. Each house declares for or against, and at the year's end the weights are counted.",
+          "where": "senate"
+      },
+      {
+          "id": "bench",
+          "group": "The Senate",
+          "term": "Bench",
+          "means": "A party in the Senate: houses that sit and vote together under a leader. A bench leans its members' votes and puts up a nominee for consul.",
+          "where": "senate"
+      },
+      {
+          "id": "consul",
+          "group": "The Senate",
+          "term": "Consul",
+          "means": "One of the two heads of the Republic, elected for a term from those who have been praetor. A consul has a veto, a yearly charge and the fleet of the state.",
+          "where": "senate"
+      },
+      {
+          "id": "the_ladder_of_offices",
+          "group": "The Senate",
+          "term": "The ladder of offices",
+          "means": "Quaestor, aedile, praetor, then consul. The offices are held by people, not by houses, and are filled by election.",
+          "where": "senate"
+      },
+      {
+          "id": "act_of_the_senate",
+          "group": "The Senate",
+          "term": "Act of the Senate",
+          "means": "A law passed by a motion that binds every house in the Reach, whatever each house has set for itself.",
+          "where": "laws"
+      },
+      {
+          "id": "law",
+          "group": "The Senate",
+          "term": "Law",
+          "means": "A rule in your own gift: as head of a house, holder of worlds, chair or officer. Each setting pleases some estates and angers others.",
+          "where": "laws"
+      },
+      {
+          "id": "estate",
+          "group": "The Senate",
+          "term": "Estate",
+          "means": "One of the six bodies of people who watch what you set: the Commons, the Merchants, the Officers, the Old Blood, the Magistrates and the Frontier. A loyal estate pays, a hostile one costs, and one that is hostile across the Reach petitions the Senate.",
+          "where": "laws"
+      },
+      {
+          "id": "patron_and_client",
+          "group": "The Senate",
+          "term": "Patron and client",
+          "means": "A patron is a greater house that pays a lesser one's debts and takes it as its client. The client's votes lean the patron's way from then on.",
+          "where": "senate"
+      },
+      {
+          "id": "pledge",
+          "group": "The Senate",
+          "term": "Pledge",
+          "means": "A promise of your votes to another house's candidate at the consular election. A kept pledge to a winner becomes a favour owed to you.",
+          "where": "senate"
+      },
+      {
+          "id": "emergency_powers",
+          "group": "The Senate",
+          "term": "Emergency powers",
+          "means": "When the Reach is in danger the Senate may vote one consul powers above the other for a term.",
+          "where": "senate"
+      },
+      {
+          "id": "the_reach",
+          "group": "Worlds",
+          "term": "The Reach",
+          "means": "The settled systems of the map and the houses that hold them.",
+          "where": "galaxy"
+      },
+      {
+          "id": "system",
+          "group": "Worlds",
+          "term": "System",
+          "means": "A star and its bodies: worlds, moons, a belt. Click one on the map to open its panel.",
+          "where": "galaxy"
+      },
+      {
+          "id": "world",
+          "group": "Worlds",
+          "term": "World",
+          "means": "A settled body held by one house. It pays a yield each year and has slots to build in.",
+          "where": "planets"
+      },
+      {
+          "id": "province",
+          "group": "Worlds",
+          "term": "Province",
+          "means": "A part of a world. There are three to a world, and each may be held by a different house for the life of its holder, under the house that holds the world.",
+          "where": "planets"
+      },
+      {
+          "id": "development",
+          "group": "Worlds",
+          "term": "Development",
+          "means": "How built-up a system is. It sets how many slots there are and how high a building may be raised.",
+          "where": "planets"
+      },
+      {
+          "id": "slot",
+          "group": "Worlds",
+          "term": "Slot",
+          "means": "A place to put a building. Slots come from development, from the house's rank, and from ground cleared for a price.",
+          "where": "planets"
+      },
+      {
+          "id": "great_work",
+          "group": "Worlds",
+          "term": "Great work",
+          "means": "A large building that takes years and that a house may raise only so many of, by its standing. It can be hastened for a yearly cost.",
+          "where": "planets"
+      },
+      {
+          "id": "city",
+          "group": "Worlds",
+          "term": "City",
+          "means": "Some worlds have a city of a particular kind, with its own bonus and its own building. Four are the great cities of the Reach.",
+          "where": "planets"
+      },
+      {
+          "id": "colony",
+          "group": "Worlds",
+          "term": "Colony",
+          "means": "A new holding planted in an empty system within reach of a fleet.",
+          "where": "planets"
+      },
+      {
+          "id": "fleet",
+          "group": "War",
+          "term": "Fleet",
+          "means": "A body of ships under one commander, moved on the map by orders.",
+          "where": "military"
+      },
+      {
+          "id": "hull",
+          "group": "War",
+          "term": "Hull",
+          "means": "One ship. Three hulls burn one helium-3 a year.",
+          "where": "military"
+      },
+      {
+          "id": "stance_and_loadout",
+          "group": "War",
+          "term": "Stance and loadout",
+          "means": "How a fleet fights. Each stance does well against some and badly against others, and a torpedo loadout spends isotopes.",
+          "where": "military"
+      },
+      {
+          "id": "the_front_and_the_flag",
+          "group": "War",
+          "term": "The front and the flag",
+          "means": "A commander's style. At the front the fleet fights better and the commander may die with it; from the flag a senior commander helps every fleet of the house and is never lost with the line.",
+          "where": "military"
+      },
+      {
+          "id": "valour",
+          "group": "War",
+          "term": "Valour",
+          "means": "Earned by a commander at the front, a point a victory. At three the commander is an Achilles: a name the Reach speaks.",
+          "where": "military"
+      },
+      {
+          "id": "command_cap",
+          "group": "War",
+          "term": "Command cap",
+          "means": "How many hulls a commander can lead without strain: two, and three more for each rank in the Navy. A fleet above the cap fights worse.",
+          "where": "military"
+      },
+      {
+          "id": "supply",
+          "group": "War",
+          "term": "Supply",
+          "means": "Every fleet carries supply. Within a lane of one of its house's worlds (two of a supply depot) it fills; further out it drains, and a fleet short of supply fights worse and in the end loses hulls.",
+          "where": "military"
+      },
+      {
+          "id": "loyalty",
+          "group": "War",
+          "term": "Loyalty",
+          "means": "What the crews and the commander of a fleet feel toward the house. A fleet low in loyalty will not sail on orders, and lower still its hulls desert.",
+          "where": "military"
+      },
+      {
+          "id": "war_score",
+          "group": "War",
+          "term": "War score",
+          "means": "From a hundred against you to a hundred for you: how the war stands. It decides what terms the other side will take.",
+          "where": "military"
+      },
+      {
+          "id": "nation",
+          "group": "War",
+          "term": "Nation",
+          "means": "A power beyond the Reach. A nation can be raided, fought by an expedition, made to pay tribute, or can come against the Reach itself.",
+          "where": "military"
+      },
+      {
+          "id": "expedition",
+          "group": "War",
+          "term": "Expedition",
+          "means": "A fleet sent beyond the Reach against a nation. It is away for years and comes home with plunder, losses, or both.",
+          "where": "military"
+      },
+      {
+          "id": "mercenary_service",
+          "group": "War",
+          "term": "Mercenary service",
+          "means": "A fleet hired out to fight in another's war, for pay and at a cost to the house's name.",
+          "where": "military"
+      },
+      {
+          "id": "blockade",
+          "group": "War",
+          "term": "Blockade",
+          "means": "An enemy fleet over a world. The world's yield is halved while it lasts.",
+          "where": "military"
+      },
+      {
+          "id": "the_great_war_and_its_clock",
+          "group": "War",
+          "term": "The great war and its clock",
+          "means": "The clock counts how near the Reach is to the next stage of its great war. Before the war it rises each year by what is wrong with the Reach, and the Senate window lists the causes.",
+          "where": "senate"
+      },
+      {
+          "id": "feud",
+          "group": "War",
+          "term": "Feud",
+          "means": "A killing binds the dead person's house to answer it: that house is owed blood by the house that did it.",
+          "where": "houses"
+      },
+      {
+          "id": "head",
+          "group": "Family",
+          "term": "Head",
+          "means": "The one person you play: the head of the house. You are a single life in a dynasty that outlasts you.",
+          "where": "character"
+      },
+      {
+          "id": "heir",
+          "group": "Family",
+          "term": "Heir",
+          "means": "Whoever takes the seat when the head dies or steps down. You may name one. When the seat passes you play the heir.",
+          "where": "dynasty"
+      },
+      {
+          "id": "generation",
+          "group": "Family",
+          "term": "Generation",
+          "means": "One head of the house. A new generation begins each time an heir takes the seat.",
+          "where": "dynasty"
+      },
+      {
+          "id": "regent",
+          "group": "Family",
+          "term": "Regent",
+          "means": "Whoever rules in the name of a head who is under sixteen.",
+          "where": "dynasty"
+      },
+      {
+          "id": "ambition",
+          "group": "Family",
+          "term": "Ambition",
+          "means": "What a person wants from their life: a command, a fortune, the Senate, a great love. Relatives pursue theirs by themselves and may ask the head for help.",
+          "where": "dynasty"
+      },
+      {
+          "id": "courtship",
+          "group": "Family",
+          "term": "Courtship",
+          "means": "How a marriage is made: over years, with affection, rivals, and a contract at the end.",
+          "where": "dynasty"
+      },
+      {
+          "id": "dowry",
+          "group": "Family",
+          "term": "Dowry",
+          "means": "What passes between two houses on a marriage, set in the contract.",
+          "where": "dynasty"
+      },
+      {
+          "id": "household",
+          "group": "Family",
+          "term": "Household",
+          "means": "Those under your roof who are not blood: wards, protégés, companions. A steward may be set to run the house's money and a marshal its fleets.",
+          "where": "dynasty"
+      },
+      {
+          "id": "skill",
+          "group": "Family",
+          "term": "Skill",
+          "means": "What a person is good at, as a number. A skill grows by doing and by study, up to that person's ceiling for it.",
+          "where": "character"
+      },
+      {
+          "id": "trait",
+          "group": "Family",
+          "term": "Trait",
+          "means": "A mark of character. A trait of nature is who the person is, and acting against it costs stress. A trait of aptitude opens choices others do not have.",
+          "where": "character"
+      },
+      {
+          "id": "stress",
+          "group": "Family",
+          "term": "Stress",
+          "means": "From 0 to 100: what a life is costing the person living it. It rises when someone acts against their nature.",
+          "where": "character"
+      },
+      {
+          "id": "upbringing",
+          "group": "Family",
+          "term": "Upbringing",
+          "means": "How a child is raised: a tutor, a subject, a parent's example. It shapes the skills and the ambition the child grows into.",
+          "where": "dynasty"
+      },
+      {
+          "id": "health",
+          "group": "Family",
+          "term": "Health",
+          "means": "From 0 to 100. Wounds and illness lower it, and for the old a low figure raises the chance of dying in the year.",
+          "where": "character"
+      },
+      {
+          "id": "year",
+          "group": "Time",
+          "term": "Year",
+          "means": "One turn is one year. Pressing End Turn passes it.",
+          "where": "office"
+      }
+  ],
   "lessons": [
     {
       "id": "the_senate",

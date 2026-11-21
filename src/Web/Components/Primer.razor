@@ -13,21 +13,75 @@
         ("Three things to do first", "One: open the report at the top of the list on the right, read what each answer costs and gives, and answer it. Two: open House, then the ledger, and look at the last line: where the treasury will stand when the year ends. Three: click your own world on the map and raise one building. Then press End Turn. A year passes, and the list on the right tells you what happened in it.")
     };
 }
-<div class="overlay">
-    <div class="epilogue primer wide">
-        <div class="tier"><span class="glyph">◆</span> A PRIMER · @(_i + 1) of @cards.Length</div>
-        <h2>@cards[_i].Item1</h2>
-        <p class="epi-text">@cards[_i].Item2</p>
-        <div class="row">
-            @if (_i > 0) { <button class="btn" @onclick="() => _i--">Back</button> }
-            @if (_i < cards.Length - 1) { <button class="btn primary" @onclick="() => _i++">Next</button> }
-            else { <button class="btn primary" @onclick="() => OnClose.InvokeAsync()">To the desk</button> }
-            <button class="btn ghost sm" @onclick="() => OnClose.InvokeAsync()">Skip</button>
+<div class="overlay" data-handbook>
+    <div class="epilogue primer wide handbook">
+        <div class="hb-tabs" role="tablist">
+            @foreach (var (id, label) in new[] { ("primer", "The primer"), ("glossary", "Glossary"), ("lectures", "The lectures") })
+            {
+                <button class="hb-tab @(_tab == id ? "on" : "")" role="tab" aria-selected="@(_tab == id)" data-hb-tab="@id" @onclick="() => _tab = id">@label</button>
+            }
+            <button class="win-x hb-x" @onclick="() => OnClose.InvokeAsync()" title="Close (Esc)" aria-label="Close">×</button>
         </div>
-        <div class="muted small">You can reopen this from the ? in the top bar.</div>
+        @if (_tab == "primer")
+        {
+            <div class="tier"><span class="glyph">◆</span> A PRIMER · @(_i + 1) of @cards.Length</div>
+            <h2>@cards[_i].Item1</h2>
+            <p class="epi-text">@cards[_i].Item2</p>
+            <div class="row">
+                @if (_i > 0) { <button class="btn" @onclick="() => _i--">Back</button> }
+                @if (_i < cards.Length - 1) { <button class="btn primary" @onclick="() => _i++">Next</button> }
+                else { <button class="btn primary" @onclick="() => OnClose.InvokeAsync()">To the desk</button> }
+                <button class="btn ghost sm" @onclick="() => OnClose.InvokeAsync()">Skip</button>
+            </div>
+            <div class="muted small">You can reopen this from the ? in the top bar. The glossary and the Academy's lectures are on the other two tabs.</div>
+        }
+        else if (_tab == "glossary")
+        {
+            var found = c.Academy.Find(_find);
+            <div class="hb-find"><input type="search" placeholder="Find a word: legitimacy, bench, purse…" @bind="_find" @bind:event="oninput" data-hb-find aria-label="Find a word" />
+                <span class="muted small">@found.Count of @c.Academy.Glossary.Count</span></div>
+            <div class="hb-scroll" data-hb-terms>
+                @if (found.Count == 0) { <div class="muted">No word in the glossary matches that. Try a shorter one.</div> }
+                @foreach (var grp in found.GroupBy(t => t.Group))
+                {
+                    <h4>@grp.Key</h4>
+                    <dl>
+                        @foreach (var t in grp)
+                        {
+                            <dt data-term="@t.Id">@t.Term @if (t.Where.Length > 0 && OnGo.HasDelegate) { <button class="opt inline tiny" title="Close this and open the window where it is seen" @onclick="() => Open(t.Where)">@Place(t.Where) ▸</button> }</dt>
+                            <dd>@t.Means</dd>
+                        }
+                    </dl>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="muted small">The lectures of @(w.IsImperium ? c.Academy.Imperium.Name : c.Academy.Republic.Name), term by term. They can be read at any time, whether or not you sat them.</div>
+            <div class="hb-scroll" data-hb-lectures>
+                @foreach (var l in c.Academy.Lessons.OrderBy(l => l.Term))
+                {
+                    var (title, paras) = Praetoria.Core.Data.AcademyCatalog.Read(l, w.IsImperium);
+                    <details class="ac-lesson" data-lecture="@l.Id"><summary><b>@title</b> <span class="muted small">term @l.Term</span></summary>
+                        @foreach (var para in paras) { <p>@para</p> }
+                    </details>
+                }
+            </div>
+        }
     </div>
 </div>
 @code {
     [Parameter] public EventCallback OnClose { get; set; }
-    private int _i;
+    /// <summary>Opens a window by its id, for a glossary term's "where".</summary>
+    [Parameter] public EventCallback<string> OnGo { get; set; }
+    /// <summary>The tab to open on: the primer on a first run, the glossary when asked for by name.</summary>
+    [Parameter] public string Start { get; set; } = "primer";
+    private int _i; private string _tab = "primer", _find = "";
+    protected override void OnInitialized() => _tab = Start is "glossary" or "lectures" ? Start : "primer";
+    private async Task Open(string where) { await OnClose.InvokeAsync(); await OnGo.InvokeAsync(where); }
+    private static string Place(string where) => where switch
+    {
+        "character" => "You", "planets" => "Worlds", "galaxy" => "The map", "laws" => "Laws", "office" => "Office",
+        _ => char.ToUpperInvariant(where[0]) + where[1..]
+    };
 }

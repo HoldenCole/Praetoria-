@@ -9,6 +9,8 @@ public sealed record AcademyStandard(string Id, string Name, string Accent, stri
 /// <summary>A lesson of the tutorial (docs/ACADEMY.md): the term it is taught in, a one-line brief, and the full paragraphs for a first run.
 /// <see cref="ImperiumFull"/> replaces <see cref="Full"/> under the Imperium when it is not empty.</summary>
 public sealed record AcademyLesson(string Id, int Term, string Title, string Brief, IReadOnlyList<string> Full, IReadOnlyList<string> ImperiumFull, string ImperiumTitle = "", string ImperiumBrief = "");
+/// <summary>A word the screens use and what it means (the glossary; docs/ACADEMY.md): the group it is listed under, and the window where the thing can be seen.</summary>
+public sealed record AcademyTerm(string Id, string Group, string Term, string Means, string Where);
 /// <summary>How one register names the school and its terms.</summary>
 public sealed record AcademyRegister(string Name, string CadetWord, IReadOnlyList<string> Terms, string Blurb);
 
@@ -20,6 +22,17 @@ public sealed class AcademyCatalog
     public IReadOnlyList<AcademySubject> Subjects { get; init; } = Array.Empty<AcademySubject>();
     public IReadOnlyList<AcademyStandard> Standards { get; init; } = Array.Empty<AcademyStandard>();
     public IReadOnlyList<AcademyLesson> Lessons { get; init; } = Array.Empty<AcademyLesson>();
+    public IReadOnlyList<AcademyTerm> Glossary { get; init; } = Array.Empty<AcademyTerm>();
+    /// <summary>The glossary's terms that match what was typed, in the order they are written; all of them for nothing typed. A word in the term counts before a word in the meaning.</summary>
+    public IReadOnlyList<AcademyTerm> Find(string typed)
+    {
+        var q = (typed ?? "").Trim(); if (q.Length == 0) return Glossary;
+        var inTerm = Glossary.Where(t => t.Term.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
+        return inTerm.Concat(Glossary.Where(t => !inTerm.Contains(t) && t.Means.Contains(q, StringComparison.OrdinalIgnoreCase))).ToList();
+    }
+    /// <summary>A lesson's title and paragraphs as a register reads them: the Imperium's own where it has them.</summary>
+    public static (string title, IReadOnlyList<string> paragraphs) Read(AcademyLesson l, bool imperium) =>
+        (imperium && l.ImperiumTitle.Length > 0 ? l.ImperiumTitle : l.Title, imperium && l.ImperiumFull.Count > 0 ? l.ImperiumFull : l.Full);
     public static AcademyCatalog Empty { get; } = new();
     public bool IsEmpty => Subjects.Count == 0;
     public AcademyRegister Register(string register) => register == "imperium" ? Imperium : Republic;
@@ -43,7 +56,8 @@ public sealed class AcademyCatalog
             Republic = Reg(root, "republic", "The Academy"), Imperium = Reg(root, "imperium", "The Institute"),
             Subjects = Arr("subjects").Select(el => new AcademySubject(ConditionParser.Str(el, "id"), ConditionParser.Str(el, "name"), ConditionParser.Str(el, "skill"), ConditionParser.Str(el, "track"), ConditionParser.OptStr(el, "description", ""))).ToList(),
             Standards = Arr("standards").Select(el => new AcademyStandard(ConditionParser.Str(el, "id"), ConditionParser.Str(el, "name"), ConditionParser.OptStr(el, "accent", "#C9D1DC"), ConditionParser.OptStr(el, "motto", ""))).ToList(),
-            Lessons = Arr("lessons").Select(el => new AcademyLesson(ConditionParser.Str(el, "id"), ConditionParser.Int(el, "term", 1), ConditionParser.Str(el, "title"), ConditionParser.OptStr(el, "brief", ""), Strings(el, "full"), Strings(el, "imperiumFull"), ConditionParser.OptStr(el, "imperiumTitle", ""), ConditionParser.OptStr(el, "imperiumBrief", ""))).ToList()
+            Lessons = Arr("lessons").Select(el => new AcademyLesson(ConditionParser.Str(el, "id"), ConditionParser.Int(el, "term", 1), ConditionParser.Str(el, "title"), ConditionParser.OptStr(el, "brief", ""), Strings(el, "full"), Strings(el, "imperiumFull"), ConditionParser.OptStr(el, "imperiumTitle", ""), ConditionParser.OptStr(el, "imperiumBrief", ""))).ToList(),
+            Glossary = Arr("glossary").Select(el => new AcademyTerm(ConditionParser.Str(el, "id"), ConditionParser.OptStr(el, "group", ""), ConditionParser.Str(el, "term"), ConditionParser.Str(el, "means"), ConditionParser.OptStr(el, "where", ""))).ToList(),
         };
     }
 }

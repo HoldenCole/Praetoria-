@@ -64,6 +64,26 @@ me* (`SetTutorialCommand`; the browser remembers a previous graduation and offer
 The screen has no rail and no world screens. It closes with a passing-out card: place, service, friends made, and
 those who will remember you otherwise. A player who took the full course is not shown the old primer.
 
+## The handbook: the primer, the glossary, the lectures
+
+Built 2026-11-21 from the playthroughs (docs/PLAYTHROUGH.md, "A first game": N48, N80). The `?` in the top bar (and the
+`?` key) opens one window with three tabs.
+
+- **The primer**: the eight cards it always had.
+- **Glossary**: the words the screens use, each with one or two plain sentences and a button to the window where the thing
+  is seen. They are grouped (money, standing, the Senate, worlds, war, family, time) and a box finds a word as it is typed:
+  a match in a term's name comes before a match in another term's meaning (`AcademyCatalog.Find`). The terms are content:
+  the `glossary` list of `content/academy/academy.json` (`id`, `group`, `term`, `means`, `where`). `where` must be a
+  window's id; a test holds that.
+- **The lectures**: every lecture of the Academy in full, in the register of the game being played
+  (`AcademyCatalog.Read`), whether or not the player sat the Academy.
+
+Escape closes the handbook, and while it is open no other key reaches the desk behind it.
+
+A definition says what a thing is and where it is seen. It gives a figure only where the rule's figure is fixed and
+already shown elsewhere (three hulls to a helium-3, legitimacy from 0 to 100). When a rule changes, its entry must be
+changed with it: nothing checks the sentences against the rules.
+
 ## What is remembered
 
 How a cadet did is written on them for life, and the better they did the more it counts (the owner's direction,

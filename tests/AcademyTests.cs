@@ -302,4 +302,42 @@ public class AcademyTests
         for (int t = 0; t < 6; t++) { var b = tc.BeginTurn(); Assert.DoesNotContain(b, i => i.Fired.Def.Conditions.Any(c => c is AcademyCondition)); tc.EndTurn(); }
         Assert.Equal(6, w.Turn);
     }
+
+    [Fact]
+    public void TheGlossary_IsLoaded_FindsAWordByItsNameFirst_AndPointsOnlyAtWindowsThatExist()
+    {
+        var g = Content.Academy.Glossary;
+        Assert.True(g.Count >= 60, "the glossary is in content/academy/academy.json");
+        Assert.Equal(g.Count, g.Select(t => t.Id).Distinct().Count());
+        Assert.All(g, t => { Assert.False(string.IsNullOrWhiteSpace(t.Term)); Assert.False(string.IsNullOrWhiteSpace(t.Means)); Assert.False(string.IsNullOrWhiteSpace(t.Group)); });
+        // every "where" is a window of the game (src/Web/Pages/Index.razor): a term never points at a place that is not there
+        var windows = new[] { "office", "character", "galaxy", "planets", "senate", "house", "exchange", "laws", "military", "dynasty", "houses", "chronicle" };
+        Assert.All(g, t => Assert.Contains(t.Where, windows));
+        // nothing typed is the whole list; a word in a term's name comes before the same word in another's meaning
+        Assert.Equal(g.Count, Content.Academy.Find("  ").Count);
+        var purse = Content.Academy.Find("PURSE");
+        Assert.Equal("Purse", purse[0].Term);
+        Assert.Contains(purse, t => t.Term == "Allowance");   // its meaning speaks of the purse
+        Assert.True(purse.Count < g.Count);
+        Assert.Empty(Content.Academy.Find("zzzz"));
+        // the words the playthroughs asked about are in it
+        foreach (var word in new[] { "Legitimacy", "Bench", "Weight", "Regard", "Command cap", "War score", "Generation" }) Assert.Contains(g, t => t.Term == word);
+    }
+
+    [Fact]
+    public void ALecture_ReadsInItsOwnRegister()
+    {
+        Assert.NotEmpty(Content.Academy.Lessons);
+        foreach (var l in Content.Academy.Lessons)
+        {
+            var (title, paras) = AcademyCatalog.Read(l, imperium: false);
+            Assert.Equal(l.Title, title); Assert.Equal(l.Full, paras); Assert.NotEmpty(paras);
+            var (ititle, iparas) = AcademyCatalog.Read(l, imperium: true);
+            Assert.Equal(l.ImperiumTitle.Length > 0 ? l.ImperiumTitle : l.Title, ititle);
+            Assert.Equal(l.ImperiumFull.Count > 0 ? l.ImperiumFull : l.Full, iparas);
+        }
+        var made = new AcademyLesson("x", 1, "The Senate", "", new[] { "republic" }, new[] { "imperium" }, "The Court");
+        Assert.Equal(("The Court", "imperium"), (AcademyCatalog.Read(made, true).title, AcademyCatalog.Read(made, true).paragraphs[0]));
+        Assert.Equal(("The Senate", "republic"), (AcademyCatalog.Read(made, false).title, AcademyCatalog.Read(made, false).paragraphs[0]));
+    }
 }
