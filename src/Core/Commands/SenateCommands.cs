@@ -159,7 +159,9 @@ public sealed class JoinFactionCommand : ICommand
         var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
         if (actor?.Alive != true || house == null) return "no house";
         var f = w.Factions.FirstOrDefault(x => x.Id == _factionId); if (f == null) return "no such bench";
-        if (FactionSystem.Of(w, house.Id) != null) return "you sit with a bench already";
+        // crossing the floor is one step: the old bench is left and the new one joined, at the price of both
+        var old = FactionSystem.Of(w, house.Id);
+        if (old != null && old.Id == f.Id) return "you sit with them already";
         var leaderHead = w.House(f.LeaderHouseId) is { } lh ? Economy.HeadOf(w, lh) : null;
         if (leaderHead != null && (w.GetRelationship(leaderHead.Id, actor.Id)?.Disposition ?? 0) < -10) return $"{leaderHead.Name} will not have you on the bench";
         return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = FactionSystem.JoinInfluence }) ? null : $"needs {FactionSystem.JoinInfluence} influence";
@@ -169,6 +171,7 @@ public sealed class JoinFactionCommand : ICommand
     {
         var w = ctx.World; var actor = w.Char(ActorId)!; var f = w.Factions.First(x => x.Id == _factionId);
         ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = FactionSystem.JoinInfluence });
+        if (FactionSystem.Of(w, actor.HouseId) is { } old) { if (old.LeaderHouseId != actor.HouseId) FactionSystem.Walked(w, actor.HouseId, old); old.Members.Remove(actor.HouseId); w.Log($"{w.House(actor.HouseId)?.Name} crosses the floor from {old.Name}."); }
         f.Members.Add(actor.HouseId);
         if (FactionSystem.Affinity(w, actor.HouseId, f.LeaderHouseId) < FactionSystem.FormThreshold) w.WorldCounters[FactionSystem.AffinityKey(actor.HouseId, f.LeaderHouseId)] = FactionSystem.FormThreshold;
         w.WorldFlags.Add("faction_joined");
@@ -191,7 +194,7 @@ public sealed class LeaveFactionCommand : ICommand
     public void Execute(CommandContext ctx)
     {
         var w = ctx.World; var actor = w.Char(ActorId)!; var f = FactionSystem.Of(w, actor.HouseId)!;
-        if (f.LeaderHouseId != actor.HouseId) FactionSystem.BreakWhip(w, actor.HouseId, f);
+        if (f.LeaderHouseId != actor.HouseId) FactionSystem.Walked(w, actor.HouseId, f);
         f.Members.Remove(actor.HouseId);
         w.Log($"{w.House(actor.HouseId)?.Name} leaves {f.Name}.");
     }

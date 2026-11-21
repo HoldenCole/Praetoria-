@@ -165,6 +165,19 @@ public static class FactionSystem
         return $"The {(leader?.Name ?? f.LeaderHouseId).Replace("House ", "")} Benches";
     }
 
+    /// <summary>A house walks off its bench: the tie to it and the leader's regard suffer as they do for a broken whip, and the
+    /// player is told in words that say what happened (leaving used to be reported as a vote against the bench).</summary>
+    public static void Walked(World w, string houseId, Faction f)
+    {
+        AddAffinity(w, houseId, f.LeaderHouseId, -BreakWhipAffinity);
+        var leaderHead = w.House(f.LeaderHouseId) is { } lh ? Economy.HeadOf(w, lh) : null; var head = w.House(houseId) is { } hh ? Economy.HeadOf(w, hh) : null;
+        if (leaderHead != null && head != null) w.Relationship(leaderHead.Id, head.Id).Disposition = Math.Clamp((w.GetRelationship(leaderHead.Id, head.Id)?.Disposition ?? 0) - BreakWhipDisposition, -100, 100);
+        if (houseId == w.Protagonist?.HouseId) w.Tell("warn", $"You have left {f.Name}: {leaderHead?.Name ?? "its leader"} thinks {BreakWhipDisposition} the worse of you, and your tie to that bench is weaker by {BreakWhipAffinity}", "senate:offices", f.LeaderHouseId);
+    }
+    /// <summary>What walking off a bench costs, in words, for the button that does it.</summary>
+    public static string WalkSays(World w, Faction f) => f.LeaderHouseId == w.Protagonist?.HouseId ? $"You lead {f.Name}: nobody on it is over you to take it ill, and it chooses another leader when the year turns" :
+        $"{(w.House(f.LeaderHouseId) is { } lh && Economy.HeadOf(w, lh) is { } head ? head.Name : "Its leader")} thinks {BreakWhipDisposition} the worse of you, and your tie to {f.Name} falls by {BreakWhipAffinity}";
+
     /// <summary>The player's bench expected one thing and got another: affinity and the leader's regard both suffer.</summary>
     public static void BreakWhip(World w, string houseId, Faction f)
     {

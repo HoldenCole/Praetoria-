@@ -876,4 +876,21 @@ public class PlaythroughFixTests
         int sev = w.Crises[revolt.Id].Severity; engine.Decay(w, TestContent.Rng()); Assert.Equal(sev, w.Crises[revolt.Id].Severity);
         w.WorldCounters["unrest"] = 0; engine.Decay(w, TestContent.Rng()); Assert.Equal(sev - 1, w.Crises.TryGetValue(revolt.Id, out var left) ? left.Severity : 0);
     }
+    [Fact]
+    public void AHouseCrossesTheFloorInOneStep_AtAPriceItIsTold()
+    {
+        // docs/PLAYTHROUGH.md, Medium, the Senate: benches: cross in one step with the cost shown
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); Fill(ctx, me);
+        var benches = w.Factions.Where(f => f.Members.Count > 0).ToList(); Assert.True(benches.Count >= 2);
+        var from = benches.First(f => f.LeaderHouseId != house.Id); var to = benches.First(f => f.Id != from.Id);
+        foreach (var f in w.Factions) f.Members.Remove(house.Id); from.Members.Add(house.Id);
+        var oldLeader = Economy.HeadOf(w, w.House(from.LeaderHouseId)!)!; var newLeader = Economy.HeadOf(w, w.House(to.LeaderHouseId)!)!;
+        w.Relationship(newLeader.Id, me.Id).Disposition = 0; int regard = w.Relationship(oldLeader.Id, me.Id).Disposition, inf = ctx.PoolsOf(me.Id).Influence;
+        Assert.Contains(FactionSystem.BreakWhipDisposition + " the worse of you", FactionSystem.WalkSays(w, from));
+        Assert.True(tc.Executor.TryExecute(new JoinFactionCommand(me.Id, to.Id), ctx));
+        Assert.Equal(to.Id, FactionSystem.Of(w, house.Id)!.Id); Assert.DoesNotContain(house.Id, from.Members);
+        Assert.Equal(inf - FactionSystem.JoinInfluence, ctx.PoolsOf(me.Id).Influence); Assert.Equal(regard - FactionSystem.BreakWhipDisposition, w.Relationship(oldLeader.Id, me.Id).Disposition);
+        Assert.Contains(w.News, n => n.Text.StartsWith("You have left " + from.Name));
+        Assert.Equal("you sit with them already", new JoinFactionCommand(me.Id, to.Id).Refusal(ctx));
+    }
 }

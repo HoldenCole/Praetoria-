@@ -75,7 +75,7 @@ public class FactionTests
         w.Relationship("aurelian_head", "self").Disposition = 0;
         Assert.True(ex.TryExecute(new JoinFactionCommand("self", f.Id), ctx));
         Assert.Contains("vega", f.Members); Assert.Equal(4, w.Pools["self"].Influence); Assert.True(w.HasFlag("faction_joined")); Assert.Equal(3, FactionSystem.Affinity(w, "vega", "aurelian"));
-        Assert.Equal("you sit with a bench already", new JoinFactionCommand("self", f.Id).Refusal(ctx));
+        Assert.Equal("you sit with them already", new JoinFactionCommand("self", f.Id).Refusal(ctx));
         // vote against the leader: the whip is broken
         w.WorldCounters[FactionSystem.AffinityKey("vega", "aurelian")] = 6;                            // a seasoned member
         var m = senate.Add(w, "corwin", "levy", ""); m.Votes["aurelian"] = 1; m.Votes["vega"] = -1;
