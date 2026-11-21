@@ -314,6 +314,28 @@ public sealed class RecallHiredFleetCommand : ICommand
     public void Execute(CommandContext ctx) { var w = ctx.World; MercenarySystem.Recall(w, w.Char(ActorId)!, w.Fleets[_fleetId]); }
 }
 
+/// <summary>Keep a fleet at drill, or end it (the owner, 2026-11-21: a smaller force that is better trained). Each year it lies at a
+/// world of the house's own it takes manpower by its hulls and gains a step of veterancy, as far as <see cref="FleetRules.DrillCap"/>.
+/// Setting it costs nothing; a year it cannot drill, it does not, and the house is told why.</summary>
+public sealed class DrillFleetCommand : ICommand
+{
+    private readonly string _fleetId; private readonly bool _on; private readonly FleetSystem _fleets;
+    public DrillFleetCommand(string actorId, string fleetId, bool on, FleetSystem fleets) { ActorId = actorId; _fleetId = fleetId; _on = on; _fleets = fleets; }
+    public string ActorId { get; }
+    public string Describe() => $"{(_on ? "drill" : "end the drill of")} {_fleetId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true) return "no one to give the order";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        if (f.Office) return "it is the Reach's squadron: the Reach sees to its training"; if (f.LevyOf.Length > 0) return "a levy is drilled by its own house";
+        if (f.Drilling == _on) return _on ? "it is at drill" : "it is not at drill";
+        return _on && f.Veterancy >= _fleets.Rules.DrillCap ? $"it is as well drilled as drill makes a fleet (veterancy {f.Veterancy}): the rest is learnt in battle" : null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; var f = w.Fleets[_fleetId]; f.Drilling = _on; w.Log(_on ? $"{f.Name} is put to drill." : $"{f.Name}'s drill is ended."); }
+}
+
 /// <summary>Hulls taken out of a fleet, the lightest first (the cheapest to build), as a guard left behind or a squadron paid off would be.</summary>
 public static class FleetHulls
 {

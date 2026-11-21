@@ -323,6 +323,12 @@
                         <button class="opt inline tiny" disabled="@(f.Refit.Refusal != null)" title="@f.Refit.Refusal" @onclick="() => G.Execute(new RefitFleetCommand(pid, f.Id))">@f.Refit.Label</button>
                         @if (!fleet.Office && fleet.LevyOf.Length == 0)
                         {
+                            /* drill: a smaller force made worth more, for manpower each year */
+                            bool drilling = fleet.Drilling; var dc = new DrillFleetCommand(pid, f.Id, !drilling, fs); string? dno = dc.Refusal(G.Ctx); string? stops = drilling ? fs.DrillStops(w, fleet) : null; int dcost = fs.DrillCost(fleet);
+                            <button class="opt inline tiny @(drilling ? "on" : "")" data-drill="@f.Id" disabled="@(dno != null)" title="@(dno ?? (drilling ? $"At drill: {dcost} manpower a year while it lies at a world of yours, and a step of veterancy each year, up to {c.Fleets.DrillCap}. It stands at {fleet.Veterancy}.{(stops != null ? " As things stand it would not drill this year: " + stops + "." : "")}" : $"Keep it at drill: each year it lies at a world or station of your own it takes {dcost} manpower (one for every {c.Fleets.DrillHullsPerManpower} hulls) and gains a step of veterancy, up to {c.Fleets.DrillCap} of {c.Fleets.VeterancyMax}. Each step is worth {c.Fleets.VeterancyBonus * 100:0}% in a fight; the last steps are learnt only in battle. It stands at {fleet.Veterancy}."))" @onclick="() => G.Execute(dc)">@(drilling ? "End the drill" : $"Drill · {dcost} manpower a year")</button>
+                        }
+                        @if (!fleet.Office && fleet.LevyOf.Length == 0)
+                        {
                             <details class="inline" data-rename="@f.Id"><summary>Rename</summary>
                                 <input class="qty" style="width:11rem" maxlength="40" value="@(_names.GetValueOrDefault(f.Id, f.Name))" @oninput="e => _names[f.Id] = e.Value?.ToString() ?? string.Empty" />
                                 @{ var newName = _names.GetValueOrDefault(f.Id, f.Name); var noName = new RenameFleetCommand(pid, f.Id, newName).Refusal(G.Ctx); }

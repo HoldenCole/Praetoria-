@@ -65,7 +65,7 @@ public static class MercenarySystem
     public static void Hire(World w, Character actor, Fleet f, House employer)
     {
         var home = w.House(actor.HouseId)!; string where = w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId;
-        f.HiredFrom = home.Id; f.LevyOf = home.Id; f.HireTurn = w.Turn; f.OwnerId = employer.Id; f.Errand = ""; w.Intel.Remove(f.Id);
+        f.HiredFrom = home.Id; f.LevyOf = home.Id; f.HireTurn = w.Turn; f.OwnerId = employer.Id; f.Errand = ""; f.Drilling = false; w.Intel.Remove(f.Id);
         home.Legitimacy = Math.Clamp(home.Legitimacy - Legitimacy, 0, 100);
         foreach (var foe in w.EnemiesOf(employer.Id).Distinct().ToList())
             if (w.House(foe) is { } fh && Economy.HeadOf(w, fh) is { } foeHead) { var r = w.Relationship(foeHead.Id, actor.Id); r.Disposition = Math.Clamp(r.Disposition - FoeRegard, -100, 100); }

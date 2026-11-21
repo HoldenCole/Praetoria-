@@ -33,6 +33,9 @@ public sealed class FleetRules
     public string DefaultClass { get; init; } = "frigate";
     public int SiegeTurns { get; init; } = 2;
     public int VeterancyMax { get; init; } = 5;
+    /// <summary>How far drill alone takes a fleet's veterancy: the rest is learnt only in battle. And how many hulls one
+    /// manpower a year keeps at drill.</summary>
+    public int DrillCap { get; init; } = 3; public int DrillHullsPerManpower { get; init; } = 2;
     public double VeterancyBonus { get; init; } = 0.05;
     public double AdmiralDeathChance { get; init; } = 0.12;
     public int WarWearinessTurns { get; init; } = 6;
@@ -165,6 +168,7 @@ public sealed class FleetSystem
             else f.Readiness = Math.Clamp(f.Readiness + _rules.ReadinessRecovery + PolicySystem.Modifier(w, Policies, f.OwnerId, "readiness"), 0, 100);
         }
 
+        Drill(w);
         var chairId = RegionSystem.CapitalHolder(w)?.Id;
         foreach (var house in w.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
         {
@@ -923,6 +927,37 @@ public sealed class FleetSystem
     public int SiegeRequired(World w, Holding h) =>
         _rules.SiegeTurns + (int)Math.Ceiling(2 * ((_catalog.Spec(h.Specialization)?.Defense ?? 0) + h.Buildings.Sum(b => _catalog.Building(b)?.Defense ?? 0)
             + (h.IsPlanet && SystemWorks.Any(w) ? SystemWorks.Defense(w, _catalog, h.SystemId) : 0) + (h.IsPlanet && h.Provinces.Count > 0 ? ProvinceSystem.Defense(_catalog, h) : 0)));
+
+    /// <summary>What a year at drill costs a fleet's house in manpower.</summary>
+    public int DrillCost(Fleet f) => Math.Max(1, (f.Strength + _rules.DrillHullsPerManpower - 1) / Math.Max(1, _rules.DrillHullsPerManpower));
+    /// <summary>Why a fleet would not drill this year, or null: it must lie at a world or station of its house's own, below what
+    /// drill can teach, and the house must have the men.</summary>
+    public string? DrillStops(World w, Fleet f)
+    {
+        if (f.Veterancy >= _rules.DrillCap) return $"it is as well drilled as drill makes a fleet (veterancy {f.Veterancy}): the rest is learnt in battle";
+        if (f.IsAway || f.Moving) return "it is under way: a fleet drills where it lies";
+        if (!w.Holdings.Values.Any(h => h.OwnerId == f.OwnerId && h.SystemId == f.SystemId)) return $"it drills only at a world or station of its house's own: {w.Galaxy?.System(f.SystemId)?.Name ?? "this system"} is not";
+        int need = DrillCost(f), have = w.House(f.OwnerId)?.Treasury.Manpower ?? 0;
+        return have >= need ? null : $"a year's drill is {need} manpower, and the house has {have}";
+    }
+    /// <summary>The year at drill: each fleet kept at it that can drill takes its manpower and gains a step of veterancy.</summary>
+    private void Drill(World w)
+    {
+        var mine = w.Protagonist?.HouseId;
+        foreach (var f in w.Fleets.Values.Where(f => f.Drilling).OrderBy(f => f.Id, StringComparer.Ordinal).ToList())
+        {
+            var house = w.House(f.OwnerId); if (house == null) { f.Drilling = false; continue; }
+            string? stops = DrillStops(w, f);
+            if (stops != null)
+            {
+                if (f.Veterancy >= _rules.DrillCap) { f.Drilling = false; if (f.OwnerId == mine) w.Tell("good", $"{f.Name} is as well drilled as drill makes a fleet (veterancy {f.Veterancy}, each step worth {_rules.VeterancyBonus * 100:0}% in a fight). The drill is ended; the rest is learnt in battle", "military", f.Id); }
+                else if (f.OwnerId == mine) w.Tell("warn", $"{f.Name} did not drill this year: {stops}", "military", f.Id);
+                continue;
+            }
+            house.Treasury.Manpower -= DrillCost(f); f.Veterancy += 1;
+            w.Log($"{f.Name} is a year at drill and is the better for it (veterancy {f.Veterancy}).");
+        }
+    }
 
     /// <summary>How a world of a house you are at war with is taken, as these rules have it, or "" when you are not at war with its
     /// holder or it is a nation's (docs/PLAYTHROUGH.md, War and peace: "how to attack a world in a war between houses").</summary>

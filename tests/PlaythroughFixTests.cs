@@ -978,4 +978,27 @@ public class PlaythroughFixTests
         tc.Fleets.DeclareWar(w, employer.Id, foe.Id); fleet.DestinationId = ""; fleet.SystemId = home.SystemId; Assert.True(tc.Executor.TryExecute(new HireOutFleetCommand(me.Id, fleet.Id, employer.Id), ctx));
         w.Fleets.Remove(fleet.Id); MercenarySystem.Tick(w); Assert.Contains(w.News, n => n.Text.Contains("The Company, which you hired out, has been destroyed"));
     }
+    [Fact]
+    public void AFleetAtDrill_IsWorthMore_ForManpowerEachYear()
+    {
+        // the owner, 2026-11-21: "you can have maybe smaller forces but ... you train them better"
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); var fleets = tc.Fleets; var rules = Content.Fleets;
+        w.Wars.Clear(); foreach (var f in w.Fleets.Values.ToList()) w.Fleets.Remove(f.Id);
+        var home = w.HoldingsOf(house.Id).First(h => h.IsPlanet);
+        var fleet = new Fleet { Id = "d", Name = "The Drilled", OwnerId = house.Id, SystemId = home.SystemId, Strength = 5, Readiness = 100 }; w.Fleets[fleet.Id] = fleet;
+        var raw = new Fleet { Id = "r", Name = "The Raw", OwnerId = house.Id, SystemId = home.SystemId, Strength = 5, Readiness = 100 }; w.Fleets[raw.Id] = raw;
+        int cost = fleets.DrillCost(fleet); Assert.Equal(3, cost);           // one for every two hulls, rounded up
+        Assert.True(tc.Executor.TryExecute(new DrillFleetCommand(me.Id, fleet.Id, true, fleets), ctx)); Assert.True(fleet.Drilling);
+        house.Treasury.Manpower = 50; house.Treasury.Credits = 500;
+        for (int y = 1; y <= rules.DrillCap; y++) { int mp = house.Treasury.Manpower; fleets.Tick(w); Assert.Equal(y, fleet.Veterancy); Assert.Equal(mp - cost, house.Treasury.Manpower); }
+        // drill takes it no further: the drill ends of itself and the house is told
+        fleets.Tick(w); Assert.Equal(rules.DrillCap, fleet.Veterancy); Assert.False(fleet.Drilling); Assert.Contains(w.News, n => n.Text.Contains("as well drilled as drill makes a fleet"));
+        Assert.NotNull(new DrillFleetCommand(me.Id, fleet.Id, true, fleets).Refusal(ctx));
+        // the same hulls are worth more in a fight
+        Assert.Equal(1 + rules.DrillCap * rules.VeterancyBonus, (1 + fleet.Veterancy * rules.VeterancyBonus) / (1 + raw.Veterancy * rules.VeterancyBonus), 6);
+        // away from home, or without the men, it does not drill, and says why
+        raw.Drilling = true; house.Treasury.Manpower = 0; Assert.Contains("manpower", fleets.DrillStops(w, raw)); fleets.Tick(w); Assert.Equal(0, raw.Veterancy);
+        var elsewhere = w.Holdings.Values.First(h => h.IsPlanet && h.OwnerId != house.Id && h.SystemId != home.SystemId); raw.SystemId = elsewhere.SystemId; house.Treasury.Manpower = 50;
+        Assert.Contains("of its house's own", fleets.DrillStops(w, raw));
+    }
 }
