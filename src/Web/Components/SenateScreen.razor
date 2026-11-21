@@ -176,8 +176,14 @@
                 <div class="muted small">@cr.Counters</div>
                 @foreach (var a in cr.Active)
                 {
-                    <div class="crisis"><div><b>@a.Name</b> · <span title="How bad it is, from 1 (a nuisance) upward: it rises each year it is left, and what it costs rises with it.">severity @a.Severity</span> · since year @a.Since @(a.Author != null ? $"· set going by {a.Author}" : "· nobody set it going: it came of itself")</div>
-                        @foreach (var d in a.Dampers) { <button class="opt" disabled="@(!d.Available)" title="@d.Tooltip" @onclick="() => Damper(d)">@d.Label</button> }</div>
+                    <div class="crisis"><div><b>@a.Name</b> · <span title="How much relief it takes to end it. It does not grow with time; it rises only if the crisis breaks out again while it is active.">severity @a.Severity</span> · since year @a.Since @(a.Author != null ? $"· set going by {a.Author}" : "· nobody set it going: it came of itself")</div>
+                        @foreach (var d in a.Dampers) { <button class="opt" disabled="@(!d.Available)" title="@d.Tooltip" @onclick="() => Damper(d)">@d.Label</button> }
+                        @if (G.Turn!.Crises is { } engine && engine.Def(a.Id) is { } cdef)
+                        {
+                            <details class="crisis-facts" data-crisis-facts="@a.Id"><summary>What this is, and what each answer does</summary>
+                                @foreach (var line in CrisisFacts.For(w, engine, cdef, c.Recovery)) { <div class="small"><b>@line.Label.</b> @line.Text</div> }
+                            </details>
+                        }</div>
                 }
                 @if (cr.Active.Count == 0) { <div class="muted">No crisis is active.</div> }
                 @if (cr.Causable.Count > 0) { <div class="flag">Ripe to be lit, by you or by a rival: @string.Join(", ", cr.Causable)</div> }

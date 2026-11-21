@@ -858,4 +858,22 @@ public class PlaythroughFixTests
             Assert.Equal(before + SenateSystem.LobbyWeight, senate.Why(w, m, target.Id).Sum(x => x.by));
         }
     }
+    [Fact]
+    public void ACrisis_IsExplainedFromItsOwnRules()
+    {
+        // docs/PLAYTHROUGH.md, Medium, the Senate: crises explained: what it is, who is behind it, what it does each year, what each answer costs
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); var engine = tc.Crises!;
+        var revolt = engine.Def("local_revolt")!; w.WorldCounters["unrest"] = 6; engine.Trigger(revolt, w, TestContent.Rng());
+        var lines = Praetoria.Core.Presentation.CrisisFacts.For(w, engine, revolt, Content.Recovery);
+        string all = string.Join("\n", lines.Select(l => l.Label + ": " + l.Text));
+        Assert.Contains("unrest at or above 5 (it is " + w.Counter("unrest") + ")", all);
+        Assert.Contains("Nobody: it came of how things stood", all);
+        Assert.Contains("its severity does not grow with time", all);
+        Assert.Contains("Civil War waits on", all);                       // the mark it leaves is another crisis's gate
+        Assert.Contains("its cause still holds", all);
+        foreach (var d in revolt.Dampers) Assert.Contains(lines, l => l.Label == "Answer: " + d.Name && l.Text.Contains("Takes " + d.Relief));
+        // and it is true: a year passing takes nothing from it while its cause holds, and one severity once it has passed
+        int sev = w.Crises[revolt.Id].Severity; engine.Decay(w, TestContent.Rng()); Assert.Equal(sev, w.Crises[revolt.Id].Severity);
+        w.WorldCounters["unrest"] = 0; engine.Decay(w, TestContent.Rng()); Assert.Equal(sev - 1, w.Crises.TryGetValue(revolt.Id, out var left) ? left.Severity : 0);
+    }
 }

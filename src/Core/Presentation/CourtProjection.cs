@@ -441,7 +441,7 @@ public static class CourtProjection
                     {
                         bool can = new ApplyDamperCommand(p.Id, crises, def, d).CanExecute(ctx);
                         dampers.Add(new DamperOption(def.Id, d.Id, $"{d.Name} (−{d.Relief})" + (d.Cost.Count > 0 ? $"  [{string.Join(", ", d.Cost.Select(c => $"{c.Value} {c.Key}"))}]" : ""),
-                            can ? "" : "Not available — earned by prior play, or unaffordable.", can));
+                            can ? $"Takes {d.Relief} from its severity. It does this: {CrisisFacts.Does(d.Effects)}." : !ctx.PoolsOf(p.Id).CanAfford(d.Cost) ? $"You cannot pay for it this year: it costs {string.Join(", ", d.Cost.Select(c => $"{c.Value} {c.Key}"))}." : "Closed to you now: what it needs does not hold. The lines under the crisis say what.", can));
                     }
                 active.Add(new CrisisLine(a.Id, def?.Name ?? a.Id, a.Severity, a.TurnStarted, a.Organic ? null : w.Char(a.AuthorId)?.Name ?? a.AuthorId, dampers));
             }
