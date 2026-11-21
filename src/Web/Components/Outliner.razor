@@ -92,6 +92,8 @@
     if (w.HasFlag("hulls_captured")) alerts.Add(("good", "Prize crews have taken enemy hulls", "military"));
     if (w.HasFlag("capital_lost")) alerts.Add(("warn", "The capital is lost", "senate"));
     if (w.HasFlag("rebellion")) alerts.Add(("warn", "A world of yours is in revolt", "galaxy:" + (w.HoldingsOf(house.Id).FirstOrDefault(x => x.InRebellion)?.SystemId ?? "")));
+    // the next rank is within reach: said the year it becomes so, and while it stays so (docs/PLAYTHROUGH.md, Medium, The Senate)
+    if (G.Turn?.Progression is { } prog && prog.NextTitle(w, house.Id) is { } nextRank && prog.OpenRoads(w, w.ProtagonistId) is { Count: > 0 } roads) alerts.Add(("good", RankWithinReach(nextRank.NameIn(w.Era), roads), "senate"));
     if (w.HasFlag("fief_granted")) alerts.Add(("good", w.IsImperium ? "You have been granted a fief" : "You have been entrusted with a world", "worlds"));
     foreach (var f in w.WorldFlags.Where(f => f.StartsWith("house_fell:"))) alerts.Add(("info", $"{f["house_fell:".Length..]} has passed out of the rolls", "houses"));
     if (m.GreatCrisis is { Stage: not null, Resolved: false } gc) alerts.Add(("info", $"{gc.Name}: {gc.Stage}", "houses"));
@@ -169,6 +171,12 @@
 </aside>
 
 @code {
+    /* "The rank of Legate is within reach: by petition, the house's standing being enough, or by force, the house having the ships" */
+    private static string RankWithinReach(string rank, List<string> roads)
+    {
+        var says = roads.Select(r => r == "petition" ? "by petition, the house's standing being enough" : r == "claim" ? "by the claim the house holds" : "by force, the house having the ships");
+        return "The rank of " + rank + " is within reach: " + string.Join(", or ", says);
+    }
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<BriefingCard> OnOpenReport { get; set; }
     [Parameter] public EventCallback<string> OnGo { get; set; }

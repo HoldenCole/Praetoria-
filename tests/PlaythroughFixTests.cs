@@ -24,6 +24,26 @@ public class PlaythroughFixTests
         if (n > 0) w.Fleets["t_" + houseId] = new Fleet { Id = "t_" + houseId, OwnerId = houseId, Name = "T", SystemId = w.Holdings.Values.First(h => h.IsPlanet).SystemId, Strength = n };
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, The Senate: "Titles: ... an alert when you qualify". (The strength test for seizing, the
+       land a rank wants and one rise a year were done with the fifteen: 3.) */
+    [Fact]
+    public void TheRoadsToTheNextRank_AreListedOnlyWhenTheyAreOpen()
+    {
+        var content = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir());
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 7UL); var tc = new TurnController(w, content); tc.BeginTurn();
+        var prog = tc.Progression!; var me = w.Protagonist!; var house = w.House(me.HouseId)!; var next = prog.NextTitle(w, house.Id);
+        if (next == null) { Assert.Empty(prog.OpenRoads(w, me.Id)); return; }
+        // each road is listed exactly when its own rule allows it
+        var roads = prog.OpenRoads(w, me.Id);
+        Assert.Equal(prog.PetitionRefusal(w, me.Id) == null, roads.Contains("petition")); Assert.Equal(prog.ClaimRefusal(w, me.Id) == null, roads.Contains("claim")); Assert.Equal(prog.SeizeRefusal(w, me.Id) == null, roads.Contains("seize"));
+        // standing enough, and land enough: the petition opens
+        house.Legitimacy = 100; foreach (var h in w.Holdings.Values.Where(h => h.IsPlanet).Take(4)) h.OwnerId = house.Id; w.HoldingsChanged();
+        if (prog.PetitionRefusal(w, me.Id) == null) Assert.Contains("petition", prog.OpenRoads(w, me.Id));
+        // no standing, no claim, no ships: nothing is open, and nothing is said
+        house.Legitimacy = 0; house.Claims.Clear(); foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id).ToList()) w.Fleets.Remove(f.Id);
+        Assert.Empty(prog.OpenRoads(w, me.Id));
+    }
+
     [Fact]
     public void NoRivalIsGrantedAWorldOfThePlayers_OverThePlayersHead()
     {

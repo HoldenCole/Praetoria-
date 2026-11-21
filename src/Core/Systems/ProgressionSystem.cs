@@ -74,6 +74,18 @@ public sealed class ProgressionSystem
         return have >= need ? null : $"needs {need} hulls of the house's own to take the rank of {next.NameIn(w.Era)}: it has {have}";
     }
     public bool CanSeize(World w, string actorId) => SeizeRefusal(w, actorId) == null;
+    /// <summary>The roads by which a house could take the next rung this year, as things stand, with nothing counted but the rule:
+    /// "petition" (the standing is there), "claim" (a claim in hand), "seize" (the ships). Empty where there is no rung or none
+    /// is open. What each costs in influence or agents is the command's, not this (docs/PLAYTHROUGH.md, Medium, The Senate: "an
+    /// alert when you qualify").</summary>
+    public List<string> OpenRoads(World w, string actorId)
+    {
+        var roads = new List<string>();
+        if (PetitionRefusal(w, actorId) == null) roads.Add("petition");
+        if (ClaimRefusal(w, actorId) == null) roads.Add("claim");
+        if (SeizeRefusal(w, actorId) == null) roads.Add("seize");
+        return roads;
+    }
     public string? PetitionRefusal(World w, string actorId)
     {
         var c = w.Char(actorId); if (RiseRefusal(w, c, needsLand: true) is { } no) return no;
