@@ -40,15 +40,19 @@
     <div class="tb-right">
         <div class="tb-era">@(w.Era == "imperium" ? "The Imperium" : "The Republic")</div>
         <div class="tb-turn" @onclick="OnBrief" title="Click for the last year in brief. Each turn is a year. A generation is one head of the house: when the head dies or steps down and an heir takes the seat, the next generation begins. This is year @w.Turn of the saga, under its @Nth(w.Counter("generation") + 1) head."><Icon Name="turn" Size="13" /> Year @w.Turn · @Nth(w.Counter("generation") + 1) head</div>
-        <button class="btn ghost sm" title="@(G.ActedThisYear ? "The game is kept as it stood when this year began, and again each time you end a year. What you have done this year is kept when you end it." : "The game is kept in this browser as it stands now, at the start of the year, and again each time you end a year.")" @onclick="OnSave">@(SavedFlash ? (G.ActedThisYear ? "Saved: as the year began" : "Saved ✓") : "Save")</button>
+        @if (G.CanUndo) { <button class="btn ghost sm" data-undo title="@("Take back the last thing you did this year: " + G.UndoWhat + ". " + (G.UndoSteps > 1 ? "Press again for the one before it (" + G.UndoSteps + " in all). " : "") + "Nothing can be taken back once the year has ended, and the same act done again comes out the same.")" @onclick="OnUndo">Undo</button> }
+        <button class="btn ghost sm" data-save title="Save the game as it stands now, with what you have done this year. It is also kept by itself as each year opens." @onclick="OnSave">@(SavedFlash ? "Saved ✓" : "Save")</button>
+        <button class="btn ghost sm" data-saves title="The saved sagas in this browser: the running one and three you can keep, to load or to save over" @onclick="OnSaves">Saves</button>
         <button class="btn ghost sm" title="Download the save as a file" @onclick="OnExport">Export</button>
         <button class="btn ghost sm" title="The primer, the glossary of the words the screens use, and the Academy's lectures (key ?)" @onclick="OnPrimer">?</button>
-        <button class="btn ghost sm" title="Leave to the title screen. The saga is kept as it stood when this year began." @onclick="OnQuit">Quit</button>
+        <button class="btn ghost sm" title="Leave to the title screen. The saga is saved as it stands first." @onclick="OnQuit">Quit</button>
     </div>
 </header>
 
 @code {
     [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnSaves { get; set; }
+    [Parameter] public EventCallback OnUndo { get; set; }
     [Parameter] public EventCallback OnExport { get; set; }
     [Parameter] public EventCallback OnQuit { get; set; }
     [Parameter] public EventCallback OnPrimer { get; set; }

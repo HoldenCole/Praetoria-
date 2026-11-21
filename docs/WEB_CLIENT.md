@@ -18,10 +18,38 @@ system under `/content`, and calls `ContentLoader.LoadFromDirectory("/content")`
 
 ## Saves
 
-A save is the world between turns (phase Idle), exactly as the harness and Godot layer define it. The client snapshots that
-world after every Resolve phase; **Save** writes the snapshot to `localStorage` (autosaved each turn too), **Export**
-downloads it as JSON, and the title screen offers **Continue** / **Load a save file**. A loaded game re-opens the current
-turn's briefing.
+Rebuilt 2026-11-21 from the playthroughs (docs/PLAYTHROUGH.md, "A first game": N49, N62, N25). Before this a save was
+the world between years: **Save** in the middle of a year stored nothing new, and a reload put an answered report back
+unanswered.
+
+**A save is the game as it stands.** Between years it is the world, as the harness and the Godot layer define it. In the
+middle of a year it is the world with one thing more: the year's reports, who each was about, and the answer given if one
+was (`World.MidYear`, written by `TurnController.SaveMidYear`, read by `TurnController.Resume`). Loading such a save opens
+the same year where it was left; no year passes and nothing is drawn again. The years after are the same as if the game
+had never been closed, and a test holds that to the last character of the save. `BeginTurn` clears the mark, so a tool
+that loads a save and begins a year behaves as before.
+
+**Where saves live.** In the browser's `localStorage`:
+
+| key | what |
+|---|---|
+| `praetoria.autosave` | the running saga: written by the game as each year opens, by **Save**, and on leaving (Quit saves first) |
+| `praetoria.slot.1` to `.3` | kept saves: written only when the player says so, from the **Saves** window |
+| each key + `:label` | what the list shows: house, head, year, whether the year is under way, and when it was saved |
+
+The **Saves** window (top bar, and "Saved sagas" on the title) lists all four, with Save here, Load and Delete; it asks
+before saving over a kept save, before loading over a game in play, and before deleting. A save is about half a million
+characters in year 1 and grows; a browser allows about five million for the whole site. When a save does not fit, the
+window says so and points to Delete and to **Export** (a JSON file, loaded again from "Load a save file" on the title).
+
+**Undo.** The top bar shows **Undo** once something has been done in the year. It takes the last act back, and pressed
+again the one before it, as far as the year's opening; nothing can be taken back once the year has ended. Making a save
+takes about half a second in a browser, too long to do before every click, so the client does not keep a save per act.
+It keeps the year as it opened (the save the autosave makes anyway, or the one loaded) and the list of what has been done
+since; to take the last act back it loads the first and does the others again, in order (`GameClient.Undo`). That is
+sound because commands name things by id and take their dice from the world's own state: the same acts on the same world
+come out the same, and a test holds it. It follows that undo is no way to throw the dice twice: an act taken back and
+done again has the same result. It does let a player see what an act did and then not do it.
 
 ## Running and testing it locally
 

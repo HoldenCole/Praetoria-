@@ -11,6 +11,10 @@
         {
             <button class="btn primary big" data-continue="1" @onclick="OnContinue">Continue@(SaveLabel.Length > 0 ? ": " + SaveLabel : " the saved saga")</button>
         }
+        @if (HasAutosave || KeptSaves > 0)
+        {
+            <button class="btn ghost" data-title-saves="1" title="The saved sagas in this browser: the running one and the ones you kept" @onclick="OnSaves">Saved sagas@(KeptSaves > 0 ? " · " + KeptSaves + " kept" : "")</button>
+        }
         <label class="btn ghost file">Load a save file <InputFile OnChange="OnFile" accept=".json" /></label>
     </section>
 
@@ -186,6 +190,9 @@
     [Parameter] public bool HasAutosave { get; set; }
     /// <summary>What the saved saga is: the house, its head and the year.</summary>
     [Parameter] public string SaveLabel { get; set; } = "";
+    /// <summary>How many kept saves this browser holds beside the running one, and the way to their list.</summary>
+    [Parameter] public int KeptSaves { get; set; }
+    [Parameter] public EventCallback OnSaves { get; set; }
     [Parameter] public EventCallback OnContinue { get; set; }
     [Parameter] public EventCallback<string> OnLoadJson { get; set; }
 
@@ -269,7 +276,7 @@
     private void BeginAsked()
     {
         if (!HasAutosave) { Begin(); return; }
-        G.Ask("Begin a new saga?", "There is a saved saga in this browser, and there is room for one: a new saga takes its place at the end of its first year. To keep the old one, continue it and use Export first.", "Begin the new saga", Begin, "Go back");
+        G.Ask("Begin a new saga?", "There is a running saga in this browser" + (SaveLabel.Length > 0 ? " (" + SaveLabel + ")" : "") + ", and a new saga takes its place at the end of its first year. To keep the old one, continue it and put it in a kept save (Saves, in the top bar), or use Export.", "Begin the new saga", Begin, "Go back");
     }
     private void Begin()
     {

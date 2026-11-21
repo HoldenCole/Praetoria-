@@ -149,6 +149,7 @@ public sealed class TurnController
     /// briefing. Leaves the controller in the Action phase, ready for player choices.</summary>
     public IReadOnlyList<BriefingItem> BeginTurn()
     {
+        World.MidYear = null;   // a year that begins is no longer the middle of one: whoever loaded a save made mid-year and did not Resume it starts the next
         if (World.InAcademy) return BeginTerm();
         World.Turn++;
         CaesarSystem.Open(World);   // once, at the start of the first year in the Reach: the same moment in an unbroken run and a resumed one
@@ -186,6 +187,38 @@ public sealed class TurnController
         Presentation.YearInBrief.Mark(World);   // where the treasury stands as the year opens, and how it moved over the last (the year in brief)
         Phase = TurnPhase.Action;
         SyncRng();
+        return _briefing;
+    }
+
+    /// <summary>The world as a save, in the middle of the year: what has been done this year is in it, and the year's reports with the
+    /// answers already given. Between years it is the plain save. Loading it and calling <see cref="Resume"/> opens the same year where
+    /// it was left; the year's turn afterwards is the same as if the game had never been closed.</summary>
+    public string SaveMidYear()
+    {
+        SyncRng();
+        if (Phase != TurnPhase.Action) return SaveSystem.Serialize(World);
+        World.MidYear = new MidYear
+        {
+            Reports = _briefing.Select(b => new PendingReport { EventId = b.Fired.Def.Id, Roles = new Dictionary<string, string>(b.Fired.Binding.All), Resolved = b.Resolved, ChosenId = b.ChosenId }).ToList()
+        };
+        try { return SaveSystem.Serialize(World); }
+        finally { World.MidYear = null; }
+    }
+
+    /// <summary>Open the year a loaded world was saved in. A world saved between years begins its next year as always. A world saved in the
+    /// middle of one is taken up where it was left: no year passes, nothing is drawn again, and the reports stand as they stood, answered
+    /// or not. A report whose event is no longer in the content is left out.</summary>
+    public IReadOnlyList<BriefingItem> Resume()
+    {
+        if (World.MidYear is not { } mid) return BeginTurn();
+        World.MidYear = null;
+        _briefing.Clear();
+        foreach (var r in mid.Reports)
+        {
+            if (_content.Event(r.EventId) is not { } def) continue;
+            _briefing.Add(new BriefingItem(new FiredEvent(def, Binding.From(r.Roles))) { Resolved = r.Resolved, ChosenId = r.ChosenId });
+        }
+        Phase = TurnPhase.Action;
         return _briefing;
     }
 

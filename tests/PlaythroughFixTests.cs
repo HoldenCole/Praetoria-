@@ -27,6 +27,87 @@ public class PlaythroughFixTests
 
     /* docs/PLAYTHROUGH.md, Medium, The Senate: "Titles: ... an alert when you qualify". (The strength test for seizing, the
        land a rank wants and one rise a year were done with the fifteen: 3.) */
+    /* docs/PLAYTHROUGH.md, Medium, A first game: "a Save that saves where you are" (N62: Save in the middle of a year stored
+       nothing new, and a reload put the answered report back unanswered and the credits back where they were). */
+    [Fact]
+    public void ASaveInTheMiddleOfAYear_KeepsWhatWasDone_AndTheYearsAfterAreTheSameAsIfItHadNeverBeenClosed()
+    {
+        var (w, tc, house, me, _) = Start();
+        tc.BeginTurn(); tc.EndTurn(); tc.BeginTurn();   // into the second year, so the save is not of a fresh world
+        Assert.NotEmpty(tc.Briefing);
+        // the head answers a report and spends from the treasury
+        var first = tc.Briefing[0]; var choice = tc.Offer(first).First(c => c.Available).Choice.Id;
+        Assert.True(tc.Resolve(first, choice));
+        house.Treasury.Credits += 7;
+        int credits = house.Treasury.Credits; int reports = tc.Briefing.Count;
+
+        string json = tc.SaveMidYear();
+        Assert.Null(w.MidYear);   // the world being played carries no mark of it
+
+        var w2 = SaveSystem.Deserialize(json); var tc2 = new TurnController(w2, Content);
+        Assert.NotNull(w2.MidYear);
+        var again = tc2.Resume();
+        Assert.Null(w2.MidYear);
+        // the same year, not the next; the same reports, the answered one still answered; the same treasury
+        Assert.Equal(w.Turn, w2.Turn);
+        Assert.Equal(TurnPhase.Action, tc2.Phase);
+        Assert.Equal(reports, again.Count);
+        Assert.Equal(tc.Briefing.Select(b => (b.Fired.Def.Id, b.Resolved, b.ChosenId, string.Join(",", b.Fired.Binding.All.OrderBy(k => k.Key).Select(k => k.Key + "=" + k.Value)))),
+                     again.Select(b => (b.Fired.Def.Id, b.Resolved, b.ChosenId, string.Join(",", b.Fired.Binding.All.OrderBy(k => k.Key).Select(k => k.Key + "=" + k.Value)))));
+        Assert.True(again[0].Resolved);
+        Assert.Equal(credits, w2.House(house.Id)!.Treasury.Credits);
+        // an unanswered report can still be answered in the loaded year
+        if (again.FirstOrDefault(b => !b.Resolved) is { } open && tc2.Offer(open).FirstOrDefault(c => c.Available) is { } oc)
+        {
+            var same = tc.Briefing.First(b => b.Fired.Def.Id == open.Fired.Def.Id && !b.Resolved);
+            Assert.True(tc2.Resolve(open, oc.Choice.Id)); Assert.True(tc.Resolve(same, oc.Choice.Id));
+        }
+        // and the years that follow are the same in both, to the last character of the save
+        for (int i = 0; i < 3; i++)
+        {
+            tc.EndTurn(); tc2.EndTurn();
+            tc.SyncRng(); tc2.SyncRng();
+            Assert.Equal(SaveSystem.Serialize(w), SaveSystem.Serialize(w2));
+            tc.BeginTurn(); tc2.BeginTurn();
+            Assert.Equal(tc.Briefing.Select(b => b.Fired.Def.Id), tc2.Briefing.Select(b => b.Fired.Def.Id));
+        }
+
+        // a save made between years is the plain save, and resuming it begins the next year
+        var (w3, tc3, _, _, _) = Start();
+        string idle = tc3.SaveMidYear();
+        Assert.Equal(SaveSystem.Serialize(w3), idle);
+        var w4 = SaveSystem.Deserialize(idle); var tc4 = new TurnController(w4, Content);
+        Assert.Null(w4.MidYear); tc4.Resume(); Assert.Equal(1, w4.Turn);
+    }
+
+    /* docs/PLAYTHROUGH.md, Medium, A first game: "undo the last action of the year" (N25). The client takes an act back by loading the
+       year as it opened and doing the earlier acts again; this holds the rule that makes that sound: the same acts on the same
+       world come out the same, so the world after "do A, do B, take B back" is the world after "do A". */
+    [Fact]
+    public void TakingTheLastActBack_IsTheYearReopenedWithTheEarlierActsDoneAgain()
+    {
+        var (w, tc, house, me, _) = Start();
+        tc.BeginTurn();
+        string opened = tc.SaveMidYear();
+        bool Do(World world, TurnController turn, ICommand c) { bool ok = turn.Executor.TryExecute(c, new CommandContext(world, WorldBuilder.RngFor(world))); turn.SyncRng(); return ok; }
+        string skill = new[] { "tactics", "leadership", "discipline", "administration", "oratory" }.First(s => new TrainCommand(me.Id, s).CanExecute(new CommandContext(w, WorldBuilder.RngFor(w))));
+        string law = Content.Policies.Laws.First().Id; string option = Content.Policies.Laws.First().Options.Select(o => o.Id).First(o => new EnactLawCommand(me.Id, law, o, Content.Policies).CanExecute(new CommandContext(w, WorldBuilder.RngFor(w))));
+
+        // the played game: answer a report, study, then set a law
+        var first = tc.Briefing[0]; string choice = tc.Offer(first).First(c => c.Available).Choice.Id;
+        Assert.True(tc.Resolve(first, choice));
+        Assert.True(Do(w, tc, new TrainCommand(me.Id, skill)));
+        string beforeTheLast = tc.SaveMidYear();
+        Assert.True(Do(w, tc, new EnactLawCommand(me.Id, law, option, Content.Policies)));
+        Assert.NotEqual(beforeTheLast, tc.SaveMidYear());
+
+        // taking the law back: the year as it opened, the report answered the same way, the study done again
+        var w2 = SaveSystem.Deserialize(opened); var tc2 = new TurnController(w2, Content); tc2.Resume();
+        Assert.True(tc2.Resolve(tc2.Briefing[0], choice));
+        Assert.True(Do(w2, tc2, new TrainCommand(me.Id, skill)));
+        Assert.Equal(beforeTheLast, tc2.SaveMidYear());
+    }
+
     /* docs/PLAYTHROUGH.md, Medium, A first game: "Aims: the ambition's conditions and progress ... a next step". */
     [Fact]
     public void YourOwnAmbition_SaysHowNearItIs_WhereItStands_AndANextStep()

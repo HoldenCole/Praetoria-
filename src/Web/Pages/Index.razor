@@ -22,7 +22,9 @@
 }
 else if (G.Turn == null)
 {
-    <CreationScreen HasAutosave="@_hasAutosave" SaveLabel="@_saveLabel" OnContinue="ContinueAutosave" OnLoadJson="LoadFromJson" />
+    <CreationScreen HasAutosave="@_hasAutosave" SaveLabel="@_saveLabel" KeptSaves="@_keptSaves" OnContinue="ContinueAutosave" OnLoadJson="LoadFromJson" OnSaves="() => _saves = true" />
+    @if (_saves) { <SavesBox InGame="false" OnClose="() => _saves = false" OnLoad="LoadSave" OnChanged="ReadSaves" /> }
+    <ConfirmBox />
 }
 else if (G.World!.InAcademy && G.Academy() is { } am)
 {
@@ -62,7 +64,7 @@ else
        column of icons down the left, one window docked beside it, and an outliner on the right. *@
     <div class="gs-shell game @(_screen == "galaxy" ? "on-map" : "in-window")" style="--accent:@m.HouseAccent" @ref="_shell" data-era="@m.Era" data-role="@RoleTheme.Of(G.World!)">
         @if (G.World!.Galaxy != null) { <div class="map-layer"><GalaxyMap @ref="_map" OnPicked="MapPicked" /></div> }
-        <TopBar OnSave="SaveLocal" OnExport="Download" OnQuit="Abandon" OnPrimer="() => _primer = true" OnBrief="() => _brief = true" SavedFlash="@_savedFlash" />
+        <TopBar OnSave="SaveLocal" OnSaves="() => _saves = true" OnUndo="Undo" OnExport="Download" OnQuit="Abandon" OnPrimer="() => _primer = true" OnBrief="() => _brief = true" SavedFlash="@_savedFlash" />
         <nav class="rail">
             @{ int railAt = 0; }
             @foreach (var (id, glyph, label) in Rail())
@@ -135,6 +137,10 @@ else
         {
             <Primer OnClose="ClosePrimer" OnGo="Go" />
         }
+        @if (_saves)
+        {
+            <SavesBox InGame="true" OnClose="() => _saves = false" OnLoad="LoadSave" OnChanged="ReadSaves" />
+        }
         <ProfileCard />
         @if (_passingOut && G.Academy() is { Graduated: true } grad)
         {
@@ -170,7 +176,7 @@ else
     /// <summary>The Academy: this browser has graduated before (so the short course is offered first); the year just ended (so the passing-out card shows).</summary>
     private bool _beenBefore, _passingOut;
     private BriefingCard? _openReport;
-    private SuccessionRecord? _succession; private bool _primer, _primerChecked;
+    private SuccessionRecord? _succession; private bool _primer, _primerChecked, _saves; private int _keptSaves;
     /* the year in brief: shown as each year opens unless the player has said not to (kept in this browser), and from the year in the top bar */
     private bool _brief, _briefEvery = true, _briefAsked;
     private void BriefGo(string target) { _brief = false; Go(target); }
@@ -195,7 +201,8 @@ else
     public async Task Key(string key)
     {
         if (G.Turn == null) return;
-        if (_primer) { if (key is "Escape" or "?") await ClosePrimer(); else return; }   // the handbook is in front: it takes Escape, and no key reaches the desk behind it
+        if (_saves) { if (key == "Escape" && G.Asking == null) _saves = false; else return; }   // the saves window is in front
+        else if (_primer) { if (key is "Escape" or "?") await ClosePrimer(); else return; }   // the handbook is in front: it takes Escape, and no key reaches the desk behind it
         else if (key == "Escape" && _brief) _brief = false;
         else if (key == "Escape") { if (G.ProfileId != null) G.CloseProfile(); else if (_openReport != null || _succession != null) { _openReport = null; _succession = null; } else _screen = "galaxy"; }
         else if (key == "Enter" && _brief) _brief = false;
@@ -211,7 +218,7 @@ else
         G.Changed += OnChanged;
         Praetoria.Core.Diagnostics.Perf.Enabled = Nav.Uri.Contains("perf");
         await G.LoadAsync();
-        try { _hasAutosave = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey)); _saveLabel = await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey + ":label") ?? ""; } catch { }
+        await ReadSaves();
         try { _beenBefore = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.academy.graduated")); } catch { }
     }
 
@@ -297,6 +304,28 @@ else
     }
     private long _perfRender;
 
+    /// <summary>What is saved in this browser: whether there is a running saga and what it is called, and how many kept saves there are.</summary>
+    private async Task ReadSaves()
+    {
+        try
+        {
+            _hasAutosave = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("praetoria.has", GameClient.AutosaveKey));
+            _saveLabel = _hasAutosave ? await JS.InvokeAsync<string?>("praetoria.load", GameClient.AutosaveKey + ":label") ?? "" : "";
+            int kept = 0; for (int i = 1; i <= GameClient.Slots; i++) if (!string.IsNullOrEmpty(await JS.InvokeAsync<string?>("praetoria.has", GameClient.SlotKey(i)))) kept++;
+            _keptSaves = kept;
+        }
+        catch { }
+        StateHasChanged();
+    }
+    /// <summary>A save chosen from the list is loaded: whatever was open belongs to the game that is being left.</summary>
+    private void LoadSave(string json)
+    {
+        _saves = false; _openReport = null; _succession = null; _brief = false; _passingOut = false; _epilogueDismissed = false; _primerChecked = true;
+        try { G.LoadJson(json); if (G.World is { InAcademy: false }) _screen = "galaxy"; } catch { G.Ask("That save could not be loaded", "It may have been made by a newer version of the game, or the browser may have cut it short.", "Close", () => { }, "Close"); }
+        StateHasChanged();
+    }
+    /// <summary>Take back the last thing done this year (docs/PLAYTHROUGH.md, a first game).</summary>
+    private void Undo() { _openReport = null; G.Undo(); StateHasChanged(); }
     private async Task Autosave()
     {
         try
@@ -304,12 +333,12 @@ else
             string json = G.SaveJson(); long t = System.Diagnostics.Stopwatch.GetTimestamp();
             await JS.InvokeVoidAsync("praetoria.save", GameClient.AutosaveKey, json); _hasAutosave = true;
             // what the saved saga is, for the Continue button on the title (docs/PLAYTHROUGH.md: "Continue names the saga and the year")
-            if (G.World?.Protagonist is { } sp) { _saveLabel = (G.World.House(sp.HouseId)?.Name ?? "a house") + ", " + sp.Name + ", year " + G.World.Turn; await JS.InvokeVoidAsync("praetoria.save", GameClient.AutosaveKey + ":label", _saveLabel); }
+            if (G.World?.Protagonist != null) { _saveLabel = G.SaveLabel(); await JS.InvokeVoidAsync("praetoria.save", GameClient.AutosaveKey + ":label", _saveLabel); }
             if (Praetoria.Core.Diagnostics.Perf.Enabled) Console.WriteLine($"PERF save call returned after {System.Diagnostics.Stopwatch.GetElapsedTime(t).TotalMilliseconds:F0} ms ({json.Length} chars)");
         }
         catch { }
     }
-    private async Task SaveLocal() { await Autosave(); _flashText = "Saved."; _savedFlash = true; StateHasChanged(); await Task.Delay(G.ActedThisYear ? 4000 : 1500); _savedFlash = false; StateHasChanged(); }
+    private async Task SaveLocal() { await Autosave(); _flashText = "Saved."; _savedFlash = true; StateHasChanged(); await Task.Delay(1500); _savedFlash = false; StateHasChanged(); }
     private async Task Download()
     {
         string file = $"praetoria-year{G.World!.Turn}.json";
@@ -323,8 +352,9 @@ else
     private void Abandon()
     {
         if (G.World == null || G.World.IsDynastyDead) { Leave(); return; }
-        G.Ask("Leave this saga?", "It is kept as it stood when year " + G.World.Turn + " began, and \"Continue the saved saga\" on the title brings it back there." + (G.ActedThisYear ? " What you have done this year is not kept: end the year first if you want it." : ""), "Leave", Leave, "Stay");
+        G.Ask("Leave this saga?", "It is saved first, as it stands now in year " + G.World.Turn + ", and \"Continue\" on the title brings it back here.", "Save and leave", () => _ = SaveAndLeave(), "Stay");
     }
+    private async Task SaveAndLeave() { await Autosave(); Leave(); await ReadSaves(); }
     private void Leave() { _epilogueDismissed = false; _screen = "office"; _openReport = null; _succession = null; _lastProtagonist = null; _passingOut = false; _primerChecked = false; G.Abandon(); }
     public void Dispose() { G.Changed -= OnChanged; _self?.Dispose(); }
 }

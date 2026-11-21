@@ -1,0 +1,93 @@
+@inject GameClient G
+@inject IJSRuntime JS
+@* The saved sagas of this browser (docs/PLAYTHROUGH.md, a first game: "save slots"): the running one, which the game keeps by itself,
+   and three that are kept only when the player says so. Opened from the top bar and from the title. *@
+<div class="overlay" data-saves-box>
+    <div class="epilogue wide saves">
+        <div class="hb-tabs"><span class="tier" style="margin:0"><span class="glyph">◆</span> SAVED SAGAS</span><button class="win-x hb-x" @onclick="() => OnClose.InvokeAsync()" title="Close" aria-label="Close">×</button></div>
+        <div class="save-row" data-save-row="running">
+            <div class="save-what"><b>The running saga</b>
+                <div class="muted small">@(_labels[0].Length > 0 ? _labels[0] : "Nothing is saved yet.")</div>
+                <div class="muted small">The game keeps this one by itself as each year opens, and whenever you press Save or leave.</div></div>
+            <div class="save-acts">
+                @if (InGame) { <button class="opt inline" data-save-now @onclick="() => Keep(0)">Save now</button> }
+                @if (_labels[0].Length > 0) { <button class="opt inline" data-save-load="0" @onclick="() => AskLoad(0)">@(InGame ? "Load" : "Continue")</button> }
+            </div>
+        </div>
+        @for (int n = 1; n <= GameClient.Slots; n++)
+        {
+            int slot = n; string label = _labels[slot];
+            <div class="save-row" data-save-row="@slot">
+                <div class="save-what"><b>Kept save @slot</b>
+                    <div class="@(label.Length > 0 ? "small" : "muted small")">@(label.Length > 0 ? label : "Empty.")</div></div>
+                <div class="save-acts">
+                    @if (InGame) { <button class="opt inline" data-save-here="@slot" @onclick="() => AskKeep(slot)">Save here</button> }
+                    @if (label.Length > 0)
+                    {
+                        <button class="opt inline" data-save-load="@slot" @onclick="() => AskLoad(slot)">Load</button>
+                        <button class="opt inline" data-save-delete="@slot" @onclick="() => AskDelete(slot)">Delete</button>
+                    }
+                </div>
+            </div>
+        }
+        @if (_note.Length > 0) { <div class="notice" data-saves-note>@_note</div> }
+        <div class="muted small">Saves live in this browser. A save now holds the year as it stands, with what you have done in it, and loading one opens that year where it was left. To carry a saga to another machine, or to keep it past a cleared browser, use Export in the top bar and "Load a save file" on the title.</div>
+    </div>
+</div>
+@code {
+    [Parameter] public EventCallback OnClose { get; set; }
+    /// <summary>Whether a saga is being played: only then is there something to save.</summary>
+    [Parameter] public bool InGame { get; set; }
+    /// <summary>A save has been read from the browser and is to be loaded.</summary>
+    [Parameter] public EventCallback<string> OnLoad { get; set; }
+    /// <summary>The list changed (a save written or deleted), so whoever shows it elsewhere should read it again.</summary>
+    [Parameter] public EventCallback OnChanged { get; set; }
+    private readonly string[] _labels = Enumerable.Repeat("", GameClient.Slots + 1).ToArray();
+    private string _note = "";
+
+    protected override async Task OnInitializedAsync() => await Read();
+    private async Task Read()
+    {
+        for (int i = 0; i <= GameClient.Slots; i++)
+        {
+            try
+            {
+                bool there = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("praetoria.has", GameClient.SlotKey(i)));
+                _labels[i] = there ? await JS.InvokeAsync<string?>("praetoria.load", GameClient.SlotKey(i) + ":label") ?? "A saved saga" : "";
+            }
+            catch { _labels[i] = ""; }
+        }
+    }
+    private void AskKeep(int slot)
+    {
+        if (_labels[slot].Length == 0) { _ = Keep(slot); return; }
+        G.Ask("Save over kept save " + slot + "?", "It holds: " + _labels[slot] + ". Saving here replaces it.", "Save over it", () => _ = Keep(slot), "Leave it");
+    }
+    private async Task Keep(int slot)
+    {
+        if (G.World == null) return;
+        bool ok = false; string label = G.SaveLabel();
+        try { ok = await JS.InvokeAsync<bool>("praetoria.save", GameClient.SlotKey(slot), G.SaveJson()); if (ok) await JS.InvokeVoidAsync("praetoria.save", GameClient.SlotKey(slot) + ":label", label); } catch { ok = false; }
+        _note = ok ? (slot == 0 ? "Saved: " + label + "." : "Kept in save " + slot + ": " + label + ".")
+                   : "The browser has no room for another save. Delete a kept save, or use Export to put this one in a file.";
+        await Read(); await OnChanged.InvokeAsync(); StateHasChanged();
+    }
+    private void AskLoad(int slot)
+    {
+        if (!InGame || G.World == null || G.World.IsDynastyDead) { _ = Load(slot); return; }
+        G.Ask("Load this save?", _labels[slot] + ". The saga you are playing is left as it was last saved" + (G.ActedThisYear ? ": what you have done since then is lost unless you save first." : "."), "Load it", () => _ = Load(slot), "Stay");
+    }
+    private async Task Load(int slot)
+    {
+        string? json = null; try { json = await JS.InvokeAsync<string?>("praetoria.load", GameClient.SlotKey(slot)); } catch { }
+        if (string.IsNullOrEmpty(json)) { _note = "That save could not be read."; StateHasChanged(); return; }
+        await OnLoad.InvokeAsync(json);
+    }
+    private void AskDelete(int slot) =>
+        G.Ask("Delete kept save " + slot + "?", "It holds: " + _labels[slot] + ". It cannot be brought back.", "Delete it", () => _ = Delete(slot), "Keep it");
+    private async Task Delete(int slot)
+    {
+        try { await JS.InvokeVoidAsync("praetoria.remove", GameClient.SlotKey(slot)); await JS.InvokeVoidAsync("praetoria.remove", GameClient.SlotKey(slot) + ":label"); } catch { }
+        _note = "Kept save " + slot + " is deleted."; await Read(); await OnChanged.InvokeAsync(); StateHasChanged();
+    }
+}

@@ -14,6 +14,10 @@ public sealed class World
 
     /// <summary>Serialised RNG position (BuildSpec §1.5). Restored into an IRng on load.</summary>
     public ulong RngState { get; set; }
+    /// <summary>Set only inside a save made in the middle of a year: the year's reports as they stood, so that loading it opens the same
+    /// year where it was left and not a fresh one (docs/PLAYTHROUGH.md, a first game). Null in a save made between years and in a
+    /// world being played.</summary>
+    public MidYear? MidYear { get; set; }
 
     /// <summary>"fractured_stars" (pre-Imperium) or "imperium" — drives reactive UI later (GDD §19).</summary>
     public string Era { get; set; } = "fractured_stars";
@@ -375,4 +379,18 @@ public sealed class World
 
     public void Log(string text, string? eventId = null) =>
         History.Add(new HistoryEntry { Turn = Turn, Text = text, EventId = eventId });
+}
+
+/// <summary>The year's reports as a save made in the middle of the year holds them.</summary>
+public sealed class MidYear
+{
+    public List<PendingReport> Reports { get; set; } = new();
+}
+/// <summary>One report of the year: the event, who it was about, and the answer given if one was.</summary>
+public sealed class PendingReport
+{
+    public string EventId { get; set; } = "";
+    public Dictionary<string, string> Roles { get; set; } = new();
+    public bool Resolved { get; set; }
+    public string ChosenId { get; set; } = "";
 }

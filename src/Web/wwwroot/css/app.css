@@ -1201,3 +1201,11 @@ table.prospects th.sortable.here { color: var(--gold, #d8b25a); text-decoration:
 .hb-scroll dl { margin: 0; } .hb-scroll dt { font-weight: 600; color: var(--ink); margin-top: .55rem; display: flex; gap: .5rem; align-items: baseline; flex-wrap: wrap; }
 .hb-scroll dd { margin: .1rem 0 0; color: var(--ink2); line-height: 1.45; }
 .handbook .ac-lesson { margin-top: .4rem; } .handbook .ac-lesson p { color: var(--ink2); line-height: 1.5; }
+
+/* the saved sagas: the running one and the kept ones (docs/PLAYTHROUGH.md, a first game) */
+.saves { width: min(760px, 100%); }
+.save-row { display: flex; gap: 1rem; align-items: center; justify-content: space-between; padding: .7rem 0; border-bottom: 1px solid var(--line); }
+.save-what { min-width: 0; } .save-what b { color: var(--ink); } .save-what .small { margin-top: .15rem; }
+.save-acts { display: flex; gap: .4rem; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+.saves .notice { display: block; margin: .8rem 0 .2rem; }
+.saves > .muted.small:last-child { margin-top: .8rem; line-height: 1.45; }

@@ -18,6 +18,9 @@ public sealed class Binding
 
     private Binding(Dictionary<string, string> map) => _roleToCharId = map;
 
+    /// <summary>A binding as a save holds it: every role and who filled it.</summary>
+    public static Binding From(IReadOnlyDictionary<string, string> roles) => new(new Dictionary<string, string>(roles));
+
     public bool TryGet(string role, out string charId) => _roleToCharId.TryGetValue(role, out charId!);
 
     public string Resolve(string role) =>

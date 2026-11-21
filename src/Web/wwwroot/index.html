@@ -26,6 +26,7 @@
       window.praetoria = {
         save: (k, v) => { const t = performance.now(); try { localStorage.setItem(k, v); return true; } catch { return false; } finally { const d = performance.now() - t; if (d > 30 && location.search.includes('perf')) console.log('PERF localStorage.setItem ' + Math.round(d) + ' ms for ' + v.length + ' chars'); } },
         load: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+        has: (k) => { try { return localStorage.getItem(k) ? '1' : ''; } catch { return ''; } },
         remove: (k) => { try { localStorage.removeItem(k); } catch {} },
         download: (name, text) => {
           const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type: 'application/json'}));

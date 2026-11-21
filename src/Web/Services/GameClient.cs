@@ -18,6 +18,16 @@ public sealed class GameClient
 {
     public const string ContentRoot = "/content";
     public const string AutosaveKey = "praetoria.autosave";
+    /// <summary>How many saves are kept beside the running one (docs/PLAYTHROUGH.md, a first game: "save slots").</summary>
+    public const int Slots = 3;
+    /// <summary>Where a save lives in the browser: 0 is the running saga, 1 to <see cref="Slots"/> the kept ones.</summary>
+    public static string SlotKey(int slot) => slot <= 0 ? AutosaveKey : "praetoria.slot." + slot;
+    /// <summary>What a save of the game as it stands is called in a list: the house, its head, the year and whether the year is under way, and when.</summary>
+    public string SaveLabel()
+    {
+        if (World?.Protagonist is not { } p) return "A saga";
+        return (World.House(p.HouseId)?.Name ?? "a house") + ", " + p.Name + ", year " + World.Turn + (World.InAcademy ? " (at the Academy)" : ActedThisYear ? ", the year under way" : "") + " · saved " + DateTime.Now.ToString("d MMM yyyy, HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+    }
 
     private readonly HttpClient _http;
     public GameClient(HttpClient http) => _http = http;
@@ -133,7 +143,7 @@ public sealed class GameClient
         ScenarioId = scenarioId; Seed = seed;
         Turn = new TurnController(world, content);
         Turn.SyncRng();
-        _idleSnapshot = SaveSystem.Serialize(world);
+        _base = null; _done.Clear();
         Turn.BeginTurn();
         LastNotice = null;
         Settled(); Notify();
@@ -161,15 +171,55 @@ public sealed class GameClient
         Turn = new TurnController(world, content);
         CharacterWorkshop.Finish(Turn, spec);
         Turn.SyncRng();
-        _idleSnapshot = SaveSystem.Serialize(world);
+        _base = null; _done.Clear();
         Turn.BeginTurn();
         LastNotice = null;
         Settled(); Notify();
     }
 
-    /// <summary>The world as it stood between turns (phase Idle), which is what a save is (BuildSpec §1.5). Taken after
-    /// every Resolve phase and on Start, so a reload re-opens the current turn's briefing rather than skipping a turn.</summary>
-    private string? _idleSnapshot;
+    // ---- undo (docs/PLAYTHROUGH.md, a first game: "undo the last action of the year") ----
+    // A save takes too long in a browser to make one before every act. So the game keeps the year as it stood before anything was done
+    // in it (_base: the save the autosave makes anyway, or the one that was loaded) and a list of what has been done since (_done). To
+    // take the last act back it loads _base and does the others again, in order. Commands name things by id and take their dice from
+    // the world's own state, so the same acts on the same world come out the same; nothing is rolled twice.
+    private string? _base; private readonly List<(string what, Func<bool> again)> _done = new();
+    public bool CanUndo => Turn != null && _done.Count > 0 && _base != null;
+    public string UndoWhat => _done.Count > 0 ? Plain(_done[^1].what) : "";
+    /// <summary>A command's own account of itself, with the names of things in place of their ids: for what the player is shown.</summary>
+    public string Plain(string what)
+    {
+        if (World is not { } w) return what;
+        return System.Text.RegularExpressions.Regex.Replace(what, @"[A-Za-z][A-Za-z0-9]*(?:[_#@][A-Za-z0-9]+)+", m =>
+        {
+            string id = m.Value;
+            if (w.House(id) is { } h) return h.Name;
+            if (w.Char(id) is { } c) return c.Name;
+            if (w.Fleets.TryGetValue(id, out var f)) return f.Name;
+            if (w.Holding(id) is { } hold) return hold.Name;
+            if (w.Company(id) is { } co) return co.Name;
+            if (w.Galaxy?.System(id) is { } sys) return sys.Name;
+            return id.Replace('_', ' ');
+        });
+    }
+    /// <summary>How many things done this year can still be taken back, the last first.</summary>
+    public int UndoSteps => _base != null ? _done.Count : 0;
+    /// <summary>Before the first act of a year: the year as it stands, if no save of it has been made yet.</summary>
+    private void Base() { if (_base == null && Turn != null) using (Perf.Time("client:undo base")) _base = Turn.SaveMidYear(); }
+    /// <summary>Take the last thing done this year back: the game is as it was the moment before it.</summary>
+    public void Undo()
+    {
+        if (!CanUndo) return;
+        string json = _base!, scenario = ScenarioId, what = _done[^1].what; ulong seed = Seed;
+        var keep = _done.Take(_done.Count - 1).ToList();
+        LoadJson(json);
+        _base = json;
+        bool whole = true;
+        foreach (var step in keep) { Changing(); bool ok = step.again(); Turn!.SyncRng(); if (ok) _done.Add(step); else whole = false; }
+        ScenarioId = scenario; Seed = seed; ActedThisYear = _done.Count > 0 || ActedThisYear; Told = null;
+        what = Plain(what);
+        LastNotice = whole ? "Taken back: " + what + "." : "Taken back: " + what + ". Something done before it could not be done again and is undone too.";
+        Settled(); Notify();
+    }
 
     /// <summary>Resolve phase, then the next Briefing — the End Turn button (GDD §9).</summary>
     public void EndTurn()
@@ -178,7 +228,7 @@ public sealed class GameClient
         Changing();
         using (Perf.Time("client:resolve the year")) Turn.EndTurn();
         Turn.SyncRng();
-        using (Perf.Time("client:serialise the save")) _idleSnapshot = SaveSystem.Serialize(World);
+        _base = null; _done.Clear();   // a year that has turned cannot be taken back
         ActedThisYear = false;
         if (!World.IsDynastyDead) using (Perf.Time("client:open the next year")) Turn.BeginTurn();
         LastNotice = null;
@@ -197,9 +247,14 @@ public sealed class GameClient
         Changing();
         var me = World.Char(World.ProtagonistId); var house = me != null ? World.House(me.HouseId) : null;
         var before = house?.Treasury.Clone(); int legit = house?.Legitimacy ?? 0, stress = me?.Stress ?? 0, told = World.History.Count;
+        Base();
+        int at = Turn.Briefing.ToList().IndexOf(item);
         bool ok = Turn.Resolve(item, choiceId);
         if (ok)
         {
+            LastNotice = null;
+            if (at >= 0) _done.Add(("your answer to " + (title.Length > 0 ? "\u201c" + title + "\u201d" : "a report"), () => Turn != null && at < Turn.Briefing.Count && Turn.Resolve(Turn.Briefing[at], choiceId)));
+            else { _base = null; _done.Clear(); }
             ActedThisYear = true;
             var lines = new List<string>();
             if (house != null && before != null)
@@ -245,15 +300,16 @@ public sealed class GameClient
     {
         if (Turn == null || World == null) return false;
         Changing();
+        Base();
         bool ok = Turn.Executor.TryExecute(command, new CommandContext(World, WorldBuilder.RngFor(World)));
         Turn.SyncRng();
         LastNotice = ok ? null : $"Could not: {command.Describe()}.";
-        if (ok) ActedThisYear = true;
+        if (ok) { ActedThisYear = true; _done.Add((command.Describe(), () => Turn != null && World != null && Turn.Executor.TryExecute(command, new CommandContext(World, WorldBuilder.RngFor(World))))); }
         Settled(); Notify();
         return ok;
     }
 
-    public void Abandon() { Changing(); Turn = null; ActedThisYear = false; Notify(); }
+    public void Abandon() { Changing(); Turn = null; ActedThisYear = false; _base = null; _done.Clear(); Notify(); }
 
     // Between one action and the next the world does not change, so the projection is built once and pure questions the screens
     // ask (Senate weights, law tables) are memoised (ReadCache). Every method here that changes the world calls Changing() first
@@ -276,25 +332,26 @@ public sealed class GameClient
         return _academy;
     }
 
-    /// <summary>A save is the world at the start of the current turn: choices made this turn are replayed by the player,
-    /// not stored mid-phase, so a loaded game always opens on a fresh briefing.</summary>
+    /// <summary>A save is the game as it stands now: in the middle of a year it holds what has been done this year and the year's
+    /// reports with the answers given (<see cref="TurnController.SaveMidYear"/>), so loading it opens the same year where it was left.</summary>
     public string SaveJson()
     {
         if (Turn == null || World == null) throw new InvalidOperationException("No run.");
-        if (_idleSnapshot != null) return _idleSnapshot;
-        Turn.SyncRng();
-        return SaveSystem.Serialize(World);
+        string json = Turn.SaveMidYear();
+        if (_done.Count == 0) _base = json;   // nothing done since: this is also what Undo would go back to
+        return json;
     }
 
-    /// <summary>Load a save. The loaded world is between turns (phase Idle), so open a briefing on it.</summary>
+    /// <summary>Load a save: a year saved in its middle is taken up where it was left, and one saved between years begins.</summary>
     public void LoadJson(string json)
     {
         Changing();
         var world = SaveSystem.Deserialize(json);
-        _idleSnapshot = json; ActedThisYear = false;
+        _base = json; _done.Clear(); ActedThisYear = world.MidYear != null;
         Turn = new TurnController(world, Content!);
         ScenarioId = "(saved game)"; Seed = world.RngState;
-        if (!world.IsDynastyDead) Turn.BeginTurn();
+        if (!world.IsDynastyDead) Turn.Resume(); else world.MidYear = null;
+        Told = null;
         Settled(); Notify();
     }
 }
