@@ -21,7 +21,17 @@ public sealed class FaceSpec
     public bool IsDefault => Skin < 0 && Hair < 0 && Style < 0 && Beard < 0 && !Scar && Portrait < 0;
     public string Encode() => $"skin={Skin},hair={Hair},style={Style},beard={Beard},scar={(Scar ? 1 : 0)}" + (Portrait >= 0 ? $",face={Portrait}" : "");
 }
-public sealed class KinSpec { public string Name { get; set; } = ""; public string Sex { get; set; } = "male"; public int Age { get; set; } = 8; }
+public sealed class KinSpec
+{
+    public string Name { get; set; } = ""; public string Sex { get; set; } = "male"; public int Age { get; set; } = 8;
+    /// <summary>For a spouse only: the house they come from and keep the name of, as a husband or wife from another house does in
+    /// play. Empty for one who is of the head's own house.</summary>
+    public string HouseId { get; set; } = "";
+}
+/// <summary>A world a character of the player's own making might start on, as the creator shows it (docs/CHARACTER.md, "The creator's
+/// map"): what it is, where, whose, what it brings a year, and why a standard start may not take it (null when it may).</summary>
+public sealed record StartSite(string SystemId, string Name, double X, double Y, string Kind, string Region, string Ring, string HolderId, string HolderName,
+    Resources Yield, IReadOnlyList<string> Deposits, int Belt, int Lanes, int Lawlessness, bool BesideANation, string? Refusal);
 public sealed class VentureSpec { public string Kind { get; set; } = ""; public string System { get; set; } = ""; }
 
 /// <summary>
@@ -110,6 +120,46 @@ public static class CharacterWorkshop
     public static readonly string[] Goods = { Resource.Credits, Resource.Materials, Resource.Manpower, Resource.Influence, Resource.Exotics, Resource.Helium3, Resource.RareEarths, Resource.Isotopes };
     public static readonly string[] Accents = { "#E63946", "#3A86FF", "#FFBE0B", "#2EC27E", "#C9D1DC", "#FB8500", "#9B5DE5", "#00B4D8", "#F15BB5", "#8AC926" };
     public const int MinAge = 16, MaxAge = 80, AcademyAge = 16;
+    /// <summary>A spouse from a named house (docs/CHARACTER.md): what it costs in a standard start, and what the head of that house and
+    /// the new head think of each other on the first day.</summary>
+    public const int SpouseHouseCost = 1, SpouseHouseRegard = 25, SpouseHouseRegardBack = 20;
+
+    /// <summary>The kind of world an unclaimed system becomes when a new house is given it.</summary>
+    public static string SpecFor(ContentDatabase content, string planetClass)
+    {
+        string spec = planetClass switch { "forge" => "forge_world", "belt" => "mining_belt", "terran" or "ocean" => "agri_world", _ => "frontier_colony" };
+        return content.Holdings.Spec(spec) == null ? content.Holdings.Specs.FirstOrDefault()?.Id ?? spec : spec;
+    }
+
+    /// <summary>Why this start may not take a world, or null: the same rules <see cref="Problems"/> holds a whole character to, for one world.</summary>
+    public static string? WorldRefusal(CustomCharacter c, World baseWorld, string systemId)
+    {
+        var g = baseWorld.Galaxy; if (g?.System(systemId) is not { } sys) return "there is no such system";
+        if (WorkshopLimits.For(c.Mode).AnyWorld) return null;
+        if (g.RingOf(systemId) == Galaxy.Ring.Beyond) return "it lies in a nation's space, beyond the Reach: a standard start may not take it";
+        if (g.Capital == systemId) return "the capital is not given away in a standard start";
+        var holder = baseWorld.PlanetHolder(systemId);
+        if (holder != null && holder != HouseId && baseWorld.HoldingsOf(holder).Count(h => h.IsPlanet) < 2) return $"it is its house's only world: a standard start takes an unclaimed world, or one from a house that holds another";
+        return null;
+    }
+
+    /// <summary>Every system of the map as a place to start: what the creator's map and list show.</summary>
+    public static IReadOnlyList<StartSite> Sites(CustomCharacter c, ContentDatabase content, World baseWorld)
+    {
+        var g = baseWorld.Galaxy; if (g == null) return Array.Empty<StartSite>();
+        var list = new List<StartSite>();
+        foreach (var sys in g.Systems.Values.OrderBy(s => s.Name, StringComparer.Ordinal))
+        {
+            var held = baseWorld.PlanetOf(sys.Id); var holder = held != null ? baseWorld.House(held.OwnerId) : null;
+            var spec = content.Holdings.Spec(held?.Specialization ?? SpecFor(content, sys.PlanetClass));
+            var yield = new Resources(); if (spec != null) foreach (var r in Resource.All) yield.Add(r, spec.BaseYield.Get(r) - spec.Upkeep.Get(r));
+            var lanes = g.Lanes.Where(l => l.A == sys.Id || l.B == sys.Id).Select(l => l.A == sys.Id ? l.B : l.A).ToList();
+            list.Add(new StartSite(sys.Id, sys.Name, sys.X, sys.Y, spec?.Name ?? sys.PlanetClass, g.Regions.FirstOrDefault(r => r.Id == sys.RegionId)?.Name ?? "", g.RingOf(sys.Id),
+                holder?.Id ?? "", holder?.Name ?? "", yield, sys.Deposits.Where(d => d.Value > 0).OrderBy(d => d.Key, StringComparer.Ordinal).Select(d => Resource.Label(d.Key)).ToList(), sys.Belt, lanes.Count,
+                baseWorld.Regions.TryGetValue(sys.RegionId, out var rs) ? rs.Lawlessness : g.RingOf(sys.Id) == Galaxy.Ring.Beyond ? 0 : g.RulesFor(g.RingOf(sys.Id)).LawlessnessStart, g.RingOf(sys.Id) != Galaxy.Ring.Beyond && lanes.Any(n => g.RingOf(n) == Galaxy.Ring.Beyond), WorldRefusal(c, baseWorld, sys.Id)));
+        }
+        return list;
+    }
 
     public static string BaseFor(CustomCharacter c) => c.Imperium ? ImperiumBase : RepublicBase;
 
@@ -133,6 +183,7 @@ public static class CharacterWorkshop
         Add("hulls", Math.Max(0, c.Hulls) * 2);
         Add("ventures", c.Ventures.Count * 4);
         Add("family", (c.Spouse != null ? 2 : 0) + c.Children.Sum(k => k.Age >= DynastySystem.AgeOfMajority ? 3 : 2) + c.Siblings.Count);
+        if (c.Spouse is { HouseId.Length: > 0 }) Add("a marriage into another house", SpouseHouseCost);
         if (c.FriendId.Length > 0) Add("a friend among the great", 2);
         if (c.RivalId.Length > 0) Add("a rival among the great", -2);
         lines.Sort((a, b) => b.Item2.CompareTo(a.Item2));
@@ -201,7 +252,7 @@ public static class CharacterWorkshop
                 if (!lim.AnyWorld && g.Capital == s) no.Add("the capital is not given away in a standard start");
             }
             foreach (var v in c.Ventures) if (g?.System(v.System) == null) no.Add($"no such system as '{v.System}'");
-            foreach (var id in new[] { c.PatronId, c.FriendId, c.RivalId }.Where(x => x.Length > 0)) if (baseWorld.House(id) == null || id == HouseId || World.Outsider(id)) no.Add($"no such house as '{id}'");
+            foreach (var id in new[] { c.PatronId, c.FriendId, c.RivalId, c.Spouse?.HouseId ?? "" }.Where(x => x.Length > 0)) if (baseWorld.House(id) == null || id == HouseId || World.Outsider(id)) no.Add($"no such house as '{id}'");
         }
         var (total, _) = Cost(c, content);
         if (c.Mode == CustomCharacter.Standard && total > lim.Budget) no.Add($"{total} points is over the standard budget of {lim.Budget}");
@@ -259,8 +310,7 @@ public static class CharacterWorkshop
             }
             else
             {
-                string spec = sys.PlanetClass switch { "forge" => "forge_world", "belt" => "mining_belt", "terran" or "ocean" => "agri_world", _ => "frontier_colony" };
-                if (content.Holdings.Spec(spec) == null) spec = content.Holdings.Specs.FirstOrDefault()?.Id ?? spec;
+                string spec = SpecFor(content, sys.PlanetClass);
                 w.Holdings["custom_" + sysId] = new Holding { Id = "custom_" + sysId, OwnerId = house.Id, Name = sys.Name, Specialization = spec, SystemId = sysId, Population = 10, GovernorId = p.Id, Culture = g.CultureOf(sysId) }; w.HoldingsChanged();
             }
         }
@@ -290,12 +340,21 @@ public static class CharacterWorkshop
         {
             foreach (var (x, y) in new[] { (a, b), (b, a) }) { var rel = w.Relationship(x, y); rel.Bond = bond; rel.BondStrength = strength; rel.Disposition = warmth; }
         }
-        foreach (var id in w.Characters.Keys.Where(id => id.StartsWith("custom_") && id != p.Id).ToList()) { w.Characters.Remove(id); house.Members.Remove(id); w.Pools.Remove(id); }
-        Character? spouse = null;
+        foreach (var id in w.Characters.Keys.Where(id => id.StartsWith("custom_") && id != p.Id).ToList()) { w.Characters.Remove(id); foreach (var any in w.Houses.Values) any.Members.Remove(id); w.Pools.Remove(id); }
+        Character? spouse = null; string spouseHouse = "";
         if (c.Spouse != null && !c.Academy)
         {
             spouse = Kin("custom_spouse", c.Spouse.Name, c.Sex == "male" ? "female" : "male", c.Spouse.Age, "spouse:");
             Bond(p.Id, spouse.Id, BondType.Marriage, 55, 65); p.Flags.Add("wed"); spouse.Flags.Add("wed");
+            // a husband or wife from another house keeps that house's name and is of it, as one married in play is (docs/CHARACTER.md)
+            if (c.Spouse.HouseId.Length > 0 && w.House(c.Spouse.HouseId) is { } theirs && theirs.Id != house.Id && !World.Outsider(theirs.Id))
+            {
+                string theirGiven = c.Spouse.Name.Trim().Length > 0 ? c.Spouse.Name.Trim().Split(' ')[0] : GivenName(content, theirs.Culture, spouse.Sex, "spouse-of:" + theirs.Id + w.RngState, taken);
+                taken.Add(theirGiven);
+                spouse.Name = theirGiven + " " + (theirs.Name.StartsWith("House ") ? theirs.Name[6..] : theirs.Name);
+                house.Members.Remove(spouse.Id); spouse.HouseId = theirs.Id; if (!theirs.Members.Contains(spouse.Id)) theirs.Members.Add(spouse.Id);
+                spouseHouse = theirs.Id;
+            }
         }
         var father = c.Sex == "male" ? p : spouse; var mother = c.Sex == "male" ? spouse : p;
         for (int i = 0; i < c.Children.Count && !c.Academy; i++)
@@ -325,6 +384,7 @@ public static class CharacterWorkshop
             var other = w.House(houseId); var head = other != null ? Economy.HeadOf(w, other) : null; if (head == null) return;
             w.Relationship(head.Id, p.Id).Disposition = theirs; w.Relationship(p.Id, head.Id).Disposition = mine;
         }
+        if (spouseHouse.Length > 0) Regard(spouseHouse, SpouseHouseRegard, SpouseHouseRegardBack);   // the marriage first: a friend or a rival named below says more
         if (c.FriendId.Length > 0) Regard(c.FriendId, 45, 35);
         if (c.RivalId.Length > 0) Regard(c.RivalId, -45, -35);
         if (house.PatronId.Length > 0) Regard(house.PatronId, 30, 20);

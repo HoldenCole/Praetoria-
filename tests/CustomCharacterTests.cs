@@ -156,4 +156,70 @@ public class CustomCharacterTests
         var written = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_circling_heir"), 1);
         Assert.DoesNotContain("own hand", Praetoria.Core.Presentation.Epilogue.Generate(written, Content));
     }
+
+    /* docs/PLAYTHROUGH.md, Medium, A first game: "The creator: a map for choosing a world, with what it yields and whose space it is
+       in" (N11: fifty names in a flat list, no yield, and a disabled world gave no reason). */
+    [Fact]
+    public void Every_world_of_the_map_says_what_it_is_whose_it_is_what_it_brings_and_why_it_may_not_be_taken()
+    {
+        var c = Preset("The Heir"); c.Mode = CustomCharacter.Standard; var blank = Blank(c);
+        var sites = CharacterWorkshop.Sites(c, Content, blank);
+        Assert.Equal(blank.Galaxy!.Systems.Count, sites.Count);
+        Assert.All(sites, s => { Assert.False(string.IsNullOrWhiteSpace(s.Name)); Assert.False(string.IsNullOrWhiteSpace(s.Kind)); Assert.False(string.IsNullOrWhiteSpace(s.Region)); Assert.True(s.Lanes >= 1, s.Name + " has no lane"); });
+        // a held world names its holder and is the kind of world that holding is; an unclaimed one is what it would become
+        var held = sites.First(s => s.HolderId.Length > 0); Assert.Equal(blank.House(held.HolderId)!.Name, held.HolderName);
+        Assert.Equal(Content.Holdings.Spec(blank.PlanetOf(held.SystemId)!.Specialization)!.Name, held.Kind);
+        var free = sites.First(s => s.HolderId.Length == 0 && s.Ring != Praetoria.Core.Galaxy.Ring.Beyond);
+        Assert.Equal(Content.Holdings.Spec(CharacterWorkshop.SpecFor(Content, blank.Galaxy.System(free.SystemId)!.PlanetClass))!.Name, free.Kind);
+        Assert.Null(free.Refusal);
+        // what it brings is the kind's yield less its upkeep, and some world brings something
+        var kind = Content.Holdings.Spec(blank.PlanetOf(held.SystemId)!.Specialization)!;
+        Assert.Equal(kind.BaseYield.Credits - kind.Upkeep.Credits, held.Yield.Credits);
+        Assert.Contains(sites, s => s.Yield.Credits > 0);
+        // the reasons a standard start may not take a world are the ones the whole character is held to
+        var capital = sites.Single(s => s.SystemId == blank.Galaxy.Capital); Assert.Contains("capital", capital.Refusal);
+        var only = sites.First(s => s.HolderId.Length > 0 && s.SystemId != blank.Galaxy.Capital && blank.HoldingsOf(s.HolderId).Count(h => h.IsPlanet) < 2 && s.Ring != Praetoria.Core.Galaxy.Ring.Beyond);
+        Assert.Contains("only world", only.Refusal);
+        foreach (var s in sites)
+        {
+            var trial = c.Clone(); trial.Worlds.Clear(); trial.Worlds.Add(s.SystemId); trial.Ventures.Clear();
+            bool refusedWhole = CharacterWorkshop.Problems(trial, Content, blank).Any(x => x.Contains(s.Name) || x.Contains("capital") || x.Contains("beyond") || x.Contains("nation"));
+            if (s.Refusal == null) Assert.False(refusedWhole, s.Name + " is said to be free and is refused"); 
+        }
+        // a free start may take any of them
+        var any = c.Clone(); any.Mode = CustomCharacter.Free;
+        Assert.All(CharacterWorkshop.Sites(any, Content, blank), s => Assert.Null(s.Refusal));
+        // a world beside a nation's space says so
+        Assert.All(sites.Where(s => s.BesideANation), s => Assert.NotEqual(Praetoria.Core.Galaxy.Ring.Beyond, s.Ring));
+    }
+
+    /* docs/PLAYTHROUGH.md, Medium, A first game: "a house for the spouse" (N13: "wed" gave only a name and an age). */
+    [Fact]
+    public void A_spouse_may_come_from_a_named_house_and_keeps_its_name_as_one_married_in_play_does()
+    {
+        var plain = Preset("The Colossus"); plain.Mode = CustomCharacter.Free; plain.FriendId = ""; plain.RivalId = "";
+        var c = plain.Clone(); c.Spouse!.HouseId = "aurelian"; c.Spouse.Name = "";
+        Assert.Empty(CharacterWorkshop.Problems(c, Content, Blank(c)));
+        Assert.Equal(CharacterWorkshop.Cost(plain, Content).total + CharacterWorkshop.SpouseHouseCost, CharacterWorkshop.Cost(c, Content).total);
+
+        var (tc, w, house) = Build(c); var p = w.Protagonist!; var theirs = w.House("aurelian")!;
+        var spouse = DynastySystem.Spouse(w, p)!;
+        Assert.Equal(theirs.Id, spouse.HouseId); Assert.Contains(spouse.Id, theirs.Members); Assert.DoesNotContain(spouse.Id, house.Members);
+        Assert.EndsWith(theirs.Name.Replace("House ", ""), spouse.Name);
+        // the children are the head's own house's, with both parents
+        var children = w.LivingCharacters().Where(k => k.MotherId == p.Id || k.FatherId == p.Id).ToList(); Assert.NotEmpty(children);
+        Assert.All(children, k => { Assert.Equal(house.Id, k.HouseId); Assert.True(k.FatherId == spouse.Id || k.MotherId == spouse.Id); });
+        // the two heads think well of each other from the first day, and no better than a named friend would
+        var head = Economy.HeadOf(w, theirs)!;
+        Assert.Equal(CharacterWorkshop.SpouseHouseRegard, w.GetRelationship(head.Id, p.Id)!.Disposition);
+        Assert.Equal(CharacterWorkshop.SpouseHouseRegardBack, w.GetRelationship(p.Id, head.Id)!.Disposition);
+        // without a house the spouse is of the head's own, as before
+        var (_, w0, house0) = Build(plain); Assert.Equal(house0.Id, DynastySystem.Spouse(w0, w0.Protagonist!)!.HouseId);
+        // a house that is not there, or the head's own, is refused; and the world still plays
+        var bad = c.Clone(); bad.Spouse!.HouseId = "no_such_house"; Assert.Contains(CharacterWorkshop.Problems(bad, Content, Blank(bad)), x => x.Contains("no such house"));
+        var own = c.Clone(); own.Spouse!.HouseId = CharacterWorkshop.HouseId; Assert.Contains(CharacterWorkshop.Problems(own, Content, Blank(own)), x => x.Contains("no such house"));
+        Play(tc, 5); Assert.False(w.IsDynastyDead);
+        // the choice is kept when a character is saved to a file
+        Assert.Equal("aurelian", CustomCharacter.FromJson(c.ToJson()).Spouse!.HouseId);
+    }
 }

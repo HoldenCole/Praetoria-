@@ -1233,3 +1233,17 @@ table.prospects th.sortable.here { color: var(--gold, #d8b25a); text-decoration:
 .title-screen .hero .btn.big { display: inline-block; max-width: 100%; }
 .title-acts { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin-top: .7rem; }
 .title-acts .btn { margin: 0; font-family: var(--sans); font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; padding: .5rem 1rem; }
+
+/* the creator's map (docs/CHARACTER.md): the worlds a new house may start with, on the map they sit on */
+.ws-map-wrap { display: grid; grid-template-columns: 1fr; gap: .5rem; margin-bottom: .5rem; }
+.ws-map { width: 100%; height: auto; background: radial-gradient(ellipse at 50% 45%, rgba(40,52,84,.5), rgba(5,7,12,.85)); border: 1px solid var(--line2); }
+.ws-lane { stroke: rgba(174,183,201,.2); stroke-width: 1; }
+.ws-site { cursor: pointer; } .ws-site .hit { fill: transparent; } .ws-site .dot { stroke-width: 1.2; }
+.ws-site:hover .dot { stroke: #fff; stroke-width: 1.8; } .ws-site .ring { fill: none; stroke: var(--brass2); stroke-width: 2; }
+.ws-site.no { cursor: not-allowed; } .ws-site.no .dot { opacity: .35; } .ws-site.beyond .dot { stroke-dasharray: 2 2; }
+.ws-site text { fill: var(--ink); font-size: 12px; font-family: var(--sans); paint-order: stroke; stroke: #05070c; stroke-width: 3px; pointer-events: none; }
+.ws-site.mine text { fill: var(--brass2); font-weight: 600; }
+.ws-site-card { border: 1px solid var(--line); background: rgba(5,7,12,.55); padding: .6rem .7rem; min-height: 7.5rem; }
+.ws-site-head { margin-bottom: .3rem; } .ws-site-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.2rem; }
+.ws-site-card .kv { font-size: .84rem; } .ws-site-card .warn, .ws-site-card > .muted.small { display: block; margin-top: .4rem; }
+.ws-fold > summary { cursor: pointer; color: var(--ink2); font-size: .82rem; margin: .2rem 0 .4rem; }

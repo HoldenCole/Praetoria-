@@ -145,16 +145,65 @@
     else if (_tab == "holdings")
     {
         <h3>Worlds <span class="muted">@c.Worlds.Count of @lim.MaxWorlds · a world another house holds is taken from it@(free ? "" : " · standard: unclaimed worlds, or one from a house that holds another")</span></h3>
+            /* the map and the list read the same account of every world (CharacterWorkshop.Sites): what it is, whose, what it brings,
+               and why a standard start may not take it (docs/CHARACTER.md, "The creator's map") */
+            var sites = CharacterWorkshop.Sites(c, content, blank);
+            double minX = sites.Min(s => s.X), maxX = sites.Max(s => s.X), minY = sites.Min(s => s.Y), maxY = sites.Max(s => s.Y);
+            double spanX = Math.Max(1, maxX - minX), spanY = Math.Max(1, maxY - minY); const double MapW = 640, MapH = 380, Pad = 22;
+            Func<double, string> px = x => (Pad + (x - minX) / spanX * (MapW - 2 * Pad)).ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+            Func<double, string> py = y => (Pad + (y - minY) / spanY * (MapH - 2 * Pad)).ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+            var byId = sites.ToDictionary(s => s.SystemId); bool full = c.Worlds.Count >= lim.MaxWorlds;
+            // the colours the houses will wear in the game: the new house first (its own accent), the rest in the order of their ids
+            var tint = blank.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != CharacterWorkshop.HouseId).OrderBy(h => h.Id, StringComparer.Ordinal).Select((h, n) => (h.Id, colour: Palette.House(n + 1))).ToDictionary(t => t.Id, t => t.colour);
+            var shown = _site != null && byId.TryGetValue(_site, out var hovered) ? hovered : c.Worlds.Count > 0 && byId.TryGetValue(c.Worlds[^1], out var last) ? last : null;
+        <div class="ws-map-wrap">
+            <svg class="ws-map" viewBox="0 0 640 380" role="img" aria-label="The map of the Reach: choose the worlds the house starts with" data-start-map="@sites.Count">
+                @foreach (var l in blank.Galaxy.Lanes)
+                {
+                    if (byId.TryGetValue(l.A, out var la) && byId.TryGetValue(l.B, out var lb)) { <line class="ws-lane" x1="@px(la.X)" y1="@py(la.Y)" x2="@px(lb.X)" y2="@py(lb.Y)" /> }
+                }
+                @foreach (var s in sites)
+                {
+                    var sid = s.SystemId; bool mine = c.Worlds.Contains(sid); bool can = mine || (s.Refusal == null && !full);
+                    string fill = mine ? (c.Accent.Length > 0 ? c.Accent : "#E6C77A") : s.HolderId.Length > 0 ? (tint.TryGetValue(s.HolderId, out var hc) ? hc : "#8a93a6") : "none";
+                    <g class="ws-site @(mine ? "mine" : "") @(can ? "" : "no") @(s.Ring == Praetoria.Core.Galaxy.Ring.Beyond ? "beyond" : "")" data-site="@sid" data-site-can="@(can ? 1 : 0)"
+                       @onclick="() => { _site = sid; if (can) ToggleWorld(sid, lim.MaxWorlds); Changed(); }" @onmouseover="() => { if (_site != sid) { _site = sid; } }">
+                        <circle class="hit" cx="@px(s.X)" cy="@py(s.Y)" r="12" />
+                        @if (mine) { <circle class="ring" cx="@px(s.X)" cy="@py(s.Y)" r="9.5" /> }
+                        <circle class="dot" cx="@px(s.X)" cy="@py(s.Y)" r="@(blank.Galaxy.Capital == sid ? "7" : "5")" fill="@fill" stroke="@(s.HolderId.Length > 0 ? "#05070c" : "#aeb7c9")" />
+                        @if (mine || blank.Galaxy.Capital == sid) { @((MarkupString)$"<text x=\"{px(s.X)}\" y=\"{py(s.Y - spanY * 0.045)}\" text-anchor=\"middle\">{System.Net.WebUtility.HtmlEncode(s.Name)}</text>") }
+                        <title>@SiteLine(s)</title>
+                    </g>
+                }
+            </svg>
+            <div class="ws-site-card" data-site-card="@(shown?.SystemId ?? "")">
+                @if (shown is { } sh)
+                {
+                    <div class="ws-site-head"><b>@sh.Name</b> <span class="muted small">@sh.Kind · @sh.Region · the @(sh.Ring == Praetoria.Core.Galaxy.Ring.Beyond ? "space beyond the Reach" : sh.Ring)</span></div>
+                    <div class="ws-site-facts">
+                    <div class="kv"><span>Held by</span><b>@(sh.HolderName.Length > 0 ? sh.HolderName : "no one: unclaimed")</b></div>
+                    <div class="kv"><span>Brings a year</span><b>@(CourtProjection.Bundle(sh.Yield).Length > 0 ? CourtProjection.Bundle(sh.Yield) : "nothing as it stands")</b></div>
+                    <div class="kv"><span>In the ground</span><b>@(sh.Deposits.Count > 0 ? string.Join(", ", sh.Deposits) : "nothing strategic")@(sh.Belt > 0 ? " · a belt of " + sh.Belt + " claim" + (sh.Belt == 1 ? "" : "s") : "")</b></div>
+                    <div class="kv"><span>Lanes out</span><b>@sh.Lanes@(sh.BesideANation ? " · one leads into a nation's space" : "")</b></div>
+                    <div class="kv" title="Raiders on the lanes of its region, of 100: it taxes every ledger there and feeds risings"><span>Lawlessness of the region</span><b>@sh.Lawlessness</b></div>
+                    </div>
+                    @if (sh.Refusal != null && !c.Worlds.Contains(sh.SystemId)) { <div class="warn small" data-site-refusal>Not for this start: @sh.Refusal.</div> }
+                    else if (full && !c.Worlds.Contains(sh.SystemId)) { <div class="warn small">The house has its @lim.MaxWorlds world@(lim.MaxWorlds == 1 ? "" : "s"): give one up to take this.</div> }
+                    else if (sh.HolderName.Length > 0 && !c.Worlds.Contains(sh.SystemId)) { <div class="muted small">Taking it takes it from @sh.HolderName, who will remember.</div> }
+                }
+                else { <span class="muted small">Point at a world to see what it is, whose it is and what it brings. Click one to take it or give it up. A filled dot is held, in its house's colour; a ring is unclaimed; a dim one may not be taken in this start.</span> }
+            </div>
+        </div>
+        <details class="ws-fold" data-worlds-list><summary>The same worlds as a list</summary>
         <div class="ws-worlds">
-            @foreach (var s in systems)
+            @foreach (var s in sites)
             {
-                var sid = s.Id; var holder = blank.PlanetHolder(sid); var hh = holder != null ? blank.House(holder) : null; bool mine = c.Worlds.Contains(sid);
-                bool beyond = blank.Galaxy.RingOf(sid) == Praetoria.Core.Galaxy.Ring.Beyond;   /* a nation's space: nobody of the Reach holds it, and it is not there for the taking */
-                bool allowed = free || (!beyond && (holder == null || (blank.HoldingsOf(holder).Count(x => x.IsPlanet) >= 2 && blank.Galaxy.Capital != sid)));
-                <button class="chip world @(mine ? "on" : "")" disabled="@(!mine && (!allowed || c.Worlds.Count >= lim.MaxWorlds))" title="@(WorldTip(blank, s) + (beyond ? " · It lies in a nation's space, beyond the Reach: to start there is to start as that nation's neighbour and its first target, outside the Senate's relief. A standard start may not take it." : ""))" @onclick="() => ToggleWorld(sid, lim.MaxWorlds)">
-                    <b>@s.Name</b> <span class="muted small">@(beyond ? "beyond the Reach: a nation's" : hh != null ? hh.Name.Replace("House ", "") : "unclaimed")@(blank.Galaxy.Capital == sid ? " · capital" : "")</span></button>
+                var sid = s.SystemId; bool mine = c.Worlds.Contains(sid);
+                <button class="chip world @(mine ? "on" : "")" disabled="@(!mine && (s.Refusal != null || full))" title="@SiteLine(s)" @onclick="() => { _site = sid; ToggleWorld(sid, lim.MaxWorlds); }">
+                    <b>@s.Name</b> <span class="muted small">@s.Kind · @(s.Ring == Praetoria.Core.Galaxy.Ring.Beyond ? "a nation's" : s.HolderName.Length > 0 ? s.HolderName.Replace("House ", "") : "unclaimed")@(CourtProjection.Bundle(s.Yield).Length > 0 ? " · " + CourtProjection.Bundle(s.Yield) : "")@(!mine && s.Refusal != null ? " · not for this start" : "")</span></button>
             }
         </div>
+        </details>
         <div class="grid2">
             <label>Hulls in the house's fleet <input type="number" min="0" max="@lim.MaxHulls" value="@c.Hulls" @onchange="e => { c.Hulls = Num(e, 0, lim.MaxHulls); Changed(); }" /></label>
         </div>
@@ -182,6 +231,10 @@
             @if (c.Spouse is { } sp)
             {
                 <div class="ws-line"><input value="@sp.Name" placeholder="a name by the dice" @onchange="e => { sp.Name = Text(e); Changed(); }" /><span class="muted">aged</span><input type="number" min="16" max="80" value="@sp.Age" @onchange="e => { sp.Age = Num(e, 16, 80); Changed(); }" /></div>
+                <label data-spouse-house>Of the house <select value="@sp.HouseId" @onchange="e => { sp.HouseId = Text(e); Changed(); }"><option value="">your own: they took your name</option>@foreach (var h in houses) { <option value="@h.Id">@h.Name</option> }</select></label>
+                <p class="hint">@(sp.HouseId.Length > 0 && blank.House(sp.HouseId) is { } sph
+                    ? $"A husband or wife from {sph.Name} keeps that house's name and lives with yours, as one married in play does. The children are your house's. Its head thinks well of you from the first day (regard {CharacterWorkshop.SpouseHouseRegard}), and you of them ({CharacterWorkshop.SpouseHouseRegardBack}). It costs {CharacterWorkshop.SpouseHouseCost} point in a standard start."
+                    : "Name a house and the marriage is a tie to it: its head thinks well of you from the first day.")</p>
             }
             <h3>Children <span class="muted">@c.Children.Count of @lim.MaxChildren · none older than @Math.Max(0, age - CharacterWorkshop.MinAge)</span></h3>
             @for (int i = 0; i < c.Children.Count; i++)
@@ -233,6 +286,14 @@
     private static readonly string[] Skins = { "#f1d5bf", "#e6c2a3", "#d4a883", "#c08c67", "#a0694a", "#7a4a32", "#5a3524" };
     private static readonly string[] Hairs = { "#1a1512", "#2e2118", "#4a2f1c", "#6b4a2a", "#8a6a3a", "#b08a4a", "#d2b06a", "#3a3a3f", "#7a2a1e" };
 
+    /// <summary>The world the pointer is on in the creator's map, or the last one clicked.</summary>
+    private string? _site;
+    /// <summary>One line on a world, for a tooltip: what the card beside the map says at length.</summary>
+    private static string SiteLine(StartSite s) =>
+        s.Name + ": " + s.Kind + " · " + s.Region + " · " + (s.HolderName.Length > 0 ? "held by " + s.HolderName : "unclaimed")
+        + (CourtProjection.Bundle(s.Yield).Length > 0 ? " · brings " + CourtProjection.Bundle(s.Yield) + " a year" : "")
+        + (s.Deposits.Count > 0 ? " · " + string.Join(", ", s.Deposits) + " in the ground" : "") + " · " + s.Lanes + " lane" + (s.Lanes == 1 ? "" : "s")
+        + (s.BesideANation ? " · beside a nation's space" : "") + (s.Refusal != null ? " · not for this start: " + s.Refusal : "");
     private static string WorldTip(World w, Praetoria.Core.Galaxy.StarSystem s) => s.PlanetClass + " · " + (w.Galaxy!.Regions.FirstOrDefault(r => r.Id == s.RegionId)?.Name ?? "") + (w.Galaxy.Capital == s.Id ? " · the capital" : "");
     private bool _houseNamed; private string _sig = "";
     private static string Surname(string name) { var parts = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries); return parts.Length > 1 ? parts[^1] : ""; }

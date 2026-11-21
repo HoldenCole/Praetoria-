@@ -72,6 +72,32 @@ Natures are free: they are character, and each has its own price in stress durin
 - A chosen face is stored in the world as `look:<person>` and read by every portrait of that person.
 - The world carries the flags `custom_character` and, in Free, `custom_free`, and the counter `custom_power`.
 
+## The creator's map, and a spouse from a named house
+
+Built 2026-11-21 from the playthroughs (docs/PLAYTHROUGH.md, "A first game": N11, N13). Before this the worlds were
+fifty names in a flat list with only the holder beside each; a world that could not be taken gave no reason; and "wed"
+gave a name and an age and nothing else.
+
+**The map.** "What it holds" now opens on a map of the Reach as the scenario writes it: the lanes, a filled dot for a held
+world in its house's colour (the colours the houses wear in the game), a ring for an unclaimed one, a dashed one for a
+nation's space, a dim one for a world this start may not take. Pointing at a world shows a card: what kind of world it is
+(for an unclaimed one, what it would become), its region and ring, who holds it, what it brings a year (the kind's yield
+less its upkeep, before buildings and prosperity), what is in the ground and how large its belt is, how many lanes leave
+it and whether one leads into a nation's space, the lawlessness of its region, and, when it may not be taken, why.
+Clicking takes a world or gives it up. The old list is kept folded under the map, with the kind, the holder and the
+yield on each row.
+
+The map and the list read one account, `CharacterWorkshop.Sites`, and the reason a world is refused is
+`CharacterWorkshop.WorldRefusal`: the same three rules `Problems` holds a whole character to (a nation's space, the
+capital, a house's only world), so the map cannot offer what the start would refuse.
+
+**The spouse's house.** A spouse may be "of the house" of any house on the map (`KinSpec.HouseId`). Such a husband or
+wife keeps that house's name and is a member of it, as one married in play is; they are listed with the household under
+"Married into the household", and the children are the new house's. The head of that house thinks well of the new head
+from the first day (regard 25, and 20 the other way; a friend or a rival named on the same house says more and wins). It
+costs 1 point in a standard start. The start does not give what a wedding in play gives by rank (legitimacy, or a claim
+on the greater house's title): that would be a second price to set, and it is left for the owner.
+
 ## Checked
 
 Eleven tests: the presets are legal and three fit the budget; a character is built as written; Standard refuses what
