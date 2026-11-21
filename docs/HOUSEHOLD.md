@@ -70,6 +70,15 @@ still do any of the work personally whenever you like.
 
 Your vote in the Senate needed no delegate: left undeclared, it already follows the house's interest.
 
+### What a steward is told to favour, and what they would do next (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, Money). The head may give the steward one instruction
+(`Duty.Favour`, `StewardFavourCommand`): as they judge; credits, materials, manpower or helium-3, and a building that
+yields it is begun before any other on whichever world can take one; the ventures, and a venture is enlarged before
+anything is built; or begin nothing new. `HouseholdSystem.StewardPlan` says what they would begin when the year turns
+and what it costs, or why nothing. The plan and the year's turn read the same list (`StewardChoices`), so what is shown
+is what is done unless the treasury changes in between.
+
 ## Events
 
 Six, in `content/events/found_family.json`: a child with nowhere to go; the ward comes of age; the accounts do not add

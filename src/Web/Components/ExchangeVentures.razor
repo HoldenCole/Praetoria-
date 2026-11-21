@@ -122,10 +122,10 @@
                         <div class="vc-head"><Sigil HouseId="@f.OwnerId" Accent="@f.OwnerAccent" Size="14" /> <b>@f.Name</b></div>
                         <div class="muted small">@f.KindName · level @f.Level@(f.SystemName != null ? $" · {f.SystemName}" : "") · @f.OwnerName@(f.Distressed ? " · short of coin" : "")@(f.OnYourWorld ? " · works your world" : "")</div>
                         <div class="kv"><span>To you</span><b><span class="@(f.PerYear > 0 ? "good" : "warn")">@(f.PerYear >= 0 ? "+" : "")@f.PerYear credits' worth a year, in goods at today's prices</span> · @(f.Payback == "never" ? "does not pay itself back at this price" : "pays back in " + f.Payback)</b></div>
-                        @if (vs != null) { <button class="opt inline tiny" disabled="@(f.Refusal != null)" title="@f.Refusal" @onclick="() => G.Execute(new BuyVentureCommand(pid, f.BusinessId, vs))">@(f.Ask > 0 ? $"Buy for {f.Ask}" : "Not for sale")@(f.Refusal != null && !f.Refusal.StartsWith("needs ") ? $" — {f.Refusal}" : "")</button> }
+                        <VentureBuy BusinessId="@f.BusinessId" />
                     </div>
                 }
-                <div class="muted small">A house asks a premium to part with a venture, more for one on its own world or its last, less when it is short of coin. The holder of the world it works may match your price and take it first.</div>
+                <div class="muted small">A house asks a premium to part with a venture, more for one on its own world or its last, less when it is short of coin. It would take less than it asks: make an offer, once a year for each. The holder of the world it works may match your price and take it first. Any venture of any house can be offered for from that house's page, under Houses.</div>
             }
         </section>
     </aside>

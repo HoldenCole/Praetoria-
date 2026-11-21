@@ -83,6 +83,24 @@ public sealed class DelegateCommand : ICommand
     public void Execute(CommandContext ctx) { var w = ctx.World; HouseholdSystem.Assign(w, w.Char(ActorId)!, _role, _holderId.Length == 0 ? null : w.Char(_holderId), _reserve); }
 }
 
+/// <summary>Tell the steward what to favour (<see cref="HouseholdSystem.Favours"/>).</summary>
+public sealed class StewardFavourCommand : ICommand
+{
+    private readonly string _favour;
+    public StewardFavourCommand(string actorId, string favour) { ActorId = actorId; _favour = favour; }
+    public string ActorId { get; }
+    public string Describe() => $"tell the steward to favour {(_favour.Length == 0 ? "their own judgment" : _favour)}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null || Economy.HeadOf(w, house)?.Id != actor.Id) return "not yours to say";
+        if (house.Duty(HouseholdSystem.Steward) == null) return "the house has no steward";
+        return HouseholdSystem.Favours.Contains(_favour) ? null : "no such instruction";
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; w.House(w.Char(ActorId)!.HouseId)!.Duty(HouseholdSystem.Steward)!.Favour = _favour; }
+}
+
 /// <summary>Education (docs/EDUCATION.md). <see cref="Study"/>: what you yourself study (your own choice only).
 /// <see cref="Upbringing"/>: the course set for a child of the house, or empty to let them follow their bent.
 /// <see cref="Tutor"/>: a paid teacher for yourself or anyone of the house (0 none, 1 good, 2 the best).</summary>

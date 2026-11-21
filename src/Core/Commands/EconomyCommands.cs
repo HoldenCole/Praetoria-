@@ -159,47 +159,68 @@ public sealed class ExpandBusinessCommand : ICommand
 /// that fall due whether or not the ledger can bear them. The lender is the house with the strongest bank, if any.</summary>
 public sealed class TakeLoanCommand : ICommand
 {
-    private readonly BusinessCatalog _ventures;
+    private readonly BusinessCatalog _ventures; private readonly string? _lenderId; private readonly int _amount;
     public TakeLoanCommand(string actorId, BusinessCatalog ventures) { ActorId = actorId; _ventures = ventures; }
+    /// <summary>Borrow a chosen amount of a chosen lender ("" is the counting-houses), on the terms <see cref="Lending.Lenders"/> gives.</summary>
+    public TakeLoanCommand(string actorId, BusinessCatalog ventures, string lenderId, int amount) { ActorId = actorId; _ventures = ventures; _lenderId = lenderId; _amount = amount; }
     public string ActorId { get; }
-    public string Describe() => "take a loan";
+    public string Describe() => _lenderId == null ? "take a loan" : $"borrow {_amount} of {(_lenderId.Length == 0 ? "the counting-houses" : _lenderId)}";
     public static string? LenderFor(World w, string borrowerId, BusinessCatalog ventures) =>
         w.Businesses.Values.Where(b => b.OwnerId != borrowerId && ventures.Def(b.Kind)?.Lender == true).OrderByDescending(b => b.Level).ThenBy(b => b.Id, StringComparer.Ordinal).FirstOrDefault()?.OwnerId;
     public string? Refusal(CommandContext ctx)
     {
         var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
         if (actor?.Alive != true || house == null) return "no house";
-        return house.Debt > 0 ? "already in debt" : null;
+        if (_lenderId == null) return house.Debt > 0 ? "already in debt" : null;
+        var t = Lending.Lenders(w, house.Id, _ventures).FirstOrDefault(x => x.LenderId == _lenderId);
+        if (t == null) return "no such lender";
+        if (t.Refusal != null) return t.Refusal;
+        if (_amount < Lending.Step) return $"no less than {Lending.Step} credits";
+        int room = Lending.Room(w, house, t);
+        if (room < Lending.Step) return $"{t.Lender} will lend you no more: its limit for you is {t.Limit}, and you owe it {house.Debt}";
+        return _amount <= room ? null : $"{t.Lender} will lend you {room} and no more";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
     {
         var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!; var f = _ventures.Finance;
-        house.Treasury.Credits += f.LoanPrincipal; house.Debt = f.LoanRepay; house.LenderId = LenderFor(w, house.Id, _ventures) ?? "";
+        if (_lenderId != null)
+        {
+            var t = Lending.Lenders(w, house.Id, _ventures).First(x => x.LenderId == _lenderId); int owed = Lending.Owed(_amount, t.RatePct);
+            house.Treasury.Credits += _amount; house.Debt += owed; house.LenderId = _lenderId; house.LoanInstalment = Lending.Instalment(f, house.Debt);
+            w.WorldCounters["loans"] = w.Counter("loans") + 1;
+            w.Log($"{house.Name} borrows {_amount} credits from {t.Lender} at {t.RatePct} in the hundred, and owes {house.Debt}: {house.LoanInstalment} a year.");
+            return;
+        }
+        house.Treasury.Credits += f.LoanPrincipal; house.Debt = f.LoanRepay; house.LoanInstalment = 0; house.LenderId = LenderFor(w, house.Id, _ventures) ?? "";
         w.WorldCounters["loans"] = w.Counter("loans") + 1;
         var lender = house.LenderId.Length > 0 ? w.House(house.LenderId) : null;
         w.Log($"{house.Name} borrows {f.LoanPrincipal} credits from {(lender != null ? $"the bank of {lender.Name}" : "the caravaneers' counting-houses")}, owing {f.LoanRepay}.");
     }
 }
 
-/// <summary>Clear the loan in one payment.</summary>
+/// <summary>Pay the loan: the whole of it, or (amount above nought) a part. A part paid shortens the years; the yearly instalment stays as it was.</summary>
 public sealed class RepayLoanCommand : ICommand
 {
-    public RepayLoanCommand(string actorId) { ActorId = actorId; }
+    private readonly int _amount;
+    public RepayLoanCommand(string actorId, int amount = 0) { ActorId = actorId; _amount = amount; }
     public string ActorId { get; }
-    public string Describe() => "repay the loan";
+    public string Describe() => _amount > 0 ? $"pay {_amount} of the loan" : "repay the loan";
     public string? Refusal(CommandContext ctx)
     {
         var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
         if (actor?.Alive != true || house == null) return "no house";
         if (house.Debt <= 0) return "nothing owed";
-        return house.Treasury.Credits >= house.Debt ? null : $"needs {house.Debt} credits";
+        int pay = _amount > 0 ? Math.Min(_amount, house.Debt) : house.Debt;
+        return house.Treasury.Credits >= pay ? null : $"needs {pay} credits";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
     {
-        var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!;
-        house.Treasury.Credits -= house.Debt; house.Debt = 0; house.LenderId = "";
+        var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!; int pay = _amount > 0 ? Math.Min(_amount, house.Debt) : house.Debt;
+        house.Treasury.Credits -= pay; house.Debt -= pay;
+        if (house.Debt > 0) { w.Log($"{house.Name} pays {pay} credits of its debt; {house.Debt} is still owed."); return; }
+        house.LenderId = ""; house.LoanInstalment = 0;
         w.Log($"{house.Name} clears its debt.");
     }
 }

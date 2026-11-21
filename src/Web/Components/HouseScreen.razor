@@ -227,11 +227,48 @@
                 @foreach (var su in LadderSystem.SuitsNaming(w, house.Id)) { bool forUs = su.RightId == house.Id; <div class="kv @(forUs ? "" : "warn")" data-atrisk="@su.Id"><span>@(forUs ? "May come in from the courts" : "At risk in the courts")</span><b>@LadderSystem.StakeOf(su) credits <i class="muted">· @(w.House(LadderSystem.OtherIn(su, house.Id))?.Name)'s suit over @LadderSystem.MatterOf(su), heard at the year's end: Senate, Ladder and courts</i></b></div> }
                 @{ var lastRulings = w.Judgments.Where(j => j.Turn == w.Turn - 1).ToList(); }
                 @foreach (var jr in lastRulings) { bool won = jr.WinnerId == house.Id; <div class="kv @(won ? "good" : "warn")"><span>Last year, by order of the court</span><b>@(won ? "+" : "−")@jr.Sum credits <i class="muted">· @(won ? "from" : "to") @(w.House(won ? jr.LoserId : jr.WinnerId)?.Name)</i></b></div> }
-                @if (lg.Debt > 0) { <div class="kv warn"><span>Debt</span><b>@lg.Debt credits@(lg.LenderName != null ? $" to the bank of {lg.LenderName}" : " to the counting-houses") · @lg.LoanInstalment a turn</b></div> }
-                <div class="row">
-                    @if (lg.Debt == 0) { <button class="opt inline" disabled="@(lg.Loan.Refusal != null)" title="@lg.Loan.Refusal" @onclick="() => G.Execute(new TakeLoanCommand(pid, c.Businesses))">@lg.Loan.Label</button> }
-                    else { <button class="opt inline" disabled="@(lg.Repay.Refusal != null)" title="@lg.Repay.Refusal" @onclick="() => G.Execute(new RepayLoanCommand(pid))">@lg.Repay.Label</button> }
-                </div>
+                @{ var fin = c.Businesses.Finance; int instal = Lending.InstalmentOf(house, fin); var lenders = Lending.Lenders(w, house.Id, c.Businesses); }
+                @if (lg.Debt > 0)
+                {
+                    int left = Lending.Years(lg.Debt, instal);
+                    <div class="kv warn" data-debt="@lg.Debt"><span>Debt</span><b>@lg.Debt credits to @Lending.LenderName(w, house.LenderId) <i class="muted">· @instal a year, and @(left == 1 ? "this year clears it" : left + " years clear it")</i></b></div>
+                    <div class="row" data-repay>
+                        <span class="muted small" title="What is owed is the whole of it, interest and all, from the day it is borrowed: paying sooner saves no interest. It shortens the years, ends the instalments, and a house that owes nothing is not sold up by its creditors.">Pay down</span>
+                        @foreach (int part in new[] { 5, 10, 20, 50 }.Where(x => x < lg.Debt))
+                        {
+                            int pt = part; var payPart = new RepayLoanCommand(pid, pt); var partNo = payPart.Refusal(G.Ctx);
+                            <button class="opt inline tiny" data-repay-part="@pt" disabled="@(partNo != null)" title="@(partNo ?? $"{lg.Debt - pt} would be owed: {Lending.Years(lg.Debt - pt, instal)} year(s) at {instal} a year.")" @onclick="() => G.Execute(payPart)">@pt</button>
+                        }
+                        <button class="opt inline" disabled="@(lg.Repay.Refusal != null)" title="@lg.Repay.Refusal" @onclick="() => G.Execute(new RepayLoanCommand(pid))">@lg.Repay.Label</button>
+                    </div>
+                }
+                <details class="inline borrow" data-borrow>
+                    <summary>@(lg.Debt > 0 ? "Borrow more" : "Borrow")</summary>
+                    <div class="muted small">One lender at a time. What is owed is the sum and its interest together, paid off by the year; a year the treasury cannot find the instalment it goes below nought, and a house two years below nought is sold up for its creditors.</div>
+                    @foreach (var lt in lenders)
+                    {
+                        string lid = lt.LenderId; int room = Lending.Room(w, house, lt);
+                        int amt = Math.Clamp(_borrow.GetValueOrDefault(lid, Math.Min(room, fin.LoanPrincipal)) / Lending.Step * Lending.Step, Math.Min(Lending.Step, room), Math.Max(Lending.Step, room));
+                        var take = new TakeLoanCommand(pid, c.Businesses, lid, amt); var takeNo = take.Refusal(G.Ctx);
+                        int owedNew = Lending.Owed(amt, lt.RatePct), owedAll = (house.LenderId == lid ? house.Debt : 0) + owedNew, instNew = Lending.Instalment(fin, owedAll);
+                        <div class="lender @(lt.Refusal != null ? "off" : "")" data-lender="@(lid.Length == 0 ? "counting-houses" : lid)" title="@lt.Why">
+                            <div class="lender-top"><b>@Cap(lt.Lender)</b> <span class="muted small">up to @lt.Limit credits · @lt.RatePct in the hundred@(house.LenderId == lid && house.Debt > 0 ? $" · you owe it {house.Debt}, so {room} more" : "")</span></div>
+                            @if (lt.Refusal != null) { <div class="small warn">@Cap(lt.Refusal).</div> }
+                            else if (room < Lending.Step) { <div class="small warn">It will lend you no more until some of what is owed is paid.</div> }
+                            else
+                            {
+                                <div class="row">
+                                    <button class="opt inline tiny" disabled="@(amt <= Lending.Step)" @onclick="() => _borrow[lid] = amt - Lending.Step">−@Lending.Step</button>
+                                    <b class="lender-amt" data-amount="@amt">@amt</b>
+                                    <button class="opt inline tiny" disabled="@(amt >= room)" @onclick="() => _borrow[lid] = amt + Lending.Step">+@Lending.Step</button>
+                                    <button class="opt inline tiny" disabled="@(amt >= room)" @onclick="() => _borrow[lid] = room">all @room</button>
+                                    <button class="opt inline" data-take-loan disabled="@(takeNo != null)" title="@(takeNo ?? lt.Why)" @onclick="() => G.Execute(take)">Borrow @amt</button>
+                                    <span class="muted small" data-loan-terms>owe @owedNew for it@(owedAll != owedNew ? $" ({owedAll} in all)" : ""): @instNew a year for @Lending.Years(owedAll, instNew) year(s)</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </details>
         </section>
         }
         }
@@ -282,6 +319,8 @@
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<string> OnGo { get; set; }
     private string? _focus; private string _view = "estate";
+    /// <summary>The amount picked at each lender, by lender id.</summary>
+    private readonly Dictionary<string, int> _borrow = new();
     /// <summary>The tab an alert asked for, and a stamp that changes each time one asks; a stamp is used once.</summary>
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }

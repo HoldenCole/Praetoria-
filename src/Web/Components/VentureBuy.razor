@@ -1,0 +1,35 @@
+@inject GameClient G
+@* Buying another house's venture: at what it asks, or by an offer below it (docs/PLAYTHROUGH.md, Medium, Money).
+   Used wherever a venture of another house is shown: the Exchange's list, and the house's own page. *@
+@{
+    var w = G.World!; var pid = w.ProtagonistId; var vs = G.Turn!.Ventures; var b = w.Business(BusinessId); var mine = w.Protagonist!.HouseId;
+}
+@if (vs != null && b != null && b.OwnerId != mine)
+{
+    var (ask, askNo) = vs.Ask(w, b, mine); var owner = w.House(b.OwnerId); string bid = b.Id;
+    string? buyNo = askNo ?? (w.House(mine)!.Treasury.Credits < ask ? $"needs {ask} credits" : null);
+    int last = vs.LastWord(w, b, mine), insult = vs.Insult(w, b, mine);
+    int offer = Math.Clamp(_offer > 0 ? _offer : Math.Max(1, ask * 9 / 10), 1, Math.Max(1, ask - 1));
+    var cmd = new OfferForVentureCommand(pid, bid, offer, vs); var offerNo = cmd.Refusal(G.Ctx);
+    <div class="vbuy" data-venture-buy="@bid">
+        <button class="opt inline tiny" data-buy="@bid" disabled="@(buyNo != null)" title="@(buyNo ?? "The holder of the world it works may match the price and take it first; you then keep your coin.")" @onclick="() => G.Execute(new BuyVentureCommand(pid, bid, vs))">@(askNo == null ? $"Buy for {ask}" : "Not for sale")@(askNo != null ? $": {askNo}" : "")</button>
+        @if (askNo == null && last > 0)
+        {
+            <span class="muted small" data-last-word="@last">They have answered your offer this year: @last is the price until the year turns.</span>
+        }
+        else if (askNo == null && ask > 1)
+        {
+            <span class="muted small">or offer</span>
+            <input class="qty" type="number" min="1" max="@(ask - 1)" value="@offer" @onchange="e => _offer = int.TryParse(e.Value?.ToString(), out var v) ? v : 0" />
+            <button class="opt inline tiny" data-offer="@bid" disabled="@(offerNo != null)"
+                    title="@(offerNo ?? $"{owner?.Name} asks {ask} and would take less; how much less follows what its head thinks of you and whether it is short of coin, and you are not told. One offer a year. An offer they like is taken at your price. One they do not is answered with a price between yours and theirs, and that is their last word until the year turns. Under {insult} (half the asking) is an insult: no answer, and its head thinks {VentureSystem.InsultRegard} the worse of you.")"
+                    @onclick="() => G.Execute(cmd)">Offer @offer</button>
+            @if (offer < insult) { <span class="small warn">an insult</span> }
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public string BusinessId { get; set; } = "";
+    private int _offer;
+}

@@ -37,6 +37,18 @@
                 <div class="suit-acts"><span class="muted small" title="They spend only what the treasury holds above this in credits. Materials and the rest they leave alone as far as the year's shares of what is already being built will want them.">Leave in the treasury (credits)</span>
                     @foreach (int amt in Reserves) { int a = amt; <button class="opt inline tiny @(d.Reserve == amt ? "here" : "")" @onclick="() => G.Execute(new DelegateCommand(pid, r, d.HolderId, a))">@amt</button> }
                 </div>
+                @if (role == HouseholdSystem.Steward)
+                {
+                    var plan = G.Turn!.Household.StewardPlan(w, house, G.Ctx);
+                    <div class="suit-acts" data-steward-favour="@d.Favour"><span class="muted small" title="What they put first when they choose what to begin. It changes the order they try things in, not what the house can afford.">Favour</span>
+                        @foreach (var fv in HouseholdSystem.Favours) { string f = fv; <button class="opt inline tiny @(d.Favour == fv ? "here" : "")" title="@HouseholdSystem.FavourDoes(fv)" @onclick="() => G.Execute(new StewardFavourCommand(pid, f))">@HouseholdSystem.FavourName(fv)</button> }
+                    </div>
+                    <div class="small steward-plan" data-steward-plan="@(plan.next ?? "")">
+                        <b>When the year turns: </b>
+                        @if (plan.next != null) { <span>@NextSays(plan.next)@(plan.cost != null ? " (" + CourtProjection.Bundle(plan.cost) + ", paid by the year as it rises)" : ""). </span> }
+                        <span class="muted">@plan.says</span>
+                    </div>
+                }
             }
             else
             {
@@ -167,6 +179,8 @@
     private bool _seek;
     private readonly Dictionary<string, int> _reserve = new();
     private static readonly int[] Reserves = { 0, 20, 50, 100, 200 };
+    /* "began Farm on Tessaly" is how the year's report says it; beforehand it is "would begin Farm on Tessaly" */
+    private static string NextSays(string did) => did.StartsWith("began ") ? "Would begin " + did[6..] : did.StartsWith("enlarged ") ? "Would enlarge " + did[9..] : did;
     private int ReserveOf(string role) => _reserve.TryGetValue(role, out int v) ? v : 20;
     private static string First(string name) => name.Split(' ')[0];
     private static string Years(int n) => n <= 0 ? "this year" : n == 1 ? "a year" : $"{n} years";

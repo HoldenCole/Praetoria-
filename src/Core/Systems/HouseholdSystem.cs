@@ -251,36 +251,73 @@ public sealed class HouseholdSystem
         w.Log($"{head.Name} makes {holder.Name} {RoleName(role).ToLowerInvariant()} of {house.Name}.");
     }
 
-    private void StewardActs(World w, House house, Character holder, Duty d, CommandExecutor executor, CommandContext ctx)
+    /* ---- what a steward is told to favour, and what they would do next (docs/PLAYTHROUGH.md, Medium, Money) ---- */
+    public const string FavourVentures = "ventures", FavourHold = "hold";
+    /// <summary>What a steward can be told to favour: their own judgment, a thing the house is short of, its ventures, or nothing new.</summary>
+    public static readonly string[] Favours = { "", Resource.Credits, Resource.Materials, Resource.Manpower, Resource.Helium3, FavourVentures, FavourHold };
+    public static string FavourName(string f) => f switch { "" => "As they judge", FavourVentures => "The ventures", FavourHold => "Begin nothing new", Resource.Helium3 => "Helium-3", _ => char.ToUpperInvariant(f[0]) + f[1..] };
+    public static string FavourDoes(string f) => f switch
     {
-        int skill = Fit(holder, Steward); var done = new List<string>();
-        int acts = skill >= 3 ? 2 : skill == 0 && Hash(holder.Id + ":idle:" + w.Turn) % 2 == 0 ? 0 : 1;
-        /* a steward does not begin a thing with what the year's shares of the things already begun will want: the materials for a site
-           that is rising are spoken for, as the credits under the reserve are (docs/PLAYTHROUGH.md, Easy, F41) */
+        "" => "On each world in turn, what it lacks: a deposit worked first, then the cheapest. When no building can be begun, a venture is enlarged.",
+        FavourVentures => "A venture is enlarged before anything is built; a building only when no venture can be.",
+        FavourHold => "Nothing new is begun. What is already rising is still paid for, and the reserve is not touched.",
+        _ => $"Buildings that yield {(f == Resource.Helium3 ? "helium-3" : f)} are begun before any other, on whichever world can take one; then the rest as they judge.",
+    };
+    /// <summary>How many things the steward does this year: two with a skill of three, one below it, and with no skill at all nothing one year in two.</summary>
+    public static int StewardActsThisYear(World w, Character holder) { int skill = Fit(holder, Steward); return skill >= 3 ? 2 : skill == 0 && Hash(holder.Id + ":idle:" + w.Turn) % 2 == 0 ? 0 : 1; }
+
+    /// <summary>Everything the steward might begin, in the order they would try it. Each is tried only if it leaves the reserve and
+    /// the materials the sites already rising will want this year (docs/PLAYTHROUGH.md, Easy, F41).</summary>
+    private IEnumerable<(ICommand cmd, string did, Resources cost, bool favoured)> StewardChoices(World w, House house, Character holder, Duty d)
+    {
+        if (d.Favour == FavourHold) yield break;
+        var owed = HouseAccounts.Total(HouseAccounts.Outgoings(w, _holdings, house));
         bool Spare(Resources first)
         {
-            var owed = HouseAccounts.Total(HouseAccounts.Outgoings(w, _holdings, house));
             foreach (var r in Resource.All) if (r != Resource.Credits && first.Get(r) > 0 && house.Treasury.Get(r) - first.Get(r) < owed.Get(r)) return false;
             return true;
         }
+        bool favours = d.Favour.Length > 0 && d.Favour != FavourVentures;
+        // what a world lacks: the favoured yield first, then world by world, the deposit worked before the rest, cheapest first
+        var buildings = w.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal)
+            .SelectMany(h => _holdings.Buildings.Where(b => !b.Megastructure && !h.Buildings.Contains(b.Id)).Select(b => (h, b)))
+            .Where(x => house.Treasury.Credits - x.b.Cost.Credits >= d.Reserve && Spare(ProjectSystem.Split(x.b.Cost, x.b.BuildTurns).First))
+            .OrderByDescending(x => favours && x.b.Yield.Get(d.Favour) > 0)
+            .ThenBy(x => x.h.Id, StringComparer.Ordinal).ThenByDescending(x => x.b.RequiresDeposit != null).ThenBy(x => x.b.Cost.Credits).ThenBy(x => x.b.Id, StringComparer.Ordinal)
+            .Select(x => ((ICommand)new BuildCommand(holder.Id, x.h.Id, x.b.Id, _holdings, _titles), $"began {x.b.Name} on {x.h.Name}", x.b.Cost, favours && x.b.Yield.Get(d.Favour) > 0));
+        var ventures = w.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0).Select(b => (b, def: _ventures.Def(b.Kind)))
+            .Where(x => x.def != null && house.Treasury.Credits - x.def.ExpandCost.Credits >= d.Reserve && Spare(ProjectSystem.Split(x.def.ExpandCost, x.def.BuildTurns).First))
+            .Select(x => ((ICommand)new ExpandBusinessCommand(holder.Id, x.b.Id, _ventures), $"enlarged {x.def!.Name}", x.def.ExpandCost, d.Favour == FavourVentures));
+        foreach (var c in d.Favour == FavourVentures ? ventures.Concat(buildings) : buildings.Concat(ventures)) yield return c;
+    }
+
+    /// <summary>What the steward would do when this year turns, as things stand now: the first thing they would begin and what it
+    /// costs, or why nothing. It is the same list the year's turn works down, so the two cannot part.</summary>
+    public (string? next, Resources? cost, int acts, string says) StewardPlan(World w, House house, CommandContext ctx)
+    {
+        var d = house.Duty(Steward); var holder = d != null ? w.Char(d.HolderId) : null; if (d == null || holder == null) return (null, null, 0, "Nobody holds the post.");
+        int acts = StewardActsThisYear(w, holder);
+        if (d.Favour == FavourHold) return (null, null, acts, "Told to begin nothing new, and will not.");
+        if (acts == 0) return (null, null, 0, "Will do nothing this year: one with no skill for the work idles one year in two.");
+        foreach (var (cmd, did, cost, favoured) in StewardChoices(w, house, holder, d))
+            if (cmd.CanExecute(ctx))
+            {
+                string unmet = d.Favour.Length == 0 || favoured ? ""
+                    : d.Favour == FavourVentures ? "No venture of the house can be enlarged now, so they build. "
+                    : $"Nothing that yields {(d.Favour == Resource.Helium3 ? "helium-3" : d.Favour)} can be begun on your worlds now, so they do as they judge. ";
+                return (did, cost, acts, unmet + (acts > 1 ? "Skilled enough for two things a year: a second follows if the treasury still stands above the reserve after the first." : "One thing a year, at their skill."));
+            }
+        return (null, null, acts, $"Finds nothing to begin that leaves {d.Reserve} credits in the treasury and the materials the sites already rising will want.");
+    }
+
+    private void StewardActs(World w, House house, Character holder, Duty d, CommandExecutor executor, CommandContext ctx)
+    {
+        var done = new List<string>(); int acts = StewardActsThisYear(w, holder);
         for (int i = 0; i < acts; i++)
         {
             bool did = false;
-            // what a world lacks, cheapest first, the deposit worked before the rest
-            foreach (var h in w.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal))
-            {
-                foreach (var b in _holdings.Buildings.Where(b => !b.Megastructure && !h.Buildings.Contains(b.Id) && house.Treasury.Credits - b.Cost.Credits >= d.Reserve && Spare(ProjectSystem.Split(b.Cost, b.BuildTurns).First))
-                             .OrderByDescending(b => b.RequiresDeposit != null).ThenBy(b => b.Cost.Credits).ThenBy(b => b.Id, StringComparer.Ordinal))
-                    if (executor.TryExecute(new BuildCommand(holder.Id, h.Id, b.Id, _holdings, _titles), ctx)) { done.Add($"began {b.Name} on {h.Name}"); did = true; break; }
-                if (did) break;
-            }
-            if (did) continue;
-            // else enlarge a venture
-            foreach (var biz in w.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0))
-            {
-                var def = _ventures.Def(biz.Kind); if (def == null || house.Treasury.Credits - def.ExpandCost.Credits < d.Reserve || !Spare(ProjectSystem.Split(def.ExpandCost, def.BuildTurns).First)) continue;
-                if (executor.TryExecute(new ExpandBusinessCommand(holder.Id, biz.Id, _ventures), ctx)) { done.Add($"enlarged {def.Name}"); did = true; break; }
-            }
+            foreach (var (cmd, said, _, _) in StewardChoices(w, house, holder, d).ToList())
+                if (executor.TryExecute(cmd, ctx)) { done.Add(said); did = true; break; }
             if (!did) break;
         }
         // a steward who is greedy and owes the head nothing helps themselves
@@ -289,7 +326,7 @@ public sealed class HouseholdSystem
             house.Treasury.Credits -= 3; d.Skimmed += 3;
             if (d.Skimmed >= SkimAt && d.Skimmed - 3 < SkimAt) { Mark(w, SkimsFlag); holder.Flags.Add(SkimmingChar); w.Log($"The accounts of {house.Name} do not add up. {holder.Name} keeps them."); }
         }
-        d.LastReport = done.Count > 0 ? Cap(string.Join("; ", done)) + "." : acts == 0 ? "Did little this year." : $"Found nothing worth doing with what is above the reserve of {d.Reserve}.";
+        d.LastReport = done.Count > 0 ? Cap(string.Join("; ", done)) + "." : d.Favour == FavourHold ? "Began nothing new, as told." : acts == 0 ? "Did little this year." : $"Found nothing worth doing with what is above the reserve of {d.Reserve}.";
     }
 
     private void MarshalActs(World w, House house, Character holder, Duty d, CommandExecutor executor, CommandContext ctx)

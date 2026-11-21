@@ -66,6 +66,61 @@ public class VentureTests
         Assert.Equal(shedCalm + 4, eco.VentureLine(w, shed).Credits);                                                           // two goods spiking, two credits each
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, Money: "Make an offer on any venture of another house." */
+    [Fact]
+    public void AnOffer_BelowTheAsking_IsTaken_Answered_OrAnInsult_OnceAYear()
+    {
+        var (w, _, vs) = Reach(); var exec = new CommandExecutor(); var mine = w.House("vega")!; mine.Treasury.Credits = 500;
+        var theirs = Put(w, "c", "aurelian", "trading_company", "mid1");                        // Aurelian's company on Corwin's world: no premium for its own world
+        w.House("corwin")!.Treasury.Credits = 0;                                                // the world's holder cannot match a price
+        int ask = vs.Ask(w, theirs, "vega").price, least = vs.Least(w, theirs, "vega"), insult = vs.Insult(w, theirs, "vega");
+        Assert.True(least < ask && least >= vs.MarketPrice(w, theirs)); Assert.Equal(ask * VentureSystem.InsultPct / 100, insult);
+        Assert.InRange(least * 100 / ask, VentureSystem.ComesDownPct - VentureSystem.MoodSwing - 1, VentureSystem.ComesDownPct + VentureSystem.MoodSwing);
+
+        // the asking is a price, not an offer; and an offer must be payable
+        Assert.Contains("that is the price, not an offer", new OfferForVentureCommand("self", "c", ask, vs).Refusal(Ctx(w)));
+        mine.Treasury.Credits = 1; Assert.Equal($"needs {least} credits", new OfferForVentureCommand("self", "c", least, vs).Refusal(Ctx(w))); mine.Treasury.Credits = 500;
+
+        // too little: answered with a price between the two, never under the least, and that price stands for the year
+        int low = Math.Max(insult, least - 6); Assert.True(low < least);
+        Assert.True(exec.TryExecute(new OfferForVentureCommand("self", "c", low, vs), Ctx(w)));
+        int counter = vs.LastWord(w, theirs, "vega");
+        Assert.Equal(Math.Max(least, (low + ask + 1) / 2), counter); Assert.True(counter < ask); Assert.Equal("aurelian", theirs.OwnerId); Assert.Equal(500, mine.Treasury.Credits);
+        Assert.Equal(counter, vs.Ask(w, theirs, "vega").price);                                 // the answer is the asking now
+        Assert.Contains("last word this year", new OfferForVentureCommand("self", "c", least, vs).Refusal(Ctx(w)));
+        Assert.Contains(w.News, n => n.Text.Contains("that is its last word this year"));
+        Assert.Equal(ask, vs.Ask(w, theirs, "corwin").price);                                   // and only to the house that offered
+        Assert.True(exec.TryExecute(new BuyVentureCommand("self", "c", vs), Ctx(w)));           // which may take it at the answer
+        Assert.Equal("vega", theirs.OwnerId); Assert.Equal(500 - counter, mine.Treasury.Credits);
+
+        // enough: taken at the price offered
+        var second = Put(w, "d", "aurelian", "mining_concern", "mid1"); int ask2 = vs.Ask(w, second, "vega").price, least2 = vs.Least(w, second, "vega"); mine.Treasury.Credits = 500;
+        Assert.True(least2 < ask2 && ask2 > 0);
+        {
+            Assert.True(exec.TryExecute(new OfferForVentureCommand("self", "d", least2, vs), Ctx(w)));
+            Assert.Equal("vega", second.OwnerId); Assert.Equal(500 - least2, mine.Treasury.Credits); Assert.Contains(w.News, n => n.Text.Contains("It is yours."));
+        }
+
+        // an insult: no answer, the asking stands, and their head thinks the worse of it
+        var third = Put(w, "e", "aurelian", "shipping_line", "mid1"); int ask3 = vs.Ask(w, third, "vega").price, insult3 = vs.Insult(w, third, "vega");
+        Assert.True(insult3 > 1);
+        {
+            var aHead = Economy.HeadOf(w, w.House("aurelian")!)!; int before = w.Relationship(aHead.Id, "self").Disposition;
+            Assert.True(exec.TryExecute(new OfferForVentureCommand("self", "e", insult3 - 1, vs), Ctx(w)));
+            Assert.Equal(before - VentureSystem.InsultRegard, w.Relationship(aHead.Id, "self").Disposition); Assert.Equal("aurelian", third.OwnerId);
+            Assert.Equal(ask3, vs.LastWord(w, third, "vega")); Assert.Contains("last word this year", new OfferForVentureCommand("self", "e", ask3 - 1, vs).Refusal(Ctx(w)));
+            w.Turn++; Assert.Equal(0, vs.LastWord(w, third, "vega")); Assert.Null(new OfferForVentureCommand("self", "e", vs.Ask(w, third, "vega").price - 1, vs).Refusal(Ctx(w)));   // a new year, a new offer
+        }
+
+        // a friend comes down further; one who thinks ill of you, less; a seller short of coin, furthest
+        var fourth = Put(w, "f", "aurelian", "trading_company", "tessaly"); var head = Economy.HeadOf(w, w.House("aurelian")!)!;
+        int Pct() { var (a, _) = vs.Ask(w, fourth, "vega"); return vs.Least(w, fourth, "vega") * 100 / a; }
+        w.Relationship(head.Id, "self").Disposition = 0; int plain = Pct();
+        w.Relationship(head.Id, "self").Disposition = VentureSystem.DownFriend; int friend = Pct();
+        w.Relationship(head.Id, "self").Disposition = VentureSystem.DownIll; int ill = Pct();
+        Assert.True(friend < plain && plain < ill, $"friend {friend}, plain {plain}, ill {ill}");
+    }
+
     [Fact]
     public void HousesBid_Ask_AndRefuse_ByRule()
     {

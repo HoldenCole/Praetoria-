@@ -106,7 +106,22 @@
                 @if (m.Capital is { } cap && cap.HolderId == fh.Id) { <div class="kv"><span>The capital</span><b>holds @cap.SystemName — @(w.IsImperium ? "the court" : "the capital"), the Senate's chair, and a target</b></div> }
                 @if (fh.Bloc == RegionSystem.FreeholdsBloc) { <div class="kv"><span>Standing</span><b class="warn">a free hold — sworn to no one</b></div> }
                 @if (m.Reclaims is { Count: > 0 } rcs) { foreach (var rc in rcs.Where(r => w.Holding(r.HoldingId)?.OwnerId == fh.Id)) { <button class="opt" disabled="@(rc.Refusal != null)" title="@rc.Refusal" @onclick="() => G.Execute(new ReclaimFreeholdCommand(pid, rc.HoldingId))">Buy back @rc.HoldingName (@rc.Price credits)</button> } }
-                @if (w.BusinessesOf(fh.Id).Any()) { <div class="kv"><span>Ventures</span><b>@string.Join(", ", w.BusinessesOf(fh.Id).Select(b => $"{c.Businesses.Def(b.Kind)?.Name ?? b.Kind} at {w.Galaxy?.System(b.SystemId)?.Name ?? b.SystemId} ({b.Level})"))</b></div> }
+                @if (w.BusinessesOf(fh.Id).Any())
+                {
+                    <h4>Its ventures <span class="muted small">@(fh.Id == w.Protagonist!.HouseId ? "yours" : "each can be bought at what it asks, or offered for")</span></h4>
+                    @foreach (var bz in w.BusinessesOf(fh.Id).OrderBy(b => b.Id, StringComparer.Ordinal))
+                    {
+                        int toYou = G.Turn!.Ventures is { } vsys && fh.Id != w.Protagonist!.HouseId ? vsys.EarningsFor(w, bz, w.Protagonist!.HouseId) : 0;
+                        <div class="line house-venture" data-house-venture="@bz.Id">
+                            <b>@bz.Name</b> <span class="muted">@(c.Businesses.Def(bz.Kind)?.Name ?? bz.Kind) · level @bz.Level · @(w.Galaxy?.System(bz.SystemId)?.Name ?? bz.SystemId)@(bz.CompanyId.Length > 0 ? " · held by a company" : "")</span>
+                            @if (fh.Id != w.Protagonist!.HouseId && bz.CompanyId.Length == 0)
+                            {
+                                <span class="muted"> · </span><span class="small @(toYou > 0 ? "good" : "warn")" title="What it would earn in your hands, in goods at today's prices: the charter and the world's holder differ by who owns it.">@(toYou >= 0 ? "+" : "")@toYou a year to you</span>
+                                <VentureBuy BusinessId="@bz.Id" />
+                            }
+                        </div>
+                    }
+                }
                 @if (fh.SphereInfluence.Any(k => k.Value > 0)) { <div class="kv"><span>Spheres</span><b>@string.Join(" · ", fh.SphereInfluence.Where(k => k.Value > 0).Select(k => $"{k.Key} {k.Value}"))</b></div> }
                 <h4>The people</h4>
                 @foreach (var ch in members.Take(6))

@@ -89,7 +89,69 @@ public sealed class VentureSystem
         if (Holder(w, b) == seller.Id) pct += OwnWorldAsk;
         if (!w.HoldingsOf(seller.Id).Any(h => h.IsPlanet) && w.BusinessesOf(seller.Id).Count() == 1) pct += LastVentureAsk;   // it is all they have
         if (regard >= 30) pct -= 10;
-        return (Math.Max(Salvage(b), Trading(w, b) * pct / 100), null);
+        int asked = Math.Max(Salvage(b), Trading(w, b) * pct / 100);
+        // an offer made this year and answered: the answer is their price for the rest of the year
+        if (w.Counter(CounterUntilKey(b.Id, buyerId)) > w.Turn && w.Counter(CounterKey(b.Id, buyerId)) is > 0 and var last) asked = Math.Min(asked, last);
+        return (asked, null);
+    }
+
+    /* ---- an offer below the asking (docs/PLAYTHROUGH.md, Medium, Money: "make an offer on any venture of another house") ----
+       The asking price is where an owner begins. They would take less: how much less follows what their head thinks of the
+       buyer and whether they are short of coin, and a little the mood of the year, which the buyer cannot see. One offer a
+       year on each venture. An offer they like is taken at the price offered. One they do not is answered with a price
+       between the offer and the asking, never under the least they would take, and that is their last word for the year.
+       An offer under half the asking is an insult: it is not answered, and their head thinks the worse of the buyer. */
+    public const int ComesDownPct = 85, FriendDownPct = 80, IllDownPct = 95, DistressDownPct = 75, MoodSwing = 4, InsultPct = 50, InsultRegard = 3, DownFriend = 30, DownIll = -10;
+    public const string OffersTakenCounter = "venture_offers_taken", OffersCounteredCounter = "venture_offers_countered";
+    public static string CounterKey(string businessId, string buyerId) => $"venture_counter:{businessId}:{buyerId}";
+    public static string CounterUntilKey(string businessId, string buyerId) => $"venture_counter_until:{businessId}:{buyerId}";
+    /// <summary>The price they answered an offer with this year, or 0 when none has been made.</summary>
+    public int LastWord(World w, Business b, string buyerId) => w.Counter(CounterUntilKey(b.Id, buyerId)) > w.Turn ? w.Counter(CounterKey(b.Id, buyerId)) : 0;
+    /// <summary>The least the owner would take from this buyer this year. Not shown to the buyer.</summary>
+    public int Least(World w, Business b, string buyerId)
+    {
+        var seller = w.House(b.OwnerId); var buyer = w.House(buyerId); var (ask, refusal) = Ask(w, b, buyerId);
+        if (seller == null || buyer == null || refusal != null) return 0;
+        int regard = Regard(w, seller, buyer);
+        int pct = Distressed(seller) ? DistressDownPct : regard >= DownFriend ? FriendDownPct : regard <= DownIll ? IllDownPct : ComesDownPct;
+        pct += (int)(Hash($"{b.Id}:{buyerId}:{w.Turn}:mood") % (2 * MoodSwing + 1)) - MoodSwing;
+        return Math.Min(ask, Math.Max(MarketPrice(w, b), ask * pct / 100));   // never less than the open market would give them
+    }
+    /// <summary>The offer below which the owner takes it as an insult.</summary>
+    public int Insult(World w, Business b, string buyerId) => Ask(w, b, buyerId).price * InsultPct / 100;
+    public string? OfferRefusal(World w, Business? b, string buyerId, int price)
+    {
+        var buyer = w.House(buyerId); if (b == null || buyer == null) return "no such venture";
+        var (ask, refusal) = Ask(w, b, buyerId); if (refusal != null) return refusal;
+        if (LastWord(w, b, buyerId) is > 0 and var last) return $"they have given their last word this year: {last} credits";
+        if (price < 1) return "offer something";
+        if (price >= ask) return $"they ask {ask}: that is the price, not an offer";
+        return buyer.Treasury.Credits >= price ? null : $"needs {price} credits";
+    }
+    /// <summary>Make the offer. Returns what came of it, as it is told to the house that made it.</summary>
+    public string Offer(World w, Business b, string buyerId, int price)
+    {
+        var seller = w.House(b.OwnerId)!; var buyer = w.House(buyerId)!; var (ask, _) = Ask(w, b, buyerId); int least = Least(w, b, buyerId);
+        var sellerHead = HeadOfHouse(w, seller.Id); var buyerHead = HeadOfHouse(w, buyerId); string name = b.Name.StartsWith("The ", StringComparison.Ordinal) ? b.Name[4..] : b.Name;
+        void LastWordIs(int n) { w.WorldCounters[CounterKey(b.Id, buyerId)] = n; w.WorldCounters[CounterUntilKey(b.Id, buyerId)] = w.Turn + 1; }
+        if (price < Insult(w, b, buyerId))
+        {
+            LastWordIs(ask);
+            if (sellerHead != null && buyerHead != null && sellerHead.Id != buyerHead.Id) { var r = w.Relationship(sellerHead.Id, buyerHead.Id); r.Disposition = Math.Clamp(r.Disposition - InsultRegard, -100, 100); }
+            w.Log($"{buyer.Name} offers {price} credits for the {name}, which {seller.Name} asks {ask} for. {seller.Name} does not answer.");
+            return $"{seller.Name} takes {price} for the {name} as an insult and does not answer: {sellerHead?.Name ?? "its head"} thinks {InsultRegard} the worse of you. It is {ask} or nothing this year.";
+        }
+        if (price >= least)
+        {
+            LastWordIs(price); Bump(w, OffersTakenCounter);
+            bool bought = BuyAt(w, b, buyerId);
+            if (bought && b.OwnerId == buyerId) return $"{seller.Name} takes {price} credits for the {name}, {ask - price} under what it asked. It is yours.";
+            if (bought) return $"{seller.Name} would have taken {price} for the {name}, but {w.House(b.OwnerId)?.Name} holds the world it works, matched the price and took it first. You keep your coin.";
+            return $"{seller.Name} would take {price} for the {name}, but the sale did not go through.";
+        }
+        int counter = Math.Min(ask, Math.Max(least, (price + ask + 1) / 2)); LastWordIs(counter); Bump(w, OffersCounteredCounter);
+        w.Log($"{buyer.Name} offers {price} credits for the {name}; {seller.Name} answers {counter}.");
+        return $"{seller.Name} will not take {price} for the {name}. It answers {counter}, {ask - counter} under what it asked, and that is its last word this year.";
     }
 
     /// <summary>The holder of the world, if it is neither party and would match the price: it has first refusal on anything sold there.</summary>

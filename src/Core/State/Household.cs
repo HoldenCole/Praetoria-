@@ -9,6 +9,9 @@ public sealed class Duty
     public int Since { get; set; }
     /// <summary>Credits the holder must leave in the treasury. They spend only what is above it.</summary>
     public int Reserve { get; set; } = 20;
+    /// <summary>What the head has told a steward to favour (docs/PLAYTHROUGH.md, Medium, Money): "" as they judge; a resource
+    /// (buildings that yield it come first); "ventures" (enlarging a venture before building); "hold" (begin nothing new).</summary>
+    public string Favour { get; set; } = "";
     /// <summary>What they did last year, in a line.</summary>
     public string LastReport { get; set; } = "";
     /// <summary>What has gone missing under them. Not shown until it is found out.</summary>

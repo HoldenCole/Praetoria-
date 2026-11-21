@@ -51,6 +51,29 @@ public sealed class BuyVentureCommand : ICommand
     public void Execute(CommandContext ctx) { var w = ctx.World; _ventures.BuyAt(w, w.Business(_id)!, w.Char(ActorId)!.HouseId); }
 }
 
+/// <summary>Offer less than the asking for another house's venture: taken, answered with a price that stands for the year, or
+/// (under half the asking) taken as an insult. One offer a year on each venture (<see cref="VentureSystem.Offer"/>).</summary>
+public sealed class OfferForVentureCommand : ICommand
+{
+    private readonly string _id; private readonly int _price; private readonly VentureSystem _ventures;
+    public OfferForVentureCommand(string actorId, string businessId, int price, VentureSystem ventures) { ActorId = actorId; _id = businessId; _price = price; _ventures = ventures; }
+    public string ActorId { get; }
+    public string Describe() => $"offer {_price} for {_id}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
+        if (actor?.Alive != true || house == null) return "no such venture";
+        return _ventures.OfferRefusal(w, w.Business(_id), house.Id, _price);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var houseId = w.Char(ActorId)!.HouseId; var b = w.Business(_id)!; int asked = _ventures.Ask(w, b, houseId).price;
+        string said = _ventures.Offer(w, b, houseId, _price);
+        if (houseId == w.Protagonist?.HouseId) w.Tell(b.OwnerId == houseId ? "good" : _ventures.LastWord(w, b, houseId) >= asked ? "warn" : "info", said, "exchange:ventures");
+    }
+}
+
 /// <summary>Take up a venture offered to the house, at the offered price.</summary>
 public sealed class AcceptVentureOfferCommand : ICommand
 {

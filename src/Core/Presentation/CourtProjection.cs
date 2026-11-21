@@ -253,7 +253,7 @@ public static class CourtProjection
             if (house.Wealth == 0 && w.Houses.Values.All(h => h.Wealth == 0)) eco.Reckon(w);
             var table = Wealth.Ranked(w).Select(x => new WealthLine(x.house.Id, x.house.Name, x.house.AccentColor, x.wealth, Wealth.TierFor(w, x.house.Id), x.house.Id == house.Id)).ToList();
             var lender = house.LenderId.Length > 0 ? w.House(house.LenderId)?.Name : null;
-            ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Keys.Count(h => !World.Outsider(h)), Wealth.TierFor(w, house.Id), house.Debt, lender, f.LoanPrincipal, f.LoanRepay, f.LoanInstalment,
+            ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Keys.Count(h => !World.Outsider(h)), Wealth.TierFor(w, house.Id), house.Debt, lender, f.LoanPrincipal, f.LoanRepay, house.Debt > 0 ? Lending.InstalmentOf(house, f) : f.LoanInstalment,
                 new Option("loan", $"Borrow {f.LoanPrincipal} credits (owe {f.LoanRepay}, {f.LoanInstalment} a year)", new TakeLoanCommand(p.Id, bc).Refusal(ctx)),
                 new Option("repay", $"Clear the debt ({house.Debt} credits)", new RepayLoanCommand(p.Id).Refusal(ctx)), table);
             var vs = tc.Ventures;

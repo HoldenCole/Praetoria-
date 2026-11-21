@@ -376,3 +376,30 @@ a world was foreclosed on once, and its player made four pledges.
 
 Found while building it, and mapped (A10): only the head's own things are at risk, never a relative's; other houses
 never pledge; and a world taken for a debt is never redeemed.
+
+## 16. A loan of one's choosing, and an offer below the asking (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, Money).
+
+**Lenders.** `Lending.Lenders` lists who would lend a house and on what terms: the caravaneers' counting-houses, and every
+house that keeps a bank. The rules are constants in `src/Core/Systems/Lending.cs`.
+
+| | limit | rate |
+|---|---|---|
+| the counting-houses | 20, and 10 for each world held (four counted) | 30 in the hundred |
+| a house's bank | 20 for each level of the bank, and the same 10 a world | 30; 10 off at +20 regard, 10 more at -10, 10 off for its client |
+
+A house known for bad business pays 10 more everywhere. A bank whose head thinks -30 or worse of the borrower, or is at war
+with it, lends nothing. One lender at a time; the lender already owed lends more, to its limit. What is owed is the sum and
+its interest together from the day, paid by the year in the proportion the standing loan always was (4 a year on 26), and
+kept on the house as `LoanInstalment`. `RepayLoanCommand` takes an amount: a part paid shortens the years and saves no
+interest. The standing loan the stewards of other houses take is unchanged, and is the counting-houses' terms exactly.
+
+**Offers.** `VentureSystem.Offer`: the asking price is where an owner begins. `Least` is what it would take from this buyer
+this year: 85 in the hundred of the asking; 80 at +30 regard; 95 at -10; 75 when the seller is short of coin; four points
+either way by the year; never under what the open market pays. The buyer is not shown it. One offer a year on each venture.
+At or above it the venture changes hands at the offer (the world's holder may still match it). Below it the owner answers
+with the midpoint of the offer and the asking, or its least if that is higher, and `Ask` returns that answer to that buyer
+until the year turns. Under half the asking the owner does not answer and its head thinks 3 the worse of the buyer.
+
+Not built: a lender paying a loan out of its own treasury; houses other than the player offering below an asking.

@@ -162,6 +162,57 @@ public class EconomyDepthTests
         Assert.Equal("the world's holder is at war with you", new FoundBusinessCommand("self", "mining_concern", "ember", v, cat).Refusal(Ctx(w)));
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, Money: "Borrow an amount you choose, from a lender you can see, and repay in part." */
+    [Fact]
+    public void ALoan_IsOfAChosenAmount_FromALenderWhoNamesTerms_AndIsPaidInPart()
+    {
+        var w = Reach(credits: 2); var cat = Catalog(); var v = Ventures(); var eco = new Economy(cat, v); var exec = new CommandExecutor(); var f = v.Finance;
+        w.House("corwin")!.Treasury.Credits = 30;
+        Assert.True(exec.TryExecute(new FoundBusinessCommand("corwin_head", "merchant_bank", "ember", v, cat), Ctx(w)));
+        var vega = w.House("vega")!; int baseRate = Lending.BaseRate(f);
+        Assert.Equal(30, baseRate); Assert.Equal(f.LoanRepay, Lending.Owed(f.LoanPrincipal, baseRate)); Assert.Equal(f.LoanInstalment, Lending.Instalment(f, f.LoanRepay));   // the standing loan is the counting-houses' terms
+
+        // two lenders, each with a limit and a rate: one world held adds ten to each limit
+        var lenders = Lending.Lenders(w, "vega", v);
+        Assert.Equal(new[] { "", "corwin" }, lenders.Select(l => l.LenderId).ToArray());
+        Assert.Equal(f.LoanPrincipal + Lending.PerWorld, lenders[0].Limit); Assert.Equal(baseRate, lenders[0].RatePct);
+        Assert.Equal(Lending.PerBankLevel + Lending.PerWorld, lenders[1].Limit); Assert.Equal(baseRate, lenders[1].RatePct); Assert.All(lenders, l => Assert.Null(l.Refusal));
+
+        // a banker who thinks well of you lends cheaper; one who thinks ill, dearer; at the worst, not at all
+        w.Relationship("corwin_head", "self").Disposition = Lending.GoodRegard; Assert.Equal(baseRate - Lending.RegardPct, Lending.Lenders(w, "vega", v)[1].RatePct);
+        w.Relationship("corwin_head", "self").Disposition = Lending.IllRegard; Assert.Equal(baseRate + Lending.RegardPct, Lending.Lenders(w, "vega", v)[1].RatePct);
+        w.Relationship("corwin_head", "self").Disposition = Lending.WontAt; Assert.Contains("will not lend to you", Lending.Lenders(w, "vega", v)[1].Refusal);
+        Assert.Contains("will not lend to you", new TakeLoanCommand("self", v, "corwin", 10).Refusal(Ctx(w)));
+        w.Relationship("corwin_head", "self").Disposition = Lending.GoodRegard;
+
+        // an amount of one's choosing, within the limit
+        Assert.Equal($"no less than {Lending.Step} credits", new TakeLoanCommand("self", v, "corwin", 2).Refusal(Ctx(w)));
+        Assert.Contains("will lend you 30 and no more", new TakeLoanCommand("self", v, "corwin", 35).Refusal(Ctx(w)));
+        Assert.True(exec.TryExecute(new TakeLoanCommand("self", v, "corwin", 15), Ctx(w)));
+        Assert.Equal(2 + 15, vega.Treasury.Credits); Assert.Equal(18, vega.Debt); Assert.Equal("corwin", vega.LenderId);                  // 15 at 20 in the hundred
+        Assert.Equal(Lending.Instalment(f, 18), vega.LoanInstalment); Assert.Equal(3, vega.LoanInstalment);
+
+        // one lender at a time; the one already owed lends more, to its limit
+        Assert.Contains("a second lender wants the first paid", new TakeLoanCommand("self", v, "", 10).Refusal(Ctx(w)));
+        Assert.Equal(10, Lending.Room(w, vega, Lending.Lenders(w, "vega", v)[1]));                                                          // 30, less the 18 owed, in fives
+        Assert.True(exec.TryExecute(new TakeLoanCommand("self", v, "corwin", 10), Ctx(w)));
+        Assert.Equal(30, vega.Debt); Assert.Equal(5, vega.LoanInstalment);
+        Assert.Contains("will lend you no more", new TakeLoanCommand("self", v, "corwin", 5).Refusal(Ctx(w)));
+
+        // the year takes the instalment that was agreed, not the standing loan's
+        Assert.Contains(eco.Compute(w, "vega").Lines, l => l.Kind == "loan" && l.Delta.Credits == -5);
+        eco.Accrue(w); Assert.Equal(25, vega.Debt);
+
+        // paid in part: less is owed and the instalment stands; paid in full: nothing is owed and the lender is gone
+        vega.Treasury.Credits = 40;
+        Assert.True(exec.TryExecute(new RepayLoanCommand("self", 10), Ctx(w)));
+        Assert.Equal(15, vega.Debt); Assert.Equal(30, vega.Treasury.Credits); Assert.Equal("corwin", vega.LenderId); Assert.Equal(5, vega.LoanInstalment); Assert.Equal(3, Lending.Years(vega.Debt, vega.LoanInstalment));
+        Assert.True(exec.TryExecute(new RepayLoanCommand("self", 99), Ctx(w)));                                                             // more than is owed pays what is owed
+        Assert.Equal(0, vega.Debt); Assert.Equal(15, vega.Treasury.Credits); Assert.Equal("", vega.LenderId); Assert.Equal(0, vega.LoanInstalment);
+        vega.Treasury.Credits = 3; Assert.True(exec.TryExecute(new TakeLoanCommand("self", v, "", 30), Ctx(w))); Assert.Equal(39, vega.Debt);
+        Assert.Equal("needs 5 credits", new RepayLoanCommand("self", 5).Refusal(Ctx(new World { Houses = { ["x"] = new House { Id = "x", Debt = 9 } }, Characters = { ["self"] = new Character { Id = "self", HouseId = "x", Alive = true } } })));
+    }
+
     [Fact]
     public void Loan_PaysInstalments_AndInterestToTheLendersBank()
     {

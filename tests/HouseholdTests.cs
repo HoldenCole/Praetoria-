@@ -116,6 +116,48 @@ public class HouseholdTests
         tc.BeginTurn(); Assert.True(Do(w, new DelegateCommand(me.Id, HouseholdSystem.Steward, ""))); Assert.Null(mine.Duty(HouseholdSystem.Steward));
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, Money: "Tell the steward what to favour, and see what she would do next." */
+    [Fact]
+    public void A_steward_can_be_told_what_to_favour_and_says_beforehand_what_they_would_do()
+    {
+        var (tc, w, me, mine) = Start(); var s = Person(w, mine, "steward_kin", 30); s.Name = "Able Steward"; s.Skills["administration"] = 2; w.Relationship(s.Id, me.Id).Disposition = 40;
+        mine.Treasury.Credits = 400; mine.Treasury.Materials = 200; var ctx = new CommandContext(w, TestContent.Rng());
+        Assert.Equal("the house has no steward", new StewardFavourCommand(me.Id, HouseholdSystem.FavourHold).Refusal(ctx));
+        Assert.True(Do(w, new DelegateCommand(me.Id, HouseholdSystem.Steward, s.Id, 50))); var d = mine.Duty(HouseholdSystem.Steward)!;
+        Assert.Equal("no such instruction", new StewardFavourCommand(me.Id, "poetry").Refusal(ctx));
+
+        // what they say they would do is what they do
+        var plan = tc.Household.StewardPlan(w, mine, ctx);
+        Assert.NotNull(plan.next); Assert.Equal(1, plan.acts); Assert.StartsWith("began ", plan.next);
+        tc.EndTurn(); Assert.Equal(char.ToUpperInvariant(plan.next![0]) + plan.next[1..] + ".", d.LastReport);
+
+        // told to favour a thing, a building that yields it comes before the cheapest
+        tc.BeginTurn(); mine.Treasury.Credits = 400; mine.Treasury.Materials = 200;
+        string plain = tc.Household.StewardPlan(w, mine, ctx).next!;
+        string? differs = null;
+        foreach (var f in new[] { Resource.Credits, Resource.Materials, Resource.Manpower, Resource.Helium3 })
+        {
+            Assert.True(Do(w, new StewardFavourCommand(me.Id, f))); Assert.Equal(f, d.Favour);
+            var p = tc.Household.StewardPlan(w, mine, ctx); if (p.next == null) continue;
+            string name = p.next["began ".Length..p.next.LastIndexOf(" on ", StringComparison.Ordinal)]; var def = Content.Holdings.Buildings.First(b => b.Name == name);
+            bool any = w.HoldingsOf(mine.Id).Any(h => Content.Holdings.Buildings.Any(b => !b.Megastructure && b.Yield.Get(f) > 0 && new BuildCommand(s.Id, h.Id, b.Id, Content.Holdings, Content.Titles).CanExecute(ctx)
+                                                           && mine.Treasury.Credits - b.Cost.Credits >= d.Reserve));
+            if (any) Assert.True(def.Yield.Get(f) > 0, $"favouring {f}, would begin {name}");
+            if (p.next != plain) differs = f;
+        }
+        Assert.NotNull(differs);                                                               // an instruction changes what is begun
+
+        // the ventures first; and told to hold, nothing new at all
+        Assert.True(Do(w, new StewardFavourCommand(me.Id, HouseholdSystem.FavourHold)));
+        var held = tc.Household.StewardPlan(w, mine, ctx); Assert.Null(held.next); Assert.Contains("nothing new", held.says);
+        int before = w.Projects.Count(p => p.OwnerId == mine.Id) + w.HoldingsOf(mine.Id).Sum(h => h.Buildings.Count); tc.EndTurn();
+        Assert.Equal(before, w.Projects.Count(p => p.OwnerId == mine.Id) + w.HoldingsOf(mine.Id).Sum(h => h.Buildings.Count)); Assert.Equal("Began nothing new, as told.", d.LastReport);
+
+        // below the reserve they say so beforehand
+        tc.BeginTurn(); Assert.True(Do(w, new StewardFavourCommand(me.Id, ""))); mine.Treasury.Credits = 30; d.Reserve = 1000;
+        var none = tc.Household.StewardPlan(w, mine, ctx); Assert.Null(none.next); Assert.Contains("1000 credits", none.says);
+    }
+
     [Fact]
     public void A_greedy_steward_who_owes_the_head_nothing_helps_themselves_and_is_found_out()
     {

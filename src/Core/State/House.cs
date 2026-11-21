@@ -61,6 +61,8 @@ public sealed class House
 
     /// <summary>The house whose bank holds the loan, or "" for the caravaneers' counting-houses (no one in particular).</summary>
     public string LenderId { get; set; } = "";
+    /// <summary>What is paid on the debt each year, for a loan of a chosen amount (0: the standing loan's instalment, as in an older game).</summary>
+    public int LoanInstalment { get; set; }
 
     /// <summary>The house's wealth as last reckoned by the economy (treasury, land, ventures, less debt) — cached each turn
     /// so content, AI and the UI read one number. See <see cref="Systems.Wealth"/>.</summary>
