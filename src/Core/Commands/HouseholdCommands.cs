@@ -231,7 +231,7 @@ public sealed class WealthCommand : ICommand
 /// for; <see cref="NameHeir"/> someone of the house to succeed you (an empty person names nobody, and the law decides).</summary>
 public sealed class AmbitionCommand : ICommand
 {
-    public const string Grant = "grant", Refuse = "refuse", NameHeir = "name_heir", SecondStart = "second_start";
+    public const string Grant = "grant", Refuse = "refuse", NameHeir = "name_heir", SecondStart = "second_start", Settle = "settle", Later = "later";
     private readonly string _what, _personId; private readonly AmbitionSystem _system;
     public AmbitionCommand(string actorId, string what, string personId, AmbitionSystem system) { ActorId = actorId; _what = what; _personId = personId; _system = system; }
     public string ActorId { get; }
@@ -241,6 +241,8 @@ public sealed class AmbitionCommand : ICommand
         var w = ctx.World; var head = w.Char(ActorId); var who = _personId.Length > 0 ? w.Char(_personId) : null;
         if (_what == NameHeir) return _personId.Length > 0 && who == null ? "no such person" : AmbitionSystem.NameHeirRefusal(w, head, who);
         if (_what == SecondStart) return _system.SecondStartOffer(w, head, who, ctx).refusal;
+        if (_what == Settle) return _system.SettleRefusal(w, head, who, ctx.PoolsOf(ActorId));
+        if (_what == Later) return AmbitionSystem.DeferRefusal(w, head, who);
         return _system.AnswerRefusal(w, head, who, _what == Grant, ctx.PoolsOf(ActorId));
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
@@ -248,6 +250,8 @@ public sealed class AmbitionCommand : ICommand
     {
         var w = ctx.World; var head = w.Char(ActorId)!; var who = _personId.Length > 0 ? w.Char(_personId) : null;
         if (_what == SecondStart) { _system.SecondStart(w, head, who!, new CommandExecutor(), ctx); return; }
+        if (_what == Settle) { _system.Settle(w, head, who!, new CommandExecutor(), ctx); return; }
+        if (_what == Later) { AmbitionSystem.Defer(w, head, who!); return; }
         if (_what == NameHeir) AmbitionSystem.NameHeir(w, head, who); else _system.Answer(w, head, who!, _what == Grant, new CommandExecutor(), ctx);
     }
 }

@@ -34,6 +34,24 @@ public static class CourtshipSystem
     private static readonly string[] TickFlags = { CourtingFlag, RivalFlag, SuitFlag, BetrothedFlag, MarriedFlag, WarmFlag, ColdFlag, EstrangedFlag };
     private static readonly string[] DeedFlags = { JustWedFlag, LoveMatchFlag, JiltedFlag, ElopedFlag, DivorcedFlag, BetrothalBrokenFlag, ExposedFlag, WidowedFlag, SuitRefusedFlag, KinAsksFlag, KinElopedFlag, ForbiddenFlag };
 
+    /// <summary>What telling one of the house to wait for a blessing costs with them.</summary>
+    public const int WaitRegard = 3;
+    /// <summary>Why the head may not tell one of the house who has asked a blessing to wait, or null: only one who has asked, and once.</summary>
+    public static string? WaitRefusal(World w, Courtship c)
+    {
+        if (!c.Own || c.AskingSince < 0) return "nobody has asked your blessing for it";
+        if (c.Forbidden) return "you forbade it";
+        return c.ToldToWait ? "you have told them to wait once: it is yes or no now" : null;
+    }
+    /// <summary>Wait: the question stands, and the years they will wait for an answer begin again. It can be said once.</summary>
+    public static void TellToWait(World w, Courtship c)
+    {
+        var s = w.Char(c.SuitorId); var p = w.Protagonist; var t = w.Char(c.TargetId);
+        c.ToldToWait = true; c.AskingSince = w.Turn;
+        if (s != null && p != null) { var r = w.Relationship(s.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition - WaitRegard, -100, 100); }
+        w.Log($"{p?.Name ?? "The head"} tells {s?.Name ?? "them"} to wait a while over {t?.Name ?? "the match"}. It is not a no.");
+    }
+
     /// <summary>One of the house with a will of their own (GDD §18): not Loyal, and ambitious, proud, or set on a great love.</summary>
     public static bool Wilful(Character c) => !c.NatureTraits.Contains("Loyal") && (c.NatureTraits.Contains("Ambitious") || c.NatureTraits.Contains("Arrogant") || c.NatureTraits.Contains("Proud")
         || c.Ambition is "win_a_great_love" or "seize_the_throne" or "outshine_all_rivals");

@@ -1176,3 +1176,8 @@ details.sysp-fold > summary .muted { letter-spacing: 0; text-transform: none; ma
 
 /* The world's card in the House window: what is rising, and building from there */
 .hc-rising { display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; margin: .2rem 0; }
+
+/* The table of prospects: headers that sort */
+table.prospects th.sortable { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+table.prospects th.sortable.here { color: var(--gold, #d8b25a); text-decoration: none; }
+.suit.quarrel { border-left: 2px solid var(--gold, #d8b25a); }

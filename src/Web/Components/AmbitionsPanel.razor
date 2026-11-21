@@ -25,6 +25,22 @@
         }
     </p></div>
 
+    @foreach (var (qa, qb, prize) in AmbitionSystem.Quarrels(w, house))
+    {
+        /* two of the house want one prize: the head may find for either (docs/PLAYTHROUGH.md, Medium, Family, F74 and F95) */
+        var (withA, withB) = AmbitionSystem.Sides(w, AmbitionSystem.Members(w, house), qa, qb);
+        <div class="suit incoming quarrel" data-quarrel="@(qa.Id + "|" + qb.Id)">
+            <div class="small"><b>@qa.Name and @qb.Name both want @prize.</b> <span class="muted">@(withA.Count + withB.Count == 0 ? "The rest of the house has not taken sides." : $"{withA.Count} of the house stand with {First(qa.Name)}, {withB.Count} with {First(qb.Name)}.") Each year it goes on they think the worse of each other, and those behind one think the worse of the other. You may find for one of them, or leave it.</span></div>
+            <div class="suit-acts">
+                @foreach (var one in new[] { qa, qb })
+                {
+                    string oid = one.Id; var settle = new AmbitionCommand(pid, AmbitionCommand.Settle, oid, sys); string? sno = settle.Refusal(G.Ctx); string says = sys.SettleSays(w, w.Protagonist!, one);
+                    <button class="opt inline" data-settle-for="@oid" disabled="@(sno != null)" title="@(sno ?? says)" @onclick='() => G.Ask("Find for " + one.Name + "?", says, "Find for " + First(one.Name), () => G.Execute(settle))'>Find for @First(one.Name)</button>
+                    @if (sno != null) { <span class="small warn">@Cap(sno).</span> }
+                }
+            </div>
+        </div>
+    }
     @if (members.Count == 0) { <div class="muted small">@(w.FamilyAutonomy <= 0 ? "Yours is a deferential family: they wait to be told." : "Nobody grown of the house has set their mind on anything yet.")</div> }
     @foreach (var c in members)
     {
@@ -37,6 +53,7 @@
                     @if (c.Flags.Contains(AmbitionSystem.ThwartedChar)) { <span class="pill small warn">thwarted</span> }
                     <div class="muted small">@(u.Note.Length > 0 ? u.Note : "Nothing to note this year.")@(u.Helped + u.Refused > 0 ? $" · you have helped {u.Helped} time(s) and said no {u.Refused}" : "")</div></div>
             </div>
+            @if (AmbitionSystem.HelpSays(w, c) is { Length: > 0 } helps) { <div class="muted small" data-help-for="@cid"><b>What would help:</b> @helps</div> }
             @if (!u.Fulfilled) { <div class="gauges"><div class="gauge" title="How near they are to what they want, from 0 to 100 by their own reckoning. At 100 they have it."><span>How near (of 100)</span><i><b style="width:@u.Progress%" class="@(u.Progress >= 70 ? "high" : u.Progress < 25 ? "low" : "")"></b></i><em>@u.Progress</em></div></div> }
             @if (w.Counter(VentureSystem.FailedFounderKey(c.Id)) > 0)
             {
@@ -52,6 +69,8 @@
                 <div class="small"><b>@First(c.Name) @AmbitionSystem.RequestSays(w, c).</b> <span class="muted">They will take silence for a no in @left year(s).</span></div>
                 <div class="suit-acts">
                     <button class="opt inline" disabled="@(no != null)" title="@(no ?? "It costs: " + AmbitionSystem.GrantCosts(w, c) + ".")" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.Grant, cid, sys))">Grant it</button>
+                    @{ var later = new AmbitionCommand(pid, AmbitionCommand.Later, cid, sys); var laterNo = later.Refusal(G.Ctx); }
+                    <button class="opt inline" data-not-yet="@cid" disabled="@(laterNo != null)" title="@(laterNo ?? $"The request stands and they wait {AmbitionSystem.RequestYears} years more for an answer. They think {AmbitionSystem.DeferRegard} the worse of you for it, where a no costs 8 (15 when what is asked is to be named heir). It can be said once.")" @onclick="() => G.Execute(later)">Not yet</button>
                     <button class="opt inline" title="They will remember it." @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.Refuse, cid, sys))">Say no</button>
                     <span class="muted small">Costs @AmbitionSystem.GrantCosts(w, c).</span>
                 </div>
@@ -62,6 +81,7 @@
 
 @code {
     private static string First(string name) => name.Split(' ')[0];
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);
     public void Dispose() => G.Changed -= Redraw;

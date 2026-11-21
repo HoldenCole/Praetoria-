@@ -51,7 +51,7 @@ public sealed class WooCommand : ICommand
 /// declines a suit brought for one of your kin.</summary>
 public sealed class SettleSuitCommand : ICommand
 {
-    public const string Propose = "propose", Elope = "elope", BreakOff = "break", Refuse = "refuse";
+    public const string Propose = "propose", Elope = "elope", BreakOff = "break", Refuse = "refuse", Wait = "wait";
     private readonly string _courtshipId, _how, _dowry, _childrenTo;
     public SettleSuitCommand(string actorId, string courtshipId, string how, string dowry = CourtshipSystem.Customary, string childrenTo = "")
     { ActorId = actorId; _courtshipId = courtshipId; _how = how; _dowry = dowry; _childrenTo = childrenTo; }
@@ -69,6 +69,7 @@ public sealed class SettleSuitCommand : ICommand
             Elope => CourtshipSystem.ElopeRefusal(w, c),
             BreakOff => c.Incoming ? "it is their suit to drop" : null,
             Refuse => c.Incoming ? null : "it is your own suit",
+            Wait => CourtshipSystem.WaitRefusal(w, c),
             _ => "no such way to settle it"
         };
     }
@@ -78,6 +79,7 @@ public sealed class SettleSuitCommand : ICommand
         var w = ctx.World; var c = w.Courtships.First(x => x.Id == _courtshipId);
         switch (_how)
         {
+            case Wait: CourtshipSystem.TellToWait(w, c); break;
             case Propose:
                 if (!CourtshipSystem.Propose(w, c, _dowry, _childrenTo)) c.AskedTurn = w.Turn;
                 break;

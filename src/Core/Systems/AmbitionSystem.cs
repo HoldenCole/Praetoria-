@@ -174,6 +174,113 @@ public sealed class AmbitionSystem
         w.Log($"{head.Name} names {who.Name} heir to {house.Name}{(lawful != null && lawful.Id != who.Id ? $", over {lawful.Name}" : "")}.");
     }
 
+    // ---------------- more than yes or no (docs/PLAYTHROUGH.md, Medium, Family, F36 and F88) ----------------
+
+    /// <summary>What "not yet" costs with the one who asked.</summary>
+    public const int DeferRegard = 2;
+    public static string? DeferRefusal(World w, Character? head, Character? who)
+    {
+        if (head?.Alive != true || who?.Alive != true || who.HouseId != head.HouseId || who.Pursuit is not { Request.Length: > 0 } u) return "they have asked for nothing";
+        return u.Deferred ? "you have said not yet once: it is yes or no now" : null;
+    }
+    /// <summary>Not yet: the request stands and the wait for an answer begins again. It can be said once.</summary>
+    public static void Defer(World w, Character head, Character who)
+    {
+        var u = who.Pursuit!; u.Deferred = true; u.RequestSince = w.Turn; Regard(w, who, head, -DeferRegard);
+        w.Log($"{head.Name} tells {who.Name} not yet. {who.Name} will ask again.");
+    }
+    /// <summary>What the head can do toward what one of the house wants, and where it is done: said for each ambition, whether
+    /// or not they have asked for anything.</summary>
+    public static string HelpSays(World w, Character c)
+    {
+        var u = c.Pursuit; if (u == null || u.Fulfilled) return "";
+        var house = w.House(c.HouseId);
+        return u.Goal switch
+        {
+            "command_a_fleet" or "earn_a_command" => "A fleet to command: under Military, a fleet's Command. A rank in the navy and skill at tactics bring them nearer without one.",
+            "amass_a_fortune" => $"It is their own purse that counts: {c.Purse} of the {FortuneAt} they call a fortune. An allowance or a gift, under Purses and the will, or a venture settled on them.",
+            "restore_house_fortunes" => $"It is reckoned by what they have put into the house themselves: {u.Given} of {GivenAt}. A fuller purse of their own lets them give more.",
+            "master_the_senate" => "An office, or a rise in their service: back them when they stand (Senate, the ladder), or speak for their promotion when they ask.",
+            "outshine_all_rivals" => "They measure themselves against the best of the house: a tutor or a course of study (Dynasty, learning) and a higher rank close the gap.",
+            "seize_the_throne" => house != null && house.NamedHeirId == c.Id ? "They are your named heir." : "Only standing to inherit satisfies it: name them heir, in this panel, or do not.",
+            "win_a_great_love" => "Let them court whom they choose, and give your blessing when they ask: Dynasty, courtship.",
+            _ => ""
+        };
+    }
+
+    // ---------------- the head settles a quarrel (docs/PLAYTHROUGH.md, Medium, Family, F74 and F95) ----------------
+
+    /// <summary>What the one found for thinks the better of the head, what the other thinks the worse, and what the other thinks
+    /// the worse of the one found for.</summary>
+    public const int SettleFor = 8, SettleAgainst = 10, SettleBetween = 6;
+    public const string SettledCounter = "quarrels_settled";
+    /// <summary>The quarrels of a house as they stand: two of it who want the same prize.</summary>
+    public static List<(Character a, Character b, string prize)> Quarrels(World w, House house)
+    {
+        var list = new List<(Character, Character, string)>();
+        foreach (var a in Members(w, house).OrderBy(m => m.Id, StringComparer.Ordinal))
+        {
+            if (a.Pursuit is not { RivalId.Length: > 0 } u || w.Char(u.RivalId) is not { Alive: true } b || b.HouseId != house.Id || b.Pursuit?.RivalId != a.Id) continue;
+            if (string.CompareOrdinal(a.Id, b.Id) < 0) list.Add((a, b, u.RivalPrize));
+        }
+        return list;
+    }
+    private static (Character other, string prize)? Quarrel(World w, Character? who) =>
+        who?.Pursuit is { RivalId.Length: > 0 } u && w.Char(u.RivalId) is { Alive: true } other && other.HouseId == who.HouseId ? (other, u.RivalPrize) : null;
+    /// <summary>Why the head may not find for one of two who quarrel, or null. A relative's name on a ballot is their own: one who is
+    /// wilful does not take it down at the head's word, and the quarrel is not settled that way.</summary>
+    public string? SettleRefusal(World w, Character? head, Character? forWhom, ActionPools? pools)
+    {
+        var house = head != null ? w.House(head.HouseId) : null;
+        if (head?.Alive != true || house == null || Economy.HeadOf(w, house)?.Id != head.Id) return "only the head of the house can";
+        if (forWhom?.Alive != true || forWhom.HouseId != house.Id || forWhom.Id == head.Id) return "not one of your house";
+        if (Quarrel(w, forWhom) is not { } q) return "they quarrel with nobody";
+        if (q.prize.StartsWith("the office", StringComparison.Ordinal))
+            return CourtshipSystem.Wilful(q.other) && w.FamilyAutonomy > 0 ? $"{q.other.Name} will not take their name down at your word: it is their name, and they are not one to be told" : null;
+        if (q.prize.StartsWith("the command", StringComparison.Ordinal))
+            return forWhom.Pursuit is { Request: Command } ? AnswerRefusal(w, head, forWhom, true, pools) : "they have not asked for the command";
+        return NameHeirRefusal(w, head, forWhom);
+    }
+    /// <summary>What finding for one moves: what they think the better of the head, what the other thinks the worse of the head, and
+    /// what the other thinks the worse of them. A command given is thanked as any granted request is; an heir named over the one
+    /// the law would give costs what passing them over always costs.</summary>
+    public (int forGain, int otherLoss, int between) SettleMoves(World w, Character head, Character forWhom)
+    {
+        if (Quarrel(w, forWhom) is not { } q) return (0, 0, 0);
+        if (q.prize.StartsWith("the office", StringComparison.Ordinal)) return (SettleFor, SettleAgainst, SettleBetween);
+        if (q.prize.StartsWith("the command", StringComparison.Ordinal)) return (12, 8, SettleBetween);
+        var house = w.House(head.HouseId)!; string named = house.NamedHeirId; house.NamedHeirId = ""; var lawful = DynastySystem.FindHeir(w, head); house.NamedHeirId = named;
+        return lawful?.Id == q.other.Id ? (SettleFor, 20, 20) : (SettleFor, SettleAgainst, SettleBetween);
+    }
+    /// <summary>What finding for them would do, said before it is done.</summary>
+    public string SettleSays(World w, Character head, Character forWhom)
+    {
+        if (Quarrel(w, forWhom) is not { } q) return "";
+        string does = q.prize.StartsWith("the office", StringComparison.Ordinal) ? $"{q.other.Name} takes their name down and {forWhom.Name} stands alone for the house."
+            : q.prize.StartsWith("the command", StringComparison.Ordinal) ? $"{forWhom.Name} is given {q.prize}, and {q.other.Name} is told no."
+            : $"{forWhom.Name} is named heir to the house.";
+        var m = SettleMoves(w, head, forWhom);
+        return $"{does} {forWhom.Name} thinks {m.forGain} the better of you; {q.other.Name} thinks {m.otherLoss} the worse of you and {m.between} the worse of {forWhom.Name}, and quarrels over {q.prize} no longer.";
+    }
+    /// <summary>The head finds for one of the two: the prize is settled as far as the head can settle it, and the other is told to leave it.</summary>
+    public void Settle(World w, Character head, Character forWhom, CommandExecutor executor, CommandContext ctx)
+    {
+        if (Quarrel(w, forWhom) is not { } q) return; var other = q.other; string prize = q.prize; var moves = SettleMoves(w, head, forWhom);
+        int before = w.GetRelationship(other.Id, head.Id)?.Disposition ?? 0, mine = w.GetRelationship(forWhom.Id, head.Id)?.Disposition ?? 0, between = w.GetRelationship(other.Id, forWhom.Id)?.Disposition ?? 0;
+        if (prize.StartsWith("the office", StringComparison.Ordinal)) { w.Candidacies.RemoveAll(c => c.CharacterId == other.Id); other.Flags.Remove(LadderSystem.StandingChar); }
+        else if (prize.StartsWith("the command", StringComparison.Ordinal)) { Answer(w, head, forWhom, true, executor, ctx); if (other.Pursuit is { Request: Command }) Answer(w, head, other, false, executor, ctx); }
+        else NameHeir(w, head, forWhom);
+        // whatever the settling itself moved, the finding moves these and no more: the figures the head was shown
+        w.Relationship(forWhom.Id, head.Id).Disposition = Math.Clamp(mine + moves.forGain, -100, 100);
+        w.Relationship(other.Id, head.Id).Disposition = Math.Clamp(before - moves.otherLoss, -100, 100);
+        w.Relationship(other.Id, forWhom.Id).Disposition = Math.Clamp(between - moves.between, -100, 100);
+        if (other.Pursuit != null) { other.Pursuit.StoodAside = prize; other.Pursuit.RivalId = ""; other.Pursuit.RivalPrize = ""; other.Pursuit.Note = $"Told by the head to leave {prize} to {forWhom.Name}."; }
+        if (forWhom.Pursuit != null) { forWhom.Pursuit.RivalId = ""; forWhom.Pursuit.RivalPrize = ""; forWhom.Pursuit.Note = $"The head found for them over {prize}."; }
+        forWhom.Flags.Remove(QuarrelFirst); forWhom.Flags.Remove(QuarrelSecond); other.Flags.Remove(QuarrelFirst); other.Flags.Remove(QuarrelSecond);
+        w.WorldCounters[SettledCounter] = w.Counter(SettledCounter) + 1;
+        w.Log($"{head.Name} settles it: {prize} is {forWhom.Name}'s to try for, and {other.Name} is told to leave it.");
+    }
+
     // ---------------- what they do themselves ----------------
 
     /// <summary>The cheapest venture the house could found now, and where.</summary>
@@ -211,7 +318,7 @@ public sealed class AmbitionSystem
 
     private void Ask(World w, Character c, string request, string arg)
     {
-        var u = c.Pursuit!; u.Request = request; u.RequestArg = arg; u.RequestSince = w.Turn; u.LastAsked = w.Turn; c.Flags.Add(AskingChar);
+        var u = c.Pursuit!; u.Request = request; u.RequestArg = arg; u.RequestSince = w.Turn; u.LastAsked = w.Turn; u.Deferred = false; c.Flags.Add(AskingChar);
         w.Log($"{c.Name} {RequestSays(w, c)}.");
     }
 
@@ -356,7 +463,7 @@ public sealed class AmbitionSystem
             if (u.Request.Length > 0) w.WorldFlags.Add(AskingFlag);
         }
         // Two of the house who want the same prize quarrel over it (docs/AMBITIONS.md). The head may take a side, or not.
-        var pairs = members.Where(m => m.Pursuit != null).Select(m => (m, prize: Prize(w, m, heir))).Where(x => x.prize.Length > 0).GroupBy(x => x.prize).Where(g => g.Count() >= 2).OrderBy(g => g.Key, StringComparer.Ordinal)
+        var pairs = members.Where(m => m.Pursuit != null).Select(m => (m, prize: Prize(w, m, heir))).Where(x => x.prize.Length > 0 && x.m.Pursuit!.StoodAside != x.prize).GroupBy(x => x.prize).Where(g => g.Count() >= 2).OrderBy(g => g.Key, StringComparer.Ordinal)
             .Select(g => (prize: g.Key, two: g.Select(x => x.m).OrderByDescending(Standing).ThenBy(m => m.Id, StringComparer.Ordinal).Take(2).ToList())).ToList();
         var quarrelling = pairs.SelectMany(x => x.two.Select(m => m.Id)).ToHashSet();
         foreach (var m in members.Where(m => m.Pursuit is { RivalId.Length: > 0 } && !quarrelling.Contains(m.Id)).ToList())

@@ -25,6 +25,29 @@ public class AmbitionTests
     private static void Years(TurnController tc, World w, CommandContext ctx, int n) { for (int i = 0; i < n; i++) { w.Turn++; tc.Ambitions.Tick(w, tc.Executor, ctx); } }
     private static bool Do(TurnController tc, World w, CommandContext ctx, ICommand cmd) => tc.Executor.TryExecute(cmd, ctx);
 
+    /* docs/PLAYTHROUGH.md, Medium, Family: "More than yes or no to a relative, and a way to help with what they want" (F36, F88). */
+    [Fact]
+    public void The_head_may_answer_not_yet_once_and_is_told_what_would_help()
+    {
+        var (tc, w, me, mine, ctx) = Start(); var c = Kin(w, mine, me, "officer", "command_a_fleet"); c.Skills["tactics"] = 9;
+        var fleet = w.Fleets.Values.Where(f => f.OwnerId == mine.Id).OrderBy(f => f.Id, StringComparer.Ordinal).First(); var sitting = Kin(w, mine, me, "sitting", ""); fleet.AdmiralId = sitting.Id;
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == mine.Id && f.Id != fleet.Id)) f.AdmiralId = me.Id;
+        Assert.Equal("they have asked for nothing", new AmbitionCommand(me.Id, AmbitionCommand.Later, c.Id, tc.Ambitions).Refusal(ctx));
+        Years(tc, w, ctx, 2); Assert.Equal(AmbitionSystem.Command, c.Pursuit!.Request);
+        Assert.Contains("under Military", AmbitionSystem.HelpSays(w, c));                         // what would help is said whether or not they ask
+        // not yet: the request stands, the wait begins again, and it costs less than a no
+        int regard = w.Relationship(c.Id, me.Id).Disposition; int since = c.Pursuit.RequestSince; w.Turn++;
+        Assert.True(Do(tc, w, ctx, new AmbitionCommand(me.Id, AmbitionCommand.Later, c.Id, tc.Ambitions)));
+        Assert.Equal(AmbitionSystem.Command, c.Pursuit.Request); Assert.True(c.Pursuit.RequestSince > since); Assert.Equal(w.Turn, c.Pursuit.RequestSince); Assert.Equal(regard - AmbitionSystem.DeferRegard, w.Relationship(c.Id, me.Id).Disposition);
+        Assert.Equal(0, c.Pursuit.Refused); Assert.True(AmbitionSystem.DeferRegard < 8);
+        // once only: after that it is yes or no
+        Assert.Contains("yes or no now", new AmbitionCommand(me.Id, AmbitionCommand.Later, c.Id, tc.Ambitions).Refusal(ctx));
+        Assert.True(Do(tc, w, ctx, new AmbitionCommand(me.Id, AmbitionCommand.Grant, c.Id, tc.Ambitions))); Assert.Equal(c.Id, fleet.AdmiralId);
+        // each ambition says something, and one that is had says nothing
+        foreach (var goal in new[] { "amass_a_fortune", "restore_house_fortunes", "master_the_senate", "outshine_all_rivals", "seize_the_throne", "win_a_great_love" })
+        { var k = Kin(w, mine, me, "k_" + goal, goal); k.Pursuit = new Pursuit { Goal = goal }; Assert.True(AmbitionSystem.HelpSays(w, k).Length > 20, goal); k.Pursuit.Fulfilled = true; Assert.Equal("", AmbitionSystem.HelpSays(w, k)); }
+    }
+
     [Fact]
     public void One_who_wants_a_command_asks_for_one_and_having_it_is_content()
     {

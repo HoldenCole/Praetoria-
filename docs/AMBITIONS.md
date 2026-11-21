@@ -116,3 +116,18 @@ shown with how many of the house are with them and how many against.
 - ~~A venture cannot fail, so that failure is never marked.~~ Closed: a venture that goes three years without a
   profit is wound up, and its founder has failed at it (docs/ECONOMY_MARKET.md, section 11).
 - The numbers are first guesses.
+
+## The head settles a quarrel; not yet; what would help (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, Family).
+
+**Finding for one of two** (`AmbitionSystem.Settle`, `AmbitionCommand.Settle`). The prize decides what it does: an office,
+and the other's candidacy is taken down; a command, and it is granted to one and refused the other; the house, and one
+is named heir. `SettleMoves` gives the three figures the head is shown and the same three are applied. The one told to
+leave it has the prize written on their pursuit (`StoodAside`) and does not quarrel over it again. A wilful relative
+(`CourtshipSystem.Wilful`) does not take their name down at the head's word, and the refusal says so beforehand.
+
+**Not yet** (`AmbitionSystem.Defer`, `AmbitionCommand.Later`): once for each request; the wait begins again; 2 regard.
+**Wait** for one who asks a blessing (`CourtshipSystem.TellToWait`, `SettleSuitCommand.Wait`): once; 3 regard.
+
+**What would help** (`AmbitionSystem.HelpSays`): a line for each ambition saying what the head can do toward it and where.

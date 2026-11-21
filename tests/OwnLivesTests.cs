@@ -46,6 +46,24 @@ public class OwnLivesTests
         Assert.False(Do(w, new MarriageCommand(me.Id, kin.Id, MarriageCommand.Divorce)));   // their marriage is their own
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, Family: "A relative asks your blessing to marry: bless, forbid, set terms" (F100). Blessing with
+       terms and forbidding were there; "wait" is the answer between them. */
+    [Fact]
+    public void One_who_asks_a_blessing_can_be_told_to_wait_once()
+    {
+        var (tc, w, me) = Start(); var kin = Kin(w, me); var t = MatchFor(w, kin);
+        var c = CourtshipSystem.Begin(w, kin, t, own: true); c.Favour = 40; c.Consent = 70;
+        Assert.Equal("nobody has asked your blessing for it", new SettleSuitCommand(me.Id, c.Id, SettleSuitCommand.Wait).Refusal(new CommandContext(w, TestContent.Rng())));
+        for (int i = 0; i < 7 && c.AskingSince < 0; i++) { Year(tc); c = w.Courtships.Single(x => x.Id == c.Id); c.RivalId = ""; }
+        Assert.True(c.AskingSince >= 0); int asked = c.AskingSince, regard = w.Relationship(kin.Id, me.Id).Disposition; w.Turn++;
+        Assert.True(Do(w, new SettleSuitCommand(me.Id, c.Id, SettleSuitCommand.Wait)));
+        Assert.True(c.ToldToWait); Assert.Equal(w.Turn, c.AskingSince); Assert.True(c.AskingSince > asked); Assert.Equal(regard - CourtshipSystem.WaitRegard, w.Relationship(kin.Id, me.Id).Disposition);
+        Assert.Contains(w.Courtships, x => x.Id == c.Id); Assert.False(c.Forbidden); Assert.Contains(w.History, h => h.Text.Contains("It is not a no"));
+        Assert.Contains("yes or no now", new SettleSuitCommand(me.Id, c.Id, SettleSuitCommand.Wait).Refusal(new CommandContext(w, TestContent.Rng())));
+        // the blessing can still be given, on terms of the head's choosing
+        Assert.True(Do(w, new SettleSuitCommand(me.Id, c.Id, SettleSuitCommand.Propose))); Assert.Equal(t.Id, DynastySystem.Spouse(w, kin)?.Id);
+    }
+
     [Fact]
     public void Kin_begin_suits_of_their_own_only_where_the_family_has_wills_of_its_own()
     {

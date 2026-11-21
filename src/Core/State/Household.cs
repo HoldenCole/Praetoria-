@@ -82,6 +82,10 @@ public sealed class Pursuit
     public string RivalId { get; set; } = "";
     /// <summary>What the two of them quarrel over, as it was said: kept so that the loser can hold it against the winner.</summary>
     public string RivalPrize { get; set; } = "";
+    /// <summary>The head has answered this request "not yet": it can be said once, and the wait begins again.</summary>
+    public bool Deferred { get; set; }
+    /// <summary>The prize the head told them to leave to another of the house: they quarrel over it no longer.</summary>
+    public string StoodAside { get; set; } = "";
     /// <summary>Times the head helped, and times the head refused or did not answer.</summary>
     public int Helped { get; set; }
     public int Refused { get; set; }

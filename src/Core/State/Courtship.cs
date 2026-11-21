@@ -30,6 +30,8 @@ public sealed class Courtship
     public int Wish { get; set; } = 100;
     /// <summary>The turn one of the house asked the head's leave to marry, or -1.</summary>
     public int AskingSince { get; set; } = -1;
+    /// <summary>The head has told the one who asked a blessing to wait: it can be said once, and the wait begins again.</summary>
+    public bool ToldToWait { get; set; }
     /// <summary>The head forbade it, and they have not given it up.</summary>
     public bool Forbidden { get; set; }
     /// <summary>The turn the rival appeared. Their suit does not advance in that same year.</summary>
