@@ -1124,3 +1124,5 @@ details.why { margin: .3rem 0; font-size: .8rem; } details.why summary { cursor:
 details.inline[data-hulls][open] { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; flex-basis: 100%; }
 details.inline[data-hulls][open] > summary { flex-basis: 100%; }
 details.inline[data-hulls] .qty { width: 4rem; }
+/* the roll call: under each house, why it leans as it does */
+.bench-why { padding: 0 0 .25rem 1.4rem; line-height: 1.25; border-bottom: 1px dashed rgba(255,255,255,.06); }

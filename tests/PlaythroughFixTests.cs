@@ -832,4 +832,30 @@ public class PlaythroughFixTests
         string terms = OfficeSystem.FleetTerms(w, Content.Offices, office); Assert.Contains(admiral.Name, terms); Assert.Contains("There is no term", terms); Assert.Contains("not yours to pay off", terms);
         Assert.NotNull(new PayOffHullsCommand(me.Id, office.Id, 1, Content.Fleets, Content.ShipClasses).Refusal(ctx));
     }
+    [Fact]
+    public void ARollCallGivesReasons_AndAMotionIsForecastBeforeItIsMoved()
+    {
+        // docs/PLAYTHROUGH.md, Medium, the Senate: a roll call with each house's reason; how a motion would fare before paying to move it
+        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); var senate = tc.Senate;
+        for (int y = 0; y < 3; y++) { tc.EndTurn(); tc.BeginTurn(); }
+        var target = w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).First();
+        foreach (var kind in new[] { "censure", "levy" })
+        {
+            if (senate.Motions.Def(kind) is not { } def) continue; string t = def.Target == "house" ? target.Id : "";
+            // the forecast is the count the motion has the moment it is on the docket
+            var (ff, fa) = senate.Forecast(w, house.Id, kind, t);
+            var m = senate.Add(w, house.Id, kind, t); var (tf, ta) = senate.Tally(w, m);
+            Assert.Equal((tf, ta), (ff, fa));
+            // each house's reasons add up to its lean, and the mover's own is that it moved it
+            foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)))
+            {
+                var why = senate.Why(w, m, h.Id); Assert.Equal(senate.Lean(w, m, h.Id), why.Sum(x => x.by));
+                Assert.All(why, x => { Assert.NotEqual(0, x.by); Assert.False(string.IsNullOrWhiteSpace(x.why)); });
+            }
+            Assert.Contains(senate.Why(w, m, house.Id), x => x.why == "it moved the motion");
+            // a whip is worth what the screen says it is
+            int before = senate.Lean(w, m, target.Id); m.Lobby[target.Id] = SenateSystem.LobbyWeight;
+            Assert.Equal(before + SenateSystem.LobbyWeight, senate.Why(w, m, target.Id).Sum(x => x.by));
+        }
+    }
 }

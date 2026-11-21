@@ -79,16 +79,21 @@ public sealed class SenateSystem
 
     /// <summary>How a rival house leans on a motion before lobbying: positive for, negative against, zero abstain. Deterministic.</summary>
     public int Lean(World w, Motion m, string houseId) => ReadCache.Active ? ReadCache.Get("lean:" + m.Id + ":" + houseId, () => LeanNow(w, m, houseId)) : LeanNow(w, m, houseId);
-    private int LeanNow(World w, Motion m, string houseId)
+    private int LeanNow(World w, Motion m, string houseId) => LeanNow(w, m, houseId, null);
+    /// <summary>Why a house leans as it does on a motion: each cause and what it is worth, the heaviest first. They sum to <see cref="Lean"/>.</summary>
+    public List<(string why, int by)> Why(World w, Motion m, string houseId)
+    { var list = new List<(string why, int by)>(); LeanNow(w, m, houseId, list); return list.OrderByDescending(x => Math.Abs(x.by)).ToList(); }
+    private int LeanNow(World w, Motion m, string houseId, List<(string why, int by)>? why)
     {
-        int lean = RawLean(w, m, houseId);
+        int lean = RawLean(w, m, houseId, true, why);
         // bloc discipline (FactionSystem): a member leans toward its leader's stance on anything that does not target it; a whip on the leader is half a whip on the bench
         var f = FactionSystem.Of(w, houseId);
-        if (f != null && m.TargetId != houseId && _motions.Def(m.Kind) is { } pd) lean += Math.Sign(f.Platform.GetValueOrDefault(pd.Interest));   // the party's stance on the kind
+        void Add(int by, string because) { if (by == 0) return; lean += by; why?.Add((because, by)); }
+        if (f != null && m.TargetId != houseId && _motions.Def(m.Kind) is { } pd) Add(Math.Sign(f.Platform.GetValueOrDefault(pd.Interest)), "the platform of " + f.Name);   // the party's stance on the kind
         if (f != null && f.LeaderHouseId != houseId && m.TargetId != houseId && m.ProposerHouseId != houseId)
         {
             int ls = LeaderStance(w, m, f);
-            lean += ls * FactionSystem.Discipline + m.Lobby.GetValueOrDefault(f.LeaderHouseId) / 2;
+            Add(ls * FactionSystem.Discipline, "it follows " + (w.House(f.LeaderHouseId)?.Name ?? "its leader") + ", who leads " + f.Name); Add(m.Lobby.GetValueOrDefault(f.LeaderHouseId) / 2, "its leader has been lobbied");
         }
         return lean;
     }
@@ -146,111 +151,117 @@ public sealed class SenateSystem
         return hash % BribeOutOneIn == 0;
     }
 
-    public int RawLean(World w, Motion m, string houseId, bool bought)
+    /// <summary>The same, with each thing that moved it and by how much written into <paramref name="why"/> when one is given:
+    /// the roll call's reasons are the reckoning's own terms, so the two cannot part.</summary>
+    public int RawLean(World w, Motion m, string houseId, bool bought, List<(string why, int by)>? why = null)
     {
         var def = _motions.Def(m.Kind); var h = w.House(houseId); if (def == null || h == null) return 0;
-        if (houseId == m.ProposerHouseId) return 3;
+        if (houseId == m.ProposerHouseId) { why?.Add(("it moved the motion", 3)); return 3; }
         var head = Economy.HeadOf(w, h); var proposerHead = w.House(m.ProposerHouseId) is { } ph ? Economy.HeadOf(w, ph) : null;
         var targetHouse = def.Target == "house" ? w.House(m.TargetId) : null; var targetHead = targetHouse != null ? Economy.HeadOf(w, targetHouse) : null;
         int Disp(Character? from, Character? to) => from != null && to != null ? w.GetRelationship(from.Id, to.Id)?.Disposition ?? 0 : 0;
         int toProposer = Disp(head, proposerHead), toTarget = Disp(head, targetHead);
         var proposerHouseForSway = w.House(m.ProposerHouseId);
-        int lean = toProposer >= 20 ? 1 : toProposer <= -20 ? -1 : 0;
-        lean += OldTie(w, def, m, head, houseId) + LadderSystem.CommitteeLean(w, def.Interest, m.ProposerHouseId, houseId) + LadderSystem.ChairLeanOf(w, m, houseId) + WealthSystem.FavourLean(w, houseId, m.ProposerHouseId) + FeudSystem.Lean(w, houseId, m.ProposerHouseId) + (houseId != m.ProposerHouseId ? EmergencySystem.HolderLean(w, m.ProposerHouseId) : 0);
+        string pn = ProposerName(w, m), tn = targetHouse?.Name ?? "the house it names";
+        int lean = 0; void Add(int by, string because) { if (by == 0) return; lean += by; why?.Add((because, by)); }
+        Add(toProposer >= 20 ? 1 : toProposer <= -20 ? -1 : 0, "what its head thinks of " + pn);
+        Add(OldTie(w, def, m, head, houseId), "old ties with your house"); Add(LadderSystem.CommitteeLean(w, def.Interest, m.ProposerHouseId, houseId), "your standing on its committee");
+        Add(LadderSystem.ChairLeanOf(w, m, houseId), "the chair's word"); Add(WealthSystem.FavourLean(w, houseId, m.ProposerHouseId), "it owes " + pn + " a favour"); Add(FeudSystem.Lean(w, houseId, m.ProposerHouseId), "there is blood between it and " + pn);
+        Add(houseId != m.ProposerHouseId ? EmergencySystem.HolderLean(w, m.ProposerHouseId) : 0, pn + " holds emergency powers");
         // sway (docs/REPUBLIC.md stage 3): a house leans with whoever it depends on — its patron, its creditor, the house whose fuel
         // its fleets burn — for what that house wants, and against what is aimed at it
-        if (proposerHouseForSway != null && proposerHouseForSway.Id != houseId) lean += Math.Min(2, OrderSystem.Sway(w, h, proposerHouseForSway).lean);
+        if (proposerHouseForSway != null && proposerHouseForSway.Id != houseId) Add(Math.Min(2, OrderSystem.Sway(w, h, proposerHouseForSway).lean), "it depends on " + pn);
         if (targetHouse != null && targetHouse.Id != houseId)
         {
             int sway = OrderSystem.Sway(w, h, targetHouse).lean;
-            if (def.Interest is "commission" or "recognition" or "peace") lean += sway;
-            else if (def.Interest is "censure" or "embargo" or "breakup") lean -= sway;
+            if (def.Interest is "commission" or "recognition" or "peace") Add(sway, "it depends on " + tn);
+            else if (def.Interest is "censure" or "embargo" or "breakup") Add(-sway, "it depends on " + tn);
         }
         switch (def.Interest)
         {
             case "censure":
             case "embargo":
-                if (houseId == m.TargetId) lean -= 4;
-                else if (targetHouse != null && (toTarget >= 30 || (h.Bloc.Length > 0 && h.Bloc == targetHouse.Bloc))) lean -= 2;
-                else if (targetHouse != null && (toTarget <= -20 || w.AtWar(houseId, m.TargetId))) lean += 2;
+                if (houseId == m.TargetId) Add(-4, "it is the house struck at");
+                else if (targetHouse != null && (toTarget >= 30 || (h.Bloc.Length > 0 && h.Bloc == targetHouse.Bloc))) Add(-2, "it stands with " + tn);
+                else if (targetHouse != null && (toTarget <= -20 || w.AtWar(houseId, m.TargetId))) Add(2, "it is no friend of " + tn);
                 break;
             case "recognition":
-                if (houseId == m.TargetId) lean += 4;
-                else if (targetHouse != null && h.Claims.Contains(targetHouse.Title)) lean -= 2;          // a rival claimant to the same rung
-                else lean += toTarget >= 10 ? 1 : toTarget <= -20 ? -1 : 0;
+                if (houseId == m.TargetId) Add(4, "it is the house to be recognised");
+                else if (targetHouse != null && h.Claims.Contains(targetHouse.Title)) Add(-2, "it claims the same rank");          // a rival claimant to the same rung
+                else Add(toTarget >= 10 ? 1 : toTarget <= -20 ? -1 : 0, "what its head thinks of " + tn);
                 break;
             case "levy":
-                if (RegionSystem.CapitalHolder(w)?.Id == houseId) lean += 3;
-                else if (h.Treasury.Credits < 20) lean -= 2;
-                else lean -= 1;
-                if (h.Treasury.Credits > 150) lean += 1;                                                  // the rich can afford to look generous
+                if (RegionSystem.CapitalHolder(w)?.Id == houseId) Add(3, "the levy fills its own treasury: it holds the capital");
+                else if (h.Treasury.Credits < 20) Add(-2, "it cannot afford a levy");
+                else Add(-1, "a levy costs it");
+                if (h.Treasury.Credits > 150) Add(1, "it is rich enough to look generous");                                                  // the rich can afford to look generous
                 break;
             case "relief":
-                if (w.Galaxy != null && w.HoldingsOf(houseId).Any(x => x.IsPlanet && w.Galaxy.System(x.SystemId)?.RegionId == m.TargetId)) lean += 3;
-                else if (w.Galaxy != null && w.HoldingsOf(houseId).Any(x => x.IsPlanet && w.Galaxy.RingOf(x.SystemId) == Galaxy.Ring.Rim)) lean += 1;   // the rim knows what lawless lanes cost
+                if (w.Galaxy != null && w.HoldingsOf(houseId).Any(x => x.IsPlanet && w.Galaxy.System(x.SystemId)?.RegionId == m.TargetId)) Add(3, "its own worlds lie in the region");
+                else if (w.Galaxy != null && w.HoldingsOf(houseId).Any(x => x.IsPlanet && w.Galaxy.RingOf(x.SystemId) == Galaxy.Ring.Rim)) Add(1, "it holds worlds on the rim, and knows what lawless lanes cost");   // the rim knows what lawless lanes cost
                 break;
             case "commission":
-                if (houseId == m.TargetId) lean += 4;
+                if (houseId == m.TargetId) Add(4, "the office would be its own");
                 else
                 {
                     var holder = OfficeSystem.HolderHouse(w, m.OfficeId); var holderHouse = holder != null ? w.House(holder) : null; var holderHead = holderHouse != null ? Economy.HeadOf(w, holderHouse) : null;
-                    if (holder == houseId) lean -= 4;                                                      // no one votes themselves out of office
-                    else if (holderHouse != null && Disp(head, holderHead) >= 30) lean -= 2;             // the holder's friends
-                    if (_offices.Def(m.OfficeId) is { } od && OfficeSystem.Candidate(w, od, houseId) is { } ownC && targetHouse != null && (OfficeSystem.Candidate(w, od, targetHouse.Id)?.CareerRank ?? 0) < ownC.CareerRank) lean -= 2;   // a house with a better candidate is jealous
-                    lean += toTarget >= 10 ? 1 : toTarget <= -20 ? -2 : 0;
+                    if (holder == houseId) Add(-4, "it holds the office now");                                                      // no one votes themselves out of office
+                    else if (holderHouse != null && Disp(head, holderHead) >= 30) Add(-2, "it is a friend of the house that holds the office");             // the holder's friends
+                    if (_offices.Def(m.OfficeId) is { } od && OfficeSystem.Candidate(w, od, houseId) is { } ownC && targetHouse != null && (OfficeSystem.Candidate(w, od, targetHouse.Id)?.CareerRank ?? 0) < ownC.CareerRank) Add(-2, "it has the better candidate of its own");   // a house with a better candidate is jealous
+                    Add(toTarget >= 10 ? 1 : toTarget <= -20 ? -2 : 0, "what its head thinks of " + tn);
                     if (targetHouse != null && _offices.Def(m.OfficeId) is { } post)   // the chamber prefers a house of the order the post belongs to
                     {
                         string order = post.Track == "military" ? OrderSystem.Arms : post.Track == "stewardship" ? OrderSystem.Commerce : OrderSystem.Senate;
-                        int tier = OrderSystem.Tier(targetHouse, order); lean += tier >= 2 ? 1 : tier == 0 && order != OrderSystem.Senate ? -1 : 0;
+                        int tier = OrderSystem.Tier(targetHouse, order); Add(tier >= 2 ? 1 : tier == 0 && order != OrderSystem.Senate ? -1 : 0, "whether " + tn + " is of the order the office belongs to");
                     }
-                    if (RegionSystem.CapitalHolder(w)?.Id == houseId && toTarget >= 0) lean += 1;         // the chair likes a safe pair of hands
+                    if (RegionSystem.CapitalHolder(w)?.Id == houseId && toTarget >= 0) Add(1, "it holds the capital, and wants a safe pair of hands");         // the chair likes a safe pair of hands
                 }
                 break;
             case "breakup":
-                if (houseId == m.TargetId) lean -= 4;
-                else if (targetHouse != null && CompanySystem.ControlledBy(w, targetHouse.Id).Any(c => c.HeldBy(houseId) > 0)) lean -= 2;   // its other holders would be paid out at a loss
-                else if (targetHouse != null && (toTarget <= -20 || w.AtWar(houseId, m.TargetId))) lean += 2;
-                else if (targetHouse != null && toTarget >= 30) lean -= 2;
-                lean += FactionSystem.Of(w, houseId)?.PartyId switch { "factors" => -1, "populares" => 1, _ => 0 };
+                if (houseId == m.TargetId) Add(-4, "it is the house to be broken up");
+                else if (targetHouse != null && CompanySystem.ControlledBy(w, targetHouse.Id).Any(c => c.HeldBy(houseId) > 0)) Add(-2, "it holds shares in what would be broken up");   // its other holders would be paid out at a loss
+                else if (targetHouse != null && (toTarget <= -20 || w.AtWar(houseId, m.TargetId))) Add(2, "it is no friend of " + tn);
+                else if (targetHouse != null && toTarget >= 30) Add(-2, "it is a friend of " + tn);
+                Add(FactionSystem.Of(w, houseId)?.PartyId switch { "factors" => -1, "populares" => 1, _ => 0 }, "its bench's view of great companies");
                 break;
             case "rescue":
-                if (CompanySystem.PaperOf(w, houseId) >= 30) lean += 2;
-                if (RegionSystem.CapitalHolder(w)?.Id == houseId) lean -= 2;                               // it is the chair's purse that opens
-                lean += FactionSystem.Of(w, houseId)?.PartyId switch { "factors" => 2, "populares" => -1, _ => 0 };
+                if (CompanySystem.PaperOf(w, houseId) >= 30) Add(2, "it holds paper that a rescue would save");
+                if (RegionSystem.CapitalHolder(w)?.Id == houseId) Add(-2, "it holds the capital, and it is its purse that opens");                               // it is the chair's purse that opens
+                Add(FactionSystem.Of(w, houseId)?.PartyId switch { "factors" => 2, "populares" => -1, _ => 0 }, "its bench's view of a rescue");
                 break;
             case "triumph":
-                if (Caesar != null && targetHouse != null) lean += Caesar.TriumphLean(w, h, targetHouse, toTarget);
+                if (Caesar != null && targetHouse != null) Add(Caesar.TriumphLean(w, h, targetHouse, toTarget), "what it makes of " + tn + "'s victories");
                 break;
             case "recall":
-                if (Caesar != null && targetHouse != null) lean += Caesar.RecallLean(w, h, targetHouse, toTarget);
+                if (Caesar != null && targetHouse != null) Add(Caesar.RecallLean(w, h, targetHouse, toTarget), "what it makes of " + tn + "'s command");
                 break;
             case "emergency":
-                if (targetHouse != null) lean += EmergencySystem.GrantLean(w, h, targetHouse, toTarget);
+                if (targetHouse != null) Add(EmergencySystem.GrantLean(w, h, targetHouse, toTarget), "what it makes of the danger, and of " + tn);
                 break;
             case "for_life":
-                if (targetHouse != null) lean += EmergencySystem.ForLifeLean(w, h, targetHouse, toTarget);
+                if (targetHouse != null) Add(EmergencySystem.ForLifeLean(w, h, targetHouse, toTarget), "what it makes of powers for life");
                 break;
             case "reconquest":
-                if (Polities != null && targetHouse != null) lean += Polities.ReconquestLean(w, h, targetHouse, toTarget);
+                if (Polities != null && targetHouse != null) Add(Polities.ReconquestLean(w, h, targetHouse, toTarget), "what it makes of a reconquest");
                 break;
             case "act":
-                lean += ActLean(w, h, m);
+                Add(ActLean(w, h, m), "the law itself: its own laws, its estates and its bench");
                 break;
             case "foreign_war":
-                lean += ForeignWarLean(w, h, m.TargetId);
+                Add(ForeignWarLean(w, h, m.TargetId), "the war itself: its trade, its bench, how near the nation lies");
                 break;
             case "foreign_peace":
-                lean += ForeignPeaceLean(w, h, m.TargetId);
+                Add(ForeignPeaceLean(w, h, m.TargetId), "the peace itself: its trade, its bench, how the war goes");
                 break;
             case "peace":
-                if (houseId == m.TargetId) lean += 3;
-                else if (w.AtWar(houseId, m.TargetId)) { var war = w.Wars.FirstOrDefault(x => x.Between(houseId, m.TargetId)); lean += war != null && war.Lead(houseId) < 0 ? 1 : -3; }
-                else lean += 1;                                                                            // peace is popular with the bystanders
+                if (houseId == m.TargetId) Add(3, "it is the house the peace is for");
+                else if (w.AtWar(houseId, m.TargetId)) { var war = w.Wars.FirstOrDefault(x => x.Between(houseId, m.TargetId)); Add(war != null && war.Lead(houseId) < 0 ? 1 : -3, "it is at war with " + tn + " itself, and how that war goes"); }
+                else Add(1, "peace costs a bystander nothing");                                                                            // peace is popular with the bystanders
                 break;
         }
         uint hash = 2166136261; foreach (var ch in m.Id + ":" + houseId) hash = (hash ^ ch) * 16777619;
-        lean += (int)(hash % 3) - 1;
-        lean += m.Lobby.GetValueOrDefault(houseId) + (bought ? m.Bought.GetValueOrDefault(houseId) : 0);
+        Add((int)(hash % 3) - 1, "its own temper on the day");
+        Add(m.Lobby.GetValueOrDefault(houseId), "it has been lobbied"); Add(bought ? m.Bought.GetValueOrDefault(houseId) : 0, "its vote has been paid for");
         return lean;
     }
 
@@ -723,6 +734,17 @@ public sealed class SenateSystem
 
     /// <summary>The chamber tires of the same motion: the same house may not move the same kind against the same target for <see cref="RepeatTurns"/> turns.</summary>
     public static bool Stale(World w, string proposerHouseId, string kind, string targetId) => w.Counter($"motion_cd:{proposerHouseId}:{kind}:{targetId}") > w.Turn;
+
+    /// <summary>How a motion would stand if it were moved now, before anything is paid to move it: the weight for and against as the
+    /// houses lean today, reckoned exactly as the docket's own count is (docs/PLAYTHROUGH.md, the Senate: "how it would fare, before
+    /// paying to move it"). Nothing is written. The vote itself is at the end of the next year, and leans move in between.</summary>
+    public (int forWeight, int againstWeight) Forecast(World w, string proposerHouseId, string kind, string targetId, string officeId = "", string lawId = "", string lawOption = "")
+    {
+        var m = new Motion { Id = $"motion_{w.Counter("motions_proposed") + 1}", Kind = kind, ProposerHouseId = proposerHouseId, TargetId = targetId, OfficeId = officeId, LawId = lawId, LawOption = lawOption, ProposedTurn = w.Turn };
+        int f = 0, a = 0;
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id))) { int s = Math.Sign(LeanNow(w, m, h.Id, null)); if (s > 0) f += Weight(w, h.Id); else if (s < 0) a += Weight(w, h.Id); }
+        return (f, a);
+    }
 
     public Motion Add(World w, string proposerHouseId, string kind, string targetId, string officeId = "", string lawId = "", string lawOption = "")
     {

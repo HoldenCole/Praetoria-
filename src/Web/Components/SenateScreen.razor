@@ -228,14 +228,18 @@
                             @if (sen.Election is { AmConsul: true }) { <button class="opt inline veto" disabled="@(mo.VetoRefusal != null)" title="@(mo.VetoRefusal ?? "the consul's veto: struck from the docket, once a term")" @onclick='() => G.AskDo("Veto this motion?", mo.Text + " It is struck from the docket and cannot be moved again this term. A consul has one veto a term: this spends yours. The house that moved it will not thank you.", "Veto it", new VetoCommand(pid, mo.Id, c.Offices, G.Turn!.Senate))' @onclick:stopPropagation="true">Veto</button> }
                         </div>
                         <details @onclick:stopPropagation="true"><summary>The benches · whip them</summary>
+                            @{ int margin = mo.ForWeight - mo.AgainstWeight; int side = mo.MyStance >= 0 ? 1 : -1; }
+                            <div class="small" data-margin="@margin">As the benches lean it @(margin > 0 ? $"carries by {margin}" : margin < 0 ? $"fails by {-margin}" : "is tied, and a tie fails unless the chair is for it"), by weight of seats. A house that goes from one side to the other moves that by twice its seats; one that goes to abstaining, or comes from it, by its seats. A whip is worth @SenateSystem.LobbyWeight to a house's lean and a bought vote @SenateSystem.BribeWeight; a house votes for above nought, against below it, and abstains at nought.</div>
                             @foreach (var st in mo.Stances.Take(16))
                             {
+                                var why = motionNow != null ? senate.Why(w, motionNow, st.HouseId) : new List<(string why, int by)>(); int leanNow = why.Sum(x => x.by);
                                 <div class="bench-row">
                                     <Sigil HouseId="@st.HouseId" Accent="@st.Accent" Size="12" /> <span class="bn" title="@(st.Faction != null ? $"{st.HouseName} · {st.Faction}{(st.FactionLeader ? " (leads)" : "")}" : st.HouseName)">@st.HouseName@(st.Faction != null ? (st.FactionLeader ? " ★" : " ·") : "")</span><span class="wt muted">@st.Weight</span>
                                     <span class="stance @(st.Stance > 0 ? "for" : st.Stance < 0 ? "against" : "")" title="@(st.Declared ? "declared" : "leaning — a whip may move it")">@(st.Stance > 0 ? "for" : st.Stance < 0 ? "against" : "abstains")@(st.Declared ? "" : "?")</span>
-                                    <button class="opt inline tiny" disabled="@(st.LobbyRefusal != null)" title="@(st.LobbyRefusal ?? "1 influence: lean them your way")" @onclick="() => G.Execute(new LobbyCommand(pid, mo.Id, st.HouseId, mo.MyStance >= 0 ? 1 : -1))">whip</button>
+                                    <button class="opt inline tiny" disabled="@(st.LobbyRefusal != null)" title="@(st.LobbyRefusal ?? "1 influence. " + MoveSays(st, leanNow, side, SenateSystem.LobbyWeight))" @onclick="() => G.Execute(new LobbyCommand(pid, mo.Id, st.HouseId, mo.MyStance >= 0 ? 1 : -1))">whip</button>
                                     <button class="opt inline tiny" disabled="@(st.BribeRefusal != null)" title="@(st.BribeRefusal ?? BribeTip(st))" @onclick="() => AskBribe(mo.Id, st, mo.MyStance >= 0 ? 1 : -1)">bribe · @st.BribePrice</button>
                                 </div>
+                                @if (why.Count > 0) { <div class="bench-why muted small" data-why-vote="@st.HouseId">leans @Signed(leanNow): @string.Join("; ", why.Take(3).Select(x => $"{x.why} ({Signed(x.by)})"))@(why.Count > 3 ? $"; and {why.Count - 3} lesser thing(s) ({Signed(why.Skip(3).Sum(x => x.by))})" : "")</div> }
                             }
                             <div class="muted small">Whipping leans a house toward your own stance (for, unless you voted against).</div>
                         </details>
@@ -256,6 +260,7 @@
                         <div class="proposal">
                             <div><b>@pr.KindName</b> <span class="muted small">(@pr.Influence influence)</span> <span class="muted small">@pr.Description</span>
                                 @if (senate.Motions.Def(pr.KindId) is { } mdef && CourtProjection.MotionDoes(mdef) is { Length: > 0 } does) { <div class="small" data-motion-does="@pr.KindId">@does A motion is voted at the end of the year after it is moved.</div> }</div>
+                            @if (ForecastSays(pr) is { Length: > 0 } fare) { <div class="small" data-motion-fare="@pr.KindId">@fare</div> }
                             @if (pr.NeedsLaw && pr.Laws != null)
                             {
                                 <select class="sel" @onchange="e => SetLaw(pr.KindId, e)">
@@ -409,6 +414,14 @@
 
 
 @code {
+    private static string Signed(int n) => n > 0 ? "+" + n : n < 0 ? "−" + (-n) : "0";
+    private static string VoteWord(int lean) => lean > 0 ? "for" : lean < 0 ? "against" : "abstaining";
+    /* what a whip or a bought vote would do to one house: where its lean goes, and whether its vote changes */
+    private static string MoveSays(Praetoria.Core.Presentation.StanceLine st, int lean, int side, int worth)
+    {
+        int after = lean + side * worth; bool turns = Math.Sign(after) != Math.Sign(lean);
+        return $"{st.HouseName} leans {Signed(lean)} and would lean {Signed(after)}: " + (turns ? $"it goes from {VoteWord(lean)} to {VoteWord(after)}, and its {st.Weight} seat(s) with it." : $"it is still {VoteWord(after)}. This one would change nothing in the count.");
+    }
     /* who of the house would be consul: the head when qualified, else the relative who is, and the button says which */
     private Praetoria.Core.State.Character? Stands(Praetoria.Core.Data.OfficeCatalog offices)
     { var w = G.World!; var d = ElectionSystem.ConsulOffices(offices).FirstOrDefault(); return d == null ? null : OfficeSystem.Candidate(w, d, w.Protagonist!.HouseId); }
@@ -466,6 +479,17 @@
         if (t.Length == 0) return pr.TargetType == "house" ? "choose a house" : pr.TargetType == "nation" ? "choose a nation" : "choose a region";
         if (pr.NeedsOffice && o.Length == 0) return "choose the office";
         return new ProposeMotionCommand(G.World!.ProtagonistId, pr.KindId, t, G.Turn!.Senate, o).Refusal(G.Ctx);
+    }
+    /* how a motion would stand if it were moved now: nothing is said until every choice the motion needs has been made */
+    private string ForecastSays(MotionProposal pr)
+    {
+        var w = G.World!; var senate = G.Turn!.Senate; string mine = w.Protagonist!.HouseId;
+        string t = _target.GetValueOrDefault(pr.KindId) ?? "", o = _office.GetValueOrDefault(pr.KindId) ?? "", law = _law.GetValueOrDefault(pr.KindId) ?? "", opt = _lawOpt.GetValueOrDefault(pr.KindId) ?? "";
+        if (pr.NeedsLaw) { if (law.Length == 0 || opt.Length == 0) return ""; t = ""; }
+        else if (pr.TargetType == "self") t = mine;
+        else if (pr.TargetType != "none" && (t.Length == 0 || pr.NeedsOffice && o.Length == 0)) return "";
+        var (f, a) = senate.Forecast(w, mine, pr.KindId, t, o, law, opt);
+        return $"If it were moved now it would {(f > a ? $"carry by {f - a}" : f < a ? $"fail by {a - f}" : "be tied, and a tie fails unless the chair is for it")}: for {f}, against {a}, your own seats counted for. The vote is at the end of next year, and the benches can be whipped and will shift before then.";
     }
     private bool CanMove(MotionProposal pr) => !string.IsNullOrEmpty(_target.GetValueOrDefault(pr.KindId)) && (!pr.NeedsOffice || !string.IsNullOrEmpty(_office.GetValueOrDefault(pr.KindId)))
         && (pr.Refusal == null || pr.Refusal == "not against yourself" || pr.Refusal == "already before the Senate" || pr.Refusal.StartsWith("no one of") || pr.Refusal.EndsWith("holds it already"));
