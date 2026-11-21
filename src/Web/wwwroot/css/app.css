@@ -1128,3 +1128,5 @@ details.inline[data-hulls] .qty { width: 4rem; }
 .bench-why { padding: 0 0 .25rem 1.4rem; line-height: 1.25; border-bottom: 1px dashed rgba(255,255,255,.06); }
 /* under a crisis: what it is and what each answer does, read from its rules */
 .crisis-facts { margin-top: .3rem; } .crisis-facts > summary { font-size: .78rem; cursor: pointer; color: var(--ink2); } .crisis-facts .small { margin: .2rem 0; line-height: 1.3; }
+/* what can be done to a person, on their profile */
+.profile-acts { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: .5rem 0; }

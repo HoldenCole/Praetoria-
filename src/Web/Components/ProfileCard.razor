@@ -39,6 +39,17 @@
                             </div>
                         </div>
                     }
+                    @if (!p.IsYou && p.Alive && G.World?.Protagonist is { Alive: true } actor && G.World.Char(p.Id) is { } them && G.Turn != null && !Praetoria.Core.State.Nation.IsHouse(them.HouseId))
+                    {
+                        /* act on a person from their profile (docs/PLAYTHROUGH.md, Family): a visit or amends, and a slight */
+                        var visit = new SeekAllyCommand(actor.Id, them.Id); var slight = new NeedleRivalCommand(actor.Id, them.Id); bool canVisit = visit.CanExecute(G.Ctx), canSlight = slight.CanExecute(G.Ctx);
+                        int theirs = G.World.GetRelationship(them.Id, actor.Id)?.Disposition ?? 0; string visitWord = theirs < 0 ? "Make amends" : "Pay a visit";
+                        <div class="profile-acts" data-profile-acts="@p.Id">
+                            <button class="opt inline" data-visit="1" disabled="@(!canVisit)" title="@(canVisit ? $"1 influence. {them.Name} thinks 10 the better of you, and you of them. It can be done again while you have influence to spend." : "needs 1 influence")" @onclick="() => G.Execute(visit)">@visitWord · 1 influence</button>
+                            <button class="opt inline" data-slight="1" disabled="@(!canSlight)" title="@(canSlight ? $"1 influence. {them.Name} thinks 10 the worse of you, and you 5 the worse of them." : "needs 1 influence")" @onclick='() => G.Ask("Slight " + them.Name + "?", them.Name + " thinks 10 the worse of you, and you 5 the worse of them. It costs 1 influence.", "Slight them", () => G.Execute(slight))'>Slight them · 1 influence</button>
+                            <span class="muted small">A gift or a loan is made under House, in your purse; a post is given where the post is: a fleet under Military, a world or a duty of the household under House.</span>
+                        </div>
+                    }
                     <div class="profile-gauges">
                         <div class="pg" title="Age lowers what it can be; wounds, illness and strain lower it."><span>Health</span><div class="rg-meter"><i style="width:@(p.Health)%"></i></div><b>@p.HealthName</b></div>
                         <div class="pg" title="What they are apart from their house: how far they rose and what they did."><span>Renown</span><div class="rg-meter brass"><i style="width:@(Math.Min(100, p.Renown))%"></i></div><b>@p.Renown</b></div>
