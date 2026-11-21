@@ -211,7 +211,7 @@ else
         else if (_saves) { if (key == "Escape" && G.Asking == null) _saves = false; else return; }   // the saves window is in front
         else if (_primer) { if (key is "Escape" or "?") await ClosePrimer(); else return; }   // the handbook is in front: it takes Escape, and no key reaches the desk behind it
         else if (key == "Escape" && _brief) _brief = false;
-        else if (key == "Escape") { if (G.ProfileId != null) G.CloseProfile(); else if (_openReport != null || _succession != null) { _openReport = null; _succession = null; } else _screen = "galaxy"; }
+        else if (key == "Escape") { if (G.ProfileId != null) G.CloseProfile(); else if (_openReport != null || _succession != null) { _openReport = null; _succession = null; } else if (_screen == "galaxy" && _map?.Up() == true) { } else _screen = "galaxy"; }
         else if (key == "Enter" && _brief) _brief = false;
         else if (key == "Enter" && _openReport == null && _succession == null) { if (!_set.EnterEnds) return; await EndTurn(); }
         else if (key == "?") _primer = !_primer;

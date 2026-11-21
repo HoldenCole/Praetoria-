@@ -9,11 +9,27 @@
     var ctx = new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0));
     var sel = _systemId != null && pos.TryGetValue(_systemId, out var sn) ? sn : null;
     _pendingModel = BuildModel(w, c, nodes, fleets, regions, selectedFleet, ctx);
+    // the close map (docs/SYSTEMS.md, "The close map"): the system being looked into, and the body picked in it
+    var chart = _inSystem != null ? SystemCharts.For(w, _inSystem, c.Holdings) : null; if (_inSystem != null && chart == null) { _inSystem = null; _body = -1; _world = false; }
+    _pendingSystem = chart != null ? BuildSystem(w, chart, selectedFleet) : "";
+    var inside = chart != null ? w.Galaxy!.System(chart.SystemId) : null;
+    var picked = inside != null && _body >= 0 && _body < inside.Bodies.Count ? inside.Bodies[_body] : null;
 }
 <div class="galaxy">
     <div class="map-wrap">
         <div class="gl-host" @ref="_host"></div>
-        <canvas class="minimap" @ref="_minimap" width="220" height="132" title="the whole Reach · click to travel"></canvas>
+        <canvas class="minimap @(chart != null ? "away" : "")" @ref="_minimap" width="220" height="132" title="the whole Reach · click to travel"></canvas>
+        @if (chart != null)
+        {
+            /* where you are, and the way back out: each step is a button */
+            <nav class="crumbs" data-crumbs="@chart.SystemId" aria-label="Where the map is looking">
+                <button class="crumb" data-crumb="reach" title="Back out to the map of the Reach (Esc, or pull back with the wheel)" @onclick="Leave">The Reach</button>
+                <span class="sep">▸</span>
+                @if (chart.RegionName.Length > 0) { <span class="crumb still">@chart.RegionName</span><span class="sep">▸</span> }
+                <button class="crumb @(picked == null || !_world ? "here" : "")" data-crumb="system" title="The whole system" @onclick="() => { _world = false; }">@chart.Name</button>
+                @if (picked != null && _world) { <span class="sep">▸</span><span class="crumb here" data-crumb="world">@picked.Name</span> }
+            </nav>
+        }
         @if (selectedFleet != null)
         {
             var here = pos.TryGetValue(selectedFleet.SystemId, out var hn) ? hn.Name : selectedFleet.SystemId;
@@ -36,19 +52,51 @@
                 </div>
             </div>
         }
+        @if (chart != null && picked != null && _world && chart.Body(_body) is { } cb)
+        {
+            var hold = picked.IsPrimary ? w.PlanetOf(chart.SystemId) : null; var feat = picked.Feature.Length > 0 ? c.Holdings.Feature(picked.Feature) : null;
+            int slots = SystemWorks.Slots(w, c.Holdings, inside!, _body);
+            <div class="world-strip" data-world-strip="@_body">
+                <div class="ws-name"><b>@picked.Name</b> <span class="muted">@(picked.Orbits >= 0 ? "a moon of " + inside!.Bodies[picked.Orbits].Name : picked.Class == "gas" ? "a gas giant" : picked.Class == Body.Comet ? "a comet" : picked.Class + " world")@(picked.IsPrimary ? " · the system's own world" : "")</span></div>
+                <div class="ws-facts">
+                    @if (hold != null)
+                    {
+                        <span><i>Held by</i> @(w.House(hold.OwnerId)?.Name ?? "no one")</span>
+                        <span><i>Citizens</i> @Praetoria.Core.Presentation.Census.Say(Praetoria.Core.Presentation.Census.Citizens(w, hold))</span>
+                        <span><i>Loyalty</i> @(100 - hold.Unrest)</span><span><i>Prosperity</i> @hold.Prosperity</span>
+                        @if (hold.GovernorId.Length > 0 && w.Char(hold.GovernorId) is { } gv) { <span><i>Governor</i> @gv.Name</span> }
+                    }
+                    else if (picked.IsPrimary) { <span><i>Held by</i> no one: it can be settled</span> }
+                    @if (cb.Parent < 0 && picked.Class != Body.Comet) { <span><i>Its year</i> @cb.Period of ours</span> }
+                    @if (feat != null) { <span title="@feat.Description"><i>Feature</i> @feat.Name</span> }
+                    @if (picked.Deposit.Length > 0) { <span><i>In the ground</i> @Resource.Label(picked.Deposit)</span> }
+                    <span><i>Built</i> @cb.Works@(cb.Rising > 0 ? $" · {cb.Rising} rising" : "") · @slots slot@(slots == 1 ? "" : "s")</span>
+                </div>
+                <div class="muted small">What can be built here is in the panel at the left, under this body's name. Esc goes back to the whole system.</div>
+            </div>
+        }
         <div class="map-tools">
             <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.zoom", _id, 0.8)' title="Zoom in">+</button>
             <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.zoom", _id, 1.25)' title="Zoom out">−</button>
-            <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.home", _id)' title="Back to your seat">⌂</button>
-            <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.fit", _id)' title="Fit the whole Reach">▣</button>
-            <button class="btn sm" @onclick="() => { _regions = !_regions; _systemId = null; }" title="The regions of the Reach">☰</button>
+            @if (chart != null)
+            {
+                <button class="btn sm" data-sys-fit @onclick="FitSystem" title="The whole system">▣</button>
+                <button class="btn sm" data-sys-leave @onclick="Leave" title="Back out to the map of the Reach">⤴</button>
+            }
+            else
+            {
+                <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.home", _id)' title="Back to your seat">⌂</button>
+                <button class="btn sm" @onclick='() => JS.InvokeVoidAsync("praetoriaSpace.fit", _id)' title="Fit the whole Reach">▣</button>
+                <button class="btn sm" @onclick="() => { _regions = !_regions; _systemId = null; }" title="The regions of the Reach">☰</button>
+            }
         </div>
         <div class="legend">
             <span><i class="sw own"></i> your fleet</span><span><i class="sw intel"></i> reported fleet (fainter = less certain)</span>
             <span title="Every held world is a cell in its holder's colour, with a dark line between cells and a wider one where two holders meet. A pale ring is a world nobody holds. A pale line is a region's edge."><i class="sw cell"></i> a holder's colour · <i class="sw free"></i> nobody's</span>
             <span title="A bright line is where a realm ends. Your own realm's border is gold. The land of another realm is hatched in its colour."><i class="sw realm-own"></i> your realm's border · <i class="sw realm-other"></i> another realm</span><span><i class="sw siege"></i> siege clock</span><span><i class="sw front"></i> front line</span><span><i class="sw station"></i> station</span><span><i class="sw raid"></i> raiders</span> <span class="lg" title="A world of the Reach's that a nation has taken or been ceded, or a world of a nation's that a house of the Reach holds: a broken ring in the holder's colour. It can be taken back."><i class="sw conq"></i> conquered</span> <span class="lg"><i class="sw ck"></i> chokepoint</span><span class="lg" title="³He helium-3 · RE rare earths · Iso isotopes"><i class="sw dep">³He</i> deposits</span>
             @if (selectedFleet != null) { <span class="hint">@selectedFleet.Name selected: click a ringed world to see the route, then give the order in the bar above</span> }
-            else { <span class="muted">drag to pan · wheel to zoom · click a world or a fleet</span> }
+            else if (chart != null) { <span class="muted">click a world to pick it, twice to go to it · click a gate to follow its lane · pull back with the wheel to leave</span> }
+            else { <span class="muted">drag to pan · wheel to zoom · click a world or a fleet · twice on a system to go into it</span> }
         </div>
     </div>
 
@@ -80,7 +128,8 @@
                     <button class="rung @(_sideTab == "infra" ? "here" : "")" @onclick='() => _sideTab = "infra"'>Infrastructure@(laid > 0 ? $" · {laid}" : "")</button>
                     <button class="rung @(_sideTab == "world" ? "here" : "")" @onclick='() => _sideTab = "world"'>The world</button>
                 </div>
-                @if (_sideTab == "system") { <SystemPanel SystemId="@sys.Id" /> }
+                @if (_inSystem != sys.Id) { <button class="btn sm primary sys-enter" data-enter-system="@sys.Id" title="The close map of this system: its sun, its worlds where they are this year, its belt, and the gates where its lanes leave" @onclick="() => Enter(sys.Id)">Go into the system ▸</button> }
+                @if (_sideTab == "system") { <SystemPanel SystemId="@sys.Id" OpenBody="@(_inSystem == sys.Id ? _body : -1)" OpenStamp="_bodyStamp" /> }
                 else if (_sideTab == "infra") { <SystemPanel SystemId="@sys.Id" Infrastructure="true" /> }
                 else
                 {
@@ -190,6 +239,16 @@
     private string? _fleetId, _systemId; private ElementReference _host, _minimap; private readonly string _id = Guid.NewGuid().ToString("N");
     private DotNetObjectReference<GalaxyMap>? _self; private bool _created; private string _pendingModel = "";
     private string _lastSent = "";
+    /// <summary>The system the map is looking into (null: the Reach), the body picked in it (-1: none), and whether the view has gone to that body.</summary>
+    private string? _inSystem; private int _body = -1, _bodyStamp; private bool _world; private string _pendingSystem = "", _lastSystem = "";
+    /// <summary>Whether the map is inside a system: Esc then comes back out a step before it does anything else.</summary>
+    public bool Inside => _inSystem != null;
+    /// <summary>Go into a system's close map.</summary>
+    public void Enter(string systemId) { if (G.World?.Galaxy?.System(systemId) == null) return; _inSystem = systemId; _systemId = systemId; _body = -1; _world = false; _regions = false; _sideTab = "system"; StateHasChanged(); }
+    /// <summary>Come back out a step: from a world to its system, from a system to the Reach. False when there was nowhere to come back from.</summary>
+    public bool Up() { if (_inSystem == null) return false; if (_world) { _world = false; } else { _inSystem = null; _body = -1; } StateHasChanged(); return true; }
+    private void Leave() { _inSystem = null; _body = -1; _world = false; }
+    private async Task FitSystem() { _world = false; try { await JS.InvokeVoidAsync("praetoriaSpace.fit", _id); } catch { } }
 
     protected override async Task OnAfterRenderAsync(bool first)
     {
@@ -199,6 +258,7 @@
             try { if (await JS.InvokeAsync<bool>("praetoria.ready", "praetoriaSpace")) { await JS.InvokeVoidAsync("praetoriaSpace.create", _id, _host, _self); _created = true; await JS.InvokeVoidAsync("praetoriaSpace.minimap", _id, _minimap); } } catch { }
         }
         if (_created && _pendingModel != _lastSent) { _lastSent = _pendingModel; try { await JS.InvokeVoidAsync("praetoriaSpace.setModel", _id, _pendingModel); } catch { } }
+        if (_created && _pendingSystem != _lastSystem) { _lastSystem = _pendingSystem; try { await JS.InvokeVoidAsync("praetoriaSpace.setSystem", _id, _pendingSystem.Length > 0 ? _pendingSystem : null); } catch { } }
         try { await JS.InvokeVoidAsync("praetoriaFx.paint"); await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }
     }
 
@@ -212,7 +272,23 @@
             // order is given by the button in the order bar, never by the click
             _systemId = id; _ = OnPicked.InvokeAsync();
         }
+        else if (kind == "enter") { Enter(id); _ = OnPicked.InvokeAsync(); return; }
+        else if (kind == "leave") { Leave(); }
+        else if (kind == "body" || kind == "world")
+        {
+            // a body picked in the close map: its row opens in the panel, and twice goes to it
+            if (int.TryParse(id, out var bi) && _inSystem != null) { _body = bi; _bodyStamp++; _world = kind == "world" || _world; _systemId = _inSystem; _sideTab = "system"; _ = OnPicked.InvokeAsync(); }
+        }
+        else if (kind == "exit")
+        {
+            // a gate: with a fleet picked it is where the fleet would be sent (the order is still given by the bar); with none, the map follows the lane
+            if (_fleetId != null && w.Fleets.TryGetValue(_fleetId, out var pf) && pf.OwnerId == w.Protagonist!.HouseId) { _systemId = id; _ = OnPicked.InvokeAsync(); }
+            else { Enter(id); _ = OnPicked.InvokeAsync(); return; }
+        }
+        else if (kind == "post") { if (_inSystem != null) { _systemId = _inSystem; _ = OnPicked.InvokeAsync(); } }
+        else if (kind == "province") { if (_inSystem != null) { _systemId = _inSystem; _sideTab = "world"; _ = OnPicked.InvokeAsync(); } }
         else if (kind == "fleet") { if (w.Fleets.TryGetValue(id, out var f)) { if (f.OwnerId == w.Protagonist!.HouseId) _fleetId = _fleetId == id ? null : id; _systemId = f.SystemId; _ = OnPicked.InvokeAsync(); } }
+        else if (_inSystem != null) { _body = -1; _world = false; }   // a click on nothing inside a system lets go of the world, not of the fleet
         else { _fleetId = null; }
         StateHasChanged();
     }
@@ -254,10 +330,15 @@
     /// and whether anything is built on it. The sun is left out, so a moon's world is named by its place among what is left.</summary>
     private static object Bodies(World w, MapNode n)
     {
-        var all = (n.Bodies ?? Array.Empty<Body>()).ToList(); var kept = all.Select((b, i) => (b, i)).Where(x => !x.b.IsStar && !x.b.IsSpace).ToList();
+        // what goes round the sun in the order and the directions of the close map (SystemCharts), so that going into a system finds
+        // its worlds where the map of the Reach showed them; then the moons
+        var all = (n.Bodies ?? Array.Empty<Body>()).ToList(); var sysOf = w.Galaxy!.System(n.SystemId);
+        var round = sysOf != null ? SystemCharts.Order(sysOf).ToList() : new List<int>(); var rank = round.Select((i, k) => (i, k)).ToDictionary(x => x.i, x => x.k);
+        var kept = all.Select((b, i) => (b, i)).Where(x => !x.b.IsStar && !x.b.IsSpace).OrderBy(x => rank.TryGetValue(x.i, out var rk) ? rk : 1000).ThenBy(x => x.i).ToList();
         var place = kept.Select((x, k) => (x.i, k)).ToDictionary(x => x.i, x => x.k);
         var built = w.BodyWorks.Count == 0 ? new HashSet<int>() : SystemWorks.In(w, n.SystemId).Select(x => x.Body).ToHashSet();
-        return kept.Select(x => new { name = x.b.Name, cls = x.b.Class, size = x.b.Size, primary = x.b.IsPrimary, orbits = x.b.Orbits >= 0 && place.TryGetValue(x.b.Orbits, out var at) ? at : -1, works = built.Contains(x.i) }).ToList();
+        return kept.Select(x => new { name = x.b.Name, cls = x.b.Class, size = x.b.Size, primary = x.b.IsPrimary, orbits = x.b.Orbits >= 0 && place.TryGetValue(x.b.Orbits, out var at) ? at : -1, works = built.Contains(x.i),
+            ang = rank.TryGetValue(x.i, out var rk2) ? (double?)Math.Round(SystemCharts.AngleOf(n.SystemId, x.i, rk2, w.Turn), 3) : null }).ToList();
     }
 
     /// <summary>The realm the player's house is of: a state that has left the Reach, if its region has; else the Reach.</summary>
@@ -308,6 +389,29 @@
         var rings = GalaxyProjection.Rings(w);
         var route = selectedFleet != null && _systemId != null && _systemId != selectedFleet.SystemId ? w.Galaxy!.Path(selectedFleet.SystemId, _systemId, MoveFleetCommand.Barred(w, selectedFleet.OwnerId)) : null;
         return System.Text.Json.JsonSerializer.Serialize(new { systems, lanes, fleets = fl, regions = rg, rings = rings == null ? null : new { cx = rings.CX, cy = rings.CY, core = rings.Core, middle = rings.Middle, rim = rings.Rim }, playerHouse = w.Protagonist!.HouseId, playerRealm = PlayerRealm(w, regions), era = w.Era, route, selected = new { systemId = _systemId, fleetId = _fleetId } });
+    }
+
+    /// <summary>The chart of the system being looked into, as the map's script draws it.</summary>
+    private string BuildSystem(World w, SystemChart ch, Fleet? selectedFleet)
+    {
+        var sys = w.Galaxy!.System(ch.SystemId)!; int sun = sys.Bodies.FindIndex(b => b.IsStar);
+        return System.Text.Json.JsonSerializer.Serialize(new
+        {
+            id = ch.SystemId, name = ch.Name, region = ch.RegionName, ring = ch.Ring, capital = ch.Capital, isPlayer = ch.IsPlayer, holder = ch.HolderId, holderName = ch.HolderName, accent = ch.Accent,
+            sunTint = ch.SunTint, sunWorks = ch.SunWorks, sun, sunName = sun >= 0 ? sys.Bodies[sun].Name : "", edge = ch.Edge, belt = ch.BeltRichness, year = ch.Year,
+            selectedBody = _body, focusBody = _world ? _body : -1, selectedFleet = selectedFleet?.Id ?? "",
+            provinces = w.PlanetOf(ch.SystemId) is { } pw ? pw.Provinces.Select((pv, k) => new
+            {
+                name = pv.Name, city = pv.City, kind = CitySystem.KindOf(G.Content!.Holdings, pv)?.Name ?? "", great = CitySystem.KindOf(G.Content!.Holdings, pv)?.Great == true, level = pv.Level,
+                holderName = pv.HolderId.Length > 0 && pv.HolderId != pw.OwnerId ? w.House(pv.HolderId)?.Name ?? "" : (w.House(pw.OwnerId)?.Name ?? "") + ", itself",
+                accent = (pv.HolderId.Length > 0 ? w.House(pv.HolderId) : w.House(pw.OwnerId))?.AccentColor ?? "#ffe8a3",
+                citizens = Praetoria.Core.Presentation.Census.Short(CitySystem.Citizens(w, G.Content!.Holdings, pw, k)) + " in the city"
+            }).ToList() : null,
+            bodies = ch.Bodies.Select(b => new { index = b.Index, name = b.Name, cls = b.Class, size = b.Size, primary = b.Primary, parent = b.Parent, orbit = b.Orbit, angle = b.Angle, period = b.Period, ecc = b.Eccentricity, x = b.X, y = b.Y, featureName = b.FeatureName, deposit = b.Deposit, works = b.Works, rising = b.Rising, great = b.GreatWork }),
+            exits = ch.Exits.Select(e => new { id = e.SystemId, name = e.Name, angle = e.Angle, x = e.X, y = e.Y, holderName = e.HolderName, accent = e.Accent, ring = e.Ring, chokepoint = e.Chokepoint }),
+            fleets = ch.Fleets.Select(f => new { id = f.FleetId, name = f.Name, ownerId = f.OwnerId, ownerName = f.OwnerName, accent = f.Accent, strength = f.Strength, isPlayer = f.IsPlayer, confidence = f.Confidence, moving = f.Moving, laidUp = f.LaidUp, atBody = f.AtBody, x = f.X, y = f.Y }),
+            posts = ch.Posts.Select(p => new { id = p.HoldingId, name = p.Name, kind = p.Kind, ownerName = p.OwnerName, accent = p.Accent, atBody = p.AtBody, x = p.X, y = p.Y })
+        });
     }
 
     public async ValueTask DisposeAsync() { try { if (_created) await JS.InvokeVoidAsync("praetoriaSpace.destroy", _id); } catch { } _self?.Dispose(); }

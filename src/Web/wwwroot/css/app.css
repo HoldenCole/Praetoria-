@@ -1247,3 +1247,38 @@ table.prospects th.sortable.here { color: var(--gold, #d8b25a); text-decoration:
 .ws-site-head { margin-bottom: .3rem; } .ws-site-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.2rem; }
 .ws-site-card .kv { font-size: .84rem; } .ws-site-card .warn, .ws-site-card > .muted.small { display: block; margin-top: .4rem; }
 .ws-fold > summary { cursor: pointer; color: var(--ink2); font-size: .82rem; margin: .2rem 0 .4rem; }
+
+/* the close map of a solar system (docs/SYSTEMS.md, "The close map") */
+.sysv-label, .sysv-exit, .sysv-fleet { font-family: var(--sans); color: #e3e8f2; text-shadow: 0 1px 3px #000, 0 0 8px #000; white-space: nowrap; pointer-events: none; }
+.sysv-label .in { display: flex; flex-direction: column; align-items: center; gap: 1px; transform: translateY(50%); font-size: .74rem; }
+.sysv-label .n { font-family: var(--display); letter-spacing: .04em; } .sysv-label.primary .n { color: #ffe8a3; font-size: .9rem; }
+.sysv-label .o { font-size: .64rem; opacity: .95; } .sysv-label .m { font-size: .6rem; color: #cdbd92; }
+.sysv-label.moon .in { font-size: .62rem; color: #b9c2d4; } .sysv-label.belt .n { color: #cfc4b0; }
+.sysv-exit .in { display: flex; flex-direction: column; align-items: center; gap: 1px; font-size: .74rem; }
+.sysv-exit .n { font-family: var(--display); letter-spacing: .08em; text-transform: uppercase; font-size: .72rem; color: #dfe6f4; } .sysv-exit .o { font-size: .62rem; }
+.sysv-fleet .in { font-size: .66rem; font-weight: 600; transform: translate(50%, 0); padding-left: .3rem; }
+/* a moon is named when the view is close, or when its world is the one looked at; from far off only the worlds are named */
+.sysv-label.moon { display: none; } .gl-labels.sys-near .sysv-label.moon, .sysv-label.moon.of-looked, .sysv-label.moon.looked { display: block; }
+.gl-labels.sys-far .sysv-label .m, .gl-labels.sys-far .sysv-fleet { display: none; }
+.sysv-prov { font-family: var(--sans); color: #e3e8f2; text-shadow: 0 1px 3px #000, 0 0 8px #000; white-space: nowrap; pointer-events: none; }
+.sysv-prov .in { display: flex; flex-direction: column; gap: 1px; font-size: .7rem; padding: .25rem .5rem; background: rgba(5,7,12,.72); border: 1px solid rgba(201,162,74,.45); }
+.sysv-prov.left .in { transform: translateX(-50%); align-items: flex-end; } .sysv-prov.right .in { transform: translateX(50%); align-items: flex-start; } .sysv-prov.mid .in { transform: translateY(-60%); align-items: center; }
+.sysv-prov .n { font-family: var(--display); color: #ffe8a3; font-size: .8rem; letter-spacing: .04em; } .sysv-prov .c { color: #dfe6f4; } .sysv-prov .o { font-size: .66rem; } .sysv-prov .m { font-size: .62rem; color: #b9c2d4; }
+/* in the middle of what can be seen: between the window at the left and the list at the right */
+.world-strip { position: absolute; left: calc(50% + (var(--rail, 0px) + 410px - 19.07rem) / 2); bottom: 4.6rem; transform: translateX(-50%); z-index: 6; width: max-content; max-width: calc(100% - var(--rail, 0px) - 410px - 19.07rem - 2.4rem); padding: .6rem .9rem; background: linear-gradient(180deg, rgba(14,17,26,.95), rgba(8,11,17,.95)); border: 1px solid #000; box-shadow: 0 0 0 1px var(--brass3), 0 10px 30px rgba(0,0,0,.7); }
+.world-strip .ws-name b { font-family: var(--display); font-size: 1.15rem; color: var(--brass2); letter-spacing: .04em; margin-right: .5rem; }
+.world-strip .ws-facts { display: flex; flex-wrap: wrap; gap: .25rem 1.2rem; margin: .35rem 0; font-size: .86rem; color: var(--ink); }
+.world-strip .ws-facts i { font-style: normal; color: var(--muted); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; margin-right: .35rem; }
+.minimap.away { display: none; }
+.crumbs { position: absolute; right: calc(20rem + 3.4rem); top: calc(var(--bar, 0px) + .7rem); z-index: 12; display: flex; align-items: center; gap: .45rem; padding: .35rem .7rem; background: linear-gradient(90deg, rgba(5,7,12,.88), rgba(5,7,12,.55)); border: 1px solid #000; box-shadow: 0 0 0 1px var(--brass3), 0 8px 22px rgba(0,0,0,.6); font-family: var(--display); letter-spacing: .06em; }
+.crumbs .crumb { background: none; border: 0; color: var(--ink2); font: inherit; font-size: .86rem; padding: .1rem .2rem; cursor: pointer; } .crumbs button.crumb:hover { color: var(--brass2); }
+.crumbs .crumb.here { color: var(--brass2); } .crumbs .crumb.still { cursor: default; color: var(--muted); } .crumbs .sep { color: var(--brass3); font-size: .7rem; }
+.sys-enter { margin: .2rem 0 .6rem; }
+
+.sysv-label.comet .in { font-size: .64rem; color: #bfe6ff; transform: translate(60%, -160%); }
+@media (max-width: 900px) { .world-strip { left: 50%; max-width: 94%; } .crumbs { right: 3.4rem; } }
+/* the picked fleet's bar lay partly under the top bar, so its first line could not be read: it goes below the bar, in the middle of
+   what can be seen, and below the breadcrumb when the map is inside a system */
+.game .order-bar { top: calc(var(--bar, 0px) + .6rem); left: calc(50% + (var(--rail, 0px) - 19.07rem) / 2); max-width: min(46rem, calc(100% - var(--rail, 0px) - 19.07rem - 8rem)); }
+.game .map-side:not(.idle) ~ .order-bar, .game .galaxy:has(.map-side:not(.idle)) .order-bar { left: calc(50% + (var(--rail, 0px) + 410px - 19.07rem) / 2); max-width: min(46rem, calc(100% - var(--rail, 0px) - 410px - 19.07rem - 2rem)); }
+.game .crumbs ~ .order-bar { top: calc(var(--bar, 0px) + 3.4rem); }

@@ -61,6 +61,7 @@ infrastructure or more, and settled at least one system (tests).
 
 ## On the screen
 
+- **The close map** (below): the map goes into a system, and from there to a single world.
 - **The map** draws what goes round each sun on its own orbit and a moon beside its world. A body with something built
   on it carries a small gold light, and a ring turns round a sun that has been built on.
 - **Clicking a system** opens its System tab: the sun first, then each world with its moons under it, then open space.
@@ -72,6 +73,55 @@ infrastructure or more, and settled at least one system (tests).
 - The House window's ledger has a line a work, and a world on the estate tab says how many works stand round its sun.
 
 `node tools/browser/systems.js` drives it; `tests/SystemWorksTests.cs` holds the rules.
+
+## The close map
+
+The owner, 2026-11-21: "build out the closer end map so what the map would look like for just the solar system and for
+the planet you control. Think about how when you click on a system in Stellaris how it shows the planets and where they
+are, the sun, any asteroids, and where the hyper lanes are."
+
+The map now has three distances: the Reach, one solar system, and one world.
+
+**Going in and coming out.** A system is entered by clicking it twice, by "Go into the system" on its panel, or by
+pushing in with the wheel past the nearest the Reach is looked at from. Inside, a breadcrumb at the top says where the
+map is (The Reach ▸ the region ▸ the system ▸ the world) and each step of it is a button. Escape comes out one step; so
+does pulling back with the wheel past the system's edge.
+
+**What a system shows.** Its sun, in its own colour. Everything that goes round it on its own orbit, the warm kinds of
+world nearest and the cold furthest, each drawn where it is this year with its lit side to the sun. Moons beside their
+worlds. The belt as a ring of rock, thicker where the system is richer in it, with the claims staked in it. A comet on a
+long thin path. A lamp on a body for each thing built there, a turning ring for a great work, a dashed one for what is
+rising. The fleets that are here: the holder's lying off its world, another's standing out in the system toward the lane
+that leads home, one under way at the gate it is making for. Stations off the world.
+
+**Where the lanes leave.** Each lane has a gate at the edge of the system, in the direction its neighbour lies on the map
+of the Reach, named for where it leads and coloured for who holds that. Clicking a gate follows the lane to the next
+system. With a fleet picked, clicking a gate shows the way there in the order bar as before: the order is still given by
+the button.
+
+**The year moves it.** Each thing goes a part of the way round each year, the near ones faster (the innermost takes three
+years to go round, and each further out takes longer), and when a year ends inside a system the worlds are seen to move to
+where they now are. Where a thing is follows from the system's id, its place in the system's list and the year, so a
+system is laid out the same in every game. The small drawing of each system on the map of the Reach uses the same order
+and the same directions, so going in finds the worlds where they were.
+
+**One world.** Clicking a body picks it and opens its row in the panel, where what can be built on it is. Clicking twice
+goes to it: the view closes on the world and its moons, the sun is turned down, and a strip says what it is (its kind,
+its year, its feature, what is in the ground, what is built and how many slots it has; for the system's own world, who
+holds it, its citizens, loyalty, prosperity and governor). The system's own world has its three provinces pinned on its
+face, each with its chief city, the kind of city, who holds it and how many live in the city; clicking one opens the
+world's provinces in the panel.
+
+**How it is made.** `SystemCharts.For` (src/Core/Galaxy/SystemChart.cs) lays a system out: orbits, where each body is,
+the gates, the fleets and stations, what is built. It adds no state and rolls nothing. `tests/SystemChartTests.cs` holds
+it: every body on its own orbit, the same chart in two different games, each world moved by its year, the gates toward
+the neighbours and never one on another, and who is in the system where they lie. The map's script draws the chart
+(`setSystem` in `js/space.js`); what is looked at is put in the middle of what can be seen between the panel at the left
+and the list at the right.
+
+Not done in this piece: a world is a painted disc and does not turn; a province has a pin and a card, not ground of its
+own on the world's face; the fleets do not move about inside a system, and a battle is not shown being fought there;
+nothing new can be done from the close map that could not be done from the panel.
 
 ## Not done
 

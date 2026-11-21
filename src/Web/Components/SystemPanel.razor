@@ -11,6 +11,7 @@
     var me = w.Protagonist!; var house = w.House(me.HouseId)!; var planet = w.PlanetOf(sys.Id); bool mine = planet?.OwnerId == house.Id;
     var ctx = new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0));
     if (_for != sys.Id) { _for = sys.Id; _open = -1; }
+    if (OpenStamp != _stampSeen) { _stampSeen = OpenStamp; if (OpenBody >= 0 && OpenBody < sys.Bodies.Count) _open = OpenBody; }
     // the sun first, then each world with its moons under it, then open space
     var order = new List<int>(); int sun = sys.Bodies.FindIndex(b => b.IsStar); if (sun >= 0) order.Add(sun);
     for (int i = 0; i < sys.Bodies.Count; i++) { if (sys.Bodies[i].IsStar || sys.Bodies[i].IsSpace || sys.Bodies[i].Orbits >= 0) continue; order.Add(i); for (int m = 0; m < sys.Bodies.Count; m++) if (sys.Bodies[m].Orbits == i) order.Add(m); }
@@ -111,7 +112,7 @@
         var parts = SystemWorks.SlotParts(w, cat, sys, i).ToList(); string partsLine = string.Join(" · ", parts.Select(x => x.what + " " + x.slots));
         bool open = _open == i; int idx = i; int px = b.IsStar || b.IsPrimary ? 30 : b.Orbits >= 0 ? 16 : 18 + b.Size * 4;
         string sprite = $"{b.Class}|{sys.Id}{b.Name}|{px}";
-        <div class="sysp-body @(open ? "open" : "") @(b.Orbits >= 0 ? "moon" : "") @(b.IsStar ? "star" : "") @(b.IsSpace ? "space" : "") @(world ? "home" : "")" data-body="@b.Class">
+        <div class="sysp-body @(open ? "open" : "") @(b.Orbits >= 0 ? "moon" : "") @(b.IsStar ? "star" : "") @(b.IsSpace ? "space" : "") @(world ? "home" : "")" data-body="@b.Class" data-body-index="@idx">
             <button class="sysp-row" @onclick="() => _open = _open == idx ? -1 : idx" title="@(feat?.Description ?? Kind(b))">
                 @if (b.IsSpace) { <span class="sprite deep" aria-hidden="true"></span> } else { <img class="sprite" data-planet="@sprite" alt="" /> }
                 <span class="sysp-name"><b>@b.Name</b><span class="muted">@Kind(b)@(b.IsPrimary ? " · the home world" : "")</span></span>
@@ -447,7 +448,10 @@
     [Parameter] public string SystemId { get; set; } = "";
     /// <summary>Show the system's infrastructure and not its bodies.</summary>
     [Parameter] public bool Infrastructure { get; set; }
-    private int _open = -1; private string? _for;
+    /// <summary>A body picked on the close map: its row is opened (each time the stamp changes, so picking the same one again opens it again).</summary>
+    [Parameter] public int OpenBody { get; set; } = -1;
+    [Parameter] public int OpenStamp { get; set; }
+    private int _open = -1, _stampSeen = -1; private string? _for;
     /// <summary>The painting of a thing, where it has one; an empty plate of the same size where it has not.</summary>
     private RenderFragment Art(string id) => __builder =>
     {
