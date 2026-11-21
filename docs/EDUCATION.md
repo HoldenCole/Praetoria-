@@ -141,3 +141,10 @@ something done for them and not something paid.
 - Old age still dulls a skill every fifth year from sixty, as before. Learning does not slow with age.
 - The numbers are first guesses. What slower-growing skills do to battles, offices and the Exchange over sixty years
   has been checked only for not breaking anything.
+
+## What a child thinks of the head follows how they are raised (2026-11-21)
+
+From the playthroughs (docs/PLAYTHROUGH.md, Medium, Family, F102). `EducationSystem.Raised` lists what a year of
+upbringing does to a child's regard for the head: +1 brought up as their own bent runs, +1 more for a tutor, -1 set
+against their bent. An upbringing alone takes it no higher than `RaisedCap` (40). The year's turn applies the list and
+the Upbringing panel shows it. It is for children of the player's house, six to fifteen.

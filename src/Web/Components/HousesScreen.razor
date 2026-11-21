@@ -143,6 +143,30 @@
                     </div>
                 }
                 @if (members.Count == 0) { <div class="muted">No one of the name still lives.</div> }
+                @{ var theirChildren = fh.Id == w.Protagonist!.HouseId ? new List<Character>() : members.Where(x => x.Age < DynastySystem.AgeOfMajority && !x.Flags.Contains(DynastySystem.HiddenFlag)).OrderByDescending(x => x.Age).ThenBy(x => x.Id, StringComparer.Ordinal).ToList(); }
+                @if (theirChildren.Count > 0)
+                {
+                    /* a child of another house can be promised to one of yours, or taken in as a ward, from here
+                       (docs/PLAYTHROUGH.md, Medium, Family, F70) */
+                    var myHead = w.Protagonist!; var mineFree = w.LivingCharacters().Where(x => x.HouseId == myHead.HouseId && DynastySystem.Spouse(w, x) == null && x.Age >= CourtshipSystem.BetrothalAge && !CourtshipSystem.Promised(w, x.Id)).OrderBy(x => x.Age).ThenBy(x => x.Id, StringComparer.Ordinal).ToList();
+                    <h4>Its children <span class="muted small">a promise of marriage, or a place in your household</span></h4>
+                    @foreach (var kid in theirChildren.Take(6))
+                    {
+                        string kidId = kid.Id; var ward = new HouseholdCommand(pid, HouseholdCommand.TakeIn, kidId, HouseholdSystem.Ward); string? wardNo = ward.Refusal(G.Ctx); var will = HouseholdSystem.Willing(w, myHead, kid, HouseholdSystem.Ward);
+                        var matchFor = mineFree.Where(x => x.Sex != kid.Sex && x.Sex.Length > 0).Select(x => (x, no: new CourtCommand(pid, x.Id, kidId).Refusal(G.Ctx))).ToList(); var open = matchFor.Where(x => x.no == null).Take(2).ToList();
+                        <div class="person" data-their-child="@kidId">
+                            <Portrait Id="@kid.Id" Name="@kid.Name" Sex="@kid.Sex" Age="@kid.Age" Accent="@fh.AccentColor" Size="30" />
+                            <span><b>@kid.Name</b> <span class="muted">@kid.Age</span></span>
+                            @foreach (var (mk, _) in open)
+                            {
+                                string mkId = mk.Id; int consent = CourtshipSystem.StartConsent(w, mk, kid);
+                                <button class="opt inline tiny" data-promise="@(mkId + "|" + kidId)" title="@($"Sound the family out about promising {mk.Name} ({mk.Age}) to {kid.Name}. It begins as any match does, under Dynasty, Marriages: their family stands at {consent} of the {CourtshipSystem.AcceptAt} at which it agrees. A promise is kept when both are of age.")" @onclick="() => G.Execute(new CourtCommand(pid, mkId, kidId))">Promise to @mk.Name.Split(' ')[0]</button>
+                            }
+                            @if (open.Count == 0) { <span class="muted small" title="@(matchFor.Count > 0 ? matchFor[0].no : "")">@(matchFor.Count == 0 ? "nobody of yours to promise" : "no promise: " + matchFor[0].no)</span> }
+                            <button class="opt inline tiny" data-ward="@kidId" disabled="@(wardNo != null)" title="@(wardNo ?? "They keep their name and are raised in your house, with you as their mentor. " + string.Join(" · ", will.why))" @onclick="() => G.Execute(ward)">Take as a ward · @HouseholdSystem.TakeInInfluence influence</button>
+                        </div>
+                    }
+                }
                 <h4>The domain</h4>
                 @foreach (var hd in worlds) { var sys = w.Galaxy?.System(hd.SystemId); <div class="line"><img class="sprite" data-planet="@(sys?.PlanetClass ?? "terran")|@hd.SystemId|24" alt="" /> <b>@hd.Name</b> <span class="muted">@(c.Holdings.Spec(hd.Specialization)?.Name ?? hd.Specialization) · @(sys?.Name) · loyalty @(100 - hd.Unrest)</span></div> }
                 @foreach (var hd in stations) { <div class="line muted"><Icon Name="station" Size="12" /> @hd.Name · station at @(w.Galaxy?.System(hd.SystemId)?.Name)</div> }

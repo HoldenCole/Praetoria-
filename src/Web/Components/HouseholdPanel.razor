@@ -133,11 +133,33 @@
         </div>
     }
 
+    @{ var marriedIn = w.LivingCharacters().Where(x => x.HouseId == house.Id).Select(x => (ours: x, sp: DynastySystem.Spouse(w, x))).Where(t => t.sp is { Alive: true } && t.sp.HouseId != house.Id).OrderBy(t => t.ours.Id, StringComparer.Ordinal).ToList(); }
+    @if (marriedIn.Count > 0)
+    {
+        /* husbands and wives who are of another house by name: of the household, and not among those taken in
+           (docs/PLAYTHROUGH.md, Medium, Family, F84 and F87) */
+        <div class="hh-head" data-married-in="@marriedIn.Count"><b>Married into the household</b> <span class="muted small">Husbands and wives of your people who keep the name of the house they were born to. They live with yours, cost nothing to keep, and take none of the @room places for those taken in.</span></div>
+        @foreach (var (ours, sp) in marriedIn)
+        {
+            var sh = w.House(sp!.HouseId); var mar = w.MarriageOf(ours.Id); int spRegard = w.GetRelationship(sp.Id, pid)?.Disposition ?? 0;
+            <div class="suit-who">
+                <Portrait Id="@sp.Id" Name="@sp.Name" Sex="@sp.Sex" Age="@sp.Age" Accent="@(sh?.AccentColor ?? "#888")" Size="30" />
+                <div><b>@sp.Name</b> <span class="muted">@sp.Age · of @(sh?.Name ?? "another house") · married to @(ours.Id == pid ? "you" : ours.Name)@(mar != null ? $" since year {mar.Since} · {(mar.Warmth >= CourtshipSystem.WarmAt ? "a warm marriage" : mar.Warmth <= CourtshipSystem.ColdAt ? "a cold marriage" : "a settled marriage")}" : "")@(sp.Id != pid ? $" · thinks {spRegard:+0;-0} of you" : "")</span></div>
+            </div>
+        }
+    }
+
     <div class="hh-head"><b>Take someone in</b> <span class="muted small">@(found.Count >= room ? $"The house keeps as many as it can ({room})." : "Someone you have come to value, or a child who needs a house. They must be willing, or their family must.")</span>
         @if (found.Count < room) { <button class="opt inline tiny" @onclick="() => _seek = !_seek">@(_seek ? "Close" : "Look for someone")</button> }</div>
     @if (_seek && found.Count < room)
     {
-        var cands = w.LivingCharacters().Where(x => x.HouseId != house.Id && x.HouseId != PirateSystem.HouseId && x.Age >= 6)
+        <div class="suit-acts" data-seek-kind="@_seekKind">
+            <span class="muted small">Looking for</span>
+            <button class="opt inline tiny @(_seekKind == "" ? "here" : "")" @onclick='() => _seekKind = ""'>anyone</button>
+            <button class="opt inline tiny @(_seekKind == "child" ? "here" : "")" title="A child of six to fifteen, taken as a ward: raised in your house, with you as mentor." @onclick='() => _seekKind = "child"'>a child, as a ward</button>
+            <button class="opt inline tiny @(_seekKind == "grown" ? "here" : "")" title="A grown person, as a protégé in your own service or a companion." @onclick='() => _seekKind = "grown"'>someone grown</button>
+        </div>
+        var cands = w.LivingCharacters().Where(x => x.HouseId != house.Id && x.HouseId != PirateSystem.HouseId && x.Age >= 6 && (_seekKind == "" || (_seekKind == "child") == (x.Age < 16)))
             .Select(x => (x, kind: x.Age < 16 ? HouseholdSystem.Ward : x.CareerTrack == p.CareerTrack && p.CareerRank > x.CareerRank ? HouseholdSystem.Protege : HouseholdSystem.Companion))
             .Select(t => (t.x, t.kind, will: HouseholdSystem.Willing(w, p, t.x, t.kind))).Where(t => t.will.score >= HouseholdSystem.WillingAt - 15)
             .OrderByDescending(t => t.will.score >= HouseholdSystem.WillingAt).ThenByDescending(t => t.x.Skills.Values.Sum()).ThenBy(t => t.x.Id, StringComparer.Ordinal).Take(8).ToList();
@@ -177,6 +199,8 @@
     public void Dispose() => G.Changed -= Redraw;
 
     private bool _seek;
+    /// <summary>Whom the search is for: "" anyone, "child" a ward, "grown" a protégé or companion.</summary>
+    private string _seekKind = "";
     private readonly Dictionary<string, int> _reserve = new();
     private static readonly int[] Reserves = { 0, 20, 50, 100, 200 };
     /* "began Farm on Tessaly" is how the year's report says it; beforehand it is "would begin Farm on Tessaly" */

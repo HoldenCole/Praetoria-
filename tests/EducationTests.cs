@@ -91,6 +91,33 @@ public class EducationTests
         Assert.DoesNotContain(EducationSystem.ResistsChar, child.Flags);
     }
 
+    /* docs/PLAYTHROUGH.md, Medium, Family: "Children think something of you, from how they are raised" (F102). */
+    [Fact]
+    public void What_a_child_thinks_of_the_head_follows_how_they_are_raised()
+    {
+        var (tc, w, me, mine) = Start(); mine.Treasury.Credits = 500;
+        var with = Person(w, mine, "with", 8); var against = Person(w, mine, "against", 8); var tutored = Person(w, mine, "tutored", 8); var capped = Person(w, mine, "capped", 8); var infant = Person(w, mine, "infant", 3);
+        string other = EducationSystem.Groups.First(g => g != EducationSystem.BentGroup(against));
+        Assert.True(Do(w, new EducationCommand(me.Id, EducationCommand.Upbringing, against.Id, other)));
+        Assert.True(Do(w, new EducationCommand(me.Id, EducationCommand.Tutor, tutored.Id, "2")));
+        foreach (var k in new[] { with, against, tutored }) w.Relationship(k.Id, me.Id).Disposition = 0;
+        w.Relationship(capped.Id, me.Id).Disposition = EducationSystem.RaisedCap;
+        // said beforehand, cause by cause
+        Assert.Equal(new[] { EducationSystem.RaisedWell }, EducationSystem.Raised(w, with, me).Select(x => x.by).ToArray());
+        Assert.Equal(new[] { EducationSystem.RaisedWell, EducationSystem.RaisedTutor }, EducationSystem.Raised(w, tutored, me).Select(x => x.by).ToArray());
+        Assert.Equal(new[] { EducationSystem.RaisedAgainst }, EducationSystem.Raised(w, against, me).Select(x => x.by).ToArray());
+        Assert.Empty(EducationSystem.Raised(w, capped, me)); Assert.Empty(EducationSystem.Raised(w, infant, me));
+        // and the year does exactly that
+        tc.EndTurn(); if (w.ProtagonistId != me.Id) return;
+        Assert.Equal(EducationSystem.RaisedWell, w.Relationship(with.Id, me.Id).Disposition);
+        Assert.Equal(EducationSystem.RaisedWell + EducationSystem.RaisedTutor, w.Relationship(tutored.Id, me.Id).Disposition);
+        Assert.Equal(EducationSystem.RaisedAgainst, w.Relationship(against.Id, me.Id).Disposition);
+        Assert.Equal(EducationSystem.RaisedCap, w.Relationship(capped.Id, me.Id).Disposition);              // an upbringing takes it no higher
+        // a child of another house thinks nothing of you for its own upbringing
+        var theirs = w.Houses.Values.First(h => h.Id != mine.Id && !World.Outsider(h.Id)); var elsewhere = Person(w, theirs, "elsewhere", 8); int was = w.Relationship(elsewhere.Id, me.Id).Disposition;
+        tc.BeginTurn(); tc.EndTurn(); if (w.ProtagonistId != me.Id) return; Assert.Equal(was, w.Relationship(elsewhere.Id, me.Id).Disposition);
+    }
+
     [Fact]
     public void A_course_against_their_bent_is_learned_slowly_and_resented_and_a_tutor_helps()
     {

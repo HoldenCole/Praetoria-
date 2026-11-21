@@ -50,8 +50,8 @@
         <div class="dash-col">
         @if (_tab == "tree") {
         <section class="panel">
-            <h3><Icon Name="dynasty" Size="13" /> The family tree <span class="muted">a row a generation · the eldest leftmost · the figure is an age · click a name</span></h3>
-            <div class="tree-wrap"><svg class="tree" viewBox="@F(minX - 75) 0 @F(treeW) @(Math.Max(200, tree.rows * 120 + 30))" style="min-width:@F(Math.Min(treeW, 1400) * 0.8)px; max-width:@F(treeW)px" role="img" aria-label="the family tree">
+            <h3><Icon Name="dynasty" Size="13" /> The family tree <span class="muted">a row a generation · children under their parents, the eldest leftmost · the figure is an age · click a name</span></h3>
+            <div class="tree-wrap"><svg class="tree" viewBox="@F(minX - 75) 0 @F(treeW) @(Math.Max(200, tree.rows * 120 + 30))" style="min-width:min(100%, @F(Math.Min(treeW, 1400) * 0.8)px); max-width:@F(treeW)px" role="img" aria-label="the family tree">
                 <defs><clipPath id="tree-face"><circle r="25" /></clipPath></defs>
                 @foreach (var l in tree.links) { <path d="M @F(l.x1) @F(l.y1) C @F(l.x1) @F((l.y1 + l.y2) / 2), @F(l.x2) @F((l.y1 + l.y2) / 2), @F(l.x2) @F(l.y2)" class="link" /> }
                 @foreach (var s in tree.spouses) { <line x1="@F(s.x1)" y1="@F(s.y)" x2="@F(s.x2)" y2="@F(s.y)" class="wed" /> }
@@ -195,7 +195,23 @@
         string Ini(string name) => string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(s => s[0]));
         foreach (var row in rows)
         {
-            var members = row.OrderByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal).ToList();
+            // children stand under their parents: a row is ordered by where each one's parents stand in the row above, the eldest of
+            // each family leftmost; one who married in stands beside their partner (docs/PLAYTHROUGH.md, Medium, Family, F72)
+            double Under(Character k)
+            {
+                var ps = new[] { k.MotherId, k.FatherId }.Where(x => x.Length > 0 && pos.ContainsKey(x)).Select(x => pos[x].x).ToList();
+                if (ps.Count > 0) return ps.Average();
+                if (DynastySystem.Spouse(w, k) is { } partner && ids.Contains(partner.Id)) { var pp = new[] { partner.MotherId, partner.FatherId }.Where(x => x.Length > 0 && pos.ContainsKey(x)).Select(x => pos[x].x).ToList(); if (pp.Count > 0) return pp.Average() + 0.5; }
+                return double.MaxValue;
+            }
+            var sorted = row.OrderBy(Under).ThenByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal).ToList();
+            // a husband and wife who are both of the house stand side by side, so the line to their children falls between the two of them
+            var members = new List<Character>();
+            foreach (var k in sorted)
+            {
+                if (members.Any(m => m.Id == k.Id)) continue; members.Add(k);
+                if (DynastySystem.Spouse(w, k) is { } mate && sorted.FirstOrDefault(m => m.Id == mate.Id) is { } inRow && !members.Any(m => m.Id == inRow.Id)) members.Add(inRow);
+            }
             // each member may bring a spouse from outside the house; lay the row out as slots
             var slots = new List<(Character ch, bool inHouse)>();
             foreach (var k in members) { slots.Add((k, true)); var sp = DynastySystem.Spouse(w, k); if (sp != null && !ids.Contains(sp.Id) && !slots.Any(s => s.ch.Id == sp.Id)) slots.Add((sp, false)); }

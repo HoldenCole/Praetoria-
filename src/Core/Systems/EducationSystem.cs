@@ -53,6 +53,21 @@ public static class EducationSystem
     public static string LevelName(int level) => level <= 0 ? "untrained" : level <= 2 ? "a novice" : level <= 4 ? "able" : level <= 6 ? "skilled" : level <= 8 ? "an expert" : "a master";
 
     /// <summary>What there is in this person for this skill, apart from any aptitude: −1 to +2, fixed for life.</summary>
+    /// <summary>What a year of upbringing does to what a child of the house thinks of its head, cause by cause: brought up as
+    /// their own bent runs, a point; a tutor paid for, a point more; set against their bent, a point the other way. An
+    /// upbringing alone takes a child's regard no higher than <see cref="RaisedCap"/>.</summary>
+    public const int RaisedWell = 1, RaisedTutor = 1, RaisedAgainst = -1, RaisedCap = 40;
+    public static List<(string why, int by)> Raised(World w, Character c, Character head)
+    {
+        var list = new List<(string, int)>(); if (c.Age < SchoolAge || c.Age >= Adult || c.Id == head.Id) return list;
+        var (_, _, against) = Lesson(w, c);
+        if (against) { list.Add(("set against their bent", RaisedAgainst)); return list; }
+        if ((w.GetRelationship(c.Id, head.Id)?.Disposition ?? 0) >= RaisedCap) return list;
+        list.Add(("brought up as their own bent runs", RaisedWell));
+        if (c.Tutor > 0) list.Add(("a tutor paid for", RaisedTutor));
+        return list;
+    }
+
     public static int Bent(Character c, string skill) => (int)(Hash(c.Id + ":" + skill) % 4) - 1;
 
     /// <summary>How far this person can go in a skill: five, their own bent, three more for an aptitude that bears on it, one more
@@ -307,10 +322,12 @@ public static class EducationSystem
                 c.Flags.Remove(ResistsChar);
                 var (skill, points, against) = Lesson(w, c); Gain(w, c, skill, points);
                 if (c.Age % 3 == 0) Gain(w, c, "charisma", 1);
-                if (against && mine != null && c.HouseId == mine.Id && p != null)
+                if (mine != null && c.HouseId == mine.Id && p != null && c.Id != p.Id)
                 {
-                    c.Flags.Add(ResistsChar); w.WorldFlags.Add(ResistsFlag);
-                    var r = w.Relationship(c.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition - 1, -100, 100);
+                    // what a child thinks of the head follows how they are raised (docs/PLAYTHROUGH.md, Medium, Family, F102)
+                    if (against) { c.Flags.Add(ResistsChar); w.WorldFlags.Add(ResistsFlag); }
+                    int by = Raised(w, c, p).Sum(x => x.by);
+                    if (by != 0) { var r = w.Relationship(c.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition + by, -100, 100); }
                 }
                 continue;
             }

@@ -23,6 +23,11 @@
                 <div><b>@c.Name</b> <span class="muted">@c.Age · shows a bent for @EducationSystem.GroupName(bent)@(c.Flags.Contains(HouseholdSystem.Ward) ? " · your ward" : "")</span>
                     <div class="muted small">Has learned: @Best(c). This year: @lesson.skill, +@lesson.points point@(lesson.points == 1 ? "" : "s") toward the next step (@c.Learning.GetValueOrDefault(lesson.skill) of @EducationSystem.Need(c.Skill(lesson.skill)) so far).</div>
                     @if (lesson.against) { <div class="small bad">Set against their bent: they learn a third as fast, and hold it against you a little more each year.</div> }
+                    @if (c.Id != pid)
+                    {
+                        var raised = EducationSystem.Raised(w, c, w.Protagonist!); int thinks = w.GetRelationship(c.Id, pid)?.Disposition ?? 0; int sum = raised.Sum(x => x.by);
+                        <div class="muted small" data-child-thinks="@thinks" title="What a child thinks of you follows how they are raised: a point a year when they are brought up as their own bent runs, a point more for a tutor, a point lost each year they are set against it. Upbringing alone takes it no higher than @EducationSystem.RaisedCap.">Thinks <b class="@(thinks >= 20 ? "good" : thinks < 0 ? "bad" : "")">@thinks.ToString("+0;-0")</b> of you. @(raised.Count == 0 ? (thinks >= EducationSystem.RaisedCap ? "An upbringing can make them think no better of you than this." : "") : "This year's upbringing: " + string.Join(", ", raised.Select(x => (x.by > 0 ? "+" : "−") + Math.Abs(x.by) + " " + x.why)) + (raised.Count > 1 ? " (" + sum.ToString("+0;-0") + " in all)" : "") + ".")</div>
+                    }
                     @if (c.Flags.Contains(EducationSystem.ProdigyChar)) { <div class="small good">Far ahead of their years.</div> }</div>
             </div>
             <div class="suit-acts"><span class="muted small">Course</span>
