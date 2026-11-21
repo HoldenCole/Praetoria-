@@ -1181,3 +1181,7 @@ details.sysp-fold > summary .muted { letter-spacing: 0; text-transform: none; ma
 table.prospects th.sortable { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
 table.prospects th.sortable.here { color: var(--gold, #d8b25a); text-decoration: none; }
 .suit.quarrel { border-left: 2px solid var(--gold, #d8b25a); }
+
+/* Your own aim, on the character sheet */
+.aim { margin: .3rem 0 .5rem; }
+.aim .gauge { margin-bottom: .2rem; }

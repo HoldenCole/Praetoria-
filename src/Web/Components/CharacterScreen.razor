@@ -77,7 +77,21 @@
             <h3>Career · @trackName</h3>
             <div class="ladder">@for (int r = 0; r <= maxRank; r++) { <span class="rung @(r == p.CareerRank ? "here" : r < p.CareerRank ? "past" : "")">@(track?.RankName(r, G.World!.Era) ?? r.ToString())</span> }</div>
             <div class="kv"><span>Commands from</span><b>@(style == "front" ? "the front" : style == "flag" ? "the flag" : "the staff")@(valour > 0 ? $" · valour {valour}" : "")@(p.Flags.Contains(FleetSystem.AchillesFlag) ? " · the fleet will not fight without you" : "")</b></div>
-            @if (ambition != null) { <div class="kv"><span>Ambition</span><b>@ambition.Name</b></div> }
+            @if (ambition != null)
+            {
+                /* what the ambition asks, how near it is and what would bring it nearer (docs/PLAYTHROUGH.md, Medium, A first game) */
+                var aim = Praetoria.Core.Presentation.OwnAim.For(G.World!, p);
+                <div class="kv"><span>Ambition</span><b>@ambition.Name</b></div>
+                @if (aim != null)
+                {
+                    string aimTarget = aim.Target;
+                    <div class="aim" data-aim="@aim.Progress">
+                        <div class="gauge" title="How near you are to what you want, from 0 to 100, reckoned as the ambitions of the house's other people are. Nothing in the game waits on it: it is yours to follow or not."><span>How near (of 100)</span><i><b style="width:@aim.Progress%" class="@(aim.Progress >= 70 ? "high" : aim.Progress < 25 ? "low" : "")"></b></i><em>@aim.Progress</em></div>
+                        <div class="small">@(aim.Had ? "You have it. " : "")@aim.Stands</div>
+                        @if (aim.Next.Length > 0) { <div class="small"><b>A next step:</b> @aim.Next <button class="opt inline tiny" @onclick="() => OnGo.InvokeAsync(aimTarget)">Go there ▸</button></div> }
+                    </div>
+                }
+            }
             @if (honors.Count > 0) { <div class="kv"><span>Honours</span><b>@string.Join(", ", honors)</b></div> }
             @if (flags.Count > 0) { <div class="kv"><span>Marked as</span><b>@foreach (var f in flags) { <span class="mark-word" title="@Marks.Tip(f)">@Marks.Label(f)</span> }</b></div> }
         </section>
@@ -123,6 +137,7 @@
 @code {
     private string _tab = "life";
     // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
+    [Parameter] public EventCallback<string> OnGo { get; set; }
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }
     private static int _seenStamp;

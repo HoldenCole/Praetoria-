@@ -80,7 +80,7 @@ else
             <div class="win-body">
             @switch (_screen)
             {
-                case "character": <CharacterScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
+                case "character": <CharacterScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
                 case "senate": <SenateScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
                 case "planets": <PlanetsScreen OnFocus="FocusSystem" Tab="@_tab" TabStamp="_tabStamp" /> break;
                 case "house": <HouseScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;

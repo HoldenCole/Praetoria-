@@ -1,5 +1,6 @@
 using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
+using Praetoria.Core.Presentation;
 using Praetoria.Core.Progression;
 using Praetoria.Core.State;
 using Praetoria.Core.Systems;
@@ -26,6 +27,34 @@ public class PlaythroughFixTests
 
     /* docs/PLAYTHROUGH.md, Medium, The Senate: "Titles: ... an alert when you qualify". (The strength test for seizing, the
        land a rank wants and one rise a year were done with the fifteen: 3.) */
+    /* docs/PLAYTHROUGH.md, Medium, A first game: "Aims: the ambition's conditions and progress ... a next step". */
+    [Fact]
+    public void YourOwnAmbition_SaysHowNearItIs_WhereItStands_AndANextStep()
+    {
+        var content = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir());
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 7UL); var tc = new TurnController(w, content); tc.BeginTurn();
+        var me = w.Protagonist!; var house = w.House(me.HouseId)!;
+        // every ambition there is has an account, with a figure, where it stands, and a step while it is not had
+        foreach (var a in content.Traits.Ambitions)
+        {
+            me.Ambition = a.Id; var aim = OwnAim.For(w, me);
+            Assert.NotNull(aim); Assert.InRange(aim!.Progress, 0, 100); Assert.True(aim.Stands.Length > 10, a.Id); if (aim.Had) Assert.Equal(100, aim.Progress);
+            if (!aim.Had) Assert.True(aim.Next.Length > 10 && aim.Target.Length > 0, a.Id);
+        }
+        me.Ambition = ""; Assert.Null(OwnAim.For(w, me));
+        // a fortune is your own purse, not the treasury
+        me.Ambition = "amass_a_fortune"; me.Purse = 0; house.Treasury.Credits = 900; Assert.Equal(0, OwnAim.For(w, me)!.Progress);
+        me.Purse = AmbitionSystem.FortuneAt / 2; Assert.Equal(50, OwnAim.For(w, me)!.Progress);
+        me.Purse = AmbitionSystem.FortuneAt; var rich = OwnAim.For(w, me)!; Assert.Equal(100, rich.Progress); Assert.True(rich.Had); Assert.Equal("", rich.Next);
+        // a command is a command: having one is the whole of it
+        me.Ambition = "command_a_fleet"; foreach (var f in w.Fleets.Values) if (f.AdmiralId == me.Id) f.AdmiralId = "";
+        var none = OwnAim.For(w, me)!; Assert.True(none.Progress <= 60); Assert.False(none.Had);
+        var fleet = w.Fleets.Values.First(f => f.OwnerId == house.Id); fleet.AdmiralId = me.Id; var has = OwnAim.For(w, me)!; Assert.Equal(100, has.Progress); Assert.Contains(fleet.Name, has.Stands);
+        // the house rich again is the house's worth against the figure, and a debt is named as the first thing to clear
+        me.Ambition = "restore_house_fortunes"; house.Wealth = AmbitionSystem.RestoredAt / 3; house.Debt = 10;
+        var poor = OwnAim.For(w, me)!; Assert.Equal(33, poor.Progress); Assert.Contains("debt", poor.Next);
+    }
+
     [Fact]
     public void TheRoadsToTheNextRank_AreListedOnlyWhenTheyAreOpen()
     {
