@@ -1,0 +1,35 @@
+{
+  "//": "THE CITIES OF A WORLD (docs/CITIES.md). The owner, 2026-11-21: 'each planet maybe can have around 2 to 3 special cities. One of them will always be the capital of the planet. One of them will be maybe a city focused on craftsman or a popular resort location ... each planet and then each city should have some sort of special thing about it. I'm thinking of regional differences that make the game feel more alive.' And of the Reach as a whole: 'a capital where all the military is, the commerce city, a city where a lot of resources come from and the city where the academy is.' Each province of a world has one chief city, of one KIND. The seat's is the world's capital. A kind gives what is under it each year to whoever holds the province (yield), moves where the world's prosperity heads and its unrest a year, adds to the world's defence and to what its holder can muster, and opens one building that only a city of that kind takes. `focuses` and `classes` say which provinces and worlds a kind suits; a kind with `great` is one of the four great cities of the Reach, of which there is one each, placed by `place`. `share` is the part of the world's citizens that live in the city, in thousandths.",
+  "lesserPerMillion": 60,
+  "cityKinds": [
+    { "id": "capital", "name": "the capital", "what": "The governor sits here, and what the world decides is decided here.", "share": 40, "yield": { "influence": 1 }, "unrest": -1, "defense": 0.2 },
+    { "id": "craftsmen", "name": "a city of craftsmen", "what": "Its workshops are known across the region: what is made here is made well.", "share": 20, "focuses": ["foundries", "mines", "farmland", "ports", "caravans", "rare_earths"], "yield": { "materials": 1 }, "prosperity": 2, "building": "guild_halls" },
+    { "id": "resort", "name": "a resort", "what": "The great houses keep villas here, and half the region comes for the season.", "share": 12, "classes": ["terran", "ocean", "arid"], "focuses": ["farmland", "ports", "caravans"], "yield": { "credits": 1 }, "prosperity": 4, "unrest": -1, "building": "pleasure_gardens" },
+    { "id": "port", "name": "a great port", "what": "Everything that leaves the world leaves through here.", "share": 25, "focuses": ["ports", "cloudworks", "helium", "caravans"], "yield": { "credits": 2 }, "building": "bonded_warehouses" },
+    { "id": "garrison", "name": "a garrison city", "what": "A city that grew up round its barracks, and still sends its sons to them.", "share": 15, "focuses": ["march", "isotopes", "icefields"], "yield": { "manpower": 1 }, "defense": 0.3, "muster": 6, "building": "citadel" },
+    { "id": "university", "name": "a university town", "what": "Its schools are old, and its graduates run half the offices of the region.", "share": 12, "classes": ["terran", "ocean", "arid", "frozen"], "focuses": ["farmland", "ports", "icefields", "caravans"], "yield": { "influence": 1 }, "prosperity": 2, "building": "collegium" },
+    { "id": "shrine", "name": "a holy city", "what": "Pilgrims come from across the Reach, and the world is quieter for it.", "share": 14, "focuses": ["farmland", "caravans", "icefields", "mines", "march"], "unrest": -2, "building": "pilgrim_basilica" },
+    { "id": "mining", "name": "a company town", "what": "The pits own the houses, the shops and most of the people.", "share": 14, "focuses": ["mines", "rare_earths", "isotopes", "foundries", "helium", "icefields"], "yield": { "materials": 2 }, "unrest": 1, "building": "deep_workings" },
+    { "id": "market", "name": "a market city", "what": "The fairs here set the prices for the country round.", "share": 22, "focuses": ["farmland", "ports", "caravans", "cloudworks", "foundries"], "yield": { "credits": 1 }, "prosperity": 2, "building": "covered_market" },
+    { "id": "granary", "name": "a breadbasket city", "what": "The fields round it feed the world, and its young fill the levies.", "share": 18, "classes": ["terran", "ocean"], "focuses": ["farmland"], "yield": { "manpower": 1, "credits": 1 }, "muster": 4, "building": "great_granaries" },
+    { "id": "shipwrights", "name": "a yard city", "what": "Hulls have been laid down here for longer than the house has held the world.", "share": 16, "focuses": ["ports", "foundries", "cloudworks", "march", "helium"], "yield": { "materials": 1 }, "defense": 0.2, "building": "slipways" },
+    { "id": "old_city", "name": "an old city", "what": "Older than the house that holds it, and it does not let anyone forget it.", "share": 16, "yield": { "influence": 1 }, "prosperity": 1, "building": "old_quarter" },
+
+    { "id": "reach_capital", "name": "the Capital of the Reach", "great": true, "place": "capital", "what": "The Senate sits here, the fleets of the Reach are ordered from here, and half its trade is settled here.", "share": 100, "yield": { "influence": 2, "credits": 2, "manpower": 2 }, "unrest": -1, "defense": 0.5, "muster": 10, "building": "senate_precinct" },
+    { "id": "exchange_city", "name": "the Exchange city", "great": true, "place": "commerce", "what": "The great commerce city of the Reach: paper for every venture in it changes hands on this floor.", "share": 60, "yield": { "credits": 4 }, "prosperity": 3, "building": "great_exchange" },
+    { "id": "lode_city", "name": "the Lode", "great": true, "place": "resource", "what": "More comes out of the ground here than anywhere in the Reach, and the city on the rim of the pit lives on it.", "share": 50, "yield": { "materials": 4 }, "unrest": 1, "building": "lode_pit" },
+    { "id": "academy_city", "name": "the Academy city", "great": true, "place": "academy", "what": "The Institute stands here: every officer of the Reach has walked its parade ground.", "share": 50, "yield": { "influence": 2, "manpower": 1 }, "prosperity": 2, "muster": 4, "building": "institute_halls" }
+  ],
+  "cityNames": {
+    "first": ["Cal", "Vesp", "Tann", "Mar", "Cor", "Hal", "Aren", "Sel", "Dor", "Lys", "Ost", "Bren", "Cass", "Ell", "Fal", "Gal", "Hesp", "Ith", "Jor", "Kel", "Lor", "Mer", "Nov", "Orr", "Pell", "Quar", "Rav", "Sab", "Tor", "Ulm", "Val", "Wyn", "Yar", "Zan", "Ard", "Bel", "Cyr", "Dra", "Em", "Fen"],
+    "last": ["mere", "ara", "is", "gate", "vale", "ford", "ium", "os", "wick", "holm", "ene", "ath", "burg", "haven", "ora", "ell", "mont", "ane", "ross", "by", "stead", "ion", "ica", "well", "mar"],
+    "patterns": {
+      "capital": ["{0}"], "reach_capital": ["{0}"],
+      "port": ["Port {0}", "{0} Harbour", "{0} Roads"], "resort": ["{0} Springs", "{0} Sands", "{0} Terraces"], "garrison": ["Fort {0}", "{0} Barracks", "{0} Keep"],
+      "university": ["{0} Collegium", "Old {0}", "{0}"], "shrine": ["Saint {0}", "{0} Sanctuary", "Holy {0}"], "mining": ["{0} Deep", "{0} Pits", "{0} Works"],
+      "market": ["{0} Cross", "{0} Fair", "{0} Market"], "granary": ["{0} Fields", "{0}", "{0} Mills"], "shipwrights": ["{0} Yards", "{0} Slips", "{0}"],
+      "craftsmen": ["{0}", "{0} Anvil", "{0} Looms"], "old_city": ["Old {0}", "{0} the Elder", "{0}"],
+      "exchange_city": ["{0}"], "lode_city": ["{0}"], "academy_city": ["{0}"]
+    }
+  }
+}

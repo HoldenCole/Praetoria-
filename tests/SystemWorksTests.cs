@@ -54,7 +54,9 @@ public class SystemWorksTests
         Assert.True(g.Systems.Values.Select(s => string.Join(",", s.Bodies.Select(b => b.Class + ":" + b.Feature))).Distinct().Count() >= g.Systems.Count - 2);
         // every feature opens a work of its own, and every work has somewhere it could go
         foreach (var f in Cat.Features) Assert.Contains(Cat.Works, d => d.Feature == f.Id);
-        foreach (var d in Cat.Works.Where(d => !d.Chokepoint)) Assert.Contains(g.Systems.Values, s => s.Bodies.Any(b => SystemWorks.Suits(s, b, d)));
+        foreach (var d in Cat.Works.Where(d => !d.Chokepoint && d.City.Length == 0)) Assert.Contains(g.Systems.Values, s => s.Bodies.Any(b => SystemWorks.Suits(s, b, d)));
+        // a building of one kind of city goes in a city of that kind, which is a kind there is (docs/CITIES.md)
+        foreach (var d in Cat.Works.Where(d => d.City.Length > 0)) Assert.NotNull(Cat.Cities.Kind(d.City));
     }
 
     [Fact]
@@ -253,7 +255,7 @@ public class SystemWorksTests
         // the owner, 2026-11-20: "the home world of your system should have unique buildings and should also be able to build ordinary
         // buildings ... the whole world where you actually live should have more options of things to do"
         var (w, tc, house, me, ctx) = Start(); var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var sys = w.Galaxy!.System(seat.SystemId)!; int home = sys.Bodies.FindIndex(b => b.IsPrimary); var body = sys.Bodies[home];
-        var own = Cat.Works.Where(d => !d.IsMegastructure && d.On == "world").ToList(); Assert.True(own.Count >= 8, $"{own.Count} home-world buildings");
+        var own = Cat.Works.Where(d => !d.IsMegastructure && d.On == "world" && d.City.Length == 0).ToList();   // (the Senate's precinct is for one home world only: CityTests) Assert.True(own.Count >= 8, $"{own.Count} home-world buildings");
         var ordinary = Cat.Works.Where(d => !d.IsMegastructure && d.On != "world" && SystemWorks.Suits(sys, body, d)).ToList(); Assert.NotEmpty(ordinary);
         Assert.All(own, d => { Assert.True(SystemWorks.Suits(sys, body, d), d.Id); for (int i = 0; i < sys.Bodies.Count; i++) if (i != home) Assert.False(SystemWorks.Suits(sys, sys.Bodies[i], d), d.Id); });
         // more can be built on the home world than on any other place of the system

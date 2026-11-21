@@ -357,11 +357,14 @@ moved to its site.
 ## Artwork
 
 `tools/art/works.py` paints a small wide picture for every building, great work, track and world building (100 of them),
-keyed by the id in content, with the same openly licensed model as the portraits; the panel shows it beside the thing.
+keyed by the id in content, with the same openly licensed model as the portraits; the panel shows it beside the thing. (115 since the cities.)
 They are AI-generated (docs/ART_DIRECTION.md).
 
 The owner's rule (2026-11-20) is that a picture matches its subject or is not there, and that a set has all its pictures
-or none. The whole set was audited on contact sheets that day: nineteen that did not show their subject were painted
+or none. The fifteen buildings of the cities (docs/CITIES.md) were painted on 2026-11-21 and audited the same way: a market
+hall with lettering on a banner and a pit that came out as a refinery in a valley were painted again from simpler prompts,
+and two the model had captioned along the bottom were trimmed. The set is 115 and ships whole. The first hundred were
+audited on contact sheets on 2026-11-20: nineteen that did not show their subject were painted
 again from simpler prompts and a different composition (a hospital as a ward with beds, a breakers' yard as a hull in a
 hangar with men cutting it, a sensor array as a row of dishes), and one that the model had signed in a corner was
 trimmed. The set ships whole.

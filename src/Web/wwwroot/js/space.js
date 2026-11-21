@@ -424,7 +424,7 @@ export class Galaxy {
     if (!this.tip || !this.model) return;
     if (!hit) { this.tip.element.style.display = 'none'; return; }
     const el = this.tip.element; el.style.display = 'block';
-    if (hit.kind === 'system') { const s = this.model.systems.find(x => x.id === hit.id); if (!s) return; this.tip.position.set(s.x, -s.y - 30, 20); el.innerHTML = `<b>${esc(s.name)}</b><div>${esc(s.planetClass)} world · ${esc(s.ownerName || 'unclaimed')}${s.governor ? ` · gov. ${esc(s.governor)}` : ''}</div>${s.pop ? `<div>${esc(s.citizens || ('scale ' + s.pop))} citizens · loyalty ${100 - s.unrest}</div>` : ''}${s.industry ? `<div>${esc(s.industry)}</div>` : ''}`; }
+    if (hit.kind === 'system') { const s = this.model.systems.find(x => x.id === hit.id); if (!s) return; this.tip.position.set(s.x, -s.y - 30, 20); el.innerHTML = `<b>${esc(s.name)}</b><div>${esc(s.planetClass)} world · ${esc(s.ownerName || 'unclaimed')}${s.governor ? ` · gov. ${esc(s.governor)}` : ''}</div>${s.pop ? `<div>${esc(s.citizens || ('scale ' + s.pop))} citizens · loyalty ${100 - s.unrest}</div>` : ''}${s.industry ? `<div>${esc(s.industry)}</div>` : ''}${s.great ? `<div>★ ${esc(s.great)}</div>` : ''}`; }
     else { const f = this.model.fleets.find(x => x.id === hit.id); const s = f && this.model.systems.find(x => x.id === f.systemId); if (!f || !s) return; this.tip.position.set(s.x, -s.y - 30, 20); el.innerHTML = `<b>${esc(f.name)}</b><div>${esc(f.ownerName || '')} · ${f.strength} hulls${f.isPlayer ? ` · readiness ${f.readiness}` : ` · intel ${f.confidence}%`}</div>`; }
   }
   pick(px, py) {

@@ -1130,3 +1130,10 @@ details.inline[data-hulls] .qty { width: 4rem; }
 .crisis-facts { margin-top: .3rem; } .crisis-facts > summary { font-size: .78rem; cursor: pointer; color: var(--ink2); } .crisis-facts .small { margin: .2rem 0; line-height: 1.3; }
 /* what can be done to a person, on their profile */
 .profile-acts { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: .5rem 0; }
+/* cities (docs/CITIES.md): a province's chief city under its name; a great city of the Reach in gold */
+.sysp-city { margin: .25rem 0 .3rem; padding: .3rem .45rem; border-left: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); }
+.sysp-city .city-kind, .great-row .city-kind { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); margin-left: .35rem; }
+.sysp-city.great { border-left-color: var(--brass); } .sysp-city.great .city-kind, .great-row .city-kind { color: var(--brass); }
+.great-city { color: var(--brass); font-size: .85rem; margin-top: .15rem; }
+.cities-line { display: flex; flex-direction: column; align-items: flex-end; gap: .1rem; } .cities-line .great { color: var(--brass); } .cities-line i { font-style: normal; }
+.great-row { padding: .4rem 0; border-bottom: 1px dashed rgba(255,255,255,.08); cursor: pointer; } .great-row:hover { background: rgba(255,255,255,.04); } .great-row:last-child { border-bottom: 0; }

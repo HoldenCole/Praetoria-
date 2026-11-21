@@ -7,6 +7,10 @@ public sealed class Province
     public string Name { get; set; } = "";
     /// <summary>What it is given over to: a focus of provinces.json.</summary>
     public string Focus { get; set; } = "";
+    /// <summary>The province's chief city (docs/CITIES.md): its name, and its kind, which is what is special about it. The seat's
+    /// is the world's capital. "" until the cities are laid out, which an older game has done the first year it is opened.</summary>
+    public string City { get; set; } = "";
+    public string CityKind { get; set; } = "";
     public string HolderId { get; set; } = "";
     /// <summary>The year its holder was given it.</summary>
     public int Since { get; set; }

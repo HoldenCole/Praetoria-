@@ -908,12 +908,12 @@ public class PlaythroughFixTests
         foreach (var h in w.Holdings.Values.Where(h => h.OwnerId == house.Id && h.IsPlanet).ToList()) Assert.True(h.Population > 0);
         var landless = w.Houses.Values.First(h => h.Id != house.Id); Assert.True(Economy.MusterCap(w, landless.Id) >= Economy.MusterFloor);
         // a year turns on a house a little under its cap: it ends at the cap of the worlds as they then are, and the player is told once
-        house.Treasury.Manpower = cap - 1; house.Treasury.Credits = 500; tc.EndTurn(); tc.BeginTurn();
-        Assert.True(house.Treasury.Manpower <= Economy.MusterCap(w, house.Id));
+        house.Treasury.Manpower = Economy.MusterCap(w, house.Id, Content.Holdings) - 1; house.Treasury.Credits = 500; tc.EndTurn(); tc.BeginTurn();
+        Assert.True(house.Treasury.Manpower <= Economy.MusterCap(w, house.Id, Content.Holdings));
         Assert.Contains(w.News, n => n.Text.StartsWith("Your worlds can muster no more"));
         // no house in the Reach ends a long run with a host its worlds could not keep
         for (int y = 0; y < 12; y++) { tc.EndTurn(); tc.BeginTurn(); }
-        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id))) Assert.True(h.Treasury.Manpower <= Math.Max(Economy.MusterCap(w, h.Id), 60), h.Name + " holds " + h.Treasury.Manpower + " of " + Economy.MusterCap(w, h.Id));
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id))) Assert.True(h.Treasury.Manpower <= Math.Max(Economy.MusterCap(w, h.Id, Content.Holdings), 60), h.Name + " holds " + h.Treasury.Manpower + " of " + Economy.MusterCap(w, h.Id, Content.Holdings));
     }
 
     [Fact]

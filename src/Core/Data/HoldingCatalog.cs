@@ -152,6 +152,31 @@ public sealed class ProvinceFocus
     public string Deposit { get; init; } = ""; public bool Military { get; init; } public IReadOnlyList<string> Classes { get; init; } = Array.Empty<string>();
     public Resources Yield { get; init; } = new(); public double Defense { get; init; }
 }
+/// <summary>A kind of city (docs/CITIES.md): the chief city of a province is of one kind, and the kind is what is special about
+/// it. What it gives each year goes to whoever holds the province; the rest falls on the world. Pure data.</summary>
+public sealed class CityKind
+{
+    public string Id { get; init; } = ""; public string Name { get; init; } = ""; public string What { get; init; } = "";
+    /// <summary>One of the four great cities of the Reach, of which there is one each; and where it is put.</summary>
+    public bool Great { get; init; } public string Place { get; init; } = "";
+    public IReadOnlyList<string> Focuses { get; init; } = Array.Empty<string>(); public IReadOnlyList<string> Classes { get; init; } = Array.Empty<string>();
+    public Resources Yield { get; init; } = new(); public int Prosperity { get; init; } public int Unrest { get; init; } public double Defense { get; init; } public int Muster { get; init; }
+    /// <summary>The part of the world's citizens that live in the city, in thousandths; and the one building only a city of this kind takes.</summary>
+    public int Share { get; init; } = 20; public string Building { get; init; } = "";
+}
+/// <summary>The kinds of city, and the parts their names are made of.</summary>
+public sealed class CityRules
+{
+    public const string Capital = "capital";
+    public IReadOnlyList<CityKind> Kinds { get; init; } = Array.Empty<CityKind>();
+    public IReadOnlyList<string> First { get; init; } = Array.Empty<string>(); public IReadOnlyList<string> Last { get; init; } = Array.Empty<string>();
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> Patterns { get; init; } = new Dictionary<string, IReadOnlyList<string>>();
+    /// <summary>Lesser cities and towns for each million of a world's citizens that do not live in its chief cities, in thousandths.</summary>
+    public int LesserPerMillion { get; init; } = 60;
+    public CityKind? Kind(string id) { foreach (var k in Kinds) if (k.Id == id) return k; return null; }
+    public bool IsEmpty => Kinds.Count == 0;
+}
+
 /// <summary>The rules of provinces: the focuses, what improving one costs, and what a demand that a holder step down costs and risks.</summary>
 public sealed class ProvinceRules
 {
@@ -222,6 +247,9 @@ public sealed class WorkDef
     public int Legitimacy { get; init; }
     public int Glory { get; init; }
     public bool Fits(string bodyClass) => Bodies.Count == 0 ? bodyClass != "star" : Bodies.Contains(bodyClass);
+    /// <summary>The kind of city this is raised in and nowhere else ("" for a building any place takes): a guild hall in a city of
+    /// craftsmen, the Senate's precinct in the capital of the Reach (docs/CITIES.md).</summary>
+    public string City { get; init; } = "";
 }
 
 /// <summary>
@@ -273,6 +301,7 @@ public sealed class HoldingCatalog
     public IReadOnlyList<InfrastructureDef> Infrastructure { get; init; } = Array.Empty<InfrastructureDef>();
     public BuildRules Rules { get; init; } = new();
     public ProvinceRules Provinces { get; init; } = new();
+    public CityRules Cities { get; init; } = new();
     public InfrastructureDef? Track(string id) => Infrastructure.FirstOrDefault(t => t.Id == id);
     private Dictionary<string, WorkDef>? _works;
     public WorkDef? Work(string id) => (_works ??= Works.ToDictionary(w => w.Id)).TryGetValue(id, out var d) ? d : null;

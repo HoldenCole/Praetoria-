@@ -247,8 +247,12 @@ public static class SystemWorks
 
     /// <summary>Whether a work suits a place at all, whoever asks: its kind, its feature and its deposit. A work marked for the home
     /// world is for it alone; an ordinary building goes on the home world too, in its slots, unless it is not for one (an outpost, a colony).</summary>
-    public static bool Suits(StarSystem sys, Body b, WorkDef def) =>
-        def.Fits(b.Class) && (def.On == "world" ? b.IsPrimary : !(b.IsPrimary && def.NotHome))
+    /// <summary>A building of one kind of city is not for a body's slots. The one exception is a building of the world's own capital
+    /// (the Senate's precinct in the capital of the Reach), which stands on the home world when its capital is that city (docs/CITIES.md).</summary>
+    public static bool CitySuits(WorkDef def, Holding? planet) =>
+        def.City.Length == 0 || (def.On == "world" && planet is { Provinces.Count: > 0 } && planet.Provinces[0].CityKind == def.City);
+    public static bool Suits(StarSystem sys, Body b, WorkDef def, Holding? planet = null) =>
+        CitySuits(def, planet) && def.Fits(b.Class) && (def.On == "world" ? b.IsPrimary : !(b.IsPrimary && def.NotHome))
         && (def.Feature.Length == 0 || b.Feature == def.Feature) && (def.Deposit.Length == 0 || (b.Deposit == def.Deposit && sys.Deposit(def.Deposit) > 0));
 
     /// <summary>Why a house may not build this work on this body, or null. <paramref name="explain"/> false skips writing out what is lacking.</summary>
@@ -262,6 +266,7 @@ public static class SystemWorks
         if (body < 0 || body >= sys.Bodies.Count) return "no such body";
         var b = sys.Bodies[body];
         if (!def.Fits(b.Class)) return $"does not suit {(b.IsStar ? "a sun" : b.IsSpace ? "open space" : Article(b.Class))}";
+        if (!CitySuits(def, planet)) return $"only in {cat.Cities.Kind(def.City)?.Name ?? "a city of its own kind"}";
         if (def.On == "world" && !b.IsPrimary) return "only on the system's home world";
         if (def.NotHome && b.IsPrimary) return "not for a home world";
         if (def.Feature.Length > 0 && b.Feature != def.Feature) return $"needs {cat.Feature(def.Feature)?.Name.ToLowerInvariant() ?? def.Feature}";

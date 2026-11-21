@@ -16,10 +16,12 @@ public static class Census
     /// <summary>Citizens for the first point of the scale on a terran world of the middle ring.</summary>
     public const double PerPointSquared = 2_000_000;
 
-    /// <summary>How much of a world can be lived on, by its kind.</summary>
+    /// <summary>How much of a world can be lived on, by its kind. People live as thickly on an ocean world as on any living world
+    /// (the owner, 2026-11-21: "I don't think humans should have different habitability for oceans or farmlands or [plains] ... it
+    /// would be if the world is frozen or a lava world or a desert world"): it is ice, fire, sand and no air that thin them.</summary>
     public static double Habitable(string planetClass) => planetClass switch
     {
-        "terran" => 1.0, "ocean" => 0.8, "arid" => 0.45, "forge" => 0.35, "frozen" => 0.2, "barren" => 0.12, "gas" => 0.05, "belt" => 0.03, _ => 0.5,
+        "terran" => 1.0, "ocean" => 1.0, "arid" => 0.45, "forge" => 0.35, "frozen" => 0.2, "barren" => 0.12, "gas" => 0.05, "belt" => 0.03, _ => 0.5,
     };
     public static double RingFactor(string ring) => ring switch { Ring.Core => 1.3, Ring.Rim => 0.6, _ => 1.0 };
 

@@ -121,6 +121,22 @@ WORKS = {
     "free_port": "a crowded free port, ships of every kind landed along the quays, warehouses, cranes, flags, lanterns, dusk",
     "patronage_office": "a marble office hall where petitioners wait in a long colonnade before a great desk, clerks, lamplight",
     "granary_relief": "great stone public granaries with grain being handed out to a crowd in a forum, carts, columns, morning light",
+    # ---- the buildings that only a city of one kind takes (docs/CITIES.md) ----
+    "guild_halls": "a street of grand stone guild halls with open workshop yards, trade banners hanging from the eaves, craftsmen at benches far off, lantern light",
+    "pleasure_gardens": "terraced pleasure gardens and white villas above a turquoise bay, fountains, pavilions, promenades, warm evening light",
+    "bonded_warehouses": "long rows of great stone warehouses along a quay, cranes, stacked cargo, landed freighters, customs towers, dusk",
+    "citadel": "a massive star-shaped citadel fortress on a rock above a city, gun towers, banners, barrack squares, storm light",
+    "collegium": "a great university of domes, colonnades and libraries around a green quadrangle, scholars small in the distance, golden morning",
+    "pilgrim_basilica": "an enormous domed basilica on a hill above a pilgrim city, long stairways, incense smoke, crowds far off, sunrise",
+    "deep_workings": "a huge mine pithead complex above a canyon, headframes, ore elevators, rows of company housing blocks, floodlights, dusk",
+    "covered_market": "the inside of a vast glass and iron market hall seen from a high gallery, rows of stalls with plain awnings far below, hanging lamps, warm light",
+    "great_granaries": "towering grain silos and elevators beside golden fields and a rail yard, harvest carts, a wide sky, late afternoon",
+    "slipways": "a shipyard city where starship hulls stand half built on great slipways, gantry cranes, sparks, scaffolding, evening",
+    "old_quarter": "an ancient walled old city of narrow streets and weathered stone towers, ivy, lamplight, mist",
+    "senate_precinct": "a monumental marble senate house with a great dome on a hill above a vast capital city, colonnades, wide avenues, banners, golden light",
+    "great_exchange": "the inside of a colossal trading exchange hall under a glass vault, tiers of galleries, glowing boards, crowds far off",
+    "lode_pit": "a gigantic terraced open-pit mine seen from its rim, spiral roads descending into the pit, tiny ore trucks, the lights of a city along the far rim, dusk",
+    "institute_halls": "a stern military academy of grey stone towers and parade grounds on a cliff, cadets drawn up far off, banners, cold morning light",
 }
 # things that are in space: the model reaches for a sea and a shore unless it is told not to
 SPACE = {"skimmer_fleet", "orbital_batteries", "fleet_anchorage", "waystation", "customs_cordon", "relay_beacon", "patrol_base", "minefields", "belt_foundry", "prospectors_exchange",
@@ -140,7 +156,10 @@ RETHROWN.update({k: 8 for k in ("domed_colony", "sun_foundry")})
 RETHROWN.update({k: 9 for k in ("minefields", "the_aegis", "sensor_array")})
 RETHROWN.update({k: 10 for k in ("helium_skimmers", "twin_crown", "ring_habitat")})
 RETHROWN.update({k: 12 for k in ("reef_cities", "moon_port", "orbital_foundry")})
-NEG_EXTRA = {"helium_skimmers": ", sea, ocean, water, ship, boat"}
+NEG_EXTRA = {"helium_skimmers": ", sea, ocean, water, ship, boat", "covered_market": ", sign, signboard, banner, lettering, writing"}
+# the city buildings (docs/CITIES.md), audited on a contact sheet 2026-11-21: a market hall with lettering on a banner and a pit that was a
+# refinery in a valley were painted again from simpler prompts; two that the model had captioned along the bottom are trimmed below
+RETHROWN.update({k: 1 for k in ("covered_market", "lode_pit")})
 
 def paint(work):
     os.makedirs(work, exist_ok=True)
@@ -156,7 +175,7 @@ def paint(work):
         pipe(prompt=WORKS[k] + ", " + STYLE, negative_prompt=NEG + (NEG_SPACE if k in SPACE else "") + NEG_EXTRA.get(k, ""), num_inference_steps=6, guidance_scale=1.5, width=576, height=352, generator=g).images[0].save(os.path.join(work, k + ".png"))
         print(k, f"{time.time() - t:.0f}s", flush=True)
 
-SIGNED = {"spaceport": 20}
+SIGNED = {"spaceport": 20, "pilgrim_basilica": 22, "deep_workings": 22}
 
 def pack(work, out, width=432, quality=80):
     from PIL import Image

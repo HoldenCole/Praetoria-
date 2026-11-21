@@ -513,7 +513,7 @@ public sealed class NpcAi
                 for (int i = 0; i < sys.Bodies.Count; i++)
                     foreach (var def in _worksInOrder)
                     {
-                        if (!SystemWorks.Suits(sys, sys.Bodies[i], def)) continue;
+                        if (!SystemWorks.Suits(sys, sys.Bodies[i], def, world.PlanetOf(sys.Id))) continue;
                         if (def.IsMegastructure ? house.Treasury.Credits < def.Cost.Credits + 30 || house.Treasury.Materials < def.Cost.Materials / 2 : house.Treasury.Credits < def.Cost.Credits + 12) continue;   // a cushion kept; a great work only by a house that could pay for most of it today
                         if (executor.TryExecute(new BuildWorkCommand(steward.Id, sys.Id, i, def.Id, catalog, Titles), ctx)) return;
                     }

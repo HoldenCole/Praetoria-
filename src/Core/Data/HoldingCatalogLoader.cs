@@ -30,7 +30,7 @@ public static class HoldingCatalogLoader
         var exchangeBuildings = new List<string>();
         var taxes = new List<TaxPolicy>();
         var works = new List<WorkDef>(); var features = new List<FeatureDef>(); ColonyRule colony = ColonyRule.Default;
-        var bodySlots = new Dictionary<string, int>(); int smallSlots = 1; var tracks = new List<InfrastructureDef>(); BuildRules rules = new(); ProvinceRules provinces = new();
+        var bodySlots = new Dictionary<string, int>(); int smallSlots = 1; var tracks = new List<InfrastructureDef>(); BuildRules rules = new(); ProvinceRules provinces = new(); CityRules cities = new();
         int contiguity = 0;
 
         foreach (var file in Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories)
@@ -81,6 +81,24 @@ public static class HoldingCatalogLoader
                             Prosperity = per.ValueKind == JsonValueKind.Object ? ConditionParser.Int(per, "prosperity", 0) : 0, Population = per.ValueKind == JsonValueKind.Object ? ConditionParser.Int(per, "population", 0) : 0
                         });
                     }
+                if (root.TryGetProperty("cityKinds", out var ck) && ck.ValueKind == JsonValueKind.Array)
+                {
+                    static List<string> Strs(JsonElement e, string name) => e.TryGetProperty(name, out var a) && a.ValueKind == JsonValueKind.Array ? a.EnumerateArray().Select(x => x.GetString() ?? "").Where(x => x.Length > 0).ToList() : new List<string>();
+                    var names = root.TryGetProperty("cityNames", out var cn) && cn.ValueKind == JsonValueKind.Object ? cn : default; var patterns = new Dictionary<string, IReadOnlyList<string>>();
+                    if (names.ValueKind == JsonValueKind.Object && names.TryGetProperty("patterns", out var pt) && pt.ValueKind == JsonValueKind.Object) foreach (var pr in pt.EnumerateObject()) patterns[pr.Name] = pr.Value.EnumerateArray().Select(x => x.GetString() ?? "{0}").ToList();
+                    cities = new CityRules
+                    {
+                        Kinds = ck.EnumerateArray().Where(e => e.TryGetProperty("id", out _)).Select(e => new CityKind
+                        {
+                            Id = e.GetProperty("id").GetString()!, Name = ConditionParser.OptStr(e, "name", ""), What = ConditionParser.OptStr(e, "what", ""), Great = ConditionParser.Bool(e, "great", false), Place = ConditionParser.OptStr(e, "place", ""),
+                            Focuses = Strs(e, "focuses"), Classes = Strs(e, "classes"), Yield = ParseResources(e, "yield"), Prosperity = ConditionParser.Int(e, "prosperity", 0), Unrest = ConditionParser.Int(e, "unrest", 0),
+                            Defense = e.TryGetProperty("defense", out var cd) && cd.ValueKind == JsonValueKind.Number ? cd.GetDouble() : 0, Muster = ConditionParser.Int(e, "muster", 0),
+                            Share = Math.Max(1, ConditionParser.Int(e, "share", 20)), Building = ConditionParser.OptStr(e, "building", "")
+                        }).ToList(),
+                        First = names.ValueKind == JsonValueKind.Object ? Strs(names, "first") : new List<string>(), Last = names.ValueKind == JsonValueKind.Object ? Strs(names, "last") : new List<string>(), Patterns = patterns,
+                        LesserPerMillion = ConditionParser.Int(root, "lesserPerMillion", 60)
+                    };
+                }
                 if (root.TryGetProperty("focuses", out var fo) && fo.ValueKind == JsonValueKind.Array)
                 {
                     static List<int> PIs(JsonElement e, string name, IReadOnlyList<int> d) => e.TryGetProperty(name, out var a) && a.ValueKind == JsonValueKind.Array ? a.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.Number).Select(x => x.GetInt32()).ToList() : d.ToList();
@@ -139,7 +157,7 @@ public static class HoldingCatalogLoader
             if (w.Feature.Length > 0 && features.All(f => f.Id != w.Feature)) throw new ContentException($"Work '{w.Id}' wants a feature '{w.Feature}' that is not defined.");
             if (w.Requires.Length > 0 && works.All(o => o.Id != w.Requires)) throw new ContentException($"Work '{w.Id}' requires a work '{w.Requires}' that is not defined.");
         }
-        return new HoldingCatalog(specs, buildings, rates, exchangeBuildings, taxes, contiguity) { Works = works, Features = features, Colony = colony, BodySlots = bodySlots, SmallSlots = smallSlots, Infrastructure = tracks, Rules = rules, Provinces = provinces };
+        return new HoldingCatalog(specs, buildings, rates, exchangeBuildings, taxes, contiguity) { Works = works, Features = features, Colony = colony, BodySlots = bodySlots, SmallSlots = smallSlots, Infrastructure = tracks, Rules = rules, Provinces = provinces, Cities = cities };
     }
 
     private static List<string> Strings(JsonElement el, string name) =>
@@ -151,7 +169,7 @@ public static class HoldingCatalogLoader
         Description = ConditionParser.OptStr(el, "description", ""), Bodies = Strings(el, "bodies"), Feature = ConditionParser.OptStr(el, "feature", ""), Deposit = ConditionParser.OptStr(el, "deposit", ""),
         Requires = ConditionParser.OptStr(el, "requires", ""), Limit = ConditionParser.OptStr(el, "limit", WorkDef.PerBody), Chokepoint = ConditionParser.Bool(el, "chokepoint", false),
         Cost = ParseResources(el, "cost"), Yield = ParseResources(el, "yield"), Upkeep = ParseResources(el, "upkeep"), BuildTurns = ConditionParser.Int(el, "buildTurns", 1),
-        MinTitleRank = ConditionParser.Int(el, "minTitleRank", 0), IsMegastructure = ConditionParser.Bool(el, "megastructure", false), On = ConditionParser.OptStr(el, "on", ""), NotHome = ConditionParser.Bool(el, "notHome", false), Defense = Dbl(el, "defense"), Depot = ConditionParser.Bool(el, "depot", false),
+        MinTitleRank = ConditionParser.Int(el, "minTitleRank", 0), IsMegastructure = ConditionParser.Bool(el, "megastructure", false), On = ConditionParser.OptStr(el, "on", ""), City = ConditionParser.OptStr(el, "city", ""), NotHome = ConditionParser.Bool(el, "notHome", false), Defense = Dbl(el, "defense"), Depot = ConditionParser.Bool(el, "depot", false),
         Prosperity = ConditionParser.Int(el, "prosperity", 0), Unrest = ConditionParser.Int(el, "unrest", 0), Population = ConditionParser.Int(el, "population", 0),
         Legitimacy = ConditionParser.Int(el, "legitimacy", 0), Glory = ConditionParser.Int(el, "glory", 0)
     };

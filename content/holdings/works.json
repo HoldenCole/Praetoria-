@@ -2287,6 +2287,296 @@
    "prosperity": 3,
    "glory": 7,
    "description": "Collectors round both suns, and a beam between them that lights the system's sky. It can be seen from the next star."
+  },
+  {
+   "id": "guild_halls",
+   "name": "Guild Halls",
+   "category": "orbital",
+   "city": "craftsmen",
+   "cost": {
+    "credits": 14,
+    "materials": 8
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 2
+   },
+   "prosperity": 2,
+   "description": "The trades keep their halls, their marks and their secrets here. Only a city of craftsmen has them."
+  },
+  {
+   "id": "pleasure_gardens",
+   "name": "Pleasure Gardens",
+   "category": "orbital",
+   "city": "resort",
+   "cost": {
+    "credits": 16,
+    "materials": 6
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 3
+   },
+   "prosperity": 3,
+   "description": "Terraces, baths and a season that half the region saves for. Only a resort has them."
+  },
+  {
+   "id": "bonded_warehouses",
+   "name": "Bonded Warehouses",
+   "category": "orbital",
+   "city": "port",
+   "cost": {
+    "credits": 16,
+    "materials": 10
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 4
+   },
+   "description": "Goods lie here under seal until the duty is paid, and the duty is paid here. Only a great port has them."
+  },
+  {
+   "id": "citadel",
+   "name": "Citadel",
+   "category": "military",
+   "city": "garrison",
+   "cost": {
+    "credits": 14,
+    "materials": 14,
+    "manpower": 3
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "manpower": 1
+   },
+   "defense": 0.6,
+   "description": "The fortress the city grew up under. Only a garrison city has one."
+  },
+  {
+   "id": "collegium",
+   "name": "Collegium",
+   "category": "orbital",
+   "city": "university",
+   "cost": {
+    "credits": 18,
+    "materials": 8
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 1
+   },
+   "prosperity": 2,
+   "unrest": -1,
+   "description": "The old schools, endowed and enlarged. Only a university town has one."
+  },
+  {
+   "id": "pilgrim_basilica",
+   "name": "Pilgrims' Basilica",
+   "category": "orbital",
+   "city": "shrine",
+   "cost": {
+    "credits": 16,
+    "materials": 12
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 1
+   },
+   "prosperity": 1,
+   "unrest": -2,
+   "description": "What the pilgrims come for. Only a holy city has one."
+  },
+  {
+   "id": "deep_workings",
+   "name": "Deep Workings",
+   "category": "extraction",
+   "city": "mining",
+   "cost": {
+    "credits": 14,
+    "materials": 10,
+    "manpower": 2
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 4
+   },
+   "description": "Shafts sunk past where anyone else would stop. Only a company town has them."
+  },
+  {
+   "id": "covered_market",
+   "name": "Covered Market",
+   "category": "orbital",
+   "city": "market",
+   "cost": {
+    "credits": 14,
+    "materials": 8
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 3
+   },
+   "prosperity": 2,
+   "description": "A hall big enough for the whole fair, whatever the weather. Only a market city has one."
+  },
+  {
+   "id": "great_granaries",
+   "name": "Great Granaries",
+   "category": "colony",
+   "city": "granary",
+   "cost": {
+    "credits": 12,
+    "materials": 10
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "manpower": 1,
+    "credits": 1
+   },
+   "population": 6,
+   "unrest": -1,
+   "description": "Seven years' corn under one roof. Only a breadbasket city has them."
+  },
+  {
+   "id": "slipways",
+   "name": "Slipways",
+   "category": "military",
+   "city": "shipwrights",
+   "cost": {
+    "credits": 16,
+    "materials": 14
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 2
+   },
+   "defense": 0.2,
+   "description": "Ways long enough for a cruiser's keel. Only a yard city has them."
+  },
+  {
+   "id": "old_quarter",
+   "name": "Old Quarter",
+   "category": "orbital",
+   "city": "old_city",
+   "cost": {
+    "credits": 14,
+    "materials": 6
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 1
+   },
+   "prosperity": 2,
+   "description": "The streets as they were, kept so: archives, tombs and the houses of the first families. Only an old city has one."
+  },
+  {
+   "id": "great_exchange",
+   "name": "The Great Exchange",
+   "category": "orbital",
+   "city": "exchange_city",
+   "cost": {
+    "credits": 30,
+    "materials": 16
+   },
+   "buildTurns": 4,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "credits": 7
+   },
+   "prosperity": 3,
+   "description": "The floor itself, rebuilt to hold everyone who wants to stand on it. There is one, in the commerce city of the Reach."
+  },
+  {
+   "id": "lode_pit",
+   "name": "The Great Pit",
+   "category": "extraction",
+   "city": "lode_city",
+   "cost": {
+    "credits": 26,
+    "materials": 18,
+    "manpower": 4
+   },
+   "buildTurns": 4,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "materials": 8
+   },
+   "description": "The pit taken down another mile. There is one, in the Lode."
+  },
+  {
+   "id": "institute_halls",
+   "name": "The Institute's Halls",
+   "category": "military",
+   "city": "academy_city",
+   "cost": {
+    "credits": 28,
+    "materials": 16
+   },
+   "buildTurns": 4,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "influence": 2,
+    "manpower": 2
+   },
+   "prosperity": 2,
+   "description": "New halls for the Institute, with the builder's name over the door. There is one, in the Academy city."
+  },
+  {
+   "id": "senate_precinct",
+   "name": "The Senate's Precinct",
+   "category": "orbital",
+   "city": "reach_capital",
+   "on": "world",
+   "cost": {
+    "credits": 34,
+    "materials": 20
+   },
+   "buildTurns": 4,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "influence": 3,
+    "credits": 3
+   },
+   "prosperity": 3,
+   "defense": 0.4,
+   "description": "The hill the Senate sits on, walled, paved and garrisoned as the capital of the Reach should be. There is one, and it stands in that capital."
   }
  ]
 }

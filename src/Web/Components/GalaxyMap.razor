@@ -68,6 +68,7 @@
                     <div>
                         <h2>@sel.Name</h2>
                         <div class="muted">@sel.PlanetClass world · @region?.Name <span class="ring @sel.Ring">@sel.Ring</span> · @sel.Culture culture@(sel.Capital ? " · THE CAPITAL" : "")@if (sel.PlanetHoldingId != null && w.Holding(sel.PlanetHoldingId) is { Population: > 0 } hw0) { <span data-head-citizens="@Census.Citizens(w, hw0)" title="@CitizensTip(w, hw0, c.Holdings.Spec(hw0.Specialization)?.MaxPopulation ?? 0)"> · @Census.Say(Census.Citizens(w, hw0)) citizens</span> }</div>
+                        @if (sel.PlanetHoldingId != null && w.Holding(sel.PlanetHoldingId) is { } hwg) { foreach (var gp in hwg.Provinces) { if (CitySystem.KindOf(c.Holdings, gp) is { Great: true } gk) { <div class="great-city" data-great="@gk.Id" title="@($"{gk.What} {CitySystem.Says(gk)}.")">★ @gp.City, @gk.Name</div> } } }
                     </div>
                     @if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="36" /> }
                 </div>
@@ -98,6 +99,10 @@
                     <div class="kv"><span>Loyalty</span><b class="@(planet.Unrest >= 50 ? "warn" : "")">@(100 - planet.Unrest)<span class="bar"><i style="width:@(100 - planet.Unrest)%"></i></span></b></div>
                     <div class="kv"><span>Built</span><b>@(planet.Buildings.Count == 0 ? "nothing" : string.Join(", ", planet.Buildings.Select(b => c.Holdings.Building(b)?.Name ?? b)))</b></div>
                     @if (w.Sieges.TryGetValue(planet.Id, out var sg)) { <div class="kv warn"><span>Siege</span><b>@(w.House(sg.BesiegerId)?.Name) · @sg.Turns/@sg.Required</b></div> }
+                    @if (planet.Provinces.Any(x => x.City.Length > 0))
+                    {
+                        <div class="kv" data-cities="@planet.Provinces.Count"><span>Cities</span><b class="cities-line">@for (int ci = 0; ci < planet.Provinces.Count; ci++) { var cp = planet.Provinces[ci]; var ckind = CitySystem.KindOf(c.Holdings, cp); if (ckind == null) { continue; } <span class="@(ckind.Great ? "great" : "")" title="@($"{ckind.What} {CitySystem.Says(ckind)}.")">@cp.City <i class="muted small">@ckind.Name, @Census.Short(CitySystem.Citizens(w, c.Holdings, planet, ci))</i></span> }</b></div>
+                    }
                     string take = G.Turn!.Fleets.HowToTake(w, planet, playerHouse);
                     @if (take.Length > 0) { <div class="small" data-how-to-take="@planet.Id">@take</div> }
                     @if (planet.InRebellion) { <div class="kv warn"><span>Rising</span><b>in revolt for @planet.Rebellion year(s) · breaks away after @RegionSystem.SecessionTurns</b></div> }
@@ -283,7 +288,7 @@
             string realm = polity.Length > 0 ? polity : n.Ring == Praetoria.Core.Galaxy.Ring.Beyond ? "" : !string.IsNullOrEmpty(reg?.StateName) ? "state:" + reg!.StateName : "reach";
             string realmColor = polity.Length > 0 ? polityColor : realm.StartsWith("state:") ? reg!.AccentColor : "#c3cde2";
             return new { id = n.SystemId, name = n.Name, x = n.X, y = n.Y, ownerId = n.OwnerHouseId, ownerName = n.OwnerHouseName, accent = n.AccentColor, polity, polityName, polityColor, realm, realmColor, isPlayer = n.IsPlayerTerritory, contested = n.Contested,
-                planetClass = n.PlanetClass, pop = n.Population, citizens = n.PlanetHoldingId != null && w.Holding(n.PlanetHoldingId) is { } ph ? Census.Say(Census.Citizens(w, ph)) : "", unrest = n.Unrest, stations = n.Stations, regionId = n.RegionId, governor = n.GovernorName, rebel = n.Rebellion > 0, capital = n.Capital, ring = n.Ring, chokepoint = n.Chokepoint, conquered = taken?.kind, deposits = n.Deposits == null ? "" : string.Join(" ", n.Deposits.Keys.Select(k => k == "helium3" ? "³He" : k == "rare_earths" ? "RE" : "Iso")),
+                planetClass = n.PlanetClass, great = n.PlanetHoldingId != null && w.Holding(n.PlanetHoldingId) is { } gh ? string.Join(" · ", gh.Provinces.Where(x => CitySystem.KindOf(c.Holdings, x)?.Great == true).Select(x => x.City + ", " + CitySystem.KindOf(c.Holdings, x)!.Name)) : "", pop = n.Population, citizens = n.PlanetHoldingId != null && w.Holding(n.PlanetHoldingId) is { } ph ? Census.Say(Census.Citizens(w, ph)) : "", unrest = n.Unrest, stations = n.Stations, regionId = n.RegionId, governor = n.GovernorName, rebel = n.Rebellion > 0, capital = n.Capital, ring = n.Ring, chokepoint = n.Chokepoint, conquered = taken?.kind, deposits = n.Deposits == null ? "" : string.Join(" ", n.Deposits.Keys.Select(k => k == "helium3" ? "³He" : k == "rare_earths" ? "RE" : "Iso")),
                 bodies = Bodies(w, n),
                 sunWorks = w.BodyWorks.Count > 0 && w.Galaxy!.System(n.SystemId) is { } sunSys && SystemWorks.In(w, n.SystemId).Any(x => x.Body >= 0 && x.Body < sunSys.Bodies.Count && sunSys.Bodies[x.Body].IsStar),
                 deepWorks = SystemWorks.Any(w) && w.Galaxy!.System(n.SystemId) is { } deepSys ? SystemWorks.In(w, n.SystemId).Count(x => x.Body >= 0 && x.Body < deepSys.Bodies.Count && deepSys.Bodies[x.Body].IsSpace) : 0,

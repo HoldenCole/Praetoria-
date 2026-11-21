@@ -261,6 +261,8 @@ public sealed class Economy
     /// <summary>The most manpower a house can hold: one for each of the people of its worlds, and never less than
     /// <see cref="MusterFloor"/>. One world does not keep a hundred million under arms.</summary>
     public static int MusterCap(World world, string houseId) => Math.Max(MusterFloor, world.HoldingsOf(houseId).Where(h => h.IsPlanet).Sum(h => h.Population));
+    /// <summary>The same, with what the garrison cities and breadbasket cities of its worlds add (docs/CITIES.md).</summary>
+    public static int MusterCap(World world, string houseId, Data.HoldingCatalog? cat) => MusterCap(world, houseId) + (cat != null ? CitySystem.Muster(world, cat, houseId) : 0);
     /// <summary>Where a house's manpower stands after a year: what it had and what the year brought, but not past the cap by
     /// the year's gain, and with a share of any excess already held standing down.</summary>
     public static int MusterSettle(int had, int net, int cap)
@@ -294,6 +296,7 @@ public sealed class Economy
         if (world.Galaxy != null && holding.IsPlanet && world.Galaxy.Capital == holding.SystemId) Add("the capital draws trade", 5);   // (GDD §19)
         if (holding.IsPlanet) Add("the ventures in the system, by their levels", ProsperityPerVentureLevel * world.Businesses.Values.Where(b => b.SystemId == holding.SystemId).Sum(b => b.Level));
         if (holding.IsPlanet && SystemWorks.Any(world)) Add("the works of the system", SystemWorks.Prosperity(world, _catalog, holding.SystemId));   // a trade station, the garden estates (docs/SYSTEMS.md)
+        if (holding.IsPlanet) foreach (var (city, pr, _) in CitySystem.OnWorld(_catalog, holding)) Add(city, pr);   // a resort, a market city (docs/CITIES.md)
         return why;
     }
 
@@ -311,6 +314,7 @@ public sealed class Economy
         Add("the laws of the house", Law(world, house.Id, "unrest_drift", lawRegion));
         Add("the law of the Reach", ReachLaw(world, "unrest_drift"));
         if (holding.IsPlanet && world.PlanetOf(holding.SystemId) == holding) Add("the works of the system", SystemWorks.Unrest(world, _catalog, holding.SystemId));
+        if (holding.IsPlanet) foreach (var (city, _, un) in CitySystem.OnWorld(_catalog, holding)) Add(city, un);   // a holy city, a company town (docs/CITIES.md)
         return why;
     }
 
@@ -357,7 +361,7 @@ public sealed class Economy
             int manpowerBefore = house.Treasury.Manpower;
             house.Treasury.Add(ledger.Net);
             // a house keeps under arms no more than its worlds can muster (the owner, 2026-11-21: "there should 100% be a cap")
-            int cap = MusterCap(world, house.Id), settled = MusterSettle(manpowerBefore, ledger.Net.Manpower, cap);
+            int cap = MusterCap(world, house.Id, _catalog), settled = MusterSettle(manpowerBefore, ledger.Net.Manpower, cap);
             if (settled != house.Treasury.Manpower)
             {
                 if (house.Id == world.Protagonist?.HouseId && manpowerBefore < cap) world.Tell("info", $"Your worlds can muster no more: manpower stands at {cap}, which is what their {Presentation.Census.Say(Presentation.Census.CitizensOf(world, house.Id))} citizens can keep under arms. It grows only as they do.", "house", house.Id);

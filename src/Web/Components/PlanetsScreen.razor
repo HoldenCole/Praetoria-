@@ -35,6 +35,18 @@
             @foreach (var (id, label) in new[] { ("worlds", "The worlds"), ("regions", "The regions") }) { var tid = id; <button class="rung @(_tab == tid ? "here" : "")" @onclick="() => _tab = tid">@label</button> }
         </nav>
         @if (_tab == "worlds") {
+        <section class="panel" data-great-cities="@CitySystem.Great(w, c.Holdings).Count()">
+            <h3><Icon Name="worlds" Size="13" /> The great cities of the Reach <span class="muted">one of each · click to go there</span></h3>
+            @foreach (var (gk, gw, gi) in CitySystem.Great(w, c.Holdings))
+            {
+                string gsys = gw.SystemId; var gholder = w.House(ProvinceSystem.HolderOf(gw, gi)); var gb = c.Holdings.Work(gk.Building); bool gstands = gb != null && (gw.Provinces[gi].Buildings.Contains(gb.Id) || w.BodyWorks.Any(x => x.SystemId == gsys && x.DefId == gb.Id));
+                string gdoes = CitySystem.Says(gk); string gonly = gb == null ? "" : " Only here: " + gb.Name + (gstands ? " (it stands)." : " (not yet raised).");
+                <div class="great-row" @onclick="() => OnFocus.InvokeAsync(gsys)">
+                    <b>★ @gw.Provinces[gi].City</b> <span class="city-kind">@gk.Name</span> <span class="muted small">on @gw.Name · @Census.Say(CitySystem.Citizens(w, c.Holdings, gw, gi)) citizens · held by <span style="color:@(gholder?.AccentColor ?? "inherit")">@(gholder?.Id == house.Id ? "your house" : gholder?.Name ?? "nobody")</span></span>
+                    <div class="muted small">@gk.What @(gdoes.Length > 0 ? gdoes + "." : "")@gonly</div>
+                </div>
+            }
+        </section>
         <section class="panel">
             <h3><Icon Name="worlds" Size="13" /> The world board <span class="muted">click a world</span></h3>
             <div class="pick-row"><span class="muted small">Region</span> <select @onchange='e => _region = string.IsNullOrEmpty(e.Value?.ToString()) ? null : e.Value!.ToString()'><option value="">all the regions</option>@foreach (var r in regions) { <option value="@r.Id" selected="@(_region == r.Id)">@r.Name</option> }</select></div>

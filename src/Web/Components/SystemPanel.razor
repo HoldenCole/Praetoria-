@@ -119,7 +119,8 @@
                     @if (world && planet!.Provinces.Count > 0)
                     {
                         var over = ProvinceSystem.Over(w, planet); string hid3 = planet.Id; string ownerName = mine ? "Your house" : w.House(planet.OwnerId)?.Name ?? "A house";
-                        <h5 class="sysp-h prov">Provinces <span class="muted">three to a world · each held by a house, for life</span></h5>
+                        <h5 class="sysp-h prov">Provinces and their cities <span class="muted">three to a world · each held by a house, for life · each with a chief city of its own kind</span></h5>
+                        @if (planet.Population > 0 && planet.Provinces.Any(x => x.City.Length > 0)) { <div class="muted small" data-lesser="@CitySystem.Lesser(w, cat, planet)">Besides its chief cities the world has about @CitySystem.Lesser(w, cat, planet) lesser cities and towns, where most of its @Census.Say(Census.Citizens(w, planet)) citizens live. They grow with the world's development and are not named.</div> }
                         @if (planet.Provinces[0].SettledUntil > w.Turn) { <div class="muted small">A peace holds the world its holder's until year @planet.Provinces[0].SettledUntil.</div> }
                         <div class="muted small sysp-over">@ownerName holds the world, and its seat with it. @(over == null ? "Nobody stands over it." : (over.Id == house.Id ? "You stand" : over.Name + " stands") + " over it, and may ask it to make way.")</div>
                         @for (int pi = 0; pi < planet.Provinces.Count; pi++)
@@ -135,6 +136,16 @@
                                 <div class="sw-head"><b>@pv.Name</b> @LevelPips(pv.Level) <span class="muted small">@(pf?.Name ?? pv.Focus)@(planet.Population > 0 ? " · " + Census.Say(Census.CitizensOfProvince(w, planet, pi)) + " citizens" : "")</span>
                                     @if (pi > 0) { <span class="sysp-slots" title="@($"Building slots of the province: {pbuilt} built · {prising} rising · {pslots} open of {cat.Provinces.SlotMax} at the most. One to begin with; more by the system's development and the rank of the house that holds the province.")">@for (int k = 0; k < Math.Max(pslots, cat.Provinces.SlotMax); k++) { <i class="@(k < pbuilt ? "on" : k < pbuilt + prising ? "up" : k >= pslots ? "lock" : "")"></i> }</span> }
                                 </div>
+                                @if (CitySystem.KindOf(cat, pv) is { } ck)
+                                {
+                                    /* the province's chief city: its name, its kind, how many live there, and what is special about it */
+                                    var cb = ck.Building.Length > 0 ? cat.Work(ck.Building) : null; bool cbStands = cb != null && (pv.Buildings.Contains(cb.Id) || (pi == 0 && w.BodyWorks.Any(x => x.SystemId == sys.Id && x.DefId == cb.Id)));
+                                    string cityDoes = CitySystem.Says(ck); string cityOnly = cb == null ? "" : " Only here: " + cb.Name + (cbStands ? " (it stands)." : pi == 0 ? ", raised on the home world." : ", raised in the province's slots.");
+                                    <div class="sysp-city @(ck.Great ? "great" : "")" data-city="@ck.Id" title="@ck.What">
+                                        <b>@pv.City</b> <span class="city-kind">@ck.Name</span> <span class="muted small">· @Census.Say(CitySystem.Citizens(w, cat, planet, pi)) citizens</span>
+                                        <div class="muted small">@ck.What @(cityDoes.Length > 0 ? cityDoes + "." : "")@cityOnly</div>
+                                    </div>
+                                }
                                 <div class="sw-does">@(pmine ? "Yours" : w.House(holderId)?.Name ?? "nobody's")@(pi > 0 && holderId != planet.OwnerId ? (pv.Since > 0 ? " since year " + pv.Since : ", for life") : pi == 0 ? ", with the world" : "") · @(pyield.IsEmpty() ? "pays nothing" : "+" + CourtProjection.Bundle(pyield) + " a year")@(pf != null && pf.Defense > 0 ? " · defence +" + (pf.Defense * Math.Max(1, pv.Level)).ToString("0.##") : "")@(atWar ? " · withheld: its house is at war with the holder of the world" : "")</div>
                                 @if (pi > 0 && holderId != planet.OwnerId && !atWar)
                                 {
@@ -303,7 +314,7 @@
                         @if (world)
                         {
                             var wfits = cat.Buildings.Where(x => x.FitsSpecialization(planet!.Specialization) && !planet.Buildings.Contains(x.Id) && !hbRising.Any(p => p.DefId == x.Id) && (x.RequiresDeposit == null || sys.Deposit(x.RequiresDeposit) > 0)).OrderBy(x => x.Cost.Credits + x.Cost.Materials).ToList();
-                            var homeOnly = cat.Works.Where(d => !d.IsMegastructure && d.On == "world" && SystemWorks.Suits(sys, b, d) && !standing.Any(x => x.Id == d.Id) && !rising.Any(p => p.DefId == d.Id)).OrderBy(d => d.Cost.Credits + d.Cost.Materials).ToList();
+                            var homeOnly = cat.Works.Where(d => !d.IsMegastructure && d.On == "world" && SystemWorks.Suits(sys, b, d, planet) && !standing.Any(x => x.Id == d.Id) && !rising.Any(p => p.DefId == d.Id)).OrderBy(d => d.Cost.Credits + d.Cost.Materials).ToList();
                             var ordinary = cat.Works.Where(d => !d.IsMegastructure && d.On != "world" && SystemWorks.Suits(sys, b, d) && !standing.Any(x => x.Id == d.Id) && !rising.Any(p => p.DefId == d.Id)).OrderByDescending(d => d.Deposit.Length > 0).ThenBy(d => d.Cost.Credits + d.Cost.Materials).ToList();
                             @if (homeOnly.Count > 0) { <h6 class="sysp-sub">Only on a home world</h6> }
                             @foreach (var d in homeOnly) { @WorkRow(d, sys, idx, mine, ctx) }

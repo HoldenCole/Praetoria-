@@ -35,7 +35,7 @@ public static class ProvinceSystem
     {
         var rules = cat.Provinces; var g = w.Galaxy; if (rules.Focuses.Count == 0 || g == null || rules.Focus(ProvinceRules.Seat) == null) return;
         var todo = w.Holdings.Values.Where(h => h.IsPlanet && h.Provinces.Count == 0 && g.System(h.SystemId) != null).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
-        if (todo.Count == 0) return;
+        if (todo.Count == 0) { CitySystem.Seed(w, cat); return; }   // a game from before there were cities has them laid out here
         var held = new Dictionary<string, int>(); var byRegion = new Dictionary<string, List<string>>(); var landed = new HashSet<string>();
         foreach (var h in w.Holdings.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
         {
@@ -66,6 +66,7 @@ public static class ProvinceSystem
             }
         }
         w.WorldCounters["provinces_seeded"] = 1; w.ProvincesChanged();
+        CitySystem.Seed(w, cat);
     }
 
     /// <summary>The two things a world's other provinces are given over to: a deposit its system carries first, the march on a
@@ -92,6 +93,7 @@ public static class ProvinceSystem
     {
         var d = new Resources(); if (cat.Provinces.Focus(p.Focus) is not { } f) return d; var sys = w.Galaxy?.System(planet.SystemId);
         foreach (var r in Resource.All) d.Set(r, f.Yield.Get(r) * Math.Max(1, p.Level));
+        var city = CitySystem.Yield(cat, p); foreach (var r in Resource.All) d.Add(r, city.Get(r));   // what its chief city gives, whatever the province's level (docs/CITIES.md)
         foreach (var id in p.Buildings) if (cat.Work(id) is { } b) foreach (var r in Resource.All) d.Add(r, ((b.Deposit == r ? b.Yield.Get(r) * Math.Max(1, sys?.Deposit(r) ?? 1) : b.Yield.Get(r)) - b.Upkeep.Get(r)) * p.LevelOf(id));
         return d;
     }
@@ -237,7 +239,7 @@ public static class ProvinceSystem
             if (!y.IsEmpty()) yield return (h.Provinces[i].Name, y);
         }
     }
-    public static double Defense(HoldingCatalog cat, Holding planet) { double d = 0; foreach (var p in planet.Provinces) { d += (cat.Provinces.Focus(p.Focus)?.Defense ?? 0) * Math.Max(1, p.Level); foreach (var id in p.Buildings) d += (cat.Work(id)?.Defense ?? 0) * p.LevelOf(id); } return d; }
+    public static double Defense(HoldingCatalog cat, Holding planet) { double d = CitySystem.Defense(cat, planet); foreach (var p in planet.Provinces) { d += (cat.Provinces.Focus(p.Focus)?.Defense ?? 0) * Math.Max(1, p.Level); foreach (var id in p.Buildings) d += (cat.Work(id)?.Defense ?? 0) * p.LevelOf(id); } return d; }
 
     // ---------------- building in a province ----------------
 
@@ -257,6 +259,7 @@ public static class ProvinceSystem
     /// one kept off a settled world, not one a system has only one of; and one that works a deposit only in the province given over to it.</summary>
     public static bool Suits(HoldingCatalog cat, Galaxy.StarSystem sys, Province p, WorkDef d) =>
         !d.IsMegastructure && d.On != "world" && !d.NotHome && d.Feature.Length == 0 && d.Requires.Length == 0 && d.Limit == WorkDef.PerBody && d.Fits(sys.PlanetClass)
+        && (d.City.Length == 0 || d.City == p.CityKind)   // a building of one kind of city goes up in a city of that kind and nowhere else (docs/CITIES.md)
         && (d.Deposit.Length == 0 || (cat.Provinces.Focus(p.Focus)?.Deposit == d.Deposit && sys.Deposit(d.Deposit) > 0));
     public static string? BuildRefusal(World w, HoldingCatalog cat, House house, Holding planet, int index, WorkDef def, bool explain = true)
     {

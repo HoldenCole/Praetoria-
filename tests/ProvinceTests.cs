@@ -57,6 +57,7 @@ public class ProvinceTests
     public void AProvince_PaysItsHolder_AndIsImprovedAsFarAsDevelopmentAllows()
     {
         var (w, tc, house, me, ctx) = Start(); var eco = new Economy(Cat, Content.Businesses); var rules = Cat.Provinces;
+        foreach (var x in w.Holdings.Values.SelectMany(h => h.Provinces)) x.CityKind = "";   // this is the arithmetic of a province and its level: what its city adds on top is CityTests' business
         var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var lines = eco.Compute(w, house.Id).Lines.Where(l => l.Kind == "province").ToList();
         // the seat of the house's own world pays it; so does every province it was given on another's
         Assert.Contains(lines, l => l.Source == seat.Provinces[0].Name); var given = w.ProvincesOf(house.Id); Assert.NotEmpty(given);
@@ -197,6 +198,7 @@ public class ProvinceTests
     public void ABuildingInAProvince_IsTakenHigher_AndTellsOnTheWorld()
     {
         var (w, tc, house, me, ctx) = Start(); var eco = new Economy(Cat, Content.Businesses);
+        foreach (var x in w.Holdings.Values.SelectMany(h => h.Provinces)) x.CityKind = "";   // a building's own arithmetic, without what the province's city adds (CityTests)
         var (far, idx) = w.ProvincesOf(house.Id).First(x => Cat.Works.Any(d => ProvinceSystem.Suits(Cat, w.Galaxy!.System(x.h.SystemId)!, x.h.Provinces[x.i], d) && d.BuildTurns <= 1 && !d.Yield.IsEmpty()));
         var sys = w.Galaxy!.System(far.SystemId)!; var p = far.Provinces[idx]; string target = ProvinceSystem.Target(far.Id, idx);
         var def = Cat.Works.First(d => ProvinceSystem.Suits(Cat, sys, p, d) && d.BuildTurns <= 1 && !d.Yield.IsEmpty());
